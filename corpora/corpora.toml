@@ -1,0 +1,179 @@
+# The corpora comment-review is measured against.
+#
+# Every rate in the skill -- 9% precision on the abs() detector, 4 of 84 dangling
+# paths real, 27 of 48 residual runs one line over cap, 2 of 28 authored
+# docstrings false -- was measured on ONE codebase and written down as though it
+# were a property of the detector. It may instead be a property of that project's
+# house style. A single corpus cannot tell those apart.
+#
+# ⚠ EVERY ENTRY IS PINNED. A moving corpus makes a regression indistinguishable
+# from the corpus having changed underneath the measurement, which cost a full
+# day's comparison when the reference repository advanced mid-run.
+#
+# `expect` is a PREDICTION, and the point of the set. A heavily reviewed project
+# should yield fewer findings per block than a solo one. If that gradient does
+# not appear, the tool is measuring noise rather than prose defects -- which is a
+# result, and a publishable one.
+#
+#   kind    local  = a repo on this machine; materialised as a git worktree,
+#                    nothing copied.
+#           public = fetched by URL at a tag; shallow, optionally sparse.
+#   expect  low | medium | high  findings per block.
+#   style   the docstring convention the corpus should exercise in stage 0.3.
+
+[[corpus]]
+name = "redacted_corpus"
+kind = "local"
+source = "C:/Users/Roy/projects/redacted_corpus"
+ref = "REDACTED_SHA_A"
+style = "google"
+expect = "high"
+note = """
+The reference corpus, and the one every rule was derived from -- so it is the
+LEAST useful evidence that a rule generalises. Pinned at the commit carrying the
+twelve planted hazards in `evals/discriminators.md`. Solo project, no doc-hygiene
+guard in the tree at this commit, which the runs measured as the cause of a high
+citation-rot rate.
+"""
+
+[[corpus]]
+name = "redacted_corpus_b"
+kind = "local"
+source = "C:/Users/Roy/projects/redacted_corpus_b"
+ref = "a4bc6ec"
+style = "unknown"
+expect = "high"
+note = """
+Second solo project by the same author, 16 tracked .py files. Small, but it is
+the cheapest available test of whether a finding is about editing or about one
+project: same author, same habits, different domain. A rule that fires here and
+nowhere else is about the author; one that fires here and in django is about
+prose.
+"""
+
+# ── Public corpora ────────────────────────────────────────────────────────────
+# Chosen for VARIETY OF PROSE CONVENTION, not popularity. Curation level is the
+# independent variable; docstring style is the confound worth spanning.
+#
+# ⚠ These exist to CALIBRATE A DETECTOR. Findings against them are measurements,
+# not defect reports, and are not a queue of pull requests to send anybody.
+
+[[corpus]]
+name = "flask"
+kind = "public"
+source = "https://github.com/pallets/flask"
+ref = "3.1.0"
+style = "sphinx"
+expect = "low"
+note = "Small, mature, one house style, decades of review. A near-floor reading."
+
+[[corpus]]
+name = "fastapi"
+kind = "public"
+source = "https://github.com/fastapi/fastapi"
+ref = "0.115.6"
+style = "google"
+expect = "low"
+note = """
+Modern, type-hint heavy, docstrings doing double duty as published API
+reference -- so its prose is READ by users, not only by maintainers. The
+strongest available contrast with a solo project's inward-facing comments.
+"""
+
+[[corpus]]
+name = "numpy"
+kind = "public"
+source = "https://github.com/numpy/numpy"
+ref = "v2.2.0"
+sparse = ["numpy/lib", "numpy/linalg"]
+style = "numpydoc"
+expect = "low"
+note = """
+Decades old, terse, C-adjacent, and the origin of numpydoc -- a convention the
+skill's stage 0.3 has never seen. Sparse: two subpackages are enough to measure a
+rate and the whole tree is far more than a pass can afford.
+"""
+
+[[corpus]]
+name = "django"
+kind = "public"
+source = "https://github.com/django/django"
+ref = "5.1.4"
+sparse = ["django/core", "django/db/models"]
+style = "sphinx"
+expect = "low"
+note = """
+The most heavily reviewed Python codebase available, with a written style guide
+and a mandatory review culture. The low-water mark: if comment-review finds as
+much here per block as in a solo project, the detector is noisy and the gradient
+hypothesis is refuted.
+"""
+
+# ── The cell that was missing ─────────────────────────────────────────────────
+# Every other public corpus here is pre-assistant AND heavily reviewed, so
+# "curated" and "human-written" are collinear and no measurement can separate
+# them. The reference corpus is the opposite corner: solo and essentially
+# entirely assistant-written. These two are the corner neither can reach --
+# assistant-written code that a real review culture DID see.
+#
+# ⚠ They need HISTORY, not just a tree. The within-repo split blames each comment
+# block to the commit that introduced it and asks whether that commit carries an
+# assistant trailer; a depth-1 clone makes that impossible. `depth = 0` is full.
+#
+# Found by searching popular repos for trailers rather than searching trailers
+# for repos -- the latter sorts by recency and returns solo projects, which is
+# the corner already occupied.
+
+[[corpus]]
+name = "meta-package-manager"
+kind = "public"
+source = "https://github.com/kdeldycke/meta-package-manager"
+ref = "v7.6.1"
+depth = 0
+style = "unknown"
+expect = "medium"
+note = """
+609 stars, 96 assistant-trailer commits, 44 MB -- small enough for a full pass
+WITH full history, which is what makes it the primary specimen rather than the
+impressive one. Both arms of the trailer split live in one repo, so author,
+reviewer, style guide and domain are all held constant and the generator is the
+only variable. This is the first measurement in the project with a real control.
+"""
+
+[[corpus]]
+name = "sentry"
+kind = "public"
+source = "https://github.com/getsentry/sentry"
+ref = "master"
+depth = 0
+sparse = ["src/sentry/api", "src/sentry/models"]
+style = "unknown"
+expect = "medium"
+note = """
+44.5k stars and 2451 assistant-trailer commits, against deep pre-assistant
+history -- the largest available sample of both arms under one review culture.
+⚠ 895 MB, so it is sparse and depth-limited, and `ref` is a BRANCH rather than a
+tag: the visible tags are stale and a branch pin is weaker than a commit. Record
+the resolved SHA when a measurement is taken from it, or the result is not
+reproducible. Fetched once at b8df2b57097d2c452a4ba22d56054ae8e51931ac.
+
+⚠⚠ depth MUST be 0. A depth-2000 fetch put 96% of blamed lines on the graft
+commit -- which carried a trailer, so the entire pre-assistant codebase was
+labelled assisted and the split reported 1213 assisted blocks against 28 human.
+The numbers were clean, plausible and meaningless. generator_split.py now
+refuses a shallow checkout rather than reporting one.
+"""
+
+[[corpus]]
+name = "pymc"
+kind = "public"
+source = "https://github.com/pymc-devs/pymc"
+ref = "v5.19.1"
+sparse = ["pymc/distributions"]
+style = "numpydoc"
+expect = "medium"
+note = """
+Scientific code where a DERIVATION is the comment -- the `derivation` acquittal
+and the recompute-before-acquitting rule have only ever been tested against one
+project's hand-worked arithmetic. Mid-sized review culture.
+"""
