@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "roy-local",
+  "description": "Locally developed Claude Code plugins, installed from this working tree so the skill can be edited and used in the same session",
+  "owner": {
+    "name": "Roy"
+  },
+  "plugins": [
+    {
+      "name": "comment-review",
+      "source": "./plugins/comment-review",
+      "description": "An editorial board for the comments and docstrings a change touched: four read-only reviewers over one prose tree, verdicts the human approves, then a sweep that applies them and proves the code untouched."
+    }
+  ]
+}
