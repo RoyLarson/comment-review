@@ -185,14 +185,21 @@ history) since it depends on `git blame`.
   recorded in a cited file. Cite the source inline.
 - Prefer a glossary entry over repeated inline definitions.
 - Do not write subjective statements about properties of the project — "robust", "elegant",
-  "clean architecture", "carefully designed", "works well", "a solid foundation" — in comments,
+  "carefully designed", "solid", "maintainable", "intuitive", "works well" — in comments,
   docstrings, README prose, or commit messages. A false *measurement* can be re-derived and
-  corrected; a claim that something is "clean" has no oracle. Nothing can check it, so it
+  corrected; a claim that something is "robust" has no oracle. Nothing can check it, so it
   survives every review and every rewrite regardless of whether it was ever true — it is the
   one class of prose this repo's four reviewer angles cannot catch, because both currency and
   functionality need something to resolve the claim against. Write what is measured, what is
   enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
   by reading the code or re-running a command, it does not belong.
+- `clean` is reserved, not a synonym for "vaguely good": it is one of the nine verdicts
+  (line 97 above) and must not be used as a loose adjective for code or prose anywhere in
+  this repo. As a verdict it means nothing to report from that angle, and each angle's
+  `clean` asserts something specific — locality: the prose sits in the appropriate place;
+  currency: it describes the code as it acts now; functionality: the statement follows the
+  truthy form and follows from what the function does; module coherence: the statement fits
+  within the whole module's scope of work.
 
 ## Exploration Budget
 
