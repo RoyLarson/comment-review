@@ -19,6 +19,13 @@ namespaced and resolve only if the plugin was installed before the session
 started -- measured failing on 3 of 3 verification runs. With the paths in the
 packet, the sanctioned fallback (four general-purpose agents given the paths of
 their angle file and the brief) is a substitution, not an improvisation.
+
+Three sections carry an answer a machine can check, and they ARE checked --
+`LEVEL` against the four level names, `CENSUS` and each `ANGLE FILES` entry
+against the filesystem. Presence alone was not enough: replacing every hint
+with `x` reported "Complete: all 11 sections answered", which is the shape of
+a check that reads like a pass. The other eight are prose no oracle settles,
+and this says nothing about them.
 """
 
 from __future__ import annotations
@@ -73,6 +80,19 @@ SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
+# ⚠ Bound to a NAME so no `except` clause here holds a tuple LITERAL -- the
+# same rule as `census.py`'s `READ_ERRORS`. ValueError is in this one because
+# `Path.exists()` raises it (not OSError) on a candidate holding a NUL byte,
+# and a packet is arbitrary text a person typed.
+PATH_ERRORS = (OSError, ValueError)
+
+# The four names `SKILL.md`'s level table defines. A level outside this set
+# dispatches four reviewers against a verdict vocabulary nobody published.
+LEVELS = ("fact-check", "line", "full", "proof")
+
+# A leading list marker, so `- /abs/path` and `1. /abs/path` name the path
+# rather than the bullet.
+LIST_MARK = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+")
 
 
 def template() -> str:
@@ -90,6 +110,21 @@ def template() -> str:
     return "\n".join(out)
 
 
+def section_bodies(text: str) -> dict[str, list[str]]:
+    """Every section's raw body, keyed by its heading, in order.
+
+    Every occurrence is kept, not just the first -- a section given twice must
+    not let one answered copy mask an empty other.
+    """
+    heads = list(SECTION.finditer(text))
+    bodies: dict[str, list[str]] = {}
+    for i, m in enumerate(heads):
+        name = m.group(1).strip().upper()
+        end = heads[i + 1].start() if i + 1 < len(heads) else len(text)
+        bodies.setdefault(name, []).append(text[m.end() : end])
+    return bodies
+
+
 def missing_sections(text: str) -> list[str]:
     """Required sections that are absent, or present with no answer.
 
@@ -103,15 +138,7 @@ def missing_sections(text: str) -> list[str]:
         hints must be replaced with a real answer, not merely reflowed,
         half-closed, or left as a bare delimiter.
     """
-    heads = list(SECTION.finditer(text))
-    # Every occurrence is kept, not just the first -- a section given twice
-    # must not let one answered copy mask an empty other. All occurrences of
-    # a name must carry an answer, or the name is bad.
-    bodies: dict[str, list[str]] = {}
-    for i, m in enumerate(heads):
-        name = m.group(1).strip().upper()
-        end = heads[i + 1].start() if i + 1 < len(heads) else len(text)
-        bodies.setdefault(name, []).append(text[m.end() : end])
+    bodies = section_bodies(text)
     bad: list[str] = []
     for name in REQUIRED:
         occurrences = bodies.get(name)
@@ -140,11 +167,88 @@ def _answered(body: str) -> bool:
     `c` genuinely sits outside that first span by the same rule -- not a
     hole in this check.
     """
+    return any(ch.isalnum() for ch in _hintless(body))
+
+
+def _hintless(body: str) -> str:
+    """A section's body with its template hint spans removed.
+
+    Complete `<!-- ... -->` spans go wherever they wrap (non-greedy, across
+    newlines); an unterminated `<!--` is treated as running to the end of the
+    body. What is left is what the person filling the packet actually wrote.
+    """
     text = COMMENT.sub("", body)
     opener = text.find("<!--")
     if opener != -1:
         text = text[:opener]
-    return any(ch.isalnum() for ch in text)
+    return text
+
+
+def _answer_lines(body: str) -> list[str]:
+    """The non-blank lines of a section's answer, hints removed."""
+    return [ln.strip() for ln in _hintless(body).splitlines() if ln.strip()]
+
+
+def _resolves(candidate: str) -> bool:
+    """Is this an ABSOLUTE path that exists on this machine?
+
+    Both halves matter and neither implies the other. A relative path resolves
+    against whatever directory a reviewer happens to be in, which is the
+    failure `ANGLE FILES` carries absolute paths to avoid; an absolute path
+    that is not there dispatches a reviewer at a file it cannot open.
+    """
+    try:
+        path = Path(candidate)
+        return path.is_absolute() and path.exists()
+    except PATH_ERRORS:
+        return False
+
+
+def _path_candidates(line: str) -> list[str]:
+    """The strings on this line that could be the path it names.
+
+    A line may be bare, bulleted, or labelled (`locality: /abs/path`). A
+    Windows path carries a colon of its own, so splitting on ":" is not safe;
+    the whole line and its LAST whitespace token are tried instead, and the
+    line passes if either resolves.
+    """
+    bare = LIST_MARK.sub("", line).strip().strip("`").strip()
+    out = [bare]
+    tail = bare.split()[-1].strip("`") if bare.split() else ""
+    if tail and tail != bare:
+        out.append(tail)
+    return out
+
+
+def invalid_answers(text: str) -> list[str]:
+    """Answers that are present but unusable, one line each.
+
+    Only the three sections a machine can settle: `LEVEL` against the four
+    published level names, `CENSUS` and each `ANGLE FILES` entry against the
+    filesystem. The other eight carry prose no oracle checks, and their
+    absence from this list is not a pass on them.
+
+    Args:
+        text: the filled packet, already known to have every section answered.
+
+    Returns:
+        One string per problem, naming the section and what it holds.
+    """
+    bodies = section_bodies(text)
+    bad: list[str] = []
+    for body in bodies.get("LEVEL", []):
+        answer = " ".join(_hintless(body).split()).strip("`. ")
+        if answer.lower() not in LEVELS:
+            bad.append(f"LEVEL: {answer!r} is not one of {' | '.join(LEVELS)}")
+    for body in bodies.get("CENSUS", []):
+        for line in _answer_lines(body):
+            if not any(_resolves(c) for c in _path_candidates(line)):
+                bad.append(f"CENSUS: {line!r} is not an absolute path that exists")
+    for body in bodies.get("ANGLE FILES", []):
+        for line in _answer_lines(body):
+            if not any(_resolves(c) for c in _path_candidates(line)):
+                bad.append(f"ANGLE FILES: {line!r} is not an absolute path that exists")
+    return bad
 
 
 def main() -> int:
@@ -178,9 +282,22 @@ def main() -> int:
             "\nDo not dispatch. A reviewer cannot report a context it never received."
         )
         return 1
+
+    invalid = invalid_answers(text)
+    if invalid:
+        print(f"UNUSABLE — {len(invalid)} answer(s) a reviewer cannot act on:")
+        for problem in invalid:
+            print(f"  {problem}")
+        print(
+            "\nDo not dispatch. An answer that does not resolve is the same"
+            " dispatch failure as a blank one, arriving later."
+        )
+        return 1
+
     print(
-        f"Complete: all {len(REQUIRED)} sections answered."
-        " Dispatch all four in ONE message."
+        f"Complete: all {len(REQUIRED)} sections answered, and LEVEL, CENSUS and"
+        " ANGLE FILES check out.\n⚠ The other eight are prose nothing here can"
+        " settle. Dispatch all four in ONE message."
     )
     return 0
 

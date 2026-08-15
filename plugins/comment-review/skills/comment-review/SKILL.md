@@ -472,9 +472,13 @@ python <skill>/scripts/run_context.py --check <run-dir>/context.md
 
 It refuses a section that is absent **or present and blank** — *"no cap
 published"* is an answer and must be written; a blank is a question nobody
-asked. Hand every reviewer the one path. Measured: a run dispatched without a
-style sheet introduced **14 en-GB spellings** into a codebase whose identifiers
-are en-US, and every angle was satisfied because nothing owned consistency.
+asked. It then refuses the three answers a machine can settle: `LEVEL` must be
+one of the four level names, and `CENSUS` and every `ANGLE FILES` entry must be
+an **absolute path that exists**. ⚠ **The other eight are prose it cannot
+check**, and passing says nothing about them. Hand every reviewer the one path.
+Measured: a run dispatched without a style sheet introduced **14 en-GB
+spellings** into a codebase whose identifiers are en-US, and every angle was
+satisfied because nothing owned consistency.
 
 ⚠ **The template matters because reviewers write replacement text.** A correct sentence in the
 wrong docstring convention is a finding the human has to redo by hand, and they are not

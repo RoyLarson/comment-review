@@ -157,6 +157,80 @@ class TestAnswered(unittest.TestCase):
         )
 
 
+class TestCheckableAnswers(unittest.TestCase):
+    """I4: presence was the whole check, so `x` in every section passed.
+
+    Replacing every hint with `x` reported "Complete: all 11 sections
+    answered" and dispatched four reviewers at a level that does not exist,
+    against a census path that does not resolve. Three of the eleven answers
+    are settleable by a machine and are now settled.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name).resolve()
+        self.census = self.root / "census.json"
+        self.census.write_text("[]", encoding="utf-8")
+        self.angle = self.root / "locality.md"
+        self.angle.write_text("angle\n", encoding="utf-8")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _packet(self, level="full", census=None, angles=None):
+        census = self.census.as_posix() if census is None else census
+        angles = [self.angle.as_posix()] if angles is None else angles
+        return (
+            FULL.replace("## LEVEL\nfull", f"## LEVEL\n{level}")
+            .replace("## CENSUS\n/tmp/run-abc/census.txt", f"## CENSUS\n{census}")
+            .replace(
+                "## ANGLE FILES\n/abs/agents/comment-review-locality.md",
+                "## ANGLE FILES\n" + "\n".join(angles),
+            )
+        )
+
+    def test_a_valid_packet_has_no_invalid_answers(self):
+        packet = self._packet()
+        self.assertEqual(run_context.missing_sections(packet), [])
+        self.assertEqual(run_context.invalid_answers(packet), [])
+
+    def test_a_level_outside_the_four_is_named(self):
+        problems = run_context.invalid_answers(self._packet(level="deep"))
+        self.assertTrue(any(p.startswith("LEVEL:") for p in problems), problems)
+
+    def test_every_published_level_is_accepted(self):
+        for level in run_context.LEVELS:
+            self.assertEqual(
+                run_context.invalid_answers(self._packet(level=level)), [], level
+            )
+
+    def test_a_relative_census_path_is_named(self):
+        problems = run_context.invalid_answers(self._packet(census="census.json"))
+        self.assertTrue(any(p.startswith("CENSUS:") for p in problems), problems)
+
+    def test_an_absolute_census_path_that_is_not_there_is_named(self):
+        gone = (self.root / "gone.json").as_posix()
+        problems = run_context.invalid_answers(self._packet(census=gone))
+        self.assertTrue(any(p.startswith("CENSUS:") for p in problems), problems)
+
+    def test_each_angle_file_entry_is_checked_not_just_the_first(self):
+        entries = [self.angle.as_posix(), (self.root / "missing.md").as_posix()]
+        problems = run_context.invalid_answers(self._packet(angles=entries))
+        self.assertEqual(len(problems), 1, problems)
+        self.assertIn("missing.md", problems[0])
+
+    def test_a_bulleted_and_a_labelled_entry_both_resolve(self):
+        entries = [f"- {self.angle.as_posix()}", f"locality: {self.angle.as_posix()}"]
+        self.assertEqual(run_context.invalid_answers(self._packet(angles=entries)), [])
+
+    def test_every_x_packet_is_refused(self):
+        # The exact reproduction: a hint replaced by `x` everywhere.
+        packet = "\n".join(f"## {name}\nx\n" for name in run_context.REQUIRED)
+        self.assertEqual(run_context.missing_sections(packet), [])
+        problems = run_context.invalid_answers(packet)
+        self.assertEqual(len(problems), 3, problems)
+
+
 class TestCLI(unittest.TestCase):
     """`main()` end to end -- the unreadable-packet branch must actually gate."""
 
@@ -186,6 +260,22 @@ class TestCLI(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("CANNOT READ", result.stdout)
         self.assertNotIn("Traceback", result.stderr)
+
+    def test_a_present_but_unusable_answer_gates_at_the_exit_code(self):
+        # I4, end to end: every section answered with `x` reported "Complete:
+        # all 11 sections answered" at exit 0 and dispatched four reviewers.
+        packet = Path(self.tmp.name) / "context.md"
+        packet.write_text(
+            "\n".join(f"## {name}\nx\n" for name in run_context.REQUIRED),
+            encoding="utf-8",
+        )
+        result = self._run("--check", str(packet))
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("UNUSABLE", result.stdout)
+        self.assertIn("LEVEL:", result.stdout)
+        self.assertIn("CENSUS:", result.stdout)
+        self.assertIn("ANGLE FILES:", result.stdout)
+        self.assertNotIn("Complete:", result.stdout)
 
 
 if __name__ == "__main__":
