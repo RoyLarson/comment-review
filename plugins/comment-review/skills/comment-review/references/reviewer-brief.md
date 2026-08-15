@@ -1,6 +1,7 @@
 # comment-review — the shared reviewer brief
 
-Handed to all four reviewers, with one angle file each. **Read this first.**
+Handed to every reviewer this run dispatches, with one angle file each. **Read this first.**
+(At `full` that is four; a restricted `level` runs fewer — your run context says which.)
 
 ## You are READ-ONLY
 
@@ -38,7 +39,7 @@ the review, not a block that passed.
 ## Every finding has five parts
 
 ```
-VERDICT     the verdict (the eight are defined below) - what to change or not change about the documentation
+VERDICT     the verdict (the nine are defined below) - what to change or not change about the documentation
 LOCATION    file:start-end  (and the sentence, if the block holds several)
 SUMMARY     the claim AS WRITTEN, quoted  ||  the code line that SETTLES it
 FINDING     what is wrong with the prose, in one clause
@@ -51,20 +52,21 @@ the number **and the population you counted over**.
 
 ### The verdicts, and what each one MUST carry
 
-A verdict is a recommendation the task agent will combine with three others and synthesise into
-one comment. It is only usable if it carries its payload, so **a verdict without its payload is
+A verdict is a recommendation the task agent will combine with the other angles' and synthesise
+into one comment. It is only usable if it carries its payload, so **a verdict without its payload is
 not a finding** — *"correct the count"* hands the judgement back; *"replace X with Y"* is the
 finding.
 
 | verdict   | use it when                                      | payload                                                              |
 | --------- | ------------------------------------------------ | -------------------------------------------------------------------- |
-| `clean`   | the block passes **your** angle's checks         | nothing — name your angle, nothing else                              |
+| `clean`   | nothing to report FROM YOUR ANGLE                | nothing — name your angle, nothing else                              |
 | `query`   | you cannot settle the claim                      | the claim, what you checked, and what WOULD settle it                |
 | `drop`    | the sentence should not exist at all             | the sentence, verbatim                                               |
 | `correct` | the claim is **FALSE**                           | the false clause **and** the true one, plus the line that settles it |
 | `patch`   | the claim is **TRUE**, the wording is not        | the rewrite                                                          |
 | `add`     | a constraint exists in code and nowhere in prose | the text **and its anchor** — which declaration, above or below      |
-| `move`    | real rationale that does not belong in code      | the destination **and** the verbatim extract                         |
+| `move`    | true, and not code's to hold AT ALL              | the destination **and** the verbatim extract                         |
+| `reanchor`| true and code's, but on the WRONG LINE           | the declaration it constrains, **in this file**                      |
 | `split`   | one block holds two unrelated notes              | each fragment **and its own anchor**                                 |
 
 ⚠⚠ **`correct` and `patch` are not interchangeable, and the difference is the whole point.**
@@ -72,6 +74,12 @@ finding.
 applies every `correct` **before** any `patch`, so mislabelling one as the other means a false
 claim gets its wording polished and never gets checked. That is the laundering failure in its
 purest form. If you are unsure which applies, you have not settled the claim — that is `query`.
+
+⚠⚠ **`move` leaves the code; `reanchor` stays in the file.** If the right home is a
+declaration ten lines down, that is `reanchor`, and it is ALWAYS available. `move` needs a
+destination tree the task agent resolved at 1.4 and can be unavailable for a whole run --
+so calling an in-file relocation `move` gets it converted to `clean` and the finding is
+LOST. Measured on a real run, on exactly this shape.
 
 ⚠ **There is no `compact` here.** Shortening is stage 6's, after the truth is written and only
 as far as a cap requires. You cannot propose that a block be shorter; you can only say which
@@ -82,9 +90,11 @@ sentences are false, misplaced, missing or badly worded.
 placement is somebody else's pass. Emitting a verdict your level does not carry is not a
 finding; it is scope you were not given.
 
-⚠ **`clean` is scoped to YOU.** It is not a pass — it is one angle declining to find anything,
-and three other angles are looking at the same block. Nothing you emit can bless a block; only
-four independent `clean`s can, and the task agent computes that, you do not assert it.
+⚠ **`clean` is scoped to YOU.** It is not a pass — it is one angle having nothing to report,
+including when the block is outside what your angle reads, and the other angles are looking at
+the same block. Nothing you emit can bless a block; only a `clean` from **every angle that
+ran** can, and the task agent computes that — you do not assert it. ⚠ Do not invent a word for
+"outside my angle": that is `clean`, and a ninth word breaks the arithmetic.
 
 Tag each `CONFIRMED` (you read both sides — the prose and the code that settles it) or
 `SUSPECTED`. ⚠ **`SUSPECTED` is not terminal**: it returns for re-review, and if still

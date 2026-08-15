@@ -47,7 +47,7 @@ code it claims to describe is not local to it.
 **A line carrying a non-obvious constraint with no comment at all**, where getting it wrong is
 silent. Verdict `add`; write the sentence.
 
-## ⚠⚠ Locality is a PRESERVATION property — so a misplaced rule is `move`, never `drop`
+## ⚠⚠ Locality is a PRESERVATION property — so a misplaced rule is `reanchor`, never `drop`
 
 A rule attached to the wrong symbol **has no defender**. Nothing around it evidences that it
 matters, so it reads as narration and the next length-driven pass takes it. **The most likely
@@ -61,6 +61,13 @@ the part genuinely local to the constant — which was the decision, not the rea
 **So the finding is where it BELONGS, not that it is misplaced.** Name the declaration,
 statement or function it constrains and propose it there. *"Misplaced, compact it where it
 sits"* is the verdict that loses it next time.
+
+⚠⚠ **The word is `reanchor`, and it is NOT `move`.** `move` means take the prose OUT of the
+code to a destination tree, which the task agent may have ruled unavailable for the whole run —
+in which case your finding is converted to `clean` and vanishes. `reanchor` means re-attach the
+block, unchanged, to the right line in this same file, and it is **always available**. Measured
+on a real run: an in-file relocation reported as `move` was converted to `clean` by exactly
+that rule, leaving the rule sitting precisely where this section says it will be deleted.
 
 ## Formatting, not locality
 

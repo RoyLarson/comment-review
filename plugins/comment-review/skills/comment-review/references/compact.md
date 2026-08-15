@@ -24,8 +24,15 @@ block**:
 Condensing per-block during the EDIT gets all three wrong, and each error looks like a
 successful edit.
 
-⚠ **If any block is still marked incorrect, misplaced, or unresolved, stage 6 has not started
-yet.** Finish stage 5.
+⚠ **If any block is still marked incorrect or misplaced, stage 6 has not started yet.** Finish
+stage 5.
+
+⚠⚠ **An ESCALATED `query` does not block this pass, and must not.** Its destination is the
+author, who is first reached at 7a -- *after* this stage. Read as "unresolved blocks stage 6", a
+capped run holding one externally-unsettleable query could never legally reach approval.
+Measured on a real run: two such queries, both settleable only inside a dependency outside the
+checkout. **Compact the blocks whose verdicts are closed; carry an escalated query's block at
+its full length and say why.**
 
 ## ⚠ This pass exists only to apply a CAP
 
@@ -40,11 +47,13 @@ to do any of those, the EDIT was not finished — go back, or file it for the ne
 
 ## Per block
 
-1. **Take the ORIGINAL prose from `git show <base>:<path>`** — what is on disk today, which
-   at this stage is still the UNEDITED text, and not your scratch copy. You are checking
-   against what the block has ever said, not against your own last edit. ⚠ The blob is
-   authoritative and cannot be lost to an interruption; keep the scratch copy only as a
-   convenience.
+1. **Take the ORIGINAL prose from the pre-edit text** — `git show <base>:<path>` where 1.1
+   established a merge base, or **`git show HEAD:<path>` when `target` replaced the diff
+   scope**, because then 1.1 never ran and `<base>` has no referent. Either way it is what is
+   on disk today, which at this stage is still the UNEDITED text, and not your scratch copy.
+   You are checking against what the block has ever said, not against your own last edit.
+   ⚠ The blob is authoritative and cannot be lost to an interruption; keep the scratch copy
+   only as a convenience.
 2. **Cut, do not re-author.** For a block one or two lines over, remove the single
    least-checkable line — a hedge, an aside, a line restating the line below it. Measured:
    27 of 48 remaining runs were over by exactly ONE line, and re-authoring them all would
@@ -84,7 +93,7 @@ wearing a passing grade.**
 
 ## Rails
 
-Every rail in `sweep.md` still applies. One is specific to this pass:
+Every rail in `apply.md` still applies. One is specific to this pass:
 
 **Do not condense a block into the shape of its neighbours.** Matching surrounding style is how
 a sentence survives review by resembling what is around it rather than by being needed.
