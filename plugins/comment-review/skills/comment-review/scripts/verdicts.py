@@ -107,14 +107,29 @@ MIN_NEEDLE = 12
 # land somewhere else, and it lands on the PAYLOAD: a query must name a check
 # that was attempted and the thing that would settle the claim.
 #
-# ⚠ This is a SHAPE check and cannot tell a real grep from the word "grepped".
-# What it removes is the query that names no attempted check at all -- the one
-# that hands the judgement back. Requiring EVIDENCE of a query instead pushed
-# reviewers to invent a citation or downgrade to `clean`, which is the
-# fabrication this script exists to catch and the finding-loss the brief
-# records as measured.
-QUERY_ATTEMPTED = ("check", "grep", "read", "ran", "search", "open", "count", "look")
-QUERY_SETTLES = ("settle", "would need", "would show", "would confirm")
+# ⚠ This is, and can only ever be, a SHAPE check: it cannot tell a real grep
+# from the word "grepped", and it is not trying to -- its job is to remove the
+# query that names nothing at all, not to judge whether the check named was
+# really run. Requiring EVIDENCE of a query instead pushed reviewers to invent
+# a citation or downgrade to `clean`, which is the fabrication this script
+# exists to catch and the finding-loss the brief records as measured.
+#
+# Matched on WORD BOUNDARIES, not as substrings: a substring match let "ran"
+# hit *b**ran**ch*, *****ran***ge*, *t**ran**sfer* and let "settle" hit
+# *un**settle**d*, so ordinary English that names no check at all passed while
+# an honest query worded with "requires" / "resolves" / "determined by"
+# instead of "would ..." was refused. `grep` is the one deliberate exception --
+# left unanchored on its left so "ripgrep" still counts, since no ordinary
+# English word carries "grep" as an accidental substring the way "branch" and
+# "already" carry "ran" and "read".
+QUERY_ATTEMPTED = re.compile(
+    r"\bran\b|\bcheck\w*|grep\w*|\bread\w*|\bsearch\w*|\bopen\w*|\bcount\w*|\block\w*",
+    re.I,
+)
+QUERY_SETTLES = re.compile(
+    r"\bsettl\w*|\bwould\s+\w+|\brequires?\b|\bresolv\w*|\bdetermined\s+by\b",
+    re.I,
+)
 
 
 @dataclass
@@ -274,12 +289,12 @@ def payload_problem(f: Finding) -> str | None:
     """
     change = f.change.lower()
     if f.verdict == "query":
-        if not any(w in change for w in QUERY_ATTEMPTED):
+        if not QUERY_ATTEMPTED.search(change):
             return (
                 "query needs the check you ATTEMPTED — a query naming none"
                 " hands the judgement back"
             )
-        if not any(w in change for w in QUERY_SETTLES):
+        if not QUERY_SETTLES.search(change):
             return "query needs what WOULD settle the claim"
     if f.verdict == "correct" and not ("false:" in change and "true:" in change):
         return "correct needs a true/false pair in CHANGE"
@@ -426,7 +441,10 @@ def main() -> int:
     ap.add_argument(
         "--angles",
         default="",
-        help="comma-separated expected angle names; one missing a report is fatal",
+        help=(
+            "comma-separated expected angle names, matched against each report"
+            " file's STEM (locality.md -> locality); one missing a report is fatal"
+        ),
     )
     args = ap.parse_args()
 
@@ -491,7 +509,9 @@ def main() -> int:
         for angle in sorted(expected - set(clean)):
             print(
                 f"  NO REPORT from angle {angle!r} — a missing report is the"
-                " easier version of a fabricated one"
+                " easier version of a fabricated one. --angles is matched against"
+                f" each report file's STEM, so a report for {angle!r} must be"
+                f" named {angle}.md"
             )
             fatal += 1
     else:

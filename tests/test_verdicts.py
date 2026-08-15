@@ -211,6 +211,68 @@ class TestQueryPayload(unittest.TestCase):
         self.assertIn("WOULD settle", verdicts.payload_problem(f))
 
 
+class TestQueryWordBoundary(unittest.TestCase):
+    """The fix-round regression: `QUERY_ATTEMPTED`/`QUERY_SETTLES` matched as
+    plain substrings, so "ran" hit *b**ran**ch*, *****ran***ge*, *t**ran**sfer*
+    and "settle" hit *un**settle**d* -- ordinary English that names no check at
+    all was ADMITTED, while an honest query worded with "requires" instead of
+    "would ..." was wrongly REJECTED. Word-boundary matching must invert both.
+    """
+
+    def test_an_unsettled_branch_name_names_no_check_and_is_rejected(self):
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change="the branch name is unsettled",
+        )
+        self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
+
+    def test_a_range_of_values_names_no_check_and_is_rejected(self):
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change="a range of values, unsettled",
+        )
+        self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
+
+    def test_transfer_semantics_names_no_check_and_is_rejected(self):
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change="transfer semantics unsettled",
+        )
+        self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
+
+    def test_an_honest_query_worded_with_requires_is_admitted(self):
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change=(
+                "claim: the cap is 6. attempted: ripgrep over src/ for CAP."
+                " resolving it requires the deploy config"
+            ),
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+
+    def test_ripgrep_counts_as_an_attempted_check_though_grep_is_not_at_a_word_start(
+        self,
+    ):
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change=(
+                "claim: x / attempted: ripgrep -n TODO src/"
+                " / would confirm nothing found"
+            ),
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+
+
 class TestLevel(unittest.TestCase):
     def test_patch_is_illegal_at_fact_check(self):
         self.assertFalse(verdicts.allowed("patch", "fact-check"))
