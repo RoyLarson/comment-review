@@ -3,11 +3,12 @@
     python run_context.py --template > run-<id>/context.md
     python run_context.py --check run-<id>/context.md
 
-Stage 4 hands each reviewer seven things. Nothing checked the prompt before
-four agents fired in parallel, and a section quietly absent degrades an angle
-with no error anywhere: measured, a run with no style sheet introduced 14
-en-GB spellings into a codebase whose identifiers are en-US, and every angle
-was satisfied because nothing owned consistency.
+Stage 4 hands each reviewer the eleven sections `REQUIRED` names below.
+Nothing checked the prompt before four agents fired in parallel, and a
+section quietly absent degrades an angle with no error anywhere: measured, a
+run with no style sheet introduced 14 en-GB spellings into a codebase whose
+identifiers are en-US, and every angle was satisfied because nothing owned
+consistency.
 
 ⚠ A section that is present and EMPTY is a failure, not a default. "No cap
 published" is an answer and must be written; a blank is a question nobody
@@ -52,7 +53,9 @@ HINTS = {
     ),
     "MOVE DESTINATION": "the tree, or `UNAVAILABLE` — say which here, not at stage 6",
     "CENSUS": "absolute path, unique to THIS run",
-    "ANGLE FILES": "absolute path per angle, plus the brief",
+    "ANGLE FILES": (
+        "absolute path per angle, the brief, and the compact + review agents"
+    ),
     "FILES UNDER REVIEW": "one per line — the ONLY files a verdict may target",
     "REFERENCE ONLY": "one per line — read to settle a claim, never propose a change",
 }

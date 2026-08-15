@@ -634,8 +634,16 @@ SURVIVED, not what went; **refactoring drift**.
 **If no cap applies, the run SKIPS this stage entirely.** Say so: the prose is correct, and
 absent a budget "long" is not a defect.
 
-If there is a cap, and only once **every** block from stage 5 is CORRECT, load
-[`references/compact.md`](references/compact.md) and cut the edited text to fit.
+If there is a cap, and only once **every** block from stage 5 is CORRECT,
+dispatch `comment-review:comment-review-compact` with the narrow input contract
+below and the absolute path of [`references/compact.md`](references/compact.md).
+
+⚠⚠ **This pass is not yours to run.** You wrote the text; an agent that never
+saw the argument cannot preserve a sentence because it remembers writing it.
+The narrow contract is only a safety property if the reader is different from
+the writer. If the agent does not resolve, use the same fallback as 1.6 — a
+general-purpose agent given the path — and **say in the report that you ran it
+yourself** if you had to.
 
 ⚠ **Nothing is on disk yet.** This pass condenses the PROPOSED text, not a file — the author
 has not ruled and nothing has been applied. That is the whole reason this stage sits here: what
@@ -675,8 +683,15 @@ the author never saw.
 
 ## Stage 8 — REVIEW: the finished page
 
-On completion of 7b, load [`references/review.md`](references/review.md) and follow it. It is
-the only stage that reads the finished ARTIFACT against itself rather than prose against code,
+On completion of 7b, dispatch `comment-review:comment-review-review` with the
+list of changed files, the style sheet, and the absolute path of
+[`references/review.md`](references/review.md).
+
+⚠⚠ **This pass is not yours to run either**, and for the same reason: a reader
+who remembers intending each edit reads the page they meant to write. If the
+agent does not resolve, fall back as at 1.6 and say so.
+
+It is the only stage that reads the finished ARTIFACT against itself rather than prose against code,
 so it is the only one that can see damage the editing caused.
 
 ⚠ **Fix only what THIS pass created.** A defect that predates the run is a finding for the next

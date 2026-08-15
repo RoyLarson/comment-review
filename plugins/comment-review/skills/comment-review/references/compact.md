@@ -95,7 +95,9 @@ say why. Measured: a three-line Go export doc counted as over a cap of two.
 ⚠ **This is the input contract, and it is deliberately narrow:** the block's KIND, the original block, the
 edited text, the cap, the style sheet. Not the reasoning that produced the edit. An agent that
 never saw the argument cannot keep a sentence because it remembers writing it — which is what
-makes this pass safe to hand to a separate subagent.
+makes this pass safe. ⚠ **It IS a separate subagent —
+`comment-review:comment-review-compact` — not an optional handoff.** The
+contract only buys anything if the reader is not the writer.
 
 ## When the cap cannot be reached
 
