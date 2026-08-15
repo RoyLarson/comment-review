@@ -151,6 +151,7 @@ lives outside every project and is available in all of them.
 | path                      | what                                                                                                                                                    |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `plugins/comment-review/` | the plugin — `skills/`, `agents/`, manifests                                                                                                            |
+| `docs/`                   | durable guidance: how the census gets structure (`parsing.md`), and the rules for changing the skill itself (`limitations.md`)                          |
 | `evidence/`               | why each rule exists: ten probe reports that attacked the design, a genetic search over 28 candidate rewrites, and the triage that ranked what survived |
 | `evals/`                  | twelve planted hazards, a grader, and the authorship split                                                                                              |
 | `corpora/`                | the MANIFEST of pinned corpora. The trees themselves are fetched, never vendored                                                                        |
@@ -193,23 +194,28 @@ ignored one — and a check that cannot see a defect must not report it clean.
 
 ## Known gaps
 
-### The census is hardcoded to one language and one house style
+### The census reads eleven languages, but only lexically
 
-This is the largest gap and the one most worth contributing to. The four reading angles are
-language-neutral — they ask whether prose is in the right place, still true, describes what
-the code does, and agrees with its neighbours, and none of that is about syntax. The
-**census underneath them is not**: `sweep.py` extracts blocks with Python's `tokenize` and
-`ast`, walks the tree with `rglob("*.py")`, resolves cited paths against a fixed suffix
-list, and recognises a symbol name in prose only when it is written in `backticks`.
+The four reading angles are language-neutral — they ask whether prose is in the right
+place, still true, describes what the code does, and agrees with its neighbours, and none
+of that is about syntax. The census underneath them now reads eleven languages from a
+data table (`sweep.py --languages`), but at two very different depths: Python gets a real
+lexer and AST, everything else gets a comment-syntax record and a hand-rolled string
+skipper that is wrong on heredocs, raw strings and template nesting.
 
-Every one of those is a decision that should be **detected per project**, not compiled in:
+⚠ **No comment carries an owner, in any language.** A docstring's owner comes free from
+the AST; a `#` run's does not, and nothing infers it — so every locality verdict rests on
+a reviewer reading the file. See [docs/parsing.md](docs/parsing.md) for where structure
+could come from and what was already tried and rejected.
 
-| what varies                    | today                  | should be                                                                                       |
-| ------------------------------ | ---------------------- | ----------------------------------------------------------------------------------------------- |
-| where prose lives              | `#`, `"""docstring"""` | `//`, `/* */`, `--`, `%`, `;`, `<!-- -->`, doc-comment forms (`///`, `/** */`, `"""`, `=begin`) |
-| how prose names a symbol       | `` `backticks` `` only | whichever the codebase actually uses — measured from the tree, not assumed                      |
-| what a citable path looks like | a fixed suffix list    | the extensions present in the repo                                                              |
-| what an annotation can carry   | not modelled           | e.g. PEP 727 `Doc()`, JSDoc tags, doc attributes                                                |
+What is still compiled in rather than detected per project:
+
+| what varies                    | today                  | should be                                                                  |
+| ------------------------------ | ---------------------- | -------------------------------------------------------------------------- |
+| how prose names a symbol       | `` `backticks` `` only | whichever the codebase actually uses — measured from the tree, not assumed |
+| what a citable path looks like | a fixed suffix list    | the extensions present in the repo                                         |
+| what an annotation can carry   | not modelled           | e.g. PEP 727 `Doc()`, JSDoc tags, doc attributes                           |
+| Markdown and reStructuredText  | no record at all       | prose files are where cited documentation actually lives                   |
 
 The quoting convention is the sharpest case, because it is **not** a language property: two
 Python projects in the corpus disagreed with each other about it, and on one of them the
