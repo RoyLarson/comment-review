@@ -194,14 +194,11 @@ to make.
 
 ⚠⚠ **`ownership-context` runs at every level, including `fact-check`.** The other three check
 a claim against the code at their scope; a claim attached to the wrong scope is measured
-against the wrong code and `correct`ed into a falsehood. At `fact-check` it cannot `reanchor`
-— it emits `query`, which is exactly the verdict for a claim that cannot be settled where it
-sits.
+against the wrong code and `correct`ed into a falsehood.
 
 ⚠⚠ **The ladder changes shape and that is the point.** It used to add an ANGLE at each rung;
-now `line` adds only VERDICTS, because `ownership-context` already ran at `fact-check` and was
-holding its placement findings as `query`. Reaching `line` is what lets those become
-`reanchor` and `split`.
+now `line` adds only VERDICTS, because `ownership-context` already ran at `fact-check`. What it
+may emit there is `reviewer-brief.md`'s to say, not this file's.
 
 ⚠⚠ **If `move` is unavailable (1.4), NO level reaches the cap, and say so up front.** True
 rationale with no destination becomes `clean` and stays where it is, so COMPACT must cap prose
