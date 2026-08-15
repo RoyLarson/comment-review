@@ -129,12 +129,11 @@ as far as a cap requires. You cannot propose that a block be shorter; you can on
 sentences are false, misplaced, missing or badly worded.
 
 ⚠ **The LEVEL you were given restricts which verdicts you may emit.** At `fact-check` you have
-`correct`, `query` and `clean` only. For block-context and module-context, a true-but-misplaced
-block is `clean` for you — placement is not your question. For `ownership-context`, and for
-`function-context` on the one misplacement the split below gives it, a true-but-misplaced block
-is never `clean`: `reanchor` is not in this level's verdict set, so the finding is `query` — the
-claim cannot be settled where it sits. Emitting a verdict your level does not carry is not a
-finding; it is scope you were not given.
+`correct`, `query` and `clean` only. For block-context, function-context and module-context, a
+true-but-misplaced block is `clean` for you — this level does not do placement work. For
+`ownership-context` itself, a true-but-misplaced block is never `clean`: `reanchor` is not in
+this level's verdict set, so the finding is `query` — the claim cannot be settled where it sits.
+Emitting a verdict your level does not carry is not a finding; it is scope you were not given.
 
 ⚠ **`clean` is scoped to YOU.** It is not a pass — it is one angle having nothing to report,
 including when the block is outside what your angle reads, and the other angles are looking at
@@ -282,19 +281,20 @@ they draw different conclusions. The split is fixed:
 `ownership-context`'s; a rule with no home in the CODE is `module-context`'s. Neither may
 emit the other's verdict.
 
-### One block on the wrong line — who owns it
+### One block, two placements — which one governs
 
-Both `ownership-context` and `function-context` see a true block that does not describe the
-line it sits on, and both emit `reanchor` for it. The split is the INPUT each one reads:
+`ownership-context` and `function-context` can both `reanchor` the same block, and send it to
+different lines: one to a home elsewhere in the codebase, the other to a line inside this
+function. Both findings stand — two angles reaching one block is evidence it is load-bearing.
+The precedence between them is fixed:
 
-| angle | reads | the misplacement it sees |
-|---|---|---|
-| `ownership-context` | ONE block against the line it sits on | the block constrains a declaration elsewhere, so it makes no proposition about this code |
-| `function-context` | ALL of a body's comments, in order, against the order the body executes | the block is about this body, and the sequence disagrees with the body |
+**`ownership-context` governs.** The other three each measure a claim against the code at their
+own scope, so a block whose home is outside that scope was measured against the wrong code and
+its placement finding falls with it. Reordering a comment inside a function it does not belong
+to is wrong work.
 
-⚠ The discriminator is what settles it. A misplacement the block and its own line settle is
-`ownership-context`'s, at any scope; `function-context` files only the one the ORDER shows, and
-`ownership-context` does not read a body as a sequence.
+⚠ Neither angle withholds anything. `function-context` files the ordering `reanchor` it sees;
+`ownership-context` files the home it names; the task agent holds both and applies this order.
 
 ## You are not given the cap
 

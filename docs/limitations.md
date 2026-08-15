@@ -23,9 +23,9 @@ write the generalization and delete both.
 
 | agent file (`plugins/comment-review/agents/`) | lines |
 | --- | --- |
-| `comment-review-ownership-context.md` | 102 |
+| `comment-review-ownership-context.md` | 101 |
 | `comment-review-block-context.md` | 100 |
-| `comment-review-function-context.md` | 128 |
+| `comment-review-function-context.md` | 129 |
 | `comment-review-module-context.md` | 120 |
 
 ⚠ Each is AT budget, so the replaces-one rule is live on all four. Raising a number here is a

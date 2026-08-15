@@ -111,12 +111,13 @@ docstring is describing the first few lines only.
 
 ## Comments in the body are read IN ORDER
 
-Read them as a sequence. A comment the ORDER shows is out of place — it describes a step the
-body performs later, or one an edit moved above it — is `reanchor` to the line in this function
-it does describe.
+Read them as a sequence. A comment that describes a step the body performs later, or that
+still describes a step an edit moved above it, is `reanchor` — the claim is true and belongs
+to a different line in this function.
 
-⚠ **The ordering is the only misplacement you file.** A block placeable by reading it against
-its own line is `ownership-context`'s; `reviewer-brief.md` splits them.
+⚠ **File it whatever `ownership-context` may find; it is the same block, ruled on twice.** Your
+`reanchor` names a line inside this function, and where that angle names a home outside it, that
+one governs — `reviewer-brief.md` states the precedence.
 
 ## What your `clean` asserts
 

@@ -15,11 +15,10 @@ edit. Everything below assumes it, and names verdicts the brief defines.
 
 **Your question: does this comment belong to the line it sits on?**
 
-You read ONE block against the line it sits on. The others read a claim against the code it
-sits with, against the function, or against the module. A comment can be true, current, and
-about the right subject, and still be in the wrong place — that is yours, with one exception:
-the misplacement only a body's comment ORDER shows is `function-context`'s. `reviewer-brief.md`
-splits them, and you do not read a body as a sequence.
+You read a comment against its *position*. The others read it against the code it sits with,
+against the function, or against the module. A comment can be true, current, and about the right
+subject, and still be in the wrong place — and where another angle also places it, yours
+governs. `reviewer-brief.md` states that precedence.
 
 ## ⚠⚠ You run BEFORE the other three, and this is why
 
