@@ -275,7 +275,7 @@ they draw different conclusions. The split is fixed:
 
 | angle | asks | verdict shape |
 |---|---|---|
-| `ownership-context` | which of these sites is this claim's HOME? | `reanchor`/`move` the claim to its owner, `drop` the copies |
+| `ownership-context` | which of these sites is this claim's HOME? | `reanchor` the claim to its owner, `drop` the copies |
 | `module-context` | does the rule have no OWNING FUNCTION, so each site re-explains it? | `add` the rule to the function that should hold it, and name that function |
 
 ⚠ Same observation, different finding. A claim with a home in the wrong place is

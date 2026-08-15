@@ -463,10 +463,10 @@ an over-cap or over-width count that reads like a project fact and is your own g
 
 | agent | asks |
 |---|---|
-| `comment-review:comment-review-ownership-context` | does this belong to the line it sits on? |
-| `comment-review:comment-review-block-context` | does this describe the program as it is now? |
-| `comment-review:comment-review-function-context` | does the commentary match what the function is for? |
-| `comment-review:comment-review-module-context` | do the comments say this is one module? |
+| `comment-review:comment-review-ownership-context` | does this comment belong to the line it sits on? |
+| `comment-review:comment-review-block-context` | is every claim in this block true of the code it sits with? |
+| `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
+| `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
 
 Each already carries its own angle and reads the shared brief itself. **You
 supply the run context as a PACKET, and the packet is checked before anyone is
