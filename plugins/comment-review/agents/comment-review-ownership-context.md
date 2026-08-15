@@ -87,9 +87,8 @@ block, unchanged, to the right line in this same file, and it is **always availa
 ## Formatting, not ownership-context
 
 A **trailing comment that carries past its own line** into comment-only lines beneath it reads
-badly — the eye must go back and find where the sentence started, mid-statement. The comment
-is usually about the right thing; the shape is wrong. **Lift the whole comment above the
-line.** Report it as FORMATTING, not as misplaced.
+badly. The comment is usually about the right thing; the shape is wrong. **Lift the whole
+comment above the line.** Report it as FORMATTING, not as misplaced.
 
 ## Return
 
