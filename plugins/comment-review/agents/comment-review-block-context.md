@@ -13,10 +13,15 @@ the shared contract — the finding format, **the nine verdicts and the payload 
 must carry**, the acquittal list, the CODE-vs-COMMENT boundary, and the rule that you never
 edit. Everything below assumes it, and names verdicts the brief defines.
 
-**Your question: does this describe the program as it is NOW?**
+**Your question: is every claim in this block true of the code it sits with?**
 
-Git holds what the code used to be and why it changed. A comment that narrates its own history
-is doing git's job badly, and it costs the reader every time.
+Three kinds of claim, and all three are yours:
+
+- **State** — does it describe the program as it is NOW, not as it was or will be.
+- **Constraint** — does it state the bound the code actually enforces: the same number, the
+  same direction, the same units, the same inclusivity. A constraint stated loosely is wrong,
+  not vague. *"Must be positive"* against `if x > 10` is a finding.
+- **Worked example** — does the example still produce what it claims. Run it.
 
 ## The ordinary forms
 
@@ -25,9 +30,7 @@ Dated rulings, review-round labels (*"fix round 2"*, *"finding B4"*), *"this use
 
 ## Obituaries
 
-A comment naming a symbol, file, test or flag that **no longer exists anywhere**. Worse than
-noise: a reader greps for the name, finds nothing, and reads that as *their* mistake rather
-than the comment's.
+A comment naming a symbol, file, test or flag that **no longer exists anywhere**.
 
 ⚠ **Not excused by being deliberate.** Every obituary was written on purpose, so "it is a
 deliberate record" acquits all of them. The test is **pointer vs subject**: strip the dead name
@@ -58,6 +61,15 @@ to stop.
 point"* is refuted twenty-five lines down often enough to check always; a *"single source of
 truth"* is usually refuted from **another module**, and nothing prompts you to go looking.
 
+## A constraint is checked against the code that enforces it
+
+Find the line that enforces the bound and compare four things: the VALUE, the DIRECTION
+(`>` vs `>=`), the UNITS, and what happens at the boundary. Report the enforcing line as your
+`QUOTE`.
+
+⚠ **An off-by-one in prose reads as correct to every other angle.** Nothing else here compares
+a stated bound against the comparison that implements it, so a wrong `>=` survives every pass.
+
 ## Cited paths and guards
 
 A comment saying a rule is *"pinned by tests/x.py"* is **licensing future edits** on that
@@ -65,14 +77,21 @@ evidence. Verify the file and the test exist — **and that the path still means
 says**. A citation that resolves into an archive or `completed/` directory while the prose
 frames the gap as still open is a finding, not a pass.
 
-A worked example is current or it is a lie. Run it.
+## A worked example is executed, never read
+
+Run it. An example that no longer produces its stated output is `correct`, and the
+replacement carries the real output.
+
+⚠ **If it cannot be run from the checkout — it needs network, a fixture that is gitignored, or
+state from another machine — it is `query`, not `clean`.** An example nobody can execute is
+indistinguishable from one that works.
 
 ## What is NOT yours
 
-Whether the history is *interesting*, or whether a rationale paragraph is well argued. You
-answer one question: is it true of the program today. Truth in the past is not a reason to keep
-prose — accuracy is why such a block was never deleted, not a reason to keep it. But a claim
-that is **false now** is `correct` or `drop`, never `clean`.
+Whether the history is *interesting*, or whether a rationale paragraph is well argued. You rule
+on the three kinds above, nothing else. Truth in the past is not a reason to keep prose —
+accuracy is why such a block was never deleted, not a reason to keep it. But a claim that is
+**false now** is `correct` or `drop`, never `clean`.
 
 ## Return
 
