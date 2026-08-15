@@ -104,5 +104,137 @@ class TestCLI(unittest.TestCase):
         self.assertIn("UnicodeDecodeError", result.stdout)
 
 
+class TestGrepStates(unittest.TestCase):
+    """C1: "no matches" and "search failed" must not collapse to one value."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name) / "repo"
+        self.repo.mkdir()
+        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
+        (self.repo / "solo.py").write_text("x = 1\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "add", "solo.py"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repo),
+                "-c",
+                "user.email=t@t",
+                "-c",
+                "user.name=t",
+                "commit",
+                "-qm",
+                "init",
+            ],
+            check=True,
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_a_genuine_zero_match_search_is_an_empty_list_not_none(self):
+        found, reason = referrers._grep(self.repo, "nowhere_in_this_repo")
+        self.assertEqual(found, [])
+        self.assertEqual(reason, "")
+
+    def test_a_search_that_cannot_run_is_none_with_a_reason_not_an_empty_list(self):
+        # No `git init` here: `git grep` exits >1 ("not a git repository"),
+        # a real failure -- not the same value as a completed zero-match search.
+        not_a_repo = Path(self.tmp.name) / "not-a-repo"
+        not_a_repo.mkdir()
+        found, reason = referrers._grep(not_a_repo, "anything")
+        self.assertIsNone(found)
+        self.assertNotEqual(reason, "")
+
+
+class TestNoGitIndex(unittest.TestCase):
+    """The no-git-index gap must be SAID, not read as an empty result."""
+
+    def test_a_non_git_directory_reports_no_index(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "solo.py"
+            target.write_text("x = 1\n", encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "referrers.py"),
+                    "--repo",
+                    tmp,
+                    str(target),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("NO GIT INDEX", result.stdout)
+
+
+class TestSuppression(unittest.TestCase):
+    """Property 2: a token above NOISE_FLOOR is SUPPRESSED with a count, not dumped."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name) / "repo"
+        self.repo.mkdir()
+        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
+        self.target = self.repo / "target.py"
+        self.target.write_text(
+            "def widely_used_helper():\n    pass\n", encoding="utf-8"
+        )
+        names = ["target.py"]
+        # One more than NOISE_FLOOR files naming the token, none of them the
+        # target itself, so the count crosses the threshold unambiguously.
+        for i in range(referrers.NOISE_FLOOR + 1):
+            p = self.repo / f"noise_{i}.py"
+            p.write_text(
+                f"# widely_used_helper, mentioned again ({i})\n", encoding="utf-8"
+            )
+            names.append(p.name)
+        subprocess.run(["git", "-C", str(self.repo), "add", *names], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repo),
+                "-c",
+                "user.email=t@t",
+                "-c",
+                "user.name=t",
+                "commit",
+                "-qm",
+                "init",
+            ],
+            check=True,
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _run(self):
+        cmd = [
+            sys.executable,
+            str(SCRIPTS / "referrers.py"),
+            "--repo",
+            str(self.repo),
+            str(self.target),
+        ]
+        return subprocess.run(
+            cmd, capture_output=True, text=True, encoding="utf-8", check=False
+        )
+
+    def test_the_token_is_suppressed_with_its_count_not_dumped_per_file(self):
+        result = self._run()
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("SUPPRESSED", result.stdout)
+        self.assertIn(
+            f"widely_used_helper ({referrers.NOISE_FLOOR + 1} files)", result.stdout
+        )
+        self.assertNotIn("names: widely_used_helper", result.stdout)
+        self.assertNotIn("noise_0.py", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

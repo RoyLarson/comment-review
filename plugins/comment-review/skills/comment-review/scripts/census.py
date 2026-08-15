@@ -61,7 +61,11 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 # the one that actually runs where this file is claimed to run.
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 DOC_OWNERS = (ast.Module,) + NAMED_DEFS
-PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError)
+# ⚠ ValueError included: `ast.parse` raises it (not SyntaxError) on a source
+# string containing a NUL byte -- a file that decoded as valid UTF-8 and so
+# passed `READ_ERRORS` cleanly. `code_names` walks the whole repo, so one such
+# file would crash the entire census rather than degrade one file's harvest.
+PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError, ValueError)
 GIT_ERRORS = (OSError, subprocess.SubprocessError)
 
 # A virtualenv in the tree POISONS the name corpus: every installed package's

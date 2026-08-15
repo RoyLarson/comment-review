@@ -11,9 +11,11 @@ Read-only, and always exits 0: this is an input to a review, not a gate. Every
 line it prints is a CANDIDATE. A file that names a token is a file to READ, not
 a file with a defect, and not a file a verdict may target.
 
-⚠ A token too common to discriminate is reported as SUPPRESSED with its hit
-count, never dumped. A detector below roughly 10% precision buries its own
-hits, so the list a human is asked to read must stay readable.
+⚠ A token appearing in more than NOISE_FLOOR tracked files is reported as
+SUPPRESSED with its hit count, never dumped as a per-file list: past that
+many files, the token is describing the codebase rather than this one, and
+printing every match would spend the reader's attention on a list they learn
+to skip -- which is how a real hit gets lost.
 """
 
 from __future__ import annotations
@@ -38,10 +40,15 @@ from census import GIT_ERRORS, git_ls_files  # noqa: E402  -- path shim first
 # it survives a rewrite nobody here will see. Matches `census.py`'s
 # `READ_ERRORS` / `GIT_ERRORS` and `prove_unchanged.py`'s same construct.
 READ_ERRORS = (OSError, UnicodeDecodeError)
-PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError)
+# ⚠ ValueError included: `ast.parse` raises it (not SyntaxError) on a source
+# string containing a NUL byte -- a file that decoded as valid UTF-8 and so
+# reached `ast.parse` cleanly. Without it, a single NUL-containing target
+# crashes this script's own promise to always exit 0.
+PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError, ValueError)
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
-# Above this many hits a token is describing the codebase, not this file.
+# A cap on how many candidates are worth printing for one token: above this
+# many hits, the token is describing the codebase, not this file.
 NOISE_FLOOR = 40
 
 
@@ -72,7 +79,7 @@ def tokens_for(path: Path, text: str) -> set[str]:
     return {t for t in out if len(t) > 2}
 
 
-def _grep(repo: Path, token: str) -> list[str]:
+def _grep(repo: Path, token: str) -> tuple[list[str] | None, str]:
     """Tracked files containing `token` as a fixed string.
 
     ⚠ The encoding is PINNED. git emits UTF-8; `text=True` alone decodes with
@@ -80,6 +87,18 @@ def _grep(repo: Path, token: str) -> list[str]:
     corrupted — so a real referrer is reported under a name that resolves to
     nothing. Measured on this repo's own `cp1252` machine against the same
     construct in `prove_unchanged.py`.
+
+    ⚠ `git grep` exits 1 for a genuine ZERO-MATCH search -- not an error --
+    and anything else (a bad pathspec, a corrupt index, a timeout) means the
+    search could not be completed at all. Collapsing all three into `[]`
+    reads a failed search exactly like "nothing found," the same defect this
+    project's `git_ls_files` names for the index check: None is a THIRD
+    state, not an empty list.
+
+    Returns:
+        `(files, "")` on a completed search -- `files` is `[]` for a real
+        zero-match result. `(None, reason)` when the search itself failed,
+        naming why.
     """
     try:
         got = subprocess.run(
@@ -90,9 +109,13 @@ def _grep(repo: Path, token: str) -> list[str]:
             timeout=60,
             check=False,
         )
-    except GIT_ERRORS:
-        return []
-    return got.stdout.splitlines() if got.returncode == 0 else []
+    except GIT_ERRORS as e:
+        return None, type(e).__name__
+    if got.returncode == 0:
+        return got.stdout.splitlines(), ""
+    if got.returncode == 1:
+        return [], ""
+    return None, f"git grep exit {got.returncode}"
 
 
 def main() -> int:
@@ -118,8 +141,10 @@ def main() -> int:
             print(f"  skipped {raw}: outside --repo")
 
     hits: dict[str, set[str]] = defaultdict(set)
-    suppressed: list[str] = []
+    # A set, not a list: two targets sharing a token must not double-print it.
+    suppressed: set[str] = set()
     unreadable: list[str] = []
+    unsearched: set[str] = set()  # same reason as `suppressed`
     for rel in sorted(under_review):
         target = repo / rel
         try:
@@ -128,9 +153,16 @@ def main() -> int:
             text = ""
             unreadable.append(f"{rel} ({type(e).__name__})")
         for token in sorted(tokens_for(Path(rel), text)):
-            found = [f for f in _grep(repo, token) if f not in under_review]
+            found, reason = _grep(repo, token)
+            if found is None:
+                # ⚠ NOT a zero-match result. The search itself did not
+                # complete, so a real referrer for this token may exist and
+                # go unreported -- distinct from "searched, found nothing."
+                unsearched.add(f"token {token!r} could not be searched ({reason})")
+                continue
+            found = [f for f in found if f not in under_review]
             if len(found) > NOISE_FLOOR:
-                suppressed.append(f"{token} ({len(found)} files)")
+                suppressed.add(f"{token} ({len(found)} files)")
                 continue
             for f in found:
                 hits[f].add(token)
@@ -145,17 +177,26 @@ def main() -> int:
         print(f"  {f}\n      names: {', '.join(sorted(hits[f]))}")
     if suppressed:
         print("\nSUPPRESSED — too common to discriminate, triage by hand if needed:")
-        for s in suppressed:
+        for s in sorted(suppressed):
             print(f"  {s}")
-    if unreadable:
+    if unreadable or unsearched:
         print("\nNOT CHECKED — these are gaps, not passes:")
         for u in unreadable:
             print(f"    {u}")
-        print(
-            "    !! Path and stem tokens for this file were still searched;\n"
-            "      its public top-level definitions were NOT harvested. The\n"
-            "      candidate list for it is incomplete until this list is empty."
-        )
+        for u in sorted(unsearched):
+            print(f"    {u}")
+        if unreadable:
+            print(
+                "    !! Path and stem tokens for these were still searched; their\n"
+                "      public top-level definitions were NOT harvested. The candidate\n"
+                "      list for them is incomplete until this list is empty."
+            )
+        if unsearched:
+            print(
+                "    !! A token whose search could not complete may have real\n"
+                "      referrers this report never saw. The candidate list is\n"
+                "      incomplete for these tokens until this list is empty."
+            )
     print(
         "\n⚠ CANDIDATES, not findings. A file here is REFERENCE ONLY unless it is "
         "also under review."
