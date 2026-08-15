@@ -130,9 +130,9 @@ sentences are false, misplaced, missing or badly worded.
 
 ⚠ **The LEVEL you were given restricts which verdicts you may emit.** At `fact-check` you have
 `correct`, `query` and `clean` only. For block-context, function-context and module-context, a
-true-but-misplaced block is `clean` for you — this level does not do placement work. For
-`ownership-context` itself, a true-but-misplaced block is never `clean`: `reanchor` is not in
-this level's verdict set, so the finding is `query` — the claim cannot be settled where it sits.
+true-but-misplaced block is `clean` for you. For `ownership-context` itself, a
+true-but-misplaced block is never `clean`: `reanchor` is not in this level's verdict set, so the
+finding is `query` — the claim cannot be settled where it sits.
 Emitting a verdict your level does not carry is not a finding; it is scope you were not given.
 
 ⚠ **`clean` is scoped to YOU.** It is not a pass — it is one angle having nothing to report,
@@ -283,18 +283,12 @@ emit the other's verdict.
 
 ### One block, two placements — which one governs
 
-`ownership-context` and `function-context` can both `reanchor` the same block, and send it to
-different lines: one to a home elsewhere in the codebase, the other to a line inside this
-function. Both findings stand — two angles reaching one block is evidence it is load-bearing.
-The precedence between them is fixed:
+`ownership-context` and `function-context` can both place the same block, and name different
+destinations for it. Both findings stand — two angles reaching one block is evidence it is
+load-bearing — and where the destinations differ, **`ownership-context`'s governs.**
 
-**`ownership-context` governs.** The other three each measure a claim against the code at their
-own scope, so a block whose home is outside that scope was measured against the wrong code and
-its placement finding falls with it. Reordering a comment inside a function it does not belong
-to is wrong work.
-
-⚠ Neither angle withholds anything. `function-context` files the ordering `reanchor` it sees;
-`ownership-context` files the home it names; the task agent holds both and applies this order.
+⚠ Neither angle defers to the other. Report the placement your angle sees, under the verdicts
+your level carries; the disagreement is not yours to resolve.
 
 ## You are not given the cap
 

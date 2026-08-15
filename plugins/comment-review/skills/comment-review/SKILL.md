@@ -192,8 +192,7 @@ a claim against the code at their scope; a claim attached to the wrong scope is 
 against the wrong code and `correct`ed into a falsehood.
 
 ⚠⚠ **The ladder changes shape and that is the point.** It used to add an ANGLE at each rung;
-now `line` adds only VERDICTS, because `ownership-context` already ran at `fact-check`. What it
-may emit there is `reviewer-brief.md`'s to say, not this file's.
+now `line` adds only VERDICTS, because `ownership-context` already ran at `fact-check`.
 
 ⚠⚠ **If `move` is unavailable (1.4), NO level reaches the cap, and say so up front.** True
 rationale with no destination becomes `clean` and stays where it is, so COMPACT must cap prose
@@ -613,8 +612,11 @@ the same check against the same original; none of them may check against the pre
 Then emit the replacement and run the residue check on **the whole synthesised block once** —
 not once per verdict. The check compares against the original, and the original was one block.
 
-**Three rules that resolve the common collisions:**
+**Four rules that resolve the common collisions:**
 
+- **Two placement verdicts on one block, naming different destinations:**
+  `ownership-context`'s destination governs, whether its verdict is `reanchor` or `move`. Both
+  findings stand; only the destination is decided.
 - **Any `correct` outranks every `clean`.** Three angles finding nothing does not soften one
   angle finding a falsehood; they were not looking for the same thing.
 - **`correct` and `patch` on the same sentence:** correct first, then re-read the patch against

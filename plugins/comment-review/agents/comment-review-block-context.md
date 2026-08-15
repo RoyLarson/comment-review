@@ -18,8 +18,9 @@ edit. Everything below assumes it, and names verdicts the brief defines.
 Three kinds of claim, and all three are yours:
 
 - **State** — does it describe the program as it is NOW, not as it was or will be.
-- **Constraint** — does it state the bound the code enforces, on every axis below. Stated
-  loosely it is wrong, not vague: *"must be positive"* against `if x > 10` is a finding.
+- **Constraint** — does it state the bound the code enforces, on every axis under *A constraint
+  is checked against the code that enforces it*. Stated loosely it is wrong, not vague: *"must
+  be positive"* against `if x > 10` is a finding.
 - **Worked example** — does the example still produce what it claims. Run it.
 
 ## The ordinary forms
