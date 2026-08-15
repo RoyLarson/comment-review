@@ -72,6 +72,10 @@ The new names state the scope, which makes the series and its ordering visible.
 - Modify: `plugins/comment-review/.claude-plugin/plugin.json`
 - Modify: `tests/test_verdicts.py`
 - Modify: `README.md`, `CLAUDE.md`, `evals/discriminators.md`
+- Modify: `docs/parsing.md` — carries `LOCALITY` at the "never improvise a parse" section
+
+⚠ **`docs/parsing.md` is easy to miss** — it is the only file outside `plugins/` and the
+top-level docs that names an angle, and it names it in caps mid-sentence.
 
 **Interfaces:**
 - Produces: agent IDs `comment-review:comment-review-{ownership,block,function,module}-context`.
@@ -120,8 +124,15 @@ Run this to enumerate before and after:
 ```bash
 grep -rn -io "currency\|functionality\|module-coherence\|module coherence\|modularity\|locality" \
   --include="*.md" --include="*.py" --include="*.json" . \
-  | grep -v "^./corpora\|^./evidence\|__pycache__" | wc -l
+  | grep -v "^./corpora\|^./evidence\|__pycache__\|superpowers/plans" | wc -l
 ```
+
+⚠⚠ **`docs/superpowers/plans/` is excluded and must stay excluded.** Both plan files there
+contain the old names throughout, in the "Why" sections that explain what is being renamed and
+in this very step. They are a historical record of a decision, not live rules — editing them
+would rewrite the reasoning to match its own outcome. Measured now, before the rename: **193
+occurrences repo-wide, 127 once the plans are excluded** — so 66 of them are plan text you
+must not touch. Work only on the 127.
 
 - [ ] **Step 5: Verify no survivors**
 
