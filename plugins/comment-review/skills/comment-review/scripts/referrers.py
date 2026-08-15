@@ -29,6 +29,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from census import GIT_ERRORS, git_ls_files  # noqa: E402  -- path shim first
 
+# ⚠ Bound to a NAME so no `except` clause here holds a tuple LITERAL. This
+# file ships under `plugins/` into other people's repositories and is
+# formatted by THEIR ruff config; a `target-version` newer than this file's
+# floor rewrites `except (A, B):` into PEP 758's unparenthesised form, a
+# SyntaxError on every older interpreter. `check_shipped_syntax.py` cannot
+# catch this class of defect -- it verifies the file parses today, not that
+# it survives a rewrite nobody here will see. Matches `census.py`'s
+# `READ_ERRORS` / `GIT_ERRORS` and `prove_unchanged.py`'s same construct.
+READ_ERRORS = (OSError, UnicodeDecodeError)
 PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError)
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
@@ -110,12 +119,14 @@ def main() -> int:
 
     hits: dict[str, set[str]] = defaultdict(set)
     suppressed: list[str] = []
+    unreadable: list[str] = []
     for rel in sorted(under_review):
         target = repo / rel
         try:
             text = target.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
+        except READ_ERRORS as e:
             text = ""
+            unreadable.append(f"{rel} ({type(e).__name__})")
         for token in sorted(tokens_for(Path(rel), text)):
             found = [f for f in _grep(repo, token) if f not in under_review]
             if len(found) > NOISE_FLOOR:
@@ -136,6 +147,15 @@ def main() -> int:
         print("\nSUPPRESSED — too common to discriminate, triage by hand if needed:")
         for s in suppressed:
             print(f"  {s}")
+    if unreadable:
+        print("\nNOT CHECKED — these are gaps, not passes:")
+        for u in unreadable:
+            print(f"    {u}")
+        print(
+            "    !! Path and stem tokens for this file were still searched;\n"
+            "      its public top-level definitions were NOT harvested. The\n"
+            "      candidate list for it is incomplete until this list is empty."
+        )
     print(
         "\n⚠ CANDIDATES, not findings. A file here is REFERENCE ONLY unless it is "
         "also under review."
