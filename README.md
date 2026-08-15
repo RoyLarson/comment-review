@@ -41,8 +41,8 @@ I broke down the comment review into four levels/categories
 - Ownership-Context - Is it in the right place, and does it belong to only one place
 - Block-Context - Is the state, every constraint and every worked example still true of the
   code it sits with
-- Function-Context - Do the name, signature, docstring and body agree, in the right order,
-  about one function
+- Function-Context - Do the name, signature, docstring and body agree about one function, and
+  do the comments inside it follow the order the body runs in
 - Module-Context - Does the documentation cover one set of ideas and everything the module
   exposes
 
