@@ -656,8 +656,9 @@ carries the argument and the per-block procedure.
 
 ## Stage 7a — APPROVAL: present the FINAL text, then stop
 
-Grouped by verdict, most consequential first, in the **five-part finding format the brief
-defines** (`VERDICT / LOCATION / SUMMARY / FINDING / CHANGE`), replacement text inline
+Grouped by verdict, most consequential first, in **five parts**
+(`VERDICT / LOCATION / SUMMARY / FINDING / CHANGE`) — the reviewer record minus the fields only
+the join reads — replacement text inline
 for every `correct` / `patch` / `add`. State the **level** you ran, **raised / clean**, and the
 longest block that will remain. **The proposal ends here** — nothing further is written until
 the author rules.

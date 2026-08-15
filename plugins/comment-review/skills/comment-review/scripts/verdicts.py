@@ -5,7 +5,7 @@
 Checks the task agent was asked to perform by hand, every one mechanical:
 
   COVERAGE      every census index accounted for, by every angle that ran
-  EVIDENCE      each finding's citation resolves, and says what was quoted
+  EVIDENCE      each finding's citation resolves, and the QUOTE is really there
   LOCATION      the prose citation resolves too -- checked the same way
   PAYLOAD       the verdict carries what its row of the table requires
   LEVEL         the verdict is one this run's level carries
@@ -20,6 +20,12 @@ asked to grade itself. A report is not evidence that a file was read.
 ⚠ It cannot tell a correct verdict from an incorrect one. It tells you which
 findings are ADMISSIBLE. Ruling remains stage 5's, and the synthesis order in
 SKILL.md is unchanged.
+
+⚠ It catches a fabricated FINDING, never a fabricated CLEAN -- and the clean is
+the cheaper fabrication. A report reading only `CLEAN 1-N` accounts for every
+index, cites nothing, and exits 0 after reading no file at all. Nothing here can
+distinguish it from a real pass, because there is no artifact a negative leaves
+behind. Grade a run from its DIFF, never from this exit code.
 
 ⚠ `--angles` is OPTIONAL, and its absence is announced, not swallowed: without
 it, a reviewer that never reported at all is invisible to this tool -- the
@@ -67,7 +73,7 @@ RECORD = re.compile(r"^---\s*FINDING\s*$(.*?)^---\s*$", re.M | re.S)
 # Comparing this count against RECORD's match count is how that is caught.
 OPENER = re.compile(r"^---\s*FINDING\s*$", re.M)
 FIELD = re.compile(
-    r"^\s*(BLOCK|VERDICT|LOCATION|EVIDENCE|SUMMARY|FINDING|CHANGE)\s+(.*)$"
+    r"^\s*(BLOCK|VERDICT|LOCATION|EVIDENCE|QUOTE|SUMMARY|FINDING|CHANGE)\s+(.*)$"
 )
 # ⚠ `[ \t]`, never `\s`. `\s` matches a newline, and inside a greedy character
 # class under re.MULTILINE that let a CLEAN line's range swallow whatever the
@@ -86,20 +92,41 @@ CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 EVIDENCE_WINDOW = 3
 
 # A needle shorter than this could match almost any file by accident --
-# `SUMMARY "..." || e` passed against nearly anything. The forcing function
-# only forces if the quote is long enough to have required reading the line.
+# `QUOTE e` passed against nearly anything. The forcing function only forces if
+# the quote is long enough to have required reading the line.
 MIN_NEEDLE = 12
+
+# A `query` says the claim could not be settled, so by construction there is no
+# code line that settles it and no QUOTE to check. The forcing function has to
+# land somewhere else, and it lands on the PAYLOAD: a query must name a check
+# that was attempted and the thing that would settle the claim.
+#
+# ⚠ This is a SHAPE check and cannot tell a real grep from the word "grepped".
+# What it removes is the query that names no attempted check at all -- the one
+# that hands the judgement back. Requiring EVIDENCE of a query instead pushed
+# reviewers to invent a citation or downgrade to `clean`, which is the
+# fabrication this script exists to catch and the finding-loss the brief
+# records as measured.
+QUERY_ATTEMPTED = ("check", "grep", "read", "ran", "search", "open", "count", "look")
+QUERY_SETTLES = ("settle", "would need", "would show", "would confirm")
 
 
 @dataclass
 class Finding:
-    """One reviewer's ruling on one census block."""
+    """One reviewer's ruling on one census block.
+
+    Field order follows the record in `reviewer-brief.md`. `quote` is the
+    VERBATIM text at `evidence`; `summary`'s right half is the DERIVED
+    statement, which is where a count and its population live and is therefore
+    not something any file contains verbatim.
+    """
 
     angle: str
     block: int
     verdict: str
     location: str
     evidence: str
+    quote: str
     summary: str
     finding: str
     change: str
@@ -123,6 +150,7 @@ def _malformed(angle: str, why: str) -> Finding:
         verdict="malformed",
         location="",
         evidence="",
+        quote="",
         summary="",
         finding=why,
         change="",
@@ -193,6 +221,7 @@ def parse_report(text: str, angle: str) -> tuple[list[Finding], set[int]]:
                     verdict=fields.get("VERDICT", "").strip().lower(),
                     location=fields.get("LOCATION", ""),
                     evidence=fields.get("EVIDENCE", ""),
+                    quote=fields.get("QUOTE", ""),
                     summary=fields.get("SUMMARY", ""),
                     finding=fields.get("FINDING", ""),
                     change=fields.get("CHANGE", ""),
@@ -231,8 +260,21 @@ def allowed(verdict: str, level: str) -> bool:
 
 
 def payload_problem(f: Finding) -> str | None:
-    """What the verdict's required payload is missing, or None."""
+    """What the verdict's required payload is missing, or None.
+
+    `query` is the one row checked in any detail here, because it is the one
+    verdict with no EVIDENCE to check: `evidence_problem` exempts it, so this
+    is where a query that did no work is refused.
+    """
     change = f.change.lower()
+    if f.verdict == "query":
+        if not any(w in change for w in QUERY_ATTEMPTED):
+            return (
+                "query needs the check you ATTEMPTED — a query naming none"
+                " hands the judgement back"
+            )
+        if not any(w in change for w in QUERY_SETTLES):
+            return "query needs what WOULD settle the claim"
     if f.verdict == "correct" and not ("false:" in change and "true:" in change):
         return "correct needs a true/false pair in CHANGE"
     if (
@@ -299,32 +341,42 @@ def _resolve_lines(
 def evidence_problem(f: Finding, repo: Path) -> str | None:
     """Why this finding's citation cannot be trusted, or None.
 
-    Reads the cited line out of the file and looks for the SUMMARY's right half
-    within a few lines of it. A finding whose evidence is not there is not a
-    finding — the report is not evidence that the file was read.
+    Reads the cited line out of the file and looks for the QUOTE within a few
+    lines of it. A finding whose quote is not there is not a finding — the
+    report is not evidence that the file was read.
+
+    ⚠ QUOTE is checked, not `SUMMARY`'s right half. The right half is the
+    DERIVED statement — *"31 callers, all under tests/"* — and a derived
+    statement is by construction not a verbatim code line, so checking it there
+    made every counted claim structurally inadmissible. That is the currency
+    angle's own category. The forcing function survives intact by moving to a
+    field that carries verbatim text and nothing else.
+
+    ⚠ `query` is exempt alongside `clean`, and its payload is checked instead.
+    A `query` is a claim the reviewer COULD NOT settle, so no line settles it;
+    demanding EVIDENCE left two exits, inventing a citation or downgrading to
+    `clean`, and the gate then produced the failure it was built to prevent.
     """
-    if f.verdict == "clean":
+    if f.verdict in ("clean", "query"):
         return None
     resolved = _resolve_lines(f.evidence, repo, allow_range=False)
     if isinstance(resolved, str):
         return f"EVIDENCE {resolved}"
     _target, lineno, _end, lines = resolved
-    _, _, right = f.summary.partition("||")
-    needle = " ".join(right.split()).strip().strip('"')
+    needle = " ".join(f.quote.split()).strip().strip('"')
     if not needle:
-        return "SUMMARY has no right half — nothing was checked against the code"
+        return f"no QUOTE — nothing was read out of {f.evidence}"
     if len(needle) < MIN_NEEDLE:
-        return (
-            f"SUMMARY's right half {needle!r} is too short to have been "
-            "checked against the code"
-        )
+        return f"QUOTE {needle!r} is too short to have been read off a line"
+    if not f.summary.partition("||")[2].strip():
+        return "SUMMARY has no right half — the finding states nothing derived"
     lo = max(0, lineno - 1 - EVIDENCE_WINDOW)
     window = " ".join(
         " ".join(ln.split()) for ln in lines[lo : lineno + EVIDENCE_WINDOW]
     )
     head = needle[:40]
     if head.lower() not in window.lower():
-        return f"quoted evidence not found near {f.evidence}: {head!r}"
+        return f"QUOTE not found near {f.evidence}: {head!r}"
     return None
 
 

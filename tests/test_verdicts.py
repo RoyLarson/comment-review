@@ -1,6 +1,7 @@
 """The census join, the evidence check, and the clean arithmetic — mechanically."""
 
 import json  # noqa: I001  -- path shim below must import before verdicts
+import re
 import subprocess
 import sys
 import tempfile
@@ -10,6 +11,10 @@ from pathlib import Path
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
 import verdicts
 
+BRIEF = (
+    Path(verdicts.__file__).resolve().parent.parent / "references" / "reviewer-brief.md"
+)
+
 REPORT = """
 Some preamble the tool ignores.
 
@@ -18,6 +23,7 @@ BLOCK       1
 VERDICT     correct
 LOCATION    a.py:1-2
 EVIDENCE    a.py:5
+QUOTE       the settling line
 SUMMARY     "only one caller" || three callers here
 FINDING     the count is wrong
 CHANGE      false: "only one caller" / true: "three callers"
@@ -27,6 +33,29 @@ CLEAN 2-3
 """
 
 
+def _finding(**kw):
+    """A Finding whose required fields are filled, overridden per test.
+
+    Constructing these POSITIONALLY is what made adding one field to the
+    record a twenty-site edit; the record grew a `QUOTE` field and its own
+    checker never ran against it. A field added to the record should cost one
+    line here.
+    """
+    fields = {
+        "angle": "currency",
+        "block": 1,
+        "verdict": "correct",
+        "location": "a.py:1",
+        "evidence": "a.py:5",
+        "quote": "the settling line",
+        "summary": '"x" || three callers, all under tests/',
+        "finding": "f",
+        "change": 'false: "a" / true: "b"',
+    }
+    fields.update(kw)
+    return verdicts.Finding(**fields)
+
+
 class TestParsing(unittest.TestCase):
     def test_a_record_is_parsed(self):
         found, clean = verdicts.parse_report(REPORT, "currency")
@@ -34,6 +63,7 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(found[0].block, 1)
         self.assertEqual(found[0].verdict, "correct")
         self.assertEqual(found[0].evidence, "a.py:5")
+        self.assertEqual(found[0].quote, "the settling line")
 
     def test_clean_ranges_expand(self):
         _, clean = verdicts.parse_report(REPORT, "currency")
@@ -121,50 +151,64 @@ class TestExpand(unittest.TestCase):
 class TestCoverage(unittest.TestCase):
     def test_an_unaccounted_block_is_a_gap(self):
         gaps = verdicts.coverage_gaps(
-            {1, 2, 3, 4},
-            {"currency": {2, 3}},
-            [
-                verdicts.Finding(
-                    "currency", 1, "correct", "a.py:1-2", "a.py:5", "x", "y", "z"
-                )
-            ],
+            {1, 2, 3, 4}, {"currency": {2, 3}}, [_finding(block=1)]
         )
         self.assertEqual(gaps, {"currency": [4]})
 
     def test_full_coverage_reports_no_gap(self):
         gaps = verdicts.coverage_gaps(
-            {1, 2},
-            {"currency": {2}},
-            [verdicts.Finding("currency", 1, "clean", "", "", "", "", "")],
+            {1, 2}, {"currency": {2}}, [_finding(block=1, verdict="clean")]
         )
         self.assertEqual(gaps, {})
 
 
 class TestPayload(unittest.TestCase):
     def test_correct_without_a_pair_is_rejected(self):
-        f = verdicts.Finding(
-            "currency", 1, "correct", "a.py:1", "a.py:5", "s", "f", "fix it"
-        )
+        f = _finding(change="fix it")
         self.assertIn("true/false pair", verdicts.payload_problem(f))
 
     def test_correct_with_a_pair_passes(self):
-        f = verdicts.Finding(
-            "currency",
-            1,
-            "correct",
-            "a.py:1",
-            "a.py:5",
-            "s",
-            "f",
-            'false: "a" / true: "b"',
-        )
-        self.assertIsNone(verdicts.payload_problem(f))
+        self.assertIsNone(verdicts.payload_problem(_finding()))
 
     def test_add_without_an_anchor_is_rejected(self):
-        f = verdicts.Finding(
-            "locality", 1, "add", "a.py:1", "a.py:5", "s", "f", "some text"
-        )
+        f = _finding(angle="locality", verdict="add", change="some text")
         self.assertIn("anchor", verdicts.payload_problem(f))
+
+
+class TestQueryPayload(unittest.TestCase):
+    """C3: `query` has no EVIDENCE to check, so its PAYLOAD is the gate.
+
+    A query that names no attempted check is the one that hands the judgement
+    back, and it is the one this refuses.
+    """
+
+    QUERY = (
+        "claim: the archive holds the original"
+        " / checked: git ls-files, git log -- archive/"
+        " / would settle: a copy of the archive inside the checkout"
+    )
+
+    def test_a_documented_query_passes(self):
+        f = _finding(verdict="query", evidence="", quote="", change=self.QUERY)
+        self.assertIsNone(verdicts.payload_problem(f))
+
+    def test_a_query_naming_no_attempted_check_is_rejected(self):
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change="claim: unclear. someone should settle this",
+        )
+        self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
+
+    def test_a_query_that_does_not_say_what_would_settle_it_is_rejected(self):
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change="claim: the archive holds it / checked: git ls-files",
+        )
+        self.assertIn("WOULD settle", verdicts.payload_problem(f))
 
 
 class TestLevel(unittest.TestCase):
@@ -183,25 +227,21 @@ class TestLevel(unittest.TestCase):
 class TestContradiction(unittest.TestCase):
     def test_drop_against_correct_is_flagged(self):
         found = [
-            verdicts.Finding("locality", 7, "drop", "a.py:1", "a.py:5", "s", "f", "c"),
-            verdicts.Finding(
-                "currency", 7, "correct", "a.py:1", "a.py:5", "s", "f", "c"
-            ),
+            _finding(angle="locality", block=7, verdict="drop"),
+            _finding(angle="currency", block=7, verdict="correct"),
         ]
         self.assertEqual(verdicts.contradictions(found), [7])
 
     def test_drop_alone_is_not_a_contradiction(self):
-        found = [
-            verdicts.Finding("locality", 7, "drop", "a.py:1", "a.py:5", "s", "f", "c")
-        ]
+        found = [_finding(angle="locality", block=7, verdict="drop")]
         self.assertEqual(verdicts.contradictions(found), [])
 
     def test_a_malformed_block_is_never_reported_as_a_contradiction(self):
         # Minor: a -1 sentinel (a malformed record) must not surface as
         # "RE-REVIEW [-1]" -- it names no real block.
         found = [
-            verdicts.Finding("locality", -1, "drop", "", "", "", "", ""),
-            verdicts.Finding("currency", -1, "correct", "", "", "", "", ""),
+            _finding(angle="locality", block=-1, verdict="drop"),
+            _finding(angle="currency", block=-1, verdict="correct"),
         ]
         self.assertEqual(verdicts.contradictions(found), [])
 
@@ -218,104 +258,77 @@ class TestEvidence(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_a_resolvable_citation_passes(self):
-        f = verdicts.Finding(
-            "currency",
-            1,
-            "correct",
-            "a.py:1",
-            "a.py:5",
-            "x || the settling line",
-            "f",
-            "c",
-        )
-        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
+        self.assertIsNone(verdicts.evidence_problem(_finding(), self.repo))
 
     def test_a_missing_file_is_caught(self):
-        f = verdicts.Finding(
-            "currency", 1, "correct", "a.py:1", "gone.py:5", "x || y", "f", "c"
-        )
+        f = _finding(evidence="gone.py:5")
         self.assertIn("does not resolve", verdicts.evidence_problem(f, self.repo))
 
     def test_a_line_past_the_end_is_caught(self):
-        f = verdicts.Finding(
-            "currency", 1, "correct", "a.py:1", "a.py:900", "x || y", "f", "c"
-        )
+        f = _finding(evidence="a.py:900")
         self.assertIn("900", verdicts.evidence_problem(f, self.repo))
 
     def test_a_quote_that_is_not_there_is_caught(self):
-        f = verdicts.Finding(
-            "currency",
-            1,
-            "correct",
-            "a.py:1",
-            "a.py:5",
-            "x || a line that appears nowhere at all",
-            "f",
-            "c",
-        )
+        f = _finding(quote="a line that appears nowhere at all")
         self.assertIn("not found near", verdicts.evidence_problem(f, self.repo))
 
     def test_a_one_character_needle_is_rejected(self):
-        # C3: `head = needle[:40]` had no minimum, so SUMMARY "... || e" passed
+        # `head = needle[:40]` had no minimum, so a one-character QUOTE passed
         # against nearly any file -- defeating the one mechanical defence
         # against a fabricated report.
-        f = verdicts.Finding(
-            "currency", 1, "correct", "a.py:1", "a.py:5", "x || e", "f", "c"
-        )
+        f = _finding(quote="e")
         problem = verdicts.evidence_problem(f, self.repo)
         self.assertIsNotNone(problem)
         self.assertIn("too short", problem)
 
+    def test_a_missing_quote_is_rejected(self):
+        # C2: QUOTE carries the verbatim text and is what the window is
+        # checked against. A record without one read nothing off the line.
+        f = _finding(quote="")
+        problem = verdicts.evidence_problem(f, self.repo)
+        self.assertIsNotNone(problem)
+        self.assertIn("no QUOTE", problem)
+
+    def test_a_derived_summary_right_half_is_not_checked_verbatim(self):
+        # C2: the whole point. A count is not a line any file contains, so
+        # requiring SUMMARY's right half verbatim made every counted claim --
+        # the currency angle's own category -- structurally inadmissible.
+        f = _finding(summary='"twenty call sites" || 31 callers, all under tests/')
+        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
+
+    def test_a_summary_with_no_right_half_is_still_rejected(self):
+        f = _finding(summary='"twenty call sites"')
+        self.assertIn("right half", verdicts.evidence_problem(f, self.repo))
+
+    def test_a_query_needs_no_evidence(self):
+        # C3: a query is a claim the reviewer COULD NOT settle, so no line
+        # settles it. Demanding EVIDENCE left inventing one or downgrading to
+        # `clean` -- the fabrication and the finding-loss this gate exists to
+        # prevent.
+        f = _finding(verdict="query", evidence="", quote="")
+        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
+
     def test_evidence_line_zero_is_rejected(self):
-        f = verdicts.Finding(
-            "currency", 1, "correct", "a.py:1", "a.py:0", "x || y" * 5, "f", "c"
-        )
+        f = _finding(evidence="a.py:0")
         self.assertIsNotNone(verdicts.evidence_problem(f, self.repo))
 
     def test_a_fabricated_location_is_caught(self):
         # A prose LOCATION must be checked with the same machinery as
         # EVIDENCE -- a fabricated location was admissible before this fix.
-        f = verdicts.Finding(
-            "currency",
-            1,
-            "correct",
-            "gone.py:1",
-            "a.py:5",
-            "x || the settling line",
-            "f",
-            "c",
-        )
+        f = _finding(location="gone.py:1")
         problem = verdicts.location_problem(f, self.repo)
         self.assertIsNotNone(problem)
         self.assertIn("does not resolve", problem)
 
     def test_a_resolvable_location_passes(self):
-        f = verdicts.Finding(
-            "currency",
-            1,
-            "correct",
-            "a.py:1-2",
-            "a.py:5",
-            "x || the settling line",
-            "f",
-            "c",
-        )
+        f = _finding(location="a.py:1-2")
         self.assertIsNone(verdicts.location_problem(f, self.repo))
 
     def test_evidence_rejects_a_range(self):
         # Minor: the shared CITE regex widened to serve LOCATION's
         # file:start-end, but the record format reserves that for LOCATION --
         # EVIDENCE must stay file:line.
-        f = verdicts.Finding(
-            "currency",
-            1,
-            "correct",
-            "a.py:1",
-            "a.py:1-2",
-            "x || the settling line",
-            "f",
-            "c",
-        )
+        f = _finding(evidence="a.py:1-2")
         problem = verdicts.evidence_problem(f, self.repo)
         self.assertIsNotNone(problem)
         self.assertIn("file:line", problem)
@@ -389,6 +402,7 @@ class TestCLI(unittest.TestCase):
             "VERDICT     drop\n"
             "LOCATION    a.py:1\n"
             "EVIDENCE    a.py:5\n"
+            "QUOTE       five callers, all in tests\n"
             'SUMMARY     "x" || five callers, all in tests\n'
             "FINDING     f\n"
             "CHANGE      \n"
@@ -407,10 +421,9 @@ class TestCLI(unittest.TestCase):
             "BLOCK       999\n"
             "VERDICT     query\n"
             "LOCATION    a.py:1\n"
-            "EVIDENCE    a.py:5\n"
-            'SUMMARY     "x" || five callers, all in tests\n'
+            'SUMMARY     "x" || could not be settled from the checkout\n'
             "FINDING     f\n"
-            "CHANGE      what would settle it\n"
+            "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
             "---\n"
             "CLEAN 1-3\n",
         )
@@ -462,10 +475,9 @@ class TestCLI(unittest.TestCase):
             "BLOCK       1\n"
             "VERDICT     query\n"
             "LOCATION    a.py:1\n"
-            "EVIDENCE    a.py:5\n"
-            'SUMMARY     "x" || five callers, all in tests\n'
+            'SUMMARY     "x" || could not be settled from the checkout\n'
             "FINDING     f\n"
-            "CHANGE      what would settle it\n"
+            "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
             "---\n"
             "CLEAN 2-3\n",
         )
@@ -484,7 +496,8 @@ class TestCLI(unittest.TestCase):
             "VERDICT     correct\n"
             "LOCATION    a.py:1\n"
             "EVIDENCE    a.py:5\n"
-            'SUMMARY     "x" || five callers, all in tests\n'
+            "QUOTE       five callers, all in tests\n"
+            'SUMMARY     "x" || the count is stale\n'
             "FINDING     first record, never closed\n"
             "\n"
             "--- FINDING\n"
@@ -492,7 +505,8 @@ class TestCLI(unittest.TestCase):
             "VERDICT     correct\n"
             "LOCATION    a.py:1\n"
             "EVIDENCE    a.py:5\n"
-            'SUMMARY     "x" || five callers, all in tests\n'
+            "QUOTE       five callers, all in tests\n"
+            'SUMMARY     "x" || the count is stale\n'
             "FINDING     second record, closed\n"
             'CHANGE      false: "x" / true: "y"\n'
             "---\n"
@@ -521,6 +535,62 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("Traceback", result.stdout)
         self.assertNotIn("Traceback", result.stderr)
         self.assertIn("CANNOT PARSE", result.stdout)
+
+
+class TestTheBriefsOwnRecordPasses(unittest.TestCase):
+    """C2: the record `reviewer-brief.md` teaches, through the gate that ships.
+
+    The format and its checker were designed in one task and never run against
+    each other, so the brief's worked example failed `verdicts.py` on the same
+    commit that shipped both — and the field it failed on, a counted claim,
+    is the currency angle's own category.
+
+    The cited file is SYNTHESISED from the record's own citations: the example
+    is invented on purpose (`docs/limitations.md`), so there is no real
+    `redacted_pkg/` to read. What this pins is the record's SHAPE — every field the
+    parser needs, a QUOTE long enough to have been read off a line, EVIDENCE
+    as `file:line` and LOCATION as `file:start-end`, and the payload the
+    verdict table demands.
+    """
+
+    RECORD = re.compile(r"```\n(--- FINDING\n.*?\n---)\n```", re.S)
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name)
+        text = BRIEF.read_text(encoding="utf-8")
+        match = self.RECORD.search(text)
+        self.assertIsNotNone(match, "no canonical FINDING record in reviewer-brief.md")
+        self.record = match.group(1)
+        found, _ = verdicts.parse_report(self.record + "\n", "currency")
+        self.assertEqual(len(found), 1, self.record)
+        self.finding = found[0]
+        self._plant()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _plant(self):
+        """Write the file the record cites, with its QUOTE on the cited line."""
+        rel, _, lineno = self.finding.evidence.rpartition(":")
+        target = self.repo / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        lines = [f"filler {i}\n" for i in range(1, int(lineno) + 40)]
+        lines[int(lineno) - 1] = self.finding.quote + "\n"
+        target.write_text("".join(lines), encoding="utf-8")
+
+    def test_the_record_parses_into_a_real_block_index(self):
+        self.assertGreaterEqual(self.finding.block, 1)
+        self.assertIn(self.finding.verdict, verdicts.VERDICTS)
+
+    def test_the_record_passes_the_evidence_check(self):
+        self.assertIsNone(verdicts.evidence_problem(self.finding, self.repo))
+
+    def test_the_record_passes_the_location_check(self):
+        self.assertIsNone(verdicts.location_problem(self.finding, self.repo))
+
+    def test_the_record_passes_the_payload_check(self):
+        self.assertIsNone(verdicts.payload_problem(self.finding))
 
 
 if __name__ == "__main__":
