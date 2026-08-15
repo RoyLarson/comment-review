@@ -108,14 +108,9 @@ owns a block, so they run identically everywhere — three of the four angles ar
 strength on any file the census can read. "No parser for this language" reads like "no review"
 and is not.
 
-⭐ **A structural tier existed and was REMOVED on 2026-08-14, measured.** libcst resolved
-owners for 50% of comment blocks and silently missed 13 of 160 that the stdlib found — a
-comment inside an expression belongs to no node's `leading_lines`, including a file-header
-copyright block. **A block missing from the census is a block nobody reviews**, and that beats
-an unresolved owner: the first is silent, the second only weakens a verdict. It was also
-Python-only, so it bought nothing for the ten other languages. ⚠ Reopen only for a tier that
-misses **zero** blocks. (Numbers and the full argument live in the project repository, not in
-the shipped plugin.)
+⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks ownership.**
+An unresolved owner weakens a verdict; an absent block produces none and reports no gap. **Adopt
+a richer source of structure only if it misses ZERO blocks.**
 
 Depending on nothing is the point: this skill must run on a fresh checkout, and a tier chosen
 by whether some package happens to be importable makes coverage depend on the ambient

@@ -96,14 +96,10 @@ the same block. Nothing you emit can bless a block; only a `clean` from **every 
 ran** can, and the task agent computes that — you do not assert it. ⚠ Do not invent a word for
 "outside my angle": that is `clean`, and a ninth word breaks the arithmetic.
 
-⚠⚠ **If you did not read BOTH SIDES, the verdict is `query`.** There is no confidence tag to
-soften a verdict with: either you opened the code that settles the claim — and `SUMMARY`'s
-right half proves you did — or you could not, and the honest word for that is `query`, which
-returns for re-review and reaches the author as a question.
-
-A separate CONFIRMED/SUSPECTED label was tried and retired: **it was measured
-non-discriminating**, running at 97% self-certified across 298 findings. A label two runs in
-three thousand disagree with adds nothing that `SUMMARY`'s right half does not already force.
+⚠⚠ **If you did not read BOTH SIDES, the verdict is `query`.** Either you opened the code that
+settles the claim — and `SUMMARY`'s right half proves you did — or you could not, and the word
+for that is `query`, which returns for re-review and reaches the author as a question. There is
+no confidence tag to soften a verdict with.
 
 **Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
 single `clean` sentence must not launder the ones around it.

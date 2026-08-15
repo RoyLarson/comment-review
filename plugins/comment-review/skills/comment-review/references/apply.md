@@ -51,11 +51,10 @@ is blind to endings, so a whole-file flip passes identity and lands as a diff to
 line. Measured four times; the edit tool rewrites endings on its own and `git stash`/`pop`
 re-applies them.
 
-⚠ **The blob is the wrong baseline and this rail used to name it.** Under `core.autocrlf` the
-stored blob is always LF, so normalising to it produces a working tree inconsistent with every
-file you did not touch — and `git diff` hides the damage. Measured: a run normalised to the
-blob, passed the AST proof, the residue check, the gate and 579 tests, and left the tree
-internally inconsistent. Read a file in the same directory you did not edit, and match it.
+⚠ **The stored blob is the wrong baseline for line endings.** Under `core.autocrlf` it is
+always LF, so normalising to it leaves a working tree inconsistent with every file you did not
+touch, and `git diff` hides the damage — it survives the AST proof, the residue check and a
+full test run. **Read a file in the same directory you did not edit, and match it.**
 
 **Edit through an exact-match tool, never raw text.** Measured, all caught only by the AST
 proof: a path-rewrite regex reached inside a runtime `raise` message because it worked on raw

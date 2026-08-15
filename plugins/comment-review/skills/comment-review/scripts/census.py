@@ -28,12 +28,6 @@ on a reviewer READING the file. A docstring's owner comes free from the AST; a
 `#` run's does not, and nothing here infers it. Treat placement findings as
 CANDIDATES.
 
-⚠ A libcst tier that DID resolve comment owners was measured and removed on
-2026-08-14: it owned 50% of blocks and silently missed 13 that the stdlib tier
-found, because a comment inside an expression belongs to no node's
-`leading_lines`. Coverage beats ownership, and the tier was Python-only besides
--- recorded in the project repository, not in the shipped plugin.
-
 ⚠ Tier counts are AGGREGATED over the run, not reported per file. On a polyglot
 run you cannot tell which file reached which tier -- which is exactly when it
 matters. Adding a language is a row in `LANGUAGES` — data, not code — which is
@@ -60,7 +54,7 @@ from pathlib import Path
 # 758's unparenthesised form, a SyntaxError on every older interpreter. This
 # file ships into other repositories and is formatted by THEIR config, so a
 # floor in our own pyproject cannot protect it -- only writing code that has
-# nothing to rewrite can. A `noqa` was tried and did not hold.
+# nothing to rewrite can. A `noqa` does not hold here.
 READ_ERRORS = (OSError, UnicodeDecodeError)
 # Same reason, second construct: `isinstance(x, A | B)` PARSES on 3.9 and
 # raises TypeError there. A syntax check cannot see it, so the tuple form is
@@ -73,7 +67,7 @@ GIT_ERRORS = (OSError, subprocess.SubprocessError)
 # A virtualenv in the tree POISONS the name corpus: every installed package's
 # methods become "known", so a real obituary is suppressed because some library
 # happens to define that name. It also makes the count depend on what is
-# installed, which is why an earlier measurement did not reproduce.
+# installed, so the same file censuses differently on two machines.
 EXCLUDED_DIRS = frozenset(
     {"__pycache__", ".venv", "venv", "site-packages", "node_modules", ".git"}
 )
@@ -99,9 +93,8 @@ def counted_lines(raw: list[str]) -> int:
     validate an invalid block either, so it never splits a run and a marker's
     continuation lines still count. Six lines plus a `TODO:` is six.
 
-    Declared and unused until 2026-08-14, so earlier runs charged the cap for
-    exempt markers. A block reading 7L to the script and 6 by the rule makes
-    deleting a pointer to filed work the cheapest route to green.
+    A block reading 7L to the script and 6 by the rule makes deleting a pointer
+    to filed work the cheapest route to green.
     """
     return sum(1 for ln in raw if not WORK_MARKER.match(LEAD_PUNCT.sub("", ln)))
 
