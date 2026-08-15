@@ -67,9 +67,6 @@ Find the line that enforces the bound and compare four things: the VALUE, the DI
 (`>` vs `>=`), the UNITS, and what happens at the boundary. Report the enforcing line as your
 `QUOTE`.
 
-⚠ **An off-by-one in prose reads as correct to every other angle.** Nothing else here compares
-a stated bound against the comparison that implements it, so a wrong `>=` survives every pass.
-
 ## Cited paths and guards
 
 A comment saying a rule is *"pinned by tests/x.py"* is **licensing future edits** on that
@@ -83,8 +80,7 @@ Run it. An example that no longer produces its stated output is `correct`, and t
 replacement carries the real output.
 
 ⚠ **If it cannot be run from the checkout — it needs network, a fixture that is gitignored, or
-state from another machine — it is `query`, not `clean`.** An example nobody can execute is
-indistinguishable from one that works.
+state from another machine — it is `query`, not `clean`.**
 
 ## What is NOT yours
 
