@@ -278,9 +278,10 @@ them. They are plugin agents and their names are NAMESPACED — `comment-review:
 ⚠⚠ **If they do not resolve, say so at stage 1 and say what you will do instead.** Measured on
 all three verification runs: every one failed at stage 4 with
 `Agent type 'comment-review-locality' not found`, and every one silently improvised the same
-fallback. The sanctioned fallback is **four general-purpose agents given the absolute PATHS of
-their angle file and the brief** — never the angle text pasted into a prompt, which is what
-this file forbids for a different reason (a copy goes stale).
+fallback. The sanctioned fallback is **four general-purpose agents given the ANGLE FILES
+paths from the packet** — never the angle text pasted into a prompt, which goes
+stale the moment an angle is edited. Because the packet already carries those
+absolute paths, the fallback is a substitution rather than an improvisation.
 
 **1.7 Probe for a LANGUAGE SERVER, once per language in scope.** One `LSP documentSymbol`
 call against a representative file of each. Record which answered — that is a fact about
@@ -459,14 +460,21 @@ an over-cap or over-width count that reads like a project fact and is your own g
 | `comment-review:comment-review-functionality` | does the commentary match what the function is for? |
 | `comment-review:comment-review-module-coherence` | do the comments say this is one module? |
 
-Each already carries its own angle and reads the shared brief itself. **You supply the run
-context, and only that:** the numbered census, the stage-1 resolutions, the **docstring
-template** from 1.3, the **style sheet** from 1.5, the **level**, **which languages a LANGUAGE
-SERVER answered for** (1.7 — the brief tells them what to do with it, and silence there means
-they must assume none), and the two lists — **FILES UNDER REVIEW** (the only files a verdict may
-target) and **REFERENCE ONLY** (read to settle a claim, never propose a change). Without the
-second list a reviewer either treats the whole repo as in scope or stops reading at the
-boundary, which disables every cross-file check.
+Each already carries its own angle and reads the shared brief itself. **You
+supply the run context as a PACKET, and the packet is checked before anyone is
+dispatched:**
+
+```bash
+python <skill>/scripts/run_context.py --template > <run-dir>/context.md
+# fill every section, then:
+python <skill>/scripts/run_context.py --check <run-dir>/context.md
+```
+
+It refuses a section that is absent **or present and blank** — *"no cap
+published"* is an answer and must be written; a blank is a question nobody
+asked. Hand every reviewer the one path. Measured: a run dispatched without a
+style sheet introduced **14 en-GB spellings** into a codebase whose identifiers
+are en-US, and every angle was satisfied because nothing owned consistency.
 
 ⚠ **The template matters because reviewers write replacement text.** A correct sentence in the
 wrong docstring convention is a finding the human has to redo by hand, and they are not
