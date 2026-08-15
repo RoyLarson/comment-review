@@ -38,11 +38,13 @@ if the other documentation doesn't have an edge in the connection anymore it mig
 
 I broke down the comment review into four levels/categories
 
-- Ownership-Context - Is it in the right place
-- Block-Context - Does it state what is true/necessary for the code right now
-- Function-Context - Does the comments and documentation within a function follow from the
-  name of the function
-- Module-Context - Does the documentation cover one set of ideas.
+- Ownership-Context - Is it in the right place, and does it belong to only one place
+- Block-Context - Is the state, every constraint and every worked example still true of the
+  code it sits with
+- Function-Context - Do the name, signature, docstring and body agree, in the right order,
+  about one function
+- Module-Context - Does the documentation cover one set of ideas and everything the module
+  exposes
 
 These were the best classifications of comment and documentation errors I could think of.
 They each were meant to support from inside-out the structure of comments.

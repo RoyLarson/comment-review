@@ -215,4 +215,4 @@ history) since it depends on `git blame`.
 - Cap initial exploration at ~10 tool calls; if you still lack context, report what you
   found and ask rather than continuing to browse.
 - Prefer dispatching a Task agent for open-ended codebase exploration so the main context
-  stays clean.
+  stays uncluttered by the subagent's intermediate output.
