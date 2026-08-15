@@ -57,11 +57,13 @@ angle per block and must synthesise ONE**, so what matters here is what each obl
 
 ⚠⚠ **`move` and `reanchor` are separate words because they have different AVAILABILITY.**
 `move` takes prose out of the code and needs a destination tree, so 1.4 can rule it UNAVAILABLE
-for a whole run. `reanchor` moves a block to the right line in the same file and needs nothing,
-so it is **always available**. Measured: one word for both meant a misplaced-in-file rule was
-converted to `clean` by 1.4's unavailability rule and left sitting exactly where the
-ownership-context angle warns it will be deleted next pass. The finding was destroyed by the
-vocabulary.
+for a whole run. `reanchor` moves a block to the right line in the same file and needs nothing
+outside the file — where the LEVEL carries `reanchor` at all, it is **always reachable**, no
+1.4 check required. The one thing that withholds it is the level itself: `fact-check`'s verdict
+set does not carry `reanchor`, and at that level the same finding is `query` instead. Measured:
+one word for both meant a misplaced-in-file rule was converted to `clean` by 1.4's
+unavailability rule and left sitting exactly where the ownership-context angle warns it will be
+deleted next pass. The finding was destroyed by the vocabulary.
 
 ⚠⚠ **`correct` and `patch` are the distinction the whole design turns on.** `correct` says the
 sentence is wrong; `patch` says it is right and reads badly. Applying a `patch` to a false
