@@ -123,7 +123,7 @@ MIN_NEEDLE = 12
 # English word carries "grep" as an accidental substring the way "branch" and
 # "already" carry "ran" and "read".
 QUERY_ATTEMPTED = re.compile(
-    r"\bran\b|\bcheck\w*|grep\w*|\bread\w*|\bsearch\w*|\bopen\w*|\bcount\w*|\block\w*",
+    r"\bran\b|\bcheck\w*|grep\w*|\bread\w*|\bsearch\w*|\bopen\w*|\bcount\w*|\blook\w*",
     re.I,
 )
 QUERY_SETTLES = re.compile(

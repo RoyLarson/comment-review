@@ -272,6 +272,46 @@ class TestQueryWordBoundary(unittest.TestCase):
         )
         self.assertIsNone(verdicts.payload_problem(f))
 
+    def test_looked_at_the_file_counts_as_an_attempted_check(self):
+        # A one-character typo (\block\w* for \blook\w*) shipped in the same
+        # commit that fixed the substring bug, and made this exact wording
+        # reject: 'look'/'looked'/'looking' never matched, and 'locked' -- a
+        # word that names no check at all -- matched by accident instead.
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change=(
+                "claim: the timeout is 30s. I looked at config.py and found"
+                " nothing definitive, would need the deploy config to be sure"
+            ),
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+
+    def test_looking_up_the_constant_counts_as_an_attempted_check(self):
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change=(
+                "claim: x / looking up the constant in config.py turned up"
+                " nothing / would need the deploy config to settle it"
+            ),
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+
+    def test_locked_names_no_check_and_is_rejected(self):
+        # The typo's failure mode in the OTHER direction: \block\w* matched
+        # "locked", a word that names no attempted check at all -- the exact
+        # shape this whole check exists to refuse.
+        f = _finding(
+            verdict="query",
+            evidence="",
+            quote="",
+            change="claim: x / locked the file / would need a second opinion",
+        )
+        self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
+
 
 class TestLevel(unittest.TestCase):
     def test_patch_is_illegal_at_fact_check(self):
