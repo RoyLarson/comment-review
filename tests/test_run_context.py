@@ -113,6 +113,40 @@ class TestAnswered(unittest.TestCase):
     def test_a_bare_closing_token_in_real_prose_does_not_erase_the_answer(self):
         self.assertTrue(run_context._answered("see --> docs/style.md"))
 
+    def test_a_triple_dash_closer_alone_is_rejected(self):
+        # An off-by-one dash count on the delimiter -- no letter or digit
+        # survives, so this is exactly as empty as "-->" or "<!--" alone.
+        self.assertFalse(run_context._answered("--->"))
+
+    def test_a_hint_followed_by_a_dash_artifact_is_rejected(self):
+        self.assertFalse(run_context._answered("<!-- hint --> --->"))
+
+    def test_content_genuinely_outside_a_closed_span_is_accepted(self):
+        # HTML comments do not nest: "<!--" opens and the FIRST "-->" closes
+        # it, so the "c" here is genuinely outside the span, by the same
+        # rule that makes the two rejections above correct. Not a hole.
+        self.assertTrue(run_context._answered("<!--- a <!-- b --> c --->"))
+
+    def test_none_published_is_accepted(self):
+        self.assertTrue(run_context._answered("none published"))
+
+    def test_a_bare_number_is_accepted(self):
+        self.assertTrue(run_context._answered("88"))
+
+    def test_a_bare_word_is_accepted(self):
+        self.assertTrue(run_context._answered("google"))
+
+    def test_a_path_is_accepted(self):
+        self.assertTrue(run_context._answered("docs/style-sheet.md"))
+
+    def test_unavailable_with_an_em_dash_is_accepted(self):
+        self.assertTrue(run_context._answered("UNAVAILABLE — no destination tree"))
+
+    def test_a_hint_followed_by_a_real_answer_is_accepted(self):
+        self.assertTrue(
+            run_context._answered("<!-- path to it, or `new` --> docs/style.md")
+        )
+
 
 class TestCLI(unittest.TestCase):
     """`main()` end to end -- the unreadable-packet branch must actually gate."""
