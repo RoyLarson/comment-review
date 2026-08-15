@@ -25,3 +25,6 @@ convention = "google"
 # The corpora are other people's code, vendored at pinned refs. Linting them
 # would report their style as our defects.
 "corpora/**" = ["ALL"]
+# Test names are the documentation here; a docstring per case restates the
+# name and rots separately from it.
+"tests/**" = ["D"]
