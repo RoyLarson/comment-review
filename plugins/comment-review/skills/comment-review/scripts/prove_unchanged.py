@@ -34,7 +34,6 @@ from __future__ import annotations
 
 import argparse
 import ast
-import subprocess
 import sys
 from pathlib import Path
 
@@ -44,6 +43,7 @@ from census import (  # noqa: E402  -- path shim must run first
     GIT_ERRORS,
     Language,
     blocks_lexical,
+    git,
     git_ls_files,
     language_for,
 )
@@ -204,17 +204,7 @@ def _read_raw(path: Path) -> str:
 def _show(repo: Path, ref: str, rel: str) -> str | None:
     """`git show <ref>:<rel>`, or None when git cannot produce it."""
     try:
-        # git always writes tracked content as UTF-8; `text=True` with no
-        # `encoding=` decodes with the user's locale instead, which corrupts
-        # any non-ASCII byte and fails the proof on a file it did not change.
-        got = subprocess.run(
-            ["git", "-C", str(repo), "show", f"{ref}:{rel}"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            timeout=30,
-            check=False,
-        )
+        got = git(repo, "show", f"{ref}:{rel}")
     except GIT_ERRORS:
         return None
     return got.stdout if got.returncode == 0 else None

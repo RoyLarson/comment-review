@@ -7,6 +7,7 @@ from pathlib import Path
 
 from _paths import FIXTURES  # noqa: F401
 import census
+import referrers
 
 
 class TestNameCorpusScope(unittest.TestCase):
@@ -63,6 +64,71 @@ class TestNameCorpusScope(unittest.TestCase):
         self.assertTrue(
             any("not a git" in u.lower() or "untracked" in u.lower() for u in unread)
         )
+
+
+class TestNonAsciiTrackedPath(unittest.TestCase):
+    """C4: `core.quotePath` defaults to TRUE, so git octal-escapes a path.
+
+    A tracked `café.py` came back as `"caf\\303\\251.py"`, quotes included, so
+    it matched nothing in `tracked_paths` and was skipped by `code_names` --
+    every symbol defined only there became a false obituary, with NOTHING
+    appended to `unread`. `path_index` indexed the escaped string, so a
+    comment citing the real name reported UNRESOLVED: a false finding handed
+    to four reviewers as settled fact.
+    """
+
+    NAME = "café.py"
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name) / "repo"
+        self.repo.mkdir()
+        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
+        (self.repo / self.NAME).write_text(
+            "def helper_name():\n    return 1\n", encoding="utf-8"
+        )
+        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repo),
+                "-c",
+                "user.email=t@t",
+                "-c",
+                "user.name=t",
+                "commit",
+                "-qm",
+                "init",
+            ],
+            check=True,
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_git_ls_files_returns_the_real_name(self):
+        self.assertEqual(census.git_ls_files(self.repo), [self.NAME])
+
+    def test_a_symbol_defined_there_is_alive(self):
+        names, unread = census.code_names([self.repo], census.tracked_paths(self.repo))
+        self.assertIn("helper_name", names, unread)
+
+    def test_it_is_never_dropped_silently(self):
+        # The one-sided failure: a file absent from the corpus AND absent from
+        # `unread` is a coverage hole nothing reports.
+        _, unread = census.code_names([self.repo], census.tracked_paths(self.repo))
+        tracked = census.tracked_paths(self.repo)
+        self.assertIn((self.repo / self.NAME).resolve(), tracked)
+        self.assertEqual(unread, [])
+
+    def test_a_citation_to_it_resolves(self):
+        self.assertIn(self.NAME, census.path_index(self.repo))
+
+    def test_git_grep_reports_the_real_name(self):
+        found, reason = referrers._grep(self.repo, "helper_name")
+        self.assertEqual(reason, "")
+        self.assertEqual(found, [self.NAME])
 
 
 if __name__ == "__main__":

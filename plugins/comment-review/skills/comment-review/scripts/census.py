@@ -678,6 +678,49 @@ def _walk(root: Path):
                 yield p
 
 
+def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
+    r"""Every git invocation this plugin makes. ONE place, on purpose.
+
+    ⚠ `core.quotePath` DEFAULTS TO TRUE, so git renders a non-ASCII path as
+    octal escapes -- `"caf\303\251.py"`, quotes included. Measured: a tracked
+    `café.py` defining `helper_name` dropped out of the live-name corpus with
+    NOTHING appended to `unread`, so every symbol defined only there became a
+    false obituary and the coverage hole was silent. The same escaping makes
+    `path_index` report a comment citing that file as UNRESOLVED -- a false
+    finding handed to four reviewers as settled fact.
+
+    ⚠ The encoding is PINNED for the same reason: git writes UTF-8, and
+    `text=True` alone decodes with the machine's locale, so a non-ASCII path
+    arrives corrupted on this repo's own cp1252 machine.
+
+    Both are one-line fixes, and both were applied to some call sites and not
+    others -- three scripts each received the encoding fix independently and
+    none received the quoting fix. Routing every call through here is what
+    makes the NEXT git-decoding hazard a one-place fix.
+
+    Exceptions are NOT caught here: `GIT_ERRORS` and a nonzero return code mean
+    different things at each call site (None as a third state, a real
+    zero-match search), and collapsing them here would erase that.
+
+    Args:
+        repo: the repository root, passed as `-C`.
+        *args: the git subcommand and its arguments.
+        timeout: seconds before `subprocess.TimeoutExpired`.
+
+    Returns:
+        The completed process, with `check=False` -- the caller reads
+        `returncode` itself.
+    """
+    return subprocess.run(
+        ["git", "-c", "core.quotePath=false", "-C", str(repo), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=timeout,
+        check=False,
+    )
+
+
 def git_ls_files(repo: Path) -> list[str] | None:
     """Tracked, repo-relative posix paths — or None when git cannot answer.
 
@@ -694,14 +737,7 @@ def git_ls_files(repo: Path) -> list[str] | None:
     if not repo.is_dir():
         return None
     try:
-        listed = subprocess.run(
-            ["git", "-C", str(repo), "ls-files"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            timeout=30,
-            check=False,
-        )
+        listed = git(repo, "ls-files")
     except GIT_ERRORS:
         return None
     if listed.returncode != 0:

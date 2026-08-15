@@ -22,14 +22,13 @@ from __future__ import annotations
 
 import argparse
 import ast
-import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from census import GIT_ERRORS, git_ls_files  # noqa: E402  -- path shim first
+from census import GIT_ERRORS, git, git_ls_files  # noqa: E402  -- path shim first
 
 # ⚠ Bound to a NAME so no `except` clause here holds a tuple LITERAL. This
 # file ships under `plugins/` into other people's repositories and is
@@ -82,12 +81,6 @@ def tokens_for(path: Path, text: str) -> set[str]:
 def _grep(repo: Path, token: str) -> tuple[list[str] | None, str]:
     """Tracked files containing `token` as a fixed string.
 
-    ⚠ The encoding is PINNED. git emits UTF-8; `text=True` alone decodes with
-    whatever locale the user's machine has, and a non-ASCII path then arrives
-    corrupted — so a real referrer is reported under a name that resolves to
-    nothing. Measured on this repo's own `cp1252` machine against the same
-    construct in `prove_unchanged.py`.
-
     ⚠ `git grep` exits 1 for a genuine ZERO-MATCH search -- not an error --
     and anything else (a bad pathspec, a corrupt index, a timeout) means the
     search could not be completed at all. Collapsing all three into `[]`
@@ -101,14 +94,7 @@ def _grep(repo: Path, token: str) -> tuple[list[str] | None, str]:
         naming why.
     """
     try:
-        got = subprocess.run(
-            ["git", "-C", str(repo), "grep", "-l", "-F", "--", token],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            timeout=60,
-            check=False,
-        )
+        got = git(repo, "grep", "-l", "-F", "--", token, timeout=60)
     except GIT_ERRORS as e:
         return None, type(e).__name__
     if got.returncode == 0:
