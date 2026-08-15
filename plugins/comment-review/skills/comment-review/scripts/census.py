@@ -343,6 +343,13 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     cannot answer OWNERSHIP, so no block gets an owner and the locality angle
     degrades on this file; the census stamps the tier so a reviewer sees that
     rather than inferring it.
+
+    ⚠ A block opener with no closer swallows every remaining line into one run,
+    so the code below it is censused as prose. That block is STAMPED
+    `unterminated-block-comment` rather than returned looking ordinary: a
+    consumer cannot otherwise tell a long comment from a lexer that lost the
+    rest of the file, and `prove_unchanged.py` refuses the whole file on this
+    mark rather than comparing a residue the code never reached.
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     lines = text.splitlines()
@@ -402,6 +409,16 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own block, owned by the line it sits on
     flush()
+    if in_block is not None and out:
+        # The loop ended with a block comment still open, so the final flush
+        # emitted the run that ate the rest of the file. It is the ONE block
+        # whose text is not known to be prose.
+        out[-1].marks.add("unterminated-block-comment")
+        out[-1].notes.append(
+            f"UNTERMINATED {in_block[0]}: no closing {in_block[1]} before end of "
+            "file, so every line below the opener was swallowed into this run. "
+            "Code down there was NOT censused as code."
+        )
     return out
 
 

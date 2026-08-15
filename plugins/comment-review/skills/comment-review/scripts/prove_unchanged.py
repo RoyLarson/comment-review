@@ -22,12 +22,12 @@ stored blob: under `core.autocrlf` the blob is always LF, so normalising to it
 leaves the working tree inconsistent with every file the sweep did not touch --
 and `git diff` hides it. Measured four times.
 
-⚠ The residue proof cannot see past an UNTERMINATED block comment: the lexer
-that finds blocks swallows every remaining line into that one run, so a code
-change after that point never reaches the comparison. The residue is then
-merely SHORT, not obviously wrong -- an EMPTY residue from a non-empty file is
-refused as unprovable, but a short, plausible one from a file that still has
-some surviving code is not, and this proof cannot tell the two apart.
+⚠ An UNTERMINATED block comment makes the whole file UNPROVABLE. The lexer
+swallows every line below the opener into that one run, so a code change after
+that point never reaches the comparison and the residue is merely SHORT -- not
+obviously wrong, and equal across two files whose code differs. The census
+stamps that run `unterminated-block-comment` and this refuses the file on the
+mark, rather than on a residue that only LOOKS like a proof.
 """
 
 from __future__ import annotations
@@ -105,6 +105,12 @@ def _residue(text: str, path: Path) -> str | None:
     code sharing a line with a block-comment delimiter, which is stored as the
     whole line and so cannot be told apart from a line that is comment start
     to end -- is refused, not guessed at: the whole file becomes unprovable.
+
+    An UNTERMINATED block comment is refused the same way, on the census's own
+    `unterminated-block-comment` mark. The lexer swallows every line below the
+    opener into that run, so the code below it never reaches the comparison and
+    the residue is merely SHORT -- short, plausible and equal on two files whose
+    executable code differs.
     """
     lang = language_for(path)
     if lang is None:
@@ -112,6 +118,8 @@ def _residue(text: str, path: Path) -> str | None:
     try:
         blocks = blocks_lexical(path, text, lang)
     except Exception:  # noqa: BLE001  -- an unprovable file is reported, not passed
+        return None
+    if any("unterminated-block-comment" in b.marks for b in blocks):
         return None
 
     lines = text.splitlines()
@@ -157,11 +165,10 @@ def code_signature(text: str, path: Path) -> tuple[str, str]:
     if residue is None:
         return "unprovable", ""
     if not residue.strip() and text.strip():
-        # An all-comment file, or a lexer that swallowed the tail after an
-        # unterminated block comment, can reach here with an EMPTY residue
-        # while the source was not empty. `"" == ""` would "prove" any two
-        # such files identical no matter what code either held -- comparing
-        # nothing is not a proof.
+        # An all-comment file reaches here with an EMPTY residue while the
+        # source was not empty. `"" == ""` would "prove" any two such files
+        # identical no matter what code either held -- comparing nothing is
+        # not a proof.
         return "unprovable", ""
     return "residue", residue
 
@@ -286,7 +293,10 @@ def main() -> int:
         kind_b, sig_b = code_signature(before, target)
         kind_a, sig_a = code_signature(after, target)
         if kind_a == "unprovable" or kind_b == "unprovable":
-            print(f"UNPROVABLE {rel}: no language record — code identity NOT shown")
+            print(
+                f"UNPROVABLE {rel}: prose could not be separated from code"
+                " — code identity NOT shown"
+            )
             failures += 1
         elif kind_a != kind_b:
             print(

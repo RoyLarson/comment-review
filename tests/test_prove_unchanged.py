@@ -71,6 +71,13 @@ C_MIDLINE_CHANGED = "int x = /* why */ 7;\nint y = 6;\n"
 # A file that is comment top to bottom: the residue is legitimately empty.
 GO_ALL_COMMENT = "// just a comment\n// and another\n"
 
+# An UNTERMINATED block comment. The lexer swallows every line below the opener
+# into one run, so `func B` never reaches the residue -- and the surviving
+# `func A() {}` makes the residue SHORT and plausible rather than empty, which
+# is why the empty-residue guard does not catch this shape.
+GO_RUNAWAY_BEFORE = "func A() {}\n/* note\nfunc B() {}\n"
+GO_RUNAWAY_CODE_CHANGED = "func A() {}\n/* note edited\nfunc C() { panic(1) }\n"
+
 
 class TestPythonProof(unittest.TestCase):
     def test_prose_only_change_is_proven(self):
@@ -172,6 +179,26 @@ class TestEmptyResidueIsUnprovable(unittest.TestCase):
         # residue" outright -- two truly empty files ARE identical.
         kind, _ = pu.code_signature("", Path("x.go"))
         self.assertEqual(kind, "residue")
+
+
+class TestUnterminatedBlockCommentIsUnprovable(unittest.TestCase):
+    """C1: a runaway `/*` hid a code change behind an equal, plausible residue.
+
+    Both files residue to `func A() {}`, so the signatures compared EQUAL and
+    the report read PROVEN while `func B` had become `func C() { panic(1) }`.
+    The empty-residue guard cannot see this: some code survived.
+    """
+
+    def test_the_residue_is_refused_not_compared(self):
+        kind, _ = pu.code_signature(GO_RUNAWAY_BEFORE, Path("x.go"))
+        self.assertEqual(kind, "unprovable")
+
+    def test_a_code_change_behind_the_runaway_opener_is_not_proven(self):
+        path = Path("x.go")
+        before = pu.code_signature(GO_RUNAWAY_BEFORE, path)
+        after = pu.code_signature(GO_RUNAWAY_CODE_CHANGED, path)
+        self.assertEqual(before[0], "unprovable")
+        self.assertEqual(after[0], "unprovable")
 
 
 class TestSiblingSkipsUnreadable(unittest.TestCase):
@@ -322,6 +349,34 @@ class TestCLI(unittest.TestCase):
         result = self._run(unknown)
         self.assertEqual(result.returncode, 1)
         self.assertIn("UNPROVABLE", result.stdout)
+
+    def test_a_code_change_behind_a_runaway_block_comment_does_not_read_proven(self):
+        # C1 end to end. A signature-level test only shows the residue is
+        # refused; only the CLI shows that PROVEN is never printed and the
+        # exit code changes -- the distinction that let this ship.
+        runaway = self.repo / "runaway.go"
+        _write(runaway, "func A() {}\n/* note\nfunc B() {}\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "runaway.go"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repo),
+                "-c",
+                "user.email=t@t",
+                "-c",
+                "user.name=t",
+                "commit",
+                "-qm",
+                "add runaway",
+            ],
+            check=True,
+        )
+        _write(runaway, "func A() {}\n/* note edited\nfunc C() { panic(1) }\n")
+        result = self._run(runaway)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("UNPROVABLE", result.stdout)
+        self.assertNotIn("PROVEN", result.stdout)
 
     def test_a_line_ending_mismatch_against_the_sibling_fails(self):
         crlf_text = (
