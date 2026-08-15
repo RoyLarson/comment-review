@@ -251,7 +251,36 @@ sheet, not by another visitor over the tree.
 ⚠ **It is binding, not advisory.** An edit that departs from the sheet is out of scope in the
 same way a code change is. If the sheet is wrong, that is a `query`, not a licence.
 
-**1.6 Build the name corpus from the AST** — every liveness check downstream depends on it.
+**1.6 Probe for a LANGUAGE SERVER, once per language in scope.** One `LSP documentSymbol`
+call against a representative file of each. Record which answered — that is a fact about
+this run and it belongs in the final report.
+
+The server is the user's, not ours: someone reviewing Rust already runs rust-analyzer, so
+this is structure available for free that `sweep.py` cannot ship. It buys exactly two
+things, and neither is the census:
+
+| | with a server | without |
+|---|---|---|
+| **who owns a block** | `documentSymbol` → the declaration on the line after the run ends | nothing resolves it |
+| **is a name alive** | `workspaceSymbol` / `findReferences`, in **any** language | the Python AST corpus only |
+
+⚠⚠ **LSP RETURNS NO COMMENTS, so it can never replace `sweep.py`.** The nine operations
+exposed — definition, references, hover, documentSymbol, workspaceSymbol, implementation and
+the call-hierarchy three — return no prose at all; `semanticTokens` and `foldingRange`, the
+two that would, are not among them. On a Go file a server reports `func F` at line 4 while
+nothing has said there is a comment at line 2 to attach to it. **A block must be FOUND before
+anything can own it, so stages 2–3 always run.**
+
+⚠ **Absence is reported, never inferred.** A missing server answers
+`No LSP server available for file type: .ts` — say so per language in the report. This is
+additive: with a server you gain owners and cross-language liveness, without one you lose
+nothing you had. What you may not do is let a run that had no server read like one that did.
+
+**1.7 Build the name corpus** — every liveness check downstream depends on it.
+**Prefer `workspaceSymbol` where 1.6 found a server**; it answers for every language at once
+and is not restricted to what a Python parser can read. Fall back to the AST corpus
+`sweep.py` builds, and combine them where both exist.
+
 From the AST never raw text (text contains the comments being checked, so everything passes);
 skip directories holding `pyvenv.cfg`; never harvest string constants from tests
 (`assert "x" not in y` makes a dead name read alive); exclude `.md`/`.txt`; resolve a dotted
@@ -314,7 +343,7 @@ Marks, and what resolving each one means:
 | mark | resolved by |
 |---|---|
 | `cites-a-path` | tracked in the tree? ⚠ present-but-untracked is **unverifiable**, not dangling |
-| `names-a-symbol` | defined in the AST corpus? (head segment; `foo()` normalised) |
+| `names-a-symbol` | `workspaceSymbol` where 1.6 found a server, else the AST corpus (head segment; `foo()` normalised) |
 | `counted` | re-derive the POPULATION, then count it |
 | `coverage-claim` | does the guard exist — **can it fail**, and does it pass with its exemptions OFF? |
 | `forbids-a-literal` | grep the forbidden literal across that file |
@@ -322,6 +351,28 @@ Marks, and what resolving each one means:
 
 ⚠⚠ **The last four are where the defects are. Check the CLAIM, not the CITATION.** Resolving
 a path *feels* like verification; resolving a claim **is** it.
+
+### Enrich the census with the language server, where 1.6 found one
+
+The census names every block; the server can say what a block BELONGS to. Do this once, here,
+and attach the answer to the node — not in stage 4, where four reviewers would each re-derive
+it and could disagree.
+
+- **Owner** — `documentSymbol` on each file in scope returns every declaration and its line.
+  A run ending at line N-1 is owned by the declaration at line N. Attach it; the census
+  prints owners it has.
+- **Liveness** — for each `names-a-symbol` candidate, `workspaceSymbol` answers whether the
+  name exists at all, in any language in the workspace. `findReferences` answers whether
+  anything uses it, which is the stronger claim a comment usually makes.
+
+⚠ **A server does not settle a claim, it settles a FACT.** "This name exists" is not "this
+comment is true" — the mark stays a CANDIDATE a reviewer confirms, exactly as when the AST
+answered it. What changes is the cost of checking, not who decides.
+
+⚠⚠ **Say which servers answered, in the stage 2–3 report, per language.** Availability is a
+property of the machine, so two runs over identical input can resolve different sets. A run
+that had no server must not read like one that did — and any measurement taken with a server
+is not comparable to one taken without.
 
 ⚠ **Scope by SUBJECT, not by file extension.** A config, data or documentation file carrying
 prose that justifies a value is a node like any other. Measured: one unreviewed config file
@@ -344,7 +395,9 @@ Report `N blocks, K marks resolved`, the longest run, and the widest line.
 
 Each already carries its own angle and reads the shared brief itself. **You supply the run
 context, and only that:** the numbered census, the stage-1 resolutions, the **docstring
-template** from 1.3, the **style sheet** from 1.5, the **level**, and the two lists — **FILES UNDER REVIEW** (the only files a verdict may
+template** from 1.3, the **style sheet** from 1.5, the **level**, **which languages a LANGUAGE
+SERVER answered for** (1.6 — the brief tells them what to do with it, and silence there means
+they must assume none), and the two lists — **FILES UNDER REVIEW** (the only files a verdict may
 target) and **REFERENCE ONLY** (read to settle a claim, never propose a change). Without the
 second list a reviewer either treats the whole repo as in scope or stops reading at the
 boundary, which disables every cross-file check.

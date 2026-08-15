@@ -19,6 +19,16 @@ finding even though the applying pass is forbidden to touch it.
 propose a change to them.** Without this you will either treat the whole repo as in scope
 or, more commonly, stop reading at the boundary — which disables every cross-file check.
 
+⚠ **If the run context says a LANGUAGE SERVER answered, use it to settle a claim about a
+symbol** — `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`. It is faster and
+more exact than grep, it works in languages no parser here reads, and `findReferences` is the
+only cheap way to test a claim like *"the only caller"* or *"nothing reads this"*.
+
+⚠⚠ **A server settles a FACT, never a VERDICT.** "This name exists" and "three files call it"
+are inputs to your judgement, not a substitute for it. And a server that is ABSENT proves
+nothing: if the context does not say one answered, do not assume it — report what you could
+not check rather than reporting it clean.
+
 ## Walk the census
 
 You are given a numbered census and the mechanical resolutions for it. **Walk it start to
