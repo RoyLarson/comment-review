@@ -520,18 +520,43 @@ def _annotated_docs(path: Path, tree: ast.AST) -> list[Block]:
     return out
 
 
-def code_names(roots: list[Path]) -> tuple[set[str], list[str]]:
+def code_names(
+    roots: list[Path], tracked: set[Path] | None = None
+) -> tuple[set[str], list[str]]:
     """Every name the tree DEFINES, from the AST — never from raw text.
 
     A corpus built from text contains the comments being checked, so every
     obituary resolves against itself and the check always passes. Unreadable
     files are RETURNED, not dropped: a hole in the corpus turns every symbol
     defined only there into a false obituary, which fails loud-and-wrong.
+
+    ⚠ TRACKED files only, when git can say which. A vendored, generated or
+    gitignored tree under the repo root otherwise donates its whole namespace:
+    measured 2026-08-15, `asanyarray` resolved ALIVE in a repo that does not
+    define it, because a fetched corpus sat in the working tree. That failure
+    is SILENT and one-sided -- it can only ever suppress an obituary, never
+    manufacture one.
+
+    Args:
+        roots: directories or files to harvest.
+        tracked: absolute paths git reports as tracked, or None when git could
+            not answer — in which case the whole tree is walked and the caller
+            is told, because coverage that changes silently cannot be reported.
+
+    Returns:
+        The set of defined names, and the list of files that could not be read.
     """
     names: set[str] = set()
     unread: list[str] = []
+    if tracked is None:
+        unread.append(
+            "name corpus built by WALKING the tree (not a git checkout, or git "
+            "unavailable) — untracked or vendored code may mask an obituary"
+        )
     for root in roots:
         for p in _walk(root):
+            if tracked is not None and p.resolve() not in tracked:
+                continue
             lang = language_for(p)
             # ⚠ A non-Python file is a KNOWN hole, not a broken file. Parsing it
             # as Python reported `a.go (SyntaxError)`, which reads as "your file
@@ -583,6 +608,44 @@ def _walk(root: Path):
                 yield p
 
 
+def git_ls_files(repo: Path) -> list[str] | None:
+    """Tracked, repo-relative posix paths — or None when git cannot answer.
+
+    None is a THIRD state, not an empty list: "this is not a git checkout" and
+    "this checkout tracks nothing" lead to different fallbacks, and collapsing
+    them lets a working tree with no index silently produce an empty corpus.
+
+    Args:
+        repo: the repository root.
+
+    Returns:
+        The tracked paths, or None if this is not a git repo or git is absent.
+    """
+    if not repo.is_dir():
+        return None
+    try:
+        listed = subprocess.run(
+            ["git", "-C", str(repo), "ls-files"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+    except GIT_ERRORS:
+        return None
+    if listed.returncode != 0:
+        return None
+    return listed.stdout.splitlines()
+
+
+def tracked_paths(repo: Path) -> set[Path] | None:
+    """`git_ls_files` as resolved absolute paths, for membership tests."""
+    rels = git_ls_files(repo)
+    if rels is None:
+        return None
+    return {(repo / rel).resolve() for rel in rels}
+
+
 def path_index(repo: Path) -> set[str]:
     """Every tracked path, plus every suffix of it, for citation resolution.
 
@@ -605,17 +668,7 @@ def path_index(repo: Path) -> set[str]:
     out: set[str] = set()
     if not repo.is_dir():
         return out
-    try:
-        listed = subprocess.run(
-            ["git", "-C", str(repo), "ls-files"],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
-        rels = listed.stdout.splitlines() if listed.returncode == 0 else []
-    except GIT_ERRORS:
-        rels = []
+    rels = git_ls_files(repo)
     if not rels:  # not a git repo, or git unavailable
         rels = [
             p.relative_to(repo).as_posix()
@@ -738,7 +791,7 @@ def main() -> int:
     repo = Path(args.repo).resolve()
     targets = [Path(p) for p in args.paths]
     files = sorted({f for t in targets for f in _walk(t)})
-    known, unread = code_names([repo])
+    known, unread = code_names([repo], tracked_paths(repo))
     paths = path_index(repo)
 
     census: list[Block] = []
