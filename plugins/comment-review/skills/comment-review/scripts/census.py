@@ -23,7 +23,7 @@ find the same blocks; they differ only in what else they can say:
   tokenized  a lexer + AST (Python, from the stdlib)   + DOCSTRING owners
   lexical    a comment-syntax record, nothing else     blocks and marks
 
-⚠ NO COMMENT carries an owner at either tier, so every locality verdict rests
+⚠ NO COMMENT carries an owner at either tier, so every ownership-context verdict rests
 on a reviewer READING the file. A docstring's owner comes free from the AST; a
 `#` run's does not, and nothing here infers it. Treat placement findings as
 CANDIDATES.
@@ -299,7 +299,7 @@ BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 
 # The ladder is named by the QUESTION each rung answers, not by the library
 # that happens to answer it. Only the top rung knows which declaration a block
-# belongs to, which is why locality is the one angle that degrades below it.
+# belongs to, which is why ownership-context is the one angle that degrades below it.
 TIER_ANSWERS = {
     "tokenized": "blocks, marks, and DOCSTRING owners",
     "lexical": "blocks and marks only",
@@ -348,8 +348,8 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     """Comment runs for a language with no parser here — the FLOOR tier.
 
     Answers where every block is, its line range, its text and its marks. It
-    cannot answer OWNERSHIP, so no block gets an owner and the locality angle
-    degrades on this file; the census stamps the tier so a reviewer sees that
+    cannot answer OWNERSHIP, so no block gets an owner and the ownership-context
+    angle degrades on this file; the census stamps the tier so a reviewer sees that
     rather than inferring it.
 
     ⚠ A block opener with no closer swallows every remaining line into one run,
@@ -461,7 +461,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
         # ⚠ The IMMEDIATELY next line, not the next non-blank one. Both
         # languages require a doc comment to touch its declaration; a blank
         # line between them means the run documents nothing, which is an
-        # ORPHAN -- a locality finding, and emphatically not a doc comment to
+        # ORPHAN -- an ownership-context finding, and emphatically not a doc comment to
         # be exempted from the cap.
         nxt = lines[block.end].strip() if block.end < len(lines) else ""
         if not nxt:
@@ -992,8 +992,9 @@ def main() -> int:
         if tiers.get(name):
             print(f"  tier {name}: {tiers[name]} blocks - {TIER_ANSWERS[name]}")
     print(
-        "  ⚠ NO COMMENT carries an owner at either tier, so every locality\n"
-        "    verdict rests on a reviewer READING the file. Treat a placement\n"
+        "  ⚠ NO COMMENT carries an owner at either tier, so every\n"
+        "    ownership-context verdict rests on a reviewer READING the file."
+        " Treat a placement\n"
         "    finding as a CANDIDATE, not a resolution."
     )
     print(f"  longest comment run: {longest} lines; widest line: {widest} chars")

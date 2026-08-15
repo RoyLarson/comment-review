@@ -19,6 +19,19 @@ Assume a reasoning reader: state the rule and its discriminator, not the argumen
 budget, a new rule **replaces** one — and if two rules are instances of one generalization,
 write the generalization and delete both.
 
+**The budget for the four angles is their current length, and these are the numbers:**
+
+| agent file (`plugins/comment-review/agents/`) | lines |
+| --- | --- |
+| `comment-review-ownership-context.md` | 101 |
+| `comment-review-block-context.md` | 101 |
+| `comment-review-function-context.md` | 129 |
+| `comment-review-module-context.md` | 120 |
+
+⚠ Each is AT budget, so the replaces-one rule is live on all four. Raising a number here is a
+change to this file that a reviewer rules on, not a side effect of adding a rule — and a count
+that no longer matches `wc -l` is a finding against this file.
+
 ⚠ **A rule belongs in exactly one file.** Shared reviewer contract →
 `reviewer-brief.md`; one angle's → that angle's agent definition; a stage's procedure → that
 stage's file under `references/` (`residue-check.md`, `compact.md`, `apply.md`, `review.md`); a

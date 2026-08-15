@@ -38,11 +38,13 @@ if the other documentation doesn't have an edge in the connection anymore it mig
 
 I broke down the comment review into four levels/categories
 
-- Locality - Is it in the right place
-- Currency - Does it state what is true/necessary for the code right now
-- Functionality - Does the comments and documentation within a function follow from the
-  name of the function
-- Modularity - Does the documentation cover one set of ideas.
+- Ownership-Context - Is it in the right place, and does it belong to only one place
+- Block-Context - Is the state, every constraint and every worked example still true of the
+  code it sits with
+- Function-Context - Do the name, signature, docstring and body agree about one function, and
+  do the comments inside it follow the order the body runs in
+- Module-Context - Does the documentation cover one set of ideas and everything the module
+  exposes
 
 These were the best classifications of comment and documentation errors I could think of.
 They each were meant to support from inside-out the structure of comments.
@@ -54,28 +56,49 @@ documentation.
 
 ## What
 
-The skill judges comments based upon four criteria:
+The skill judges comments based upon four criteria. `ownership-context` resolves placement
+first, at every level, because the other three each measure a claim against the code at their
+own scope — a claim attached to the wrong scope gets measured against the wrong code.
 
-- Locality
-  - Is the comment where it is supposed to be or did it drift away from the
-    location because of changes.
-  - Do the current comments next to code reference the next line(s) of code
-    coming up or are they referencing something before.
-  - Are the comments properly colocated.
-- Currency
-  - Does the comment state something specific about what the code is doing now.
-    - not past behavior.
-    - not future behaviors.
-- Functionality
-  - Does the function documentation describe what the code does.
-    - Is this one function with an appropriate name or is it more than one function.
-    - Do the comments indicate the functions use changed over time.
-    - Are the comments in the function in the correct order.
-- Modularity
-  - Is the module/package level documentation appropriate.
-    - Does it cover all of the functions and constants that the module exposes.
-    - Does the documentation support what the module's state uses are.
-    - Is it one set of ideas being discussed in the documentation.
+- Ownership-Context
+  - Does the comment belong to the line it sits on — is it a checkable claim about the code
+    beside it, not narration of what came before, not a description of code elsewhere in the
+    file, not an orphan sitting between definitions.
+  - Is a non-obvious constraint left with no comment at all.
+  - Is the block load-bearing where it sits — would someone changing that code decide worse
+    without it.
+  - Where the same claim is stated at several sites, which site is its home; the rest are
+    dropped or reanchored to it.
+- Block-Context
+  - Does the comment state something specific about what the code is doing now, not past
+    behavior, not future behavior — dated rulings, review-round labels, "this used to", and
+    obituaries for a symbol, file, test or flag that exists nowhere.
+  - Does a stated constraint match the value, direction, units and boundary the code actually
+    enforces.
+  - Does a worked example still produce what it claims — run it.
+  - Quantified and exclusivity claims ("the ONE place", "only one caller", "single source of
+    truth") — enumerate the sites and report the count.
+  - Do cited paths and guards still exist, and still mean what the prose says.
+- Function-Context
+  - Does the function documentation describe what the code does — name, signature, docstring
+    and body read together.
+  - Does the documentation describe one function, or does it need "and" to be accurate.
+  - Are the comments in the function's body in the correct order.
+  - Does the function have a caller outside the tests.
+  - Does a coverage claim's guard exist, and would it fail if the claim were false.
+  - Does a prohibition stated in the file hold against the rest of that file.
+  - What must be true of the function's output or its caller that the signature cannot
+    express, and does the docstring say it.
+- Module-Context
+  - Is the module/package level documentation one set of ideas, not several unrelated subjects.
+  - Does it cover all of the functions, classes and constants that the module exposes, walked
+    from the module's own definitions.
+  - Does the documentation account for the module's mutable state — who writes it, when, and
+    what depends on it having been written.
+  - Are a module docstring's own quantified and exclusivity claims ("single source of truth",
+    "the only parser") true, resolved against the rest of the tree.
+  - Where a rule is restated across several modules, does the documentation name the function
+    that should own it.
 
 The skill is broken up into eight phases to cover an editorial system.
 
@@ -84,16 +107,17 @@ The skill is broken up into eight phases to cover an editorial system.
 3) FIND REFERENCES - Determine external links to the code comments that might also need updating
 4) MARK - Provide appropriate editorial marks to the Annotated comments and documentation to determine what to do
 
-| verdict   | the claim is                 | what you do with it                                                       |
-| --------- | ---------------------------- | ------------------------------------------------------------------------- |
-| `clean`   | checked-and-verified         | nothing. One angle declining to find anything, **not** a pass             |
-| `query`   | unsettled                    | resolve it or escalate it. It blocks every other verdict on that sentence |
-| `drop`    | true but not worth keeping   | delete the sentence                                                       |
-| `correct` | **FALSE**                    | apply the true/false pair. **Always before any `patch`**                  |
-| `patch`   | **TRUE**, badly worded       | apply the rewrite                                                         |
-| `add`     | missing entirely             | insert the text at the anchor named with it                               |
-| `move`    | true, and not code's to hold | extract verbatim to the destination resolved at 1.4                       |
-| `split`   | two claims in one block      | re-anchor each fragment to the code it is about                           |
+| verdict    | the claim is                                     | what you do with it                                                       |
+| ---------- | ------------------------------------------------- | -------------------------------------------------------------------------- |
+| `clean`    | nothing to report **from this angle**            | nothing. Not a pass, and not a claim the block is correct — one angle having no finding, including when the block is outside what that angle reads |
+| `query`    | unsettled                                        | resolve it or escalate it. It blocks every other verdict on that sentence |
+| `drop`     | true but not worth keeping                       | delete the sentence                                                       |
+| `correct`  | **FALSE**                                        | apply the true/false pair. **Always before any `patch`**                  |
+| `patch`    | **TRUE**, badly worded                           | apply the rewrite                                                         |
+| `add`      | missing entirely                                 | insert the text at the anchor named with it                               |
+| `move`     | true, and not code's to hold at all              | extract verbatim OUT of the code, to the destination resolved at 1.4      |
+| `reanchor` | true and code's to hold, attached to wrong line  | re-attach the block, unchanged, to the declaration it constrains in the same file |
+| `split`    | two claims in one block                          | re-anchor each fragment to the code it is about                           |
 
 5) EDIT - Agent combines the marks to be a correct, truthful, load-bearing comment for the location
 6) COMPACT - Only if you want to force the LLMs to keep it short
@@ -212,7 +236,7 @@ lexer and AST, everything else gets a comment-syntax record and a hand-rolled st
 skipper that is wrong on heredocs, raw strings and template nesting.
 
 ⚠ **No comment carries an owner, in any language.** A docstring's owner comes free from
-the AST; a `#` run's does not, and nothing infers it — so every locality verdict rests on
+the AST; a `#` run's does not, and nothing infers it — so every ownership-context verdict rests on
 a reviewer reading the file. See [docs/parsing.md](docs/parsing.md) for where structure
 could come from and what was already tried and rejected.
 

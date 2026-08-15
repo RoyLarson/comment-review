@@ -59,7 +59,7 @@ was deleted despite resolving owners for half the corpus. An improvised parse
 cannot even count its own drops. It is also non-deterministic, so two runs
 produce different censuses and no corpus measurement compares to another.
 
-This is not hypothetical: it is already what happens for LOCALITY whenever no
+This is not hypothetical: it is already what happens for OWNERSHIP-CONTEXT whenever no
 owner is recorded, and the census now says so out loud rather than letting a
 reviewer's impression read as a resolution. Promoting that to a designed tier
 would undo the correction.

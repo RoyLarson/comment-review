@@ -75,7 +75,7 @@ string literals.
 then remove the source. The other order loses the text on any interruption — three times,
 before this became the rule.
 
-**Re-read what you wrote, against the currency rule.** The failure mode is producing exactly
+**Re-read what you wrote, against the block-context rule.** The failure mode is producing exactly
 what you are removing: a pass that cut seven obituaries wrote seven new ones, including the
 same one twice in one file.
 

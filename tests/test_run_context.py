@@ -36,7 +36,7 @@ UNAVAILABLE — no destination tree
 /tmp/run-abc/census.txt
 
 ## ANGLE FILES
-/abs/agents/comment-review-locality.md
+/abs/agents/comment-review-ownership-context.md
 
 ## FILES UNDER REVIEW
 a.py
@@ -171,7 +171,7 @@ class TestCheckableAnswers(unittest.TestCase):
         self.root = Path(self.tmp.name).resolve()
         self.census = self.root / "census.json"
         self.census.write_text("[]", encoding="utf-8")
-        self.angle = self.root / "locality.md"
+        self.angle = self.root / "ownership-context.md"
         self.angle.write_text("angle\n", encoding="utf-8")
 
     def tearDown(self):
@@ -184,7 +184,7 @@ class TestCheckableAnswers(unittest.TestCase):
             FULL.replace("## LEVEL\nfull", f"## LEVEL\n{level}")
             .replace("## CENSUS\n/tmp/run-abc/census.txt", f"## CENSUS\n{census}")
             .replace(
-                "## ANGLE FILES\n/abs/agents/comment-review-locality.md",
+                "## ANGLE FILES\n/abs/agents/comment-review-ownership-context.md",
                 "## ANGLE FILES\n" + "\n".join(angles),
             )
         )
@@ -220,7 +220,10 @@ class TestCheckableAnswers(unittest.TestCase):
         self.assertIn("missing.md", problems[0])
 
     def test_a_bulleted_and_a_labelled_entry_both_resolve(self):
-        entries = [f"- {self.angle.as_posix()}", f"locality: {self.angle.as_posix()}"]
+        entries = [
+            f"- {self.angle.as_posix()}",
+            f"ownership-context: {self.angle.as_posix()}",
+        ]
         self.assertEqual(run_context.invalid_answers(self._packet(angles=entries)), [])
 
     def test_every_x_packet_is_refused(self):

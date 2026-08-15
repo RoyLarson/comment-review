@@ -1,6 +1,6 @@
 ---
 name: comment-review
-description: Review the comments and docstrings in the files a change touched, across four angles — locality, currency, functionality, module coherence — using parallel read-only subagents, and return each finding as verdict/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject: after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" — "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; the task agent applies what the human approves, and every applied change passes a residue check against the original prose.
+description: Review the comments and docstrings in the files a change touched, across four angles — ownership-context, block-context, function-context, module-context — using parallel read-only subagents, and return each finding as verdict/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject: after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" — "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; the task agent applies what the human approves, and every applied change passes a residue check against the original prose.
 ---
 
 # comment-review
@@ -57,10 +57,8 @@ angle per block and must synthesise ONE**, so what matters here is what each obl
 
 ⚠⚠ **`move` and `reanchor` are separate words because they have different AVAILABILITY.**
 `move` takes prose out of the code and needs a destination tree, so 1.4 can rule it UNAVAILABLE
-for a whole run. `reanchor` moves a block to the right line in the same file and needs nothing,
-so it is **always available**. Measured: one word for both meant a misplaced-in-file rule was
-converted to `clean` by 1.4's unavailability rule and left sitting exactly where the locality
-angle warns it will be deleted next pass. The finding was destroyed by the vocabulary.
+for a whole run. `reanchor` re-attaches a block inside the same file and needs nothing outside
+it, so 1.4 never withholds it.
 
 ⚠⚠ **`correct` and `patch` are the distinction the whole design turns on.** `correct` says the
 sentence is wrong; `patch` says it is right and reads badly. Applying a `patch` to a false
@@ -98,15 +96,15 @@ same blocks and differ only in what else they can say:
 | `lexical` | a comment-syntax record, nothing else | blocks, marks | any owner; a marker inside an exotic string |
 
 ⚠⚠ **NO COMMENT carries an owner, in any language.** A docstring's owner comes free from the
-AST; a `#` run's does not, and nothing infers it. So **every locality verdict rests on a
-reviewer reading the file** — a judgement no field records and nothing downstream can check.
+AST; a `#` run's does not, and nothing infers it. So **every ownership-context verdict rests on
+a reviewer reading the file** — a judgement no field records and nothing downstream can check.
 Treat a placement finding as a CANDIDATE and **say so in your stage 2-3 report**, the same way
 an unavailable `move` is said at stage 1 rather than discovered at stage 6.
 
-⚠ **Only LOCALITY is affected.** Currency, functionality and module coherence never ask who
-owns a block, so they run identically everywhere — three of the four angles are at full
-strength on any file the census can read. "No parser for this language" reads like "no review"
-and is not.
+⚠ **Only OWNERSHIP-CONTEXT is affected.** Block-context and module-context never ask where a
+block belongs, and function-context's ordering read takes its structure from the body rather
+than from a census field — so three of the four angles are at full strength on any file the
+census can read. "No parser for this language" reads like "no review" and is not.
 
 ⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks ownership.**
 An unresolved owner weakens a verdict; an absent block produces none and reports no gap. **Adopt
@@ -184,10 +182,17 @@ to make.
 
 | level | angles | verdicts available |
 |---|---|---|
-| `fact-check` | currency, functionality | `correct` · `query` · `clean` |
-| `line` | + locality | + `drop` · `move` · `reanchor` · `split` · `add` |
-| `full` | + module coherence | + `patch` |
+| `fact-check` | ownership-context, block-context, function-context | `correct` · `query` · `clean` |
+| `line` | the same three | + `drop` · `move` · `reanchor` · `split` · `add` |
+| `full` | + module-context | + `patch` |
 | `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
+
+⚠⚠ **`ownership-context` runs at every level, including `fact-check`.** The other three check
+a claim against the code at their scope; a claim attached to the wrong scope is measured
+against the wrong code and `correct`ed into a falsehood.
+
+⚠⚠ **The ladder changes shape and that is the point.** It used to add an ANGLE at each rung;
+now `line` adds only VERDICTS, because `ownership-context` already ran at `fact-check`.
 
 ⚠⚠ **If `move` is unavailable (1.4), NO level reaches the cap, and say so up front.** True
 rationale with no destination becomes `clean` and stays where it is, so COMPACT must cap prose
@@ -277,7 +282,7 @@ them. They are plugin agents and their names are NAMESPACED — `comment-review:
 
 ⚠⚠ **If they do not resolve, say so at stage 1 and say what you will do instead.** Measured on
 all three verification runs: every one failed at stage 4 with
-`Agent type 'comment-review-locality' not found`, and every one silently improvised the same
+`Agent type 'comment-review-ownership-context' not found`, and every one silently improvised the same
 fallback. The sanctioned fallback is **four general-purpose agents given the ANGLE FILES
 paths from the packet** — never the angle text pasted into a prompt, which goes
 stale the moment an angle is edited. Because the packet already carries those
@@ -383,8 +388,8 @@ facts is a separate rule, and getting any of them wrong changes what the reviewe
   matter: if it counted, the cheapest route to green would be deleting a pointer to filed
   work; if it split, a block could be made compliant by adding one. ⚠ **A marker's
   CONTINUATION lines still count** — only the marker line itself is free.
-- **A block belongs to the code BELOW it**, which is what makes locality answerable. The
-  block above is about `result`, and a locality finding says so by naming that owner.
+- **A block belongs to the code BELOW it**, which is what makes ownership-context answerable. The
+  block above is about `result`, and an ownership-context finding says so by naming that owner.
 - **A trailing comment is its own block**, one line, owned by the line it sits on — and a
   trailing comment whose sentence carries past its own line is a finding in itself.
 
@@ -455,10 +460,10 @@ an over-cap or over-width count that reads like a project fact and is your own g
 
 | agent | asks |
 |---|---|
-| `comment-review:comment-review-locality` | does this belong to the line it sits on? |
-| `comment-review:comment-review-currency` | does this describe the program as it is now? |
-| `comment-review:comment-review-functionality` | does the commentary match what the function is for? |
-| `comment-review:comment-review-module-coherence` | do the comments say this is one module? |
+| `comment-review:comment-review-ownership-context` | does this comment belong to the line it sits on? |
+| `comment-review:comment-review-block-context` | is every claim in this block true of the code it sits with? |
+| `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
+| `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
 
 Each already carries its own angle and reads the shared brief itself. **You
 supply the run context as a PACKET, and the packet is checked before anyone is
@@ -512,12 +517,12 @@ EDIT:
 
 ```bash
 python <skill>/scripts/verdicts.py --census <census>.json --level <level> \
-  --angles locality,currency,functionality,module-coherence \
+  --angles ownership-context,block-context,function-context,module-context \
   --repo . <one report file per angle>
 ```
 
-⚠⚠ **NAME EACH REPORT FILE AFTER ITS ANGLE** — `locality.md`, `currency.md`,
-`functionality.md`, `module-coherence.md`. The tool takes an angle from the
+⚠⚠ **NAME EACH REPORT FILE AFTER ITS ANGLE** — `ownership-context.md`, `block-context.md`,
+`function-context.md`, `module-context.md`. The tool takes an angle from the
 report's FILE STEM, and `--angles` compares against those stems, so a report
 saved as `report1.md` is an angle nobody expected and every expected angle
 reads as missing. Two files with the same stem are refused outright.
@@ -525,7 +530,7 @@ reads as missing. Two files with the same stem are refused outright.
 ⚠ **Pass `--angles` every time, listing the angles this LEVEL ran.** Without it
 a reviewer that never reported at all is invisible — "every angle" silently
 means "every file I was handed", the easier version of the fabrication below.
-The list above is `full`; at `fact-check` it is `currency,functionality`.
+The list above is `full`; at `fact-check` it is `ownership-context,block-context,function-context`.
 
 It exits nonzero on a coverage gap, a citation that does not resolve, a quote
 not found near its cited line, a verdict the level does not carry, an angle
@@ -598,7 +603,7 @@ being settled:
    block and `split` as fragments. Last before `clean`, because the text must be final first.
 7. **`clean`** — the null verdict. A block stands unchanged when **every angle that ran**
    returned `clean` and nothing else. ⚠ *Every angle that RAN*, not four: at `fact-check` only
-   two run, and requiring four would make a block unblessable at that level.
+   three run, and requiring four would make a block unblessable at that level.
 
 ⚠ **Load [`references/residue-check.md`](references/residue-check.md) before you write anything**
 — the check is defined there, and this is the first stage that owes it. Stages 6 and 7b re-run
@@ -607,8 +612,11 @@ the same check against the same original; none of them may check against the pre
 Then emit the replacement and run the residue check on **the whole synthesised block once** —
 not once per verdict. The check compares against the original, and the original was one block.
 
-**Three rules that resolve the common collisions:**
+**Four rules that resolve the common collisions:**
 
+- **Two placement verdicts on one block, naming different destinations:**
+  `ownership-context`'s destination governs. Both findings stand; only the destination is
+  decided.
 - **Any `correct` outranks every `clean`.** Three angles finding nothing does not soften one
   angle finding a falsehood; they were not looking for the same thing.
 - **`correct` and `patch` on the same sentence:** correct first, then re-read the patch against

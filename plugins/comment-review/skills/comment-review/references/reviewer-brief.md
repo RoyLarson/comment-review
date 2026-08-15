@@ -67,7 +67,7 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `CHANGE` | the payload the verdict table requires |
 
 For a count, give the number **and the population you counted over** in `SUMMARY`'s right half —
-the currency angle owns quantified claims, and a count with no stated population cannot be
+the block-context angle owns quantified claims, and a count with no stated population cannot be
 re-derived.
 
 **Then account for every remaining block on one line:**
@@ -85,7 +85,7 @@ that does not resolve is not a weaker finding — it is not a finding.
 ⚠ **`SUMMARY`'s right half is DERIVED, and is not checked verbatim** — that is why
 it is a separate field from `QUOTE`. A count is not a line any file contains, so
 checking the derived statement against the code made every counted claim
-inadmissible: the currency angle's own category, refused by the gate.
+inadmissible: the block-context angle's own category, refused by the gate.
 
 ⚠ **`CLEAN` is a range list, not an invitation to skip.** Every census index
 must appear exactly once across your findings and your clean ranges. The join
@@ -118,19 +118,22 @@ claim gets its wording polished and never gets checked. That is the laundering f
 purest form. If you are unsure which applies, you have not settled the claim — that is `query`.
 
 ⚠⚠ **`move` leaves the code; `reanchor` stays in the file.** If the right home is a
-declaration ten lines down, that is `reanchor`, and it is ALWAYS available. `move` needs a
-destination tree the task agent resolved at 1.4 and can be unavailable for a whole run --
-so calling an in-file relocation `move` gets it converted to `clean` and the finding is
-LOST. Measured on a real run, on exactly this shape.
+declaration ten lines down, that is `reanchor` — available at every level except `fact-check`,
+where the verdict set carries no `reanchor` and the same finding is `query` instead, never
+`clean`. `move` needs a destination tree the task agent resolved at 1.4 and can be unavailable
+for a whole run -- so calling an in-file relocation `move` gets it converted to `clean` and the
+finding is LOST. Measured on a real run, on exactly this shape.
 
 ⚠ **There is no `compact` here.** Shortening is stage 6's, after the truth is written and only
 as far as a cap requires. You cannot propose that a block be shorter; you can only say which
 sentences are false, misplaced, missing or badly worded.
 
 ⚠ **The LEVEL you were given restricts which verdicts you may emit.** At `fact-check` you have
-`correct`, `query` and `clean` only — a true-but-misplaced block is `clean` for you, and its
-placement is somebody else's pass. Emitting a verdict your level does not carry is not a
-finding; it is scope you were not given.
+`correct`, `query` and `clean` only. For block-context, function-context and module-context, a
+true-but-misplaced block is `clean` for you. For `ownership-context` itself, a
+true-but-misplaced block is never `clean`: `reanchor` is not in this level's verdict set, so the
+finding is `query` — the claim cannot be settled where it sits. Emitting a verdict your level
+does not carry is not a finding; it is scope you were not given.
 
 ⚠ **`clean` is scoped to YOU.** It is not a pass — it is one angle having nothing to report,
 including when the block is outside what your angle reads, and the other angles are looking at
@@ -138,10 +141,26 @@ the same block. Nothing you emit can bless a block; only a `clean` from **every 
 ran** can, and the task agent computes that — you do not assert it. ⚠ Do not invent a word for
 "outside my angle": that is `clean`, and a ninth word breaks the arithmetic.
 
-⚠⚠ **If you did not read BOTH SIDES, the verdict is `query`.** Either you opened the code that
-settles the claim — and your `QUOTE` proves you did — or you could not, and the word for that is
-`query`, which returns for re-review and reaches the author as a question. There is no
-confidence tag to soften a verdict with.
+⚠⚠ **`clean` is the only verdict you can reach by NOT deciding.** Every other verdict is an
+action or an explicit `query`; this one can be arrived at by leaving a block alone, and a
+block left alone is indistinguishable from a block checked and acquitted. Your angle file
+states what your `clean` asserts — emit it as that claim, or emit `query`.
+
+⚠⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
+still required to open the code that would settle it; on every other verdict your `QUOTE` proves
+you did. `query` is what you emit when you did and it was still not enough.
+
+Three shapes reach it, and all three are findings rather than admissions:
+
+- **outside your angle** — what settles it belongs to another scope. Another angle may settle
+  it, and the task agent rules on all four together.
+- **outside the checkout** — generated, gitignored, remote, or on one machine. No reviewer in a
+  fresh checkout can settle it.
+- **outside the code** — settling it needs someone who knows the system or how it is operated.
+  It reaches the author at 7a as a question.
+
+⚠ **A claim you could not settle and marked `clean` is worse than the same claim marked
+`query`.** `clean` certifies; `query` asks. There is no confidence tag to soften a verdict with.
 
 ⚠ **A `query` carries no `EVIDENCE` and no `QUOTE`, by construction** — there is no line that
 settles a claim you could not settle. Do not invent one to satisfy the gate, and do not
@@ -150,6 +169,15 @@ reads instead, and a `query` naming no attempted check is the one it refuses.
 
 **Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
 single `clean` sentence must not launder the ones around it.
+
+### `truthy`
+
+A sentence is **truthy** when it states one checkable proposition about the code it is
+attached to — a subject, a referent, and a claim that some line, symbol or run can settle.
+
+⚠ Truthy is a property of FORM, not of truth. *"The retry budget is 40"* is truthy and false;
+*"this is robust"* is neither. A sentence that is not truthy cannot be `correct`ed, because
+there is nothing to correct it against — it is `drop` or `query`.
 
 ## Check the CLAIM, not the CITATION
 
@@ -238,6 +266,29 @@ sites. Out of scope is ruling on what the code **should be**.
 ⚠ **A reviewer straying into correctness is this skill's worst measured output** — four
 agreeing reviewers once reported a file "cannot compile" over valid syntax. A claim about
 whether code *runs* owes a `python -c` or `ast.parse` before it leaves your hands.
+
+### One claim, several sites — who owns it
+
+Both `ownership-context` and `module-context` see a claim stated in more than one place, and
+they draw different conclusions. The split is fixed:
+
+| angle | asks | verdict shape |
+|---|---|---|
+| `ownership-context` | which of these sites is this claim's HOME? | `reanchor` the claim to its owner, `drop` the copies |
+| `module-context` | does the rule have no OWNING FUNCTION, so each site re-explains it? | `add` the rule to the function that should hold it, and name that function |
+
+⚠ Same observation, different finding. A claim with a home in the wrong place is
+`ownership-context`'s; a rule with no home in the CODE is `module-context`'s. Neither may
+emit the other's verdict.
+
+### One block, two placements — which one governs
+
+`ownership-context` and `function-context` can both place the same block, and name different
+destinations for it. Both findings stand, and where the destinations differ,
+**`ownership-context`'s governs.**
+
+⚠ Neither angle defers to the other. Report the placement your angle sees, under the verdicts
+your level carries; the disagreement is not yours to resolve.
 
 ## You are not given the cap
 

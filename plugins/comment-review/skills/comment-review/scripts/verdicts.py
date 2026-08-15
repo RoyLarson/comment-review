@@ -369,7 +369,7 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     ⚠ QUOTE is checked, not `SUMMARY`'s right half. The right half is the
     DERIVED statement — *"31 callers, all under tests/"* — and a derived
     statement is by construction not a verbatim code line, so checking it there
-    made every counted claim structurally inadmissible. That is the currency
+    made every counted claim structurally inadmissible. That is the block-context
     angle's own category. The forcing function survives intact by moving to a
     field that carries verbatim text and nothing else.
 
@@ -443,7 +443,8 @@ def main() -> int:
         default="",
         help=(
             "comma-separated expected angle names, matched against each report"
-            " file's STEM (locality.md -> locality); one missing a report is fatal"
+            " file's STEM (ownership-context.md -> ownership-context); one missing"
+            " a report is fatal"
         ),
     )
     args = ap.parse_args()
