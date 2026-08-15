@@ -102,7 +102,7 @@ finding.
 | verdict   | use it when                                      | payload                                                              |
 | --------- | ------------------------------------------------ | -------------------------------------------------------------------- |
 | `clean`   | nothing to report FROM YOUR ANGLE                | nothing — name your angle, nothing else                              |
-| `query`   | you cannot settle the claim                      | the claim, the check you ATTEMPTED, and what WOULD settle it — all three, and they are CHECKED |
+| `query`   | you cannot settle the claim                      | the claim, the check you ATTEMPTED, and what WOULD settle it — the ATTEMPTED and WOULD-settle halves are CHECKED (as shape, not as truth); the claim itself is checked by nothing |
 | `drop`    | the sentence should not exist at all             | the sentence, verbatim                                               |
 | `correct` | the claim is **FALSE**                           | the false clause **and** the true one, plus the line that settles it |
 | `patch`   | the claim is **TRUE**, the wording is not        | the rewrite                                                          |
