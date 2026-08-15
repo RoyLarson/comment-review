@@ -194,8 +194,9 @@ history) since it depends on `git blame`.
   enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
   by reading the code or re-running a command, it does not belong.
 - `clean` is reserved, not a synonym for "vaguely good": it is one of the nine verdicts
-  (line 97 above) and must not be used as a loose adjective for code or prose anywhere in
-  this repo. As a verdict it means nothing to report from that angle, and each angle's
+  named under "The skill's 8 stages" above and must not be used as a loose adjective for
+  code or prose anywhere in this repo. As a verdict it means nothing to report from that
+  angle, and each angle's
   `clean` asserts something specific — locality: the prose sits in the appropriate place;
   currency: it describes the code as it acts now; functionality: the statement follows the
   truthy form and follows from what the function does; module coherence: the statement fits
