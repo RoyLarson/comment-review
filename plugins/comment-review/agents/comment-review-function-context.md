@@ -116,8 +116,8 @@ still describes a step an edit moved above it, is `reanchor` — the claim is tr
 to a different line in this function.
 
 ⚠ **File it whatever `ownership-context` may find; it is the same block, ruled on twice.** Your
-`reanchor` names a line inside this function, and where that angle names a home outside it, that
-one governs — `reviewer-brief.md` states the precedence.
+`reanchor` names a line inside this function; where that angle places the block differently,
+`reviewer-brief.md` states which placement governs.
 
 ## What your `clean` asserts
 

@@ -615,8 +615,8 @@ not once per verdict. The check compares against the original, and the original 
 **Four rules that resolve the common collisions:**
 
 - **Two placement verdicts on one block, naming different destinations:**
-  `ownership-context`'s destination governs, whether its verdict is `reanchor` or `move`. Both
-  findings stand; only the destination is decided.
+  `ownership-context`'s destination governs. Both findings stand; only the destination is
+  decided.
 - **Any `correct` outranks every `clean`.** Three angles finding nothing does not soften one
   angle finding a falsehood; they were not looking for the same thing.
 - **`correct` and `patch` on the same sentence:** correct first, then re-read the patch against

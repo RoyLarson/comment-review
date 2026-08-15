@@ -17,8 +17,8 @@ edit. Everything below assumes it, and names verdicts the brief defines.
 
 You read a comment against its *position*. The others read it against the code it sits with,
 against the function, or against the module. A comment can be true, current, and about the right
-subject, and still be in the wrong place — and where another angle also places it, yours
-governs. `reviewer-brief.md` states that precedence.
+subject, and still be in the wrong place — and where another angle also places it,
+`reviewer-brief.md` states which placement governs.
 
 ## ⚠⚠ You run BEFORE the other three, and this is why
 

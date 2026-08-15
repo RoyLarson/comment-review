@@ -132,8 +132,8 @@ sentences are false, misplaced, missing or badly worded.
 `correct`, `query` and `clean` only. For block-context, function-context and module-context, a
 true-but-misplaced block is `clean` for you. For `ownership-context` itself, a
 true-but-misplaced block is never `clean`: `reanchor` is not in this level's verdict set, so the
-finding is `query` — the claim cannot be settled where it sits.
-Emitting a verdict your level does not carry is not a finding; it is scope you were not given.
+finding is `query` — the claim cannot be settled where it sits. Emitting a verdict your level
+does not carry is not a finding; it is scope you were not given.
 
 ⚠ **`clean` is scoped to YOU.** It is not a pass — it is one angle having nothing to report,
 including when the block is outside what your angle reads, and the other angles are looking at
@@ -284,8 +284,8 @@ emit the other's verdict.
 ### One block, two placements — which one governs
 
 `ownership-context` and `function-context` can both place the same block, and name different
-destinations for it. Both findings stand — two angles reaching one block is evidence it is
-load-bearing — and where the destinations differ, **`ownership-context`'s governs.**
+destinations for it. Both findings stand, and where the destinations differ,
+**`ownership-context`'s governs.**
 
 ⚠ Neither angle defers to the other. Report the placement your angle sees, under the verdicts
 your level carries; the disagreement is not yours to resolve.
