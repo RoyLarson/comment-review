@@ -438,7 +438,7 @@ and replace it with this:**
 
 ⚠ **Flag it only where the comparison yields a JUDGEMENT a human reads** — a deviation, a
 flag, a warning — not a NUMBER the code consumes, such as a distance, a sort key or an
-equality epsilon. The second is arithmetic doing arithmetic.
+equality epsilon.
 
 ⚠ **Find the layer that owns the asymmetry before flagging.** Where the direction question is
 decided and documented one layer up, the arithmetic below it is not the finding. Where it is
@@ -497,8 +497,7 @@ module"* is the claim an existence check passes; the number and the population a
 finding.
 
 ⚠ **Coverage is not one line per name.** A docstring accounts for a name when a reader can
-tell why it exists; a list of every symbol is a worse docstring than a paragraph naming the
-module's one job.
+tell why it exists — a paragraph naming the module's one job can cover several names at once.
 ```
 
 - [ ] **Step 2: Add the module-state check**
