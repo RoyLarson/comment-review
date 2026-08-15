@@ -346,7 +346,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     run: list[tuple[int, str]] = []
     in_block: tuple[str, str] | None = None
 
-    def flush() -> None:
+    def flush(trailing: bool = False) -> None:
         if not run:
             return
         raw = [t for _, t in run]
@@ -354,12 +354,16 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         is_doc = stripped.startswith(lang.doc_line) if lang.doc_line else False
         if lang.doc_block and stripped.startswith(lang.doc_block):
             is_doc = True
+        if is_doc:
+            kind = "docstring"
+        else:
+            kind = "trailing-comment" if trailing else "comment"
         out.append(
             Block(
                 path=path.as_posix(),
                 start=run[0][0],
                 end=run[-1][0],
-                kind="docstring" if is_doc else "comment",
+                kind=kind,
                 lines=counted_lines(raw),
                 text=_join(raw, openers),
                 raw_lines=raw,
@@ -392,9 +396,54 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         at = min((code.index(o) for o in openers if o in code), default=-1)
         if at >= 0:
             run.append((n, raw_line[at:].rstrip()))
-            flush()  # a trailing comment is its own block, owned by this line
+            flush(trailing=True)  # its own block, owned by the line it sits on
     flush()
     return out
+
+
+def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None:
+    """Declare, per block, that this tier cannot tell a doc from a comment.
+
+    Go and Ruby attach documentation by POSITION -- an ordinary line comment
+    directly above a declaration IS that declaration's documentation -- so
+    nothing in the text distinguishes it from any other run, and no rule this
+    tier can apply will separate them. Working it out by reading the file is
+    the improvised parse `docs/parsing.md` refuses.
+
+    So the block is marked as an OPEN QUESTION instead. That matters because
+    `compact.md` routes on KIND: a `comment` is governed by LENGTH and may be
+    cut to the cap, a `docstring` by FORMAT and may not. Left unmarked, a
+    three-line Go export doc counts as over a cap of two and gets cut --
+    destroying documentation that was never in violation.
+
+    Args:
+        blocks: this file's blocks, mutated in place.
+        text: the file's source, for looking at what follows each run.
+        lang: the language record, which decides whether this pass applies.
+    """
+    if not lang.doc_is_structural:
+        return
+    lines = text.splitlines()
+    for block in blocks:
+        # A trailing comment annotates the line it sits ON, so it is never the
+        # documentation of what follows.
+        if block.kind != "comment":
+            continue
+        # ⚠ The IMMEDIATELY next line, not the next non-blank one. Both
+        # languages require a doc comment to touch its declaration; a blank
+        # line between them means the run documents nothing, which is an
+        # ORPHAN -- a locality finding, and emphatically not a doc comment to
+        # be exempted from the cap.
+        nxt = lines[block.end].strip() if block.end < len(lines) else ""
+        if not nxt:
+            continue
+        block.marks.add("doc-kind-unresolved")
+        block.notes.append(
+            "KIND UNRESOLVED: this run sits above code and "
+            f"{lang.name} attaches docs by position, so it may be documentation "
+            "governed by FORMAT rather than a comment governed by LENGTH. "
+            "NOT counted against the cap. Confirm the kind before compacting."
+        )
 
 
 def blocks_stdlib(path: Path, text: str) -> list[Block]:
@@ -755,6 +804,7 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
         got = blocks_stdlib(path, text)
     else:
         got = blocks_lexical(path, text, lang)
+        flag_structural_docs(got, text, lang)
     for b in got:
         b.tier = tier_for(lang)
     return got
@@ -852,8 +902,14 @@ def main() -> int:
     # say least about read exactly like one it could settle.
     tiers = Counter(b.tier for b in census)
     langs = Counter(lang.name for f in files if (lang := language_for(f)) is not None)
+    deferred = [b for b in census if "doc-kind-unresolved" in b.marks]
     over = [
-        b for b in census if args.cap and b.kind == "comment" and b.lines > args.cap
+        b
+        for b in census
+        if args.cap
+        and b.kind == "comment"
+        and "doc-kind-unresolved" not in b.marks
+        and b.lines > args.cap
     ]
     wide = [b for b in census if args.width and b.widest > args.width]
     longest = max((b.lines for b in census if b.kind == "comment"), default=0)
@@ -872,6 +928,11 @@ def main() -> int:
     print(f"  longest comment run: {longest} lines; widest line: {widest} chars")
     if args.cap:
         print(f"  over cap ({args.cap}): {len(over)}")
+        if deferred:
+            print(
+                f"  kind unresolved, NOT counted against the cap: {len(deferred)}"
+                " — a positional doc comment this tier cannot distinguish"
+            )
     if args.width:
         print(f"  over width ({args.width}): {len(wide)}")
     print()

@@ -80,11 +80,17 @@ the two are governed by different rules:
 | --- | --- | --- |
 | `comment` / `trailing-comment` | **LENGTH** — the cap counts lines in one `#` run | cut it to the cap |
 | `docstring` | **FORMAT** — the convention resolved at 1.3 | **nothing.** Long is not a violation |
+| `comment` with `doc-kind-unresolved` | **UNKNOWN** — the census could not tell | **nothing.** Ask, or carry it at length |
 
 **A cap never applies to a docstring.** Without the kind in front of you, a 107-line numpydoc
 docstring and a 7-line `#` run look like the same over-length problem, and cutting the first to
-six destroys documentation that was never in violation. If a block arrives without its kind,
-stop and ask for it — do not infer it from the text.
+six destroys documentation that was never in violation.
+
+⚠ **A block whose kind is UNRESOLVED is not a block whose kind is `comment`.**
+The census stamps `doc-kind-unresolved` where a language attaches documentation
+by position (Go, Ruby) and this tier cannot separate a doc run from an ordinary
+one. Do not infer it from the text, and do not cut it: carry it at length and
+say why. Measured: a three-line Go export doc counted as over a cap of two.
 
 ⚠ **This is the input contract, and it is deliberately narrow:** the block's KIND, the original block, the
 edited text, the cap, the style sheet. Not the reasoning that produced the edit. An agent that
