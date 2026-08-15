@@ -21,6 +21,14 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.format]
+# ⚠ Prose is not source. Ruff formats fenced Python inside Markdown, and
+# `docs/` holds implementation plans whose code blocks ARE the specification an
+# implementer transcribes. Reformatting them edits the spec after it was
+# reviewed, and leaves the tree dirty behind the `ruff format .` in every
+# task's gate -- which the next task then reads as its own uncommitted work.
+exclude = ["**/*.md"]
+
 [tool.ruff.lint.per-file-ignores]
 # The corpora are other people's code, vendored at pinned refs. Linting them
 # would report their style as our defects.
