@@ -302,6 +302,24 @@ class TestEvidence(unittest.TestCase):
         )
         self.assertIsNone(verdicts.location_problem(f, self.repo))
 
+    def test_evidence_rejects_a_range(self):
+        # Minor: the shared CITE regex widened to serve LOCATION's
+        # file:start-end, but the record format reserves that for LOCATION --
+        # EVIDENCE must stay file:line.
+        f = verdicts.Finding(
+            "currency",
+            1,
+            "correct",
+            "a.py:1",
+            "a.py:1-2",
+            "x || the settling line",
+            "f",
+            "c",
+        )
+        problem = verdicts.evidence_problem(f, self.repo)
+        self.assertIsNotNone(problem)
+        self.assertIn("file:line", problem)
+
 
 class TestCLI(unittest.TestCase):
     """`main()` end to end -- the gate must actually gate on exit code."""
@@ -334,12 +352,12 @@ class TestCLI(unittest.TestCase):
         path.write_text(text, encoding="utf-8")
         return path
 
-    def _run(self, *reports, level="full", angles=None):
+    def _run(self, *reports, level="full", angles=None, census=None):
         cmd = [
             sys.executable,
             str(SCRIPTS / "verdicts.py"),
             "--census",
-            str(self.census),
+            str(census if census is not None else self.census),
             "--level",
             level,
             "--repo",
@@ -454,6 +472,55 @@ class TestCLI(unittest.TestCase):
         result = self._run(report)
         self.assertNotIn("1 angles", result.stdout)
         self.assertNotIn("1 blocks", result.stdout)
+
+    def test_an_unterminated_record_is_fatal(self):
+        # I8: a parser-level test only proves the mismatch is DETECTED. Only a
+        # CLI-level test proves it reaches `fatal` and changes the exit code
+        # -- the exact distinction that let all three Criticals ship.
+        report = self._write(
+            "currency.txt",
+            "--- FINDING\n"
+            "BLOCK       1\n"
+            "VERDICT     correct\n"
+            "LOCATION    a.py:1\n"
+            "EVIDENCE    a.py:5\n"
+            'SUMMARY     "x" || five callers, all in tests\n'
+            "FINDING     first record, never closed\n"
+            "\n"
+            "--- FINDING\n"
+            "BLOCK       2\n"
+            "VERDICT     correct\n"
+            "LOCATION    a.py:1\n"
+            "EVIDENCE    a.py:5\n"
+            'SUMMARY     "x" || five callers, all in tests\n'
+            "FINDING     second record, closed\n"
+            'CHANGE      false: "x" / true: "y"\n'
+            "---\n"
+            "CLEAN 3\n",
+        )
+        result = self._run(report)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("MALFORMED", result.stdout)
+        self.assertIn("swallows the next one", result.stdout)
+
+    def test_a_missing_census_prints_one_line_not_a_traceback(self):
+        report = self._clean_report("currency.txt")
+        missing = Path(self.tmp.name) / "nope-census.json"
+        result = self._run(report, census=missing)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("CANNOT READ", result.stdout)
+
+    def test_a_malformed_census_json_prints_one_line_not_a_traceback(self):
+        report = self._clean_report("currency.txt")
+        bad = Path(self.tmp.name) / "bad-census.json"
+        bad.write_text("{not valid json", encoding="utf-8")
+        result = self._run(report, census=bad)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("CANNOT PARSE", result.stdout)
 
 
 if __name__ == "__main__":

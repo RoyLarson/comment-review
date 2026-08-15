@@ -253,12 +253,21 @@ def payload_problem(f: Finding) -> str | None:
     return None
 
 
-def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | str:
+def _resolve_lines(
+    cite: str, repo: Path, *, allow_range: bool = True
+) -> tuple[Path, int, int, list[str]] | str:
     """Resolve a `file:line` or `file:start-end` citation, or say why not.
 
     Shared by EVIDENCE and LOCATION: both are inadmissible on exactly the same
     grounds -- an unparseable citation, a file that is not there, or a line
     number past the end of it (or below 1, which no file has).
+
+    Args:
+        cite: the `file:line` or `file:start-end` text.
+        repo: the repo root the path is relative to.
+        allow_range: EVIDENCE is `file:line` in the record format; only
+            LOCATION may carry `file:start-end`. Widening the shared regex to
+            serve both fields must not widen what EVIDENCE itself accepts.
 
     Returns:
         `(path, start, end, lines)` when it resolves, else the problem string.
@@ -267,6 +276,8 @@ def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | 
     if not m:
         return f"{cite!r} is not file:line or file:start-end"
     rel, start_s, end_s = m.group(1), m.group(2), m.group(3)
+    if end_s and not allow_range:
+        return f"{cite} is file:start-end; EVIDENCE must be file:line, not a range"
     start = int(start_s)
     end = int(end_s) if end_s else start
     if start < 1 or end < 1:
@@ -294,7 +305,7 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     """
     if f.verdict == "clean":
         return None
-    resolved = _resolve_lines(f.evidence, repo)
+    resolved = _resolve_lines(f.evidence, repo, allow_range=False)
     if isinstance(resolved, str):
         return f"EVIDENCE {resolved}"
     _target, lineno, _end, lines = resolved
@@ -362,7 +373,24 @@ def main() -> int:
     args = ap.parse_args()
 
     repo = Path(args.repo).resolve()
-    blocks = json.loads(Path(args.census).read_text(encoding="utf-8"))
+    # ⚠ Guarded like a report file, not left to traceback: an operator learns
+    # less from a stack trace than from one line saying which file and why.
+    try:
+        census_text = Path(args.census).read_text(encoding="utf-8")
+    except READ_ERRORS as e:
+        print(
+            f"CANNOT READ {args.census} ({type(e).__name__})"
+            " — no census to join against"
+        )
+        return 1
+    try:
+        blocks = json.loads(census_text)
+    except json.JSONDecodeError as e:
+        print(
+            f"CANNOT PARSE {args.census} as JSON ({e})"
+            " — is this census.py --json output?"
+        )
+        return 1
     all_blocks = set(range(1, len(blocks) + 1))
 
     fatal = 0
