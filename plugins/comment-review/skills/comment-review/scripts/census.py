@@ -66,7 +66,15 @@ DOC_OWNERS = (ast.Module,) + NAMED_DEFS
 # passed `READ_ERRORS` cleanly. `code_names` walks the whole repo, so one such
 # file would crash the entire census rather than degrade one file's harvest.
 PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError, ValueError)
-GIT_ERRORS = (OSError, subprocess.SubprocessError)
+# ⚠ UnicodeDecodeError included, on purpose, not an oversight: `git()` pins
+# `encoding="utf-8"` with the default `errors="strict"`, so a tracked path or
+# a blob that is not valid UTF-8 raises OUT OF `subprocess.run` itself, before
+# any caller sees a return code. Every caller of `git()` already treats
+# `GIT_ERRORS` as "git could not produce this" and degrades accordingly
+# (`None`, or `(None, reason)` where a reason is threaded through) -- a decode
+# failure is the same kind of non-answer and is declared here rather than left
+# to crash `git_ls_files` / `_grep` / `_show` on the first non-UTF-8 path.
+GIT_ERRORS = (OSError, subprocess.SubprocessError, UnicodeDecodeError)
 
 # A virtualenv in the tree POISONS the name corpus: every installed package's
 # methods become "known", so a real obituary is suppressed because some library

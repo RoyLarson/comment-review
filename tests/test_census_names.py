@@ -4,6 +4,7 @@ import subprocess  # noqa: I001  -- path shim below must import before census
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from _paths import FIXTURES  # noqa: F401
 import census
@@ -129,6 +130,45 @@ class TestNonAsciiTrackedPath(unittest.TestCase):
         found, reason = referrers._grep(self.repo, "helper_name")
         self.assertEqual(reason, "")
         self.assertEqual(found, [self.NAME])
+
+
+class TestGitOutputNotValidUtf8(unittest.TestCase):
+    """The wave centralised every git call into `git()`, which pins
+    `encoding="utf-8"` (`errors="strict"` by default) -- so a tracked path or
+    blob that is not valid UTF-8 raises `UnicodeDecodeError` out of
+    `subprocess.run` itself, before any caller sees a return code. Each
+    caller's `except GIT_ERRORS:` must actually catch it rather than let it
+    traceback out of the one helper this wave wrote for exactly this class of
+    hazard (C4, non-ASCII paths).
+
+    A real non-UTF-8 filename is not reliably constructible across platforms
+    from a test, so `subprocess.run` is mocked to raise the same exception
+    `text=True, encoding="utf-8"` would raise on undecodable output.
+    """
+
+    def setUp(self):
+        self.repo = Path(".")  # never touched -- subprocess.run is mocked
+        self.err = UnicodeDecodeError("utf-8", b"\xff\xfe", 0, 1, "invalid start byte")
+
+    # `git()` lives in census.py and is only ever IMPORTED elsewhere (`from
+    # census import git`), so patching `census.subprocess.run` is what reaches
+    # every caller -- referrers.py and prove_unchanged.py hold a reference to
+    # the same function object, not a copy.
+    def test_git_ls_files_degrades_instead_of_raising(self):
+        with patch("census.subprocess.run", side_effect=self.err):
+            self.assertIsNone(census.git_ls_files(self.repo))
+
+    def test_grep_names_the_reason_instead_of_raising(self):
+        with patch("census.subprocess.run", side_effect=self.err):
+            found, reason = referrers._grep(self.repo, "token")
+        self.assertIsNone(found)
+        self.assertEqual(reason, "UnicodeDecodeError")
+
+    def test_show_degrades_instead_of_raising(self):
+        import prove_unchanged
+
+        with patch("census.subprocess.run", side_effect=self.err):
+            self.assertIsNone(prove_unchanged._show(self.repo, "HEAD", "a.py"))
 
 
 if __name__ == "__main__":
