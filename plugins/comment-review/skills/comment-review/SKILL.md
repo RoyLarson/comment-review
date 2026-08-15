@@ -495,21 +495,32 @@ when you cannot write the replacement text.
 
 ## Stage 5 — EDIT: one verdict, one FULL-LENGTH replacement
 
-⚠⚠ **Resolve the reviewers' evidence yourself.** Open each finding's `SUMMARY` right half
-and confirm the quoted line is within a few lines of its citation. A finding whose evidence is
-not there is not a finding — send it back. Measured: one graded run had **fabricated 5 of its 7
-reviewer reports**, and a self-certified confidence label ran at **97% across 298 findings** — a label
-two runs in three thousand disagree with does not discriminate. **Never grade a review by
-reading its report.**
+⚠⚠ **Run the join before you rule on anything.** It is the gate between MARK and
+EDIT:
+
+```bash
+python <skill>/scripts/verdicts.py --census <census>.json --level <level> \
+  --repo . <one report file per angle>
+```
+
+It exits nonzero on a coverage gap, a citation that does not resolve, a quote
+not found near its cited line, a verdict the level does not carry, or a payload
+the verdict table requires and the record lacks. It also names the blocks where
+`drop` meets `correct`/`patch` — **a re-review, never a tie-break** — and prints
+which blocks STAND UNCHANGED under the clean-arithmetic.
+
+⚠⚠ **A finding whose evidence does not resolve is not a finding.** Measured: one
+graded run had **fabricated 5 of its 7 reviewer reports** and did not notice
+until asked to grade itself; self-certified `CONFIRMED` ran at **97% across 298
+findings**. **Never grade a review by reading its report.**
+
+⚠ **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct
+verdict from an incorrect one. Synthesis, and the order below, remain yours.
 
 ⚠ **A block that ends mid-clause is a finding, and its verdict is `correct`.** A run whose last
 sentence stops mid-air — a severed trailing comment, a `move` that cut a sentence in half — is
 neither checkable nor necessary, so the matrix routes it to `drop`, deleting the pointer instead
 of repairing it. Restore the sentence.
-
-⚠ **Two findings quoting the same sentence in different files are ONE finding.** A pass edits
-where it is reading, fixes the copy in front of it, and manufactures a disagreement with the one
-it never opened. Contradicting verdicts trigger a **re-review**, never a tie-break.
 
 **Is it CHECKABLE?** confirmable from the code as it stands. **Is it NECESSARY?** would
 someone changing this code make a **worse decision** without it? Those two questions decide
