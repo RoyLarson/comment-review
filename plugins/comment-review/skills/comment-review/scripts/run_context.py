@@ -58,6 +58,16 @@ HINTS = {
 }
 
 SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
+# ⚠ Any line starting with "##" is a boundary, even inside another section's
+# answer prose -- a REFERENCE ONLY entry that quotes `"see the ## CENSUS
+# heading"` would split the packet there. The failure direction is
+# over-rejection (a spurious split makes a real answer look empty), so it is
+# not a bypass, but it is a trap worth knowing about when filling a section.
+
+# A terminated `<!-- ... -->` span, non-greedy and crossing newlines: a hint
+# word-wrapped across two lines must be stripped as ONE span, not survive
+# because neither line alone starts with "<!--".
+COMMENT = re.compile(r"<!--.*?-->", re.S)
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
@@ -84,8 +94,9 @@ def missing_sections(text: str) -> list[str]:
         text: the filled packet.
 
     Returns:
-        The names of sections a reviewer would be dispatched without. A comment
-        line is not an answer — the template's own hints must be replaced.
+        The names of sections a reviewer would be dispatched without. A hint
+        comment is not an answer, whole-span and however it is wrapped — the
+        template's own hints must be replaced, not merely reflowed.
     """
     heads = list(SECTION.finditer(text))
     # Every occurrence is kept, not just the first -- a section given twice
@@ -108,10 +119,21 @@ def missing_sections(text: str) -> list[str]:
 
 
 def _answered(body: str) -> bool:
-    """Does this section's body carry a real line, not just a hint comment?"""
-    return any(
-        ln.strip() and not ln.strip().startswith("<!--") for ln in body.splitlines()
-    )
+    """Does this section's body carry real content, not just a hint comment?
+
+    Comments are stripped as SPANS, not lines: a hint reflowed across two
+    lines by an editor must not survive because its continuation line does
+    not itself start with `<!--`. An unterminated `<!--` with no closing
+    `-->` is treated as commenting out everything from the opener to the end
+    of the body -- deliberately, not an oversight: over-rejecting a stray
+    `<!--` costs one edit, while under-rejecting dispatches four agents
+    against context nobody actually supplied.
+    """
+    text = COMMENT.sub("", body)
+    opener = text.find("<!--")
+    if opener != -1:
+        text = text[:opener]
+    return bool(text.strip())
 
 
 def main() -> int:
