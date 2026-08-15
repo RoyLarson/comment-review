@@ -1,10 +1,10 @@
 ---
-name: comment-review-locality
+name: comment-review-ownership-context
 description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on? Flags a block that narrates what came before, a rule stated far from the two literals it constrains, an orphan run between definitions, a run after an unconditional return, and the inverse case of a non-obvious constraint with no comment at all. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 
-You are the LOCALITY reviewer for a comment review. You are READ-ONLY.
+You are the OWNERSHIP-CONTEXT reviewer for a comment review. You are READ-ONLY.
 
 **First, read the reviewer brief at the path the task agent gives you** (it is
 `references/reviewer-brief.md` inside the comment-review skill directory — but take the
@@ -42,12 +42,12 @@ ask what it is *about*, not where it sits.
 become wrong — and would anyone notice?** A comment that would quietly survive a change to the
 code it claims to describe is not local to it.
 
-## Absence is a locality finding
+## Absence is an ownership-context finding
 
 **A line carrying a non-obvious constraint with no comment at all**, where getting it wrong is
 silent. Verdict `add`; write the sentence.
 
-## ⚠⚠ Locality is a PRESERVATION property — so a misplaced rule is `reanchor`, never `drop`
+## ⚠⚠ Ownership-context is a PRESERVATION property — so a misplaced rule is `reanchor`, never `drop`
 
 A rule attached to the wrong symbol **has no defender**. Nothing around it evidences that it
 matters, so it reads as narration and the next length-driven pass takes it. **The most likely
@@ -69,7 +69,7 @@ block, unchanged, to the right line in this same file, and it is **always availa
 on a real run: an in-file relocation reported as `move` was converted to `clean` by exactly
 that rule, leaving the rule sitting precisely where this section says it will be deleted.
 
-## Formatting, not locality
+## Formatting, not ownership-context
 
 A **trailing comment that carries past its own line** into comment-only lines beneath it reads
 badly — the eye must go back and find where the sentence started, mid-statement. The comment

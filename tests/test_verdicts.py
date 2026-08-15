@@ -42,7 +42,7 @@ def _finding(**kw):
     line here.
     """
     fields = {
-        "angle": "currency",
+        "angle": "block-context",
         "block": 1,
         "verdict": "correct",
         "location": "a.py:1",
@@ -58,7 +58,7 @@ def _finding(**kw):
 
 class TestParsing(unittest.TestCase):
     def test_a_record_is_parsed(self):
-        found, clean = verdicts.parse_report(REPORT, "currency")
+        found, clean = verdicts.parse_report(REPORT, "block-context")
         self.assertEqual(len(found), 1)
         self.assertEqual(found[0].block, 1)
         self.assertEqual(found[0].verdict, "correct")
@@ -66,25 +66,25 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(found[0].quote, "the settling line")
 
     def test_clean_ranges_expand(self):
-        _, clean = verdicts.parse_report(REPORT, "currency")
+        _, clean = verdicts.parse_report(REPORT, "block-context")
         self.assertEqual(clean, {2, 3})
 
     def test_the_angle_is_attached(self):
-        found, _ = verdicts.parse_report(REPORT, "currency")
-        self.assertEqual(found[0].angle, "currency")
+        found, _ = verdicts.parse_report(REPORT, "block-context")
+        self.assertEqual(found[0].angle, "block-context")
 
     def test_a_wrapped_clean_line_does_not_merge_across_lines(self):
         # C1: `\s` inside CLEAN_LINE's class let a stray continuation line glue
         # onto the range, turning "CLEAN 1-9" + a stray "50" into "1-950".
         text = "CLEAN 1-9\n50\n"
-        _, clean = verdicts.parse_report(text, "module-coherence")
+        _, clean = verdicts.parse_report(text, "module-context")
         self.assertEqual(clean, {1, 2, 3, 4, 5, 6, 7, 8, 9})
 
     def test_a_bad_clean_range_becomes_a_malformed_finding_not_a_silent_drop(self):
         # C1: an unparseable CLEAN part must be REPORTED, not dropped -- a range
         # list that doesn't parse is a malformed record, not an empty one.
         text = "CLEAN 9-2\n"
-        found, clean = verdicts.parse_report(text, "currency")
+        found, clean = verdicts.parse_report(text, "block-context")
         self.assertEqual(clean, set())
         self.assertEqual(len(found), 1)
         self.assertLess(found[0].block, 0)
@@ -92,7 +92,7 @@ class TestParsing(unittest.TestCase):
 
     def test_a_zero_index_in_clean_is_rejected_not_admitted(self):
         text = "CLEAN 0-3\n"
-        _, clean = verdicts.parse_report(text, "currency")
+        _, clean = verdicts.parse_report(text, "block-context")
         self.assertNotIn(0, clean)
 
     def test_an_unterminated_record_is_flagged_not_silently_merged(self):
@@ -117,7 +117,7 @@ FINDING     second record, closed
 CHANGE      false: "x" / true: "y"
 ---
 """
-        found, _ = verdicts.parse_report(text, "currency")
+        found, _ = verdicts.parse_report(text, "block-context")
         malformed = [f for f in found if f.block < 0]
         self.assertTrue(
             malformed, "an opener/closer mismatch must produce a malformed finding"
@@ -151,13 +151,13 @@ class TestExpand(unittest.TestCase):
 class TestCoverage(unittest.TestCase):
     def test_an_unaccounted_block_is_a_gap(self):
         gaps = verdicts.coverage_gaps(
-            {1, 2, 3, 4}, {"currency": {2, 3}}, [_finding(block=1)]
+            {1, 2, 3, 4}, {"block-context": {2, 3}}, [_finding(block=1)]
         )
-        self.assertEqual(gaps, {"currency": [4]})
+        self.assertEqual(gaps, {"block-context": [4]})
 
     def test_full_coverage_reports_no_gap(self):
         gaps = verdicts.coverage_gaps(
-            {1, 2}, {"currency": {2}}, [_finding(block=1, verdict="clean")]
+            {1, 2}, {"block-context": {2}}, [_finding(block=1, verdict="clean")]
         )
         self.assertEqual(gaps, {})
 
@@ -171,7 +171,7 @@ class TestPayload(unittest.TestCase):
         self.assertIsNone(verdicts.payload_problem(_finding()))
 
     def test_add_without_an_anchor_is_rejected(self):
-        f = _finding(angle="locality", verdict="add", change="some text")
+        f = _finding(angle="ownership-context", verdict="add", change="some text")
         self.assertIn("anchor", verdicts.payload_problem(f))
 
 
@@ -329,21 +329,21 @@ class TestLevel(unittest.TestCase):
 class TestContradiction(unittest.TestCase):
     def test_drop_against_correct_is_flagged(self):
         found = [
-            _finding(angle="locality", block=7, verdict="drop"),
-            _finding(angle="currency", block=7, verdict="correct"),
+            _finding(angle="ownership-context", block=7, verdict="drop"),
+            _finding(angle="block-context", block=7, verdict="correct"),
         ]
         self.assertEqual(verdicts.contradictions(found), [7])
 
     def test_drop_alone_is_not_a_contradiction(self):
-        found = [_finding(angle="locality", block=7, verdict="drop")]
+        found = [_finding(angle="ownership-context", block=7, verdict="drop")]
         self.assertEqual(verdicts.contradictions(found), [])
 
     def test_a_malformed_block_is_never_reported_as_a_contradiction(self):
         # Minor: a -1 sentinel (a malformed record) must not surface as
         # "RE-REVIEW [-1]" -- it names no real block.
         found = [
-            _finding(angle="locality", block=-1, verdict="drop"),
-            _finding(angle="currency", block=-1, verdict="correct"),
+            _finding(angle="ownership-context", block=-1, verdict="drop"),
+            _finding(angle="block-context", block=-1, verdict="correct"),
         ]
         self.assertEqual(verdicts.contradictions(found), [])
 
@@ -394,7 +394,7 @@ class TestEvidence(unittest.TestCase):
     def test_a_derived_summary_right_half_is_not_checked_verbatim(self):
         # C2: the whole point. A count is not a line any file contains, so
         # requiring SUMMARY's right half verbatim made every counted claim --
-        # the currency angle's own category -- structurally inadmissible.
+        # the block-context angle's own category -- structurally inadmissible.
         f = _finding(summary='"twenty call sites" || 31 callers, all under tests/')
         self.assertIsNone(verdicts.evidence_problem(f, self.repo))
 
@@ -489,7 +489,7 @@ class TestCLI(unittest.TestCase):
         return self._write(name, "CLEAN 1-3\n")
 
     def test_full_coverage_exits_zero(self):
-        report = self._clean_report("currency.txt")
+        report = self._clean_report("block-context.txt")
         result = self._run(report)
         self.assertEqual(result.returncode, 0)
         self.assertIn("STANDS UNCHANGED: 3 blocks", result.stdout)
@@ -498,7 +498,7 @@ class TestCLI(unittest.TestCase):
     def test_a_missing_payload_is_fatal(self):
         # C2: a payload problem must not print and then exit 0.
         report = self._write(
-            "currency.txt",
+            "block-context.txt",
             "--- FINDING\n"
             "BLOCK       1\n"
             "VERDICT     drop\n"
@@ -518,7 +518,7 @@ class TestCLI(unittest.TestCase):
 
     def test_an_out_of_range_block_is_fatal(self):
         report = self._write(
-            "currency.txt",
+            "block-context.txt",
             "--- FINDING\n"
             "BLOCK       999\n"
             "VERDICT     query\n"
@@ -536,20 +536,20 @@ class TestCLI(unittest.TestCase):
     def test_a_wrapped_clean_line_is_a_gap_not_a_pass(self):
         # C1, end to end: a stray continuation line after CLEAN must produce a
         # loud coverage gap on block 3, never a silent "everything is clean".
-        report = self._write("currency.txt", "CLEAN 1-2\n900\n")
+        report = self._write("block-context.txt", "CLEAN 1-2\n900\n")
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("COVERAGE GAPS", result.stdout)
-        self.assertIn("currency: 1 block unaccounted", result.stdout)
+        self.assertIn("block-context: 1 block unaccounted", result.stdout)
 
     def test_a_missing_angle_is_fatal_when_declared(self):
-        report = self._clean_report("currency.txt")
-        result = self._run(report, angles="currency,locality")
+        report = self._clean_report("block-context.txt")
+        result = self._run(report, angles="block-context,ownership-context")
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("locality", result.stdout)
+        self.assertIn("ownership-context", result.stdout)
 
     def test_angle_absence_is_declared_not_inferred_when_undeclared(self):
-        report = self._clean_report("currency.txt")
+        report = self._clean_report("block-context.txt")
         result = self._run(report)
         self.assertEqual(result.returncode, 0)
         self.assertIn("NOT checked", result.stdout)
@@ -557,9 +557,9 @@ class TestCLI(unittest.TestCase):
     def test_duplicate_report_stems_are_refused(self):
         sub = Path(self.tmp.name) / "dup"
         sub.mkdir()
-        one = sub / "currency.txt"
+        one = sub / "block-context.txt"
         one.write_text("CLEAN 1-3\n", encoding="utf-8")
-        two = self._write("currency.txt", "CLEAN 1-3\n")
+        two = self._write("block-context.txt", "CLEAN 1-3\n")
         result = self._run(one, two)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("DUPLICATE", result.stdout)
@@ -572,7 +572,7 @@ class TestCLI(unittest.TestCase):
 
     def test_pluralisation_of_a_single_angle_and_block(self):
         report = self._write(
-            "currency.txt",
+            "block-context.txt",
             "--- FINDING\n"
             "BLOCK       1\n"
             "VERDICT     query\n"
@@ -592,7 +592,7 @@ class TestCLI(unittest.TestCase):
         # CLI-level test proves it reaches `fatal` and changes the exit code
         # -- the exact distinction that let all three Criticals ship.
         report = self._write(
-            "currency.txt",
+            "block-context.txt",
             "--- FINDING\n"
             "BLOCK       1\n"
             "VERDICT     correct\n"
@@ -638,11 +638,11 @@ class TestCLI(unittest.TestCase):
             "CLEAN 2-3\n"
         )
         drop = self._write(
-            "locality.txt",
+            "ownership-context.txt",
             finding.format(verdict="drop", change="the sentence, verbatim"),
         )
         correct = self._write(
-            "currency.txt",
+            "block-context.txt",
             finding.format(verdict="correct", change='false: "x" / true: "y"'),
         )
         result = self._run(drop, correct)
@@ -654,7 +654,7 @@ class TestCLI(unittest.TestCase):
         )
 
     def test_a_missing_census_prints_one_line_not_a_traceback(self):
-        report = self._clean_report("currency.txt")
+        report = self._clean_report("block-context.txt")
         missing = Path(self.tmp.name) / "nope-census.json"
         result = self._run(report, census=missing)
         self.assertNotEqual(result.returncode, 0)
@@ -663,7 +663,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("CANNOT READ", result.stdout)
 
     def test_a_malformed_census_json_prints_one_line_not_a_traceback(self):
-        report = self._clean_report("currency.txt")
+        report = self._clean_report("block-context.txt")
         bad = Path(self.tmp.name) / "bad-census.json"
         bad.write_text("{not valid json", encoding="utf-8")
         result = self._run(report, census=bad)
@@ -679,7 +679,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     The format and its checker were designed in one task and never run against
     each other, so the brief's worked example failed `verdicts.py` on the same
     commit that shipped both — and the field it failed on, a counted claim,
-    is the currency angle's own category.
+    is the block-context angle's own category.
 
     The cited file is SYNTHESISED from the record's own citations: the example
     is invented on purpose (`docs/limitations.md`), so there is no real
@@ -698,7 +698,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         match = self.RECORD.search(text)
         self.assertIsNotNone(match, "no canonical FINDING record in reviewer-brief.md")
         self.record = match.group(1)
-        found, _ = verdicts.parse_report(self.record + "\n", "currency")
+        found, _ = verdicts.parse_report(self.record + "\n", "block-context")
         self.assertEqual(len(found), 1, self.record)
         self.finding = found[0]
         self._plant()

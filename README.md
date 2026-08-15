@@ -38,11 +38,11 @@ if the other documentation doesn't have an edge in the connection anymore it mig
 
 I broke down the comment review into four levels/categories
 
-- Locality - Is it in the right place
-- Currency - Does it state what is true/necessary for the code right now
-- Functionality - Does the comments and documentation within a function follow from the
+- Ownership-Context - Is it in the right place
+- Block-Context - Does it state what is true/necessary for the code right now
+- Function-Context - Does the comments and documentation within a function follow from the
   name of the function
-- Modularity - Does the documentation cover one set of ideas.
+- Module-Context - Does the documentation cover one set of ideas.
 
 These were the best classifications of comment and documentation errors I could think of.
 They each were meant to support from inside-out the structure of comments.
@@ -56,22 +56,22 @@ documentation.
 
 The skill judges comments based upon four criteria:
 
-- Locality
+- Ownership-Context
   - Is the comment where it is supposed to be or did it drift away from the
     location because of changes.
   - Do the current comments next to code reference the next line(s) of code
     coming up or are they referencing something before.
   - Are the comments properly colocated.
-- Currency
+- Block-Context
   - Does the comment state something specific about what the code is doing now.
     - not past behavior.
     - not future behaviors.
-- Functionality
+- Function-Context
   - Does the function documentation describe what the code does.
     - Is this one function with an appropriate name or is it more than one function.
     - Do the comments indicate the functions use changed over time.
     - Are the comments in the function in the correct order.
-- Modularity
+- Module-Context
   - Is the module/package level documentation appropriate.
     - Does it cover all of the functions and constants that the module exposes.
     - Does the documentation support what the module's state uses are.
@@ -212,7 +212,7 @@ lexer and AST, everything else gets a comment-syntax record and a hand-rolled st
 skipper that is wrong on heredocs, raw strings and template nesting.
 
 ⚠ **No comment carries an owner, in any language.** A docstring's owner comes free from
-the AST; a `#` run's does not, and nothing infers it — so every locality verdict rests on
+the AST; a `#` run's does not, and nothing infers it — so every ownership-context verdict rests on
 a reviewer reading the file. See [docs/parsing.md](docs/parsing.md) for where structure
 could come from and what was already tried and rejected.
 

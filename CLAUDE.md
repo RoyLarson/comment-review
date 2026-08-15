@@ -48,8 +48,8 @@ python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo 
 # file stem, and --angles compares against those stems.
 python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
   --census <census>.json --level full --repo . \
-  --angles locality,currency,functionality,module-coherence \
-  locality.md currency.md functionality.md module-coherence.md
+  --angles ownership-context,block-context,function-context,module-context \
+  ownership-context.md block-context.md function-context.md module-context.md
 
 # Stage 4 gate: the dispatch packet
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --template
@@ -108,10 +108,10 @@ restate it.
 Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) under
 `plugins/comment-review/agents/`, dispatched in one message so they run concurrently:
 
-- **locality** — does this comment belong to the line it sits on?
-- **currency** — does it describe the program as it is now (not past, not future)?
-- **functionality** — does the commentary match what the function is for?
-- **module-coherence** — do the comments say this module is one set of ideas?
+- **ownership-context** — does this comment belong to the line it sits on?
+- **block-context** — does it describe the program as it is now (not past, not future)?
+- **function-context** — does the commentary match what the function is for?
+- **module-context** — do the comments say this module is one set of ideas?
 
 Reviewers are read-only and never see SKILL.md directly; they read the shared
 `references/reviewer-brief.md`. Fixing what you find destroys the finding — MARK and EDIT are
@@ -129,7 +129,7 @@ stdlib alone (no third-party dependency), at a per-language tier:
 
 A language with no record is reported as unreviewable, never silently skipped. Adding a language
 is a data row, not new code. No comment (as opposed to docstring) carries an owner at either
-tier — every locality verdict rests on a reviewer reading the file, or on an LSP `documentSymbol`
+tier — every ownership-context verdict rests on a reviewer reading the file, or on an LSP `documentSymbol`
 enrichment when a language server answered stage 1.7's probe.
 
 `references/` under the skill directory (`apply.md`, `compact.md`, `residue-check.md`,
@@ -193,17 +193,17 @@ history) since it depends on `git blame`.
   docstrings, README prose, or commit messages. A false *measurement* can be re-derived and
   corrected; a claim that something is "robust" has no oracle. Nothing can check it, so it
   survives every review and every rewrite regardless of whether it was ever true — it is the
-  one class of prose this repo's four reviewer angles cannot catch, because both currency and
-  functionality need something to resolve the claim against. Write what is measured, what is
+  one class of prose this repo's four reviewer angles cannot catch, because both block-context and
+  function-context need something to resolve the claim against. Write what is measured, what is
   enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
   by reading the code or re-running a command, it does not belong.
 - `clean` is reserved, not a synonym for "vaguely good": it is one of the nine verdicts
   named under "The skill's 8 stages" above and must not be used as a loose adjective for
   code or prose anywhere in this repo. As a verdict it means nothing to report from that
   angle, and each angle's
-  `clean` asserts something specific — locality: the prose sits in the appropriate place;
-  currency: it describes the code as it acts now; functionality: the statement follows the
-  truthy form and follows from what the function does; module coherence: the statement fits
+  `clean` asserts something specific — ownership-context: the prose sits in the appropriate place;
+  block-context: it describes the code as it acts now; function-context: the statement follows the
+  truthy form and follows from what the function does; module-context: the statement fits
   within the whole module's scope of work.
 
 ## Exploration Budget

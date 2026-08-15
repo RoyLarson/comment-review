@@ -207,7 +207,7 @@ def _resolves(candidate: str) -> bool:
 def _path_candidates(line: str) -> list[str]:
     """The strings on this line that could be the path it names.
 
-    A line may be bare, bulleted, or labelled (`locality: /abs/path`). A
+    A line may be bare, bulleted, or labelled (`ownership-context: /abs/path`). A
     Windows path carries a colon of its own, so splitting on ":" is not safe;
     the whole line and its LAST whitespace token are tried instead, and the
     line passes if either resolves.
