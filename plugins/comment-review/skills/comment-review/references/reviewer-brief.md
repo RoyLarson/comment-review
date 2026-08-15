@@ -96,9 +96,14 @@ the same block. Nothing you emit can bless a block; only a `clean` from **every 
 ran** can, and the task agent computes that — you do not assert it. ⚠ Do not invent a word for
 "outside my angle": that is `clean`, and a ninth word breaks the arithmetic.
 
-Tag each `CONFIRMED` (you read both sides — the prose and the code that settles it) or
-`SUSPECTED`. ⚠ **`SUSPECTED` is not terminal**: it returns for re-review, and if still
-unresolved is presented to the human as a question, never as a verdict.
+⚠⚠ **If you did not read BOTH SIDES, the verdict is `query`.** There is no confidence tag to
+soften a verdict with: either you opened the code that settles the claim — and `SUMMARY`'s
+right half proves you did — or you could not, and the honest word for that is `query`, which
+returns for re-review and reaches the author as a question.
+
+A separate CONFIRMED/SUSPECTED label was tried and retired: **it was measured
+non-discriminating**, running at 97% self-certified across 298 findings. A label two runs in
+three thousand disagree with adds nothing that `SUMMARY`'s right half does not already force.
 
 **Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
 single `clean` sentence must not launder the ones around it.
@@ -107,7 +112,7 @@ single `clean` sentence must not launder the ones around it.
 
 Resolving a path or a symbol is cheap and *feels* like verification. Resolving a claim **is**
 the verification. A resolved citation is not a verified one — open the target and read it, or
-mark the finding `SUSPECTED`.
+the verdict is `query`.
 
 ⚠ **An existence grep passes every counted claim.** The symbol is right there, so the grep
 returns clean and you report the file clean. Enumerate instead, and report the number — and
@@ -115,9 +120,9 @@ re-derive the POPULATION too, not only the count. Measured twice on the very cla
 motivated the rule: the population was named correctly and the count was still wrong, and the
 population was named precisely and its size was wrong.
 
-⚠ **Evidence outside the checkout cannot be CONFIRMED.** If the line that settles a claim is
+⚠ **Evidence outside the checkout can never be settled.** If the line that settles a claim is
 generated, gitignored, remote, or on one machine, there is no state in which "I read both
-sides" is true. Mark it `SUSPECTED` and say why. Measured: 6 of 20 path facts in one run were
+sides" is true. That is a `query`, and say why. Measured: 6 of 20 path facts in one run were
 gitignored state, and two headline counted claims were derived from an archive absent from
 every worktree.
 

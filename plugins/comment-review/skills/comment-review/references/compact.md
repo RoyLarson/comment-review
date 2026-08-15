@@ -72,7 +72,21 @@ to do any of those, the EDIT was not finished — go back, or file it for the ne
 pass is most likely to have.** The edit already dropped things legitimately; checking against
 it lets a second, illegitimate drop through unnoticed. **The original is the baseline, twice.**
 
-⚠ **This is the input contract, and it is deliberately narrow:** the original block, the
+⚠⚠ **The block's KIND is part of the input, and it decides whether this pass may touch the
+block at all.** The census stamps every block `comment`, `trailing-comment` or `docstring`, and
+the two are governed by different rules:
+
+| kind | governed by | what this pass may do |
+| --- | --- | --- |
+| `comment` / `trailing-comment` | **LENGTH** — the cap counts lines in one `#` run | cut it to the cap |
+| `docstring` | **FORMAT** — the convention resolved at 1.3 | **nothing.** Long is not a violation |
+
+**A cap never applies to a docstring.** Without the kind in front of you, a 107-line numpydoc
+docstring and a 7-line `#` run look like the same over-length problem, and cutting the first to
+six destroys documentation that was never in violation. If a block arrives without its kind,
+stop and ask for it — do not infer it from the text.
+
+⚠ **This is the input contract, and it is deliberately narrow:** the block's KIND, the original block, the
 edited text, the cap, the style sheet. Not the reasoning that produced the edit. An agent that
 never saw the argument cannot keep a sentence because it remembers writing it — which is what
 makes this pass safe to hand to a separate subagent.

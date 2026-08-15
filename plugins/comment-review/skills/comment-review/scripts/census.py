@@ -9,7 +9,7 @@ Two outputs, and the first one is the point:
               reviewer that spends its budget re-deriving these has spent it
               badly.
 
-    python sweep.py [--repo D] [--cap N] [--width N] [--census-only] [--json] <paths...>
+    python census.py [--repo D] [--cap N] [--width N] [--census-only] [--json] <paths>
 
 Read-only, and always exits 0 — this is an input to a review, not a gate.
 Nothing here is a verdict: `names-a-symbol` in particular is a CANDIDATE list,
@@ -32,11 +32,13 @@ CANDIDATES.
 2026-08-14: it owned 50% of blocks and silently missed 13 that the stdlib tier
 found, because a comment inside an expression belongs to no node's
 `leading_lines`. Coverage beats ownership, and the tier was Python-only besides
--- `evidence/tier-measurement.md`.
+-- recorded in the project repository, not in the shipped plugin.
 
-The tier is reported PER FILE, because a polyglot repo mixes them. Adding a
-language is a row in `LANGUAGES` — data, not code — which is what keeps the
-floor cheap enough to be worth having. `--languages` lists what is known.
+⚠ Tier counts are AGGREGATED over the run, not reported per file. On a polyglot
+run you cannot tell which file reached which tier -- which is exactly when it
+matters. Adding a language is a row in `LANGUAGES` — data, not code — which is
+what keeps the floor cheap enough to be worth having. `--languages` lists what
+is known.
 """
 
 from __future__ import annotations
@@ -484,7 +486,45 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
                 raw_lines=doc.splitlines(),
             )
         )
+    out.extend(_annotated_docs(path, tree))
     return sorted(out, key=lambda b: b.start)
+
+
+def _annotated_docs(path: Path, tree: ast.AST) -> list[Block]:
+    """Prose carried by a PEP 727 `Doc()` inside an `Annotated[...]`.
+
+    ⚠ These are STRING LITERALS, so `ast.get_docstring` cannot see them and the
+    tokenizer does not either. On a file that documents its parameters this way
+    they are the majority of its prose: measured 5 of 8 blocks on one, which the
+    census reported as covered. A block missing from the census is a block
+    nobody reviews, so finding them is not optional.
+    """
+    out: list[Block] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        fn = node.func
+        if getattr(fn, "id", getattr(fn, "attr", "")) != "Doc":
+            continue
+        if not node.args or not isinstance(node.args[0], ast.Constant):
+            continue
+        val = node.args[0].value
+        if not isinstance(val, str):
+            continue
+        start = node.args[0].lineno
+        end = getattr(node.args[0], "end_lineno", start) or start
+        out.append(
+            Block(
+                path=path.as_posix(),
+                start=start,
+                end=end,
+                kind="docstring",
+                lines=len(val.splitlines()) or 1,
+                text=re.sub(r"\s+", " ", val).strip(),
+                raw_lines=val.splitlines() or [val],
+            )
+        )
+    return out
 
 
 def code_names(roots: list[Path]) -> tuple[set[str], list[str]]:

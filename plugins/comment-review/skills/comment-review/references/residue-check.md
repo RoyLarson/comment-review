@@ -1,4 +1,4 @@
-# The RESIDUE CHECK — loaded at stage 5, used at 5, 6 and 8
+# The RESIDUE CHECK — loaded at stage 5, used at 5, 6 and 7b
 
 The one mechanism that catches an edit which kept a false sentence and dropped
 the evidence disproving it. It is **inbound and per-block**: *did this block

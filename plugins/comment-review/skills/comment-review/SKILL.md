@@ -1,6 +1,6 @@
 ---
 name: comment-review
-description: Review the comments and docstrings in the files a change touched, across four angles — locality, currency, functionality, module coherence — using parallel read-only subagents, and return each finding as finding/location/summary/change-requirement for the human to rule on. Use this whenever comments or documentation are the subject: after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" — "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; the task agent applies what the human approves, and every applied change passes a residue check against the original prose.
+description: Review the comments and docstrings in the files a change touched, across four angles — locality, currency, functionality, module coherence — using parallel read-only subagents, and return each finding as verdict/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject: after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" — "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; the task agent applies what the human approves, and every applied change passes a residue check against the original prose.
 ---
 
 # comment-review
@@ -20,7 +20,7 @@ first, then truth, then fit, then the page.
 
 | # | stage | who acts | what exists at the end of it |
 |---|---|---|---|
-| 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap, project rules, style sheet, name corpus |
+| 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
 | 2 | **ANNOTATE** | `census.py` | every comment run and docstring located, as a node on the prose tree |
 | 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved — paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers | findings on the nodes — read-only, nothing written |
@@ -143,11 +143,16 @@ approval.** Two constraints pin it into exactly this slot:
   unaudited — the one thing they are relied on for is that what they saw is what lands.
 
 ⚠ **The two stages have different inputs, and that is deliberate.** EDIT needs the code, the
-marks and the four verdicts. COMPACT needs only the **original block**, the **edited text**,
-the **cap** and the **style sheet** — never the reasoning that produced the edit. That
-narrower contract is a safety property: an agent that never saw the argument cannot preserve
-a sentence because it remembers writing it, and it is why this may be handed to a **separate
-subagent** — one that composes, one that condenses. The seam is the input list above.
+marks and one verdict per angle that ran. COMPACT needs only the **block's KIND**, the
+**original block**, the **edited text**, the **cap** and the **style sheet** — never the
+reasoning that produced the edit. That narrower contract is a safety property: an agent that
+never saw the argument cannot preserve a sentence because it remembers writing it, and it is
+why this may be handed to a **separate subagent** — one that composes, one that condenses.
+
+⚠⚠ **The KIND is in that list because the two kinds obey different rules.** A cap counts lines
+in a `#` run; a docstring is governed by FORMAT and long is not a violation. Hand COMPACT a
+107-line docstring without its kind and it looks like the same over-length problem as a 7-line
+comment run.
 
 **APPROVAL (7) presents the FINAL text**, takes the ruling, and only then applies.
 
@@ -187,7 +192,7 @@ to make.
 | `fact-check` | currency, functionality | `correct` · `query` · `clean` |
 | `line` | + locality | + `drop` · `move` · `reanchor` · `split` · `add` |
 | `full` | + module coherence | + `patch` |
-| `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited | — |
+| `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
 
 ⚠⚠ **If `move` is unavailable (1.4), NO level reaches the cap, and say so up front.** True
 rationale with no destination becomes `clean` and stays where it is, so COMPACT must cap prose
@@ -302,8 +307,17 @@ two that would, are not among them. On a Go file a server reports `func F` at li
 nothing has said there is a comment at line 2 to attach to it. **A block must be FOUND before
 anything can own it, so stages 2–3 always run.**
 
-⚠ **Absence is reported, never inferred.** A missing server answers
-`No LSP server available for file type: .ts` — say so per language in the report. This is
+⚠ **Absence is reported, never inferred, and there are THREE states — not two.**
+
+| state | how you learn it | what to report |
+| --- | --- | --- |
+| a server answered | `documentSymbol` returns symbols | the language, and use it at 1.8 |
+| no server for this language | `No LSP server available for file type: .ts` | that language has none |
+| **no LSP tool at all** | the tool is absent from the registry — there is no call to issue | **no probe was possible** |
+
+⚠⚠ **The third is not the second.** With no LSP tool the probe cannot be made, so "no server
+answered" would be an inference, which the rule above forbids. Say a probe was impossible.
+Measured: three runs hit this state and all three had to improvise the distinction. This is
 additive: with a server you gain owners and cross-language liveness, without one you lose
 nothing you had. What you may not do is let a run that had no server read like one that did.
 
@@ -322,13 +336,18 @@ name on its **head** segment only.
 
 ## Stages 2–3 — ANNOTATE, then FIND REFERENCES
 
+⚠ `<skill>` below is the directory holding this SKILL.md — take it from the absolute path you
+were given, because a relative one does not resolve from a worktree.
+
 ```bash
 python <skill>/scripts/census.py --repo . <paths...>          # no cap, no width rule
 python <skill>/scripts/census.py --cap 6 --width 88 --repo . <paths...>   # both published
 ```
 
 It emits the numbered tree — `N  file:start-end  kind  lines  marks  (owner)` — with each
-node's references already resolved, and it prints the tier each file reached. Run it; do not
+node's references already resolved, and it prints the tier counts for the run. ⚠ Those are
+AGGREGATED across files, not per file — on a polyglot run you cannot tell which file reached
+which tier, which is exactly when it matters. Run it; do not
 re-derive its output by hand.
 
 ⚠ **Write the census to a path unique to THIS run** and hand the reviewers that path. Measured:
@@ -413,12 +432,13 @@ is not comparable to one taken without.
 prose that justifies a value is a node like any other. Measured: one unreviewed config file
 held 12 confirmed defects, six of them the same rewrite the pass had already applied in a
 `.py` file. Where the change edits a symbol, a path or a number, `git grep` that token and add
-every file that NAMES it — the diff decides what changed, not what is in scope.
+every file that NAMES it — the diff decides what changed, not what is in scope. ⚠ Under
+`target` there is no diff; the named path is the whole scope and this widening does not apply.
 
 Report what the tool prints: `N files, N blocks`, the per-tier counts, the longest run and the
-widest line. ⚠ **Pass `--cap` only if 1.2 found one and `--width` only if 1.2 found one** —
-supplying either uninvited makes the census print an over-cap or over-width count that reads
-like a project fact and is your own guess.
+widest line. ⚠ **Pass `--cap` only if the run HAS one — given as an argument or published and found at
+1.2 — and `--width` only if 1.2 found one.** Supplying either uninvited makes the census print
+an over-cap or over-width count that reads like a project fact and is your own guess.
 
 ## Stage 4 — MARK: four reviewers, in parallel
 
@@ -458,7 +478,7 @@ disagreement with the mirror is itself a finding.
 
 Overlap between angles is **signal**: a claim one affirms and another refutes is the
 highest-value output here. Measured — one angle read a false absence claim and wrote
-"CONFIRMED"; another refuted it by grep. A single-angle run ratifies falsehoods.
+it was true; another refuted it by grep. A single-angle run ratifies falsehoods.
 
 **Re-review is normal.** An accreted block is layered — a live constraint, an origin story, a
 correction to it, a review label — and peeling one reveals the next. Send a block back when
@@ -470,7 +490,7 @@ when you cannot write the replacement text.
 ⚠⚠ **Resolve the reviewers' evidence yourself.** Open each finding's `SUMMARY` right half
 and confirm the quoted line is within a few lines of its citation. A finding whose evidence is
 not there is not a finding — send it back. Measured: one graded run had **fabricated 5 of its 7
-reviewer reports**, and self-certified `CONFIRMED` ran at **97% across 298 findings** — a label
+reviewer reports**, and a self-certified confidence label ran at **97% across 298 findings** — a label
 two runs in three thousand disagree with does not discriminate. **Never grade a review by
 reading its report.**
 
@@ -517,12 +537,12 @@ being settled:
    returned `clean` and nothing else. ⚠ *Every angle that RAN*, not four: at `fact-check` only
    two run, and requiring four would make a block unblessable at that level.
 
+⚠ **Load [`references/residue-check.md`](references/residue-check.md) before you write anything**
+— the check is defined there, and this is the first stage that owes it. Stages 6 and 7b re-run
+the same check against the same original; none of them may check against the previous edit.
+
 Then emit the replacement and run the residue check on **the whole synthesised block once** —
 not once per verdict. The check compares against the original, and the original was one block.
-
-⚠ **Load [`references/residue-check.md`](references/residue-check.md) now** — the check is
-defined there, and this is the first stage that owes it. Stages 6 and 7b re-run the same check
-against the same original; none of them may check against the previous edit.
 
 **Three rules that resolve the common collisions:**
 
