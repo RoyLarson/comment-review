@@ -17,18 +17,26 @@ because a backticked token can name a config key, a record field or an API
 payload rather than a symbol, and no resolver knows every namespace a repo
 speaks.
 
-The census is built at the highest TIER available for each file's language,
-and every tier finds the same blocks — only the top one knows which
-declaration a block belongs to:
+The census is built at the TIER available for each file's language. Both tiers
+find the same blocks; they differ only in what else they can say:
 
-  structural  a CST with positions (Python via libcst)   blocks, marks, OWNER
-  tokenized   a lexer (Python via the stdlib)            blocks, marks
-  lexical     a comment-syntax record, and nothing else  blocks, marks
+  tokenized  a lexer + AST (Python, from the stdlib)   + DOCSTRING owners
+  lexical    a comment-syntax record, nothing else     blocks and marks
 
-⚠ The tier is reported PER FILE, because a polyglot repo mixes them and only
-`structural` can settle a placement question. Adding a language is a row in
-`LANGUAGES` — data, not code — which is what keeps the floor cheap enough to
-be worth having. `python sweep.py --languages` lists what is known.
+⚠ NO COMMENT carries an owner at either tier, so every locality verdict rests
+on a reviewer READING the file. A docstring's owner comes free from the AST; a
+`#` run's does not, and nothing here infers it. Treat placement findings as
+CANDIDATES.
+
+⚠ A libcst tier that DID resolve comment owners was measured and removed on
+2026-08-14: it owned 50% of blocks and silently missed 13 that the stdlib tier
+found, because a comment inside an expression belongs to no node's
+`leading_lines`. Coverage beats ownership, and the tier was Python-only besides
+-- `evidence/tier-measurement.md`.
+
+The tier is reported PER FILE, because a polyglot repo mixes them. Adding a
+language is a row in `LANGUAGES` — data, not code — which is what keeps the
+floor cheap enough to be worth having. `--languages` lists what is known.
 """
 
 from __future__ import annotations
@@ -59,18 +67,6 @@ NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 DOC_OWNERS = (ast.Module,) + NAMED_DEFS
 PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError)
 GIT_ERRORS = (OSError, subprocess.SubprocessError)
-
-# libcst attaches a comment to the node it leads or trails, which is the
-# locality angle's own question answered structurally instead of by line
-# arithmetic. It is optional on purpose: requiring it would make this script
-# fail on a fresh checkout, and the stdlib path answers every other question.
-try:  # pragma: no cover - availability is the thing being branched on
-    import libcst as cst
-    from libcst.metadata import MetadataWrapper, PositionProvider
-
-    HAVE_CST = True
-except ImportError:
-    HAVE_CST = False
 
 # A virtualenv in the tree POISONS the name corpus: every installed package's
 # methods become "known", so a real obituary is suppressed because some library
@@ -298,9 +294,8 @@ BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 # that happens to answer it. Only the top rung knows which declaration a block
 # belongs to, which is why locality is the one angle that degrades below it.
 TIER_ANSWERS = {
-    "structural": "blocks, marks, and OWNERSHIP",
-    "tokenized": "blocks and marks; ownership inferred from position",
-    "lexical": "blocks and marks; NO ownership",
+    "tokenized": "blocks, marks, and DOCSTRING owners",
+    "lexical": "blocks and marks only",
 }
 
 
@@ -410,26 +405,41 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
 def blocks_stdlib(path: Path, text: str) -> list[Block]:
     """Comment runs (bounded by CODE) and docstrings, via tokenize + ast."""
     out: list[Block] = []
-    run: list[tuple[int, str]] = []
+    # (line, physical source line, the comment token alone, is it trailing)
+    run: list[tuple[int, str, str, bool]] = []
 
     def flush() -> None:
         if run:
+            # ⚠ PROSE comes from the comment token; WIDTH from the physical
+            # line. Using the physical line for both fed a trailing comment's
+            # own code to the mark regexes -- reviewers saw
+            # `models.Index(fields=(...)),  # note` as the note's text -- while
+            # `--width` legitimately needs the whole line it must not exceed.
+            prose = [c for _, _, c, _ in run]
             out.append(
                 Block(
                     path=path.as_posix(),
                     start=run[0][0],
                     end=run[-1][0],
-                    kind="comment",
-                    lines=counted_lines([t for _, t in run]),
-                    text=_join([t for _, t in run]),
-                    raw_lines=[t for _, t in run],
+                    kind="trailing-comment" if run[0][3] else "comment",
+                    lines=counted_lines(prose),
+                    text=_join(prose),
+                    raw_lines=[ln for _, ln, _, _ in run],
                 )
             )
             run.clear()
 
     for raw in tokenize.generate_tokens(io.StringIO(text).readline):
         if raw.type == tokenize.COMMENT:
-            run.append((raw.start[0], raw.line.rstrip("\n")))
+            trailing = bool(raw.line[: raw.start[1]].strip())
+            run.append((raw.start[0], raw.line.rstrip("\n"), raw.string, trailing))
+            # ⚠ A trailing comment CLOSES its run. Its code sits before it, so
+            # no later token flushes it, and it silently absorbed the next
+            # leading block across two blank lines -- gluing `raise original
+            # DoesNotExist` to an unrelated `TODO` four lines down and giving a
+            # reviewer one block that was never one comment.
+            if trailing:
+                flush()
         elif raw.type in (
             tokenize.NL,
             tokenize.NEWLINE,
@@ -477,87 +487,6 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
     return sorted(out, key=lambda b: b.start)
 
 
-def blocks_cst(path: Path, text: str) -> list[Block]:
-    """Same census via libcst, which knows which node each comment belongs to.
-
-    The extra fact is `owner`: locality's question — does this comment belong to
-    the line it sits on — becomes structural rather than inferred from spacing.
-    """
-    wrapper = MetadataWrapper(cst.parse_module(text), unsafe_skip_copy=True)
-    pos = wrapper.resolve(PositionProvider)
-    out: list[Block] = []
-
-    def label(node: cst.CSTNode) -> str:
-        """What this comment is attached to, as a reader would name it.
-
-        The assignment case is the one worth having: a rule written above two
-        integer literals is local, and the same rule written at the top of a
-        class is not. Without a name for the target, both look identical to a
-        line counter.
-        """
-        name = getattr(node, "name", None)
-        if name is not None:
-            return getattr(name, "value", "")
-        body = getattr(node, "body", None)
-        if isinstance(body, (list, tuple)) and body:
-            inner = body[0]
-            targets = getattr(inner, "targets", None)
-            if targets:
-                tgt = getattr(targets[0], "target", None)
-                if isinstance(tgt, cst.Name):
-                    return tgt.value
-            tgt = getattr(inner, "target", None)  # AnnAssign
-            if isinstance(tgt, cst.Name):
-                return tgt.value
-        return ""
-
-    class V(cst.CSTVisitor):
-        METADATA_DEPENDENCIES = (PositionProvider,)
-
-        def on_visit(self, node: cst.CSTNode) -> bool:
-            leading = getattr(node, "leading_lines", None)
-            if leading:
-                run: list[tuple[int, str]] = []
-                for line in leading:
-                    if line.comment is None:
-                        if run:
-                            emit(run, label(node))
-                            run = []
-                        continue
-                    ln = pos[line.comment].start.line
-                    run.append((ln, line.comment.value))
-                if run:
-                    emit(run, label(node))
-            tw = getattr(node, "trailing_whitespace", None)
-            if tw is not None and getattr(tw, "comment", None) is not None:
-                ln = pos[tw.comment].start.line
-                emit([(ln, tw.comment.value)], label(node), trailing=True)
-            return True
-
-    def emit(run: list[tuple[int, str]], owner: str, trailing: bool = False) -> None:
-        out.append(
-            Block(
-                path=path.as_posix(),
-                start=run[0][0],
-                end=run[-1][0],
-                kind="trailing-comment" if trailing else "comment",
-                lines=counted_lines([t for _, t in run]),
-                text=_join([t for _, t in run]),
-                owner=owner,
-                raw_lines=[t for _, t in run],
-            )
-        )
-
-    wrapper.visit(V())
-
-    # Docstrings still come from `ast` — libcst does not special-case them and
-    # the stdlib answer is exact.
-    for b in blocks_stdlib(path, text):
-        if b.kind == "docstring":
-            out.append(b)
-    return sorted(out, key=lambda b: (b.start, b.kind))
-
-
 def code_names(roots: list[Path]) -> tuple[set[str], list[str]]:
     """Every name the tree DEFINES, from the AST — never from raw text.
 
@@ -570,6 +499,15 @@ def code_names(roots: list[Path]) -> tuple[set[str], list[str]]:
     unread: list[str] = []
     for root in roots:
         for p in _walk(root):
+            lang = language_for(p)
+            # ⚠ A non-Python file is a KNOWN hole, not a broken file. Parsing it
+            # as Python reported `a.go (SyntaxError)`, which reads as "your file
+            # is malformed" and sends a reviewer to fix nothing. Liveness for
+            # these languages needs its own harvester; until then say which.
+            if lang is None or lang.name != "python":
+                name = lang.name if lang else "unknown"
+                unread.append(f"{p.as_posix()} (no name harvester for {name})")
+                continue
             try:
                 tree = ast.parse(p.read_text(encoding="utf-8"))
             except PARSE_ERRORS as e:
@@ -595,12 +533,21 @@ def code_names(roots: list[Path]) -> tuple[set[str], list[str]]:
 
 
 def _walk(root: Path):
+    """Every file under `root` this script has a language record for.
+
+    ⚠ Filters on `BY_EXT`, not on `*.py`. Hardcoding one suffix here made a
+    directory scan silently Python-only while `--languages` advertised eleven —
+    and silently is the worst part: a file the walk never yields cannot appear
+    in the NOT CHECKED list either, so the run reports a clean census of a
+    fraction of the tree.
+    """
     if root.is_file():
         yield root
         return
-    for p in root.rglob("*.py"):
-        if not EXCLUDED_DIRS.intersection(p.parts):
-            yield p
+    for p in sorted(root.rglob("*")):
+        if p.is_file() and p.suffix.lower() in BY_EXT:
+            if not EXCLUDED_DIRS.intersection(p.parts):
+                yield p
 
 
 def path_index(repo: Path) -> set[str]:
@@ -708,22 +655,18 @@ def tier_for(lang: Language) -> str:
     One definition, read by the dispatcher and by `--languages`, so what the
     listing advertises cannot drift from what a run actually does.
     """
-    if lang.name != "python":
-        return "lexical"
-    return "structural" if HAVE_CST else "tokenized"
+    return "tokenized" if lang.name == "python" else "lexical"
 
 
 def census_for(path: Path, text: str, lang: Language) -> list[Block]:
     """The census for one file, at the highest tier available for its language.
 
-    The ladder is by QUESTION ANSWERED, not by library: every tier locates the
-    same blocks, and only the top one can say which declaration a block belongs
-    to. Python reaches STRUCTURAL through libcst and TOKENIZED through the
-    stdlib; every other language has the LEXICAL floor until a parser for it is
-    wired in, which is the one thing adding a language does not require.
+    The ladder is by QUESTION ANSWERED, not by library. Python reaches
+    TOKENIZED through the stdlib, which buys docstring owners; every other
+    language has the LEXICAL floor. Neither resolves a COMMENT's owner.
     """
     if lang.name == "python":
-        got = blocks_cst(path, text) if HAVE_CST else blocks_stdlib(path, text)
+        got = blocks_stdlib(path, text)
     else:
         got = blocks_lexical(path, text, lang)
     for b in got:
@@ -819,8 +762,8 @@ def main() -> int:
         return 0
 
     # ⚠ A tier is per FILE, not per run: a polyglot repo mixes them in one
-    # census, and only `structural` answers OWNERSHIP. Reporting one global mode
-    # let a locality finding on a lexical-tier file read as resolved.
+    # census. Reporting one global mode let a finding on a file the run could
+    # say least about read exactly like one it could settle.
     tiers = Counter(b.tier for b in census)
     langs = Counter(lang.name for f in files if (lang := language_for(f)) is not None)
     over = [
@@ -832,14 +775,14 @@ def main() -> int:
 
     print(f"comment-review stages 2-3 - {len(files)} files, {len(census)} blocks")
     print(f"  languages: {', '.join(f'{k} {v}' for k, v in sorted(langs.items()))}")
-    for name in ("structural", "tokenized", "lexical"):
+    for name in ("tokenized", "lexical"):
         if tiers.get(name):
             print(f"  tier {name}: {tiers[name]} blocks - {TIER_ANSWERS[name]}")
-    if tiers.get("lexical"):
-        print(
-            "  ⚠ LOCALITY DEGRADES on lexical-tier blocks: no owner is known, so a\n"
-            "    placement finding there is a CANDIDATE, not a resolution."
-        )
+    print(
+        "  ⚠ NO COMMENT carries an owner at either tier, so every locality\n"
+        "    verdict rests on a reviewer READING the file. Treat a placement\n"
+        "    finding as a CANDIDATE, not a resolution."
+    )
     print(f"  longest comment run: {longest} lines; widest line: {widest} chars")
     if args.cap:
         print(f"  over cap ({args.cap}): {len(over)}")

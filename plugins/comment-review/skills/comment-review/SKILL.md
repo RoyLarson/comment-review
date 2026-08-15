@@ -77,32 +77,39 @@ instructions:
 - **the edits are applied to NODES**, so "never change a line of code" holds by construction
   — the AST proof in `sweep.md` confirms that rather than being the only thing enforcing it.
 
-⚠ **The model is the tree; the implementation is whatever is available.** `scripts/sweep.py`
-builds it at the highest **tier** it can reach for each file's language. The tiers are named
-by the question each answers, not by the library that answers it — which is what lets the
-ladder extend to a language nobody has wired a parser for:
+⚠ **The model is the tree; the implementation depends on nothing.** `scripts/sweep.py` builds
+it from the stdlib alone, at the tier available for each file's language. Both tiers find the
+same blocks and differ only in what else they can say:
 
 | tier | needs | answers | cannot answer |
 |---|---|---|---|
-| `structural` | a CST with positions (Python: libcst) | blocks, marks, **owner** | — |
-| `tokenized` | a lexer (Python: the stdlib) | blocks, marks | ownership |
-| `lexical` | a comment-syntax record, nothing else | blocks, marks | ownership; a marker inside an exotic string |
+| `tokenized` | a lexer + AST (Python: the stdlib) | blocks, marks, **docstring** owners | a **comment's** owner |
+| `lexical` | a comment-syntax record, nothing else | blocks, marks | any owner; a marker inside an exotic string |
 
-⚠⚠ **The tier is per FILE and the census prints it, because only `structural` settles a
-placement question.** A polyglot repo mixes tiers in one census, and a locality finding on a
-`lexical` block is a CANDIDATE, not a resolution — the census says so in its header rather
-than leaving a reviewer to infer it. **Say the mix in your stage 2-3 report**, the same way an
-unavailable `move` is said at stage 1 rather than discovered at stage 6.
+⚠⚠ **NO COMMENT carries an owner, in any language.** A docstring's owner comes free from the
+AST; a `#` run's does not, and nothing infers it. So **every locality verdict rests on a
+reviewer reading the file** — a judgement no field records and nothing downstream can check.
+Treat a placement finding as a CANDIDATE and **say so in your stage 2-3 report**, the same way
+an unavailable `move` is said at stage 1 rather than discovered at stage 6.
 
-⚠ **Only LOCALITY degrades.** Currency, functionality and module coherence never ask who owns
-a block, so they run identically at every tier. A `line`-level run over a `lexical`-tier file
-therefore delivers three of its four angles at full strength — worth stating up front, because
-"no parser for this language" reads like "no review" and is not.
+⚠ **Only LOCALITY is affected.** Currency, functionality and module coherence never ask who
+owns a block, so they run identically everywhere — three of the four angles are at full
+strength on any file the census can read. "No parser for this language" reads like "no review"
+and is not.
 
-Requiring libcst would make this skill fail on a fresh checkout; requiring a parser per
-language would mean it supports one language. **Adding a language is a row of data in
-`LANGUAGES`** — `python <skill>/scripts/sweep.py --languages` lists what is known and the tier
-each reaches. A suffix with no record is **reported as unreviewable, never silently skipped.**
+⭐ **A structural tier existed and was REMOVED on 2026-08-14, measured.** libcst resolved
+owners for 50% of comment blocks and silently missed 13 of 160 that the stdlib found — a
+comment inside an expression belongs to no node's `leading_lines`, including a file-header
+copyright block. **A block missing from the census is a block nobody reviews**, and that beats
+an unresolved owner: the first is silent, the second only weakens a verdict. It was also
+Python-only, so it bought nothing for the ten other languages. Numbers and the full argument:
+`evidence/tier-measurement.md`. ⚠ Reopen only for a tier that misses **zero** blocks.
+
+Depending on nothing is the point: this skill must run on a fresh checkout, and a tier chosen
+by whether some package happens to be importable makes coverage depend on the ambient
+environment. **Adding a language is a row of data in `LANGUAGES`** — `python
+<skill>/scripts/sweep.py --languages` lists what is known. A suffix with no record is
+**reported as unreviewable, never silently skipped.**
 
 **MARK (4) is separate from EDIT (5)** because a reviewer that fixes what it finds has
 destroyed the finding. The brief holds that rule and binds the reviewers to it.

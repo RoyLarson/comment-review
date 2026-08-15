@@ -28,3 +28,7 @@ venv/
 .idea/
 .DS_Store
 Thumbs.db
+
+# `uv run --with <pkg>` treats the ruff-config pyproject as a project and writes
+# a lock for it. This is not a package and has no dependencies to pin.
+uv.lock
