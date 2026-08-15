@@ -118,19 +118,23 @@ claim gets its wording polished and never gets checked. That is the laundering f
 purest form. If you are unsure which applies, you have not settled the claim — that is `query`.
 
 ⚠⚠ **`move` leaves the code; `reanchor` stays in the file.** If the right home is a
-declaration ten lines down, that is `reanchor`, and it is ALWAYS available. `move` needs a
-destination tree the task agent resolved at 1.4 and can be unavailable for a whole run --
-so calling an in-file relocation `move` gets it converted to `clean` and the finding is
-LOST. Measured on a real run, on exactly this shape.
+declaration ten lines down, that is `reanchor` — available at every level except `fact-check`,
+where the verdict set carries no `reanchor` and the same finding is `query` instead, never
+`clean`. `move` needs a destination tree the task agent resolved at 1.4 and can be unavailable
+for a whole run -- so calling an in-file relocation `move` gets it converted to `clean` and the
+finding is LOST. Measured on a real run, on exactly this shape.
 
 ⚠ **There is no `compact` here.** Shortening is stage 6's, after the truth is written and only
 as far as a cap requires. You cannot propose that a block be shorter; you can only say which
 sentences are false, misplaced, missing or badly worded.
 
 ⚠ **The LEVEL you were given restricts which verdicts you may emit.** At `fact-check` you have
-`correct`, `query` and `clean` only — a true-but-misplaced block is `clean` for you, and its
-placement is somebody else's pass. Emitting a verdict your level does not carry is not a
-finding; it is scope you were not given.
+`correct`, `query` and `clean` only. For block-context, function-context and module-context, a
+true-but-misplaced block is `clean` for you — placement is `ownership-context`'s question, not
+yours. For `ownership-context` itself, a true-but-misplaced block is never `clean`: `reanchor`
+is not in this level's verdict set, so the finding is `query` — the claim cannot be settled
+where it sits. Emitting a verdict your level does not carry is not a finding; it is scope you
+were not given.
 
 ⚠ **`clean` is scoped to YOU.** It is not a pass — it is one angle having nothing to report,
 including when the block is outside what your angle reads, and the other angles are looking at

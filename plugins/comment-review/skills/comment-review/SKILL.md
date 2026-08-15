@@ -185,10 +185,21 @@ to make.
 
 | level | angles | verdicts available |
 |---|---|---|
-| `fact-check` | block-context, function-context | `correct` · `query` · `clean` |
-| `line` | + ownership-context | + `drop` · `move` · `reanchor` · `split` · `add` |
+| `fact-check` | ownership-context, block-context, function-context | `correct` · `query` · `clean` |
+| `line` | the same three | + `drop` · `move` · `reanchor` · `split` · `add` |
 | `full` | + module-context | + `patch` |
 | `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
+
+⚠⚠ **`ownership-context` runs at every level, including `fact-check`.** The other three check
+a claim against the code at their scope; a claim attached to the wrong scope is measured
+against the wrong code and `correct`ed into a falsehood. At `fact-check` it cannot `reanchor`
+— it emits `query`, which is exactly the verdict for a claim that cannot be settled where it
+sits.
+
+⚠⚠ **The ladder changes shape and that is the point.** It used to add an ANGLE at each rung;
+now `line` adds only VERDICTS, because `ownership-context` already ran at `fact-check` and was
+holding its placement findings as `query`. Reaching `line` is what lets those become
+`reanchor` and `split`.
 
 ⚠⚠ **If `move` is unavailable (1.4), NO level reaches the cap, and say so up front.** True
 rationale with no destination becomes `clean` and stays where it is, so COMPACT must cap prose
@@ -526,7 +537,7 @@ reads as missing. Two files with the same stem are refused outright.
 ⚠ **Pass `--angles` every time, listing the angles this LEVEL ran.** Without it
 a reviewer that never reported at all is invisible — "every angle" silently
 means "every file I was handed", the easier version of the fabrication below.
-The list above is `full`; at `fact-check` it is `block-context,function-context`.
+The list above is `full`; at `fact-check` it is `ownership-context,block-context,function-context`.
 
 It exits nonzero on a coverage gap, a citation that does not resolve, a quote
 not found near its cited line, a verdict the level does not carry, an angle
@@ -599,7 +610,7 @@ being settled:
    block and `split` as fragments. Last before `clean`, because the text must be final first.
 7. **`clean`** — the null verdict. A block stands unchanged when **every angle that ran**
    returned `clean` and nothing else. ⚠ *Every angle that RAN*, not four: at `fact-check` only
-   two run, and requiring four would make a block unblessable at that level.
+   three run, and requiring four would make a block unblessable at that level.
 
 ⚠ **Load [`references/residue-check.md`](references/residue-check.md) before you write anything**
 — the check is defined there, and this is the first stage that owes it. Stages 6 and 7b re-run

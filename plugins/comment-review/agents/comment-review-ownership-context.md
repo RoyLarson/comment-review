@@ -77,12 +77,16 @@ constrain.**
 
 **So the finding is where it BELONGS, not that it is misplaced.** Name the declaration,
 statement or function it constrains and propose it there. *"Misplaced, compact it where it
-sits"* is the verdict that loses it next time.
+sits"* is the verdict that loses it next time. At `fact-check`, where `reanchor` is not in your
+verdict set, name that destination inside a `query` instead — the claim cannot be settled where
+it sits, and the destination you name is what WOULD settle it.
 
 ⚠⚠ **The word is `reanchor`, and it is NOT `move`.** `move` means take the prose OUT of the
 code to a destination tree, which the task agent may have ruled unavailable for the whole run —
 in which case your finding is converted to `clean` and vanishes. `reanchor` means re-attach the
-block, unchanged, to the right line in this same file, and it is **always available**.
+block, unchanged, to the right line in this same file, and it is available at every level
+except `fact-check` — there the verdict set carries no `reanchor`, and the same finding is
+`query`, not `clean`.
 
 ## Formatting, not ownership-context
 
