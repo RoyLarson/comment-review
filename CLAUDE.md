@@ -202,11 +202,8 @@ history) since it depends on `git blame`.
 - `clean` is reserved, not a synonym for "vaguely good": it is one of the nine verdicts named
   under "The skill's 8 stages" above and must not be used as a loose adjective for code or
   prose anywhere in this repo. As a verdict it means nothing to report from that angle, and
-  each angle's `clean` asserts something specific — ownership-context: this claim's home is
-  where it sits; block-context: every claim in the block is true of the code it sits with;
-  function-context: name, signature, docstring, comments and body all support what the
-  function does; module-context: the module documentation accounts for what the module
-  exposes and reads as one set of ideas.
+  each angle's `clean` asserts something specific — read what, in that angle's own file under
+  `plugins/comment-review/agents/`, which states it.
 
 ## Exploration Budget
 

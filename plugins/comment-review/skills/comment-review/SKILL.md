@@ -58,8 +58,7 @@ angle per block and must synthesise ONE**, so what matters here is what each obl
 ⚠⚠ **`move` and `reanchor` are separate words because they have different AVAILABILITY.**
 `move` takes prose out of the code and needs a destination tree, so 1.4 can rule it UNAVAILABLE
 for a whole run. `reanchor` re-attaches a block inside the same file and needs nothing outside
-it, so 1.4 never withholds it. ⚠ Which LEVELS carry each is
-[`references/reviewer-brief.md`](references/reviewer-brief.md)'s to say, not this file's.
+it, so 1.4 never withholds it.
 
 ⚠⚠ **`correct` and `patch` are the distinction the whole design turns on.** `correct` says the
 sentence is wrong; `patch` says it is right and reads badly. Applying a `patch` to a false
