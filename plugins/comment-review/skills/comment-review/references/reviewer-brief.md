@@ -151,6 +151,15 @@ reads instead, and a `query` naming no attempted check is the one it refuses.
 **Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
 single `clean` sentence must not launder the ones around it.
 
+### `truthy`
+
+A sentence is **truthy** when it states one checkable proposition about the code it is
+attached to — a subject, a referent, and a claim that some line, symbol or run can settle.
+
+⚠ Truthy is a property of FORM, not of truth. *"The retry budget is 40"* is truthy and false;
+*"this is robust"* is neither. A sentence that is not truthy cannot be `correct`ed, because
+there is nothing to correct it against — it is `drop` or `query`.
+
 ## Check the CLAIM, not the CITATION
 
 Resolving a path or a symbol is cheap and *feels* like verification. Resolving a claim **is**
@@ -238,6 +247,20 @@ sites. Out of scope is ruling on what the code **should be**.
 ⚠ **A reviewer straying into correctness is this skill's worst measured output** — four
 agreeing reviewers once reported a file "cannot compile" over valid syntax. A claim about
 whether code *runs* owes a `python -c` or `ast.parse` before it leaves your hands.
+
+### One claim, several sites — who owns it
+
+Both `ownership-context` and `module-context` see a claim stated in more than one place, and
+they draw different conclusions. The split is fixed:
+
+| angle | asks | verdict shape |
+|---|---|---|
+| `ownership-context` | which of these sites is this claim's HOME? | `reanchor`/`move` the claim to its owner, `drop` the copies |
+| `module-context` | does the rule have no OWNING FUNCTION, so each site re-explains it? | `add` the rule to the function that should hold it, and name that function |
+
+⚠ Same observation, different finding. A claim with a home in the wrong place is
+`ownership-context`'s; a rule with no home in the CODE is `module-context`'s. Neither may
+emit the other's verdict.
 
 ## You are not given the cap
 
