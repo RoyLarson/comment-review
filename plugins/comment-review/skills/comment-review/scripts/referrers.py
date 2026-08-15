@@ -172,7 +172,19 @@ def main() -> int:
         "Every line is a file to READ. None of them may be the target of a verdict.\n"
     )
     if not hits:
-        print("  none — nothing tracked names these files.")
+        if unsearched:
+            # ⚠ NOT the same claim as the clean-absence line below. `hits`
+            # being empty here may only mean every search that COULD run
+            # found nothing -- some did not run at all, and a real referrer
+            # may be sitting behind one of them. The unqualified "none" is
+            # exactly the reading C1 exists to prevent.
+            print(
+                "  none among the tokens that could be searched — but some\n"
+                "  searches did not complete; see NOT CHECKED below before\n"
+                "  treating this as a clean result."
+            )
+        else:
+            print("  none — nothing tracked names these files.")
     for f in sorted(hits):
         print(f"  {f}\n      names: {', '.join(sorted(hits[f]))}")
     if suppressed:

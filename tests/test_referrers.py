@@ -1,10 +1,13 @@
 """Who names this file? The inbound half of FIND REFERENCES."""
 
-import subprocess  # noqa: I001  -- path shim below must import before referrers
+import contextlib  # noqa: I001  -- path shim below must import before referrers
+import io
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
 import referrers
@@ -146,6 +149,60 @@ class TestGrepStates(unittest.TestCase):
         found, reason = referrers._grep(not_a_repo, "anything")
         self.assertIsNone(found)
         self.assertNotEqual(reason, "")
+
+
+class TestEmptyHitsFromFailedSearches(unittest.TestCase):
+    """`hits` empty from every search FAILING must not read as a clean absence."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name) / "repo"
+        self.repo.mkdir()
+        subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
+        self.target = self.repo / "target.py"
+        self.target.write_text("def some_helper():\n    pass\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "add", "target.py"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repo),
+                "-c",
+                "user.email=t@t",
+                "-c",
+                "user.name=t",
+                "commit",
+                "-qm",
+                "init",
+            ],
+            check=True,
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_a_totally_failed_search_is_not_the_clean_none_message(self):
+        # Forcing every real `git grep` invocation to fail (a timeout, a
+        # corrupt index) is not reliably reproducible from a test; `_grep`
+        # itself is already covered directly by `TestGrepStates`, so here it
+        # is patched to always report "could not search" -- exercising the
+        # one branch nothing else does: `hits` empty BECAUSE every token's
+        # search failed, not because nothing was found.
+        argv = ["referrers.py", "--repo", str(self.repo), str(self.target)]
+        out = io.StringIO()
+        with (
+            mock.patch.object(sys, "argv", argv),
+            mock.patch.object(
+                referrers, "_grep", return_value=(None, "simulated failure")
+            ),
+            contextlib.redirect_stdout(out),
+        ):
+            code = referrers.main()
+        output = out.getvalue()
+        self.assertEqual(code, 0)
+        self.assertNotIn("none — nothing tracked names these files.", output)
+        self.assertIn("NOT CHECKED", output)
+        self.assertIn("could not be searched", output)
 
 
 class TestNoGitIndex(unittest.TestCase):
