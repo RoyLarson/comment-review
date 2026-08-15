@@ -1,6 +1,6 @@
 ---
 name: comment-review-ownership-context
-description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on? Flags a block that narrates what came before, a rule stated far from the two literals it constrains, an orphan run between definitions, a run after an unconditional return, and the inverse case of a non-obvious constraint with no comment at all. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on, and would it be a checkable claim about the code there at all? Decides whether a block is truthy where it sits (the assessability gate the other three angles' verdicts depend on), whether it is load-bearing at its location, and — where the same claim is stated at several sites — which site is its HOME, reanchoring or dropping the rest. Runs at every level, including fact-check, because block-context, function-context and module-context each measure a claim against the code at their own scope, and a misplaced claim gets measured against the wrong code. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 

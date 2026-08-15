@@ -109,7 +109,9 @@ Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) u
 `plugins/comment-review/agents/`, dispatched in one message so they run concurrently:
 
 - **ownership-context** — does this comment belong to the line it sits on?
-- **block-context** — does it describe the program as it is now (not past, not future)?
+- **block-context** — is every claim in this block true of the code it sits with — its state
+  (not past, not future), its constraints (value, direction, units, boundary), its worked
+  examples?
 - **function-context** — does the commentary match what the function is for?
 - **module-context** — do the comments say this module is one set of ideas?
 
@@ -197,14 +199,14 @@ history) since it depends on `git blame`.
   function-context need something to resolve the claim against. Write what is measured, what is
   enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
   by reading the code or re-running a command, it does not belong.
-- `clean` is reserved, not a synonym for "vaguely good": it is one of the nine verdicts
-  named under "The skill's 8 stages" above and must not be used as a loose adjective for
-  code or prose anywhere in this repo. As a verdict it means nothing to report from that
-  angle, and each angle's
-  `clean` asserts something specific — ownership-context: the prose sits in the appropriate place;
-  block-context: it describes the code as it acts now; function-context: the statement follows the
-  truthy form and follows from what the function does; module-context: the statement fits
-  within the whole module's scope of work.
+- `clean` is reserved, not a synonym for "vaguely good": it is one of the nine verdicts named
+  under "The skill's 8 stages" above and must not be used as a loose adjective for code or
+  prose anywhere in this repo. As a verdict it means nothing to report from that angle, and
+  each angle's `clean` asserts something specific — ownership-context: this claim's home is
+  where it sits; block-context: every claim in the block is true of the code it sits with;
+  function-context: name, signature, docstring, comments and body all support what the
+  function does; module-context: the module documentation accounts for what the module
+  exposes and reads as one set of ideas.
 
 ## Exploration Budget
 

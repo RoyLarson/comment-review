@@ -1,6 +1,6 @@
 ---
 name: comment-review-function-context
-description: One of four parallel reviewers dispatched by the /comment-review skill. Reads name, signature, docstring and body together and flags where they disagree; owns reachability (a caller outside the tests), coverage claims (does the guard exist AND could it fail), prohibitions grepped against their own file, and the absence question — what must be true of a function's output or its caller that the signature cannot express, and does the docstring say it. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: One of four parallel reviewers dispatched by the /comment-review skill. Reads name, signature, docstring and body together and flags where they disagree; owns reachability (a caller outside the tests), coverage claims (does the guard exist AND could it fail, checked with its exemptions off), prohibitions grepped against their own file, whether the documentation describes ONE function or needs "and" to be accurate, whether the body's comments are in the order the body actually performs them, and the absence question — what must be true of a function's output or its caller that the signature cannot express, and does the docstring say it. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 
