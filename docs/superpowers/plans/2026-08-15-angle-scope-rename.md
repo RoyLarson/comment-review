@@ -658,6 +658,157 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ---
 
+## Task 9: Define what each angle's `clean` asserts
+
+**Why:** `clean` is the only verdict reachable by **not deciding**. The other eight are actions
+(`drop`, `correct`, `patch`, `add`, `move`, `reanchor`, `split`) or an explicit statement that
+you could not settle the claim (`query`) — none can be emitted passively. `clean` can be
+arrived at by leaving a block alone, and is then indistinguishable from a checked acquittal.
+
+Measured across the four agents before this task:
+
+| angle | mentions of the `clean` verdict |
+|---|---|
+| `function-context` | **0** — 120 lines, never mentions it |
+| `ownership-context` | 2, both negative — *"`query`, not `clean`"* |
+| `block-context` | 2, both negative — *"never `clean`"* |
+| `module-context` | 7, including a dedicated section |
+
+Three of four say only when `clean` would be *wrong*, never what it *claims*. `module-context`
+is the exception because it already paid for this: a reviewer facing 548 blocks outside its
+angle invented the word `derivation` rather than say `clean`, publishing a 95% acquittal rate.
+
+The consequence is mechanical, not stylistic: `verdicts.py`'s clean-arithmetic blesses a block
+when **every angle that ran** returns `clean`. A passive `clean` does not merely fail to find
+something — it certifies the block.
+
+**Files:**
+- Modify: `plugins/comment-review/skills/comment-review/references/reviewer-brief.md`
+- Modify: all four `plugins/comment-review/agents/comment-review-*-context.md`
+
+- [ ] **Step 1: Fix the two verdicts that change no text — in the brief, where shared facts belong**
+
+`clean` and `query` are the pair that leave the prose untouched. One certifies the block, the
+other escalates it. Getting `query` wrong pushes reviewers into `clean`, so both are fixed here.
+
+**1a. `clean` — add the general fact that makes the per-angle definitions necessary.**
+`reviewer-brief.md` already says `clean` is scoped to you and cannot bless a block. Immediately
+after that, add:
+
+```markdown
+⚠⚠ **`clean` is the only verdict you can reach by NOT deciding.** Every other verdict is an
+action or an explicit `query`; this one can be arrived at by leaving a block alone, and a
+block left alone is indistinguishable from a block checked and acquitted. Your angle file
+states what your `clean` asserts — emit it as that claim, or emit `query`.
+```
+
+**1b. `query` — replace a trigger that contradicts its own payload row.**
+
+The payload row says `query` means *"you cannot settle the claim"*. Four lines below, the ⚠⚠
+headline says *"If you did not read BOTH SIDES, the verdict is `query`."* Those are different
+triggers, and the second is the harmful one: a reviewer who **did** read both sides and still
+cannot tell concludes `query` is not for them, and reaches for `clean` instead. **A mis-framed
+`query` is a direct cause of the passive `clean` this task exists to prevent.**
+
+Replace that whole ⚠⚠ paragraph — from *"If you did not read BOTH SIDES"* through *"soften a
+verdict with."* — with:
+
+```markdown
+⚠⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
+still required to open the code that would settle it; on every other verdict your `QUOTE` proves
+you did. `query` is what you emit when you did and it was still not enough.
+
+Three shapes reach it, and all three are findings rather than admissions:
+
+- **outside your angle** — what settles it belongs to another scope. Another angle may settle
+  it, and the task agent rules on all four together.
+- **outside the checkout** — generated, gitignored, remote, or on one machine. No reviewer in a
+  fresh checkout can settle it.
+- **outside the code** — settling it needs someone who knows the system or how it is operated.
+  It reaches the author at 7a as a question.
+
+⚠ **A claim you could not settle and marked `clean` is worse than the same claim marked
+`query`.** `clean` certifies; `query` asks. There is no confidence tag to soften a verdict with.
+```
+
+⚠ Leave the paragraph *after* it unchanged — the one stating a `query` carries no `EVIDENCE`
+and no `QUOTE` by construction, and must not be downgraded to `clean` to escape the gate. It is
+already correct and it is what the gate enforces.
+
+- [ ] **Step 2: `ownership-context` — state its assertion**
+
+```markdown
+## What your `clean` asserts
+
+**Emitting `clean` here asserts that EVERY SENTENCE in the block belongs to the line it sits
+on** — each is about that code, no other site states it, and someone changing that code would
+decide worse without it. A block whose sentences belong to different code is `split`, not
+`clean`.
+```
+
+- [ ] **Step 3: `block-context` — state its assertion**
+
+```markdown
+## What your `clean` asserts
+
+**Emitting `clean` here asserts that EVERY SENTENCE in the block is true of the code beside
+it** — each one's state, its constraints against the line that enforces them, and any worked
+example, run. A block holding one true sentence and one false one is not `clean`: the false
+sentence is `correct`, the true one is `clean`. Two sentences, two verdicts.
+```
+
+- [ ] **Step 4: `function-context` — state its assertion**
+
+This file mentions the verdict nowhere; it gains the section outright.
+
+```markdown
+## What your `clean` asserts
+
+**Emitting `clean` here asserts that name, signature, docstring, comments and body agree, and
+that nothing the signature cannot express is missing from the prose.** A docstring you read
+but did not check against the body is `query`.
+```
+
+- [ ] **Step 5: `module-context` — add the positive assertion to what it already has**
+
+This file already tells a reviewer to return `clean` naming "outside my angle" rather than
+invent a word. That is the *scope* case. It is missing the *checked* case:
+
+```markdown
+**Emitting `clean` here asserts that the module docstring accounts for the exposed surface and
+reads as one set of ideas** — you enumerated the surface and walked it. `clean` because a block
+is outside your angle is a different statement, and must name that reason.
+```
+
+Place it inside the existing acquittal-rate section so the two readings of `clean` sit
+together, rather than adding a competing section.
+
+- [ ] **Step 6: Verify and commit**
+
+```bash
+python -m unittest discover -s tests -v
+ruff check . && ruff format . && python scripts/check_shipped_syntax.py
+```
+
+Then confirm the four assertions differ from each other — if two angles' `clean` say the same
+thing, one of them is describing the wrong scope.
+
+```bash
+git add plugins && git commit -m "feat(angles): state what each angle's clean asserts
+
+clean is the only verdict reachable by not deciding: the other eight are
+actions or an explicit query. Three of the four agents said only when clean
+would be WRONG and never what it CLAIMS, and function-context never mentioned
+it across 120 lines.
+
+The consequence is mechanical -- verdicts.py blesses a block when every angle
+that ran returns clean, so a passive clean certifies rather than abstains.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+```
+
+---
+
 ## After the plan: re-measure
 
 The angles changed what they check, so any finding rate taken before this is not comparable —
