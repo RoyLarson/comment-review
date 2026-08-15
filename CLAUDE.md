@@ -43,9 +43,13 @@ python -m unittest discover -s tests -v
 # Stage 3 inbound: which tracked files NAME the files under review
 python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo . <paths...>
 
-# Stage 5 gate: join reviewer reports against the census, check every citation
+# Stage 5 gate: join reviewer reports against the census, check every citation.
+# Each report file is NAMED FOR ITS ANGLE -- the tool takes the angle from the
+# file stem, and --angles compares against those stems.
 python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
-  --census <census>.json --level full --repo . <report>...
+  --census <census>.json --level full --repo . \
+  --angles locality,currency,functionality,module-coherence \
+  locality.md currency.md functionality.md module-coherence.md
 
 # Stage 4 gate: the dispatch packet
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --template

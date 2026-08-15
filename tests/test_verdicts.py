@@ -517,6 +517,40 @@ class TestCLI(unittest.TestCase):
         self.assertIn("MALFORMED", result.stdout)
         self.assertIn("swallows the next one", result.stdout)
 
+    def test_a_contradiction_is_named_in_the_closing_line_not_contradicted(self):
+        # I3: `contradictions()` never increments `fatal` -- correctly, a
+        # re-review is not an inadmissible finding -- but the run printed
+        # "send the block back" and four lines later "Stage 5 may rule" at
+        # exit 0. The two outputs contradicted each other.
+        finding = (
+            "--- FINDING\n"
+            "BLOCK       1\n"
+            "VERDICT     {verdict}\n"
+            "LOCATION    a.py:1\n"
+            "EVIDENCE    a.py:5\n"
+            "QUOTE       five callers, all in tests\n"
+            'SUMMARY     "x" || the count is stale\n'
+            "FINDING     f\n"
+            "CHANGE      {change}\n"
+            "---\n"
+            "CLEAN 2-3\n"
+        )
+        drop = self._write(
+            "locality.txt",
+            finding.format(verdict="drop", change="the sentence, verbatim"),
+        )
+        correct = self._write(
+            "currency.txt",
+            finding.format(verdict="correct", change='false: "x" / true: "y"'),
+        )
+        result = self._run(drop, correct)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("RE-REVIEW", result.stdout)
+        self.assertIn("1 block still OUT for re-review", result.stdout)
+        self.assertNotIn(
+            "Every finding is admissible. Stage 5 may rule.", result.stdout
+        )
+
     def test_a_missing_census_prints_one_line_not_a_traceback(self):
         report = self._clean_report("currency.txt")
         missing = Path(self.tmp.name) / "nope-census.json"

@@ -9,7 +9,9 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   LOCATION      the prose citation resolves too -- checked the same way
   PAYLOAD       the verdict carries what its row of the table requires
   LEVEL         the verdict is one this run's level carries
-  CONTRADICTION `drop` against `correct`/`patch` on one block -- a re-review
+  CONTRADICTION `drop` against `correct`/`patch` on one block -- a re-review,
+                NOT counted fatal, but named in the closing line so the summary
+                cannot read "stage 5 may rule" over a block that is out
   STANDS        blocks every angle that ran returned clean on
   ANGLE         (only with `--angles`) every expected reviewer actually reported
 
@@ -565,6 +567,17 @@ def main() -> int:
     if fatal:
         print(f"\n{_n(fatal, 'problem')}. Resolve or send back before stage 5 rules.")
         return 1
+    if clash:
+        # ⚠ A contradiction is NOT counted fatal: `drop` against `correct` is a
+        # re-review, not an inadmissible finding, and both records are perfectly
+        # well formed. But the closing line has to say so -- printing "send the
+        # block back" and then "Stage 5 may rule" four lines later made the
+        # summary contradict its own body at exit 0.
+        print(
+            f"\nEvery finding is admissible. {_n(len(clash), 'block')} still OUT"
+            " for re-review — stage 5 may rule on the rest."
+        )
+        return 0
     print("\nEvery finding is admissible. Stage 5 may rule.")
     return 0
 

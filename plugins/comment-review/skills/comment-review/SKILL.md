@@ -508,19 +508,38 @@ EDIT:
 
 ```bash
 python <skill>/scripts/verdicts.py --census <census>.json --level <level> \
+  --angles locality,currency,functionality,module-coherence \
   --repo . <one report file per angle>
 ```
 
+⚠⚠ **NAME EACH REPORT FILE AFTER ITS ANGLE** — `locality.md`, `currency.md`,
+`functionality.md`, `module-coherence.md`. The tool takes an angle from the
+report's FILE STEM, and `--angles` compares against those stems, so a report
+saved as `report1.md` is an angle nobody expected and every expected angle
+reads as missing. Two files with the same stem are refused outright.
+
+⚠ **Pass `--angles` every time, listing the angles this LEVEL ran.** Without it
+a reviewer that never reported at all is invisible — "every angle" silently
+means "every file I was handed", the easier version of the fabrication below.
+The list above is `full`; at `fact-check` it is `currency,functionality`.
+
 It exits nonzero on a coverage gap, a citation that does not resolve, a quote
-not found near its cited line, a verdict the level does not carry, or a payload
-the verdict table requires and the record lacks. It also names the blocks where
-`drop` meets `correct`/`patch` — **a re-review, never a tie-break** — and prints
-which blocks STAND UNCHANGED under the clean-arithmetic.
+not found near its cited line, a verdict the level does not carry, an angle
+that did not report, or a payload the verdict table requires and the record
+lacks. It also names the blocks where `drop` meets `correct`/`patch` — **a
+re-review, never a tie-break** — and prints which blocks STAND UNCHANGED under
+the clean-arithmetic.
 
 ⚠⚠ **A finding whose evidence does not resolve is not a finding.** Measured: one
 graded run had **fabricated 5 of its 7 reviewer reports** and did not notice
 until asked to grade itself; self-certified `CONFIRMED` ran at **97% across 298
 findings**. **Never grade a review by reading its report.**
+
+⚠⚠ **It catches a fabricated FINDING, never a fabricated CLEAN — and the clean
+is the cheaper fabrication.** A report reading only `CLEAN 1-N` accounts for
+every index, cites nothing, and exits 0 having read no file at all. Nothing
+mechanical can separate that from a real pass, because a negative leaves no
+artifact. **A green exit here is not evidence that anything was read.**
 
 ⚠ **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct
 verdict from an incorrect one. Synthesis, and the order below, remain yours.
