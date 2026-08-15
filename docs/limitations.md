@@ -19,10 +19,13 @@ Assume a reasoning reader: state the rule and its discriminator, not the argumen
 budget, a new rule **replaces** one — and if two rules are instances of one generalization,
 write the generalization and delete both.
 
-⚠ **A rule belongs in exactly one file.** Shared contract → `reviewer-brief.md`; one angle's →
-that angle's agent definition; apply-side → `sweep.md`; orchestration → here. Restating one
-across two files is the antipattern this skill exists to find, and the four agents are the
-place it will happen — they read alike and invite copy-paste.
+⚠ **A rule belongs in exactly one file.** Shared reviewer contract →
+`reviewer-brief.md`; one angle's → that angle's agent definition; a stage's procedure → that
+stage's file under `references/` (`residue-check.md`, `compact.md`, `apply.md`, `review.md`); a
+rule a SCRIPT enforces → that script's docstring (`census.py`, `referrers.py`, `verdicts.py`,
+`run_context.py`, `prove_unchanged.py`); orchestration → here. Restating one across two files is
+the antipattern this skill exists to find, and the four agents are the place it will happen —
+they read alike and invite copy-paste.
 
 **Any Python shipped here must be generic** — no hardcoded paths, no assumed directory names,
 no cap baked into a script whose prose says the skill has no cap of its own.

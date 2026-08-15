@@ -28,22 +28,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from census import GIT_ERRORS, git, git_ls_files  # noqa: E402  -- path shim first
+# ⚠ The exception tuples are IMPORTED, not re-declared. Each is bound to a
+# NAME so no `except` clause holds a tuple literal, and `census.py` carries
+# the reason once; a second copy of that reasoning is the restated rule this
+# skill exists to find, and the copies drift before the code does.
+from census import (  # noqa: E402  -- path shim must run first
+    GIT_ERRORS,
+    PARSE_ERRORS,
+    READ_ERRORS,
+    git,
+    git_ls_files,
+)
 
-# ⚠ Bound to a NAME so no `except` clause here holds a tuple LITERAL. This
-# file ships under `plugins/` into other people's repositories and is
-# formatted by THEIR ruff config; a `target-version` newer than this file's
-# floor rewrites `except (A, B):` into PEP 758's unparenthesised form, a
-# SyntaxError on every older interpreter. `check_shipped_syntax.py` cannot
-# catch this class of defect -- it verifies the file parses today, not that
-# it survives a rewrite nobody here will see. Matches `census.py`'s
-# `READ_ERRORS` / `GIT_ERRORS` and `prove_unchanged.py`'s same construct.
-READ_ERRORS = (OSError, UnicodeDecodeError)
-# ⚠ ValueError included: `ast.parse` raises it (not SyntaxError) on a source
-# string containing a NUL byte -- a file that decoded as valid UTF-8 and so
-# reached `ast.parse` cleanly. Without it, a single NUL-containing target
-# crashes this script's own promise to always exit 0.
-PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError, ValueError)
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 # A cap on how many candidates are worth printing for one token: above this

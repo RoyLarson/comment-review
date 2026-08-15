@@ -15,10 +15,10 @@ the block's KIND, the ORIGINAL block, the EDITED text, the CAP and the STYLE
 SHEET. You do **not** get the reasoning that produced the edit, and you must not
 ask for it.
 
-⚠⚠ **An agent that never saw the argument cannot keep a sentence because it
-remembers writing it.** That is the whole reason this pass is yours and not the
-editor's. If you find yourself reconstructing why a clause is there, you are
-doing the editor's job with less information than they had.
+⚠⚠ **That narrowness is why this pass is yours and not the editor's**, and
+`compact.md` carries the argument. If you find yourself reconstructing why a
+clause is there, you are doing the editor's job with less information than they
+had.
 
 ⚠⚠ **The four refusals in `compact.md` bind here without exception.**
 
