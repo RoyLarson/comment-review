@@ -115,6 +115,12 @@ Read them as a sequence. A comment that describes a step the body performs later
 still describes a step an edit moved above it, is `reanchor` — the claim is true and belongs
 to a different line in this function.
 
+## What your `clean` asserts
+
+**Emitting `clean` here asserts that name, signature, docstring, comments and body agree, and
+that nothing the signature cannot express is missing from the prose.** A docstring you read
+but did not check against the body is `query`.
+
 ## Return
 
 Report as the brief specifies.

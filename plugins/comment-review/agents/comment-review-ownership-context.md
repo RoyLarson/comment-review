@@ -94,6 +94,13 @@ A **trailing comment that carries past its own line** into comment-only lines be
 badly. The comment is usually about the right thing; the shape is wrong. **Lift the whole
 comment above the line.** Report it as FORMATTING, not as misplaced.
 
+## What your `clean` asserts
+
+**Emitting `clean` here asserts that EVERY SENTENCE in the block belongs to the line it sits
+on** — each is about that code, no other site states it, and someone changing that code would
+decide worse without it. A block whose sentences belong to different code is `split`, not
+`clean`.
+
 ## Return
 
 Report as the brief specifies.

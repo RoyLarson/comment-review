@@ -142,10 +142,26 @@ the same block. Nothing you emit can bless a block; only a `clean` from **every 
 ran** can, and the task agent computes that — you do not assert it. ⚠ Do not invent a word for
 "outside my angle": that is `clean`, and a ninth word breaks the arithmetic.
 
-⚠⚠ **If you did not read BOTH SIDES, the verdict is `query`.** Either you opened the code that
-settles the claim — and your `QUOTE` proves you did — or you could not, and the word for that is
-`query`, which returns for re-review and reaches the author as a question. There is no
-confidence tag to soften a verdict with.
+⚠⚠ **`clean` is the only verdict you can reach by NOT deciding.** Every other verdict is an
+action or an explicit `query`; this one can be arrived at by leaving a block alone, and a
+block left alone is indistinguishable from a block checked and acquitted. Your angle file
+states what your `clean` asserts — emit it as that claim, or emit `query`.
+
+⚠⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
+still required to open the code that would settle it; on every other verdict your `QUOTE` proves
+you did. `query` is what you emit when you did and it was still not enough.
+
+Three shapes reach it, and all three are findings rather than admissions:
+
+- **outside your angle** — what settles it belongs to another scope. Another angle may settle
+  it, and the task agent rules on all four together.
+- **outside the checkout** — generated, gitignored, remote, or on one machine. No reviewer in a
+  fresh checkout can settle it.
+- **outside the code** — settling it needs someone who knows the system or how it is operated.
+  It reaches the author at 7a as a question.
+
+⚠ **A claim you could not settle and marked `clean` is worse than the same claim marked
+`query`.** `clean` certifies; `query` asks. There is no confidence tag to soften a verdict with.
 
 ⚠ **A `query` carries no `EVIDENCE` and no `QUOTE`, by construction** — there is no line that
 settles a claim you could not settle. Do not invent one to satisfy the gate, and do not

@@ -89,6 +89,13 @@ on the three kinds above, nothing else. Truth in the past is not a reason to kee
 accuracy is why such a block was never deleted, not a reason to keep it. But a claim that is
 **false now** is `correct` or `drop`, never `clean`.
 
+## What your `clean` asserts
+
+**Emitting `clean` here asserts that EVERY SENTENCE in the block is true of the code beside
+it** — each one's state, its constraints against the line that enforces them, and any worked
+example, run. A block holding one true sentence and one false one is not `clean`: the false
+sentence is `correct`, the true one is `clean`. Two sentences, two verdicts.
+
 ## Return
 
 Report as the brief specifies.

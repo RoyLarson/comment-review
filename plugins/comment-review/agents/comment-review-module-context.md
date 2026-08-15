@@ -110,6 +110,10 @@ Measured: a coherence reviewer facing 548 blocks it was not reading for filed th
 it. An honest *"clean — outside my angle"* on five hundred blocks is a better result than a
 plausible label on any of them.
 
+**Emitting `clean` here asserts that the module docstring accounts for the exposed surface and
+reads as one set of ideas** — you enumerated the surface and walked it. `clean` because a block
+is outside your angle is a different statement, and must name that reason.
+
 ## Return
 
 Report as the brief specifies. Where a block is not yours, that is `clean` with the reason
