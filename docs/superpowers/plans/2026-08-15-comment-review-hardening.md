@@ -202,9 +202,11 @@ class TestPythonTier(unittest.TestCase):
         self.assertEqual(len(runs), 1, [b.text for b in runs])
 
     def test_a_marker_line_is_free(self):
+        # Three COMMENT tokens (the blank line yields NL, which is skipped and
+        # never joins the run), of which the TODO line is not charged.
         run = [b for b in blocks_for("sample.py") if b.kind == "comment"][0]
-        self.assertEqual(len(run.raw_lines), 4)
-        self.assertEqual(run.lines, 3)
+        self.assertEqual(len(run.raw_lines), 3)
+        self.assertEqual(run.lines, 2)
 
     def test_a_trailing_comment_is_its_own_block(self):
         trailing = [b for b in blocks_for("sample.py") if b.kind == "trailing-comment"]
@@ -246,11 +248,14 @@ if __name__ == "__main__":
 
 Run: `python -m unittest discover -s tests -v`
 
-Expected: every test PASSES except possibly `test_rust_strips_the_longest_opener_first`.
-If any other test fails, that is a real census bug — **stop and report it before
-changing any assertion.** The assertions above describe behaviour `census.py`
-already documents; a failure means the documentation and the code disagree,
-which is a finding in its own right.
+Expected: **every test PASSES.** These assertions describe behaviour `census.py`
+already documents, so a green run is the point — this task is the net, not a
+bug hunt.
+
+⚠ **If a test fails, do NOT relax the assertion to make it green.** A failure
+means the script and its own documentation disagree, which is a finding. Report
+it in your report file with the actual output and stop; the controller rules on
+whether the code or the fixture is wrong.
 
 - [ ] **Step 5: Allow test files to skip docstring lint**
 
@@ -339,7 +344,11 @@ import census
 class TestNameCorpusScope(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self.repo = Path(self.tmp.name)
+        # The repo is a SUBDIRECTORY of the temp dir, so the no-git case below
+        # can be a sibling. A directory inside the repo is still inside a git
+        # checkout, and `git -C <repo>/sub ls-files` would answer for it.
+        self.repo = Path(self.tmp.name) / "repo"
+        self.repo.mkdir()
         subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
         (self.repo / "tracked.py").write_text("def tracked_name():\n    pass\n")
         (self.repo / "vendored.py").write_text("def vendored_name():\n    pass\n")
@@ -365,7 +374,7 @@ class TestNameCorpusScope(unittest.TestCase):
         self.assertNotIn("vendored_name", names)
 
     def test_no_git_falls_back_and_says_so(self):
-        plain = Path(self.tmp.name) / "nogit"
+        plain = Path(self.tmp.name) / "nogit"  # sibling of the repo, not inside it
         plain.mkdir()
         (plain / "a.py").write_text("def only_name():\n    pass\n")
         self.assertIsNone(census.git_ls_files(plain))
@@ -553,11 +562,13 @@ behaviour for this case — *"If a block arrives without its kind, stop and ask
 for it — do not infer it."* So the tier declares the gap instead of guessing.
 
 **Files:**
-- Modify: `plugins/comment-review/skills/comment-review/scripts/census.py:335-397` (add a post-pass)
-- Modify: `plugins/comment-review/skills/comment-review/scripts/census.py:694-707` (`census_for`)
-- Modify: `plugins/comment-review/skills/comment-review/scripts/census.py:802-823` (`main`'s over-cap tally and report)
-- Modify: `plugins/comment-review/skills/comment-review/skills/.../references/compact.md` → actual path `plugins/comment-review/skills/comment-review/references/compact.md`
+- Modify: `plugins/comment-review/skills/comment-review/scripts/census.py` — `blocks_lexical` (stamp `trailing-comment`), a new `flag_structural_docs` beside it, `census_for`, and `main`'s over-cap tally and report
+- Modify: `plugins/comment-review/skills/comment-review/references/compact.md`
 - Create: `tests/test_census_doc_kind.py`
+
+⚠ **Locate every edit by the quoted CONTENT, not by line number.** Task 2 adds
+roughly forty lines to `census.py` above these sites, so every line number in
+the original plan text has already shifted by the time this task runs.
 
 **Interfaces:**
 - Consumes: `tests/_paths.py`, and `census.census_for` from Task 1's tests.
@@ -600,6 +611,11 @@ class TestStructuralDocGap(unittest.TestCase):
         self.assertEqual(len(orphan), 1)
         self.assertNotIn("doc-kind-unresolved", orphan[0].marks)
 
+    def test_a_lexical_trailing_comment_is_stamped(self):
+        trailing = [b for b in blocks_for("sample.go") if "trailing comment" in b.text]
+        self.assertEqual(len(trailing), 1)
+        self.assertEqual(trailing[0].kind, "trailing-comment")
+
     def test_a_trailing_comment_is_never_a_structural_doc(self):
         trailing = [b for b in blocks_for("sample.go") if "trailing comment" in b.text]
         self.assertEqual(len(trailing), 1)
@@ -623,9 +639,59 @@ if __name__ == "__main__":
 Run: `python -m unittest discover -s tests -k doc_kind -v`
 Expected: FAIL — `'doc-kind-unresolved' not found in set()`.
 
-- [ ] **Step 3: Add the post-pass**
+- [ ] **Step 3: Stamp `trailing-comment` at the lexical tier**
 
-In `census.py`, insert immediately after `blocks_lexical` (after line 397):
+`compact.md` says *"The census stamps every block `comment`, `trailing-comment`
+or `docstring`"*, but only `blocks_stdlib` ever stamps the middle one —
+`blocks_lexical` calls the same `flush()` for a leading run and for a trailing
+comment, so every Go/Rust/Ruby trailing comment arrives as `comment`. Step 4
+needs the distinction (a trailing comment can never be a positional doc), and
+the claim in `compact.md` should be true.
+
+In `blocks_lexical`, change `flush` to take the flag, and pass it at the one
+call site that handles a trailing comment:
+
+```python
+    def flush(trailing: bool = False) -> None:
+        if not run:
+            return
+        raw = [t for _, t in run]
+        stripped = raw[0].strip()
+        is_doc = stripped.startswith(lang.doc_line) if lang.doc_line else False
+        if lang.doc_block and stripped.startswith(lang.doc_block):
+            is_doc = True
+        if is_doc:
+            kind = "docstring"
+        else:
+            kind = "trailing-comment" if trailing else "comment"
+        out.append(
+            Block(
+                path=path.as_posix(),
+                start=run[0][0],
+                end=run[-1][0],
+                kind=kind,
+                lines=counted_lines(raw),
+                text=_join(raw, openers),
+                raw_lines=raw,
+                tier="lexical",
+            )
+        )
+        run.clear()
+```
+
+and at the bottom of the scan loop, where the comment already reads *"a trailing
+comment is its own block, owned by this line"*:
+
+```python
+        at = min((code.index(o) for o in openers if o in code), default=-1)
+        if at >= 0:
+            run.append((n, raw_line[at:].rstrip()))
+            flush(trailing=True)  # its own block, owned by the line it sits on
+```
+
+- [ ] **Step 4: Add the post-pass**
+
+In `census.py`, insert immediately after `blocks_lexical`:
 
 ```python
 def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None:
@@ -651,18 +717,18 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
     if not lang.doc_is_structural:
         return
     lines = text.splitlines()
-    openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     for block in blocks:
+        # A trailing comment annotates the line it sits ON, so it is never the
+        # documentation of what follows.
         if block.kind != "comment":
             continue
-        nxt = ""
-        for raw in lines[block.end :]:
-            if raw.strip():
-                nxt = raw.strip()
-                break
-        # Another comment above this one's referent means the run has not
-        # ended for doc purposes; blank-to-EOF means it annotates nothing.
-        if not nxt or nxt.startswith(openers):
+        # ⚠ The IMMEDIATELY next line, not the next non-blank one. Both
+        # languages require a doc comment to touch its declaration; a blank
+        # line between them means the run documents nothing, which is an
+        # ORPHAN -- a locality finding, and emphatically not a doc comment to
+        # be exempted from the cap.
+        nxt = lines[block.end].strip() if block.end < len(lines) else ""
+        if not nxt:
             continue
         block.marks.add("doc-kind-unresolved")
         block.notes.append(
@@ -673,9 +739,9 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
         )
 ```
 
-- [ ] **Step 4: Call it from `census_for`**
+- [ ] **Step 5: Call it from `census_for`**
 
-Replace `census_for`'s body (lines 701-707) with:
+Replace `census_for`'s body with:
 
 ```python
     if lang.name == "python":
@@ -688,9 +754,9 @@ Replace `census_for`'s body (lines 701-707) with:
     return got
 ```
 
-- [ ] **Step 5: Exclude the unresolved blocks from the cap tally and report them**
+- [ ] **Step 6: Exclude the unresolved blocks from the cap tally and report them**
 
-In `main`, replace the `over` comprehension (lines 802-804) with:
+In `main`, replace the `over` comprehension with:
 
 ```python
     deferred = [b for b in census if "doc-kind-unresolved" in b.marks]
@@ -704,7 +770,7 @@ In `main`, replace the `over` comprehension (lines 802-804) with:
     ]
 ```
 
-And immediately after the existing `if args.cap:` report line (line 821), add:
+And immediately after the existing `if args.cap:` report line, add:
 
 ```python
         if deferred:
@@ -714,12 +780,12 @@ And immediately after the existing `if args.cap:` report line (line 821), add:
             )
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [ ] **Step 7: Run the tests to verify they pass**
 
 Run: `python -m unittest discover -s tests -v`
 Expected: PASS.
 
-- [ ] **Step 7: Confirm the original defect is gone**
+- [ ] **Step 8: Confirm the original defect is gone**
 
 Run:
 ```bash
@@ -729,9 +795,9 @@ python plugins/comment-review/skills/comment-review/scripts/census.py \
 Expected: `over cap (2): 0` and `kind unresolved, NOT counted against the cap: 2`.
 Before this change it read `over cap (2): 1`.
 
-- [ ] **Step 8: Teach `compact.md` the new mark, and delete nothing else**
+- [ ] **Step 9: Teach `compact.md` the new mark, and delete nothing else**
 
-In `references/compact.md`, in the kind table (lines 79-83), add a third row:
+In `references/compact.md`, in the kind table, add a third row:
 
 ```markdown
 | `comment` with `doc-kind-unresolved` | **UNKNOWN** — the census could not tell | **nothing.** Ask, or carry it at length |
@@ -748,7 +814,7 @@ one. Do not infer it from the text, and do not cut it: carry it at length and
 say why. Measured: a three-line Go export doc counted as over a cap of two.
 ```
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
 ruff check . && ruff format . && python scripts/check_shipped_syntax.py
@@ -763,6 +829,9 @@ reported 'over cap (2): 1'.
 The tier declares the gap rather than detecting declarations, which is the
 improvised parse docs/parsing.md refuses. Marked blocks are excluded from
 the cap tally and reported separately.
+
+Also stamps trailing-comment at the lexical tier, which compact.md already
+claimed the census did and only blocks_stdlib actually did.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```
@@ -2002,12 +2071,17 @@ def main() -> int:
         print(f"\nRE-REVIEW — drop against correct/patch on: {clash}")
         print("  Not a tie-break. Send the block back; the synthesis order must not decide it.")
 
-    ran = set(clean) | {f.angle for f in found}
+    # A block stands only when EVERY angle that ran returned clean on it. With
+    # coverage gaps already reported as fatal above, "no angle ruled on it" and
+    # "every angle cleaned it" are the same set -- so this subtraction is the
+    # clean-arithmetic, not an approximation of it.
+    ran = sorted(set(clean) | {f.angle for f in found})
     ruled = {f.block for f in found if f.verdict != "clean"}
-    stands = sorted(b for b in all_blocks - ruled if all(b in clean.get(a, set()) or
-                    any(g.block == b and g.verdict == "clean" for g in found) for a in ran))
+    stands = sorted(all_blocks - ruled)
     print(f"\nSTANDS UNCHANGED: {len(stands)} blocks — clean from all {len(ran)} angles that ran")
     print(f"NEEDS A RULING:   {len(ruled)} blocks")
+    if gaps:
+        print("  ⚠ counts above are provisional: coverage is incomplete.")
 
     if fatal:
         print(f"\n{fatal} inadmissible. Resolve or send back before stage 5 rules.")
@@ -2272,16 +2346,18 @@ def missing_sections(text: str) -> list[str]:
         The names of sections a reviewer would be dispatched without. A comment
         line is not an answer — the template's own hints must be replaced.
     """
+    heads = list(SECTION.finditer(text))
+    bodies: dict[str, str] = {}
+    for i, m in enumerate(heads):
+        name = m.group(1).strip().upper()
+        end = heads[i + 1].start() if i + 1 < len(heads) else len(text)
+        bodies.setdefault(name, text[m.end() : end])
     bad: list[str] = []
-    positions = [(m.group(1).strip().upper(), m.end()) for m in SECTION.finditer(text)]
     for name in REQUIRED:
-        here = [p for n, p in positions if n == name]
-        if not here:
+        body = bodies.get(name)
+        if body is None:
             bad.append(name)
             continue
-        start = here[0]
-        nxt = [p for _, p in positions if p > start]
-        body = text[start : min(nxt) - 3] if nxt else text[start:]
         answered = [
             ln
             for ln in body.splitlines()

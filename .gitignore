@@ -32,3 +32,9 @@ Thumbs.db
 # `uv run --with <pkg>` treats the ruff-config pyproject as a project and writes
 # a lock for it. This is not a package and has no dependencies to pin.
 uv.lock
+
+# Subagent-driven-development scratch: one workspace per plan, holding that
+# plan's ledger, task briefs, implementer reports and review packages. The
+# ledger is the recovery map across a compaction; git history is the record
+# that outlives it, so none of this is committed.
+.superpowers/
