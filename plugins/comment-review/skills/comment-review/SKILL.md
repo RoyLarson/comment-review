@@ -522,6 +522,12 @@ sentence stops mid-air — a severed trailing comment, a `move` that cut a sente
 neither checkable nor necessary, so the matrix routes it to `drop`, deleting the pointer instead
 of repairing it. Restore the sentence.
 
+⚠ **Two findings quoting the same sentence in different files are ONE finding.** A pass edits
+where it is reading, fixes the copy in front of it, and manufactures a disagreement with the one
+it never opened. Contradicting verdicts trigger a **re-review**, never a tie-break. The join
+cannot see this for you — `contradictions()` keys on the census BLOCK index, and the same
+sentence copied into two files is two different blocks it can never relate.
+
 **Is it CHECKABLE?** confirmable from the code as it stands. **Is it NECESSARY?** would
 someone changing this code make a **worse decision** without it? Those two questions decide
 whether a TRUE sentence earns its place:

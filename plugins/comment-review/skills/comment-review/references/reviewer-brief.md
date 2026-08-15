@@ -64,6 +64,9 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `FINDING` | what is wrong, one clause |
 | `CHANGE` | the payload the verdict table requires |
 
+For a count, give the number **and the population you counted over** — the currency angle owns
+quantified claims, and a count with no stated population cannot be re-derived.
+
 **Then account for every remaining block on one line:**
 
 ```
