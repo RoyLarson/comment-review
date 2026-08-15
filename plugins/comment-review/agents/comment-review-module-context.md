@@ -47,6 +47,27 @@ with no property distinguishing them. The reviewer that got it right ENUMERATED 
 the one that got it wrong edited the sentence. A loudness guarantee false for 2 of 7 passes
 passed every angle.
 
+## The module's own surface is a CHECKLIST
+
+Enumerate what the module exposes — its public functions, classes and constants — from the
+file's own definitions. Then walk the module docstring against that list.
+
+- A name in the surface that the docstring never accounts for is a gap: `add`, naming it.
+- A name in the docstring that is not in the surface is an obituary: `correct` or `drop`.
+
+⚠ **State which you enumerated — public, private, or both — and the count.** *"Covers the
+module"* is the claim an existence check passes; the number and the population are the
+finding.
+
+⚠ **Coverage is not one line per name.** A docstring accounts for a name when a reader can
+tell why it exists — a paragraph naming the module's one job can cover several names at once.
+
+## Module-level state is documented or it is a trap
+
+For each module-level mutable binding, ask whether the docstring says who writes it, when, and
+what depends on it having been written. Import-order dependencies and caches are the shapes
+that break silently — an undocumented one is `add`, not `clean`.
+
 ## The rule stated in several places
 
 The same rule explained across several modules usually means **the rule has no owning
@@ -66,12 +87,11 @@ own merits and the rule ends up stated nowhere. Measured: a constraint restated 
 across four modules lost the single copy carrying its evidence, and every survivor now asserts
 it without support.
 
-**So establish the owner BEFORE trimming any restatement.** Until you know which copy is
-authoritative you do not know which one you are deleting, and *"this is said elsewhere"* is a
-claim you have not checked.
-
 ⚠ **Restatement is evidence the rule is REAL** — N authors independently felt they had to say
 it. Treat a heavily restated rule as load-bearing until shown otherwise, never as noise.
+
+⚠ **Where the copies exist because the claim is in the wrong place rather than because no
+function owns the rule, it is `ownership-context`'s** — the split is in `reviewer-brief.md`.
 
 ## ⚠⚠ Your acquittal rate will run high, and that is a trap
 
