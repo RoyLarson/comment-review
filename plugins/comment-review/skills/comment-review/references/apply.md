@@ -56,7 +56,10 @@ after the formatter** — the formatter can reshape what you wrote.
 
 ⚠ **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The identity claim is
 what this skill promises the people who run it; report the line verbatim and
-restore the file.
+restore the file. **An `UNCHECKED` line does not stop the run** — it means the
+line-ending check had no untouched sibling to compare against, not that it
+passed — but report it verbatim too, so the human deciding knows which claims
+this run actually has a signal for.
 
 **Edit through an exact-match tool, never raw text.** Measured, all caught only by the AST
 proof: a path-rewrite regex reached inside a runtime `raise` message because it worked on raw
