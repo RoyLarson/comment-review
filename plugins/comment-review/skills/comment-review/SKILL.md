@@ -102,10 +102,11 @@ a reviewer reading the file** — a judgement no field records and nothing downs
 Treat a placement finding as a CANDIDATE and **say so in your stage 2-3 report**, the same way
 an unavailable `move` is said at stage 1 rather than discovered at stage 6.
 
-⚠ **Only OWNERSHIP-CONTEXT is affected.** Block-context, function-context and module-context
-never ask who owns a block, so they run identically everywhere — three of the four angles are at full
-strength on any file the census can read. "No parser for this language" reads like "no review"
-and is not.
+⚠ **PLACEMENT is what an absent owner weakens, and nothing else.** Block-context and
+module-context never ask where a block belongs; function-context asks it only of a body's
+comment ORDER, which it reads off the body rather than off a census field. So every angle keeps
+every question on any file the census can read — a placement verdict simply rests on the
+reviewer. "No parser for this language" reads like "no review" and is not.
 
 ⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks ownership.**
 An unresolved owner weakens a verdict; an absent block produces none and reports no gap. **Adopt

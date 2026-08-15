@@ -15,10 +15,11 @@ edit. Everything below assumes it, and names verdicts the brief defines.
 
 **Your question: does this comment belong to the line it sits on?**
 
-You are the only angle that reads a comment against its *position*. The others read it
-against the code's meaning, its history, or the module's shape. A comment can be true,
-current, and about the right subject, and still be in the wrong place — that is yours, and
-only yours.
+You read ONE block against the line it sits on. The others read a claim against the code it
+sits with, against the function, or against the module. A comment can be true, current, and
+about the right subject, and still be in the wrong place — that is yours, with one exception:
+the misplacement only a body's comment ORDER shows is `function-context`'s. `reviewer-brief.md`
+splits them, and you do not read a body as a sequence.
 
 ## ⚠⚠ You run BEFORE the other three, and this is why
 
@@ -70,12 +71,7 @@ hold it. If the copies exist because no function owns the rule, it is theirs, no
 
 ## ⚠⚠ Ownership-Context is a PRESERVATION property — so a misplaced rule is `reanchor`, never `drop`
 
-A rule attached to the wrong symbol **has no defender**. Nothing around it evidences that it
-matters, so it reads as narration and the next length-driven pass takes it. **The most likely
-thing in any file to be deleted is a true, load-bearing rule sitting next to code it does not
-constrain.**
-
-**So the finding is where it BELONGS, not that it is misplaced.** Name the declaration,
+**The finding is where it BELONGS, not that it is misplaced.** Name the declaration,
 statement or function it constrains and propose it there. *"Misplaced, compact it where it
 sits"* is the verdict that loses it next time. At `fact-check`, where `reanchor` is not in your
 verdict set, name that destination inside a `query` instead — the claim cannot be settled where

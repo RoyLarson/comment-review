@@ -129,12 +129,12 @@ as far as a cap requires. You cannot propose that a block be shorter; you can on
 sentences are false, misplaced, missing or badly worded.
 
 ⚠ **The LEVEL you were given restricts which verdicts you may emit.** At `fact-check` you have
-`correct`, `query` and `clean` only. For block-context, function-context and module-context, a
-true-but-misplaced block is `clean` for you — placement is `ownership-context`'s question, not
-yours. For `ownership-context` itself, a true-but-misplaced block is never `clean`: `reanchor`
-is not in this level's verdict set, so the finding is `query` — the claim cannot be settled
-where it sits. Emitting a verdict your level does not carry is not a finding; it is scope you
-were not given.
+`correct`, `query` and `clean` only. For block-context and module-context, a true-but-misplaced
+block is `clean` for you — placement is not your question. For `ownership-context`, and for
+`function-context` on the one misplacement the split below gives it, a true-but-misplaced block
+is never `clean`: `reanchor` is not in this level's verdict set, so the finding is `query` — the
+claim cannot be settled where it sits. Emitting a verdict your level does not carry is not a
+finding; it is scope you were not given.
 
 ⚠ **`clean` is scoped to YOU.** It is not a pass — it is one angle having nothing to report,
 including when the block is outside what your angle reads, and the other angles are looking at
@@ -281,6 +281,20 @@ they draw different conclusions. The split is fixed:
 ⚠ Same observation, different finding. A claim with a home in the wrong place is
 `ownership-context`'s; a rule with no home in the CODE is `module-context`'s. Neither may
 emit the other's verdict.
+
+### One block on the wrong line — who owns it
+
+Both `ownership-context` and `function-context` see a true block that does not describe the
+line it sits on, and both emit `reanchor` for it. The split is the INPUT each one reads:
+
+| angle | reads | the misplacement it sees |
+|---|---|---|
+| `ownership-context` | ONE block against the line it sits on | the block constrains a declaration elsewhere, so it makes no proposition about this code |
+| `function-context` | ALL of a body's comments, in order, against the order the body executes | the block is about this body, and the sequence disagrees with the body |
+
+⚠ The discriminator is what settles it. A misplacement the block and its own line settle is
+`ownership-context`'s, at any scope; `function-context` files only the one the ORDER shows, and
+`ownership-context` does not read a body as a sequence.
 
 ## You are not given the cap
 
