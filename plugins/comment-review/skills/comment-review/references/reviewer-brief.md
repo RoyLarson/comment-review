@@ -36,19 +36,61 @@ You are given a numbered census and the mechanical resolutions for it. **Walk it
 finish and return a line for EVERY numbered block.** A block nobody mentioned is a gap in
 the review, not a block that passed.
 
-## Every finding has five parts
+## Every finding is a RECORD, and it is parsed
+
+Emit findings in exactly this shape. A tool joins your report against the
+census and against the other angles', so a malformed record is a finding that
+does not count.
 
 ```
-VERDICT     the verdict (the nine are defined below) - what to change or not change about the documentation
-LOCATION    file:start-end  (and the sentence, if the block holds several)
-SUMMARY     the claim AS WRITTEN, quoted  ||  the code line that SETTLES it
-FINDING     what is wrong with the prose, in one clause
-CHANGE      The change that would correct the comment if applied 
+--- FINDING
+BLOCK       17
+VERDICT     correct
+LOCATION    redacted_pkg/billing/rates.py:342-347
+EVIDENCE    redacted_pkg/billing/rates.py:355
+QUOTE       def compute_rates(plan, period, *, clamp=True):
+SUMMARY     "kept because twenty call sites want this" || 31 callers, all under tests/
+FINDING     the count is stale and every caller is a test
+CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tests/"
+---
 ```
 
-**`SUMMARY`'s right half is the forcing function** — unfillable without opening the code, so
-an empty one marks a finding nobody checked. Quote it with its `file:line`. For a count, give
-the number **and the population you counted over**.
+| field | what it carries |
+| --- | --- |
+| `BLOCK` | the census INDEX. This is how coverage is checked; a finding without it is unattributable |
+| `VERDICT` | one of the nine, and one your LEVEL carries |
+| `LOCATION` | `file:start-end` of the prose |
+| `EVIDENCE` | `file:line` you opened to settle the claim — **verified to exist** |
+| `QUOTE` | the text at that line, **VERBATIM** and at least 12 characters. Required for every verdict except `clean` and `query` |
+| `SUMMARY` | the claim as written, quoted `\|\|` what you DERIVED from the evidence |
+| `FINDING` | what is wrong, one clause |
+| `CHANGE` | the payload the verdict table requires |
+
+For a count, give the number **and the population you counted over** in `SUMMARY`'s right half —
+the currency angle owns quantified claims, and a count with no stated population cannot be
+re-derived.
+
+**Then account for every remaining block on one line:**
+
+```
+CLEAN 1-16,18,20-45,47
+```
+
+⚠⚠ **`QUOTE` is the forcing function, and it is CHECKED.** The cited line is read
+out of the file and your `QUOTE` must appear within three lines of it. Measured:
+one graded run had **fabricated 5 of its 7 reviewer reports**, and a
+self-certified confidence label ran at **97% across 298 findings**. A citation
+that does not resolve is not a weaker finding — it is not a finding.
+
+⚠ **`SUMMARY`'s right half is DERIVED, and is not checked verbatim** — that is why
+it is a separate field from `QUOTE`. A count is not a line any file contains, so
+checking the derived statement against the code made every counted claim
+inadmissible: the currency angle's own category, refused by the gate.
+
+⚠ **`CLEAN` is a range list, not an invitation to skip.** Every census index
+must appear exactly once across your findings and your clean ranges. The join
+reports any index you did not account for as a COVERAGE GAP against your angle
+by name.
 
 ### The verdicts, and what each one MUST carry
 
@@ -60,7 +102,7 @@ finding.
 | verdict   | use it when                                      | payload                                                              |
 | --------- | ------------------------------------------------ | -------------------------------------------------------------------- |
 | `clean`   | nothing to report FROM YOUR ANGLE                | nothing — name your angle, nothing else                              |
-| `query`   | you cannot settle the claim                      | the claim, what you checked, and what WOULD settle it                |
+| `query`   | you cannot settle the claim                      | the claim, the check you ATTEMPTED, and what WOULD settle it — the ATTEMPTED and WOULD-settle halves are CHECKED (as shape, not as truth); the claim itself is checked by nothing |
 | `drop`    | the sentence should not exist at all             | the sentence, verbatim                                               |
 | `correct` | the claim is **FALSE**                           | the false clause **and** the true one, plus the line that settles it |
 | `patch`   | the claim is **TRUE**, the wording is not        | the rewrite                                                          |
@@ -97,9 +139,14 @@ ran** can, and the task agent computes that — you do not assert it. ⚠ Do not
 "outside my angle": that is `clean`, and a ninth word breaks the arithmetic.
 
 ⚠⚠ **If you did not read BOTH SIDES, the verdict is `query`.** Either you opened the code that
-settles the claim — and `SUMMARY`'s right half proves you did — or you could not, and the word
-for that is `query`, which returns for re-review and reaches the author as a question. There is
-no confidence tag to soften a verdict with.
+settles the claim — and your `QUOTE` proves you did — or you could not, and the word for that is
+`query`, which returns for re-review and reaches the author as a question. There is no
+confidence tag to soften a verdict with.
+
+⚠ **A `query` carries no `EVIDENCE` and no `QUOTE`, by construction** — there is no line that
+settles a claim you could not settle. Do not invent one to satisfy the gate, and do not
+downgrade to `clean` to escape it: both destroy the finding. Its `CHANGE` is what the gate
+reads instead, and a `query` naming no attempted check is the one it refuses.
 
 **Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
 single `clean` sentence must not launder the ones around it.

@@ -42,19 +42,24 @@ docstring that states something **false** is in scope — that is the `correct` 
 Changing what the docstring *documents* is not. ⚠ **A `correct` on a claim inside a string
 literal is REPORTED, never applied** — hand it to the human as a code concern.
 
-**Prove code identity; do not assert it.** Parse both versions, blank every docstring
-`Constant`, compare `ast.dump`. Comments never reach the AST, so anything else that differs
-fails the check. **Re-run after the formatter** — it can reshape what you wrote.
+**Prove code identity; do not assert it.** Run the proof — do not perform it:
 
-⚠⚠ **Check LINE ENDINGS against an UNTOUCHED SIBLING FILE — never against the blob.** The AST
-is blind to endings, so a whole-file flip passes identity and lands as a diff touching every
-line. Measured four times; the edit tool rewrites endings on its own and `git stash`/`pop`
-re-applies them.
+```bash
+python <skill>/scripts/prove_unchanged.py --base <merge-base> --repo . <paths...>
+```
 
-⚠ **The stored blob is the wrong baseline for line endings.** Under `core.autocrlf` it is
-always LF, so normalising to it leaves a working tree inconsistent with every file you did not
-touch, and `git diff` hides the damage — it survives the AST proof, the residue check and a
-full test run. **Read a file in the same directory you did not edit, and match it.**
+It exits nonzero unless every path is proven, and it reports an **unprovable**
+file rather than passing it. It carries the AST proof for Python, a
+comment-stripped byte comparison for every other language with a `LANGUAGES`
+record, and the line-ending check against an untouched sibling. ⚠ **Re-run it
+after the formatter** — the formatter can reshape what you wrote.
+
+⚠ **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The identity claim is
+what this skill promises the people who run it; report the line verbatim and
+restore the file. **An `UNCHECKED` line does not stop the run** — it means the
+line-ending check had no untouched sibling to compare against, not that it
+passed — but report it verbatim too, so the human deciding knows which claims
+this run actually has a signal for.
 
 **Edit through an exact-match tool, never raw text.** Measured, all caught only by the AST
 proof: a path-rewrite regex reached inside a runtime `raise` message because it worked on raw

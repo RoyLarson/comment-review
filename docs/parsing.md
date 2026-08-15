@@ -78,6 +78,14 @@ census already prints: `no language record for its suffix`.
 **Improvising a parse is never the fallback. Declaring the gap is; proposing a
 row is the fix.**
 
+⭐ **The refusal has a second instance now, and it is the same shape.** Go and
+Ruby attach docs by POSITION, so the lexical tier cannot separate a doc comment
+from an ordinary run — and detecting declarations to find out would be the
+improvised parse this section refuses. The census marks `doc-kind-unresolved`
+and excludes the block from the cap tally instead. Measured 2026-08-15: without
+it, a three-line `// Add returns…` run above `func Add` reported `over cap (2): 1`,
+and `compact.md` routes on KIND, so the cap would have cut an export doc.
+
 ## Not built: a real lexer for other languages
 
 The `lexical` tier fakes string-awareness with a hand-rolled quote skipper that

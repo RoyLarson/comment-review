@@ -61,8 +61,20 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 # the one that actually runs where this file is claimed to run.
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 DOC_OWNERS = (ast.Module,) + NAMED_DEFS
-PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError)
-GIT_ERRORS = (OSError, subprocess.SubprocessError)
+# ⚠ ValueError included: `ast.parse` raises it (not SyntaxError) on a source
+# string containing a NUL byte -- a file that decoded as valid UTF-8 and so
+# passed `READ_ERRORS` cleanly. `code_names` walks the whole repo, so one such
+# file would crash the entire census rather than degrade one file's harvest.
+PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError, ValueError)
+# ⚠ UnicodeDecodeError included, on purpose, not an oversight: `git()` pins
+# `encoding="utf-8"` with the default `errors="strict"`, so a tracked path or
+# a blob that is not valid UTF-8 raises OUT OF `subprocess.run` itself, before
+# any caller sees a return code. Every caller of `git()` already treats
+# `GIT_ERRORS` as "git could not produce this" and degrades accordingly
+# (`None`, or `(None, reason)` where a reason is threaded through) -- a decode
+# failure is the same kind of non-answer and is declared here rather than left
+# to crash `git_ls_files` / `_grep` / `_show` on the first non-UTF-8 path.
+GIT_ERRORS = (OSError, subprocess.SubprocessError, UnicodeDecodeError)
 
 # A virtualenv in the tree POISONS the name corpus: every installed package's
 # methods become "known", so a real obituary is suppressed because some library
@@ -339,6 +351,13 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     cannot answer OWNERSHIP, so no block gets an owner and the locality angle
     degrades on this file; the census stamps the tier so a reviewer sees that
     rather than inferring it.
+
+    ⚠ A block opener with no closer swallows every remaining line into one run,
+    so the code below it is censused as prose. That block is STAMPED
+    `unterminated-block-comment` rather than returned looking ordinary: a
+    consumer cannot otherwise tell a long comment from a lexer that lost the
+    rest of the file, and `prove_unchanged.py` refuses the whole file on this
+    mark rather than comparing a residue the code never reached.
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     lines = text.splitlines()
@@ -346,7 +365,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     run: list[tuple[int, str]] = []
     in_block: tuple[str, str] | None = None
 
-    def flush() -> None:
+    def flush(trailing: bool = False) -> None:
         if not run:
             return
         raw = [t for _, t in run]
@@ -354,12 +373,16 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         is_doc = stripped.startswith(lang.doc_line) if lang.doc_line else False
         if lang.doc_block and stripped.startswith(lang.doc_block):
             is_doc = True
+        if is_doc:
+            kind = "docstring"
+        else:
+            kind = "trailing-comment" if trailing else "comment"
         out.append(
             Block(
                 path=path.as_posix(),
                 start=run[0][0],
                 end=run[-1][0],
-                kind="docstring" if is_doc else "comment",
+                kind=kind,
                 lines=counted_lines(raw),
                 text=_join(raw, openers),
                 raw_lines=raw,
@@ -392,9 +415,64 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         at = min((code.index(o) for o in openers if o in code), default=-1)
         if at >= 0:
             run.append((n, raw_line[at:].rstrip()))
-            flush()  # a trailing comment is its own block, owned by this line
+            flush(trailing=True)  # its own block, owned by the line it sits on
     flush()
+    if in_block is not None and out:
+        # The loop ended with a block comment still open, so the final flush
+        # emitted the run that ate the rest of the file. It is the ONE block
+        # whose text is not known to be prose.
+        out[-1].marks.add("unterminated-block-comment")
+        out[-1].notes.append(
+            f"UNTERMINATED {in_block[0]}: no closing {in_block[1]} before end of "
+            "file, so every line below the opener was swallowed into this run. "
+            "Code down there was NOT censused as code."
+        )
     return out
+
+
+def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None:
+    """Declare, per block, that this tier cannot tell a doc from a comment.
+
+    Go and Ruby attach documentation by POSITION -- an ordinary line comment
+    directly above a declaration IS that declaration's documentation -- so
+    nothing in the text distinguishes it from any other run, and no rule this
+    tier can apply will separate them. Working it out by reading the file is
+    the improvised parse `docs/parsing.md` refuses.
+
+    So the block is marked as an OPEN QUESTION instead. That matters because
+    `compact.md` routes on KIND: a `comment` is governed by LENGTH and may be
+    cut to the cap, a `docstring` by FORMAT and may not. Left unmarked, a
+    three-line Go export doc counts as over a cap of two and gets cut --
+    destroying documentation that was never in violation.
+
+    Args:
+        blocks: this file's blocks, mutated in place.
+        text: the file's source, for looking at what follows each run.
+        lang: the language record, which decides whether this pass applies.
+    """
+    if not lang.doc_is_structural:
+        return
+    lines = text.splitlines()
+    for block in blocks:
+        # A trailing comment annotates the line it sits ON, so it is never the
+        # documentation of what follows.
+        if block.kind != "comment":
+            continue
+        # ⚠ The IMMEDIATELY next line, not the next non-blank one. Both
+        # languages require a doc comment to touch its declaration; a blank
+        # line between them means the run documents nothing, which is an
+        # ORPHAN -- a locality finding, and emphatically not a doc comment to
+        # be exempted from the cap.
+        nxt = lines[block.end].strip() if block.end < len(lines) else ""
+        if not nxt:
+            continue
+        block.marks.add("doc-kind-unresolved")
+        block.notes.append(
+            "KIND UNRESOLVED: this run sits above code and "
+            f"{lang.name} attaches docs by position, so it may be documentation "
+            "governed by FORMAT rather than a comment governed by LENGTH. "
+            "NOT counted against the cap. Confirm the kind before compacting."
+        )
 
 
 def blocks_stdlib(path: Path, text: str) -> list[Block]:
@@ -520,18 +598,43 @@ def _annotated_docs(path: Path, tree: ast.AST) -> list[Block]:
     return out
 
 
-def code_names(roots: list[Path]) -> tuple[set[str], list[str]]:
+def code_names(
+    roots: list[Path], tracked: set[Path] | None = None
+) -> tuple[set[str], list[str]]:
     """Every name the tree DEFINES, from the AST — never from raw text.
 
     A corpus built from text contains the comments being checked, so every
     obituary resolves against itself and the check always passes. Unreadable
     files are RETURNED, not dropped: a hole in the corpus turns every symbol
     defined only there into a false obituary, which fails loud-and-wrong.
+
+    ⚠ TRACKED files only, when git can say which. A vendored, generated or
+    gitignored tree under the repo root otherwise donates its whole namespace:
+    measured 2026-08-15, `asanyarray` resolved ALIVE in a repo that does not
+    define it, because a fetched corpus sat in the working tree. That failure
+    is SILENT and one-sided -- it can only ever suppress an obituary, never
+    manufacture one.
+
+    Args:
+        roots: directories or files to harvest.
+        tracked: absolute paths git reports as tracked, or None when git could
+            not answer — in which case the whole tree is walked and the caller
+            is told, because coverage that changes silently cannot be reported.
+
+    Returns:
+        The set of defined names, and the list of files that could not be read.
     """
     names: set[str] = set()
     unread: list[str] = []
+    if tracked is None:
+        unread.append(
+            "name corpus built by WALKING the tree (not a git checkout, or git "
+            "unavailable) — untracked or vendored code may mask an obituary"
+        )
     for root in roots:
         for p in _walk(root):
+            if tracked is not None and p.resolve() not in tracked:
+                continue
             lang = language_for(p)
             # ⚠ A non-Python file is a KNOWN hole, not a broken file. Parsing it
             # as Python reported `a.go (SyntaxError)`, which reads as "your file
@@ -583,6 +686,81 @@ def _walk(root: Path):
                 yield p
 
 
+def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
+    r"""Every git invocation this plugin makes. ONE place, on purpose.
+
+    ⚠ `core.quotePath` DEFAULTS TO TRUE, so git renders a non-ASCII path as
+    octal escapes -- `"caf\303\251.py"`, quotes included. Measured: a tracked
+    `café.py` defining `helper_name` dropped out of the live-name corpus with
+    NOTHING appended to `unread`, so every symbol defined only there became a
+    false obituary and the coverage hole was silent. The same escaping makes
+    `path_index` report a comment citing that file as UNRESOLVED -- a false
+    finding handed to four reviewers as settled fact.
+
+    ⚠ The encoding is PINNED for the same reason: git writes UTF-8, and
+    `text=True` alone decodes with the machine's locale, so a non-ASCII path
+    arrives corrupted on this repo's own cp1252 machine.
+
+    Both are one-line fixes, and both were applied to some call sites and not
+    others -- three scripts each received the encoding fix independently and
+    none received the quoting fix. Routing every call through here is what
+    makes the NEXT git-decoding hazard a one-place fix.
+
+    Exceptions are NOT caught here: `GIT_ERRORS` and a nonzero return code mean
+    different things at each call site (None as a third state, a real
+    zero-match search), and collapsing them here would erase that.
+
+    Args:
+        repo: the repository root, passed as `-C`.
+        *args: the git subcommand and its arguments.
+        timeout: seconds before `subprocess.TimeoutExpired`.
+
+    Returns:
+        The completed process, with `check=False` -- the caller reads
+        `returncode` itself.
+    """
+    return subprocess.run(
+        ["git", "-c", "core.quotePath=false", "-C", str(repo), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=timeout,
+        check=False,
+    )
+
+
+def git_ls_files(repo: Path) -> list[str] | None:
+    """Tracked, repo-relative posix paths — or None when git cannot answer.
+
+    None is a THIRD state, not an empty list: "this is not a git checkout" and
+    "this checkout tracks nothing" lead to different fallbacks, and collapsing
+    them lets a working tree with no index silently produce an empty corpus.
+
+    Args:
+        repo: the repository root.
+
+    Returns:
+        The tracked paths, or None if this is not a git repo or git is absent.
+    """
+    if not repo.is_dir():
+        return None
+    try:
+        listed = git(repo, "ls-files")
+    except GIT_ERRORS:
+        return None
+    if listed.returncode != 0:
+        return None
+    return listed.stdout.splitlines()
+
+
+def tracked_paths(repo: Path) -> set[Path] | None:
+    """`git_ls_files` as resolved absolute paths, for membership tests."""
+    rels = git_ls_files(repo)
+    if rels is None:
+        return None
+    return {(repo / rel).resolve() for rel in rels}
+
+
 def path_index(repo: Path) -> set[str]:
     """Every tracked path, plus every suffix of it, for citation resolution.
 
@@ -605,18 +783,13 @@ def path_index(repo: Path) -> set[str]:
     out: set[str] = set()
     if not repo.is_dir():
         return out
-    try:
-        listed = subprocess.run(
-            ["git", "-C", str(repo), "ls-files"],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
-        rels = listed.stdout.splitlines() if listed.returncode == 0 else []
-    except GIT_ERRORS:
-        rels = []
-    if not rels:  # not a git repo, or git unavailable
+    rels = git_ls_files(repo)
+    # ⚠ Written out rather than collapsed to `if not rels`. The two states DO
+    # take the same fallback here -- an index that tracks nothing indexes the
+    # same set as no index at all -- but `git_ls_files` documents None as a
+    # THIRD state, and a reader who sees them collapsed learns the opposite of
+    # what that docstring says.
+    if rels is None or not rels:  # not a git repo, git unavailable, or empty
         rels = [
             p.relative_to(repo).as_posix()
             for p in repo.rglob("*")
@@ -702,6 +875,7 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
         got = blocks_stdlib(path, text)
     else:
         got = blocks_lexical(path, text, lang)
+        flag_structural_docs(got, text, lang)
     for b in got:
         b.tier = tier_for(lang)
     return got
@@ -738,7 +912,7 @@ def main() -> int:
     repo = Path(args.repo).resolve()
     targets = [Path(p) for p in args.paths]
     files = sorted({f for t in targets for f in _walk(t)})
-    known, unread = code_names([repo])
+    known, unread = code_names([repo], tracked_paths(repo))
     paths = path_index(repo)
 
     census: list[Block] = []
@@ -799,8 +973,14 @@ def main() -> int:
     # say least about read exactly like one it could settle.
     tiers = Counter(b.tier for b in census)
     langs = Counter(lang.name for f in files if (lang := language_for(f)) is not None)
+    deferred = [b for b in census if "doc-kind-unresolved" in b.marks]
     over = [
-        b for b in census if args.cap and b.kind == "comment" and b.lines > args.cap
+        b
+        for b in census
+        if args.cap
+        and b.kind == "comment"
+        and "doc-kind-unresolved" not in b.marks
+        and b.lines > args.cap
     ]
     wide = [b for b in census if args.width and b.widest > args.width]
     longest = max((b.lines for b in census if b.kind == "comment"), default=0)
@@ -819,6 +999,11 @@ def main() -> int:
     print(f"  longest comment run: {longest} lines; widest line: {widest} chars")
     if args.cap:
         print(f"  over cap ({args.cap}): {len(over)}")
+        if deferred:
+            print(
+                f"  kind unresolved, NOT counted against the cap: {len(deferred)}"
+                " — a positional doc comment this tier cannot distinguish"
+            )
     if args.width:
         print(f"  over width ({args.width}): {len(wide)}")
     print()

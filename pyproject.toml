@@ -1,11 +1,11 @@
 # Not a package -- this exists so the formatter cannot rewrite the plugin's
 # script into syntax it must not require.
 #
-# ⚠ target-version is DELIBERATELY OLD. `sweep.py` ships to other people's
-# repositories, and its own docstring promises it runs there. Formatting it from
+# ⚠ target-version is DELIBERATELY OLD. Everything under `plugins/` ships to
+# other people's repositories, and each script promises it runs there. Formatting from
 # a checkout that targets 3.14 rewrote `except (A, B):` into PEP 758's
 # unparenthesised form twice -- a SyntaxError on every older interpreter, in the
-# one file the skill hands to strangers. A `noqa` did not hold; a floor does.
+# files the skill hands to strangers. A `noqa` did not hold; a floor does.
 
 [tool.ruff]
 target-version = "py39"
@@ -21,7 +21,18 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.format]
+# ⚠ Prose is not source. Ruff formats fenced Python inside Markdown, and
+# `docs/` holds implementation plans whose code blocks ARE the specification an
+# implementer transcribes. Reformatting them edits the spec after it was
+# reviewed, and leaves the tree dirty behind the `ruff format .` in every
+# task's gate -- which the next task then reads as its own uncommitted work.
+exclude = ["**/*.md"]
+
 [tool.ruff.lint.per-file-ignores]
 # The corpora are other people's code, vendored at pinned refs. Linting them
 # would report their style as our defects.
 "corpora/**" = ["ALL"]
+# Test names are the documentation here; a docstring per case restates the
+# name and rots separately from it.
+"tests/**" = ["D"]

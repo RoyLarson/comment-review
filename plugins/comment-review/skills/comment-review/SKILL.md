@@ -278,9 +278,10 @@ them. They are plugin agents and their names are NAMESPACED — `comment-review:
 ⚠⚠ **If they do not resolve, say so at stage 1 and say what you will do instead.** Measured on
 all three verification runs: every one failed at stage 4 with
 `Agent type 'comment-review-locality' not found`, and every one silently improvised the same
-fallback. The sanctioned fallback is **four general-purpose agents given the absolute PATHS of
-their angle file and the brief** — never the angle text pasted into a prompt, which is what
-this file forbids for a different reason (a copy goes stale).
+fallback. The sanctioned fallback is **four general-purpose agents given the ANGLE FILES
+paths from the packet** — never the angle text pasted into a prompt, which goes
+stale the moment an angle is edited. Because the packet already carries those
+absolute paths, the fallback is a substitution rather than an improvisation.
 
 **1.7 Probe for a LANGUAGE SERVER, once per language in scope.** One `LSP documentSymbol`
 call against a representative file of each. Record which answered — that is a fact about
@@ -423,12 +424,25 @@ property of the machine, so two runs over identical input can resolve different 
 that had no server must not read like one that did — and any measurement taken with a server
 is not comparable to one taken without.
 
-⚠ **Scope by SUBJECT, not by file extension.** A config, data or documentation file carrying
-prose that justifies a value is a node like any other. Measured: one unreviewed config file
-held 12 confirmed defects, six of them the same rewrite the pass had already applied in a
-`.py` file. Where the change edits a symbol, a path or a number, `git grep` that token and add
-every file that NAMES it — the diff decides what changed, not what is in scope. ⚠ Under
-`target` there is no diff; the named path is the whole scope and this widening does not apply.
+⚠ **Scope by SUBJECT, not by file extension**, and resolve it with the tool
+rather than from memory — this is the INBOUND half of stage 3:
+
+```bash
+python <skill>/scripts/referrers.py --repo . <paths under review...>
+```
+
+It prints every tracked file that NAMES one of them — by path, by stem, or by a
+public top-level definition — and suppresses a token too common to discriminate
+rather than dumping it. Those files are the **REFERENCE ONLY** list you hand the
+reviewers at stage 4; a config, data or documentation file carrying prose that
+justifies a value is a node like any other. Measured: one unreviewed config file
+held 12 confirmed defects, six of them the same rewrite the pass had already
+applied in a `.py` file.
+
+⚠⚠ **This runs in `target` mode too.** A `target` run has no diff to widen from,
+which is exactly why the memory-based rule it replaces could not fire there —
+the invocation most likely to be typed by hand was the one with no backlink
+discovery at all.
 
 Report what the tool prints: `N files, N blocks`, the per-tier counts, the longest run and the
 widest line. ⚠ **Pass `--cap` only if the run HAS one — given as an argument or published and found at
@@ -446,14 +460,25 @@ an over-cap or over-width count that reads like a project fact and is your own g
 | `comment-review:comment-review-functionality` | does the commentary match what the function is for? |
 | `comment-review:comment-review-module-coherence` | do the comments say this is one module? |
 
-Each already carries its own angle and reads the shared brief itself. **You supply the run
-context, and only that:** the numbered census, the stage-1 resolutions, the **docstring
-template** from 1.3, the **style sheet** from 1.5, the **level**, **which languages a LANGUAGE
-SERVER answered for** (1.7 — the brief tells them what to do with it, and silence there means
-they must assume none), and the two lists — **FILES UNDER REVIEW** (the only files a verdict may
-target) and **REFERENCE ONLY** (read to settle a claim, never propose a change). Without the
-second list a reviewer either treats the whole repo as in scope or stops reading at the
-boundary, which disables every cross-file check.
+Each already carries its own angle and reads the shared brief itself. **You
+supply the run context as a PACKET, and the packet is checked before anyone is
+dispatched:**
+
+```bash
+python <skill>/scripts/run_context.py --template > <run-dir>/context.md
+# fill every section, then:
+python <skill>/scripts/run_context.py --check <run-dir>/context.md
+```
+
+It refuses a section that is absent **or present and blank** — *"no cap
+published"* is an answer and must be written; a blank is a question nobody
+asked. It then refuses the three answers a machine can settle: `LEVEL` must be
+one of the four level names, and `CENSUS` and every `ANGLE FILES` entry must be
+an **absolute path that exists**. ⚠ **The other eight are prose it cannot
+check**, and passing says nothing about them. Hand every reviewer the one path.
+Measured: a run dispatched without a style sheet introduced **14 en-GB
+spellings** into a codebase whose identifiers are en-US, and every angle was
+satisfied because nothing owned consistency.
 
 ⚠ **The template matters because reviewers write replacement text.** A correct sentence in the
 wrong docstring convention is a finding the human has to redo by hand, and they are not
@@ -482,12 +507,53 @@ when you cannot write the replacement text.
 
 ## Stage 5 — EDIT: one verdict, one FULL-LENGTH replacement
 
-⚠⚠ **Resolve the reviewers' evidence yourself.** Open each finding's `SUMMARY` right half
-and confirm the quoted line is within a few lines of its citation. A finding whose evidence is
-not there is not a finding — send it back. Measured: one graded run had **fabricated 5 of its 7
-reviewer reports**, and a self-certified confidence label ran at **97% across 298 findings** — a label
-two runs in three thousand disagree with does not discriminate. **Never grade a review by
-reading its report.**
+⚠⚠ **Run the join before you rule on anything.** It is the gate between MARK and
+EDIT:
+
+```bash
+python <skill>/scripts/verdicts.py --census <census>.json --level <level> \
+  --angles locality,currency,functionality,module-coherence \
+  --repo . <one report file per angle>
+```
+
+⚠⚠ **NAME EACH REPORT FILE AFTER ITS ANGLE** — `locality.md`, `currency.md`,
+`functionality.md`, `module-coherence.md`. The tool takes an angle from the
+report's FILE STEM, and `--angles` compares against those stems, so a report
+saved as `report1.md` is an angle nobody expected and every expected angle
+reads as missing. Two files with the same stem are refused outright.
+
+⚠ **Pass `--angles` every time, listing the angles this LEVEL ran.** Without it
+a reviewer that never reported at all is invisible — "every angle" silently
+means "every file I was handed", the easier version of the fabrication below.
+The list above is `full`; at `fact-check` it is `currency,functionality`.
+
+It exits nonzero on a coverage gap, a citation that does not resolve, a quote
+not found near its cited line, a verdict the level does not carry, an angle
+that did not report, or a payload the verdict table requires and the record
+lacks. It also names the blocks where `drop` meets `correct`/`patch` — **a
+re-review, never a tie-break** — and prints which blocks STAND UNCHANGED under
+the clean-arithmetic.
+
+⚠ **`query` is the one verdict this citation check does not touch.** It carries
+no `EVIDENCE` and no `QUOTE`, by construction — there is no line that settles a
+claim the reviewer could not settle. Its PAYLOAD is checked instead: a `query`
+naming no attempted check, or naming nothing that would settle the claim, is
+the one the gate refuses.
+
+⚠⚠ **A finding whose evidence does not resolve is not a finding — except a
+`query`, which by construction carries none.** Measured: one graded run had
+**fabricated 5 of its 7 reviewer reports** and did not notice until asked to
+grade itself; self-certified `CONFIRMED` ran at **97% across 298 findings**.
+**Never grade a review by reading its report.**
+
+⚠⚠ **It catches a fabricated FINDING, never a fabricated CLEAN — and the clean
+is the cheaper fabrication.** A report reading only `CLEAN 1-N` accounts for
+every index, cites nothing, and exits 0 having read no file at all. Nothing
+mechanical can separate that from a real pass, because a negative leaves no
+artifact. **A green exit here is not evidence that anything was read.**
+
+⚠ **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct
+verdict from an incorrect one. Synthesis, and the order below, remain yours.
 
 ⚠ **A block that ends mid-clause is a finding, and its verdict is `correct`.** A run whose last
 sentence stops mid-air — a severed trailing comment, a `move` that cut a sentence in half — is
@@ -496,7 +562,9 @@ of repairing it. Restore the sentence.
 
 ⚠ **Two findings quoting the same sentence in different files are ONE finding.** A pass edits
 where it is reading, fixes the copy in front of it, and manufactures a disagreement with the one
-it never opened. Contradicting verdicts trigger a **re-review**, never a tie-break.
+it never opened. Contradicting verdicts trigger a **re-review**, never a tie-break. The join
+cannot see this for you — `contradictions()` keys on the census BLOCK index, and the same
+sentence copied into two files is two different blocks it can never relate.
 
 **Is it CHECKABLE?** confirmable from the code as it stands. **Is it NECESSARY?** would
 someone changing this code make a **worse decision** without it? Those two questions decide
@@ -596,8 +664,16 @@ SURVIVED, not what went; **refactoring drift**.
 **If no cap applies, the run SKIPS this stage entirely.** Say so: the prose is correct, and
 absent a budget "long" is not a defect.
 
-If there is a cap, and only once **every** block from stage 5 is CORRECT, load
-[`references/compact.md`](references/compact.md) and cut the edited text to fit.
+If there is a cap, and only once **every** block from stage 5 is CORRECT,
+dispatch `comment-review:comment-review-compact` with the narrow input contract
+below and the absolute path of [`references/compact.md`](references/compact.md).
+
+⚠⚠ **This pass is not yours to run.** You wrote the text; an agent that never
+saw the argument cannot preserve a sentence because it remembers writing it.
+The narrow contract is only a safety property if the reader is different from
+the writer. If the agent does not resolve, use the same fallback as 1.6 — a
+general-purpose agent given the path — and **say in the report that you ran it
+yourself** if you had to.
 
 ⚠ **Nothing is on disk yet.** This pass condenses the PROPOSED text, not a file — the author
 has not ruled and nothing has been applied. That is the whole reason this stage sits here: what
@@ -610,8 +686,9 @@ carries the argument and the per-block procedure.
 
 ## Stage 7a — APPROVAL: present the FINAL text, then stop
 
-Grouped by verdict, most consequential first, in the **five-part finding format the brief
-defines** (`VERDICT / LOCATION / SUMMARY / FINDING / CHANGE`), replacement text inline
+Grouped by verdict, most consequential first, in **five parts**
+(`VERDICT / LOCATION / SUMMARY / FINDING / CHANGE`) — the reviewer record minus the fields only
+the join reads — replacement text inline
 for every `correct` / `patch` / `add`. State the **level** you ran, **raised / clean**, and the
 longest block that will remain. **The proposal ends here** — nothing further is written until
 the author rules.
@@ -637,8 +714,15 @@ the author never saw.
 
 ## Stage 8 — REVIEW: the finished page
 
-On completion of 7b, load [`references/review.md`](references/review.md) and follow it. It is
-the only stage that reads the finished ARTIFACT against itself rather than prose against code,
+On completion of 7b, dispatch `comment-review:comment-review-review` with the
+list of changed files, the style sheet, and the absolute path of
+[`references/review.md`](references/review.md).
+
+⚠⚠ **This pass is not yours to run either**, and for the same reason: a reader
+who remembers intending each edit reads the page they meant to write. If the
+agent does not resolve, fall back as at 1.6 and say so.
+
+It is the only stage that reads the finished ARTIFACT against itself rather than prose against code,
 so it is the only one that can see damage the editing caused.
 
 ⚠ **Fix only what THIS pass created.** A defect that predates the run is a finding for the next

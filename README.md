@@ -111,6 +111,13 @@ anyone's work, and every finding stays with the run that produced it.
 | -------- | -------------- | -------------- | -------- | --------------------------- | ------------- |
 | 7        | 339            | 6,736          | 97       | **27**                      | **0.40**      |
 
+⚠ **Measured against the pre-hardening instrument.** Both the census and the four reviewer
+agents changed after this run — the census now reads `git ls-files` for its name corpus and
+declares a kind gap for positional docs, and the reviewers gained an admissibility gate and a
+dispatch pre-flight. A measurement taken with a different detector is not comparable to one
+taken before it, the same discipline this repo applies to corpus refs — this table is not a
+current claim, and no corpus has been re-run since.
+
 Roughly **one comment block in twelve** carried something a maintainer would fix, and about
 **one finding in four** was worth acting on immediately — the rest were true, minor, or a
 matter of taste.
@@ -150,12 +157,13 @@ lives outside every project and is available in all of them.
 
 | path                      | what                                                                                                                                                    |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `plugins/comment-review/` | the plugin — `skills/`, `agents/`, manifests                                                                                                            |
+| `plugins/comment-review/` | the plugin — `skills/` (with `scripts/`: `census.py`, `referrers.py`, `verdicts.py`, `run_context.py`, `prove_unchanged.py`), `agents/`, manifests      |
 | `docs/`                   | durable guidance: how the census gets structure (`parsing.md`), and the rules for changing the skill itself (`limitations.md`)                          |
 | `evidence/`               | why each rule exists: ten probe reports that attacked the design, a genetic search over 28 candidate rewrites, and the triage that ranked what survived |
 | `evals/`                  | twelve planted hazards, a grader, and the authorship split                                                                                              |
 | `corpora/`                | the MANIFEST of pinned corpora. The trees themselves are fetched, never vendored                                                                        |
 | `scripts/`                | `fetch_corpora.py` to materialise them, `find_llm_repos.py` to find more                                                                                |
+| `tests/`                  | a stdlib `unittest` suite for the five scripts, with one census fixture per language under `fixtures/` — `python -m unittest discover -s tests` |
 
 ## The corpora
 
@@ -199,7 +207,7 @@ ignored one — and a check that cannot see a defect must not report it clean.
 The four reading angles are language-neutral — they ask whether prose is in the right
 place, still true, describes what the code does, and agrees with its neighbours, and none
 of that is about syntax. The census underneath them now reads eleven languages from a
-data table (`sweep.py --languages`), but at two very different depths: Python gets a real
+data table (`census.py --languages`), but at two very different depths: Python gets a real
 lexer and AST, everything else gets a comment-syntax record and a hand-rolled string
 skipper that is wrong on heredocs, raw strings and template nesting.
 
@@ -214,8 +222,14 @@ What is still compiled in rather than detected per project:
 | ------------------------------ | ---------------------- | -------------------------------------------------------------------------- |
 | how prose names a symbol       | `` `backticks` `` only | whichever the codebase actually uses — measured from the tree, not assumed |
 | what a citable path looks like | a fixed suffix list    | the extensions present in the repo                                         |
-| what an annotation can carry   | not modelled           | e.g. PEP 727 `Doc()`, JSDoc tags, doc attributes                           |
 | Markdown and reStructuredText  | no record at all       | prose files are where cited documentation actually lives                   |
+
+⚠ **Two of these moved.** A `LANGUAGES` row that sets `doc_is_structural` now
+declares a per-block KIND GAP instead of silently classifying a positional doc
+comment as an ordinary run — measured, a three-line Go export doc counted as
+over a cap of two. And the name corpus is built from `git ls-files`, so a
+vendored or gitignored tree can no longer donate its namespace and mask an
+obituary.
 
 The quoting convention is the sharpest case, because it is **not** a language property: two
 Python projects in the corpus disagreed with each other about it, and on one of them the

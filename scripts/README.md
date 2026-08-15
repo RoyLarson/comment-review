@@ -75,10 +75,11 @@ sees it and the formatter never reports it; it lands on a third party.
 
 Two things follow, and both are load-bearing:
 
-- **Shipped code must contain nothing worth rewriting.** Each exception tuple in
-  `sweep.py` is bound to a NAME (`GIT_ERRORS`, `READ_ERRORS`, `PARSE_ERRORS`),
-  so no `except` clause holds a literal. A `noqa` was tried first and did not
-  hold — it suppresses the report, not the rewrite.
+- **Shipped code must contain nothing worth rewriting.** Every exception tuple in
+  a shipped file is bound to a NAME (`GIT_ERRORS`, `READ_ERRORS`,
+  `PARSE_ERRORS`, `PATH_ERRORS`), so no `except` clause holds a literal;
+  `census.py` declares the ones its importers share. A `noqa` was tried first
+  and did not hold — it suppresses the report, not the rewrite.
 - **The floor is asserted, not assumed.** Measured 2026-08-14: three files were
   already in the unparenthesised form, one of them the census script this skill
   hands to strangers. Confirmed by mutant — reintroduce the construct and this
