@@ -3,7 +3,7 @@
     python run_context.py --template > run-<id>/context.md
     python run_context.py --check run-<id>/context.md
 
-Stage 4 hands each reviewer the eleven sections `REQUIRED` names below.
+Stage 4 hands each reviewer the 11 sections `REQUIRED` names below.
 Nothing checked the prompt before four agents fired in parallel, and a
 section quietly absent degrades an angle with no error anywhere: measured, a
 run with no style sheet introduced 14 en-GB spellings into a codebase whose

@@ -92,6 +92,15 @@ class TestValidation(unittest.TestCase):
         duped = FULL + "\n## STYLE SHEET\n"
         self.assertIn("STYLE SHEET", run_context.missing_sections(duped))
 
+    def test_the_docstrings_count_claim_matches_required(self):
+        # Regression test: the module docstring once said "seven things"
+        # while REQUIRED held eleven entries -- a counted claim that had
+        # drifted from the list it was counting. The docstring must name
+        # the true count of REQUIRED, whatever that count currently is, so
+        # a twelfth section added later fails this test instead of quietly
+        # re-creating the same false claim.
+        self.assertIn(str(len(run_context.REQUIRED)), run_context.__doc__)
+
 
 class TestAnswered(unittest.TestCase):
     """`_answered` probed against the whole class of malformed comments.
