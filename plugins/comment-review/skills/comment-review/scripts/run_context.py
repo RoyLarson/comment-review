@@ -69,6 +69,16 @@ SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
 # because neither line alone starts with "<!--".
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 
+# Bare delimiter tokens left over after COMMENT.sub. HTML comments do not
+# nest, so "<!-- outer <!-- inner --> -->" is not one span with a stray
+# inner opener -- COMMENT's non-greedy match closes at the FIRST "-->" and
+# leaves a dangling " -->" behind, which is non-whitespace and would
+# otherwise read as an answer. Discarding any leftover token (whichever
+# direction) closes that gap without a nesting parser; it costs nothing to a
+# real answer that merely contains one, e.g. "see --> docs/x.md" keeps
+# "see docs/x.md".
+TOKEN = re.compile(r"<!--|-->")
+
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
 
@@ -95,8 +105,10 @@ def missing_sections(text: str) -> list[str]:
 
     Returns:
         The names of sections a reviewer would be dispatched without. A hint
-        comment is not an answer, whole-span and however it is wrapped — the
-        template's own hints must be replaced, not merely reflowed.
+        comment is not an answer: complete spans are removed however they
+        wrap, an unterminated opener truncates the rest of the body, and any
+        leftover delimiter token is discarded outright — the template's own
+        hints must be replaced, not merely reflowed or half-closed.
     """
     heads = list(SECTION.finditer(text))
     # Every occurrence is kept, not just the first -- a section given twice
@@ -121,18 +133,22 @@ def missing_sections(text: str) -> list[str]:
 def _answered(body: str) -> bool:
     """Does this section's body carry real content, not just a hint comment?
 
-    Comments are stripped as SPANS, not lines: a hint reflowed across two
-    lines by an editor must not survive because its continuation line does
-    not itself start with `<!--`. An unterminated `<!--` with no closing
-    `-->` is treated as commenting out everything from the opener to the end
-    of the body -- deliberately, not an oversight: over-rejecting a stray
-    `<!--` costs one edit, while under-rejecting dispatches four agents
-    against context nobody actually supplied.
+    Complete `<!-- ... -->` spans are removed wherever they wrap, non-greedy
+    and across newlines, so a hint reflowed across two lines by an editor is
+    still stripped as one span. An unterminated `<!--` with no closing `-->`
+    truncates the body from the opener to the end -- over-rejecting a stray
+    opener costs one edit, while under-rejecting dispatches four agents
+    against context nobody actually supplied. Whatever `<!--` or `-->`
+    tokens are left after that (nesting leaves one behind, since HTML
+    comments do not nest) are discarded outright, so a malformed or nested
+    comment can never read as content, while ordinary prose that happens to
+    contain one keeps everything but the bare token.
     """
     text = COMMENT.sub("", body)
     opener = text.find("<!--")
     if opener != -1:
         text = text[:opener]
+    text = TOKEN.sub("", text)
     return bool(text.strip())
 
 

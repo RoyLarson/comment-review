@@ -93,6 +93,27 @@ class TestValidation(unittest.TestCase):
         self.assertIn("STYLE SHEET", run_context.missing_sections(duped))
 
 
+class TestAnswered(unittest.TestCase):
+    """`_answered` probed against the whole class of malformed comments.
+
+    HTML comments do not nest, so a second "<!--" before the first span
+    closes leaves a dangling "-->" behind -- that must not read as content
+    either.
+    """
+
+    def test_a_nested_comment_is_rejected(self):
+        self.assertFalse(run_context._answered("<!-- outer <!-- inner --> -->"))
+
+    def test_a_triple_nested_comment_is_rejected(self):
+        self.assertFalse(run_context._answered("<!-- <!-- <!-- --> --> -->"))
+
+    def test_adjacent_comments_are_rejected(self):
+        self.assertFalse(run_context._answered("<!-- a --><!-- b -->"))
+
+    def test_a_bare_closing_token_in_real_prose_does_not_erase_the_answer(self):
+        self.assertTrue(run_context._answered("see --> docs/style.md"))
+
+
 class TestCLI(unittest.TestCase):
     """`main()` end to end -- the unreadable-packet branch must actually gate."""
 
