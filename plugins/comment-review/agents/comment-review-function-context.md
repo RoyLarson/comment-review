@@ -118,8 +118,7 @@ to a different line in this function.
 ## What your `clean` asserts
 
 **Emitting `clean` here asserts that name, signature, docstring, comments and body agree, and
-that nothing the signature cannot express is missing from the prose.** A docstring you read
-but did not check against the body is `query`.
+that nothing the signature cannot express is missing from the prose.**
 
 ## Return
 
