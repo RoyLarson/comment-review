@@ -677,6 +677,7 @@ def git_ls_files(repo: Path) -> list[str] | None:
             ["git", "-C", str(repo), "ls-files"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=30,
             check=False,
         )
