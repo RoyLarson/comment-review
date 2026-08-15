@@ -310,7 +310,11 @@ def main() -> int:
         else:
             want = dominant_ending(_read_raw(sib))
             got = dominant_ending(_read_raw(target))
-            if want != "none" and got != want:
+            # ⚠ BOTH sides are guarded against "none". A single-line file with
+            # no trailing newline has no ending to measure, so it reads "none"
+            # and would FAIL against any CRLF sibling -- a file whose endings
+            # are not wrong, only absent.
+            if want != "none" and got != "none" and got != want:
                 print(f"FAIL      {rel}: line endings {got}, sibling {sib.name} {want}")
                 failures += 1
 

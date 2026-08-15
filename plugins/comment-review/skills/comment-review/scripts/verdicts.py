@@ -58,7 +58,11 @@ VERDICTS = (
     "split",
 )
 
-# What each level ADDS to the one above it, per SKILL.md's level table.
+# The FULL verdict set each level carries, per SKILL.md's level table -- these
+# are cumulative sets, not the deltas the table reads as. `allowed()` is a
+# membership test against one entry, so an entry listing only what its level
+# ADDS would reject `correct` at `full`. `proof` runs stage 8 alone and carries
+# no verdict at all, which is why its set is empty rather than everything.
 LEVELS = {
     "fact-check": {"correct", "query", "clean"},
     "line": {"correct", "query", "clean", "drop", "move", "reanchor", "split", "add"},

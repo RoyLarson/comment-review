@@ -776,7 +776,12 @@ def path_index(repo: Path) -> set[str]:
     if not repo.is_dir():
         return out
     rels = git_ls_files(repo)
-    if not rels:  # not a git repo, or git unavailable
+    # ⚠ Written out rather than collapsed to `if not rels`. The two states DO
+    # take the same fallback here -- an index that tracks nothing indexes the
+    # same set as no index at all -- but `git_ls_files` documents None as a
+    # THIRD state, and a reader who sees them collapsed learns the opposite of
+    # what that docstring says.
+    if rels is None or not rels:  # not a git repo, git unavailable, or empty
         rels = [
             p.relative_to(repo).as_posix()
             for p in repo.rglob("*")

@@ -402,6 +402,15 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertNotIn("line endings", result.stdout)
 
+    def test_a_file_with_no_line_ending_at_all_does_not_fail_the_check(self):
+        # Minor: a single-line file with no trailing newline measures "none",
+        # which is not a WRONG ending -- it is an absent one. Guarding only
+        # `want` failed such a file against any CRLF sibling.
+        _write(self.sibling, '"""A sibling nobody edits."""\r\n')
+        _write(self.target, "x = 1")  # no trailing newline at all
+        result = self._run(self.target)
+        self.assertNotIn("line endings", result.stdout)
+
     def test_no_readable_sibling_is_unchecked_but_still_exits_0(self):
         lonely_dir = self.repo / "lonely"
         lonely_dir.mkdir()

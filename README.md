@@ -163,7 +163,7 @@ lives outside every project and is available in all of them.
 | `evals/`                  | twelve planted hazards, a grader, and the authorship split                                                                                              |
 | `corpora/`                | the MANIFEST of pinned corpora. The trees themselves are fetched, never vendored                                                                        |
 | `scripts/`                | `fetch_corpora.py` to materialise them, `find_llm_repos.py` to find more                                                                                |
-| `tests/`                  | a stdlib `unittest` suite (123 tests) for the five scripts, with one census fixture per language under `fixtures/` — `python -m unittest discover -s tests` |
+| `tests/`                  | a stdlib `unittest` suite for the five scripts, with one census fixture per language under `fixtures/` — `python -m unittest discover -s tests` |
 
 ## The corpora
 
