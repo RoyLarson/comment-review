@@ -37,6 +37,24 @@ python evals/generator_split.py <corpus-dir> [paths...]
 # Survey GitHub for assistant-authored repos to extend the corpus
 python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
+# Run the test suite (stdlib unittest; there are no third-party test deps)
+python -m unittest discover -s tests -v
+
+# Stage 3 inbound: which tracked files NAME the files under review
+python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo . <paths...>
+
+# Stage 5 gate: join reviewer reports against the census, check every citation
+python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
+  --census <census>.json --level full --repo . <report>...
+
+# Stage 4 gate: the dispatch packet
+python plugins/comment-review/skills/comment-review/scripts/run_context.py --template
+python plugins/comment-review/skills/comment-review/scripts/run_context.py --check <file>
+
+# Stage 7b gate: prove the sweep changed no executable code
+python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
+  --base <merge-base> --repo . <paths...>
+
 # Lint (ruff config lives in pyproject.toml; corpora/** is excluded from linting)
 ruff check .
 ruff format .
@@ -46,9 +64,10 @@ ruff format .
 python scripts/check_shipped_syntax.py
 ```
 
-There is no test suite (`pytest` etc.) in this repo. Correctness is validated by
-`evals/grade_hazards.py` against planted hazards and by `scripts/check_shipped_syntax.py` for
-the shipped-syntax floor.
+Tests are stdlib `unittest` with per-language fixtures under `tests/fixtures/`;
+there are no third-party test dependencies, matching the plugin's own
+stdlib-only rule. `evals/grade_hazards.py` remains the end-to-end grade, and
+`scripts/check_shipped_syntax.py` the shipped-syntax floor.
 
 ## Architecture
 
@@ -126,7 +145,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | `scripts/`                        | `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` — none of this ships with the plugin                                                                    |
 | `.claude-plugin/marketplace.json` | lets this checkout be installed as a plugin marketplace in the same session (`claude plugin marketplace add <path>` then `claude plugin install comment-review`)           |
 
-### Shipped-code constraint that shapes how `census.py` and `sweep.py`-like files are written
+### Shipped-code constraint that shapes how every `plugins/` script is written
 
 Anything under `plugins/` is copied into other people's `.claude/` and formatted by **their**
 ruff config, not this repo's — a repo targeting a newer `target-version` can rewrite valid
@@ -165,6 +184,15 @@ history) since it depends on `git blame`.
 - Never attribute assumptions about Q unless they stated them in this session or they are
   recorded in a cited file. Cite the source inline.
 - Prefer a glossary entry over repeated inline definitions.
+- Do not write subjective statements about properties of the project — "robust", "elegant",
+  "clean architecture", "carefully designed", "works well", "a solid foundation" — in comments,
+  docstrings, README prose, or commit messages. A false *measurement* can be re-derived and
+  corrected; a claim that something is "clean" has no oracle. Nothing can check it, so it
+  survives every review and every rewrite regardless of whether it was ever true — it is the
+  one class of prose this repo's four reviewer angles cannot catch, because both currency and
+  functionality need something to resolve the claim against. Write what is measured, what is
+  enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
+  by reading the code or re-running a command, it does not belong.
 
 ## Exploration Budget
 
