@@ -1417,12 +1417,20 @@ def tokens_for(path: Path, text: str) -> set[str]:
 
 
 def _grep(repo: Path, token: str) -> list[str]:
-    """Tracked files containing `token` as a fixed string."""
+    """Tracked files containing `token` as a fixed string.
+
+    ⚠ The encoding is PINNED. git emits UTF-8; `text=True` alone decodes with
+    whatever locale the user's machine has, and a non-ASCII path then arrives
+    corrupted — so a real referrer is reported under a name that resolves to
+    nothing. Measured on this repo's own `cp1252` machine against the same
+    construct in `prove_unchanged.py`.
+    """
     try:
         got = subprocess.run(
             ["git", "-C", str(repo), "grep", "-l", "-F", "--", token],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=60,
             check=False,
         )
