@@ -1375,8 +1375,8 @@ which claims are a role's; verification is what it does to them. 5 sites, all li
 ⚠ **The ownership/module split is PRESENCE, not shape.** Roy, 2026-08-16:
 *"ownership-context is about comments that exist and where they belong — module context is
 stating something about this is missing appropriate documentation."* Prose exists → whose it is
-and where it goes is `ownership-context`. Prose absent → `module-context`. That is already the
-verdict shapes: `move`/`drop` against `add`.
+and where it goes is `ownership-context`. Prose absent → `module-context` or
+`function-context`, by scope. That is already the verdict shapes: `move`/`drop` against `add`.
 
 ⚠ **`agents/…-ownership-context.md:51-52` went with it.** It gave ownership-context an `add`
 for *"a line carrying a non-obvious constraint with no comment at all"* — missing prose, under

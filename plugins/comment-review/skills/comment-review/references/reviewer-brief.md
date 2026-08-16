@@ -280,8 +280,8 @@ they draw different conclusions. The split is fixed:
 | `module-context` | does the rule have no OWNING FUNCTION, so each site re-explains it? | `add` the rule to the function that should hold it, and name that function |
 
 ⚠ Same observation, different finding, and PRESENCE decides. Prose that EXISTS and sits away
-from its owner is `ownership-context`'s; documentation that is MISSING is `module-context`'s.
-Neither may emit the other's verdict.
+from its owner is `ownership-context`'s; documentation that is MISSING belongs to
+`module-context` or `function-context`, by SCOPE. No role may emit another's verdict.
 
 ### One block, two placements — report yours
 
