@@ -94,6 +94,17 @@ Rules that keep it that shape:
 
 ## What to do next — re-derived 2026-08-15, third pass
 
+⚠⚠ **SETTLE WHAT A TERM MEANS. DO NOT MOVE IT.** Roy, 2026-08-16: *"once we get the vocabulary
+resolved we will fix how to get the vocabulary to the correct places for each of the agents to
+use. Please do not propose moving them until this is done else you might take the initiative and
+then duplicate the vocabulary issues."* Distribution is its own pass, and it is the ⭐ *"give the
+agents a copy of the definitions"* in
+[`an-editorial-mark-is-not-an-action-and-reanchor-is-move`](an-editorial-mark-is-not-an-action-and-reanchor-is-move.md).
+Until it runs, state a term **in place** — in a sentence that already describes it — and record
+a placement problem as an OBSERVATION, never act on it. Moving a definition now either copies it
+or lands it somewhere the distribution pass has to undo, which is the defect this branch exists
+to remove.
+
 ⚠ **Re-derive this after anything lands.** Written fresh each time, not accumulated — a stale
 branch status here is the same failure the box/`Progress`/table rule guards against, one level up.
 

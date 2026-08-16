@@ -24,6 +24,10 @@ and every use site for all 108 terms, with the sense carried at each. Term list 
 vocabulary does **today**; as each term below is settled, its entry becomes a statement of what
 the term means, and the two files converge on one `docs/vocabulary.md`.
 
+⚠⚠ **This file settles MEANINGS, not placement.** Where a term is defined in a file most of its
+readers cannot load, that is an observation for the distribution pass, not a move to make here.
+See the standing rule in [`README.md`](README.md).
+
 ## Tasks
 
 - [x] Rename `angle` → editorial role. **Done 2026-08-15.** Prose says **editorial role**;
