@@ -1476,6 +1476,40 @@ editorial marks on a manuscript, a proof, a proofreader — that is publishing. 
 `suppression` and `jurisdiction` are judicial, and whether they stay is a task on
 [`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md).
 
+### the 2026-08-16 RE-SWEEP — what it found, and what the method is worth
+
+Roy asked for a re-sweep once everything currently unknown was settled: *"that will help the
+agents focus on potential topics/semantics that mix."* Run mechanically by
+`scripts/vocabulary_sweep.py` over the 17 shipped files, against the 304 names the inventory
+knows.
+
+**Six candidates, recorded as observations:**
+
+| term | why |
+| --- | --- |
+| **template** | THREE senses — the MEASURED doc format, the dispatch packet's own text, and a C++ construct in a lexer comment |
+| **original** | ONE sense at 6 sites and stated nowhere: the block's prose before this run edited it. What the residue check compares against |
+| **gap** | THREE — a coverage gap, a file or search that did not complete, and a name the module docstring never accounts for |
+| **opener** | TWO — the lexer's comment delimiter, and the record's `--- FINDING` |
+| **walk** | a reviewer's procedure vs `ast.walk`; same shape as `node`, an implementation identifier |
+| **annotations** | the census's, settled, vs `from __future__ import annotations` in every script |
+
+⚠ **The method mattered more than the list.** Three filters were tried:
+
+1. **Raw frequency across files.** Discarded — it ranks `here`, `does` and `because` above every
+   real term. 423 candidates, no discrimination.
+2. **MARKED**: backticked or ALLCAPS, recurring across files. Found `original`, and 65 other
+   rows that were mostly emphasis.
+3. **DOUBLE**: a word used in the prose AND bound as a module-level name in a script. **This is
+   the shape every miss so far has had** — `budget`, `own`, `label`, `signature`, `residue` and
+   `statement` were each a rule's word and a script's name at once, and the two senses drifted
+   apart because no reader saw both at the same time. 26 candidates, and it is where `template`,
+   `gap`, `opener` and `walk` came from.
+
+⚠ **Restricting to MODULE-LEVEL names is what made it work.** Including locals returned `text`,
+`path`, `first` and `args` at the top and buried every real hit. A deliberate binding — a
+function, a class, a dataclass field, a CONSTANT — is a name someone chose; a local is not.
+
 ### worktree — SETTLED 2026-08-16: git's word, not this system's
 
 Roy: *"that is a git concept and user workflow piece. It should be considered resolved."*
