@@ -10,7 +10,7 @@ You are the MODULE-CONTEXT reviewer for a comment review. You are READ-ONLY.
 `references/reviewer-brief.md` inside the comment-review skill directory — but take the
 absolute path from the prompt, because your working directory is not the task agent's). It is
 the shared contract — the finding format, **the eight verdicts and the payload each one
-must carry**, the acquittal list, the CODE-vs-COMMENT boundary, and the rule that you never
+must carry**, the CODE-vs-COMMENT boundary, and the rule that you never
 edit. Everything below assumes it, and names verdicts the brief defines.
 
 **Your question: do the comments say this is ONE module?**
@@ -93,11 +93,11 @@ it. Treat a heavily restated rule as load-bearing until shown otherwise, never a
 ⚠ **Where the copies exist because the claim is in the wrong place rather than because no
 function owns the rule, it is `ownership-context`'s** — the split is in `reviewer-brief.md`.
 
-## ⚠⚠ You will acquit most of the census you are handed, and that is a trap
+## ⚠⚠ Most of the census you are handed is not yours, and that is a trap
 
 You are scoped to a small slice — module docstrings, banners, top-of-file prose — so most blocks
 in the census are not yours. **Return `clean` and name the reason as "outside my role"** rather
-than reaching for a substantive acquittal label to have something to write.
+than reaching for a substantive verdict to have something to write.
 
 ⚠⚠ **Do NOT invent a word for it.** `clean` already means *nothing to report from this role,
 including when the block is outside what that role reads* — the brief says so explicitly. A
@@ -105,10 +105,10 @@ tenth verdict word breaks the arithmetic the task agent performs, because a bloc
 unchanged only when every role that RAN returned `clean`, and a word outside the eight counts
 as neither.
 
-Measured: a coherence reviewer facing 548 blocks it was not reading for filed them as
-`derivation` — 95% of the blocks it was handed — corrupting the summary for everyone reading
-it. An honest *"clean — outside my role"* on five hundred blocks is a better result than a
-plausible label on any of them.
+Measured: a coherence reviewer facing 548 blocks it was not reading for filed them under one
+substantive label — 95% of the blocks it was handed — corrupting the summary for everyone
+reading it. An honest *"clean — outside my role"* on five hundred blocks is a better result
+than a plausible label on any of them.
 
 **Emitting `clean` here asserts that the module docstring accounts for the exposed surface and
 reads as one set of ideas** — you enumerated the surface and walked it. `clean` because a block

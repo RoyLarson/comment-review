@@ -41,7 +41,7 @@ manifests. Excluded as historical or vendored, not the live system:
 | **pCST** (pseudo Concrete Syntax Tree) | `vocabulary-usage.md` | Every interval between two lines of code as a node. *Pseudo* because it comes from a comment-syntax record and a lexer, not the language's own grammar. ⚠ NOT a synonym for `prose tree` — the census still enumerates from prose, so an empty interval produces nothing. Building it is [`an-empty-interval-has-no-census-index`](../TODO/an-empty-interval-has-no-census-index.md). |
 | ~~**the join**~~ | SETTLED 2026-08-15 — `SKILL.md:526` | Named at first use: `verdicts.py`, which reads every reviewer's report against the census and against the others', and refuses what it cannot verify. |
 | ~~**sweep**~~ | SETTLED 2026-08-15 — not a term | Stage 7b is **WRITE** (it was APPLY when `sweep` was retired; APPLY then moved to stage 5). The word was a synonym outliving `sweep.py` (now `census.py`), and the dead `import sweep` with it. Plain-English "sweep the file" stays. |
-| ~~**detector**~~ | SETTLED 2026-08-15 — `ref/reviewer-brief.md:235` | A census mark read as a signal; its PRECISION is how often it is right. Stated in the section already headed with the word. |
+| ⚠ **detector** — **RE-OPENED** | its only definition was inside the deleted suppression list | Settled 2026-08-15, un-settled 2026-08-16 when the section holding it went. `sk-scripts/census.py:147,770` still use it |
 | ~~**banner / section banner**~~ | SETTLED 2026-08-15 — `agents/…-module-context.md:18` | Comment lines dividing a file into named parts. Stated LINE-NEUTRALLY, that file being at its budget. |
 | ~~**assessability gate**~~ | SETTLED 2026-08-15 — **DELETED** | Used once, stated nowhere, and the idea was already stated without it at `:30-42`. This repo's own rule: if nothing reads it, delete it. |
 | ~~**acquittal rate**~~ | SETTLED 2026-08-15 — **DELETED** | A measured quantity whose denominator no site stated. Both uses now say the population instead: "most of the census you are handed", and "95% of the blocks it was handed". `acquittal list` is unaffected and remains defined at `ref/reviewer-brief.md:211`. |
@@ -54,7 +54,7 @@ Observed by the scout pass. Recorded as-is.
 | Word | Sense A | Sense B |
 |---|---|---|
 | **residue** | the comment-stripped byte comparison, `sk-scripts/prove_unchanged.py:13-15,101-147` | THE RESIDUE CHECK, a stage-level procedure, `ref/residue-check.md:15-26` |
-| ~~**SUPPRESSED / suppression**~~ | PARTLY SETTLED 2026-08-16 — **nothing gets suppressed** | `NOISE_FLOOR` and the `SUPPRESSED` output are deleted from `referrers.py`; `census.py`'s two uses go with [its own TODO](../TODO/the-shipped-python-does-not-pass-its-own-review.md). ⚠ STILL OPEN: the brief's *"suppression list"* heading, held while Roy rules on where `acquittal list` came from |
+| ~~**SUPPRESSED / suppression**~~ | PARTLY SETTLED 2026-08-16 — **nothing gets suppressed** | `NOISE_FLOOR` and the `SUPPRESSED` output are deleted from `referrers.py`; `census.py`'s two uses go with [its own TODO](../TODO/the-shipped-python-does-not-pass-its-own-review.md). Both lists are DELETED as of 2026-08-16 |
 | **label** | acquittal label, `ref/reviewer-brief.md:216` | review-round label, `agents/comment-review-block-context.md:28-29` |
 | **node** | prose-tree node, `SKILL.md:76` | Python AST node, three scripts |
 | ~~**statement**~~ | SETTLED 2026-08-16 — CODE only | The *derived statement* (`SUMMARY`'s right half, `sk-scripts/verdicts.py:369-370`) and the prose proposition at `agents/…-module-context.md:115` are the two uses the ruling leaves unqualified |
@@ -232,14 +232,14 @@ Observed by the scout pass. Recorded as-is.
 | prohibition (grepped against its own file) | `agents/comment-review-function-context.md:50-56` | SEVERAL |
 | population (of a counted claim) | `ref/reviewer-brief.md:69-71,191-193` | SEVERAL |
 | existence grep (the trap) | `ref/reviewer-brief.md:189-193`; same rule unnamed at `SKILL.md:409-410` | SEVERAL |
-| acquittal list | `ref/reviewer-brief.md:212-231` | ONE |
-| `label` (acquittal) | `ref/reviewer-brief.md:216` | ONE |
-| states-the-signature | `ref/reviewer-brief.md:217-218` | ONE |
-| derivation | `ref/reviewer-brief.md:219-223` | ONE |
+| ~~acquittal list~~ | DELETED 2026-08-16 | Matched a prose SHAPE while every role's `clean` is a truth assertion at that role's scope. Its entries are held in [`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md) |
+| ~~`label` (acquittal)~~ | DELETED 2026-08-16 with the list | Leaves `label` meaning the review-round label only |
+| ~~states-the-signature~~ | DELETED 2026-08-16 | ⚠ It contradicted `function-context`'s absence question, which asks for what the SIGNATURE CANNOT EXPRESS |
+| ~~derivation~~ | DELETED 2026-08-16 | A check (re-run the arithmetic) wearing an exemption's name |
 | `unguarded-invariant` | `ref/reviewer-brief.md:223-225` | ONE — `only-guard` until 2026-08-16; the old name read as "the only CODE guard", the opposite of what it acquits |
-| names-its-expiry | `ref/reviewer-brief.md:226` | ONE |
-| suppression list | `ref/reviewer-brief.md:234-247` | ONE |
-| batch to triage (<~10% precision) | `ref/reviewer-brief.md:237,246` | ONE |
+| ~~names-its-expiry~~ | DELETED 2026-08-16 | A check (has the condition already been met?) wearing an exemption's name |
+| ~~suppression list~~ | DELETED 2026-08-16 | No provenance in `evidence/`, and it suppressed nothing. Its content is held in [`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md) |
+| ~~batch to triage (<~10% precision)~~ | DELETED 2026-08-16 with the suppression list | Rates were measured on ONE repository — the same one the GA scored against |
 | CONSERVATIVE ON MEANING, FREE ON FORM | `SKILL.md:162-166` | ONE |
 
 ### Angle-specific concepts
@@ -276,10 +276,10 @@ Observed by the scout pass. Recorded as-is.
 | liveness | `SKILL.md:304,421-423`; `docs/parsing.md:45-49` | SEVERAL |
 | tracked (git ls-files as the boundary) | `sk-scripts/census.py:601-668,732-802` | ONE |
 | `CANDIDATE` | `sk-scripts/census.py:15-18`; `sk-scripts/referrers.py:11-13` | SEVERAL |
-| `NOISE_FLOOR` / SUPPRESSED | `sk-scripts/referrers.py:14-18,45-47,146-147` | ONE |
+| ~~`NOISE_FLOOR` / SUPPRESSED~~ | DELETED 2026-08-16 from `referrers.py` | Nothing gets suppressed; the test is inverted to assert a token naming 41 files is listed per file |
 | NOT CHECKED (gaps, not passes) | `sk-scripts/census.py:1022-1030`; `sk-scripts/referrers.py:176-193` | SEVERAL |
 | LANGUAGE SERVER / LSP, three states | `SKILL.md:293-331` (table `:313-319`); restated `docs/parsing.md:17-49` | SEVERAL |
-| detector | — | UNDEFINED |
+| ⚠ detector | — | **RE-OPENED 2026-08-16** — its only definition went with the suppression list: [`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md) |
 | corpus / corpora, `local` vs `public`, pinned ref, MANIFEST | `scripts/fetch_corpora.py:1-14,58-92,105-140`; restated `CLAUDE.md:169-176`, `README.md:192-210` | SEVERAL |
 | assisted / human / mixed / unknown | `evals/generator_split.py:151,164` | ONE |
 | discriminator (D1–D12 / hazard) | `evals/discriminators.md:1-88`; probes `evals/grade_hazards.py:33-67` | SEVERAL |

@@ -145,8 +145,7 @@ FORBIDS = re.compile(
 # A bare number in prose. Cheap to find, and worth nothing until it is seen
 # twice — the pair is where a hand-copied threshold drifts from its twin.
 # ⚠ Dates are stripped first. Left in, every `2026-08-09` contributes three
-# "repeated" numbers, and the detector drowns in its own noise — the shape a
-# suppression list exists to prevent.
+# "repeated" numbers, and the detector drowns in its own noise.
 NUMBER = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.%])")
 DATEISH = re.compile(r"\b\d{4}-\d{2}-\d{2}\w*|\bv?\d+\.\d+\.\d+\b")
 

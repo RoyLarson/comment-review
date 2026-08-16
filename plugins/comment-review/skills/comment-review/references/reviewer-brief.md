@@ -143,7 +143,7 @@ ran** can, and the task agent computes that — you do not assert it. ⚠ Do not
 
 ⚠⚠ **`clean` is the only verdict you can reach by NOT deciding.** Every other verdict is an
 action or an explicit `query`; this one can be arrived at by leaving a block alone, and a
-block left alone is indistinguishable from a block checked and acquitted. Your role file
+block left alone is indistinguishable from a block checked and ruled `clean`. Your role file
 states what your `clean` asserts — emit it as that claim, or emit `query`.
 
 ⚠⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
@@ -207,45 +207,6 @@ checkable form. Unverifiable and verified-correct look identical, and the unveri
 the one that persists — a wrong citation gets fixed next run, an illegible one accumulates and
 its illegibility reads as confidence. Measured on the repair side too: a live pointer to a real
 enforcing test was DELETED on the strength of a false dangling report.
-
-## The acquittal list — the ONLY reasons to pass a block over
-
-Closed list. If none applies, the block gets a finding.
-
-- **`names-its-line`** — one or two lines naming the line it sits on, claiming nothing else.
-- **`states-the-signature`** — short, present tense, matches name/args/return, cites nothing
-  outside itself.
-- **`derivation`** — a hand-worked calculation whose digits stop an assertion being an echo.
-  ⚠ **Not an acquittal until you have re-run the arithmetic.** Pure arithmetic over committed
-  values is checkable without judgement, so do the sum and report the number. Measured: one
-  worked example was wrong, its first correction was *also* wrong, and all three versions
-  rounded to the same asserted value, so nothing downstream ever objected.
-- **`unguarded-invariant`** — it states an INVARIANT the code is meant to hold, and no GUARD
-  enforces it: no `if`, no `assert`, no raise goes red if someone breaks it. Verify that a
-  guard is really absent; if a test does fail, one exists and this is not the acquittal.
-- **`names-its-expiry`** — states the condition under which it stops being wanted. ⚠ Not an
-  acquittal once that condition has already been met.
-
-⚠ **Nothing is acquitted for being SHORT, TRUE, WELL WRITTEN, NEW, or under a `⚠`.** Each was
-measured as an exemption reviewers invented for themselves. Truth least of all: a true claim
-can be misplaced, unnecessary, or the surviving half of a block whose other half was the
-constraint.
-
-## The suppression list — reasons to distrust a DETECTOR
-
-A **detector** is a census annotation read as a signal, and its PRECISION is how often it is right.
-The acquittal list excuses a *block*. It can never silence a detector, and a noisy one buries
-its own hits. Where an annotation fires broadly, report it as a **batch to triage**, not as
-findings — and carry its measured rate so the next reviewer knows what it is worth.
-
-Rates measured on one repository, each near-total false positive: a date or path that is an
-**argument in a runnable command line** (4/4 false); a bare identifier-shaped token that is also
-a **module stem** (8/8); a **warning glyph** as such (45/0 — the single largest class in one
-run, zero defects); a **repo-relative path citation** resolved only against the repo root
-(80/84, 18/20, 2/2 across three independent slices).
-
-⚠ **A detector below roughly 10% precision is a batch, not a finding.** Reporting it raw spends
-the human's attention on a list they will learn to skip, which is how a real hit gets lost.
 
 ## The subject is the prose, not the program
 

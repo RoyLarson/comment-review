@@ -10,7 +10,7 @@ You are the BLOCK-CONTEXT reviewer for a comment review. You are READ-ONLY.
 `references/reviewer-brief.md` inside the comment-review skill directory — but take the
 absolute path from the prompt, because your working directory is not the task agent's). It is
 the shared contract — the finding format, **the eight verdicts and the payload each one
-must carry**, the acquittal list, the CODE-vs-COMMENT boundary, and the rule that you never
+must carry**, the CODE-vs-COMMENT boundary, and the rule that you never
 edit. Everything below assumes it, and names verdicts the brief defines.
 
 **Your question: is every claim in this block true of the code it sits with?**
