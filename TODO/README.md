@@ -112,7 +112,12 @@ Everything below is on `feat/settle-the-vocabulary`, five commits, `main` untouc
 4. **⚠ The survey is a floor, not a census.** `budget` was used at 18 sites in four senses and
    appeared in NEITHER table of the inventory — Roy found it reading a justification. Assume
    other terms are missing the same way; do not treat "109 terms" as coverage.
-5. **⚠ Two measured gaps are recorded and unowned.** `docs/limitations.md` now records that the
+5. **The pCST rebuild is follow-up, not this branch.**
+   [`an-empty-interval-has-no-census-index`](an-empty-interval-has-no-census-index.md) holds it:
+   the block DEFINITION is settled and shipped, but the census still enumerates from prose, so
+   an empty interval has no index. That is what `add` is waiting on, and it is a census change,
+   not a naming one.
+6. **⚠ Two measured gaps are recorded and unowned.** `docs/limitations.md` now records that the
    budget covers 28 KB of the 224 KB shipped and not the two largest files a run loads
    (`reviewer-brief.md` 18 KB, loaded once per reviewer; `SKILL.md` 47 KB). And the level ladder
    was invented during the Aug-14 port — it exists at zero commits in `redacted_corpus`, on
@@ -138,10 +143,11 @@ vocabulary survey.
 
 ## Open
 
-### open  (1)
+### open  (2)
 
 | file | owner | done | what |
 | --- | --- | ---: | --- |
+| [an-empty-interval-has-no-census-index](an-empty-interval-has-no-census-index.md) | session | 0/8 | **FOLLOW-UP, deliberately off the vocabulary branch.** A block is the interval between two code lines (settled), but the census still enumerates from PROSE — three adjacent code lines census as **0 blocks**, so an empty interval has no index and `add` has no block to cite. Roy ruled **(a)**: enumerate every interval, empty ones included — *"I don't see a way around this pseudo-concrete syntax tree and I don't think it matters"*. Measured: `census.py` is 59 blocks today against ~606 code lines. ⚠ Not a budget question — run data is not budgeted. ⚠ Check first what a tenfold index count does to the `CLEAN 1-N` fabrication the brief already warns about |
 | [the-finding-record-is-eight-fields-and-six-would-do](the-finding-record-is-eight-fields-and-six-would-do.md) | session · Roy (2 rulings) | 0/8 | ⭐ The record shipped with **five** fields and has **eight** — `BLOCK`, `EVIDENCE` and `QUOTE` were all added to serve the GATE, not the reviewer. Six carry it, and the shape is ruled: `BLOCK`, `VERDICT`, `CLAIM`, `SOURCE`, `REASON`, `CHANGE`, opener `--- RECORD` so the record stops sharing a name with its own field. ⚠ **The cut is not the point.** `REASON` is what the `move` ruling rests on and **nothing checks it**; `LOCATION` was checked only for resolvability, never against the block it names — the gate takes only `len(blocks)` from the census. Replacing it with a `CLAIM`-against-census cross-check is strictly stronger. Open: `query` (no `SOURCE` by design) and `add` (no block of its own). Worked examples for every verdict are kept in the file |
 
 ### in-progress  (3)
