@@ -55,10 +55,10 @@ Observed by the scout pass. Recorded as-is.
 |---|---|---|
 | **residue** | the comment-stripped byte comparison, `sk-scripts/prove_unchanged.py:13-15,101-147` | THE RESIDUE CHECK, a stage-level procedure, `ref/residue-check.md:15-26` |
 | ~~**SUPPRESSED / suppression**~~ | PARTLY SETTLED 2026-08-16 — **nothing gets suppressed** | `NOISE_FLOOR` and the `SUPPRESSED` output are deleted from `referrers.py`; `census.py`'s two uses go with [its own TODO](../TODO/the-shipped-python-does-not-pass-its-own-review.md). Both lists are DELETED as of 2026-08-16 |
-| **label** | acquittal label, `ref/reviewer-brief.md:216` | review-round label, `agents/comment-review-block-context.md:28-29` |
+| ~~**label**~~ | SETTLED 2026-08-16 by subtraction — ONE sense left | The acquittal sense went with the acquittal list, so `label` means the REVIEW-ROUND label only: `agents/comment-review-block-context.md:28-29`, *"fix round 2"*, *"finding B4"*. `sk-scripts/census.py:161`'s `"a review label"` annotation is the same sense |
 | **node** | prose-tree node, `SKILL.md:76` | Python AST node, three scripts |
 | ~~**statement**~~ | SETTLED 2026-08-16 — CODE only | The *derived statement* (`SUMMARY`'s right half, `sk-scripts/verdicts.py:369-370`) and the prose proposition at `agents/…-module-context.md:115` are the two uses the ruling leaves unqualified |
-| ~~**worktree**~~ | SETTLED 2026-08-16 — **git's word, not a term of art here** | Both collected uses are ordinary git usage in dev tooling that never ships (`fetch_corpora.py` isolates a corpus, `grade_hazards.py` isolates a graded run). The six shipped sites that used it as a REASON were removed 2026-08-16. The one use left in `plugins/` — `ref/reviewer-brief.md:198`, *"an archive absent from every worktree"* — is a MEASUREMENT about a repository, not a rule |
+| ~~**worktree**~~ | SETTLED 2026-08-16 — **git's word, not a term of art here** | Both collected uses are ordinary git usage in dev tooling that never ships (`fetch_corpora.py` isolates a corpus, `grade_hazards.py` isolates a graded run). The six shipped sites that used it as a REASON were removed 2026-08-16. The one use left in `plugins/` — `ref/reviewer-brief.md:203`, *"an archive absent from every worktree"* — is a MEASUREMENT about a repository, not a rule |
 
 ---
 
@@ -68,8 +68,8 @@ Observed by the scout pass. Recorded as-is.
 
 | Term | Defined | Multiplicity |
 |---|---|---|
-| `clean` | `SKILL.md:48`; `ref/reviewer-brief.md:104,139-148`; per-role at `CLAUDE.md:202-209`, `agents/…-block-context.md:92-97`, `…-function-context.md:118-121`, `…-module-context.md:113-114`, `…-ownership-context.md:97-102` | SEVERAL (6 sites) |
-| `query` | `SKILL.md:49`; `ref/reviewer-brief.md:105,150-169`; gate `sk-scripts/verdicts.py:105-132,286-298` | SEVERAL |
+| `clean` | `SKILL.md:48`; `ref/reviewer-brief.md:104,139-153`; per-role at `CLAUDE.md:202-209`, `agents/…-block-context.md:92-97`, `…-function-context.md:118-121`, `…-module-context.md:113-114`, `…-ownership-context.md:97-102` | SEVERAL (6 sites) |
+| `query` | `SKILL.md:49`; `ref/reviewer-brief.md:105,155-174`; gate `sk-scripts/verdicts.py:105-132,286-298` | SEVERAL |
 | `drop` | `SKILL.md:50`; `ref/reviewer-brief.md:106` | SEVERAL |
 | `correct` | `SKILL.md:51,64-67`; `ref/reviewer-brief.md:107,114-118` | SEVERAL |
 | `patch` | `SKILL.md:52,64-67`; `ref/reviewer-brief.md:108,114-118` | SEVERAL |
@@ -81,7 +81,7 @@ Observed by the scout pass. Recorded as-is.
 | payload | `ref/reviewer-brief.md:96-112`; enforced `sk-scripts/verdicts.py:283-316` | SEVERAL |
 | `add` payload — an anchor | `ref/reviewer-brief.md:109`; `sk-scripts/verdicts.py:302-307` | SEVERAL |
 | `correct` payload — true/false pair | `ref/reviewer-brief.md:107`; `sk-scripts/verdicts.py:299-300` | SEVERAL |
-| `QUERY_ATTEMPTED` / `QUERY_SETTLES` | `sk-scripts/verdicts.py:106-132`; prose at `ref/reviewer-brief.md:105,169`, `SKILL.md:546-548` | SEVERAL |
+| `QUERY_ATTEMPTED` / `QUERY_SETTLES` | `sk-scripts/verdicts.py:106-132`; prose at `ref/reviewer-brief.md:105,174`, `SKILL.md:546-548` | SEVERAL |
 | escalated `query` | `ref/compact.md:30-35` | ONE |
 | `MOVE DESTINATION` / `move` UNAVAILABLE | `SKILL.md:251-262`; packet `sk-scripts/run_context.py:45,61` | SEVERAL |
 | clean-arithmetic | `sk-scripts/verdicts.py:576-583`; invoked unnamed at `SKILL.md:605-607`, `ref/reviewer-brief.md:141-143`, `agents/…-module-context.md:104` | ONE (named), SEVERAL (invoked) |
@@ -105,7 +105,7 @@ Observed by the scout pass. Recorded as-is.
 | `BLOCK` (census index) | `ref/reviewer-brief.md:60` | ONE |
 | `CLEAN` range line | `ref/reviewer-brief.md:73-79,90-92`; parsed `sk-scripts/verdicts.py:89,254-260` | SEVERAL |
 | `EVIDENCE_WINDOW` / `MIN_NEEDLE` | `sk-scripts/verdicts.py:95-103`; prose `ref/reviewer-brief.md:64,79-83` | SEVERAL |
-| `CODE CONCERNS` | `ref/reviewer-brief.md:249-262` | ONE |
+| `CODE CONCERNS` | `ref/reviewer-brief.md:215-228` | ONE |
 | coverage gap | `ref/reviewer-brief.md:92`; `sk-scripts/verdicts.py:263-275,524-532` | SEVERAL |
 | admissible / admissibility | `sk-scripts/verdicts.py:23`; echoed `SKILL.md:562` | ONE |
 
@@ -192,7 +192,7 @@ Observed by the scout pass. Recorded as-is.
 | packet (run context) | `sk-scripts/run_context.py:1-29,38-68`; `SKILL.md:470-488` | SEVERAL |
 | `REVIEWER FILES` (+ absolute-path rule) | `sk-scripts/run_context.py:47,63-65,17-21,247-250` | ONE — `ANGLE FILES` until 2026-08-15. ⚠ The hint's payload is SEVEN paths, not four |
 | `CENSUS` | `sk-scripts/run_context.py:46,62`; checked `:243-246` | ONE |
-| ~~`CAP`~~ (packet section) | SETTLED 2026-08-15 — REMOVED | Reviewers do not get a cap; the script had been refusing a packet without one, enforcing the opposite of `SKILL.md:211` and `reviewer-brief.md:292`. `WIDTH` removed with it. Packet is 9 sections. `cap` the run argument is unaffected |
+| ~~`CAP`~~ (packet section) | SETTLED 2026-08-15 — REMOVED | Reviewers do not get a cap; the script had been refusing a packet without one, enforcing the opposite of `SKILL.md:211` and `reviewer-brief.md:258`. `WIDTH` removed with it. Packet is 9 sections. `cap` the run argument is unaffected |
 | `LEVEL` | `sk-scripts/run_context.py:39,53,91,239-242` | ONE |
 | `DOC CONVENTION` | `sk-scripts/run_context.py:42,56`; `SKILL.md:247-249` | SEVERAL |
 | `LSP LANGUAGES` | `sk-scripts/run_context.py:44,58-60` | ONE |
@@ -211,14 +211,14 @@ Observed by the scout pass. Recorded as-is.
 | THE RESIDUE CHECK | `ref/residue-check.md:15-26` | ONE |
 | PROVEN / FAIL / UNPROVABLE / UNCHECKED | `sk-scripts/prove_unchanged.py:5,16,158-176,270-318`; consequences `ref/write.md:57-62` | SEVERAL |
 | line-ending check / dominant ending / untouched sibling | `sk-scripts/prove_unchanged.py:20-23,179-243` | ONE |
-| the four refusals | `ref/residue-check.md:40-55` | ONE |
+| the four refusals | `ref/residue-check.md:40-54` | ONE |
 
 ### Judgment vocabulary
 
 | Term | Defined | Multiplicity |
 |---|---|---|
-| `truthy` | `ref/reviewer-brief.md:174-181` | ONE |
-| **sentence** — the unit a verdict rules on | `ref/reviewer-brief.md:170-171`, *"Rule on SENTENCES, not blocks"*; `truthy` at `:174-181` defines when one can be ruled | SEVERAL (~45 sites) — stated, and the most-used word in the shipped prose after the verdicts. ⚠ Contradicts `:92`'s *"exactly once"*: [`the-unit-of-review-is-the-statement-not-the-block`](../TODO/the-unit-of-review-is-the-statement-not-the-block.md) |
+| `truthy` | `ref/reviewer-brief.md:179-186` | ONE |
+| **sentence** — the unit a verdict rules on | `ref/reviewer-brief.md:175-176`, *"Rule on SENTENCES, not blocks"*; `truthy` at `:174-181` defines when one can be ruled | SEVERAL (~45 sites) — stated, and the most-used word in the shipped prose after the verdicts. ⚠ Contradicts `:92`'s *"exactly once"*: [`the-unit-of-review-is-the-statement-not-the-block`](../TODO/the-unit-of-review-is-the-statement-not-the-block.md) |
 | **clause** — a part of a sentence | `ref/reviewer-brief.md:67` (`FINDING` is *"one clause"*), `:108` (`correct` carries *"the false clause **and** the true one"*) | SEVERAL — the SUB-SENTENCE unit `correct` and `FINDING` work at, so the ruled thing is sometimes smaller than a sentence. ⚠ The `except` clause in four script comments is Python's word for a code construct — the same split as `node` |
 | ~~**statement / expression / declaration / assignment**~~ | SETTLED 2026-08-16 — `agents/…-ownership-context.md:55-57` | They name CODE, and they classify an ANCHOR. An OWNER is a judgement about which anchor best justifies the comment, never a syntactic kind. ⚠ `expression` and `assignment` are at ZERO sites — named so the next writer does not reach for them |
 | **`signature`** → **`fingerprint`** | `sk-scripts/prove_unchanged.py:162-171` | ONE each since 2026-08-16. `code_signature` returned an `ast.dump` or the comment-stripped text — what 7b compares, which is a fingerprint. `signature` now means a function's, only |
@@ -228,15 +228,15 @@ Observed by the scout pass. Recorded as-is.
 | the matrix | `SKILL.md:576-588`; named "the matrix" at `:259` | ONE |
 | load-bearing | `agents/comment-review-ownership-context.md:56` | ONE — clear as written; three of its four readers cannot load that file (distribution pass) |
 | obituary / **tombstone** | `agents/comment-review-block-context.md:31` | ONE — synonym declared in the heading 2026-08-16, so an agent reaching for `tombstone` finds the rule |
-| guard / invariant | `agents/comment-review-function-context.md:38-50`; `ref/reviewer-brief.md:223-225` | SEVERAL — split 2026-08-16: a GUARD is code that protects against wrong output; an INVARIANT is what the code should hold, and a comment carries it when no guard does |
-| prohibition (grepped against its own file) | `agents/comment-review-function-context.md:50-56` | SEVERAL |
-| population (of a counted claim) | `ref/reviewer-brief.md:69-71,191-193` | SEVERAL |
-| existence grep (the trap) | `ref/reviewer-brief.md:189-193`; same rule unnamed at `SKILL.md:409-410` | SEVERAL |
+| guard / invariant | ⚠ STATED ONLY IN `docs/vocabulary-usage.md` — its shipped statement was the `unguarded-invariant` entry, deleted 2026-08-16 with the acquittal list. `agents/comment-review-function-context.md:39-43,66,69` still USE both words | SEVERAL — split 2026-08-16: a GUARD is code that protects against wrong output; an INVARIANT is what the code should hold, and a comment carries it when no guard does |
+| prohibition (grepped against its own file) | `agents/comment-review-function-context.md:45-49` | SEVERAL |
+| population (of a counted claim) | `ref/reviewer-brief.md:69-71,196-198` | SEVERAL |
+| existence grep (the trap) | `ref/reviewer-brief.md:194-198`; same rule unnamed at `SKILL.md:409-410` | SEVERAL |
 | ~~acquittal list~~ | DELETED 2026-08-16 | Matched a prose SHAPE while every role's `clean` is a truth assertion at that role's scope. Its entries are held in [`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md) |
 | ~~`label` (acquittal)~~ | DELETED 2026-08-16 with the list | Leaves `label` meaning the review-round label only |
 | ~~states-the-signature~~ | DELETED 2026-08-16 | ⚠ It contradicted `function-context`'s absence question, which asks for what the SIGNATURE CANNOT EXPRESS |
 | ~~derivation~~ | DELETED 2026-08-16 | A check (re-run the arithmetic) wearing an exemption's name |
-| `unguarded-invariant` | `ref/reviewer-brief.md:223-225` | ONE — `only-guard` until 2026-08-16; the old name read as "the only CODE guard", the opposite of what it acquits |
+| ~~`unguarded-invariant`~~ | DELETED 2026-08-16 with the acquittal list | It was `only-guard` until earlier the same day; the old name read as "the only CODE guard", the opposite of what it excused. ⚠ It carried the guard/invariant DEFINITION, which now has no shipped home |
 | ~~names-its-expiry~~ | DELETED 2026-08-16 | A check (has the condition already been met?) wearing an exemption's name |
 | ~~suppression list~~ | DELETED 2026-08-16 | No provenance in `evidence/`, and it suppressed nothing. Its content is held in [`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md) |
 | ~~batch to triage (<~10% precision)~~ | DELETED 2026-08-16 with the suppression list | Rates were measured on ONE repository — the same one the GA scored against |
@@ -247,10 +247,10 @@ Observed by the scout pass. Recorded as-is.
 | Term | Defined | Multiplicity |
 |---|---|---|
 | ~~HOME~~ | RETIRED 2026-08-16 — the word is **owner** | It named the site a duplicated claim survives at, which is what `owner` names. One stem: `anchor` is the code position, `ownership` the relation, `owner` the anchor that wins it |
-| owning function (rule with no home in CODE) | `agents/comment-review-module-context.md:71-82`; split restated `ref/reviewer-brief.md:279` | SEVERAL |
+| owning function (rule with no home in CODE) | `agents/comment-review-module-context.md:71-82`; split restated `ref/reviewer-brief.md:245` | SEVERAL |
 | module-level state | `agents/comment-review-module-context.md:67-70` | ONE |
 | reachability (a caller outside the tests) | `agents/comment-review-function-context.md:32-36` | ONE |
-| running-commentary read (SEQUENCES vs CONSTRAINS) | `agents/comment-review-function-context.md:105-116` | ONE |
+| running-commentary read (SEQUENCES vs CONSTRAINS) | `agents/comment-review-function-context.md:98-109` | ONE |
 | state / constraint / worked example | `agents/comment-review-block-context.md:18-24`; `CLAUDE.md:112-114`; `README.md` | SEVERAL |
 | review label / review-round label | `agents/comment-review-block-context.md:28-29`; detected `sk-scripts/census.py:161-164` | SEVERAL |
 | banner / section banner | — | UNDEFINED |
@@ -277,7 +277,7 @@ Observed by the scout pass. Recorded as-is.
 | tracked (git ls-files as the boundary) | `sk-scripts/census.py:601-668,732-802` | ONE |
 | `CANDIDATE` | `sk-scripts/census.py:15-18`; `sk-scripts/referrers.py:11-13` | SEVERAL |
 | ~~`NOISE_FLOOR` / SUPPRESSED~~ | DELETED 2026-08-16 from `referrers.py` | Nothing gets suppressed; the test is inverted to assert a token naming 41 files is listed per file |
-| NOT CHECKED (gaps, not passes) | `sk-scripts/census.py:1022-1030`; `sk-scripts/referrers.py:176-193` | SEVERAL |
+| NOT CHECKED (gaps, not passes) | `sk-scripts/census.py:1022-1030`; `sk-scripts/referrers.py:159-166` | SEVERAL |
 | LANGUAGE SERVER / LSP, three states | `SKILL.md:293-331` (table `:313-319`); restated `docs/parsing.md:17-49` | SEVERAL |
 | ⚠ detector | — | **RE-OPENED 2026-08-16** — its only definition went with the suppression list: [`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md) |
 | corpus / corpora, `local` vs `public`, pinned ref, MANIFEST | `scripts/fetch_corpora.py:1-14,58-92,105-140`; restated `CLAUDE.md:169-176`, `README.md:192-210` | SEVERAL |

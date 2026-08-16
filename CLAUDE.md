@@ -66,6 +66,10 @@ ruff format .
 # Gate check: refuse to ship a plugins/ file that won't parse on the floor interpreter (py3.9).
 # Run AFTER `ruff format`.
 python scripts/check_shipped_syntax.py
+
+# Every `file:line` citation in the two vocabulary documents still resolves.
+# Run after any edit that adds or removes lines in plugins/.
+python scripts/check_vocabulary_anchors.py
 ```
 
 Tests are stdlib `unittest` with per-language fixtures under `tests/fixtures/`;

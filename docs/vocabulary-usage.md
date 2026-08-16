@@ -15,6 +15,11 @@ As each term is settled there, its entry here becomes a statement of what the te
 means rather than a survey of what it does, and this file and
 [`vocabulary-inventory.md`](vocabulary-inventory.md) converge on one `vocabulary.md`.
 
+⚠⚠ **Citations inside a ~~struck-through~~ entry point at DELETED content and are kept as the
+historical record.** Every other citation is checked by `scripts/check_vocabulary_anchors.py`,
+which resolves each `file:line` against the tree and fails on one that has drifted past the end
+of its file. Run it after any edit to the shipped tree.
+
 ⚠ **Line anchors are as of `802a574` and drift.** Every collecting agent found
 `SKILL.md`'s anchors had moved one to three lines since the term list was built.
 Verify one against the file before acting on it.
@@ -266,7 +271,7 @@ Same sites as residue sense B. Additionally: the file's own title at `references
 ### EVIDENCE
 
 - Stated at `references/reviewer-brief.md:63` — "`file:line` you opened to settle the claim — **verified to exist**." Single line, contrasted with `LOCATION`'s permitted range.
-- Used at `scripts/verdicts.py:362-401` — `_resolve_lines(..., allow_range=False)` at `:383`; exempted for `clean` and `query` at `:381-382`, matching the brief's "`query` carries no EVIDENCE... by construction" (`reviewer-brief.md:165-168`).
+- Used at `scripts/verdicts.py:362-401` — `_resolve_lines(..., allow_range=False)` at `:383`; exempted for `clean` and `query` at `:381-382`, matching the brief's "`query` carries no EVIDENCE... by construction" (`reviewer-brief.md:170-173`).
 - Used at `scripts/verdicts.py:394-400` — anchors the window `QUOTE` is searched within.
 - Used at `SKILL.md:543-546` — restates the `query` exemption.
 - **Not shown at 7a** — absent from `SKILL.md:698`'s five fields.
@@ -341,7 +346,7 @@ Same sites as residue sense B. Additionally: the file's own title at `references
 
 - Stated at `references/reviewer-brief.md:249-262` — "Code problems get **one line each** in a separate `CODE CONCERNS` section at the end, with no verdict," followed by a table pairing each COMMENT finding with its corresponding CODE finding.
 - Used at `agents/comment-review-function-context.md:29` — "Report the prose, name the split in `CODE CONCERNS`."
-- Used at `agents/comment-review-function-context.md:79` — "Proposing *'make this a hard check'* is a behaviour change: name it in `CODE CONCERNS`, leave the prose..."
+- Used at `agents/comment-review-function-context.md:72` — "Proposing *'make this a hard check'* is a behaviour change: name it in `CODE CONCERNS`, leave the prose..."
 - **Absent from `verdicts.py` entirely** — not in the `FIELD` regex, not parsed, not gated.
 
 **One meaning throughout:** an out-of-band, unchecked section outside the RECORD format and outside the join.
@@ -376,25 +381,25 @@ Anchor drift from the inventory is noted per term.
 ### HOME — three senses
 
 - Stated at `agents/comment-review-ownership-context.md:60-65` — "Where the same proposition appears at several sites, name which site is its HOME — **the correct existing anchor point among the sites where the claim is already stated, not the function that implements the rule** — and `drop` the rest, or `reanchor` the claim to that home." (Inventory said `:60-69`; the definition is `:60-65`, `:67-69` is the module-context split note.)
-- Stated at `references/reviewer-brief.md:277` — table row: `ownership-context` asks "which of these sites is this claim's HOME?", verdict shape "`reanchor` the claim to its owner, `drop` the copies." (Inventory said `:278-282`.)
+- Stated at `references/reviewer-brief.md:243` — table row: `ownership-context` asks "which of these sites is this claim's HOME?", verdict shape "`reanchor` the claim to its owner, `drop` the copies." (Inventory said `:278-282`.)
 - Used at `agents/comment-review-ownership-context.md:58` — lowercase: "A block that would be equally useful anywhere in the file is not anchored to anything, and its home is **the declaration it actually constrains**."
-- Used at `references/reviewer-brief.md:280-281` — "A claim with a home in the wrong place is `ownership-context`'s; a rule with no home in the CODE is `module-context`'s."
+- Used at `references/reviewer-brief.md:246-247` — "A claim with a home in the wrong place is `ownership-context`'s; a rule with no home in the CODE is `module-context`'s."
 - Used at `references/reviewer-brief.md:120` — the destination of a relocation.
-- Used at `agents/comment-review-function-context.md:119` — "where that angle names a home outside it, that one governs."
+- Used at `agents/comment-review-function-context.md:112` — "where that angle names a home outside it, that one governs."
 - Used at `README.md:70`.
 
-**Three senses coexist.** At `:60-65` HOME is **an existing site among those where the claim is already written**, and the file explicitly rules out "the function that implements the rule." At `:58` a block's home is **the declaration it constrains**, which need not be a site where the claim already appears. At `reviewer-brief.md:281` "a rule with no home in the CODE" means **a function that would hold the rule** — the thing `:63` says HOME is not. Nothing at any site cross-references the others on this point.
+**Three senses coexist.** At `:60-65` HOME is **an existing site among those where the claim is already written**, and the file explicitly rules out "the function that implements the rule." At `:58` a block's home is **the declaration it constrains**, which need not be a site where the claim already appears. At `reviewer-brief.md:247` "a rule with no home in the CODE" means **a function that would hold the rule** — the thing `:63` says HOME is not. Nothing at any site cross-references the others on this point.
 
 ### owning function
 
 - Stated at `agents/comment-review-module-context.md:71-82` — "The same rule explained across several modules usually means **the rule has no owning function**... NAME THE OWNER — the function that produces the artifact the rule constrains. A width budget is owned by the function that composes the text; a unit by the function that returns the number; an ordering by the function that sorts."
-- Stated at `references/reviewer-brief.md:278` — table row: "does the rule have no OWNING FUNCTION, so each site re-explains it?" (Inventory said `:279`.)
+- Stated at `references/reviewer-brief.md:244` — table row: "does the rule have no OWNING FUNCTION, so each site re-explains it?" (Inventory said `:279`.)
 - Used at `agents/comment-review-module-context.md:3`.
 - Used at `references/compact.md:107-110` — the same diagnosis reached at COMPACT rather than MARK: "A block that cannot be made both correct and short is a finding about the CODE — usually a rule with no owning function... Report it, name the owner if you can see one, and leave it." **Not in the inventory.**
-- Used at `references/reviewer-brief.md:260` — the phrase appears as "the rule needs an owning **type**", not function, in the COMMENT-vs-CODE table. **Not in the inventory.**
+- Used at `references/reviewer-brief.md:226` — the phrase appears as "the rule needs an owning **type**", not function, in the COMMENT-vs-CODE table. **Not in the inventory.**
 - Used at `README.md:100-101`.
 
-**One meaning throughout** — the function (at `reviewer-brief.md:260`, the *type*) that produces the artifact the rule constrains.
+**One meaning throughout** — the function (at `reviewer-brief.md:226`, the *type*) that produces the artifact the rule constrains.
 
 ### module-level state
 
@@ -412,7 +417,7 @@ Anchor drift from the inventory is noted per term.
 
 ### the running-commentary read (SEQUENCES vs CONSTRAINS)
 
-- Stated at `agents/comment-review-function-context.md:104-110` — "**A comment that SEQUENCES rather than CONSTRAINS is a finding** (*'now I need to…'*, *'then we…'*): a constraining comment goes visibly wrong if its line moves, a sequencing one goes nowhere, because it was never about the line. Read a body's comments in order — a run of them narrates what the function actually does, and if that is more than the name claims, the docstring is describing the first few lines only." (Inventory said `:105-116`; `:112-116` is a **separate** heading, "Comments in the body are read IN ORDER," stating a different rule.)
+- Stated at `agents/comment-review-function-context.md:97-103` — "**A comment that SEQUENCES rather than CONSTRAINS is a finding** (*'now I need to…'*, *'then we…'*): a constraining comment goes visibly wrong if its line moves, a sequencing one goes nowhere, because it was never about the line. Read a body's comments in order — a run of them narrates what the function actually does, and if that is more than the name claims, the docstring is describing the first few lines only." (Inventory said `:105-116`; `:112-116` is a **separate** heading, "Comments in the body are read IN ORDER," stating a different rule.)
 - Used at `agents/comment-review-function-context.md:3` — **the ordering half only**; the frontmatter does not carry the SEQUENCES-vs-CONSTRAINS test.
 - Used at `README.md:44-45`, `:86` — **the ordering half only**.
 
@@ -482,7 +487,7 @@ The idea is stated in the same file **without the phrase**:
 
 (Inventory said `:30-42`; it is `:30-41`, and `:23-28` carries the causal half.)
 
-Two further sites state the dependency without the phrase or the word: `SKILL.md:190-192` and `README.md:59-61`. The term `truthy` that the gate turns on **is** stated, at `reviewer-brief.md:173-180`.
+Two further sites state the dependency without the phrase or the word: `SKILL.md:190-192` and `README.md:59-61`. The term `truthy` that the gate turns on **is** stated, at `reviewer-brief.md:178-185`.
 
 A reader meeting "the assessability gate" in frontmatter must infer it names the `:30-41` procedure; nothing links the two except adjacency in one file.
 
@@ -521,7 +526,7 @@ Anchors shifted since the scout pass: brief "clean is scoped to YOU" now `:138-1
 - **`CLAUDE.md:202-206`** (to whoever edits the repo) — "`clean` is reserved, not a synonym for 'vaguely good' … each angle's `clean` asserts something specific — read what, in that angle's own file." Defines `clean` only by deferral.
 - **`agents/comment-review-ownership-context.md:92-97`** — "**EVERY SENTENCE in the block belongs to the line it sits on** — each is about that code, no other site states it, and someone changing that code would decide worse without it. A block whose sentences belong to different code is `split`, not `clean`." Three conjuncts.
 - **`agents/comment-review-block-context.md:92-97`** — "**EVERY SENTENCE in the block is true of the code beside it**… A block holding one true sentence and one false one is not `clean`: the false sentence is `correct`, the true one is `clean`. Two sentences, two verdicts."
-- **`agents/comment-review-function-context.md:122-125`** — "**name, signature, docstring, comments and body agree, and nothing the signature cannot express is missing from the prose**." One sentence, no per-sentence decomposition.
+- **`agents/comment-review-function-context.md:115-118`** — "**name, signature, docstring, comments and body agree, and nothing the signature cannot express is missing from the prose**." One sentence, no per-sentence decomposition.
 - **`agents/comment-review-module-context.md:113-115`** — "**the module docstring accounts for the exposed surface and reads as one set of ideas** — you enumerated the surface and walked it. `clean` because a block is outside your angle is a **different statement**, and must name that reason." The only angle file splitting `clean` into two assertions under one word.
 
 Further senses:
@@ -530,8 +535,8 @@ Further senses:
 - `reviewer-brief.md:131-136` — what a reviewer must emit when its level lacks the right verdict. For block/function/module-context a true-but-misplaced block is `clean`; for ownership-context the same shape is `query`.
 - `reviewer-brief.md:138-142` — "Nothing you emit can bless a block; only a `clean` from every angle that ran can, and **the task agent computes that — you do not assert it**."
 - `reviewer-brief.md:144-147` — the only verdict reachable by inaction: "a block left alone is indistinguishable from a block checked and acquitted."
-- `reviewer-brief.md:162-163` — "`clean` certifies; `query` asks."
-- `reviewer-brief.md:170-171` — sentence-scoped: "a single `clean` sentence must not launder the ones around it."
+- `reviewer-brief.md:167-168` — "`clean` certifies; `query` asks."
+- `reviewer-brief.md:175-176` — sentence-scoped: "a single `clean` sentence must not launder the ones around it."
 - `SKILL.md:620` — precedence: "Any `correct` outranks every `clean`."
 - `SKILL.md:653` — run-level outcome quality: "A run that returns mostly `clean` is a good outcome."
 - `SKILL.md:700` — a report count category ("raised / clean").
@@ -544,8 +549,8 @@ Further senses:
 
 - **`SKILL.md:49`** — "unsettled | resolve it or escalate it. **It blocks every other verdict on that sentence**."
 - **`reviewer-brief.md:105`** — payload is "the claim, the check you ATTEMPTED, and what WOULD settle it — the ATTEMPTED and WOULD-settle halves are **CHECKED (as shape, not as truth)**; the claim itself is checked by nothing."
-- `reviewer-brief.md:149-160` — "for a claim you could not settle — **not one you did not try to settle**." Three shapes: outside your angle / outside the checkout / outside the code, the third reaching the author at 7a.
-- `reviewer-brief.md:165-168` — carries no `EVIDENCE` and no `QUOTE` by construction; its `CHANGE` is what the gate reads.
+- `reviewer-brief.md:154-165` — "for a claim you could not settle — **not one you did not try to settle**." Three shapes: outside your angle / outside the checkout / outside the code, the third reaching the author at 7a.
+- `reviewer-brief.md:170-173` — carries no `EVIDENCE` and no `QUOTE` by construction; its `CHANGE` is what the gate reads.
 - `agents/comment-review-ownership-context.md:76-77,83-84` — the substitute for `reanchor` at `fact-check`; **a `query` carrying a placement destination.**
 - `agents/comment-review-block-context.md:83` — the verdict for a worked example that cannot be executed from the checkout.
 - `SKILL.md:165` — what a meaning-change without evidence must become; `:277` — what a wrong style sheet is; `:542-546` — the one verdict the citation check does not touch; `:594` — synthesis step 1.
@@ -573,7 +578,7 @@ Further senses:
 **Payload component count differs across three sites:** the brief names three (false clause, true clause, settling line); `SKILL.md:68` names one ("carries a pair"); `verdicts.py:299-300` checks two (`"false:"` and `"true:"` present in `CHANGE`). The settling line is checked separately as `EVIDENCE`/`QUOTE`, not as part of this payload.
 
 - `SKILL.md:563-566` — mandated for a block ending mid-clause, overriding the matrix; `:584`; `:599` — synthesis step 3; `:620`; `:622`; `:624-629` — contradiction partner.
-- `reviewer-brief.md:180`; `:205-209` — the verdict for an unparseable-but-resolving citation, "never `drop`".
+- `reviewer-brief.md:185`; `:205-209` — the verdict for an unparseable-but-resolving citation, "never `drop`".
 - `apply.md:41-43` — "**A `correct` on a claim inside a string literal is REPORTED, never applied**."
 - **Ordinary-adjective sense** (a state a block reaches at the end of stage 5, not a ruling): `apply.md:23,28`; `compact.md:27,40,44`; `residue-check.md:25`; `SKILL.md:673,676`; `README.md:86,122,224`; `evals/discriminators.md:38`; `grade_hazards.py:18,57,116`; `tests/test_run_context.py:136`.
 
@@ -591,7 +596,7 @@ Further senses:
 - **`SKILL.md:53`** — "missing entirely | insert the text at the anchor named with it."
 - **`reviewer-brief.md:109`** — "a **constraint** exists in code and nowhere in prose"; payload "the text **and its anchor** — which declaration, above or below."
 
-**Scope differs.** `SKILL.md:53` says "missing entirely" without saying missing *what*; the brief restricts the trigger to a **constraint**. The angle files widen it: `module-context.md:55` (an unaccounted name in the module surface), `:69` (undocumented module-level state), `:81` (a rule with no owning function); `function-context.md:82` (four absence-question shapes); `ownership-context.md:49-52` (a non-obvious constraint with no comment). Whether "missing entirely" covers the module-surface and module-state cases, which are not constraints, is not stated.
+**Scope differs.** `SKILL.md:53` says "missing entirely" without saying missing *what*; the brief restricts the trigger to a **constraint**. The angle files widen it: `module-context.md:55` (an unaccounted name in the module surface), `:69` (undocumented module-level state), `:81` (a rule with no owning function); `function-context.md:75` (four absence-question shapes); `ownership-context.md:49-52` (a non-obvious constraint with no comment). Whether "missing entirely" covers the module-surface and module-state cases, which are not constraints, is not stated.
 
 - `SKILL.md:186`; `:601` — synthesis step 5; `review.md:16`; `apply.md:103`.
 
@@ -613,7 +618,7 @@ Further senses:
 - **`SKILL.md:55`** — "true and code's to hold, but **attached to the wrong line** | re-attach the block, unchanged, to the declaration it constrains **in the same file**." `:58-61` — "1.4 never withholds it."
 - **`reviewer-brief.md:111`** — payload "the declaration it constrains, **in this file**." (`verdicts.py:310-311` checks only non-emptiness.) `:120-125` — "`move` leaves the code; `reanchor` stays in the file… at `fact-check` the verdict set carries no `reanchor` and the same finding is `query` instead, never `clean`."
 - `agents/comment-review-ownership-context.md:71-84` — "The finding is where it BELONGS, not that it is misplaced."
-- `agents/comment-review-function-context.md:112-120` — **a line inside this function**, for a body comment describing a step performed elsewhere; explicitly subordinate: "where that angle names a home outside it, that one governs."
+- `agents/comment-review-function-context.md:105-113` — **a line inside this function**, for a body comment describing a step performed elsewhere; explicitly subordinate: "where that angle names a home outside it, that one governs."
 - `SKILL.md:597` — "`reanchor` does NOT belong here: it removes nothing"; `:602-603` — synthesis step 6; `:618`.
 
 ### `split`
@@ -622,7 +627,7 @@ Further senses:
 - **`reviewer-brief.md:112`** — "one block holds **two unrelated notes**"; payload "each fragment **and its own anchor**."
 - **`agents/comment-review-ownership-context.md:96-97`** — a third framing: "A block whose **sentences belong to different code** is `split`, not `clean`" — the trigger is divergent ownership rather than unrelatedness or count.
 - `verdicts.py:312-313` — payload checked as `change.count("/") >= 1`.
-- **Different senses**: "the split" as the ownership/module division of duty (`reviewer-brief.md:270-282`, `ownership-context.md:67`, `module-context.md:94`); splitting a *function* (`function-context.md:23-30`, a CODE CONCERN); splitting a comment *run* (`SKILL.md:386-390`); the authorship split (`generator_split.py`, `CLAUDE.md:187`); Python `str.split()`.
+- **Different senses**: "the split" as the ownership/module division of duty (`reviewer-brief.md:236-248`, `ownership-context.md:67`, `module-context.md:94`); splitting a *function* (`function-context.md:23-30`, a CODE CONCERN); splitting a comment *run* (`SKILL.md:386-390`); the authorship split (`generator_split.py`, `CLAUDE.md:187`); Python `str.split()`.
 
 ### verdict (the set as a concept)
 
@@ -667,7 +672,7 @@ Other senses: `reviewer-brief.md:99` ("a verdict without its payload is not a fi
 ### escalated `query`
 
 - **`compact.md:30-35`** — the only site using the phrase. "**An ESCALATED `query` does not block this pass, and must not.** Its destination is the author, who is first reached at 7a — *after* this stage… Compact the blocks whose verdicts are closed; carry an escalated query's block at its full length and say why."
-- The verb form appears at `SKILL.md:49,594` and `README.md:113` without naming the resulting state; `reviewer-brief.md:159-160` describes the destination without the word.
+- The verb form appears at `SKILL.md:49,594` and `README.md:113` without naming the resulting state; `reviewer-brief.md:164-165` describes the destination without the word.
 - **No field of the RECORD marks a `query` as escalated, and `verdicts.py` does not distinguish escalated from unescalated queries.** Where the escalation decision is recorded must be inferred.
 
 ### `MOVE DESTINATION` and `move` UNAVAILABLE
@@ -706,7 +711,7 @@ Other senses: `reviewer-brief.md:99` ("a verdict without its payload is not a fi
 
 - **`SKILL.md:63-66`** and **`reviewer-brief.md:114-118`** — mislabelling `correct` as `patch`: "polishes the wording of a falsehood and retires the finding — **the laundering failure in its purest form**."
 - **`SKILL.md:633-648`** — the *trim-around-the-claim* failure: "A block trimmed around an unchecked claim is **laundered, not reviewed**." The reviewer keeps the load-bearing-sounding clause and cuts the provenance, producing prose "shorter, cleaner, in-cap, and **strictly harder to falsify than what it replaced**." Worked example at `:638-643`.
-- **`reviewer-brief.md:170-171`** — verb form, a third shape: "a single `clean` sentence must not **launder** the ones around it."
+- **`reviewer-brief.md:175-176`** — verb form, a third shape: "a single `clean` sentence must not **launder** the ones around it."
 
 ---
 
@@ -736,12 +741,12 @@ role itself, and the remaining two are that role's *name* and its *file*:
 
 | sense | collected as | resolved to |
 | --- | --- | --- |
-| A — a scope a claim is measured against | `SKILL.md:190-192`, `reviewer-brief.md:155` | the editorial role |
+| A — a scope a claim is measured against | `SKILL.md:190-192`, `reviewer-brief.md:160` | the editorial role |
 | B — a reviewer agent, the actor | `SKILL.md:459-466`, `verdicts.py:7,16` | the editorial role; `reviewer` in code |
 | C — a string, the stem of a report filename | `verdicts.py:487` `angle = path.stem` | the role's NAME, in a filename slot — `reviewer = path.stem` |
 | D — a file on disk (the agent definition) | `reviewer-brief.md:3`, `run_context.py:17-21` | the role's FILE — packet key `REVIEWER FILES` |
 | E — a category of defect | `verdicts.py:372-373` | the role's category — "the block-context role's own category" |
-| F — a closed slot in a fixed set | `reviewer-brief.md:295`, `SKILL.md:210` | "one of the four editorial roles" |
+| F — a closed slot in a fixed set | `reviewer-brief.md:261`, `SKILL.md:210` | "one of the four editorial roles" |
 
 ⚠ **`--reviewers` was always a role check, which is what made the rename correct rather than
 cosmetic.** `verdicts.py:16` names it "every expected reviewer actually reported"; `:32-34`
@@ -753,9 +758,9 @@ names — see the enforcement-gap task in the TODO.
 The collected sense analysis follows, verbatim as of `802a574`, as the evidence for that
 resolution.
 
-**Sense A — a scope a claim is measured against.** `SKILL.md:190-192` — "The other three check a claim against the code at their scope"; here **angle ≡ scope**, the two words used interchangeably. Also `agents/comment-review-ownership-context.md:25-28`; `reviewer-brief.md:155` ("outside your angle — what settles it belongs to another scope"); `README.md:60-61`; `census.py:302`.
+**Sense A — a scope a claim is measured against.** `SKILL.md:190-192` — "The other three check a claim against the code at their scope"; here **angle ≡ scope**, the two words used interchangeably. Also `agents/comment-review-ownership-context.md:25-28`; `reviewer-brief.md:160` ("outside your angle — what settles it belongs to another scope"); `README.md:60-61`; `census.py:302`.
 
-**Sense B — a reviewer agent, the actor.** `SKILL.md:459-466` (the dispatch table), `:26`; `verdicts.py:7,16,437,491,500,512`; `SKILL.md:604-606` and `verdicts.py:575-586` ("every angle that RAN" — a countable participant); `reviewer-brief.md:97,140,287`.
+**Sense B — a reviewer agent, the actor.** `SKILL.md:459-466` (the dispatch table), `:26`; `verdicts.py:7,16,437,491,500,512`; `SKILL.md:604-606` and `verdicts.py:575-586` ("every angle that RAN" — a countable participant); `reviewer-brief.md:97,140,253`.
 
 **Sense C — a string, the stem of a report filename.** `verdicts.py:487` — `angle = path.stem`. **Nothing validates it against the four published names.** Also `:145,213,267-274`; `tests/test_verdicts.py:45,61,73-74,154-156`.
 
@@ -763,7 +768,7 @@ resolution.
 
 **Sense E — a category of defect, and a property of a `clean`.** `SKILL.md:48`; `README.md:112`; `reviewer-brief.md:104,138-142`; `agents/comment-review-module-context.md:99-100`; `CLAUDE.md:204-205`; `verdicts.py:372-373`, `reviewer-brief.md:88`, `tests/test_verdicts.py:397,682` ("the block-context angle's own category", where an angle names a class of claim); `evals/discriminators.md:45` ("module-context overclaim"); `CLAUDE.md:198-199`.
 
-**Sense F — a closed slot in a fixed set.** `reviewer-brief.md:295` — "Length is not one of the four angles"; `SKILL.md:210` — "Length is not an angle."
+**Sense F — a closed slot in a fixed set.** `reviewer-brief.md:261` — "Length is not one of the four angles"; `SKILL.md:210` — "Length is not an angle."
 
 **Undetermined at its site:** `README.md:151,231` say "the four **reading** angles," a qualifier used nowhere else, distinguishing them from "the mechanical detectors."
 
@@ -774,8 +779,8 @@ resolution.
 - `SKILL.md:99-101` — **the angle whose verdicts have no census field to rest on.**
 - `SKILL.md:104-107`, `census.py:302,351-352`, `docs/parsing.md:62`, `README.md:239` — the only angle degraded by a missing owner.
 - `SKILL.md:190-192,195` — runs at **every** level including `fact-check`.
-- `SKILL.md:391`; `SKILL.md:618` and `reviewer-brief.md:288` — the angle whose destination governs; `agents/comment-review-function-context.md:118-120` states the same precedence from the other side.
-- `reviewer-brief.md:272-282` — one half of the restatement split.
+- `SKILL.md:391`; `SKILL.md:618` and `reviewer-brief.md:254` — the angle whose destination governs; `agents/comment-review-function-context.md:111-113` states the same precedence from the other side.
+- `reviewer-brief.md:238-248` — one half of the restatement split.
 - `agents/comment-review-ownership-context.md:92-97` — what its `clean` asserts.
 
 **One meaning throughout,** with a consistent secondary role at `SKILL.md:99-107`, `census.py:302,351`, `docs/parsing.md:62`, `README.md:239`: not the question but *the angle the tooling cannot support*.
@@ -793,16 +798,16 @@ resolution.
 
 - Stated at `agents/comment-review-function-context.md:2,3,7,16` — **"does the commentary match what the function is FOR?"**
 - `SKILL.md:465`; `:104-106` ("function-context's ordering read takes its structure from the body rather than from a census field"); `:185-187`.
-- `reviewer-brief.md:286-291` — the angle that can place a block and be overruled on destination; `agents/comment-review-function-context.md:118-120` states its own deference.
+- `reviewer-brief.md:252-257` — the angle that can place a block and be overruled on destination; `agents/comment-review-function-context.md:111-113` states its own deference.
 - `reviewer-brief.md:132`; `agents/comment-review-module-context.md:27` (as a "lens").
-- `agents/comment-review-function-context.md:123-125` — what its `clean` asserts.
+- `agents/comment-review-function-context.md:116-118` — what its `clean` asserts.
 
 ### module-context
 
 - Stated at `agents/comment-review-module-context.md:2,3,7,16` — **"do the comments say this is ONE module?"** `:18-19` — "the only angle reading a file as a single argument rather than as a list of blocks."
 - `SKILL.md:466`; `:104`.
 - `SKILL.md:187` — **the only angle added by a level**: `full` adds it; it does not run at `fact-check` or `line`.
-- `reviewer-brief.md:272-282` — the other half of the restatement split.
+- `reviewer-brief.md:238-248` — the other half of the restatement split.
 - `reviewer-brief.md:132` — misplacement is `clean` for it at `fact-check`, **a level at which, per `SKILL.md:185`, it does not run.**
 - `evals/discriminators.md:45`.
 - `agents/comment-review-module-context.md:96-115` — a scope-specific instruction found nowhere else, and what its `clean` asserts.
@@ -911,7 +916,7 @@ from `SKILL.md` and running `census.py` on it.
 - Stated at `scripts/census.py:190` (was "One comment run or one docstring").
 - Stated at `SKILL.md`'s "What counts as ONE block".
 - **As an integer index:** `reviewer-brief.md:60` ("the census INDEX"); `verdicts.py:137,146,162-172,420-428,471,535-551` (`block=-1` sentinel for a record attributable to no real block); `verdicts.py:15,575-588`.
-- **As a container of sentences:** `reviewer-brief.md:170` — "**Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts."
+- **As a container of sentences:** `reviewer-brief.md:175` — "**Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts."
 - **As the prose unit** across `agents/comment-review-ownership-context.md:30,33,45,56-58,94-96`; `agents/comment-review-block-context.md:16,89,94-96`; `compact.md:48-100`; `residue-check.md:4,17-25`; `review.md:12,25-26,36-38`; `apply.md:6,32,35,96-99,108-110,118-121`.
 - **As a syntactic form — block comment:** `scripts/census.py:255` (`block_comment` field), `:366,394-410` (`in_block`), `:420-429`; `tests/test_census_blocks.py:63-97`; `docs/parsing.md:111`.
 - **As a fenced record:** `verdicts.py:73-83` parses the `--- FINDING` block; `reviewer-brief.md:45-56`.
@@ -958,7 +963,7 @@ The ordinary word *comment* is used constantly everywhere; only the sites above 
 
 **As a KIND value:** assigned at `census.py:373-377` (lexical — a Rust `///` run and a JSDoc `/** */` block carry KIND `docstring`), `:553` (tokenized, from `ast.get_docstring`, with `owner` set at `:556`), `:592` (a PEP 727 `Doc()` string inside `Annotated[...]`, **with no owner**). Consumed at `compact.md:82,85-87`; `census.py:847-855` (`narrative-in-docstring` fires only for this kind); `:979-986` (excluded from both tallies).
 
-**As the ordinary word:** `SKILL.md:3,10,24,75,245-247,267,489`; `agents/comment-review-function-context.md:18-25,61,110,124`; `agents/comment-review-module-context.md:18,23,27-56,62,67,98,113`; `prove_unchanged.py:11,58-62,164`; `apply.md:40-42,88,103-104,109`; `docs/limitations.md:38`; `README.md`, `CLAUDE.md`, `pyproject.toml:36`, `evals/discriminators.md:21,46-47`.
+**As the ordinary word:** `SKILL.md:3,10,24,75,245-247,267,489`; `agents/comment-review-function-context.md:18-25,54,103,117`; `agents/comment-review-module-context.md:18,23,27-56,62,67,98,113`; `prove_unchanged.py:11,58-62,164`; `apply.md:40-42,88,103-104,109`; `docs/limitations.md:38`; `README.md`, `CLAUDE.md`, `pyproject.toml:36`, `evals/discriminators.md:21,46-47`.
 
 **The two senses coexist without a stated boundary:** `SKILL.md:145-148` and `compact.md:82` use "docstring" as the KIND while arguing about docstring FORMAT conventions, which are the general sense.
 
@@ -994,7 +999,7 @@ Nothing states that the first is a special case of the second. **The census neve
 - **Set in code only at `census.py:556`** for AST docstrings. `_annotated_docs` (`:564-598`) sets none; `blocks_lexical` sets none.
 - Printed at `census.py:1015`; tier claims at `:23,302-306,871-872`, `SKILL.md:95-96`, `CLAUDE.md:129-130`; `census.py:351-353`; LSP route at `SKILL.md:301,416-418`, `docs/parsing.md:19,31-33`; standing caveat printed at `census.py:995-999`; `docs/parsing.md:62-65,126-127`; `tests/test_census_blocks.py:39-41`.
 
-**A second, unrelated sense — which angle owns a finding, and which function should own a rule:** `reviewer-brief.md:70,270-282`; `agents/comment-review-ownership-context.md:60-69`; `agents/comment-review-module-context.md:79,94`; `compact.md:19-20,109`; `SKILL.md:658`; `agents/comment-review-function-context.md:100`. **A third:** `.claude-plugin/marketplace.json:5` (the plugin's publisher); `SKILL.md:272`, `run_context.py:10` ("nothing owned consistency").
+**A second, unrelated sense — which angle owns a finding, and which function should own a rule:** `reviewer-brief.md:70,236-248`; `agents/comment-review-ownership-context.md:60-69`; `agents/comment-review-module-context.md:79,94`; `compact.md:19-20,109`; `SKILL.md:658`; `agents/comment-review-function-context.md:93`. **A third:** `.claude-plugin/marketplace.json:5` (the plugin's publisher); `SKILL.md:272`, `run_context.py:10` ("nothing owned consistency").
 
 ### node — two senses
 
@@ -1058,7 +1063,7 @@ Unchanged and verified: `census.py:5-7`, `:26-29`, `:100-111`, `:195`, `:198`, `
 - Emitted `census.py:130-135` (regex: a number word or digit + a population noun) and `:835-837` (note: "RE-COUNT, and name the population").
 - `census.py:1033-1039` — grouped with `names-a-symbol` as a CANDIDATE.
 - `agents/comment-review-block-context.md:47-53` — the same shapes, restating the resolution **without using the term**.
-- `reviewer-brief.md:69-71,188-192,196-197`; `README.md:79-80,151-153` ("counted claims", plural unhyphenated, in a measured-generalization context).
+- `reviewer-brief.md:69-71,193-197,201-202`; `README.md:79-80,151-153` ("counted claims", plural unhyphenated, in a measured-generalization context).
 - **Unrelated ordinary-English use:** `compact.md:93` ("counted as over a cap of two").
 
 ### `coverage-claim`
@@ -1083,7 +1088,7 @@ Unchanged and verified: `census.py:5-7`, `:26-29`, `:100-111`, `:195`, `:198`, `
 - Stated `SKILL.md:400` — "tracked in the tree? ⚠ present-but-untracked is **unverifiable**, not dangling."
 - Emitted `census.py:118,822-833` — **three distinct outcomes**: `UNVERIFIABLE path (untracked/derived)`, `UNRESOLVED path`, and `cites {path}::{member} — confirm the test exists`.
 - `census.py:1033-1039` — its resolved paths are "facts about the filesystem", contrasted with the CANDIDATE marks.
-- `SKILL.md:407-408`; `reviewer-brief.md:182-186` (restates the principle **without the term**); `README.md:81,151-153`.
+- `SKILL.md:407-408`; `reviewer-brief.md:187-191` (restates the principle **without the term**); `README.md:81,151-153`.
 
 **The three-way outcome appears only in `census.py`**; `SKILL.md` states only the tracked/untracked distinction.
 
@@ -1091,7 +1096,7 @@ Unchanged and verified: `census.py:5-7`, `:26-29`, `:100-111`, `:195`, `:198`, `
 
 - Stated `SKILL.md:404` — "grep the forbidden literal across that file."
 - Emitted `census.py:141-144,843-845`.
-- `agents/comment-review-function-context.md:52-56` — the worked example matches the regex shape exactly, and **adds the CODE-vs-COMMENT split**: a broken rule is a code concern; a false claim about the rule is the comment finding.
+- `agents/comment-review-function-context.md:45-49` — the worked example matches the regex shape exactly, and **adds the CODE-vs-COMMENT split**: a broken rule is a code concern; a false claim about the rule is the comment finding.
 - `README.md:89`.
 - **Not found under the hyphenated term outside `SKILL.md` and `census.py`;** every other site uses "prohibition".
 
@@ -1154,7 +1159,7 @@ Anchors shifted ~1-3 lines: PROJECT DETERMINATION `:23,212`; MARK `:26,119-120,4
 ### APPROVAL / 7a / 7b
 
 - `SKILL.md:29` (7a, "the run stops here"); `:30` (7b — **the "who acts" cell names the author first, then the task agent**); `:150` (stage 7 undivided); `:695-712`; `:714-721`.
-- `apply.md:1`; `prove_unchanged.py:1`; `SKILL.md:188,253,609-610`; `compact.md:31,131-132`; `reviewer-brief.md:160`; `review.md:3,23,32`; `residue-check.md:1,11-13`; `CLAUDE.md:98`.
+- `apply.md:1`; `prove_unchanged.py:1`; `SKILL.md:188,253,609-610`; `compact.md:31,131-132`; `reviewer-brief.md:165`; `review.md:3,23,32`; `residue-check.md:1,11-13`; `CLAUDE.md:98`.
 - **`README.md:124`** — "7) APPROVAL - Agent proposes the change to you." **No a/b split; the applying half is not mentioned in README's numbered list.**
 
 ### REVIEW (8)
@@ -1309,7 +1314,7 @@ Two referents wore `guard`, and side by side they inverted:
 ⚠ He first proposed `assertion` for the second. It collides: `assert` is in his own guard list,
 and `function-context.md:41-42` already uses "assertion" for the code kind **in the sentence
 after the guard rule**. `invariant` was taken instead — not because it was free, but because
-`function-context.md:43,73,76` already used it in exactly this sense.
+`function-context.md:43,66,69` already used it in exactly this sense.
 
 **What the split buys a reviewer, which is why it was worth doing.** It turns "keep or drop"
 into one test: **does a guard enforce this invariant?** If yes, the comment DESCRIBES a guard —
@@ -1425,7 +1430,7 @@ about our eval rig; a user running `/comment-review` in their own checkout is no
 2026-08-16 across the four agent files, `SKILL.md:344` and `census.py:768`, each given a reason
 that holds in any checkout.
 
-One use remains in `plugins/`, deliberately: `reviewer-brief.md:198`, *"two headline counted
+One use remains in `plugins/`, deliberately: `reviewer-brief.md:203`, *"two headline counted
 claims were derived from an archive absent from every worktree"*. That is a measurement about
 one repository in git's ordinary sense — evidence, not a requirement.
 
@@ -1455,7 +1460,7 @@ floor rather than needing new machinery.
 ⚠ **HOME is retired.** It named the same site under a second stem. Roy: *"I would rather have
 own(s)/owner as the word because the fall out of the definition of ownership and keeps the stem
 of the word the same."* Six sites across three files, all line-neutral: the ownership-context
-frontmatter, its `:60-65` section and `:82`, `reviewer-brief.md:279,282`, `README.md:70-71`
+frontmatter, its `:60-65` section and `:82`, `reviewer-brief.md:245,248`, `README.md:70-71`
 (whose *"reanchored"* went with it).
 
 ⚠ **The section at `:60-65` was REPLACED, not word-swapped.** It read *"the correct existing
@@ -1472,7 +1477,7 @@ ownership is a judgement. 12 sites in `census.py`, 6 in `SKILL.md`, 1 test. ⚠ 
 ⚠ **The jurisdiction sense lost the word.** A ROLE's categories of claim are its
 **JURISDICTION** — stated at `reviewer-brief.md:71`, the sentence that already described it.
 Roy first proposed `verify`; it collides, already naming the ACT of settling one claim against
-the code (`reviewer-brief.md:184-185`) and the citation state `UNVERIFIABLE`. Jurisdiction is
+the code (`reviewer-brief.md:189-190`) and the citation state `UNVERIFIABLE`. Jurisdiction is
 which claims are a role's; verification is what it does to them. 5 sites, all line-neutral.
 
 ⚠ **The ownership/module split is PRESENCE, not shape.** Roy, 2026-08-16:
@@ -1485,14 +1490,14 @@ and where it goes is `ownership-context`. Prose absent → `module-context` or
 for *"a line carrying a non-obvious constraint with no comment at all"* — missing prose, under
 the role the rule assigns to existing prose. Roy: *"that statement is module-context and
 function-context, not ownership-context."* Deleted, losing nothing: the case is already covered
-where the constraint is enforced — `function-context.md:82-94` (*"a policy wearing arithmetic …
+where the constraint is enforced — `function-context.md:75-87` (*"a policy wearing arithmetic …
 the code IS the decision, so nothing in it can say why that number and not another"*) and
 `module-context.md:55,69` for the module surface. Ownership-context is 101 → 96 lines.
 
 ⚠ **JURISDICTIONS OVERLAP BY DESIGN.** Roy: *"different contexts can have similar requirements
 in their jurisdiction because of the bottom up/top down look through the system."* The brief
 already said two roles may place the same block and neither defers; it now says WHY, at
-`reviewer-brief.md:286-291`. ⚠ That costs the brief one line — the largest file a reviewer
+`reviewer-brief.md:252-257`. ⚠ That costs the brief one line — the largest file a reviewer
 loads, ×4 per run.
 
 ### HOME / anchor / owning function — SETTLED 2026-08-16, three questions had one word
@@ -1508,7 +1513,7 @@ three questions, three words — stands; only the middle word changed. See
 - `ownership-context.md:63` — *"name which site is its **HOME** — the correct existing anchor
   point among the sites where the claim is already stated, **not the function that implements
   the rule**"* — expressly NOT the code.
-- `reviewer-brief.md:283` — *"a rule with no **home in the CODE**"* — the owning function, which
+- `reviewer-brief.md:249` — *"a rule with no **home in the CODE**"* — the owning function, which
   `:63` had just ruled out. And that is the file whose job is to settle the split between the
   two roles reading it.
 
@@ -1518,7 +1523,7 @@ three questions, three words — stands; only the middle word changed. See
 | --- | --- | --- |
 | **anchor** | the code fragment a block attaches to — declaration, assignment, expression | `add` and `split` payloads (`reviewer-brief.md:110,112`), `SKILL.md:53,55`, and enforced at `verdicts.py:308` |
 | **home** | which site a duplicated claim survives at | `ownership-context.md:60-65` |
-| **owning function** | the code that SHOULD hold a rule and does not | `module-context`; `reviewer-brief.md:280` |
+| **owning function** | the code that SHOULD hold a rule and does not | `module-context`; `reviewer-brief.md:246` |
 
 Three questions, three kinds of answer: a **position**, a **choice among existing sites**, and a
 **missing owner**.
@@ -1527,7 +1532,7 @@ Three questions, three kinds of answer: a **position**, a **choice among existin
 Roy checked it against `anchor` and it was wrong: `anchor` is already the code position at four
 sites and in the stage-5 gate, so `home` could only be the surviving site.
 
-Fixed: `ownership-context.md:58` now says ANCHOR; `reviewer-brief.md:283` says OWNING FUNCTION;
+Fixed: `ownership-context.md:58` now says ANCHOR; `reviewer-brief.md:249` says OWNING FUNCTION;
 and `:279` said *"`move` the claim to its **owner**"* — a fourth word, and `owner` is the
 census's term for the declaration a block annotates — now HOME, matching the rule it summarises.
 
@@ -1562,9 +1567,9 @@ largest files every run loads. Recorded there as a measured gap.
 | sense | now called | where |
 | --- | --- | --- |
 | what a shipped file costs to load | **`budget`** | `docs/limitations.md:9` (declared), `CLAUDE.md:184` |
-| a comment's line limit | **`cap`** | was `compact.md:41`, `reviewer-brief.md:294`, `SKILL.md:677`, `census.py:88,104` — `cap` was already defined at `SKILL.md:178-180` |
+| a comment's line limit | **`cap`** | was `compact.md:41`, `reviewer-brief.md:260`, `SKILL.md:677`, `census.py:88,104` — `cap` was already defined at `SKILL.md:178-180` |
 | the reviewer's runtime | **no term** | `census.py:9` now says "spends its READING" |
-| subject matter in an example | — | `reviewer-brief.md:178`, `SKILL.md:643-649`, `module-context.md:79`. An example may be about anything |
+| subject matter in an example | — | `reviewer-brief.md:183`, `SKILL.md:643-649`, `module-context.md:79`. An example may be about anything |
 
 ⚠ **One site is left deliberately.** `SKILL.md:205` quotes a real run — *"I ran out of budget,
 not justification"* — as the level ladder's only justification. It is a QUOTATION and is not
@@ -1655,7 +1660,7 @@ covered by 'never passed to a reviewer' is not stated… a reader must infer whe
 reviewer' means 'used as an editing constraint' rather than 'present in the packet text.'"*
 
 **Roy ruled it: reviewers do not get a cap.** *"They might cut something that needs to stay to
-make the whole statement true."* Which is what `reviewer-brief.md:292-296` already said — an
+make the whole statement true."* Which is what `reviewer-brief.md:258-262` already said — an
 agent that knows the cap writes to the cap, and a length-driven cut keeps the confident
 assertion and drops the evidence for it.
 
@@ -1727,7 +1732,7 @@ Anchors all resolve; most shifted 1-5 lines. Verified positions below.
 
 ### `truthy`
 
-- Stated at `reviewer-brief.md:173-180` — "A sentence is **truthy** when it states one checkable proposition about the code it is attached to — a subject, a referent, and a claim that some line, symbol or run can settle." Plus: "Truthy is a property of FORM, not of truth. *'The retry budget is 40'* is truthy and false; *'this is robust'* is neither. A sentence that is not truthy cannot be `correct`ed… it is `drop` or `query`."
+- Stated at `reviewer-brief.md:178-185` — "A sentence is **truthy** when it states one checkable proposition about the code it is attached to — a subject, a referent, and a claim that some line, symbol or run can settle." Plus: "Truthy is a property of FORM, not of truth. *'The retry budget is 40'* is truthy and false; *'this is robust'* is neither. A sentence that is not truthy cannot be `correct`ed… it is `drop` or `query`."
 - Used at `agents/comment-review-ownership-context.md:32-38` — the same form-property made into two ordered questions, **acquiring a positional index the brief's definition does not carry**: truthy-*here* vs truthy-*there*, routing the difference to `reanchor` rather than `drop`.
 - `agents/comment-review-ownership-context.md:3`, `:40-41`.
 - **Sense carried without the word** at `README.md:64` ("is it a checkable claim about the code beside it"); the word appears nowhere in `README.md`.
@@ -1741,7 +1746,7 @@ Anchors all resolve; most shifted 1-5 lines. Verified positions below.
 - `compact.md:65` — the same phrase re-run on condensed text.
 - **`compact.md:58,61`** — a **gradient, not a binary**: "remove the single **least-checkable** line"; ":61 the least-checkable line is often a block's only refusal or the evidence for its surviving claim." At `SKILL.md:574-581` and in the residue check it is two-valued.
 - `agents/comment-review-ownership-context.md:32,36,38` — predicated of a *proposition's form* rather than of an already-true sentence.
-- **`reviewer-brief.md:206`** — "rewrite it into the checkable form", of an unparseable citation: a property of a *citation's legibility*, not of a sentence's confirmability.
+- **`reviewer-brief.md:211`** — "rewrite it into the checkable form", of an unparseable citation: a property of a *citation's legibility*, not of a sentence's confirmability.
 - **`reviewer-brief.md:220`** — "Pure arithmetic over committed values is checkable without judgement": mechanically re-derivable.
 - **`docs/parsing.md:73`** — of a proposed `LANGUAGES` row: verifiable by inspection, unrelated to the matrix.
 - `CLAUDE.md:102`.
@@ -1766,7 +1771,7 @@ Anchors all resolve; most shifted 1-5 lines. Verified positions below.
 
 - Stated at `agents/comment-review-ownership-context.md:54-58` — "A block is load-bearing **at a site** when someone changing THAT code would make a worse decision without it. A block that would be equally useful anywhere in the file is not anchored to anything." A **positional** property.
 - `agents/comment-review-ownership-context.md:3`; `README.md:68`.
-- **`reviewer-brief.md:288`** — "two angles reaching one block is evidence it is load-bearing." Inferred from **reviewer behaviour**, not from the site test; no location indexed.
+- **`reviewer-brief.md:254`** — "two angles reaching one block is evidence it is load-bearing." Inferred from **reviewer behaviour**, not from the site test; no location indexed.
 - `SKILL.md:123,651` — one of three properties: "true, **local** and load-bearing" — where "local" carries the positional half the angle file builds into load-bearing itself.
 - **`SKILL.md:635`** — the *appearance* of the property as a failure mode: "The reviewer keeps the load-bearing-*sounding* clause — which is the claim, which is what is wrong — and cuts the **provenance** around it."
 - **The triple differs by site:** `apply.md:24` "true, current and load-bearing"; `SKILL.md:123,651` "true, local and load-bearing"; `compact.md:40` "true, current, local and load-bearing" (four).
@@ -1797,7 +1802,7 @@ Anchors all resolve; most shifted 1-5 lines. Verified positions below.
 
 ### prohibition
 
-- Stated at `agents/comment-review-function-context.md:52-56` — "If the comment says *never a literal 65*, grep `65` in that file. A disagreement means the code broke the rule — that half is a code concern — **but a comment claiming a rule the file does not follow is a comment finding**."
+- Stated at `agents/comment-review-function-context.md:45-49` — "If the comment says *never a literal 65*, grep `65` in that file. A disagreement means the code broke the rule — that half is a code concern — **but a comment claiming a rule the file does not follow is a comment finding**."
 - `agents/comment-review-function-context.md:3`; `README.md:89`.
 - **`SKILL.md:404`** uses the mark name `forbids-a-literal`; **the word "prohibition" is not used there.** Emitted at `census.py:141-144,843-845`.
 - **`agents/comment-review-block-context.md:39`** — a prohibition as a reason a dead name **legitimately survives** in prose: **the opposite disposition** from function-context, where a prohibition is the thing being tested.
@@ -1807,7 +1812,7 @@ Anchors all resolve; most shifted 1-5 lines. Verified positions below.
 ### population
 
 - Stated at `reviewer-brief.md:69-71` — "give the number **and the population you counted over**… a count with no stated population cannot be re-derived."
-- Stated at `reviewer-brief.md:188-192` — "re-derive the POPULATION too, not only the count. Measured twice on the very claim that motivated the rule: the population was named correctly and the count was still wrong, and the population was named precisely and its size was wrong."
+- Stated at `reviewer-brief.md:193-197` — "re-derive the POPULATION too, not only the count. Measured twice on the very claim that motivated the rule: the population was named correctly and the count was still wrong, and the population was named precisely and its size was wrong."
 - `agents/comment-review-block-context.md:52-53`.
 - **`agents/comment-review-module-context.md:42-43`** — "The population is the module's own AST, not sites elsewhere in the tree." **Fixed by the angle** rather than re-derived from the claim's wording. `:58-60` — **a declared choice among named alternatives** (public / private / both).
 - `SKILL.md:402` — ordering stated explicitly, population first. Emitted at `census.py:835-837`.
@@ -1816,7 +1821,7 @@ Anchors all resolve; most shifted 1-5 lines. Verified positions below.
 
 ### the existence grep
 
-- Stated at `reviewer-brief.md:188-192` — "An existence grep passes every counted claim. The symbol is right there, so the grep returns clean and you report the file clean."
+- Stated at `reviewer-brief.md:193-197` — "An existence grep passes every counted claim. The symbol is right there, so the grep returns clean and you report the file clean."
 - Named "the brief's existence-grep trap" at `agents/comment-review-block-context.md:52-53`; `:3`.
 - **`agents/comment-review-module-context.md:59-60`** — different wording ("existence **check**", not grep), same structure, applied to docstring coverage rather than a count.
 - **The same rule stated unnamed** at `SKILL.md:407-408` ("Check the CLAIM, not the CITATION"); the brief states it under that same heading at `:182-186`, with the grep case as the counted-claim instance.
@@ -1847,7 +1852,7 @@ Anchors all resolve; most shifted 1-5 lines. Verified positions below.
 
 - Stated at `reviewer-brief.md:223-224` — "a warning against a plausible wrong move where **nothing goes red** if someone makes it. Verify that; if a test does fail it is a time-saver, not a guard." **The disqualifying case is stated but the consequent verdict is not named.**
 - **No use anywhere else.**
-- The same shape appears un-named and **from the opposite direction** at `agents/comment-review-function-context.md:64-77`: "enforced by… nothing at all → the prose owes **everything.** Unwritten means nonexistent"; "A deliberately unenforced rule is indistinguishable from an oversight." There an unenforced-but-real rule generates an `add`; in the acquittal list an existing warning about an unenforced wrong move is a reason to pass the block over. **Neither file names the other.**
+- The same shape appears un-named and **from the opposite direction** at `agents/comment-review-function-context.md:57-70`: "enforced by… nothing at all → the prose owes **everything.** Unwritten means nonexistent"; "A deliberately unenforced rule is indistinguishable from an oversight." There an unenforced-but-real rule generates an `add`; in the acquittal list an existing warning about an unenforced wrong move is a reason to pass the block over. **Neither file names the other.**
 
 ### names-its-expiry
 
@@ -1894,7 +1899,7 @@ Anchor drift (all `SKILL.md` anchors ~1-3 lines high): editorial board `:10-13,1
 
 ### author — four referents
 
-**(a) the human who approves the run.** Stated at `SKILL.md:157-159` — "The HUMAN is the AUTHOR, and is absent. They approve almost everything, quickly, unaudited — a direction, not a diff. So every proposal must be safe to approve blindly. Their disagreement is valuable; it is not a safety mechanism and must never be used as one." Also `:29-30,36,132-136,161-163,628,686-688,702,705-706,721`; `compact.md:3,7,31,132`; `apply.md:29-30,122`; `review.md:32-34`; `reviewer-brief.md:160`; `README.md:5,15`.
+**(a) the human who approves the run.** Stated at `SKILL.md:157-159` — "The HUMAN is the AUTHOR, and is absent. They approve almost everything, quickly, unaudited — a direction, not a diff. So every proposal must be safe to approve blindly. Their disagreement is valuable; it is not a safety mechanism and must never be used as one." Also `:29-30,36,132-136,161-163,628,686-688,702,705-706,721`; `compact.md:3,7,31,132`; `apply.md:29-30,122`; `review.md:32-34`; `reviewer-brief.md:165`; `README.md:5,15`.
 
 **`README.md:124`** characterises the same person differently: "APPROVAL - Agent proposes the change to you - they messed it up for me so I don't trust them to do it twice." `SKILL.md:157-159` characterises them as approving "almost everything, quickly, unaudited."
 
@@ -1909,7 +1914,7 @@ Anchor drift (all `SKILL.md` anchors ~1-3 lines high): editorial board `:10-13,1
 ### task agent
 
 - Stated at `SKILL.md:167-171` — "**The TASK AGENT — you.** … You are the only participant that writes, and only after approval… 'compact + correct' is not a finding."
-- `SKILL.md:23,27,28,29,30,31,33,3`; `CLAUDE.md:9,80,89,96,97,99`; `apply.md:3`, `compact.md:3`, `review.md:3` (each says "never by a reviewer"); all six agent files at `:9`; `reviewer-brief.md:97,115,123,141,156`; `agents/comment-review-module-context.md:104`; `verdicts.py:5`.
+- `SKILL.md:23,27,28,29,30,31,33,3`; `CLAUDE.md:9,80,89,96,97,99`; `apply.md:3`, `compact.md:3`, `review.md:3` (each says "never by a reviewer"); all six agent files at `:9`; `reviewer-brief.md:97,115,123,141,161`; `agents/comment-review-module-context.md:104`; `verdicts.py:5`.
 
 **One meaning throughout.** Two other names for the same actor in the metaphor register: "the copy editor" / "an editor."
 
@@ -1983,7 +1988,7 @@ What a reader must infer at every site: that "tree" is the block/owner structure
 
 ### NOT CHECKED
 
-- Stated at `census.py:1022-1030` and `referrers.py:176-193` — **the same header string verbatim**, over different populations with different closing notes.
+- Stated at `census.py:1022-1030` and `referrers.py:159-166` — **the same header string verbatim**, over different populations with different closing notes.
 - `referrers.py:158-167` — an empty `hits` with pending `unsearched` prints a *qualified* absence rather than "none".
 - `census.py:677` — "a file the walk never yields cannot appear in the NOT CHECKED list either."
 - `tests/test_referrers.py:105,204`.
@@ -2058,7 +2063,7 @@ All five are printed by `grade_hazards.py` and stated only by the code that emit
 - `CLAUDE.md:66,74,155-167`; `scripts/README.md:61-86` ("Measured 2026-08-14: three files were already in the unparenthesised form, one of them the census script this skill hands to strangers. Confirmed by mutant").
 - Carried in the shipped files as a comment **without the word**: `census.py:52-77`; `run_context.py:82-87`; `referrers.py:31-34`.
 
-**Unrelated senses:** `agents/comment-review-function-context.md:86` (an invented example about rounding direction); `corpora.toml:68` ("A near-floor reading"); `referrers.py:47` (`NOISE_FLOOR`, an upper threshold).
+**Unrelated senses:** `agents/comment-review-function-context.md:79` (an invented example about rounding direction); `corpora.toml:68` ("A near-floor reading"); `referrers.py:47` (`NOISE_FLOOR`, an upper threshold).
 
 ### worktree — three senses (the inventory recorded two)
 
@@ -2066,7 +2071,7 @@ All five are printed by `grade_hazards.py` and stated only by the code that emit
 
 **(b) eval-run isolation:** `grade_hazards.py:7,11-13,87`; `evals.json:3`; `CLAUDE.md:32`; `README.md:220`.
 
-**(c) the checkout a review is running in** — not in the inventory: `SKILL.md:341`; **all four angle files at `:11`, verbatim** ("take the absolute path from the prompt, because a relative one does not resolve from a worktree"); `census.py:768`; `reviewer-brief.md:194-198` ("an archive absent from every worktree" — here any checkout of the repo).
+**(c) the checkout a review is running in** — not in the inventory: `SKILL.md:341`; **all four angle files at `:11`, verbatim** ("take the absolute path from the prompt, because a relative one does not resolve from a worktree"); `census.py:768`; `reviewer-brief.md:199-203` ("an archive absent from every worktree" — here any checkout of the repo).
 
 ### cap
 
@@ -2079,7 +2084,7 @@ All five are printed by `grade_hazards.py` and stated only by the code that emit
 - `SKILL.md:197-201`; stage-6 gate `SKILL.md:670-673`, `compact.md:37-42`; ceiling `compact.md:102-114` ("Between a comment that is over the cap and one that is in-cap and unfalsifiable, the over-cap one is correct and the in-cap one is a defect wearing a passing grade").
 - `run_context.py:40,54`; `docs/limitations.md:43-44`.
 
-**One meaning throughout for the run argument.** Two neighbouring uses for other budgets: **`docs/limitations.md:9-14`** deliberately contrasts the skill's own per-file **budget** with "the cap rule for comments" ("a comment must be true about ONE thing, so cutting to fit deletes its evidence; a rule must cover MANY, so cutting to fit forces the covering abstraction"); `referrers.py:45` calls `NOISE_FLOOR` "A cap"; `agents/comment-review-function-context.md:86` uses "the cap" inside an invented example.
+**One meaning throughout for the run argument.** Two neighbouring uses for other budgets: **`docs/limitations.md:9-14`** deliberately contrasts the skill's own per-file **budget** with "the cap rule for comments" ("a comment must be true about ONE thing, so cutting to fit deletes its evidence; a rule must cover MANY, so cutting to fit forces the covering abstraction"); `referrers.py:45` calls `NOISE_FLOOR` "A cap"; `agents/comment-review-function-context.md:79` uses "the cap" inside an invented example.
 
 ### width
 
@@ -2091,7 +2096,7 @@ All five are printed by `grade_hazards.py` and stated only by the code that emit
 
 **(a) the run argument:** `SKILL.md:180` ("**replaces** the diff scope, never intersects it"), `:8`, `:447-450`; `compact.md:50-53`; `referrers.py:8`.
 
-**(b) the verb — what a verdict may point at:** `reviewer-brief.md:17,185`; `run_context.py:66`; `referrers.py:12,154`.
+**(b) the verb — what a verdict may point at:** `reviewer-brief.md:17,190`; `run_context.py:66`; `referrers.py:12,154`.
 
 **(c) a script-local variable:** `referrers.py:131-133,109`; `prove_unchanged.py:217-236,266-312`; `verdicts.py:348-359`; `generator_split.py:95-97`.
 
