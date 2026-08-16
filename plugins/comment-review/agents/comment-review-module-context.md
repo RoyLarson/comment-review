@@ -1,6 +1,6 @@
 ---
 name: comment-review-module-context
-description: One of four parallel reviewers dispatched by the /comment-review skill. Reads the module docstring, section banners and top-of-file prose, then walks the module's own definitions — do the comments say this is ONE module, and does the documentation account for what the module exposes? Flags two or three announced subjects, banners reading as chapter breaks, a name in the module's public surface the docstring never accounts for, and a name in the docstring that is not in the surface. Also owns module-level state (who writes it, when, what depends on it) and the rule restated across several modules with no owning function — naming the owner rather than merely reporting the duplication, now that the placement half of that rule belongs to ownership-context. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: One of four parallel reviewers dispatched by the /comment-review skill. Reads the module docstring, section banners and top-of-file prose, then reads the module's own definitions — do the comments say this is ONE module, and does the documentation account for what the module exposes? Flags two or three announced subjects, banners reading as chapter breaks, a name in the module's public surface the docstring never accounts for, and a name in the docstring that is not in the surface. Also owns module-level state (who writes it, when, what depends on it) and the rule restated across several modules with no owning function — naming the owner rather than merely reporting the duplication, now that the placement half of that rule belongs to ownership-context. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 
@@ -37,7 +37,7 @@ would catch it.
 
 ## ⚠⚠ A universal is a CHECKLIST
 
-*"Every X does Y"* in a module docstring is not a claim to read — it is a list to walk.
+*"Every X does Y"* in a module docstring is not a claim to read — it is a list to check.
 **Enumerate the Xs from the file's own definitions** and check each before you `clean`
 or `patch` the sentence. The population is the module's own AST, not sites elsewhere
 in the tree.
@@ -50,9 +50,9 @@ passed every role.
 ## The module's own surface is a CHECKLIST
 
 Enumerate what the module exposes — its public functions, classes and constants — from the
-file's own definitions. Then walk the module docstring against that list.
+file's own definitions. Then read the module docstring against that list.
 
-- A name in the surface that the docstring never accounts for is a gap: `add`, naming it.
+- A name in the surface that the docstring never accounts for is an OMISSION: `add`, name it.
 - A name in the docstring that is not in the surface is an obituary: `correct` or `drop`.
 
 ⚠ **State which you enumerated — public, private, or both — and the count.** *"Covers the
@@ -111,7 +111,7 @@ reading it. An honest *"clean — outside my role"* on five hundred blocks is a 
 than a plausible label on any of them.
 
 **Emitting `clean` here asserts that the module docstring accounts for the exposed surface and
-reads as one set of ideas** — you enumerated the surface and walked it. `clean` because a block
+reads as one set of ideas** — you enumerated the surface and checked it. `clean` because a block
 is outside your role is a different statement, and must name that reason.
 
 ## Return

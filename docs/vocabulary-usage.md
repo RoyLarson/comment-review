@@ -1448,6 +1448,32 @@ what this stage does."* Both definitions-by-negation are deleted; the PROHIBITIO
 substitute does have resolution power. ⚠ `review.md:25` also called stage 8 *"the proof pass"* —
 a name retired when 7b's gate became the CODE CHECK.
 
+### the re-sweep's six — RULED 2026-08-16
+
+| term | ruling |
+| --- | --- |
+| **original** | SETTLED as common usage. Roy: *"always the original text in the comment or file — fits common usage and stays pretty clean."* No statement written: a word that reads correctly to anyone does not need one |
+| **gap (1)** — coverage | TO BE DROPPED. Roy: *"looks like a different form of the SUPPRESSED or acquittal list … if comment blocks are missed by a reviewer then they are returned to the reviewer to rule on."* A workflow change, not a naming one: [`a-coverage-gap-should-go-back-to-the-reviewer`](../TODO/a-coverage-gap-should-go-back-to-the-reviewer.md) |
+| **gap (2)** — NOT CHECKED | STANDS. Roy asked whether `census.py` or `referrers.py` can miss a file. They cannot: `census.py:909` — *"A suffix not listed is REPORTED as unreviewable, never skipped"* — and each cause is named at `:929` (a read error), `:933` (no language record) and `:938` (a parse failure). `referrers.py` reports `unreadable` and `unsearched` the same way. What they report is a file they could not READ or a search that did not COMPLETE |
+| **gap (3)** — the surface | now an **OMISSION**, at `agents/…-module-context.md:55` |
+| **opener** | BOTH KEPT, declared. Roy: *"one is a programming concept and is separate from the editing concept and so could justify having two definitions because of 0 overlap"* |
+| **annotations** | BOTH KEPT, declared — the same zero-overlap case |
+| **walk** | RETIRED from the prose. Roy: *"missing the appropriate editorial bent"* |
+
+⚠ **OMISSION pairs with OBITUARY, and they sit on consecutive lines of the same list.** An
+omission is in the CODE and absent from the prose; an obituary is in the PROSE and absent from
+the code. Two symmetrical failures had one named and the other called a *gap*:
+
+```
+- A name in the surface that the docstring never accounts for is an OMISSION: `add`, name it.
+- A name in the docstring that is not in the surface is an obituary: `correct` or `drop`.
+```
+
+⚠ **`walk` is what the metaphor rule catches that a collision check does not.** It collided with
+nothing — `ast.walk` is a stdlib name with zero overlap, exactly the case ruled harmless for
+`opener` and `annotations`. It went because an editor does not walk a page, and no test other
+than the register would have found it.
+
 ### remit — SETTLED 2026-08-16, replacing `jurisdiction` the same day
 
 **A role's REMIT is the categories of claim it rules on**, as against `verify`, which is what it

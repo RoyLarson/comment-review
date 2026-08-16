@@ -31,9 +31,9 @@ are inputs to your judgement, not a substitute for it. And a server that is ABSE
 nothing: if the context does not say one answered, do not assume it — report what you could
 not check rather than reporting it clean.
 
-## Walk the census
+## Read the census end to end
 
-You are given a numbered census and the mechanical resolutions for it. **Walk it start to
+You are given a numbered census and the mechanical resolutions for it. **Read it start to
 finish and return a line for EVERY numbered block.** A block nobody mentioned is a gap in
 the review, not a block that passed.
 

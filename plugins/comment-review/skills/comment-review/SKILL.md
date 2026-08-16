@@ -79,8 +79,8 @@ annotates, with every reference it makes already resolved.
 Most of the rules further down are consequences of that shape rather than separate
 instructions:
 
-- **coverage is a tree walk.** You visited every node or you did not — *"a block nobody
-  mentioned is a gap in the review, not a block that passed"* is the walk being complete, not a
+- **coverage is a COMPLETE READ.** You read every node or you did not — *"a block nobody
+  mentioned is a gap in the review, not a block that passed"* is the read being complete, not a
   discipline to remember.
 - **the annotations are attached to a node**, so a reviewer receives resolved references instead
   of re-deriving them.
