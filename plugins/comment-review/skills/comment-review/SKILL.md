@@ -245,9 +245,19 @@ is the common set). An exempt marker neither counts toward the cap nor splits a 
 that is in-cap except for a marker is IN CAP. Without this, the cheapest route to green is
 deleting the pointer to filed work.
 
-**1.3 Determine the repo's doc style** - Rewriting docstrings in the wrong style will just
-frustrate them - get a template for the appropriate docstring format for use when rewriting the 
-docstring.
+**1.3 MEASURE the repo's documentation formats. Do not assume one.** Read the docstrings that
+are there and record what they actually do, separately for each of:
+
+- **module** docstrings — the shape this repo puts at the top of a file
+- **function and method** docstrings — google, numpy, sphinx, or a house shape
+- **comment** format — recorded SEPARATELY, and only where the repo is consistent about one
+
+⚠ **Write a TEMPLATE for each, from what is in the tree.** Where the shape is not one of the
+published conventions, write the template out rather than naming the nearest standard: naming
+a standard the repo does not follow is how a correct sentence lands in the wrong format.
+
+The templates belong in the STYLE SHEET (1.5), which is what carries them to the reviewers, to
+stage 5 and to stage 6.
 
 **1.4 Resolve every `move` destination**, and decide NOW what happens if none resolves. A
 verdict pointing at a tree that does not exist is not a verdict.
@@ -268,8 +278,9 @@ the only copy.**
 This is the copy-editor's artifact and it is the only thing in this skill that PERSISTS between
 runs. It records decisions made for THIS codebase so the next pass does not relitigate them:
 the dialect its identifiers use, how domain terms are capitalised, the house citation form, the
-docstring convention from 1.3, terms of art with a fixed meaning, and any ruling the human made
-last time.
+**documentation TEMPLATES measured at 1.3** — module docstring, function docstring, and the
+comment format where there is one — terms of art with a fixed meaning, and any ruling the human
+made last time.
 
 ⚠⚠ **Without it, a pass drifts the prose while fixing it.** Measured: one run introduced **14
 en-GB spellings** into a codebase whose identifiers are en-US — including *"the event's colour"*
@@ -502,9 +513,10 @@ Measured: a run dispatched without a style sheet introduced **14 en-GB
 spellings** into a codebase whose identifiers are en-US, and every role was
 satisfied because nothing owned consistency.
 
-⚠ **The template matters because reviewers write replacement text.** A correct sentence in the
-wrong docstring convention is a finding the human has to redo by hand, and they are not
-expected to be careful enough to notice.
+⚠ **The templates go to the reviewers too, and stages 5 and 6 match their output against them.**
+A docstring's format decides which of its lines are structural and which are prose, so a
+reviewer that does not know the format cannot tell what a block contains. And a correct
+sentence in the wrong format is work the human has to redo by hand.
 
 ⚠ **Do not paste the brief or a role file into the prompt.** They are single-sourced on purpose;
 a copy in a prompt is a copy that goes stale.

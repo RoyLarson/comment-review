@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 18 tasks done
-Owner:    session · Roy (⭐ 3 rulings left)
+Progress: 14 of 18 tasks done
+Owner:    session · Roy (⭐ 2 rulings left)
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```
 
@@ -165,11 +165,22 @@ See the standing rule in [`README.md`](README.md).
       Roy reading, not by the sweep — so **108 was a floor, not a census**. Seed the re-sweep
       with those two misses: a term is easiest to miss when it reads as ordinary English.
 
-- [ ] ⭐ Rule on `SKILL.md:488`. It justifies `DOC CONVENTION`'s place in the dispatch packet
-      on the grounds that "reviewers write replacement text", against `SKILL.md:26`, the
-      frontmatter, and `references/reviewer-brief.md:6-10`, which assign writing to the task
-      agent at stage 5. Either the packet section has a different reason or the read-only rule
-      has an exception nobody has stated.
+- [x] ⭐ Rule on `DOC CONVENTION`'s justification. **Roy ruled 2026-08-16, and gave it a real
+      reason rather than deleting the section.** The old one — *"the template matters because
+      reviewers write replacement text"* — was false against `SKILL.md:26`, the frontmatter and
+      `reviewer-brief.md:7-9`; and no reviewer rule mentioned the convention at all (zero hits
+      across four agent files and the brief). The reason is that **a docstring's format decides
+      which of its lines are structural and which are prose**, so a reviewer that does not know
+      it cannot tell what a block contains — and stages 5 and 6 match their output against it,
+      so the human is not left rewording work already done.
+      Also rewrote **1.3**, which had said the template was *"for use when rewriting the
+      docstring"* — the same false framing. It now MEASURES rather than assumes, records
+      **module** and **function** docstring formats separately, records the **comment** format
+      separately where the repo is consistent about one, and writes a template out rather than
+      naming the nearest standard.
+      ⚠ Delivery already worked: the STYLE SHEET records the 1.3 templates and reaches the
+      reviewers (packet), stage 5 (task agent) and stage 6 (contract item five). That is now
+      stated where the style sheet is described, instead of being true by accident.
 
 - [x] Name "the four refusals" the same thing in both places. **Done 2026-08-15** — the
       heading in `residue-check.md` now reads "The four refusals — removals the three

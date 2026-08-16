@@ -53,7 +53,10 @@ REQUIRED = (
 
 HINTS = {
     "LEVEL": "fact-check | line | full | proof",
-    "DOC CONVENTION": "google | numpy | sphinx | none found, plus a template",
+    "DOC CONVENTION": (
+        "MEASURED templates: module docstring, function docstring, and comment"
+        " format if the repo is consistent about one — never a standard's name alone"
+    ),
     "STYLE SHEET": "path to it, or `new — started this run`",
     "LSP LANGUAGES": (
         "which answered, which had no server, or `no LSP tool — no probe possible`"
