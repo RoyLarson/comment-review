@@ -1,6 +1,6 @@
 """Find public Python repositories whose history is heavily assistant-authored.
 
-    python corpora/find_llm_repos.py [--pages N] [--min-hits N]
+    python scripts/find_llm_repos.py [--pages N] [--min-hits N]
 
 The corpus set has an empty cell. Its four public corpora are all pre-assistant
 and heavily reviewed, so "curated" and "human-written" are collinear in it and no

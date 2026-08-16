@@ -1,10 +1,10 @@
-# Stage 7b — APPROVAL: apply what the human approved
+# Stage 7b — WRITE: put on disk what the human approved
 
 Loaded by the task agent **after approval**, never by a reviewer. If you are reading this
 before the human has approved a verdict list, stop.
 
-Apply only what was approved, and only what was marked. ⚠ **An unmarked block is never swept.**
-If the sweep wants to touch something the mark did not reach, that is a finding for the next
+Apply only what was approved, and only what was marked. ⚠ **An unmarked block is never written.**
+If WRITE wants to touch something the mark did not reach, that is a finding for the next
 run, not an edit.
 
 ## The residue check, and the four refusals
@@ -13,16 +13,7 @@ Both are defined in [`residue-check.md`](residue-check.md), loaded back at stage
 not restated here: this pass runs the SAME check against the SAME original, and a second copy
 of it is a second thing to drift.
 
-## Shorten by TRUTH here — never by LENGTH
-
-**This pass cuts, and it can cut a lot.** Every false statement, every piece of history, every
-dead citation, every sentence that narrates what the code already says — all of that goes here.
-It also *adds*: correcting a claim usually means restoring the evidence that disproves it, and
-naming a caller obligation adds a sentence that was never there.
-
-**What comes out is a CORRECT comment: as long as it needs to be to carry only what is true,
-current and load-bearing, and no longer than that.** It may end up far shorter than the
-original, or longer. Both are right.
+## Nothing is judged here
 
 ⚠⚠ **Write the APPROVED text verbatim.** Every question of truth, placement and length was
 settled upstream — stage 5 made it correct, stage 6 cut it to any cap, and stage 7a put that
@@ -42,27 +33,27 @@ docstring that states something **false** is in scope — that is the `correct` 
 Changing what the docstring *documents* is not. ⚠ **A `correct` on a claim inside a string
 literal is REPORTED, never applied** — hand it to the human as a code concern.
 
-**Prove code identity; do not assert it.** Run the proof — do not perform it:
+**Prove the code says the same; do not assert it.** Run the CODE CHECK — do not perform it:
 
 ```bash
 python <skill>/scripts/prove_unchanged.py --base <merge-base> --repo . <paths...>
 ```
 
 It exits nonzero unless every path is proven, and it reports an **unprovable**
-file rather than passing it. It carries the AST proof for Python, a
+file rather than passing it. It carries the AST comparison for Python, a
 comment-stripped byte comparison for every other language with a `LANGUAGES`
 record, and the line-ending check against an untouched sibling. ⚠ **Re-run it
 after the formatter** — the formatter can reshape what you wrote.
 
-⚠ **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The identity claim is
+⚠ **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The claim is
 what this skill promises the people who run it; report the line verbatim and
 restore the file. **An `UNCHECKED` line does not stop the run** — it means the
 line-ending check had no untouched sibling to compare against, not that it
 passed — but report it verbatim too, so the human deciding knows which claims
 this run actually has a signal for.
 
-**Edit through an exact-match tool, never raw text.** Measured, all caught only by the AST
-proof: a path-rewrite regex reached inside a runtime `raise` message because it worked on raw
+**Edit through an exact-match tool, never raw text.** Measured, all caught only by the CODE
+CHECK: a path-rewrite regex reached inside a runtime `raise` message because it worked on raw
 text instead of the block list; `open(..., newline="")` stripped CRLF from every file it
 touched, in two separate runs, while the agent was reading this rail; a sweep regex without a
 leading boundary doubled a directory prefix.
@@ -115,7 +106,7 @@ say never change a string literal.
 
 ## Report
 
-Edits applied, files touched, the AST-identity proof and how you ran it, and every block you
+Edits applied, files touched, the CODE CHECK and how you ran it, and every block you
 could not write with the reason — that is a finding, not a silence.
 
 **Say explicitly whether every approved block landed byte-for-byte as approved.** A divergence

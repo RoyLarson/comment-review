@@ -3,25 +3,29 @@
     python run_context.py --template > run-<id>/context.md
     python run_context.py --check run-<id>/context.md
 
-Stage 4 hands each reviewer the 11 sections `REQUIRED` names below.
+Stage 4 hands each reviewer the 9 sections `REQUIRED` names below.
+⚠ CAP and WIDTH are deliberately NOT among them. Length is not an editorial
+role, and an agent that knows the cap writes to the cap -- what survives a
+length-driven cut is the confident assertion, not the evidence for it. The cap
+reaches stage 6 through `compact.md`'s own input contract instead.
 Nothing checked the prompt before four agents fired in parallel, and a
-section quietly absent degrades an angle with no error anywhere: measured, a
+section quietly absent degrades a reviewer with no error anywhere: measured, a
 run with no style sheet introduced 14 en-GB spellings into a codebase whose
-identifiers are en-US, and every angle was satisfied because nothing owned
+identifiers are en-US, and every reviewer was satisfied because nothing owned
 consistency.
 
 ⚠ A section that is present and EMPTY is a failure, not a default. "No cap
 published" is an answer and must be written; a blank is a question nobody
 asked.
 
-⚠ ANGLE FILES carries ABSOLUTE paths on purpose. The plugin agents are
+⚠ REVIEWER FILES carries ABSOLUTE paths on purpose. The plugin agents are
 namespaced and resolve only if the plugin was installed before the session
 started -- measured failing on 3 of 3 verification runs. With the paths in the
 packet, the sanctioned fallback (four general-purpose agents given the paths of
-their angle file and the brief) is a substitution, not an improvisation.
+their reviewer file and the brief) is a substitution, not an improvisation.
 
 Three sections carry an answer a machine can check, and they ARE checked --
-`LEVEL` against the four level names, `CENSUS` and each `ANGLE FILES` entry
+`LEVEL` against the four level names, `CENSUS` and each `REVIEWER FILES` entry
 against the filesystem. Presence alone was not enough: replacing every hint
 with `x` reported "Complete: all 11 sections answered", which is the shape of
 a check that reads like a pass. The other eight are prose no oracle settles,
@@ -37,31 +41,30 @@ from pathlib import Path
 
 REQUIRED = (
     "LEVEL",
-    "CAP",
-    "WIDTH",
     "DOC CONVENTION",
     "STYLE SHEET",
     "LSP LANGUAGES",
     "MOVE DESTINATION",
     "CENSUS",
-    "ANGLE FILES",
+    "REVIEWER FILES",
     "FILES UNDER REVIEW",
     "REFERENCE ONLY",
 )
 
 HINTS = {
     "LEVEL": "fact-check | line | full | proof",
-    "CAP": "the number, or `none published` — never invent one",
-    "WIDTH": "the number, or `none published`",
-    "DOC CONVENTION": "google | numpy | sphinx | none found, plus a template",
+    "DOC CONVENTION": (
+        "MEASURED templates: module docstring, function docstring, and comment"
+        " format if the repo is consistent about one — never a standard's name alone"
+    ),
     "STYLE SHEET": "path to it, or `new — started this run`",
     "LSP LANGUAGES": (
         "which answered, which had no server, or `no LSP tool — no probe possible`"
     ),
     "MOVE DESTINATION": "the tree, or `UNAVAILABLE` — say which here, not at stage 6",
     "CENSUS": "absolute path, unique to THIS run",
-    "ANGLE FILES": (
-        "absolute path per angle, the brief, and the compact + review agents"
+    "REVIEWER FILES": (
+        "absolute path per reviewer, the brief, and the compact + review agents"
     ),
     "FILES UNDER REVIEW": "one per line — the ONLY files a verdict may target",
     "REFERENCE ONLY": "one per line — read to settle a claim, never propose a change",
@@ -86,8 +89,10 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 # and a packet is arbitrary text a person typed.
 PATH_ERRORS = (OSError, ValueError)
 
-# The four names `SKILL.md`'s level table defines. A level outside this set
-# dispatches four reviewers against a verdict vocabulary nobody published.
+# The four names `SKILL.md`'s level table defines. A level names a VERDICT
+# VOCABULARY and how many reviewers run -- three of the four run fewer than
+# four -- so a level outside this set dispatches against a vocabulary nobody
+# published.
 LEVELS = ("fact-check", "line", "full", "proof")
 
 # A leading list marker, so `- /abs/path` and `1. /abs/path` name the path
@@ -194,7 +199,7 @@ def _resolves(candidate: str) -> bool:
 
     Both halves matter and neither implies the other. A relative path resolves
     against whatever directory a reviewer happens to be in, which is the
-    failure `ANGLE FILES` carries absolute paths to avoid; an absolute path
+    failure `REVIEWER FILES` carries absolute paths to avoid; an absolute path
     that is not there dispatches a reviewer at a file it cannot open.
     """
     try:
@@ -224,7 +229,7 @@ def invalid_answers(text: str) -> list[str]:
     """Answers that are present but unusable, one line each.
 
     Only the three sections a machine can settle: `LEVEL` against the four
-    published level names, `CENSUS` and each `ANGLE FILES` entry against the
+    published level names, `CENSUS` and each `REVIEWER FILES` entry against the
     filesystem. The other eight carry prose no oracle checks, and their
     absence from this list is not a pass on them.
 
@@ -244,10 +249,12 @@ def invalid_answers(text: str) -> list[str]:
         for line in _answer_lines(body):
             if not any(_resolves(c) for c in _path_candidates(line)):
                 bad.append(f"CENSUS: {line!r} is not an absolute path that exists")
-    for body in bodies.get("ANGLE FILES", []):
+    for body in bodies.get("REVIEWER FILES", []):
         for line in _answer_lines(body):
             if not any(_resolves(c) for c in _path_candidates(line)):
-                bad.append(f"ANGLE FILES: {line!r} is not an absolute path that exists")
+                bad.append(
+                    f"REVIEWER FILES: {line!r} is not an absolute path that exists"
+                )
     return bad
 
 
@@ -296,7 +303,7 @@ def main() -> int:
 
     print(
         f"Complete: all {len(REQUIRED)} sections answered, and LEVEL, CENSUS and"
-        " ANGLE FILES check out.\n⚠ The other eight are prose nothing here can"
+        " REVIEWER FILES check out.\n⚠ The other six are prose nothing here can"
         " settle. Dispatch all four in ONE message."
     )
     return 0

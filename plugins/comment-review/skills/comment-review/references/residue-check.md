@@ -4,13 +4,12 @@ The one mechanism that catches an edit which kept a false sentence and dropped
 the evidence disproving it. It is **inbound and per-block**: *did this block
 lose something?*
 
-⚠ **It is NOT stage 8's proof pass.** That one asks *does the finished page
-read?* A run can satisfy this check everywhere and still fail that one, and
-that is the common case, because each edit was defensible alone.
-
 Loaded at **stage 5**, where the first replacement text is written. Stage 6
 re-runs it on condensed text, and stage 7b runs it on what it applies — all
 three against the SAME original, never against the previous edit.
+
+⚠ **The ORIGINAL is the text as it stood when THIS RUN began**, not the first
+version ever written. A file this run edits is the next run's original.
 
 ## The residue check
 
@@ -37,7 +36,7 @@ never whether the new one is shorter, which was already decided. **This is the o
 here that catches a compaction which kept the false sentence and dropped the evidence that
 disproved it**, because at step 3 that evidence is still on the page.
 
-## ⚠⚠ Four removals the three conjuncts miss
+## ⚠⚠ The four refusals — removals the three conjuncts miss
 
 Refuse a removal unless **all four** also hold. Each was measured as a cut later judged wrong,
 and each passes `true & necessary & checkable` cleanly:

@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin** (`comment-review`) plus the machinery used to develop and measure it.
 The plugin is an editorial board for the comments and docstrings a change touched: four
 read-only reviewer agents walk one prose tree, a task agent (the `/comment-review` skill)
-synthesizes verdicts, the human approves the exact replacement text, and a sweep applies it and
+synthesizes verdicts, the human approves the exact replacement text, and WRITE puts it on disk and
 proves the executable code byte-identical.
 
 The repo root is **not** the plugin. Only `plugins/comment-review/` ships to a user's
@@ -44,18 +44,18 @@ python -m unittest discover -s tests -v
 python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo . <paths...>
 
 # Stage 5 gate: join reviewer reports against the census, check every citation.
-# Each report file is NAMED FOR ITS ANGLE -- the tool takes the angle from the
-# file stem, and --angles compares against those stems.
+# Each report file is NAMED FOR ITS ROLE -- the tool takes the role name from
+# the file stem, and --reviewers compares against those stems.
 python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
   --census <census>.json --level full --repo . \
-  --angles ownership-context,block-context,function-context,module-context \
+  --reviewers ownership-context,block-context,function-context,module-context \
   ownership-context.md block-context.md function-context.md module-context.md
 
 # Stage 4 gate: the dispatch packet
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --template
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --check <file>
 
-# Stage 7b gate: prove the sweep changed no executable code
+# Stage 7b gate: prove WRITE changed no executable code
 python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
   --base <merge-base> --repo . <paths...>
 
@@ -63,9 +63,22 @@ python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
 ruff check .
 ruff format .
 
-# Gate check: refuse to ship a plugins/ file that won't parse on the floor interpreter (py3.9).
+# Gate check: refuse to ship a plugins/ file that won't parse on the floor interpreter (py3.11).
 # Run AFTER `ruff format`.
 python scripts/check_shipped_syntax.py
+
+# The SHIPPED vocabulary holds: every key a role is given has a definition, no definition is
+# written for nobody, and no role is given a term its own text never uses. Run after any edit
+# to an agent file or a reference.
+python scripts/check_vocabulary.py
+
+# What one agent is GIVEN. The task agent runs this at stage 4 and pastes the output verbatim.
+python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --reviewer block-context
+python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --roles
+
+# Terms of art in the shipped tree the inventory does not list. An INPUT, not a gate:
+# every row needs a human to say whether it is a term.
+python scripts/vocabulary_sweep.py
 ```
 
 Tests are stdlib `unittest` with per-language fixtures under `tests/fixtures/`;
@@ -81,8 +94,8 @@ stdlib-only rule. `evals/grade_hazards.py` remains the end-to-end grade, and
 read it before touching the skill. The pipeline:
 
 ```
-1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 EDIT   6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION             REFERENCES               │                    7b APPLY
+1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
+  DETERMINATION             REFERENCES               │                    7b WRITE
                                                       └──── no cap ────────▲
 ```
 
@@ -93,17 +106,17 @@ read it before touching the skill. The pipeline:
 3. **FIND REFERENCES** (`census.py`) — every reference each node makes, resolved (paths, symbols,
    counts).
 4. **MARK** (4 reviewer agents, dispatched in parallel, read-only) — findings on the nodes.
-5. **EDIT** (task agent) — one verdict per block, full-length replacement text.
+5. **APPLY** (task agent) — one verdict per block, full-length replacement text.
 6. **COMPACT** (task agent) — cut to the cap; skipped entirely if there is no cap.
 7. **APPROVAL** — present the final text and stop (7a); on approval, apply verbatim (7b).
 8. **REVIEW** (task agent) — read the finished page against itself.
 
-The nine verdicts (`clean`, `query`, `drop`, `correct`, `patch`, `add`, `move`, `reanchor`,
+The eight verdicts (`clean`, `query`, `drop`, `correct`, `patch`, `add`, `move`,
 `split`) and the checkable/necessary matrix that resolves them are defined in SKILL.md — read it
 rather than re-deriving the rules here, since it is the single source and this file must not
 restate it.
 
-### The four reviewer angles
+### The four editorial roles
 
 Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) under
 `plugins/comment-review/agents/`, dispatched in one message so they run concurrently:
@@ -116,7 +129,7 @@ Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) u
 - **module-context** — do the comments say this module is one set of ideas?
 
 Reviewers are read-only and never see SKILL.md directly; they read the shared
-`references/reviewer-brief.md`. Fixing what you find destroys the finding — MARK and EDIT are
+`references/reviewer-brief.md`. Fixing what you find destroys the finding — MARK and APPLY are
 deliberately separate stages/actors.
 
 ### `census.py` — the only thing the reviewers depend on
@@ -134,7 +147,7 @@ is a data row, not new code. No comment (as opposed to docstring) carries an own
 tier — every ownership-context verdict rests on a reviewer reading the file, or on an LSP `documentSymbol`
 enrichment when a language server answered stage 1.7's probe.
 
-`references/` under the skill directory (`apply.md`, `compact.md`, `residue-check.md`,
+`references/` under the skill directory (`write.md`, `compact.md`, `residue-check.md`,
 `review.md`, `reviewer-brief.md`) are each single-sourced for one stage — nothing pastes their
 content elsewhere, and a change to a rule belongs in exactly one of these files (or in
 `docs/limitations.md` for orchestration-level rules).
@@ -144,7 +157,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | path                              | what                                                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `plugins/comment-review/`         | the shipped plugin — `skills/`, `agents/`, manifests                                                                                                                       |
-| `docs/`                           | how this system behaves today, and the rules for changing it: `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself — budget-constrained, no invented examples), `vocabulary-inventory.md` and `vocabulary-usage.md` (every term of art, where it is stated and what it means at each use) |
+| `docs/`                           | how this system behaves today, and the rules for changing it: `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself — budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using) |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ⚠ Nothing here describes this system's own behavior — that is `docs/`                                                    |
 | `evals/`                          | the twelve planted hazards (`evals.json`, `discriminators.md`), `grade_hazards.py`, and `generator_split.py` (the authorship split)                                        |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |
@@ -162,7 +175,7 @@ codebase:
 - No `except` clause in a shipped file holds a tuple literal — every exception tuple is bound to
   a name (e.g. `READ_ERRORS`, `PARSE_ERRORS`) so there is nothing for a formatter to rewrite.
   A `noqa` was tried and does not hold, because it suppresses the report, not the rewrite.
-- `pyproject.toml`'s `target-version = "py39"` protects *this repo's own* formatting only; it
+- `pyproject.toml`'s `target-version = "py311"` protects *this repo's own* formatting only; it
   cannot protect a file after it has been copied elsewhere — `scripts/check_shipped_syntax.py`
   is the actual floor check, and it must be run after `ruff format`.
 
@@ -183,6 +196,27 @@ history) since it depends on `git blame`.
   used there must be invented (never a real quotation), each new rule should replace an
   existing one at budget rather than accumulate, and a rule belongs in exactly one file.
 
+## The metaphor is EDITORIAL, and it is a rule, not decoration
+
+**This is an editorial board.** Four **editorial roles** read a manuscript and write **editorial
+marks** on it; a **PROOFREADER** reads the finished **proof** and says whether the document
+deserves more marks. Think about the work that way, and take a new term from publishing — what
+would an editor, a copy desk or a proofreader call this? — before reaching anywhere else.
+
+⚠ **Check a candidate against the register before proposing it, not after.** Three words entered
+from LAW and each named something publishing already had a word for: `acquittal` and
+`suppression` arrived with the initial plugin import and are deleted; `jurisdiction` was added
+2026-08-16 by a session that checked it for collisions and never checked it for register, and is
+now `remit`.
+
+⚠ **The register is itself an instruction, and that is the point.** Roy, 2026-08-16: *"I bet it
+helps the LLM focus in on what it is doing. Because of locality and other context items the llm
+will return words and phrases and comment suggestions based upon 'being' an editor better."* An
+agent reads these files and then writes in them, so one consistent register is a role it can
+occupy rather than a glossary it has to consult. A reader who knows the metaphor can also predict
+what an unfamiliar term means instead of guessing. ⚠ Recorded as the REASON for the rule, not as
+a measurement: nothing in this repo tests it.
+
 ## Documentation Rules
 
 - Do not write prose rules, thresholds, or assumptions into docs unless something in the code
@@ -195,14 +229,14 @@ history) since it depends on `git blame`.
   docstrings, README prose, or commit messages. A false *measurement* can be re-derived and
   corrected; a claim that something is "robust" has no oracle. Nothing can check it, so it
   survives every review and every rewrite regardless of whether it was ever true — it is the
-  one class of prose this repo's four reviewer angles cannot catch, because both block-context and
+  one class of prose this repo's four editorial roles cannot catch, because both block-context and
   function-context need something to resolve the claim against. Write what is measured, what is
   enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
   by reading the code or re-running a command, it does not belong.
-- `clean` is reserved, not a synonym for "vaguely good": it is one of the nine verdicts named
+- `clean` is reserved, not a synonym for "vaguely good": it is one of the eight verdicts named
   under "The skill's 8 stages" above and must not be used as a loose adjective for code or
-  prose anywhere in this repo. As a verdict it means nothing to report from that angle, and
-  each angle's `clean` asserts something specific — read what, in that angle's own file under
+  prose anywhere in this repo. As a verdict it means nothing to report from that role, and
+  each role's `clean` asserts something specific — read what, in that role's own file under
   `plugins/comment-review/agents/`, which states it.
 
 ## Exploration Budget

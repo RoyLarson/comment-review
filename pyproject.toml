@@ -8,7 +8,7 @@
 # files the skill hands to strangers. A `noqa` did not hold; a floor does.
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py311"
 line-length = 88
 
 [tool.ruff.lint]

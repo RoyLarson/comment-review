@@ -3,7 +3,7 @@
 A Claude Code plugin: an **editorial board** for the comments and docstrings a change
 touched. Four read-only reviewers walk one prose tree, an editor writes the replacement
 text, it is cut to fit, **then** the author approves the exact text that will be written —
-and the sweep applies it and proves the executable code byte-identical.
+and WRITE puts it on disk and proves the executable code byte-identical.
 
 ```
 project → annotate → find refs → mark → edit → compact → APPROVAL → review
@@ -36,7 +36,7 @@ files also end up in the review. Anything that points to something in the code o
 that comments in the code point to will end up being referenced. This is a limitation -
 if the other documentation doesn't have an edge in the connection anymore it might stay undiscovered.
 
-I broke down the comment review into four levels/categories
+I broke down the comment review into four editorial roles
 
 - Ownership-Context - Is it in the right place, and does it belong to only one place
 - Block-Context - Is the state, every constraint and every worked example still true of the
@@ -64,11 +64,10 @@ own scope — a claim attached to the wrong scope gets measured against the wron
   - Does the comment belong to the line it sits on — is it a checkable claim about the code
     beside it, not narration of what came before, not a description of code elsewhere in the
     file, not an orphan sitting between definitions.
-  - Is a non-obvious constraint left with no comment at all.
   - Is the block load-bearing where it sits — would someone changing that code decide worse
     without it.
-  - Where the same claim is stated at several sites, which site is its home; the rest are
-    dropped or reanchored to it.
+  - Where the same claim is stated at several sites, which site OWNS it; the rest are
+    dropped or moved to it.
 - Block-Context
   - Does the comment state something specific about what the code is doing now, not past
     behavior, not future behavior — dated rulings, review-round labels, "this used to", and
@@ -109,17 +108,16 @@ The skill is broken up into eight phases to cover an editorial system.
 
 | verdict    | the claim is                                     | what you do with it                                                       |
 | ---------- | ------------------------------------------------- | -------------------------------------------------------------------------- |
-| `clean`    | nothing to report **from this angle**            | nothing. Not a pass, and not a claim the block is correct — one angle having no finding, including when the block is outside what that angle reads |
+| `clean`    | nothing to report **from this role**, on a block it READ | nothing. Not a pass, and not a claim the block is correct — one role having no finding. A block outside what the role reads is `query` |
 | `query`    | unsettled                                        | resolve it or escalate it. It blocks every other verdict on that sentence |
 | `drop`     | true but not worth keeping                       | delete the sentence                                                       |
 | `correct`  | **FALSE**                                        | apply the true/false pair. **Always before any `patch`**                  |
 | `patch`    | **TRUE**, badly worded                           | apply the rewrite                                                         |
 | `add`      | missing entirely                                 | insert the text at the anchor named with it                               |
-| `move`     | true, and not code's to hold at all              | extract verbatim OUT of the code, to the destination resolved at 1.4      |
-| `reanchor` | true and code's to hold, attached to wrong line  | re-attach the block, unchanged, to the declaration it constrains in the same file |
+| `move`     | true, but it belongs somewhere else              | re-attach the block, unchanged, at the destination carried with it — another line, another file, or out of the code |
 | `split`    | two claims in one block                          | re-anchor each fragment to the code it is about                           |
 
-5) EDIT - Agent combines the marks to be a correct, truthful, load-bearing comment for the location
+5) APPLY - Agent combines the marks to be a correct, truthful, load-bearing comment for the location
 6) COMPACT - Only if you want to force the LLMs to keep it short
 7) APPROVAL - Agent proposes the change to you - they messed it up for me so I don't trust them to do it twice
 8) REVIEW - Double checking that what was wrote still follows the qualities looked for.
@@ -148,7 +146,7 @@ matter of taste.
 
 ### What generalized, and what did not
 
-The four reading angles carried every high-value finding in every corpus. The mechanical
+The four editorial roles carried every high-value finding in every corpus. The mechanical
 detectors — path resolution, symbol liveness, counted claims — did not: across the seven
 third-party corpora they fired roughly 70 times and produced about two real findings, and
 on one corpus they fired zero times while the file still held six genuine defects. They
@@ -228,7 +226,7 @@ ignored one — and a check that cannot see a defect must not report it clean.
 
 ### The census reads eleven languages, but only lexically
 
-The four reading angles are language-neutral — they ask whether prose is in the right
+The four editorial roles are language-neutral — they ask whether prose is in the right
 place, still true, describes what the code does, and agrees with its neighbours, and none
 of that is about syntax. The census underneath them now reads eleven languages from a
 data table (`census.py --languages`), but at two very different depths: Python gets a real

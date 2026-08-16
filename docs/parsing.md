@@ -16,7 +16,7 @@ modes, and conflating them produced the wrong design twice. Keep them apart:
      unknown suffix      → reported as a GAP
 
 2. ENRICH what was found — OPTIONAL. Additive. Never required.
-     LSP documentSymbol  → the owner of each block
+     LSP documentSymbol  → the anchor of each block
      LSP workspaceSymbol → liveness for `names-a-symbol`
      no server           → declared per file; those verdicts stay CANDIDATES
 ```
@@ -30,19 +30,19 @@ comments.** The harness exposes nine operations — `goToDefinition`,
 prose. `textDocument/semanticTokens` and `textDocument/foldingRange`, the two
 that would, are not among them. On a Go file a language server will report
 `func F` at line 4 while nothing has said there is a comment at line 2 to
-attach to it: ownership with nothing to own.
+attach to it: an anchor with nothing anchored to it.
 
 **So the order is a dependency, not a preference.** A block must be found
-before anything can own it.
+before anything can anchor it.
 
 ⭐ **Axis 2 is pure upside precisely because it is additive.** With a server you
-gain ownership and cross-language liveness; without one you lose nothing you
+gain anchors and cross-language liveness; without one you lose nothing you
 had. That is only safe because absence is *declared* — a probe against a `.ts`
 file with no server returned `No LSP server available for file type: .ts`. A
 capability that changes coverage silently is the thing that got libcst removed;
 one that announces its own absence can be reported per file and reasoned about.
 
-⭐ **Liveness is the bigger prize, not ownership.** `names-a-symbol` is
+⭐ **Liveness is the bigger prize, not anchoring.** `names-a-symbol` is
 harvested from the Python AST today and was measured as one of the weakest
 detectors outside the codebase it grew in. `workspaceSymbol` answers "does this
 name exist in this workspace" for every language at once — the same check
@@ -55,12 +55,12 @@ agent to work out the structure by reading the file.** That is unfalsifiable:
 it produces a confident tree with no way to check it and, worse, **no way to
 report what it missed**. The governing rule here is that *a block missing from
 the census is a block nobody reviews* — it is why a tier that dropped 13 blocks
-was deleted despite resolving owners for half the corpus. An improvised parse
+was deleted despite resolving anchors for half the corpus. An improvised parse
 cannot even count its own drops. It is also non-deterministic, so two runs
 produce different censuses and no corpus measurement compares to another.
 
 This is not hypothetical: it is already what happens for OWNERSHIP-CONTEXT whenever no
-owner is recorded, and the census now says so out loud rather than letting a
+anchor is recorded, and the census now says so out loud rather than letting a
 reviewer's impression read as a resolution. Promoting that to a designed tier
 would undo the correction.
 
@@ -70,8 +70,9 @@ would undo the correction.
 Language("zig", (".zig",), ("//",), doc_line=("///",))
 ```
 
-Five fields, checkable against the file in hand, deterministic once written,
-and it supports that language permanently for everyone instead of for one run.
+Four fields for this row — the record declares eight, three required and five
+defaulted. Checkable against the file in hand, deterministic once written, and
+it supports that language permanently for everyone instead of for one run.
 If the row cannot be written confidently, the honest output is the gap the
 census already prints: `no language record for its suffix`.
 
@@ -123,14 +124,14 @@ means writing a new recursive-descent parser per language, which is what a
 tree-sitter grammar already is.
 
 ⚠ The reusable idea in ruff is not the parser but `ruff_python_trivia`'s
-comment-attachment logic — leading, trailing, dangling — which is the OWNERSHIP
-problem stated as an algorithm. Worth reading if ownership is reopened. It is
+comment-attachment logic — leading, trailing, dangling — which is the ANCHOR
+problem stated as an algorithm. Worth reading if anchoring is reopened. It is
 Python-specific too.
 
-⭐ **Ownership is a CONVENTION, not a parse result.** Even a perfect CST hands
+⭐ **Anchoring is a CONVENTION, not a parse result.** Even a perfect CST hands
 comments back as siblings; "which declaration does this belong to" is a rule
 someone writes. tree-sitter does not solve it, and neither does
-`documentSymbol`. Any claim that a parser "gives us ownership" is really a
+`documentSymbol`. Any claim that a parser "gives us anchors" is really a
 claim about an attachment rule bolted on top, and should be judged as one.
 
 ## The bar for building any of this

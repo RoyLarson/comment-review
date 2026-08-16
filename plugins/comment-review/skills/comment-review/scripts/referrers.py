@@ -10,12 +10,6 @@ REFERENCE ONLY list. Without it that list is assembled from memory, and a
 Read-only, and always exits 0: this is an input to a review, not a gate. Every
 line it prints is a CANDIDATE. A file that names a token is a file to READ, not
 a file with a defect, and not a file a verdict may target.
-
-⚠ A token appearing in more than NOISE_FLOOR tracked files is reported as
-SUPPRESSED with its hit count, never dumped as a per-file list: past that
-many files, the token is describing the codebase rather than this one, and
-printing every match would spend the reader's attention on a list they learn
-to skip -- which is how a real hit gets lost.
 """
 
 from __future__ import annotations
@@ -41,10 +35,6 @@ from census import (  # noqa: E402  -- path shim must run first
 )
 
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-
-# A cap on how many candidates are worth printing for one token: above this
-# many hits, the token is describing the codebase, not this file.
-NOISE_FLOOR = 40
 
 
 def tokens_for(path: Path, text: str) -> set[str]:
@@ -123,10 +113,9 @@ def main() -> int:
             print(f"  skipped {raw}: outside --repo")
 
     hits: dict[str, set[str]] = defaultdict(set)
-    # A set, not a list: two targets sharing a token must not double-print it.
-    suppressed: set[str] = set()
     unreadable: list[str] = []
-    unsearched: set[str] = set()  # same reason as `suppressed`
+    # A set, not a list: two targets sharing a token must not double-print it.
+    unsearched: set[str] = set()
     for rel in sorted(under_review):
         target = repo / rel
         try:
@@ -143,9 +132,6 @@ def main() -> int:
                 unsearched.add(f"token {token!r} could not be searched ({reason})")
                 continue
             found = [f for f in found if f not in under_review]
-            if len(found) > NOISE_FLOOR:
-                suppressed.add(f"{token} ({len(found)} files)")
-                continue
             for f in found:
                 hits[f].add(token)
 
@@ -163,16 +149,12 @@ def main() -> int:
             print(
                 "  none among the tokens that could be searched — but some\n"
                 "  searches did not complete; see NOT CHECKED below before\n"
-                "  treating this as a clean result."
+                "  treating this as a complete result."
             )
         else:
             print("  none — nothing tracked names these files.")
     for f in sorted(hits):
         print(f"  {f}\n      names: {', '.join(sorted(hits[f]))}")
-    if suppressed:
-        print("\nSUPPRESSED — too common to discriminate, triage by hand if needed:")
-        for s in sorted(suppressed):
-            print(f"  {s}")
     if unreadable or unsearched:
         print("\nNOT CHECKED — these are gaps, not passes:")
         for u in unreadable:

@@ -19,7 +19,7 @@
 #                    nothing copied.
 #           public = fetched by URL at a tag; shallow, optionally sparse.
 #   expect  low | medium | high  findings per block.
-#   style   the docstring convention the corpus should exercise in stage 0.3.
+#   style   the docstring convention the corpus should exercise in stage 1.3.
 
 [[corpus]]
 name = "redacted_corpus"
@@ -90,7 +90,7 @@ style = "numpydoc"
 expect = "low"
 note = """
 Decades old, terse, C-adjacent, and the origin of numpydoc -- a convention the
-skill's stage 0.3 has never seen. Sparse: two subpackages are enough to measure a
+skill's stage 1.3 has never seen. Sparse: two subpackages are enough to measure a
 rate and the whole tree is far more than a pass can afford.
 """
 

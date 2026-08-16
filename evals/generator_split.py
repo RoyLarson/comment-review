@@ -34,7 +34,7 @@ SKILL = (
 )
 sys.path.insert(0, str(SKILL))
 
-import sweep  # noqa: E402  - the census is the skill's, not a second copy
+import census  # noqa: E402  - the census is the skill's, not a second copy
 
 # `Co-Authored-By: Claude`, `Assisted-by: ...`, `Generated with ...`. Broad on
 # purpose: a false positive dilutes the contrast and understates the effect,
@@ -96,12 +96,12 @@ def main() -> int:
     # the corpus is the subject and the caller is somewhere else entirely.
     targets = [repo / p for p in sys.argv[2:]] or [repo]
 
-    files = sorted({f for t in targets for f in sweep._walk(t)})
-    known, _ = sweep.code_names([repo])
-    paths = sweep.path_index(repo)
+    files = sorted({f for t in targets for f in census._walk(t)})
+    known, _ = census.code_names([repo])
+    paths = census.path_index(repo)
 
     buckets: dict[str, list] = defaultdict(list)
-    marks: dict[str, Counter] = defaultdict(Counter)
+    notes: dict[str, Counter] = defaultdict(Counter)
     all_shas: set[str] = set()
     per_file: dict[str, dict[int, str]] = {}
 
@@ -113,8 +113,8 @@ def main() -> int:
         rel = f.relative_to(repo).as_posix() if f.is_absolute() else f.as_posix()
         per_file[rel] = line_authors(repo, rel)
         all_shas.update(per_file[rel].values())
-        for b in sweep.blocks_stdlib(f, text):
-            sweep.mark(b, known, paths, repo)
+        for b in census.blocks_stdlib(f, text):
+            census.annotate(b, known, paths, repo)
             buckets["_pending"].append((rel, b))
 
     # ⚠ A SHALLOW CLONE SILENTLY CORRUPTS THIS. Blame attributes every line older
@@ -150,8 +150,8 @@ def main() -> int:
             a = sum(1 for s in got if s in aid)
             key = "assisted" if a == len(got) else "human" if a == 0 else "mixed"
         buckets[key].append(b)
-        for m in b.marks:
-            marks[key][m] += 1
+        for a in b.annotations:
+            notes[key][a] += 1
 
     total_commits = len(all_shas)
     print(f"{repo.name}: {len(files)} files, {total_commits} commits touching them")
@@ -159,7 +159,7 @@ def main() -> int:
 
     print(
         f"{'bucket':10s} {'blocks':>7s} {'mean L':>7s} "
-        f"{'>6L':>6s} {'>6L%':>6s} {'marks/block':>12s}"
+        f"{'>6L':>6s} {'>6L%':>6s} {'notes/block':>12s}"
     )
     for key in ("human", "assisted", "mixed", "unknown"):
         bs = buckets.get(key) or []
@@ -168,15 +168,15 @@ def main() -> int:
         n = len(bs)
         over = sum(1 for b in bs if b.kind == "comment" and b.lines > 6)
         mean = sum(b.lines for b in bs) / n
-        mk = sum(marks[key].values()) / n
+        mk = sum(notes[key].values()) / n
         print(
             f"{key:10s} {n:7d} {mean:7.1f} {over:6d} {100 * over / n:5.1f}% {mk:12.2f}"
         )
 
-    print("\nmarks by bucket:")
+    print("\nannotations by bucket:")
     for key in ("human", "assisted", "mixed"):
-        if marks.get(key):
-            top = ", ".join(f"{k} {v}" for k, v in marks[key].most_common(6))
+        if notes.get(key):
+            top = ", ".join(f"{k} {v}" for k, v in notes[key].most_common(6))
             print(f"  {key:9s} {top}")
 
     print(

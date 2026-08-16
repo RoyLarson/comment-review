@@ -1,6 +1,6 @@
 ---
 name: comment-review
-description: Review the comments and docstrings in the files a change touched, across four angles — ownership-context, block-context, function-context, module-context — using parallel read-only subagents, and return each finding as verdict/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject: after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" — "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; the task agent applies what the human approves, and every applied change passes a residue check against the original prose.
+description: Review the comments and docstrings in the files a change touched, across four editorial roles — ownership-context, block-context, function-context, module-context — using parallel read-only subagents, and return each finding as verdict/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject: after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" — "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; the task agent applies what the human approves, and every applied change passes a residue check against the original prose.
 ---
 
 # comment-review
@@ -8,13 +8,13 @@ description: Review the comments and docstrings in the files a change touched, a
 `/comment-review [level] [cap] [target] [style]`
 
 **An editorial board for the comments and docstrings a change touched.** Four editors read
-the same manuscript from four angles, a copy editor writes one set of edits, a condenser cuts
+the same manuscript in four editorial roles, a copy editor writes one set of edits, a condenser cuts
 them to fit, the author approves **that** text, and the page is proofed. Structure and fact
 first, then truth, then fit, then the page.
 
 ```
-1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 EDIT   6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION             REFERENCES               │                    7b APPLY
+1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
+  DETERMINATION             REFERENCES               │                    7b WRITE
                                                      └──── no cap ────────▲
 ```
 
@@ -24,41 +24,42 @@ first, then truth, then fit, then the page.
 | 2 | **ANNOTATE** | `census.py` | every comment run and docstring located, as a node on the prose tree |
 | 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved — paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers | findings on the nodes — read-only, nothing written |
-| 5 | **EDIT** | task agent | one verdict per block and the **full-length** replacement text |
+| 5 | **APPLY** | task agent | one verdict per block and the **full-length** replacement text |
 | 6 | **COMPACT** | task agent | that text cut to the cap — **skipped entirely if there is no cap** |
 | 7a | **APPROVAL — present** | task agent | the FINAL text in front of the author; **the run stops here** |
-| 7b | **APPROVAL — apply** | **author**, then task agent | the approved text on disk, byte-for-byte as approved |
-| 8 | **REVIEW** | task agent | the finished page read as a reader would read it |
+| 7b | **APPROVAL — write** | **author**, then task agent | the approved text on disk, byte-for-byte as approved |
+| 8 | **REVIEW** | `comment-review-review` | the finished page read as a reader would read it |
 
-**This file is the task agent's.** Each reviewer is a named agent carrying its own angle and
+**This file is the task agent's.** Each reviewer is a named agent carrying its own editorial role and
 reading [`references/reviewer-brief.md`](references/reviewer-brief.md) itself.
 [`references/residue-check.md`](references/residue-check.md) loads at stage 5,
 [`references/compact.md`](references/compact.md) at stage 6 — **before** the author sees
-anything — [`references/apply.md`](references/apply.md) only after approval, and
+anything — [`references/write.md`](references/write.md) only after approval, and
 [`references/review.md`](references/review.md) at stage 8. **Nobody loads all of it**, and no
 file restates another.
 
-## The nine verdicts
+## The eight verdicts
 
-Everything below this line uses these nine words. A reviewer emits them; **you receive one per
-angle per block and must synthesise ONE**, so what matters here is what each obliges *you* to do:
+Everything below this line uses these eight words. A reviewer emits them; **you receive one per
+role per block and must synthesise ONE**, so what matters here is what each obliges *you* to do:
 
 | verdict | the claim is | what you do with it |
 |---|---|---|
-| `clean` | nothing to report **from this angle** | nothing. Not a pass, and not a claim the block is correct — it is one angle having no finding, including when the block is outside what that angle reads |
+| `clean` | nothing to report **from this role**, on a block that role READ | nothing. Not a pass, and not a claim the block is correct — one role having no finding. A block outside what the role reads is `query` |
 | `query` | unsettled | resolve it or escalate it. It blocks every other verdict on that sentence |
 | `drop` | true but not worth keeping | delete the sentence |
 | `correct` | **FALSE** | apply the true/false pair. **Always before any `patch`** |
 | `patch` | **TRUE**, badly worded | apply the rewrite |
 | `add` | missing entirely | insert the text at the anchor named with it |
-| `move` | true, and **not code's to hold at all** | extract verbatim OUT of the code, to the destination resolved at 1.4 |
-| `reanchor` | true and code's to hold, but **attached to the wrong line** | re-attach the block, unchanged, to the declaration it constrains **in the same file** |
+| `move` | true, but **it belongs somewhere else** | re-attach the block, unchanged, at the destination carried with it — another line in this file, another file, or out of the code entirely |
 | `split` | two claims in one block | re-anchor each fragment to the code it is about |
 
-⚠⚠ **`move` and `reanchor` are separate words because they have different AVAILABILITY.**
-`move` takes prose out of the code and needs a destination tree, so 1.4 can rule it UNAVAILABLE
-for a whole run. `reanchor` re-attaches a block inside the same file and needs nothing outside
-it, so 1.4 never withholds it.
+⚠⚠ **A relocation is ONE judgment, and the DESTINATION carries the rest.** Whether the prose
+belongs ten lines down, in another file, or out of the code altogether is payload — not a
+second verdict. The reason it belongs there goes in `FINDING`, which every record already
+has. **Availability keys on the destination, never on the verdict:** only a destination
+OUTSIDE the code needs the tree 1.4 resolved, so only that case can be unavailable. A
+relocation into tracked code needs nothing outside it and is never withheld.
 
 ⚠⚠ **`correct` and `patch` are the distinction the whole design turns on.** `correct` says the
 sentence is wrong; `patch` says it is right and reads badly. Applying a `patch` to a false
@@ -72,19 +73,20 @@ stage 5 by refusing a verdict that arrives without one.
 
 ## Why the stages are in this order
 
-**1–3 build a tree and write nothing.** Every comment run and every docstring is a node,
-attached to the declaration it annotates, with every reference it makes already resolved.
+**1–3 build the PROSE TREE and write nothing.** The prose tree is every comment run and
+every docstring in the files under review, each one a NODE attached to the declaration it
+annotates, with every reference it makes already resolved.
 Most of the rules further down are consequences of that shape rather than separate
 instructions:
 
-- **coverage is a tree walk.** You visited every node or you did not — *"a block nobody
-  mentioned is a gap in the mark, not a block that passed"* is the walk being complete, not a
+- **coverage is a COMPLETE READ.** You read every node or you did not — *"a block nobody
+  mentioned is a gap in the review, not a block that passed"* is the read being complete, not a
   discipline to remember.
-- **the marks are annotations on a node**, so a reviewer receives resolved references instead
+- **the annotations are attached to a node**, so a reviewer receives resolved references instead
   of re-deriving them.
-- **the four angles are four visitors over one tree**, which is why their overlap is signal.
+- **the four editorial roles are four visitors over one tree**, which is why their overlap is signal.
 - **the edits are applied to NODES**, so "never change a line of code" holds by construction
-  — the AST proof in `apply.md` confirms that rather than being the only thing enforcing it.
+  — the CODE CHECK in `write.md` confirms that rather than being the only thing enforcing it.
 
 ⚠ **The model is the tree; the implementation depends on nothing.** `scripts/census.py` builds
 it from the stdlib alone, at the tier available for each file's language. Both tiers find the
@@ -92,10 +94,10 @@ same blocks and differ only in what else they can say:
 
 | tier | needs | answers | cannot answer |
 |---|---|---|---|
-| `tokenized` | a lexer + AST (Python: the stdlib) | blocks, marks, **docstring** owners | a **comment's** owner |
-| `lexical` | a comment-syntax record, nothing else | blocks, marks | any owner; a marker inside an exotic string |
+| `tokenized` | a lexer + AST (Python: the stdlib) | blocks, annotations, **docstring** anchors | a **comment's** anchor |
+| `lexical` | a comment-syntax record, nothing else | blocks, annotations | any anchor; a marker inside an exotic string |
 
-⚠⚠ **NO COMMENT carries an owner, in any language.** A docstring's owner comes free from the
+⚠⚠ **NO COMMENT carries an anchor, in any language.** A docstring's anchor comes from the
 AST; a `#` run's does not, and nothing infers it. So **every ownership-context verdict rests on
 a reviewer reading the file** — a judgement no field records and nothing downstream can check.
 Treat a placement finding as a CANDIDATE and **say so in your stage 2-3 report**, the same way
@@ -103,11 +105,11 @@ an unavailable `move` is said at stage 1 rather than discovered at stage 6.
 
 ⚠ **Only OWNERSHIP-CONTEXT is affected.** Block-context and module-context never ask where a
 block belongs, and function-context's ordering read takes its structure from the body rather
-than from a census field — so three of the four angles are at full strength on any file the
+than from a census field — so three of the four roles are at full strength on any file the
 census can read. "No parser for this language" reads like "no review" and is not.
 
-⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks ownership.**
-An unresolved owner weakens a verdict; an absent block produces none and reports no gap. **Adopt
+⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks anchoring.**
+An unresolved anchor weakens a verdict; an absent block produces none and reports no gap. **Adopt
 a richer source of structure only if it misses ZERO blocks.**
 
 Depending on nothing is the point: this skill must run on a fresh checkout, and a tier chosen
@@ -116,17 +118,17 @@ environment. **Adding a language is a row of data in `LANGUAGES`** — `python
 <skill>/scripts/census.py --languages` lists what is known. A suffix with no record is
 **reported as unreviewable, never silently skipped.**
 
-**MARK (4) is separate from EDIT (5)** because a reviewer that fixes what it finds has
+**MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding. The brief holds that rule and binds the reviewers to it.
 
-**EDIT (5) writes at FULL LENGTH and is not allowed to consider the cap.** Its only job is a
+**APPLY (5) writes at FULL LENGTH and is not allowed to consider the cap.** Its only job is a
 comment that is true, local and load-bearing. Length is not one of its questions, and a run
 that returns long correct prose has succeeded.
 
 **COMPACT (6) is a separate pass over that text, and it comes AFTER edit and BEFORE
 approval.** Two constraints pin it into exactly this slot:
 
-- **After EDIT**, because prose can only be shortened without losing information once it is
+- **After APPLY**, because prose can only be shortened without losing information once it is
   true. Shortening first is how a false sentence survives — it gets *trimmed around* rather
   than checked, arriving shorter, cleaner, in-cap and strictly harder to falsify.
 - ⚠⚠ **Before APPROVAL, because the author must rule on the text that will actually be
@@ -135,8 +137,8 @@ approval.** Two constraints pin it into exactly this slot:
   and it is worse here than almost anywhere, because this author approves quickly and
   unaudited — the one thing they are relied on for is that what they saw is what lands.
 
-⚠ **The two stages have different inputs, and that is deliberate.** EDIT needs the code, the
-marks and one verdict per angle that ran. COMPACT needs only the **block's KIND**, the
+⚠ **The two stages have different inputs, and that is deliberate.** APPLY needs the code, the
+annotations and one verdict per role that ran. COMPACT needs only the **block's KIND**, the
 **original block**, the **edited text**, the **cap** and the **style sheet** — never the
 reasoning that produced the edit. That narrower contract is a safety property: an agent that
 never saw the argument cannot preserve a sentence because it remembers writing it, and it is
@@ -170,7 +172,7 @@ every block, rule on sentences, **write the replacement text yourself**, and ver
 write. "compact + correct" is not a finding: it hands back the judgement this review exists
 to make.
 
-**The REVIEWERS** are read-only, one angle each, and never see this file.
+**The REVIEWERS** are read-only, one editorial role each, and never see this file.
 
 ## Arguments
 
@@ -180,10 +182,10 @@ to make.
 - **`target`** — a path; **replaces** the diff scope, never intersects it.
 - **`level`** — how deep to edit, declared before starting. Default `full`.
 
-| level | angles | verdicts available |
+| level | roles | verdicts available |
 |---|---|---|
 | `fact-check` | ownership-context, block-context, function-context | `correct` · `query` · `clean` |
-| `line` | the same three | + `drop` · `move` · `reanchor` · `split` · `add` |
+| `line` | the same three | + `drop` · `move` · `split` · `add` |
 | `full` | + module-context | + `patch` |
 | `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
 
@@ -191,7 +193,7 @@ to make.
 a claim against the code at their scope; a claim attached to the wrong scope is measured
 against the wrong code and `correct`ed into a falsehood.
 
-⚠⚠ **The ladder changes shape and that is the point.** It used to add an ANGLE at each rung;
+⚠⚠ **The ladder changes shape and that is the point.** It used to add a ROLE at each rung;
 now `line` adds only VERDICTS, because `ownership-context` already ran at `fact-check`.
 
 ⚠⚠ **If `move` is unavailable (1.4), NO level reaches the cap, and say so up front.** True
@@ -207,7 +209,8 @@ which is the half that matters. Say which level you ran, in the report.
 - **`style`** — a path to a style sheet from a previous run. Optional; see 1.5.
 
 ⚠⚠ **THE CAP IS APPLIED IN STAGE 6 AND NOWHERE ELSE** — never while text is being written,
-and **never passed to a reviewer**. Length is not an angle; the reason is in the brief.
+and **never passed to a reviewer** — it is not a section of the stage-4 packet, and neither is
+`WIDTH`. Length is not an editorial role; the reason is in the brief.
 
 ## Stage 1 — PROJECT DETERMINATION: ground truth
 
@@ -242,15 +245,26 @@ is the common set). An exempt marker neither counts toward the cap nor splits a 
 that is in-cap except for a marker is IN CAP. Without this, the cheapest route to green is
 deleting the pointer to filed work.
 
-**1.3 Determine the repo's doc style** - Rewriting docstrings in the wrong style will just
-frustrate them - get a template for the appropriate docstring format for use when rewriting the 
-docstring.
+**1.3 MEASURE the repo's documentation formats. Do not assume one.** Read the docstrings that
+are there and record what they actually do, separately for each of:
+
+- **module** docstrings — the shape this repo puts at the top of a file
+- **function and method** docstrings — google, numpy, sphinx, or a house shape
+- **comment** format — recorded SEPARATELY, and only where the repo is consistent about one
+
+⚠ **Write a TEMPLATE for each, from what is in the tree.** A template is a shape written out
+with its slots, not a shape NAMED — naming a standard the repo does not follow is how a correct
+sentence lands in the wrong format. The dispatch packet is a template too.
+
+The templates belong in the STYLE SHEET (1.5), which is what carries them to the reviewers, to
+stage 5 and to stage 6.
 
 **1.4 Resolve every `move` destination**, and decide NOW what happens if none resolves. A
 verdict pointing at a tree that does not exist is not a verdict.
 
-⚠⚠ **If the destination tree is absent, `move` is UNAVAILABLE for this run — and its blocks
-become `clean`, never `drop`.** Say so HERE, in the stage 1 report, and again at 7a; offer the human the one-line alternative
+⚠⚠ **If the destination tree is absent, only `move` OUT OF THE CODE is unavailable — and
+those blocks become `clean`, never `drop`. A `move` to a destination inside tracked code is
+unaffected and always available.** Say so HERE, in the stage 1 report, and again at 7a; offer the human the one-line alternative
 (create the tree, or name another destination). This matters because the matrix routes
 *not-checkable + necessary* to `move`, and a repo that stages prose usually also rules that
 prose is MOVED, never deleted — so with no destination those two rules leave the block with no
@@ -264,13 +278,14 @@ the only copy.**
 This is the copy-editor's artifact and it is the only thing in this skill that PERSISTS between
 runs. It records decisions made for THIS codebase so the next pass does not relitigate them:
 the dialect its identifiers use, how domain terms are capitalised, the house citation form, the
-docstring convention from 1.3, terms of art with a fixed meaning, and any ruling the human made
-last time.
+**documentation TEMPLATES measured at 1.3** — module docstring, function docstring, and the
+comment format where there is one — terms of art with a fixed meaning, and any ruling the human
+made last time.
 
 ⚠⚠ **Without it, a pass drifts the prose while fixing it.** Measured: one run introduced **14
 en-GB spellings** into a codebase whose identifiers are en-US — including *"the event's colour"*
-on a function returning a `colorId`. Every angle was satisfied; nothing owned consistency. There
-is no fifth reviewer for this, deliberately — consistency is enforced at the SWEEP, against the
+on a function returning a `colorId`. Every role was satisfied; nothing owned consistency. There
+is no fifth reviewer for this, deliberately — consistency is enforced at WRITE, against the
 sheet, not by another visitor over the tree.
 
 ⚠ **It is binding, not advisory.** An edit that departs from the sheet is out of scope in the
@@ -283,9 +298,9 @@ them. They are plugin agents and their names are NAMESPACED — `comment-review:
 ⚠⚠ **If they do not resolve, say so at stage 1 and say what you will do instead.** Measured on
 all three verification runs: every one failed at stage 4 with
 `Agent type 'comment-review-ownership-context' not found`, and every one silently improvised the same
-fallback. The sanctioned fallback is **four general-purpose agents given the ANGLE FILES
-paths from the packet** — never the angle text pasted into a prompt, which goes
-stale the moment an angle is edited. Because the packet already carries those
+fallback. The sanctioned fallback is **four general-purpose agents given the REVIEWER FILES
+paths from the packet** — never the role text pasted into a prompt, which goes
+stale the moment a role file is edited. Because the packet already carries those
 absolute paths, the fallback is a substitution rather than an improvisation.
 
 **1.7 Probe for a LANGUAGE SERVER, once per language in scope.** One `LSP documentSymbol`
@@ -298,7 +313,7 @@ things, and neither is the census:
 
 | | with a server | without |
 |---|---|---|
-| **who owns a block** | `documentSymbol` → the declaration on the line after the run ends | nothing resolves it |
+| **a block's ANCHOR** | `documentSymbol` → the declaration on the line after the comment run ends | nothing resolves it |
 | **is a name alive** | `workspaceSymbol` / `findReferences`, in **any** language | the Python AST corpus only |
 
 ⚠⚠ **LSP RETURNS NO COMMENTS, so it can never replace `census.py`.** The nine operations
@@ -306,7 +321,7 @@ exposed — definition, references, hover, documentSymbol, workspaceSymbol, impl
 the call-hierarchy three — return no prose at all; `semanticTokens` and `foldingRange`, the
 two that would, are not among them. On a Go file a server reports `func F` at line 4 while
 nothing has said there is a comment at line 2 to attach to it. **A block must be FOUND before
-anything can own it, so stages 2–3 always run.**
+anything can anchor it, so stages 2–3 always run.**
 
 ⚠ **Absence is reported, never inferred, and there are THREE states — not two.**
 
@@ -319,7 +334,7 @@ anything can own it, so stages 2–3 always run.**
 ⚠⚠ **The third is not the second.** With no LSP tool the probe cannot be made, so "no server
 answered" would be an inference, which the rule above forbids. Say a probe was impossible.
 Measured: three runs hit this state and all three had to improvise the distinction. This is
-additive: with a server you gain owners and cross-language liveness, without one you lose
+additive: with a server you gain anchors and cross-language liveness, without one you lose
 nothing you had. What you may not do is let a run that had no server read like one that did.
 
 **1.8 Decide where the name corpus comes from** — every liveness check downstream depends on
@@ -338,14 +353,15 @@ name on its **head** segment only.
 ## Stages 2–3 — ANNOTATE, then FIND REFERENCES
 
 ⚠ `<skill>` below is the directory holding this SKILL.md — take it from the absolute path you
-were given, because a relative one does not resolve from a worktree.
+were given. A relative one resolves against whatever directory you are in, which is not
+guaranteed to be the skill's.
 
 ```bash
 python <skill>/scripts/census.py --repo . <paths...>          # no cap, no width rule
 python <skill>/scripts/census.py --cap 6 --width 88 --repo . <paths...>   # both published
 ```
 
-It emits the numbered tree — `N  file:start-end  kind  lines  marks  (owner)` — with each
+It emits the numbered tree — `N  file:start-end  kind  lines  annotations  (anchor)` — with each
 node's references already resolved, and it prints the tier counts for the run. ⚠ Those are
 AGGREGATED across files, not per file — on a polyglot run you cannot tell which file reached
 which tier, which is exactly when it matters. Run it; do not
@@ -365,44 +381,56 @@ false obituary.
 
 ### What counts as ONE block
 
+⚠ **A COMMENT RUN is the prose INSIDE a block** — the contiguous comment lines between the
+two code lines that bound it. `run` alone means one invocation of this skill; both senses
+appear in this file, and only the qualifier tells them apart.
+
+⚠⚠ **A block is the interval between two lines of CODE.** The lines of code above and below
+define it; what is written between them does not. Only code is a boundary — not a blank line,
+not a work marker, not a change of subject. Everything between one code line and the next is
+one block, however much or little that is.
+
 ```python
 variable_a = 1234
-# ← code ENDS any run above it
 
-# comment_block starts               lines = 1
-# TODO: important thing in it        lines = 1   ← a marker is FREE: not counted,
-#                and it does NOT split the run
-# comment_block continues            lines = 2   ← a blank line does NOT end a run
-# comment_block ends                 lines = 3
-result = foo_bar(variable_a)  # ← code ENDS the run. One block, 3 lines,
-#    OWNED by this statement, not by variable_a
+# comment_block starts
+# TODO: important thing in it
+# comment_block continues
+# comment_block ends
+result = foo_bar(variable_a)
 ```
 
-Four physical comment lines, **one** node, **three** counted lines. Each of those three
-facts is a separate rule, and getting any of them wrong changes what the reviewers see:
+**One block**, bounded by `variable_a = 1234` and `result = ...`. Four physical comment lines,
+**three** counted: the marker line is free. The blank is inside the block and is charged
+nothing. ⚠ The example carries no inline annotations on purpose — a `#` note explaining the
+example would be a comment sitting inside the very interval it describes, and would be counted.
+
+Three rules people state separately all follow from the one definition, and getting any of them
+wrong changes what the reviewers see:
 
 - **Only code ends a run.** A blank line does not. Split on blanks and a 9-line block reads
   as `6 + 3` and passes a cap of 6 — the single cheapest way to fake compliance.
 - **A work marker is free** (`TODO` `FIXME` `HACK` `XXX` `BUG`, or whatever 1.2 found this
-  repo exempts). It does not count toward the cap and it does not split the run. Both halves
+  repo exempts). It does not count toward the cap and it does not split the comment run. Both halves
   matter: if it counted, the cheapest route to green would be deleting a pointer to filed
   work; if it split, a block could be made compliant by adding one. ⚠ **A marker's
   CONTINUATION lines still count** — only the marker line itself is free.
 - **A block belongs to the code BELOW it**, which is what makes ownership-context answerable. The
-  block above is about `result`, and an ownership-context finding says so by naming that owner.
-- **A trailing comment is its own block**, one line, owned by the line it sits on — and a
+  block above is about `result`, and an ownership-context finding says so by naming that anchor.
+- **A trailing comment is its own block**, one line, anchored to the line it sits on — and a
   trailing comment whose sentence carries past its own line is a finding in itself.
 
 Marks, and what resolving each one means:
 
-| mark | resolved by |
+| annotation | resolved by |
 |---|---|
 | `cites-a-path` | tracked in the tree? ⚠ present-but-untracked is **unverifiable**, not dangling |
 | `names-a-symbol` | `workspaceSymbol` where 1.7 found a server, else the AST corpus (head segment; `foo()` normalised) |
 | `counted` | re-derive the POPULATION, then count it |
-| `coverage-claim` | does the guard exist — **can it fail**, and does it pass with its exemptions OFF? |
+| `coverage-claim` | does the guard exist — and **can it fail**? |
 | `forbids-a-literal` | grep the forbidden literal across that file |
 | `repeated-literal` | where else is this number written? one source at both ends of a round trip? |
+| `narrative-in-docstring` | is the date, review label or *"used to"* a claim about HISTORY rather than about the code now? |
 
 ⚠⚠ **The last four are where the defects are. Check the CLAIM, not the CITATION.** Resolving
 a path *feels* like verification; resolving a claim **is** it.
@@ -413,15 +441,15 @@ The census names every block; the server can say what a block BELONGS to. Do thi
 and attach the answer to the node — not in stage 4, where four reviewers would each re-derive
 it and could disagree.
 
-- **Owner** — `documentSymbol` on each file in scope returns every declaration and its line.
-  A run ending at line N-1 is owned by the declaration at line N. Attach it; the census
-  prints owners it has.
+- **Anchor** — `documentSymbol` on each file in scope returns every declaration and its line.
+  A run ending at line N-1 is ANCHORED to the declaration at line N. Attach it; the census
+  prints anchors it has.
 - **Liveness** — for each `names-a-symbol` candidate, `workspaceSymbol` answers whether the
   name exists at all, in any language in the workspace. `findReferences` answers whether
   anything uses it, which is the stronger claim a comment usually makes.
 
 ⚠ **A server does not settle a claim, it settles a FACT.** "This name exists" is not "this
-comment is true" — the mark stays a CANDIDATE a reviewer confirms, exactly as when the AST
+comment is true" — the annotation stays a CANDIDATE a reviewer confirms, exactly as when the AST
 answered it. What changes is the cost of checking, not who decides.
 
 ⚠⚠ **Say which servers answered, in the stage 2–3 report, per language.** Availability is a
@@ -437,9 +465,8 @@ python <skill>/scripts/referrers.py --repo . <paths under review...>
 ```
 
 It prints every tracked file that NAMES one of them — by path, by stem, or by a
-public top-level definition — and suppresses a token too common to discriminate
-rather than dumping it. Those files are the **REFERENCE ONLY** list you hand the
-reviewers at stage 4; a config, data or documentation file carrying prose that
+public top-level definition. Those files are the **REFERENCE ONLY** list you hand
+the reviewers at stage 4; a config, data or documentation file carrying prose that
 justifies a value is a node like any other. Measured: one unreviewed config file
 held 12 confirmed defects, six of them the same rewrite the pass had already
 applied in a `.py` file.
@@ -465,8 +492,20 @@ an over-cap or over-width count that reads like a project fact and is your own g
 | `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
 | `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
 
-Each already carries its own angle and reads the shared brief itself. **You
-supply the run context as a PACKET, and the packet is checked before anyone is
+Each already carries its own editorial role and reads the shared brief itself.
+
+⚠⚠ **Put each agent's VOCABULARY in its prompt, verbatim.** One command per agent, and the
+output is pasted as it comes — it is the only statement of those words anywhere:
+
+```bash
+python <skill>/scripts/vocabulary.py --reviewer ownership-context
+```
+
+`--roles` lists the six that have one. ⚠ Do not summarise it, do not trim it to the terms you
+think a file uses, and do not tell an agent where the vocabulary lives — it is given the words,
+not a path to go reading.
+
+**You also supply the run context as a PACKET, and the packet is checked before anyone is
 dispatched:**
 
 ```bash
@@ -478,18 +517,19 @@ python <skill>/scripts/run_context.py --check <run-dir>/context.md
 It refuses a section that is absent **or present and blank** — *"no cap
 published"* is an answer and must be written; a blank is a question nobody
 asked. It then refuses the three answers a machine can settle: `LEVEL` must be
-one of the four level names, and `CENSUS` and every `ANGLE FILES` entry must be
-an **absolute path that exists**. ⚠ **The other eight are prose it cannot
+one of the four level names, and `CENSUS` and every `REVIEWER FILES` entry must be
+an **absolute path that exists**. ⚠ **The other six are prose it cannot
 check**, and passing says nothing about them. Hand every reviewer the one path.
 Measured: a run dispatched without a style sheet introduced **14 en-GB
-spellings** into a codebase whose identifiers are en-US, and every angle was
+spellings** into a codebase whose identifiers are en-US, and every role was
 satisfied because nothing owned consistency.
 
-⚠ **The template matters because reviewers write replacement text.** A correct sentence in the
-wrong docstring convention is a finding the human has to redo by hand, and they are not
-expected to be careful enough to notice.
+⚠ **The templates go to the reviewers too, and stages 5 and 6 match their output against them.**
+A docstring's format decides which of its lines are structural and which are prose, so a
+reviewer that does not know the format cannot tell what a block contains. And a correct
+sentence in the wrong format is work the human has to redo by hand.
 
-⚠ **Do not paste the brief or an angle into the prompt.** They are single-sourced on purpose;
+⚠ **Do not paste the brief or a role file into the prompt.** They are single-sourced on purpose;
 a copy in a prompt is a copy that goes stale.
 
 ⚠ **REFERENCE ONLY is a SELECTION, not a leftover.** Name the files that settle claims code
@@ -501,39 +541,40 @@ docstrings and one live constant; and a mirror tree that held the CORRECT text i
 known inversions while the code was backwards. The code still settles code claims — a
 disagreement with the mirror is itself a finding.
 
-Overlap between angles is **signal**: a claim one affirms and another refutes is the
-highest-value output here. Measured — one angle read a false absence claim and wrote
-it was true; another refuted it by grep. A single-angle run ratifies falsehoods.
+Overlap between roles is **signal**: a claim one affirms and another refutes is the
+highest-value output here. Measured — one role read a false absence claim and wrote
+it was true; another refuted it by grep. A single-role run ratifies falsehoods.
 
 **Re-review is normal.** An accreted block is layered — a live constraint, an origin story, a
 correction to it, a review label — and peeling one reveals the next. Send a block back when
-angles contradict, when a citation resolves to a *different* thing than the prose implies, or
+roles contradict, when a citation resolves to a *different* thing than the prose implies, or
 when you cannot write the replacement text.
 
-## Stage 5 — EDIT: one verdict, one FULL-LENGTH replacement
+## Stage 5 — APPLY: one verdict, one FULL-LENGTH replacement
 
-⚠⚠ **Run the join before you rule on anything.** It is the gate between MARK and
-EDIT:
+⚠⚠ **Run THE JOIN before you rule on anything** — `verdicts.py`, which reads every
+reviewer's report against the census and against the others', and refuses what it cannot
+verify. It is the gate between MARK and APPLY:
 
 ```bash
 python <skill>/scripts/verdicts.py --census <census>.json --level <level> \
-  --angles ownership-context,block-context,function-context,module-context \
-  --repo . <one report file per angle>
+  --reviewers ownership-context,block-context,function-context,module-context \
+  --repo . <one report file per role>
 ```
 
-⚠⚠ **NAME EACH REPORT FILE AFTER ITS ANGLE** — `ownership-context.md`, `block-context.md`,
-`function-context.md`, `module-context.md`. The tool takes an angle from the
-report's FILE STEM, and `--angles` compares against those stems, so a report
-saved as `report1.md` is an angle nobody expected and every expected angle
+⚠⚠ **NAME EACH REPORT FILE AFTER ITS ROLE** — `ownership-context.md`, `block-context.md`,
+`function-context.md`, `module-context.md`. The tool takes the role name from the
+report's FILE STEM, and `--reviewers` compares against those stems, so a report
+saved as `report1.md` is a role nobody expected and every expected role
 reads as missing. Two files with the same stem are refused outright.
 
-⚠ **Pass `--angles` every time, listing the angles this LEVEL ran.** Without it
-a reviewer that never reported at all is invisible — "every angle" silently
+⚠ **Pass `--reviewers` every time, listing the roles this LEVEL ran.** Without it
+a reviewer that never reported at all is invisible — "every reviewer" silently
 means "every file I was handed", the easier version of the fabrication below.
 The list above is `full`; at `fact-check` it is `ownership-context,block-context,function-context`.
 
 It exits nonzero on a coverage gap, a citation that does not resolve, a quote
-not found near its cited line, a verdict the level does not carry, an angle
+not found near its cited line, a verdict the level does not carry, a role
 that did not report, or a payload the verdict table requires and the record
 lacks. It also names the blocks where `drop` meets `correct`/`patch` — **a
 re-review, never a tie-break** — and prints which blocks STAND UNCHANGED under
@@ -593,16 +634,18 @@ being settled:
 
 1. **`query`** — resolve it or escalate it. An unresolved claim cannot be corrected, patched or
    dropped, because you would be editing something nobody has read.
-2. **`drop` and `move`** — take out what is leaving. Doing this first stops you correcting a
-   sentence that is about to go. ⚠ `reanchor` does NOT belong here: it removes nothing, so it
-   waits until the text is settled.
+2. **`drop`, and any `move` whose destination is OUTSIDE the code** — take out what is
+   leaving. Doing this first stops you correcting a sentence that is about to go. ⚠ A `move`
+   staying inside the code does NOT belong here: it removes nothing, so it waits until the
+   text is settled.
 3. **`correct`** — fix truth, on what remains.
 4. **`patch`** — fix wording, on text now known to be true. ⚠ Never before step 3.
 5. **`add`** — insert at the stated anchors.
-6. **`reanchor` and `split`** — re-attach what belongs beside different code, `reanchor` as one
-   block and `split` as fragments. Last before `clean`, because the text must be final first.
-7. **`clean`** — the null verdict. A block stands unchanged when **every angle that ran**
-   returned `clean` and nothing else. ⚠ *Every angle that RAN*, not four: at `fact-check` only
+6. **`move` inside the code, and `split`** — re-attach what belongs beside different code,
+   `move` as one block and `split` as fragments. Last before `clean`, because the text must
+   be final first.
+7. **`clean`** — the null verdict. A block stands unchanged when **every reviewer that ran**
+   returned `clean` and nothing else. ⚠ *Every reviewer that RAN*, not four: at `fact-check` only
    three run, and requiring four would make a block unblessable at that level.
 
 ⚠ **Load [`references/residue-check.md`](references/residue-check.md) before you write anything**
@@ -617,12 +660,12 @@ not once per verdict. The check compares against the original, and the original 
 - **Two placement verdicts on one block, naming different destinations:**
   `ownership-context`'s destination governs. Both findings stand; only the destination is
   decided.
-- **Any `correct` outranks every `clean`.** Three angles finding nothing does not soften one
-  angle finding a falsehood; they were not looking for the same thing.
+- **Any `correct` outranks every `clean`.** Three roles finding nothing does not soften one
+  role finding a falsehood; they were not looking for the same thing.
 - **`correct` and `patch` on the same sentence:** correct first, then re-read the patch against
   the corrected text. Usually it no longer applies.
 - **`drop` against `correct` OR `patch` on the same sentence is a contradiction**, not a merge —
-  one angle says it should not exist and another says it should exist and be fixed. Send it back
+  one role says it should not exist and another says it should exist and be fixed. Send it back
   for re-review. ⚠ **Do not let the synthesis order decide it.** Step 2 applies `drop` before
   step 3 and 4, so deletion would win silently — and if the dropped sentence carries a fact the
   survivor does not, that is a meaning change made on an absent author's behalf, which
@@ -631,7 +674,7 @@ not once per verdict. The check compares against the original, and the original 
 ⚠ **Dedup on the CLAIM, not the block**, before any of this.
 
 ⚠⚠ **THE SENTENCE YOU PROPOSE TO KEEP IS A FINDING YOU HAVE NOT RAISED.** Before any `patch`
-or `move`, verify the retained clause the way stage 3 resolves a mark. The reviewer keeps the
+or `move`, verify the retained clause the way stage 3 resolves an annotation. The reviewer keeps the
 load-bearing-*sounding* clause — which is the claim, which is what is wrong — and cuts the
 **provenance** around it: the date, the pointer, the grepable name.
 
@@ -670,7 +713,7 @@ SURVIVED, not what went; **refactoring drift**.
 ## Stage 6 — COMPACT: only if there is a cap
 
 **If no cap applies, the run SKIPS this stage entirely.** Say so: the prose is correct, and
-absent a budget "long" is not a defect.
+absent a cap "long" is not a defect.
 
 If there is a cap, and only once **every** block from stage 5 is CORRECT,
 dispatch `comment-review:comment-review-compact` with the narrow input contract
@@ -708,13 +751,13 @@ on the assumption that the text in front of them is the text that lands.
 **Hand back the STYLE SHEET**, updated with every decision this run made — the sheet is how the
 next pass avoids re-deciding, and it is worthless if it stays in your head.
 
-⚠ **Approval IS authorization.** "Yes", "do it", "continue" → load `references/apply.md` and
+⚠ **Approval IS authorization.** "Yes", "do it", "continue" → load `references/write.md` and
 apply. Never-edit binds reviewers, not you acting on an approval.
 
-## Stage 7b — APPROVAL: apply what was approved
+## Stage 7b — WRITE: put the approved text on disk
 
-On approval, load [`references/apply.md`](references/apply.md) and follow it. It carries the
-residue check and the apply rails. Do not apply from memory.
+On approval, load [`references/write.md`](references/write.md) and follow it. It carries the
+residue check and the write rails. Do not write from memory.
 
 ⚠ **Stage 7b writes the APPROVED text verbatim.** It does not shorten, re-word or re-judge —
 every one of those questions was settled upstream, and re-opening one here writes something

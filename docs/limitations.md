@@ -6,7 +6,13 @@
 recognise *that comment* instead of the shape, and it rots — a hygiene skill carrying its own
 obituary. Measurements anonymise for free.
 
-⚠⚠ **THE BUDGET IS THE POINT, AND IT IS PER FILE.** A tight budget forces a *generalization*
+⚠⚠ **THE BUDGET IS THE POINT, AND IT IS PER FILE.** A **budget** is how much CONTEXT one of
+these files costs everyone who loads it, measured in lines. That is the only budget this
+system has — a comment's line limit is its `cap`, a different thing, and the census a run
+produces is not a budget at all. ⚠ **RULE FILES are budgeted; RUN DATA is not.** A census
+large enough to name every interval in a file is the cost of doing the job properly, and
+trading its completeness for size would buy nothing this budget is protecting. A tight budget forces
+a *generalization*
 instead of one rule per incident; without it these files become a case file for whatever repo
 they last ran in — fitted to that project, useless to the next. **This is the opposite of the
 cap rule for comments**, and the reason is what is optimised: **a comment must be true about
@@ -19,7 +25,7 @@ Assume a reasoning reader: state the rule and its discriminator, not the argumen
 budget, a new rule **replaces** one — and if two rules are instances of one generalization,
 write the generalization and delete both.
 
-**The budget for the four angles is their current length, and these are the numbers:**
+**The budget for the four editorial roles is their current length, and these are the numbers:**
 
 | agent file (`plugins/comment-review/agents/`) | lines |
 | --- | --- |
@@ -33,12 +39,19 @@ change to this file that a reviewer rules on, not a side effect of adding a rule
 that no longer matches `wc -l` is a finding against this file.
 
 ⚠ **A rule belongs in exactly one file.** Shared reviewer contract →
-`reviewer-brief.md`; one angle's → that angle's agent definition; a stage's procedure → that
-stage's file under `references/` (`residue-check.md`, `compact.md`, `apply.md`, `review.md`); a
+`reviewer-brief.md`; one role's → that role's agent definition; a stage's procedure → that
+stage's file under `references/` (`residue-check.md`, `compact.md`, `write.md`, `review.md`); a
 rule a SCRIPT enforces → that script's docstring (`census.py`, `referrers.py`, `verdicts.py`,
 `run_context.py`, `prove_unchanged.py`); orchestration → here. Restating one across two files is
 the antipattern this skill exists to find, and the four agents are the place it will happen —
 they read alike and invite copy-paste.
+
+⚠⚠ **THE TWO LARGEST FILES EVERY RUN LOADS HAVE NO BUDGET.** Measured 2026-08-15:
+`reviewer-brief.md` is 18,343 bytes and `SKILL.md` 47,438. A reviewer loads its role file
+plus the brief — about 26 KB, of which **70% is the brief, not its own role** — and four
+reviewers dispatched in parallel load **four copies of it**, 73 KB of the run's 101 KB. The
+numbers above budget the four role files only: 28 KB of the 224 KB shipped, and the
+smallest part of what a run actually costs.
 
 **Any Python shipped here must be generic** — no hardcoded paths, no assumed directory names,
 no cap baked into a script whose prose says the skill has no cap of its own.

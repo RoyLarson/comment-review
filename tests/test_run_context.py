@@ -14,12 +14,6 @@ FULL = """
 ## LEVEL
 full
 
-## CAP
-none published
-
-## WIDTH
-88
-
 ## DOC CONVENTION
 google
 
@@ -35,7 +29,7 @@ UNAVAILABLE — no destination tree
 ## CENSUS
 /tmp/run-abc/census.txt
 
-## ANGLE FILES
+## REVIEWER FILES
 /abs/agents/comment-review-ownership-context.md
 
 ## FILES UNDER REVIEW
@@ -171,21 +165,21 @@ class TestCheckableAnswers(unittest.TestCase):
         self.root = Path(self.tmp.name).resolve()
         self.census = self.root / "census.json"
         self.census.write_text("[]", encoding="utf-8")
-        self.angle = self.root / "ownership-context.md"
-        self.angle.write_text("angle\n", encoding="utf-8")
+        self.reviewer = self.root / "ownership-context.md"
+        self.reviewer.write_text("reviewer\n", encoding="utf-8")
 
     def tearDown(self):
         self.tmp.cleanup()
 
-    def _packet(self, level="full", census=None, angles=None):
+    def _packet(self, level="full", census=None, reviewers=None):
         census = self.census.as_posix() if census is None else census
-        angles = [self.angle.as_posix()] if angles is None else angles
+        reviewers = [self.reviewer.as_posix()] if reviewers is None else reviewers
         return (
             FULL.replace("## LEVEL\nfull", f"## LEVEL\n{level}")
             .replace("## CENSUS\n/tmp/run-abc/census.txt", f"## CENSUS\n{census}")
             .replace(
-                "## ANGLE FILES\n/abs/agents/comment-review-ownership-context.md",
-                "## ANGLE FILES\n" + "\n".join(angles),
+                "## REVIEWER FILES\n/abs/agents/comment-review-ownership-context.md",
+                "## REVIEWER FILES\n" + "\n".join(reviewers),
             )
         )
 
@@ -213,18 +207,20 @@ class TestCheckableAnswers(unittest.TestCase):
         problems = run_context.invalid_answers(self._packet(census=gone))
         self.assertTrue(any(p.startswith("CENSUS:") for p in problems), problems)
 
-    def test_each_angle_file_entry_is_checked_not_just_the_first(self):
-        entries = [self.angle.as_posix(), (self.root / "missing.md").as_posix()]
-        problems = run_context.invalid_answers(self._packet(angles=entries))
+    def test_each_reviewer_file_entry_is_checked_not_just_the_first(self):
+        entries = [self.reviewer.as_posix(), (self.root / "missing.md").as_posix()]
+        problems = run_context.invalid_answers(self._packet(reviewers=entries))
         self.assertEqual(len(problems), 1, problems)
         self.assertIn("missing.md", problems[0])
 
     def test_a_bulleted_and_a_labelled_entry_both_resolve(self):
         entries = [
-            f"- {self.angle.as_posix()}",
-            f"ownership-context: {self.angle.as_posix()}",
+            f"- {self.reviewer.as_posix()}",
+            f"ownership-context: {self.reviewer.as_posix()}",
         ]
-        self.assertEqual(run_context.invalid_answers(self._packet(angles=entries)), [])
+        self.assertEqual(
+            run_context.invalid_answers(self._packet(reviewers=entries)), []
+        )
 
     def test_every_x_packet_is_refused(self):
         # The exact reproduction: a hint replaced by `x` everywhere.
@@ -277,7 +273,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("UNUSABLE", result.stdout)
         self.assertIn("LEVEL:", result.stdout)
         self.assertIn("CENSUS:", result.stdout)
-        self.assertIn("ANGLE FILES:", result.stdout)
+        self.assertIn("REVIEWER FILES:", result.stdout)
         self.assertNotIn("Complete:", result.stdout)
 
 

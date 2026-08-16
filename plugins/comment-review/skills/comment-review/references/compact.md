@@ -21,7 +21,7 @@ block**:
 - a block that looks over-length often shrinks to nothing once the duplicated claim it carries
   is corrected somewhere else.
 
-Condensing per-block during the EDIT gets all three wrong, and each error looks like a
+Condensing per-block during APPLY gets all three wrong, and each error looks like a
 successful edit.
 
 ⚠ **If any block is still marked incorrect or misplaced, stage 6 has not started yet.** Finish
@@ -38,12 +38,12 @@ its full length and say why.**
 
 **If no cap applies, this pass does not run at all.** Stage 5 already removed everything
 false, historical and unnecessary, so what stands is true, current, local and load-bearing.
-Absent a budget, "long" is not a defect and there is nothing here to do — go straight to
+Absent a cap, "long" is not a defect and there is nothing here to do — go straight to
 approval.
 
 **Only shorten prose that is already correct.** This pass may not change a claim, relocate a
 block, drop a constraint, or resolve anything stage 5 left open. If compacting makes you want
-to do any of those, the EDIT was not finished — go back, or file it for the next run.
+to do any of those, APPLY was not finished — go back, or file it for the next run.
 
 ## Per block
 
@@ -73,14 +73,15 @@ pass is most likely to have.** The edit already dropped things legitimately; che
 it lets a second, illegitimate drop through unnoticed. **The original is the baseline, twice.**
 
 ⚠⚠ **The block's KIND is part of the input, and it decides whether this pass may touch the
-block at all.** The census stamps every block `comment`, `trailing-comment` or `docstring`, and
-the two are governed by different rules:
+block at all.** The census stamps every block `comment`, `trailing-comment`, `docstring` or
+`unparsed`, and they are governed by different rules:
 
 | kind | governed by | what this pass may do |
 | --- | --- | --- |
 | `comment` / `trailing-comment` | **LENGTH** — the cap counts lines in one `#` run | cut it to the cap |
 | `docstring` | **FORMAT** — the convention resolved at 1.3 | **nothing.** Long is not a violation |
 | `comment` with `doc-kind-unresolved` | **UNKNOWN** — the census could not tell | **nothing.** Ask, or carry it at length |
+| `unparsed` | **NOT PROSE** — the file did not parse, so nothing was censused | **nothing.** It is a diagnostic standing in for a file, not a block. Report it |
 
 **A cap never applies to a docstring.** Without the kind in front of you, a 107-line numpydoc
 docstring and a 7-line `#` run look like the same over-length problem, and cutting the first to
@@ -115,7 +116,7 @@ wearing a passing grade.**
 
 ## Rails
 
-Every rail in `apply.md` still applies. One is specific to this pass:
+Every rail in `write.md` still applies. One is specific to this pass:
 
 **Do not condense a block into the shape of its neighbours.** Matching surrounding style is how
 a sentence survives review by resembling what is around it rather than by being needed.
@@ -127,6 +128,6 @@ wrong word read as house style and the result was wrong on two independent axes.
 Blocks condensed, blocks left at length with the reason, and the final longest block. A block
 you could not condense is a finding, not a silence.
 
-⚠ **No AST-identity proof here** — nothing has been written yet. That proof belongs to the
-sweep (stage 7b), which is the only pass that touches a file. What you hand back is the text
+⚠ **No CODE CHECK here** — nothing has been written yet. That check belongs to
+WRITE (stage 7b), which is the only pass that touches a file. What you hand back is the text
 stage 7a will put in front of the author.

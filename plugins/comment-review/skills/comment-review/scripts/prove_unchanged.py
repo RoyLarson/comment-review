@@ -1,17 +1,29 @@
-"""Prove a comment-review sweep changed no executable code. Stage 7b's gate.
+"""THE CODE CHECK: does the parser read the file the same before and after?
+
+Stage 7b's gate.
 
     python prove_unchanged.py --base <ref> [--repo D] <paths...>
 
 Exits nonzero unless EVERY path is proven. The claim this skill makes to the
-people who run it is that prose changed and code did not; that claim is a pure
-function of two strings and must not rest on an agent performing it carefully.
+people who run it is that prose changed and the rest reads the same; that claim
+is a pure function of two strings and must not rest on an agent performing it
+carefully.
 
 Two proofs, because two tiers:
 
-  ast       Python. Parse both, blank every docstring, compare `ast.dump`.
-            Comments never reach the AST, so anything else that differs fails.
-  residue   Any language with a `LANGUAGES` record. Delete every comment block
-            the census finds, compare what remains, byte for byte.
+  ast       Python, using the LANGUAGE'S OWN parser. Blank every docstring,
+            compare `ast.dump`. Comments never reach the AST, so anything else
+            that differs fails.
+  stripped  Any other `LANGUAGES` record, using THIS REPO'S comment lexer.
+            Delete every comment it finds, compare the lines that remain --
+            right-stripped, blanks dropped. A PROJECTION, not the file; line
+            endings are checked separately below because this cannot see them.
+
+⚠ That the parser reads it the same SHOULD mean the code says the same, and for
+Python it does -- that is CPython parsing its own language. Elsewhere it rests on
+a lexer built from a data row, so where that lexer is unsure this refuses rather
+than guesses: a delimiter sharing a line with code, an unterminated block
+comment, or a census that disagrees with the file all return `unprovable`.
 
 ⚠ A file this cannot prove is REPORTED as unprovable, never passed. A proof
 that quietly degrades to "looks fine" is worse than no proof, because the
@@ -19,15 +31,15 @@ report still says PROVEN.
 
 ⚠ Line endings are checked against an UNTOUCHED SIBLING, never against the
 stored blob: under `core.autocrlf` the blob is always LF, so normalising to it
-leaves the working tree inconsistent with every file the sweep did not touch --
+leaves the working tree inconsistent with every file WRITE did not touch --
 and `git diff` hides it. Measured four times.
 
 ⚠ An UNTERMINATED block comment makes the whole file UNPROVABLE. The lexer
 swallows every line below the opener into that one run, so a code change after
-that point never reaches the comparison and the residue is merely SHORT -- not
+that point never reaches the comparison and the stripped text is merely SHORT -- not
 obviously wrong, and equal across two files whose code differs. The census
 stamps that run `unterminated-block-comment` and this refuses the file on the
-mark, rather than on a residue that only LOOKS like a proof.
+annotation, rather than on a stripped text that only LOOKS like a proof.
 """
 
 from __future__ import annotations
@@ -52,18 +64,18 @@ from census import (  # noqa: E402  -- path shim must run first
     language_for,
 )
 
-DOC_OWNERS = (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+DOC_ANCHORS = (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 
 def _blank_docstrings(tree: ast.AST) -> ast.AST:
     """Replace every docstring's value with an empty string, in place.
 
     A docstring is prose this skill is allowed to rewrite, so its CONTENT must
-    not enter the signature. Its presence still does: deleting a docstring
+    not enter the fingerprint. Its presence still does: deleting a docstring
     entirely changes the body's shape and stays visible.
     """
     for node in ast.walk(tree):
-        if not isinstance(node, DOC_OWNERS):
+        if not isinstance(node, DOC_ANCHORS):
             continue
         if not node.body:
             continue
@@ -98,7 +110,7 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
     return False
 
 
-def _residue(text: str, path: Path) -> str | None:
+def _without_comments(text: str, path: Path) -> str | None:
     """The file with every comment block removed, or None if unprovable here.
 
     Exact where the data allows it: a block's `raw_lines` is a literal slice
@@ -110,9 +122,9 @@ def _residue(text: str, path: Path) -> str | None:
     to end -- is refused, not guessed at: the whole file becomes unprovable.
 
     An UNTERMINATED block comment is refused the same way, on the census's own
-    `unterminated-block-comment` mark. The lexer swallows every line below the
+    `unterminated-block-comment` annotation. The lexer swallows every line below the
     opener into that run, so the code below it never reaches the comparison and
-    the residue is merely SHORT -- short, plausible and equal on two files whose
+    the stripped text is merely SHORT -- short, plausible and equal on two files whose
     executable code differs.
     """
     lang = language_for(path)
@@ -122,7 +134,7 @@ def _residue(text: str, path: Path) -> str | None:
         blocks = blocks_lexical(path, text, lang)
     except Exception:  # noqa: BLE001  -- an unprovable file is reported, not passed
         return None
-    if any("unterminated-block-comment" in b.marks for b in blocks):
+    if any("unterminated-block-comment" in b.annotations for b in blocks):
         return None
 
     lines = text.splitlines()
@@ -147,33 +159,33 @@ def _residue(text: str, path: Path) -> str | None:
     return "\n".join(v for v in survivors if v.strip())
 
 
-def code_signature(text: str, path: Path) -> tuple[str, str]:
+def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
     """A value equal for two texts exactly when their executable code matches.
 
     Args:
         text: the file's contents.
-        path: used only for its suffix, to pick the proof.
+        path: used only for its suffix, to pick which comparison runs.
 
     Returns:
-        `(kind, signature)`. `kind` is "ast", "residue" or "unprovable"; an
-        unprovable file carries an empty signature and must never be reported
+        `(kind, fingerprint)`. `kind` is "ast", "stripped" or "unprovable"; an
+        unprovable file carries an empty fingerprint and must never be reported
         as proven.
     """
     if path.suffix.lower() in (".py", ".pyi"):
         try:
             return "ast", ast.dump(_blank_docstrings(ast.parse(text)))
         except SyntaxError:
-            pass  # fall through to residue; a broken parse proves nothing
-    residue = _residue(text, path)
-    if residue is None:
+            pass  # fall through to the stripped compare; a broken parse proves nothing
+    stripped = _without_comments(text, path)
+    if stripped is None:
         return "unprovable", ""
-    if not residue.strip() and text.strip():
-        # An all-comment file reaches here with an EMPTY residue while the
+    if not stripped.strip() and text.strip():
+        # An all-comment file reaches here STRIPPED to nothing while the
         # source was not empty. `"" == ""` would "prove" any two such files
         # identical no matter what code either held -- comparing nothing is
         # not a proof.
         return "unprovable", ""
-    return "residue", residue
+    return "stripped", stripped
 
 
 def dominant_ending(text: str) -> str:
@@ -216,7 +228,7 @@ def _show(repo: Path, ref: str, rel: str) -> str | None:
 def _sibling(
     repo: Path, target: Path, edited: set[Path], tracked: list[str]
 ) -> Path | None:
-    """A READABLE tracked file beside `target` that this sweep did not edit.
+    """A READABLE tracked file beside `target` that WRITE did not edit.
 
     Skips a candidate this process cannot itself read as UTF-8 text -- a
     binary or non-UTF-8 sibling is not a usable line-ending reference, and
@@ -283,12 +295,12 @@ def main() -> int:
             failures += 1
             continue
 
-        kind_b, sig_b = code_signature(before, target)
-        kind_a, sig_a = code_signature(after, target)
+        kind_b, fp_b = code_fingerprint(before, target)
+        kind_a, fp_a = code_fingerprint(after, target)
         if kind_a == "unprovable" or kind_b == "unprovable":
             print(
                 f"UNPROVABLE {rel}: prose could not be separated from code"
-                " — code identity NOT shown"
+                " — sameness NOT shown"
             )
             failures += 1
         elif kind_a != kind_b:
@@ -297,11 +309,11 @@ def main() -> int:
                 "— likely broke Python syntax"
             )
             failures += 1
-        elif sig_a != sig_b:
+        elif fp_a != fp_b:
             print(f"FAIL      {rel}: executable code DIFFERS ({kind_a} proof)")
             failures += 1
         else:
-            print(f"PROVEN    {rel}: code identical ({kind_a} proof)")
+            print(f"PROVEN    {rel}: reads the same ({kind_a})")
 
         sib = _sibling(repo, target, edited, tracked)
         if sib is None:
@@ -320,16 +332,16 @@ def main() -> int:
 
     print()
     if failures:
-        print(f"{failures} unproven. The sweep's identity claim does NOT hold.")
+        print(f"{failures} unproven. WRITE's claim does NOT hold.")
         return 1
     if unchecked:
         print(
-            f"{len(args.paths)} paths proven code-identical; {unchecked} with line "
+            f"{len(args.paths)} paths proven; {unchecked} with line "
             "endings UNCHECKED (no readable untouched sibling to compare against)."
         )
     else:
         print(
-            f"{len(args.paths)} paths proven: prose changed, executable code did not."
+            f"{len(args.paths)} paths proven: prose changed, the rest reads the same."
         )
     return 0
 
