@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 1 of 7 tasks done
 Owner:    session · Roy (2 rulings)
 Raised:   2026-08-16 (Roy: "yes drop both lists / and lets create a todo to clean up
           those entries - because several of them do not follow this own skills rules")
@@ -55,12 +55,12 @@ Why they went, in order of weight:
         2026-08-16 from Roy's own renderer example, without reference to the GA.
       - **an expiry condition already met is not an acquittal.**
 
-- [ ] ⭐ Rule on the anti-rationalisation paragraph, the one entry with no shape-matching in it:
-      *"Nothing is acquitted for being SHORT, TRUE, WELL WRITTEN, NEW, or under a `⚠`. Each was
-      measured as an exemption reviewers invented for themselves. Truth least of all: a true claim
-      can be misplaced, unnecessary, or the surviving half of a block whose other half was the
-      constraint."* ⚠ It survives every objection raised against the list — it names no shape,
-      excuses nothing, and its subject is the reviewer rather than the prose.
+- [x] **Restored 2026-08-16**, in `clean`'s own section rather than the deleted list's. Roy:
+      *"Nothing should be 'judged - clean' just because it is … fits the jurisdiction labels we
+      added earlier."* `acquitted` became `clean`, and the closing clause now points at the role
+      file: *"none of those is your role's question unless your role file says it is."* It sits
+      directly under *"Your role file states what your `clean` asserts"*, which is where the
+      jurisdiction question is actually decided. Brief 261 → 266 lines.
 
 - [ ] `states-the-signature` is not merely unearned, it CONTRADICTS `function-context`. That
       role's absence question is *"what must be true of this function's OUTPUT, or of its CALLER,

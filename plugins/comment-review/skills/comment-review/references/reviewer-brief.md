@@ -146,6 +146,11 @@ action or an explicit `query`; this one can be arrived at by leaving a block alo
 block left alone is indistinguishable from a block checked and ruled `clean`. Your role file
 states what your `clean` asserts — emit it as that claim, or emit `query`.
 
+⚠⚠ **Nothing is `clean` for being SHORT, TRUE, WELL WRITTEN, NEW, or under a `⚠`.** Each was
+measured as an exemption reviewers invented for themselves. Truth least of all: a true claim
+can be misplaced, unnecessary, or the surviving half of a block whose other half was the
+constraint — and none of those is your role's question unless your role file says it is.
+
 ⚠⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
 still required to open the code that would settle it; on every other verdict your `QUOTE` proves
 you did. `query` is what you emit when you did and it was still not enough.
