@@ -68,8 +68,8 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `CHANGE` | the payload the verdict table requires |
 
 For a count, give the number **and the population you counted over** in `SUMMARY`'s right half —
-the block-context role owns quantified claims, and a count with no stated population cannot be
-re-derived.
+quantified claims are block-context's JURISDICTION, the categories of claim a role rules on,
+and a count with no stated population cannot be re-derived.
 
 **Then account for every remaining block on one line:**
 
@@ -86,7 +86,7 @@ that does not resolve is not a weaker finding — it is not a finding.
 ⚠ **`SUMMARY`'s right half is DERIVED, and is not checked verbatim** — that is why
 it is a separate field from `QUOTE`. A count is not a line any file contains, so
 checking the derived statement against the code made every counted claim
-inadmissible: the block-context role's own category, refused by the gate.
+inadmissible: the block-context role's own JURISDICTION, refused by the gate.
 
 ⚠ **`CLEAN` is a range list, not an invitation to skip.** Every census index
 must appear exactly once across your findings and your clean ranges. The join

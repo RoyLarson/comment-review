@@ -415,7 +415,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         at = min((code.index(o) for o in openers if o in code), default=-1)
         if at >= 0:
             run.append((n, raw_line[at:].rstrip()))
-            flush(trailing=True)  # its own block, owned by the line it sits on
+            flush(trailing=True)  # its own block, anchored to the line it sits on
     flush()
     if in_block is not None and out:
         # The loop ended with a block comment still open, so the final flush

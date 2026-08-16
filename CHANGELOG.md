@@ -147,6 +147,13 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   emits `vars(b)`, so the key changed with the field, and the printed tree's `(owner)` column is
   now `(anchor)`. Anything reading a saved census for `owner` finds nothing.
 
+- **A role's categories of claim are its JURISDICTION.** `own` carried this second relation at
+  five sites — *"Owns three kinds of claim"*, *"owns reachability"*, *"the block-context role
+  owns quantified claims"* — alongside the placement sense above, and stated it nowhere.
+  `verify` was considered and rejected: it already names the ACT of settling one claim against
+  the code, and the citation state `UNVERIFIABLE`. Jurisdiction is which claims are a role's;
+  verification is what the role does to them.
+
 ### Added
 
 - **Seven terms that were used with a fixed sense and stated nowhere now have one stating

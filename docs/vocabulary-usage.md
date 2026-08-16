@@ -1366,15 +1366,21 @@ field held the declaration on the line after the run ends — a position, not a 
 ownership is a judgement. 12 sites in `census.py`, 6 in `SKILL.md`, 1 test. ⚠ The census emits
 `vars(b)`, so this changes a published JSON key, as `marks` → `annotations` did.
 
-⚠⚠ **STILL OPEN — the jurisdiction sense.** Five shipped sites where a ROLE owns a category of
-finding: *"Owns three kinds of claim"* (block-context frontmatter), *"owns reachability"*
-(function-context), *"the block-context role owns quantified claims"*
-(`reviewer-brief.md:71,89`). Same stem, a different relation, stated nowhere.
+⚠ **The jurisdiction sense lost the word.** A ROLE's categories of claim are its
+**JURISDICTION** — stated at `reviewer-brief.md:71`, the sentence that already described it.
+Roy first proposed `verify`; it collides, already naming the ACT of settling one claim against
+the code (`reviewer-brief.md:184-185`) and the citation state `UNVERIFIABLE`. Jurisdiction is
+which claims are a role's; verification is what it does to them. 5 sites, all line-neutral.
 
-⚠⚠ **STILL OPEN — the ownership/module boundary.** `reviewer-brief.md:279-283` gives
-`module-context` the case where *"the rule has no OWNING FUNCTION."* Under the second row above,
-code expected to produce an invariant owns it even with no guard — so that case narrows to a
-rule with no responsible code site at all. Unruled; both roles can currently claim it.
+⚠ **The ownership/module split is PRESENCE, not shape.** Roy, 2026-08-16:
+*"ownership-context is about comments that exist and where they belong — module context is
+stating something about this is missing appropriate documentation."* Prose exists → whose it is
+and where it goes is `ownership-context`. Prose absent → `module-context`. That is already the
+verdict shapes: `move`/`drop` against `add`.
+
+⚠ One shipped site disagrees and is UNRULED: `agents/…-ownership-context.md:51-52` gives
+ownership-context an `add` for *"a line carrying a non-obvious constraint with no comment at
+all"* — missing prose, under the role the rule assigns to existing prose.
 
 ### HOME / anchor / owning function — SETTLED 2026-08-16, three questions had one word
 

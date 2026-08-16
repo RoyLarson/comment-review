@@ -369,7 +369,7 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     DERIVED statement — *"31 callers, all under tests/"* — and a derived
     statement is by construction not a verbatim code line, so checking it there
     made every counted claim structurally inadmissible. That is the block-context
-    role's own category. The forcing function survives intact by moving to a
+    role's own JURISDICTION. The forcing function survives intact by moving to a
     field that carries verbatim text and nothing else.
 
     ⚠ `query` is exempt alongside `clean`, and its payload is checked instead.

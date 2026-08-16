@@ -108,7 +108,7 @@ block belongs, and function-context's ordering read takes its structure from the
 than from a census field — so three of the four roles are at full strength on any file the
 census can read. "No parser for this language" reads like "no review" and is not.
 
-⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks ownership.**
+⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks anchoring.**
 An unresolved anchor weakens a verdict; an absent block produces none and reports no gap. **Adopt
 a richer source of structure only if it misses ZERO blocks.**
 
@@ -313,7 +313,7 @@ things, and neither is the census:
 
 | | with a server | without |
 |---|---|---|
-| **who owns a block** | `documentSymbol` → the declaration on the line after the comment run ends | nothing resolves it |
+| **a block's ANCHOR** | `documentSymbol` → the declaration on the line after the comment run ends | nothing resolves it |
 | **is a name alive** | `workspaceSymbol` / `findReferences`, in **any** language | the Python AST corpus only |
 
 ⚠⚠ **LSP RETURNS NO COMMENTS, so it can never replace `census.py`.** The nine operations
@@ -321,7 +321,7 @@ exposed — definition, references, hover, documentSymbol, workspaceSymbol, impl
 the call-hierarchy three — return no prose at all; `semanticTokens` and `foldingRange`, the
 two that would, are not among them. On a Go file a server reports `func F` at line 4 while
 nothing has said there is a comment at line 2 to attach to it. **A block must be FOUND before
-anything can own it, so stages 2–3 always run.**
+anything can anchor it, so stages 2–3 always run.**
 
 ⚠ **Absence is reported, never inferred, and there are THREE states — not two.**
 
@@ -416,8 +416,8 @@ wrong changes what the reviewers see:
   work; if it split, a block could be made compliant by adding one. ⚠ **A marker's
   CONTINUATION lines still count** — only the marker line itself is free.
 - **A block belongs to the code BELOW it**, which is what makes ownership-context answerable. The
-  block above is about `result`, and an ownership-context finding says so by naming that owner.
-- **A trailing comment is its own block**, one line, owned by the line it sits on — and a
+  block above is about `result`, and an ownership-context finding says so by naming that anchor.
+- **A trailing comment is its own block**, one line, anchored to the line it sits on — and a
   trailing comment whose sentence carries past its own line is a finding in itself.
 
 Marks, and what resolving each one means:

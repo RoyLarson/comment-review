@@ -64,7 +64,7 @@ from census import (  # noqa: E402  -- path shim must run first
     language_for,
 )
 
-DOC_OWNERS = (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+DOC_ANCHORS = (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 
 def _blank_docstrings(tree: ast.AST) -> ast.AST:
@@ -75,7 +75,7 @@ def _blank_docstrings(tree: ast.AST) -> ast.AST:
     entirely changes the body's shape and stays visible.
     """
     for node in ast.walk(tree):
-        if not isinstance(node, DOC_OWNERS):
+        if not isinstance(node, DOC_ANCHORS):
             continue
         if not node.body:
             continue
