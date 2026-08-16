@@ -57,8 +57,9 @@ That is the only way to get it into the system anyways."*
       PARSES at the floor and fails at import, so `scripts/check_shipped_syntax.py` cannot catch
       it — its own docstring says *"`ast.parse(feature_version=...)` validates syntax and nothing
       else."* It would break on a user's machine and never on ours. Use `class Reviewer(str,
-      Enum)`, or match the idiom already in that file: `LEVELS = ("fact-check", "line", "full",
-      "proof")`, used with argparse `choices=`.
+      Enum)`. ⚠ Do NOT copy `LEVELS = ("fact-check", …)` as the model: that tuple is itself
+      slated for removal —
+      [`the-level-ladder-was-invented-during-the-port`](the-level-ladder-was-invented-during-the-port.md).
 
 - [ ] Decide the vehicle. The dispatch PACKET is written once per run and handed to four agents,
       so a per-agent block belongs in the dispatch PROMPT instead. `run_context.py` has to say

@@ -128,10 +128,12 @@ defined, dropped, or declared as deliberate polysemy.
    (`scripts/vocabulary_sweep.py`), and its own limits are stated: it sweeps `plugins/` only, and
    it cannot catch a term used consistently in ONE file or one whose two senses are both prose.
    `angle` would not have been caught by it.
-5. **Five follow-ups are filed and none blocks the others** — the pCST rebuild, the finding
-   record, the author/page ordering, the shipped Python's own comments, and the harness sweep.
-   Two are new today: the unit-of-review contradiction, and returning a coverage gap to the
-   reviewer.
+5. **⚠ THE LEVEL LADDER HAS NO PROVENANCE and is now filed**, after this status rewrite lost it
+   once: [`the-level-ladder-was-invented-during-the-port`](the-level-ladder-was-invented-during-the-port.md).
+   `git log -S` puts it at ZERO commits in `redacted_corpus` on any branch.
+6. **The rest are filed and none blocks another** — the pCST rebuild, the finding record, the
+   author/page ordering, the shipped Python's own comments, the harness sweep, the two lists'
+   entries, the unit-of-review contradiction, and returning a coverage gap to the reviewer.
 
 **Landed 2026-08-15 on `main`:** 0.1.2 (`4a62b93`) — the four reviewer agents renamed for scope,
 each stating what its own `clean` asserts, and the placement precedence. Then `8c7d81d`, the
@@ -169,10 +171,11 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (9)
+### open  (10)
 
 | file | owner | done | what |
 | --- | --- | ---: | --- |
+| [the-level-ladder-was-invented-during-the-port](the-level-ladder-was-invented-during-the-port.md) | session · Roy (1 ruling) | 0/7 | ⭐ **`level` gates which verdicts a reviewer may emit, and it has no provenance.** Traced with `git log -S`: the ladder exists at ZERO commits in `redacted_corpus`, on any branch — invented during the 2026-08-14 port, justified by one budget measurement. Roy: *"Those weren't in the original format, and I didn't ask for them."* ⚠ Removing it is not deleting a table: `verdicts.py:281` refuses a verdict outside the level's set, so several rules exist to work around the restriction and each states something true that has to survive in another form |
 | [the-task-agent-emits-the-vocabulary](the-task-agent-emits-the-vocabulary.md) | session · Roy (design ruled) | 0/8 | ⭐ **The pass the whole vocabulary branch deferred, now designed.** A script prints the definitions an agent needs; the task agent runs it and puts the output in that agent's prompt. Roy: *"No summarizing no duplication. The task agent already has to run python commands. this is just one more."* ⚠ The vocabulary becomes SHIPPED content, the in-place statements get REMOVED (some are a clause inside a working sentence), and it must reach `comment-review-review` and `comment-review-compact` — the brief goes to the four editorial roles and nowhere else. ⚠ `StrEnum` is 3.11+ and the floor is 3.9; the syntax gate cannot catch it |
 | [a-coverage-gap-should-go-back-to-the-reviewer](a-coverage-gap-should-go-back-to-the-reviewer.md) | session · Roy (1 ruling) | 0/5 | **A block a reviewer never accounted for is unfinished work, not a finding about the run.** Today `verdicts.py` prints a COVERAGE GAP against the role by name and exits nonzero. Roy, 2026-08-16: *"if comment blocks are missed by a reviewer then they are returned to the reviewer to rule on."* ⚠ Same shape as the two deleted lists one level up — the reviewer stopped early, and the system files the stopping rather than fixing it. ⭐ Unruled: re-dispatch with only the missed indices or the whole census, and what bounds the retry |
 | [the-two-lists-were-tuned-to-one-diff](the-two-lists-were-tuned-to-one-diff.md) | session · Roy (2 rulings) | 1/7 | **Both lists are DELETED from the brief; this holds what was inside them.** The acquittal list matched a prose SHAPE and claimed to be *"the ONLY reasons to pass a block over"* — but what decides `clean` is stated per role and is a TRUTH assertion at that role's scope, so the two disagreed outright. Its measurement was `evidence/ga/`: ten candidates over SIX `redacted_pkg` files, scored on F1 against what one later commit rewrote — and the search itself concluded *"the acquittal RATE is the trait; the acquittal LIST is just vocabulary."* The suppression list had no provenance at all. ⚠ Three entries were CHECKS wearing an exemption's name, one CONTRADICTS `function-context`, and `detector` — a settled term — lost its only definition |
