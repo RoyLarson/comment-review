@@ -85,13 +85,19 @@ Why they went, in order of weight:
       **repo-relative path citation** resolved only against the repo root (80/84, 18/20, 2/2).
       ⚠ All measured on ONE repository — the same one the GA scored against.
 
-- [ ] Sweep the remaining judicial register. `acquit` survives as a plain verb at
-      `agents/…-block-context.md:36` and `SKILL.md:614`, and **`jurisdiction`** — settled
-      2026-08-16 — is the same register. Decide whether the words go or the metaphor is adopted
-      deliberately, rather than leaving it half-and-half.
+- [ ] ⭐ Sweep the remaining judicial register against the PUBLISHING metaphor. `acquit`
+      survives as a plain verb at `agents/…-block-context.md:36` and `SKILL.md:614`, and
+      **`jurisdiction`** — settled 2026-08-16 — is the same register.
 
-      ⚠ **The deciding frame is now on the record.** Roy settled PROOFREADER the same day with
-      a reason that names the system's native metaphor: *"it is reading the PROOF and it is
+      ⚠ **The metaphor is not a new standard; it is the one already in force.** Roy, 2026-08-16:
+      *"I have been working under this assumption of the metaphor for a while."* Editorial roles,
+      editorial marks on a manuscript, a proof, a proofreader — the vocabulary is PUBLISHING, and
+      his PROOFREADER ruling states the reason out loud: *"it is reading the PROOF and it is
       determining if the document deserves more marks. That fits the role of a PROOFREADER in
-      society."* Editorial roles, editorial marks on a manuscript, a proof, a proofreader — the
-      vocabulary is PUBLISHING. That is the standard the judicial words have to answer to.
+      society."*
+
+      ⚠ **So these words were off-metaphor when they were written, not merely unmeasured.**
+      `acquittal` and `suppression` arrived with the initial plugin import. **`jurisdiction` did
+      not** — this session proposed it on 2026-08-16 and Roy approved it, against a metaphor
+      neither of us named at the time. It is the one judicial word this branch ADDED, and it
+      should be the first re-examined.

@@ -1471,9 +1471,12 @@ the executable code is unchanged. It is ordinary English in code identifiers rat
 of art, and it sits in the CODE CHECK, which no longer calls itself a proof pass. Carried to the
 re-sweep.
 
-⚠ **This is the system's native metaphor, and it bears on an open ruling.** Editorial roles,
-editorial marks on a manuscript, a proof, a proofreader — that is publishing. `acquittal`,
-`suppression` and `jurisdiction` are judicial, and whether they stay is a task on
+⚠ **This is the system's native metaphor, and it was already in force.** Roy, 2026-08-16: *"I
+have been working under this assumption of the metaphor for a while."* Editorial roles, editorial
+marks on a manuscript, a proof, a proofreader — that is publishing. So `acquittal`, `suppression`
+and `jurisdiction` were off-metaphor when they were written, not merely unmeasured. ⚠ Two arrived
+with the initial plugin import; **`jurisdiction` was added by this branch on 2026-08-16**, which
+makes it the first to re-examine. The task is on
 [`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md).
 
 ### the 2026-08-16 RE-SWEEP — what it found, and what the method is worth
