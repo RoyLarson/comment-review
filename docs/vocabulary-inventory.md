@@ -137,7 +137,7 @@ Observed by the scout pass. Recorded as-is.
 | `trailing-comment` | `SKILL.md:395-396`; `sk-scripts/census.py:379,497,509-515`; row `ref/compact.md:81` | SEVERAL |
 | `unparsed` | `sk-scripts/census.py:528-539` | ONE |
 | orphan / orphan run | `sk-scripts/census.py:461-466` | ONE |
-| owner / OWNERSHIP | `SKILL.md:99-101,393-394`; `sk-scripts/census.py:26-29,198`; "a CONVENTION, not a parse result" `docs/parsing.md:130-134` | SEVERAL |
+| ⚠ owner / own / OWNERSHIP — **UNRESOLVED** | `SKILL.md:99-101,393-394`; `sk-scripts/census.py:26-29,198`; `docs/parsing.md:130-134` | **FOUR senses**, added 2026-08-16: the census field (= the `anchor`), a ROLE's jurisdiction ("block-context owns quantified claims" — the largest use, stated nowhere), the OWNING FUNCTION (also spelled "owning definition", "owning type"), and the role name. ⚠ On neither survey list until Roy raised it |
 | node (prose tree) | implicit `SKILL.md:76` | UNDEFINED |
 | work marker (`TODO` `FIXME` `HACK` `XXX` `BUG`) | `sk-scripts/census.py:87-111`; `SKILL.md:242-244,388-392` | SEVERAL |
 

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 16 tasks done
+Progress: 13 of 18 tasks done
 Owner:    session · Roy (⭐ 3 rulings left)
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```
@@ -146,6 +146,24 @@ See the standing rule in [`README.md`](README.md).
 - [x] Agree which hazards have no text signature. **Done 2026-08-15 — two, D3 and D12.**
       The code and `README.md` already said two; only the module docstring undercounted,
       and it now names both with D3's reason.
+
+- [ ] Settle **`own` / `owner` / `ownership`** — added 2026-08-16 by Roy, and ⚠ **it was on
+      neither survey list**, the same miss as `budget`. Four senses, two of which are things
+      just separated one word over:
+      **A — the census field**, `Block.owner`, `SKILL.md:305` *"who owns a block → the
+      declaration on the line after the comment run ends"* — that is the **anchor**;
+      **B — a role's jurisdiction**, *"the block-context role owns quantified claims"*, all four
+      agent frontmatters, `reviewer-brief.md:71,272` — the largest use, defined nowhere;
+      **C — the owning function**, `module-context.md:73`, `compact.md:109`, `SKILL.md:678`
+      *"no owning definition"*, and `reviewer-brief.md:262` *"the rule needs an owning type"* —
+      three spellings for one thing; **D — the role name**, `ownership-context`.
+      ⚠ `census.py:351` carries A, A-as-capital and D in one sentence.
+
+- [ ] Re-sweep the vocabulary once everything currently unknown is settled. Roy, 2026-08-16:
+      *"that will help the agents focus on potential topics/semantics that mix."* ⚠ The first
+      collection missed `budget` (18 sites, four senses) and `own` (four senses) — both found by
+      Roy reading, not by the sweep — so **108 was a floor, not a census**. Seed the re-sweep
+      with those two misses: a term is easiest to miss when it reads as ordinary English.
 
 - [ ] ⭐ Rule on `SKILL.md:488`. It justifies `DOC CONVENTION`'s place in the dispatch packet
       on the grounds that "reviewers write replacement text", against `SKILL.md:26`, the
