@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 8 tasks done
-Owner:    session · Roy (⭐ 2 rulings)
+Owner:    session · Roy (⭐ 1 ruling)
 Raised:   2026-08-15 (Roy: "It looks like another session got convinced by other
           sessions that they didn't have everything they needed to state what
           they wanted to do")
@@ -52,11 +52,20 @@ loads the census and takes only `len(blocks)` from it.
       ⚠ `Finding.finding` is overloaded: reviewer clause, or diagnostic string when
       `block == -1`. One attribute, two meanings — fix with it.
 
-- [ ] ⭐ Rule on `query`. It is exempt from the evidence check by design (a claim you could not
-      settle has no line that settles it), so it has no `SOURCE`. Its payload today is
-      *attempted / would-settle*, checked as shape in `CHANGE`. In the six-field record that
-      reads more naturally in `REASON` with `CHANGE` empty — which moves a check, so it needs a
-      ruling rather than a preference.
+- [ ] `query` DOES carry `SOURCE`. **Roy, 2026-08-15:** *"EVIDENCE + QUOTE for query means I
+      looked here, and here, and here and I couldn't determine what this means."* The exemption
+      rests on a conflation — "no line SETTLES it" is not "no line to CITE" — and
+      `reviewer-brief.md` contradicts itself on it fifteen lines apart: *"You are still required
+      to open the code that would settle it; on every other verdict your QUOTE proves you did"*,
+      then *"A query carries no EVIDENCE and no QUOTE, by construction."* The one verdict that
+      most needs proof the reviewer looked is the only one exempted from giving it. So:
+      `SOURCE` goes PLURAL for a query, one entry per place examined; `evidence_problem()` stops
+      exempting it and checks each the same way as every other verdict; what stays unenforceable
+      is whether those were the right places, which is judgment and always was.
+      ⚠ Residual, small: `QUERY_ATTEMPTED` exists to refuse "a query naming no attempted check",
+      but the attempted check IS the `SOURCE` list once it is carried — so that regex becomes
+      redundant. Decide whether `QUERY_SETTLES` stays as a shape check on `REASON` or "what
+      would settle it" becomes prose the gate does not police.
 
 - [ ] ⭐ Rule on `add`. It is the one verdict whose finding is not ABOUT an existing block — a
       constraint exists in code and nowhere in prose — yet `BLOCK` is required and coverage is
