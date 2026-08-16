@@ -36,15 +36,16 @@ the term means, and the two files converge on one `docs/vocabulary.md`.
       `docs/vocabulary-*.md` (the retirement records) and this file's name — all deliberate.
       167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9.
 
-- [x] Settle `budget`. **Done 2026-08-15 — three senses, three terms.** ⚠ **The collection
-      MISSED this word entirely** — 18 sites, four senses, in neither table of the inventory;
-      Roy found it reading the level ladder's justification, not the sweep. So the 108-term
-      count is a floor, not a census. `cap` takes back the five sites meaning a comment's line
-      limit (it was already defined, and an undefined word was standing in for it); **line
-      budget** names a rule file's length, declared at `docs/limitations.md:9`; bare `budget`
-      keeps the REVIEWER's runtime sense, which is the ORIGINAL — traced to `redacted_corpus`
-      `REDACTED_SHA_C7`, 2026-08-11, still verbatim at `census.py:9`. The rule-document sense is the
-      later graft, the reverse of how the two read today. Settles the word, not the ladder.
+- [x] Settle `budget`. **Done 2026-08-15 — Roy's ruling: the only real budget is what a
+      shipped instruction file costs everyone to load**, measured in lines per file, declared
+      once at `docs/limitations.md:9`. `cap` takes back the five sites meaning a comment's line
+      limit (it was already defined; an undefined word was standing in for it). The
+      reviewer's-runtime sense loses the word. ⚠ Measured while settling it: the budget covers
+      28 KB of the 224 KB shipped, and NOT the two largest files a run loads — a reviewer's own
+      role file is ~7 KB against an 18 KB shared brief, so 70% of what it loads is not its role,
+      and four parallel reviewers load four copies of that brief. Recorded in
+      `docs/limitations.md` as a measured gap. **Superseded my first pass, which gave the bare
+      word to the reviewer sense on grounds of it being the original.**
 
 - [ ] Define or delete the seven remaining terms used with no definition: `prose tree`
       (in both manifests' install-time text), `the join`, `detector`, `banner`,

@@ -6,9 +6,10 @@
 recognise *that comment* instead of the shape, and it rots — a hygiene skill carrying its own
 obituary. Measurements anonymise for free.
 
-⚠⚠ **THE LINE BUDGET IS THE POINT, AND IT IS PER FILE.** A **line budget** is how long one
-of these rule files may be, counted in lines — not a comment's `cap` and not a reviewer's
-runtime `budget`, both of which are other things. A tight one forces a *generalization*
+⚠⚠ **THE BUDGET IS THE POINT, AND IT IS PER FILE.** A **budget** is how much CONTEXT one of
+these files costs everyone who loads it, measured in lines. That is the only budget this
+system has — a comment's line limit is its `cap`, a different thing. A tight budget forces
+a *generalization*
 instead of one rule per incident; without it these files become a case file for whatever repo
 they last ran in — fitted to that project, useless to the next. **This is the opposite of the
 cap rule for comments**, and the reason is what is optimised: **a comment must be true about
@@ -18,10 +19,10 @@ forces the covering abstraction.**
 Three questions before adding anything. Would it fire in a repo about something else? Is the
 evidence a **number or ratio** rather than a story? Does it change what a reviewer **does**?
 Assume a reasoning reader: state the rule and its discriminator, not the argument for it. At
-line budget, a new rule **replaces** one — and if two rules are instances of one generalization,
+budget, a new rule **replaces** one — and if two rules are instances of one generalization,
 write the generalization and delete both.
 
-**The line budget for the four editorial roles is their current length, and these are the numbers:**
+**The budget for the four editorial roles is their current length, and these are the numbers:**
 
 | agent file (`plugins/comment-review/agents/`) | lines |
 | --- | --- |
@@ -30,7 +31,7 @@ write the generalization and delete both.
 | `comment-review-function-context.md` | 129 |
 | `comment-review-module-context.md` | 120 |
 
-⚠ Each is AT its line budget, so the replaces-one rule is live on all four. Raising a number here is a
+⚠ Each is AT budget, so the replaces-one rule is live on all four. Raising a number here is a
 change to this file that a reviewer rules on, not a side effect of adding a rule — and a count
 that no longer matches `wc -l` is a finding against this file.
 
@@ -41,6 +42,13 @@ rule a SCRIPT enforces → that script's docstring (`census.py`, `referrers.py`,
 `run_context.py`, `prove_unchanged.py`); orchestration → here. Restating one across two files is
 the antipattern this skill exists to find, and the four agents are the place it will happen —
 they read alike and invite copy-paste.
+
+⚠⚠ **THE TWO LARGEST FILES EVERY RUN LOADS HAVE NO BUDGET.** Measured 2026-08-15:
+`reviewer-brief.md` is 18,343 bytes and `SKILL.md` 47,438. A reviewer loads its role file
+plus the brief — about 26 KB, of which **70% is the brief, not its own role** — and four
+reviewers dispatched in parallel load **four copies of it**, 73 KB of the run's 101 KB. The
+numbers above budget the four role files only: 28 KB of the 224 KB shipped, and the
+smallest part of what a run actually costs.
 
 **Any Python shipped here must be generic** — no hardcoded paths, no assumed directory names,
 no cap baked into a script whose prose says the skill has no cap of its own.

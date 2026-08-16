@@ -6,7 +6,7 @@ Two outputs, and the first one is the point:
               attached to it. The reviewers walk this list; a block missing from
               it is a block nobody reviews.
   RESOLUTION  the questions a symbol table and a filesystem can settle. A
-              reviewer that spends its budget re-deriving these has spent it
+              reviewer that spends its READING re-deriving these has spent it
               badly.
 
     python census.py [--repo D] [--cap N] [--width N] [--census-only] [--json] <paths>

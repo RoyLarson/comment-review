@@ -59,12 +59,14 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   parsing. Both are the intended failure: no alias is accepted, because a script whose own
   rule is that nothing degrades quietly should not answer to a name it no longer uses.
 
-- **`budget` meant three things; now three words mean them.** A comment's line limit is
-  `cap` — already defined, and an undefined word was standing in for it at five sites. How
-  long a rule file may be is a **line budget**, declared at `docs/limitations.md:9`. The
-  REVIEWER's runtime budget keeps the bare word `budget`, that being the original sense.
-  ⚠ The twelve-agent vocabulary collection missed this term entirely — 18 sites, four senses,
-  in neither table — so the survey is a floor, not a census.
+- **`budget` meant four things; now it means one.** Roy's ruling: **the only real budget is
+  what a shipped instruction file costs everyone to load**, measured in lines per file and
+  declared at `docs/limitations.md:9`. A comment's line limit is `cap`, already defined — an
+  undefined word had been standing in for a defined one at five sites. The reviewer's-runtime
+  sense loses the word. ⚠ The twelve-agent vocabulary collection missed this term entirely —
+  18 sites, four senses, in neither table — so the survey is a floor, not a census. ⚠ Measured
+  while settling it: the budget covers 28 KB of the 224 KB shipped, and not `reviewer-brief.md`
+  (18 KB, loaded once per reviewer) or `SKILL.md` (47 KB) — the two largest files a run loads.
 
 - **`sweep` is not a term. Stage 7b is APPLY.** Every canonical naming site already said so —
   `SKILL.md`'s pipeline diagram, its stage table, and the reference filename `apply.md`.
