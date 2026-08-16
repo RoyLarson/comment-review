@@ -1162,6 +1162,35 @@ Nearest anchor `SKILL.md:515-516` — "⚠⚠ **Run the join before you rule on 
 
 **One operative sense throughout**, carried sometimes as noun, sometimes as verb. **Unrelated string collision:** `SKILL.md:360` "matched as ONE joined string"; `"".join(...)` throughout.
 
+### budget — SETTLED 2026-08-15, split three ways. ⚠ MISSED BY THE COLLECTION
+
+⚠ **Not in either table of `vocabulary-inventory.md` as first produced.** Twelve agents over the
+whole tree did not surface a term of art used at 18 sites in four senses. **The 108-term count is
+a floor, not a census** — other terms may be missing the same way, and this one was found by Roy
+reading a justification, not by the sweep.
+
+Traced to origin: the word entered on **2026-08-11**, in `redacted_corpus`'s `REDACTED_SHA_C7`,
+meaning the REVIEWER's — and that first use survives verbatim today at `census.py:9`:
+
+> a reviewer that spends its budget confirming a file exists has spent it badly
+
+**The reviewer sense is therefore the original, and the rule-document sense is the later graft**,
+which is the reverse of how the two now read. Roy raised it against the level ladder: its
+justification (`SKILL.md:205`, *"I ran out of budget, not justification"*) implies **reviewers**
+have a budget, while `docs/limitations.md` one file away uses the same undeclared word for how
+long a rule file may be. Two unrelated constraints wearing one word.
+
+| sense | now called | where | note |
+| --- | --- | --- | --- |
+| a comment's line limit | **`cap`** | was `compact.md:41`, `reviewer-brief.md:294`, `SKILL.md:677`, `census.py:88,104` | `cap` was already defined at `SKILL.md:178-180`; an undefined word was standing in for a defined one at five sites |
+| how long a RULE FILE may be | **line budget** | `docs/limitations.md`, `CLAUDE.md`, `CHANGELOG.md:113` | already the name in the CHANGELOG; now used consistently and declared at `docs/limitations.md:9` |
+| the REVIEWER's runtime budget | **`budget`**, bare | `census.py:9`, `SKILL.md:205` | the original sense keeps the bare word |
+| subject matter in a worked example | — | `reviewer-brief.md:178`, `SKILL.md:643-649`, `module-context.md:79` ("a width budget") | "the retry budget is 3". Not this system's; an example may be about anything |
+
+⚠ **This settles the WORD, not the ladder.** Whether levels should exist at all is a separate
+decision and not a vocabulary question — `SKILL.md:205` still says what it said, and now means
+exactly one thing when it says it.
+
 ### sweep — SETTLED 2026-08-15: not a term. Stage 7b is APPLY
 
 Ruled by Roy. `sweep` was never the stage's name — `SKILL.md:16-17` (the pipeline diagram),

@@ -85,7 +85,7 @@ EXCLUDED_DIRS = frozenset(
 )
 
 # Free markers point OUTWARD, at work that is not done, so they are not the
-# explanation and must not spend its budget. A cap that counts them makes
+# explanation and must not be charged to its cap. A cap that counts them makes
 # deleting the pointer to filed work the cheapest route to green.
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
@@ -101,7 +101,7 @@ def counted_lines(raw: list[str]) -> int:
     """Lines a cap should charge for: a marker LINE itself is free.
 
     A marker points outward, at work that is not done, so it is not the
-    explanation and must not spend the explanation's budget. It must not
+    explanation and must not be charged to the explanation's cap. It must not
     validate an invalid block either, so it never splits a run and a marker's
     continuation lines still count. Six lines plus a `TODO:` is six.
 

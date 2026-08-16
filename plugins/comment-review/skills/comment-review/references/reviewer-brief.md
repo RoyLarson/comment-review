@@ -291,6 +291,6 @@ so a disagreement is a result here, not a problem to solve.
 
 ## You are not given the cap
 
-Length is not one of the four editorial roles. An agent that knows the budget writes to the budget, and
+Length is not one of the four editorial roles. An agent that knows the cap writes to the cap, and
 what survives a length-driven cut is the confident assertion, never the evidence that lets a
 reader test it. Propose text that is **correct**; someone else condenses later.

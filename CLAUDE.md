@@ -181,7 +181,7 @@ history) since it depends on `git blame`.
   confidence has been measured to not discriminate real from fabricated findings.
 - `docs/limitations.md` governs changes to the skill's prose/rules themselves: every example
   used there must be invented (never a real quotation), each new rule should replace an
-  existing one at budget rather than accumulate, and a rule belongs in exactly one file.
+  existing one at its line budget rather than accumulate, and a rule belongs in exactly one file.
 
 ## Documentation Rules
 

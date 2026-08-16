@@ -674,7 +674,7 @@ SURVIVED, not what went; **refactoring drift**.
 ## Stage 6 — COMPACT: only if there is a cap
 
 **If no cap applies, the run SKIPS this stage entirely.** Say so: the prose is correct, and
-absent a budget "long" is not a defect.
+absent a cap "long" is not a defect.
 
 If there is a cap, and only once **every** block from stage 5 is CORRECT,
 dispatch `comment-review:comment-review-compact` with the narrow input contract

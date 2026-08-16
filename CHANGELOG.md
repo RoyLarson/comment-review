@@ -59,6 +59,13 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   parsing. Both are the intended failure: no alias is accepted, because a script whose own
   rule is that nothing degrades quietly should not answer to a name it no longer uses.
 
+- **`budget` meant three things; now three words mean them.** A comment's line limit is
+  `cap` — already defined, and an undefined word was standing in for it at five sites. How
+  long a rule file may be is a **line budget**, declared at `docs/limitations.md:9`. The
+  REVIEWER's runtime budget keeps the bare word `budget`, that being the original sense.
+  ⚠ The twelve-agent vocabulary collection missed this term entirely — 18 sites, four senses,
+  in neither table — so the survey is a floor, not a census.
+
 - **`sweep` is not a term. Stage 7b is APPLY.** Every canonical naming site already said so —
   `SKILL.md`'s pipeline diagram, its stage table, and the reference filename `apply.md`.
   `sweep` was a synonym that outlived `sweep.py`, the module now called `census.py`. Retired

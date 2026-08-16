@@ -38,7 +38,7 @@ its full length and say why.**
 
 **If no cap applies, this pass does not run at all.** Stage 5 already removed everything
 false, historical and unnecessary, so what stands is true, current, local and load-bearing.
-Absent a budget, "long" is not a defect and there is nothing here to do — go straight to
+Absent a cap, "long" is not a defect and there is nothing here to do — go straight to
 approval.
 
 **Only shorten prose that is already correct.** This pass may not change a claim, relocate a

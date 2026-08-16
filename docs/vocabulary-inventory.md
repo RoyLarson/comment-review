@@ -19,7 +19,7 @@ manifests. Excluded as historical or vendored, not the live system:
 - `sk-scripts/…` = `plugins/comment-review/skills/comment-review/scripts/…`
 - `agents/…` = `plugins/comment-review/agents/…`
 
-**Count: 108 terms.**
+**Count: 109 terms** — `budget` added 2026-08-15, after the collection missed it.
 
 ## How to read the multiplicity column
 
@@ -36,6 +36,7 @@ manifests. Excluded as historical or vendored, not the live system:
 | Term | Nearest thing to a definition | Notes |
 |---|---|---|
 | ~~**angle**~~ | SETTLED 2026-08-15 — retired | Borrowed from `/simplify`, where it names that pass's focuses. Prose now says **editorial role**; identifiers say **reviewer** (`--reviewers`, `REVIEWER FILES`, `reviewer = path.stem`), because `role` alone would also cover the task agent and the author. Six senses, all resolved: [the ruling](vocabulary-usage.md#angle--settled-2026-08-15-retired-in-favour-of-editorial-role). |
+| ~~**budget**~~ | SETTLED 2026-08-15 — split three ways | ⚠ **Missed by the twelve-agent collection entirely** — 18 sites, four senses, in neither table. `cap` took back the five meaning a comment's line limit; **line budget** names the rule file's length (`docs/limitations.md`); bare **budget** keeps the REVIEWER's runtime sense, which is the original (`redacted_corpus` 2026-08-11). |
 | **prose tree** | none; `SKILL.md:24` says "a node on the prose tree" | Appears in both manifests' user-facing descriptions. |
 | **the join** | none | Names `verdicts.py`'s stage-5 gate. `SKILL.md:517,540,571,573,697`; `ref/reviewer-brief.md:42,92`; `CLAUDE.md:46`. |
 | ~~**sweep**~~ | SETTLED 2026-08-15 — not a term | Stage 7b is **APPLY**, which every canonical naming site already said. The word was a synonym outliving `sweep.py` (now `census.py`), and the dead `import sweep` with it. Plain-English "sweep the file" stays. |
