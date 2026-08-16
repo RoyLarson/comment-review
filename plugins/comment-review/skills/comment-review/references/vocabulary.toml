@@ -23,7 +23,6 @@
 # --- what a comment sits on -------------------------------------------------
 anchor = "The code position a comment is attached to: a statement, expression, declaration or assignment. Mechanical -- whatever is there."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
-ownership = "The relation between a comment and its owner: which anchor best justifies holding it."
 block = "The interval between two lines of CODE. The lines above and below define it; what is written between them does not. Only code is a boundary -- not a blank line, not a work marker, not a change of subject."
 census = "The numbered tree of every block in the files under review, with the references each block makes already resolved."
 
@@ -64,8 +63,6 @@ banner = "Comment lines dividing a file into named parts."
 argument = "The case a piece of writing makes. A module reads as ONE argument or it does not."
 signature = "A function's name, parameters and return type. Never the CODE CHECK's comparison value, which is a fingerprint."
 laundering = "Applying a `patch` to a FALSE claim: the wording gets polished, and the finding is retired without the claim ever being checked."
-"coverage gap" = "A census index a reviewer never accounted for, in a finding or in a `CLEAN` range."
-"the join" = "The tool that reads every reviewer's report against the census and against the other roles', and refuses what it cannot verify."
 
 # --- what the run gives it ---------------------------------------------------
 "style sheet" = "The conventions MEASURED from this repo at stage 1: the documentation templates, the cap and the width."
@@ -83,38 +80,130 @@ all = ["block", "sentence", "clause", "finding", "move"]
 
 # The four editorial roles: what the shared brief used to state in passing.
 "ownership-context" = [
-  "anchor", "owner", "ownership", "census", "verdict", "clean", "query", "drop",
-  "correct", "patch", "add", "split", "payload", "record", "remit", "truthy",
-  "load-bearing", "laundering", "coverage gap", "the join", "editorial role",
-  "reviewer", "cap", "level", "statement", "expression", "declaration", "assignment",
+  "add",
+  "anchor",
+  "assignment",
+  "census",
+  "clean",
+  "correct",
+  "declaration",
+  "drop",
+  "editorial role",
+  "expression",
+  "laundering",
+  "level",
+  "load-bearing",
+  "owner",
+  "patch",
+  "payload",
+  "query",
+  "record",
+  "remit",
+  "reviewer",
+  "split",
+  "statement",
+  "truthy",
+  "verdict",
 ]
 "block-context" = [
-  "anchor", "owner", "census", "verdict", "clean", "query", "drop", "correct",
-  "patch", "add", "split", "payload", "record", "remit", "truthy", "laundering",
-  "coverage gap", "the join", "editorial role", "reviewer", "cap", "level",
-  "statement", "declaration", "obituary", "tombstone", "guard",
+  "add",
+  "anchor",
+  "census",
+  "clean",
+  "correct",
+  "declaration",
+  "drop",
+  "editorial role",
+  "guard",
+  "laundering",
+  "obituary",
+  "patch",
+  "payload",
+  "query",
+  "record",
+  "remit",
+  "reviewer",
+  "split",
+  "statement",
+  "tombstone",
+  "truthy",
+  "verdict",
 ]
 "function-context" = [
-  "anchor", "owner", "census", "verdict", "clean", "query", "drop", "correct",
-  "patch", "add", "split", "payload", "record", "remit", "truthy", "laundering",
-  "coverage gap", "the join", "editorial role", "reviewer", "cap", "level",
-  "statement", "declaration", "guard", "invariant", "signature", "argument",
+  "add",
+  "anchor",
+  "argument",
+  "cap",
+  "census",
+  "clean",
+  "correct",
+  "declaration",
+  "drop",
+  "editorial role",
+  "guard",
+  "invariant",
+  "laundering",
+  "patch",
+  "payload",
+  "query",
+  "record",
+  "remit",
+  "reviewer",
+  "signature",
+  "split",
+  "statement",
+  "truthy",
+  "verdict",
 ]
 "module-context" = [
-  "anchor", "owner", "census", "verdict", "clean", "query", "drop", "correct",
-  "patch", "add", "split", "payload", "record", "remit", "truthy", "laundering",
-  "coverage gap", "the join", "editorial role", "reviewer", "cap", "level",
-  "statement", "declaration", "load-bearing", "obituary", "omission", "banner",
-  "argument", "width",
+  "add",
+  "anchor",
+  "argument",
+  "banner",
+  "census",
+  "clean",
+  "correct",
+  "declaration",
+  "drop",
+  "editorial role",
+  "laundering",
+  "load-bearing",
+  "obituary",
+  "omission",
+  "owner",
+  "patch",
+  "payload",
+  "query",
+  "record",
+  "remit",
+  "reviewer",
+  "split",
+  "statement",
+  "truthy",
+  "verdict",
+  "width",
 ]
 
 # Stage 6 and stage 8 never read the shared brief, so they are given theirs here.
 compact = [
-  "census", "verdict", "correct", "drop", "query", "payload", "record", "remit",
-  "reviewer", "cap", "style sheet", "template", "original", "residue",
-  "load-bearing", "argument", "owner",
+  "argument",
+  "cap",
+  "census",
+  "correct",
+  "drop",
+  "load-bearing",
+  "original",
+  "owner",
+  "query",
+  "record",
+  "residue",
+  "reviewer",
+  "style sheet",
+  "verdict",
 ]
 review = [
-  "add", "verdict", "clean", "style sheet", "template", "original", "truthy",
-  "proofreader", "reviewer", "editorial role",
+  "add",
+  "proofreader",
+  "style sheet",
+  "template",
 ]

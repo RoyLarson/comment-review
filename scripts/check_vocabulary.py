@@ -16,6 +16,10 @@ without anyone noticing:
   EMITTED    The SHIPPED vocabulary holds. Every key a role is given has a
              definition, and no definition is written for nobody -- that file is
              what agents are handed, so a term with no recipient belongs in docs/.
+  DRIFT      Every term a role is given appears in the text that role reads, and
+             every term it reads is given. The rule is "give a role the terms its
+             text uses", so the lists go stale whenever the prose is edited -- 22
+             terms had drifted before this check existed.
 
 Exits nonzero if any fails. A citation to a RENAMED file is reported as
 HISTORICAL and does not fail: the quotation predates the rename and is the record.
@@ -46,6 +50,18 @@ CITE = re.compile(r"`([\w./-]+\.(?:md|py|toml|json)):(\d+(?:[-,]\d+)*)`")
 READ_ERRORS = (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError)
 
 RENAMED = {"apply.md": "write.md"}
+
+AGENTS = REPO / "plugins/comment-review/agents"
+REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
+# `references/<name>.md` as an agent file names the one it is told to read.
+READS = re.compile(r"references/([\w-]+\.md)")
+
+
+# A term as prose uses it: whole word, plural tolerated, hyphens kept.
+def term_used(text: str, term: str) -> bool:
+    """Whether prose uses this term as a word, singular or plural."""
+    return bool(re.search(r"(?<![\w-])" + re.escape(term) + r"s?(?![\w-])", text, re.I))
+
 
 # A row is RULED when it is struck through, says one of these, or names a site.
 RULED = ("SETTLED", "DELETED", "RETIRED")
@@ -209,12 +225,56 @@ def check_emitted() -> int:
     return holes
 
 
+def check_drift(data: dict) -> int:
+    """Report every term a role is given but does not use, and the reverse.
+
+    The text a role reads is its own agent file plus the reference that file
+    names, so the mapping is read out of the tree rather than listed here --
+    a listed copy would go stale exactly the way the term lists did.
+    """
+    definitions, roles = data["definitions"], data["roles"]
+    shared = set(roles.get("all", []))
+    drift = 0
+    for role, keys in sorted(roles.items()):
+        if role == "all":
+            continue
+        agent = AGENTS / f"comment-review-{role}.md"
+        if not agent.exists():
+            print(f"vocabulary.toml  NO AGENT FILE  for role {role!r}")
+            drift += 1
+            continue
+        text = agent.read_text(encoding="utf-8")
+        for name in sorted(set(READS.findall(text))):
+            ref = REFERENCES / name
+            if ref.exists():
+                text += "\n" + ref.read_text(encoding="utf-8")
+        given = shared | set(keys)
+        used = {t for t in definitions if term_used(text, t)}
+        for term in sorted(given - used):
+            print(
+                f"vocabulary.toml  UNUSED   {role} is given {term!r} and never uses it"
+            )
+            drift += 1
+        for term in sorted(used - given):
+            print(f"vocabulary.toml  MISSING  {role} uses {term!r} and is not given it")
+            drift += 1
+    print(
+        f"\n{len(roles) - 1} roles checked against the text they read, {drift} drifted."
+    )
+    return drift
+
+
 def main() -> int:
-    """Run all three checks; exit nonzero if any found something."""
+    """Run all four checks; exit nonzero if any found something."""
     broken = check_citations()
     unruled = check_rulings()
     holes = check_emitted()
-    return 1 if (broken or unruled or holes) else 0
+    try:
+        data = tomllib.loads(EMITTED.read_text(encoding="utf-8"))
+    except READ_ERRORS:
+        return 1
+    drift = check_drift(data)
+    return 1 if (broken or unruled or holes or drift) else 0
 
 
 if __name__ == "__main__":
