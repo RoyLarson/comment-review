@@ -115,7 +115,7 @@ Depending on nothing is the point: this skill must run on a fresh checkout, and 
 by whether some package happens to be importable makes coverage depend on the ambient
 environment. **Adding a language is a row of data in `LANGUAGES`** — `python
 <skill>/scripts/census.py --languages` lists what is known. A suffix with no record is
-**reported as unreviewable, never silently skipped.**
+**named, and the census EXITS NONZERO** — every file handed in is censused or the run stops.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding. The brief holds that rule and binds the reviewers to it.

@@ -3,36 +3,37 @@
 Two outputs, and the first one is the point:
 
   CENSUS      every comment run and every docstring, numbered, with the
-              annotations attached to it. The reviewers walk this list; a
-              block missing from it is a block nobody reviews.
-  RESOLUTION  the questions a symbol table and a filesystem can settle. A
-              reviewer that spends its READING re-deriving these has spent it
-              badly.
+              annotations attached to it. The reviewers read this list;
+              all blocks are resolved or the program errors.
+  RESOLUTION  the questions a symbol table and a filesystem can settle, so a
+              reviewer spends its READING on the claims instead.
 
     python census.py [--repo D] [--cap N] [--width N] [--census-only] [--json] <paths>
 
-Read-only, and always exits 0 — this is an input to a review, not a gate.
-Nothing here is a verdict: `names-a-symbol` in particular is a CANDIDATE list,
-because a backticked token can name a config key, a record field or an API
-payload rather than a symbol, and no resolver knows every namespace a repo
-speaks.
+Read-only. **Every file handed in is censused, or this errors** -- a file it
+could not read, could not parse, or has no language record for is named and
+exits nonzero, because a block missing from the census is a block nobody
+reviews. Every line it prints is a
+CANDIDATE, `names-a-symbol` most of all -- a backticked token can name a config
+key, a record field or an API payload, and a resolver knows the namespaces it
+was given.
 
 The census is built at the TIER available for each file's language. Both tiers
-find the same blocks; they differ only in what else they can say:
+find the same blocks, and the tier says what else the file can answer:
 
   tokenized  a lexer + AST (Python, from the stdlib)   + DOCSTRING anchors
-  lexical    a comment-syntax record, nothing else     blocks + annotations
+  lexical    a comment-syntax record                   blocks + annotations
 
-⚠ NO COMMENT carries an anchor at either tier, so every ownership-context verdict
-rests on a reviewer READING the file. A docstring's anchor comes from the AST; a
-`#` run's does not, and nothing here infers it. Treat placement findings as
-CANDIDATES.
+⚠ Only a STRUCTURAL doc carries an anchor, and only Python has one: the doc is a
+string inside a declaration's body, so the AST names the declaration. A MARKED
+doc (`///`, `/**`) is a comment run like any other. Every other anchor comes from
+a reviewer READING the file, so a placement finding is a CANDIDATE in every
+language.
 
-⚠ Tier counts are AGGREGATED over the run, not reported per file. On a polyglot
-run you cannot tell which file reached which tier -- which is exactly when it
-matters. Adding a language is a row in `LANGUAGES` — data, not code — which is
-what keeps the floor cheap enough to be worth having. `--languages` lists what
-is known.
+⚠ Tier counts are AGGREGATED over the run. A polyglot run reports one total per
+tier, so read the per-file tier stamp to see which file reached which. Adding a
+language is a row in `LANGUAGES` -- data, not code -- which keeps the floor cheap
+enough to be worth having. `--languages` lists what is known.
 """
 
 from __future__ import annotations
@@ -906,7 +907,7 @@ def main() -> int:
         for lang in LANGUAGES:
             exts = " ".join(lang.extensions)
             print(f"{lang.name:<10} {tier_for(lang):<11} {exts}")
-        print("\nA suffix not listed is REPORTED as unreviewable, never skipped.")
+        print("\nA suffix not listed is named, and the census exits nonzero.")
         return 0
 
     repo = Path(args.repo).resolve()
@@ -1032,12 +1033,19 @@ def main() -> int:
         print()
 
     print(
-        f"{len(census)} blocks censused. Nothing above is a verdict —\n"
-        "`names-a-symbol` and `counted` are CANDIDATES a reviewer confirms;\n"
-        "the resolved paths are\n"
-        "facts about the filesystem that a reviewer should not re-derive.\n"
-        "The whole list is printed: a partial list cannot be used to skip anything."
+        f"{len(census)} blocks censused. `names-a-symbol` and `counted` are\n"
+        "CANDIDATES a reviewer confirms; a resolved path is a fact about the\n"
+        "filesystem, already settled. The whole list is printed every run."
     )
+    # A file that could not be censused is a set of blocks nobody will review,
+    # and the reviewers are handed the CENSUS rather than the file list -- so a
+    # gap here is invisible downstream. Exit on it.
+    if unreadable:
+        print(
+            f"\nERROR: {len(unreadable)} of {len(files)} files handed in were not"
+            " censused. Every file is censused or this errors."
+        )
+        return 1
     return 0
 
 

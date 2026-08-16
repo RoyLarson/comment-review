@@ -142,10 +142,11 @@ stdlib alone (no third-party dependency), at a per-language tier:
 | `tokenized` | a lexer + AST (Python, stdlib)        | blocks, marks, docstring owners | a comment's owner |
 | `lexical`   | a comment-syntax record, nothing else | blocks, marks                   | any owner         |
 
-A language with no record is reported as unreviewable, never silently skipped. Adding a language
-is a data row, not new code. No comment (as opposed to docstring) carries an owner at either
-tier — every ownership-context verdict rests on a reviewer reading the file, or on an LSP `documentSymbol`
-enrichment when a language server answered stage 1.7's probe.
+A language with no record is named and the census EXITS NONZERO: every file handed in is
+censused or the run stops. Adding a language is a data row, not new code. Only a STRUCTURAL doc
+carries an anchor, and only Python has one; every other anchor comes from a reviewer reading
+the file, or from an LSP `documentSymbol` enrichment when a language server answered stage 1.7's
+probe. Every ownership-context verdict therefore rests on a reviewer reading the file.
 
 `references/` under the skill directory (`write.md`, `compact.md`, `residue-check.md`,
 `review.md`, `reviewer-brief.md`) are each single-sourced for one stage — nothing pastes their
