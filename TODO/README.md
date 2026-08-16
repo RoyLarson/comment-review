@@ -108,10 +108,11 @@ Everything below is on `feat/settle-the-vocabulary`, 52 commits, `main` untouche
 than a claim: 185 inventory rows, 0 without a ruling; 1590 citations, 0 broken. Every term is
 defined, dropped, or declared as deliberate polysemy.
 
-1. **⭐ THE BRANCH IS READY. What it needs is a decision about landing it.** It carries breaking
-   changes to published names — the census JSON key, `verdicts.py --reviewers`, the packet's
-   section list, the CODE CHECK's kind strings — so it is a version bump, and nothing here
-   carries a version but `CHANGELOG.md`.
+1. **0.1.3 IS CUT AND THE BRANCH DELIBERATELY DOES NOT LAND.** Roy, 2026-08-16: *"do not land —
+   the implications of the changes need to be worked through."* `main` is still 0.1.2. ⚠ The
+   version is in `CHANGELOG.md` and nowhere else, and the PATCH number moves whatever the change
+   — *"these will continue to be bugfix versions"* — so a release carrying breaking renames is
+   still `0.1.x`. Do not "correct" the next one to `0.2.0`.
 2. **⭐ DISTRIBUTION is the next pass, and it is the one thing the vocabulary work deferred.**
    It is the ⭐ *"give the agents a copy of the definitions"* in
    [`an-editorial-mark-is-not-an-action-and-reanchor-is-move`](an-editorial-mark-is-not-an-action-and-reanchor-is-move.md),

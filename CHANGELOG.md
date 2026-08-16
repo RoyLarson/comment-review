@@ -8,14 +8,31 @@ file existed as a one-line stub until this release. Neither
 carries a `version` field, so a version number lives only here and an installed plugin
 cannot report which one it is.
 
+⚠ **The PATCH number moves, whatever the change.** Roy, 2026-08-16: *"these will continue to be
+bugfix versions. I know that is not really how developed systems are supposed to go but this is
+mine now."* So a release carrying breaking renames is still `0.1.x`, and a section headed
+**Changed — BREAKING** does not imply a minor bump here. Recorded so nobody reads a released
+number as a semver claim, or "corrects" the next one to `0.2.0`.
+
 ## [Unreleased]
+
+_Nothing yet._
+
+## [0.1.3] — 2026-08-16
+
+⚠ **Released, NOT merged.** Roy: *"do not land — the implications of the changes need to be
+worked through."* The branch is `feat/settle-the-vocabulary`; `main` is still 0.1.2.
 
 **Settling the system's own vocabulary.** A twelve-agent collection over the live tree found
 nine terms used with a fixed sense and stated nowhere, and fifteen more carrying two or three
-senses each. Each is being ruled on in turn — state the meaning, split the word, or delete the
-use — and the ones that change a published name land here. Terms are settled in order of what
+senses each. Each was ruled in turn — state the meaning, split the word, or delete the
+use — and the ones that changed a published name are below. Terms are settled in order of what
 POINTS at them: names living in identifiers, filenames and flags first, because those are the
 ones that can dangle. Survey: `docs/vocabulary-usage.md`.
+
+⚠ **It is closed, and closed by COMMAND.** `python scripts/check_vocabulary.py` reports 185
+inventory rows with 0 lacking a ruling, and 1590 citations with 0 broken. Every term is
+defined, dropped, or declared as deliberate polysemy.
 
 ### Changed — BREAKING
 
