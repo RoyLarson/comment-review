@@ -1199,6 +1199,24 @@ described the thing without naming it, which is why the two landing in
 consumes. A term used once and stated nowhere is not a vocabulary gap; it is a word that has
 not earned a definition.
 
+### CODE CHECK — SETTLED 2026-08-15
+
+Stage 7b's gate, `prove_unchanged.py`. Proves the code still says the same thing after the
+write; reports UNPROVABLE rather than passing when it cannot.
+
+- **Python** — the AST, docstrings blanked. Reformatting passes.
+- **Any other `LANGUAGES` record** — comment-stripped lines, right-stripped, blanks dropped.
+- **No record** — unprovable.
+
+⚠ It compares a projection, not the file. Line endings need their own check.
+
+Roy ruled the name over `proof`, which the editorial metaphor had already given to stage 8: in
+publishing a PROOF is a trial copy read for errors, which is what stage 8 does and why its
+agent is `PROOFREADER`. 7b's was a logical proof — the same spelling, an unrelated word. Roy
+also caught that "identity" overstates it: *"identity is the goal, idempotent is going to be
+the reality."* The code agreed — `_residue()` right-strips every line and drops blanks before
+comparing, so the script's own "byte for byte" and "code identical" were wrong and are fixed.
+
 ### budget — SETTLED 2026-08-15, split three ways. ⚠ MISSED BY THE COLLECTION
 
 ⚠ **Not in either table of `vocabulary-inventory.md` as first produced.** Twelve agents over the

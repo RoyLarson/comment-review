@@ -202,7 +202,7 @@ Observed by the scout pass. Recorded as-is.
 
 | Term | Defined | Multiplicity |
 |---|---|---|
-| AST proof | `sk-scripts/prove_unchanged.py:11,150-176` | ONE |
+| CODE CHECK (7b's gate) | `sk-scripts/prove_unchanged.py:1,150-176`; `ref/write.md:36` | SEVERAL — `AST proof` / `the proof` until 2026-08-15; `proof` now means stage 8's pass only |
 | code signature | `sk-scripts/prove_unchanged.py:150-161` | ONE |
 | residue (byte comparison) | `sk-scripts/prove_unchanged.py:13-15,101-147` | ONE |
 | THE RESIDUE CHECK | `ref/residue-check.md:15-26` | ONE |

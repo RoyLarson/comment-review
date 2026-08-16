@@ -68,6 +68,20 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   while settling it: the budget covers 28 KB of the 224 KB shipped, and not `reviewer-brief.md`
   (18 KB, loaded once per reviewer) or `SKILL.md` (47 KB) — the two largest files a run loads.
 
+- **Stage 7b's gate is the CODE CHECK, not "the proof".** The editorial metaphor had already
+  given `proof` to stage 8 — in publishing a proof is a trial copy read for errors, which is
+  what stage 8 does and why its agent is `PROOFREADER`. 7b's was a logical proof, the same
+  spelling and an unrelated word. `proof` now names stage 8's pass and the level named for it,
+  and nothing else. "AST proof" went with it: that phrase named the Python branch while being
+  used for a gate that also covers every other language.
+
+- **It no longer claims byte identity, because it never had it.** `_residue()` right-strips
+  every line and drops blanks before comparing, so the script's own *"compare what remains,
+  byte for byte"* and its `PROVEN … code identical` report were both overstated. It compares a
+  PROJECTION — for Python the AST with docstrings blanked, otherwise the comment-stripped
+  lines — and what it proves is that the code says the same, not that the file is unchanged.
+  That is why line endings have always needed a separate check beside it.
+
 - **Reviewers no longer receive a CAP or a WIDTH.** The stage-4 packet had carried both, and
   `run_context.py --check` REFUSED a packet whose `CAP` was blank — enforcing the opposite of
   the rule stated since the import at `SKILL.md:211` ("never passed to a reviewer") and

@@ -11,7 +11,9 @@ Two proofs, because two tiers:
   ast       Python. Parse both, blank every docstring, compare `ast.dump`.
             Comments never reach the AST, so anything else that differs fails.
   residue   Any language with a `LANGUAGES` record. Delete every comment block
-            the census finds, compare what remains, byte for byte.
+            the census finds, compare the lines that remain -- right-stripped,
+            blanks dropped. A PROJECTION, not the file; line endings are
+            checked separately below because this cannot see them.
 
 ⚠ A file this cannot prove is REPORTED as unprovable, never passed. A proof
 that quietly degrades to "looks fine" is worse than no proof, because the
@@ -288,7 +290,7 @@ def main() -> int:
         if kind_a == "unprovable" or kind_b == "unprovable":
             print(
                 f"UNPROVABLE {rel}: prose could not be separated from code"
-                " — code identity NOT shown"
+                " — sameness NOT shown"
             )
             failures += 1
         elif kind_a != kind_b:
@@ -301,7 +303,7 @@ def main() -> int:
             print(f"FAIL      {rel}: executable code DIFFERS ({kind_a} proof)")
             failures += 1
         else:
-            print(f"PROVEN    {rel}: code identical ({kind_a} proof)")
+            print(f"PROVEN    {rel}: code says the same ({kind_a} proof)")
 
         sib = _sibling(repo, target, edited, tracked)
         if sib is None:
@@ -320,17 +322,15 @@ def main() -> int:
 
     print()
     if failures:
-        print(f"{failures} unproven. WRITE's identity claim does NOT hold.")
+        print(f"{failures} unproven. WRITE's claim does NOT hold.")
         return 1
     if unchecked:
         print(
-            f"{len(args.paths)} paths proven code-identical; {unchecked} with line "
+            f"{len(args.paths)} paths proven; {unchecked} with line "
             "endings UNCHECKED (no readable untouched sibling to compare against)."
         )
     else:
-        print(
-            f"{len(args.paths)} paths proven: prose changed, executable code did not."
-        )
+        print(f"{len(args.paths)} paths proven: prose changed, the code says the same.")
     return 0
 
 

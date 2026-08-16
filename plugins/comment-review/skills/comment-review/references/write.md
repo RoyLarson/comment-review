@@ -33,7 +33,7 @@ docstring that states something **false** is in scope — that is the `correct` 
 Changing what the docstring *documents* is not. ⚠ **A `correct` on a claim inside a string
 literal is REPORTED, never applied** — hand it to the human as a code concern.
 
-**Prove code identity; do not assert it.** Run the CODE CHECK — do not perform it:
+**Prove the code says the same; do not assert it.** Run the CODE CHECK — do not perform it:
 
 ```bash
 python <skill>/scripts/prove_unchanged.py --base <merge-base> --repo . <paths...>
@@ -45,7 +45,7 @@ comment-stripped byte comparison for every other language with a `LANGUAGES`
 record, and the line-ending check against an untouched sibling. ⚠ **Re-run it
 after the formatter** — the formatter can reshape what you wrote.
 
-⚠ **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The identity claim is
+⚠ **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The claim is
 what this skill promises the people who run it; report the line verbatim and
 restore the file. **An `UNCHECKED` line does not stop the run** — it means the
 line-ending check had no untouched sibling to compare against, not that it
