@@ -1,19 +1,29 @@
-"""THE CODE CHECK: prove the WRITE stage changed no executable code. Stage 7b's gate.
+"""THE CODE CHECK: does the parser read the file the same before and after?
+
+Stage 7b's gate.
 
     python prove_unchanged.py --base <ref> [--repo D] <paths...>
 
 Exits nonzero unless EVERY path is proven. The claim this skill makes to the
-people who run it is that prose changed and code did not; that claim is a pure
-function of two strings and must not rest on an agent performing it carefully.
+people who run it is that prose changed and the rest reads the same; that claim
+is a pure function of two strings and must not rest on an agent performing it
+carefully.
 
 Two proofs, because two tiers:
 
-  ast       Python. Parse both, blank every docstring, compare `ast.dump`.
-            Comments never reach the AST, so anything else that differs fails.
-  residue   Any language with a `LANGUAGES` record. Delete every comment block
-            the census finds, compare the lines that remain -- right-stripped,
-            blanks dropped. A PROJECTION, not the file; line endings are
-            checked separately below because this cannot see them.
+  ast       Python, using the LANGUAGE'S OWN parser. Blank every docstring,
+            compare `ast.dump`. Comments never reach the AST, so anything else
+            that differs fails.
+  residue   Any other `LANGUAGES` record, using THIS REPO'S comment lexer.
+            Delete every comment it finds, compare the lines that remain --
+            right-stripped, blanks dropped. A PROJECTION, not the file; line
+            endings are checked separately below because this cannot see them.
+
+⚠ That the parser reads it the same SHOULD mean the code says the same, and for
+Python it does -- that is CPython parsing its own language. Elsewhere it rests on
+a lexer built from a data row, so where that lexer is unsure this refuses rather
+than guesses: a delimiter sharing a line with code, an unterminated block
+comment, or a census that disagrees with the file all return `unprovable`.
 
 ⚠ A file this cannot prove is REPORTED as unprovable, never passed. A proof
 that quietly degrades to "looks fine" is worse than no proof, because the
@@ -303,7 +313,7 @@ def main() -> int:
             print(f"FAIL      {rel}: executable code DIFFERS ({kind_a} proof)")
             failures += 1
         else:
-            print(f"PROVEN    {rel}: code says the same ({kind_a} proof)")
+            print(f"PROVEN    {rel}: reads the same ({kind_a})")
 
         sib = _sibling(repo, target, edited, tracked)
         if sib is None:
@@ -330,7 +340,9 @@ def main() -> int:
             "endings UNCHECKED (no readable untouched sibling to compare against)."
         )
     else:
-        print(f"{len(args.paths)} paths proven: prose changed, the code says the same.")
+        print(
+            f"{len(args.paths)} paths proven: prose changed, the rest reads the same."
+        )
     return 0
 
 

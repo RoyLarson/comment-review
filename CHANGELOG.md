@@ -79,8 +79,10 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   every line and drops blanks before comparing, so the script's own *"compare what remains,
   byte for byte"* and its `PROVEN … code identical` report were both overstated. It compares a
   PROJECTION — for Python the AST with docstrings blanked, otherwise the comment-stripped
-  lines — and what it proves is that the code says the same, not that the file is unchanged.
-  That is why line endings have always needed a separate check beside it.
+  lines — and what it proves is that **the parser reads the file the same**, which should mean
+  the code says the same and for Python does. Elsewhere it rests on a lexer built from a data
+  row, so where that lexer is unsure it refuses rather than guesses. That is also why line
+  endings have always needed a separate check beside it.
 
 - **Reviewers no longer receive a CAP or a WIDTH.** The stage-4 packet had carried both, and
   `run_context.py --check` REFUSED a packet whose `CAP` was blank — enforcing the opposite of

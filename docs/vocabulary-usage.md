@@ -1201,13 +1201,16 @@ not earned a definition.
 
 ### CODE CHECK — SETTLED 2026-08-15
 
-Stage 7b's gate, `prove_unchanged.py`. Proves the code still says the same thing after the
-write; reports UNPROVABLE rather than passing when it cannot.
+Stage 7b's gate, `prove_unchanged.py`. Proves **the parser reads the file the same** before
+and after the write; reports UNPROVABLE rather than passing when it cannot.
 
-- **Python** — the AST, docstrings blanked. Reformatting passes.
-- **Any other `LANGUAGES` record** — comment-stripped lines, right-stripped, blanks dropped.
+- **Python** — the language's own parser, docstrings blanked. Reformatting passes.
+- **Any other `LANGUAGES` record** — this repo's comment lexer; remaining lines, right-stripped,
+  blanks dropped.
 - **No record** — unprovable.
 
+⚠ That should mean the code says the same, and for Python it does. Elsewhere it rests on a
+lexer built from a data row, so where that lexer is unsure it refuses rather than guesses.
 ⚠ It compares a projection, not the file. Line endings need their own check.
 
 Roy ruled the name over `proof`, which the editorial metaphor had already given to stage 8: in
