@@ -108,7 +108,7 @@ The skill is broken up into eight phases to cover an editorial system.
 
 | verdict    | the claim is                                     | what you do with it                                                       |
 | ---------- | ------------------------------------------------- | -------------------------------------------------------------------------- |
-| `clean`    | nothing to report **from this role**             | nothing. Not a pass, and not a claim the block is correct — one role having no finding, including when the block is outside what that role reads |
+| `clean`    | nothing to report **from this role**, on a block it READ | nothing. Not a pass, and not a claim the block is correct — one role having no finding. A block outside what the role reads is `query` |
 | `query`    | unsettled                                        | resolve it or escalate it. It blocks every other verdict on that sentence |
 | `drop`     | true but not worth keeping                       | delete the sentence                                                       |
 | `correct`  | **FALSE**                                        | apply the true/false pair. **Always before any `patch`**                  |

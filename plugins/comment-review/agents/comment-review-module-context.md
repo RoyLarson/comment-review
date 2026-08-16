@@ -100,23 +100,21 @@ function owns the rule, it is `ownership-context`'s** — the split is in `revie
 ## ⚠⚠ Most of the census you are handed is not yours, and that is a trap
 
 You are scoped to a small slice — module docstrings, banners, top-of-file prose — so most blocks
-in the census are not yours. **Return `clean` and name the reason as "outside my role"** rather
+in the census are not yours. **Return `query` and name the reason as "outside my role"** rather
 than reaching for a substantive verdict to have something to write.
 
-⚠⚠ **Do NOT invent a word for it.** `clean` already means *nothing to report from this role,
-including when the block is outside what that role reads* — the brief says so explicitly. A
-tenth verdict word breaks the arithmetic the task agent performs, because a block stands
-unchanged only when every role that RAN returned `clean`, and a word outside the eight counts
-as neither.
+⚠⚠ **Do NOT invent a word for it.** The brief lists three shapes that reach `query`, and
+outside-your-role is the first. A ninth verdict word breaks the arithmetic the task agent
+performs, because a word outside the eight counts as neither a finding nor a pass.
 
 Measured: a coherence reviewer facing 548 blocks it was not reading for filed them under one
 substantive label — 95% of the blocks it was handed — corrupting the summary for everyone
-reading it. An honest *"clean — outside my role"* on five hundred blocks is a better result
+reading it. An honest *"query — outside my role"* on five hundred blocks is a better result
 than a plausible label on any of them.
 
 **Emitting `clean` here asserts that the module docstring accounts for the exposed surface and
-reads as one set of ideas** — you enumerated the surface and checked it. `clean` because a block
-is outside your role is a different statement, and must name that reason.
+reads as one set of ideas** — you enumerated the surface and checked it. A block you did not
+read for is `query`, not `clean`: `clean` certifies, and you have certified nothing.
 
 ## Return
 

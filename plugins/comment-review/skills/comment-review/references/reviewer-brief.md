@@ -10,16 +10,17 @@ fixes what it finds has destroyed the finding** — the human never sees the que
 afterwards nobody can separate a real problem from an imagined one.
 
 You **report** your findings per your editorial role's remit.
-You been handed a vocabulary to help you identify what terms should be used to work on
-or respond to code documentation and comments.
+You have been handed a vocabulary to help you identify what terms should be used to
+work on or respond to code documentation and comments. This includes the edit marks
+that describe the verdict for each documentation and comment review required.
 
 ## Two lists
 
 **FILES UNDER REVIEW** — the only files a verdict may target.
 
 **REFERENCE ONLY** — everything else in the repo. **Read them to settle a claim.**
-Stick to reading the references only - if a reference is wrong it needs stated with
-the record.
+Stick to reading the references only - if a reference is wrong it needs to be stated
+with the record.
 
 ⚠ **If the run context says a LANGUAGE SERVER answered, use it to settle a claim about a
 symbol** — `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`. It is faster and
@@ -58,10 +59,10 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | field | what it carries |
 | --- | --- |
 | `BLOCK` | the census INDEX. This is how coverage is checked; a finding without it is unattributable |
-| `VERDICT` | one of the eight, and one your LEVEL carries |
+| `VERDICT` | one of the eight |
 | `LOCATION` | `file:start-end` of the prose |
 | `EVIDENCE` | `file(s):line(s)` you opened to settle the claim — **verified to exist** |
-| `QUOTE` | the text at that line, **VERBATIM**. |
+| `QUOTE` | the text at that line, **VERBATIM** |
 | `SUMMARY` | the claim as written, quoted `\|\|` what you DERIVED from the evidence |
 | `FINDING` | what is wrong, one clause |
 | `CHANGE` | the payload the verdict table requires |
@@ -72,7 +73,7 @@ out of the file and your `QUOTE` must appear within three lines of it.
 ⚠ **`SUMMARY`'s right half is DERIVED, and is not checked verbatim** — that is why
 it is a separate field from `QUOTE`. A count is not a line any file contains, so
 checking the derived statement against the code made every counted claim
-inadmissible: the block-context role's own REMIT, refused by the gate.
+inadmissible.
 
 ### The verdicts, and what each one MUST carry
 
@@ -92,11 +93,21 @@ finding.
 | `move`    | the destination **and** the verbatim extract |
 | `split`   | each fragment **and its own anchor** |
 
+#### `correct` and `patch` specific rules
+
 ⚠ **`correct` and `patch` are not interchangeable, and the difference is the whole point.**
 `correct` says the claim is wrong; `patch` says it is right and reads badly. The task agent
 applies every `correct` **before** any `patch`, so mislabelling one as the other means a false
 claim gets its wording polished and never gets checked. That is the laundering failure in its
 purest form. If you are unsure which applies, you have not settled the claim — that is `query`.
+⚠ **A sentence that is not truthy cannot be `correct`ed**, because there is nothing to correct
+it against — it is `drop` or `query`.
+*"The retry budget is 40"* is truthy and can be false if the budget is actually 100. This gets
+a `correct` tag.
+*"this is robust"* is neither. There is no definition of "robust" that can be checked in all
+circumstances.
+
+#### `move` specific rules
 
 ⚠ **One relocation verdict, and the DESTINATION is what varies.** A declaration ten lines
 down, another file, or out of the code entirely — all `move`, and which one goes in the
@@ -104,17 +115,22 @@ payload. Say WHY it belongs there in `FINDING`. **Only a destination outside the
 unavailable** (it needs a tree the task agent resolved at 1.4); a relocation into tracked
 code is always available.
 
- **`clean` is scoped to YOU, and the other roles are looking at the same block.**
-The task agent computes how best to combine the results from all roles.
-⚠ Do not invent a word for "outside my role": that is `clean`,
-and a ninth word breaks the arithmetic.
+#### `clean` specific rules
 
-**`clean` is a decision and is required - it cannot be assumed and skipped past**
+**`clean` is scoped to YOU, and the other roles are looking at the same block.**
+The task agent computes how best to combine the results from all roles.
+
+**`clean` is a decision and is required - it cannot be assumed or skipped past**
+
+**Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
+single `clean` sentence must not launder the ones around it.
 
 ⚠ **Nothing is `clean` for being SHORT, TRUE, WELL WRITTEN, NEW, or under a `⚠`.** Each was
 measured as an exemption reviewers invented for themselves. Truth least of all: a true claim
 can be misplaced, unnecessary, or the surviving half of a block whose other half was the
 constraint — and none of those is your role's question unless your role file says it is.
+
+#### `query` specific rules
 
 ⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
 still required to open the code that would settle it; on every other verdict your `QUOTE` proves
@@ -123,6 +139,7 @@ you did. `query` is what you emit when you did and it was still not enough.
 Three shapes reach it, and all three are findings rather than admissions:
 
 - **outside your role** — what settles it belongs to another scope. This gets a `query` mark.
+  ⚠ Do not invent a word for "outside my role": that is `query`
 - **outside the checkout** — generated, gitignored, remote, or on one machine.
   No reviewer in a fresh checkout can settle it.
 - **outside the code** — Settling it needs someone who knows the system or how it is operated.
@@ -134,16 +151,6 @@ Three shapes reach it, and all three are findings rather than admissions:
 ⚠ **A `query` requires `EVIDENCE` and `QUOTE`(s), by construction** — this is where you
 looked to try to find the answer. These are the statements in the code that make it
 ambiguous or the location not yours to determine.
-
-**Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
-single `clean` sentence must not launder the ones around it.
-
-⚠ **A sentence that is not truthy cannot be `correct`ed**, because there is nothing to correct
-it against — it is `drop` or `query`.
-*"The retry budget is 40"* is truthy and can be false fi the budget is actually 100. This gets
-a `correct` tag.
-*"this is robust"* is neither. There is no definition of "robust" that can be checked in all
-circumstances.
 
 ## Check the CLAIM, not the CITATION
 
@@ -195,7 +202,6 @@ agreeing reviewers once reported a file "cannot compile" over valid syntax.
 
 ### One block, two placements — report yours
 
-REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two
-can reach the same block. Report the placement your role sees, under the verdicts your
-level carries, and say in `FINDING` why the block belongs there. Which destination wins
-is the task agent's ruling later.
+REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two roles
+can reach the same or different decisions per sentence. Report the findings your role sees and
+say in `FINDING` why the edit is correct. Which verdict wins is the task agent's ruling later.

@@ -23,11 +23,12 @@ asked to grade itself. A report is not evidence that a file was read.
 findings are ADMISSIBLE. Ruling remains stage 5's, and the synthesis order in
 SKILL.md is unchanged.
 
-⚠ It catches a fabricated FINDING, never a fabricated CLEAN -- and the clean is
-the cheaper fabrication. A report reading only `CLEAN 1-N` accounts for every
-index, cites nothing, and exits 0 after reading no file at all. Nothing here can
-distinguish it from a real pass, because there is no artifact a negative leaves
-behind. Grade a run from its DIFF, never from this exit code.
+⚠ Every block is accounted for by a RECORD, `clean` included -- there is no
+range list. A `clean` record carries a BLOCK, a VERDICT and a LOCATION, and the
+LOCATION is resolved against the tree, so covering N blocks costs N records that
+each name a real prose range. That is the answer to the cheapest fabrication a
+range list allowed. It is not proof a file was read: a `clean` record still
+carries no QUOTE. Grade a run from its DIFF, never from this exit code.
 
 ⚠ `--reviewers` is OPTIONAL, and its absence is announced, not swallowed: without
 it, a reviewer that never reported at all is invisible to this tool -- the
@@ -80,12 +81,6 @@ OPENER = re.compile(r"^---\s*FINDING\s*$", re.M)
 FIELD = re.compile(
     r"^\s*(BLOCK|VERDICT|LOCATION|EVIDENCE|QUOTE|SUMMARY|FINDING|CHANGE)\s+(.*)$"
 )
-# ⚠ `[ \t]`, never `\s`. `\s` matches a newline, and inside a greedy character
-# class under re.MULTILINE that let a CLEAN line's range swallow whatever the
-# NEXT line held -- "CLEAN 1-9" followed by a stray "50" parsed as one range
-# "1-950" and declared 950 blocks clean. A wrapped CLEAN line must fail LOUD
-# (an unaccounted block is a coverage gap) rather than SILENT (a false clean).
-CLEAN_LINE = re.compile(r"^[ \t]*CLEAN[ \t]+([\d,\- \t]+)$", re.M)
 # `file:line` or `file:start-end`, shared by EVIDENCE and LOCATION -- a
 # fabricated prose location is exactly as inadmissible as a fabricated
 # citation once both are resolved the same way.
@@ -161,8 +156,7 @@ def _malformed(reviewer: str, why: str) -> Finding:
     """A record that cannot be attributed to any real block.
 
     `block=-1` is the sentinel `main()` treats as fatal on sight, whatever the
-    reason -- a missing BLOCK, an unparseable CLEAN range, or a record whose
-    closing "---" was never found.
+    reason -- a missing BLOCK, or a record whose closing "---" was never found.
     """
     return Finding(
         reviewer=reviewer,
@@ -177,34 +171,8 @@ def _malformed(reviewer: str, why: str) -> Finding:
     )
 
 
-def _expand(ranges: str) -> tuple[set[int], list[str]]:
-    """`"1-3,7"` to `({1, 2, 3, 7}, [])`. Unparseable parts are RETURNED, not dropped.
-
-    A range list that does not parse is a malformed record, not an empty one.
-    `"9-2"` and `"1820-45"` are reversed; `"0-3"` starts below the 1-based
-    census floor. Each is reported by name rather than silently vanishing (the
-    old failure) or silently admitting an out-of-range index (the newer one).
-    """
-    out: set[int] = set()
-    bad: list[str] = []
-    for part in re.sub(r"[ \t]+", "", ranges).split(","):
-        if not part:
-            continue
-        if "-" in part:
-            lo, _, hi = part.partition("-")
-            if lo.isdecimal() and hi.isdecimal() and 1 <= int(lo) <= int(hi):
-                out.update(range(int(lo), int(hi) + 1))
-            else:
-                bad.append(part)
-        elif part.isdecimal() and int(part) >= 1:
-            out.add(int(part))
-        else:
-            bad.append(part)
-    return out, bad
-
-
-def parse_report(text: str, reviewer: str) -> tuple[list[Finding], set[int]]:
-    """Findings and clean-block indices from one reviewer's report.
+def parse_report(text: str, reviewer: str) -> list[Finding]:
+    """Every record in one reviewer's report, `clean` included.
 
     Args:
         text: the report as the reviewer returned it. Prose around the records
@@ -212,7 +180,8 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], set[int]]:
         reviewer: the editorial role's name, attached to every finding it made.
 
     Returns:
-        The parsed findings, and the set of indices declared clean by range.
+        The parsed findings. Coverage is computed from these alone -- a block a
+        reviewer never recorded is a block it never accounted for.
     """
     found: list[Finding] = []
     bodies = RECORD.findall(text)
@@ -249,28 +218,24 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], set[int]]:
             )
         else:
             found.append(_malformed(reviewer, "a record with no BLOCK index"))
-
-    clean: set[int] = set()
-    for ranges in CLEAN_LINE.findall(text):
-        expanded, bad = _expand(ranges)
-        clean |= expanded
-        for part in bad:
-            found.append(_malformed(reviewer, f"CLEAN range {part!r} does not parse"))
-    return found, clean
+    return found
 
 
 def coverage_gaps(
-    all_blocks: set[int], clean: dict[str, set[int]], found: list[Finding]
+    all_blocks: set[int], reported: set[str], found: list[Finding]
 ) -> dict[str, list[int]]:
-    """Indices each reviewer never accounted for. A gap is not a pass."""
+    """Indices each reviewer never accounted for. A gap is not a pass.
+
+    `reported` is who handed in a file, not who produced a record. A report that
+    parsed to nothing is a reviewer that accounted for nothing, and taking the
+    population from the findings alone would make it disappear instead.
+    """
     by_reviewer: dict[str, set[int]] = defaultdict(set)
     for f in found:
         by_reviewer[f.reviewer].add(f.block)
     gaps: dict[str, list[int]] = {}
-    for reviewer in set(list(clean) + list(by_reviewer)):
-        missing = sorted(
-            all_blocks - by_reviewer[reviewer] - clean.get(reviewer, set())
-        )
+    for reviewer in reported | set(by_reviewer):
+        missing = sorted(all_blocks - by_reviewer[reviewer])
         if missing:
             gaps[reviewer] = missing
     return gaps
@@ -480,7 +445,7 @@ def main() -> int:
         fatal += 1
 
     found: list[Finding] = []
-    clean: dict[str, set[int]] = {}
+    reported: set[str] = set()
     for raw in args.reports:
         path = Path(raw)
         reviewer = path.stem
@@ -492,10 +457,8 @@ def main() -> int:
             )
             fatal += 1
             continue
-        got, cl = parse_report(text, reviewer)
-        found.extend(got)
-        if reviewer not in clean:  # first file for a stem wins; a dupe is fatal above
-            clean[reviewer] = cl
+        found.extend(parse_report(text, reviewer))
+        reported.add(reviewer)
 
     print(
         f"{_n(len(found), 'finding')} from {_n(len(args.reports), 'reviewer')}"
@@ -508,7 +471,7 @@ def main() -> int:
     # version of the fabrication this tool exists to catch.
     if args.reviewers:
         expected = {a.strip() for a in args.reviewers.split(",") if a.strip()}
-        for reviewer in sorted(expected - set(clean)):
+        for reviewer in sorted(expected - reported):
             print(
                 f"  NO REPORT from reviewer {reviewer!r} — a missing report is the"
                 " easier version of a fabricated one. --reviewers is matched against"
@@ -522,7 +485,7 @@ def main() -> int:
             " NOT checked.\n"
         )
 
-    gaps = coverage_gaps(all_blocks, clean, found)
+    gaps = coverage_gaps(all_blocks, reported, found)
     if gaps:
         print("COVERAGE GAPS - indices no reviewer accounted for:")
         for reviewer, missing in sorted(gaps.items()):
@@ -582,7 +545,7 @@ def main() -> int:
     # coverage gaps and out-of-range indices already reported as fatal above,
     # "no reviewer ruled on it" and "every reviewer cleaned it" are the same set --
     # so this subtraction is the clean-arithmetic, not an approximation of it.
-    ran = sorted(set(clean) | {f.reviewer for f in found})
+    ran = sorted(reported | {f.reviewer for f in found})
     ruled = {
         f.block for f in found if f.verdict != "clean" and 1 <= f.block <= len(blocks)
     }

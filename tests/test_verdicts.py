@@ -29,8 +29,30 @@ FINDING     the count is wrong
 CHANGE      false: "only one caller" / true: "three callers"
 ---
 
-CLEAN 2-3
+--- FINDING
+BLOCK       2
+VERDICT     clean
+LOCATION    a.py:10-11
+FINDING     nothing to report from this role
+---
 """
+
+
+def _clean_records(*blocks: int) -> str:
+    """One `clean` RECORD per block. There is no range list to write instead."""
+    return "".join(
+        "--- FINDING\n"
+        f"BLOCK       {n}\n"
+        "VERDICT     clean\n"
+        "LOCATION    a.py:1\n"
+        "FINDING     nothing to report from this role\n"
+        "---\n"
+        for n in blocks
+    )
+
+
+_CLEAN_RECORDS = _clean_records(1, 2, 3)
+_CLEAN_RECORDS_23 = _clean_records(2, 3)
 
 
 def _finding(**kw):
@@ -58,42 +80,27 @@ def _finding(**kw):
 
 class TestParsing(unittest.TestCase):
     def test_a_record_is_parsed(self):
-        found, clean = verdicts.parse_report(REPORT, "block-context")
-        self.assertEqual(len(found), 1)
+        found = verdicts.parse_report(REPORT, "block-context")
+        self.assertEqual(len(found), 2)
         self.assertEqual(found[0].block, 1)
         self.assertEqual(found[0].verdict, "correct")
         self.assertEqual(found[0].evidence, "a.py:5")
         self.assertEqual(found[0].quote, "the settling line")
 
-    def test_clean_ranges_expand(self):
-        _, clean = verdicts.parse_report(REPORT, "block-context")
-        self.assertEqual(clean, {2, 3})
+    def test_a_clean_record_parses_like_any_other(self):
+        found = verdicts.parse_report(REPORT, "block-context")
+        self.assertEqual(found[1].verdict, "clean")
+        self.assertEqual(found[1].block, 2)
 
     def test_the_reviewer_is_attached(self):
-        found, _ = verdicts.parse_report(REPORT, "block-context")
+        found = verdicts.parse_report(REPORT, "block-context")
         self.assertEqual(found[0].reviewer, "block-context")
 
-    def test_a_wrapped_clean_line_does_not_merge_across_lines(self):
-        # C1: `\s` inside CLEAN_LINE's class let a stray continuation line glue
-        # onto the range, turning "CLEAN 1-9" + a stray "50" into "1-950".
-        text = "CLEAN 1-9\n50\n"
-        _, clean = verdicts.parse_report(text, "module-context")
-        self.assertEqual(clean, {1, 2, 3, 4, 5, 6, 7, 8, 9})
-
-    def test_a_bad_clean_range_becomes_a_malformed_finding_not_a_silent_drop(self):
-        # C1: an unparseable CLEAN part must be REPORTED, not dropped -- a range
-        # list that doesn't parse is a malformed record, not an empty one.
-        text = "CLEAN 9-2\n"
-        found, clean = verdicts.parse_report(text, "block-context")
-        self.assertEqual(clean, set())
-        self.assertEqual(len(found), 1)
-        self.assertLess(found[0].block, 0)
-        self.assertIn("9-2", found[0].finding)
-
-    def test_a_zero_index_in_clean_is_rejected_not_admitted(self):
-        text = "CLEAN 0-3\n"
-        _, clean = verdicts.parse_report(text, "block-context")
-        self.assertNotIn(0, clean)
+    def test_a_bare_range_line_accounts_for_nothing(self):
+        # A range list used to cover N blocks in one line and cite nothing. It is
+        # not a record, so it parses to no findings and every block it named is a
+        # coverage gap.
+        self.assertEqual(verdicts.parse_report("CLEAN 1-9\n", "module-context"), [])
 
     def test_an_unterminated_record_is_flagged_not_silently_merged(self):
         # I4: two records, the first missing its closing "---", must not merge
@@ -117,49 +124,35 @@ FINDING     second record, closed
 CHANGE      false: "x" / true: "y"
 ---
 """
-        found, _ = verdicts.parse_report(text, "block-context")
+        found = verdicts.parse_report(text, "block-context")
         malformed = [f for f in found if f.block < 0]
         self.assertTrue(
             malformed, "an opener/closer mismatch must produce a malformed finding"
         )
 
 
-class TestExpand(unittest.TestCase):
-    """`_expand` must REPORT what it cannot parse, never drop it silently."""
-
-    def test_a_reversed_range_is_reported_bad(self):
-        expanded, bad = verdicts._expand("9-2")
-        self.assertEqual(expanded, set())
-        self.assertIn("9-2", bad)
-
-    def test_a_wildly_reversed_range_is_reported_bad(self):
-        expanded, bad = verdicts._expand("1820-45")
-        self.assertEqual(expanded, set())
-        self.assertIn("1820-45", bad)
-
-    def test_a_zero_start_is_reported_bad(self):
-        expanded, bad = verdicts._expand("0-3")
-        self.assertNotIn(0, expanded)
-        self.assertIn("0-3", bad)
-
-    def test_a_valid_range_is_not_reported_bad(self):
-        expanded, bad = verdicts._expand("1-3,7")
-        self.assertEqual(expanded, {1, 2, 3, 7})
-        self.assertEqual(bad, [])
-
-
 class TestCoverage(unittest.TestCase):
     def test_an_unaccounted_block_is_a_gap(self):
         gaps = verdicts.coverage_gaps(
-            {1, 2, 3, 4}, {"block-context": {2, 3}}, [_finding(block=1)]
+            {1, 2, 3, 4},
+            {"block-context"},
+            [_finding(block=n) for n in (1, 2, 3)],
         )
         self.assertEqual(gaps, {"block-context": [4]})
 
     def test_full_coverage_reports_no_gap(self):
         gaps = verdicts.coverage_gaps(
-            {1, 2}, {"block-context": {2}}, [_finding(block=1, verdict="clean")]
+            {1, 2},
+            {"block-context"},
+            [_finding(block=1), _finding(block=2, verdict="clean")],
         )
         self.assertEqual(gaps, {})
+
+    def test_a_report_that_parsed_to_nothing_is_every_block_missing(self):
+        """A reviewer that handed in a file and recorded nothing must not vanish
+        by having no findings for the population to be taken from."""
+        gaps = verdicts.coverage_gaps({1, 2}, {"module-context"}, [])
+        self.assertEqual(gaps, {"module-context": [1, 2]})
 
 
 class TestPayload(unittest.TestCase):
@@ -487,8 +480,20 @@ class TestCLI(unittest.TestCase):
             cmd, capture_output=True, text=True, encoding="utf-8", check=False
         )
 
-    def _clean_report(self, name):
-        return self._write(name, "CLEAN 1-3\n")
+    def _clean_report(self, name, blocks=(1, 2, 3)):
+        """One `clean` RECORD per block — there is no range list."""
+        return self._write(
+            name,
+            "".join(
+                "--- FINDING\n"
+                f"BLOCK       {n}\n"
+                "VERDICT     clean\n"
+                "LOCATION    a.py:1\n"
+                "FINDING     nothing to report from this role\n"
+                "---\n"
+                for n in blocks
+            ),
+        )
 
     def test_full_coverage_exits_zero(self):
         report = self._clean_report("block-context.txt")
@@ -511,7 +516,18 @@ class TestCLI(unittest.TestCase):
             "FINDING     f\n"
             "CHANGE      \n"
             "---\n"
-            "CLEAN 2-3\n",
+            "--- FINDING\n"
+            "BLOCK       2\n"
+            "VERDICT     clean\n"
+            "LOCATION    a.py:1\n"
+            "FINDING     nothing to report from this role\n"
+            "---\n"
+            "--- FINDING\n"
+            "BLOCK       3\n"
+            "VERDICT     clean\n"
+            "LOCATION    a.py:1\n"
+            "FINDING     nothing to report from this role\n"
+            "---\n",
         )
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
@@ -529,20 +545,37 @@ class TestCLI(unittest.TestCase):
             "FINDING     f\n"
             "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
             "---\n"
-            "CLEAN 1-3\n",
+            "--- FINDING\n"
+            "BLOCK       1\n"
+            "VERDICT     clean\n"
+            "LOCATION    a.py:1\n"
+            "FINDING     nothing to report from this role\n"
+            "---\n"
+            "--- FINDING\n"
+            "BLOCK       2\n"
+            "VERDICT     clean\n"
+            "LOCATION    a.py:1\n"
+            "FINDING     nothing to report from this role\n"
+            "---\n"
+            "--- FINDING\n"
+            "BLOCK       3\n"
+            "VERDICT     clean\n"
+            "LOCATION    a.py:1\n"
+            "FINDING     nothing to report from this role\n"
+            "---\n",
         )
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("out of range", result.stdout)
 
-    def test_a_wrapped_clean_line_is_a_gap_not_a_pass(self):
-        # C1, end to end: a stray continuation line after CLEAN must produce a
-        # loud coverage gap on block 3, never a silent "everything is clean".
-        report = self._write("block-context.txt", "CLEAN 1-2\n900\n")
+    def test_a_bare_range_line_is_a_gap_not_a_pass(self):
+        # A range list is not a record, so it accounts for nothing: every block
+        # it names is a loud coverage gap, never a silent "everything is clean".
+        report = self._write("block-context.txt", "CLEAN 1-3\n")
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("COVERAGE GAPS", result.stdout)
-        self.assertIn("block-context: 1 block unaccounted", result.stdout)
+        self.assertIn("block-context: 3 blocks unaccounted", result.stdout)
 
     def test_a_missing_reviewer_is_fatal_when_declared(self):
         report = self._clean_report("block-context.txt")
@@ -560,8 +593,8 @@ class TestCLI(unittest.TestCase):
         sub = Path(self.tmp.name) / "dup"
         sub.mkdir()
         one = sub / "block-context.txt"
-        one.write_text("CLEAN 1-3\n", encoding="utf-8")
-        two = self._write("block-context.txt", "CLEAN 1-3\n")
+        one.write_text(_CLEAN_RECORDS, encoding="utf-8")
+        two = self._write("block-context.txt", _CLEAN_RECORDS)
         result = self._run(one, two)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("DUPLICATE", result.stdout)
@@ -583,7 +616,18 @@ class TestCLI(unittest.TestCase):
             "FINDING     f\n"
             "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
             "---\n"
-            "CLEAN 2-3\n",
+            "--- FINDING\n"
+            "BLOCK       2\n"
+            "VERDICT     clean\n"
+            "LOCATION    a.py:1\n"
+            "FINDING     nothing to report from this role\n"
+            "---\n"
+            "--- FINDING\n"
+            "BLOCK       3\n"
+            "VERDICT     clean\n"
+            "LOCATION    a.py:1\n"
+            "FINDING     nothing to report from this role\n"
+            "---\n",
         )
         result = self._run(report)
         self.assertNotIn("1 reviewers", result.stdout)
@@ -614,7 +658,12 @@ class TestCLI(unittest.TestCase):
             "FINDING     second record, closed\n"
             'CHANGE      false: "x" / true: "y"\n'
             "---\n"
-            "CLEAN 3\n",
+            "--- FINDING\n"
+            "BLOCK       3\n"
+            "VERDICT     clean\n"
+            "LOCATION    a.py:1\n"
+            "FINDING     nothing to report from this role\n"
+            "---\n",
         )
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
@@ -636,8 +685,7 @@ class TestCLI(unittest.TestCase):
             'SUMMARY     "x" || the count is stale\n'
             "FINDING     f\n"
             "CHANGE      {change}\n"
-            "---\n"
-            "CLEAN 2-3\n"
+            "---\n" + _CLEAN_RECORDS_23
         )
         drop = self._write(
             "ownership-context.txt",
@@ -702,7 +750,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         match = self.RECORD.search(text)
         self.assertIsNotNone(match, "no canonical FINDING record in reviewer-brief.md")
         self.record = match.group(1)
-        found, _ = verdicts.parse_report(self.record + "\n", "block-context")
+        found = verdicts.parse_report(self.record + "\n", "block-context")
         self.assertEqual(len(found), 1, self.record)
         self.finding = found[0]
         self._plant()
