@@ -92,56 +92,52 @@ Rules that keep it that shape:
 
 ---
 
-## What to do next — re-derived 2026-08-15, third pass
+## What to do next — re-derived 2026-08-16, fourth pass
 
 ⚠⚠ **SETTLE WHAT A TERM MEANS. DO NOT MOVE IT.** Roy, 2026-08-16: *"once we get the vocabulary
 resolved we will fix how to get the vocabulary to the correct places for each of the agents to
-use. Please do not propose moving them until this is done else you might take the initiative and
-then duplicate the vocabulary issues."* Distribution is its own pass, and it is the ⭐ *"give the
-agents a copy of the definitions"* in
-[`an-editorial-mark-is-not-an-action-and-reanchor-is-move`](an-editorial-mark-is-not-an-action-and-reanchor-is-move.md).
-Until it runs, state a term **in place** — in a sentence that already describes it — and record
-a placement problem as an OBSERVATION, never act on it. Moving a definition now either copies it
-or lands it somewhere the distribution pass has to undo, which is the defect this branch exists
-to remove.
+use."* Distribution is its own pass and it has NOT run. Until it does, state a term **in place**
+— in a sentence that already describes it — and record a placement problem as an OBSERVATION.
 
 ⚠ **Re-derive this after anything lands.** Written fresh each time, not accumulated — a stale
 branch status here is the same failure the box/`Progress`/table rule guards against, one level up.
 
-Everything below is on `feat/settle-the-vocabulary`, 29 commits, `main` untouched.
+Everything below is on `feat/settle-the-vocabulary`, 52 commits, `main` untouched.
 
-1. **⭐ The record: two rulings, and they are the only thing gating it.** `query` has no
-   `SOURCE` by design — where does attempted/would-settle go? And `add` has no block of its own
-   yet `BLOCK` is required. The shape itself is ruled and the worked examples are in the file.
-2. **The record's real prize is not the cut.** `REASON` is the field the `move` ruling rests
-   on and **nothing checks it**; `LOCATION` was checked only for resolvability, never against
-   the block it names. Replacing it with a `CLAIM`-against-census cross-check is strictly
-   stronger and costs no new machinery.
-3. **The vocabulary is down to three polysemy rows** — `residue`, `SUPPRESSED` and `label` —
-   then the closing re-sweep. `own`/`owner`/`ownership` is settled (`HOME` retired, the census
-   records ANCHORS), `remit` is the new word for a role's categories of claim, and
-   `worktree` is git's word, not this system's.
-4. **⚠ The survey is a floor, not a census.** `budget` was used at 18 sites in four senses and
-   appeared in NEITHER table of the inventory — Roy found it reading a justification. Assume
-   other terms are missing the same way; do not treat "109 terms" as coverage.
-5. **The pCST rebuild is follow-up, not this branch.**
-   [`an-empty-interval-has-no-census-index`](an-empty-interval-has-no-census-index.md) holds it:
-   the block DEFINITION is settled and shipped, but the census still enumerates from prose, so
-   an empty interval has no index. That is what `add` is waiting on, and it is a census change,
-   not a naming one.
-6. **⚠ Two measured gaps are recorded and unowned.** `docs/limitations.md` now records that the
-   budget covers 28 KB of the 224 KB shipped and not the two largest files a run loads
-   (`reviewer-brief.md` 18 KB, loaded once per reviewer; `SKILL.md` 47 KB). And the level ladder
-   was invented during the Aug-14 port — it exists at zero commits in `redacted_corpus`, on
-   any branch — with one budget argument as its whole justification. Roy has ruled the ladder is
-   **not** a vocabulary question, so it needs a home of its own before it can be acted on.
+**The vocabulary is CLOSED.** `python scripts/check_vocabulary.py` says so as a command rather
+than a claim: 185 inventory rows, 0 without a ruling; 1590 citations, 0 broken. Every term is
+defined, dropped, or declared as deliberate polysemy.
+
+1. **⭐ THE BRANCH IS READY. What it needs is a decision about landing it.** It carries breaking
+   changes to published names — the census JSON key, `verdicts.py --reviewers`, the packet's
+   section list, the CODE CHECK's kind strings — so it is a version bump, and nothing here
+   carries a version but `CHANGELOG.md`.
+2. **⭐ DISTRIBUTION is the next pass, and it is the one thing the vocabulary work deferred.**
+   It is the ⭐ *"give the agents a copy of the definitions"* in
+   [`an-editorial-mark-is-not-an-action-and-reanchor-is-move`](an-editorial-mark-is-not-an-action-and-reanchor-is-move.md),
+   and it gained two constraints today: whatever it builds must reach `comment-review-review` as
+   well as the four editorial roles (the brief goes to the four and nowhere else, so "put it in
+   the brief" does not solve stage 8), and it must give each agent the definitions it needs
+   WITHOUT telling it where the other files are.
+3. **The metaphor is now a rule in `CLAUDE.md`, and it earned itself twice.** `walk` and
+   `detector` both collided with nothing and both went, because an editor does not walk a page
+   and a detector is instrumentation. No collision check would have found either.
+4. **⚠ The survey is a floor, not a census — still true.** `budget` and `own` were missed by
+   twelve agents and found by Roy reading. The re-sweep is now a script
+   (`scripts/vocabulary_sweep.py`), and its own limits are stated: it sweeps `plugins/` only, and
+   it cannot catch a term used consistently in ONE file or one whose two senses are both prose.
+   `angle` would not have been caught by it.
+5. **Five follow-ups are filed and none blocks the others** — the pCST rebuild, the finding
+   record, the author/page ordering, the shipped Python's own comments, and the harness sweep.
+   Two are new today: the unit-of-review contradiction, and returning a coverage gap to the
+   reviewer.
 
 **Landed 2026-08-15 on `main`:** 0.1.2 (`4a62b93`) — the four reviewer agents renamed for scope,
 each stating what its own `clean` asserts, and the placement precedence. Then `8c7d81d`, the
 vocabulary survey.
 
-**The rulings on `feat/settle-the-vocabulary`** — 29 commits in all; the table lists the
-ones that changed a published name or rule:
+**The rulings on `feat/settle-the-vocabulary`** — 52 commits in all; the table lists the ones
+that changed a published name or rule:
 
 | commit | what |
 | --- | --- |
@@ -149,16 +145,26 @@ ones that changed a published name or rule:
 | `599e20e` | `reanchor` collapsed into `move` — eight verdicts, availability and synthesis order key on the destination |
 | `764b1a7` → `da06046` | `budget` settled, then **corrected**: it is what a shipped file costs to load, not the reviewer's runtime |
 | `f1a3cc5` | reviewers no longer receive `CAP` or `WIDTH` — the packet gate had been enforcing the opposite of the stated rule |
+| `d9c7697` | stage 5 is APPLY, stage 7b is WRITE |
+| `64e36f7` | a block is the interval between two lines of CODE |
+| `7ee082e` | the census's `marks` are `annotations`; `mark` is editorial |
+| `c53d832` → `df1855c` | 7b's gate is the CODE CHECK, and it proves the parser reads the file the same — not byte identity |
 | `4d3b7a2` → `e9b2ff3` | `DOC CONVENTION` settled — stage 1.3 MEASURES the repo's formats instead of naming a standard |
 | `9a84c6f` | `HOME` retired; **owner** is the anchor with the best justification, and `Block.owner` became `Block.anchor` |
-| `f40d26b` | a role's categories of claim get their own word (**JURISDICTION**, renamed **`remit`** the same day); the anchor sweep finished |
+| `f40d26b` → `2b2ed42` | a role's categories of claim get their own word — **`remit`**, after `jurisdiction` failed the register |
 | `f20d376` → `dd4e55a` | absence left `ownership-context` — missing documentation is `module-context`'s or `function-context`'s, by scope |
-| `02a51d2` | dropped *"no role may emit another's verdict"* — it contradicted the overlap ruling |
 | `ab1bae0` | `worktree` settled: git's word, not a term of art here |
+| `b722fb6` | nothing gets suppressed — `NOISE_FLOOR` deleted from `referrers.py` |
+| `5294a32` | the exemptions-off rule deleted — a second harness leak |
+| `665479b` → `540522d` | the acquittal and suppression lists deleted; the no-excuse rule restored in `clean`'s own section |
+| `905e9f5` | the CODE CHECK compares a **`stripped`** text; `residue` is the prose check alone |
+| `b1522df` → `47d4345` | stage 8 REVIEW is all-encompassing, never edits, and names nothing outside itself |
+| `afde1f8` | `statement` / `expression` / `declaration` / `assignment` name CODE; `signature` → `fingerprint` |
+| `c356f9e` → `e1b430d` | the re-sweep, and its six ruled — `walk` retired, a surface gap is an **OMISSION** |
+| `24d151b` → `fbdba29` | `template` and `original` stated; `detector` dropped — every inventory row now carries a ruling |
+| `204d662` → `66d9b3b` | `scripts/check_vocabulary.py` — every term ruled and every citation live, as a command |
 
-167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9.
-
----
+167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9, `check_vocabulary.py` exits 0.
 
 ## Open
 

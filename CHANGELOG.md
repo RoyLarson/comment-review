@@ -166,6 +166,45 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   design**, because the roles read the same code bottom-up and top-down. Both findings still
   stand, and neither role defers to the other — unchanged, now with a reason attached.
 
+- **The acquittal list and the suppression list are DELETED from the reviewer brief.** The
+  acquittal list matched a prose SHAPE and called itself *"the ONLY reasons to pass a block
+  over"* — but what decides `clean` is stated per role, and every one of those is a TRUTH
+  assertion at that role's scope, so a block true of the code beside it but matching no label
+  was `clean` by its role's file and a finding by the brief. Its measurement does not support it
+  either: `evidence/ga/` scored ten candidate SKILL.md rewrites on how much of ONE later commit's
+  prose rewrite of SIX files they rediscovered, and the search's own conclusion was *"the
+  acquittal RATE is the trait; the acquittal LIST is just vocabulary."* The suppression list has
+  no provenance in `evidence/` at all and suppressed nothing.
+
+  `reviewer-brief.md` drops 299 → 266 lines. The anti-rationalisation rule survives, moved into
+  `clean`'s own section: **nothing is `clean` for being SHORT, TRUE, WELL WRITTEN, NEW, or under
+  a `⚠`.** What was inside the lists is held in
+  `TODO/the-two-lists-were-tuned-to-one-diff.md` rather than deleted outright.
+
+- **Stage 8 REVIEW no longer edits, and it reads for everything.** It was a proofread that
+  repaired damage its own run caused; it is now a verification with two outcomes — the files are
+  done, or a section goes to the human as potentially something to fix. A pass that repairs after
+  the human approved at 7a puts prose on disk nobody read. It now asks of every comment whether
+  it follows the style sheet's template, is still appropriate to the code it is attached to, has
+  SENTENCES that are checkable claims, and states the reasons, constraints and worked examples
+  that code needs — then whether the file still reads as one page.
+
+  ⚠ It also names nothing outside itself. It referenced other stages at four sites and the
+  residue check by name; a stage's file describes that stage's inputs and its job, because
+  naming the surrounding machinery tells an agent where to go looking.
+
+- **`referrers.py` no longer withholds anything.** `NOISE_FLOOR` and the `SUPPRESSED` report
+  block are deleted: a token naming more than 40 tracked files was printed as a name and a count
+  instead of per file. This is an input to a review, and a reader deciding what to open is served
+  by the whole list. 203 → 185 lines, and the test is inverted rather than removed — a token
+  naming 41 files is now asserted to appear per file.
+
+- **The CODE CHECK's second kind is `stripped`, not `residue`.** `code_fingerprint` returns
+  `ast`, `stripped` or `unprovable`, so a report line now reads
+  `PROVEN sample.go: reads the same (stripped)`. Two things wore `residue` and they operate on
+  opposite material: one takes the comments OUT of the code and compares what remains, the other
+  asks what is left OF the comments after an edit. The prose check keeps the word.
+
 ### Added
 
 - **Seven terms that were used with a fixed sense and stated nowhere now have one stating
@@ -176,6 +215,22 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   denominator for — both uses now name the population instead). No new sections: each
   statement went into a sentence that already described the thing without naming it, so the
   four agent files are unchanged at 101/101/129/120 lines.
+
+- **`scripts/check_vocabulary.py`** — the two vocabulary documents hold their shape: every
+  `file:line` citation resolves, and every inventory row carries a ruling. Both checks exist
+  because each failure had already happened silently — one deletion stranded 29 citations past
+  the end of their files, and six rows read `UNDEFINED` for terms settled a day earlier because
+  each term appears twice and only one copy was maintained.
+
+- **`scripts/vocabulary_sweep.py`** — terms of art in the shipped tree the inventory does not
+  list. An input, not a gate. Raw frequency was tried and discarded (it ranks `here` and
+  `because` above every real term); what works is DOUBLE USE — a word in the prose AND bound as a
+  module-level name in a script, which is the shape `budget`, `own`, `label`, `signature`,
+  `residue` and `statement` each had.
+
+- **The editorial metaphor is a rule in `CLAUDE.md`**, not only a description. A new term comes
+  from publishing — what would an editor, a copy desk or a proofreader call this? — and a
+  candidate is checked against the register before it is proposed, not after.
 
 ### Changed
 
@@ -189,6 +244,26 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   templates live in the STYLE SHEET, which carries them to the reviewers, to stage 5 and to
   stage 6.
 
+- **`statement`, `expression`, `declaration` and `assignment` name CODE.** They classify an
+  ANCHOR; an OWNER is a judgement about which anchor best justifies the comment and is never a
+  syntactic kind. The prose units are `sentence` and `clause`. ⚠ `signature` was one of these
+  words: the CODE CHECK's `code_signature` is now `code_fingerprint`, because the value it
+  returns is an `ast.dump` or a comment-stripped text, not a signature.
+
+- **`walk` is retired from the prose; a name the module docstring never accounts for is an
+  OMISSION.** An editor READS a manuscript and CHECKS a list. `## Walk the census` is now
+  `## Read the census end to end`, and *"coverage is a tree walk"* is *"coverage is a COMPLETE
+  READ"*. OMISSION pairs with OBITUARY on the next line of the same list: an omission is in the
+  CODE and absent from the prose, an obituary is in the PROSE and absent from the code.
+
+- **`detector` is deleted; the word is `annotation`.** It was stated only inside the suppression
+  list, and everything it supported went with that list.
+
+- **`template` and `original` are stated.** A template is *a shape written out with its slots,
+  not a shape NAMED* — 19 sites across 5 files and no definition until now. The ORIGINAL is *the
+  text as it stood when THIS RUN began*, which makes it relative to the run: a file this run
+  edits is the next run's original.
+
 ### Fixed
 
 - **Stage 7b no longer tells the applying agent to cut.** `references/write.md` was headed
@@ -201,6 +276,17 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
 - **`evals/generator_split.py` runs again.** It did `import sweep` against a directory with no
   `sweep.py`, so the script could not start; the five attributes it uses are in `census.py`.
   `evals/grade_hazards.py` cited the same dead module.
+
+- **A second harness leak, in `function-context`.** *"Run the guard with its EXEMPTIONS OFF"*
+  rested on two measurements that `evidence/findings.md` files under **"More of my own errors"** —
+  a session mis-invoking ruff on this repo's own config while doing documentation cleanup. Nothing
+  bypasses a reviewer here, so the rule did not transfer. Deleted with its two dependants;
+  `function-context` 129 → 122 lines. The rule the section exists for is untouched: does the guard
+  exist, and would it FAIL if the claim were false.
+
+- **`SKILL.md`'s stage table listed stage 8's actor as the task agent** while `:756` dispatches
+  `comment-review-review`, and `:190` still called it *"stage 8's PROOF PASS"*, a name retired
+  when 7b's gate became the CODE CHECK.
 
 ## [0.1.2] — 2026-08-15
 
