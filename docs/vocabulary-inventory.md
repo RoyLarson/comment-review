@@ -37,14 +37,14 @@ manifests. Excluded as historical or vendored, not the live system:
 |---|---|---|
 | ~~**angle**~~ | SETTLED 2026-08-15 — retired | Borrowed from `/simplify`, where it names that pass's focuses. Prose now says **editorial role**; identifiers say **reviewer** (`--reviewers`, `REVIEWER FILES`, `reviewer = path.stem`), because `role` alone would also cover the task agent and the author. Six senses, all resolved: [the ruling](vocabulary-usage.md#angle--settled-2026-08-15-retired-in-favour-of-editorial-role). |
 | ~~**budget**~~ | SETTLED 2026-08-15 — `docs/limitations.md:9` | ⚠ **Missed by the twelve-agent collection entirely** — 18 sites, four senses, in neither table. Roy's ruling: **the only real budget is what a shipped instruction file costs everyone to load**, measured in lines per file. `cap` took back the five sites meaning a comment's line limit. The reviewer-runtime sense loses the word. ⚠ Measured: the budget covers 28 KB of the 224 KB shipped, and not the two largest files every run loads. |
-| **prose tree** | none; `SKILL.md:24` says "a node on the prose tree" | Appears in both manifests' user-facing descriptions. |
-| **the join** | none | Names `verdicts.py`'s stage-5 gate. `SKILL.md:517,540,571,573,697`; `ref/reviewer-brief.md:42,92`; `CLAUDE.md:46`. |
+| ~~**prose tree**~~ | SETTLED 2026-08-15 — `SKILL.md:76` | Stated where the shape was already explained but unnamed: every comment run and every docstring in the files under review, each one a NODE. Both manifests' user-facing text now names something a reader can look up. |
+| ~~**the join**~~ | SETTLED 2026-08-15 — `SKILL.md:526` | Named at first use: `verdicts.py`, which reads every reviewer's report against the census and against the others', and refuses what it cannot verify. |
 | ~~**sweep**~~ | SETTLED 2026-08-15 — not a term | Stage 7b is **WRITE** (it was APPLY when `sweep` was retired; APPLY then moved to stage 5). The word was a synonym outliving `sweep.py` (now `census.py`), and the dead `import sweep` with it. Plain-English "sweep the file" stays. |
-| **detector** | none | Used with a fixed sense (a mechanical mark and its precision) at `ref/reviewer-brief.md:234,236,246`; `sk-scripts/census.py:148,770`; `docs/parsing.md:47`; `README.md:131,141,152,260`. |
-| **banner / section banner** | none | `agents/comment-review-module-context.md:3,18,24,98`; `README.md:93` paraphrases without the term. |
-| **assessability gate** | none | Appears only in `agents/comment-review-ownership-context.md:3` frontmatter; the idea is stated without the phrase at `:30-42`. |
-| **acquittal rate** | none | Used as a measured quantity at `agents/comment-review-module-context.md:96,110`. |
-| **node** | implicit at `SKILL.md:76` ("Every comment run and every docstring is a node") | Collides with the Python AST `node` identifiers in three scripts — a different sense. |
+| ~~**detector**~~ | SETTLED 2026-08-15 — `ref/reviewer-brief.md:235` | A census mark read as a signal; its PRECISION is how often it is right. Stated in the section already headed with the word. |
+| ~~**banner / section banner**~~ | SETTLED 2026-08-15 — `agents/…-module-context.md:18` | Comment lines dividing a file into named parts. Stated LINE-NEUTRALLY, that file being at its budget. |
+| ~~**assessability gate**~~ | SETTLED 2026-08-15 — **DELETED** | Used once, stated nowhere, and the idea was already stated without it at `:30-42`. This repo's own rule: if nothing reads it, delete it. |
+| ~~**acquittal rate**~~ | SETTLED 2026-08-15 — **DELETED** | A measured quantity whose denominator no site stated. Both uses now say the population instead: "most of the census you are handed", and "95% of the blocks it was handed". `acquittal list` is unaffected and remains defined at `ref/reviewer-brief.md:211`. |
+| ~~**node**~~ | SETTLED 2026-08-15 — `SKILL.md:76` | Stated with `prose tree`, in one sentence. ⚠ The Python AST `node` in three scripts is a genuinely different sense and stays; it is an implementation identifier, not this system's term. |
 
 ## Words carrying more than one meaning
 

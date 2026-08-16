@@ -232,7 +232,8 @@ constraint.
 
 ## The suppression list — reasons to distrust a DETECTOR
 
-The acquittal list excuses a *block*. It can never silence a *detector*, and a noisy one buries
+A **detector** is a census mark read as a signal, and its PRECISION is how often it is right.
+The acquittal list excuses a *block*. It can never silence a detector, and a noisy one buries
 its own hits. Where a mechanical mark fires broadly, report it as a **batch to triage**, not as
 findings — and carry its measured rate so the next reviewer knows what it is worth.
 

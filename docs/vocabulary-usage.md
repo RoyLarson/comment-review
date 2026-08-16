@@ -1179,6 +1179,26 @@ Nearest anchor `SKILL.md:515-516` — "⚠⚠ **Run the join before you rule on 
 
 **One operative sense throughout**, carried sometimes as noun, sometimes as verb. **Unrelated string collision:** `SKILL.md:360` "matched as ONE joined string"; `"".join(...)` throughout.
 
+### the seven undefined terms — SETTLED 2026-08-15
+
+Settled together, none needing a ruling: each was stated where a reader already meets it, or
+deleted. **No new sections were added** — every statement went into a sentence that already
+described the thing without naming it, which is why the two landing in
+`comment-review-module-context.md` are line-neutral against that file's budget.
+
+| term | outcome |
+| --- | --- |
+| **prose tree**, **node** | Stated together at `SKILL.md:76`. The tree is every comment run and docstring in the files under review; each is a node attached to the declaration it annotates. ⚠ The Python AST `node` in three scripts is a different sense and stays — an implementation identifier, not a term of art. |
+| **the join** | Named at first use, `SKILL.md:526`: `verdicts.py`, reading every reviewer's report against the census and against the others', refusing what it cannot verify. |
+| **detector** | `reviewer-brief.md:235`: a census mark read as a signal, its PRECISION being how often it is right. Placed in the section already headed "reasons to distrust a DETECTOR". |
+| **banner / section banner** | `module-context.md:18`: comment lines dividing a file into named parts. |
+| **assessability gate** | **Deleted.** One use, in frontmatter, and the idea was already stated without the phrase at `:30-42`. |
+| **acquittal rate** | **Deleted.** A measured quantity no site gave a denominator for — the collection flagged exactly that. Both uses now name the population instead. `acquittal list` is a different term, is defined, and is unaffected. |
+
+⚠ Two were DELETED rather than defined, which is the repo's own rule for prose nothing
+consumes. A term used once and stated nowhere is not a vocabulary gap; it is a word that has
+not earned a definition.
+
 ### budget — SETTLED 2026-08-15, split three ways. ⚠ MISSED BY THE COLLECTION
 
 ⚠ **Not in either table of `vocabulary-inventory.md` as first produced.** Twelve agents over the

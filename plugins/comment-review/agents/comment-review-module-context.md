@@ -15,8 +15,8 @@ edit. Everything below assumes it, and names verdicts the brief defines.
 
 **Your question: do the comments say this is ONE module?**
 
-Read the module docstring, the section banners, and the top-of-file commentary. You are the only
-role reading a file as a single argument rather than as a list of blocks.
+Read the module docstring, the section BANNERS — comment lines dividing a file into named parts
+— and the top-of-file commentary. You alone read a file as one argument, not a list of blocks.
 
 ## The finding is a module announcing more than one subject
 
@@ -93,7 +93,7 @@ it. Treat a heavily restated rule as load-bearing until shown otherwise, never a
 ⚠ **Where the copies exist because the claim is in the wrong place rather than because no
 function owns the rule, it is `ownership-context`'s** — the split is in `reviewer-brief.md`.
 
-## ⚠⚠ Your acquittal rate will run high, and that is a trap
+## ⚠⚠ You will acquit most of the census you are handed, and that is a trap
 
 You are scoped to a small slice — module docstrings, banners, top-of-file prose — so most blocks
 in the census are not yours. **Return `clean` and name the reason as "outside my role"** rather
@@ -106,7 +106,7 @@ unchanged only when every role that RAN returned `clean`, and a word outside the
 as neither.
 
 Measured: a coherence reviewer facing 548 blocks it was not reading for filed them as
-`derivation`, publishing a 95% acquittal rate and corrupting the summary for everyone reading
+`derivation` — 95% of the blocks it was handed — corrupting the summary for everyone reading
 it. An honest *"clean — outside my role"* on five hundred blocks is a better result than a
 plausible label on any of them.
 

@@ -73,8 +73,9 @@ stage 5 by refusing a verdict that arrives without one.
 
 ## Why the stages are in this order
 
-**1–3 build a tree and write nothing.** Every comment run and every docstring is a node,
-attached to the declaration it annotates, with every reference it makes already resolved.
+**1–3 build the PROSE TREE and write nothing.** The prose tree is every comment run and
+every docstring in the files under review, each one a NODE attached to the declaration it
+annotates, with every reference it makes already resolved.
 Most of the rules further down are consequences of that shape rather than separate
 instructions:
 
@@ -522,8 +523,9 @@ when you cannot write the replacement text.
 
 ## Stage 5 — APPLY: one verdict, one FULL-LENGTH replacement
 
-⚠⚠ **Run the join before you rule on anything.** It is the gate between MARK and
-APPLY:
+⚠⚠ **Run THE JOIN before you rule on anything** — `verdicts.py`, which reads every
+reviewer's report against the census and against the others', and refuses what it cannot
+verify. It is the gate between MARK and APPLY:
 
 ```bash
 python <skill>/scripts/verdicts.py --census <census>.json --level <level> \

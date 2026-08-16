@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 15 tasks done
+Progress: 10 of 15 tasks done
 Owner:    session · Roy (⭐ 4 rulings left)
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```
@@ -47,10 +47,16 @@ the term means, and the two files converge on one `docs/vocabulary.md`.
       `docs/limitations.md` as a measured gap. **Superseded my first pass, which gave the bare
       word to the reviewer sense on grounds of it being the original.**
 
-- [ ] Define or delete the seven remaining terms used with no definition: `prose tree`
-      (in both manifests' install-time text), `the join`, `detector`, `banner`,
-      `assessability gate`, `acquittal rate`, and the prose-tree sense of `node`. Each gets
-      one stating site or stops being used.
+- [x] Define or delete the seven remaining terms used with no definition. **Done 2026-08-15,
+      no ruling needed.** Five stated where a reader already meets them, two deleted.
+      `prose tree` and `node` together at `SKILL.md:76`; `the join` at `:526`; `detector` at
+      `reviewer-brief.md:235`; `banner` at `module-context.md:18`. **Deleted:**
+      `assessability gate` (one use, in frontmatter, and the idea was already stated without
+      it) and `acquittal rate` (a measured quantity no site gave a denominator for — both uses
+      now name the population). ⚠ No new sections: every statement went into a sentence that
+      already described the thing without naming it, which is how the two landing in
+      `module-context.md` stayed LINE-NEUTRAL against its budget. All four agent files still
+      101/101/129/120.
 
 - [x] ⭐ Rule on `sweep`. **Done 2026-08-15 — Roy ruled stage 7b is APPLY and `sweep` stops
       being a name.** It turned out not to need a definition: `SKILL.md:16-17`, `:30` and the

@@ -94,6 +94,17 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   at 12 sites; the 5 plain-English uses ("do NOT sweep the file") are kept and are no longer
   ambiguous, there being no name left to collide with.
 
+### Added
+
+- **Seven terms that were used with a fixed sense and stated nowhere now have one stating
+  site, or are gone.** `prose tree` and `node` at `SKILL.md:76`, `the join` at `:526`,
+  `detector` in `reviewer-brief.md`, `banner` in `comment-review-module-context.md`.
+  **Deleted rather than defined:** `assessability gate` (used once, in frontmatter, and the
+  idea was already stated without it) and `acquittal rate` (a measured quantity no site gave a
+  denominator for — both uses now name the population instead). No new sections: each
+  statement went into a sentence that already described the thing without naming it, so the
+  four agent files are unchanged at 101/101/129/120 lines.
+
 ### Fixed
 
 - **`evals/generator_split.py` runs again.** It did `import sweep` against a directory with no
