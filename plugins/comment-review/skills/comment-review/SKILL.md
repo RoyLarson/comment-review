@@ -28,7 +28,7 @@ first, then truth, then fit, then the page.
 | 6 | **COMPACT** | task agent | that text cut to the cap — **skipped entirely if there is no cap** |
 | 7a | **APPROVAL — present** | task agent | the FINAL text in front of the author; **the run stops here** |
 | 7b | **APPROVAL — write** | **author**, then task agent | the approved text on disk, byte-for-byte as approved |
-| 8 | **REVIEW** | task agent | the finished page read as a reader would read it |
+| 8 | **REVIEW** | `comment-review-review` | the finished page read as a reader would read it |
 
 **This file is the task agent's.** Each reviewer is a named agent carrying its own editorial role and
 reading [`references/reviewer-brief.md`](references/reviewer-brief.md) itself.
@@ -187,7 +187,7 @@ to make.
 | `fact-check` | ownership-context, block-context, function-context | `correct` · `query` · `clean` |
 | `line` | the same three | + `drop` · `move` · `split` · `add` |
 | `full` | + module-context | + `patch` |
-| `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. Named for stage 8's PROOF PASS. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
+| `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
 
 ⚠⚠ **`ownership-context` runs at every level, including `fact-check`.** The other three check
 a claim against the code at their scope; a claim attached to the wrong scope is measured

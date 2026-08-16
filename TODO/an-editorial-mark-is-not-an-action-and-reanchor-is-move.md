@@ -83,6 +83,21 @@ The vocabulary as it stands: [`docs/vocabulary-usage.md`](../docs/vocabulary-usa
       or in a reference it points at. Whichever, it is one file — the four agent files point,
       they do not restate.
 
+      ⚠ **`truthy` is the first measured casualty, found 2026-08-16.** Stage 8's `review.md`
+      needed to ask whether a comment is *truthy*, and its agent receives only the file list,
+      the style sheet and `review.md` — the definition is at `ref/reviewer-brief.md:174-181`,
+      which stage 8 never loads. Roy ruled the plain-words form for now (*"one checkable claim
+      about that code"*) over a second statement of a settled term. ⚠ Whatever this pass builds
+      must reach `comment-review-review` as well; the brief goes to the four editorial roles
+      and nowhere else, so "put it in the brief" does not solve stage 8.
+
+      ⚠ **A constraint on HOW**, from the same session: a stage's file describes that stage's
+      inputs and its job, and must not name the surrounding machinery. Roy: *"I am pretty
+      certain it is going to go try to read those in the installed plugins the moment you state
+      them."* `review.md` named other stages at four sites and now names nothing outside
+      itself. Distribution is *give each agent the definitions it needs*, never *tell each
+      agent where the other files are*.
+
 - [ ] Write the definition of an edit mark, once, where the agents read it. Roy's words:
       *"edit marks are the preferred action from the editorial roles that if applied would
       improve or correct the comments and docstrings."* The conditional is the whole point —

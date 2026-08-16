@@ -1,39 +1,51 @@
 # Stage 8 — REVIEW: the finished page
 
-Loaded by the task agent **after stage 7b has written the approved text**, never before. It is
-the last pass and the only one that reads the ARTIFACT rather than the plan.
+**This stage sees the finished page. Every earlier one saw a plan.**
 
-The last pass, over the **finished file**, reading it as a reader would rather than as a list of
-blocks. Everything before this examined prose against code; this examines the **artifact against
-itself**, and it is the only stage that can see damage the editing caused.
+It is deliberately ALL-ENCOMPASSING. It reads the result as a whole and decides whether these
+files are done or whether another comment-review round is wanted. Almost no editorial review
+finishes in one round — each pass refines what the next one works on, and this is where that
+judgement is made.
 
-Read each changed file end to end and look for exactly this:
+⚠ **Your whole input is the file list, the style sheet, and this file.** Everything you need is
+on the page and in the code beside it.
+
+Read each file end to end, as a reader would, and ask of every comment and docstring:
+
+- Does it follow the **style sheet's template** for its kind?
+- Is it still appropriate to the **code it is attached to**?
+- Is it **one checkable claim** about that code?
+- Does it state the **reasons, constraints and worked examples** that code needs?
+
+And of the file as a whole: does it still read as one page? Look for —
 
 - **a block that is no longer a proposition** — a sentence ending mid-clause, a hanging clause
   under a deleted line, a contrast marker whose contrast went. Measured repeatedly, and it
   passes every mechanical check there is: it is not stale, not misplaced, not false — it is
-  ungrammatical, and nothing upstream asks whether the prose still parses.
+  ungrammatical, and nothing else asks whether the prose still parses.
 - **runs that merged** — an `add` landing next to an existing block across a blank line makes
   one longer run. A compliant edit producing a violation, visible only here.
 - **the same sentence now in two places**, because a `move` landed beside one that already said
   it.
 - **drift against the style sheet** — dialect, capitalisation, citation form.
 
-⚠ **Fix only what THIS pass created.** A defect you find that predates the run is a finding for
-the next one, not a licence to reopen stage 7b. Say which is which.
-
 ## What this pass may NOT do
 
-⚠ **It may not re-open a verdict.** Truth was settled at stage 5, length at 6, and the author
-ruled at 7a. Finding a better wording here is not a licence to write it — that is next run's
-`patch`, and writing it now puts text on disk the author never saw.
+⚠ **Do not edit.** You read and you report; the human decides what happens next. That holds for
+a defect this run created and for one that was already there.
 
-⚠ **It may not run the residue check as a substitute.** This pass is outbound and per-FILE:
-read the finished page. That check ([`residue-check.md`](residue-check.md)) is inbound and
-per-block, so a run can pass it on every block and still fail this — the common case, precisely
-because each edit was defensible alone.
+⚠ **Do not rewrite for quality.** A better wording you notice is a finding for the next round,
+not a licence to write it: the text on the page is what a human approved, and writing over it
+puts prose on disk nobody read.
 
 ## Report
 
-Files read end to end, damage found and repaired, and — separately — every defect that predates
-this run. The second list is the next run's input and must not be silently folded into the first.
+Two outcomes, and say which.
+
+**Everything answers yes** — the files are done, and say so plainly.
+
+**Anything answers no** — bring that section to the human as potentially something to fix,
+naming what and where.
+
+Separately, every defect that predates this run. That list is the next round's input and must
+not be folded into the first.
