@@ -61,7 +61,7 @@ Observed by the scout pass. Recorded as-is.
 
 ## Full inventory
 
-### The nine verdicts and their payloads
+### The eight verdicts and their payloads
 
 | Term | Defined | Multiplicity |
 |---|---|---|
@@ -71,8 +71,8 @@ Observed by the scout pass. Recorded as-is.
 | `correct` | `SKILL.md:51,64-67`; `ref/reviewer-brief.md:107,114-118` | SEVERAL |
 | `patch` | `SKILL.md:52,64-67`; `ref/reviewer-brief.md:108,114-118` | SEVERAL |
 | `add` | `SKILL.md:53`; `ref/reviewer-brief.md:109` | SEVERAL |
-| `move` | `SKILL.md:54,58-62`; `ref/reviewer-brief.md:110,120-125` | SEVERAL |
-| `reanchor` | `SKILL.md:55,58-62`; `ref/reviewer-brief.md:111,120-125`; `agents/…-ownership-context.md:71-89` | SEVERAL |
+| `move` | `SKILL.md:54,57-62`; `ref/reviewer-brief.md:111,120-125`; `agents/…-ownership-context.md:71-84` | SEVERAL — the ONE relocation verdict since 2026-08-15 |
+| ~~`reanchor`~~ | SETTLED 2026-08-15 — collapsed into `move` | A relocation is one judgment; the DESTINATION is payload and the reason is `FINDING`. Availability and synthesis order now key on the destination, not on a second word |
 | `split` | `SKILL.md:56`; `ref/reviewer-brief.md:112` | SEVERAL |
 | verdict (the set) | `SKILL.md:41-72`; `ref/reviewer-brief.md:96-112` | SEVERAL |
 | payload | `ref/reviewer-brief.md:96-112`; enforced `sk-scripts/verdicts.py:283-316` | SEVERAL |
@@ -296,7 +296,7 @@ records what the term means at each one. Where the meaning differs between
 sites, both are recorded. No agent judges whether a difference is a defect —
 that comes after the data is in.
 
-1. **The nine verdicts + payloads** — the verdict table above
+1. **The eight verdicts + payloads** — the verdict table above
 2. **Record fields** — the finding-format table
 3. **Angles + level ladder**
 4. **Census structure**

@@ -321,9 +321,11 @@ class TestLevel(unittest.TestCase):
         for level in ("fact-check", "line", "full"):
             self.assertTrue(verdicts.allowed("correct", level))
 
-    def test_reanchor_needs_line(self):
-        self.assertFalse(verdicts.allowed("reanchor", "fact-check"))
-        self.assertTrue(verdicts.allowed("reanchor", "line"))
+    def test_relocation_needs_line(self):
+        self.assertFalse(verdicts.allowed("move", "fact-check"))
+        self.assertTrue(verdicts.allowed("move", "line"))
+        # `reanchor` collapsed into `move`; it is no longer a verdict at any level.
+        self.assertFalse(verdicts.allowed("reanchor", "line"))
 
 
 class TestContradiction(unittest.TestCase):

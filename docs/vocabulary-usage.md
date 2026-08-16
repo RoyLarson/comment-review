@@ -31,6 +31,7 @@ this table:
 | `--angles` | `--reviewers` | `verdicts.py` |
 | `ANGLE FILES` | `REVIEWER FILES` | the dispatch packet |
 | `angle` (the variable, the report stem) | `reviewer` | `verdicts.py` |
+| `reanchor` | **`move`** | one relocation verdict; the destination is payload |
 
 Ruled by Roy 2026-08-15. The term of art is **editorial role**; the identifiers say
 **reviewer**, because `role` alone would also cover the task agent and the absent author.
@@ -495,7 +496,18 @@ The term appears nowhere else in the live tree; `verdicts.py` computes no such s
 
 ---
 
-## Bundle 1 — the nine verdicts and their payloads
+## Bundle 1 — the eight verdicts and their payloads
+
+⚠ **SETTLED 2026-08-15: `reanchor` collapsed into `move`, so there are eight, not nine.**
+Ruled by Roy. A relocation is ONE judgment — whether the prose belongs ten lines down,
+in another file, or out of the code entirely is the DESTINATION, which the payload already
+carries, and the reason it belongs there is `FINDING`, which every record already has.
+The split was encoding in a second verdict word what the record has fields for.
+**Availability and synthesis order now key on the destination:** only a destination outside
+the code can be ruled unavailable at 1.4, and only such a `move` is applied at synthesis
+step 2; a relocation inside the code is always available and waits until step 6. That is
+what removed the measured loss recorded below, rather than warning about it.
+Quotations below predate the collapse.
 
 Anchors shifted since the scout pass: brief "clean is scoped to YOU" now `:138-142`; "reach by NOT deciding" `:144-147`; `CLAUDE.md` per-angle bullet `:202-206`; function-context clean `:122-125`; ownership-context clean `:92-97`, reanchor-vs-move `:71-84`; `SKILL.md` MOVE DESTINATION `:249-260`, clean-arithmetic `:604-606`, contradiction `:624-629`, laundering `:63-66`; brief query section `:149-168`; `verdicts.py` clean-arithmetic `:575-587`.
 

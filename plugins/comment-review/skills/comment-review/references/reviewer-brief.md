@@ -59,7 +59,7 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | field | what it carries |
 | --- | --- |
 | `BLOCK` | the census INDEX. This is how coverage is checked; a finding without it is unattributable |
-| `VERDICT` | one of the nine, and one your LEVEL carries |
+| `VERDICT` | one of the eight, and one your LEVEL carries |
 | `LOCATION` | `file:start-end` of the prose |
 | `EVIDENCE` | `file:line` you opened to settle the claim — **verified to exist** |
 | `QUOTE` | the text at that line, **VERBATIM** and at least 12 characters. Required for every verdict except `clean` and `query` |
@@ -108,8 +108,7 @@ finding.
 | `correct` | the claim is **FALSE**                           | the false clause **and** the true one, plus the line that settles it |
 | `patch`   | the claim is **TRUE**, the wording is not        | the rewrite                                                          |
 | `add`     | a constraint exists in code and nowhere in prose | the text **and its anchor** — which declaration, above or below      |
-| `move`    | true, and not code's to hold AT ALL              | the destination **and** the verbatim extract                         |
-| `reanchor`| true and code's, but on the WRONG LINE           | the declaration it constrains, **in this file**                      |
+| `move`    | true, but it belongs SOMEWHERE ELSE              | the destination **and** the verbatim extract                         |
 | `split`   | one block holds two unrelated notes              | each fragment **and its own anchor**                                 |
 
 ⚠⚠ **`correct` and `patch` are not interchangeable, and the difference is the whole point.**
@@ -118,12 +117,12 @@ applies every `correct` **before** any `patch`, so mislabelling one as the other
 claim gets its wording polished and never gets checked. That is the laundering failure in its
 purest form. If you are unsure which applies, you have not settled the claim — that is `query`.
 
-⚠⚠ **`move` leaves the code; `reanchor` stays in the file.** If the right home is a
-declaration ten lines down, that is `reanchor` — available at every level except `fact-check`,
-where the verdict set carries no `reanchor` and the same finding is `query` instead, never
-`clean`. `move` needs a destination tree the task agent resolved at 1.4 and can be unavailable
-for a whole run -- so calling an in-file relocation `move` gets it converted to `clean` and the
-finding is LOST. Measured on a real run, on exactly this shape.
+⚠⚠ **One relocation verdict, and the DESTINATION is what varies.** A declaration ten lines
+down, another file, or out of the code entirely — all `move`, and which one goes in the
+payload. Say WHY it belongs there in `FINDING`. **Only a destination outside the code can be
+unavailable** (it needs a tree the task agent resolved at 1.4); a relocation into tracked
+code is always available. ⚠ At `fact-check` no relocation verdict is carried at all, so a
+true-but-misplaced block is `query` there — never `clean`.
 
 ⚠ **There is no `compact` here.** Shortening is stage 6's, after the truth is written and only
 as far as a cap requires. You cannot propose that a block be shorter; you can only say which
@@ -132,7 +131,7 @@ sentences are false, misplaced, missing or badly worded.
 ⚠ **The LEVEL you were given restricts which verdicts you may emit.** At `fact-check` you have
 `correct`, `query` and `clean` only. For block-context, function-context and module-context, a
 true-but-misplaced block is `clean` for you. For `ownership-context` itself, a
-true-but-misplaced block is never `clean`: `reanchor` is not in this level's verdict set, so the
+true-but-misplaced block is never `clean`: `move` is not in this level's verdict set, so the
 finding is `query` — the claim cannot be settled where it sits. Emitting a verdict your level
 does not carry is not a finding; it is scope you were not given.
 
@@ -275,21 +274,20 @@ they draw different conclusions. The split is fixed:
 
 | role | asks | verdict shape |
 |---|---|---|
-| `ownership-context` | which of these sites is this claim's HOME? | `reanchor` the claim to its owner, `drop` the copies |
+| `ownership-context` | which of these sites is this claim's HOME? | `move` the claim to its owner, `drop` the copies |
 | `module-context` | does the rule have no OWNING FUNCTION, so each site re-explains it? | `add` the rule to the function that should hold it, and name that function |
 
 ⚠ Same observation, different finding. A claim with a home in the wrong place is
 `ownership-context`'s; a rule with no home in the CODE is `module-context`'s. Neither may
 emit the other's verdict.
 
-### One block, two placements — which one governs
+### One block, two placements — report yours
 
 `ownership-context` and `function-context` can both place the same block, and name different
-destinations for it. Both findings stand, and where the destinations differ,
-**`ownership-context`'s governs.**
-
-⚠ Neither role defers to the other. Report the placement your role sees, under the verdicts
-your level carries; the disagreement is not yours to resolve.
+destinations for it. **Both findings stand, and neither role defers to the other.** Report the
+placement your role sees, under the verdicts your level carries, and say in `FINDING` why the
+block belongs there. Which destination wins is the task agent's ruling at stage 5, not yours —
+so a disagreement is a result here, not a problem to solve.
 
 ## You are not given the cap
 

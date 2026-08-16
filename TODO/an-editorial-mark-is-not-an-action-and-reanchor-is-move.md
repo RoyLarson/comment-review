@@ -1,16 +1,16 @@
 # An editorial mark is not an action, and `reanchor` is `move`
 
 ```
-Status:   open
-Progress: 0 of 13 tasks done
-Owner:    session · Roy (⭐ 3 rulings)
+Status:   in-progress
+Progress: 9 of 13 tasks done
+Owner:    session · Roy (⭐ 2 rulings left)
 Raised:   2026-08-15 (Roy, while reviewing the placement precedence before merge)
 ```
 
 ## Objective
 
-The nine verdicts are named for operations — `drop`, `patch`, `add`, `move`, `reanchor`,
-`split` — and a verdict is a **mark, not an action**. Roy: *"The editorial mark is not the
+The verdicts are named for operations — `drop`, `patch`, `add`, `move`, `split` — and a
+verdict is a **mark, not an action**. Roy: *"The editorial mark is not the
 action. And because words aren't physical things that have to be picked up and moved it is in
 some sense meaningless to make the final action resolution action be considered a move."* The
 system already separates MARK from EDIT because a reviewer that fixes what it finds destroys
@@ -22,12 +22,13 @@ The vocabulary as it stands: [`docs/vocabulary-usage.md`](../docs/vocabulary-usa
 
 ## Tasks
 
-- [ ] ⭐ Name the collapsed verdict before touching anything else. `move` is the surviving
-      word by default, but it carries the action framing that caused the confusion, and it is
-      already used in plain English for "the step to take" at `docs/parsing.md:67`. A name
-      that states the finding rather than the operation would settle every downstream task.
+- [x] ⭐ Name the collapsed verdict. **Roy ruled 2026-08-15: it is `move`.** With the
+      reasoning that settled the rest — the record already carries `LOCATION` and `FINDING`,
+      so `move` can say *this comment belongs to that line there* as its reason, and that
+      IS reattachment. The second word was encoding in the verdict what the record has
+      fields for.
 
-- [ ] Collapse `reanchor` into it. The word appears 26 times under `plugins/`, in five files.
+- [x] Collapse `reanchor` into it. **Done 2026-08-15.** The word appears 26 times under `plugins/`, in five files.
       The distinction is *asserted* at: `SKILL.md:54-60` (the verdict table, plus "different
       AVAILABILITY" as the stated reason they are separate words), `SKILL.md:186` (the `line`
       level's verdict set), `:252`, `:596-602`, `references/reviewer-brief.md:110-111` and
@@ -38,35 +39,38 @@ The vocabulary as it stands: [`docs/vocabulary-usage.md`](../docs/vocabulary-usa
       verdict is called still has to carry it. Done when `reanchor` returns no hits under
       `plugins/`.
 
-- [ ] Key availability on the **destination**, not the verdict. `SKILL.md:252` rules `move`
-      UNAVAILABLE for a whole run when the destination tree is absent; a relocation into
-      tracked code needs no such tree. Done when the rule reads off where the prose is going.
+- [x] Key availability on the **destination**, not the verdict. **Done 2026-08-15** — only a
+      destination OUTSIDE the code needs the tree resolved at 1.4, so only that case can be
+      unavailable; a relocation into tracked code is never withheld. Stated once in
+      `SKILL.md` (1.4 and the verdict table) and once in the brief.
 
-- [ ] Branch the synthesis order on the destination too. `SKILL.md:596` applies `move` at
-      step 2 ("take out what is leaving") and `:602` applies `reanchor` at step 6 because "it
-      removes nothing" — one verdict now spans both, and which step it takes depends on
-      whether the destination is this file.
+- [x] Branch the synthesis order on the destination too. **Done 2026-08-15** — a `move`
+      leaving the code is applied at step 2 with `drop`; a `move` staying inside it waits
+      until step 6, because it removes nothing.
 
-- [ ] Update `scripts/verdicts.py`: the `VERDICTS` tuple, the `LEVELS` sets at `:66-71`, and
-      the two payload rows at `:308-311` become one. Both verdicts already arrive at the
-      `line` rung, so no level moves. Update `tests/test_verdicts.py` with it.
+- [x] Update `scripts/verdicts.py` and its tests. **Done 2026-08-15** — `VERDICTS` is eight,
+      the `line` set drops `reanchor`, the two payload rows are one, and
+      `test_reanchor_needs_line` became `test_relocation_needs_line`, which now also asserts
+      `reanchor` is carried at NO level. Verified: the gate rejects it, `move` is carried at
+      `line` and not at `fact-check`.
 
-- [ ] Change "the nine verdicts" wherever it is counted — `SKILL.md:41`, `CLAUDE.md:101`,
-      `README.md:110`, `references/reviewer-brief.md:95` — and check nothing else states the
-      count in prose.
+- [x] Change "the nine verdicts" wherever it is counted. **Done 2026-08-15 — eight.**
+      `SKILL.md` (heading and "these eight words"), `CLAUDE.md` twice, `README.md`, the
+      brief's `VERDICT` row, all four agent files' shared line, `module-context`'s "outside
+      the eight", `verdicts.py`'s rejection message, and both vocabulary docs. Checked: no
+      other site states the count.
 
-- [ ] Confirm, then delete, `references/reviewer-brief.md:120-125`'s measured-loss note. It
-      records an in-file relocation labelled `move` being converted to `clean` and lost. That
-      failure exists *because* `move` can be ruled unavailable while `reanchor` cannot, so the
-      collapse should remove the failure mode rather than the warning about it — verify that
-      before cutting the note.
+- [x] Confirm, then delete, the measured-loss note. **Done 2026-08-15 — confirmed removed,
+      not merely undocumented.** The loss needed a relocation to be labelled with a verdict
+      that availability could withhold. With availability keyed on the destination, an
+      in-code relocation is never withheld, so the path that lost the finding no longer
+      exists. Replaced by the destination rule that prevents it.
 
-- [ ] Resolve the precedence duplication this closes. `references/reviewer-brief.md:288` and
-      `SKILL.md:617-619` both state that `ownership-context`'s destination governs, in
-      different words, because neither audience can read the other's file
-      (`SKILL.md:33-39`). With one relocation verdict the rule is simpler; state the reviewer's
-      half (report, do not defer) and the task agent's half (which destination wins) so that
-      neither is a restatement of the other.
+- [x] Resolve the precedence duplication. **Done 2026-08-15** — the brief now states only
+      the reviewer's half (both findings stand, neither defers, report yours and say why in
+      `FINDING`), and `SKILL.md` alone states which destination wins. The two agent files
+      pointed at the brief "for which placement governs" and no longer do, since it no
+      longer says.
 
 - [ ] ⭐ Rule on the other operation-named verdicts. `drop`, `patch`, `add` and `split` name
       what to do rather than what is wrong, the same shape as `move`. Deciding they stay is a
@@ -90,6 +94,6 @@ The vocabulary as it stands: [`docs/vocabulary-usage.md`](../docs/vocabulary-usa
       block selected for the sweep — so check whether "edit mark" lands clear of them or
       whether one of those needs a different word instead.
 
-- [ ] Add the CHANGELOG entry. This is a second breaking change to the shipped vocabulary in
-      one release cycle: a verdict disappears, and any report emitting it becomes invalid at
-      the stage-5 gate.
+- [x] Add the CHANGELOG entry. **Done 2026-08-15** — under `[Unreleased]`, alongside the
+      `angle` and `sweep` retirements, with the destination rules that make the collapse
+      safe rather than lossy.

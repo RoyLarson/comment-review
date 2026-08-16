@@ -38,9 +38,9 @@ anything — [`references/apply.md`](references/apply.md) only after approval, a
 [`references/review.md`](references/review.md) at stage 8. **Nobody loads all of it**, and no
 file restates another.
 
-## The nine verdicts
+## The eight verdicts
 
-Everything below this line uses these nine words. A reviewer emits them; **you receive one per
+Everything below this line uses these eight words. A reviewer emits them; **you receive one per
 role per block and must synthesise ONE**, so what matters here is what each obliges *you* to do:
 
 | verdict | the claim is | what you do with it |
@@ -51,14 +51,15 @@ role per block and must synthesise ONE**, so what matters here is what each obli
 | `correct` | **FALSE** | apply the true/false pair. **Always before any `patch`** |
 | `patch` | **TRUE**, badly worded | apply the rewrite |
 | `add` | missing entirely | insert the text at the anchor named with it |
-| `move` | true, and **not code's to hold at all** | extract verbatim OUT of the code, to the destination resolved at 1.4 |
-| `reanchor` | true and code's to hold, but **attached to the wrong line** | re-attach the block, unchanged, to the declaration it constrains **in the same file** |
+| `move` | true, but **it belongs somewhere else** | re-attach the block, unchanged, at the destination carried with it — another line in this file, another file, or out of the code entirely |
 | `split` | two claims in one block | re-anchor each fragment to the code it is about |
 
-⚠⚠ **`move` and `reanchor` are separate words because they have different AVAILABILITY.**
-`move` takes prose out of the code and needs a destination tree, so 1.4 can rule it UNAVAILABLE
-for a whole run. `reanchor` re-attaches a block inside the same file and needs nothing outside
-it, so 1.4 never withholds it.
+⚠⚠ **A relocation is ONE judgment, and the DESTINATION carries the rest.** Whether the prose
+belongs ten lines down, in another file, or out of the code altogether is payload — not a
+second verdict. The reason it belongs there goes in `FINDING`, which every record already
+has. **Availability keys on the destination, never on the verdict:** only a destination
+OUTSIDE the code needs the tree 1.4 resolved, so only that case can be unavailable. A
+relocation into tracked code needs nothing outside it and is never withheld.
 
 ⚠⚠ **`correct` and `patch` are the distinction the whole design turns on.** `correct` says the
 sentence is wrong; `patch` says it is right and reads badly. Applying a `patch` to a false
@@ -183,7 +184,7 @@ to make.
 | level | roles | verdicts available |
 |---|---|---|
 | `fact-check` | ownership-context, block-context, function-context | `correct` · `query` · `clean` |
-| `line` | the same three | + `drop` · `move` · `reanchor` · `split` · `add` |
+| `line` | the same three | + `drop` · `move` · `split` · `add` |
 | `full` | + module-context | + `patch` |
 | `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
 
@@ -249,8 +250,9 @@ docstring.
 **1.4 Resolve every `move` destination**, and decide NOW what happens if none resolves. A
 verdict pointing at a tree that does not exist is not a verdict.
 
-⚠⚠ **If the destination tree is absent, `move` is UNAVAILABLE for this run — and its blocks
-become `clean`, never `drop`.** Say so HERE, in the stage 1 report, and again at 7a; offer the human the one-line alternative
+⚠⚠ **If the destination tree is absent, only `move` OUT OF THE CODE is unavailable — and
+those blocks become `clean`, never `drop`. A `move` to a destination inside tracked code is
+unaffected and always available.** Say so HERE, in the stage 1 report, and again at 7a; offer the human the one-line alternative
 (create the tree, or name another destination). This matters because the matrix routes
 *not-checkable + necessary* to `move`, and a repo that stages prose usually also rules that
 prose is MOVED, never deleted — so with no destination those two rules leave the block with no
@@ -593,14 +595,16 @@ being settled:
 
 1. **`query`** — resolve it or escalate it. An unresolved claim cannot be corrected, patched or
    dropped, because you would be editing something nobody has read.
-2. **`drop` and `move`** — take out what is leaving. Doing this first stops you correcting a
-   sentence that is about to go. ⚠ `reanchor` does NOT belong here: it removes nothing, so it
-   waits until the text is settled.
+2. **`drop`, and any `move` whose destination is OUTSIDE the code** — take out what is
+   leaving. Doing this first stops you correcting a sentence that is about to go. ⚠ A `move`
+   staying inside the code does NOT belong here: it removes nothing, so it waits until the
+   text is settled.
 3. **`correct`** — fix truth, on what remains.
 4. **`patch`** — fix wording, on text now known to be true. ⚠ Never before step 3.
 5. **`add`** — insert at the stated anchors.
-6. **`reanchor` and `split`** — re-attach what belongs beside different code, `reanchor` as one
-   block and `split` as fragments. Last before `clean`, because the text must be final first.
+6. **`move` inside the code, and `split`** — re-attach what belongs beside different code,
+   `move` as one block and `split` as fragments. Last before `clean`, because the text must
+   be final first.
 7. **`clean`** — the null verdict. A block stands unchanged when **every reviewer that ran**
    returned `clean` and nothing else. ⚠ *Every reviewer that RAN*, not four: at `fact-check` only
    three run, and requiring four would make a block unblessable at that level.

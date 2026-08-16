@@ -97,17 +97,13 @@ Rules that keep it that shape:
 ⚠ **Re-derive this after anything lands.** Written fresh each time, not accumulated — a stale
 branch status here is the same failure the box/`Progress`/table rule guards against, one level up.
 
-1. **⭐ Name the collapsed verdict.** It is the first task of
-   `an-editorial-mark-is-not-an-action-and-reanchor-is-move` and it gates every other task in
-   that file, because 26 shipped sites across five files have to be rewritten in whatever word
-   wins — `SKILL.md` 6, `reviewer-brief.md` 6, `ownership-context` 8, `function-context` 2,
-   `verdicts.py` 4. `move` is
-   the default survivor and is also the word carrying the action framing Roy's ruling objects
-   to. One decision, not a design session.
-2. **The collapse itself is ruled and mostly mechanical once (1) lands** — `reanchor` is `move`
-   with a reason, and the destination is payload. Two of its tasks are worth doing in the same
-   pass because they are the reason the split existed: availability keys on the destination
-   rather than the verdict, and the synthesis order branches the same way.
+1. **⭐ The remaining half of the collapse file: an edit mark is not an ACTION.** The verdicts
+   still name operations — `drop`, `patch`, `add`, `move`, `split` — while a verdict is a mark
+   that says what WOULD be done if applied. Two rulings sit here: whether the other four follow
+   `move`'s reasoning, and where the agents get their copy of the definitions.
+2. **⚠ `mark` carries four senses and blocks that work.** Before "edit mark" can be written as
+   a term, check it lands clear of the census's mechanical annotations, stage 4's name, and a
+   detector — or give one of those a different word.
 3. **Six rulings are open across the two files** and none of them blocks the other's typing
    work. Three in the collapse file — the verdict name, whether `drop`/`patch`/`add`/`split`
    follow, and where the agents get their copy of the definitions. Three in
@@ -156,16 +152,15 @@ and from this table.
 
 ## Open
 
-### open  (1)
+### open  (0)
+
+_None — both files are in progress._
+
+### in-progress  (2)
 
 | file | owner | done | what |
 | --- | --- | ---: | --- |
-| [an-editorial-mark-is-not-an-action-and-reanchor-is-move](an-editorial-mark-is-not-an-action-and-reanchor-is-move.md) | session · Roy (3 rulings) | 0/13 | ⭐ Roy's ruling — **an edit mark is not an action**: it is the preferred action from the editorial roles that, *if applied*, would improve or correct the comments and docstrings. The actual action happens once, at stage 7b. The nine are named for operations (`drop`, `patch`, `add`, `move`, `reanchor`, `split`), and the system already separates MARK from EDIT because a reviewer that fixes what it finds destroys the finding — so an operation-named mark works against its own design. **`reanchor` collapses into `move`**: it is `move` carrying the reason *this belongs to X*, and whether X is another line, module or package is payload, not a second judgment. ⚠ The split is what produced the measured loss at `reviewer-brief.md:120-125` — `move` can be ruled unavailable at 1.4 and converted to `clean` while `reanchor` cannot — so collapsing removes the failure mode rather than guarding it. Also relabels every site calling a mark an "action", reserving that word for 7b |
-
-### in-progress  (1)
-
-| file | owner | done | what |
-| --- | --- | ---: | --- |
+| [an-editorial-mark-is-not-an-action-and-reanchor-is-move](an-editorial-mark-is-not-an-action-and-reanchor-is-move.md) | session · Roy (2 rulings left) | 9/13 | **DONE 2026-08-15: `move` is the one relocation verdict.** Roy ruled the name and the reasoning: the record already carries `LOCATION` and `FINDING`, so `move` says *this comment belongs to that line there* as its reason — and that IS reattachment. `reanchor` was encoding in a second verdict word what the record has fields for. Availability and synthesis order now key on the DESTINATION, which is what removed the measured loss rather than guarding it. Eight verdicts, not nine. **STILL OPEN:** the other half of this file — an edit mark is not an ACTION (it is the preferred action that, *if applied*, would improve the prose; the action happens once, at 7b), plus ⭐ whether `drop`/`patch`/`add`/`split` follow `move`'s reasoning and ⭐ where the agents get their copy of the definitions |
 | [eight-terms-have-no-definition-and-angle-means-five-things](eight-terms-have-no-definition-and-angle-means-five-things.md) | session · Roy (4 rulings left) | 8/14 | ⚠ MEASURED 2026-08-15 by twelve agents over the whole live tree: terms used with a fixed sense and defined nowhere (`angle` at ~40 sites in `SKILL.md` alone, plus `prose tree` in both manifests' install-time text, `the join`, `detector`, `banner`, `assessability gate`, `acquittal rate`), and fifteen more carrying two or three senses each. A word may mean several things **if each is clarified up front**, which none are. Also holds the one-edit reconciliations the collection turned up — a "Five fields" docstring against eight declared, "5 of its 7 reviewer reports" against a population fixed at four, four different base refs for one eval tree, two dead paths in `evals.json`. **Settled 2026-08-15 and applied: `sweep` is not a term (stage 7b is APPLY, dead import fixed), and `angle` is retired — prose says `editorial role`, identifiers say `reviewer`.** Survey: [`docs/vocabulary-usage.md`](../docs/vocabulary-usage.md) |
 
 ### decision-needed  (0)

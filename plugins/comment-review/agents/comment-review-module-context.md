@@ -9,7 +9,7 @@ You are the MODULE-CONTEXT reviewer for a comment review. You are READ-ONLY.
 **First, read the reviewer brief at the path the task agent gives you** (it is
 `references/reviewer-brief.md` inside the comment-review skill directory — but take the
 absolute path from the prompt, because a relative one does not resolve from a worktree). It is
-the shared contract — the finding format, **the nine verdicts and the payload each one
+the shared contract — the finding format, **the eight verdicts and the payload each one
 must carry**, the acquittal list, the CODE-vs-COMMENT boundary, and the rule that you never
 edit. Everything below assumes it, and names verdicts the brief defines.
 
@@ -102,7 +102,7 @@ than reaching for a substantive acquittal label to have something to write.
 ⚠⚠ **Do NOT invent a word for it.** `clean` already means *nothing to report from this role,
 including when the block is outside what that role reads* — the brief says so explicitly. A
 tenth verdict word breaks the arithmetic the task agent performs, because a block stands
-unchanged only when every role that RAN returned `clean`, and a word outside the nine counts
+unchanged only when every role that RAN returned `clean`, and a word outside the eight counts
 as neither.
 
 Measured: a coherence reviewer facing 548 blocks it was not reading for filed them as

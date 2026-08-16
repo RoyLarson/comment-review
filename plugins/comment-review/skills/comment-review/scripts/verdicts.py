@@ -54,7 +54,6 @@ VERDICTS = (
     "patch",
     "add",
     "move",
-    "reanchor",
     "split",
 )
 
@@ -65,7 +64,7 @@ VERDICTS = (
 # no verdict at all, which is why its set is empty rather than everything.
 LEVELS = {
     "fact-check": {"correct", "query", "clean"},
-    "line": {"correct", "query", "clean", "drop", "move", "reanchor", "split", "add"},
+    "line": {"correct", "query", "clean", "drop", "move", "split", "add"},
     "full": set(VERDICTS),
     "proof": set(),
 }
@@ -309,8 +308,6 @@ def payload_problem(f: Finding) -> str | None:
         return "add needs an anchor (which declaration, above or below)"
     if f.verdict == "move" and "->" not in change and " to " not in change:
         return "move needs a destination and the verbatim extract"
-    if f.verdict == "reanchor" and not change.strip():
-        return "reanchor needs the declaration it constrains"
     if f.verdict == "split" and change.count("/") < 1:
         return "split needs each fragment and its own anchor"
     if f.verdict not in ("clean",) and not f.change.strip():
@@ -551,7 +548,7 @@ def main() -> int:
             continue
         if f.verdict not in VERDICTS:
             print(
-                f"  BLOCK {f.block} {f.reviewer}: {f.verdict!r} is not one of the nine"
+                f"  BLOCK {f.block} {f.reviewer}: {f.verdict!r} is not one of the eight"
             )
             fatal += 1
         elif not allowed(f.verdict, args.level):

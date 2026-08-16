@@ -19,6 +19,28 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
 
 ### Changed — BREAKING
 
+- **`reanchor` is gone; there are eight verdicts, not nine.** A relocation is one
+  judgment. Whether prose belongs ten lines down, in another file, or out of the code
+  entirely is the DESTINATION — which the payload already carried — and the reason it
+  belongs there is `FINDING`, a field every record already has. The two-word split was
+  encoding in the verdict what the record has fields for. **A report emitting `reanchor`
+  is now rejected at the stage-5 gate as a verdict outside the set.**
+
+  Two rules that used to key on the verdict now key on the destination, which is what
+  makes the collapse safe rather than lossy:
+
+  - **Availability.** Only a destination OUTSIDE the code needs the tree resolved at 1.4,
+    so only that case can be UNAVAILABLE. A relocation into tracked code is never
+    withheld. Previously an in-file relocation labelled `move` was converted to `clean`
+    and the finding was lost — measured on a real run. That failure mode is removed, not
+    documented.
+  - **Synthesis order.** A `move` leaving the code is applied at step 2 with `drop`
+    ("take out what is leaving"); a `move` staying inside it waits until step 6, because
+    it removes nothing.
+
+  `fact-check` carries no relocation verdict, so a true-but-misplaced block is `query`
+  there — unchanged, and still never `clean`.
+
 - **`angle` is retired. The four are EDITORIAL ROLES.** The word came from the `/simplify`
   skill, which uses it for the focuses that pass works at; it stopped fitting once these
   became agents with scopes, and it was the most-used term in the tree with no definition

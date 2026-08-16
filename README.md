@@ -115,8 +115,7 @@ The skill is broken up into eight phases to cover an editorial system.
 | `correct`  | **FALSE**                                        | apply the true/false pair. **Always before any `patch`**                  |
 | `patch`    | **TRUE**, badly worded                           | apply the rewrite                                                         |
 | `add`      | missing entirely                                 | insert the text at the anchor named with it                               |
-| `move`     | true, and not code's to hold at all              | extract verbatim OUT of the code, to the destination resolved at 1.4      |
-| `reanchor` | true and code's to hold, attached to wrong line  | re-attach the block, unchanged, to the declaration it constrains in the same file |
+| `move`     | true, but it belongs somewhere else              | re-attach the block, unchanged, at the destination carried with it — another line, another file, or out of the code |
 | `split`    | two claims in one block                          | re-anchor each fragment to the code it is about                           |
 
 5) EDIT - Agent combines the marks to be a correct, truthful, load-bearing comment for the location

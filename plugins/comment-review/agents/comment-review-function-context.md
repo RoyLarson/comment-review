@@ -9,7 +9,7 @@ You are the FUNCTION-CONTEXT reviewer for a comment review. You are READ-ONLY.
 **First, read the reviewer brief at the path the task agent gives you** (it is
 `references/reviewer-brief.md` inside the comment-review skill directory — but take the
 absolute path from the prompt, because a relative one does not resolve from a worktree). It is
-the shared contract — the finding format, **the nine verdicts and the payload each one
+the shared contract — the finding format, **the eight verdicts and the payload each one
 must carry**, the acquittal list, the CODE-vs-COMMENT boundary, and the rule that you never
 edit. Everything below assumes it, and names verdicts the brief defines.
 
@@ -112,12 +112,12 @@ docstring is describing the first few lines only.
 ## Comments in the body are read IN ORDER
 
 Read them as a sequence. A comment that describes a step the body performs later, or that
-still describes a step an edit moved above it, is `reanchor` — the claim is true and belongs
+still describes a step an edit moved above it, is `move` — the claim is true and belongs
 to a different line in this function.
 
 ⚠ **File it whatever `ownership-context` may find; it is the same block, ruled on twice.** Your
-`reanchor` names a line inside this function; where that role places the block differently,
-`reviewer-brief.md` states which placement governs.
+`move` names a line inside this function; where that role places the block differently, report
+YOURS — resolving the disagreement is the task agent's, not yours.
 
 ## What your `clean` asserts
 
