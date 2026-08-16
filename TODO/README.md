@@ -108,7 +108,7 @@ to remove.
 ⚠ **Re-derive this after anything lands.** Written fresh each time, not accumulated — a stale
 branch status here is the same failure the box/`Progress`/table rule guards against, one level up.
 
-Everything below is on `feat/settle-the-vocabulary`, eleven commits, `main` untouched.
+Everything below is on `feat/settle-the-vocabulary`, 29 commits, `main` untouched.
 
 1. **⭐ The record: two rulings, and they are the only thing gating it.** `query` has no
    `SOURCE` by design — where does attempted/would-settle go? And `add` has no block of its own
@@ -140,7 +140,8 @@ Everything below is on `feat/settle-the-vocabulary`, eleven commits, `main` unto
 each stating what its own `clean` asserts, and the placement precedence. Then `8c7d81d`, the
 vocabulary survey.
 
-**On `feat/settle-the-vocabulary`, five commits, nothing uncommitted:**
+**The rulings on `feat/settle-the-vocabulary`** — 29 commits in all; the table lists the
+ones that changed a published name or rule:
 
 | commit | what |
 | --- | --- |
