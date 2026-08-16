@@ -279,17 +279,18 @@ they draw different conclusions. The split is fixed:
 | `ownership-context` | which of these sites OWNS this claim? | `move` the claim to its OWNER, `drop` the copies |
 | `module-context` | does the rule have no OWNING FUNCTION, so each site re-explains it? | `add` the rule to the function that should hold it, and name that function |
 
-⚠ Same observation, different finding. A claim sitting away from its OWNER is
-`ownership-context`'s; a rule with no OWNING FUNCTION is `module-context`'s. Neither may
-emit the other's verdict.
+⚠ Same observation, different finding, and PRESENCE decides. Prose that EXISTS and sits away
+from its owner is `ownership-context`'s; documentation that is MISSING is `module-context`'s.
+Neither may emit the other's verdict.
 
 ### One block, two placements — report yours
 
-`ownership-context` and `function-context` can both place the same block, and name different
-destinations for it. **Both findings stand, and neither role defers to the other.** Report the
-placement your role sees, under the verdicts your level carries, and say in `FINDING` why the
-block belongs there. Which destination wins is the task agent's ruling at stage 5, not yours —
-so a disagreement is a result here, not a problem to solve.
+JURISDICTIONS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two
+can reach the same block. `ownership-context` and `function-context` can both place it, naming
+different destinations. **Both findings stand, and neither role defers to the other.** Report
+the placement your role sees, under the verdicts your level carries, and say in `FINDING` why
+the block belongs there. Which destination wins is the task agent's ruling at stage 5, not
+yours — so a disagreement is a result here, not a problem to solve.
 
 ## You are not given the cap
 

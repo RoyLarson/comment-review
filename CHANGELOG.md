@@ -154,6 +154,18 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   the code, and the citation state `UNVERIFIABLE`. Jurisdiction is which claims are a role's;
   verification is what the role does to them.
 
+- **Absence left `ownership-context`.** The split between it and `module-context` is PRESENCE:
+  prose that EXISTS and sits away from its owner is ownership-context's; documentation that is
+  MISSING is module-context's — which is what the verdict shapes already said, `move`/`drop`
+  against `add`. The one rule that crossed it (an `add` for a line carrying a non-obvious
+  constraint with no comment at all) is deleted from the agent file and the README; the case is
+  already covered by `function-context`'s absence question and `module-context`'s surface
+  checklist. Ownership-context drops from 101 to 96 lines.
+
+  The brief now also states WHY two roles may reach the same block: **jurisdictions overlap by
+  design**, because the roles read the same code bottom-up and top-down. Both findings still
+  stand, and neither role defers to the other — unchanged, now with a reason attached.
+
 ### Added
 
 - **Seven terms that were used with a fixed sense and stated nowhere now have one stating

@@ -64,7 +64,6 @@ own scope — a claim attached to the wrong scope gets measured against the wron
   - Does the comment belong to the line it sits on — is it a checkable claim about the code
     beside it, not narration of what came before, not a description of code elsewhere in the
     file, not an orphan sitting between definitions.
-  - Is a non-obvious constraint left with no comment at all.
   - Is the block load-bearing where it sits — would someone changing that code decide worse
     without it.
   - Where the same claim is stated at several sites, which site OWNS it; the rest are

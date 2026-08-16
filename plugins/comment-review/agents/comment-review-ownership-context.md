@@ -46,11 +46,6 @@ DOWN for a block on its own lines; AT the declaration for a trailing one. A fiel
 (`retries: int  # 0 disables the backoff entirely`) annotates the thing on its own line and is
 exactly where it belongs. Do not read it as facing the wrong way for sitting after a statement.
 
-## Absence is an ownership-context finding
-
-**A line carrying a non-obvious constraint with no comment at all**, where getting it wrong is
-silent. Verdict `add`; write the sentence.
-
 ## Is it load-bearing where it sits
 
 A block is load-bearing at a site when someone changing THAT code would make a worse decision

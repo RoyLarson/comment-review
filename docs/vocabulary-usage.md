@@ -1378,9 +1378,19 @@ stating something about this is missing appropriate documentation."* Prose exist
 and where it goes is `ownership-context`. Prose absent → `module-context`. That is already the
 verdict shapes: `move`/`drop` against `add`.
 
-⚠ One shipped site disagrees and is UNRULED: `agents/…-ownership-context.md:51-52` gives
-ownership-context an `add` for *"a line carrying a non-obvious constraint with no comment at
-all"* — missing prose, under the role the rule assigns to existing prose.
+⚠ **`agents/…-ownership-context.md:51-52` went with it.** It gave ownership-context an `add`
+for *"a line carrying a non-obvious constraint with no comment at all"* — missing prose, under
+the role the rule assigns to existing prose. Roy: *"that statement is module-context and
+function-context, not ownership-context."* Deleted, losing nothing: the case is already covered
+where the constraint is enforced — `function-context.md:82-94` (*"a policy wearing arithmetic …
+the code IS the decision, so nothing in it can say why that number and not another"*) and
+`module-context.md:55,69` for the module surface. Ownership-context is 101 → 96 lines.
+
+⚠ **JURISDICTIONS OVERLAP BY DESIGN.** Roy: *"different contexts can have similar requirements
+in their jurisdiction because of the bottom up/top down look through the system."* The brief
+already said two roles may place the same block and neither defers; it now says WHY, at
+`reviewer-brief.md:286-291`. ⚠ That costs the brief one line — the largest file a reviewer
+loads, ×4 per run.
 
 ### HOME / anchor / owning function — SETTLED 2026-08-16, three questions had one word
 
