@@ -38,9 +38,9 @@ anything — [`references/write.md`](references/write.md) only after approval, a
 [`references/review.md`](references/review.md) at stage 8. **Nobody loads all of it**, and no
 file restates another.
 
-## The eight verdicts
+## The seven verdicts
 
-Everything below this line uses these eight words. A reviewer emits them; **you receive one per
+Everything below this line uses these seven words. A reviewer emits them; **you receive one per
 role per block and must synthesise ONE**, so what matters here is what each obliges *you* to do:
 
 | verdict | the claim is | what you do with it |
@@ -52,7 +52,6 @@ role per block and must synthesise ONE**, so what matters here is what each obli
 | `patch` | **TRUE**, badly worded | apply the rewrite |
 | `add` | missing entirely | insert the text at the anchor named with it |
 | `move` | true, but **it belongs somewhere else** | re-attach the block, unchanged, at the destination carried with it — another line in this file, another file, or out of the code entirely |
-| `split` | two claims in one block | re-anchor each fragment to the code it is about |
 
 ⚠⚠ **A relocation is ONE judgment, and the DESTINATION carries the rest.** Whether the prose
 belongs ten lines down, in another file, or out of the code altogether is payload — not a
@@ -185,7 +184,7 @@ to make.
 | level | roles | verdicts available |
 |---|---|---|
 | `fact-check` | ownership-context, block-context, function-context | `correct` · `query` · `clean` |
-| `line` | the same three | + `drop` · `move` · `split` · `add` |
+| `line` | the same three | + `drop` · `move` · `add` |
 | `full` | + module-context | + `patch` |
 | `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
 
@@ -641,9 +640,9 @@ being settled:
 3. **`correct`** — fix truth, on what remains.
 4. **`patch`** — fix wording, on text now known to be true. ⚠ Never before step 3.
 5. **`add`** — insert at the stated anchors.
-6. **`move` inside the code, and `split`** — re-attach what belongs beside different code,
-   `move` as one block and `split` as fragments. Last before `clean`, because the text must
-   be final first.
+6. **`move` inside the code** — re-attach what belongs beside different code. A block whose
+   sentences belong in different places is several `move`s, one per sentence. Last before
+   `clean`, because the text must be final first.
 7. **`clean`** — the null verdict. A block stands unchanged when **every reviewer that ran**
    returned `clean` and nothing else. ⚠ *Every reviewer that RAN*, not four: at `fact-check` only
    three run, and requiring four would make a block unblessable at that level.

@@ -59,7 +59,7 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | field | what it carries |
 | --- | --- |
 | `BLOCK` | the census INDEX. This is how coverage is checked; a finding without it is unattributable |
-| `VERDICT` | one of the eight |
+| `VERDICT` | one of the seven |
 | `LOCATION` | `file:start-end` of the prose |
 | `EVIDENCE` | `file(s):line(s)` you opened to settle the claim — **verified to exist** |
 | `QUOTE` | the text at that line, **VERBATIM** |
@@ -94,7 +94,6 @@ finding.
 | `patch`   | the rewrite |
 | `add`     | the text **and its anchor** — which code, above or below |
 | `move`    | the destination **and** the verbatim extract |
-| `split`   | each fragment **and its own anchor** |
 
 #### `correct` and `patch` specific rules
 

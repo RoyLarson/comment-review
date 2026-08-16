@@ -1,9 +1,9 @@
 # An editorial mark is not an action, and `reanchor` is `move`
 
 ```
-Status:   in-progress
-Progress: 12 of 13 tasks done
-Owner:    session · Roy (⭐ 1 ruling left)
+Status:   done
+Progress: 13 of 13 tasks done
+Owner:    session
 Raised:   2026-08-15 (Roy, while reviewing the placement precedence before merge)
 ```
 
@@ -72,10 +72,14 @@ The vocabulary as it stands: [`docs/vocabulary.md`](../docs/vocabulary.md).
       pointed at the brief "for which placement governs" and no longer do, since it no
       longer says.
 
-- [ ] ⭐ Rule on the other operation-named verdicts. `drop`, `patch`, `add` and `split` name
-      what to do rather than what is wrong, the same shape as `move`. Deciding they stay is a
-      real answer — the collapse does not depend on it — but leaving it unasked means the next
-      person re-derives this argument.
+- [x] **Ruled 2026-08-16 — `drop`, `patch` and `add` STAY; `split` collapses into `move`.**
+      Roy: *"everything else we have come up with has had a valid use case."* `split` had none
+      `move` cannot express: `SKILL.md`'s synthesis step already handled the two in ONE step —
+      *"`move` as one block and `split` as fragments"* — and `verdicts.py` checked its payload by
+      counting two anchors, so a `split` record was N `move` payloads in one record. ⚠ It was
+      also the only verdict whose subject was the BLOCK, which stopped being the unit when
+      *"a verdict rules on a SENTENCE"* moved to the top of the verdicts section. A block whose
+      sentences belong in different places is one `move` per sentence. Seven verdicts.
 
 - [x] **Distribution is DESIGNED and moved to its own file, 2026-08-16.** Roy ruled the shape:
       *"the task agent runs a command and puts the correct vocabulary verbatim into the agents

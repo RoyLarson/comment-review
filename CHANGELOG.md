@@ -16,7 +16,28 @@ number as a semver claim, or "corrects" the next one to `0.2.0`.
 
 ## [Unreleased]
 
-_Nothing yet._
+### Changed — BREAKING
+
+- **`split` collapses into `move`. There are SEVEN verdicts, not eight.** Roy: *"how is that
+  different than a move or drop? Would we ever split a sentence? Does that even make sense?"* It
+  is `move` at a different granularity, and `SKILL.md`'s synthesis step already handled the two
+  in ONE step — *"`move` as one block and `split` as fragments"* — while `verdicts.py` checked
+  its payload by counting **two anchors**, so a `split` record was N `move` payloads in one
+  record.
+
+  ⚠ It was also the only verdict whose subject was the **block**. Once *"a verdict rules on a
+  SENTENCE, not on a block"* opened the verdicts section, a block holding two unrelated notes IS
+  two sentences with different anchors: each gets `move`, and the block splitting is the OUTCOME
+  rather than the judgement. That is the argument that collapsed `reanchor` in 0.1.3 — a
+  relocation is ONE judgment and the destination is payload — applied a second time.
+
+  A block whose sentences belong in different places is **one `move` per sentence**, which is
+  expressible now that every block carries a record and coverage counts a set. **A report
+  emitting `split` is rejected at the stage-5 gate as a verdict outside the set.**
+
+  ⚠ `drop`, `patch` and `add` were examined at the same time and STAY. Roy: *"everything else we
+  have come up with has had a valid use case."*
+
 
 ## [0.1.4] — 2026-08-16
 

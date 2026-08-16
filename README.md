@@ -115,7 +115,6 @@ The skill is broken up into eight phases to cover an editorial system.
 | `patch`    | **TRUE**, badly worded                           | apply the rewrite                                                         |
 | `add`      | missing entirely                                 | insert the text at the anchor named with it                               |
 | `move`     | true, but it belongs somewhere else              | re-attach the block, unchanged, at the destination carried with it — another line, another file, or out of the code |
-| `split`    | two claims in one block                          | re-anchor each fragment to the code it is about                           |
 
 5) APPLY - Agent combines the marks to be a correct, truthful, load-bearing comment for the location
 6) COMPACT - Only if you want to force the LLMs to keep it short

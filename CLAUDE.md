@@ -111,7 +111,7 @@ read it before touching the skill. The pipeline:
 7. **APPROVAL** — present the final text and stop (7a); on approval, apply verbatim (7b).
 8. **REVIEW** (task agent) — read the finished page against itself.
 
-The eight verdicts (`clean`, `query`, `drop`, `correct`, `patch`, `add`, `move`,
+The seven verdicts (`clean`, `query`, `drop`, `correct`, `patch`, `add`,
 `split`) and the checkable/necessary matrix that resolves them are defined in SKILL.md — read it
 rather than re-deriving the rules here, since it is the single source and this file must not
 restate it.
@@ -233,7 +233,7 @@ a measurement: nothing in this repo tests it.
   function-context need something to resolve the claim against. Write what is measured, what is
   enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
   by reading the code or re-running a command, it does not belong.
-- `clean` is reserved, not a synonym for "vaguely good": it is one of the eight verdicts named
+- `clean` is reserved, not a synonym for "vaguely good": it is one of the seven verdicts named
   under "The skill's 8 stages" above and must not be used as a loose adjective for code or
   prose anywhere in this repo. As a verdict it means nothing to report from that role, and
   each role's `clean` asserts something specific — read what, in that role's own file under

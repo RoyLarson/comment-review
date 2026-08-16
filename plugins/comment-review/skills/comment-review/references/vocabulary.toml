@@ -35,7 +35,7 @@ declaration = "A piece of CODE that introduces a name. One of the kinds an ancho
 assignment = "A piece of CODE that binds a value to a name. One of the kinds an anchor can be."
 
 # --- what a reviewer emits ---------------------------------------------------
-verdict = "One of the eight rulings a reviewer may emit: clean, query, drop, correct, patch, add, move, split."
+verdict = "One of the seven rulings a reviewer may emit: clean, query, drop, correct, patch, add, move."
 "edit mark" = "What you emit on a sentence: the VERDICT together with its payload. It NAMES the action that would improve or correct the prose; it does not perform it. Marking and applying are different stages and different actors."
 clean = "Nothing to report FROM YOUR ROLE, on a block your role READ. Not a pass, and not a claim the block is correct. A block outside what your role reads is `query`."
 query = "You could not settle the claim -- as against one you did not try to settle. Three shapes reach it: outside your ROLE, outside the CHECKOUT, outside the CODE."
@@ -44,7 +44,6 @@ correct = "The claim is FALSE."
 patch = "The claim is TRUE and the wording is not."
 add = "A constraint exists in code and nowhere in prose."
 move = "True, but it belongs SOMEWHERE ELSE. One relocation verdict -- ten lines down, another file, or out of the code entirely is the DESTINATION, not a second verdict."
-split = "One block holds two unrelated notes."
 payload = "What a verdict must carry to be usable."
 finding = "One ruling on one sentence, emitted as a parsed RECORD."
 record = "The parsed shape a finding is emitted in. A malformed record is a finding that does not count."
@@ -102,7 +101,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "record",
   "remit",
   "reviewer",
-  "split",
   "statement",
   "truthy",
   "verdict",
@@ -126,7 +124,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "record",
   "remit",
   "reviewer",
-  "split",
   "statement",
   "tombstone",
   "truthy",
@@ -154,7 +151,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "remit",
   "reviewer",
   "signature",
-  "split",
   "statement",
   "truthy",
   "verdict",
@@ -182,7 +178,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "record",
   "remit",
   "reviewer",
-  "split",
   "statement",
   "truthy",
   "verdict",

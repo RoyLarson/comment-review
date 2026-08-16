@@ -105,7 +105,7 @@ than reaching for a substantive verdict to have something to write.
 
 ⚠⚠ **Do NOT invent a word for it.** The brief lists three shapes that reach `query`, and
 outside-your-role is the first. A ninth verdict word breaks the arithmetic the task agent
-performs, because a word outside the eight counts as neither a finding nor a pass.
+performs, because a word outside the seven counts as neither a finding nor a pass.
 
 Measured: a coherence reviewer facing 548 blocks it was not reading for filed them under one
 substantive label — 95% of the blocks it was handed — corrupting the summary for everyone

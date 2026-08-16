@@ -91,7 +91,7 @@ check.
 - **Polysemy is allowed when it is DECLARED and the contexts do not overlap** — `opener` (a
   comment delimiter, and a record's `--- RECORD`), `annotations` (the census's, and
   `from __future__`), `node` (a prose-tree node, and an AST node).
-- **`clean` is reserved.** It is one of the eight verdicts and is never a loose adjective for
+- **`clean` is reserved.** It is one of the seven verdicts and is never a loose adjective for
   code, prose, a grep result or a run.
 
 ## Where the discovery record went

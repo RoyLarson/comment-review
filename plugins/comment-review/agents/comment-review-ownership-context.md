@@ -91,8 +91,8 @@ comment above the line.** Report it as FORMATTING, not as misplaced.
 
 **Emitting `clean` here asserts that EVERY SENTENCE in the block belongs to the line it sits
 on** — each is about that code, no other site states it, and someone changing that code would
-decide worse without it. A block whose sentences belong to different code is `split`, not
-`clean`.
+decide worse without it. A block whose sentences belong to different code is one `move` per
+sentence, not `clean`.
 
 ## Return
 
