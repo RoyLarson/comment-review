@@ -70,14 +70,14 @@ LEVELS = {
     "proof": set(),
 }
 
-RECORD = re.compile(r"^---\s*FINDING\s*$(.*?)^---\s*$", re.M | re.S)
-# Counts "--- FINDING" OPENERS on their own, independent of whether a closing
+RECORD = re.compile(r"^---\s*RECORD\s*$(.*?)^---\s*$", re.M | re.S)
+# Counts "--- RECORD" OPENERS on their own, independent of whether a closing
 # "---" was ever found. A first record missing its close makes RECORD's
 # non-greedy search skip straight past the second record's opener (it is not a
 # bare "---" line) and swallow both into one match -- the second record's
 # fields silently overwrite the first's and a finding vanishes with no output.
 # Comparing this count against RECORD's match count is how that is caught.
-OPENER = re.compile(r"^---\s*FINDING\s*$", re.M)
+OPENER = re.compile(r"^---\s*RECORD\s*$", re.M)
 FIELD = re.compile(
     r"^\s*(BLOCK|VERDICT|LOCATION|EVIDENCE|QUOTE|SUMMARY|FINDING|CHANGE)\s+(.*)$"
 )
@@ -190,7 +190,7 @@ def parse_report(text: str, reviewer: str) -> list[Finding]:
         found.append(
             _malformed(
                 reviewer,
-                f"{_n(openers, 'FINDING opener')} but"
+                f"{_n(openers, 'RECORD opener')} but"
                 f" {_n(len(bodies), 'closed record')}"
                 " -- an unterminated record swallows the next one",
             )

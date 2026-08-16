@@ -18,7 +18,7 @@ BRIEF = (
 REPORT = """
 Some preamble the tool ignores.
 
---- FINDING
+--- RECORD
 BLOCK       1
 VERDICT     correct
 LOCATION    a.py:1-2
@@ -29,7 +29,7 @@ FINDING     the count is wrong
 CHANGE      false: "only one caller" / true: "three callers"
 ---
 
---- FINDING
+--- RECORD
 BLOCK       2
 VERDICT     clean
 LOCATION    a.py:10-11
@@ -41,7 +41,7 @@ FINDING     nothing to report from this role
 def _clean_records(*blocks: int) -> str:
     """One `clean` RECORD per block. There is no range list to write instead."""
     return "".join(
-        "--- FINDING\n"
+        "--- RECORD\n"
         f"BLOCK       {n}\n"
         "VERDICT     clean\n"
         "LOCATION    a.py:1\n"
@@ -106,7 +106,7 @@ class TestParsing(unittest.TestCase):
         # I4: two records, the first missing its closing "---", must not merge
         # into one record carrying only the second's fields.
         text = """
---- FINDING
+--- RECORD
 BLOCK       1
 VERDICT     correct
 LOCATION    a.py:1
@@ -114,7 +114,7 @@ EVIDENCE    a.py:1
 SUMMARY     "x" || y
 FINDING     first record, never closed
 
---- FINDING
+--- RECORD
 BLOCK       2
 VERDICT     correct
 LOCATION    a.py:1
@@ -485,7 +485,7 @@ class TestCLI(unittest.TestCase):
         return self._write(
             name,
             "".join(
-                "--- FINDING\n"
+                "--- RECORD\n"
                 f"BLOCK       {n}\n"
                 "VERDICT     clean\n"
                 "LOCATION    a.py:1\n"
@@ -506,7 +506,7 @@ class TestCLI(unittest.TestCase):
         # C2: a payload problem must not print and then exit 0.
         report = self._write(
             "block-context.txt",
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     drop\n"
             "LOCATION    a.py:1\n"
@@ -516,13 +516,13 @@ class TestCLI(unittest.TestCase):
             "FINDING     f\n"
             "CHANGE      \n"
             "---\n"
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
             "FINDING     nothing to report from this role\n"
             "---\n"
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
@@ -537,7 +537,7 @@ class TestCLI(unittest.TestCase):
     def test_an_out_of_range_block_is_fatal(self):
         report = self._write(
             "block-context.txt",
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       999\n"
             "VERDICT     query\n"
             "LOCATION    a.py:1\n"
@@ -545,19 +545,19 @@ class TestCLI(unittest.TestCase):
             "FINDING     f\n"
             "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
             "---\n"
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
             "FINDING     nothing to report from this role\n"
             "---\n"
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
             "FINDING     nothing to report from this role\n"
             "---\n"
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
@@ -608,7 +608,7 @@ class TestCLI(unittest.TestCase):
     def test_pluralisation_of_a_single_reviewer_and_block(self):
         report = self._write(
             "block-context.txt",
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     query\n"
             "LOCATION    a.py:1\n"
@@ -616,13 +616,13 @@ class TestCLI(unittest.TestCase):
             "FINDING     f\n"
             "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
             "---\n"
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
             "FINDING     nothing to report from this role\n"
             "---\n"
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
@@ -639,7 +639,7 @@ class TestCLI(unittest.TestCase):
         # -- the exact distinction that let all three Criticals ship.
         report = self._write(
             "block-context.txt",
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     correct\n"
             "LOCATION    a.py:1\n"
@@ -648,7 +648,7 @@ class TestCLI(unittest.TestCase):
             'SUMMARY     "x" || the count is stale\n'
             "FINDING     first record, never closed\n"
             "\n"
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     correct\n"
             "LOCATION    a.py:1\n"
@@ -658,7 +658,7 @@ class TestCLI(unittest.TestCase):
             "FINDING     second record, closed\n"
             'CHANGE      false: "x" / true: "y"\n'
             "---\n"
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
@@ -676,7 +676,7 @@ class TestCLI(unittest.TestCase):
         # "send the block back" and four lines later "Stage 5 may rule" at
         # exit 0. The two outputs contradicted each other.
         finding = (
-            "--- FINDING\n"
+            "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     {verdict}\n"
             "LOCATION    a.py:1\n"
@@ -741,7 +741,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
 
     # The fence may carry a language hint (```text). Matching it loosely keeps
     # this pinned to the RECORD's shape rather than to how the block is fenced.
-    RECORD = re.compile(r"```\w*\n(--- FINDING\n.*?\n---)\n```", re.S)
+    RECORD = re.compile(r"```\w*\n(--- RECORD\n.*?\n---)\n```", re.S)
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

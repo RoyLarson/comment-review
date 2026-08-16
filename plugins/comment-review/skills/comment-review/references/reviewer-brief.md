@@ -35,7 +35,7 @@ not check rather than reporting it clean.
 ## Read the census end to end
 
 You are given a numbered census and the mechanical resolutions for it. **Read it start to
-finish and return at least one FINDING line for EVERY numbered block.**
+finish and return at least one RECORD for EVERY numbered block.**
 
 ## Every finding is a RECORD, and it is parsed
 
@@ -44,7 +44,7 @@ census and against the other roles', so a malformed record is a finding that
 does not count.
 
 ```text
---- FINDING
+--- RECORD
 BLOCK       17
 VERDICT     correct
 LOCATION    redacted_pkg/billing/rates.py:342-347

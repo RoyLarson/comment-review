@@ -34,7 +34,9 @@ loads the census and takes only `len(blocks)` from it.
       to path/start/end); `EVIDENCE` + `QUOTE` merge into `SOURCE` as `file:line | verbatim`,
       split on `|` and each half checked exactly as now; `SUMMARY` splits, its left half
       becoming `CLAIM` and its derived right half folding into `REASON`; `FINDING` becomes
-      `REASON`; the opener becomes `--- RECORD`. Update `tests/test_verdicts.py`.
+      `REASON`. ⚠ **The opener is ALREADY `--- RECORD`, done 2026-08-16** — Roy found the
+      ambiguity in the brief's own example (*"is it the emitted full table or is it the row
+      in the table?"*) and it was split out because it is independent of the field cut.
 
 - [ ] Keep `SOURCE` merged, not re-split. `EVIDENCE` and `QUOTE` were ONE field until
       `9f481c3` split them, because the old `SUMMARY` mixed verbatim with derived text and a
@@ -72,8 +74,12 @@ loads the census and takes only `len(blocks)` from it.
       computed from it, so it must borrow a neighbouring index. Either `add` carries an anchor
       instead of a block, or the borrowing is stated as intended.
 
-- [ ] Say once that `clean` produces NO record. It is the `CLEAN 1-16,18,20-45` range line, and
-      the verdict table lists it beside seven that do produce records without saying so.
+- [x] **Reversed by a later ruling, 2026-08-16.** Was: *"say once that `clean` produces NO
+      record — it is the `CLEAN` range line."* Roy ruled the opposite the same day: *"every block
+      gets a FINDING including CLEAN, that was a stated mechanism and needs to be consistent."*
+      Every block is now a record, `clean` included, and the range line, `CLEAN_LINE` and
+      `_expand` are deleted from `verdicts.py`. ⚠ That closed the fabrication this file's own
+      objective describes: a range covered N blocks in one line and cited nothing.
 
 - [ ] Decide which worked examples ship. ⚠ **This is a budget decision, not a completeness
       one.** `reviewer-brief.md` is 18 KB — the largest single thing a reviewer loads, and four

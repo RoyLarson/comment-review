@@ -89,7 +89,7 @@ check.
 - **A definition says what a word means and is emitted; a rule says what to do about it and
   stays** in the file that governs the stage.
 - **Polysemy is allowed when it is DECLARED and the contexts do not overlap** — `opener` (a
-  comment delimiter, and a record's `--- FINDING`), `annotations` (the census's, and
+  comment delimiter, and a record's `--- RECORD`), `annotations` (the census's, and
   `from __future__`), `node` (a prose-tree node, and an AST node).
 - **`clean` is reserved.** It is one of the eight verdicts and is never a loose adjective for
   code, prose, a grep result or a run.
