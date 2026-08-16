@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 11 of 16 tasks done
+Progress: 12 of 16 tasks done
 Owner:    session · Roy (⭐ 4 rulings left)
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```
@@ -78,7 +78,7 @@ See the standing rule in [`README.md`](README.md).
       in the CODE", meaning that function. `:58` uses a third sense. One word, three readings,
       no cross-reference.
 
-- [ ] Declare or split the remaining multi-sense words. **Six done 2026-08-15**, each where a
+- [x] Declare or split the remaining multi-sense words. **Done 2026-08-16.** Six on 08-15, each where a
       reader meets it: `block` (Roy's definition, its own commit); **`proof`** — three unrelated
       things, so `write.md:45` now says IDENTITY PROOF and the `proof` LEVEL says it is named
       for stage 8's proof pass; **`level`** — `README.md` called the four roles "levels", and
@@ -105,7 +105,14 @@ See the standing rule in [`README.md`](README.md).
       declared as its synonym** in the section heading, at Roy's instruction: recent training
       pairs the two words, and an agent classifying something a tombstone must find the rule.
       Declared in the heading to stay line-neutral against the 101-line budget.
-      **Still open: `guard`** — two senses that read as contradicting.
+      **`guard` done 2026-08-16 — Roy's split.** A GUARD is code that protects against wrong
+      output (`if`/`match`, `assert` which `-O` strips, raise/exception); an INVARIANT is what
+      the code should hold, and a comment carries it when no guard does. ⚠ He proposed
+      `assertion` for the second; it collides with `assert`, which is in his own guard list, so
+      `invariant` was taken instead — already used in that exact sense at
+      `function-context.md:43,73,76`. The acquittal `only-guard` becomes `unguarded-invariant`:
+      the old name read as "the only CODE guard", the opposite of what it acquits. This closes
+      the multi-sense list.
 
 - [x] Reconcile two marks the published table never listed. **Done 2026-08-15** — `census.py`
       emits `narrative-in-docstring` (`:853`) and `SKILL.md`'s six-row marks table did not

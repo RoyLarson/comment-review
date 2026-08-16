@@ -221,7 +221,7 @@ Observed by the scout pass. Recorded as-is.
 | the matrix | `SKILL.md:576-588`; named "the matrix" at `:259` | ONE |
 | load-bearing | `agents/comment-review-ownership-context.md:56` | ONE — clear as written; three of its four readers cannot load that file (distribution pass) |
 | obituary / **tombstone** | `agents/comment-review-block-context.md:31` | ONE — synonym declared in the heading 2026-08-16, so an agent reaching for `tombstone` finds the rule |
-| guard (exists AND could fail) | `agents/comment-review-function-context.md:38-50` | SEVERAL |
+| guard / invariant | `agents/comment-review-function-context.md:38-50`; `ref/reviewer-brief.md:223-225` | SEVERAL — split 2026-08-16: a GUARD is code that protects against wrong output; an INVARIANT is what the code should hold, and a comment carries it when no guard does |
 | prohibition (grepped against its own file) | `agents/comment-review-function-context.md:50-56` | SEVERAL |
 | population (of a counted claim) | `ref/reviewer-brief.md:69-71,191-193` | SEVERAL |
 | existence grep (the trap) | `ref/reviewer-brief.md:189-193`; same rule unnamed at `SKILL.md:409-410` | SEVERAL |
@@ -229,7 +229,7 @@ Observed by the scout pass. Recorded as-is.
 | `label` (acquittal) | `ref/reviewer-brief.md:216` | ONE |
 | states-the-signature | `ref/reviewer-brief.md:217-218` | ONE |
 | derivation | `ref/reviewer-brief.md:219-223` | ONE |
-| only-guard | `ref/reviewer-brief.md:224-225` | ONE |
+| `unguarded-invariant` | `ref/reviewer-brief.md:223-225` | ONE — `only-guard` until 2026-08-16; the old name read as "the only CODE guard", the opposite of what it acquits |
 | names-its-expiry | `ref/reviewer-brief.md:226` | ONE |
 | suppression list | `ref/reviewer-brief.md:234-247` | ONE |
 | batch to triage (<~10% precision) | `ref/reviewer-brief.md:237,246` | ONE |

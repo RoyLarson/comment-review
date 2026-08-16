@@ -1287,6 +1287,43 @@ definition is unambiguous and the term carries one sense everywhere.
 ⚠ Observation for the distribution pass, NOT a move: three of its four readers cannot load that
 file — `module-context.md:91`, `compact.md:40`, and the task agent at `SKILL.md:125,654,670`.
 
+### guard / invariant — SETTLED 2026-08-16, and they were the same word
+
+Two referents wore `guard`, and side by side they inverted:
+
+- `function-context.md:41` — *"A guard that cannot fail is not a guard."* Here a guard is the
+  TEST OR ASSERTION cited as covering a claim, and it must be able to fail.
+- `reviewer-brief.md:224` (was) — *"if a test does fail it is a time-saver, not a guard."* Here
+  the guard was THE COMMENT — the only thing between a reader and a wrong move, precisely
+  because no test catches it.
+
+**Roy's split:**
+
+> **guard** — code that protects against wrong output. Weakest to strongest: `if`/`else` and
+> `match`/`case`; `assert` (bypassable — `-O` strips it); raise/exception.
+> **invariant** — a property the code is supposed to hold. When no guard enforces it, a comment
+> is the only thing carrying it.
+
+⚠ He first proposed `assertion` for the second. It collides: `assert` is in his own guard list,
+and `function-context.md:41-42` already uses "assertion" for the code kind **in the sentence
+after the guard rule**. `invariant` was taken instead — not because it was free, but because
+`function-context.md:43,73,76` already used it in exactly this sense.
+
+**What the split buys a reviewer, which is why it was worth doing.** It turns "keep or drop"
+into one test: **does a guard enforce this invariant?** If yes, the comment DESCRIBES a guard —
+check value, direction, units, boundary, and it is droppable if it adds nothing. If no, the
+comment IS the invariant's only carrier: keep it, load-bearing wherever it sits. Roy's case: a
+renderer had to hold lines to 42 characters because that is what fits his phone, the comment sat
+far from the renderer, and it still had to be there with the why.
+
+And *"a guard that cannot fail is not a guard"* stops being a rival rule — it is the **test for
+which branch you are in**. A cited guard that cannot fail means there is no guard, so the
+comment is load-bearing after all.
+
+**`only-guard` is renamed `unguarded-invariant`**, which its four siblings' naming already
+implied (`names-its-line`, `states-the-signature`, `derivation`, `names-its-expiry`). The old
+name read as "the only CODE guard" — the opposite of what it acquits.
+
 ### budget — SETTLED 2026-08-15, split three ways. ⚠ MISSED BY THE COLLECTION
 
 ⚠ **Not in either table of `vocabulary-inventory.md` as first produced.** Twelve agents over the

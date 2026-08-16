@@ -220,8 +220,9 @@ Closed list. If none applies, the block gets a finding.
   values is checkable without judgement, so do the sum and report the number. Measured: one
   worked example was wrong, its first correction was *also* wrong, and all three versions
   rounded to the same asserted value, so nothing downstream ever objected.
-- **`only-guard`** — a warning against a plausible wrong move where **nothing goes red** if
-  someone makes it. Verify that; if a test does fail it is a time-saver, not a guard.
+- **`unguarded-invariant`** — it states an INVARIANT the code is meant to hold, and no GUARD
+  enforces it: no `if`, no `assert`, no raise goes red if someone breaks it. Verify that a
+  guard is really absent; if a test does fail, one exists and this is not the acquittal.
 - **`names-its-expiry`** — states the condition under which it stops being wanted. ⚠ Not an
   acquittal once that condition has already been met.
 
