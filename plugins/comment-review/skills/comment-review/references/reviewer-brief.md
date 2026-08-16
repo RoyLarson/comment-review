@@ -67,9 +67,6 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `FINDING` | what is wrong, one clause |
 | `CHANGE` | the payload the verdict table requires |
 
-For a count YOU make, give the number **and the population you counted over** in `SUMMARY`'s
-right half. A count with no stated population cannot be re-derived.
-
 **Then account for every remaining block on one line:**
 
 ```
