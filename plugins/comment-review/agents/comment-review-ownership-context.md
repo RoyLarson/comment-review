@@ -55,7 +55,7 @@ silent. Verdict `add`; write the sentence.
 
 A block is load-bearing at a site when someone changing THAT code would make a worse decision
 without it. A block that would be equally useful anywhere in the file is not anchored to
-anything, and its home is the declaration it actually constrains.
+anything, and its ANCHOR is the declaration it actually constrains.
 
 ## A claim stated at several sites has ONE home
 

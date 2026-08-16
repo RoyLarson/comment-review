@@ -1324,6 +1324,38 @@ comment is load-bearing after all.
 implied (`names-its-line`, `states-the-signature`, `derivation`, `names-its-expiry`). The old
 name read as "the only CODE guard" — the opposite of what it acquits.
 
+### HOME / anchor / owning function — SETTLED 2026-08-16, three questions had one word
+
+`home` carried three readings, and two of them sat SIX LINES APART in the same file, inverted:
+
+- `ownership-context.md:58` — *"its **home** is the declaration it actually constrains"* — a
+  place in the CODE.
+- `ownership-context.md:63` — *"name which site is its **HOME** — the correct existing anchor
+  point among the sites where the claim is already stated, **not the function that implements
+  the rule**"* — expressly NOT the code.
+- `reviewer-brief.md:283` — *"a rule with no **home in the CODE**"* — the owning function, which
+  `:63` had just ruled out. And that is the file whose job is to settle the split between the
+  two roles reading it.
+
+**Roy's assignment, which is the one the system already used:**
+
+| word | means | already used that way at |
+| --- | --- | --- |
+| **anchor** | the code fragment a block attaches to — declaration, assignment, expression | `add` and `split` payloads (`reviewer-brief.md:110,112`), `SKILL.md:53,55`, and enforced at `verdicts.py:308` |
+| **home** | which site a duplicated claim survives at | `ownership-context.md:60-65` |
+| **owning function** | the code that SHOULD hold a rule and does not | `module-context`; `reviewer-brief.md:280` |
+
+Three questions, three kinds of answer: a **position**, a **choice among existing sites**, and a
+**missing owner**.
+
+⚠ I first proposed the opposite — `home` for the code position, a new word for the prose site.
+Roy checked it against `anchor` and it was wrong: `anchor` is already the code position at four
+sites and in the stage-5 gate, so `home` could only be the surviving site.
+
+Fixed: `ownership-context.md:58` now says ANCHOR; `reviewer-brief.md:283` says OWNING FUNCTION;
+and `:279` said *"`move` the claim to its **owner**"* — a fourth word, and `owner` is the
+census's term for the declaration a block annotates — now HOME, matching the rule it summarises.
+
 ### budget — SETTLED 2026-08-15, split three ways. ⚠ MISSED BY THE COLLECTION
 
 ⚠ **Not in either table of `vocabulary-inventory.md` as first produced.** Twelve agents over the

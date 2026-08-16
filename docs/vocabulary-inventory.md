@@ -239,7 +239,7 @@ Observed by the scout pass. Recorded as-is.
 
 | Term | Defined | Multiplicity |
 |---|---|---|
-| HOME (of a claim stated at several sites) | `agents/comment-review-ownership-context.md:60-69`; split restated `ref/reviewer-brief.md:278-282` | SEVERAL |
+| HOME | `agents/comment-review-ownership-context.md:60-65`; `ref/reviewer-brief.md:279` | SEVERAL — SETTLED 2026-08-16: which SITE a duplicated claim survives at. The code position is `anchor`; the code that should hold a rule is the `owning function` |
 | owning function (rule with no home in CODE) | `agents/comment-review-module-context.md:71-82`; split restated `ref/reviewer-brief.md:279` | SEVERAL |
 | module-level state | `agents/comment-review-module-context.md:67-70` | ONE |
 | reachability (a caller outside the tests) | `agents/comment-review-function-context.md:32-36` | ONE |

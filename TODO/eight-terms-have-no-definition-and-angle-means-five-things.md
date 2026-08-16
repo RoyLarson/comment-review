@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 12 of 16 tasks done
-Owner:    session · Roy (⭐ 4 rulings left)
+Progress: 13 of 16 tasks done
+Owner:    session · Roy (⭐ 3 rulings left)
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```
 
@@ -72,11 +72,15 @@ See the standing rule in [`README.md`](README.md).
       uses now read `census`, and `evals/grade_hazards.py:15` cites `census.py`. Verified: the
       script runs. 167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9.
 
-- [ ] ⭐ Rule on `HOME`. `agents/comment-review-ownership-context.md:60-65` defines it as an
-      existing site where the claim is already written and explicitly rules out "the function
-      that implements the rule"; `references/reviewer-brief.md:281` says "a rule with no home
-      in the CODE", meaning that function. `:58` uses a third sense. One word, three readings,
-      no cross-reference.
+- [x] ⭐ Rule on `HOME`. **Roy ruled 2026-08-16: three questions, three words.** `anchor` is
+      the code fragment a block attaches to; `home` is which SITE a duplicated claim survives
+      at; `owning function` is the code that should hold a rule and does not. ⚠ Two of the
+      three readings sat SIX LINES APART in `ownership-context.md` and inverted — `:58` made a
+      home a declaration in the code, `:63` expressly ruled the code out. ⚠ I proposed the
+      opposite assignment first; Roy checked it against `anchor`, which is already the code
+      position at four sites and in the stage-5 gate (`verdicts.py:308`), so `home` could only
+      be the surviving site. Fixed at `:58`, at `reviewer-brief.md:283`, and at `:279`, which
+      had introduced a FOURTH word by saying "move the claim to its owner".
 
 - [x] Declare or split the remaining multi-sense words. **Done 2026-08-16.** Six on 08-15, each where a
       reader meets it: `block` (Roy's definition, its own commit); **`proof`** — three unrelated
