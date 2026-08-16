@@ -1500,6 +1500,32 @@ nothing — `ast.walk` is a stdlib name with zero overlap, exactly the case rule
 `opener` and `annotations`. It went because an editor does not walk a page, and no test other
 than the register would have found it.
 
+### ownership — RETAINED 2026-08-16 with no shipped use
+
+**`ownership` is a settled term that appears nowhere in the shipped tree except as the root of a
+role's name.** Found by the drift check on the day it was written: `ownership-context`'s own file
+uses `belongs` three times, `owner` twice and `OWNS` twice, and the noun `ownership` **zero**
+times. Its question is stated without it — *"does this comment belong to the line it sits on?"*
+
+⚠ **Kept deliberately, not by oversight.** Roy: *"yes it should stay a settled term — I don't
+think this is a YAGNI — it could easily popup in future works and then we have a problem."* A
+word that returns with no ruling behind it is how the original polysemy happened.
+
+⚠ **The role name stays too.** Roy: *"I still like ownership as the context name — still the best
+description for, above all else, does this belong here or somewhere else."*
+
+So the three-way split carries unequal weight in the tree, and that is the settled state:
+
+| word | shipped use |
+| --- | --- |
+| `anchor` | used, defined, emitted |
+| `owner` | used, defined, emitted |
+| `ownership` | the role's NAME only — defined here, emitted to nobody |
+
+⚠ **Do not add it to `references/vocabulary.toml`.** That file holds what agents are GIVEN, and
+the drift check refuses a term a role never uses. Adding it back to tidy the numbers would be
+writing to the check.
+
 ### remit — SETTLED 2026-08-16, replacing `jurisdiction` the same day
 
 **A role's REMIT is the categories of claim it rules on**, as against `verify`, which is what it
