@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 11 of 13 tasks done
-Owner:    session · Roy (⭐ 2 rulings left)
+Progress: 12 of 13 tasks done
+Owner:    session · Roy (⭐ 1 ruling left)
 Raised:   2026-08-15 (Roy, while reviewing the placement precedence before merge)
 ```
 
@@ -93,11 +93,16 @@ The vocabulary as it stands: [`docs/vocabulary.md`](../docs/vocabulary.md).
       and none in the vocabulary. He chose to define rather than drop it: *"because we are an
       editorial board and want to stick with that as framing."*
 
-- [ ] Relabel every site that calls an edit mark an **action**, and reserve that word for what
-      stage 7b does. ⚠ `mark` was carrying four senses when this was raised; three are now gone.
-      The census's are ANNOTATIONS (settled 2026-08-15), `detector` is deleted, and `sweep` is
-      not a term — so `mark` means stage 4's name and what it emits. "Edit mark" now lands
-      clear, and this task is only about defining it.
+- [x] **Closed 2026-08-16 — and almost all of it was done by other work.** Zero prose sites in
+      `plugins/` call an edit mark an action; every remaining `action` is `argparse`'s
+      `action="store_true"`. They went with the `reanchor` collapse and the rewrites around it,
+      not with this task. ⚠ What DID need doing was found by checking rather than assumed: the
+      `edit mark` definition written the day before used `action` twice in opposite senses, six
+      words apart — *"the preferred action"* and *"a mark is not the action"* — so the ambiguity
+      this task exists to remove had moved inside the definition. It now says: *"It NAMES the
+      action that would improve or correct the prose; it does not perform it."*
+      ⚠ `mark`'s other three senses are also gone: the census's are ANNOTATIONS, `detector` is
+      deleted, and `sweep` is not a term. `mark` means stage 4's name and what it emits.
 
 - [x] Add the CHANGELOG entry. **Done 2026-08-15** — under `[Unreleased]`, alongside the
       `angle` and `sweep` retirements, with the destination rules that make the collapse
