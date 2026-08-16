@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 14 of 18 tasks done
+Progress: 15 of 18 tasks done
 Owner:    session · Roy (⭐ 2 rulings left)
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```
@@ -192,9 +192,8 @@ See the standing rule in [`README.md`](README.md).
       row says COMPACT may do nothing with it but report it. The sentence above the table
       said "the two" while naming three kinds; it now names four.
 
-- [ ] ⭐ Rule on the four enforcement gaps, each a case where a script accepts something the
-      prose does not: the `add` payload check passes on the bare word "anchor" and rejects a
-      named declaration without it (`verdicts.py:302-307`); `--reviewers` is compared to file
-      stems and never to the published role names (`verdicts.py:487`); the `FINDING` field is
-      never checked, and `Finding.finding` holds a reviewer clause or a diagnostic string
-      depending on `block == -1`; `CODE CONCERNS` is not parsed or gated at all.
+- [x] **Moved out 2026-08-16 — the enforcement gaps were never vocabulary.** The survey
+      collected them while reading for terms, and keeping them here stopped this file closing.
+      They are now [`the-gate-and-the-brief-disagree`](the-gate-and-the-brief-disagree.md),
+      with two more found since: `query`'s evidence, and the `QUOTE` rules the brief dropped
+      while the gate kept enforcing them.

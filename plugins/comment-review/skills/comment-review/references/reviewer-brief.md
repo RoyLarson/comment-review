@@ -66,12 +66,6 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `FINDING` | what is wrong, one clause |
 | `CHANGE` | the payload the verdict table requires |
 
-**Then account for every remaining block on one line:**
-
-```text
-CLEAN 1-16,18,20-45,47
-```
-
 ⚠⚠ **`QUOTE` is the forcing function, and it is CHECKED.** The cited line is read
 out of the file and your `QUOTE` must appear within three lines of it.
 
