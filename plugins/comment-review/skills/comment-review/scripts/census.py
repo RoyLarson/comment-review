@@ -356,7 +356,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     `unterminated-block-comment` rather than returned looking ordinary: a
     consumer cannot otherwise tell a long comment from a lexer that lost the
     rest of the file, and `prove_unchanged.py` refuses the whole file on this
-    annotation rather than comparing a residue the code never reached.
+    annotation rather than comparing a stripped text the code never reached.
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     lines = text.splitlines()

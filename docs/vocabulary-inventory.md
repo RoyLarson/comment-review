@@ -53,7 +53,7 @@ Observed by the scout pass. Recorded as-is.
 
 | Word | Sense A | Sense B |
 |---|---|---|
-| **residue** | the comment-stripped byte comparison, `sk-scripts/prove_unchanged.py:13-15,101-147` | THE RESIDUE CHECK, a stage-level procedure, `ref/residue-check.md:15-26` |
+| ~~**residue**~~ | SETTLED 2026-08-16 — the PROSE check keeps the word | The CODE CHECK's artifact is now **`stripped`**: `code_fingerprint` returns kind `ast`, `stripped` or `unprovable`, and `_residue()` is `_without_comments()`. `residue` means only the stage-5/6/7b procedure, `ref/residue-check.md` |
 | ~~**SUPPRESSED / suppression**~~ | PARTLY SETTLED 2026-08-16 — **nothing gets suppressed** | `NOISE_FLOOR` and the `SUPPRESSED` output are deleted from `referrers.py`; `census.py`'s two uses go with [its own TODO](../TODO/the-shipped-python-does-not-pass-its-own-review.md). Both lists are DELETED as of 2026-08-16 |
 | ~~**label**~~ | SETTLED 2026-08-16 by subtraction — ONE sense left | The acquittal sense went with the acquittal list, so `label` means the REVIEW-ROUND label only: `agents/comment-review-block-context.md:28-29`, *"fix round 2"*, *"finding B4"*. `sk-scripts/census.py:161`'s `"a review label"` annotation is the same sense |
 | **node** | prose-tree node, `SKILL.md:76` | Python AST node, three scripts |
@@ -211,7 +211,7 @@ Observed by the scout pass. Recorded as-is.
 | THE RESIDUE CHECK | `ref/residue-check.md:15-26` | ONE |
 | PROVEN / FAIL / UNPROVABLE / UNCHECKED | `sk-scripts/prove_unchanged.py:5,16,158-176,270-318`; consequences `ref/write.md:57-62` | SEVERAL |
 | line-ending check / dominant ending / untouched sibling | `sk-scripts/prove_unchanged.py:20-23,179-243` | ONE |
-| the four refusals | `ref/residue-check.md:40-54` | ONE |
+| the four refusals | `ref/residue-check.md:36-50` | ONE |
 
 ### Judgment vocabulary
 

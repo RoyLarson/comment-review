@@ -14,7 +14,7 @@ Two proofs, because two tiers:
   ast       Python, using the LANGUAGE'S OWN parser. Blank every docstring,
             compare `ast.dump`. Comments never reach the AST, so anything else
             that differs fails.
-  residue   Any other `LANGUAGES` record, using THIS REPO'S comment lexer.
+  stripped  Any other `LANGUAGES` record, using THIS REPO'S comment lexer.
             Delete every comment it finds, compare the lines that remain --
             right-stripped, blanks dropped. A PROJECTION, not the file; line
             endings are checked separately below because this cannot see them.
@@ -36,10 +36,10 @@ and `git diff` hides it. Measured four times.
 
 ⚠ An UNTERMINATED block comment makes the whole file UNPROVABLE. The lexer
 swallows every line below the opener into that one run, so a code change after
-that point never reaches the comparison and the residue is merely SHORT -- not
+that point never reaches the comparison and the stripped text is merely SHORT -- not
 obviously wrong, and equal across two files whose code differs. The census
 stamps that run `unterminated-block-comment` and this refuses the file on the
-annotation, rather than on a residue that only LOOKS like a proof.
+annotation, rather than on a stripped text that only LOOKS like a proof.
 """
 
 from __future__ import annotations
@@ -110,7 +110,7 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
     return False
 
 
-def _residue(text: str, path: Path) -> str | None:
+def _without_comments(text: str, path: Path) -> str | None:
     """The file with every comment block removed, or None if unprovable here.
 
     Exact where the data allows it: a block's `raw_lines` is a literal slice
@@ -124,7 +124,7 @@ def _residue(text: str, path: Path) -> str | None:
     An UNTERMINATED block comment is refused the same way, on the census's own
     `unterminated-block-comment` annotation. The lexer swallows every line below the
     opener into that run, so the code below it never reaches the comparison and
-    the residue is merely SHORT -- short, plausible and equal on two files whose
+    the stripped text is merely SHORT -- short, plausible and equal on two files whose
     executable code differs.
     """
     lang = language_for(path)
@@ -167,7 +167,7 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         path: used only for its suffix, to pick which comparison runs.
 
     Returns:
-        `(kind, fingerprint)`. `kind` is "ast", "residue" or "unprovable"; an
+        `(kind, fingerprint)`. `kind` is "ast", "stripped" or "unprovable"; an
         unprovable file carries an empty fingerprint and must never be reported
         as proven.
     """
@@ -175,17 +175,17 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         try:
             return "ast", ast.dump(_blank_docstrings(ast.parse(text)))
         except SyntaxError:
-            pass  # fall through to residue; a broken parse proves nothing
-    residue = _residue(text, path)
-    if residue is None:
+            pass  # fall through to the stripped compare; a broken parse proves nothing
+    stripped = _without_comments(text, path)
+    if stripped is None:
         return "unprovable", ""
-    if not residue.strip() and text.strip():
-        # An all-comment file reaches here with an EMPTY residue while the
+    if not stripped.strip() and text.strip():
+        # An all-comment file reaches here STRIPPED to nothing while the
         # source was not empty. `"" == ""` would "prove" any two such files
         # identical no matter what code either held -- comparing nothing is
         # not a proof.
         return "unprovable", ""
-    return "residue", residue
+    return "stripped", stripped
 
 
 def dominant_ending(text: str) -> str:

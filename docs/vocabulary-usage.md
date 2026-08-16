@@ -216,11 +216,11 @@ Same sites as residue sense B. Additionally: the file's own title at `references
 ### the four refusals
 
 - Named at `references/apply.md:10` — heading "## The residue check, and the four refusals" — and `:12`: "Both are defined in `residue-check.md`, loaded back at stage 5. They are not restated here."
-- **The referent in `references/residue-check.md:40-54` is headed differently:** "## ⚠⚠ Four removals the three conjuncts miss" — "Refuse a removal unless **all four** also hold..." followed by four bullet conditions.
+- **The referent in `references/residue-check.md:36-50` is headed differently:** "## ⚠⚠ Four removals the three conjuncts miss" — "Refuse a removal unless **all four** also hold..." followed by four bullet conditions.
 - Used at `references/compact.md:61-68` — "⚠ The four refusals still bind... does the condensed version still pass the four refusals (not the only record of its fact; not what makes a surviving claim falsifiable; not a positional refusal aimed at a future editor; and what remains is still a proposition)?" Restates all four inline, compressed relative to `residue-check.md`'s bullets.
 - Used at `agents/comment-review-compact.md:23` — "⚠⚠ **The four refusals in `compact.md` bind here without exception.**" **Attributes the term's home to `compact.md`**, not to `residue-check.md` where the four-condition list is defined. `compact.md` itself attributes it onward to `residue-check.md` at its own `:12`, and separately restates the four conditions at `:66-68`.
 
-**The phrase "the four refusals" is not textually present in the file it points to.** `residue-check.md:40-54` names the same list "Four removals" (heading) and "Refuse a removal unless all four also hold" (body). The fixed phrase appears only at the three citing sites (`apply.md:10`, `compact.md:61,66`, `agents/comment-review-compact.md:23`), each treating it as defined elsewhere. A reader assembling it from `residue-check.md` alone has to infer that "refusals" names the four bullets that section calls "removals."
+**The phrase "the four refusals" is not textually present in the file it points to.** `residue-check.md:36-50` names the same list "Four removals" (heading) and "Refuse a removal unless all four also hold" (body). The fixed phrase appears only at the three citing sites (`apply.md:10`, `compact.md:61,66`, `agents/comment-review-compact.md:23`), each treating it as defined elsewhere. A reader assembling it from `residue-check.md` alone has to infer that "refusals" names the four bullets that section calls "removals."
 
 ---
 
@@ -543,7 +543,7 @@ Further senses:
 - `verdicts.py:314` — the only verdict permitted to carry no payload; `:376,381,411` — exempt from EVIDENCE/QUOTE and LOCATION checks; `:581` — operationally the verdict that does **not** put a block into `ruled`.
 - `verdicts.py:26-30,114` — the fabrication leaving no artifact ("a fabricated CLEAN").
 
-**Non-verdict uses of the word** (recorded, not judged; `CLAUDE.md:202` states a repo rule against these): `residue-check.md:54` ("the check reports clean"), `:43` ("cleanly"); `README.md:225,28`; `docs/parsing.md:26` ("a clean fallback"); `census.py:677,920`; `grade_hazards.py:20`; `tests/test_referrers.py:155`; `scripts/README.md:36`; and `--clean` as a `fetch_corpora.py` CLI flag (`CLAUDE.md:29`, `scripts/README.md:14`).
+**Non-verdict uses of the word** (recorded, not judged; `CLAUDE.md:202` states a repo rule against these): `residue-check.md:50` ("the check reports clean"), `:43` ("cleanly"); `README.md:225,28`; `docs/parsing.md:26` ("a clean fallback"); `census.py:677,920`; `grade_hazards.py:20`; `tests/test_referrers.py:155`; `scripts/README.md:36`; and `--clean` as a `fetch_corpora.py` CLI flag (`CLAUDE.md:29`, `scripts/README.md:14`).
 
 ### `query`
 
@@ -931,7 +931,7 @@ Note the angle named **block-context** uses the same word for its *scope* ("the 
 - `scripts/census.py:5,190,348,479`; `:1000` and `:986` — "longest comment run" computed over `b.kind == "comment"` only, excluding `trailing-comment` and `docstring`.
 - `CLAUDE.md:92`; `SKILL.md:24,75`; `evals/evals.json:9,17,25`; `evals/generator_split.py:8`; `evals/grade_hazards.py:15`.
 
-**Bare "run" collides with an unrelated sense throughout: one invocation of the skill** — `SKILL.md:354,252`; `apply.md:8,58-62,94`; `review.md:22,33,44`; `census.py:31`. Both appear in the same paragraphs (`compact.md:32` "a capped run"; `:81` "the cap counts lines in one `#` run"). A third sense at `census.py:365-419`: the local variable `run` holding accumulating lines.
+**Bare "run" collides with an unrelated sense throughout: one invocation of the skill** — `SKILL.md:354,252`; `apply.md:8,58-62,94`; `review.md:22,28,39`; `census.py:31`. Both appear in the same paragraphs (`compact.md:32` "a capped run"; `:81` "the cap counts lines in one `#` run"). A third sense at `census.py:365-419`: the local variable `run` holding accumulating lines.
 
 ### counted lines
 
@@ -1414,6 +1414,38 @@ shapes with measured false-positive rates, and the rule that one below ~10% prec
 
 ⚠ Both are JUDICIAL words on an editorial-board system, and so is **`jurisdiction`**, settled
 2026-08-16 in this same session.
+
+### residue — SETTLED 2026-08-16: the PROSE check keeps it; the string is `stripped`
+
+Two things wore the word and they operate on OPPOSITE material:
+
+| | was `residue` | now |
+| --- | --- | --- |
+| the file with every comment deleted, compared before against after | `sk-scripts/prove_unchanged.py` | **`stripped`** |
+| the per-block procedure asking whether an edit dropped anything true, necessary and checkable | `ref/residue-check.md` | unchanged |
+
+One takes the comments OUT of the code; the other asks what is left OF the comments. Roy: *"yes
+the string gives it up."*
+
+⚠ **`lexical` was proposed for the string and withdrawn.** It is already the name of a census
+TIER, and the `ast` arm is not the `tokenized` tier — the CODE CHECK's Python arm skips the
+census and calls `ast.dump` directly. Naming the other arm `lexical` would have asserted a tier
+ladder that is not there, and given `lexical` a second sense. Roy caught it: *"which one is
+lexical — it seems like the 'lexical' statement is going back to census.py?"*
+
+Both `kind` values name the ARTIFACT compared, which is what makes them one scale: `ast` is a
+parse tree, `stripped` is the file with its comments removed. `_residue()` → `_without_comments()`,
+the local → `stripped`, and the report line reads `PROVEN sample.go: reads the same (stripped)`.
+
+⚠ **The word was carrying three disclaimers, and they went with it.** The same distinction — this
+check is per-block and inbound, stage 8 reads the page — was stated at `ref/residue-check.md:7-9`
+and TWICE in `ref/review.md`, eleven lines apart, two of them ending in the identical clause
+*"…and that is the common case, because each edit was defensible alone."* Roy: *"that is a forward
+reference and a negative test framing and violates the rules … It adds NO resolution power for
+what this stage does."* Both definitions-by-negation are deleted; the PROHIBITION at
+`ref/review.md:31-34` survives, restated positively, because a rule about what an agent may not
+substitute does have resolution power. ⚠ `review.md:25` also called stage 8 *"the proof pass"* —
+a name retired when 7b's gate became the CODE CHECK.
 
 ### worktree — SETTLED 2026-08-16: git's word, not this system's
 

@@ -22,21 +22,16 @@ Read each changed file end to end and look for exactly this:
 ⚠ **Fix only what THIS pass created.** A defect you find that predates the run is a finding for
 the next one, not a licence to reopen stage 7b. Say which is which.
 
-⚠ **The proof pass is not the residue check.** The residue check is inbound and per-block —
-*did this block lose something?* This asks *does the finished page read?* A pass can satisfy the
-first everywhere and fail the second, and that is the common case, because each edit was
-defensible alone.
-
 ## What this pass may NOT do
 
 ⚠ **It may not re-open a verdict.** Truth was settled at stage 5, length at 6, and the author
 ruled at 7a. Finding a better wording here is not a licence to write it — that is next run's
 `patch`, and writing it now puts text on disk the author never saw.
 
-⚠ **It may not run the residue check as a substitute.** That check is inbound and per-block
-([`residue-check.md`](residue-check.md)); this one is outbound and per-FILE. A run can pass the
-first on every block and still fail this, which is the common case precisely because each edit
-was defensible alone.
+⚠ **It may not run the residue check as a substitute.** This pass is outbound and per-FILE:
+read the finished page. That check ([`residue-check.md`](residue-check.md)) is inbound and
+per-block, so a run can pass it on every block and still fail this — the common case, precisely
+because each edit was defensible alone.
 
 ## Report
 

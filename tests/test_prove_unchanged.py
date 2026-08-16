@@ -56,7 +56,7 @@ GO_CODE_CHANGED = "// old doc\nfunc Add(a, b int) int {\n\treturn a - b\n}\n"
 
 # A code change hidden behind a TRAILING comment, on the same line. The
 # original fixtures above put every comment on its own line, which is why a
-# `_residue` that drops a trailing-comment block's whole LINE (rather than
+# `_without_comments` that drops a trailing-comment block's whole LINE (rather than
 # just its comment tail) still passed them.
 GO_TRAILING_BEFORE = "func Add(a, b int) int {\n\treturn a + b // sum\n}\n"
 GO_TRAILING_CODE_CHANGED = "func Add(a, b int) int {\n\treturn a - b // sum\n}\n"
@@ -68,13 +68,13 @@ GO_TRAILING_CODE_CHANGED = "func Add(a, b int) int {\n\treturn a - b // sum\n}\n
 C_MIDLINE_BEFORE = "int x = /* why */ 5;\nint y = 6;\n"
 C_MIDLINE_CHANGED = "int x = /* why */ 7;\nint y = 6;\n"
 
-# A file that is comment top to bottom: the residue is legitimately empty.
+# A file that is comment top to bottom: the stripped text is legitimately empty.
 GO_ALL_COMMENT = "// just a comment\n// and another\n"
 
 # An UNTERMINATED block comment. The lexer swallows every line below the opener
-# into one run, so `func B` never reaches the residue -- and the surviving
-# `func A() {}` makes the residue SHORT and plausible rather than empty, which
-# is why the empty-residue guard does not catch this shape.
+# into one run, so `func B` never reaches the stripped text -- and the surviving
+# `func A() {}` makes the stripped text SHORT and plausible rather than empty, which
+# is why the stripped-to-nothing guard does not catch this shape.
 GO_RUNAWAY_BEFORE = "func A() {}\n/* note\nfunc B() {}\n"
 GO_RUNAWAY_CODE_CHANGED = "func A() {}\n/* note edited\nfunc C() { panic(1) }\n"
 
@@ -116,7 +116,7 @@ class TestLexicalProof(unittest.TestCase):
 
     def test_the_proof_kind_is_named(self):
         kind, _ = pu.code_fingerprint(GO_BEFORE, Path("x.go"))
-        self.assertEqual(kind, "residue")
+        self.assertEqual(kind, "stripped")
 
 
 class TestUnprovable(unittest.TestCase):
@@ -124,9 +124,9 @@ class TestUnprovable(unittest.TestCase):
         kind, _ = pu.code_fingerprint("whatever\n", Path("x.zzz"))
         self.assertEqual(kind, "unprovable")
 
-    def test_a_syntax_error_falls_back_to_residue_not_to_success(self):
+    def test_a_syntax_error_falls_back_to_without_comments_not_to_success(self):
         kind, _ = pu.code_fingerprint("def (:\n", Path("x.py"))
-        self.assertIn(kind, ("residue", "unprovable"))
+        self.assertIn(kind, ("stripped", "unprovable"))
 
 
 class TestLineEndings(unittest.TestCase):
@@ -144,7 +144,7 @@ class TestTrailingCommentExactness(unittest.TestCase):
     """A trailing comment's block spans the CODE line it sits on.
 
     Dropping the whole line erases the code, not just the comment, and two
-    texts differing only in that code then residue-compare EQUAL -- a false
+    texts differing only in that code then stripped-compare EQUAL -- a false
     PROVEN on the exact case the trailing-comment kind exists to describe.
     """
 
@@ -165,13 +165,13 @@ class TestBlockCommentMidlineIsUnprovable(unittest.TestCase):
 
     def test_it_stays_unprovable_even_though_only_a_literal_changed(self):
         # The DANGEROUS shape: before/after differ only in the value beside
-        # the delimiter. A residue that dropped the whole line would compare
-        # them equal (the differing value was never in the residue at all).
+        # the delimiter. A stripped text that dropped the whole line would compare
+        # them equal (the differing value was never in the stripped text at all).
         kind, _ = pu.code_fingerprint(C_MIDLINE_CHANGED, Path("x.c"))
         self.assertEqual(kind, "unprovable")
 
 
-class TestEmptyResidueIsUnprovable(unittest.TestCase):
+class TestStrippingToNothingIsUnprovable(unittest.TestCase):
     """`"" == ""` proves nothing: an all-comment file must not read PROVEN."""
 
     def test_an_all_comment_file_is_unprovable_not_proven(self):
@@ -179,21 +179,21 @@ class TestEmptyResidueIsUnprovable(unittest.TestCase):
         self.assertEqual(kind, "unprovable")
 
     def test_a_genuinely_empty_file_is_still_provable(self):
-        # The rule is "empty residue from NON-empty input", not "empty
-        # residue" outright -- two truly empty files ARE identical.
+        # The rule is "empty stripped text from NON-empty input", not "empty
+        # stripped text" outright -- two truly empty files ARE identical.
         kind, _ = pu.code_fingerprint("", Path("x.go"))
-        self.assertEqual(kind, "residue")
+        self.assertEqual(kind, "stripped")
 
 
 class TestUnterminatedBlockCommentIsUnprovable(unittest.TestCase):
-    """C1: a runaway `/*` hid a code change behind an equal, plausible residue.
+    """C1: a runaway `/*` hid a code change behind an equal, plausible stripped text.
 
-    Both files residue to `func A() {}`, so the fingerprints compared EQUAL and
+    Both files strip to `func A() {}`, so the fingerprints compared EQUAL and
     the report read PROVEN while `func B` had become `func C() { panic(1) }`.
-    The empty-residue guard cannot see this: some code survived.
+    The stripped-to-nothing guard cannot see this: some code survived.
     """
 
-    def test_the_residue_is_refused_not_compared(self):
+    def test_the_without_comments_is_refused_not_compared(self):
         kind, _ = pu.code_fingerprint(GO_RUNAWAY_BEFORE, Path("x.go"))
         self.assertEqual(kind, "unprovable")
 
@@ -355,7 +355,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("UNPROVABLE", result.stdout)
 
     def test_a_code_change_behind_a_runaway_block_comment_does_not_read_proven(self):
-        # C1 end to end. A fingerprint-level test only shows the residue is
+        # C1 end to end. A fingerprint-level test only shows the stripped text is
         # refused; only the CLI shows that PROVEN is never printed and the
         # exit code changes -- the distinction that let this ship.
         runaway = self.repo / "runaway.go"
