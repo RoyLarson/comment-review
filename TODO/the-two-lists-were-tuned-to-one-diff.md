@@ -89,3 +89,9 @@ Why they went, in order of weight:
       `agents/…-block-context.md:36` and `SKILL.md:614`, and **`jurisdiction`** — settled
       2026-08-16 — is the same register. Decide whether the words go or the metaphor is adopted
       deliberately, rather than leaving it half-and-half.
+
+      ⚠ **The deciding frame is now on the record.** Roy settled PROOFREADER the same day with
+      a reason that names the system's native metaphor: *"it is reading the PROOF and it is
+      determining if the document deserves more marks. That fits the role of a PROOFREADER in
+      society."* Editorial roles, editorial marks on a manuscript, a proof, a proofreader — the
+      vocabulary is PUBLISHING. That is the standard the judicial words have to answer to.

@@ -1447,6 +1447,35 @@ what this stage does."* Both definitions-by-negation are deleted; the PROHIBITIO
 substitute does have resolution power. ⚠ `review.md:25` also called stage 8 *"the proof pass"* —
 a name retired when 7b's gate became the CODE CHECK.
 
+### proof / PROOFREADER — SETTLED 2026-08-16: the PRINTING sense
+
+Roy: *"PROOFREADER works — it is reading the PROOF and it is determining if the document
+deserves more marks. That fits the role of a PROOFREADER in society."*
+
+Three names line up under one metaphor, which is why the ruling settles more than the word it
+was asked about:
+
+| | is |
+| --- | --- |
+| a **proof** | the finished page, set and printed, before anyone signs it off |
+| the **PROOFREADER** | who reads it and decides whether the document deserves more marks |
+| the **`proof` level** | the run that does only that — stage 8, over files a previous pass edited |
+
+⚠ **The obvious alternative was unavailable.** Stage 8 could not be called the *reviewer*:
+`reviewer` is the settled identifier for the four editorial roles, taken when `angle` was
+retired on 2026-08-15.
+
+⚠ **A second sense is OBSERVED and not ruled**: `sk-scripts/prove_unchanged.py` uses prove /
+`PROVEN` / `unprovable` / *"proof kind changed"* in the EVIDENTIAL sense — a demonstration that
+the executable code is unchanged. It is ordinary English in code identifiers rather than a term
+of art, and it sits in the CODE CHECK, which no longer calls itself a proof pass. Carried to the
+re-sweep.
+
+⚠ **This is the system's native metaphor, and it bears on an open ruling.** Editorial roles,
+editorial marks on a manuscript, a proof, a proofreader — that is publishing. `acquittal`,
+`suppression` and `jurisdiction` are judicial, and whether they stay is a task on
+[`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md).
+
 ### worktree — SETTLED 2026-08-16: git's word, not this system's
 
 Roy: *"that is a git concept and user workflow piece. It should be considered resolved."*

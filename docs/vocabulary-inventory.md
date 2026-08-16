@@ -122,7 +122,7 @@ Observed by the scout pass. Recorded as-is.
 | `fact-check` | `SKILL.md:186`; verdict set `sk-scripts/verdicts.py:67` | SEVERAL |
 | `line` | `SKILL.md:187`; `sk-scripts/verdicts.py:68` | SEVERAL |
 | `full` | `SKILL.md:188`; `sk-scripts/verdicts.py:69` | SEVERAL |
-| `proof` | `SKILL.md:189`; empty verdict set `sk-scripts/verdicts.py:64,70` | SEVERAL |
+| ~~`proof` / PROOFREADER~~ | SETTLED 2026-08-16 — the PRINTING sense | `SKILL.md:189`; empty verdict set `sk-scripts/verdicts.py:64,70`; `agents/comment-review-review.md:7`. A proof is the finished page; the PROOFREADER reads it and decides whether the document deserves more marks; the `proof` LEVEL is the run that does only that. ⚠ `sk-scripts/prove_unchanged.py`'s `PROVEN` / `unprovable` / *"proof kind"* is the EVIDENTIAL sense — observed, not ruled |
 | `--reviewers` (declared list) | `sk-scripts/verdicts.py:441-449,508-522` | ONE — `--angles` until 2026-08-15. ⚠ Never checked against the four published role names |
 
 ### Census structure
