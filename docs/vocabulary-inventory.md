@@ -39,7 +39,7 @@ manifests. Excluded as historical or vendored, not the live system:
 | ~~**budget**~~ | SETTLED 2026-08-15 — `docs/limitations.md:9` | ⚠ **Missed by the twelve-agent collection entirely** — 18 sites, four senses, in neither table. Roy's ruling: **the only real budget is what a shipped instruction file costs everyone to load**, measured in lines per file. `cap` took back the five sites meaning a comment's line limit. The reviewer-runtime sense loses the word. ⚠ Measured: the budget covers 28 KB of the 224 KB shipped, and not the two largest files every run loads. |
 | **prose tree** | none; `SKILL.md:24` says "a node on the prose tree" | Appears in both manifests' user-facing descriptions. |
 | **the join** | none | Names `verdicts.py`'s stage-5 gate. `SKILL.md:517,540,571,573,697`; `ref/reviewer-brief.md:42,92`; `CLAUDE.md:46`. |
-| ~~**sweep**~~ | SETTLED 2026-08-15 — not a term | Stage 7b is **APPLY**, which every canonical naming site already said. The word was a synonym outliving `sweep.py` (now `census.py`), and the dead `import sweep` with it. Plain-English "sweep the file" stays. |
+| ~~**sweep**~~ | SETTLED 2026-08-15 — not a term | Stage 7b is **WRITE** (it was APPLY when `sweep` was retired; APPLY then moved to stage 5). The word was a synonym outliving `sweep.py` (now `census.py`), and the dead `import sweep` with it. Plain-English "sweep the file" stays. |
 | **detector** | none | Used with a fixed sense (a mechanical mark and its precision) at `ref/reviewer-brief.md:234,236,246`; `sk-scripts/census.py:148,770`; `docs/parsing.md:47`; `README.md:131,141,152,260`. |
 | **banner / section banner** | none | `agents/comment-review-module-context.md:3,18,24,98`; `README.md:93` paraphrases without the term. |
 | **assessability gate** | none | Appears only in `agents/comment-review-ownership-context.md:3` frontmatter; the idea is stated without the phrase at `:30-42`. |
@@ -173,13 +173,13 @@ Observed by the scout pass. Recorded as-is.
 | ANNOTATE (2) | `SKILL.md:24` | SEVERAL |
 | FIND REFERENCES (3) | `SKILL.md:25` | SEVERAL |
 | MARK (4) | `SKILL.md:26,120-121,459` | SEVERAL |
-| EDIT (5) | `SKILL.md:27,122-125,515` | SEVERAL |
+| APPLY (5) | `SKILL.md:16,27,120-139,516` | SEVERAL — `EDIT` until 2026-08-15 |
 | COMPACT (6) | `SKILL.md:28,127-149,669-692`; `ref/compact.md:1-10` | SEVERAL |
 | APPROVAL / 7a / 7b | `SKILL.md:29-30,151,694,713` | SEVERAL |
 | REVIEW (8) | `SKILL.md:31,153-154,722`; `ref/review.md:1-10` | SEVERAL |
 | re-review | `SKILL.md:510-513,623-628`; `sk-scripts/verdicts.py:12,419-428,569-573` | SEVERAL |
 | the join | — | UNDEFINED |
-| APPLY (7b) | `SKILL.md:16-17,30,714`; `ref/apply.md:1` | SEVERAL — `sweep` retired as a synonym 2026-08-15 |
+| WRITE (7b) | `SKILL.md:17,30,719`; `ref/write.md:1` | SEVERAL — `sweep` retired 2026-08-15; renamed from APPLY the same day when APPLY moved to stage 5 |
 | input contract (COMPACT's narrow input) | `ref/compact.md:95-100`; `SKILL.md:139-149` | SEVERAL |
 
 ### The dispatch packet
@@ -206,7 +206,7 @@ Observed by the scout pass. Recorded as-is.
 | code signature | `sk-scripts/prove_unchanged.py:150-161` | ONE |
 | residue (byte comparison) | `sk-scripts/prove_unchanged.py:13-15,101-147` | ONE |
 | THE RESIDUE CHECK | `ref/residue-check.md:15-26` | ONE |
-| PROVEN / FAIL / UNPROVABLE / UNCHECKED | `sk-scripts/prove_unchanged.py:5,16,158-176,270-318`; consequences `ref/apply.md:57-62` | SEVERAL |
+| PROVEN / FAIL / UNPROVABLE / UNCHECKED | `sk-scripts/prove_unchanged.py:5,16,158-176,270-318`; consequences `ref/write.md:57-62` | SEVERAL |
 | line-ending check / dominant ending / untouched sibling | `sk-scripts/prove_unchanged.py:20-23,179-243` | ONE |
 | the four refusals | `ref/residue-check.md:40-55` | ONE |
 

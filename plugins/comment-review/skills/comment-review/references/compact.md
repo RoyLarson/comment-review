@@ -21,7 +21,7 @@ block**:
 - a block that looks over-length often shrinks to nothing once the duplicated claim it carries
   is corrected somewhere else.
 
-Condensing per-block during the EDIT gets all three wrong, and each error looks like a
+Condensing per-block during APPLY gets all three wrong, and each error looks like a
 successful edit.
 
 ⚠ **If any block is still marked incorrect or misplaced, stage 6 has not started yet.** Finish
@@ -43,7 +43,7 @@ approval.
 
 **Only shorten prose that is already correct.** This pass may not change a claim, relocate a
 block, drop a constraint, or resolve anything stage 5 left open. If compacting makes you want
-to do any of those, the EDIT was not finished — go back, or file it for the next run.
+to do any of those, APPLY was not finished — go back, or file it for the next run.
 
 ## Per block
 
@@ -116,7 +116,7 @@ wearing a passing grade.**
 
 ## Rails
 
-Every rail in `apply.md` still applies. One is specific to this pass:
+Every rail in `write.md` still applies. One is specific to this pass:
 
 **Do not condense a block into the shape of its neighbours.** Matching surrounding style is how
 a sentence survives review by resembling what is around it rather than by being needed.
@@ -129,5 +129,5 @@ Blocks condensed, blocks left at length with the reason, and the final longest b
 you could not condense is a finding, not a silence.
 
 ⚠ **No AST-identity proof here** — nothing has been written yet. That proof belongs to
-APPLY (stage 7b), which is the only pass that touches a file. What you hand back is the text
+WRITE (stage 7b), which is the only pass that touches a file. What you hand back is the text
 stage 7a will put in front of the author.

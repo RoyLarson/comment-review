@@ -26,7 +26,8 @@ this table:
 
 | collected as | now | where |
 | --- | --- | --- |
-| `sweep` (stage 7b) | **APPLY** | every canonical naming site already said APPLY; see [sweep](#sweep--settled-2026-08-15-not-a-term-stage-7b-is-apply) |
+| `sweep` (stage 7b) | **WRITE** | retired as APPLY, then renamed WRITE when APPLY moved to stage 5; see [sweep](#sweep--settled-2026-08-15-not-a-term-stage-7b-is-apply) |
+| `EDIT` (stage 5) | **APPLY** | applying a MARK produces the text; `references/apply.md` is now `references/write.md` |
 | `angle` (the scope, the agent) | **editorial role** | prose everywhere; see [angle](#angle--settled-2026-08-15-retired-in-favour-of-editorial-role) |
 | `--angles` | `--reviewers` | `verdicts.py` |
 | `ANGLE FILES` | `REVIEWER FILES` | the dispatch packet |
@@ -1205,7 +1206,9 @@ rewritten; the ladder itself is a separate decision, outside the vocabulary work
 
 Ruled by Roy. `sweep` was never the stage's name — `SKILL.md:16-17` (the pipeline diagram),
 `SKILL.md:30` (the stage table, "APPROVAL — apply") and the reference filename `apply.md` all
-said APPLY throughout. `sweep` was a synonym surviving from `sweep.py`, the module now called
+said APPLY throughout. ⚠ **Later the same day APPLY moved to stage 5 and 7b became WRITE** —
+applying a MARK is what stage 5 does; see the `apply` entry. Every "APPLY" below therefore
+names what is now WRITE. `sweep` was a synonym surviving from `sweep.py`, the module now called
 `census.py`: the word outlived its referent, which is the same failure as the dead import below.
 
 The former senses and where each went:

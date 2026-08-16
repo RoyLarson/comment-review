@@ -1,10 +1,10 @@
-# Stage 7b — APPROVAL: apply what the human approved
+# Stage 7b — WRITE: put on disk what the human approved
 
 Loaded by the task agent **after approval**, never by a reviewer. If you are reading this
 before the human has approved a verdict list, stop.
 
 Apply only what was approved, and only what was marked. ⚠ **An unmarked block is never written.**
-If APPLY wants to touch something the mark did not reach, that is a finding for the next
+If WRITE wants to touch something the mark did not reach, that is a finding for the next
 run, not an edit.
 
 ## The residue check, and the four refusals

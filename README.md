@@ -3,7 +3,7 @@
 A Claude Code plugin: an **editorial board** for the comments and docstrings a change
 touched. Four read-only reviewers walk one prose tree, an editor writes the replacement
 text, it is cut to fit, **then** the author approves the exact text that will be written —
-and APPLY writes it and proves the executable code byte-identical.
+and WRITE puts it on disk and proves the executable code byte-identical.
 
 ```
 project → annotate → find refs → mark → edit → compact → APPROVAL → review
@@ -118,7 +118,7 @@ The skill is broken up into eight phases to cover an editorial system.
 | `move`     | true, but it belongs somewhere else              | re-attach the block, unchanged, at the destination carried with it — another line, another file, or out of the code |
 | `split`    | two claims in one block                          | re-anchor each fragment to the code it is about                           |
 
-5) EDIT - Agent combines the marks to be a correct, truthful, load-bearing comment for the location
+5) APPLY - Agent combines the marks to be a correct, truthful, load-bearing comment for the location
 6) COMPACT - Only if you want to force the LLMs to keep it short
 7) APPROVAL - Agent proposes the change to you - they messed it up for me so I don't trust them to do it twice
 8) REVIEW - Double checking that what was wrote still follows the qualities looked for.

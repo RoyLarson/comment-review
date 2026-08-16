@@ -92,74 +92,63 @@ Rules that keep it that shape:
 
 ---
 
-## What to do next — re-derived 2026-08-15, second pass (post-0.1.2 merge)
+## What to do next — re-derived 2026-08-15, third pass
 
 ⚠ **Re-derive this after anything lands.** Written fresh each time, not accumulated — a stale
 branch status here is the same failure the box/`Progress`/table rule guards against, one level up.
 
-1. **⭐ The remaining half of the collapse file: an edit mark is not an ACTION.** The verdicts
-   still name operations — `drop`, `patch`, `add`, `move`, `split` — while a verdict is a mark
-   that says what WOULD be done if applied. Two rulings sit here: whether the other four follow
-   `move`'s reasoning, and where the agents get their copy of the definitions.
-2. **⚠ `mark` carries four senses and blocks that work.** Before "edit mark" can be written as
-   a term, check it lands clear of the census's mechanical annotations, stage 4's name, and a
-   detector — or give one of those a different word.
-3. **Six rulings are open across the two files** and none of them blocks the other's typing
-   work. Three in the collapse file — the verdict name, whether `drop`/`patch`/`add`/`split`
-   follow, and where the agents get their copy of the definitions. Three in
-   `eight-terms-have-no-definition-and-angle-means-five-things` — which of **`HOME`**'s three
-   readings is real, whether **`SKILL.md:488`** means reviewers write text, and four
-   enforcement gaps where a script accepts what the prose does not.
-4. **Tier 0 is done.** `angle` and `sweep` are both retired and applied. What the rename
-   turned up and did NOT fix: `REVIEWER FILES`'s hint still holds seven paths (four roles plus
-   the brief and two agents) under a name that reads as four, and `--reviewers` is still
-   compared to file stems rather than to the four published role names — both now sit in the
-   enforcement-gap ruling below.
-5. **Settle a name before deciding where definitions live, and settle pointed-at names first.**
-   Roy's ordering, 2026-08-15: cleaning the semantics comes before routing them to a home, or
-   the routing writes pointers to words that are about to change — which is how `import sweep`
-   happened. A term can only dangle if something POINTS at it, so:
-   **Tier 0**, names living in identifiers, filenames and flags, where dangling breaks a program
-   — `angle` and `sweep` are both done, which empties this tier.
-   **Tier 1**, the verdict vocabulary, which appears in reviewer output and the gate.
-   **Tier 2**, judgment words inside agent prose — `HOME`, `mark`, `load-bearing`, `obituary`,
-   `guard`. **Tier 3**, terms nothing points at and that therefore cannot dangle — `the join`,
-   `detector`, `banner`, `assessability gate`, `acquittal rate`, `prose tree`. Safe to do last.
+Everything below is on `feat/settle-the-vocabulary`, five commits, `main` untouched.
 
-**Landed 2026-08-15:** 0.1.2 merged to `main` (`4a62b93`) — the four reviewer agents renamed for
-scope, each stating what its own `clean` asserts, and the placement precedence between
-`ownership-context` and `function-context`. Gate green on the merged result. Then `8c7d81d` — the
-vocabulary survey both files below work from, written to `docs/` rather than `evidence/`.
+1. **⭐ The record: two rulings, and they are the only thing gating it.** `query` has no
+   `SOURCE` by design — where does attempted/would-settle go? And `add` has no block of its own
+   yet `BLOCK` is required. The shape itself is ruled and the worked examples are in the file.
+2. **The record's real prize is not the cut.** `REASON` is the field the `move` ruling rests
+   on and **nothing checks it**; `LOCATION` was checked only for resolvability, never against
+   the block it names. Replacing it with a `CLAIM`-against-census cross-check is strictly
+   stronger and costs no new machinery.
+3. **The vocabulary file has four ⭐ left** — `HOME`'s three readings, whether `SKILL.md:492`
+   means reviewers write text, the four enforcement gaps, and the "5 of its 7 reviewer reports"
+   measurement only Roy can confirm. Its typing work needs none of them.
+4. **⚠ The survey is a floor, not a census.** `budget` was used at 18 sites in four senses and
+   appeared in NEITHER table of the inventory — Roy found it reading a justification. Assume
+   other terms are missing the same way; do not treat "109 terms" as coverage.
+5. **⚠ Two measured gaps are recorded and unowned.** `docs/limitations.md` now records that the
+   budget covers 28 KB of the 224 KB shipped and not the two largest files a run loads
+   (`reviewer-brief.md` 18 KB, loaded once per reviewer; `SKILL.md` 47 KB). And the level ladder
+   was invented during the Aug-14 port — it exists at zero commits in `redacted_corpus`, on
+   any branch — with one budget argument as its whole justification. Roy has ruled the ladder is
+   **not** a vocabulary question, so it needs a home of its own before it can be acted on.
 
-**Uncommitted, 2026-08-15 — both Tier 0 rulings applied, one CHANGELOG entry covering them:**
+**Landed 2026-08-15 on `main`:** 0.1.2 (`4a62b93`) — the four reviewer agents renamed for scope,
+each stating what its own `clean` asserts, and the placement precedence. Then `8c7d81d`, the
+vocabulary survey.
 
-- **`sweep` is not a term.** Stage 7b is **APPLY** at all 12 term sites; the 5 plain-English
-  uses kept; `import sweep` → `import census` in `evals/generator_split.py`, so it runs again.
-- **`angle` is retired.** Prose says **editorial role**, identifiers say **reviewer** —
-  `--angles` → `--reviewers`, `ANGLE FILES` → `REVIEWER FILES`, `angle = path.stem` →
-  `reviewer`. Clean break, no alias. ~250 sites across the plugin, both manifests, `tests/`,
-  `README.md`, `CLAUDE.md` and `docs/`. The four agent files stayed at their
-  `docs/limitations.md` budget (101/101/129/120, re-checked against `wc -l`).
+**On `feat/settle-the-vocabulary`, five commits, nothing uncommitted:**
 
-167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9, both CLIs smoke-tested.
+| commit | what |
+| --- | --- |
+| `ef4f33b` | `sweep` retired (7b is APPLY), `angle` retired (editorial role / reviewer), eight facts reconciled |
+| `599e20e` | `reanchor` collapsed into `move` — eight verdicts, availability and synthesis order key on the destination |
+| `764b1a7` → `da06046` | `budget` settled, then **corrected**: it is what a shipped file costs to load, not the reviewer's runtime |
+| `f1a3cc5` | reviewers no longer receive `CAP` or `WIDTH` — the packet gate had been enforcing the opposite of the stated rule |
 
-⚠ **The file name `eight-terms-…-angle-means-five-things` is now wrong twice over** — it was
-nine undefined terms, not eight (two are now settled, leaving seven), and `angle` carried six
-senses, not five. Renaming the file is Roy's call; it is linked from `docs/vocabulary-usage.md`
-and from this table.
+167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9.
 
 ---
 
 ## Open
 
-### open  (0)
-
-_None — both files are in progress._
-
-### in-progress  (2)
+### open  (1)
 
 | file | owner | done | what |
 | --- | --- | ---: | --- |
+| [the-finding-record-is-eight-fields-and-six-would-do](the-finding-record-is-eight-fields-and-six-would-do.md) | session · Roy (2 rulings) | 0/8 | ⭐ The record shipped with **five** fields and has **eight** — `BLOCK`, `EVIDENCE` and `QUOTE` were all added to serve the GATE, not the reviewer. Six carry it, and the shape is ruled: `BLOCK`, `VERDICT`, `CLAIM`, `SOURCE`, `REASON`, `CHANGE`, opener `--- RECORD` so the record stops sharing a name with its own field. ⚠ **The cut is not the point.** `REASON` is what the `move` ruling rests on and **nothing checks it**; `LOCATION` was checked only for resolvability, never against the block it names — the gate takes only `len(blocks)` from the census. Replacing it with a `CLAIM`-against-census cross-check is strictly stronger. Open: `query` (no `SOURCE` by design) and `add` (no block of its own). Worked examples for every verdict are kept in the file |
+
+### in-progress  (3)
+
+| file | owner | done | what |
+| --- | --- | ---: | --- |
+| [apply-names-both-stage-5-and-stage-7b](apply-names-both-stage-5-and-stage-7b.md) | session | 5/6 | **DONE 2026-08-15 — Roy ruled B: stage 5 is `APPLY`, stage 7b is `WRITE`, `EDIT` retired.** `apply` had come to name both — applying a MARK to produce text (5) and applying approved text to disk (7b). ⚠ The tell: `SKILL.md:51-52` already said "apply the true/false pair" and "apply the rewrite" for STAGE 5 work, so those sites needed no change at all once 5 took the name. `references/apply.md` → `write.md`, published as a breaking change. One box left: the inventory's Stages table still carries 7a and 7b as one row |
 | [an-editorial-mark-is-not-an-action-and-reanchor-is-move](an-editorial-mark-is-not-an-action-and-reanchor-is-move.md) | session · Roy (2 rulings left) | 9/13 | **DONE 2026-08-15: `move` is the one relocation verdict.** Roy ruled the name and the reasoning: the record already carries `LOCATION` and `FINDING`, so `move` says *this comment belongs to that line there* as its reason — and that IS reattachment. `reanchor` was encoding in a second verdict word what the record has fields for. Availability and synthesis order now key on the DESTINATION, which is what removed the measured loss rather than guarding it. Eight verdicts, not nine. **STILL OPEN:** the other half of this file — an edit mark is not an ACTION (it is the preferred action that, *if applied*, would improve the prose; the action happens once, at 7b), plus ⭐ whether `drop`/`patch`/`add`/`split` follow `move`'s reasoning and ⭐ where the agents get their copy of the definitions |
 | [eight-terms-have-no-definition-and-angle-means-five-things](eight-terms-have-no-definition-and-angle-means-five-things.md) | session · Roy (4 rulings left) | 9/15 | ⚠ MEASURED 2026-08-15 by twelve agents over the whole live tree: terms used with a fixed sense and defined nowhere (`angle` at ~40 sites in `SKILL.md` alone, plus `prose tree` in both manifests' install-time text, `the join`, `detector`, `banner`, `assessability gate`, `acquittal rate`), and fifteen more carrying two or three senses each. A word may mean several things **if each is clarified up front**, which none are. Also holds the one-edit reconciliations the collection turned up — a "Five fields" docstring against eight declared, "5 of its 7 reviewer reports" against a population fixed at four, four different base refs for one eval tree, two dead paths in `evals.json`. **Settled 2026-08-15 and applied: `sweep` is not a term (stage 7b is APPLY, dead import fixed), and `angle` is retired — prose says `editorial role`, identifiers say `reviewer`.** Survey: [`docs/vocabulary-usage.md`](../docs/vocabulary-usage.md) |
 

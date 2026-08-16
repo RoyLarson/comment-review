@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin** (`comment-review`) plus the machinery used to develop and measure it.
 The plugin is an editorial board for the comments and docstrings a change touched: four
 read-only reviewer agents walk one prose tree, a task agent (the `/comment-review` skill)
-synthesizes verdicts, the human approves the exact replacement text, and APPLY writes it and
+synthesizes verdicts, the human approves the exact replacement text, and WRITE puts it on disk and
 proves the executable code byte-identical.
 
 The repo root is **not** the plugin. Only `plugins/comment-review/` ships to a user's
@@ -55,7 +55,7 @@ python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --template
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --check <file>
 
-# Stage 7b gate: prove APPLY changed no executable code
+# Stage 7b gate: prove WRITE changed no executable code
 python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
   --base <merge-base> --repo . <paths...>
 
@@ -81,8 +81,8 @@ stdlib-only rule. `evals/grade_hazards.py` remains the end-to-end grade, and
 read it before touching the skill. The pipeline:
 
 ```
-1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 EDIT   6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION             REFERENCES               │                    7b APPLY
+1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
+  DETERMINATION             REFERENCES               │                    7b WRITE
                                                       └──── no cap ────────▲
 ```
 
@@ -93,7 +93,7 @@ read it before touching the skill. The pipeline:
 3. **FIND REFERENCES** (`census.py`) — every reference each node makes, resolved (paths, symbols,
    counts).
 4. **MARK** (4 reviewer agents, dispatched in parallel, read-only) — findings on the nodes.
-5. **EDIT** (task agent) — one verdict per block, full-length replacement text.
+5. **APPLY** (task agent) — one verdict per block, full-length replacement text.
 6. **COMPACT** (task agent) — cut to the cap; skipped entirely if there is no cap.
 7. **APPROVAL** — present the final text and stop (7a); on approval, apply verbatim (7b).
 8. **REVIEW** (task agent) — read the finished page against itself.
@@ -116,7 +116,7 @@ Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) u
 - **module-context** — do the comments say this module is one set of ideas?
 
 Reviewers are read-only and never see SKILL.md directly; they read the shared
-`references/reviewer-brief.md`. Fixing what you find destroys the finding — MARK and EDIT are
+`references/reviewer-brief.md`. Fixing what you find destroys the finding — MARK and APPLY are
 deliberately separate stages/actors.
 
 ### `census.py` — the only thing the reviewers depend on
@@ -134,7 +134,7 @@ is a data row, not new code. No comment (as opposed to docstring) carries an own
 tier — every ownership-context verdict rests on a reviewer reading the file, or on an LSP `documentSymbol`
 enrichment when a language server answered stage 1.7's probe.
 
-`references/` under the skill directory (`apply.md`, `compact.md`, `residue-check.md`,
+`references/` under the skill directory (`write.md`, `compact.md`, `residue-check.md`,
 `review.md`, `reviewer-brief.md`) are each single-sourced for one stage — nothing pastes their
 content elsewhere, and a change to a rule belongs in exactly one of these files (or in
 `docs/limitations.md` for orchestration-level rules).

@@ -81,8 +81,15 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   reaches stage 6 through `compact.md`'s own input contract, and `census.py --cap` is
   unaffected.
 
-- **`sweep` is not a term. Stage 7b is APPLY.** Every canonical naming site already said so —
-  `SKILL.md`'s pipeline diagram, its stage table, and the reference filename `apply.md`.
+- **Stage 5 is APPLY; stage 7b is WRITE.** `apply` had come to name both — applying a MARK to
+  produce replacement text (5), and applying approved text to disk (7b). Applying a mark is
+  what stage 5 does, and it is the sense the skill's own verdict table already used
+  (*"apply the true/false pair"*), so stage 5 takes the word and 7b takes `WRITE`, which says
+  what it alone does: touch a file. **`references/apply.md` is now `references/write.md`** —
+  anything loading it by path must be updated. Stage 5's old name `EDIT` is retired.
+
+- **`sweep` is not a term.** Every canonical naming site already said so — `SKILL.md`'s
+  pipeline diagram, its stage table, and the reference filename.
   `sweep` was a synonym that outlived `sweep.py`, the module now called `census.py`. Retired
   at 12 sites; the 5 plain-English uses ("do NOT sweep the file") are kept and are no longer
   ambiguous, there being no name left to collide with.

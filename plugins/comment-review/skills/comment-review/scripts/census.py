@@ -180,7 +180,7 @@ NARRATIVE = {
 
 # A runnable usage line is exempt from the narrative check: a date in
 # `--start 2026-07-14` is a copy-pasteable EXAMPLE, not a claim about history.
-# Without this APPLY pushes a working command out of a docstring in favour
+# Without this WRITE pushes a working command out of a docstring in favour
 # of a placeholder, degrading the docs to please a checker.
 COMMAND_LINE = re.compile(r"^\s*(\$ |uv run |python |pytest |npm |cargo |go )")
 

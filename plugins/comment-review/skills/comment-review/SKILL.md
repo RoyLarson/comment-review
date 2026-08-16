@@ -13,8 +13,8 @@ them to fit, the author approves **that** text, and the page is proofed. Structu
 first, then truth, then fit, then the page.
 
 ```
-1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 EDIT   6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION             REFERENCES               │                    7b APPLY
+1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
+  DETERMINATION             REFERENCES               │                    7b WRITE
                                                      └──── no cap ────────▲
 ```
 
@@ -24,17 +24,17 @@ first, then truth, then fit, then the page.
 | 2 | **ANNOTATE** | `census.py` | every comment run and docstring located, as a node on the prose tree |
 | 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved — paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers | findings on the nodes — read-only, nothing written |
-| 5 | **EDIT** | task agent | one verdict per block and the **full-length** replacement text |
+| 5 | **APPLY** | task agent | one verdict per block and the **full-length** replacement text |
 | 6 | **COMPACT** | task agent | that text cut to the cap — **skipped entirely if there is no cap** |
 | 7a | **APPROVAL — present** | task agent | the FINAL text in front of the author; **the run stops here** |
-| 7b | **APPROVAL — apply** | **author**, then task agent | the approved text on disk, byte-for-byte as approved |
+| 7b | **APPROVAL — write** | **author**, then task agent | the approved text on disk, byte-for-byte as approved |
 | 8 | **REVIEW** | task agent | the finished page read as a reader would read it |
 
 **This file is the task agent's.** Each reviewer is a named agent carrying its own editorial role and
 reading [`references/reviewer-brief.md`](references/reviewer-brief.md) itself.
 [`references/residue-check.md`](references/residue-check.md) loads at stage 5,
 [`references/compact.md`](references/compact.md) at stage 6 — **before** the author sees
-anything — [`references/apply.md`](references/apply.md) only after approval, and
+anything — [`references/write.md`](references/write.md) only after approval, and
 [`references/review.md`](references/review.md) at stage 8. **Nobody loads all of it**, and no
 file restates another.
 
@@ -85,7 +85,7 @@ instructions:
   of re-deriving them.
 - **the four editorial roles are four visitors over one tree**, which is why their overlap is signal.
 - **the edits are applied to NODES**, so "never change a line of code" holds by construction
-  — the AST proof in `apply.md` confirms that rather than being the only thing enforcing it.
+  — the AST proof in `write.md` confirms that rather than being the only thing enforcing it.
 
 ⚠ **The model is the tree; the implementation depends on nothing.** `scripts/census.py` builds
 it from the stdlib alone, at the tier available for each file's language. Both tiers find the
@@ -117,17 +117,17 @@ environment. **Adding a language is a row of data in `LANGUAGES`** — `python
 <skill>/scripts/census.py --languages` lists what is known. A suffix with no record is
 **reported as unreviewable, never silently skipped.**
 
-**MARK (4) is separate from EDIT (5)** because a reviewer that fixes what it finds has
+**MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding. The brief holds that rule and binds the reviewers to it.
 
-**EDIT (5) writes at FULL LENGTH and is not allowed to consider the cap.** Its only job is a
+**APPLY (5) writes at FULL LENGTH and is not allowed to consider the cap.** Its only job is a
 comment that is true, local and load-bearing. Length is not one of its questions, and a run
 that returns long correct prose has succeeded.
 
 **COMPACT (6) is a separate pass over that text, and it comes AFTER edit and BEFORE
 approval.** Two constraints pin it into exactly this slot:
 
-- **After EDIT**, because prose can only be shortened without losing information once it is
+- **After APPLY**, because prose can only be shortened without losing information once it is
   true. Shortening first is how a false sentence survives — it gets *trimmed around* rather
   than checked, arriving shorter, cleaner, in-cap and strictly harder to falsify.
 - ⚠⚠ **Before APPROVAL, because the author must rule on the text that will actually be
@@ -136,7 +136,7 @@ approval.** Two constraints pin it into exactly this slot:
   and it is worse here than almost anywhere, because this author approves quickly and
   unaudited — the one thing they are relied on for is that what they saw is what lands.
 
-⚠ **The two stages have different inputs, and that is deliberate.** EDIT needs the code, the
+⚠ **The two stages have different inputs, and that is deliberate.** APPLY needs the code, the
 marks and one verdict per role that ran. COMPACT needs only the **block's KIND**, the
 **original block**, the **edited text**, the **cap** and the **style sheet** — never the
 reasoning that produced the edit. That narrower contract is a safety property: an agent that
@@ -273,7 +273,7 @@ last time.
 ⚠⚠ **Without it, a pass drifts the prose while fixing it.** Measured: one run introduced **14
 en-GB spellings** into a codebase whose identifiers are en-US — including *"the event's colour"*
 on a function returning a `colorId`. Every role was satisfied; nothing owned consistency. There
-is no fifth reviewer for this, deliberately — consistency is enforced at APPLY, against the
+is no fifth reviewer for this, deliberately — consistency is enforced at WRITE, against the
 sheet, not by another visitor over the tree.
 
 ⚠ **It is binding, not advisory.** An edit that departs from the sheet is out of scope in the
@@ -513,10 +513,10 @@ correction to it, a review label — and peeling one reveals the next. Send a bl
 roles contradict, when a citation resolves to a *different* thing than the prose implies, or
 when you cannot write the replacement text.
 
-## Stage 5 — EDIT: one verdict, one FULL-LENGTH replacement
+## Stage 5 — APPLY: one verdict, one FULL-LENGTH replacement
 
 ⚠⚠ **Run the join before you rule on anything.** It is the gate between MARK and
-EDIT:
+APPLY:
 
 ```bash
 python <skill>/scripts/verdicts.py --census <census>.json --level <level> \
@@ -713,13 +713,13 @@ on the assumption that the text in front of them is the text that lands.
 **Hand back the STYLE SHEET**, updated with every decision this run made — the sheet is how the
 next pass avoids re-deciding, and it is worthless if it stays in your head.
 
-⚠ **Approval IS authorization.** "Yes", "do it", "continue" → load `references/apply.md` and
+⚠ **Approval IS authorization.** "Yes", "do it", "continue" → load `references/write.md` and
 apply. Never-edit binds reviewers, not you acting on an approval.
 
-## Stage 7b — APPROVAL: apply what was approved
+## Stage 7b — WRITE: put the approved text on disk
 
-On approval, load [`references/apply.md`](references/apply.md) and follow it. It carries the
-residue check and the apply rails. Do not apply from memory.
+On approval, load [`references/write.md`](references/write.md) and follow it. It carries the
+residue check and the write rails. Do not write from memory.
 
 ⚠ **Stage 7b writes the APPROVED text verbatim.** It does not shorten, re-word or re-judge —
 every one of those questions was settled upstream, and re-opening one here writes something

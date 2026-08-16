@@ -37,7 +37,7 @@ that no longer matches `wc -l` is a finding against this file.
 
 ⚠ **A rule belongs in exactly one file.** Shared reviewer contract →
 `reviewer-brief.md`; one role's → that role's agent definition; a stage's procedure → that
-stage's file under `references/` (`residue-check.md`, `compact.md`, `apply.md`, `review.md`); a
+stage's file under `references/` (`residue-check.md`, `compact.md`, `write.md`, `review.md`); a
 rule a SCRIPT enforces → that script's docstring (`census.py`, `referrers.py`, `verdicts.py`,
 `run_context.py`, `prove_unchanged.py`); orchestration → here. Restating one across two files is
 the antipattern this skill exists to find, and the four agents are the place it will happen —
