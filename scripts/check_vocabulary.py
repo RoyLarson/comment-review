@@ -2,7 +2,7 @@
 
     python scripts/check_vocabulary.py
 
-Two checks, and each exists because the thing it looks for had already gone wrong
+Three checks, and each exists because the thing it looks for had already gone wrong
 without anyone noticing:
 
   CITATIONS  Every `file:line` in either document resolves to a line that exists.
@@ -13,8 +13,11 @@ without anyone noticing:
              stated. Six rows read UNDEFINED for terms that had been settled for a
              day, because each term appears twice and only the first copy was
              updated.
+  EMITTED    The SHIPPED vocabulary holds. Every key a role is given has a
+             definition, and no definition is written for nobody -- that file is
+             what agents are handed, so a term with no recipient belongs in docs/.
 
-Exits nonzero if either fails. A citation to a RENAMED file is reported as
+Exits nonzero if any fails. A citation to a RENAMED file is reported as
 HISTORICAL and does not fail: the quotation predates the rename and is the record.
 """
 
@@ -22,10 +25,14 @@ from __future__ import annotations
 
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 INVENTORY = REPO / "docs" / "vocabulary-inventory.md"
+EMITTED = (
+    REPO / "plugins/comment-review/skills/comment-review/references/vocabulary.toml"
+)
 DOCS = [INVENTORY, REPO / "docs" / "vocabulary-usage.md"]
 
 # `- `ref/…` = `plugins/…/references/…`` in the inventory's PATH KEY section.
@@ -36,7 +43,7 @@ KEY_LINE = re.compile(r"^- `([^`]+?)(?:/…)?` = `([^`]+?)(?:/…)?`$")
 # part of a line list, so `census.py:114-116,805-855` is one citation.
 CITE = re.compile(r"`([\w./-]+\.(?:md|py|toml|json)):(\d+(?:[-,]\d+)*)`")
 
-READ_ERRORS = (OSError, UnicodeDecodeError)
+READ_ERRORS = (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError)
 
 RENAMED = {"apply.md": "write.md"}
 
@@ -177,11 +184,37 @@ def check_rulings() -> int:
     return unruled
 
 
+def check_emitted() -> int:
+    """Report every hole in the shipped vocabulary. Returns how many."""
+    try:
+        data = tomllib.loads(EMITTED.read_text(encoding="utf-8"))
+    except READ_ERRORS as e:
+        print(f"cannot read {EMITTED.name}: {type(e).__name__}: {e}", file=sys.stderr)
+        return 1
+    definitions, roles = data["definitions"], data["roles"]
+    holes = 0
+    for role, keys in sorted(roles.items()):
+        for key in keys:
+            if key not in definitions:
+                print(f"{EMITTED.name}  NO DEFINITION  {role} is given {key!r}")
+                holes += 1
+    given = set().union(*(set(keys) for keys in roles.values()))
+    for term in sorted(set(definitions) - given):
+        print(f"{EMITTED.name}  NO RECIPIENT   {term!r} is defined for nobody")
+        holes += 1
+    print(
+        f"\n{len(definitions)} emitted definitions across {len(roles) - 1} roles,"
+        f" {holes} holes."
+    )
+    return holes
+
+
 def main() -> int:
-    """Run both checks; exit nonzero if either found something."""
+    """Run all three checks; exit nonzero if any found something."""
     broken = check_citations()
     unruled = check_rulings()
-    return 1 if (broken or unruled) else 0
+    holes = check_emitted()
+    return 1 if (broken or unruled or holes) else 0
 
 
 if __name__ == "__main__":

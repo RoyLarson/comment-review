@@ -13,6 +13,10 @@ the shared contract — the finding format, **the eight verdicts and the payload
 must carry**, the CODE-vs-COMMENT boundary, and the rule that you never
 edit. Everything below assumes it, and names verdicts the brief defines.
 
+⚠ **A VOCABULARY block is in your prompt.** These words have one meaning in this system;
+where you are unsure what one means, it is there, and where a word is not there it is
+ordinary English. Nothing else defines them.
+
 **Your question: does this comment belong to the line it sits on?**
 
 You read a comment against its *position*. The others read it against the code it sits with,

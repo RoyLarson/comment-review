@@ -492,8 +492,20 @@ an over-cap or over-width count that reads like a project fact and is your own g
 | `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
 | `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
 
-Each already carries its own editorial role and reads the shared brief itself. **You
-supply the run context as a PACKET, and the packet is checked before anyone is
+Each already carries its own editorial role and reads the shared brief itself.
+
+⚠⚠ **Put each agent's VOCABULARY in its prompt, verbatim.** One command per agent, and the
+output is pasted as it comes — it is the only statement of those words anywhere:
+
+```bash
+python <skill>/scripts/vocabulary.py --reviewer ownership-context
+```
+
+`--roles` lists the six that have one. ⚠ Do not summarise it, do not trim it to the terms you
+think a file uses, and do not tell an agent where the vocabulary lives — it is given the words,
+not a path to go reading.
+
+**You also supply the run context as a PACKET, and the packet is checked before anyone is
 dispatched:**
 
 ```bash

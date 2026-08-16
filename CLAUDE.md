@@ -67,10 +67,15 @@ ruff format .
 # Run AFTER `ruff format`.
 python scripts/check_shipped_syntax.py
 
-# The vocabulary documents hold their shape: every term RULED (struck through, SETTLED /
-# DELETED / RETIRED, or naming a site), and every `file:line` citation still resolving.
-# Run after any edit that adds or removes lines in plugins/.
+# The vocabulary holds its shape: every term RULED (struck through, SETTLED / DELETED /
+# RETIRED, or naming a site), every `file:line` citation still resolving, and the SHIPPED
+# vocabulary complete — every key a role is given has a definition, and no definition is
+# written for nobody. Run after any edit that adds or removes lines in plugins/.
 python scripts/check_vocabulary.py
+
+# What one agent is GIVEN. The task agent runs this at stage 4 and pastes the output verbatim.
+python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --reviewer block-context
+python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --roles
 
 # Terms of art in the shipped tree the inventory does not list. An INPUT, not a gate:
 # every row needs a human to say whether it is a term.

@@ -13,6 +13,10 @@ the shared contract — the finding format, **the eight verdicts and the payload
 must carry**, the CODE-vs-COMMENT boundary, and the rule that you never
 edit. Everything below assumes it, and names verdicts the brief defines.
 
+⚠ **A VOCABULARY block is in your prompt.** These words have one meaning in this system;
+where you are unsure what one means, it is there, and where a word is not there it is
+ordinary English. Nothing else defines them.
+
 **Your question: do the comments say this is ONE module?**
 
 Read the module docstring, the section BANNERS — comment lines dividing a file into named parts
