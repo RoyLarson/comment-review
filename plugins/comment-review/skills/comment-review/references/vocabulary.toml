@@ -37,7 +37,7 @@ assignment = "A piece of CODE that binds a value to a name. One of the kinds an 
 
 # --- what a reviewer emits ---------------------------------------------------
 verdict = "One of the eight rulings a reviewer may emit: clean, query, drop, correct, patch, add, move, split."
-clean = "Nothing to report FROM YOUR ROLE -- one role having no finding, not a pass and not a claim the block is correct."
+clean = "Nothing to report FROM YOUR ROLE -- one role having no finding, INCLUDING when the block is outside what your role reads. Not a pass, and not a claim the block is correct."
 query = "You could not settle the claim -- as against one you did not try to settle."
 drop = "The sentence should not exist at all."
 correct = "The claim is FALSE."

@@ -1,7 +1,7 @@
 # comment-review — the shared reviewer brief
 
-Handed to every reviewer this run dispatches, one per **editorial role** — the scope you read
-for, named by your role file. **Read this first.** (At `full` that is four; a restricted
+Handed to every reviewer this run dispatches, one per **editorial role**, named by your role
+file. **Read this first.** (At `full` that is four; a restricted
 `level` runs fewer — your run context says which.)
 
 ## You are READ-ONLY
@@ -67,9 +67,8 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `FINDING` | what is wrong, one clause |
 | `CHANGE` | the payload the verdict table requires |
 
-For a count, give the number **and the population you counted over** in `SUMMARY`'s right half —
-quantified claims are block-context's REMIT, the categories of claim a role rules on,
-and a count with no stated population cannot be re-derived.
+For a count YOU make, give the number **and the population you counted over** in `SUMMARY`'s
+right half. A count with no stated population cannot be re-derived.
 
 **Then account for every remaining block on one line:**
 
@@ -135,10 +134,9 @@ true-but-misplaced block is never `clean`: `move` is not in this level's verdict
 finding is `query` — the claim cannot be settled where it sits. Emitting a verdict your level
 does not carry is not a finding; it is scope you were not given.
 
-⚠ **`clean` is scoped to YOU.** It is not a pass — it is one role having nothing to report,
-including when the block is outside what your role reads, and the other roles are looking at
-the same block. Nothing you emit can bless a block; only a `clean` from **every role that
-ran** can, and the task agent computes that — you do not assert it. ⚠ Do not invent a word for
+⚠ **`clean` is scoped to YOU, and the other roles are looking at the same block.** Nothing you
+emit can bless one; only a `clean` from **every role that ran** can, and the task agent computes
+that — you do not assert it. ⚠ Do not invent a word for
 "outside my role": that is `clean`, and a ninth word breaks the arithmetic.
 
 ⚠⚠ **`clean` is the only verdict you can reach by NOT deciding.** Every other verdict is an

@@ -52,9 +52,8 @@ exactly where it belongs. Do not read it as facing the wrong way for sitting aft
 
 ## Is it load-bearing where it sits
 
-A block is load-bearing at a site when someone changing THAT code would make a worse decision
-without it. A block that would be equally useful anywhere in the file is not anchored to
-anything, and its ANCHOR is the code it actually constrains.
+A block that would be equally useful anywhere in the file is not anchored to anything, and its
+ANCHOR is the code it actually constrains.
 
 ## A claim stated at several sites has ONE owner
 
