@@ -229,8 +229,15 @@ class TestNoGitIndex(unittest.TestCase):
             self.assertIn("NO GIT INDEX", result.stdout)
 
 
-class TestSuppression(unittest.TestCase):
-    """Property 2: a token above NOISE_FLOOR is SUPPRESSED with a count, not dumped."""
+class TestNothingIsWithheld(unittest.TestCase):
+    """Property 2: a token naming many files is listed per file, never withheld.
+
+    A cap on how many candidates were printed was removed 2026-08-16: this is an
+    input to a review, and a reader deciding what to open is served by the whole
+    list.
+    """
+
+    NAMERS = 41
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -242,9 +249,7 @@ class TestSuppression(unittest.TestCase):
             "def widely_used_helper():\n    pass\n", encoding="utf-8"
         )
         names = ["target.py"]
-        # One more than NOISE_FLOOR files naming the token, none of them the
-        # target itself, so the count crosses the threshold unambiguously.
-        for i in range(referrers.NOISE_FLOOR + 1):
+        for i in range(self.NAMERS):
             p = self.repo / f"noise_{i}.py"
             p.write_text(
                 f"# widely_used_helper, mentioned again ({i})\n", encoding="utf-8"
@@ -282,15 +287,13 @@ class TestSuppression(unittest.TestCase):
             cmd, capture_output=True, text=True, encoding="utf-8", check=False
         )
 
-    def test_the_token_is_suppressed_with_its_count_not_dumped_per_file(self):
+    def test_every_naming_file_is_printed(self):
         result = self._run()
         self.assertEqual(result.returncode, 0)
-        self.assertIn("SUPPRESSED", result.stdout)
-        self.assertIn(
-            f"widely_used_helper ({referrers.NOISE_FLOOR + 1} files)", result.stdout
-        )
-        self.assertNotIn("names: widely_used_helper", result.stdout)
-        self.assertNotIn("noise_0.py", result.stdout)
+        self.assertNotIn("SUPPRESSED", result.stdout)
+        self.assertIn("names: widely_used_helper", result.stdout)
+        for i in (0, self.NAMERS - 1):
+            self.assertIn(f"noise_{i}.py", result.stdout)
 
 
 if __name__ == "__main__":

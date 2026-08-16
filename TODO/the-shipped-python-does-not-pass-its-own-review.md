@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 7 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it.
           Comments about 'cannot answer OWNERSHIP' are not helpful.")
@@ -47,6 +47,14 @@ compare, hedge, or pre-empt — not to strip every `not`.
 - [ ] `census.py` first — 52 lines, the largest share, and the file Roy named. Start from the
       module docstring: say it builds the pCST and what each output contains, and move
       tier-capability statements to positive form.
+
+- [ ] `census.py`'s two uses of **suppressed** go with the rest. `:80` (*"a real obituary is
+      suppressed because some library happens to define that name"*) and `:615` (*"it can only
+      ever suppress an obituary, never manufacture one"*) describe a FAILURE — a true finding
+      silently lost — in a word that named a mechanism this system no longer has. Roy,
+      2026-08-16, ruling `NOISE_FLOOR` out of `referrers.py`: *"Nothing gets suppressed… that
+      form of suppressed will also go."* ⚠ `:149` referenced the brief's *"suppression list"*
+      and is fixed with it, not here.
 
 - [ ] Then `prove_unchanged.py`, `verdicts.py`, `run_context.py`, `referrers.py`.
 

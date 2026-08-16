@@ -1360,6 +1360,56 @@ every site they appear.
 `parameter`, `token`. ⚠ `body` is a function's everywhere except `sk-scripts/run_context.py:119,153`,
 where it is a packet section's text — an internal identifier, left alone.
 
+### SUPPRESSED / suppression — SETTLED 2026-08-16: nothing gets suppressed
+
+Roy, ruling `NOISE_FLOOR` out: *"We are not going for an 'optimization based comment review'.
+This was a prior session deciding that some 'optimization measure' was important when it was
+not. Nothing gets suppressed."*
+
+Four things wore the word, and only one was a mechanism:
+
+| where | what it was | outcome |
+| --- | --- | --- |
+| `sk-scripts/referrers.py` | a token in more than `NOISE_FLOOR` (40) tracked files was printed as a name plus a count instead of per file | **DELETED** — the constant, the accumulator, the branch and the report block. 203 → 185 lines |
+| `sk-scripts/census.py:80,615` | a FAILURE: a real obituary lost because a poisoned name corpus vouched for the name | goes with [`the-shipped-python-does-not-pass-its-own-review`](../TODO/the-shipped-python-does-not-pass-its-own-review.md) |
+| `agents/…-function-context.md:45` | *"A suppressed count reads exactly like a clean one"* — about the REVIEWED code's guard exemptions | ⚠ open — the measurement is true, the sentence uses `clean` as a loose adjective, which `CLAUDE.md` forbids |
+| `ref/reviewer-brief.md:234` | *"The suppression list"* | ⚠ open — see below |
+
+⚠ **The removal exposed a dangling pointer.** `unsearched` carried `# same reason as
+suppressed`, which meant *why it is a set* (dedupe), not why it is withheld. Deleting
+`suppressed` left the comment pointing at a name that no longer exists; the reason is now
+inlined. **`unsearched` itself stays** — a `git grep` that did not COMPLETE (timeout, exit 128,
+a non-UTF-8 path) is a gap, not a zero, which is what `9f937eb` was committed to fix.
+
+⚠ **`referrers.py:167` said "before treating this as a clean result".** Another loose `clean`;
+now *"a complete result"*.
+
+### the acquittal list and the suppression list — WHERE THEY CAME FROM
+
+Roy, 2026-08-16: *"where did the concept that there is an 'acquittal list' 'suppression list'
+come from? That doesn't seem to coincide with the goal of this skill."*
+
+Both entered with the initial plugin import (`be21002`, `7154b92`); neither was developed here.
+
+**The acquittal list traces to `evidence/ga/`** — a candidate search scoring SKILL.md variants
+against ground truth. Candidate `1d` used *"a named acquittal from a closed list"* and won on F1
+(0.8184, recall .828, precision .783).
+
+⚠ **The search's own conclusion undercuts the list.** `evidence/ga/brief3.md:31-34`: *"1d and 2a
+swept the same 419 blocks with the same closed acquittal list. 1d acquitted 198 (47%) and
+reported 221. 2a acquitted 58 (14%) and reported 361. Same mechanism, same words, a 33-point
+difference in the only number that mattered… **The acquittal RATE is the trait; the acquittal
+LIST is just vocabulary.**"*
+
+**The suppression list has no such provenance** — it appears nowhere in `evidence/`. It was named
+as a sibling to the acquittal list and never earned the name: it suppresses nothing, and its own
+section says the acquittal list *"can never silence a detector"*. What it holds is four detector
+shapes with measured false-positive rates, and the rule that one below ~10% precision is a
+**batch to triage, not a finding** — the opposite of suppression.
+
+⚠ Both are JUDICIAL words on an editorial-board system, and so is **`jurisdiction`**, settled
+2026-08-16 in this same session.
+
 ### worktree — SETTLED 2026-08-16: git's word, not this system's
 
 Roy: *"that is a git concept and user workflow piece. It should be considered resolved."*

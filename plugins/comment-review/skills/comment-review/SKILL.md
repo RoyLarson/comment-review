@@ -465,9 +465,8 @@ python <skill>/scripts/referrers.py --repo . <paths under review...>
 ```
 
 It prints every tracked file that NAMES one of them — by path, by stem, or by a
-public top-level definition — and suppresses a token too common to discriminate
-rather than dumping it. Those files are the **REFERENCE ONLY** list you hand the
-reviewers at stage 4; a config, data or documentation file carrying prose that
+public top-level definition. Those files are the **REFERENCE ONLY** list you hand
+the reviewers at stage 4; a config, data or documentation file carrying prose that
 justifies a value is a node like any other. Measured: one unreviewed config file
 held 12 confirmed defects, six of them the same rewrite the pass had already
 applied in a `.py` file.

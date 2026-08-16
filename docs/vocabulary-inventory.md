@@ -54,7 +54,7 @@ Observed by the scout pass. Recorded as-is.
 | Word | Sense A | Sense B |
 |---|---|---|
 | **residue** | the comment-stripped byte comparison, `sk-scripts/prove_unchanged.py:13-15,101-147` | THE RESIDUE CHECK, a stage-level procedure, `ref/residue-check.md:15-26` |
-| **SUPPRESSED / suppression** | the suppression list, `ref/reviewer-brief.md:234-247` | `referrers.py`'s token noise floor, `sk-scripts/referrers.py:15,147,173` |
+| ~~**SUPPRESSED / suppression**~~ | PARTLY SETTLED 2026-08-16 — **nothing gets suppressed** | `NOISE_FLOOR` and the `SUPPRESSED` output are deleted from `referrers.py`; `census.py`'s two uses go with [its own TODO](../TODO/the-shipped-python-does-not-pass-its-own-review.md). ⚠ STILL OPEN: the brief's *"suppression list"* heading, held while Roy rules on where `acquittal list` came from |
 | **label** | acquittal label, `ref/reviewer-brief.md:216` | review-round label, `agents/comment-review-block-context.md:28-29` |
 | **node** | prose-tree node, `SKILL.md:76` | Python AST node, three scripts |
 | ~~**statement**~~ | SETTLED 2026-08-16 — CODE only | The *derived statement* (`SUMMARY`'s right half, `sk-scripts/verdicts.py:369-370`) and the prose proposition at `agents/…-module-context.md:115` are the two uses the ruling leaves unqualified |
