@@ -77,6 +77,9 @@ inadmissible.
 
 ### The verdicts, and what each one MUST carry
 
+**A verdict rules on a SENTENCE, not on a block.** A block of six sentences can carry six
+verdicts, and one `clean` sentence must not launder the five around it.
+
 A verdict is a recommendation the task agent will combine with the other roles' and synthesise
 into one comment. It is only usable if it carries its payload, so **a verdict without its payload is
 not a finding** — *"correct the count"* hands the judgement back; *"replace X with Y"* is the
@@ -102,28 +105,26 @@ claim gets its wording polished and never gets checked. That is the laundering f
 purest form. If you are unsure which applies, you have not settled the claim — that is `query`.
 ⚠ **A sentence that is not truthy cannot be `correct`ed**, because there is nothing to correct
 it against — it is `drop` or `query`.
-*"The retry budget is 40"* is truthy and can be false if the budget is actually 100. This gets
-a `correct` tag.
-*"this is robust"* is neither. There is no definition of "robust" that can be checked in all
-circumstances.
+*"The retry budget is 40"* is truthy, and false if the budget is 100. That is a `correct` mark.
+
+*"this is robust"* is not truthy: no line, symbol or run settles it. ⚠ Neither is *"there is no
+definition of robust that can be checked in all circumstances"* — **"all circumstances" is as
+unbounded as "robust"**, so the sentence refusing the claim fails the same test.
 
 #### `move` specific rules
 
 ⚠ **One relocation verdict, and the DESTINATION is what varies.** A declaration ten lines
 down, another file, or out of the code entirely — all `move`, and which one goes in the
-payload. Say WHY it belongs there in `FINDING`. **Only a destination outside the code can be
-unavailable** (it needs a tree the task agent resolved at 1.4); a relocation into tracked
-code is always available.
+payload. Say what is wrong in `FINDING`. **Only a destination outside the code can be
+unavailable**, and your run context says whether it is; a relocation into tracked code is
+always available.
 
 #### `clean` specific rules
 
-**`clean` is scoped to YOU, and the other roles are looking at the same block.**
-The task agent computes how best to combine the results from all roles.
+**`clean` is scoped to YOU, and the other roles are looking at the same block.** The task
+agent combines every role's records into one comment or docstring.
 
-**`clean` is a decision and is required - it cannot be assumed or skipped past**
-
-**Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
-single `clean` sentence must not launder the ones around it.
+**`clean` is a decision and is required — it cannot be assumed or skipped past.**
 
 ⚠ **Nothing is `clean` for being SHORT, TRUE, WELL WRITTEN, NEW, or under a `⚠`.** Each was
 measured as an exemption reviewers invented for themselves. Truth least of all: a true claim
@@ -138,12 +139,12 @@ you did. `query` is what you emit when you did and it was still not enough.
 
 Three shapes reach it, and all three are findings rather than admissions:
 
-- **outside your role** — what settles it belongs to another scope. This gets a `query` mark.
-  ⚠ Do not invent a word for "outside my role": that is `query`
-- **outside the checkout** — generated, gitignored, remote, or on one machine.
-  No reviewer in a fresh checkout can settle it.
-- **outside the code** — Settling it needs someone who knows the system or how it is operated.
-  It reaches the author at 7a as a question.
+- **outside your role** — what settles it belongs to another scope. ⚠ Do not invent a word
+  for "outside my role": it is `query`.
+- **outside the checkout** — generated, gitignored, remote, or on one machine. No reviewer in a
+  fresh checkout can settle it.
+- **outside the code** — settling it needs someone who knows the system or how it is operated.
+  It reaches the author as a question.
 
 ⚠ **A claim you could not settle and marked `clean` is worse than the same claim marked
 `query`.** `clean` certifies; `query` asks. There is no confidence tag to soften a verdict with.
@@ -157,10 +158,6 @@ ambiguous or the location not yours to determine.
 Resolving a path or a symbol is cheap and *feels* like verification. Resolving a claim **is**
 the verification. A resolved citation is not a verified one — open the target and read it, or
 the verdict is `query`.
-
-⚠ **Evidence outside the checkout can never be settled.** If the line that settles a claim is
-generated, gitignored, remote, or on one machine, there is no state in which "I read both
-sides" is true. That is a `query`, and say why.
 
 ⚠ **Cite by SYMBOL or PATH in the text you write — never by line number.** A symbol survives a
 refactor; a line number rots with no visible symptom. Measured: three rotted line-number
@@ -192,11 +189,12 @@ findings and are not:
 reading an assertion to see whether it *can* fail, grepping a forbidden literal, counting call
 sites. Out of scope is ruling on what the code **should be**.
 
-⚠ **A reviewer straying into code correctness is an undesired output** — four
-agreeing reviewers once reported a file "cannot compile" over valid syntax.
+⚠ **Ruling on the code spends this review on what the code's own tests settle**, and four
+agreeing reviewers once reported a file "cannot compile" over valid syntax. A code problem has
+a place: `CODE CONCERNS`, one line, no verdict.
 
 ### One block, two placements — report yours
 
 REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two roles
-can reach the same or different decisions per sentence. Report the findings your role sees and
-say in `FINDING` why the edit is correct. Which verdict wins is the task agent's ruling later.
+can reach the same or different decisions per sentence. Report what your role sees and say in
+`FINDING` what is wrong. Which verdict wins is the task agent's ruling later.
