@@ -95,7 +95,17 @@ See the standing rule in [`README.md`](README.md).
       stage 4 emits; the census's are mechanical observations, made at stages 2-3, and
       `SKILL.md` already called them annotations while stage 2 is named ANNOTATE. 25 code
       sites, including the published `"marks"` JSON key. Unblocks the edit-mark work.
-      **Still open:** `worktree`, `target`, `author`, `load-bearing`, `obituary`, `guard`.
+      **Done 2026-08-16:** `worktree` — Roy ruled it needs no definition, it is git's and
+      depends on the project running the review; it is now gone from the shipped tree entirely
+      (see [`the-harness-leaks-into-the-shipped-rules`](the-harness-leaks-into-the-shipped-rules.md)).
+      `target` and `author` — reviewed, no defect: `target` is stated at `SKILL.md:182` and its
+      other uses are the ordinary verb; `author` is always the approving human, and *authored*
+      is the agent's writing, never called "the author". `load-bearing` — already clear at
+      `ownership-context.md:56`, no change. `obituary` — clear, and **`tombstone` is now
+      declared as its synonym** in the section heading, at Roy's instruction: recent training
+      pairs the two words, and an agent classifying something a tombstone must find the rule.
+      Declared in the heading to stay line-neutral against the 101-line budget.
+      **Still open: `guard`** — two senses that read as contradicting.
 
 - [x] Reconcile two marks the published table never listed. **Done 2026-08-15** — `census.py`
       emits `narrative-in-docstring` (`:853`) and `SKILL.md`'s six-row marks table did not

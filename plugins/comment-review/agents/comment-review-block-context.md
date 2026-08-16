@@ -28,7 +28,7 @@ Three kinds of claim, and all three are yours:
 Dated rulings, review-round labels (*"fix round 2"*, *"finding B4"*), *"this used to…"*,
 *"X was changed to Y"*, *"before the fix"*.
 
-## Obituaries
+## Obituaries — also called TOMBSTONES
 
 A comment naming a symbol, file, test or flag that **no longer exists anywhere**.
 

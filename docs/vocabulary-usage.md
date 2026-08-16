@@ -1258,6 +1258,35 @@ what it becomes once empty intervals are enumerated too, which is
 [`an-empty-interval-has-no-census-index`](../TODO/an-empty-interval-has-no-census-index.md) and
 is not done.
 
+### obituary / tombstone — SETTLED 2026-08-16, one thing under two words
+
+**A comment naming a symbol, file, test or flag that no longer exists anywhere.** Stated at
+`agents/comment-review-block-context.md:31`, whose heading now declares the synonym:
+*"## Obituaries — also called TOMBSTONES"*.
+
+Roy's reason for declaring rather than deleting the second word, which is why this is not the
+same call as `assessability gate`: *"the latest training has put those words together recently
+and I don't want an agent to classify something as a tombstone and go looking for what to do
+and not realize the link."* The term has to be findable by the word an agent REACHES FOR, not
+only by the one this system picked. `tombstone` had appeared exactly once (`:44`, in a
+measurement) with nothing tying it to the rule.
+
+⚠ Declared in the HEADING to stay line-neutral — `comment-review-block-context.md` is at its
+101-line budget, and raising that number is a ruling under `docs/limitations.md`, not a side
+effect of declaring a synonym.
+
+⚠ Observation for the distribution pass, NOT a move: `census.py` uses "obituary" eight times,
+plus `write.md`, `module-context.md` and `SKILL.md` — none of which load block-context.
+
+### load-bearing — SETTLED 2026-08-16, already clear
+
+**A block is load-bearing at a site when someone changing THAT code would make a worse decision
+without it.** Stated at `agents/comment-review-ownership-context.md:56`. No change needed: the
+definition is unambiguous and the term carries one sense everywhere.
+
+⚠ Observation for the distribution pass, NOT a move: three of its four readers cannot load that
+file — `module-context.md:91`, `compact.md:40`, and the task agent at `SKILL.md:125,654,670`.
+
 ### budget — SETTLED 2026-08-15, split three ways. ⚠ MISSED BY THE COLLECTION
 
 ⚠ **Not in either table of `vocabulary-inventory.md` as first produced.** Twelve agents over the

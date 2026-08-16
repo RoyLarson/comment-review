@@ -219,8 +219,8 @@ Observed by the scout pass. Recorded as-is.
 | CHECKABLE | `SKILL.md:576` | ONE |
 | NECESSARY | `SKILL.md:576` | ONE |
 | the matrix | `SKILL.md:576-588`; named "the matrix" at `:259` | ONE |
-| load-bearing | `agents/comment-review-ownership-context.md:54-58` | ONE |
-| obituary (with the pointer-vs-subject test) | `agents/comment-review-block-context.md:31-45` | ONE |
+| load-bearing | `agents/comment-review-ownership-context.md:56` | ONE — clear as written; three of its four readers cannot load that file (distribution pass) |
+| obituary / **tombstone** | `agents/comment-review-block-context.md:31` | ONE — synonym declared in the heading 2026-08-16, so an agent reaching for `tombstone` finds the rule |
 | guard (exists AND could fail) | `agents/comment-review-function-context.md:38-50` | SEVERAL |
 | prohibition (grepped against its own file) | `agents/comment-review-function-context.md:50-56` | SEVERAL |
 | population (of a counted claim) | `ref/reviewer-brief.md:69-71,191-193` | SEVERAL |
