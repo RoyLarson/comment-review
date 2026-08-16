@@ -86,8 +86,8 @@ Why they went, in order of weight:
       ⚠ All measured on ONE repository — the same one the GA scored against.
 
 - [ ] ⭐ Sweep the remaining judicial register against the PUBLISHING metaphor. `acquit`
-      survives as a plain verb at `agents/…-block-context.md:36` and `SKILL.md:614`, and
-      **`jurisdiction`** — settled 2026-08-16 — is the same register.
+      survives as a plain verb at `agents/…-block-context.md:36` and `SKILL.md:614`.
+      ⚠ **`jurisdiction` is already done** — renamed **`remit`** on 2026-08-16, the same day.
 
       ⚠ **The metaphor is not a new standard; it is the one already in force.** Roy, 2026-08-16:
       *"I have been working under this assumption of the metaphor for a while."* Editorial roles,
