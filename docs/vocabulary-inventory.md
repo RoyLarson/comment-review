@@ -42,7 +42,7 @@ manifests. Excluded as historical or vendored, not the live system:
 | **pCST** (pseudo Concrete Syntax Tree) | `vocabulary-usage.md` | Every interval between two lines of code as a node. *Pseudo* because it comes from a comment-syntax record and a lexer, not the language's own grammar. ⚠ NOT a synonym for `prose tree` — the census still enumerates from prose, so an empty interval produces nothing. Building it is [`an-empty-interval-has-no-census-index`](../TODO/an-empty-interval-has-no-census-index.md). |
 | ~~**the join**~~ | SETTLED 2026-08-15 — `SKILL.md:526` | Named at first use: `verdicts.py`, which reads every reviewer's report against the census and against the others', and refuses what it cannot verify. |
 | ~~**sweep**~~ | SETTLED 2026-08-15 — not a term | Stage 7b is **WRITE** (it was APPLY when `sweep` was retired; APPLY then moved to stage 5). The word was a synonym outliving `sweep.py` (now `census.py`), and the dead `import sweep` with it. Plain-English "sweep the file" stays. |
-| ⚠ **detector** — **RE-OPENED** | its only definition was inside the deleted suppression list | Settled 2026-08-15, un-settled 2026-08-16 when the section holding it went. `sk-scripts/census.py:147,770` still use it |
+| ~~**detector**~~ | DELETED 2026-08-16 — the word is **annotation** | Settled 2026-08-15 inside the suppression list; un-settled when that list went, and everything it supported went with it. The two comments left in `sk-scripts/census.py` meant `annotation`, which is settled and says the same thing. ⚠ It also failed the REGISTER: a detector is instrumentation, not editing |
 | ~~**banner / section banner**~~ | SETTLED 2026-08-15 — `agents/…-module-context.md:18` | Comment lines dividing a file into named parts. Stated LINE-NEUTRALLY, that file being at its budget. |
 | ~~**assessability gate**~~ | SETTLED 2026-08-15 — **DELETED** | Used once, stated nowhere, and the idea was already stated without it at `:30-42`. This repo's own rule: if nothing reads it, delete it. |
 | ~~**acquittal rate**~~ | SETTLED 2026-08-15 — **DELETED** | A measured quantity whose denominator no site stated. Both uses now say the population instead: "most of the census you are handed", and "95% of the blocks it was handed". `acquittal list` is unaffected and remains defined at `ref/reviewer-brief.md:211`. |
@@ -146,7 +146,7 @@ Observed by the scout pass. Recorded as-is.
 | `unparsed` | `sk-scripts/census.py:528-539` | ONE |
 | orphan / orphan run | `sk-scripts/census.py:461-466` | ONE |
 | ~~**owner / own / ownership**~~ | SETTLED 2026-08-16 — `agents/…-ownership-context.md:60-65` | The **anchor with the best justification** for the comment being attached to it; where several compete, the site that ENFORCES the constraint, or the code expected to hold the invariant where nothing enforces it. `HOME` is retired — one stem. `Block.owner` became `Block.anchor`, the census computing a position rather than a judgement. The ROLE's-jurisdiction sense went to **remit**; the ownership/module split is PRESENCE (prose exists → ownership-context; prose absent → module-context or function-context, by scope): [the ruling](vocabulary-usage.md#own--owner--ownership--settled-2026-08-16-for-the-placement-sense-home-retired) |
-| node (prose tree) | implicit `SKILL.md:76` | UNDEFINED |
+| node (prose tree) | `SKILL.md:76` | SETTLED 2026-08-15 with `prose tree`, in one sentence |
 | work marker (`TODO` `FIXME` `HACK` `XXX` `BUG`) | `sk-scripts/census.py:87-111`; `SKILL.md:242-244,388-392` | SEVERAL |
 
 ### Tiers and language support
@@ -187,7 +187,7 @@ Observed by the scout pass. Recorded as-is.
 | APPROVAL / 7a / 7b | `SKILL.md:29-30,151,694,713` | SEVERAL |
 | REVIEW (8) | `SKILL.md:31,153-154,722`; `ref/review.md:1-10` | SEVERAL |
 | re-review | `SKILL.md:510-513,623-628`; `sk-scripts/verdicts.py:12,419-428,569-573` | SEVERAL |
-| the join | — | UNDEFINED |
+| the join | `SKILL.md:526` | SETTLED 2026-08-15 — named at first use |
 | WRITE (7b) | `SKILL.md:17,30,719`; `ref/write.md:1` | SEVERAL — `sweep` retired 2026-08-15; renamed from APPLY the same day when APPLY moved to stage 5 |
 | input contract (COMPACT's narrow input) | `ref/compact.md:95-100`; `SKILL.md:139-149` | SEVERAL |
 
@@ -259,9 +259,9 @@ Observed by the scout pass. Recorded as-is.
 | running-commentary read (SEQUENCES vs CONSTRAINS) | `agents/comment-review-function-context.md:98-109` | ONE |
 | state / constraint / worked example | `agents/comment-review-block-context.md:18-24`; `CLAUDE.md:112-114`; `README.md` | SEVERAL |
 | review label / review-round label | `agents/comment-review-block-context.md:28-29`; detected `sk-scripts/census.py:161-164` | SEVERAL |
-| banner / section banner | — | UNDEFINED |
-| assessability gate | — | UNDEFINED |
-| acquittal rate | — | UNDEFINED |
+| banner / section banner | `agents/…-module-context.md:18` | SETTLED 2026-08-15 |
+| assessability gate | — | DELETED 2026-08-15 — used once, stated nowhere, and the idea was already stated without it |
+| acquittal rate | — | DELETED 2026-08-15 — a measured quantity whose denominator no site stated |
 
 ### Roles
 
@@ -272,7 +272,7 @@ Observed by the scout pass. Recorded as-is.
 | task agent | `SKILL.md:168-172` | ONE |
 | REVIEWERS (read-only, one editorial role each, never see SKILL.md) | `SKILL.md:174` | ONE |
 | editorial role | `ref/reviewer-brief.md:3`; `SKILL.md:3,11,33,85`; `CLAUDE.md:106` | SEVERAL — stated 2026-08-15, replacing the undefined `angle` ([ruling](vocabulary-usage.md#angle--settled-2026-08-15-retired-in-favour-of-editorial-role)) |
-| prose tree | — | UNDEFINED |
+| prose tree | `SKILL.md:76` | SETTLED 2026-08-15 |
 
 ### Corpus, liveness, infrastructure
 
@@ -285,7 +285,7 @@ Observed by the scout pass. Recorded as-is.
 | ~~`NOISE_FLOOR` / SUPPRESSED~~ | DELETED 2026-08-16 from `referrers.py` | Nothing gets suppressed; the test is inverted to assert a token naming 41 files is listed per file |
 | NOT CHECKED (gaps, not passes) | `sk-scripts/census.py:1022-1030`; `sk-scripts/referrers.py:159-166` | SEVERAL |
 | LANGUAGE SERVER / LSP, three states | `SKILL.md:293-331` (table `:313-319`); restated `docs/parsing.md:17-49` | SEVERAL |
-| ⚠ detector | — | **RE-OPENED 2026-08-16** — its only definition went with the suppression list: [`the-two-lists-were-tuned-to-one-diff`](../TODO/the-two-lists-were-tuned-to-one-diff.md) |
+| ~~detector~~ | — | DELETED 2026-08-16 — the word is **annotation** |
 | corpus / corpora, `local` vs `public`, pinned ref, MANIFEST | `scripts/fetch_corpora.py:1-14,58-92,105-140`; restated `CLAUDE.md:169-176`, `README.md:192-210` | SEVERAL |
 | assisted / human / mixed / unknown | `evals/generator_split.py:151,164` | ONE |
 | discriminator (D1–D12 / hazard) | `evals/discriminators.md:1-88`; probes `evals/grade_hazards.py:33-67` | SEVERAL |

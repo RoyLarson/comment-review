@@ -2181,6 +2181,22 @@ What a reader must infer at every site: that "tree" is the block/owner structure
 
 **The three-state distinction is stated in full at exactly one place.**
 
+### detector — DELETED 2026-08-16. The word is ANNOTATION
+
+Settled 2026-08-15 inside the suppression list — *"a census annotation read as a signal, and its
+PRECISION is how often it is right"* — and un-settled 2026-08-16 when that list was deleted.
+Everything the term supported went with the list: precision, *batch to triage*, the measured
+false-positive rates, the reasons to distrust one.
+
+What survived was two comments in `sk-scripts/census.py` where the word meant `annotation`, which
+is settled and says the same thing. Roy: *"drop it — especially since it currently only survives
+in code comments where it doesn't belong in the first place."*
+
+⚠ **It also failed the REGISTER**, and that is the second time this was the deciding test after
+`walk`. A detector is instrumentation. It collided with nothing.
+
+The survey entry below is what the collection recorded on 2026-08-15.
+
 ### detector — no stated definition, two senses
 
 **(a) one mechanical mark and its precision:** `reviewer-brief.md:233-246`; `census.py:148-149` (`repeated-literal`), `:769-771` (the path resolver, 80/84 · 18/20 · 2/2); `docs/parsing.md:45-47` (`names-a-symbol`); `README.md:151-155,258-260`; `corpora/corpora.toml:3`.

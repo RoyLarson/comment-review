@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 7 tasks done
+Progress: 2 of 7 tasks done
 Owner:    session · Roy (2 rulings)
 Raised:   2026-08-16 (Roy: "yes drop both lists / and lets create a todo to clean up
           those entries - because several of them do not follow this own skills rules")
@@ -38,7 +38,7 @@ Why they went, in order of weight:
 
 4. **The suppression list had no provenance at all** — it appears nowhere in `evidence/`. It was
    named as a sibling to the acquittal list, and it suppressed nothing: its content is measured
-   detector precision plus the rule that a low-precision annotation is a *batch to triage*.
+   ANNOTATION precision plus the rule that a low-precision one is a *batch to triage*.
 
 ## Tasks
 
@@ -71,14 +71,15 @@ Why they went, in order of weight:
 - [ ] `names-its-line` was a description of a comment doing its ordinary job, not a rule. Decide
       whether anything is lost by its absence, or close this box as nothing to do.
 
-- [ ] ⚠ **`detector` lost its definition and is a SETTLED term.** It was stated only inside the
-      suppression list — *"a census annotation read as a signal, and its PRECISION is how often it
-      is right"* (settled 2026-08-15 as "stated in the section already headed with the word").
-      `census.py:148,771` still use it. Either restate it where the annotations are defined, or
-      re-open it in `docs/vocabulary-inventory.md`.
+- [x] **`detector` is DELETED, 2026-08-16.** It was stated only inside the suppression list —
+      *"a census annotation read as a signal, and its PRECISION is how often it is right"* — and
+      everything it supported (precision, batch to triage, reasons to distrust) went with that
+      list. The two `census.py` comments left meant `annotation`, which is settled. Roy: *"drop
+      it - especially since it currently only survives in code comments where it doesn't belong
+      in the first place."* ⚠ It also failed the REGISTER: a detector is instrumentation.
 
 - [ ] Decide what happens to **batch to triage** and the measured precision rates that went with
-      it: *"A detector below roughly 10% precision is a batch, not a finding. Reporting it raw
+      it: *"An annotation below roughly 10% precision is a batch, not a finding. Reporting it raw
       spends the human's attention on a list they will learn to skip, which is how a real hit gets
       lost."* Rates were a date-or-path used as a **command-line argument** (4/4 false), an
       identifier that is also a **module stem** (8/8), a **warning glyph** as such (45/0), and a

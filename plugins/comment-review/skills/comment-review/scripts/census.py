@@ -145,7 +145,7 @@ FORBIDS = re.compile(
 # A bare number in prose. Cheap to find, and worth nothing until it is seen
 # twice — the pair is where a hand-copied threshold drifts from its twin.
 # ⚠ Dates are stripped first. Left in, every `2026-08-09` contributes three
-# "repeated" numbers, and the detector drowns in its own noise.
+# "repeated" numbers, and the annotation drowns in its own noise.
 NUMBER = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.%])")
 DATEISH = re.compile(r"\b\d{4}-\d{2}-\d{2}\w*|\bv?\d+\.\d+\.\d+\b")
 
@@ -767,8 +767,8 @@ def path_index(repo: Path) -> set[str]:
     often than repo-relative, and a run's working directory is not guaranteed
     to be the repo root.
     Resolving only against the repo root was measured at 80/84, 18/20 and 2/2
-    FALSE dangling reports on one repository — a detector whose output is handed
-    to four reviewers as settled fact.
+    FALSE dangling reports on one repository — an annotation handed to four
+    reviewers as settled fact.
 
     A suffix set answers "is this citation ANY file in the tree" in one lookup,
     which is the question prose is actually asking. Walking the tree once and
