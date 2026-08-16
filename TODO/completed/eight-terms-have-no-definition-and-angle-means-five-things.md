@@ -1,9 +1,9 @@
 # Eight terms have no definition, and `angle` means five things
 
 ```
-Status:   in-progress
-Progress: 17 of 18 tasks done
-Owner:    Roy (⭐ 1 ruling — the only thing left)
+Status:   done
+Progress: 18 of 18 tasks done
+Owner:    session
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```
 
@@ -123,16 +123,18 @@ See the standing rule in [`README.md`](README.md).
       carry it; it has a row now. And `SKILL.md` said "a gap in the mark" where `census.py` and
       the brief both say "a gap in the review" — one sentence, three sites, now one wording.
 
-- [ ] ⭐ Reconcile "5 of its 7 reviewer reports" — the LAST of this group, and the only
-      one that is not a fact this session can re-derive. `reviewer-brief.md:82`,
-      `SKILL.md:550` and `verdicts.py:19` all cite it; `grade_hazards.py:3-4` says the
-      same in words. Every other site fixes the reviewer population at four, and no site
-      says what the seven were. Roy ran it; the number is his to confirm or correct.
-      **Done 2026-08-15, the other three in this group:** `docs/parsing.md` said "Five
-      fields" for a `Language` row that declares eight (three required, five defaulted,
-      four supplied in the example) — the phrase was never in `census.py` as the survey
-      recorded; `corpora.toml` said "stage 0.3" at two sites where `SKILL.md:245`
-      numbers it 1.3; `find_llm_repos.py` documented its own path as `corpora/`.
+- [x] **Dissolved 2026-08-16 — the ⭐ outlived its sites.** Roy: *"will disappear with this
+      change."* Two of the four citations were already gone (the brief's, deleted in his manual
+      pass; `grade_hazards.py`'s, with the harness-leak work). The two left —
+      `sk-scripts/verdicts.py:17-19` and `SKILL.md:588-592` — sit inside prose the shipped-Python
+      cleanup rewrites on grounds that do not depend on the number: `verdicts.py` carries THREE
+      negatives in three lines (*"did not notice"*, *"is not evidence"*, *"cannot tell"*), and
+      `SKILL.md` carries *"does not resolve is not a finding"* plus the self-certified
+      `CONFIRMED` measurement Roy had already cut from the brief.
+      → [`the-shipped-python-does-not-pass-its-own-review`](the-shipped-python-does-not-pass-its-own-review.md)
+      ⚠ **The rule survives without the count**: *"a report is not evidence that a file was
+      read"* needs no number, and neither did it ever get one anybody could re-derive — every
+      other site fixes the reviewer population at four.
 
 - [x] Settle the eval base ref. **Done 2026-08-15 — `REDACTED_SHA_A`, at all four sites, at
       full length.** Settled by evidence, not preference: `REDACTED_SHA_H` is an ANCESTOR of

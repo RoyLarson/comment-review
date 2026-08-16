@@ -42,7 +42,7 @@ answer is a fact about a tier, and where it is load-bearing it can be stated pos
 IS recorded* rather than what is not.
 
 ⚠ **A negative is not automatically wrong.** *"A file this cannot prove is REPORTED as
-unprovable, never passed"* states a real behaviour, and a refusal aimed at a future editor is
+unprovable, never passed"* states a real behavior, and a refusal aimed at a future editor is
 one of the four refusals the residue check protects. The task is to find the ones that only
 compare, hedge, or pre-empt — not to strip every `not`.
 
