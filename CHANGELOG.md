@@ -139,6 +139,18 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   statement went into a sentence that already described the thing without naming it, so the
   four agent files are unchanged at 101/101/129/120 lines.
 
+### Changed
+
+- **`DOC CONVENTION` is measured, not named, and it is three things.** Stage 1.3 now reads the
+  docstrings that exist and records the **module** format, the **function** format, and — kept
+  separate — the **comment** format where the repo is consistent about one, writing a template
+  out rather than naming the nearest standard. Naming a standard the repo does not follow is
+  how a correct sentence lands in the wrong format. ⚠ Its place in the reviewer packet had been
+  justified by *"reviewers write replacement text"*, which is false; the real reason is that a
+  docstring's format decides which of its lines are structural and which are prose. The
+  templates live in the STYLE SHEET, which carries them to the reviewers, to stage 5 and to
+  stage 6.
+
 ### Fixed
 
 - **Stage 7b no longer tells the applying agent to cut.** `references/write.md` was headed
