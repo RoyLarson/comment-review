@@ -1448,6 +1448,31 @@ what this stage does."* Both definitions-by-negation are deleted; the PROHIBITIO
 substitute does have resolution power. ⚠ `review.md:25` also called stage 8 *"the proof pass"* —
 a name retired when 7b's gate became the CODE CHECK.
 
+### template and original — STATED 2026-08-16
+
+**template — a shape written out with its slots, not a shape NAMED.** `SKILL.md:255`, where 1.3
+already told you to write one. 19 sites across 5 files and no definition until now.
+
+⚠ **Not split, on inspection.** The re-sweep reported three senses; two of them are ONE concept
+applied to two documents — a docstring's shape and the dispatch packet's shape. One definition
+covers both, and `template` is already publishing's word: a house style has templates. The third,
+C++ `template nesting` at `sk-scripts/census.py:320`, is the zero-overlap language construct Roy
+ruled on for `opener` and `annotations`.
+
+⚠ **Splitting would also have cost a published interface.** The packet sense lives on
+`run_context.py --template`, documented at `SKILL.md:500` and in `CLAUDE.md`'s command list. The
+free alternatives were poor: `form` has 14 existing uses and `blank` 18 (*"blank line"*, *"blank
+every docstring"*); `proforma` and `outline` are free but neither is what a filled packet is.
+
+**original — the text as it stood when THIS RUN began**, not the first version ever written.
+`ref/residue-check.md:11-12`, beside the rule that all three checks run against the SAME original.
+
+⚠ **Roy asked for this after settling it as common usage**, and the reason is the better half of
+the ruling: *"think about stage 8 — it gets an edited file which if it finds and the human agrees
+needs edits becomes the original on the next round."* `original` is RELATIVE TO THE RUN. A file
+this run edits is the next run's original, so "the original" and "the edited" swap places between
+rounds. `ref/compact.md` and `ref/write.md` already depend on that and neither says it.
+
 ### the re-sweep's six — RULED 2026-08-16
 
 | term | ruling |

@@ -252,9 +252,9 @@ are there and record what they actually do, separately for each of:
 - **function and method** docstrings — google, numpy, sphinx, or a house shape
 - **comment** format — recorded SEPARATELY, and only where the repo is consistent about one
 
-⚠ **Write a TEMPLATE for each, from what is in the tree.** Where the shape is not one of the
-published conventions, write the template out rather than naming the nearest standard: naming
-a standard the repo does not follow is how a correct sentence lands in the wrong format.
+⚠ **Write a TEMPLATE for each, from what is in the tree.** A template is a shape written out
+with its slots, not a shape NAMED — naming a standard the repo does not follow is how a correct
+sentence lands in the wrong format. The dispatch packet is a template too.
 
 The templates belong in the STYLE SHEET (1.5), which is what carries them to the reviewers, to
 stage 5 and to stage 6.

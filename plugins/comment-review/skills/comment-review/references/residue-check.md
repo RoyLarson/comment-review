@@ -8,6 +8,9 @@ Loaded at **stage 5**, where the first replacement text is written. Stage 6
 re-runs it on condensed text, and stage 7b runs it on what it applies — all
 three against the SAME original, never against the previous edit.
 
+⚠ **The ORIGINAL is the text as it stood when THIS RUN began**, not the first
+version ever written. A file this run edits is the next run's original.
+
 ## The residue check
 
 For every block being changed, in this order:
