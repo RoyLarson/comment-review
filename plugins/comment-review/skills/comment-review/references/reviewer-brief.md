@@ -107,7 +107,7 @@ finding.
 | `drop`    | the sentence should not exist at all             | the sentence, verbatim                                               |
 | `correct` | the claim is **FALSE**                           | the false clause **and** the true one, plus the line that settles it |
 | `patch`   | the claim is **TRUE**, the wording is not        | the rewrite                                                          |
-| `add`     | a constraint exists in code and nowhere in prose | the text **and its anchor** — which declaration, above or below      |
+| `add`     | a constraint exists in code and nowhere in prose | the text **and its anchor** — which code, above or below             |
 | `move`    | true, but it belongs SOMEWHERE ELSE              | the destination **and** the verbatim extract                         |
 | `split`   | one block holds two unrelated notes              | each fragment **and its own anchor**                                 |
 

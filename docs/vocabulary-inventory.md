@@ -57,7 +57,7 @@ Observed by the scout pass. Recorded as-is.
 | **SUPPRESSED / suppression** | the suppression list, `ref/reviewer-brief.md:234-247` | `referrers.py`'s token noise floor, `sk-scripts/referrers.py:15,147,173` |
 | **label** | acquittal label, `ref/reviewer-brief.md:216` | review-round label, `agents/comment-review-block-context.md:28-29` |
 | **node** | prose-tree node, `SKILL.md:76` | Python AST node, three scripts |
-| **statement** | a CODE statement — *"sitting after a statement"*, *"the declaration, statement or function it constrains"*, *"a block split by an inserted statement"* | the DERIVED statement, `SUMMARY`'s right half — `sk-scripts/verdicts.py:369-370`. ⚠ And a third: a prose proposition at `agents/…-module-context.md:115` |
+| ~~**statement**~~ | SETTLED 2026-08-16 — CODE only | The *derived statement* (`SUMMARY`'s right half, `sk-scripts/verdicts.py:369-370`) and the prose proposition at `agents/…-module-context.md:115` are the two uses the ruling leaves unqualified |
 | ~~**worktree**~~ | SETTLED 2026-08-16 — **git's word, not a term of art here** | Both collected uses are ordinary git usage in dev tooling that never ships (`fetch_corpora.py` isolates a corpus, `grade_hazards.py` isolates a graded run). The six shipped sites that used it as a REASON were removed 2026-08-16. The one use left in `plugins/` — `ref/reviewer-brief.md:198`, *"an archive absent from every worktree"* — is a MEASUREMENT about a repository, not a rule |
 
 ---
@@ -220,7 +220,9 @@ Observed by the scout pass. Recorded as-is.
 | `truthy` | `ref/reviewer-brief.md:174-181` | ONE |
 | **sentence** — the unit a verdict rules on | `ref/reviewer-brief.md:170-171`, *"Rule on SENTENCES, not blocks"*; `truthy` at `:174-181` defines when one can be ruled | SEVERAL (~45 sites) — stated, and the most-used word in the shipped prose after the verdicts. ⚠ Contradicts `:92`'s *"exactly once"*: [`the-unit-of-review-is-the-statement-not-the-block`](../TODO/the-unit-of-review-is-the-statement-not-the-block.md) |
 | **clause** — a part of a sentence | `ref/reviewer-brief.md:67` (`FINDING` is *"one clause"*), `:108` (`correct` carries *"the false clause **and** the true one"*) | SEVERAL — the SUB-SENTENCE unit `correct` and `FINDING` work at, so the ruled thing is sometimes smaller than a sentence. ⚠ The `except` clause in four script comments is Python's word for a code construct — the same split as `node` |
-| ⚠ **statement** — **UNRESOLVED** | code: `agents/…-ownership-context.md:47,69`, `SKILL.md:698`; derived: `sk-scripts/verdicts.py:140,369-370`, `ref/reviewer-brief.md:88`; prose: `agents/…-module-context.md:115` | **THREE senses**, added 2026-08-16 by Roy |
+| ~~**statement / expression / declaration / assignment**~~ | SETTLED 2026-08-16 — `agents/…-ownership-context.md:55-57` | They name CODE, and they classify an ANCHOR. An OWNER is a judgement about which anchor best justifies the comment, never a syntactic kind. ⚠ `expression` and `assignment` are at ZERO sites — named so the next writer does not reach for them |
+| **`signature`** → **`fingerprint`** | `sk-scripts/prove_unchanged.py:162-171` | ONE each since 2026-08-16. `code_signature` returned an `ast.dump` or the comment-stripped text — what 7b compares, which is a fingerprint. `signature` now means a function's, only |
+| **argument** | rhetorical: `agents/…-module-context.md:19`, `ref/compact.md:19,98`, `SKILL.md:144,712`; a call's: `agents/…-function-context.md:42`; CLI: `argparse` ×5 | SEVERAL — Roy kept the RHETORICAL sense 2026-08-16. module-context's question is whether a file reads as ONE argument; the two code senses are qualified at every site |
 | CHECKABLE | `SKILL.md:576` | ONE |
 | NECESSARY | `SKILL.md:576` | ONE |
 | the matrix | `SKILL.md:576-588`; named "the matrix" at `:259` | ONE |

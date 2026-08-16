@@ -1326,6 +1326,40 @@ comment is load-bearing after all.
 implied (`names-its-line`, `states-the-signature`, `derivation`, `names-its-expiry`). The old
 name read as "the only CODE guard" — the opposite of what it acquits.
 
+### statement / expression / declaration / assignment — SETTLED 2026-08-16: they name CODE
+
+Roy: *"agree statement/expression/declaration/assignment — all common defined coding syntax tree
+items and should stay that way… Because the anchors can be based upon these classifications but
+we don't want a comment owner to become an assignment or declaration."*
+
+**They classify an ANCHOR.** An anchor is a code position, so it has one of these kinds. An
+OWNER is a judgement — which anchor best justifies the comment — and is never a syntactic kind.
+Stated at `agents/…-ownership-context.md:55-57`, where the anchor was already being described.
+
+Two sites were narrower than the rule and were widened: `:53` said an anchor *"is the declaration
+it actually constrains"*, and `:66-67` said *"name the declaration, statement or function it
+constrains"*. `ref/reviewer-brief.md:110`'s `add` payload said *"which declaration, above or
+below"*. ⚠ `expression` and `assignment` appear at ZERO sites in the shipped tree — the rule
+names them so the next writer does not reach for them in a prose sense.
+
+⚠ **`signature` was one of these words, and became `fingerprint`.** `prove_unchanged.py`
+returned `(kind, signature)`, where the value is an `ast.dump` or the comment-stripped text —
+the thing stage 7b compares before against after. That is a fingerprint. `code_signature` →
+`code_fingerprint`: 6 sites in the script, 16 in its tests. Everywhere else `signature` means a
+function's, which is now its only sense.
+
+⚠ **`argument` KEEPS the rhetorical sense.** Three were found — the case being made
+(`agents/…-module-context.md:19`, *"You alone read a file as one argument"*; `ref/compact.md:19,98`;
+`SKILL.md:144,712`), a call's arguments (`agents/…-function-context.md:42`), and a CLI argument
+(`argparse` in all five scripts, `ref/reviewer-brief.md:242`). The first is load-bearing:
+module-context's whole question is whether the file reads as ONE argument, and `compact.md`'s
+contract rests on the reviewer NOT having seen the argument. The two code senses are qualified at
+every site they appear.
+
+⚠ Swept and code-only already: `declaration`, `definition`, `literal`, `symbol`, `identifier`,
+`parameter`, `token`. ⚠ `body` is a function's everywhere except `sk-scripts/run_context.py:119,153`,
+where it is a packet section's text — an internal identifier, left alone.
+
 ### worktree — SETTLED 2026-08-16: git's word, not this system's
 
 Roy: *"that is a git concept and user workflow piece. It should be considered resolved."*

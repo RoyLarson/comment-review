@@ -71,7 +71,7 @@ def _blank_docstrings(tree: ast.AST) -> ast.AST:
     """Replace every docstring's value with an empty string, in place.
 
     A docstring is prose this skill is allowed to rewrite, so its CONTENT must
-    not enter the signature. Its presence still does: deleting a docstring
+    not enter the fingerprint. Its presence still does: deleting a docstring
     entirely changes the body's shape and stays visible.
     """
     for node in ast.walk(tree):
@@ -159,7 +159,7 @@ def _residue(text: str, path: Path) -> str | None:
     return "\n".join(v for v in survivors if v.strip())
 
 
-def code_signature(text: str, path: Path) -> tuple[str, str]:
+def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
     """A value equal for two texts exactly when their executable code matches.
 
     Args:
@@ -167,8 +167,8 @@ def code_signature(text: str, path: Path) -> tuple[str, str]:
         path: used only for its suffix, to pick which comparison runs.
 
     Returns:
-        `(kind, signature)`. `kind` is "ast", "residue" or "unprovable"; an
-        unprovable file carries an empty signature and must never be reported
+        `(kind, fingerprint)`. `kind` is "ast", "residue" or "unprovable"; an
+        unprovable file carries an empty fingerprint and must never be reported
         as proven.
     """
     if path.suffix.lower() in (".py", ".pyi"):
@@ -295,8 +295,8 @@ def main() -> int:
             failures += 1
             continue
 
-        kind_b, sig_b = code_signature(before, target)
-        kind_a, sig_a = code_signature(after, target)
+        kind_b, fp_b = code_fingerprint(before, target)
+        kind_a, fp_a = code_fingerprint(after, target)
         if kind_a == "unprovable" or kind_b == "unprovable":
             print(
                 f"UNPROVABLE {rel}: prose could not be separated from code"
@@ -309,7 +309,7 @@ def main() -> int:
                 "— likely broke Python syntax"
             )
             failures += 1
-        elif sig_a != sig_b:
+        elif fp_a != fp_b:
             print(f"FAIL      {rel}: executable code DIFFERS ({kind_a} proof)")
             failures += 1
         else:

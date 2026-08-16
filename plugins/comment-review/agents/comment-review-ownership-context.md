@@ -50,7 +50,11 @@ exactly where it belongs. Do not read it as facing the wrong way for sitting aft
 
 A block is load-bearing at a site when someone changing THAT code would make a worse decision
 without it. A block that would be equally useful anywhere in the file is not anchored to
-anything, and its ANCHOR is the declaration it actually constrains.
+anything, and its ANCHOR is the code it actually constrains.
+
+⚠ **`statement`, `expression`, `declaration` and `assignment` name CODE — they are what an
+ANCHOR can BE.** An OWNER is a judgement about which anchor best justifies the comment, never
+one of those kinds.
 
 ## A claim stated at several sites has ONE owner
 
@@ -65,8 +69,8 @@ hold it. If the copies exist because no function owns the rule, it is theirs, no
 
 ## ⚠⚠ Ownership-Context is a PRESERVATION property — so a misplaced rule is `move`, never `drop`
 
-**The finding is where it BELONGS, not that it is misplaced.** Name the declaration,
-statement or function it constrains and propose it there. *"Misplaced, compact it where it
+**The finding is where it BELONGS, not that it is misplaced.** Name the statement, expression,
+declaration or assignment it constrains and propose it there. *"Misplaced, compact it where it
 sits"* is the verdict that loses it next time. At `fact-check`, where `move` is not in your
 verdict set, name that destination inside a `query` instead — the claim cannot be settled where
 it sits, and the destination you name is what WOULD settle it.
