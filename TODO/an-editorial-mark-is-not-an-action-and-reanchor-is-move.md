@@ -18,7 +18,7 @@ the finding; naming verdicts for operations works against that split. `reanchor`
 clearest case and is ruled: it is `move` carrying the reason *this belongs to X*, and whether
 X is another line, another module or another package is payload, not a second judgment.
 
-The vocabulary as it stands: [`docs/vocabulary-usage.md`](../docs/vocabulary-usage.md).
+The vocabulary as it stands: [`docs/vocabulary.md`](../docs/vocabulary.md).
 
 ## Tasks
 

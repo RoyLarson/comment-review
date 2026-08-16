@@ -17,20 +17,22 @@ this looks for the two shapes a reader does not have to notice:
             Raw frequency was tried and discarded -- it ranks `here` and
             `because` above every real term, so it discriminates nothing.
 
-Known terms come from `docs/vocabulary-inventory.md`'s own tables, so settling a
-term removes it from this output on the next run.
+Known terms come from the SHIPPED `vocabulary.toml` and from `docs/vocabulary.md`,
+so settling a term removes it from this output on the next run.
 """
 
 from __future__ import annotations
 
 import argparse
 import re
+import tomllib
 from collections import defaultdict
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 SHIPPED = REPO / "plugins"
-INVENTORY = REPO / "docs" / "vocabulary-inventory.md"
+SETTLED = REPO / "docs" / "vocabulary.md"
+EMITTED = SHIPPED / "comment-review/skills/comment-review/references/vocabulary.toml"
 
 BACKTICKED = re.compile(r"`([A-Za-z][\w-]{2,})`")
 ALLCAPS = re.compile(r"\b([A-Z][A-Z-]{2,})\b")
@@ -60,22 +62,23 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 
 
 def known_terms() -> set[str]:
-    """Every term name the inventory lists, lowercased, aliases split out."""
-    out: set[str] = set()
-    for raw in INVENTORY.read_text(encoding="utf-8").splitlines():
-        if not raw.startswith("|"):
-            continue
-        cell = raw.split("|")[1]
-        cell = re.sub(r"\(.*?\)", " ", cell)
-        cell = cell.replace("~~", " ").replace("**", " ").replace("`", " ")
-        cell = cell.replace("⚠", " ").replace("→", "/")
-        for piece in cell.split("/"):
-            name = piece.strip().lower()
-            if name:
-                out.add(name)
-                for token in re.findall(r"[a-z][\w-]+", name):
-                    out.add(token)
-    return out
+    """Every term already settled: emitted to agents, or recorded in `docs/`."""
+    out: set[str] = set(
+        tomllib.loads(EMITTED.read_text(encoding="utf-8"))["definitions"]
+    )
+    # `docs/vocabulary.md` names its terms in the first cell of a table row and
+    # in bold or backticks inline; both forms count as settled.
+    text = SETTLED.read_text(encoding="utf-8")
+    for raw in text.splitlines():
+        if raw.startswith("|"):
+            cell = raw.split("|")[1]
+            for name in re.findall(r"[`*]{1,2}([\w][\w -]*?)[`*]{1,2}", cell):
+                out.add(name.strip().lower())
+    for name in re.findall(r"\*\*([\w][\w -]*?)\*\*", text):
+        out.add(name.strip().lower())
+    for token in re.findall(r"`([\w-]{3,})`", text):
+        out.add(token.lower())
+    return {t for t in out if t}
 
 
 def shipped_files() -> list[Path]:
@@ -143,7 +146,7 @@ def main() -> int:
     known = known_terms()
     files = shipped_files()
     marked, plain, bound = collect(files)
-    print(f"{len(files)} shipped files, {len(known)} names known to the inventory")
+    print(f"{len(files)} shipped files, {len(known)} names already settled")
     report("MARKED and unlisted", marked, known, args.min_files, args.limit)
     double = {
         w: plain[w] | bound[w] for w in bound if w in plain and len(plain[w]) >= 3

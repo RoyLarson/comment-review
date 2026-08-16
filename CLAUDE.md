@@ -67,10 +67,9 @@ ruff format .
 # Run AFTER `ruff format`.
 python scripts/check_shipped_syntax.py
 
-# The vocabulary holds its shape: every term RULED (struck through, SETTLED / DELETED /
-# RETIRED, or naming a site), every `file:line` citation still resolving, and the SHIPPED
-# vocabulary complete — every key a role is given has a definition, and no definition is
-# written for nobody. Run after any edit that adds or removes lines in plugins/.
+# The SHIPPED vocabulary holds: every key a role is given has a definition, no definition is
+# written for nobody, and no role is given a term its own text never uses. Run after any edit
+# to an agent file or a reference.
 python scripts/check_vocabulary.py
 
 # What one agent is GIVEN. The task agent runs this at stage 4 and pastes the output verbatim.
@@ -158,7 +157,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | path                              | what                                                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `plugins/comment-review/`         | the shipped plugin — `skills/`, `agents/`, manifests                                                                                                                       |
-| `docs/`                           | how this system behaves today, and the rules for changing it: `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself — budget-constrained, no invented examples), `vocabulary-inventory.md` and `vocabulary-usage.md` (every term of art, where it is stated and what it means at each use) |
+| `docs/`                           | how this system behaves today, and the rules for changing it: `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself — budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using) |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ⚠ Nothing here describes this system's own behavior — that is `docs/`                                                    |
 | `evals/`                          | the twelve planted hazards (`evals.json`, `discriminators.md`), `grade_hazards.py`, and `generator_split.py` (the authorship split)                                        |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |

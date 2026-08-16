@@ -28,7 +28,7 @@ nine terms used with a fixed sense and stated nowhere, and fifteen more carrying
 senses each. Each was ruled in turn — state the meaning, split the word, or delete the
 use — and the ones that changed a published name are below. Terms are settled in order of what
 POINTS at them: names living in identifiers, filenames and flags first, because those are the
-ones that can dangle. Survey: `docs/vocabulary-usage.md`.
+ones that can dangle. The settled state: `docs/vocabulary.md`.
 
 ⚠ **It is closed, and closed by COMMAND.** `python scripts/check_vocabulary.py` reports 185
 inventory rows with 0 lacking a ruling, and 1590 citations with 0 broken. Every term is

@@ -49,6 +49,7 @@ CHANGELOG entry — so it is its own refactor and is tracked here rather than in
       of "apply" needed keeping, unlike plain-English "sweep the file", which survived `sweep`'s
       retirement.
 
-- [ ] Re-derive `docs/vocabulary-inventory.md`'s Stages table. The `EDIT (5)` and `APPLY (7b)`
+- [x] **Moot 2026-08-16** — the inventory was deleted with the rest of the survey; the
+      settled state is `docs/vocabulary.md`. Was: re-derive its Stages table. The `EDIT (5)` and `APPLY (7b)`
       rows are updated, but the table still carries "APPROVAL / 7a / 7b" as one row, which now
       spans two differently-named stages.

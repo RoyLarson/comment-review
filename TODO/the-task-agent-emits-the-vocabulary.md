@@ -23,9 +23,10 @@ machinery); the task agent assembling sections by hand (the only option that can
 definition); definitions written into each agent file (duplicates every shared term); and placing
 each term where its readers already are (better, but leaves definitions spread across files).
 
-⚠ **The vocabulary becomes SHIPPED content for the first time.** `docs/vocabulary-usage.md` is
-2100 lines of survey and does not ship. Roy: *"vocabulary.md was always going to have to move.
-That is the only way to get it into the system anyways."*
+⚠ **The vocabulary becomes SHIPPED content for the first time.** Roy: *"vocabulary.md was
+always going to have to move. That is the only way to get it into the system anyways."* Done
+2026-08-16: `references/vocabulary.toml` holds what agents are given, and the 2,660 lines of
+survey it came from are deleted — `docs/vocabulary.md` keeps the settled state.
 
 ## Tasks
 

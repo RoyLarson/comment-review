@@ -18,11 +18,11 @@ in favour of `editorial role`** (identifiers say `reviewer`), and **`sweep` is n
 stage 7b is `APPLY`**. Both are applied. The rest is deciding,
 per term, whether to state the meaning, split the word, or delete the use.
 
-Current behavior: [`docs/vocabulary-usage.md`](../docs/vocabulary-usage.md) — every stating site
-and every use site for all 108 terms, with the sense carried at each. Term list and bundle map:
-[`docs/vocabulary-inventory.md`](../docs/vocabulary-inventory.md). Both are surveys of what the
-vocabulary does **today**; as each term below is settled, its entry becomes a statement of what
-the term means, and the two files converge on one `docs/vocabulary.md`.
+The settled state: [`docs/vocabulary.md`](../docs/vocabulary.md), and the terms agents are
+given: `plugins/comment-review/skills/comment-review/references/vocabulary.toml`.
+⚠ **The two survey documents are gone, 2026-08-16** — a twelve-agent collection, per-bundle
+tables and 1,590 line citations were the apparatus for FINDING the terms, and the terms are
+settled. They converged on one file, which is what that convergence was always for.
 
 ⚠⚠ **This file settles MEANINGS, not placement.** Where a term is defined in a file most of its
 readers cannot load, that is an observation for the distribution pass, not a move to make here.
