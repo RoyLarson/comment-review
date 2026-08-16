@@ -691,7 +691,9 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     verdict table demands.
     """
 
-    RECORD = re.compile(r"```\n(--- FINDING\n.*?\n---)\n```", re.S)
+    # The fence may carry a language hint (```text). Matching it loosely keeps
+    # this pinned to the RECORD's shape rather than to how the block is fenced.
+    RECORD = re.compile(r"```\w*\n(--- FINDING\n.*?\n---)\n```", re.S)
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

@@ -524,7 +524,7 @@ def main() -> int:
 
     gaps = coverage_gaps(all_blocks, clean, found)
     if gaps:
-        print("COVERAGE GAPS — a block nobody mentioned is a gap, not a pass:")
+        print("COVERAGE GAPS - indices no reviewer accounted for:")
         for reviewer, missing in sorted(gaps.items()):
             shown = ", ".join(str(n) for n in missing[:20])
             more = f" (+{len(missing) - 20} more)" if len(missing) > 20 else ""

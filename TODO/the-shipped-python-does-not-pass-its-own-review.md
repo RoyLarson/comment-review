@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 8 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it.
           Comments about 'cannot answer OWNERSHIP' are not helpful.")
@@ -61,6 +61,15 @@ compare, hedge, or pre-empt — not to strip every `not`.
 - [ ] ⚠ Re-run the measurement afterwards and record both numbers. The point is not zero —
       a target of zero would delete the legitimate refusals. Record what the residue was and
       why each survivor earned its place.
+
+- [ ] ⚠ **A second shape, ruled 2026-08-16: a script's output may state only what the script
+      DID.** Roy: *"the python files are mechanical runs, they should only have documentation
+      about what they are doing."* Two headers argued a rule at the reader instead —
+      `census.py` printed *"every block. A block nobody mentions is a gap in the review"* and
+      `verdicts.py` *"a block nobody mentioned is a gap, not a pass"*. Both are now what they
+      print: *"every block, numbered"* and *"indices no reviewer accounted for"*. ⚠ Sweep the
+      other output strings in all five scripts for the same shape; the rule the two carried is
+      the task agent's and is stated at `SKILL.md:82-84`.
 
 - [ ] Check the same shape in the shipped MARKDOWN before deciding it is a Python problem.
       `SKILL.md`, the brief and the agent files are instructions, where prohibitions are

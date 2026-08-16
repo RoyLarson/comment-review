@@ -1009,7 +1009,7 @@ def main() -> int:
         print(f"  over width ({args.width}): {len(wide)}")
     print()
 
-    print("CENSUS - every block. A block nobody mentions is a gap in the review.")
+    print("CENSUS - every block, numbered.")
     for i, b in enumerate(census, 1):
         notes = ",".join(sorted(b.annotations)) or "-"
         anchor = f"  ({b.anchor})" if b.anchor else ""

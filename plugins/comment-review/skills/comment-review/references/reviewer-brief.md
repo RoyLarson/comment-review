@@ -1,25 +1,25 @@
 # comment-review — the shared reviewer brief
 
 Handed to every reviewer this run dispatches, one per **editorial role**, named by your role
-file. **Read this first.** (At `full` that is four; a restricted
-`level` runs fewer — your run context says which.)
+file. **Read this first.**
 
-## You are READ-ONLY
+## You are an EDITOR - making READ-ONLY marks
 
 Do not edit, write or format any file. Not code, not comments, not docs. **A reviewer that
 fixes what it finds has destroyed the finding** — the human never sees the question, and
 afterwards nobody can separate a real problem from an imagined one.
 
-You still **report** a defect you may not fix. A dead name inside a string literal is a
-finding even though the applying pass is forbidden to touch it.
+You **report** your findings per your editorial role's remit.
+You been handed a vocabulary to help you identify what terms should be used to work on
+or respond to code documentation and comments.
 
 ## Two lists
 
 **FILES UNDER REVIEW** — the only files a verdict may target.
 
-**REFERENCE ONLY** — everything else in the repo. **Read them to settle a claim. Never
-propose a change to them.** Without this you will either treat the whole repo as in scope
-or, more commonly, stop reading at the boundary — which disables every cross-file check.
+**REFERENCE ONLY** — everything else in the repo. **Read them to settle a claim.**
+Stick to reading the references only - if a reference is wrong it needs stated with
+the record.
 
 ⚠ **If the run context says a LANGUAGE SERVER answered, use it to settle a claim about a
 symbol** — `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`. It is faster and
@@ -34,8 +34,7 @@ not check rather than reporting it clean.
 ## Read the census end to end
 
 You are given a numbered census and the mechanical resolutions for it. **Read it start to
-finish and return a line for EVERY numbered block.** A block nobody mentioned is a gap in
-the review, not a block that passed.
+finish and return at least one FINDING line for EVERY numbered block.**
 
 ## Every finding is a RECORD, and it is parsed
 
@@ -43,7 +42,7 @@ Emit findings in exactly this shape. A tool joins your report against the
 census and against the other roles', so a malformed record is a finding that
 does not count.
 
-```
+```text
 --- FINDING
 BLOCK       17
 VERDICT     correct
@@ -61,33 +60,25 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `BLOCK` | the census INDEX. This is how coverage is checked; a finding without it is unattributable |
 | `VERDICT` | one of the eight, and one your LEVEL carries |
 | `LOCATION` | `file:start-end` of the prose |
-| `EVIDENCE` | `file:line` you opened to settle the claim — **verified to exist** |
-| `QUOTE` | the text at that line, **VERBATIM** and at least 12 characters. Required for every verdict except `clean` and `query` |
+| `EVIDENCE` | `file(s):line(s)` you opened to settle the claim — **verified to exist** |
+| `QUOTE` | the text at that line, **VERBATIM**. |
 | `SUMMARY` | the claim as written, quoted `\|\|` what you DERIVED from the evidence |
 | `FINDING` | what is wrong, one clause |
 | `CHANGE` | the payload the verdict table requires |
 
 **Then account for every remaining block on one line:**
 
-```
+```text
 CLEAN 1-16,18,20-45,47
 ```
 
 ⚠⚠ **`QUOTE` is the forcing function, and it is CHECKED.** The cited line is read
-out of the file and your `QUOTE` must appear within three lines of it. Measured:
-one graded run had **fabricated 5 of its 7 reviewer reports**, and a
-self-certified confidence label ran at **97% across 298 findings**. A citation
-that does not resolve is not a weaker finding — it is not a finding.
+out of the file and your `QUOTE` must appear within three lines of it.
 
 ⚠ **`SUMMARY`'s right half is DERIVED, and is not checked verbatim** — that is why
 it is a separate field from `QUOTE`. A count is not a line any file contains, so
 checking the derived statement against the code made every counted claim
 inadmissible: the block-context role's own REMIT, refused by the gate.
-
-⚠ **`CLEAN` is a range list, not an invitation to skip.** Every census index
-must appear exactly once across your findings and your clean ranges. The join
-reports any index you did not account for as a COVERAGE GAP against your role
-by name.
 
 ### The verdicts, and what each one MUST carry
 
@@ -107,72 +98,58 @@ finding.
 | `move`    | the destination **and** the verbatim extract |
 | `split`   | each fragment **and its own anchor** |
 
-⚠⚠ **`correct` and `patch` are not interchangeable, and the difference is the whole point.**
+⚠ **`correct` and `patch` are not interchangeable, and the difference is the whole point.**
 `correct` says the claim is wrong; `patch` says it is right and reads badly. The task agent
 applies every `correct` **before** any `patch`, so mislabelling one as the other means a false
 claim gets its wording polished and never gets checked. That is the laundering failure in its
 purest form. If you are unsure which applies, you have not settled the claim — that is `query`.
 
-⚠⚠ **One relocation verdict, and the DESTINATION is what varies.** A declaration ten lines
+⚠ **One relocation verdict, and the DESTINATION is what varies.** A declaration ten lines
 down, another file, or out of the code entirely — all `move`, and which one goes in the
 payload. Say WHY it belongs there in `FINDING`. **Only a destination outside the code can be
 unavailable** (it needs a tree the task agent resolved at 1.4); a relocation into tracked
-code is always available. ⚠ At `fact-check` no relocation verdict is carried at all, so a
-true-but-misplaced block is `query` there — never `clean`.
+code is always available.
 
-⚠ **There is no `compact` here.** Shortening is stage 6's, after the truth is written and only
-as far as a cap requires. You cannot propose that a block be shorter; you can only say which
-sentences are false, misplaced, missing or badly worded.
+ **`clean` is scoped to YOU, and the other roles are looking at the same block.**
+The task agent computes how best to combine the results from all roles.
+⚠ Do not invent a word for "outside my role": that is `clean`,
+and a ninth word breaks the arithmetic.
 
-⚠ **The LEVEL you were given restricts which verdicts you may emit.** At `fact-check` you have
-`correct`, `query` and `clean` only. For block-context, function-context and module-context, a
-true-but-misplaced block is `clean` for you. For `ownership-context` itself, a
-true-but-misplaced block is never `clean`: `move` is not in this level's verdict set, so the
-finding is `query` — the claim cannot be settled where it sits. Emitting a verdict your level
-does not carry is not a finding; it is scope you were not given.
+**`clean` is a decision and is required - it cannot be assumed and skipped past**
 
-⚠ **`clean` is scoped to YOU, and the other roles are looking at the same block.** Nothing you
-emit can bless one; only a `clean` from **every role that ran** can, and the task agent computes
-that — you do not assert it. ⚠ Do not invent a word for
-"outside my role": that is `clean`, and a ninth word breaks the arithmetic.
-
-⚠⚠ **`clean` is the only verdict you can reach by NOT deciding.** Every other verdict is an
-action or an explicit `query`; this one can be arrived at by leaving a block alone, and a
-block left alone is indistinguishable from a block checked and ruled `clean`. Your role file
-states what your `clean` asserts — emit it as that claim, or emit `query`.
-
-⚠⚠ **Nothing is `clean` for being SHORT, TRUE, WELL WRITTEN, NEW, or under a `⚠`.** Each was
+⚠ **Nothing is `clean` for being SHORT, TRUE, WELL WRITTEN, NEW, or under a `⚠`.** Each was
 measured as an exemption reviewers invented for themselves. Truth least of all: a true claim
 can be misplaced, unnecessary, or the surviving half of a block whose other half was the
 constraint — and none of those is your role's question unless your role file says it is.
 
-⚠⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
+⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
 still required to open the code that would settle it; on every other verdict your `QUOTE` proves
 you did. `query` is what you emit when you did and it was still not enough.
 
 Three shapes reach it, and all three are findings rather than admissions:
 
-- **outside your role** — what settles it belongs to another scope. Another role may settle
-  it, and the task agent rules on all four together.
-- **outside the checkout** — generated, gitignored, remote, or on one machine. No reviewer in a
-  fresh checkout can settle it.
-- **outside the code** — settling it needs someone who knows the system or how it is operated.
+- **outside your role** — what settles it belongs to another scope. This gets a `query` mark.
+- **outside the checkout** — generated, gitignored, remote, or on one machine.
+  No reviewer in a fresh checkout can settle it.
+- **outside the code** — Settling it needs someone who knows the system or how it is operated.
   It reaches the author at 7a as a question.
 
 ⚠ **A claim you could not settle and marked `clean` is worse than the same claim marked
 `query`.** `clean` certifies; `query` asks. There is no confidence tag to soften a verdict with.
 
-⚠ **A `query` carries no `EVIDENCE` and no `QUOTE`, by construction** — there is no line that
-settles a claim you could not settle. Do not invent one to satisfy the gate, and do not
-downgrade to `clean` to escape it: both destroy the finding. Its `CHANGE` is what the gate
-reads instead, and a `query` naming no attempted check is the one it refuses.
+⚠ **A `query` requires `EVIDENCE` and `QUOTE`(s), by construction** — this is where you
+looked to try to find the answer. These are the statements in the code that make it
+ambiguous or the location not yours to determine.
 
 **Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
 single `clean` sentence must not launder the ones around it.
 
 ⚠ **A sentence that is not truthy cannot be `correct`ed**, because there is nothing to correct
-it against — it is `drop` or `query`. *"The retry budget is 40"* is truthy and false; *"this is
-robust"* is neither.
+it against — it is `drop` or `query`.
+*"The retry budget is 40"* is truthy and can be false fi the budget is actually 100. This gets
+a `correct` tag.
+*"this is robust"* is neither. There is no definition of "robust" that can be checked in all
+circumstances.
 
 ## Check the CLAIM, not the CITATION
 
@@ -181,16 +158,13 @@ the verification. A resolved citation is not a verified one — open the target 
 the verdict is `query`.
 
 ⚠ **An existence grep passes every counted claim.** The symbol is right there, so the grep
-returns clean and you report the file clean. Enumerate instead, and report the number — and
+returns clean and you report the claim `clean`. Enumerate instead, and report the number — and
 re-derive the POPULATION too, not only the count. Measured twice on the very claim that
-motivated the rule: the population was named correctly and the count was still wrong, and the
-population was named precisely and its size was wrong.
+motivated the rule: the population was named precisely and the count was still wrong.
 
 ⚠ **Evidence outside the checkout can never be settled.** If the line that settles a claim is
 generated, gitignored, remote, or on one machine, there is no state in which "I read both
-sides" is true. That is a `query`, and say why. Measured: 6 of 20 path facts in one run were
-gitignored state, and two headline counted claims were derived from an archive absent from
-every worktree.
+sides" is true. That is a `query`, and say why.
 
 ⚠ **Cite by SYMBOL or PATH in the text you write — never by line number.** A symbol survives a
 refactor; a line number rots with no visible symptom. Measured: three rotted line-number
@@ -216,40 +190,18 @@ findings and are not:
 | the comment claims callers `grep` cannot find       | the function is dead, delete it       |
 | the comment forbids a literal the file hardcodes    | replace the literal with the constant |
 | the same rule is restated at a dozen sites          | the rule needs an owning type         |
+| the comments indicate multiple business cases       | the function needs to be split        |
 
 ⚠ **This is not "do not investigate."** Resolving a claim against its code is the core work:
 reading an assertion to see whether it *can* fail, grepping a forbidden literal, counting call
 sites. Out of scope is ruling on what the code **should be**.
 
-⚠ **A reviewer straying into correctness is this skill's worst measured output** — four
-agreeing reviewers once reported a file "cannot compile" over valid syntax. A claim about
-whether code *runs* owes a `python -c` or `ast.parse` before it leaves your hands.
-
-### One claim, several sites — who owns it
-
-Both `ownership-context` and `module-context` see a claim stated in more than one place, and
-they draw different conclusions. The split is fixed:
-
-| role | asks | verdict shape |
-|---|---|---|
-| `ownership-context` | which of these sites OWNS this claim? | `move` the claim to its OWNER, `drop` the copies |
-| `module-context` | does the rule have no OWNING FUNCTION, so each site re-explains it? | `add` the rule to the function that should hold it, and name that function |
-
-⚠ Same observation, different finding, and PRESENCE decides. Prose that EXISTS and sits away
-from its owner is `ownership-context`'s; documentation that is MISSING belongs to
-`module-context` or `function-context`, by SCOPE. Report the finding YOUR question produces.
+⚠ **A reviewer straying into code correctness is an undesired output** — four
+agreeing reviewers once reported a file "cannot compile" over valid syntax.
 
 ### One block, two placements — report yours
 
 REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two
-can reach the same block. `ownership-context` and `function-context` can both place it, naming
-different destinations. **Both findings stand, and neither role defers to the other.** Report
-the placement your role sees, under the verdicts your level carries, and say in `FINDING` why
-the block belongs there. Which destination wins is the task agent's ruling at stage 5, not
-yours — so a disagreement is a result here, not a problem to solve.
-
-## You are not given the cap
-
-Length is not one of the four editorial roles. An agent that knows the cap writes to the cap, and
-what survives a length-driven cut is the confident assertion, never the evidence that lets a
-reader test it. Propose text that is **correct**; someone else condenses later.
+can reach the same block. Report the placement your role sees, under the verdicts your
+level carries, and say in `FINDING` why the block belongs there. Which destination wins
+is the task agent's ruling later.
