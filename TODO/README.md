@@ -119,7 +119,7 @@ Everything below is on `feat/settle-the-vocabulary`, 29 commits, `main` untouche
    stronger and costs no new machinery.
 3. **The vocabulary is down to three polysemy rows** — `residue`, `SUPPRESSED` and `label` —
    then the closing re-sweep. `own`/`owner`/`ownership` is settled (`HOME` retired, the census
-   records ANCHORS), `jurisdiction` is the new word for a role's categories of claim, and
+   records ANCHORS), `remit` is the new word for a role's categories of claim, and
    `worktree` is git's word, not this system's.
 4. **⚠ The survey is a floor, not a census.** `budget` was used at 18 sites in four senses and
    appeared in NEITHER table of the inventory — Roy found it reading a justification. Assume
@@ -151,7 +151,7 @@ ones that changed a published name or rule:
 | `f1a3cc5` | reviewers no longer receive `CAP` or `WIDTH` — the packet gate had been enforcing the opposite of the stated rule |
 | `4d3b7a2` → `e9b2ff3` | `DOC CONVENTION` settled — stage 1.3 MEASURES the repo's formats instead of naming a standard |
 | `9a84c6f` | `HOME` retired; **owner** is the anchor with the best justification, and `Block.owner` became `Block.anchor` |
-| `f40d26b` | a role's categories of claim are its **JURISDICTION**; the anchor sweep finished |
+| `f40d26b` | a role's categories of claim get their own word (**JURISDICTION**, renamed **`remit`** the same day); the anchor sweep finished |
 | `f20d376` → `dd4e55a` | absence left `ownership-context` — missing documentation is `module-context`'s or `function-context`'s, by scope |
 | `02a51d2` | dropped *"no role may emit another's verdict"* — it contradicted the overlap ruling |
 | `ab1bae0` | `worktree` settled: git's word, not a term of art here |

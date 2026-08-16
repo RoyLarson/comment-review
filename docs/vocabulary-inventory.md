@@ -123,7 +123,7 @@ Observed by the scout pass. Recorded as-is.
 | block-context | `agents/comment-review-block-context.md:2-3,16`; `CLAUDE.md:112-114` | SEVERAL (agent, CLAUDE, README, SKILL table) |
 | function-context | `agents/comment-review-function-context.md:2-3,16`; `CLAUDE.md:115` | SEVERAL |
 | module-context | `agents/comment-review-module-context.md:2-3,16`; `CLAUDE.md:116` | SEVERAL |
-| **jurisdiction** | `ref/reviewer-brief.md:71` | ONE — SETTLED 2026-08-16: the CATEGORIES of claim a role rules on, as against `verify`, which is what it does to them. Took the five sites where `own` carried this sense |
+| **remit** | `ref/reviewer-brief.md:71` | ONE — SETTLED 2026-08-16: the CATEGORIES of claim a role rules on, as against `verify`, which is what it does to them. Took the five sites where `own` carried this sense. ⚠ Was `jurisdiction` for one day: a JUDICIAL word on an editorial system, replaced the same day the metaphor became a rule in `CLAUDE.md`. `remit` is publishing's word, and 7 characters shorter at every site |
 | level | `SKILL.md:182-208`; `sk-scripts/verdicts.py:61-70`; `sk-scripts/run_context.py:89-91` | SEVERAL (3 sites) |
 | `fact-check` | `SKILL.md:186`; verdict set `sk-scripts/verdicts.py:67` | SEVERAL |
 | `line` | `SKILL.md:187`; `sk-scripts/verdicts.py:68` | SEVERAL |
@@ -145,7 +145,7 @@ Observed by the scout pass. Recorded as-is.
 | `trailing-comment` | `SKILL.md:395-396`; `sk-scripts/census.py:379,497,509-515`; row `ref/compact.md:81` | SEVERAL |
 | `unparsed` | `sk-scripts/census.py:528-539` | ONE |
 | orphan / orphan run | `sk-scripts/census.py:461-466` | ONE |
-| ~~**owner / own / ownership**~~ | SETTLED 2026-08-16 — `agents/…-ownership-context.md:60-65` | The **anchor with the best justification** for the comment being attached to it; where several compete, the site that ENFORCES the constraint, or the code expected to hold the invariant where nothing enforces it. `HOME` is retired — one stem. `Block.owner` became `Block.anchor`, the census computing a position rather than a judgement. The ROLE's-jurisdiction sense went to **jurisdiction**; the ownership/module split is PRESENCE (prose exists → ownership-context; prose absent → module-context or function-context, by scope): [the ruling](vocabulary-usage.md#own--owner--ownership--settled-2026-08-16-for-the-placement-sense-home-retired) |
+| ~~**owner / own / ownership**~~ | SETTLED 2026-08-16 — `agents/…-ownership-context.md:60-65` | The **anchor with the best justification** for the comment being attached to it; where several compete, the site that ENFORCES the constraint, or the code expected to hold the invariant where nothing enforces it. `HOME` is retired — one stem. `Block.owner` became `Block.anchor`, the census computing a position rather than a judgement. The ROLE's-jurisdiction sense went to **remit**; the ownership/module split is PRESENCE (prose exists → ownership-context; prose absent → module-context or function-context, by scope): [the ruling](vocabulary-usage.md#own--owner--ownership--settled-2026-08-16-for-the-placement-sense-home-retired) |
 | node (prose tree) | implicit `SKILL.md:76` | UNDEFINED |
 | work marker (`TODO` `FIXME` `HACK` `XXX` `BUG`) | `sk-scripts/census.py:87-111`; `SKILL.md:242-244,388-392` | SEVERAL |
 

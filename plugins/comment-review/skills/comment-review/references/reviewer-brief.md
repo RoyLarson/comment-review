@@ -68,7 +68,7 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `CHANGE` | the payload the verdict table requires |
 
 For a count, give the number **and the population you counted over** in `SUMMARY`'s right half —
-quantified claims are block-context's JURISDICTION, the categories of claim a role rules on,
+quantified claims are block-context's REMIT, the categories of claim a role rules on,
 and a count with no stated population cannot be re-derived.
 
 **Then account for every remaining block on one line:**
@@ -86,7 +86,7 @@ that does not resolve is not a weaker finding — it is not a finding.
 ⚠ **`SUMMARY`'s right half is DERIVED, and is not checked verbatim** — that is why
 it is a separate field from `QUOTE`. A count is not a line any file contains, so
 checking the derived statement against the code made every counted claim
-inadmissible: the block-context role's own JURISDICTION, refused by the gate.
+inadmissible: the block-context role's own REMIT, refused by the gate.
 
 ⚠ **`CLEAN` is a range list, not an invitation to skip.** Every census index
 must appear exactly once across your findings and your clean ranges. The join
@@ -251,7 +251,7 @@ from its owner is `ownership-context`'s; documentation that is MISSING belongs t
 
 ### One block, two placements — report yours
 
-JURISDICTIONS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two
+REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two
 can reach the same block. `ownership-context` and `function-context` can both place it, naming
 different destinations. **Both findings stand, and neither role defers to the other.** Report
 the placement your role sees, under the verdicts your level carries, and say in `FINDING` why

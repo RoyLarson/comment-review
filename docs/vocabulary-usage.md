@@ -38,6 +38,7 @@ this table:
 | `ANGLE FILES` | `REVIEWER FILES` | the dispatch packet |
 | `angle` (the variable, the report stem) | `reviewer` | `verdicts.py` |
 | `reanchor` | **`move`** | one relocation verdict; the destination is payload |
+| `jurisdiction` | **remit** | a role's categories of claim; judicial for one day, then publishing's word |
 | `HOME` | **owner** | one stem for the relation and the site it selects |
 | `Block.owner` | `Block.anchor` | `census.py`, and the census JSON key with it |
 
@@ -1447,6 +1448,32 @@ what this stage does."* Both definitions-by-negation are deleted; the PROHIBITIO
 substitute does have resolution power. ⚠ `review.md:25` also called stage 8 *"the proof pass"* —
 a name retired when 7b's gate became the CODE CHECK.
 
+### remit — SETTLED 2026-08-16, replacing `jurisdiction` the same day
+
+**A role's REMIT is the categories of claim it rules on**, as against `verify`, which is what it
+does to them. Five sites: the block-context and function-context frontmatters,
+`ref/reviewer-brief.md:71,89` and the overlap rule at `:254`, and `sk-scripts/verdicts.py:372`.
+
+⚠ **`jurisdiction` held it for one day and was this branch's own mistake.** This session proposed
+it because `verify` collided, checked it against every existing sense, and never checked it
+against the REGISTER. Roy: *"I have been working under this assumption of the metaphor for a
+while."* The system is an editorial board — editorial roles, editorial marks, a proof, a
+proofreader — and `jurisdiction` is law. `CLAUDE.md` now carries the rule that produced this
+correction, so the next candidate is checked against the metaphor before it is proposed.
+
+**Why `remit` and not the runners-up**, both of which were also free in the tree:
+
+| word | why not |
+| --- | --- |
+| `beat` | journalism's, and vivid — but a beat is what a reporter goes out and COVERS. These roles rule rather than gather, and authority is the half that matters |
+| `desk` | *"the copy desk"* is a department. Wrong scale for one reader |
+
+⚠ `copy` was NOT free: 15 uses, all the verb (*"Copy the ORIGINAL block whole into a scratch
+document"*).
+
+Roy: *"I like remit — that works … and it is shorter."* 5 characters against 12, at every site,
+two of them agent frontmatter descriptions that load on every run.
+
 ### proof / PROOFREADER — SETTLED 2026-08-16: the PRINTING sense
 
 Roy: *"PROOFREADER works — it is reading the PROOF and it is determining if the document
@@ -1572,8 +1599,9 @@ field held the declaration on the line after the run ends — a position, not a 
 ownership is a judgement. 12 sites in `census.py`, 6 in `SKILL.md`, 1 test. ⚠ The census emits
 `vars(b)`, so this changes a published JSON key, as `marks` → `annotations` did.
 
-⚠ **The jurisdiction sense lost the word.** A ROLE's categories of claim are its
-**JURISDICTION** — stated at `reviewer-brief.md:71`, the sentence that already described it.
+⚠ **The jurisdiction sense lost the word.** A ROLE's categories of claim are its **REMIT**
+— stated at `reviewer-brief.md:71`, the sentence that already described it. ⚠ It was
+`jurisdiction` for one day; see the rename below.
 Roy first proposed `verify`; it collides, already naming the ACT of settling one claim against
 the code (`reviewer-brief.md:189-190`) and the citation state `UNVERIFIABLE`. Jurisdiction is
 which claims are a role's; verification is what it does to them. 5 sites, all line-neutral.

@@ -60,7 +60,7 @@ Why they went, in order of weight:
       added earlier."* `acquitted` became `clean`, and the closing clause now points at the role
       file: *"none of those is your role's question unless your role file says it is."* It sits
       directly under *"Your role file states what your `clean` asserts"*, which is where the
-      jurisdiction question is actually decided. Brief 261 → 266 lines.
+      remit question is actually decided. Brief 261 → 266 lines.
 
 - [ ] `states-the-signature` is not merely unearned, it CONTRADICTS `function-context`. That
       role's absence question is *"what must be true of this function's OUTPUT, or of its CALLER,
@@ -98,6 +98,6 @@ Why they went, in order of weight:
 
       ⚠ **So these words were off-metaphor when they were written, not merely unmeasured.**
       `acquittal` and `suppression` arrived with the initial plugin import. **`jurisdiction` did
-      not** — this session proposed it on 2026-08-16 and Roy approved it, against a metaphor
-      neither of us named at the time. It is the one judicial word this branch ADDED, and it
-      should be the first re-examined.
+      not** — this session proposed it on 2026-08-16 against a metaphor neither of us named at
+      the time. It was the one judicial word this branch ADDED, and it is now **`remit`**; what
+      is left here is `acquit` as a plain verb.

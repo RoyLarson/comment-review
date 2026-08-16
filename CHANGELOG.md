@@ -147,11 +147,11 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   emits `vars(b)`, so the key changed with the field, and the printed tree's `(owner)` column is
   now `(anchor)`. Anything reading a saved census for `owner` finds nothing.
 
-- **A role's categories of claim are its JURISDICTION.** `own` carried this second relation at
+- **A role's categories of claim are its REMIT.** `own` carried this second relation at
   five sites — *"Owns three kinds of claim"*, *"owns reachability"*, *"the block-context role
   owns quantified claims"* — alongside the placement sense above, and stated it nowhere.
   `verify` was considered and rejected: it already names the ACT of settling one claim against
-  the code, and the citation state `UNVERIFIABLE`. Jurisdiction is which claims are a role's;
+  the code, and the citation state `UNVERIFIABLE`. A remit is which claims are a role's;
   verification is what the role does to them.
 
 - **Absence left `ownership-context`.** The split between it and `module-context` is PRESENCE:
@@ -162,7 +162,7 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   already covered by `function-context`'s absence question and `module-context`'s surface
   checklist. Ownership-context drops from 101 to 96 lines.
 
-  The brief now also states WHY two roles may reach the same block: **jurisdictions overlap by
+  The brief now also states WHY two roles may reach the same block: **remits overlap by
   design**, because the roles read the same code bottom-up and top-down. Both findings still
   stand, and neither role defers to the other — unchanged, now with a reason attached.
 

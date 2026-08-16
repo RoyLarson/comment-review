@@ -201,7 +201,8 @@ would an editor, a copy desk or a proofreader call this? — before reaching any
 ⚠ **Check a candidate against the register before proposing it, not after.** Three words entered
 from LAW and each named something publishing already had a word for: `acquittal` and
 `suppression` arrived with the initial plugin import and are deleted; `jurisdiction` was added
-2026-08-16 by a session that checked it for collisions and never checked it for register.
+2026-08-16 by a session that checked it for collisions and never checked it for register, and is
+now `remit`.
 
 ⚠ **The test is not taste.** A reader who knows the metaphor can predict what an unfamiliar term
 means; a reader who does not has to look it up, and an agent that cannot look it up guesses.
