@@ -14,7 +14,7 @@ Read each file end to end, as a reader would, and ask of every comment and docst
 
 - Does it follow the **style sheet's template** for its kind?
 - Is it still appropriate to the **code it is attached to**?
-- Is it **one checkable claim** about that code?
+- Are its **sentences checkable claims** about that code?
 - Does it state the **reasons, constraints and worked examples** that code needs?
 
 And of the file as a whole: does it still read as one page? Look for —

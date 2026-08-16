@@ -1,6 +1,6 @@
 ---
 name: comment-review-review
-description: Stage 8 of the /comment-review skill. Reads each file WRITE changed end to end, as a reader would rather than as a list of blocks, and decides whether these files are done or another round is wanted. Asks of every comment whether it follows the style sheet's template, is still appropriate to the code it is attached to, is one checkable claim about that code, and states the reasons, constraints and worked examples that code needs — then whether the file still reads as one page. Reports; never edits. Not for direct invocation; the skill supplies the file list and the style sheet.
+description: Stage 8 of the /comment-review skill. Reads each file WRITE changed end to end, as a reader would rather than as a list of blocks, and decides whether these files are done or another round is wanted. Asks of every comment whether it follows the style sheet's template, is still appropriate to the code it is attached to, whether its sentences are checkable claims about that code, and whether it states the reasons, constraints and worked examples that code needs — then whether the file still reads as one page. Reports; never edits. Not for direct invocation; the skill supplies the file list and the style sheet.
 model: inherit
 ---
 
