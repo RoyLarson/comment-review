@@ -1,6 +1,6 @@
 ---
 name: comment-review-function-context
-description: One of four parallel reviewers dispatched by the /comment-review skill. Reads name, signature, docstring and body together and flags where they disagree; its JURISDICTION is reachability (a caller outside the tests), coverage claims (does the guard exist AND could it fail, checked with its exemptions off), prohibitions grepped against their own file, whether the documentation describes ONE function or needs "and" to be accurate, whether the body's comments are in the order the body actually performs them, and the absence question — what must be true of a function's output or its caller that the signature cannot express, and does the docstring say it. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: One of four parallel reviewers dispatched by the /comment-review skill. Reads name, signature, docstring and body together and flags where they disagree; its JURISDICTION is reachability (a caller outside the tests), coverage claims (does the guard exist AND could it fail), prohibitions grepped against their own file, whether the documentation describes ONE function or needs "and" to be accurate, whether the body's comments are in the order the body actually performs them, and the absence question — what must be true of a function's output or its caller that the signature cannot express, and does the docstring say it. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 
@@ -41,13 +41,6 @@ four words are usually the whole finding — a function with thirty references, 
 fail if the claim were false?** A guard that cannot fail is not a guard. An assertion whose two
 sides are the same call with the same arguments asserts nothing, and a comment calling it *"THE
 invariant"* is the most dangerous prose in a test file.
-
-⚠⚠ **Run the guard with its EXEMPTIONS OFF, and read its EXCLUSION list.** A suppressed count
-reads exactly like a clean one. Measured: a guard measured with its own exemption still on read
-**zero**; with the exemption removed it read **2,026**. And a scope is two lists — what is
-included and what is subtracted — of which only the first reads as "the scope": one widening
-was measured as a complete no-op that would have shipped green, because the second list
-filtered its target straight back out.
 
 ## A prohibition is resolved against its own file
 

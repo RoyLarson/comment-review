@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks done
+Progress: 1 of 6 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on finding `worktree` in the shipped plugin: "that is
           indicating a wrong idea in the workflow requirements")
@@ -34,6 +34,17 @@ rather than finding them one at a time when someone happens to look.
       eval runs. ⚠ `reviewer-brief.md:198` is deliberately untouched: *"an archive absent from
       every worktree"* is a measurement about one repository in git's ordinary sense — a
       finding, not a requirement.
+
+- [x] **A SECOND leak, found 2026-08-16 and removed.** `function-context.md:45-50` told
+      reviewers to *"Run the guard with its EXEMPTIONS OFF, and read its EXCLUSION list"*, on
+      two measurements that `evidence/findings.md` files under **"More of my own errors"**
+      (§22 at `:613-617`, and the scope-widening no-op at `:670-684`) — a session mis-invoking
+      ruff on this repo's own config while doing documentation cleanup. Roy: *"It would only be
+      applicable here if there was a method of intentionally bypassing the reviewers and there
+      isn't. If the reviewers fail then they get rerun."* Deleted with its two dependants
+      (`function-context.md:3`, `SKILL.md:430`); function-context 129 → 122 lines. ⚠ The rule
+      the section exists for is untouched: does the guard exist, and would it FAIL if the claim
+      were false.
 
 - [ ] Sweep the shipped tree for other harness assumptions. Candidates to grep: `corpora`,
       `eval`, `hazard`, `D1`–`D12`, `redacted_pkg`, `workout`, `grade`, `probe`, `base ref`,

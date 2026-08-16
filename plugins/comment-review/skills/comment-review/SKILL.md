@@ -427,7 +427,7 @@ Marks, and what resolving each one means:
 | `cites-a-path` | tracked in the tree? ⚠ present-but-untracked is **unverifiable**, not dangling |
 | `names-a-symbol` | `workspaceSymbol` where 1.7 found a server, else the AST corpus (head segment; `foo()` normalised) |
 | `counted` | re-derive the POPULATION, then count it |
-| `coverage-claim` | does the guard exist — **can it fail**, and does it pass with its exemptions OFF? |
+| `coverage-claim` | does the guard exist — and **can it fail**? |
 | `forbids-a-literal` | grep the forbidden literal across that file |
 | `repeated-literal` | where else is this number written? one source at both ends of a round trip? |
 | `narrative-in-docstring` | is the date, review label or *"used to"* a claim about HISTORY rather than about the code now? |
