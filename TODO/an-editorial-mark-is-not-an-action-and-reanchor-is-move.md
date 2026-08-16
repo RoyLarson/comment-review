@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 13 tasks done
+Progress: 10 of 13 tasks done
 Owner:    session · Roy (⭐ 2 rulings left)
 Raised:   2026-08-15 (Roy, while reviewing the placement precedence before merge)
 ```
@@ -77,26 +77,12 @@ The vocabulary as it stands: [`docs/vocabulary-usage.md`](../docs/vocabulary-usa
       real answer — the collapse does not depend on it — but leaving it unasked means the next
       person re-derives this argument.
 
-- [ ] ⭐ Give the agents a copy of the definitions. Roy asked for this once the vocabulary is
-      settled. Decide where: `references/reviewer-brief.md` is the shared contract all four
-      already read and already carries the verdict table, so the definitions can land there,
-      or in a reference it points at. Whichever, it is one file — the four agent files point,
-      they do not restate.
-
-      ⚠ **`truthy` is the first measured casualty, found 2026-08-16.** Stage 8's `review.md`
-      needed to ask whether a comment is *truthy*, and its agent receives only the file list,
-      the style sheet and `review.md` — the definition is at `ref/reviewer-brief.md:174-181`,
-      which stage 8 never loads. Roy ruled the plain-words form for now (*"one checkable claim
-      about that code"*) over a second statement of a settled term. ⚠ Whatever this pass builds
-      must reach `comment-review-review` as well; the brief goes to the four editorial roles
-      and nowhere else, so "put it in the brief" does not solve stage 8.
-
-      ⚠ **A constraint on HOW**, from the same session: a stage's file describes that stage's
-      inputs and its job, and must not name the surrounding machinery. Roy: *"I am pretty
-      certain it is going to go try to read those in the installed plugins the moment you state
-      them."* `review.md` named other stages at four sites and now names nothing outside
-      itself. Distribution is *give each agent the definitions it needs*, never *tell each
-      agent where the other files are*.
+- [x] **Distribution is DESIGNED and moved to its own file, 2026-08-16.** Roy ruled the shape:
+      *"the task agent runs a command and puts the correct vocabulary verbatim into the agents
+      prompt. No summarizing no duplication."* Eight tasks, including the one that made this
+      worth deferring — removing the in-place statements the emitted block replaces, where a
+      definition is a clause inside a working sentence.
+      → [`the-task-agent-emits-the-vocabulary`](the-task-agent-emits-the-vocabulary.md)
 
 - [ ] Write the definition of an edit mark, once, where the agents read it. Roy's words:
       *"edit marks are the preferred action from the editorial roles that if applied would
@@ -104,10 +90,10 @@ The vocabulary as it stands: [`docs/vocabulary-usage.md`](../docs/vocabulary-usa
       the mark names what would be done, and nothing is done until 7b.
 
 - [ ] Relabel every site that calls an edit mark an **action**, and reserve that word for what
-      stage 7b does. ⚠ `mark` is already carrying four senses per the survey — the census's
-      mechanical annotations (`names-a-symbol`, `counted`), stage 4's name, a detector, and a
-      block selected for the sweep — so check whether "edit mark" lands clear of them or
-      whether one of those needs a different word instead.
+      stage 7b does. ⚠ `mark` was carrying four senses when this was raised; three are now gone.
+      The census's are ANNOTATIONS (settled 2026-08-15), `detector` is deleted, and `sweep` is
+      not a term — so `mark` means stage 4's name and what it emits. "Edit mark" now lands
+      clear, and this task is only about defining it.
 
 - [x] Add the CHANGELOG entry. **Done 2026-08-15** — under `[Unreleased]`, alongside the
       `angle` and `sweep` retirements, with the destination rules that make the collapse
