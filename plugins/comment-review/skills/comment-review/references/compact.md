@@ -128,6 +128,6 @@ wrong word read as house style and the result was wrong on two independent axes.
 Blocks condensed, blocks left at length with the reason, and the final longest block. A block
 you could not condense is a finding, not a silence.
 
-⚠ **No AST-identity proof here** — nothing has been written yet. That proof belongs to
+⚠ **No CODE CHECK here** — nothing has been written yet. That check belongs to
 WRITE (stage 7b), which is the only pass that touches a file. What you hand back is the text
 stage 7a will put in front of the author.

@@ -86,7 +86,7 @@ instructions:
   of re-deriving them.
 - **the four editorial roles are four visitors over one tree**, which is why their overlap is signal.
 - **the edits are applied to NODES**, so "never change a line of code" holds by construction
-  — the AST proof in `write.md` confirms that rather than being the only thing enforcing it.
+  — the CODE CHECK in `write.md` confirms that rather than being the only thing enforcing it.
 
 ⚠ **The model is the tree; the implementation depends on nothing.** `scripts/census.py` builds
 it from the stdlib alone, at the tier available for each file's language. Both tiers find the
@@ -187,7 +187,7 @@ to make.
 | `fact-check` | ownership-context, block-context, function-context | `correct` · `query` · `clean` |
 | `line` | the same three | + `drop` · `move` · `split` · `add` |
 | `full` | + module-context | + `patch` |
-| `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. Named for stage 8's PROOF PASS, not for 7b's identity proof. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
+| `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. Named for stage 8's PROOF PASS. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
 
 ⚠⚠ **`ownership-context` runs at every level, including `fact-check`.** The other three check
 a claim against the code at their scope; a claim attached to the wrong scope is measured

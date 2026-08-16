@@ -2,8 +2,8 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
-Owner:    session · Roy (⭐ 2 rulings)
+Progress: 1 of 9 tasks done
+Owner:    session · Roy (⭐ 4 rulings)
 Raised:   2026-08-15 (Roy, after the 7b cutting paragraph was found and deleted)
 ```
 
@@ -39,6 +39,27 @@ with the new comments before bringing it to the attention of the person."*
       keeps its post-write job. ⚠ `review.md:3-4` currently says it is *"loaded after stage 7b
       has written the approved text, never before"* and *"the only one that reads the ARTIFACT
       rather than the plan"* — both statements have to change under either answer.
+
+- [ ] ⭐ Add a **6b**: the residue check as a GATE after compaction, before the human. Roy:
+      *"There needs to be a 6b that does this procedure before going to the human."* Today
+      COMPACT runs it as step 3 of its own per-block loop — **the agent that cut the text is the
+      one checking whether the cut lost something**, which violates the principle COMPACT itself
+      is built on (`compact.md:101`: *"the contract only buys anything if the reader is not the
+      writer"*). A 6b is a second reader, the same argument one level down.
+
+- [ ] ⭐ Decide whether a **5b** follows. Roy: *"potentially a 5b just to double check."* Same
+      shape after APPLY: the agent that wrote the replacement text is the one asking whether it
+      lost anything. ⚠ Weigh it against the budget — a fifth and sixth dispatch per run is real
+      cost, and 5 and 6 are the same actor today.
+
+- [ ] Take the residue check OUT of 7b. Roy: *"It's too late by the time it got here and if
+      everything goes right it shouldn't need it… If it is happening after humans have blessed
+      it that breaks the rule."* ⚠ The evidence is decisive: `residue-check.md`'s step 4 is
+      **"If yes, it is not finished. Put it back and repeat from 3"** — rewriting the text is the
+      procedure's ONLY response to a failure, and at 7b that means rewriting what the author
+      approved, which `write.md` forbids in its next section. The check either finds nothing, or
+      finds something and the only legal action is forbidden. Update `residue-check.md:16-18`
+      ("Stage 6 re-runs it… and stage 7b runs it on what it applies") and `write.md:10-14`.
 
 - [ ] ⭐ Rule on the delivery mechanism. Roy: *"really ought to be a temporary branch with the
       diff or something so they can use git's tools to accept it."* That would replace the

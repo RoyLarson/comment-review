@@ -33,14 +33,14 @@ docstring that states something **false** is in scope — that is the `correct` 
 Changing what the docstring *documents* is not. ⚠ **A `correct` on a claim inside a string
 literal is REPORTED, never applied** — hand it to the human as a code concern.
 
-**Prove code identity; do not assert it.** Run the proof — do not perform it:
+**Prove code identity; do not assert it.** Run the CODE CHECK — do not perform it:
 
 ```bash
 python <skill>/scripts/prove_unchanged.py --base <merge-base> --repo . <paths...>
 ```
 
 It exits nonzero unless every path is proven, and it reports an **unprovable**
-file rather than passing it. It carries the AST proof for Python, a
+file rather than passing it. It carries the AST comparison for Python, a
 comment-stripped byte comparison for every other language with a `LANGUAGES`
 record, and the line-ending check against an untouched sibling. ⚠ **Re-run it
 after the formatter** — the formatter can reshape what you wrote.
@@ -52,8 +52,8 @@ line-ending check had no untouched sibling to compare against, not that it
 passed — but report it verbatim too, so the human deciding knows which claims
 this run actually has a signal for.
 
-**Edit through an exact-match tool, never raw text.** Measured, all caught only by the AST
-proof: a path-rewrite regex reached inside a runtime `raise` message because it worked on raw
+**Edit through an exact-match tool, never raw text.** Measured, all caught only by the CODE
+CHECK: a path-rewrite regex reached inside a runtime `raise` message because it worked on raw
 text instead of the block list; `open(..., newline="")` stripped CRLF from every file it
 touched, in two separate runs, while the agent was reading this rail; a sweep regex without a
 leading boundary doubled a directory prefix.
@@ -106,7 +106,7 @@ say never change a string literal.
 
 ## Report
 
-Edits applied, files touched, the AST-identity proof and how you ran it, and every block you
+Edits applied, files touched, the CODE CHECK and how you ran it, and every block you
 could not write with the reason — that is a finding, not a silence.
 
 **Say explicitly whether every approved block landed byte-for-byte as approved.** A divergence

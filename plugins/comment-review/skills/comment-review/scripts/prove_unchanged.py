@@ -1,4 +1,4 @@
-"""Prove the WRITE stage changed no executable code. Stage 7b's gate.
+"""THE CODE CHECK: prove the WRITE stage changed no executable code. Stage 7b's gate.
 
     python prove_unchanged.py --base <ref> [--repo D] <paths...>
 
@@ -152,7 +152,7 @@ def code_signature(text: str, path: Path) -> tuple[str, str]:
 
     Args:
         text: the file's contents.
-        path: used only for its suffix, to pick the proof.
+        path: used only for its suffix, to pick which comparison runs.
 
     Returns:
         `(kind, signature)`. `kind` is "ast", "residue" or "unprovable"; an
