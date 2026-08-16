@@ -4,6 +4,11 @@ The one mechanism that catches an edit which kept a false sentence and dropped
 the evidence disproving it. It is **inbound and per-block**: *did this block
 lose something?*
 
+⚠ **Nor is it `prove_unchanged.py`'s RESIDUE**, which is the file with every comment
+stripped, compared byte for byte to prove the CODE unchanged. Same word, unrelated
+remainders: that one asks what the edit left of the code, this one asks what it lost of
+the prose.
+
 ⚠ **It is NOT stage 8's proof pass.** That one asks *does the finished page
 read?* A run can satisfy this check everywhere and still fail that one, and
 that is the common case, because each edit was defensible alone.

@@ -13,16 +13,7 @@ Both are defined in [`residue-check.md`](residue-check.md), loaded back at stage
 not restated here: this pass runs the SAME check against the SAME original, and a second copy
 of it is a second thing to drift.
 
-## Shorten by TRUTH here — never by LENGTH
-
-**This pass cuts, and it can cut a lot.** Every false statement, every piece of history, every
-dead citation, every sentence that narrates what the code already says — all of that goes here.
-It also *adds*: correcting a claim usually means restoring the evidence that disproves it, and
-naming a caller obligation adds a sentence that was never there.
-
-**What comes out is a CORRECT comment: as long as it needs to be to carry only what is true,
-current and load-bearing, and no longer than that.** It may end up far shorter than the
-original, or longer. Both are right.
+## Nothing is judged here
 
 ⚠⚠ **Write the APPROVED text verbatim.** Every question of truth, placement and length was
 settled upstream — stage 5 made it correct, stage 6 cut it to any cap, and stage 7a put that

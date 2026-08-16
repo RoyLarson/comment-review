@@ -107,6 +107,13 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
 
 ### Fixed
 
+- **Stage 7b no longer tells the applying agent to cut.** `references/write.md` was headed
+  *"Shorten by TRUTH here — never by LENGTH"* and opened *"This pass cuts, and it can cut a
+  lot"*, four lines above its own *"Write the APPROVED text verbatim. Every question of truth,
+  placement and length was settled upstream."* It had contradicted itself since the initial
+  import. An agent following the first half would re-cut text the author had already approved —
+  the exact failure the 7a/7b split, and compacting-before-approval, exist to prevent.
+
 - **`evals/generator_split.py` runs again.** It did `import sweep` against a directory with no
   `sweep.py`, so the script could not start; the five attributes it uses are in `census.py`.
   `evals/grade_hazards.py` cited the same dead module.

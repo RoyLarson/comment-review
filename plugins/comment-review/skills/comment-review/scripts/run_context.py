@@ -86,8 +86,10 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 # and a packet is arbitrary text a person typed.
 PATH_ERRORS = (OSError, ValueError)
 
-# The four names `SKILL.md`'s level table defines. A level outside this set
-# dispatches four reviewers against a verdict vocabulary nobody published.
+# The four names `SKILL.md`'s level table defines. A level names a VERDICT
+# VOCABULARY and how many reviewers run -- three of the four run fewer than
+# four -- so a level outside this set dispatches against a vocabulary nobody
+# published.
 LEVELS = ("fact-check", "line", "full", "proof")
 
 # A leading list marker, so `- /abs/path` and `1. /abs/path` name the path

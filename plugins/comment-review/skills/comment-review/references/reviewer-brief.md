@@ -212,7 +212,7 @@ enforcing test was DELETED on the strength of a false dangling report.
 
 Closed list. If none applies, the block gets a finding.
 
-- **`label`** — one or two lines naming the line it sits on, claiming nothing else.
+- **`names-its-line`** — one or two lines naming the line it sits on, claiming nothing else.
 - **`states-the-signature`** — short, present tense, matches name/args/return, cites nothing
   outside itself.
 - **`derivation`** — a hand-worked calculation whose digits stop an assertion being an echo.

@@ -36,7 +36,7 @@ files also end up in the review. Anything that points to something in the code o
 that comments in the code point to will end up being referenced. This is a limitation -
 if the other documentation doesn't have an edge in the connection anymore it might stay undiscovered.
 
-I broke down the comment review into four levels/categories
+I broke down the comment review into four editorial roles
 
 - Ownership-Context - Is it in the right place, and does it belong to only one place
 - Block-Context - Is the state, every constraint and every worked example still true of the

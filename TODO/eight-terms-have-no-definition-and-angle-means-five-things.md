@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 10 of 15 tasks done
+Progress: 11 of 16 tasks done
 Owner:    session · Roy (⭐ 4 rulings left)
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```
@@ -74,10 +74,26 @@ the term means, and the two files converge on one `docs/vocabulary.md`.
       in the CODE", meaning that function. `:58` uses a third sense. One word, three readings,
       no cross-reference.
 
-- [ ] Declare or split the remaining multi-sense words, one line each where a reader meets
-      them: `residue`, `label`, `worktree`, `mark`, `block`, `target`, `author`, `proof`,
-      `run`, `load-bearing`, `obituary`, `guard`, `level`. A second meaning stays only if the
-      system states it.
+- [ ] Declare or split the remaining multi-sense words. **Six done 2026-08-15**, each where a
+      reader meets it: `block` (Roy's definition, its own commit); **`proof`** — three unrelated
+      things, so `write.md:45` now says IDENTITY PROOF and the `proof` LEVEL says it is named
+      for stage 8's proof pass; **`level`** — `README.md` called the four roles "levels", and
+      `run_context.py` claimed an unknown level "dispatches four reviewers" when three of the
+      four run fewer; **`label`** — the acquittal called `label` was the one generic name among
+      five descriptive ones and is now `names-its-line`, freeing the bare word for "any
+      acquittal-list entry", which is how `module-context` already used it; **`run`** — bare
+      `run` means one invocation, the prose sense is always a COMMENT run, stated once and the
+      two bare prose uses qualified; **`residue`** — `residue-check.md` now says it is not
+      `prove_unchanged.py`'s residue, the two being unrelated remainders (what the edit left of
+      the CODE, versus what it lost of the PROSE).
+      **Still open:** `worktree`, `mark`, `target`, `author`, `load-bearing`, `obituary`,
+      `guard`. ⚠ `mark` is the hard one — four senses, and it gates the "edit mark is not an
+      action" work in the other file.
+
+- [x] Reconcile two marks the published table never listed. **Done 2026-08-15** — `census.py`
+      emits `narrative-in-docstring` (`:853`) and `SKILL.md`'s six-row marks table did not
+      carry it; it has a row now. And `SKILL.md` said "a gap in the mark" where `census.py` and
+      the brief both say "a gap in the review" — one sentence, three sites, now one wording.
 
 - [ ] ⭐ Reconcile "5 of its 7 reviewer reports" — the LAST of this group, and the only
       one that is not a fact this session can re-derive. `reviewer-brief.md:82`,

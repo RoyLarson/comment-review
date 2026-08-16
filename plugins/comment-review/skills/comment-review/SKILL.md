@@ -80,7 +80,7 @@ Most of the rules further down are consequences of that shape rather than separa
 instructions:
 
 - **coverage is a tree walk.** You visited every node or you did not — *"a block nobody
-  mentioned is a gap in the mark, not a block that passed"* is the walk being complete, not a
+  mentioned is a gap in the review, not a block that passed"* is the walk being complete, not a
   discipline to remember.
 - **the marks are annotations on a node**, so a reviewer receives resolved references instead
   of re-deriving them.
@@ -187,7 +187,7 @@ to make.
 | `fact-check` | ownership-context, block-context, function-context | `correct` · `query` · `clean` |
 | `line` | the same three | + `drop` · `move` · `split` · `add` |
 | `full` | + module-context | + `patch` |
-| `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
+| `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. Named for stage 8's PROOF PASS, not for 7b's identity proof. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
 
 ⚠⚠ **`ownership-context` runs at every level, including `fact-check`.** The other three check
 a claim against the code at their scope; a claim attached to the wrong scope is measured
@@ -302,7 +302,7 @@ things, and neither is the census:
 
 | | with a server | without |
 |---|---|---|
-| **who owns a block** | `documentSymbol` → the declaration on the line after the run ends | nothing resolves it |
+| **who owns a block** | `documentSymbol` → the declaration on the line after the comment run ends | nothing resolves it |
 | **is a name alive** | `workspaceSymbol` / `findReferences`, in **any** language | the Python AST corpus only |
 
 ⚠⚠ **LSP RETURNS NO COMMENTS, so it can never replace `census.py`.** The nine operations
@@ -369,6 +369,10 @@ false obituary.
 
 ### What counts as ONE block
 
+⚠ **A COMMENT RUN is the prose INSIDE a block** — the contiguous comment lines between the
+two code lines that bound it. `run` alone means one invocation of this skill; both senses
+appear in this file, and only the qualifier tells them apart.
+
 ⚠⚠ **A block is the interval between two lines of CODE.** The lines of code above and below
 define it; what is written between them does not. Only code is a boundary — not a blank line,
 not a work marker, not a change of subject. Everything between one code line and the next is
@@ -395,7 +399,7 @@ wrong changes what the reviewers see:
 - **Only code ends a run.** A blank line does not. Split on blanks and a 9-line block reads
   as `6 + 3` and passes a cap of 6 — the single cheapest way to fake compliance.
 - **A work marker is free** (`TODO` `FIXME` `HACK` `XXX` `BUG`, or whatever 1.2 found this
-  repo exempts). It does not count toward the cap and it does not split the run. Both halves
+  repo exempts). It does not count toward the cap and it does not split the comment run. Both halves
   matter: if it counted, the cheapest route to green would be deleting a pointer to filed
   work; if it split, a block could be made compliant by adding one. ⚠ **A marker's
   CONTINUATION lines still count** — only the marker line itself is free.
@@ -414,6 +418,7 @@ Marks, and what resolving each one means:
 | `coverage-claim` | does the guard exist — **can it fail**, and does it pass with its exemptions OFF? |
 | `forbids-a-literal` | grep the forbidden literal across that file |
 | `repeated-literal` | where else is this number written? one source at both ends of a round trip? |
+| `narrative-in-docstring` | is the date, review label or *"used to"* a claim about HISTORY rather than about the code now? |
 
 ⚠⚠ **The last four are where the defects are. Check the CLAIM, not the CITATION.** Resolving
 a path *feels* like verification; resolving a claim **is** it.
