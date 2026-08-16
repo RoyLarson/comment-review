@@ -51,8 +51,15 @@ hyphen — the only present-tense claim about the dead path in the whole set.**
 *"the ONE place this is read"*, *"only one caller"*, *"twenty call sites"*, *"write-only — no
 reader"*, *"single source of truth"*, *"exactly ONE production call site"*, *"every X does Y"*.
 
-**Enumerate the sites and report the number you counted, with its population** — the brief's
-existence-grep trap, in the form it takes here.
+⚠⚠ **A GREP FOR THE SYMBOL PASSES EVERY ONE OF THESE, and here is the failure in order.** The
+claim is *"only one caller"*. You grep the name; it is there; the citation resolves; you emit
+`clean`. But the claim was never *"the name exists"* — it was **one** — and nothing you did
+tested a number. The comment stays, now certified, and the next reader trusts it.
+
+**So enumerate the sites, and state the POPULATION you enumerated over** — all callers, or
+production callers, or callers outside tests. A number with no population is a different claim
+from the one the comment made, and it can be right about the wrong set. Measured on the claim
+that motivated this rule: the population was named precisely and the count was still wrong.
 
 ⚠ **This checklist is naturally better at prose over-claiming LIVENESS than DEADNESS.** Finding
 a reader **REFUTES** a *"no reader"* claim — it never satisfies the check. Watch for the

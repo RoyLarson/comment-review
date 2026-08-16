@@ -158,11 +158,6 @@ Resolving a path or a symbol is cheap and *feels* like verification. Resolving a
 the verification. A resolved citation is not a verified one — open the target and read it, or
 the verdict is `query`.
 
-⚠ **An existence grep passes every counted claim.** The symbol is right there, so the grep
-returns clean and you report the claim `clean`. Enumerate instead, and report the number — and
-re-derive the POPULATION too, not only the count. Measured twice on the very claim that
-motivated the rule: the population was named precisely and the count was still wrong.
-
 ⚠ **Evidence outside the checkout can never be settled.** If the line that settles a claim is
 generated, gitignored, remote, or on one machine, there is no state in which "I read both
 sides" is true. That is a `query`, and say why.
