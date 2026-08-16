@@ -135,7 +135,10 @@ deliberately separate stages/actors.
 ### `census.py` — the only thing the reviewers depend on
 
 `plugins/comment-review/skills/comment-review/scripts/census.py` builds the prose tree from the
-stdlib alone (no third-party dependency), at a per-language tier:
+stdlib alone (no third-party dependency), at a per-language tier. It is one of three: `repo.py`
+answers what the checkout says (git, the filesystem, the exception tuples) and is imported by
+four scripts; `annotate.py` is stage 3, the resolution a reviewer would otherwise do by hand.
+Each announces ONE subject, which is what `module-context` asks of any module:
 
 | tier        | needs                                 | answers                         | cannot answer     |
 | ----------- | ------------------------------------- | ------------------------------- | ----------------- |

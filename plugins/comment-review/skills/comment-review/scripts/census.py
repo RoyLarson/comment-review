@@ -1,28 +1,20 @@
-"""Stages 2-3 of comment-review: ANNOTATE, then FIND REFERENCES.
-
-Two outputs, and the first one is the point:
-
-  CENSUS      every comment run and every docstring, numbered, with the
-              annotations attached to it. The reviewers read this list;
-              all blocks are resolved or the program errors.
-  RESOLUTION  the questions a symbol table and a filesystem can settle, so a
-              reviewer spends its READING on the claims instead.
+"""Stage 2: every comment run and every docstring, located as a numbered block.
 
     python census.py [--repo D] [--cap N] [--width N] [--census-only] [--json] <paths>
 
-Read-only. **Every file handed in is censused, or this errors** -- a file it
-could not read, could not parse, or has no language record for is named and
-exits nonzero, because a block missing from the census is a block nobody
-reviews. Every line it prints is a
-CANDIDATE, `names-a-symbol` most of all -- a backticked token can name a config
-key, a record field or an API payload, and a resolver knows the namespaces it
-was given.
+The reviewers are handed this list, so it is the whole population they rule on.
+**Every file handed in is censused, or this errors** -- a file it could not read,
+could not parse, or has no language record for is named and exits nonzero,
+because a block missing from the census is a block nobody reviews.
 
-The census is built at the TIER available for each file's language. Both tiers
-find the same blocks, and the tier says what else the file can answer:
+Read-only otherwise. It calls `annotate.py` on each block for stage 3, and
+`repo.py` for the facts about the checkout that both need.
+
+A block is built at the TIER available for its file's language. Both tiers find
+the same blocks, and the tier says what else the file can answer:
 
   tokenized  a lexer + AST (Python, from the stdlib)   + DOCSTRING anchors
-  lexical    a comment-syntax record                   blocks + annotations
+  lexical    a comment-syntax record                   blocks
 
 ⚠ Only a STRUCTURAL doc carries an anchor, and only Python has one: the doc is a
 string inside a declaration's body, so the AST names the declaration. A MARKED
@@ -43,47 +35,33 @@ import ast
 import io
 import json
 import re
-import subprocess
 import sys
 import tokenize
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# ⚠ Bound to a NAME so no `except` clause here holds a tuple LITERAL. Under
-# `target-version = "py314"` a formatter rewrites `except (A, B):` into PEP
-# 758's unparenthesised form, a SyntaxError on every older interpreter. This
-# file ships into other repositories and is formatted by THEIR config, so a
-# floor in our own pyproject cannot protect it -- only writing code that has
-# nothing to rewrite can. A `noqa` does not hold here.
-READ_ERRORS = (OSError, UnicodeDecodeError)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from annotate import (  # noqa: E402  -- path shim must run first
+    SYMBOLISH,
+    annotate,
+    prose_numbers,
+)
+from repo import (  # noqa: E402  -- path shim must run first
+    EXCLUDED_DIRS,
+    PARSE_ERRORS,
+    READ_ERRORS,
+    path_index,
+    tracked_paths,
+)
+
 # Same reason, second construct: `isinstance(x, A | B)` PARSES on 3.9 and
 # raises TypeError there. A syntax check cannot see it, so the tuple form is
 # the one that actually runs where this file is claimed to run.
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
-# ⚠ ValueError included: `ast.parse` raises it (not SyntaxError) on a source
-# string containing a NUL byte -- a file that decoded as valid UTF-8 and so
-# passed `READ_ERRORS` cleanly. `code_names` walks the whole repo, so one such
-# file would crash the entire census rather than degrade one file's harvest.
-PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError, ValueError)
-# ⚠ UnicodeDecodeError included, on purpose, not an oversight: `git()` pins
-# `encoding="utf-8"` with the default `errors="strict"`, so a tracked path or
-# a blob that is not valid UTF-8 raises OUT OF `subprocess.run` itself, before
-# any caller sees a return code. Every caller of `git()` already treats
-# `GIT_ERRORS` as "git could not produce this" and degrades accordingly
-# (`None`, or `(None, reason)` where a reason is threaded through) -- a decode
-# failure is the same kind of non-answer and is declared here rather than left
-# to crash `git_ls_files` / `_grep` / `_show` on the first non-UTF-8 path.
-GIT_ERRORS = (OSError, subprocess.SubprocessError, UnicodeDecodeError)
 
-# A virtualenv in the tree POISONS the name corpus: every installed package's
-# methods become "known", so a real obituary is suppressed because some library
-# happens to define that name. It also makes the count depend on what is
-# installed, so the same file censuses differently on two machines.
-EXCLUDED_DIRS = frozenset(
-    {"__pycache__", ".venv", "venv", "site-packages", "node_modules", ".git"}
-)
 
 # Free markers point OUTWARD, at work that is not done, so they are not the
 # explanation and must not be charged to its cap. A cap that counts them makes
@@ -115,74 +93,6 @@ def counted_lines(raw: list[str]) -> int:
 # ── Marks ─────────────────────────────────────────────────────────────────────
 # Each is located here and RESOLVED below. Locating is most of the work; the
 # resolution is what stops a reviewer treating a citation as a verified claim.
-
-PATH_CITE = re.compile(r"`?([\w./-]+\.(?:py|md|toml|txt|json|ya?ml))(?:::(\w+))?`?")
-TICKED = re.compile(r"`([^`\s]+)`")
-# A token that could name a symbol. Single words count: every one-word module in
-# a package is otherwise invisible, and a deleted one is the commonest obituary.
-# A trailing call form is stripped — `foo()` is the clearest way prose marks a
-# function, and the shape that most often escapes the check.
-CALLFORM = re.compile(r"\(\s*(?:\.\.\.|…)?\s*\)$")
-SYMBOLISH = re.compile(r"^[A-Za-z_][\w.]*$")
-NOT_A_SYMBOL = frozenset(
-    {"true", "false", "none", "null", "and", "or", "not", "if", "in", "is"}
-)
-
-COUNTED = re.compile(
-    r"(?i)\b(one|two|three|four|five|six|seven|eight|nine|ten|only|every|all|no|"
-    r"single|exactly|\d+)\s+"
-    r"(call sites?|callers?|files?|modules?|tests?|readers?|consumers?|copies|"
-    r"producers?|renderers?|writers?|places?|definitions?|sources?|entry points?)\b"
-)
-COVERAGE = re.compile(
-    r"(?i)\b(pinned|guarded|asserted|enforced|covered|checked|locked)\s+(by|in)\b"
-    r"|\bthe only call site\b|\bread by nothing\b|\bno reader\b|\bwrite-only\b"
-    r"|\bsingle source of truth\b|\bnothing (reads|calls|enforces)\b"
-)
-FORBIDS = re.compile(
-    r"(?i)\b(never|must not|do not|don't|no)\b[^.]{0,80}?"
-    r"(\b\d+(?:\.\d+)?\b|`[^`]+`|\bliteral\b|\bhardcod\w+\b)"
-)
-# A bare number in prose. Cheap to find, and worth nothing until it is seen
-# twice — the pair is where a hand-copied threshold drifts from its twin.
-# ⚠ Dates are stripped first. Left in, every `2026-08-09` contributes three
-# "repeated" numbers, and the annotation drowns in its own noise.
-NUMBER = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.%])")
-DATEISH = re.compile(r"\b\d{4}-\d{2}-\d{2}\w*|\bv?\d+\.\d+\.\d+\b")
-
-
-def prose_numbers(text: str) -> set[str]:
-    """Numbers a reader would call a VALUE — dates and versions removed."""
-    return {n for n in NUMBER.findall(DATEISH.sub(" ", text)) if len(n) > 1}
-
-
-NARRATIVE = {
-    "a date": re.compile(r"\b\d{4}-\d{2}-\d{2}\w*"),
-    "a review label": re.compile(
-        r"(?i)\bfix (wave|round)\b|\bfinding [A-Z]?\d|\breview finding\b"
-        r"|\bround \d\b|\bCRITICAL [A-Z0-9]\b"
-    ),
-    # ⚠ `used to` needs a VERB OF SAYING after it, not any verb. A bare
-    # `\bused to\b` matches "often used to model a count process" -- ordinary
-    # English about what a thing is FOR, not a claim about what the code once
-    # was. Measured on a scientific library: 4 hits, 4 false, and that was the
-    # entire narrative class on that corpus.
-    "a retraction": re.compile(
-        r"(?i)\bretract(ed|ion)?\b|\bpreviously\b|\bno longer\b"
-        r"|\bused to (say|read|be|claim|mean|do|call|live|sit|carry|hold|return)\b"
-        r"|\ban earlier (version|draft)\b|\bas before\b"
-    ),
-    "a rejected alternative": re.compile(
-        r"(?i)considered and rejected|\brejected in favou?rs? of\b"
-        r"|\bwas tried and\b|\balternatives? (were|was) (considered|rejected)\b"
-    ),
-}
-
-# A runnable usage line is exempt from the narrative check: a date in
-# `--start 2026-07-14` is a copy-pasteable EXAMPLE, not a claim about history.
-# Without this WRITE pushes a working command out of a docstring in favour
-# of a placeholder, degrading the docs to please a checker.
-COMMAND_LINE = re.compile(r"^\s*(\$ |uv run |python |pytest |npm |cargo |go )")
 
 
 @dataclass
@@ -598,6 +508,24 @@ def _annotated_docs(path: Path, tree: ast.AST) -> list[Block]:
     return out
 
 
+def _walk(root: Path):
+    """Every file under `root` this script has a language record for.
+
+    ⚠ Filters on `BY_EXT`, not on `*.py`. Hardcoding one suffix here made a
+    directory scan silently Python-only while `--languages` advertised eleven —
+    and silently is the worst part: a file the walk never yields cannot appear
+    in the NOT CHECKED list either, so the run reports a clean census of a
+    fraction of the tree.
+    """
+    if root.is_file():
+        yield root
+        return
+    for p in sorted(root.rglob("*")):
+        if p.is_file() and p.suffix.lower() in BY_EXT:
+            if not EXCLUDED_DIRS.intersection(p.parts):
+                yield p
+
+
 def code_names(
     roots: list[Path], tracked: set[Path] | None = None
 ) -> tuple[set[str], list[str]]:
@@ -666,194 +594,6 @@ def code_names(
                     if isinstance(node.value, str) and SYMBOLISH.match(node.value):
                         names.add(node.value)
     return names, unread
-
-
-def _walk(root: Path):
-    """Every file under `root` this script has a language record for.
-
-    ⚠ Filters on `BY_EXT`, not on `*.py`. Hardcoding one suffix here made a
-    directory scan silently Python-only while `--languages` advertised eleven —
-    and silently is the worst part: a file the walk never yields cannot appear
-    in the NOT CHECKED list either, so the run reports a clean census of a
-    fraction of the tree.
-    """
-    if root.is_file():
-        yield root
-        return
-    for p in sorted(root.rglob("*")):
-        if p.is_file() and p.suffix.lower() in BY_EXT:
-            if not EXCLUDED_DIRS.intersection(p.parts):
-                yield p
-
-
-def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
-    r"""Every git invocation this plugin makes. ONE place, on purpose.
-
-    ⚠ `core.quotePath` DEFAULTS TO TRUE, so git renders a non-ASCII path as
-    octal escapes -- `"caf\303\251.py"`, quotes included. Measured: a tracked
-    `café.py` defining `helper_name` dropped out of the live-name corpus with
-    NOTHING appended to `unread`, so every symbol defined only there became a
-    false obituary and the coverage hole was silent. The same escaping makes
-    `path_index` report a comment citing that file as UNRESOLVED -- a false
-    finding handed to four reviewers as settled fact.
-
-    ⚠ The encoding is PINNED for the same reason: git writes UTF-8, and
-    `text=True` alone decodes with the machine's locale, so a non-ASCII path
-    arrives corrupted on this repo's own cp1252 machine.
-
-    Both are one-line fixes, and both were applied to some call sites and not
-    others -- three scripts each received the encoding fix independently and
-    none received the quoting fix. Routing every call through here is what
-    makes the NEXT git-decoding hazard a one-place fix.
-
-    Exceptions are NOT caught here: `GIT_ERRORS` and a nonzero return code mean
-    different things at each call site (None as a third state, a real
-    zero-match search), and collapsing them here would erase that.
-
-    Args:
-        repo: the repository root, passed as `-C`.
-        *args: the git subcommand and its arguments.
-        timeout: seconds before `subprocess.TimeoutExpired`.
-
-    Returns:
-        The completed process, with `check=False` -- the caller reads
-        `returncode` itself.
-    """
-    return subprocess.run(
-        ["git", "-c", "core.quotePath=false", "-C", str(repo), *args],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        timeout=timeout,
-        check=False,
-    )
-
-
-def git_ls_files(repo: Path) -> list[str] | None:
-    """Tracked, repo-relative posix paths — or None when git cannot answer.
-
-    None is a THIRD state, not an empty list: "this is not a git checkout" and
-    "this checkout tracks nothing" lead to different fallbacks, and collapsing
-    them lets a working tree with no index silently produce an empty corpus.
-
-    Args:
-        repo: the repository root.
-
-    Returns:
-        The tracked paths, or None if this is not a git repo or git is absent.
-    """
-    if not repo.is_dir():
-        return None
-    try:
-        listed = git(repo, "ls-files")
-    except GIT_ERRORS:
-        return None
-    if listed.returncode != 0:
-        return None
-    return listed.stdout.splitlines()
-
-
-def tracked_paths(repo: Path) -> set[Path] | None:
-    """`git_ls_files` as resolved absolute paths, for membership tests."""
-    rels = git_ls_files(repo)
-    if rels is None:
-        return None
-    return {(repo / rel).resolve() for rel in rels}
-
-
-def path_index(repo: Path) -> set[str]:
-    """Every tracked path, plus every suffix of it, for citation resolution.
-
-    Prose cites package-relative (`summary.py`, `billing/rates.py`) far more
-    often than repo-relative, and a run's working directory is not guaranteed
-    to be the repo root.
-    Resolving only against the repo root was measured at 80/84, 18/20 and 2/2
-    FALSE dangling reports on one repository — an annotation handed to four
-    reviewers as settled fact.
-
-    A suffix set answers "is this citation ANY file in the tree" in one lookup,
-    which is the question prose is actually asking. Walking the tree once and
-    indexing beats trying N candidate roots per citation.
-
-    ⚠ TRACKED files only, via `git ls-files`. That is faster than walking a tree
-    full of generated data, and it is also more correct: a citation into
-    gitignored runtime state is UNVERIFIABLE (absent from every fresh checkout),
-    which is a different finding from a citation that resolves nowhere. Measured
-    on one repo, 6 of 20 "dangling" reports were gitignored state.
-    """
-    out: set[str] = set()
-    if not repo.is_dir():
-        return out
-    rels = git_ls_files(repo)
-    # ⚠ Written out rather than collapsed to `if not rels`. The two states DO
-    # take the same fallback here -- an index that tracks nothing indexes the
-    # same set as no index at all -- but `git_ls_files` documents None as a
-    # THIRD state, and a reader who sees them collapsed learns the opposite of
-    # what that docstring says.
-    if rels is None or not rels:  # not a git repo, git unavailable, or empty
-        rels = [
-            p.relative_to(repo).as_posix()
-            for p in repo.rglob("*")
-            if p.is_file() and not EXCLUDED_DIRS.intersection(p.parts)
-        ]
-    for rel in rels:
-        parts = rel.split("/")
-        for i in range(len(parts)):
-            out.add("/".join(parts[i:]))
-    return out
-
-
-def annotate(block: Block, known: set[str], paths: set[str], repo: Path) -> None:
-    """Attach every annotation this block carries, and resolve it where possible."""
-    t = block.text
-    if not t:
-        return
-
-    for tok in TICKED.findall(t):
-        tok = CALLFORM.sub("", tok)
-        if not SYMBOLISH.match(tok) or tok.lower() in NOT_A_SYMBOL:
-            continue
-        block.annotations.add("names-a-symbol")
-        # The HEAD segment must resolve, not ANY segment: matching any part lets
-        # `Thing.meta` pass on `meta`, the canonical obituary hiding behind a
-        # common attribute name.
-        if tok not in known and tok.split(".")[0] not in known:
-            block.notes.append(f"UNRESOLVED symbol `{tok}` (CANDIDATE)")
-
-    for cited, member in PATH_CITE.findall(t):
-        block.annotations.add("cites-a-path")
-        if cited not in paths and (repo / cited).exists():
-            # Present on disk, absent from the index: derived or gitignored.
-            # No reviewer in a fresh checkout can read it, so a claim resting on
-            # it is UNVERIFIABLE — which is a different verdict from a citation
-            # that resolves nowhere, and must not be reported as the same thing.
-            block.notes.append(f"UNVERIFIABLE path {cited} (untracked/derived)")
-        elif cited not in paths:
-            block.notes.append(f"UNRESOLVED path {cited}")
-        elif member and member.startswith("test_"):
-            block.notes.append(f"cites {cited}::{member} — confirm the test exists")
-
-    if m := COUNTED.search(t):
-        block.annotations.add("counted")
-        block.notes.append(f"RE-COUNT, and name the population: {m.group(0)!r}")
-    if m := COVERAGE.search(t):
-        block.annotations.add("coverage-claim")
-        block.notes.append(
-            f"CHECK the guard exists AND can fail, exemptions OFF: {m.group(0)!r}"
-        )
-    if m := FORBIDS.search(t):
-        block.annotations.add("forbids-a-literal")
-        block.notes.append(f"GREP this file for what it forbids: {m.group(0)[:60]!r}")
-
-    if block.kind == "docstring":
-        for label, pat in NARRATIVE.items():
-            for raw in block.raw_lines:
-                if COMMAND_LINE.match(raw):
-                    continue
-                if pat.search(raw):
-                    block.annotations.add("narrative-in-docstring")
-                    block.notes.append(f"{label}: {raw.strip()[:60]}")
-                    break
 
 
 def tier_for(lang: Language) -> str:

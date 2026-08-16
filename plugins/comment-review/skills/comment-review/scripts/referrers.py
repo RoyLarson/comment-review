@@ -23,10 +23,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 # ⚠ The exception tuples are IMPORTED, not re-declared. Each is bound to a
-# NAME so no `except` clause holds a tuple literal, and `census.py` carries
+# NAME so no `except` clause holds a tuple literal, and `repo.py` carries
 # the reason once; a second copy of that reasoning is the restated rule this
 # skill exists to find, and the copies drift before the code does.
-from census import (  # noqa: E402  -- path shim must run first
+from repo import (  # noqa: E402  -- path shim must run first
     GIT_ERRORS,
     PARSE_ERRORS,
     READ_ERRORS,

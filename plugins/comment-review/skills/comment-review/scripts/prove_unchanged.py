@@ -52,16 +52,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 # ⚠ `READ_ERRORS` is IMPORTED, not re-declared. It is bound to a NAME so no
-# `except` clause holds a tuple literal, and `census.py` carries the reason
+# `except` clause holds a tuple literal, and `repo.py` carries the reason
 # once -- a second copy of that reasoning drifts before the code does.
 from census import (  # noqa: E402  -- path shim must run first
-    GIT_ERRORS,
-    READ_ERRORS,
     Language,
     blocks_lexical,
+    language_for,
+)
+from repo import (  # noqa: E402  -- path shim must run first
+    GIT_ERRORS,
+    READ_ERRORS,
     git,
     git_ls_files,
-    language_for,
 )
 
 DOC_ANCHORS = (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
