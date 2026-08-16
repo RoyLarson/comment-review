@@ -63,7 +63,7 @@ python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
 ruff check .
 ruff format .
 
-# Gate check: refuse to ship a plugins/ file that won't parse on the floor interpreter (py3.9).
+# Gate check: refuse to ship a plugins/ file that won't parse on the floor interpreter (py3.11).
 # Run AFTER `ruff format`.
 python scripts/check_shipped_syntax.py
 
@@ -171,7 +171,7 @@ codebase:
 - No `except` clause in a shipped file holds a tuple literal — every exception tuple is bound to
   a name (e.g. `READ_ERRORS`, `PARSE_ERRORS`) so there is nothing for a formatter to rewrite.
   A `noqa` was tried and does not hold, because it suppresses the report, not the rewrite.
-- `pyproject.toml`'s `target-version = "py39"` protects *this repo's own* formatting only; it
+- `pyproject.toml`'s `target-version = "py311"` protects *this repo's own* formatting only; it
   cannot protect a file after it has been copied elsewhere — `scripts/check_shipped_syntax.py`
   is the actual floor check, and it must be run after `ruff format`.
 

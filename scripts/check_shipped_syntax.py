@@ -23,7 +23,7 @@ from pathlib import Path
 # The oldest interpreter a shipped file must parse on. Not a packaging floor --
 # there is no package here -- so it is stated once, in code, where the check
 # that enforces it can read it.
-FLOOR = (3, 9)
+FLOOR = (3, 11)
 FLOOR_TEXT = ".".join(str(n) for n in FLOOR)
 
 SHIPPED = "plugins"

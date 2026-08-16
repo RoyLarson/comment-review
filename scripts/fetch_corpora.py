@@ -19,9 +19,8 @@ import argparse
 import shutil
 import subprocess
 import sys
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 # The script lives in scripts/; the manifest and the fetched trees live in
 # corpora/. Anchored on the repo root rather than on the script so it can be

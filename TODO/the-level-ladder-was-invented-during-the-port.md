@@ -65,6 +65,6 @@ here so a status rewrite cannot lose it again.
 
 - [ ] ⚠ Fix the dangling recommendation in
       [`the-task-agent-emits-the-vocabulary`](the-task-agent-emits-the-vocabulary.md), which
-      offers `LEVELS = (...)` as the 3.9-safe idiom to copy for a `--reviewer` selector. If
-      `LEVELS` is deleted, that model goes with it — `class Reviewer(str, Enum)` is the form that
-      survives either way.
+      offered `LEVELS = (...)` as the idiom to copy for a `--reviewer` selector. If `LEVELS` is
+      deleted, that model goes with it — and since the floor moved to 3.11 on 2026-08-16,
+      `StrEnum` is available and is what that selector should use.

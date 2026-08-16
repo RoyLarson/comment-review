@@ -16,7 +16,20 @@ number as a semver claim, or "corrects" the next one to `0.2.0`.
 
 ## [Unreleased]
 
-_Nothing yet._
+### Changed — BREAKING
+
+- **The shipped floor is Python 3.11, raised from 3.9.** Roy, 2026-08-16: *"3.9 went end of life
+  last year, 3.10 probably goes end of life in 2 months."* The floor had been set BELOW the
+  oldest supported Python — 3.9 ended October 2025, 3.10 ends October 2026 — and it blocked two
+  design choices in one conversation: `tomllib` and `StrEnum`, both 3.11, both of which PARSE at
+  the old floor and fail at import, which `check_shipped_syntax.py` cannot see.
+
+  `FLOOR = (3, 11)` and `target-version = "py311"`. ⚠ The formatter rewrote **nothing** in
+  `plugins/` at the new target, so no shipped file changed shape. ⚠ The rule that no `except`
+  clause may hold a tuple literal STILL stands: PEP 758's unparenthesised form is 3.14, so a
+  repo targeting py314 can still rewrite shipped code into syntax 3.11 rejects.
+
+  Users on 3.9 or 3.10 are no longer supported.
 
 ## [0.1.3] — 2026-08-16
 

@@ -29,9 +29,22 @@ That is the only way to get it into the system anyways."*
 
 ## Tasks
 
-- [ ] Move the vocabulary into `plugins/` as a compact record — term, definition, and which
-      agents need it — separate from the survey and the rulings, which stay in `docs/`. ⚠ It then
-      falls under `scripts/check_vocabulary.py`, whose two checks should extend to it.
+- [ ] Move the vocabulary into `plugins/` as **`references/vocabulary.toml`**, shaped so a
+      definition is written once and the roles list only keys — Roy, 2026-08-16: *"words are
+      going to be common between each role without being used by all roles, so we should instead
+      have all of the definitions at the top of the file … and that is now a toml file and that
+      makes it a load and a simple intersection."*
+
+      ```toml
+      [definitions]     # term -> the definition, written ONCE
+      [roles]           # role -> the terms it gets, KEYS only
+      ```
+
+      ⚠ **TOML needs `tomllib`, which is 3.11+**; the floor was raised to 3.11 on 2026-08-16 for
+      exactly this, so it is available and stdlib. JSON, a markdown file with a parser, and a
+      Python data table were the alternatives if the floor had stayed at 3.9.
+      ⚠ It then falls under `scripts/check_vocabulary.py`, whose two checks should extend to it —
+      a term with no definition, and a role listing a key that `[definitions]` does not hold.
 
 - [ ] Measure which terms each agent needs, rather than judging it. Roy: *"judge by current terms
       used in both the agent definition files and the `references/*.md` files."* A term used only
@@ -53,12 +66,9 @@ That is the only way to get it into the system anyways."*
 - [ ] Add the selector to `sk-scripts/run_context.py` — Roy: *"`--editorial-role` or `--reviewer`
       with a StrEnum defining them."*
 
-      ⚠ **`StrEnum` is Python 3.11+ and the shipped floor is 3.9.** `from enum import StrEnum`
-      PARSES at the floor and fails at import, so `scripts/check_shipped_syntax.py` cannot catch
-      it — its own docstring says *"`ast.parse(feature_version=...)` validates syntax and nothing
-      else."* It would break on a user's machine and never on ours. Use `class Reviewer(str,
-      Enum)`. ⚠ Do NOT copy `LEVELS = ("fact-check", …)` as the model: that tuple is itself
-      slated for removal —
+      ⚠ **UNBLOCKED 2026-08-16**: `StrEnum` is 3.11+ and the floor was raised to 3.11 for this
+      reason, so it is available. ⚠ Do NOT copy `LEVELS = ("fact-check", …)` as the model: that
+      tuple is itself slated for removal —
       [`the-level-ladder-was-invented-during-the-port`](the-level-ladder-was-invented-during-the-port.md).
 
 - [ ] Decide the vehicle. The dispatch PACKET is written once per run and handed to four agents,
