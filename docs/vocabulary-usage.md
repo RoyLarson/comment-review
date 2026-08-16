@@ -1326,6 +1326,25 @@ comment is load-bearing after all.
 implied (`names-its-line`, `states-the-signature`, `derivation`, `names-its-expiry`). The old
 name read as "the only CODE guard" — the opposite of what it acquits.
 
+### worktree — SETTLED 2026-08-16: git's word, not this system's
+
+Roy: *"that is a git concept and user workflow piece. It should be considered resolved."*
+
+The two collected senses are the same git sense used by two dev tools, neither of which ships:
+`scripts/fetch_corpora.py` makes a worktree to materialise a corpus, `evals/grade_hazards.py`
+makes one to isolate a graded run. A word this system does not define is not this system's to
+settle.
+
+⚠ **The defect was never the polysemy — it was six shipped rules citing it as a REASON.**
+*"A relative path does not resolve from a worktree"* justified an absolute-path rule with a fact
+about our eval rig; a user running `/comment-review` in their own checkout is not in one. Fixed
+2026-08-16 across the four agent files, `SKILL.md:344` and `census.py:768`, each given a reason
+that holds in any checkout.
+
+One use remains in `plugins/`, deliberately: `reviewer-brief.md:198`, *"two headline counted
+claims were derived from an archive absent from every worktree"*. That is a measurement about
+one repository in git's ordinary sense — evidence, not a requirement.
+
 ### own / owner / ownership — SETTLED 2026-08-16 for the placement sense; HOME retired
 
 **The OWNER of a comment is the anchor with the best justification for the comment being

@@ -57,7 +57,7 @@ Observed by the scout pass. Recorded as-is.
 | **SUPPRESSED / suppression** | the suppression list, `ref/reviewer-brief.md:234-247` | `referrers.py`'s token noise floor, `sk-scripts/referrers.py:15,147,173` |
 | **label** | acquittal label, `ref/reviewer-brief.md:216` | review-round label, `agents/comment-review-block-context.md:28-29` |
 | **node** | prose-tree node, `SKILL.md:76` | Python AST node, three scripts |
-| **worktree** | corpus isolation, `scripts/fetch_corpora.py:5-7` | eval-run isolation, `evals/grade_hazards.py:7-13` |
+| ~~**worktree**~~ | SETTLED 2026-08-16 — **git's word, not a term of art here** | Both collected uses are ordinary git usage in dev tooling that never ships (`fetch_corpora.py` isolates a corpus, `grade_hazards.py` isolates a graded run). The six shipped sites that used it as a REASON were removed 2026-08-16. The one use left in `plugins/` — `ref/reviewer-brief.md:198`, *"an archive absent from every worktree"* — is a MEASUREMENT about a repository, not a rule |
 
 ---
 
