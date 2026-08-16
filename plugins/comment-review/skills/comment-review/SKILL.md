@@ -82,7 +82,7 @@ instructions:
 - **coverage is a tree walk.** You visited every node or you did not — *"a block nobody
   mentioned is a gap in the review, not a block that passed"* is the walk being complete, not a
   discipline to remember.
-- **the marks are annotations on a node**, so a reviewer receives resolved references instead
+- **the annotations are attached to a node**, so a reviewer receives resolved references instead
   of re-deriving them.
 - **the four editorial roles are four visitors over one tree**, which is why their overlap is signal.
 - **the edits are applied to NODES**, so "never change a line of code" holds by construction
@@ -94,8 +94,8 @@ same blocks and differ only in what else they can say:
 
 | tier | needs | answers | cannot answer |
 |---|---|---|---|
-| `tokenized` | a lexer + AST (Python: the stdlib) | blocks, marks, **docstring** owners | a **comment's** owner |
-| `lexical` | a comment-syntax record, nothing else | blocks, marks | any owner; a marker inside an exotic string |
+| `tokenized` | a lexer + AST (Python: the stdlib) | blocks, annotations, **docstring** owners | a **comment's** owner |
+| `lexical` | a comment-syntax record, nothing else | blocks, annotations | any owner; a marker inside an exotic string |
 
 ⚠⚠ **NO COMMENT carries an owner, in any language.** A docstring's owner comes free from the
 AST; a `#` run's does not, and nothing infers it. So **every ownership-context verdict rests on
@@ -138,7 +138,7 @@ approval.** Two constraints pin it into exactly this slot:
   unaudited — the one thing they are relied on for is that what they saw is what lands.
 
 ⚠ **The two stages have different inputs, and that is deliberate.** APPLY needs the code, the
-marks and one verdict per role that ran. COMPACT needs only the **block's KIND**, the
+annotations and one verdict per role that ran. COMPACT needs only the **block's KIND**, the
 **original block**, the **edited text**, the **cap** and the **style sheet** — never the
 reasoning that produced the edit. That narrower contract is a safety property: an agent that
 never saw the argument cannot preserve a sentence because it remembers writing it, and it is
@@ -349,7 +349,7 @@ python <skill>/scripts/census.py --repo . <paths...>          # no cap, no width
 python <skill>/scripts/census.py --cap 6 --width 88 --repo . <paths...>   # both published
 ```
 
-It emits the numbered tree — `N  file:start-end  kind  lines  marks  (owner)` — with each
+It emits the numbered tree — `N  file:start-end  kind  lines  annotations  (owner)` — with each
 node's references already resolved, and it prints the tier counts for the run. ⚠ Those are
 AGGREGATED across files, not per file — on a polyglot run you cannot tell which file reached
 which tier, which is exactly when it matters. Run it; do not
@@ -410,7 +410,7 @@ wrong changes what the reviewers see:
 
 Marks, and what resolving each one means:
 
-| mark | resolved by |
+| annotation | resolved by |
 |---|---|
 | `cites-a-path` | tracked in the tree? ⚠ present-but-untracked is **unverifiable**, not dangling |
 | `names-a-symbol` | `workspaceSymbol` where 1.7 found a server, else the AST corpus (head segment; `foo()` normalised) |
@@ -437,7 +437,7 @@ it and could disagree.
   anything uses it, which is the stronger claim a comment usually makes.
 
 ⚠ **A server does not settle a claim, it settles a FACT.** "This name exists" is not "this
-comment is true" — the mark stays a CANDIDATE a reviewer confirms, exactly as when the AST
+comment is true" — the annotation stays a CANDIDATE a reviewer confirms, exactly as when the AST
 answered it. What changes is the cost of checking, not who decides.
 
 ⚠⚠ **Say which servers answered, in the stage 2–3 report, per language.** Availability is a
@@ -650,7 +650,7 @@ not once per verdict. The check compares against the original, and the original 
 ⚠ **Dedup on the CLAIM, not the block**, before any of this.
 
 ⚠⚠ **THE SENTENCE YOU PROPOSE TO KEEP IS A FINDING YOU HAVE NOT RAISED.** Before any `patch`
-or `move`, verify the retained clause the way stage 3 resolves a mark. The reviewer keeps the
+or `move`, verify the retained clause the way stage 3 resolves an annotation. The reviewer keeps the
 load-bearing-*sounding* clause — which is the claim, which is what is wrong — and cuts the
 **provenance** around it: the date, the pointer, the grepable name.
 

@@ -232,9 +232,9 @@ constraint.
 
 ## The suppression list — reasons to distrust a DETECTOR
 
-A **detector** is a census mark read as a signal, and its PRECISION is how often it is right.
+A **detector** is a census annotation read as a signal, and its PRECISION is how often it is right.
 The acquittal list excuses a *block*. It can never silence a detector, and a noisy one buries
-its own hits. Where a mechanical mark fires broadly, report it as a **batch to triage**, not as
+its own hits. Where an annotation fires broadly, report it as a **batch to triage**, not as
 findings — and carry its measured rate so the next reviewer knows what it is worth.
 
 Rates measured on one repository, each near-total false positive: a date or path that is an

@@ -97,6 +97,24 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   reaches stage 6 through `compact.md`'s own input contract, and `census.py --cap` is
   unaffected.
 
+- **The census's `marks` are `annotations`.** `mark` named four things; the metaphor settles
+  which keeps it. In publishing, *editorial marks* are what an editor writes on a manuscript —
+  delete, transpose, insert, stet — which is a verdict, and what stage 4 emits. The census's
+  are mechanical observations about the text. ⚠ The tell was in the numbering: the marks table
+  sat inside `SKILL.md`'s **"Stages 2–3 — ANNOTATE, then FIND REFERENCES"**, so they were made
+  one stage BEFORE the stage called MARK — and `SKILL.md` already called them *"annotations on
+  a node"*.
+
+  | was | now |
+  | --- | --- |
+  | `block.marks` | `block.annotations` |
+  | `mark()` | `annotate()` |
+  | the `"marks"` census JSON key | `"annotations"` |
+
+  **A saved census breaks.** The key is a published interface; anything reading one must be
+  updated. Work MARKERS (`TODO`, `FIXME`) are untouched, and "marked" in the verdict sense is
+  unchanged pending the edit-mark work.
+
 - **Stage 5 is APPLY; stage 7b is WRITE.** `apply` had come to name both — applying a MARK to
   produce replacement text (5), and applying approved text to disk (7b). Applying a mark is
   what stage 5 does, and it is the sense the skill's own verdict table already used

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks done
+Progress: 0 of 9 tasks done
 Owner:    session
 Raised:   2026-08-15 (Roy ruled (a): every interval is a block, empty ones included)
 ```
@@ -64,8 +64,16 @@ vocabulary and is done; this is the census change that follows from it.
       [`the-finding-record-is-eight-fields-and-six-would-do`](the-finding-record-is-eight-fields-and-six-would-do.md),
       which is blocked on exactly this.
 
+- [ ] ⭐ Relitigate the name **ANNOTATE** once the pCST exists. Roy, 2026-08-16: *"I think at a
+      future time we might relitigate the word ANNOTATE. It seems close but not quite correct
+      for the stage that is about turning the code into the pCST and finding external
+      references."* Deliberately deferred — the name should be chosen against what the stage
+      does once it builds intervals rather than prose runs, not before. ⚠ Stage 2 keeping the
+      name is what made `annotation` the right word for the census's marks; if ANNOTATE moves,
+      check that pairing still holds.
+
 - [ ] Re-measure the census afterwards and record it. Today `census.py --json` over `census.py`
       is 60,503 bytes for 59 blocks (~1,025 bytes each); an empty interval carries no text,
-      `raw_lines` or marks, so ~203 bytes each puts the ~547 empty ones near 111 KB. ⚠ Record
+      `raw_lines` or annotations, so ~203 bytes each puts the ~547 empty ones near 111 KB. ⚠ Record
       it as a fact, not as a budget question — `docs/limitations.md` states that rule files are
       budgeted and run data is not.

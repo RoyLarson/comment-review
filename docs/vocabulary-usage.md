@@ -1220,6 +1220,44 @@ also caught that "identity" overstates it: *"identity is the goal, idempotent is
 the reality."* The code agreed — `_residue()` right-strips every line and drops blanks before
 comparing, so the script's own "byte for byte" and "code identical" were wrong and are fixed.
 
+### mark — SETTLED 2026-08-15. The census's are ANNOTATIONS; `mark` is editorial
+
+`mark` named four things. Roy ruled the split by the metaphor the system already runs on: in
+publishing, **editorial marks are what an editor writes on a manuscript** — delete, transpose,
+insert, stet. That is a verdict, and it is what stage 4 emits. The census's things are
+mechanical observations about the text, so they were the ones misnamed.
+
+⚠ **The tell was in the numbering.** The marks table sat inside `SKILL.md`'s *"Stages 2–3 —
+ANNOTATE, then FIND REFERENCES"* section, so the marks were made one stage BEFORE the stage
+called MARK — and `SKILL.md` already called them *"annotations on a node"* while stage 2 is
+literally named ANNOTATE.
+
+| was | now | made at |
+| --- | --- | --- |
+| a census mark — `block.marks`, `mark()`, the `"marks"` JSON key, `names-a-symbol`, `cites-a-path`, `counted`, `coverage-claim`, `forbids-a-literal`, `repeated-literal`, `narrative-in-docstring` | **annotation** — `block.annotations`, `annotate()`, `"annotations"` | stages 2–3 |
+| stage 4's name, and what it emits | **MARK**, emitting **edit marks** | stage 4 |
+| "only what was marked", "an unmarked block is never written" | unchanged for now — the edit-mark sense | stage 5 |
+| a work MARKER (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`) | unchanged — the `-er` keeps it apart | — |
+
+⚠ **`"marks"` was a published JSON key.** Anything reading a saved census breaks. 25 code sites
+across `census.py`, `prove_unchanged.py`, two test files and `evals/generator_split.py`.
+
+### pCST — pseudo Concrete Syntax Tree
+
+What the census builds: **every interval between two lines of code, as a node**. *Pseudo*
+because it comes from a comment-syntax record and a lexer, not from the language's own grammar
+— it knows where prose sits, not what the code means. Only Python reaches a real parser, and
+only for the CODE CHECK.
+
+Roy, ruling that every interval is a block including the empty ones: *"I don't see a way around
+this pseudo-concrete syntax tree and I don't think it matters."*
+
+⚠ Not a synonym for **prose tree**. The prose tree is the census as it stands — a node per
+comment run and per docstring, so an interval holding nothing produces nothing. The pCST is
+what it becomes once empty intervals are enumerated too, which is
+[`an-empty-interval-has-no-census-index`](../TODO/an-empty-interval-has-no-census-index.md) and
+is not done.
+
 ### budget — SETTLED 2026-08-15, split three ways. ⚠ MISSED BY THE COLLECTION
 
 ⚠ **Not in either table of `vocabulary-inventory.md` as first produced.** Twelve agents over the

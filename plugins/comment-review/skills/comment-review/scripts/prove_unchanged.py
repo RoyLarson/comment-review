@@ -39,7 +39,7 @@ swallows every line below the opener into that one run, so a code change after
 that point never reaches the comparison and the residue is merely SHORT -- not
 obviously wrong, and equal across two files whose code differs. The census
 stamps that run `unterminated-block-comment` and this refuses the file on the
-mark, rather than on a residue that only LOOKS like a proof.
+annotation, rather than on a residue that only LOOKS like a proof.
 """
 
 from __future__ import annotations
@@ -122,7 +122,7 @@ def _residue(text: str, path: Path) -> str | None:
     to end -- is refused, not guessed at: the whole file becomes unprovable.
 
     An UNTERMINATED block comment is refused the same way, on the census's own
-    `unterminated-block-comment` mark. The lexer swallows every line below the
+    `unterminated-block-comment` annotation. The lexer swallows every line below the
     opener into that run, so the code below it never reaches the comparison and
     the residue is merely SHORT -- short, plausible and equal on two files whose
     executable code differs.
@@ -134,7 +134,7 @@ def _residue(text: str, path: Path) -> str | None:
         blocks = blocks_lexical(path, text, lang)
     except Exception:  # noqa: BLE001  -- an unprovable file is reported, not passed
         return None
-    if any("unterminated-block-comment" in b.marks for b in blocks):
+    if any("unterminated-block-comment" in b.annotations for b in blocks):
         return None
 
     lines = text.splitlines()

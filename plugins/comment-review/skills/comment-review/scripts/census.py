@@ -2,9 +2,9 @@
 
 Two outputs, and the first one is the point:
 
-  CENSUS      every comment run and every docstring, numbered, with the marks
-              attached to it. The reviewers walk this list; a block missing from
-              it is a block nobody reviews.
+  CENSUS      every comment run and every docstring, numbered, with the
+              annotations attached to it. The reviewers walk this list; a
+              block missing from it is a block nobody reviews.
   RESOLUTION  the questions a symbol table and a filesystem can settle. A
               reviewer that spends its READING re-deriving these has spent it
               badly.
@@ -21,7 +21,7 @@ The census is built at the TIER available for each file's language. Both tiers
 find the same blocks; they differ only in what else they can say:
 
   tokenized  a lexer + AST (Python, from the stdlib)   + DOCSTRING owners
-  lexical    a comment-syntax record, nothing else     blocks and marks
+  lexical    a comment-syntax record, nothing else     blocks + annotations
 
 ⚠ NO COMMENT carries an owner at either tier, so every ownership-context verdict rests
 on a reviewer READING the file. A docstring's owner comes free from the AST; a
@@ -197,7 +197,7 @@ class Block:
     text: str  # the run JOINED, so a wrapped claim matches as one string
     owner: str = ""  # the declaration it annotates, when structurally known
     tier: str = "lexical"  # which question set this file's census can answer
-    marks: set[str] = field(default_factory=set)
+    annotations: set[str] = field(default_factory=set)
     notes: list[str] = field(default_factory=list)
 
     @property
@@ -261,7 +261,7 @@ class Language:
 
 # ⚠ Ordering inside a field is significant: openers are matched longest-first,
 # so `///` must precede `//` or every Rust doc line loses one slash into the
-# prose and the marks then run over corrupted text.
+# prose and the annotations then run over corrupted text.
 LANGUAGES: tuple[Language, ...] = (
     Language("python", (".py", ".pyi"), ("#",), doc_is_structural=True),
     Language(
@@ -301,8 +301,8 @@ BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 # that happens to answer it. Only the top rung knows which declaration a block
 # belongs to, which is why ownership-context is the one role that degrades below it.
 TIER_ANSWERS = {
-    "tokenized": "blocks, marks, and DOCSTRING owners",
-    "lexical": "blocks and marks only",
+    "tokenized": "blocks, annotations, and DOCSTRING owners",
+    "lexical": "blocks and annotations only",
 }
 
 
@@ -347,7 +347,7 @@ def _strip_strings(line: str, quotes: tuple[str, ...]) -> str:
 def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     """Comment runs for a language with no parser here — the FLOOR tier.
 
-    Answers where every block is, its line range, its text and its marks. It
+    Answers where every block is, its line range, its text and its annotations. It
     cannot answer OWNERSHIP, so no block gets an owner and the ownership-context
     role degrades on this file; the census stamps the tier so a reviewer sees that
     rather than inferring it.
@@ -357,7 +357,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     `unterminated-block-comment` rather than returned looking ordinary: a
     consumer cannot otherwise tell a long comment from a lexer that lost the
     rest of the file, and `prove_unchanged.py` refuses the whole file on this
-    mark rather than comparing a residue the code never reached.
+    annotation rather than comparing a residue the code never reached.
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     lines = text.splitlines()
@@ -421,7 +421,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         # The loop ended with a block comment still open, so the final flush
         # emitted the run that ate the rest of the file. It is the ONE block
         # whose text is not known to be prose.
-        out[-1].marks.add("unterminated-block-comment")
+        out[-1].annotations.add("unterminated-block-comment")
         out[-1].notes.append(
             f"UNTERMINATED {in_block[0]}: no closing {in_block[1]} before end of "
             "file, so every line below the opener was swallowed into this run. "
@@ -439,7 +439,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
     tier can apply will separate them. Working it out by reading the file is
     the improvised parse `docs/parsing.md` refuses.
 
-    So the block is marked as an OPEN QUESTION instead. That matters because
+    So the block is annotated as an OPEN QUESTION instead. That matters because
     `compact.md` routes on KIND: a `comment` is governed by LENGTH and may be
     cut to the cap, a `docstring` by FORMAT and may not. Left unmarked, a
     three-line Go export doc counts as over a cap of two and gets cut --
@@ -466,7 +466,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
         nxt = lines[block.end].strip() if block.end < len(lines) else ""
         if not nxt:
             continue
-        block.marks.add("doc-kind-unresolved")
+        block.annotations.add("doc-kind-unresolved")
         block.notes.append(
             "KIND UNRESOLVED: this run sits above code and "
             f"{lang.name} attaches docs by position, so it may be documentation "
@@ -485,7 +485,7 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
         if run:
             # ⚠ PROSE comes from the comment token; WIDTH from the physical
             # line. Using the physical line for both fed a trailing comment's
-            # own code to the mark regexes -- reviewers saw
+            # own code to the annotation regexes -- reviewers saw
             # `models.Index(fields=(...)),  # note` as the note's text -- while
             # `--width` legitimately needs the whole line it must not exceed.
             prose = [c for _, _, c, _ in run]
@@ -802,8 +802,8 @@ def path_index(repo: Path) -> set[str]:
     return out
 
 
-def mark(block: Block, known: set[str], paths: set[str], repo: Path) -> None:
-    """Attach every mark this block carries, and resolve it where possible."""
+def annotate(block: Block, known: set[str], paths: set[str], repo: Path) -> None:
+    """Attach every annotation this block carries, and resolve it where possible."""
     t = block.text
     if not t:
         return
@@ -812,7 +812,7 @@ def mark(block: Block, known: set[str], paths: set[str], repo: Path) -> None:
         tok = CALLFORM.sub("", tok)
         if not SYMBOLISH.match(tok) or tok.lower() in NOT_A_SYMBOL:
             continue
-        block.marks.add("names-a-symbol")
+        block.annotations.add("names-a-symbol")
         # The HEAD segment must resolve, not ANY segment: matching any part lets
         # `Thing.meta` pass on `meta`, the canonical obituary hiding behind a
         # common attribute name.
@@ -820,7 +820,7 @@ def mark(block: Block, known: set[str], paths: set[str], repo: Path) -> None:
             block.notes.append(f"UNRESOLVED symbol `{tok}` (CANDIDATE)")
 
     for cited, member in PATH_CITE.findall(t):
-        block.marks.add("cites-a-path")
+        block.annotations.add("cites-a-path")
         if cited not in paths and (repo / cited).exists():
             # Present on disk, absent from the index: derived or gitignored.
             # No reviewer in a fresh checkout can read it, so a claim resting on
@@ -833,15 +833,15 @@ def mark(block: Block, known: set[str], paths: set[str], repo: Path) -> None:
             block.notes.append(f"cites {cited}::{member} — confirm the test exists")
 
     if m := COUNTED.search(t):
-        block.marks.add("counted")
+        block.annotations.add("counted")
         block.notes.append(f"RE-COUNT, and name the population: {m.group(0)!r}")
     if m := COVERAGE.search(t):
-        block.marks.add("coverage-claim")
+        block.annotations.add("coverage-claim")
         block.notes.append(
             f"CHECK the guard exists AND can fail, exemptions OFF: {m.group(0)!r}"
         )
     if m := FORBIDS.search(t):
-        block.marks.add("forbids-a-literal")
+        block.annotations.add("forbids-a-literal")
         block.notes.append(f"GREP this file for what it forbids: {m.group(0)[:60]!r}")
 
     if block.kind == "docstring":
@@ -850,7 +850,7 @@ def mark(block: Block, known: set[str], paths: set[str], repo: Path) -> None:
                 if COMMAND_LINE.match(raw):
                     continue
                 if pat.search(raw):
-                    block.marks.add("narrative-in-docstring")
+                    block.annotations.add("narrative-in-docstring")
                     block.notes.append(f"{label}: {raw.strip()[:60]}")
                     break
 
@@ -882,7 +882,7 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
 
 
 def main() -> int:
-    """Build the census, resolve its marks, print both."""
+    """Build the census, resolve its annotations, print both."""
     # A report that dies on an em-dash in someone's docstring is not a tool.
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):
@@ -940,7 +940,7 @@ def main() -> int:
         census.extend(got)
 
     for b in census:
-        mark(b, known, paths, repo)
+        annotate(b, known, paths, repo)
 
     # repeated-literal needs the whole census, so it is a second pass. A number
     # written twice is a hand-copied value with nothing keeping the copies in
@@ -954,14 +954,14 @@ def main() -> int:
     for b in census:
         for n in prose_numbers(b.text):
             if seen[n] > 1 and len(where[n]) > 1:
-                b.marks.add("repeated-literal")
+                b.annotations.add("repeated-literal")
                 others = sorted(where[n] - {f"{b.path}:{b.start}"})[:3]
                 b.notes.append(f"{n} also in prose at {', '.join(others)}")
 
     if args.json:
         print(
             json.dumps(
-                [vars(b) | {"marks": sorted(b.marks)} for b in census],
+                [vars(b) | {"annotations": sorted(b.annotations)} for b in census],
                 indent=1,
                 default=str,
             )
@@ -973,13 +973,13 @@ def main() -> int:
     # say least about read exactly like one it could settle.
     tiers = Counter(b.tier for b in census)
     langs = Counter(lang.name for f in files if (lang := language_for(f)) is not None)
-    deferred = [b for b in census if "doc-kind-unresolved" in b.marks]
+    deferred = [b for b in census if "doc-kind-unresolved" in b.annotations]
     over = [
         b
         for b in census
         if args.cap
         and b.kind == "comment"
-        and "doc-kind-unresolved" not in b.marks
+        and "doc-kind-unresolved" not in b.annotations
         and b.lines > args.cap
     ]
     wide = [b for b in census if args.width and b.widest > args.width]
@@ -1011,9 +1011,9 @@ def main() -> int:
 
     print("CENSUS - every block. A block nobody mentions is a gap in the review.")
     for i, b in enumerate(census, 1):
-        marks = ",".join(sorted(b.marks)) or "-"
+        notes = ",".join(sorted(b.annotations)) or "-"
         own = f"  ({b.owner})" if b.owner else ""
-        print(f"{i:4d}  {b.path}:{b.start}-{b.end}  {b.kind}  {b.lines}L  {marks}{own}")
+        print(f"{i:4d}  {b.path}:{b.start}-{b.end}  {b.kind}  {b.lines}L  {notes}{own}")
         if not args.census_only:
             for note in b.notes:
                 print(f"        -> {note}")

@@ -69,7 +69,7 @@ class TestLexicalTier(unittest.TestCase):
 class TestUnterminatedBlockComment(unittest.TestCase):
     """A runaway opener ate the rest of the file, and the census says so.
 
-    C1: without the mark, that run is indistinguishable from a long comment,
+    C1: without the annotation, that run is indistinguishable from a long comment,
     and every line of code below the opener is censused as prose with nothing
     reporting the gap.
     """
@@ -81,11 +81,13 @@ class TestUnterminatedBlockComment(unittest.TestCase):
         return census.blocks_lexical(path, self.RUNAWAY, census.language_for(path))
 
     def test_the_runaway_run_is_marked(self):
-        marks = set().union(*(b.marks for b in self._blocks()))
-        self.assertIn("unterminated-block-comment", marks)
+        found = set().union(*(b.annotations for b in self._blocks()))
+        self.assertIn("unterminated-block-comment", found)
 
     def test_the_mark_carries_a_note_naming_the_delimiter(self):
-        marked = [b for b in self._blocks() if "unterminated-block-comment" in b.marks]
+        marked = [
+            b for b in self._blocks() if "unterminated-block-comment" in b.annotations
+        ]
         self.assertEqual(len(marked), 1)
         self.assertIn("UNTERMINATED", " ".join(marked[0].notes))
 
@@ -93,8 +95,8 @@ class TestUnterminatedBlockComment(unittest.TestCase):
         path = Path("x.go")
         closed = "func A() {}\n/* note */\nfunc B() {}\n"
         blocks = census.blocks_lexical(path, closed, census.language_for(path))
-        marks = set().union(*(b.marks for b in blocks))
-        self.assertNotIn("unterminated-block-comment", marks)
+        found = set().union(*(b.annotations for b in blocks))
+        self.assertNotIn("unterminated-block-comment", found)
 
 
 if __name__ == "__main__":

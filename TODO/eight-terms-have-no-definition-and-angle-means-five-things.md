@@ -86,9 +86,12 @@ the term means, and the two files converge on one `docs/vocabulary.md`.
       two bare prose uses qualified; **`residue`** — `residue-check.md` now says it is not
       `prove_unchanged.py`'s residue, the two being unrelated remainders (what the edit left of
       the CODE, versus what it lost of the PROSE).
-      **Still open:** `worktree`, `mark`, `target`, `author`, `load-bearing`, `obituary`,
-      `guard`. ⚠ `mark` is the hard one — four senses, and it gates the "edit mark is not an
-      action" work in the other file.
+      **`mark` done 2026-08-16** — the census's are ANNOTATIONS, `mark` is editorial. Ruled by
+      the metaphor: editorial marks are what an editor writes on a manuscript, which is what
+      stage 4 emits; the census's are mechanical observations, made at stages 2-3, and
+      `SKILL.md` already called them annotations while stage 2 is named ANNOTATE. 25 code
+      sites, including the published `"marks"` JSON key. Unblocks the edit-mark work.
+      **Still open:** `worktree`, `target`, `author`, `load-bearing`, `obituary`, `guard`.
 
 - [x] Reconcile two marks the published table never listed. **Done 2026-08-15** — `census.py`
       emits `narrative-in-docstring` (`:853`) and `SKILL.md`'s six-row marks table did not

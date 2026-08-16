@@ -19,7 +19,7 @@ manifests. Excluded as historical or vendored, not the live system:
 - `sk-scripts/…` = `plugins/comment-review/skills/comment-review/scripts/…`
 - `agents/…` = `plugins/comment-review/agents/…`
 
-**Count: 109 terms** — `budget` added 2026-08-15, after the collection missed it.
+**Count: 110 terms** — `budget` added 2026-08-15, after the collection missed it.
 
 ## How to read the multiplicity column
 
@@ -38,6 +38,7 @@ manifests. Excluded as historical or vendored, not the live system:
 | ~~**angle**~~ | SETTLED 2026-08-15 — retired | Borrowed from `/simplify`, where it names that pass's focuses. Prose now says **editorial role**; identifiers say **reviewer** (`--reviewers`, `REVIEWER FILES`, `reviewer = path.stem`), because `role` alone would also cover the task agent and the author. Six senses, all resolved: [the ruling](vocabulary-usage.md#angle--settled-2026-08-15-retired-in-favour-of-editorial-role). |
 | ~~**budget**~~ | SETTLED 2026-08-15 — `docs/limitations.md:9` | ⚠ **Missed by the twelve-agent collection entirely** — 18 sites, four senses, in neither table. Roy's ruling: **the only real budget is what a shipped instruction file costs everyone to load**, measured in lines per file. `cap` took back the five sites meaning a comment's line limit. The reviewer-runtime sense loses the word. ⚠ Measured: the budget covers 28 KB of the 224 KB shipped, and not the two largest files every run loads. |
 | ~~**prose tree**~~ | SETTLED 2026-08-15 — `SKILL.md:76` | Stated where the shape was already explained but unnamed: every comment run and every docstring in the files under review, each one a NODE. Both manifests' user-facing text now names something a reader can look up. |
+| **pCST** (pseudo Concrete Syntax Tree) | `vocabulary-usage.md` | Every interval between two lines of code as a node. *Pseudo* because it comes from a comment-syntax record and a lexer, not the language's own grammar. ⚠ NOT a synonym for `prose tree` — the census still enumerates from prose, so an empty interval produces nothing. Building it is [`an-empty-interval-has-no-census-index`](../TODO/an-empty-interval-has-no-census-index.md). |
 | ~~**the join**~~ | SETTLED 2026-08-15 — `SKILL.md:526` | Named at first use: `verdicts.py`, which reads every reviewer's report against the census and against the others', and refuses what it cannot verify. |
 | ~~**sweep**~~ | SETTLED 2026-08-15 — not a term | Stage 7b is **WRITE** (it was APPLY when `sweep` was retired; APPLY then moved to stage 5). The word was a synonym outliving `sweep.py` (now `census.py`), and the dead `import sweep` with it. Plain-English "sweep the file" stays. |
 | ~~**detector**~~ | SETTLED 2026-08-15 — `ref/reviewer-brief.md:235` | A census mark read as a signal; its PRECISION is how often it is right. Stated in the section already headed with the word. |
@@ -157,7 +158,7 @@ Observed by the scout pass. Recorded as-is.
 
 | Term | Defined | Emitted |
 |---|---|---|
-| mark | `SKILL.md:398-407` table; `sk-scripts/census.py:114-116,805-855` | SEVERAL |
+| annotation (was `mark`) | `SKILL.md`'s annotations table; `sk-scripts/census.py:114-116,805-855` | SEVERAL — renamed 2026-08-15 so `mark` means the editorial sense only. `block.annotations`, `annotate()`, `"annotations"` |
 | `counted` | `SKILL.md:404` | `sk-scripts/census.py:130-135,835-837` |
 | `coverage-claim` | `SKILL.md:405` | `sk-scripts/census.py:136-140,839-842` |
 | `names-a-symbol` | `SKILL.md:403` | `sk-scripts/census.py:811-820` |
