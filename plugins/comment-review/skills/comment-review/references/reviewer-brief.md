@@ -276,10 +276,10 @@ they draw different conclusions. The split is fixed:
 
 | role | asks | verdict shape |
 |---|---|---|
-| `ownership-context` | which of these sites is this claim's HOME? | `move` the claim to its HOME, `drop` the copies |
+| `ownership-context` | which of these sites OWNS this claim? | `move` the claim to its OWNER, `drop` the copies |
 | `module-context` | does the rule have no OWNING FUNCTION, so each site re-explains it? | `add` the rule to the function that should hold it, and name that function |
 
-⚠ Same observation, different finding. A claim whose HOME is the wrong site is
+⚠ Same observation, different finding. A claim sitting away from its OWNER is
 `ownership-context`'s; a rule with no OWNING FUNCTION is `module-context`'s. Neither may
 emit the other's verdict.
 

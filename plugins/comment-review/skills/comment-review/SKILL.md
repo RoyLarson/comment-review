@@ -94,10 +94,10 @@ same blocks and differ only in what else they can say:
 
 | tier | needs | answers | cannot answer |
 |---|---|---|---|
-| `tokenized` | a lexer + AST (Python: the stdlib) | blocks, annotations, **docstring** owners | a **comment's** owner |
-| `lexical` | a comment-syntax record, nothing else | blocks, annotations | any owner; a marker inside an exotic string |
+| `tokenized` | a lexer + AST (Python: the stdlib) | blocks, annotations, **docstring** anchors | a **comment's** anchor |
+| `lexical` | a comment-syntax record, nothing else | blocks, annotations | any anchor; a marker inside an exotic string |
 
-⚠⚠ **NO COMMENT carries an owner, in any language.** A docstring's owner comes free from the
+⚠⚠ **NO COMMENT carries an anchor, in any language.** A docstring's anchor comes from the
 AST; a `#` run's does not, and nothing infers it. So **every ownership-context verdict rests on
 a reviewer reading the file** — a judgement no field records and nothing downstream can check.
 Treat a placement finding as a CANDIDATE and **say so in your stage 2-3 report**, the same way
@@ -109,7 +109,7 @@ than from a census field — so three of the four roles are at full strength on 
 census can read. "No parser for this language" reads like "no review" and is not.
 
 ⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks ownership.**
-An unresolved owner weakens a verdict; an absent block produces none and reports no gap. **Adopt
+An unresolved anchor weakens a verdict; an absent block produces none and reports no gap. **Adopt
 a richer source of structure only if it misses ZERO blocks.**
 
 Depending on nothing is the point: this skill must run on a fresh checkout, and a tier chosen
@@ -334,7 +334,7 @@ anything can own it, so stages 2–3 always run.**
 ⚠⚠ **The third is not the second.** With no LSP tool the probe cannot be made, so "no server
 answered" would be an inference, which the rule above forbids. Say a probe was impossible.
 Measured: three runs hit this state and all three had to improvise the distinction. This is
-additive: with a server you gain owners and cross-language liveness, without one you lose
+additive: with a server you gain anchors and cross-language liveness, without one you lose
 nothing you had. What you may not do is let a run that had no server read like one that did.
 
 **1.8 Decide where the name corpus comes from** — every liveness check downstream depends on
@@ -361,7 +361,7 @@ python <skill>/scripts/census.py --repo . <paths...>          # no cap, no width
 python <skill>/scripts/census.py --cap 6 --width 88 --repo . <paths...>   # both published
 ```
 
-It emits the numbered tree — `N  file:start-end  kind  lines  annotations  (owner)` — with each
+It emits the numbered tree — `N  file:start-end  kind  lines  annotations  (anchor)` — with each
 node's references already resolved, and it prints the tier counts for the run. ⚠ Those are
 AGGREGATED across files, not per file — on a polyglot run you cannot tell which file reached
 which tier, which is exactly when it matters. Run it; do not
@@ -441,9 +441,9 @@ The census names every block; the server can say what a block BELONGS to. Do thi
 and attach the answer to the node — not in stage 4, where four reviewers would each re-derive
 it and could disagree.
 
-- **Owner** — `documentSymbol` on each file in scope returns every declaration and its line.
-  A run ending at line N-1 is owned by the declaration at line N. Attach it; the census
-  prints owners it has.
+- **Anchor** — `documentSymbol` on each file in scope returns every declaration and its line.
+  A run ending at line N-1 is ANCHORED to the declaration at line N. Attach it; the census
+  prints anchors it has.
 - **Liveness** — for each `names-a-symbol` candidate, `workspaceSymbol` answers whether the
   name exists at all, in any language in the workspace. `findReferences` answers whether
   anything uses it, which is the stronger claim a comment usually makes.

@@ -137,7 +137,7 @@ Observed by the scout pass. Recorded as-is.
 | `trailing-comment` | `SKILL.md:395-396`; `sk-scripts/census.py:379,497,509-515`; row `ref/compact.md:81` | SEVERAL |
 | `unparsed` | `sk-scripts/census.py:528-539` | ONE |
 | orphan / orphan run | `sk-scripts/census.py:461-466` | ONE |
-| ⚠ owner / own / OWNERSHIP — **UNRESOLVED** | `SKILL.md:99-101,393-394`; `sk-scripts/census.py:26-29,198`; `docs/parsing.md:130-134` | **FOUR senses**, added 2026-08-16: the census field (= the `anchor`), a ROLE's jurisdiction ("block-context owns quantified claims" — the largest use, stated nowhere), the OWNING FUNCTION (also spelled "owning definition", "owning type"), and the role name. ⚠ On neither survey list until Roy raised it |
+| ~~**owner / own / ownership**~~ | SETTLED 2026-08-16 — `agents/…-ownership-context.md:60-65` | The **anchor with the best justification** for the comment being attached to it; where several compete, the site that ENFORCES the constraint, or the code expected to hold the invariant where nothing enforces it. `HOME` is retired — one stem. `Block.owner` became `Block.anchor`, the census computing a position rather than a judgement. ⚠ TWO SENSES REMAIN OPEN: a ROLE's jurisdiction, and the ownership/module boundary: [the ruling](vocabulary-usage.md#own--owner--ownership--settled-2026-08-16-for-the-placement-sense-home-retired) |
 | node (prose tree) | implicit `SKILL.md:76` | UNDEFINED |
 | work marker (`TODO` `FIXME` `HACK` `XXX` `BUG`) | `sk-scripts/census.py:87-111`; `SKILL.md:242-244,388-392` | SEVERAL |
 
@@ -239,7 +239,7 @@ Observed by the scout pass. Recorded as-is.
 
 | Term | Defined | Multiplicity |
 |---|---|---|
-| HOME | `agents/comment-review-ownership-context.md:60-65`; `ref/reviewer-brief.md:279` | SEVERAL — SETTLED 2026-08-16: which SITE a duplicated claim survives at. The code position is `anchor`; the code that should hold a rule is the `owning function` |
+| ~~HOME~~ | RETIRED 2026-08-16 — the word is **owner** | It named the site a duplicated claim survives at, which is what `owner` names. One stem: `anchor` is the code position, `ownership` the relation, `owner` the anchor that wins it |
 | owning function (rule with no home in CODE) | `agents/comment-review-module-context.md:71-82`; split restated `ref/reviewer-brief.md:279` | SEVERAL |
 | module-level state | `agents/comment-review-module-context.md:67-70` | ONE |
 | reachability (a caller outside the tests) | `agents/comment-review-function-context.md:32-36` | ONE |

@@ -67,8 +67,8 @@ own scope — a claim attached to the wrong scope gets measured against the wron
   - Is a non-obvious constraint left with no comment at all.
   - Is the block load-bearing where it sits — would someone changing that code decide worse
     without it.
-  - Where the same claim is stated at several sites, which site is its home; the rest are
-    dropped or reanchored to it.
+  - Where the same claim is stated at several sites, which site OWNS it; the rest are
+    dropped or moved to it.
 - Block-Context
   - Does the comment state something specific about what the code is doing now, not past
     behavior, not future behavior — dated rulings, review-round labels, "this used to", and

@@ -128,6 +128,25 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   at 12 sites; the 5 plain-English uses ("do NOT sweep the file") are kept and are no longer
   ambiguous, there being no name left to collide with.
 
+- **`HOME` is retired. A comment's placement question has ONE stem: OWN.** The **owner** of a
+  comment is the anchor with the best justification for it being attached there. Where several
+  candidates compete, it is the site that ENFORCES the constraint — or, where nothing enforces
+  it, the code still expected to hold the invariant. `HOME` named that same site under a second
+  stem. `anchor` stays the mechanical code position, `ownership` is the relation, and `owner` is
+  the anchor that wins it.
+
+  The section that selected it was REPLACED, not renamed. It read *"the correct existing anchor
+  point among the sites where the claim is already stated, not the function that implements the
+  rule"* — which excludes the enforcing site, and limits the candidates to sites that already
+  carry prose. Neither holds now: the enforcing site owns the claim whether or not anything is
+  written there today.
+
+- **`Block.owner` is now `Block.anchor`, and the census JSON key with it.** The field holds the
+  declaration on the line after a comment run ends. That is a POSITION; ownership is a judgement
+  no parser makes, so the name claimed something the census never computed. `census.py --json`
+  emits `vars(b)`, so the key changed with the field, and the printed tree's `(owner)` column is
+  now `(anchor)`. Anything reading a saved census for `owner` finds nothing.
+
 ### Added
 
 - **Seven terms that were used with a fixed sense and stated nowhere now have one stating

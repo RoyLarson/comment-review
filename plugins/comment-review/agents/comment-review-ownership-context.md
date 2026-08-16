@@ -1,6 +1,6 @@
 ---
 name: comment-review-ownership-context
-description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on, and would it be a checkable claim about the code there at all? Decides whether a block is truthy where it sits, which the other three roles' verdicts depend on, whether it is load-bearing at its location, and — where the same claim is stated at several sites — which site is its HOME, moving the claim there or dropping the copies. Runs at every level, including fact-check, because block-context, function-context and module-context each measure a claim against the code at their own scope, and a misplaced claim gets measured against the wrong code. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on, and would it be a checkable claim about the code there at all? Decides whether a block is truthy where it sits, which the other three roles' verdicts depend on, whether it is load-bearing at its location, and — where the same claim is stated at several sites — which site OWNS it, moving the claim there or dropping the copies. Runs at every level, including fact-check, because block-context, function-context and module-context each measure a claim against the code at their own scope, and a misplaced claim gets measured against the wrong code. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 
@@ -57,12 +57,12 @@ A block is load-bearing at a site when someone changing THAT code would make a w
 without it. A block that would be equally useful anywhere in the file is not anchored to
 anything, and its ANCHOR is the declaration it actually constrains.
 
-## A claim stated at several sites has ONE home
+## A claim stated at several sites has ONE owner
 
 Grep the claim, not the wording — prose paraphrases. Where the same proposition appears at
-several sites, name which site is its HOME — the correct existing anchor point among the sites
-where the claim is already stated, not the function that implements the rule — and `drop` the
-rest, or `move` the claim to that home.
+several sites, name which site OWNS it — the anchor that ENFORCES the claim, or the code
+expected to hold it where nothing enforces it — and `drop` the rest, or `move` the claim
+there.
 
 ⚠ **This is not `module-context`'s restatement rule** — see the split in `reviewer-brief.md`.
 You decide where a claim lives; that role decides whether the CODE is missing a function to
@@ -79,7 +79,7 @@ it sits, and the destination you name is what WOULD settle it.
 ⚠⚠ **The word is `move`, and the DESTINATION is the payload.** Ten lines down, another file,
 or out of the code entirely — one verdict, and you say which. The reason it belongs there is
 your `FINDING`. Only a destination outside the code can be ruled unavailable at 1.4; a
-relocation into tracked code is always available, so naming an in-file home never costs you
+relocation into tracked code is always available, so naming an in-file owner never costs you
 the finding. At `fact-check` no relocation verdict is carried — the finding is `query` there,
 not `clean`.
 

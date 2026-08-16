@@ -20,11 +20,11 @@ speaks.
 The census is built at the TIER available for each file's language. Both tiers
 find the same blocks; they differ only in what else they can say:
 
-  tokenized  a lexer + AST (Python, from the stdlib)   + DOCSTRING owners
+  tokenized  a lexer + AST (Python, from the stdlib)   + DOCSTRING anchors
   lexical    a comment-syntax record, nothing else     blocks + annotations
 
-⚠ NO COMMENT carries an owner at either tier, so every ownership-context verdict rests
-on a reviewer READING the file. A docstring's owner comes free from the AST; a
+⚠ NO COMMENT carries an anchor at either tier, so every ownership-context verdict
+rests on a reviewer READING the file. A docstring's anchor comes from the AST; a
 `#` run's does not, and nothing here infers it. Treat placement findings as
 CANDIDATES.
 
@@ -60,7 +60,7 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 # raises TypeError there. A syntax check cannot see it, so the tuple form is
 # the one that actually runs where this file is claimed to run.
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-DOC_OWNERS = (ast.Module,) + NAMED_DEFS
+DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
 # ⚠ ValueError included: `ast.parse` raises it (not SyntaxError) on a source
 # string containing a NUL byte -- a file that decoded as valid UTF-8 and so
 # passed `READ_ERRORS` cleanly. `code_names` walks the whole repo, so one such
@@ -195,7 +195,7 @@ class Block:
     kind: str  # "comment" | "docstring"
     lines: int
     text: str  # the run JOINED, so a wrapped claim matches as one string
-    owner: str = ""  # the declaration it annotates, when structurally known
+    anchor: str = ""  # the declaration it annotates, when structurally known
     tier: str = "lexical"  # which question set this file's census can answer
     annotations: set[str] = field(default_factory=set)
     notes: list[str] = field(default_factory=list)
@@ -301,7 +301,7 @@ BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 # that happens to answer it. Only the top rung knows which declaration a block
 # belongs to, which is why ownership-context is the one role that degrades below it.
 TIER_ANSWERS = {
-    "tokenized": "blocks, annotations, and DOCSTRING owners",
+    "tokenized": "blocks, annotations, and DOCSTRING anchors",
     "lexical": "blocks and annotations only",
 }
 
@@ -348,7 +348,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     """Comment runs for a language with no parser here — the FLOOR tier.
 
     Answers where every block is, its line range, its text and its annotations. It
-    cannot answer OWNERSHIP, so no block gets an owner and the ownership-context
+    cannot answer OWNERSHIP, so no block gets an anchor and the ownership-context
     role degrades on this file; the census stamps the tier so a reviewer sees that
     rather than inferring it.
 
@@ -539,21 +539,21 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
         return out
 
     for node in ast.walk(tree):
-        if not isinstance(node, DOC_OWNERS):
+        if not isinstance(node, DOC_ANCHORS):
             continue
         doc = ast.get_docstring(node, clean=False)
         if not doc:
             continue
-        anchor = node.body[0]
+        stmt = node.body[0]
         out.append(
             Block(
                 path=path.as_posix(),
-                start=anchor.lineno,
-                end=getattr(anchor, "end_lineno", anchor.lineno) or anchor.lineno,
+                start=stmt.lineno,
+                end=getattr(stmt, "end_lineno", stmt.lineno) or stmt.lineno,
                 kind="docstring",
                 lines=len(doc.splitlines()),
                 text=re.sub(r"\s+", " ", doc).strip(),
-                owner=getattr(node, "name", "<module>"),
+                anchor=getattr(node, "name", "<module>"),
                 raw_lines=doc.splitlines(),
             )
         )
@@ -869,8 +869,8 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
     """The census for one file, at the highest tier available for its language.
 
     The ladder is by QUESTION ANSWERED, not by library. Python reaches
-    TOKENIZED through the stdlib, which buys docstring owners; every other
-    language has the LEXICAL floor. Neither resolves a COMMENT's owner.
+    TOKENIZED through the stdlib, which buys docstring anchors; every other
+    language has the LEXICAL floor. Neither resolves a COMMENT's anchor.
     """
     if lang.name == "python":
         got = blocks_stdlib(path, text)
@@ -993,7 +993,7 @@ def main() -> int:
         if tiers.get(name):
             print(f"  tier {name}: {tiers[name]} blocks - {TIER_ANSWERS[name]}")
     print(
-        "  ⚠ NO COMMENT carries an owner at either tier, so every\n"
+        "  ⚠ NO COMMENT carries an anchor at either tier, so every\n"
         "    ownership-context verdict rests on a reviewer READING the file."
         " Treat a placement\n"
         "    finding as a CANDIDATE, not a resolution."
@@ -1013,8 +1013,9 @@ def main() -> int:
     print("CENSUS - every block. A block nobody mentions is a gap in the review.")
     for i, b in enumerate(census, 1):
         notes = ",".join(sorted(b.annotations)) or "-"
-        own = f"  ({b.owner})" if b.owner else ""
-        print(f"{i:4d}  {b.path}:{b.start}-{b.end}  {b.kind}  {b.lines}L  {notes}{own}")
+        anchor = f"  ({b.anchor})" if b.anchor else ""
+        loc = f"{b.path}:{b.start}-{b.end}"
+        print(f"{i:4d}  {loc}  {b.kind}  {b.lines}L  {notes}{anchor}")
         if not args.census_only:
             for note in b.notes:
                 print(f"        -> {note}")

@@ -36,8 +36,8 @@ class TestPythonTier(unittest.TestCase):
         self.assertEqual(len(trailing), 1)
         self.assertNotIn("result", trailing[0].text)
 
-    def test_docstrings_carry_an_owner(self):
-        docs = {b.owner for b in blocks_for("sample.py") if b.kind == "docstring"}
+    def test_docstrings_carry_an_anchor(self):
+        docs = {b.anchor for b in blocks_for("sample.py") if b.kind == "docstring"}
         self.assertEqual(docs, {"<module>", "add"})
 
 

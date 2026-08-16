@@ -33,6 +33,8 @@ this table:
 | `ANGLE FILES` | `REVIEWER FILES` | the dispatch packet |
 | `angle` (the variable, the report stem) | `reviewer` | `verdicts.py` |
 | `reanchor` | **`move`** | one relocation verdict; the destination is payload |
+| `HOME` | **owner** | one stem for the relation and the site it selects |
+| `Block.owner` | `Block.anchor` | `census.py`, and the census JSON key with it |
 
 Ruled by Roy 2026-08-15. The term of art is **editorial role**; the identifiers say
 **reviewer**, because `role` alone would also cover the task agent and the absent author.
@@ -1324,7 +1326,61 @@ comment is load-bearing after all.
 implied (`names-its-line`, `states-the-signature`, `derivation`, `names-its-expiry`). The old
 name read as "the only CODE guard" — the opposite of what it acquits.
 
+### own / owner / ownership — SETTLED 2026-08-16 for the placement sense; HOME retired
+
+**The OWNER of a comment is the anchor with the best justification for the comment being
+attached to it.** Roy, 2026-08-16, on which of several candidates wins: *"there is one place
+where it should have already been used"* — the site where the constraint is ENFORCED.
+
+| the code | the owner | what has to be stated |
+| --- | --- | --- |
+| has a GUARD | the guard | the guard's WHY |
+| has no guard but is still expected to hold the invariant | that code | the invariant AND the why |
+
+⚠ That is the `guard` / `unguarded-invariant` pair settled the same day. The acquittal already
+names the second row, so the tie-breaker resolves against vocabulary that is already on the
+floor rather than needing new machinery.
+
+**Three words, no overlap:**
+
+| word | names |
+| --- | --- |
+| **anchor** | the code position a comment is attached to — mechanical, whatever is there |
+| **ownership** | the relation: which anchor has the best justification |
+| **owner** | the anchor that wins it |
+
+⚠ **HOME is retired.** It named the same site under a second stem. Roy: *"I would rather have
+own(s)/owner as the word because the fall out of the definition of ownership and keeps the stem
+of the word the same."* Six sites across three files, all line-neutral: the ownership-context
+frontmatter, its `:60-65` section and `:82`, `reviewer-brief.md:279,282`, `README.md:70-71`
+(whose *"reanchored"* went with it).
+
+⚠ **The section at `:60-65` was REPLACED, not word-swapped.** It read *"the correct existing
+anchor point among the sites where the claim is already stated, not the function that implements
+the rule"* — which excludes exactly what the ruling names, and limited the candidates to sites
+already carrying prose. The enforcing site owns the claim whether or not prose sits there today.
+
+⚠ **`Block.owner` became `Block.anchor`.** Roy: *"fix the census.py to be anchor(s) because that
+is what it is capable of doing. It finds the comment sections and ties it to the anchors."* The
+field held the declaration on the line after the run ends — a position, not a judgement, and
+ownership is a judgement. 12 sites in `census.py`, 6 in `SKILL.md`, 1 test. ⚠ The census emits
+`vars(b)`, so this changes a published JSON key, as `marks` → `annotations` did.
+
+⚠⚠ **STILL OPEN — the jurisdiction sense.** Five shipped sites where a ROLE owns a category of
+finding: *"Owns three kinds of claim"* (block-context frontmatter), *"owns reachability"*
+(function-context), *"the block-context role owns quantified claims"*
+(`reviewer-brief.md:71,89`). Same stem, a different relation, stated nowhere.
+
+⚠⚠ **STILL OPEN — the ownership/module boundary.** `reviewer-brief.md:279-283` gives
+`module-context` the case where *"the rule has no OWNING FUNCTION."* Under the second row above,
+code expected to produce an invariant owns it even with no guard — so that case narrows to a
+rule with no responsible code site at all. Unruled; both roles can currently claim it.
+
 ### HOME / anchor / owning function — SETTLED 2026-08-16, three questions had one word
+
+⚠ **SUPERSEDED the same day**: `HOME` is retired and the word is **owner**. The split below —
+three questions, three words — stands; only the middle word changed. See
+[own / owner / ownership](#own--owner--ownership--settled-2026-08-16-for-the-placement-sense-home-retired).
 
 `home` carried three readings, and two of them sat SIX LINES APART in the same file, inverted:
 
