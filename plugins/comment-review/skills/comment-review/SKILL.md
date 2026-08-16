@@ -342,7 +342,8 @@ name on its **head** segment only.
 ## Stages 2–3 — ANNOTATE, then FIND REFERENCES
 
 ⚠ `<skill>` below is the directory holding this SKILL.md — take it from the absolute path you
-were given, because a relative one does not resolve from a worktree.
+were given. A relative one resolves against whatever directory you are in, which is not
+guaranteed to be the skill's.
 
 ```bash
 python <skill>/scripts/census.py --repo . <paths...>          # no cap, no width rule

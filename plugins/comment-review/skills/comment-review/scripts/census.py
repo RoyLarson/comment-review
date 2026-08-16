@@ -765,7 +765,8 @@ def path_index(repo: Path) -> set[str]:
     """Every tracked path, plus every suffix of it, for citation resolution.
 
     Prose cites package-relative (`summary.py`, `billing/rates.py`) far more
-    often than repo-relative, and the review usually runs from a worktree.
+    often than repo-relative, and a run's working directory is not guaranteed
+    to be the repo root.
     Resolving only against the repo root was measured at 80/84, 18/20 and 2/2
     FALSE dangling reports on one repository — a detector whose output is handed
     to four reviewers as settled fact.
