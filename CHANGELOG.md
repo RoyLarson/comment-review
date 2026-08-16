@@ -18,10 +18,98 @@ number as a semver claim, or "corrects" the next one to `0.2.0`.
 
 _Nothing yet._
 
+## [0.1.4] — 2026-08-16
+
+**One source for the vocabulary, emitted to each agent.** 0.1.3 settled what every term MEANS.
+This carries the terms to the agents that use them, and takes the definitions back out of the
+prose that used to state them in passing.
+
+### Changed — BREAKING
+
+- **The reviewer record's opener is `--- RECORD`, not `--- FINDING`.** `FINDING` was the opener
+  AND one of the eight fields, so the word named the container and one row of it. Roy, reading
+  the brief's own example: *"is it the emitted full table or is it the row in the table?"* A
+  report emitting `--- FINDING` now parses to nothing and every block it covered is a coverage
+  gap.
+
+- **Every block is a RECORD, `clean` included; the `CLEAN` range list is gone.** A report reading
+  only `CLEAN 1-N` accounted for every index, cited nothing, and exited 0 having read no file —
+  the cheapest fabrication, and one `verdicts.py`'s own docstring described as uncatchable. A
+  `clean` record carries a BLOCK, a VERDICT and a LOCATION, and the LOCATION is resolved against
+  the tree, so covering N blocks costs N records that each name a real prose range. `CLEAN_LINE`
+  and `_expand` are deleted; `coverage_gaps` now takes who REPORTED rather than who declared a
+  range, so a report that parses to nothing shows every block missing instead of vanishing.
+
+- **A block outside your role is `query`, not `clean`.** Decided when the three `query` shapes
+  were written and contradicted in three files since. `clean` certifies, and a role that did not
+  read the block has certified nothing.
+
+- **`referrers.py` withholds nothing.** `NOISE_FLOOR` and the `SUPPRESSED` report are deleted:
+  a token naming more than 40 tracked files was printed as a name and a count instead of per
+  file. Roy: *"We are not going for an 'optimization based comment review'."* The test is
+  inverted rather than removed — a token naming 41 files is asserted to appear per file.
+
+- **The CODE CHECK's second kind is `stripped`, not `residue`**, so a report line reads
+  `PROVEN sample.go: reads the same (stripped)`. Two things wore `residue` and they operate on
+  opposite material: one takes the comments OUT of the code, the other asks what is left OF the
+  comments after an edit. The prose check keeps the word.
+
+### Added
+
+- **`references/vocabulary.toml`** — 45 definitions written ONCE, and a per-role list of keys.
+  **`scripts/vocabulary.py --reviewer <role>`** prints the block the task agent pastes into that
+  agent's prompt, verbatim. Roy: *"No summarizing no duplication. The task agent already has to
+  run python commands. this is just one more."* Which terms a role gets was MEASURED from the
+  text that role actually reads, not judged.
+
+- **`edit mark`** is defined, and emitted to the four editorial roles: *"What you emit on a
+  sentence: the VERDICT together with its payload. The preferred action — what WOULD improve or
+  correct the prose if it were applied. A mark is not the action; marking and applying are
+  different stages and different actors."* The brief had used the term without ever stating it.
+
+- **A DRIFT check.** `scripts/check_vocabulary.py` verifies that every term a role is given
+  appears in the text that role reads, and every term it reads is given. The role → files
+  mapping is DERIVED from the agent files rather than listed, so it cannot go stale the way the
+  term lists did. It found 26 drifted terms on the day it was written.
+
+### Changed
+
+- **The prose stops defining terms it uses.** Three groups: whole statements whose only job was
+  a definition; definitions carried as a clause inside a working sentence; and the verdict
+  table's "use it when" column, which is a definition while its "payload" column is a rule. The
+  test Roy set: *"a definition says what a word means and is emitted; a rule says what to do
+  about it and stays."*
+
+- **The two survey documents are deleted.** `vocabulary-usage.md` (2,331 lines) and
+  `vocabulary-inventory.md` (329) were the apparatus for FINDING the terms — a twelve-agent
+  collection, per-bundle tables, and 1,590 `file:line` citations into a tree since rewritten.
+  `docs/vocabulary.md` (106 lines) keeps the settled state: the task agent's terms, the one term
+  kept with no shipped use, and every retired word.
+
+- **`reviewer-brief.md` 265 → 201 lines**, the file every reviewer loads once per run.
+
+### Fixed
+
+- **A rule that primed every role to count.** It told all four how to report a count, in a file
+  where the only number a role has is the census index range they are all handed identically.
+  Roy: *"They shouldn't have anything that indicates that something is worth counting."* ⚠ It
+  demonstrated its own defect first: rewriting rather than deleting it, four exchanges went on
+  WHICH ROLES COUNT instead of ruling on blocks.
+
+- **The coverage rule was told to the wrong reader.** *"A block nobody mentioned is a gap in the
+  review, not a block that passed"* is a CROSS-ROLE fact; one reviewer sees only its own report.
+  Out of the brief and out of both scripts' output headers, which now state what they printed.
+
+- **A third harness leak.** The existence-grep trap primed all four roles with a trap only one
+  can meet; it now sits in `block-context` and states the failure in order rather than asserting
+  the rule.
+
+
 ## [0.1.3] — 2026-08-16
 
-⚠ **Released, NOT merged.** Roy: *"do not land — the implications of the changes need to be
-worked through."* The branch is `feat/settle-the-vocabulary`; `main` is still 0.1.2.
+⚠ **Held back when it was cut.** Roy: *"do not land — the implications of the changes need to
+be worked through."* Those implications became 0.1.4, and both releases landed on `main`
+together.
 
 **Settling the system's own vocabulary.** A twelve-agent collection over the live tree found
 nine terms used with a fixed sense and stated nowhere, and fifteen more carrying two or three
