@@ -208,7 +208,8 @@ which is the half that matters. Say which level you ran, in the report.
 - **`style`** — a path to a style sheet from a previous run. Optional; see 1.5.
 
 ⚠⚠ **THE CAP IS APPLIED IN STAGE 6 AND NOWHERE ELSE** — never while text is being written,
-and **never passed to a reviewer**. Length is not an editorial role; the reason is in the brief.
+and **never passed to a reviewer** — it is not a section of the stage-4 packet, and neither is
+`WIDTH`. Length is not an editorial role; the reason is in the brief.
 
 ## Stage 1 — PROJECT DETERMINATION: ground truth
 
@@ -481,7 +482,7 @@ It refuses a section that is absent **or present and blank** — *"no cap
 published"* is an answer and must be written; a blank is a question nobody
 asked. It then refuses the three answers a machine can settle: `LEVEL` must be
 one of the four level names, and `CENSUS` and every `REVIEWER FILES` entry must be
-an **absolute path that exists**. ⚠ **The other eight are prose it cannot
+an **absolute path that exists**. ⚠ **The other six are prose it cannot
 check**, and passing says nothing about them. Hand every reviewer the one path.
 Measured: a run dispatched without a style sheet introduced **14 en-GB
 spellings** into a codebase whose identifiers are en-US, and every role was

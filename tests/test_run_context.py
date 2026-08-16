@@ -14,12 +14,6 @@ FULL = """
 ## LEVEL
 full
 
-## CAP
-none published
-
-## WIDTH
-88
-
 ## DOC CONVENTION
 google
 

@@ -189,7 +189,7 @@ Observed by the scout pass. Recorded as-is.
 | packet (run context) | `sk-scripts/run_context.py:1-29,38-68`; `SKILL.md:470-488` | SEVERAL |
 | `REVIEWER FILES` (+ absolute-path rule) | `sk-scripts/run_context.py:47,63-65,17-21,247-250` | ONE — `ANGLE FILES` until 2026-08-15. ⚠ The hint's payload is SEVEN paths, not four |
 | `CENSUS` | `sk-scripts/run_context.py:46,62`; checked `:243-246` | ONE |
-| `CAP` | `sk-scripts/run_context.py:40,54` | ONE |
+| ~~`CAP`~~ (packet section) | SETTLED 2026-08-15 — REMOVED | Reviewers do not get a cap; the script had been refusing a packet without one, enforcing the opposite of `SKILL.md:211` and `reviewer-brief.md:292`. `WIDTH` removed with it. Packet is 9 sections. `cap` the run argument is unaffected |
 | `LEVEL` | `sk-scripts/run_context.py:39,53,91,239-242` | ONE |
 | `DOC CONVENTION` | `sk-scripts/run_context.py:42,56`; `SKILL.md:247-249` | SEVERAL |
 | `LSP LANGUAGES` | `sk-scripts/run_context.py:44,58-60` | ONE |

@@ -68,6 +68,19 @@ ones that can dangle. Survey: `docs/vocabulary-usage.md`.
   while settling it: the budget covers 28 KB of the 224 KB shipped, and not `reviewer-brief.md`
   (18 KB, loaded once per reviewer) or `SKILL.md` (47 KB) — the two largest files a run loads.
 
+- **Reviewers no longer receive a CAP or a WIDTH.** The stage-4 packet had carried both, and
+  `run_context.py --check` REFUSED a packet whose `CAP` was blank — enforcing the opposite of
+  the rule stated since the import at `SKILL.md:211` ("never passed to a reviewer") and
+  `reviewer-brief.md:292` ("You are not given the cap"). The reason is the brief's own: an
+  agent that knows the cap writes to the cap, and what survives a length-driven cut is the
+  confident assertion, never the evidence that lets a reader test it. `WIDTH` went with it
+  under the same existing rule — "Length is not an editorial role" — not a new one.
+  **A saved packet with `## CAP` or `## WIDTH` still passes** (unknown sections are ignored);
+  what changed is that a packet WITHOUT them now passes, and reviewers are not handed a length
+  constraint. The packet is 9 sections, 6 of them prose no oracle settles. The cap still
+  reaches stage 6 through `compact.md`'s own input contract, and `census.py --cap` is
+  unaffected.
+
 - **`sweep` is not a term. Stage 7b is APPLY.** Every canonical naming site already said so —
   `SKILL.md`'s pipeline diagram, its stage table, and the reference filename `apply.md`.
   `sweep` was a synonym that outlived `sweep.py`, the module now called `census.py`. Retired

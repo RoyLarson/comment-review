@@ -3,7 +3,11 @@
     python run_context.py --template > run-<id>/context.md
     python run_context.py --check run-<id>/context.md
 
-Stage 4 hands each reviewer the 11 sections `REQUIRED` names below.
+Stage 4 hands each reviewer the 9 sections `REQUIRED` names below.
+⚠ CAP and WIDTH are deliberately NOT among them. Length is not an editorial
+role, and an agent that knows the cap writes to the cap -- what survives a
+length-driven cut is the confident assertion, not the evidence for it. The cap
+reaches stage 6 through `compact.md`'s own input contract instead.
 Nothing checked the prompt before four agents fired in parallel, and a
 section quietly absent degrades a reviewer with no error anywhere: measured, a
 run with no style sheet introduced 14 en-GB spellings into a codebase whose
@@ -37,8 +41,6 @@ from pathlib import Path
 
 REQUIRED = (
     "LEVEL",
-    "CAP",
-    "WIDTH",
     "DOC CONVENTION",
     "STYLE SHEET",
     "LSP LANGUAGES",
@@ -51,8 +53,6 @@ REQUIRED = (
 
 HINTS = {
     "LEVEL": "fact-check | line | full | proof",
-    "CAP": "the number, or `none published` — never invent one",
-    "WIDTH": "the number, or `none published`",
     "DOC CONVENTION": "google | numpy | sphinx | none found, plus a template",
     "STYLE SHEET": "path to it, or `new — started this run`",
     "LSP LANGUAGES": (
@@ -298,7 +298,7 @@ def main() -> int:
 
     print(
         f"Complete: all {len(REQUIRED)} sections answered, and LEVEL, CENSUS and"
-        " REVIEWER FILES check out.\n⚠ The other eight are prose nothing here can"
+        " REVIEWER FILES check out.\n⚠ The other six are prose nothing here can"
         " settle. Dispatch all four in ONE message."
     )
     return 0

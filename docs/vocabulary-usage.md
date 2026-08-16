@@ -1277,12 +1277,24 @@ payload observation below stands unchanged and remains open.
 - `SKILL.md:481`; `:519` (the same value handed to the stage-5 gate, outside the packet's stated stage-4 scope).
 - Related, different register: `SKILL.md:354` calls the file "the census" (lowercase); `verdicts.py:3` uses `--census census.json`, a plain argument name.
 
-### `CAP`
+### `CAP` — SETTLED 2026-08-15: REMOVED from the packet
 
-- Stated at `run_context.py:40,54` — "the number, or `none published` — never invent one."
-- **Not one of the three machine-checked sections** (`run_context.py:223-229` checks only `LEVEL`, `CENSUS`, `ANGLE FILES`); CAP is presence/non-blank only.
-- The uppercase term does not otherwise appear in `SKILL.md` as a packet-section reference. **`SKILL.md:209`** — "THE CAP IS APPLIED IN STAGE 6 AND NOWHERE ELSE — never while text is being written, and **never passed to a reviewer**" — states a rule about the general `cap` argument. **Whether the packet's CAP section is covered by "never passed to a reviewer" is not stated**: the packet is what reviewers are dispatched with (`SKILL.md:468-470`), and CAP is one of the 11 REQUIRED sections every reviewer receives. Neither site resolves this; a reader must infer whether "passed to a reviewer" means "used as an editing constraint" rather than "present in the packet text."
-- Distinct: `census.py:892` (`--cap`, a CLI flag at stages 2-3); `agents/comment-review-compact.md:14` and `compact.md:95-96` (stage 6's separate narrow input contract, reusing the same field name for what appears to be the same number).
+The collection flagged this and could not resolve it: *"Whether the packet's CAP section is
+covered by 'never passed to a reviewer' is not stated… a reader must infer whether 'passed to a
+reviewer' means 'used as an editing constraint' rather than 'present in the packet text.'"*
+
+**Roy ruled it: reviewers do not get a cap.** *"They might cut something that needs to stay to
+make the whole statement true."* Which is what `reviewer-brief.md:292-296` already said — an
+agent that knows the cap writes to the cap, and a length-driven cut keeps the confident
+assertion and drops the evidence for it.
+
+So this was not an ambiguity but a contradiction, and the script held the wrong side: `--check`
+**refused** a packet whose `CAP` was blank, enforcing the opposite of the stated rule. `CAP` and
+`WIDTH` are out of `REQUIRED`; the packet is 9 sections, 6 of them unverifiable. `WIDTH` went
+under the same existing rule — "Length is not an editorial role" — not a new one.
+
+The cap still reaches stage 6 through `compact.md`'s own input contract, which is where it was
+always consumed. `census.py --cap` is unaffected: a stage 2-3 CLI flag, not a reviewer's input.
 
 ### `LEVEL`
 
