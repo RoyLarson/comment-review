@@ -100,16 +100,16 @@ into one comment. It is only usable if it carries its payload, so **a verdict wi
 not a finding** — *"correct the count"* hands the judgement back; *"replace X with Y"* is the
 finding.
 
-| verdict   | use it when                                      | payload                                                              |
-| --------- | ------------------------------------------------ | -------------------------------------------------------------------- |
-| `clean`   | nothing to report FROM YOUR ROLE                 | nothing — name your role, nothing else                               |
-| `query`   | you cannot settle the claim                      | the claim, the check you ATTEMPTED, and what WOULD settle it — the ATTEMPTED and WOULD-settle halves are CHECKED (as shape, not as truth); the claim itself is checked by nothing |
-| `drop`    | the sentence should not exist at all             | the sentence, verbatim                                               |
-| `correct` | the claim is **FALSE**                           | the false clause **and** the true one, plus the line that settles it |
-| `patch`   | the claim is **TRUE**, the wording is not        | the rewrite                                                          |
-| `add`     | a constraint exists in code and nowhere in prose | the text **and its anchor** — which code, above or below             |
-| `move`    | true, but it belongs SOMEWHERE ELSE              | the destination **and** the verbatim extract                         |
-| `split`   | one block holds two unrelated notes              | each fragment **and its own anchor**                                 |
+| verdict   | payload |
+| --------- | ------- |
+| `clean`   | nothing — name your role, nothing else |
+| `query`   | the claim, the check you ATTEMPTED, and what WOULD settle it — the ATTEMPTED and WOULD-settle halves are CHECKED (as shape, not as truth); the claim itself is checked by nothing |
+| `drop`    | the sentence, verbatim |
+| `correct` | the false clause **and** the true one, plus the line that settles it |
+| `patch`   | the rewrite |
+| `add`     | the text **and its anchor** — which code, above or below |
+| `move`    | the destination **and** the verbatim extract |
+| `split`   | each fragment **and its own anchor** |
 
 ⚠⚠ **`correct` and `patch` are not interchangeable, and the difference is the whole point.**
 `correct` says the claim is wrong; `patch` says it is right and reads badly. The task agent
@@ -175,14 +175,9 @@ reads instead, and a `query` naming no attempted check is the one it refuses.
 **Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts, and a
 single `clean` sentence must not launder the ones around it.
 
-### `truthy`
-
-A sentence is **truthy** when it states one checkable proposition about the code it is
-attached to — a subject, a referent, and a claim that some line, symbol or run can settle.
-
-⚠ Truthy is a property of FORM, not of truth. *"The retry budget is 40"* is truthy and false;
-*"this is robust"* is neither. A sentence that is not truthy cannot be `correct`ed, because
-there is nothing to correct it against — it is `drop` or `query`.
+⚠ **A sentence that is not truthy cannot be `correct`ed**, because there is nothing to correct
+it against — it is `drop` or `query`. *"The retry budget is 40"* is truthy and false; *"this is
+robust"* is neither.
 
 ## Check the CLAIM, not the CITATION
 

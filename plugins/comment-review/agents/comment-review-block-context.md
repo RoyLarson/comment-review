@@ -34,8 +34,6 @@ Dated rulings, review-round labels (*"fix round 2"*, *"finding B4"*), *"this use
 
 ## Obituaries — also called TOMBSTONES
 
-A comment naming a symbol, file, test or flag that **no longer exists anywhere**.
-
 ⚠ **Not excused by being deliberate.** Every obituary was written on purpose, so "it is a
 deliberate record" acquits all of them. The test is **pointer vs subject**: strip the dead name
 out of the sentence, and if what remains still says something, it was a pointer — drop it. If

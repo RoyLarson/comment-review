@@ -56,10 +56,6 @@ A block is load-bearing at a site when someone changing THAT code would make a w
 without it. A block that would be equally useful anywhere in the file is not anchored to
 anything, and its ANCHOR is the code it actually constrains.
 
-⚠ **`statement`, `expression`, `declaration` and `assignment` name CODE — they are what an
-ANCHOR can BE.** An OWNER is a judgement about which anchor best justifies the comment, never
-one of those kinds.
-
 ## A claim stated at several sites has ONE owner
 
 Grep the claim, not the wording — prose paraphrases. Where the same proposition appears at
