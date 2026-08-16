@@ -127,7 +127,7 @@ Observed by the scout pass. Recorded as-is.
 | Term | Defined | Multiplicity |
 |---|---|---|
 | census | `sk-scripts/census.py:5-7`; `SKILL.md:24-25,340-367` | SEVERAL |
-| block (the unit a verdict rules on) | `sk-scripts/census.py:189`; `SKILL.md:368-396` | SEVERAL |
+| block (the unit a verdict rules on) | `sk-scripts/census.py:190`; `SKILL.md`'s "What counts as ONE block" | SEVERAL — **the interval between two code lines**, ruled 2026-08-15. The code already did this; the prose said "one comment run" |
 | comment run ("only code ends a run") | `SKILL.md:368-392`; impl `sk-scripts/census.py:100-111,347-430,478-524` | SEVERAL |
 | counted lines (what a cap charges for) | `sk-scripts/census.py:100-111`; worked example `SKILL.md:376-392` | SEVERAL |
 | KIND | `ref/compact.md:75-93` table; `sk-scripts/census.py:195` | SEVERAL |

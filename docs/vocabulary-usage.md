@@ -888,10 +888,26 @@ Anchor drift table at the end of this bundle.
 
 **Senses in play:** the script, the run's in-memory block list, the printed listing, the file artifact, and the index space. Each site fixes which by context; no site enumerates the set.
 
-### block — four senses
+### block — SETTLED 2026-08-15 for the census-unit sense; four senses remain
 
-- Stated at `scripts/census.py:190` — "One comment run or one docstring — the unit a reviewer rules on."
-- Stated at `SKILL.md:366-394` — "What counts as ONE block"; conclusion at `:381`: "Four physical comment lines, **one** node, **three** counted lines."
+**Roy's definition: a block is the INTERVAL BETWEEN TWO LINES OF CODE.** The bounding code
+lines define it, not its contents — only code is a boundary, so a blank line and a work marker
+both sit inside one block. ⚠ **The implementation already did this; only the prose did not.**
+Measured: for `a = 1` / blank / `# first half` / blank / `# second half` / `b = 2` the census
+returns `start=3, end=5, counted=2, raw_lines=['# first half', '# second half']` — the span
+covers the interior blank and the cap charges only the prose. `start`/`end` were always the
+interval; `raw_lines`/`lines` were always what a cap charges for. Calling a block "one comment
+run" conflated the two, which is why `add` had no block to cite and why three rules had to be
+stated where one definition does the work.
+
+⚠ **The worked example could not produce the number it claimed.** `SKILL.md`'s example
+annotated itself in `#` syntax, so its own annotations sat inside the interval it described:
+run literally it censused as **one block of 4 counted lines** where the text said 3. Rewritten
+without inline annotations, it now returns exactly 3. Verified by extracting the fenced block
+from `SKILL.md` and running `census.py` on it.
+
+- Stated at `scripts/census.py:190` (was "One comment run or one docstring").
+- Stated at `SKILL.md`'s "What counts as ONE block".
 - **As an integer index:** `reviewer-brief.md:60` ("the census INDEX"); `verdicts.py:137,146,162-172,420-428,471,535-551` (`block=-1` sentinel for a record attributable to no real block); `verdicts.py:15,575-588`.
 - **As a container of sentences:** `reviewer-brief.md:170` — "**Rule on SENTENCES, not blocks.** A container of six sentences can hold six verdicts."
 - **As the prose unit** across `agents/comment-review-ownership-context.md:30,33,45,56-58,94-96`; `agents/comment-review-block-context.md:16,89,94-96`; `compact.md:48-100`; `residue-check.md:4,17-25`; `review.md:12,25-26,36-38`; `apply.md:6,32,35,96-99,108-110,118-121`.

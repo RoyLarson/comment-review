@@ -187,7 +187,7 @@ COMMAND_LINE = re.compile(r"^\s*(\$ |uv run |python |pytest |npm |cargo |go )")
 
 @dataclass
 class Block:
-    """One comment run or one docstring — the unit a reviewer rules on."""
+    """The interval between two lines of code — the unit a reviewer rules on."""
 
     path: str
     start: int

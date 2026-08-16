@@ -368,21 +368,28 @@ false obituary.
 
 ### What counts as ONE block
 
+⚠⚠ **A block is the interval between two lines of CODE.** The lines of code above and below
+define it; what is written between them does not. Only code is a boundary — not a blank line,
+not a work marker, not a change of subject. Everything between one code line and the next is
+one block, however much or little that is.
+
 ```python
 variable_a = 1234
-# ← code ENDS any run above it
 
-# comment_block starts               lines = 1
-# TODO: important thing in it        lines = 1   ← a marker is FREE: not counted,
-#                and it does NOT split the run
-# comment_block continues            lines = 2   ← a blank line does NOT end a run
-# comment_block ends                 lines = 3
-result = foo_bar(variable_a)  # ← code ENDS the run. One block, 3 lines,
-#    OWNED by this statement, not by variable_a
+# comment_block starts
+# TODO: important thing in it
+# comment_block continues
+# comment_block ends
+result = foo_bar(variable_a)
 ```
 
-Four physical comment lines, **one** node, **three** counted lines. Each of those three
-facts is a separate rule, and getting any of them wrong changes what the reviewers see:
+**One block**, bounded by `variable_a = 1234` and `result = ...`. Four physical comment lines,
+**three** counted: the marker line is free. The blank is inside the block and is charged
+nothing. ⚠ The example carries no inline annotations on purpose — a `#` note explaining the
+example would be a comment sitting inside the very interval it describes, and would be counted.
+
+Three rules people state separately all follow from the one definition, and getting any of them
+wrong changes what the reviewers see:
 
 - **Only code ends a run.** A blank line does not. Split on blanks and a 9-line block reads
   as `6 + 3` and passes a cap of 6 — the single cheapest way to fake compliance.

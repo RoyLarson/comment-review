@@ -8,7 +8,10 @@ obituary. Measurements anonymise for free.
 
 ⚠⚠ **THE BUDGET IS THE POINT, AND IT IS PER FILE.** A **budget** is how much CONTEXT one of
 these files costs everyone who loads it, measured in lines. That is the only budget this
-system has — a comment's line limit is its `cap`, a different thing. A tight budget forces
+system has — a comment's line limit is its `cap`, a different thing, and the census a run
+produces is not a budget at all. ⚠ **RULE FILES are budgeted; RUN DATA is not.** A census
+large enough to name every interval in a file is the cost of doing the job properly, and
+trading its completeness for size would buy nothing this budget is protecting. A tight budget forces
 a *generalization*
 instead of one rule per incident; without it these files become a case file for whatever repo
 they last ran in — fitted to that project, useless to the next. **This is the opposite of the
