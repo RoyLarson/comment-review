@@ -147,7 +147,7 @@ Three shapes reach it, and all three are findings rather than admissions:
   It reaches the author as a question.
 
 ⚠ **A claim you could not settle and marked `clean` is worse than the same claim marked
-`query`.** `clean` certifies; `query` asks. There is no confidence tag to soften a verdict with.
+`query`.** `clean` certifies; `query` asks.
 
 ⚠ **A `query` requires `EVIDENCE` and `QUOTE`(s), by construction** — this is where you
 looked to try to find the answer. These are the statements in the code that make it
