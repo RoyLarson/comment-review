@@ -281,7 +281,7 @@ they draw different conclusions. The split is fixed:
 
 ⚠ Same observation, different finding, and PRESENCE decides. Prose that EXISTS and sits away
 from its owner is `ownership-context`'s; documentation that is MISSING belongs to
-`module-context` or `function-context`, by SCOPE. No role may emit another's verdict.
+`module-context` or `function-context`, by SCOPE. Report the finding YOUR question produces.
 
 ### One block, two placements — report yours
 
