@@ -204,8 +204,13 @@ from LAW and each named something publishing already had a word for: `acquittal`
 2026-08-16 by a session that checked it for collisions and never checked it for register, and is
 now `remit`.
 
-⚠ **The test is not taste.** A reader who knows the metaphor can predict what an unfamiliar term
-means; a reader who does not has to look it up, and an agent that cannot look it up guesses.
+⚠ **The register is itself an instruction, and that is the point.** Roy, 2026-08-16: *"I bet it
+helps the LLM focus in on what it is doing. Because of locality and other context items the llm
+will return words and phrases and comment suggestions based upon 'being' an editor better."* An
+agent reads these files and then writes in them, so one consistent register is a role it can
+occupy rather than a glossary it has to consult. A reader who knows the metaphor can also predict
+what an unfamiliar term means instead of guessing. ⚠ Recorded as the REASON for the rule, not as
+a measurement: nothing in this repo tests it.
 
 ## Documentation Rules
 
