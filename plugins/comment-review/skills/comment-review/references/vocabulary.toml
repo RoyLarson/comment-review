@@ -1,0 +1,120 @@
+# The vocabulary, written ONCE.
+#
+# `scripts/vocabulary.py --reviewer <role>` prints the entries that role needs and
+# the task agent puts the output in that agent's prompt, verbatim. Nothing here is
+# summarised and nothing is restated anywhere else: a shipped file that USES a term
+# does not also define it.
+#
+# [definitions]  term -> what it means. One line each, and each one is what some
+#                site in the tree used to say in passing.
+# [roles]        role -> the terms it is given, KEYS ONLY. A term wanted by three
+#                roles is listed three times and written once; `all` is the set every
+#                agent gets, so a role never repeats those.
+#
+# Which terms a role gets was MEASURED from the text that role actually reads --
+# its own agent file, plus the reference it is told to open -- not judged.
+#
+# This file holds what AGENTS are given. A term only the task agent uses is not
+# here; SKILL.md carries those. The full record is `docs/vocabulary-inventory.md`
+# and `docs/vocabulary-usage.md`, which do not ship.
+
+[definitions]
+
+# --- what a comment sits on -------------------------------------------------
+anchor = "The code position a comment is attached to: a statement, expression, declaration or assignment. Mechanical -- whatever is there."
+owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
+ownership = "The relation between a comment and its owner: which anchor best justifies holding it."
+block = "The interval between two lines of CODE. The lines above and below define it; what is written between them does not. Only code is a boundary -- not a blank line, not a work marker, not a change of subject."
+census = "The numbered tree of every block in the files under review, with the references each block makes already resolved."
+
+# --- the units that get ruled on --------------------------------------------
+sentence = "The unit a verdict rules on. A container of six sentences can hold six verdicts."
+clause = "A part of a sentence. `correct` carries a false clause and a true one; `FINDING` is one clause."
+statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a clause."
+expression = "A piece of CODE that evaluates to a value. One of the kinds an anchor can be."
+declaration = "A piece of CODE that introduces a name. One of the kinds an anchor can be."
+assignment = "A piece of CODE that binds a value to a name. One of the kinds an anchor can be."
+
+# --- what a reviewer emits ---------------------------------------------------
+verdict = "One of the eight rulings a reviewer may emit: clean, query, drop, correct, patch, add, move, split."
+clean = "Nothing to report FROM YOUR ROLE. Your role file states what your `clean` asserts; emit it as that claim or emit `query`."
+query = "You could not settle the claim. Carries the claim, the check you ATTEMPTED, and what WOULD settle it."
+drop = "The sentence should not exist at all. Carries the sentence, verbatim."
+correct = "The claim is FALSE. Carries the false clause and the true one, plus the line that settles it."
+patch = "The claim is TRUE and the wording is not. Carries the rewrite."
+add = "A constraint exists in code and nowhere in prose. Carries the text and its anchor."
+move = "True, but it belongs SOMEWHERE ELSE. Carries the destination and the verbatim extract; the destination is what varies, not the verdict."
+split = "One block holds two unrelated notes. Carries each fragment and its own anchor."
+payload = "What a verdict must carry to be usable. A verdict without its payload is not a finding."
+finding = "One ruling on one sentence, emitted as a parsed RECORD."
+record = "The parsed shape a finding is emitted in. A malformed record is a finding that does not count."
+remit = "The categories of claim a role rules on -- as against verifying, which is what it does to them."
+"editorial role" = "One of the four scopes a reviewer reads for: ownership-context, block-context, function-context, module-context."
+reviewer = "The identifier for an editorial role, in flags, filenames and report stems."
+
+# --- what a reviewer judges --------------------------------------------------
+truthy = "A sentence is truthy when it states one checkable proposition about the code it is beside."
+"load-bearing" = "A block is load-bearing at a site when someone changing THAT code would make a worse decision without it."
+obituary = "Prose about a symbol, file, test or flag that exists nowhere. Also called a TOMBSTONE."
+tombstone = "A synonym for OBITUARY."
+guard = "Code that protects against wrong output. Weakest to strongest: `if`/`else` and `match`/`case`; `assert`, which `-O` strips; raise."
+invariant = "A property the code is supposed to hold. When no guard enforces it, a comment is the only thing carrying it."
+omission = "A name in the module's exposed surface that the docstring never accounts for."
+banner = "Comment lines dividing a file into named parts."
+argument = "The case a piece of writing makes. A module reads as ONE argument or it does not."
+signature = "A function's name, parameters and return type. Never the CODE CHECK's comparison value, which is a fingerprint."
+laundering = "Applying a `patch` to a FALSE claim: the wording gets polished, and the finding is retired without the claim ever being checked."
+"coverage gap" = "A census index a reviewer never accounted for, in a finding or in a `CLEAN` range."
+"the join" = "The tool that reads every reviewer's report against the census and against the other roles', and refuses what it cannot verify."
+
+# --- what the run gives it ---------------------------------------------------
+"style sheet" = "The conventions MEASURED from this repo at stage 1: the documentation templates, the cap and the width."
+template = "A shape written out with its slots, not a shape NAMED. Measured from the tree for each kind of documentation."
+cap = "The published line limit a comment run may not exceed. Reviewers are not given it."
+width = "The published column limit for a line."
+level = "How deep a run edits, declared before it starts. It restricts which verdicts you may emit."
+original = "The text as it stood when THIS RUN began -- not the first version ever written. A file this run edits is the next run's original."
+residue = "The check asking, of each ORIGINAL sentence, whether anything true, necessary and checkable is missing from the new text."
+proofreader = "Who reads the finished PROOF and decides whether the document deserves more marks."
+
+[roles]
+# Every agent gets these.
+all = ["block", "sentence", "clause", "finding", "move"]
+
+# The four editorial roles: what the shared brief used to state in passing.
+"ownership-context" = [
+  "anchor", "owner", "ownership", "census", "verdict", "clean", "query", "drop",
+  "correct", "patch", "add", "split", "payload", "record", "remit", "truthy",
+  "load-bearing", "laundering", "coverage gap", "the join", "editorial role",
+  "reviewer", "cap", "level", "statement", "expression", "declaration", "assignment",
+]
+"block-context" = [
+  "anchor", "owner", "census", "verdict", "clean", "query", "drop", "correct",
+  "patch", "add", "split", "payload", "record", "remit", "truthy", "laundering",
+  "coverage gap", "the join", "editorial role", "reviewer", "cap", "level",
+  "statement", "declaration", "obituary", "tombstone", "guard",
+]
+"function-context" = [
+  "anchor", "owner", "census", "verdict", "clean", "query", "drop", "correct",
+  "patch", "add", "split", "payload", "record", "remit", "truthy", "laundering",
+  "coverage gap", "the join", "editorial role", "reviewer", "cap", "level",
+  "statement", "declaration", "guard", "invariant", "signature", "argument",
+]
+"module-context" = [
+  "anchor", "owner", "census", "verdict", "clean", "query", "drop", "correct",
+  "patch", "add", "split", "payload", "record", "remit", "truthy", "laundering",
+  "coverage gap", "the join", "editorial role", "reviewer", "cap", "level",
+  "statement", "declaration", "load-bearing", "obituary", "omission", "banner",
+  "argument", "width",
+]
+
+# Stage 6 and stage 8 never read the shared brief, so they are given theirs here.
+compact = [
+  "census", "verdict", "correct", "drop", "query", "payload", "record", "remit",
+  "reviewer", "cap", "style sheet", "template", "original", "residue",
+  "load-bearing", "argument", "owner",
+]
+review = [
+  "add", "verdict", "clean", "style sheet", "template", "original", "truthy",
+  "proofreader", "reviewer", "editorial role",
+]
