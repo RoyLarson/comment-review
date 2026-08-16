@@ -36,6 +36,7 @@ assignment = "A piece of CODE that binds a value to a name. One of the kinds an 
 
 # --- what a reviewer emits ---------------------------------------------------
 verdict = "One of the eight rulings a reviewer may emit: clean, query, drop, correct, patch, add, move, split."
+"edit mark" = "What you emit on a sentence: the VERDICT together with its payload. The preferred action -- what WOULD improve or correct the prose if it were applied. A mark is not the action; marking and applying are different stages and different actors."
 clean = "Nothing to report FROM YOUR ROLE, on a block your role READ. Not a pass, and not a claim the block is correct. A block outside what your role reads is `query`."
 query = "You could not settle the claim -- as against one you did not try to settle. Three shapes reach it: outside your ROLE, outside the CHECKOUT, outside the CODE."
 drop = "The sentence should not exist at all."
@@ -80,6 +81,7 @@ all = ["block", "sentence", "clause", "finding", "move"]
 
 # The four editorial roles: what the shared brief used to state in passing.
 "ownership-context" = [
+  "edit mark",
   "add",
   "anchor",
   "assignment",
@@ -106,6 +108,7 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "verdict",
 ]
 "block-context" = [
+  "edit mark",
   "add",
   "anchor",
   "census",
@@ -130,6 +133,7 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "verdict",
 ]
 "function-context" = [
+  "edit mark",
   "add",
   "anchor",
   "argument",
@@ -156,6 +160,7 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "verdict",
 ]
 "module-context" = [
+  "edit mark",
   "add",
   "anchor",
   "argument",

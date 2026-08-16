@@ -10,9 +10,9 @@ fixes what it finds has destroyed the finding** — the human never sees the que
 afterwards nobody can separate a real problem from an imagined one.
 
 You **report** your findings per your editorial role's remit.
-You have been handed a vocabulary to help you identify what terms should be used to
-work on or respond to code documentation and comments. This includes the edit marks
-that describe the verdict for each documentation and comment review required.
+You have been handed a vocabulary — the words this system uses to work on code
+documentation and comments. It includes the EDIT MARKS, which are what this pass
+produces and the only thing it produces.
 
 ## Two lists
 

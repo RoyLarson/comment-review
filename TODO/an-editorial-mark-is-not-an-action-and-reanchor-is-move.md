@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 10 of 13 tasks done
+Progress: 11 of 13 tasks done
 Owner:    session · Roy (⭐ 2 rulings left)
 Raised:   2026-08-15 (Roy, while reviewing the placement precedence before merge)
 ```
@@ -84,10 +84,14 @@ The vocabulary as it stands: [`docs/vocabulary.md`](../docs/vocabulary.md).
       definition is a clause inside a working sentence.
       → [`the-task-agent-emits-the-vocabulary`](the-task-agent-emits-the-vocabulary.md)
 
-- [ ] Write the definition of an edit mark, once, where the agents read it. Roy's words:
-      *"edit marks are the preferred action from the editorial roles that if applied would
-      improve or correct the comments and docstrings."* The conditional is the whole point —
-      the mark names what would be done, and nothing is done until 7b.
+- [x] **Written 2026-08-16, once, where the agents read it.** In
+      `references/vocabulary.toml`, emitted to the four editorial roles: *"What you emit on a
+      sentence: the VERDICT together with its payload. The preferred action — what WOULD improve
+      or correct the prose if it were applied. A mark is not the action; marking and applying are
+      different stages and different actors."* ⚠ Found because the brief USED the term without
+      defining it — Roy: *"is an edit-mark defined?"* — one occurrence in the whole shipped tree
+      and none in the vocabulary. He chose to define rather than drop it: *"because we are an
+      editorial board and want to stick with that as framing."*
 
 - [ ] Relabel every site that calls an edit mark an **action**, and reserve that word for what
       stage 7b does. ⚠ `mark` was carrying four senses when this was raised; three are now gone.
