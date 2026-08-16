@@ -16,9 +16,10 @@ means rather than a survey of what it does, and this file and
 [`vocabulary-inventory.md`](vocabulary-inventory.md) converge on one `vocabulary.md`.
 
 ⚠⚠ **Citations inside a ~~struck-through~~ entry point at DELETED content and are kept as the
-historical record.** Every other citation is checked by `scripts/check_vocabulary_anchors.py`,
-which resolves each `file:line` against the tree and fails on one that has drifted past the end
-of its file. Run it after any edit to the shipped tree.
+historical record.** Every other citation is checked by `scripts/check_vocabulary.py`, which
+resolves each `file:line` against the tree and fails on one that has drifted past the end of its
+file. It also fails on an inventory row carrying no ruling. Run it after any edit to the shipped
+tree.
 
 ⚠ **Line anchors are as of `802a574` and drift.** Every collecting agent found
 `SKILL.md`'s anchors had moved one to three lines since the term list was built.

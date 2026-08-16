@@ -67,9 +67,10 @@ ruff format .
 # Run AFTER `ruff format`.
 python scripts/check_shipped_syntax.py
 
-# Every `file:line` citation in the two vocabulary documents still resolves.
+# The vocabulary documents hold their shape: every term RULED (struck through, SETTLED /
+# DELETED / RETIRED, or naming a site), and every `file:line` citation still resolving.
 # Run after any edit that adds or removes lines in plugins/.
-python scripts/check_vocabulary_anchors.py
+python scripts/check_vocabulary.py
 
 # Terms of art in the shipped tree the inventory does not list. An INPUT, not a gate:
 # every row needs a human to say whether it is a term.
