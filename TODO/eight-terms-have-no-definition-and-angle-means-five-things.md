@@ -1,0 +1,110 @@
+# Eight terms have no definition, and `angle` means five things
+
+```
+Status:   in-progress
+Progress: 8 of 14 tasks done
+Owner:    session · Roy (⭐ 4 rulings left)
+Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
+```
+
+## Objective
+
+The system's own vocabulary is not stated where its readers meet it. NINE terms were used
+with a fixed sense and defined nowhere — `angle` was the worst, at roughly forty sites in
+`SKILL.md` alone plus every script and agent file, carrying six distinct senses. Fifteen
+more words carry two or three meanings each, and a word may do that as long as each meaning
+is clarified up front, which none of them are. Roy ruled the first two: **`angle` is retired
+in favour of `editorial role`** (identifiers say `reviewer`), and **`sweep` is not a term —
+stage 7b is `APPLY`**. Both are applied. The rest is deciding,
+per term, whether to state the meaning, split the word, or delete the use.
+
+Current behavior: [`docs/vocabulary-usage.md`](../docs/vocabulary-usage.md) — every stating site
+and every use site for all 108 terms, with the sense carried at each. Term list and bundle map:
+[`docs/vocabulary-inventory.md`](../docs/vocabulary-inventory.md). Both are surveys of what the
+vocabulary does **today**; as each term below is settled, its entry becomes a statement of what
+the term means, and the two files converge on one `docs/vocabulary.md`.
+
+## Tasks
+
+- [x] Rename `angle` → editorial role. **Done 2026-08-15.** Prose says **editorial role**;
+      identifiers say **reviewer** — Roy ruled the split because `role` alone would also cover
+      the task agent and the absent author. `--angles` → `--reviewers`, `ANGLE FILES` →
+      `REVIEWER FILES`, `angle = path.stem` → `reviewer`. Clean break, no alias, CHANGELOG
+      entry written. It was SIX senses, not five (the survey's own heading undercounted, now
+      corrected), and none needed a different word: four are the role, and the other two are
+      the role's NAME and its FILE. ⚠ `angle` still appears in `CHANGELOG.md` (history),
+      `docs/vocabulary-*.md` (the retirement records) and this file's name — all deliberate.
+      167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9.
+
+- [ ] Define or delete the seven remaining terms used with no definition: `prose tree`
+      (in both manifests' install-time text), `the join`, `detector`, `banner`,
+      `assessability gate`, `acquittal rate`, and the prose-tree sense of `node`. Each gets
+      one stating site or stops being used.
+
+- [x] ⭐ Rule on `sweep`. **Done 2026-08-15 — Roy ruled stage 7b is APPLY and `sweep` stops
+      being a name.** It turned out not to need a definition: `SKILL.md:16-17`, `:30` and the
+      filename `apply.md` all already said APPLY, so `sweep` was a synonym outliving `sweep.py`.
+      Retired at 12 term sites; the 5 plain-English uses stay, and are no longer ambiguous now
+      that there is no name to collide with.
+
+- [x] Fix the dead import. **Done 2026-08-15** — `evals/generator_split.py:37` and its five
+      uses now read `census`, and `evals/grade_hazards.py:15` cites `census.py`. Verified: the
+      script runs. 167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9.
+
+- [ ] ⭐ Rule on `HOME`. `agents/comment-review-ownership-context.md:60-65` defines it as an
+      existing site where the claim is already written and explicitly rules out "the function
+      that implements the rule"; `references/reviewer-brief.md:281` says "a rule with no home
+      in the CODE", meaning that function. `:58` uses a third sense. One word, three readings,
+      no cross-reference.
+
+- [ ] Declare or split the remaining multi-sense words, one line each where a reader meets
+      them: `residue`, `label`, `worktree`, `mark`, `block`, `target`, `author`, `proof`,
+      `run`, `load-bearing`, `obituary`, `guard`, `level`. A second meaning stays only if the
+      system states it.
+
+- [ ] ⭐ Reconcile "5 of its 7 reviewer reports" — the LAST of this group, and the only
+      one that is not a fact this session can re-derive. `reviewer-brief.md:82`,
+      `SKILL.md:550` and `verdicts.py:19` all cite it; `grade_hazards.py:3-4` says the
+      same in words. Every other site fixes the reviewer population at four, and no site
+      says what the seven were. Roy ran it; the number is his to confirm or correct.
+      **Done 2026-08-15, the other three in this group:** `docs/parsing.md` said "Five
+      fields" for a `Language` row that declares eight (three required, five defaulted,
+      four supplied in the example) — the phrase was never in `census.py` as the survey
+      recorded; `corpora.toml` said "stage 0.3" at two sites where `SKILL.md:245`
+      numbers it 1.3; `find_llm_repos.py` documented its own path as `corpora/`.
+
+- [x] Settle the eval base ref. **Done 2026-08-15 — `REDACTED_SHA_A`, at all four sites, at
+      full length.** Settled by evidence, not preference: `REDACTED_SHA_H` is an ANCESTOR of
+      `REDACTED_SHA_A`, the fetched worktree is checked out at `REDACTED_SHA_A`, and three of the
+      four sites already used it. Two hazard signatures (D9, D3) verified present at
+      `REDACTED_SHA_A` before `discriminators.md` was moved onto it.
+
+- [x] Point `evals/evals.json:3` at a path that exists. **Done 2026-08-15** — both dead
+      paths replaced by `evals/discriminators.md`.
+
+- [x] Agree which hazards have no text signature. **Done 2026-08-15 — two, D3 and D12.**
+      The code and `README.md` already said two; only the module docstring undercounted,
+      and it now names both with D3's reason.
+
+- [ ] ⭐ Rule on `SKILL.md:488`. It justifies `DOC CONVENTION`'s place in the dispatch packet
+      on the grounds that "reviewers write replacement text", against `SKILL.md:26`, the
+      frontmatter, and `references/reviewer-brief.md:6-10`, which assign writing to the task
+      agent at stage 5. Either the packet section has a different reason or the read-only rule
+      has an exception nobody has stated.
+
+- [x] Name "the four refusals" the same thing in both places. **Done 2026-08-15** — the
+      heading in `residue-check.md` now reads "The four refusals — removals the three
+      conjuncts miss", so the phrase its four citing sites use is textually present in
+      the file they point at.
+
+- [x] Give `unparsed` a row in `references/compact.md`'s KIND table. **Done 2026-08-15** —
+      it is a diagnostic standing in for a file that would not parse, not a block, so the
+      row says COMPACT may do nothing with it but report it. The sentence above the table
+      said "the two" while naming three kinds; it now names four.
+
+- [ ] ⭐ Rule on the four enforcement gaps, each a case where a script accepts something the
+      prose does not: the `add` payload check passes on the bare word "anchor" and rejects a
+      named declaration without it (`verdicts.py:302-307`); `--reviewers` is compared to file
+      stems and never to the published role names (`verdicts.py:487`); the `FINDING` field is
+      never checked, and `Finding.finding` holds a reviewer clause or a diagnostic string
+      depending on `block == -1`; `CODE CONCERNS` is not parsed or gated at all.

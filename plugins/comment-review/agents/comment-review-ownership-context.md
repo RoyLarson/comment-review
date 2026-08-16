@@ -1,6 +1,6 @@
 ---
 name: comment-review-ownership-context
-description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on, and would it be a checkable claim about the code there at all? Decides whether a block is truthy where it sits (the assessability gate the other three angles' verdicts depend on), whether it is load-bearing at its location, and — where the same claim is stated at several sites — which site is its HOME, reanchoring or dropping the rest. Runs at every level, including fact-check, because block-context, function-context and module-context each measure a claim against the code at their own scope, and a misplaced claim gets measured against the wrong code. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on, and would it be a checkable claim about the code there at all? Decides whether a block is truthy where it sits (the assessability gate the other three roles' verdicts depend on), whether it is load-bearing at its location, and — where the same claim is stated at several sites — which site is its HOME, reanchoring or dropping the rest. Runs at every level, including fact-check, because block-context, function-context and module-context each measure a claim against the code at their own scope, and a misplaced claim gets measured against the wrong code. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 
@@ -17,7 +17,7 @@ edit. Everything below assumes it, and names verdicts the brief defines.
 
 You read a comment against its *position*. The others read it against the code it sits with,
 against the function, or against the module. A comment can be true, current, and about the right
-subject, and still be in the wrong place — and where another angle also places it,
+subject, and still be in the wrong place — and where another role also places it,
 `reviewer-brief.md` states which placement governs.
 
 ## ⚠⚠ You run BEFORE the other three, and this is why
@@ -37,7 +37,7 @@ So for every block ask, in this order:
 2. **If it were in the right place, would it be truthy THERE?** A sentence that only becomes
    checkable once relocated is a `reanchor`, not a `drop`.
 
-⚠ You do not rule on whether the claim is TRUE. That is the other three angles', at their
+⚠ You do not rule on whether the claim is TRUE. That is the other three roles', at their
 scope. You rule on whether truth is assessable here at all.
 
 ## What a comment points at
@@ -65,7 +65,7 @@ where the claim is already stated, not the function that implements the rule —
 rest, or `reanchor` the claim to that home.
 
 ⚠ **This is not `module-context`'s restatement rule** — see the split in `reviewer-brief.md`.
-You decide where a claim lives; that angle decides whether the CODE is missing a function to
+You decide where a claim lives; that role decides whether the CODE is missing a function to
 hold it. If the copies exist because no function owns the rule, it is theirs, not yours.
 
 ## ⚠⚠ Ownership-Context is a PRESERVATION property — so a misplaced rule is `reanchor`, never `drop`

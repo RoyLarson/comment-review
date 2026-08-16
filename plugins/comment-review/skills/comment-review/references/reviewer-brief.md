@@ -1,7 +1,8 @@
 # comment-review — the shared reviewer brief
 
-Handed to every reviewer this run dispatches, with one angle file each. **Read this first.**
-(At `full` that is four; a restricted `level` runs fewer — your run context says which.)
+Handed to every reviewer this run dispatches, one per **editorial role** — the scope you read
+for, named by your role file. **Read this first.** (At `full` that is four; a restricted
+`level` runs fewer — your run context says which.)
 
 ## You are READ-ONLY
 
@@ -39,7 +40,7 @@ the review, not a block that passed.
 ## Every finding is a RECORD, and it is parsed
 
 Emit findings in exactly this shape. A tool joins your report against the
-census and against the other angles', so a malformed record is a finding that
+census and against the other roles', so a malformed record is a finding that
 does not count.
 
 ```
@@ -67,7 +68,7 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `CHANGE` | the payload the verdict table requires |
 
 For a count, give the number **and the population you counted over** in `SUMMARY`'s right half —
-the block-context angle owns quantified claims, and a count with no stated population cannot be
+the block-context role owns quantified claims, and a count with no stated population cannot be
 re-derived.
 
 **Then account for every remaining block on one line:**
@@ -85,23 +86,23 @@ that does not resolve is not a weaker finding — it is not a finding.
 ⚠ **`SUMMARY`'s right half is DERIVED, and is not checked verbatim** — that is why
 it is a separate field from `QUOTE`. A count is not a line any file contains, so
 checking the derived statement against the code made every counted claim
-inadmissible: the block-context angle's own category, refused by the gate.
+inadmissible: the block-context role's own category, refused by the gate.
 
 ⚠ **`CLEAN` is a range list, not an invitation to skip.** Every census index
 must appear exactly once across your findings and your clean ranges. The join
-reports any index you did not account for as a COVERAGE GAP against your angle
+reports any index you did not account for as a COVERAGE GAP against your role
 by name.
 
 ### The verdicts, and what each one MUST carry
 
-A verdict is a recommendation the task agent will combine with the other angles' and synthesise
+A verdict is a recommendation the task agent will combine with the other roles' and synthesise
 into one comment. It is only usable if it carries its payload, so **a verdict without its payload is
 not a finding** — *"correct the count"* hands the judgement back; *"replace X with Y"* is the
 finding.
 
 | verdict   | use it when                                      | payload                                                              |
 | --------- | ------------------------------------------------ | -------------------------------------------------------------------- |
-| `clean`   | nothing to report FROM YOUR ANGLE                | nothing — name your angle, nothing else                              |
+| `clean`   | nothing to report FROM YOUR ROLE                 | nothing — name your role, nothing else                               |
 | `query`   | you cannot settle the claim                      | the claim, the check you ATTEMPTED, and what WOULD settle it — the ATTEMPTED and WOULD-settle halves are CHECKED (as shape, not as truth); the claim itself is checked by nothing |
 | `drop`    | the sentence should not exist at all             | the sentence, verbatim                                               |
 | `correct` | the claim is **FALSE**                           | the false clause **and** the true one, plus the line that settles it |
@@ -135,15 +136,15 @@ true-but-misplaced block is never `clean`: `reanchor` is not in this level's ver
 finding is `query` — the claim cannot be settled where it sits. Emitting a verdict your level
 does not carry is not a finding; it is scope you were not given.
 
-⚠ **`clean` is scoped to YOU.** It is not a pass — it is one angle having nothing to report,
-including when the block is outside what your angle reads, and the other angles are looking at
-the same block. Nothing you emit can bless a block; only a `clean` from **every angle that
+⚠ **`clean` is scoped to YOU.** It is not a pass — it is one role having nothing to report,
+including when the block is outside what your role reads, and the other roles are looking at
+the same block. Nothing you emit can bless a block; only a `clean` from **every role that
 ran** can, and the task agent computes that — you do not assert it. ⚠ Do not invent a word for
-"outside my angle": that is `clean`, and a ninth word breaks the arithmetic.
+"outside my role": that is `clean`, and a ninth word breaks the arithmetic.
 
 ⚠⚠ **`clean` is the only verdict you can reach by NOT deciding.** Every other verdict is an
 action or an explicit `query`; this one can be arrived at by leaving a block alone, and a
-block left alone is indistinguishable from a block checked and acquitted. Your angle file
+block left alone is indistinguishable from a block checked and acquitted. Your role file
 states what your `clean` asserts — emit it as that claim, or emit `query`.
 
 ⚠⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
@@ -152,7 +153,7 @@ you did. `query` is what you emit when you did and it was still not enough.
 
 Three shapes reach it, and all three are findings rather than admissions:
 
-- **outside your angle** — what settles it belongs to another scope. Another angle may settle
+- **outside your role** — what settles it belongs to another scope. Another role may settle
   it, and the task agent rules on all four together.
 - **outside the checkout** — generated, gitignored, remote, or on one machine. No reviewer in a
   fresh checkout can settle it.
@@ -272,7 +273,7 @@ whether code *runs* owes a `python -c` or `ast.parse` before it leaves your hand
 Both `ownership-context` and `module-context` see a claim stated in more than one place, and
 they draw different conclusions. The split is fixed:
 
-| angle | asks | verdict shape |
+| role | asks | verdict shape |
 |---|---|---|
 | `ownership-context` | which of these sites is this claim's HOME? | `reanchor` the claim to its owner, `drop` the copies |
 | `module-context` | does the rule have no OWNING FUNCTION, so each site re-explains it? | `add` the rule to the function that should hold it, and name that function |
@@ -287,11 +288,11 @@ emit the other's verdict.
 destinations for it. Both findings stand, and where the destinations differ,
 **`ownership-context`'s governs.**
 
-⚠ Neither angle defers to the other. Report the placement your angle sees, under the verdicts
+⚠ Neither role defers to the other. Report the placement your role sees, under the verdicts
 your level carries; the disagreement is not yours to resolve.
 
 ## You are not given the cap
 
-Length is not one of the four angles. An agent that knows the budget writes to the budget, and
+Length is not one of the four editorial roles. An agent that knows the budget writes to the budget, and
 what survives a length-driven cut is the confident assertion, never the evidence that lets a
 reader test it. Propose text that is **correct**; someone else condenses later.

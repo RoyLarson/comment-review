@@ -4,7 +4,7 @@
 
 Checks the task agent was asked to perform by hand, every one mechanical:
 
-  COVERAGE      every census index accounted for, by every angle that ran
+  COVERAGE      every census index accounted for, by every reviewer that ran
   EVIDENCE      each finding's citation resolves, and the QUOTE is really there
   LOCATION      the prose citation resolves too -- checked the same way
   PAYLOAD       the verdict carries what its row of the table requires
@@ -12,8 +12,8 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   CONTRADICTION `drop` against `correct`/`patch` on one block -- a re-review,
                 NOT counted fatal, but named in the closing line so the summary
                 cannot read "stage 5 may rule" over a block that is out
-  STANDS        blocks every angle that ran returned clean on
-  ANGLE         (only with `--angles`) every expected reviewer actually reported
+  STANDS        blocks every reviewer that ran returned clean on
+  REVIEWER      (only with `--reviewers`) every expected reviewer actually reported
 
 ⚠ Exits nonzero on a coverage gap or an unverifiable citation. Measured: one
 graded run had FABRICATED 5 of its 7 reviewer reports and did not notice until
@@ -29,7 +29,7 @@ index, cites nothing, and exits 0 after reading no file at all. Nothing here can
 distinguish it from a real pass, because there is no artifact a negative leaves
 behind. Grade a run from its DIFF, never from this exit code.
 
-⚠ `--angles` is OPTIONAL, and its absence is announced, not swallowed: without
+⚠ `--reviewers` is OPTIONAL, and its absence is announced, not swallowed: without
 it, a reviewer that never reported at all is invisible to this tool -- the
 easier version of the fabrication this whole script exists to catch.
 """
@@ -142,7 +142,7 @@ class Finding:
     not something any file contains verbatim.
     """
 
-    angle: str
+    reviewer: str
     block: int
     verdict: str
     location: str
@@ -158,7 +158,7 @@ def _n(count: int, noun: str) -> str:
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
 
-def _malformed(angle: str, why: str) -> Finding:
+def _malformed(reviewer: str, why: str) -> Finding:
     """A record that cannot be attributed to any real block.
 
     `block=-1` is the sentinel `main()` treats as fatal on sight, whatever the
@@ -166,7 +166,7 @@ def _malformed(angle: str, why: str) -> Finding:
     closing "---" was never found.
     """
     return Finding(
-        angle=angle,
+        reviewer=reviewer,
         block=-1,
         verdict="malformed",
         location="",
@@ -204,13 +204,13 @@ def _expand(ranges: str) -> tuple[set[int], list[str]]:
     return out, bad
 
 
-def parse_report(text: str, angle: str) -> tuple[list[Finding], set[int]]:
+def parse_report(text: str, reviewer: str) -> tuple[list[Finding], set[int]]:
     """Findings and clean-block indices from one reviewer's report.
 
     Args:
         text: the report as the reviewer returned it. Prose around the records
             is ignored, so a reviewer may still explain itself.
-        angle: the reviewer's name, attached to every finding it produced.
+        reviewer: the editorial role's name, attached to every finding it made.
 
     Returns:
         The parsed findings, and the set of indices declared clean by range.
@@ -221,7 +221,7 @@ def parse_report(text: str, angle: str) -> tuple[list[Finding], set[int]]:
     if openers != len(bodies):
         found.append(
             _malformed(
-                angle,
+                reviewer,
                 f"{_n(openers, 'FINDING opener')} but"
                 f" {_n(len(bodies), 'closed record')}"
                 " -- an unterminated record swallows the next one",
@@ -237,7 +237,7 @@ def parse_report(text: str, angle: str) -> tuple[list[Finding], set[int]]:
         if raw_block.isdecimal():
             found.append(
                 Finding(
-                    angle=angle,
+                    reviewer=reviewer,
                     block=int(raw_block),
                     verdict=fields.get("VERDICT", "").strip().lower(),
                     location=fields.get("LOCATION", ""),
@@ -249,29 +249,31 @@ def parse_report(text: str, angle: str) -> tuple[list[Finding], set[int]]:
                 )
             )
         else:
-            found.append(_malformed(angle, "a record with no BLOCK index"))
+            found.append(_malformed(reviewer, "a record with no BLOCK index"))
 
     clean: set[int] = set()
     for ranges in CLEAN_LINE.findall(text):
         expanded, bad = _expand(ranges)
         clean |= expanded
         for part in bad:
-            found.append(_malformed(angle, f"CLEAN range {part!r} does not parse"))
+            found.append(_malformed(reviewer, f"CLEAN range {part!r} does not parse"))
     return found, clean
 
 
 def coverage_gaps(
     all_blocks: set[int], clean: dict[str, set[int]], found: list[Finding]
 ) -> dict[str, list[int]]:
-    """Indices each angle never accounted for. A gap is not a pass."""
-    by_angle: dict[str, set[int]] = defaultdict(set)
+    """Indices each reviewer never accounted for. A gap is not a pass."""
+    by_reviewer: dict[str, set[int]] = defaultdict(set)
     for f in found:
-        by_angle[f.angle].add(f.block)
+        by_reviewer[f.reviewer].add(f.block)
     gaps: dict[str, list[int]] = {}
-    for angle in set(list(clean) + list(by_angle)):
-        missing = sorted(all_blocks - by_angle[angle] - clean.get(angle, set()))
+    for reviewer in set(list(clean) + list(by_reviewer)):
+        missing = sorted(
+            all_blocks - by_reviewer[reviewer] - clean.get(reviewer, set())
+        )
         if missing:
-            gaps[angle] = missing
+            gaps[reviewer] = missing
     return gaps
 
 
@@ -370,7 +372,7 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     DERIVED statement — *"31 callers, all under tests/"* — and a derived
     statement is by construction not a verbatim code line, so checking it there
     made every counted claim structurally inadmissible. That is the block-context
-    angle's own category. The forcing function survives intact by moving to a
+    role's own category. The forcing function survives intact by moving to a
     field that carries verbatim text and nothing else.
 
     ⚠ `query` is exempt alongside `clean`, and its payload is checked instead.
@@ -417,7 +419,7 @@ def location_problem(f: Finding, repo: Path) -> str | None:
 
 
 def contradictions(found: list[Finding]) -> list[int]:
-    """Blocks where one angle says delete and another says fix. Re-review."""
+    """Blocks where one reviewer says delete and another says fix. Re-review."""
     by_block: dict[int, set[str]] = defaultdict(set)
     for f in found:
         if f.block < 0:
@@ -434,15 +436,15 @@ def main() -> int:
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("reports", nargs="+", help="one report file per angle")
+    ap.add_argument("reports", nargs="+", help="one report file per reviewer")
     ap.add_argument("--census", required=True, help="census.py --json output")
     ap.add_argument("--level", default="full", choices=sorted(LEVELS))
     ap.add_argument("--repo", default=".", help="repo root for evidence resolution")
     ap.add_argument(
-        "--angles",
+        "--reviewers",
         default="",
         help=(
-            "comma-separated expected angle names, matched against each report"
+            "comma-separated expected reviewer names, matched against each report"
             " file's STEM (ownership-context.md -> ownership-context); one missing"
             " a report is fatal"
         ),
@@ -472,96 +474,103 @@ def main() -> int:
 
     fatal = 0
 
-    # ⚠ Refused ALWAYS, not just when --angles is given: `clean[angle] = cl`
+    # ⚠ Refused ALWAYS, not just when --reviewers is given: `clean[reviewer] = cl`
     # overwrites, so two report files with the same stem would otherwise
-    # silently replace one angle's coverage with another's.
+    # silently replace one reviewer's coverage with another's.
     stems = [Path(r).stem for r in args.reports]
     for stem in sorted({s for s, n in Counter(stems).items() if n > 1}):
-        print(f"  DUPLICATE report stem {stem!r} — two files claim the same angle")
+        print(f"  DUPLICATE report stem {stem!r} — two files claim the same reviewer")
         fatal += 1
 
     found: list[Finding] = []
     clean: dict[str, set[int]] = {}
     for raw in args.reports:
         path = Path(raw)
-        angle = path.stem
+        reviewer = path.stem
         try:
             text = path.read_text(encoding="utf-8")
         except READ_ERRORS as e:
-            print(f"  CANNOT READ {raw} ({type(e).__name__}) — {angle} did not report")
+            print(
+                f"  CANNOT READ {raw} ({type(e).__name__}) — {reviewer} did not report"
+            )
             fatal += 1
             continue
-        got, cl = parse_report(text, angle)
+        got, cl = parse_report(text, reviewer)
         found.extend(got)
-        if angle not in clean:  # first file for a stem wins; a dupe is fatal above
-            clean[angle] = cl
+        if reviewer not in clean:  # first file for a stem wins; a dupe is fatal above
+            clean[reviewer] = cl
 
     print(
-        f"{_n(len(found), 'finding')} from {_n(len(args.reports), 'angle')}"
+        f"{_n(len(found), 'finding')} from {_n(len(args.reports), 'reviewer')}"
         f" over {_n(len(blocks), 'block')}\n"
     )
 
     # ⚠ Declared, never inferred -- this repo's rule everywhere else. Without
-    # --angles, a reviewer that never reported at all is invisible: "every
-    # angle" silently means "every file I was handed," which is the easier
+    # --reviewers, a reviewer that never reported at all is invisible: "every
+    # reviewer" silently means "every file I was handed," which is the easier
     # version of the fabrication this tool exists to catch.
-    if args.angles:
-        expected = {a.strip() for a in args.angles.split(",") if a.strip()}
-        for angle in sorted(expected - set(clean)):
+    if args.reviewers:
+        expected = {a.strip() for a in args.reviewers.split(",") if a.strip()}
+        for reviewer in sorted(expected - set(clean)):
             print(
-                f"  NO REPORT from angle {angle!r} — a missing report is the"
-                " easier version of a fabricated one. --angles is matched against"
-                f" each report file's STEM, so a report for {angle!r} must be"
-                f" named {angle}.md"
+                f"  NO REPORT from reviewer {reviewer!r} — a missing report is the"
+                " easier version of a fabricated one. --reviewers is matched against"
+                f" each report file's STEM, so a report for {reviewer!r} must be"
+                f" named {reviewer}.md"
             )
             fatal += 1
     else:
         print(
-            "⚠ --angles not given: whether every expected reviewer reported was"
+            "⚠ --reviewers not given: whether every expected reviewer reported was"
             " NOT checked.\n"
         )
 
     gaps = coverage_gaps(all_blocks, clean, found)
     if gaps:
         print("COVERAGE GAPS — a block nobody mentioned is a gap, not a pass:")
-        for angle, missing in sorted(gaps.items()):
+        for reviewer, missing in sorted(gaps.items()):
             shown = ", ".join(str(n) for n in missing[:20])
             more = f" (+{len(missing) - 20} more)" if len(missing) > 20 else ""
-            print(f"  {angle}: {_n(len(missing), 'block')} unaccounted — {shown}{more}")
+            print(
+                f"  {reviewer}: {_n(len(missing), 'block')} unaccounted — {shown}{more}"
+            )
             fatal += 1
         print()
 
     for f in found:
         if f.block < 0:
-            print(f"  MALFORMED {f.angle}: {f.finding}")
+            print(f"  MALFORMED {f.reviewer}: {f.finding}")
             fatal += 1
             continue
         if not 1 <= f.block <= len(blocks):
             print(
-                f"  BLOCK {f.block} {f.angle}: out of range for a"
+                f"  BLOCK {f.block} {f.reviewer}: out of range for a"
                 f" {_n(len(blocks), 'block')} census"
             )
             fatal += 1
             continue
         if f.verdict not in VERDICTS:
-            print(f"  BLOCK {f.block} {f.angle}: {f.verdict!r} is not one of the nine")
+            print(
+                f"  BLOCK {f.block} {f.reviewer}: {f.verdict!r} is not one of the nine"
+            )
             fatal += 1
         elif not allowed(f.verdict, args.level):
             print(
-                f"  BLOCK {f.block} {f.angle}: {f.verdict} not carried at {args.level}"
+                f"  BLOCK {f.block} {f.reviewer}: {f.verdict}"
+                f" not carried at {args.level}"
             )
             fatal += 1
         problem = evidence_problem(f, repo)
         if problem:
-            print(f"  BLOCK {f.block} {f.angle}: {problem}")
+            print(f"  BLOCK {f.block} {f.reviewer}: {problem}")
             fatal += 1
         loc_problem = location_problem(f, repo)
         if loc_problem:
-            print(f"  BLOCK {f.block} {f.angle}: {loc_problem}")
+            print(f"  BLOCK {f.block} {f.reviewer}: {loc_problem}")
             fatal += 1
         payload = payload_problem(f)
         if payload:
-            print(f"  BLOCK {f.block} {f.angle}: {payload}")
+            print(f"  BLOCK {f.block} {f.reviewer}: {payload}")
             fatal += 1
 
     clash = contradictions(found)
@@ -572,18 +581,18 @@ def main() -> int:
             " must not decide it."
         )
 
-    # A block stands only when EVERY angle that ran returned clean on it. With
+    # A block stands only when EVERY reviewer that ran returned clean on it. With
     # coverage gaps and out-of-range indices already reported as fatal above,
-    # "no angle ruled on it" and "every angle cleaned it" are the same set --
+    # "no reviewer ruled on it" and "every reviewer cleaned it" are the same set --
     # so this subtraction is the clean-arithmetic, not an approximation of it.
-    ran = sorted(set(clean) | {f.angle for f in found})
+    ran = sorted(set(clean) | {f.reviewer for f in found})
     ruled = {
         f.block for f in found if f.verdict != "clean" and 1 <= f.block <= len(blocks)
     }
     stands = sorted(all_blocks - ruled)
     print(
         f"\nSTANDS UNCHANGED: {_n(len(stands), 'block')} — clean from all"
-        f" {_n(len(ran), 'angle')} that ran"
+        f" {_n(len(ran), 'reviewer')} that ran"
     )
     print(f"NEEDS A RULING:   {_n(len(ruled), 'block')}")
     if gaps:

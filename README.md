@@ -3,7 +3,7 @@
 A Claude Code plugin: an **editorial board** for the comments and docstrings a change
 touched. Four read-only reviewers walk one prose tree, an editor writes the replacement
 text, it is cut to fit, **then** the author approves the exact text that will be written —
-and the sweep applies it and proves the executable code byte-identical.
+and APPLY writes it and proves the executable code byte-identical.
 
 ```
 project → annotate → find refs → mark → edit → compact → APPROVAL → review
@@ -109,7 +109,7 @@ The skill is broken up into eight phases to cover an editorial system.
 
 | verdict    | the claim is                                     | what you do with it                                                       |
 | ---------- | ------------------------------------------------- | -------------------------------------------------------------------------- |
-| `clean`    | nothing to report **from this angle**            | nothing. Not a pass, and not a claim the block is correct — one angle having no finding, including when the block is outside what that angle reads |
+| `clean`    | nothing to report **from this role**             | nothing. Not a pass, and not a claim the block is correct — one role having no finding, including when the block is outside what that role reads |
 | `query`    | unsettled                                        | resolve it or escalate it. It blocks every other verdict on that sentence |
 | `drop`     | true but not worth keeping                       | delete the sentence                                                       |
 | `correct`  | **FALSE**                                        | apply the true/false pair. **Always before any `patch`**                  |
@@ -148,7 +148,7 @@ matter of taste.
 
 ### What generalized, and what did not
 
-The four reading angles carried every high-value finding in every corpus. The mechanical
+The four editorial roles carried every high-value finding in every corpus. The mechanical
 detectors — path resolution, symbol liveness, counted claims — did not: across the seven
 third-party corpora they fired roughly 70 times and produced about two real findings, and
 on one corpus they fired zero times while the file still held six genuine defects. They
@@ -228,7 +228,7 @@ ignored one — and a check that cannot see a defect must not report it clean.
 
 ### The census reads eleven languages, but only lexically
 
-The four reading angles are language-neutral — they ask whether prose is in the right
+The four editorial roles are language-neutral — they ask whether prose is in the right
 place, still true, describes what the code does, and agrees with its neighbours, and none
 of that is about syntax. The census underneath them now reads eleven languages from a
 data table (`census.py --languages`), but at two very different depths: Python gets a real

@@ -9,7 +9,7 @@
     {
       "name": "comment-review",
       "source": "./plugins/comment-review",
-      "description": "An editorial board for the comments and docstrings a change touched: four read-only reviewers over one prose tree, verdicts the human approves, then a sweep that applies them and proves the code untouched."
+      "description": "An editorial board for the comments and docstrings a change touched: four read-only reviewers over one prose tree, verdicts the human approves, then an APPLY stage that writes them and proves the code untouched."
     }
   ]
 }

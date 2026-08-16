@@ -42,7 +42,7 @@ def _finding(**kw):
     line here.
     """
     fields = {
-        "angle": "block-context",
+        "reviewer": "block-context",
         "block": 1,
         "verdict": "correct",
         "location": "a.py:1",
@@ -69,9 +69,9 @@ class TestParsing(unittest.TestCase):
         _, clean = verdicts.parse_report(REPORT, "block-context")
         self.assertEqual(clean, {2, 3})
 
-    def test_the_angle_is_attached(self):
+    def test_the_reviewer_is_attached(self):
         found, _ = verdicts.parse_report(REPORT, "block-context")
-        self.assertEqual(found[0].angle, "block-context")
+        self.assertEqual(found[0].reviewer, "block-context")
 
     def test_a_wrapped_clean_line_does_not_merge_across_lines(self):
         # C1: `\s` inside CLEAN_LINE's class let a stray continuation line glue
@@ -171,7 +171,7 @@ class TestPayload(unittest.TestCase):
         self.assertIsNone(verdicts.payload_problem(_finding()))
 
     def test_add_without_an_anchor_is_rejected(self):
-        f = _finding(angle="ownership-context", verdict="add", change="some text")
+        f = _finding(reviewer="ownership-context", verdict="add", change="some text")
         self.assertIn("anchor", verdicts.payload_problem(f))
 
 
@@ -329,21 +329,21 @@ class TestLevel(unittest.TestCase):
 class TestContradiction(unittest.TestCase):
     def test_drop_against_correct_is_flagged(self):
         found = [
-            _finding(angle="ownership-context", block=7, verdict="drop"),
-            _finding(angle="block-context", block=7, verdict="correct"),
+            _finding(reviewer="ownership-context", block=7, verdict="drop"),
+            _finding(reviewer="block-context", block=7, verdict="correct"),
         ]
         self.assertEqual(verdicts.contradictions(found), [7])
 
     def test_drop_alone_is_not_a_contradiction(self):
-        found = [_finding(angle="ownership-context", block=7, verdict="drop")]
+        found = [_finding(reviewer="ownership-context", block=7, verdict="drop")]
         self.assertEqual(verdicts.contradictions(found), [])
 
     def test_a_malformed_block_is_never_reported_as_a_contradiction(self):
         # Minor: a -1 sentinel (a malformed record) must not surface as
         # "RE-REVIEW [-1]" -- it names no real block.
         found = [
-            _finding(angle="ownership-context", block=-1, verdict="drop"),
-            _finding(angle="block-context", block=-1, verdict="correct"),
+            _finding(reviewer="ownership-context", block=-1, verdict="drop"),
+            _finding(reviewer="block-context", block=-1, verdict="correct"),
         ]
         self.assertEqual(verdicts.contradictions(found), [])
 
@@ -394,7 +394,7 @@ class TestEvidence(unittest.TestCase):
     def test_a_derived_summary_right_half_is_not_checked_verbatim(self):
         # C2: the whole point. A count is not a line any file contains, so
         # requiring SUMMARY's right half verbatim made every counted claim --
-        # the block-context angle's own category -- structurally inadmissible.
+        # the block-context reviewer's own category -- structurally inadmissible.
         f = _finding(summary='"twenty call sites" || 31 callers, all under tests/')
         self.assertIsNone(verdicts.evidence_problem(f, self.repo))
 
@@ -467,7 +467,7 @@ class TestCLI(unittest.TestCase):
         path.write_text(text, encoding="utf-8")
         return path
 
-    def _run(self, *reports, level="full", angles=None, census=None):
+    def _run(self, *reports, level="full", reviewers=None, census=None):
         cmd = [
             sys.executable,
             str(SCRIPTS / "verdicts.py"),
@@ -478,8 +478,8 @@ class TestCLI(unittest.TestCase):
             "--repo",
             str(self.repo),
         ]
-        if angles is not None:
-            cmd += ["--angles", angles]
+        if reviewers is not None:
+            cmd += ["--reviewers", reviewers]
         cmd += [str(r) for r in reports]
         return subprocess.run(
             cmd, capture_output=True, text=True, encoding="utf-8", check=False
@@ -542,13 +542,13 @@ class TestCLI(unittest.TestCase):
         self.assertIn("COVERAGE GAPS", result.stdout)
         self.assertIn("block-context: 1 block unaccounted", result.stdout)
 
-    def test_a_missing_angle_is_fatal_when_declared(self):
+    def test_a_missing_reviewer_is_fatal_when_declared(self):
         report = self._clean_report("block-context.txt")
-        result = self._run(report, angles="block-context,ownership-context")
+        result = self._run(report, reviewers="block-context,ownership-context")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("ownership-context", result.stdout)
 
-    def test_angle_absence_is_declared_not_inferred_when_undeclared(self):
+    def test_reviewer_absence_is_declared_not_inferred_when_undeclared(self):
         report = self._clean_report("block-context.txt")
         result = self._run(report)
         self.assertEqual(result.returncode, 0)
@@ -570,7 +570,7 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("Traceback", result.stdout)
         self.assertNotIn("Traceback", result.stderr)
 
-    def test_pluralisation_of_a_single_angle_and_block(self):
+    def test_pluralisation_of_a_single_reviewer_and_block(self):
         report = self._write(
             "block-context.txt",
             "--- FINDING\n"
@@ -584,7 +584,7 @@ class TestCLI(unittest.TestCase):
             "CLEAN 2-3\n",
         )
         result = self._run(report)
-        self.assertNotIn("1 angles", result.stdout)
+        self.assertNotIn("1 reviewers", result.stdout)
         self.assertNotIn("1 blocks", result.stdout)
 
     def test_an_unterminated_record_is_fatal(self):
@@ -679,7 +679,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     The format and its checker were designed in one task and never run against
     each other, so the brief's worked example failed `verdicts.py` on the same
     commit that shipped both — and the field it failed on, a counted claim,
-    is the block-context angle's own category.
+    is the block-context reviewer's own category.
 
     The cited file is SYNTHESISED from the record's own citations: the example
     is invented on purpose (`docs/limitations.md`), so there is no real

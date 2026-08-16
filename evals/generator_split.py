@@ -34,7 +34,7 @@ SKILL = (
 )
 sys.path.insert(0, str(SKILL))
 
-import sweep  # noqa: E402  - the census is the skill's, not a second copy
+import census  # noqa: E402  - the census is the skill's, not a second copy
 
 # `Co-Authored-By: Claude`, `Assisted-by: ...`, `Generated with ...`. Broad on
 # purpose: a false positive dilutes the contrast and understates the effect,
@@ -96,9 +96,9 @@ def main() -> int:
     # the corpus is the subject and the caller is somewhere else entirely.
     targets = [repo / p for p in sys.argv[2:]] or [repo]
 
-    files = sorted({f for t in targets for f in sweep._walk(t)})
-    known, _ = sweep.code_names([repo])
-    paths = sweep.path_index(repo)
+    files = sorted({f for t in targets for f in census._walk(t)})
+    known, _ = census.code_names([repo])
+    paths = census.path_index(repo)
 
     buckets: dict[str, list] = defaultdict(list)
     marks: dict[str, Counter] = defaultdict(Counter)
@@ -113,8 +113,8 @@ def main() -> int:
         rel = f.relative_to(repo).as_posix() if f.is_absolute() else f.as_posix()
         per_file[rel] = line_authors(repo, rel)
         all_shas.update(per_file[rel].values())
-        for b in sweep.blocks_stdlib(f, text):
-            sweep.mark(b, known, paths, repo)
+        for b in census.blocks_stdlib(f, text):
+            census.mark(b, known, paths, repo)
             buckets["_pending"].append((rel, b))
 
     # ⚠ A SHALLOW CLONE SILENTLY CORRUPTS THIS. Blame attributes every line older

@@ -70,8 +70,9 @@ would undo the correction.
 Language("zig", (".zig",), ("//",), doc_line=("///",))
 ```
 
-Five fields, checkable against the file in hand, deterministic once written,
-and it supports that language permanently for everyone instead of for one run.
+Four fields for this row — the record declares eight, three required and five
+defaulted. Checkable against the file in hand, deterministic once written, and
+it supports that language permanently for everyone instead of for one run.
 If the row cannot be written confidently, the honest output is the gap the
 census already prints: `no language record for its suffix`.
 

@@ -73,14 +73,15 @@ pass is most likely to have.** The edit already dropped things legitimately; che
 it lets a second, illegitimate drop through unnoticed. **The original is the baseline, twice.**
 
 ⚠⚠ **The block's KIND is part of the input, and it decides whether this pass may touch the
-block at all.** The census stamps every block `comment`, `trailing-comment` or `docstring`, and
-the two are governed by different rules:
+block at all.** The census stamps every block `comment`, `trailing-comment`, `docstring` or
+`unparsed`, and they are governed by different rules:
 
 | kind | governed by | what this pass may do |
 | --- | --- | --- |
 | `comment` / `trailing-comment` | **LENGTH** — the cap counts lines in one `#` run | cut it to the cap |
 | `docstring` | **FORMAT** — the convention resolved at 1.3 | **nothing.** Long is not a violation |
 | `comment` with `doc-kind-unresolved` | **UNKNOWN** — the census could not tell | **nothing.** Ask, or carry it at length |
+| `unparsed` | **NOT PROSE** — the file did not parse, so nothing was censused | **nothing.** It is a diagnostic standing in for a file, not a block. Report it |
 
 **A cap never applies to a docstring.** Without the kind in front of you, a 107-line numpydoc
 docstring and a 7-line `#` run look like the same over-length problem, and cutting the first to
@@ -127,6 +128,6 @@ wrong word read as house style and the result was wrong on two independent axes.
 Blocks condensed, blocks left at length with the reason, and the final longest block. A block
 you could not condense is a finding, not a silence.
 
-⚠ **No AST-identity proof here** — nothing has been written yet. That proof belongs to the
-sweep (stage 7b), which is the only pass that touches a file. What you hand back is the text
+⚠ **No AST-identity proof here** — nothing has been written yet. That proof belongs to
+APPLY (stage 7b), which is the only pass that touches a file. What you hand back is the text
 stage 7a will put in front of the author.

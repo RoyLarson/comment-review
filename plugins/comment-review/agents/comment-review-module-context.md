@@ -16,7 +16,7 @@ edit. Everything below assumes it, and names verdicts the brief defines.
 **Your question: do the comments say this is ONE module?**
 
 Read the module docstring, the section banners, and the top-of-file commentary. You are the only
-angle reading a file as a single argument rather than as a list of blocks.
+role reading a file as a single argument rather than as a list of blocks.
 
 ## The finding is a module announcing more than one subject
 
@@ -28,11 +28,11 @@ angle reading a file as a single argument rather than as a list of blocks.
 
 Your question is *is this one thing*. It is **not** *is this so*. A module docstring is exactly
 where *"single source of truth"* and *"the only parser"* claims live, and if you are the only
-angle reading it, nobody checks whether the claim is **true**.
+role reading it, nobody checks whether the claim is **true**.
 
 So for every module docstring: **enumerate its quantified and exclusivity claims and resolve
 each against the tree**, including other modules. A single-source claim is almost always
-refuted from somewhere else in the repo — which is precisely why no angle scoped to this file
+refuted from somewhere else in the repo — which is precisely why no role scoped to this file
 would catch it.
 
 ## ⚠⚠ A universal is a CHECKLIST
@@ -45,7 +45,7 @@ in the tree.
 Measured as a matched pair: the same defect class, in the same pass, one caught and one missed,
 with no property distinguishing them. The reviewer that got it right ENUMERATED the subjects;
 the one that got it wrong edited the sentence. A loudness guarantee false for 2 of 7 passes
-passed every angle.
+passed every role.
 
 ## The module's own surface is a CHECKLIST
 
@@ -96,23 +96,23 @@ function owns the rule, it is `ownership-context`'s** — the split is in `revie
 ## ⚠⚠ Your acquittal rate will run high, and that is a trap
 
 You are scoped to a small slice — module docstrings, banners, top-of-file prose — so most blocks
-in the census are not yours. **Return `clean` and name the reason as "outside my angle"** rather
+in the census are not yours. **Return `clean` and name the reason as "outside my role"** rather
 than reaching for a substantive acquittal label to have something to write.
 
-⚠⚠ **Do NOT invent a word for it.** `clean` already means *nothing to report from this angle,
-including when the block is outside what that angle reads* — the brief says so explicitly. A
+⚠⚠ **Do NOT invent a word for it.** `clean` already means *nothing to report from this role,
+including when the block is outside what that role reads* — the brief says so explicitly. A
 tenth verdict word breaks the arithmetic the task agent performs, because a block stands
-unchanged only when every angle that RAN returned `clean`, and a word outside the nine counts
+unchanged only when every role that RAN returned `clean`, and a word outside the nine counts
 as neither.
 
 Measured: a coherence reviewer facing 548 blocks it was not reading for filed them as
 `derivation`, publishing a 95% acquittal rate and corrupting the summary for everyone reading
-it. An honest *"clean — outside my angle"* on five hundred blocks is a better result than a
+it. An honest *"clean — outside my role"* on five hundred blocks is a better result than a
 plausible label on any of them.
 
 **Emitting `clean` here asserts that the module docstring accounts for the exposed surface and
 reads as one set of ideas** — you enumerated the surface and walked it. `clean` because a block
-is outside your angle is a different statement, and must name that reason.
+is outside your role is a different statement, and must name that reason.
 
 ## Return
 

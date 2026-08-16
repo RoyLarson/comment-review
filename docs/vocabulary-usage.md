@@ -19,6 +19,22 @@ means rather than a survey of what it does, and this file and
 `SKILL.md`'s anchors had moved one to three lines since the term list was built.
 Verify one against the file before acting on it.
 
+⚠⚠ **TWO TERMS HAVE BEEN RETIRED SINCE THE COLLECTION, AND THE QUOTATIONS BELOW PREDATE
+THEM.** Every quotation in this file is verbatim as of `802a574`. Where one contains a
+retired word, the quotation is a historical record, not a live citation — read it through
+this table:
+
+| collected as | now | where |
+| --- | --- | --- |
+| `sweep` (stage 7b) | **APPLY** | every canonical naming site already said APPLY; see [sweep](#sweep--settled-2026-08-15-not-a-term-stage-7b-is-apply) |
+| `angle` (the scope, the agent) | **editorial role** | prose everywhere; see [angle](#angle--settled-2026-08-15-retired-in-favour-of-editorial-role) |
+| `--angles` | `--reviewers` | `verdicts.py` |
+| `ANGLE FILES` | `REVIEWER FILES` | the dispatch packet |
+| `angle` (the variable, the report stem) | `reviewer` | `verdicts.py` |
+
+Ruled by Roy 2026-08-15. The term of art is **editorial role**; the identifiers say
+**reviewer**, because `role` alone would also cover the task agent and the absent author.
+
 Term list and bundle map: [`vocabulary-inventory.md`](vocabulary-inventory.md).
 
 ---
@@ -349,7 +365,7 @@ Same sites as residue sense B. Additionally: the file's own title at `references
 
 ---
 
-## Bundle 11 — concepts belonging to individual angles
+## Bundle 11 — concepts belonging to individual editorial roles
 
 Anchor drift from the inventory is noted per term.
 
@@ -679,15 +695,48 @@ Other senses: `reviewer-brief.md:99` ("a verdict without its payload is not a fi
 
 ---
 
-## Bundle 3 — the four angles and the level ladder
+## Bundle 3 — the four editorial roles and the level ladder
 
 Anchors: `SKILL.md`'s have shifted up one line — "four visitors over one tree" is `:85`; the level table `:183-188`; rows `:185`-`:188`. Agent-file, `CLAUDE.md`, `verdicts.py:66-71` and `run_context.py:89-91` anchors are exact.
 
 **Old angle names** (`locality`, `currency`, `functionality`, `module-coherence`) appear at **zero sites** in the live tree. Every hit is in `evidence/` or `docs/superpowers/plans/`, both excluded. Two live artifacts outside the tree still carry them, recorded as observations: this session's installed-plugin agent registry, and the rename plan itself at `docs/superpowers/plans/2026-08-15-angle-scope-rename.md:64-67`.
 
-### angle — no stated definition, five senses
+### angle — SETTLED 2026-08-15, retired in favour of **editorial role**
 
-Nothing anywhere says what an angle *is*. The nearest is `SKILL.md:85`, "the four angles are four visitors over one tree" — which says angles are plural readers of one structure, not what distinguishes one.
+Ruled by Roy. The word was borrowed from the `/simplify` skill, which uses it for the focuses
+that pass works at; it stopped fitting once these became agents with scopes, and it was the
+most-used undefined term in the tree — nothing anywhere said what an angle *was*. The nearest
+was `SKILL.md:85`, "the four angles are four visitors over one tree", which says angles are
+plural readers of one structure, not what distinguishes one.
+
+**Two words replace it, and the split is deliberate.** The term of art in prose is **editorial
+role** — the scope a reviewer reads for. The identifiers say **reviewer** (`--reviewers`,
+`REVIEWER FILES`, `reviewer = path.stem`) because `role` unqualified would also cover the task
+agent and the absent author, who are roles in `SKILL.md`'s own cast; naming the four `role`
+would reinstall the polysemy this entry exists to remove.
+
+⚠ The heading here read "five senses" while listing **six** (A–F). Corrected. The senses were
+not five competing meanings needing five different words — four of the six are the editorial
+role itself, and the remaining two are that role's *name* and its *file*:
+
+| sense | collected as | resolved to |
+| --- | --- | --- |
+| A — a scope a claim is measured against | `SKILL.md:190-192`, `reviewer-brief.md:155` | the editorial role |
+| B — a reviewer agent, the actor | `SKILL.md:459-466`, `verdicts.py:7,16` | the editorial role; `reviewer` in code |
+| C — a string, the stem of a report filename | `verdicts.py:487` `angle = path.stem` | the role's NAME, in a filename slot — `reviewer = path.stem` |
+| D — a file on disk (the agent definition) | `reviewer-brief.md:3`, `run_context.py:17-21` | the role's FILE — packet key `REVIEWER FILES` |
+| E — a category of defect | `verdicts.py:372-373` | the role's category — "the block-context role's own category" |
+| F — a closed slot in a fixed set | `reviewer-brief.md:295`, `SKILL.md:210` | "one of the four editorial roles" |
+
+⚠ **`--reviewers` was always a role check, which is what made the rename correct rather than
+cosmetic.** `verdicts.py:16` names it "every expected reviewer actually reported"; `:32-34`
+calls a reviewer that never reported "the easier version of the fabrication this whole script
+exists to catch". The file stem is the identifier it uses, not a different concept. Still true
+after the rename, and still unenforced: nothing checks a stem against the four published role
+names — see the enforcement-gap task in the TODO.
+
+The collected sense analysis follows, verbatim as of `802a574`, as the evidence for that
+resolution.
 
 **Sense A — a scope a claim is measured against.** `SKILL.md:190-192` — "The other three check a claim against the code at their scope"; here **angle ≡ scope**, the two words used interchangeably. Also `agents/comment-review-ownership-context.md:25-28`; `reviewer-brief.md:155` ("outside your angle — what settles it belongs to another scope"); `README.md:60-61`; `census.py:302`.
 
@@ -791,7 +840,11 @@ Other uses: `reviewer-brief.md:4` (level = angle count, delivered via the packet
 
 The level takes its name from the second; nothing states that, and a reader must infer it from `SKILL.md:188`.
 
-### `--angles`
+### `--angles` — SETTLED 2026-08-15, now `--reviewers`
+
+Renamed with [angle](#angle--settled-2026-08-15-retired-in-favour-of-editorial-role). The
+observation below stands unchanged and remains open: the declared strings are still never
+checked against the four published role names.
 
 - **`verdicts.py:441-449`** — "comma-separated expected angle names, matched against each report file's **STEM**." Enforced `:508-517`; when omitted the absence is **announced**, not swallowed (`:518-522`). Rationale at `:504-507` — "Without `--angles`, a reviewer that never reported at all is invisible: 'every angle' silently means 'every file I was handed'."
 - `SKILL.md:524-533` — "**NAME EACH REPORT FILE AFTER ITS ANGLE**… a report saved as `report1.md` is an angle nobody expected and every expected angle reads as missing. Two files with the same stem are refused outright."
@@ -1097,17 +1150,34 @@ Nearest anchor `SKILL.md:515-516` — "⚠⚠ **Run the join before you rule on 
 
 **One operative sense throughout**, carried sometimes as noun, sometimes as verb. **Unrelated string collision:** `SKILL.md:360` "matched as ONE joined string"; `"".join(...)` throughout.
 
-### sweep — no stated definition, three referents
+### sweep — SETTLED 2026-08-15: not a term. Stage 7b is APPLY
 
-Nearest: `compact.md:131` — "the sweep (stage 7b), which is the only pass that touches a file" — equating *sweep* with *stage 7b* parenthetically.
+Ruled by Roy. `sweep` was never the stage's name — `SKILL.md:16-17` (the pipeline diagram),
+`SKILL.md:30` (the stage table, "APPROVAL — apply") and the reference filename `apply.md` all
+said APPLY throughout. `sweep` was a synonym surviving from `sweep.py`, the module now called
+`census.py`: the word outlived its referent, which is the same failure as the dead import below.
 
-**A. The applying pass (stage 7b), ~11 sites:** `compact.md:131`; `apply.md:6-8`; `prove_unchanged.py:1,22,219,323`; `agents/comment-review-review.md:3`; `README.md:6`; `CLAUDE.md:10,58`; `.claude-plugin/marketplace.json:12`.
+The former senses and where each went:
 
-**B. The place consistency is enforced:** `SKILL.md:273` — "consistency is enforced at the SWEEP, against the sheet, not by another visitor over the tree." **The only site capitalising it, and the only one treating it as a named locus rather than an event.**
+**A. The applying pass (stage 7b) → APPLY**, at `compact.md:131`, `apply.md:6-8`,
+`prove_unchanged.py:1,22,219,323`, `agents/comment-review-review.md:3`, `README.md:6`,
+`CLAUDE.md:10,58`, `.claude-plugin/marketplace.json:12`.
 
-**C. Ordinary-English "a scan over files":** `apply.md:88` ("do NOT sweep the file for departures from it") — **four lines from `apply.md:6-7`'s stage-7b sense, in the same file**; `apply.md:67`; `census.py:183`; `evals/discriminators.md:58`; `CLAUDE.md:210` (this repo's own exploration-budget rule).
+**B. The place consistency is enforced → APPLY**, at `SKILL.md:273`. It was the only site
+capitalising the word and the only one treating it as a named locus rather than an event.
 
-**D. A script name that no longer exists:** `evals/generator_split.py:37` — `import sweep`, with `sys.path` pointing at the skill's scripts directory, **which holds no `sweep.py`**. The five attributes used (`:99-101,116-117`) all exist in `census.py` (`:671,601,764,478,805`). **As written the import cannot resolve.** `evals/grade_hazards.py:15` cites `sweep.py` for behaviour that is `census.py`'s.
+**C. Ordinary-English "a scan over files" → KEPT, and no longer ambiguous.** Once the stage is
+only ever APPLY there is no name for the plain verb to collide with, so `apply.md:67`,
+`apply.md:88` ("do NOT sweep the file for departures from it" — formerly 81 lines from the same
+file's stage sense), `evals/discriminators.md:58` and `CLAUDE.md:210` (this repo's own
+exploration-budget rule) stand unchanged. `census.py:183` moved to APPLY instead: it names the
+pass that writes, not a scan.
+
+**D. A script name that no longer existed → `census`.** `evals/generator_split.py:37` did
+`import sweep` with `sys.path` pointing at the skill's scripts directory, **which holds no
+`sweep.py`**; the five attributes used at `:99-101,116-117` are all in `census.py`
+(`:671,601,764,478,805`). The import could not resolve, so the script did not run. Fixed, and
+`evals/grade_hazards.py:15` with it. Verified: the script now runs.
 
 ### input contract (COMPACT's narrow input)
 
@@ -1137,9 +1207,12 @@ Nearest: `compact.md:131` — "the sweep (stage 7b), which is the only pass that
 
 **Scope is stated narrower than its use.** `run_context.py`'s docstring calls it "the packet four reviewers are dispatched with" (stage 4 only), and `SKILL.md:457` places its construction entirely inside "Stage 4 — MARK". But two of its values are read again downstream: `SKILL.md:519` (stage 5) invokes `verdicts.py --census <census>.json --level <level>` — the same CENSUS path and LEVEL the packet carried — and `:530` calls it "this LEVEL ran" when deriving `--angles` for the same command. Whether "the packet" extends to that reuse, or is consumed with its values carried forward by hand, is not stated at either site.
 
-### `ANGLE FILES`
+### `ANGLE FILES` — SETTLED 2026-08-15, now `REVIEWER FILES`
 
-- Stated at `run_context.py:47,63-65` — hint: "absolute path per angle, **the brief, and the compact + review agents**." **By the hint text the payload is not only the four reviewer-angle files but also `reviewer-brief.md` and the compact/review agent files.**
+Renamed with [angle](#angle--settled-2026-08-15-retired-in-favour-of-editorial-role). The
+payload observation below stands unchanged and remains open.
+
+- Stated at `run_context.py:47,63-65` — hint: "absolute path per angle, **the brief, and the compact + review agents**." **By the hint text the payload is SEVEN paths — the four role files, `reviewer-brief.md`, and the compact and review agent files — not the four the name suggests.**
 - Stated at `run_context.py:17-21` — "ANGLE FILES carries ABSOLUTE paths on purpose. The plugin agents are namespaced and resolve only if the plugin was installed before the session started… the sanctioned fallback… is a substitution, not an improvisation."
 - Checked at `run_context.py:192-204,247-250` — `_resolves()`: `Path.is_absolute() and path.exists()`; **every non-blank line is checked, not just the first.**
 - `SKILL.md:279-289` — describes the fallback in terms of **the four reviewer agents specifically**, a narrower framing than the hint's payload.

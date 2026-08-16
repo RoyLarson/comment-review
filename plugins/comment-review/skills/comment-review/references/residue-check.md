@@ -37,7 +37,7 @@ never whether the new one is shorter, which was already decided. **This is the o
 here that catches a compaction which kept the false sentence and dropped the evidence that
 disproved it**, because at step 3 that evidence is still on the page.
 
-## ⚠⚠ Four removals the three conjuncts miss
+## ⚠⚠ The four refusals — removals the three conjuncts miss
 
 Refuse a removal unless **all four** also hold. Each was measured as a cut later judged wrong,
 and each passes `true & necessary & checkable` cleanly:

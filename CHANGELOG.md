@@ -8,6 +8,47 @@ file existed as a one-line stub until this release. Neither
 carries a `version` field, so a version number lives only here and an installed plugin
 cannot report which one it is.
 
+## [Unreleased]
+
+**Settling the system's own vocabulary.** A twelve-agent collection over the live tree found
+nine terms used with a fixed sense and stated nowhere, and fifteen more carrying two or three
+senses each. Each is being ruled on in turn — state the meaning, split the word, or delete the
+use — and the ones that change a published name land here. Terms are settled in order of what
+POINTS at them: names living in identifiers, filenames and flags first, because those are the
+ones that can dangle. Survey: `docs/vocabulary-usage.md`.
+
+### Changed — BREAKING
+
+- **`angle` is retired. The four are EDITORIAL ROLES.** The word came from the `/simplify`
+  skill, which uses it for the focuses that pass works at; it stopped fitting once these
+  became agents with scopes, and it was the most-used term in the tree with no definition
+  anywhere — six senses at ~250 sites. Prose now says **editorial role**. Identifiers say
+  **reviewer**, because `role` alone would also cover the task agent and the absent author,
+  who are roles in `SKILL.md`'s own cast.
+
+  | was | now |
+  | --- | --- |
+  | `verdicts.py --angles` | `verdicts.py --reviewers` |
+  | the packet's `## ANGLE FILES` section | `## REVIEWER FILES` |
+  | "the four angles", "from this angle" | "the four editorial roles", "from this role" |
+
+  A saved dispatch packet with an `## ANGLE FILES` heading now fails `run_context.py --check`
+  with that section reported missing, and a scripted `--angles` invocation fails at argument
+  parsing. Both are the intended failure: no alias is accepted, because a script whose own
+  rule is that nothing degrades quietly should not answer to a name it no longer uses.
+
+- **`sweep` is not a term. Stage 7b is APPLY.** Every canonical naming site already said so —
+  `SKILL.md`'s pipeline diagram, its stage table, and the reference filename `apply.md`.
+  `sweep` was a synonym that outlived `sweep.py`, the module now called `census.py`. Retired
+  at 12 sites; the 5 plain-English uses ("do NOT sweep the file") are kept and are no longer
+  ambiguous, there being no name left to collide with.
+
+### Fixed
+
+- **`evals/generator_split.py` runs again.** It did `import sweep` against a directory with no
+  `sweep.py`, so the script could not start; the five attributes it uses are in `census.py`.
+  `evals/grade_hazards.py` cited the same dead module.
+
 ## [0.1.2] — 2026-08-15
 
 ### Changed — BREAKING

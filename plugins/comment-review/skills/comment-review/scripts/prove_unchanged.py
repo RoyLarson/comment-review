@@ -1,4 +1,4 @@
-"""Prove a comment-review sweep changed no executable code. Stage 7b's gate.
+"""Prove the APPLY stage changed no executable code. Stage 7b's gate.
 
     python prove_unchanged.py --base <ref> [--repo D] <paths...>
 
@@ -19,7 +19,7 @@ report still says PROVEN.
 
 ⚠ Line endings are checked against an UNTOUCHED SIBLING, never against the
 stored blob: under `core.autocrlf` the blob is always LF, so normalising to it
-leaves the working tree inconsistent with every file the sweep did not touch --
+leaves the working tree inconsistent with every file APPLY did not touch --
 and `git diff` hides it. Measured four times.
 
 ⚠ An UNTERMINATED block comment makes the whole file UNPROVABLE. The lexer
@@ -216,7 +216,7 @@ def _show(repo: Path, ref: str, rel: str) -> str | None:
 def _sibling(
     repo: Path, target: Path, edited: set[Path], tracked: list[str]
 ) -> Path | None:
-    """A READABLE tracked file beside `target` that this sweep did not edit.
+    """A READABLE tracked file beside `target` that APPLY did not edit.
 
     Skips a candidate this process cannot itself read as UTF-8 text -- a
     binary or non-UTF-8 sibling is not a usable line-ending reference, and
@@ -320,7 +320,7 @@ def main() -> int:
 
     print()
     if failures:
-        print(f"{failures} unproven. The sweep's identity claim does NOT hold.")
+        print(f"{failures} unproven. APPLY's identity claim does NOT hold.")
         return 1
     if unchecked:
         print(

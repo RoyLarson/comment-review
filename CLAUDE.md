@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin** (`comment-review`) plus the machinery used to develop and measure it.
 The plugin is an editorial board for the comments and docstrings a change touched: four
 read-only reviewer agents walk one prose tree, a task agent (the `/comment-review` skill)
-synthesizes verdicts, the human approves the exact replacement text, and a sweep applies it and
+synthesizes verdicts, the human approves the exact replacement text, and APPLY writes it and
 proves the executable code byte-identical.
 
 The repo root is **not** the plugin. Only `plugins/comment-review/` ships to a user's
@@ -44,18 +44,18 @@ python -m unittest discover -s tests -v
 python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo . <paths...>
 
 # Stage 5 gate: join reviewer reports against the census, check every citation.
-# Each report file is NAMED FOR ITS ANGLE -- the tool takes the angle from the
-# file stem, and --angles compares against those stems.
+# Each report file is NAMED FOR ITS ROLE -- the tool takes the role name from
+# the file stem, and --reviewers compares against those stems.
 python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
   --census <census>.json --level full --repo . \
-  --angles ownership-context,block-context,function-context,module-context \
+  --reviewers ownership-context,block-context,function-context,module-context \
   ownership-context.md block-context.md function-context.md module-context.md
 
 # Stage 4 gate: the dispatch packet
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --template
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --check <file>
 
-# Stage 7b gate: prove the sweep changed no executable code
+# Stage 7b gate: prove APPLY changed no executable code
 python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
   --base <merge-base> --repo . <paths...>
 
@@ -103,7 +103,7 @@ The nine verdicts (`clean`, `query`, `drop`, `correct`, `patch`, `add`, `move`, 
 rather than re-deriving the rules here, since it is the single source and this file must not
 restate it.
 
-### The four reviewer angles
+### The four editorial roles
 
 Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) under
 `plugins/comment-review/agents/`, dispatched in one message so they run concurrently:
@@ -195,14 +195,14 @@ history) since it depends on `git blame`.
   docstrings, README prose, or commit messages. A false *measurement* can be re-derived and
   corrected; a claim that something is "robust" has no oracle. Nothing can check it, so it
   survives every review and every rewrite regardless of whether it was ever true — it is the
-  one class of prose this repo's four reviewer angles cannot catch, because both block-context and
+  one class of prose this repo's four editorial roles cannot catch, because both block-context and
   function-context need something to resolve the claim against. Write what is measured, what is
   enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
   by reading the code or re-running a command, it does not belong.
 - `clean` is reserved, not a synonym for "vaguely good": it is one of the nine verdicts named
   under "The skill's 8 stages" above and must not be used as a loose adjective for code or
-  prose anywhere in this repo. As a verdict it means nothing to report from that angle, and
-  each angle's `clean` asserts something specific — read what, in that angle's own file under
+  prose anywhere in this repo. As a verdict it means nothing to report from that role, and
+  each role's `clean` asserts something specific — read what, in that role's own file under
   `plugins/comment-review/agents/`, which states it.
 
 ## Exploration Budget

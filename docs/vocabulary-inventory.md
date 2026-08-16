@@ -35,10 +35,10 @@ manifests. Excluded as historical or vendored, not the live system:
 
 | Term | Nearest thing to a definition | Notes |
 |---|---|---|
-| **angle** | `SKILL.md:86` ("the four angles are four visitors over one tree"), level table `SKILL.md:184-189` | Used in ~40 sites in `SKILL.md` alone, plus every script and agent file. The single most-used undefined term. |
+| ~~**angle**~~ | SETTLED 2026-08-15 — retired | Borrowed from `/simplify`, where it names that pass's focuses. Prose now says **editorial role**; identifiers say **reviewer** (`--reviewers`, `REVIEWER FILES`, `reviewer = path.stem`), because `role` alone would also cover the task agent and the author. Six senses, all resolved: [the ruling](vocabulary-usage.md#angle--settled-2026-08-15-retired-in-favour-of-editorial-role). |
 | **prose tree** | none; `SKILL.md:24` says "a node on the prose tree" | Appears in both manifests' user-facing descriptions. |
 | **the join** | none | Names `verdicts.py`'s stage-5 gate. `SKILL.md:517,540,571,573,697`; `ref/reviewer-brief.md:42,92`; `CLAUDE.md:46`. |
-| **sweep** | none | Names stage 7b AND survives as a dead script name: `evals/generator_split.py:37` still does `import sweep`; `evals/grade_hazards.py:15` cites `sweep.py`. |
+| ~~**sweep**~~ | SETTLED 2026-08-15 — not a term | Stage 7b is **APPLY**, which every canonical naming site already said. The word was a synonym outliving `sweep.py` (now `census.py`), and the dead `import sweep` with it. Plain-English "sweep the file" stays. |
 | **detector** | none | Used with a fixed sense (a mechanical mark and its precision) at `ref/reviewer-brief.md:234,236,246`; `sk-scripts/census.py:148,770`; `docs/parsing.md:47`; `README.md:131,141,152,260`. |
 | **banner / section banner** | none | `agents/comment-review-module-context.md:3,18,24,98`; `README.md:93` paraphrases without the term. |
 | **assessability gate** | none | Appears only in `agents/comment-review-ownership-context.md:3` frontmatter; the idea is stated without the phrase at `:30-42`. |
@@ -65,7 +65,7 @@ Observed by the scout pass. Recorded as-is.
 
 | Term | Defined | Multiplicity |
 |---|---|---|
-| `clean` | `SKILL.md:48`; `ref/reviewer-brief.md:104,139-148`; per-angle at `CLAUDE.md:202-209`, `agents/…-block-context.md:92-97`, `…-function-context.md:118-121`, `…-module-context.md:113-114`, `…-ownership-context.md:97-102` | SEVERAL (6 sites) |
+| `clean` | `SKILL.md:48`; `ref/reviewer-brief.md:104,139-148`; per-role at `CLAUDE.md:202-209`, `agents/…-block-context.md:92-97`, `…-function-context.md:118-121`, `…-module-context.md:113-114`, `…-ownership-context.md:97-102` | SEVERAL (6 sites) |
 | `query` | `SKILL.md:49`; `ref/reviewer-brief.md:105,150-169`; gate `sk-scripts/verdicts.py:105-132,286-298` | SEVERAL |
 | `drop` | `SKILL.md:50`; `ref/reviewer-brief.md:106` | SEVERAL |
 | `correct` | `SKILL.md:51,64-67`; `ref/reviewer-brief.md:107,114-118` | SEVERAL |
@@ -106,7 +106,7 @@ Observed by the scout pass. Recorded as-is.
 | coverage gap | `ref/reviewer-brief.md:92`; `sk-scripts/verdicts.py:263-275,524-532` | SEVERAL |
 | admissible / admissibility | `sk-scripts/verdicts.py:23`; echoed `SKILL.md:562` | ONE |
 
-### The four angles and the level ladder
+### The four editorial roles and the level ladder
 
 | Term | Defined | Multiplicity |
 |---|---|---|
@@ -119,7 +119,7 @@ Observed by the scout pass. Recorded as-is.
 | `line` | `SKILL.md:187`; `sk-scripts/verdicts.py:68` | SEVERAL |
 | `full` | `SKILL.md:188`; `sk-scripts/verdicts.py:69` | SEVERAL |
 | `proof` | `SKILL.md:189`; empty verdict set `sk-scripts/verdicts.py:64,70` | SEVERAL |
-| `--angles` (declared list) | `sk-scripts/verdicts.py:441-449,508-522` | ONE |
+| `--reviewers` (declared list) | `sk-scripts/verdicts.py:441-449,508-522` | ONE — `--angles` until 2026-08-15. ⚠ Never checked against the four published role names |
 
 ### Census structure
 
@@ -178,7 +178,7 @@ Observed by the scout pass. Recorded as-is.
 | REVIEW (8) | `SKILL.md:31,153-154,722`; `ref/review.md:1-10` | SEVERAL |
 | re-review | `SKILL.md:510-513,623-628`; `sk-scripts/verdicts.py:12,419-428,569-573` | SEVERAL |
 | the join | — | UNDEFINED |
-| sweep (7b) | — | UNDEFINED (and a dead import name) |
+| APPLY (7b) | `SKILL.md:16-17,30,714`; `ref/apply.md:1` | SEVERAL — `sweep` retired as a synonym 2026-08-15 |
 | input contract (COMPACT's narrow input) | `ref/compact.md:95-100`; `SKILL.md:139-149` | SEVERAL |
 
 ### The dispatch packet
@@ -186,7 +186,7 @@ Observed by the scout pass. Recorded as-is.
 | Term | Defined | Multiplicity |
 |---|---|---|
 | packet (run context) | `sk-scripts/run_context.py:1-29,38-68`; `SKILL.md:470-488` | SEVERAL |
-| `ANGLE FILES` (+ absolute-path rule) | `sk-scripts/run_context.py:47,63-65,17-21,247-250` | ONE |
+| `REVIEWER FILES` (+ absolute-path rule) | `sk-scripts/run_context.py:47,63-65,17-21,247-250` | ONE — `ANGLE FILES` until 2026-08-15. ⚠ The hint's payload is SEVEN paths, not four |
 | `CENSUS` | `sk-scripts/run_context.py:46,62`; checked `:243-246` | ONE |
 | `CAP` | `sk-scripts/run_context.py:40,54` | ONE |
 | `LEVEL` | `sk-scripts/run_context.py:39,53,91,239-242` | ONE |
@@ -255,8 +255,8 @@ Observed by the scout pass. Recorded as-is.
 | editorial board | `SKILL.md:10-13,162` | SEVERAL |
 | author (the HUMAN, absent) | `SKILL.md:158-160` | ONE |
 | task agent | `SKILL.md:168-172` | ONE |
-| REVIEWERS (read-only, one angle, never see SKILL.md) | `SKILL.md:174` | ONE |
-| angle | — | UNDEFINED |
+| REVIEWERS (read-only, one editorial role each, never see SKILL.md) | `SKILL.md:174` | ONE |
+| editorial role | `ref/reviewer-brief.md:3`; `SKILL.md:3,11,33,85`; `CLAUDE.md:106` | SEVERAL — stated 2026-08-15, replacing the undefined `angle` ([ruling](vocabulary-usage.md#angle--settled-2026-08-15-retired-in-favour-of-editorial-role)) |
 | prose tree | — | UNDEFINED |
 
 ### Corpus, liveness, infrastructure

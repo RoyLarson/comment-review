@@ -180,7 +180,7 @@ NARRATIVE = {
 
 # A runnable usage line is exempt from the narrative check: a date in
 # `--start 2026-07-14` is a copy-pasteable EXAMPLE, not a claim about history.
-# Without this the sweep pushes a working command out of a docstring in favour
+# Without this APPLY pushes a working command out of a docstring in favour
 # of a placeholder, degrading the docs to please a checker.
 COMMAND_LINE = re.compile(r"^\s*(\$ |uv run |python |pytest |npm |cargo |go )")
 
@@ -299,7 +299,7 @@ BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 
 # The ladder is named by the QUESTION each rung answers, not by the library
 # that happens to answer it. Only the top rung knows which declaration a block
-# belongs to, which is why ownership-context is the one angle that degrades below it.
+# belongs to, which is why ownership-context is the one role that degrades below it.
 TIER_ANSWERS = {
     "tokenized": "blocks, marks, and DOCSTRING owners",
     "lexical": "blocks and marks only",
@@ -349,7 +349,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
 
     Answers where every block is, its line range, its text and its marks. It
     cannot answer OWNERSHIP, so no block gets an owner and the ownership-context
-    angle degrades on this file; the census stamps the tier so a reviewer sees that
+    role degrades on this file; the census stamps the tier so a reviewer sees that
     rather than inferring it.
 
     ⚠ A block opener with no closer swallows every remaining line into one run,

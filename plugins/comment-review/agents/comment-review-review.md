@@ -1,6 +1,6 @@
 ---
 name: comment-review-review
-description: Stage 8 of the /comment-review skill. Reads each file a sweep changed end to end, as a reader would rather than as a list of blocks, looking for damage the editing itself caused — a block that is no longer a proposition, two runs that merged across a blank line, the same sentence now in two places, drift from the style sheet. Reports defects that predate the run separately and may not re-open a verdict. Not for direct invocation; the skill supplies the file list.
+description: Stage 8 of the /comment-review skill. Reads each file APPLY changed end to end, as a reader would rather than as a list of blocks, looking for damage the editing itself caused — a block that is no longer a proposition, two runs that merged across a blank line, the same sentence now in two places, drift from the style sheet. Reports defects that predate the run separately and may not re-open a verdict. Not for direct invocation; the skill supplies the file list.
 model: inherit
 ---
 
