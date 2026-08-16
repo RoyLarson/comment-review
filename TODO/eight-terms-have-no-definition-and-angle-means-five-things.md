@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 15 of 18 tasks done
-Owner:    session · Roy (⭐ 2 rulings left)
+Progress: 17 of 18 tasks done
+Owner:    Roy (⭐ 1 ruling — the only thing left)
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```
 
@@ -147,7 +147,10 @@ See the standing rule in [`README.md`](README.md).
       The code and `README.md` already said two; only the module docstring undercounted,
       and it now names both with D3's reason.
 
-- [ ] Settle **`own` / `owner` / `ownership`** — added 2026-08-16 by Roy, and ⚠ **it was on
+- [x] **Settled 2026-08-16, all four senses.** A → the **anchor** (the census field was renamed,
+      JSON key included). B → **remit**, a new word, after `jurisdiction` failed the editorial
+      register. C → the **owning function**. D → the role name, kept. `HOME` retired into
+      `owner`; `ownership` is retained with no shipped use, deliberately. Was: added by Roy, and ⚠ **it was on
       neither survey list**, the same miss as `budget`. Four senses, two of which are things
       just separated one word over:
       **A — the census field**, `Block.owner`, `SKILL.md:305` *"who owns a block → the
@@ -159,7 +162,13 @@ See the standing rule in [`README.md`](README.md).
       three spellings for one thing; **D — the role name**, `ownership-context`.
       ⚠ `census.py:351` carries A, A-as-capital and D in one sentence.
 
-- [ ] Re-sweep the vocabulary once everything currently unknown is settled. Roy, 2026-08-16:
+- [x] **Run 2026-08-16 by `scripts/vocabulary_sweep.py`**, and all six candidates ruled:
+      `template` and `original` stated, a module-surface `gap` became **omission**, `opener` and
+      `annotations` declared as zero-overlap polysemy, and `walk` retired for having no editorial
+      bent. ⚠ The METHOD is the durable half: raw frequency ranks `here` and `because` above every
+      real term and was discarded; DOUBLE USE — a word in the prose and bound as a module-level
+      name in a script — is the shape every miss has had. Was: re-sweep once everything currently
+      unknown is settled. Roy, 2026-08-16:
       *"that will help the agents focus on potential topics/semantics that mix."* ⚠ The first
       collection missed `budget` (18 sites, four senses) and `own` (four senses) — both found by
       Roy reading, not by the sweep — so **108 was a floor, not a census**. Seed the re-sweep

@@ -10,21 +10,31 @@ Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it
 
 ## Objective
 
-**A comment should state what the code does.** This repo's own scripts spend a sixth of their
-prose on what it does *not* do, on what it is *not*, and on comparisons to other passes —
-exactly the shapes the four editorial roles exist to remove.
+⚠⚠ **The reason is not tidiness — it is what the system learns from reading itself.** Roy,
+2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*
+`CLAUDE.md` carries the same argument for vocabulary: an agent reads these files and then writes
+in them, so the REGISTER is an instruction. A repo whose own scripts spend a fifth of their prose
+on what the code does NOT do is demonstrating the shape its four editorial roles exist to remove.
 
-Measured 2026-08-16 over `plugins/**/*.py`, counting comment and docstring lines carrying
-`cannot` / `never` / `does not` / `is not` / `nothing` / `neither` / `without`:
+**A comment should state what the code does.** These scripts state what it does *not* do, what it
+is *not*, and how it compares to other passes.
 
-| file | negative-form prose lines |
-| --- | ---: |
-| `census.py` | 52 / 284 (18%) |
-| `prove_unchanged.py` | 21 / 111 (19%) |
-| `referrers.py` | 9 / 54 (17%) |
-| `run_context.py` | 14 / 104 (13%) |
-| `verdicts.py` | 27 / 161 (17%) |
-| **total** | **123 / 714 (17%)** |
+Measured over `plugins/**/*.py`, counting comment and docstring lines carrying `cannot` /
+`never` / `does not` / `is not` / `nothing` / `neither` / `without` / `no longer` / `not a`:
+
+| file | before 2026-08-16 | after that day's work |
+| --- | ---: | ---: |
+| `census.py` | 52 / 284 (18%) | 55 / 286 (19%) |
+| `prove_unchanged.py` | 21 / 111 (19%) | 22 / 110 (20%) |
+| `referrers.py` | 9 / 54 (17%) | 10 / 42 (24%) |
+| `run_context.py` | 14 / 104 (13%) | 17 / 96 (18%) |
+| `verdicts.py` | 27 / 161 (17%) | 28 / 144 (19%) |
+| `vocabulary.py` | — | 4 / 19 (21%) |
+| **total** | **123 / 714 (17%)** | **136 / 697 (20%)** |
+
+⚠ **It went UP.** All five scripts were rewritten that day and the prose written with them carries
+the same defect — which is the argument for fixing it at the source rather than trusting a pass
+to notice. The second column is the baseline to work from.
 
 Roy's example: `census.py:351` — *"cannot answer OWNERSHIP, so no block gets an owner and the
 ownership-context…"*. **`census.py` builds the pCST. That is what it does.** What it cannot
