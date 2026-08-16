@@ -108,7 +108,7 @@ to remove.
 ⚠ **Re-derive this after anything lands.** Written fresh each time, not accumulated — a stale
 branch status here is the same failure the box/`Progress`/table rule guards against, one level up.
 
-Everything below is on `feat/settle-the-vocabulary`, five commits, `main` untouched.
+Everything below is on `feat/settle-the-vocabulary`, eleven commits, `main` untouched.
 
 1. **⭐ The record: two rulings, and they are the only thing gating it.** `query` has no
    `SOURCE` by design — where does attempted/would-settle go? And `add` has no block of its own
@@ -117,9 +117,10 @@ Everything below is on `feat/settle-the-vocabulary`, five commits, `main` untouc
    on and **nothing checks it**; `LOCATION` was checked only for resolvability, never against
    the block it names. Replacing it with a `CLAIM`-against-census cross-check is strictly
    stronger and costs no new machinery.
-3. **The vocabulary file has four ⭐ left** — `HOME`'s three readings, whether `SKILL.md:492`
-   means reviewers write text, the four enforcement gaps, and the "5 of its 7 reviewer reports"
-   measurement only Roy can confirm. Its typing work needs none of them.
+3. **The vocabulary is down to three polysemy rows** — `residue`, `SUPPRESSED` and `label` —
+   then the closing re-sweep. `own`/`owner`/`ownership` is settled (`HOME` retired, the census
+   records ANCHORS), `jurisdiction` is the new word for a role's categories of claim, and
+   `worktree` is git's word, not this system's.
 4. **⚠ The survey is a floor, not a census.** `budget` was used at 18 sites in four senses and
    appeared in NEITHER table of the inventory — Roy found it reading a justification. Assume
    other terms are missing the same way; do not treat "109 terms" as coverage.
@@ -147,6 +148,12 @@ vocabulary survey.
 | `599e20e` | `reanchor` collapsed into `move` — eight verdicts, availability and synthesis order key on the destination |
 | `764b1a7` → `da06046` | `budget` settled, then **corrected**: it is what a shipped file costs to load, not the reviewer's runtime |
 | `f1a3cc5` | reviewers no longer receive `CAP` or `WIDTH` — the packet gate had been enforcing the opposite of the stated rule |
+| `4d3b7a2` → `e9b2ff3` | `DOC CONVENTION` settled — stage 1.3 MEASURES the repo's formats instead of naming a standard |
+| `9a84c6f` | `HOME` retired; **owner** is the anchor with the best justification, and `Block.owner` became `Block.anchor` |
+| `f40d26b` | a role's categories of claim are its **JURISDICTION**; the anchor sweep finished |
+| `f20d376` → `dd4e55a` | absence left `ownership-context` — missing documentation is `module-context`'s or `function-context`'s, by scope |
+| `02a51d2` | dropped *"no role may emit another's verdict"* — it contradicted the overlap ruling |
+| `ab1bae0` | `worktree` settled: git's word, not a term of art here |
 
 167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9.
 
@@ -154,10 +161,11 @@ vocabulary survey.
 
 ## Open
 
-### open  (5)
+### open  (6)
 
 | file | owner | done | what |
 | --- | --- | ---: | --- |
+| [the-unit-of-review-is-the-statement-not-the-block](the-unit-of-review-is-the-statement-not-the-block.md) | session · Roy (1 ruling) | 0/5 | **A block ADDRESSES a finding; a statement is what is RULED.** Roy, 2026-08-16: *"each sentence/statement is under review not the 'block'"* — and a statement can be dropped or moved out, not only added. Three files disagree on whether two statements in one block are two findings: the brief says *"exactly once"*, `SKILL.md:44` says *"several verdicts per role per block"*, and `verdicts.py:266-268` uses a SET, accepting both silently. ⚠ Neither direction is enforced — `coverage_gaps` reports only what is MISSING, so a block that is both found and `CLEAN` passes too |
 | [the-author-approves-blocks-and-never-sees-the-page](the-author-approves-blocks-and-never-sees-the-page.md) | session · Roy (5 rulings) | 1/9 | ⭐ **Pipeline, not vocabulary.** 7a shows the author a per-block LIST; stage 8 is the only pass that reads the PAGE, and it runs AFTER 7b has written to disk. So every defect `review.md` exists to catch — a block that is no longer a proposition, two runs merged across a blank line, the same sentence in two places — is found after approval and after the write. Roy wants a whole-document read BEFORE the person sees it, and floated a temporary branch with the diff so they can accept it in git's own tools. Stage 8 then becomes a verification with two outcomes: good, or raise to human as a new review. ⚠ Already done: the 7b paragraph claiming *"this pass cuts, and it can cut a lot"* is deleted — self-contradicting since the import |
 | [the-harness-leaks-into-the-shipped-rules](the-harness-leaks-into-the-shipped-rules.md) | session | 1/5 | **Our eval rig is not the user's environment.** Six shipped sites justified absolute paths with *"a relative one does not resolve from a worktree"* — but a worktree is how `grade_hazards.py` isolates a graded run. ⚠ A right rule with a WRONG reason is worse than one with no reason: a reader who tests it in an ordinary checkout finds it does not fail, drops the rule, and only then do subagents break. Fixed. Open: sweep for the rest, since the same shape has already surfaced twice by other routes (the level ladder's budget argument, and 7b's *"this pass cuts"*) |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | session | 0/6 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** Measured 2026-08-16 over `plugins/**/*.py`: **123 of 714** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` — `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ⚠ Not every negative is wrong — an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place — so the first task is writing the test that tells them apart |
