@@ -206,6 +206,10 @@ history) since it depends on `git blame`.
 - `docs/limitations.md` governs changes to the skill's prose/rules themselves: every example
   used there must be invented (never a real quotation), each new rule should replace an
   existing one at budget rather than accumulate, and a rule belongs in exactly one file.
+- If you are **preparing making edits to code and not in a branch "ASK"** if you should be.
+  The git history on main contains work that should have been branch work because we decided
+  to start implementing before realizing we were corrections to code that belongs on a branch
+  first.
 
 ## The metaphor is EDITORIAL, and it is a rule, not decoration
 

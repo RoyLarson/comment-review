@@ -52,7 +52,7 @@ class TestAListOrdinalIsNotAValue(unittest.TestCase):
         self.assertEqual(annotate.prose_numbers("# 1. collate"), {"1"})
 
 
-# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
 # SHORTER suite than `unittest discover`.
 if __name__ == "__main__":

@@ -89,6 +89,12 @@ and a missing mirror doc is invisible.
 
 ## Related
 
+- [`ownership-is-read-first`](ownership-is-read-first-but-nothing-makes-it-so.md) -- carries the
+  four editorial roles written out as editorial desks. `referrers.py` is the INDEX in that
+  mapping, and the first task above is the indexer's own rule: **an index whose entries point at
+  every page is not an index**, so a term is dropped by how many pages it lands on. The rule was
+  written here first and the desk agrees with it; nothing in that mapping is evidence for the
+  threshold, which still has to come from a run.
 - [`reference-only-misses-the-documentation`](reference-only-misses-the-documentation.md) -- the
   gap `referrers.py` was built to close. ! This file is the cost of closing it.
 - [`the-two-lists-were-tuned-to-one-diff`](the-two-lists-were-tuned-to-one-diff.md) -- the same

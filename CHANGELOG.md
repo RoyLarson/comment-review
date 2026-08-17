@@ -3,10 +3,16 @@
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ! This file starts at 0.1.2. Earlier work is in `git log` and has no entry here -- the
-file existed as a one-line stub until this release. Neither
-`plugins/comment-review/.claude-plugin/plugin.json` nor `.claude-plugin/marketplace.json`
-carries a `version` field, so a version number lives only here and an installed plugin
-cannot report which one it is.
+file existed as a one-line stub until this release.
+
+!! **From 0.2.1 the plugin states its own version.** `plugin.json` carries a `version` field
+and `tests/test_release.py` holds it equal to the newest heading here. Before that it carried
+none, so the plugin cache named its directory for the COMMIT --
+`roy-local/comment-review/7a0945ad3f40/` where an official plugin has `code-simplifier/1.0.0/`
+-- and `claude plugin list` reported that hash. **A run could not be attributed to a release**,
+which cost a real evidence package its attribution on 2026-08-17. `.claude-plugin/marketplace.json`
+still carries no version; `claude plugin tag` validates the two against each other when one is
+present.
 
 ! **The number does not track breaking changes, and never has.** Roy, 2026-08-16: *"these will
 continue to be bugfix versions. I know that is not really how developed systems are supposed to
