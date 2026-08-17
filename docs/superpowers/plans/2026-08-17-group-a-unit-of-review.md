@@ -12,6 +12,9 @@ alone. The record cut (Tasks 4–7) is last because it renames fields the earlie
 
 **Spec:** `docs/superpowers/specs/2026-08-17-review-process-coherence-design.md`
 
+⚠ **A5 was excluded when this plan was written and is now RULED** — Roy, 2026-08-17: *"pCST not
+prose tree"*. It is Task 9.
+
 ## Global Constraints
 
 - **Shipped-code floor is py3.11.** No `except` clause in `plugins/**` holds a tuple literal —
@@ -1031,9 +1034,8 @@ quoting: a REASON that quotes the claim and then explains it is doing its job."
 - [ ] **Step 1: Tick every task in the four files** with what was done and the commit that did
   it, then `git mv` each into `TODO/completed/`.
 
-- [ ] **Step 2: Leave `an-empty-interval-has-no-census-index.md` OPEN.** Its one remaining star
-  — `pCST` versus `prose tree` — is a NAMING ruling and is Roy's. Add a line under its Status:
-  `⚠ Group A landed 2026-08-17 and did NOT touch this. One name must retire; that is Roy's.`
+- [ ] **Step 2: Close `an-empty-interval-has-no-census-index.md` too**, once Task 9 lands. All
+  eleven of its tasks are then done and it moves to `TODO/completed/` with the rest.
 
 - [ ] **Step 3: Add a CHANGELOG `[Unreleased]` section** naming the four record fields, the
   contradiction change with its 8→2 measurement, and the census stamp.
@@ -1073,3 +1075,76 @@ the old name.
 ⚠ **Task order is load-bearing.** Tasks 4→5→6 each change `Finding`'s shape and every test
 fixture with it. Running them out of order leaves `_finding()` describing a dataclass that does
 not exist.
+
+---
+
+### Task 9: `prose tree` retires; `pCST` survives
+
+**Files:**
+- Modify: `docs/vocabulary.md` — the term table and the retired-words table
+- Modify: every shipped file that says `prose tree`
+- Test: `tests/test_vocabulary.py`
+
+**Interfaces:** none — a rename in prose.
+
+⚠ **RULED 2026-08-17.** Roy: *"pCST not prose tree"*. The two were distinguishable while the
+pCST was an aspiration and the prose tree was what the census actually built. The census
+enumerates intervals now, so they name one thing and the precise word wins.
+
+- [ ] **Step 1: Find every site**
+
+```bash
+grep -rn -i "prose tree\|prose-tree" --include=*.md --include=*.py . | grep -v corpora
+```
+
+- [ ] **Step 2: Write the failing test**
+
+Add to `tests/test_vocabulary.py`:
+
+```python
+class TestProseTreeRetired(unittest.TestCase):
+    """Ruled 2026-08-17: the census builds a pCST, and one name had to go."""
+
+    ROOT = Path(__file__).resolve().parent.parent
+
+    def test_no_shipped_file_says_prose_tree(self):
+        shipped = sorted((self.ROOT / "plugins").rglob("*.md"))
+        shipped += sorted((self.ROOT / "plugins").rglob("*.py"))
+        self.assertTrue(shipped, "no shipped files found — the glob is wrong")
+        for path in shipped:
+            with self.subTest(path=path.name):
+                body = path.read_text(encoding="utf-8").lower()
+                self.assertNotIn("prose tree", body)
+
+    def test_the_retired_table_records_it_with_a_reason(self):
+        text = (self.ROOT / "docs" / "vocabulary.md").read_text(encoding="utf-8")
+        self.assertIn("`prose tree`", text)
+        self.assertIn("pCST", text)
+```
+
+- [ ] **Step 3: Run it and watch it fail**
+
+```
+python -m unittest discover -s tests -p "test_vocabulary.py" -v
+```
+
+Expected: `test_no_shipped_file_says_prose_tree` FAILS, naming the files.
+
+- [ ] **Step 4: Replace every shipped use with `pCST`.**
+
+In `docs/vocabulary.md`, delete the `prose tree` row from the term table and drop the
+now-resolved clause from `pCST`'s row (`⚠ BUILT 2026-08-17, so this and prose tree now name one
+thing…`), leaving `pCST` as the single definition. Add to the retired table:
+
+```markdown
+| `prose tree` | → **pCST**. Both named one thing once the census enumerated intervals; the precise word won. Roy, 2026-08-17: *"pCST not prose tree"* |
+```
+
+- [ ] **Step 5: Run the tests, full gate, commit**
+
+```bash
+python -m unittest discover -s tests && ruff format . && ruff check . \
+  && python scripts/check_shipped_syntax.py && python scripts/check_vocabulary.py
+git add -A
+git commit -m "refactor(vocabulary)!: prose tree retires; the census builds a pCST"
+```
