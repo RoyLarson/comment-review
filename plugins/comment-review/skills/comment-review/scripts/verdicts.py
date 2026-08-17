@@ -46,8 +46,11 @@ each reported against something that was right:
       was reported against that valid citation
   D8  a bare field label absorbed into the field above it, so the error was
       reported against a correct SOURCES entry
-  D9  a dropped span absorbing the word before it, so a correct edit was
-      refused for naming a word its CLAIM does not mention
+  D9  a dropped span absorbing the punctuation beside it -- a trailing `.`,
+      then markdown emphasis -- so a correct edit was refused for naming
+      prose its CLAIM does not mention. ! The second shape had NO legal
+      wording, and the reviewer reshaped a sound finding twice to route
+      around it
 
 ! **It is the most expensive kind of diagnostic there is**, because it sends
 the reader to fix something that is not broken. D7 was fixed for citations
@@ -64,6 +67,7 @@ import argparse
 import difflib
 import json
 import re
+import string
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
@@ -261,19 +265,34 @@ CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S
 # ! `CHANGES` still does not match: after the label the pattern needs
 # whitespace or the end of the line, and `S` is neither.
 FIELD = re.compile(r"^(BLOCK|VERDICT|SOURCES|CLAIM|REASON|CHANGE)(?:\s+(.*))?$")
-# !! THE EDGE CHARACTERS A WORD PICKS UP, and the ONE place they are listed.
-# `_words` strips them from a quoted CLAIM; `removed_spans` strips them from the
-# tokens it diffs. **The two must agree or a correct record is refused**, and
-# they did not, twice:
+# !! WHAT COMES OFF A WORD'S EDGES: ALL PUNCTUATION, not a list of it. `_words`
+# strips it from a quoted CLAIM and `removed_spans` from the tokens it diffs,
+# and **the two must agree or a correct record is refused**.
 #
-#   * brackets were absent, so a `CLAIM` naming `the CLI` could not cover a
-#     `CHANGE` editing `the CLI)`
+# ! An ENUMERATED list was the defect, three times in one day. Each fix added
+# the characters that had just been measured and left the next set out:
+#
+#   * brackets absent -- a `CLAIM` naming `the CLI` could not cover a `CHANGE`
+#     editing `the CLI)`
 #   * the diff kept punctuation the claim had lost, so `policy` and `policy.`
-#     could not align and a dropped trailing parenthetical was reported as
-#     starting one word early -- at a word the `CLAIM` does not name
+#     would not align and a dropped trailing parenthetical was reported as
+#     starting at `policy`, a word no `CLAIM` names
+#   * markdown emphasis absent -- a span reading `*"a wrap ... defect"*` could
+#     be matched by NO wording of the claim, cleanly quoted or not, because the
+#     span comes from the FILE and carries the file's markup
 #
-# Both were one list being edited in one place. Measured 2026-08-17.
-EDGE = "\"'`.,;:!?()[]{}"
+# !! The third had no legal expression at all, and the reviewer reshaped a
+# sound finding twice to route around it. **A reviewer contorting its judgement
+# to satisfy a mechanical defect is CONSERVATIVE ON MEANING, FREE ON FORM
+# failing from the tooling side** -- the gate was deciding what could be found,
+# not whether it was true.
+#
+# ! The cost is PRECISION, and it is the cheap direction. `-3` reduces to `3`
+# and `_private` to `private`, so two texts that differ only in edge
+# punctuation now compare EQUAL and a gate that should refuse might pass. A
+# false pass costs a finding the next round catches; a false refusal costs a
+# session, and has three times.
+EDGE = string.punctuation
 # `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 # A citation half that is PATH-SHAPED, whether or not it resolves: no whitespace,

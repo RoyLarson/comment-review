@@ -2415,14 +2415,28 @@ class TestABareFieldLabelIsStillALabel(unittest.TestCase):
         self.assertIn("CHANGE", problem)
 
 
-class TestWordsStripsBrackets(unittest.TestCase):
-    """A CLAIM naming `the CLI` must cover a CHANGE editing `the CLI)`.
+class TestWordsStripsEveryEdgePunctuation(unittest.TestCase):
+    """A CLAIM must cover its edit whatever punctuation brackets the sentence.
 
-    !! The strip set held sentence punctuation only, so a closing bracket
-    stayed glued to its word and the two reduced to different strings. The only
-    way through was to quote the bracket inside the claim -- arbitrary from a
-    reviewer's side, because the same phrase ending a sentence works.
+    !! An ENUMERATED strip set was the defect, three times in one day: brackets
+    absent, then sentence punctuation surviving into the diff, then markdown
+    emphasis. Each fix added what had just been measured and left the next set
+    out, so the set is now ALL punctuation rather than a list.
+
+    ! The third had no legal expression at all -- a span reading
+    `*"a wrap ... defect"*` comes from the FILE and carries the file's markup,
+    so no wording of the claim could match it. The reviewer reshaped a sound
+    finding twice to route around the parser.
     """
+
+    def test_markdown_emphasis_comes_off(self):
+        self.assertEqual(verdicts._words('*"a wrap"*'), verdicts._words("a wrap"))
+
+    def test_underscore_emphasis_comes_off(self):
+        self.assertEqual(verdicts._words("_a wrap_"), verdicts._words("a wrap"))
+
+    def test_bold_comes_off(self):
+        self.assertEqual(verdicts._words("**a wrap**"), verdicts._words("a wrap"))
 
     def test_a_trailing_paren_comes_off(self):
         self.assertEqual(verdicts._words("the CLI)"), verdicts._words("the CLI"))

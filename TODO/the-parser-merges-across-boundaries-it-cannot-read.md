@@ -17,7 +17,19 @@ third instance:
 | --- | --- | --- |
 | **D7** | a malformed `SOURCES` citation into the valid entry above it | that valid citation, for a verbatim half it could no longer find |
 | **D8** | a bare field label into the field above it | a correct `SOURCES` entry, same way |
-| **D9** | a dropped span into the word before it | a correct edit, for naming a word its `CLAIM` does not mention |
+| **D9** | a dropped span into the punctuation beside it | a correct edit, for naming prose its `CLAIM` does not mention |
+
+!! **D9 came in TWO shapes and the second one had no legal expression at all.** First a trailing
+`.` re-attaching to the previous word; then markdown emphasis, where the span reads
+`*"a wrap ... defect"*`. That span comes from the FILE and carries the file's markup, so **no
+wording of the claim could match it** -- measured both ways, cleanly quoted and quoted with the
+delimiters, and both refused.
+
+!! **The reviewer reshaped a sound finding twice to route around it**, moving its ruling onto a
+differently-bounded span to avoid characters the checker mishandled. **A reviewer contorting its
+judgement to satisfy a mechanical defect is CONSERVATIVE ON MEANING, FREE ON FORM failing from
+the tooling side** -- the gate was deciding what could be FOUND rather than whether it was true.
+That is the cost this class charges, and it does not show up as a refused record.
 
 !! **This is the most expensive kind of diagnostic there is**, because it sends the reader to
 fix something that is not broken. Every one of the three cost a session real time on the wrong
