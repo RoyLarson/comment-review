@@ -43,15 +43,24 @@ complete reports read as complete coverage unless `--reviewers` names the fourth
       for a script to read, so the candidates are: (a) the task agent states the four agent
       names in the PROPOSAL and the human sees a short list, (b) `--reviewers` stops being
       optional and defaults to the four editorial roles, (c) a stage-4 line in `SKILL.md`
-      requiring the dispatch be re-read and the count stated before waiting on results.
-      ⚠ Recommendation: **(b), and (c) only with a caveat.** (b) costs nothing and removes the
-      optional-ness that lets a short dispatch through silently.
+      requiring the dispatch be re-read and the count stated before waiting on results,
+      (d) the task agent WRITES the four role names to the run directory at dispatch time, and
+      stage 5 reads that file rather than a flag the human typed.
 
-      ⚠⚠ **(c) is weaker than it looks, and the incident below is why.** Counting the dispatch
-      means counting it from the display, and the display LAGS -- on 2026-08-17 the fourth agent
-      took time to appear and a reader watching it concluded three had launched. An instruction
-      to count would have produced a false alarm on a correct run. If (c) is adopted it has to
-      say what to count and when, not merely that four is the number.
+      ⚠ Recommendation: **(b) and (d). Not (c).**
+
+      ⚠⚠ **(c) asks a reader to OBSERVE the dispatch, and the only thing there to observe is a
+      display that LAGS.** On 2026-08-17 the fourth agent took time to appear; TWO independent
+      readers -- the repo's author, who then waited minutes and questioned the running session
+      about it, and the session that filed this task -- both concluded three had launched. An
+      instruction to count would have raised a false alarm on a correct run.
+
+      ⚠⚠ **(d) replaces observation with DECLARATION, which is the move.** Naming four roles in
+      a file is a different act from counting four lines in a display: it cannot lag, it leaves
+      the artifact the table above says is missing, and `--reviewers` stops depending on a human
+      remembering to type it. It is still a self-report and no more trustworthy than the agent
+      making it -- but a self-report that four were dispatched, against three reports on disk,
+      is a contradiction the join can print.
 
 - [ ] Make `--reviewers` default to the four editorial roles rather than to `""`. Today its
       absence is announced — *"whether every expected reviewer reported was NOT checked"* — and
