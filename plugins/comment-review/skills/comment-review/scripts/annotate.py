@@ -61,8 +61,16 @@ DATEISH = re.compile(r"\b\d{4}-\d{2}-\d{2}\w*|\bv?\d+\.\d+\.\d+\b")
 
 
 def prose_numbers(text: str) -> set[str]:
-    """Numbers a reader would call a VALUE — dates and versions removed."""
-    return {n for n in NUMBER.findall(DATEISH.sub(" ", text)) if len(n) > 1}
+    """Numbers a reader would call a VALUE — dates and versions removed.
+
+    ⚠⚠ SINGLE DIGITS COUNT. A `len(n) > 1` filter discarded every one of them,
+    and `repeated-literal` exists to catch a hand-copied threshold whose copies
+    drift — where the thresholds in this domain are overwhelmingly single
+    digits. `the cap is 3` in two files never tripped it, which is precisely
+    the case the annotation was built for. Measured 2026-08-17: `prose_numbers`
+    returned nothing at all for `the cap is 3` and `retry 5 times`.
+    """
+    return set(NUMBER.findall(DATEISH.sub(" ", text)))
 
 
 NARRATIVE = {

@@ -79,10 +79,6 @@ class TestWhatIsEmitted(unittest.TestCase):
             vocab.render("review", self.definitions, roles)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestProseTreeRetired(unittest.TestCase):
     """Ruled 2026-08-17: the census builds a pCST, and one name had to go.
 
@@ -111,3 +107,13 @@ class TestProseTreeRetired(unittest.TestCase):
         text = (self.ROOT / "docs" / "vocabulary.md").read_text(encoding="utf-8")
         self.assertIn("`prose tree`", text)
         self.assertIn("pCST", text)
+
+
+# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# class exists, so `python tests/<file>.py` reported a green bar over a
+# SHORTER suite than `unittest discover` — and the tests it skipped were
+# the ones someone running a single file was iterating on. Measured
+# 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
+# test_vocabulary.py.
+if __name__ == "__main__":
+    unittest.main()

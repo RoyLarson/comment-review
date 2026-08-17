@@ -89,7 +89,9 @@ def check_complete(definitions: dict[str, str], roles: dict[str, list[str]]) -> 
     for term in sorted(set(definitions) - given):
         print(f"vocabulary.toml  NO RECIPIENT   {term!r} is defined for nobody")
         holes += 1
-    roles_n = len(roles) - 1
+    # ⚠ The shared row is not a role; every other key is. Counted rather than
+    # assumed, so a second non-role key would not silently shift the number.
+    roles_n = len([r for r in roles if r != EVERY_AGENT])
     print(f"\n{len(definitions)} definitions across {roles_n} roles, {holes} holes.")
     return holes
 
@@ -98,6 +100,18 @@ def check_drift(definitions: dict[str, str], roles: dict[str, list[str]]) -> int
     """Report every term a role is given but never uses, and the reverse."""
     shared = set(roles.get(EVERY_AGENT, []))
     drift = 0
+    # ⚠⚠ EVERY AGENT FILE, not every row of the table. Enumerating from
+    # `vocabulary.toml` alone meant a new agent with no row there was never
+    # checked — the gate printed "N roles checked, 0 drifted" and exited 0
+    # while that agent used defined terms it had never been given, which is the
+    # drift this check exists to catch. The table is one of the two things that
+    # can be out of date, and it cannot be the one that decides.
+    on_disk = {
+        f.stem[len("comment-review-") :] for f in AGENTS.glob("comment-review-*.md")
+    }
+    for missing in sorted(on_disk - set(roles) - {EVERY_AGENT}):
+        print(f"vocabulary.toml  NO ROLE ROW  for agent {missing!r}")
+        drift += 1
     for role, keys in sorted(roles.items()):
         if role == EVERY_AGENT:
             continue
@@ -115,7 +129,8 @@ def check_drift(definitions: dict[str, str], roles: dict[str, list[str]]) -> int
             print(f"vocabulary.toml  MISSING  {role} uses {term!r}, is not given it")
             drift += 1
     print(
-        f"\n{len(roles) - 1} roles checked against the text they read, {drift} drifted."
+        f"\n{len([r for r in roles if r != EVERY_AGENT])} roles checked against"
+        f" the text they read, {drift} drifted."
     )
     return drift
 

@@ -224,10 +224,6 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         self.assertEqual([b.kind for b in got], ["comment"])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestTheLexicalTierStampsToo(unittest.TestCase):
     """The wrapped trailing comment splits identically at BOTH tiers.
 
@@ -255,3 +251,13 @@ class TestTheLexicalTierStampsToo(unittest.TestCase):
         got = self._census("a.go", "x := 1\n// a fresh note\ny := 2\n")
         prose = [b for b in got if b.kind != "interval"]
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
+
+
+# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# class exists, so `python tests/<file>.py` reported a green bar over a
+# SHORTER suite than `unittest discover` — and the tests it skipped were
+# the ones someone running a single file was iterating on. Measured
+# 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
+# test_vocabulary.py.
+if __name__ == "__main__":
+    unittest.main()

@@ -37,9 +37,20 @@ import census  # noqa: E402  - the census is the skill's, not a second copy
 # `Co-Authored-By: Claude`, `Assisted-by: ...`, `Generated with ...`. Broad on
 # purpose: a false positive dilutes the contrast and understates the effect,
 # which is the safe direction for a claim like this one.
+#
+# ⚠⚠ TWO SHAPES, because they are punctuated differently. A TRAILER is
+# `Key: value` at the start of a line. The FOOTER is a sentence with no colon
+# and no line start to anchor to — `🤖 Generated with [Claude Code](...)`, where
+# an emoji is not `\s`. One pattern demanding both `^\s*` and `\s*:` matched
+# only the trailer, so a commit carrying just the footer was filed under
+# `human` — biasing the split against the very effect this module measures.
+# Measured 2026-08-17: both real footer forms returned False.
+TOOLS = r"(claude|copilot|gpt|codex|cursor|gemini|llm|ai)\b"
 ASSISTED = re.compile(
-    r"(?im)^\s*(co-authored-by|assisted-by|generated[- ]with)\s*:.*"
-    r"(claude|copilot|gpt|codex|cursor|gemini|llm|ai)\b"
+    r"(?im)^\s*(co-authored-by|assisted-by)\s*:.*"
+    + TOOLS
+    + r"|generated[- ]with\b.*"
+    + TOOLS
 )
 
 
@@ -141,7 +152,13 @@ def main() -> int:
     # depth-2000 checkout put 1177 of one file's 1364 lines on the graft point,
     # which happened to carry a trailer, labelling the whole pre-existing
     # codebase "assisted". The numbers looked entirely reasonable.
-    shallow = repo / ".git" / "shallow"
+    # ⚠⚠ ASK GIT, do not build the path. A `local` corpus is a WORKTREE, where
+    # `.git` is a FILE pointing at the source repo's gitdir — so
+    # `repo/.git/shallow` can never exist, and this guard was structurally dead
+    # for exactly the corpora this script targets. The failure recorded above
+    # would have gone unreported on every one of them.
+    gitdir = Path(git(repo, "rev-parse", "--absolute-git-dir").strip() or repo / ".git")
+    shallow = gitdir / "shallow"
     grafts = (
         set(shallow.read_text(encoding="utf-8").split()) if shallow.exists() else set()
     )
