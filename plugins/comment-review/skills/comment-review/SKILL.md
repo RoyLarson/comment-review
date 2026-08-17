@@ -196,6 +196,14 @@ if there is none. WHERE a block belongs is the reviewers' to say; whether a tree
 code exists to receive it is a fact about the repo, and only you can settle it before they run.
 A verdict pointing at a tree that does not exist is not a verdict.
 
+⚠⚠ **The answer may be PER PATH, and a repo that says otherwise is rare.** A convention like
+`docs/{pkg}/{module}.md` is available exactly where that tree was actually built — measured on
+one repo, present for `tests/**` and absent for the production package, though the convention
+document cited the same path for both. **Write the split into the packet**, one line per scope,
+rather than picking the stricter answer for everything: told UNAVAILABLE everywhere, a reviewer
+withholds a legal `move` on the half that has a destination; told the tree everywhere, it emits
+verdicts pointing at a tree that is not there.
+
 ⚠⚠ **If the destination tree is absent, only `move` OUT OF THE CODE is unavailable — and
 those blocks become `clean`, never `drop`. A `move` to a destination inside tracked code is
 unaffected and always available.** Say so at stage 1, and again in the proposal; offer the human the one-line alternative

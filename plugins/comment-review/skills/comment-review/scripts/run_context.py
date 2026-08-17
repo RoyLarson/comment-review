@@ -55,7 +55,11 @@ HINTS = {
     "LSP LANGUAGES": (
         "which answered, which had no server, or `no LSP tool — no probe possible`"
     ),
-    "MOVE DESTINATION": "the tree, or `UNAVAILABLE` — say which here, not at stage 6",
+    "MOVE DESTINATION": (
+        "the tree, or `UNAVAILABLE` — say which here, not at stage 6."
+        " ⚠ May be PER PATH: one line per scope where a repo built the tree"
+        " for some packages and not others"
+    ),
     "CENSUS": "absolute path, unique to THIS run",
     "REVIEWER FILES": (
         "absolute path per reviewer, the brief, and the compact + review agents"
