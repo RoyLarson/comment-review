@@ -7,6 +7,34 @@
 # unparenthesised form twice -- a SyntaxError on every older interpreter, in the
 # files the skill hands to strangers. A `noqa` did not hold; a floor does.
 
+# ⚠⚠ THE FLOOR IS THE DEVELOPMENT INTERPRETER, and that is the point. `uv`
+# pins it in `.python-version`; run the gate through `.venv` or `uv run`.
+# Measured 2026-08-17: with 3.14 on the dev machine, four of the eight shipped
+# scripts raised `NameError` at IMPORT on 3.11 for two days' worth of commits,
+# passing every test and the shipped-syntax gate, because PEP 649 makes
+# annotations lazy from 3.14. Roy: "the floor will not fail if we are using the
+# floor to evaluate the code."
+
+[project]
+name = "comment-review"
+requires-python = ">=3.11"
+# ⚠⚠ A SECOND COPY OF THE VERSION, and it is CHECKED. `CHANGELOG.md` says a
+# version number lives only there, and it still should -- but `uv` requires
+# either this or `dynamic`, and a dynamic version can only be learned by
+# BUILDING, which `package = false` otherwise avoids entirely.
+#
+# So the copy is unavoidable and `tests/test_release.py` makes it safe: it must
+# equal the newest `## [x.y.z]` heading in `CHANGELOG.md`. ⚠ Two copies of a
+# number with nothing comparing them is the defect this repo spends its days
+# catching -- it shipped a stale verdict name and a stale stage diagram from
+# exactly that shape on 2026-08-17. Two copies WITH a check is a release gate:
+# it also catches cutting a release and forgetting to bump.
+version = "0.2.0"
+
+# ⚠ NOT A PACKAGE, said where a tool reads it rather than only in a comment.
+[tool.uv]
+package = false
+
 [tool.ruff]
 target-version = "py311"
 line-length = 88

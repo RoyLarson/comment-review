@@ -16,7 +16,14 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:  # census.py imports this module; the Block type comes back
+# ⚠⚠ `Block` exists for TYPING ONLY -- `census.py` imports this module, so a
+# real import would be circular -- and it is therefore NOT BOUND AT RUNTIME.
+# Every annotation naming it is QUOTED for that reason. Measured 2026-08-17:
+# unquoted and without `from __future__ import annotations`, this module and
+# the three that import it raised `NameError: name 'Block' is not defined`
+# at import on Python 3.13 and on the 3.11 floor, while passing on the 3.14
+# dev machine where PEP 649 makes annotations lazy.
+if TYPE_CHECKING:
     from census import Block
 
 PATH_CITE = re.compile(r"`?([\w./-]+\.(?:py|md|toml|txt|json|ya?ml))(?:::(\w+))?`?")
@@ -86,7 +93,7 @@ NARRATIVE = {
 COMMAND_LINE = re.compile(r"^\s*(\$ |uv run |python |pytest |npm |cargo |go )")
 
 
-def annotate(block: Block, known: set[str], paths: set[str], repo: Path) -> None:
+def annotate(block: "Block", known: set[str], paths: set[str], repo: Path) -> None:
     """Attach every annotation this block carries, and resolve it where possible."""
     t = block.text
     if not t:

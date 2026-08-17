@@ -39,61 +39,102 @@ ROOT = Path(__file__).resolve().parent.parent
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
 
+def _annotations(tree: ast.AST) -> list[tuple[int, str, ast.expr]]:
+    """Every annotation the floor EVALUATES, as `(line, where, expression)`.
+
+    ⚠⚠ ALL SIX POSITIONS, and the first version of this checked two. It read
+    `args.args` and `returns` only, so a keyword-only parameter, `*args`,
+    `**kwargs`, a positional-only parameter, and a dataclass field annotation
+    were all unexamined — and a dataclass field is exactly how this repo
+    declares its records.
+
+    ⚠ A STRING annotation is skipped: quoting is the sanctioned way to name a
+    type that is not bound at runtime, and it is what the fix looks like.
+    """
+    out: list[tuple[int, str, ast.expr]] = []
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            a = n.args
+            slots = [*a.posonlyargs, *a.args, *a.kwonlyargs, a.vararg, a.kwarg]
+            for arg in slots:
+                if arg is not None and arg.annotation is not None:
+                    out.append((n.lineno, f"{n.name}()", arg.annotation))
+            if n.returns is not None:
+                out.append((n.lineno, f"{n.name}()", n.returns))
+        elif isinstance(n, ast.AnnAssign) and n.annotation is not None:
+            label = getattr(n.target, "id", "a field")
+            out.append((n.lineno, str(label), n.annotation))
+    return [(ln, w, a) for ln, w, a in out if not isinstance(a, ast.Constant)]
+
+
 def runtime_defects(src: str) -> list[str]:
     """Constructs that PARSE at the floor and fail there at RUNTIME.
 
     `ast.parse(feature_version=...)` validates syntax and nothing else, so a
     file can pass it and still raise on the interpreter it claims to support.
-    Both shapes below are ordinary expressions to the parser at any version.
     """
     out: list[str] = []
     tree = ast.parse(src)
-    # ⚠⚠ FORWARD REFERENCES IN ANNOTATIONS. Python 3.14 evaluates annotations
-    # lazily (PEP 649), so a parameter annotated with a class defined LOWER in
-    # the file imports cleanly on a modern interpreter and raises `NameError` at
-    # IMPORT time on the floor. Found 2026-08-17 in this repo's own shipped
-    # code, the day `from __future__ import annotations` came out: two helpers
-    # annotated `Finding` above the class that defines it. The tests passed,
-    # this check passed, and the file could not have been imported at 3.11.
+    # ⚠ The future import restores lazy evaluation at the floor, so a file
+    # carrying it is exempt from everything below.
+    if any(
+        isinstance(n, ast.ImportFrom)
+        and n.module == "__future__"
+        and any(a.name == "annotations" for a in n.names)
+        for n in tree.body
+    ):
+        return out
+
+    # ⚠⚠ AN ANNOTATION MAY NAME ONLY WHAT IS BOUND AT RUNTIME. Python 3.14
+    # evaluates annotations lazily (PEP 649), so a name that does not exist yet
+    # — or never exists — is fine on a modern interpreter and raises
+    # `NameError` AT IMPORT on the floor.
+    #
+    # Two ways to get it wrong, and this repo has now shipped both:
+    #   2026-08-17  two helpers annotated `Finding` twelve lines ABOVE the class
+    #   2026-08-17  `annotate.py` annotated `Block`, imported under
+    #               TYPE_CHECKING only — which took census, prove_unchanged and
+    #               verdicts down with it, four of eight shipped scripts, while
+    #               this gate reported success
     defined_at = {
         n.name: n.lineno
         for n in ast.walk(tree)
         if isinstance(n, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
     }
-    # ⚠ The future import restores lazy evaluation at the floor, so a file
-    # carrying it is exempt. Nothing shipped here carries it any more.
-    lazy = any(
-        isinstance(n, ast.ImportFrom)
-        and n.module == "__future__"
-        and any(a.name == "annotations" for a in n.names)
-        for n in tree.body
-    )
+    type_only: set[str] = set()
     for n in ast.walk(tree):
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and not lazy:
-            annotations = [a.annotation for a in n.args.args if a.annotation]
-            if n.returns is not None:
-                annotations.append(n.returns)
-            for ann in annotations:
-                for name in (x.id for x in ast.walk(ann) if isinstance(x, ast.Name)):
-                    if defined_at.get(name, 0) > n.lineno:
-                        out.append(
-                            f"line {n.lineno}: {n.name}() annotates {name}, defined "
-                            f"at line {defined_at[name]} — NameError on import"
-                        )
+        if isinstance(n, ast.If) and "TYPE_CHECKING" in ast.dump(n.test):
+            for sub in ast.walk(n):
+                if isinstance(sub, (ast.Import, ast.ImportFrom)):
+                    type_only.update(
+                        a.asname or a.name.split(".")[0] for a in sub.names
+                    )
+
+    for line, where, ann in _annotations(tree):
+        for name in {x.id for x in ast.walk(ann) if isinstance(x, ast.Name)}:
+            if name in type_only:
+                out.append(
+                    f"line {line}: {where} annotates {name}, which is imported"
+                    " under TYPE_CHECKING and is NOT bound at runtime — quote it"
+                )
+            elif defined_at.get(name, 0) > line:
+                out.append(
+                    f"line {line}: {where} annotates {name}, defined at line "
+                    f"{defined_at[name]} — NameError on import"
+                )
+
+    # ⚠ PEP 604 inside isinstance()/issubclass() is a TypeError before 3.10.
+    # `FLOOR` is 3.11, so this cannot fire today and is kept as a guard for a
+    # floor that drops — the summary and the docstring must not claim otherwise.
+    if FLOOR >= (3, 10):
+        return out
+    for n in ast.walk(tree):
         if not isinstance(n, ast.Call):
             continue
         fn = getattr(n.func, "id", "")
         if fn not in ("isinstance", "issubclass") or len(n.args) < 2:
             continue
-        # ⚠ Reported against the FLOOR, not against 3.9. This read "TypeError
-        # before 3.10" while `FLOOR` is 3.11, where the idiom works — a gate
-        # refusing a valid construct for a reason about an interpreter this
-        # repo does not claim to support.
-        if (
-            FLOOR < (3, 10)
-            and isinstance(n.args[1], ast.BinOp)
-            and isinstance(n.args[1].op, ast.BitOr)
-        ):
+        if isinstance(n.args[1], ast.BinOp) and isinstance(n.args[1].op, ast.BitOr):
             out.append(
                 f"line {n.lineno}: PEP 604 union inside {fn}() — "
                 f"TypeError on Python {FLOOR_TEXT}, invisible to a syntax check"

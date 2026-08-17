@@ -16,46 +16,54 @@ development and measurement tooling that stays behind.
 
 ## Commands
 
+⚠⚠ **RUN EVERYTHING THROUGH `uv run`.** The project is pinned to **Python 3.11**, the floor
+`plugins/` ships against, in `.python-version` and `[project] requires-python`. Measured
+2026-08-17: with 3.14 as the ambient interpreter, four of the eight shipped scripts raised
+`NameError` at IMPORT on 3.11 while every test and the shipped-syntax gate passed — PEP 649
+makes annotations lazy from 3.14, so the break was invisible locally. Roy: *"the floor will not
+fail if we are using the floor to evaluate the code."* Substituting a bare `python` re-opens
+exactly that gap.
+
 ```bash
 # Run the census (stages 2-3 of the skill) over one or more files
-python plugins/comment-review/skills/comment-review/scripts/census.py --repo . <paths...>
-python plugins/comment-review/skills/comment-review/scripts/census.py --languages   # list known languages
+uv run python plugins/comment-review/skills/comment-review/scripts/census.py --repo . <paths...>
+uv run python plugins/comment-review/skills/comment-review/scripts/census.py --languages   # list known languages
 
 # Materialise the pinned corpora (git worktrees / clones into corpora/<name>/, gitignored)
-python scripts/fetch_corpora.py                 # fetch everything missing
-python scripts/fetch_corpora.py --list          # print the manifest only
-python scripts/fetch_corpora.py --only numpy pymc
-python scripts/fetch_corpora.py --clean sentry --only sentry   # refetch one
+uv run python scripts/fetch_corpora.py                 # fetch everything missing
+uv run python scripts/fetch_corpora.py --list          # print the manifest only
+uv run python scripts/fetch_corpora.py --only numpy pymc
+uv run python scripts/fetch_corpora.py --clean sentry --only sentry   # refetch one
 
 # Grade a comment-review run against the twelve planted hazards, from the diff (never the report)
-python evals/grade_hazards.py <worktree> [<worktree> ...]
+uv run python evals/grade_hazards.py <worktree> [<worktree> ...]
 
 # Split a corpus's prose defects by whether the introducing commit carries an assistant trailer
-python evals/generator_split.py <corpus-dir> [paths...]
+uv run python evals/generator_split.py <corpus-dir> [paths...]
 
 # Survey GitHub for assistant-authored repos to extend the corpus
-python scripts/find_llm_repos.py --pages 3 --min-hits 2
+uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
 # Run the test suite (stdlib unittest; there are no third-party test deps)
-python -m unittest discover -s tests -v
+uv run python -m unittest discover -s tests -v
 
 # Stage 3 inbound: which tracked files NAME the files under review
-python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo . <paths...>
+uv run python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo . <paths...>
 
 # Stage 5 gate: join reviewer reports against the census, check every citation.
 # Each report file is NAMED FOR ITS ROLE -- the tool takes the role name from
 # the file stem, and --reviewers compares against those stems.
-python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
+uv run python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
   --census <census>.json --repo . \
   --reviewers ownership-context,block-context,function-context,module-context \
   ownership-context.md block-context.md function-context.md module-context.md
 
 # Stage 4 gate: the dispatch packet
-python plugins/comment-review/skills/comment-review/scripts/run_context.py --template
-python plugins/comment-review/skills/comment-review/scripts/run_context.py --check <file>
+uv run python plugins/comment-review/skills/comment-review/scripts/run_context.py --template
+uv run python plugins/comment-review/skills/comment-review/scripts/run_context.py --check <file>
 
 # Stage 7b gate: prove WRITE changed no executable code
-python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
+uv run python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
   --base <merge-base> --repo . <paths...>
 
 # Lint (ruff config lives in pyproject.toml; corpora/** is excluded from linting)
@@ -64,20 +72,20 @@ ruff format .
 
 # Gate check: refuse to ship a plugins/ file that won't parse on the floor interpreter (py3.11).
 # Run AFTER `ruff format`.
-python scripts/check_shipped_syntax.py
+uv run python scripts/check_shipped_syntax.py
 
 # The SHIPPED vocabulary holds: every key a role is given has a definition, no definition is
 # written for nobody, and no role is given a term its own text never uses. Run after any edit
 # to an agent file or a reference.
-python scripts/check_vocabulary.py
+uv run python scripts/check_vocabulary.py
 
 # What one agent is GIVEN. The task agent runs this at stage 4 and pastes the output verbatim.
-python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --reviewer block-context
-python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --roles
+uv run python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --reviewer block-context
+uv run python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --roles
 
 # Terms of art in the shipped tree the inventory does not list. An INPUT, not a gate:
 # every row needs a human to say whether it is a term.
-python scripts/vocabulary_sweep.py
+uv run python scripts/vocabulary_sweep.py
 ```
 
 Tests are stdlib `unittest` with per-language fixtures under `tests/fixtures/`;
