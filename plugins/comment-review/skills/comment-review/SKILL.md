@@ -125,12 +125,6 @@ write. *"Compact + correct"* is an instruction to somebody else, not the text.
 their scope; a claim attached to the wrong scope is measured against the wrong code and
 `correct`ed into a falsehood.
 
-⚠⚠ **If `move` is unavailable (1.4), blocks will stay OVER the cap — say so up front.** True
-rationale with no destination becomes `clean` and stays where it is, and COMPACT may not cut
-evidence to shorten it. Measured: the residual over-cap blocks were almost entirely this. They
-come under the cap the day the destination tree exists — that is worth telling the human at
-stage 1, not at stage 6.
-
 ⚠⚠ **THE CAP IS APPLIED IN STAGE 6 AND NOWHERE ELSE** — never while text is being written,
 and **never passed to a reviewer** — it is not a section of the stage-4 packet, and neither is
 `WIDTH`. Length is not an editorial role; the reason is in the brief.
