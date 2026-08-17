@@ -83,17 +83,13 @@ file's language.** Both tiers find the same blocks and differ only in what else 
 | `tokenized` | a lexer + AST (Python: the stdlib) | blocks, annotations, **docstring** anchors | a **comment's** anchor |
 | `lexical` | a comment-syntax record, nothing else | blocks, annotations | any anchor; a marker inside an exotic string |
 
-⚠⚠ **A placement finding is a CANDIDATE, and you say so in your stage 2-3 report.** No comment
+⚠⚠ **Carry the census's CANDIDATE line into your stage 2-3 report.** It prints that no comment
 carries an anchor at either tier, so every ownership-context verdict rests on a reviewer READING
 the file — a judgement no field records and nothing downstream can check.
 
 ⚠ **A file the census reads at the LEXICAL tier is still fully reviewed.** *"No parser for this
 language"* reads like *"no review"* and is not — what the tier costs is mechanical support for
 placement, nothing else.
-
-⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks anchoring.**
-An unresolved anchor weakens a verdict; an absent block produces none and reports no gap. **Adopt
-a richer source of structure only if it misses ZERO blocks.**
 
 **A suffix the census has no record for is named, and the census EXITS NONZERO** — every file
 handed in is censused or the run stops. `python <skill>/scripts/census.py --languages` lists
@@ -325,7 +321,12 @@ guaranteed to be the skill's.
 ```bash
 python <skill>/scripts/census.py --repo . <paths...>          # no cap, no width rule
 python <skill>/scripts/census.py --cap 6 --width 88 --repo . <paths...>   # both published
+python <skill>/scripts/census.py --json --repo . <paths...> > <census>.json   # for stage 5
 ```
+
+⚠⚠ **Write it TWICE, and the second one is not optional.** The reviewers are handed the text
+census; **the stage-5 join reads the `--json` one and parses it as JSON**, so a run that wrote
+only the text census fails at stage 5 with `CANNOT PARSE ... as JSON`.
 
 It emits the numbered tree — `N  file:start-end  kind  lines  annotations  (anchor)` — with each
 node's references already resolved, and it prints the tier counts for the run. ⚠ Those are
