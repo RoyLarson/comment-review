@@ -593,14 +593,76 @@ class TestEvidence(unittest.TestCase):
         f = _finding(location="a.py:1-2")
         self.assertIsNone(verdicts.location_problem(f, self.repo))
 
-    def test_evidence_rejects_a_range(self):
-        # Minor: the shared CITE regex widened to serve LOCATION's
-        # file:start-end, but the record format reserves that for LOCATION --
-        # EVIDENCE must stay file:line.
-        f = _finding(evidence="a.py:1-2")
-        problem = verdicts.evidence_problem(f, self.repo)
-        self.assertIsNotNone(problem)
-        self.assertIn("file:line", problem)
+    def test_evidence_accepts_a_range(self):
+        # Was: EVIDENCE had to be file:line and a range was refused, on a rule
+        # that stated no reason. Roy removed it 2026-08-17 -- a range is where
+        # the reviewer looked, the same as a line.
+        f = _finding(evidence="a.py:4-6")
+        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
+
+
+class TestEvidenceTakesSeveralCitations(unittest.TestCase):
+    """The brief asks for "`file(s):line(s)` you opened", plural on both halves.
+
+    ⚠ The gate took ONE `file:line` for the whole field, so a reviewer citing
+    two sites was refused for following the brief. Measured 2026-08-17 on a live
+    run: 15 of 22 refusals were the contract, not the reviewer. Roy ruled the
+    gate widens.
+
+    ⚠⚠ Widening makes it STRICTER: every citation must resolve. What is NOT
+    required is the QUOTE at every one -- a claim settled by two sites quotes
+    the line that settles it, and the other is where the reviewer also looked.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name)
+        (self.repo / "a.py").write_text(
+            "one\ntwo\nthree\nfour\nthe settling line\nsix\n", encoding="utf-8"
+        )
+        (self.repo / "b.py").write_text("alpha\nbeta\ngamma\n", encoding="utf-8")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_two_citations_pass_when_the_quote_sits_at_one(self):
+        f = _finding(evidence="a.py:5, b.py:2")
+        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
+
+    def test_the_order_does_not_matter(self):
+        f = _finding(evidence="b.py:2, a.py:5")
+        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
+
+    def test_every_citation_must_resolve(self):
+        # The strictness the widening buys: a second citation nobody can open
+        # is refused even though the first one carries the quote.
+        f = _finding(evidence="a.py:5, gone.py:2")
+        self.assertIn("gone.py", verdicts.evidence_problem(f, self.repo))
+
+    def test_a_line_past_the_end_of_the_second_file_is_refused(self):
+        f = _finding(evidence="a.py:5, b.py:99")
+        self.assertIn("b.py", verdicts.evidence_problem(f, self.repo))
+
+    def test_the_quote_must_sit_near_ONE_of_them(self):
+        f = _finding(evidence="b.py:1, b.py:3")
+        self.assertIn("not found near any of", verdicts.evidence_problem(f, self.repo))
+
+    def test_spacing_and_a_trailing_comma_are_tolerated(self):
+        for cite in ("a.py:5,b.py:2", "a.py:5 ,  b.py:2", "a.py:5, b.py:2,"):
+            with self.subTest(cite=cite):
+                f = _finding(evidence=cite)
+                self.assertIsNone(verdicts.evidence_problem(f, self.repo), cite)
+
+    def test_an_empty_evidence_field_is_refused(self):
+        self.assertIn(
+            "empty", verdicts.evidence_problem(_finding(evidence=" "), self.repo)
+        )
+
+    def test_a_bare_filename_is_still_refused(self):
+        # ⚠ Widening the field did NOT license a citation with no line. On the
+        # measured run 6 of the 22 refusals were this, and they stay refused.
+        f = _finding(evidence="a.py, b.py:2")
+        self.assertIn("is not file:line", verdicts.evidence_problem(f, self.repo))
 
 
 class TestCLI(unittest.TestCase):

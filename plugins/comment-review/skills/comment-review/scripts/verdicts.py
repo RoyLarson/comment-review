@@ -322,21 +322,24 @@ def payload_problem(f: Finding) -> str | None:
     return None
 
 
-def _resolve_lines(
-    cite: str, repo: Path, *, allow_range: bool = True
-) -> tuple[Path, int, int, list[str]] | str:
-    """Resolve a `file:line` or `file:start-end` citation, or say why not.
+def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | str:
+    """Resolve ONE `file:line` or `file:start-end` citation, or say why not.
 
     Shared by EVIDENCE and LOCATION: both are inadmissible on exactly the same
     grounds -- an unparseable citation, a missing file, or a line number past
     the end of it (or below 1, which is off every file).
 
+    ⚠ It resolves a SINGLE citation. `evidence_problem` splits its field on
+    commas and calls this per citation, because the brief asks for
+    "`file(s):line(s)`" and a claim often needs two sites to settle.
+
+    ⚠ An `allow_range` flag held EVIDENCE to `file:line` and refused
+    `file:start-end`. It stated no reason, and Roy removed it 2026-08-17: a
+    range is where the reviewer looked, same as a line.
+
     Args:
-        cite: the `file:line` or `file:start-end` text.
+        cite: the `file:line` or `file:start-end` text, one citation.
         repo: the repo root the path is relative to.
-        allow_range: EVIDENCE is `file:line` in the record format; only
-            LOCATION may carry `file:start-end`. The shared regex is wide
-            enough for both, and this holds EVIDENCE to the narrow form.
 
     Returns:
         `(path, start, end, lines)` when it resolves, else the problem string.
@@ -345,8 +348,6 @@ def _resolve_lines(
     if not m:
         return f"{cite!r} is not file:line or file:start-end"
     rel, start_s, end_s = m.group(1), m.group(2), m.group(3)
-    if end_s and not allow_range:
-        return f"{cite} is file:start-end; EVIDENCE must be file:line, not a range"
     start = int(start_s)
     end = int(end_s) if end_s else start
     if start < 1 or end < 1:
@@ -386,26 +387,46 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     2026-08-16. Where you looked is a real line in the checkout on all three
     query shapes, so it resolves like any other citation. Only `clean` is
     exempt, because a `clean` reports no claim to cite.
+
+    ⚠⚠ SEVERAL CITATIONS, comma-separated, and EVERY one must resolve. The
+    brief has always asked for "`file(s):line(s)` you opened", and this took one
+    `file:line` for the whole field -- so a reviewer that cited two sites was
+    refused for following the brief. Measured 2026-08-17 on a live run: 15 of 22
+    refusals were the contract, not the reviewer. Roy ruled the gate widens.
+    ⚠ This makes the check STRICTER. Three citations that all resolve is more
+    evidence than one, and a reviewer forced to pick one was being made to drop
+    the other -- which is the cut-the-provenance failure stage 5 already names.
     """
     if f.verdict == "clean":
         return None
-    resolved = _resolve_lines(f.evidence, repo, allow_range=False)
-    if isinstance(resolved, str):
-        return f"EVIDENCE {resolved}"
-    _target, lineno, _end, lines = resolved
+    cites = [c.strip() for c in f.evidence.split(",") if c.strip()]
+    if not cites:
+        return "EVIDENCE is empty — a finding cites where it looked"
+    windows: list[tuple[str, int, list[str]]] = []
+    for cite in cites:
+        resolved = _resolve_lines(cite, repo)
+        if isinstance(resolved, str):
+            return f"EVIDENCE {resolved}"
+        _target, lineno, _end, lines = resolved
+        windows.append((cite, lineno, lines))
     needle = " ".join(f.quote.split()).strip().strip('"')
     if len(needle) < MIN_NEEDLE:
         return f"no QUOTE — nothing was read out of {f.evidence}"
     if not f.summary.partition("||")[2].strip():
         return "SUMMARY has no right half — the finding states nothing derived"
-    lo = max(0, lineno - 1 - EVIDENCE_WINDOW)
-    window = " ".join(
-        " ".join(ln.split()) for ln in lines[lo : lineno + EVIDENCE_WINDOW]
-    )
+    # ⚠ The QUOTE has to sit near ONE of them, not all: a claim settled by two
+    # sites quotes the line that settles it, and the other citation is where the
+    # reviewer also looked. Requiring it at every site would refuse the very
+    # multi-citation finding this widening exists to admit.
     head = needle[:40]
-    if head.lower() not in window.lower():
-        return f"QUOTE not found near {f.evidence}: {head!r}"
-    return None
+    for _cite, lineno, lines in windows:
+        lo = max(0, lineno - 1 - EVIDENCE_WINDOW)
+        window = " ".join(
+            " ".join(ln.split()) for ln in lines[lo : lineno + EVIDENCE_WINDOW]
+        )
+        if head.lower() in window.lower():
+            return None
+    return f"QUOTE not found near any of {f.evidence}: {head!r}"
 
 
 def location_problem(f: Finding, repo: Path) -> str | None:

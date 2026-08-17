@@ -67,7 +67,7 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `BLOCK` | the census INDEX. This is how coverage is checked; a finding without it is unattributable |
 | `VERDICT` | one of the seven |
 | `LOCATION` | `file:start-end` of the prose |
-| `EVIDENCE` | `file(s):line(s)` you opened to settle the claim — **verified to exist** |
+| `EVIDENCE` | where you looked to settle the claim — **verified to exist**. One or more `file:line` or `file:start-end` citations, **comma-separated**. EVERY one is resolved; a bare filename with no line is refused |
 | `QUOTE` | the text at that line, **VERBATIM** |
 | `SUMMARY` | the claim as written, quoted `\|\|` what you DERIVED from the evidence |
 | `FINDING` | what is wrong, one clause |
@@ -75,6 +75,12 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 
 ⚠⚠ **`QUOTE` is the forcing function, and it is CHECKED.** The cited line is read
 out of the file and your `QUOTE` must appear within three lines of it.
+
+⚠ **Cite every site you had to open.** A claim often needs two to settle — the definition and
+its callers — and citing one means dropping the other, which is the cut-the-provenance failure
+this system exists to catch. All of them are resolved; the `QUOTE` has to sit near **one**, the
+site that settles it. ⚠ Each citation carries a LINE. A bare filename says you opened a file and
+not what you read in it, and it is refused.
 
 ⚠ **`SUMMARY`'s right half is DERIVED, and is not checked verbatim** — that is why
 it is a separate field from `QUOTE`. A count is not a line any file contains, so
