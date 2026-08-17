@@ -87,13 +87,9 @@ file's language.** Both tiers find the same blocks and differ only in what else 
 carries an anchor at either tier, so every PLACEMENT verdict rests on a reviewer READING the
 file — a judgement no field records and nothing downstream can check.
 
-⚠ **A file the census reads at the LEXICAL tier is still fully reviewed.** *"No parser for this
-language"* reads like *"no review"* and is not — what the tier costs is mechanical support for
-placement, nothing else.
-
 **A suffix the census has no record for is named, and the census EXITS NONZERO** — every file
-handed in is censused or the run stops. `python <skill>/scripts/census.py --languages` lists
-the languages it knows.
+handed in is censused or the run stops, so a file that reaches a reviewer is reviewed like any
+other whatever its tier. `python <skill>/scripts/census.py --languages` lists what it knows.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding.
