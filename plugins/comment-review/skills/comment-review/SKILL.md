@@ -84,8 +84,8 @@ file's language.** Both tiers find the same blocks and differ only in what else 
 | `lexical` | a comment-syntax record, nothing else | blocks, annotations | any anchor; a marker inside an exotic string |
 
 ⚠⚠ **Carry the census's CANDIDATE line into your stage 2-3 report.** It prints that no comment
-carries an anchor at either tier, so every ownership-context verdict rests on a reviewer READING
-the file — a judgement no field records and nothing downstream can check.
+carries an anchor at either tier, so every PLACEMENT verdict rests on a reviewer READING the
+file — a judgement no field records and nothing downstream can check.
 
 ⚠ **A file the census reads at the LEXICAL tier is still fully reviewed.** *"No parser for this
 language"* reads like *"no review"* and is not — what the tier costs is mechanical support for
@@ -381,8 +381,8 @@ wrong changes what the reviewers see:
   matter: if it counted, the cheapest route to green would be deleting a pointer to filed
   work; if it split, a block could be made compliant by adding one. ⚠ **A marker's
   CONTINUATION lines still count** — only the marker line itself is free.
-- **A block belongs to the code BELOW it**, which is what makes ownership-context answerable. The
-  block above is about `result`, and an ownership-context finding says so by naming that anchor.
+- **A block belongs to the code BELOW it**, which is what makes it answerable at all: the block
+  above is about `result`, and a finding says so by naming that anchor.
 - **A trailing comment is its own block**, one line, anchored to the code on that line — and a
   trailing comment whose sentence carries past its own line is a finding in itself.
 
