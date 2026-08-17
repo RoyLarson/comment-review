@@ -92,6 +92,17 @@ can be told apart. `CHANGE` is the finished prose, so the task agent applies you
 than re-deriving it from a diff. ⚠ Write the whole block in `CHANGE`, not just the line you
 touched — a block is what gets substituted.
 
+⚠⚠ **The two are CHECKED AGAINST EACH OTHER.** `BLOCK`'s original and `CHANGE` are the same
+block before and after, so the difference between them is exactly what your edit does — and it
+must be the sentence your `CLAIM` names. A record that reasons about one sentence and rewrites
+another is refused, whichever of the two is right.
+
+⚠⚠ **ONE finding's `CHANGE` makes ONE finding's edit.** If you rule twice on one block, each
+record shows that block with ITS OWN change and no other — do not hand in the block fully
+fixed twice. Composing your findings is the task agent's job at stage 5, and it cannot compose
+records that have already been merged. ⚠ A `CHANGE` carrying edits its own `CLAIM` does not
+name is refused for that reason.
+
 ⚠⚠ **`BLOCK` carries the ORIGINAL so the record can be read on its own.** Whoever reads your
 finding — the task agent at stage 5, or another role on a re-review — otherwise has to hold the
 census open beside it to learn what prose you were even talking about. Transcribe the block;

@@ -8,6 +8,9 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   SOURCES       every citation resolves, and its verbatim half is really there
   ADDRESS       BLOCK's `path:start-end` and transcribed text match the census
   BLOCK         the sentence a finding rules on is really in the block it cites
+  EDIT          BLOCK-against-CHANGE edits the sentence CLAIM names, and no
+                other. ⚠ ONE ROUND ONLY -- it says nothing about whether N
+                rounds converge on correct prose
   PAYLOAD       the verdict carries what its row of the table requires
   CONTRADICTION `drop` against `correct`/`patch` ON THE SAME SENTENCE -- a
                 re-review. `move` composes with both and is not flagged.
@@ -38,6 +41,7 @@ reviewer that never reported at all passes this tool unseen.
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import re
 import sys
@@ -578,10 +582,19 @@ def _same_text(a: str, b: str) -> bool:
 
 
 def _words(text: str) -> str:
-    """`text` reduced to its words: markers off, whitespace collapsed, lowered."""
+    """`text` reduced to its words: markers off, whitespace collapsed, lowered.
+
+    ⚠ Trailing sentence punctuation comes off each word too. A block reads
+    `the budget is 3.` where the `CLAIM` quoting it reads `the budget is 3`,
+    and a diff keyed on raw tokens would call `3.` and `3` different words --
+    so an honest correction would read as an edit to a sentence nobody claimed.
+    """
     return (
         " ".join(
-            " ".join(line.lstrip().lstrip("#/-;%*'\"!<>").split())
+            " ".join(
+                word.rstrip(".,;:!?")
+                for word in line.lstrip().lstrip("#/-;%*'\"!<>").split()
+            )
             for line in text.split("\n")
         )
         .strip()
@@ -770,6 +783,109 @@ def ruled_text(f: Finding) -> str:
     return " ".join(text.split()).strip().strip('"').strip().lower()
 
 
+def removed_spans(f: Finding) -> list[str] | None:
+    """What this finding's edit takes OUT of the block, span by span.
+
+    ⚠⚠ DERIVED, never declared. `BLOCK`'s original and `CHANGE` both hold the
+    WHOLE block -- before and after -- so what differs between them IS the
+    prose the finding acts on. Roy, 2026-08-17: *"which sentence exactly is
+    determined by the difference between BLOCK and CHANGE, since CHANGE is the
+    whole block with the substitution."*
+
+    ⚠ This is the reliable answer where `CLAIM` is the reviewer's own account of
+    it. They should agree; `edit_problem` is where they are made to.
+
+    ⚠ Returns None where no diff is meaningful: `clean` and `query` propose no
+    text, `add` has no original, a `move`'s `CHANGE` is two blocks rather than
+    one, and a record missing either half cannot be diffed at all. A caller must
+    treat None as "cannot compare", never as "nothing removed".
+    """
+    if f.verdict in ("clean", "query", "add", "move"):
+        return None
+    before, after = _words(f.original).split(), _words(f.change).split()
+    if not before or not f.change.strip():
+        return None
+    return [
+        " ".join(before[i1:i2])
+        for tag, i1, i2, _j1, _j2 in difflib.SequenceMatcher(
+            None, before, after
+        ).get_opcodes()
+        if tag in ("delete", "replace")
+    ]
+
+
+def edit_problem(f: Finding) -> str | None:
+    """Does `CHANGE` edit the sentence `CLAIM` says it edits?
+
+    ⚠⚠ A BACKSTOP, and it is the only check that reads the two accounts of one
+    edit against each other. `block_problem` confirms the claimed sentence is in
+    the block; `payload_problem` confirms `CHANGE` exists. Neither notices a
+    reviewer that reasoned about one sentence and rewrote another, and stage 5
+    is meant to catch that by reading both -- this is what holds when it does
+    not.
+
+    ⚠ The test is that every span the edit REMOVED lies inside the sentence
+    `CLAIM` names, never that the named sentence appears in the diff. A
+    correction usually changes a few words of a sentence, so the removed span is
+    SHORTER than the claim; requiring the reverse would refuse almost every
+    honest finding.
+
+    ⚠ A purely additive edit removes nothing and passes. Words that only appear
+    are not a claim about existing prose, so there is nothing to disagree with.
+
+    ⚠⚠ THIS GOVERNS ONE REVIEWER FINDING, and it must never be turned on stage
+    5's synthesis. Roy, 2026-08-17: *"at some point we are going to have to
+    trust the agents to synthesize a full block and that could mean inserting
+    and deleting multiple sentences with multiple rounds of review."* A
+    synthesised block composes several findings, so no single `CLAIM` names
+    everything it changes and this test would refuse exactly that work.
+    `verdicts.py` reads REVIEWER reports, where one verdict rules on one
+    sentence, and that is the only place the test is sound.
+
+    ⚠ It follows that each finding's `CHANGE` carries ONLY THAT FINDING'S EDIT.
+    Two findings on one block each show the block with their own change and no
+    other -- composing them is stage 5's job. A reviewer that folds both edits
+    into both records trips this check, correctly: the record would be claiming
+    one edit and showing two.
+
+    ⚠⚠ IT CHECKS ONE ROUND, and a green gate is not a correct block. Roy,
+    2026-08-17: *"This catches the 'first' round of edit reviews it will not
+    catch the next N rounds required to make it correct."* Every round is
+    measured against the text that round started from, and nothing here measures
+    whether the rounds CONVERGE. Do not read this passing as the prose being
+    right -- it says each reviewer edited the sentence it said it was editing.
+
+    ⚠ A consequence worth predicting: a round-2 record's `original` is the text
+    stage 5 WROTE, not the text the round-1 census holds. `address_problem`
+    refuses that mismatch, so a re-review needs a re-censused `BLOCK` -- which
+    is one of the things `TODO/re-review-is-ordered-everywhere-and-defined-
+    nowhere.md` has to settle.
+    """
+    spans = removed_spans(f)
+    if spans is None:
+        return None
+    if _words(f.original) == _words(f.change):
+        return (
+            f"{f.verdict}: CHANGE is the block UNCHANGED — the verdict proposes"
+            " an edit and the text does not make one"
+        )
+    # ⚠ Through the SAME normaliser as the spans. Comparing a `_words` span
+    # against a differently-normalised claim is how punctuation and comment
+    # markers turn an agreeing pair into a disagreement.
+    named = _words(ruled_text(f))
+    if not named:
+        return None
+    if f.verdict == "drop" and not spans:
+        return "drop: CHANGE still holds the sentence — nothing was removed"
+    for span in spans:
+        if span and span not in named:
+            return (
+                f"CHANGE edits {span[:40]!r}, which CLAIM does not name —"
+                " the claim and the edit are about different prose"
+            )
+    return None
+
+
 def contradictions(grouped: dict[int, list[Finding]]) -> list[int]:
     """Blocks where one role REMOVES the sentence another rules on.
 
@@ -783,17 +899,32 @@ def contradictions(grouped: dict[int, list[Finding]]) -> list[int]:
     different clauses of one docstring, and a re-review round was spent
     establishing it.
 
-    ⚠ One sentence CONTAINING the other still collides: a role may drop a
-    paragraph whose clause another corrects.
+    ⚠⚠ The text is the DIFF between `BLOCK`'s original and `CHANGE`, not
+    `CLAIM`. Ruled 2026-08-17. Both are accounts of the same edit and `CLAIM` is
+    the reviewer's own; the diff is what the proposed text actually does, so two
+    roles are rivals when their EDITS collide, whatever they each said. A role
+    whose claim and edit disagree is `edit_problem`'s to refuse, and it runs
+    first.
+
+    ⚠ One span CONTAINING the other still collides: a role may drop a paragraph
+    whose clause another corrects.
 
     ⚠⚠ `move` is absent by ruling. Relocation and a truth fix compose -- the
     synthesis order applies every `move` at step 2 and every `correct` at step
     3, which is the sequence, not a rivalry.
     """
+
+    def touched(f: Finding) -> str:
+        # ⚠ "" means CANNOT COMPARE, and the caller flags it rather than
+        # passing: silence would hide a real collision behind an unreadable
+        # record.
+        spans = removed_spans(f)
+        return " ".join(spans) if spans else ""
+
     out: list[int] = []
     for block, fs in grouped.items():
-        removals = [ruled_text(f) for f in fs if f.verdict in REMOVES]
-        rulings = [ruled_text(f) for f in fs if f.verdict in RULES_ON_TEXT]
+        removals = [touched(f) for f in fs if f.verdict in REMOVES]
+        rulings = [touched(f) for f in fs if f.verdict in RULES_ON_TEXT]
         if not removals or not rulings:
             continue
         if any(not a or not b or a in b or b in a for a in removals for b in rulings):
@@ -960,6 +1091,10 @@ def main() -> int:
         wrong_block = block_problem(f, blocks)
         if wrong_block:
             print(f"  BLOCK {f.block} {f.reviewer}: {wrong_block}")
+            fatal += 1
+        disagrees = edit_problem(f)
+        if disagrees:
+            print(f"  BLOCK {f.block} {f.reviewer}: {disagrees}")
             fatal += 1
         payload = payload_problem(f)
         if payload:

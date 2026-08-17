@@ -507,18 +507,36 @@ class TestContradiction(unittest.TestCase):
     order at steps 2 and 3. Ruled 2026-08-17.
     """
 
+    # ⚠⚠ These fixtures carry a real ORIGINAL and a real CHANGE, because the
+    # collision is keyed on the DIFF between them and not on `CLAIM`. Ruled
+    # 2026-08-17. A fixture that named sentences without editing any text would
+    # exercise nothing.
+    ORIGINAL = "the budget is 3. callers round separately."
+
     def _pair(self, drop_text, correct_text, verdict="correct"):
+        """A `drop` of one sentence against a `correct`/`patch` of another.
+
+        Each `change` is `ORIGINAL` with only that finding's own edit made --
+        which is the contract a reviewer works to, and what makes each diff
+        name one sentence.
+        """
+        dropped = self.ORIGINAL.replace(drop_text, "").strip()
+        corrected = self.ORIGINAL.replace(correct_text, "something else")
         return verdicts.by_block(
             [
                 _finding(
                     reviewer="ownership-context",
                     verdict="drop",
                     claim=f'drop: "{drop_text}"',
+                    original=self.ORIGINAL,
+                    change=dropped,
                 ),
                 _finding(
                     reviewer="block-context",
                     verdict=verdict,
                     claim=f'false: "{correct_text}" / true: "something else"',
+                    original=self.ORIGINAL,
+                    change=corrected,
                 ),
             ]
         )
@@ -526,33 +544,24 @@ class TestContradiction(unittest.TestCase):
     def test_drop_and_correct_on_the_SAME_sentence_collide(self):
         # Measured block 728: ownership dropped the sentence function-context
         # was correcting. Delete it, or fix its count -- nothing composes those.
-        sentence = "check_shipped_syntax.py reads syntax and two runtime shapes"
-        self.assertEqual(verdicts.contradictions(self._pair(sentence, sentence)), [1])
+        got = self._pair("the budget is 3.", "the budget is 3")
+        self.assertEqual(verdicts.contradictions(got), [1])
 
     def test_drop_and_correct_on_DIFFERENT_sentences_do_not_collide(self):
         # Measured block 981: ownership dropped one clause, two roles corrected
         # another in the same docstring. The join called it a contradiction and
         # a re-review round established that it was not.
-        got = self._pair(
-            "a citation into gitignored runtime state is UNVERIFIABLE",
-            "TRACKED files only, via git ls-files",
-        )
+        got = self._pair("callers round separately.", "the budget is 3")
         self.assertEqual(verdicts.contradictions(got), [])
 
     def test_a_containing_sentence_still_collides(self):
-        # One role drops a paragraph; another corrects a clause inside it.
-        got = self._pair(
-            "the budget is 3. Raising it re-opens the incident.", "the budget is 3"
-        )
+        # One role drops the whole block; another corrects a clause inside it.
+        got = self._pair(self.ORIGINAL, "the budget is 3")
         self.assertEqual(verdicts.contradictions(got), [1])
 
     def test_drop_against_patch_on_one_sentence_collides(self):
-        self.assertEqual(
-            verdicts.contradictions(
-                self._pair("the same line", "the same line", "patch")
-            ),
-            [1],
-        )
+        got = self._pair("the budget is 3.", "the budget is 3", "patch")
+        self.assertEqual(verdicts.contradictions(got), [1])
 
     def test_move_against_correct_COMPOSES_and_is_not_flagged(self):
         # Ruled 2026-08-17: placement and truth are a sequence, not a rivalry.
@@ -1198,6 +1207,159 @@ class TestSourcesTakeContinuationLines(unittest.TestCase):
         )
         self.assertEqual(len(got), 1)
         self.assertIn("clamp=True", got[0])
+
+
+class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
+    """A BACKSTOP: does CHANGE edit the sentence CLAIM says it edits?
+
+    ⚠⚠ Nothing else reads the two accounts of one edit against each other.
+    `block_problem` confirms the claimed sentence is IN the block;
+    `payload_problem` confirms CHANGE exists. Neither notices a reviewer that
+    reasoned about one sentence and rewrote another. Roy authorised this
+    2026-08-17 "as a backstop to the Apply agent not doing its due diligence".
+    """
+
+    ORIGINAL = "# the budget is 3.\n# callers round separately."
+
+    def _at(self, **kw):
+        return verdicts.edit_problem(_finding(original=self.ORIGINAL, **kw))
+
+    def test_an_edit_confined_to_the_claimed_sentence_passes(self):
+        self.assertIsNone(
+            self._at(
+                claim='false: "the budget is 3" / true: "the budget is 5"',
+                change="# the budget is 5.\n# callers round separately.",
+            )
+        )
+
+    def test_an_edit_to_a_sentence_the_claim_does_not_name_is_refused(self):
+        # ⚠ THE CASE THIS EXISTS FOR. The claim is about the budget; the text
+        # rewrites the rounding. Both halves look fine on their own.
+        problem = self._at(
+            claim='false: "the budget is 3" / true: "the budget is 5"',
+            change="# the budget is 3.\n# callers round together.",
+        )
+        self.assertIn("CLAIM does not name", problem)
+
+    def test_a_change_identical_to_the_original_is_refused(self):
+        # ⚠ Otherwise the backstop passes vacuously: no removed span means
+        # nothing to disagree with, and a verdict that edits nothing sails
+        # through the check built to catch it.
+        problem = self._at(
+            claim='false: "the budget is 3" / true: "the budget is 5"',
+            change=self.ORIGINAL,
+        )
+        self.assertIn("UNCHANGED", problem)
+
+    def test_rewrapping_alone_is_not_an_edit(self):
+        # ⚠ Compared on WORDS, so a reviewer that reflows the block while
+        # correcting one sentence is not accused of editing the rest.
+        self.assertIsNone(
+            self._at(
+                claim='false: "the budget is 3" / true: "the budget is 5"',
+                change="# the budget is 5. callers\n# round separately.",
+            )
+        )
+
+    def test_a_purely_additive_edit_passes(self):
+        # ⚠ Words that only APPEAR are not a claim about existing prose, so
+        # there is nothing for the claim to disagree with.
+        self.assertIsNone(
+            self._at(
+                claim='from: "the budget is 3" / to: "the retry budget is 3"',
+                verdict="patch",
+                change="# the retry budget is 3.\n# callers round separately.",
+            )
+        )
+
+    def test_a_drop_whose_CHANGE_is_the_same_block_is_refused(self):
+        problem = self._at(
+            verdict="drop",
+            claim='drop: "callers round separately"',
+            change="# the budget is 3. callers round separately.",
+        )
+        self.assertIn("UNCHANGED", problem)
+
+    def test_a_drop_that_only_ADDS_is_refused(self):
+        # ⚠ Not word-identical, so the unchanged check does not fire -- and yet
+        # the sentence the drop names is still there. This is the case the
+        # drop-specific message exists for.
+        problem = self._at(
+            verdict="drop",
+            claim='drop: "callers round separately"',
+            change=self.ORIGINAL + "\n# and a note nobody asked for.",
+        )
+        self.assertIn("nothing was removed", problem)
+
+    def test_a_drop_that_removes_its_own_sentence_passes(self):
+        self.assertIsNone(
+            self._at(
+                verdict="drop",
+                claim='drop: "callers round separately"',
+                change="# the budget is 3.",
+            )
+        )
+
+    def test_a_drop_that_removes_MORE_than_it_claims_is_refused(self):
+        problem = self._at(
+            verdict="drop",
+            claim='drop: "callers round separately"',
+            change="",
+        )
+        # ⚠ An empty CHANGE is `payload_problem`'s to refuse, not this one --
+        # reporting it twice would print two defects for one mistake.
+        self.assertIsNone(problem)
+        self.assertIn(
+            "carries no CHANGE",
+            verdicts.payload_problem(
+                _finding(verdict="drop", claim='drop: "x"', change="")
+            ),
+        )
+
+    def test_two_findings_folded_into_one_CHANGE_are_refused(self):
+        # ⚠⚠ The brief rules that ONE finding's CHANGE makes ONE finding's
+        # edit. A reviewer handing in the block fully fixed on both records is
+        # claiming one edit and showing two, and stage 5 cannot compose records
+        # that have already been merged.
+        problem = self._at(
+            claim='false: "the budget is 3" / true: "the budget is 5"',
+            change="# the budget is 5.\n# callers round together.",
+        )
+        self.assertIn("CLAIM does not name", problem)
+
+    def test_move_is_exempt_because_its_CHANGE_is_two_blocks(self):
+        self.assertIsNone(
+            self._at(
+                verdict="move",
+                claim="from: `a.py` line 1 / to: `docs/a.md`",
+                change="to: # the destination\nfrom: # the origin",
+            )
+        )
+
+    def test_add_is_exempt_because_it_has_no_original(self):
+        self.assertIsNone(
+            verdicts.edit_problem(
+                _finding(
+                    verdict="add",
+                    claim='missing: "capped" above `send()`',
+                    original="",
+                    change="# capped\ndef send():",
+                )
+            )
+        )
+
+    def test_clean_and_query_are_exempt(self):
+        for verdict in ("clean", "query"):
+            self.assertIsNone(
+                verdicts.edit_problem(
+                    _finding(verdict=verdict, claim="", reason="", change="")
+                ),
+                verdict,
+            )
+
+    def test_a_record_with_no_original_is_left_to_the_address_check(self):
+        f = _finding(original="", change="# anything")
+        self.assertIsNone(verdicts.edit_problem(f))
 
 
 class TestCLI(unittest.TestCase):
