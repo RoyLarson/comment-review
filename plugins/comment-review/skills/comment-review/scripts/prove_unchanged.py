@@ -6,8 +6,7 @@ Stage 7b's gate.
 
 Exits nonzero unless EVERY path is proven. The claim this skill makes to the
 people who run it is that prose changed and the rest reads the same; that claim
-is a pure function of two strings and must not rest on an agent performing it
-carefully.
+is a pure function of two strings, so this computes it.
 
 Two proofs, because two tiers:
 
@@ -16,30 +15,21 @@ Two proofs, because two tiers:
             that differs fails.
   stripped  Any other `LANGUAGES` record, using THIS REPO'S comment lexer.
             Delete every comment it finds, compare the lines that remain --
-            right-stripped, blanks dropped. A PROJECTION, not the file; line
-            endings are checked separately below because this cannot see them.
+            right-stripped, blanks dropped. A PROJECTION of the file; line
+            endings are compared separately below, since this drops them.
 
-⚠ That the parser reads it the same SHOULD mean the code says the same, and for
-Python it does -- that is CPython parsing its own language. Elsewhere it rests on
-a lexer built from a data row, so where that lexer is unsure this refuses rather
-than guesses: a delimiter sharing a line with code, an unterminated block
-comment, or a census that disagrees with the file all return `unprovable`.
+⚠ For Python the proof is CPython parsing its own language. Elsewhere it rests
+on a lexer built from a data row, so where that lexer is unsure this refuses: a
+delimiter sharing a line with code, an unterminated block comment, or a census
+that disagrees with the file all return `unprovable`.
 
-⚠ A file this cannot prove is REPORTED as unprovable, never passed. A proof
-that quietly degrades to "looks fine" is worse than no proof, because the
-report still says PROVEN.
+⚠ A file this cannot prove is REPORTED as unprovable and counted a failure. A
+proof that degrades to "looks fine" still prints PROVEN.
 
-⚠ Line endings are checked against an UNTOUCHED SIBLING, never against the
-stored blob: under `core.autocrlf` the blob is always LF, so normalising to it
-leaves the working tree inconsistent with every file WRITE did not touch --
-and `git diff` hides it. Measured four times.
-
-⚠ An UNTERMINATED block comment makes the whole file UNPROVABLE. The lexer
-swallows every line below the opener into that one run, so a code change after
-that point never reaches the comparison and the stripped text is merely SHORT -- not
-obviously wrong, and equal across two files whose code differs. The census
-stamps that run `unterminated-block-comment` and this refuses the file on the
-annotation, rather than on a stripped text that only LOOKS like a proof.
+⚠ Line endings are compared against an UNTOUCHED SIBLING rather than the stored
+blob: under `core.autocrlf` the blob is always LF, so normalising to it leaves
+the working tree inconsistent with every file WRITE left alone -- and `git diff`
+hides that.
 """
 
 from __future__ import annotations
@@ -51,9 +41,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-# ⚠ `READ_ERRORS` is IMPORTED, not re-declared. It is bound to a NAME so no
-# `except` clause holds a tuple literal, and `repo.py` carries the reason
-# once -- a second copy of that reasoning drifts before the code does.
+# ⚠ `READ_ERRORS` is IMPORTED. It is bound to a NAME so no `except` clause here
+# holds a tuple literal; `repo.py` carries that reason once.
 from census import (  # noqa: E402  -- path shim must run first
     Language,
     blocks_lexical,
@@ -93,16 +82,14 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
 
     `blocks_lexical` stores the WHOLE line for a block comment's opening,
     closing or single-line form -- including any code that sits before the
-    opener or after the closer -- so that line is stored identically to a
-    line that is comment start to end. String equality cannot tell those
-    apart; this can, cheaply, by re-scanning the line for the delimiters
-    themselves.
+    opener or after the closer -- so that line is stored identically to a line
+    that is comment start to end. Re-scanning the line for the delimiters
+    themselves is what separates them.
 
-    ⚠ This is a raw substring search, not a string-literal-aware scan like
-    census's own lexer uses. A delimiter spelled out inside a string literal
-    on the same line can trip this and route an actually-safe line to
-    `unprovable` -- that is the SAFE direction for a proof to fail in, so it
-    is accepted rather than duplicating census's quoting logic here.
+    ⚠ A raw substring search, where census's own lexer is string-literal-aware.
+    A delimiter spelled inside a string literal on the same line trips this and
+    routes a safe line to `unprovable` -- the SAFE direction for a proof to
+    fail, so it stands in place of a second copy of census's quoting logic.
     """
     for opener, closer in lang.block_comment:
         if opener in line and line[: line.index(opener)].strip():
@@ -115,19 +102,18 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
 def _without_comments(text: str, path: Path) -> str | None:
     """The file with every comment block removed, or None if unprovable here.
 
-    Exact where the data allows it: a block's `raw_lines` is a literal slice
-    of the source, so a line whose stored text matches it exactly is dropped
-    whole, and a line whose stored text is only a SUFFIX (the trailing-comment
-    case) keeps its code prefix. A line this cannot place with certainty --
-    code sharing a line with a block-comment delimiter, which is stored as the
-    whole line and so cannot be told apart from a line that is comment start
-    to end -- is refused, not guessed at: the whole file becomes unprovable.
+    Exact where the data allows it: a block's `raw_lines` is a literal slice of
+    the source, so a line whose stored text matches it exactly is dropped whole,
+    and a line whose stored text is only a SUFFIX (the trailing-comment case)
+    keeps its code prefix. A line this cannot place -- code sharing a line with
+    a block-comment delimiter, see `_delimiter_shares_the_line` -- makes the
+    whole file unprovable.
 
     An UNTERMINATED block comment is refused the same way, on the census's own
-    `unterminated-block-comment` annotation. The lexer swallows every line below the
-    opener into that run, so the code below it never reaches the comparison and
-    the stripped text is merely SHORT -- short, plausible and equal on two files whose
-    executable code differs.
+    `unterminated-block-comment` annotation. The lexer swallows every line below
+    the opener into that run, so code below it never reaches the comparison and
+    the stripped text is merely SHORT -- short, plausible, and equal on two
+    files whose executable code differs.
     """
     lang = language_for(path)
     if lang is None:
@@ -182,10 +168,9 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
     if stripped is None:
         return "unprovable", ""
     if not stripped.strip() and text.strip():
-        # An all-comment file reaches here STRIPPED to nothing while the
-        # source was not empty. `"" == ""` would "prove" any two such files
-        # identical no matter what code either held -- comparing nothing is
-        # not a proof.
+        # An all-comment file reaches here STRIPPED to nothing while the source
+        # held text. `"" == ""` would "prove" any two such files identical
+        # whatever code either one carried.
         return "unprovable", ""
     return "stripped", stripped
 
@@ -208,11 +193,11 @@ def _read_raw(path: Path) -> str:
     indistinguishable by the time `dominant_ending` looks at them. `newline=""`
     disables that translation.
 
-    ⚠ `Path.read_text`'s own `newline=` parameter was added in Python 3.13;
-    calling it on the 3.9 floor this script promises is a `TypeError` that
-    `check_shipped_syntax.py` cannot see (it checks syntax, not which
-    keyword arguments exist at runtime). `open(...).read()` works at the
-    floor and does the same thing.
+    ⚠ `Path.read_text`'s own `newline=` parameter arrived in Python 3.13, so at
+    the 3.11 floor this script promises it raises `TypeError`.
+    `check_shipped_syntax.py` reads syntax and two runtime shapes, so a keyword
+    argument that exists only on a newer interpreter gets past it.
+    `open(...).read()` works at the floor and does the same thing.
     """
     with open(path, encoding="utf-8", newline="") as f:
         return f.read()
@@ -232,10 +217,10 @@ def _sibling(
 ) -> Path | None:
     """A READABLE tracked file beside `target` that WRITE did not edit.
 
-    Skips a candidate this process cannot itself read as UTF-8 text -- a
-    binary or non-UTF-8 sibling is not a usable line-ending reference, and
-    committing to the first NAME found in the same directory silently
-    disabled the check instead of trying the next tracked file.
+    Skips a candidate this process cannot itself read as UTF-8 text: a binary
+    or non-UTF-8 sibling is unusable as a line-ending reference, and committing
+    to the first NAME in the directory disabled the check where trying the next
+    tracked file would have answered.
 
     Args:
         repo: the repository root.
@@ -259,7 +244,8 @@ def _sibling(
 
 def main() -> int:
     """Prove every named path, and report what could not be proven."""
-    # A report that dies on an em-dash in someone's docstring is not a tool.
+    # UTF-8 with replacement, so an em-dash in someone's docstring still prints
+    # on a console whose encoding lacks it.
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")
@@ -326,8 +312,8 @@ def main() -> int:
             got = dominant_ending(_read_raw(target))
             # ⚠ BOTH sides are guarded against "none". A single-line file with
             # no trailing newline has no ending to measure, so it reads "none"
-            # and would FAIL against any CRLF sibling -- a file whose endings
-            # are not wrong, only absent.
+            # and would FAIL against any CRLF sibling on ABSENT endings rather
+            # than wrong ones.
             if want != "none" and got != "none" and got != want:
                 print(f"FAIL      {rel}: line endings {got}, sibling {sib.name} {want}")
                 failures += 1

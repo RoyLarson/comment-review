@@ -9,9 +9,9 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   LOCATION      the prose citation resolves too -- checked the same way
   PAYLOAD       the verdict carries what its row of the table requires
   LEVEL         the verdict is one this run's level carries
-  CONTRADICTION `drop` against `correct`/`patch` on one block -- a re-review,
-                NOT counted fatal, but named in the closing line so the summary
-                cannot read "stage 5 may rule" over a block that is out
+  CONTRADICTION `drop` against `correct`/`patch` on one block -- a re-review.
+                Counted apart from the fatal checks, and named in the closing
+                line so the summary says which blocks are still out
   STANDS        blocks every reviewer that ran returned clean on
   REVIEWER      (only with `--reviewers`) every expected reviewer actually reported
 
@@ -19,20 +19,17 @@ Checks the task agent was asked to perform by hand, every one mechanical:
 graded run had FABRICATED 5 of its 7 reviewer reports and did not notice until
 asked to grade itself. A report is not evidence that a file was read.
 
-⚠ It cannot tell a correct verdict from an incorrect one. It tells you which
-findings are ADMISSIBLE. Ruling remains stage 5's, and the synthesis order in
-SKILL.md is unchanged.
+⚠ It reports which findings are ADMISSIBLE. The ruling is stage 5's, in
+SKILL.md's synthesis order.
 
-⚠ Every block is accounted for by a RECORD, `clean` included -- there is no
-range list. A `clean` record carries a BLOCK, a VERDICT and a LOCATION, and the
-LOCATION is resolved against the tree, so covering N blocks costs N records that
-each name a real prose range. That is the answer to the cheapest fabrication a
-range list allowed. It is not proof a file was read: a `clean` record still
-carries no QUOTE. Grade a run from its DIFF, never from this exit code.
+⚠ Every block is accounted for by a RECORD, `clean` included. A `clean` record
+carries a BLOCK, a VERDICT and a LOCATION, and the LOCATION resolves against the
+tree, so covering N blocks costs N records that each name a real prose range. A
+`clean` record carries no QUOTE, so it stops short of proof the file was read:
+grade a run from its DIFF, and not from this exit code.
 
-⚠ `--reviewers` is OPTIONAL, and its absence is announced, not swallowed: without
-it, a reviewer that never reported at all is invisible to this tool -- the
-easier version of the fabrication this whole script exists to catch.
+⚠ `--reviewers` is OPTIONAL, and its absence is ANNOUNCED: without it, a
+reviewer that never reported at all passes this tool unseen.
 """
 
 from __future__ import annotations
@@ -61,7 +58,7 @@ VERDICTS = (
 # are cumulative sets, not the deltas the table reads as. `allowed()` is a
 # membership test against one entry, so an entry listing only what its level
 # ADDS would reject `correct` at `full`. `proof` runs stage 8 alone and carries
-# no verdict at all, which is why its set is empty rather than everything.
+# no verdict, so its set is empty rather than everything.
 LEVELS = {
     "fact-check": {"correct", "query", "clean"},
     "line": {"correct", "query", "clean", "drop", "move", "add"},
@@ -100,21 +97,16 @@ MIN_NEEDLE = 12
 # land somewhere else, and it lands on the PAYLOAD: a query must name a check
 # that was attempted and the thing that would settle the claim.
 #
-# ⚠ This is, and can only ever be, a SHAPE check: it cannot tell a real grep
-# from the word "grepped", and it is not trying to -- its job is to remove the
-# query that names nothing at all, not to judge whether the check named was
-# really run. Requiring EVIDENCE of a query instead pushed reviewers to invent
-# a citation or downgrade to `clean`, which is the fabrication this script
-# exists to catch and the finding-loss the brief records as measured.
+# ⚠ A SHAPE check: it removes the query that names no check at all, and the
+# word "grepped" passes it. Requiring EVIDENCE of a query instead pushed
+# reviewers to invent a citation or downgrade to `clean`.
 #
-# Matched on WORD BOUNDARIES, not as substrings: a substring match let "ran"
-# hit *b**ran**ch*, *****ran***ge*, *t**ran**sfer* and let "settle" hit
-# *un**settle**d*, so ordinary English that names no check at all passed while
-# an honest query worded with "requires" / "resolves" / "determined by"
-# instead of "would ..." was refused. `grep` is the one deliberate exception --
-# left unanchored on its left so "ripgrep" still counts, since no ordinary
-# English word carries "grep" as an accidental substring the way "branch" and
-# "already" carry "ran" and "read".
+# Matched on WORD BOUNDARIES. As substrings, "ran" hit *b**ran**ch*,
+# *****ran***ge* and *t**ran**sfer*, and "settle" hit *un**settle**d*, so
+# ordinary English naming no check passed while an honest query worded with
+# "requires" / "resolves" / "determined by" was refused. `grep` is the one
+# deliberate exception, left unanchored on its left so "ripgrep" counts:
+# English words carry "ran" and "read" by accident, and "grep" they do not.
 QUERY_ATTEMPTED = re.compile(
     r"\bran\b|\bcheck\w*|grep\w*|\bread\w*|\bsearch\w*|\bopen\w*|\bcount\w*|\blook\w*",
     re.I,
@@ -131,8 +123,8 @@ class Finding:
 
     Field order follows the record in `reviewer-brief.md`. `quote` is the
     VERBATIM text at `evidence`; `summary`'s right half is the DERIVED
-    statement, which is where a count and its population live and is therefore
-    not something any file contains verbatim.
+    statement, where a count and its population live, so it is the reviewer's
+    own sentence rather than a line any file carries.
     """
 
     reviewer: str
@@ -154,8 +146,8 @@ def _n(count: int, noun: str) -> str:
 def _malformed(reviewer: str, why: str) -> Finding:
     """A record that cannot be attributed to any real block.
 
-    `block=-1` is the sentinel `main()` treats as fatal on sight, whatever the
-    reason -- a missing BLOCK, or a record whose closing "---" was never found.
+    `block=-1` is the sentinel `main()` treats as fatal on sight, for either
+    reason -- a missing BLOCK, or a record whose closing "---" is absent.
     """
     return Finding(
         reviewer=reviewer,
@@ -223,11 +215,11 @@ def parse_report(text: str, reviewer: str) -> list[Finding]:
 def coverage_gaps(
     all_blocks: set[int], reported: set[str], found: list[Finding]
 ) -> dict[str, list[int]]:
-    """Indices each reviewer never accounted for. A gap is not a pass.
+    """Indices each reviewer left unaccounted for. A gap is a gap, not a pass.
 
-    `reported` is who handed in a file, not who produced a record. A report that
-    parsed to nothing is a reviewer that accounted for nothing, and taking the
-    population from the findings alone would make it disappear instead.
+    `reported` is who handed in a file, and the findings say who produced a
+    record. A report that parsed to nothing is a reviewer that accounted for
+    nothing, so taking the population from the findings alone would drop it.
     """
     by_reviewer: dict[str, set[int]] = defaultdict(set)
     for f in found:
@@ -283,15 +275,15 @@ def _resolve_lines(
     """Resolve a `file:line` or `file:start-end` citation, or say why not.
 
     Shared by EVIDENCE and LOCATION: both are inadmissible on exactly the same
-    grounds -- an unparseable citation, a file that is not there, or a line
-    number past the end of it (or below 1, which no file has).
+    grounds -- an unparseable citation, a missing file, or a line number past
+    the end of it (or below 1, which is off every file).
 
     Args:
         cite: the `file:line` or `file:start-end` text.
         repo: the repo root the path is relative to.
         allow_range: EVIDENCE is `file:line` in the record format; only
-            LOCATION may carry `file:start-end`. Widening the shared regex to
-            serve both fields must not widen what EVIDENCE itself accepts.
+            LOCATION may carry `file:start-end`. The shared regex is wide
+            enough for both, and this holds EVIDENCE to the narrow form.
 
     Returns:
         `(path, start, end, lines)` when it resolves, else the problem string.
@@ -324,15 +316,13 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     """Why this finding's citation cannot be trusted, or None.
 
     Reads the cited line out of the file and looks for the QUOTE within a few
-    lines of it. A finding whose quote is not there is not a finding — the
-    report is not evidence that the file was read.
+    lines of it. A finding whose quote is absent from the file it cites is a
+    finding the file did not supply — a report is evidence of nothing on its own.
 
-    ⚠ QUOTE is checked, not `SUMMARY`'s right half. The right half is the
-    DERIVED statement — *"31 callers, all under tests/"* — and a derived
-    statement is by construction not a verbatim code line, so checking it there
-    made every counted claim structurally inadmissible. That is the block-context
-    role's own REMIT. The forcing function survives intact by moving to a
-    field that carries verbatim text and nothing else.
+    ⚠ QUOTE is checked, and `SUMMARY`'s right half is the DERIVED statement —
+    *"31 callers, all under tests/"* — which is the reviewer's own sentence, so
+    checking it here made every counted claim structurally inadmissible. The
+    forcing function lands on a field that carries verbatim text alone.
 
     ⚠ `query` is exempt alongside `clean`, and its payload is checked instead.
     A `query` is a claim the reviewer COULD NOT settle, so no line settles it;
@@ -365,9 +355,8 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
 def location_problem(f: Finding, repo: Path) -> str | None:
     """Why this finding's LOCATION cannot be trusted, or None.
 
-    Checked with the same `file:line` resolution as EVIDENCE. A fabricated
-    prose location used to be admissible while a fabricated citation was not
-    — the same report is not evidence that either half was read.
+    Checked with the same `file:line` resolution as EVIDENCE, so a fabricated
+    prose location is as inadmissible as a fabricated citation.
     """
     if f.verdict == "clean":
         return None
@@ -411,8 +400,8 @@ def main() -> int:
     args = ap.parse_args()
 
     repo = Path(args.repo).resolve()
-    # ⚠ Guarded like a report file, not left to traceback: an operator learns
-    # less from a stack trace than from one line saying which file and why.
+    # ⚠ Guarded like a report file, so a missing census prints which file and
+    # why in one line.
     try:
         census_text = Path(args.census).read_text(encoding="utf-8")
     except READ_ERRORS as e:
@@ -433,9 +422,9 @@ def main() -> int:
 
     fatal = 0
 
-    # ⚠ Refused ALWAYS, not just when --reviewers is given: `clean[reviewer] = cl`
-    # overwrites, so two report files with the same stem would otherwise
-    # silently replace one reviewer's coverage with another's.
+    # ⚠ Refused on every run, `--reviewers` or not: a reviewer is keyed by its
+    # report's stem, so two files with the same stem put one reviewer's
+    # coverage in place of the other's.
     stems = [Path(r).stem for r in args.reports]
     for stem in sorted({s for s, n in Counter(stems).items() if n > 1}):
         print(f"  DUPLICATE report stem {stem!r} — two files claim the same reviewer")
@@ -462,10 +451,9 @@ def main() -> int:
         f" over {_n(len(blocks), 'block')}\n"
     )
 
-    # ⚠ Declared, never inferred -- this repo's rule everywhere else. Without
-    # --reviewers, a reviewer that never reported at all is invisible: "every
-    # reviewer" silently means "every file I was handed," which is the easier
-    # version of the fabrication this tool exists to catch.
+    # ⚠ DECLARED, the way this repo names a population everywhere else. Without
+    # --reviewers, "every reviewer" means "every file I was handed", so a
+    # reviewer that reported nothing at all passes unseen.
     if args.reviewers:
         expected = {a.strip() for a in args.reviewers.split(",") if a.strip()}
         for reviewer in sorted(expected - reported):
@@ -508,7 +496,8 @@ def main() -> int:
             continue
         if f.verdict not in VERDICTS:
             print(
-                f"  BLOCK {f.block} {f.reviewer}: {f.verdict!r} is not one of the eight"
+                f"  BLOCK {f.block} {f.reviewer}: {f.verdict!r} is not a verdict"
+                f" ({', '.join(VERDICTS)})"
             )
             fatal += 1
         elif not allowed(f.verdict, args.level):
@@ -538,10 +527,10 @@ def main() -> int:
             " must not decide it."
         )
 
-    # A block stands only when EVERY reviewer that ran returned clean on it. With
-    # coverage gaps and out-of-range indices already reported as fatal above,
-    # "no reviewer ruled on it" and "every reviewer cleaned it" are the same set --
-    # so this subtraction is the clean-arithmetic, not an approximation of it.
+    # A block stands only when EVERY reviewer that ran returned `clean` on it.
+    # Coverage gaps and out-of-range indices are already fatal above, so "no
+    # reviewer ruled on it" and "every reviewer returned `clean`" are the same
+    # set here and this subtraction is exact.
     ran = sorted(reported | {f.reviewer for f in found})
     ruled = {
         f.block for f in found if f.verdict != "clean" and 1 <= f.block <= len(blocks)
@@ -559,11 +548,11 @@ def main() -> int:
         print(f"\n{_n(fatal, 'problem')}. Resolve or send back before stage 5 rules.")
         return 1
     if clash:
-        # ⚠ A contradiction is NOT counted fatal: `drop` against `correct` is a
-        # re-review, not an inadmissible finding, and both records are perfectly
-        # well formed. But the closing line has to say so -- printing "send the
-        # block back" and then "Stage 5 may rule" four lines later made the
-        # summary contradict its own body at exit 0.
+        # ⚠ A contradiction is counted apart from the fatal checks: `drop`
+        # against `correct` is a re-review, and both records are well formed.
+        # The closing line still has to say so -- printing "send the block back"
+        # and then "Stage 5 may rule" four lines later made the summary
+        # contradict its own body at exit 0.
         print(
             f"\nEvery finding is admissible. {_n(len(clash), 'block')} still OUT"
             " for re-review — stage 5 may rule on the rest."
