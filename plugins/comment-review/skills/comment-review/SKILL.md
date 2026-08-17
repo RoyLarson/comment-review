@@ -108,16 +108,14 @@ own judgement — but every change to what a sentence CLAIMS needs evidence in h
 **The TASK AGENT — you.** Run stages 1–3, launch the reviewers, rule, present, and after
 approval apply. You are the only participant that writes, and only after approval. Reach
 every block, rule on sentences, **write the replacement text yourself**, and verify what you
-write. "compact + correct" is not a finding: it hands back the judgement this review exists
-to make.
+write. *"Compact + correct"* is an instruction to somebody else, not the text.
 
 **The REVIEWERS** are read-only, one editorial role each, and never see this file.
 
 ## Arguments
 
 - **`cap`** — integer, optional; max lines for one `#` run. **This skill has no cap of its
-  own** and must not invent one. None given and none published → **no cap**; report the
-  longest block left.
+  own** and must not invent one. None given and none published → **no cap**.
 - **`target`** — a path; **replaces** the diff scope, never intersects it.
 - **`style`** — a path to a style sheet from a previous run. Optional; see 1.5.
 
