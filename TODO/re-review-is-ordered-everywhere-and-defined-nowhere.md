@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 2 of 8 tasks done
 Owner:    session · Roy (⭐ 1 ruling)
 Raised:   2026-08-17 (the first full run of 0.1.7 hit eight contradicted blocks and had to
           invent a procedure to clear them)
@@ -51,6 +51,41 @@ answer alone.
       this now has. The alternative is a paragraph in `SKILL.md`'s stage 5. ⚠ It cannot stay
       unwritten: it ran on a procedure one session invented, and the next session will invent a
       different one.
+
+- [x] ⭐ **RULED 2026-08-17: round two reviews the JOINED RESOLVED BLOCK, not the contradiction.**
+
+      Roy: *"you ruled that the apply would send back only the reviewer's CHANGE but that
+      defeats the purpose, because a reviewer would then just be stating yes I said that would
+      fix it. The block change is already done, sending it right back doesn't help. Sending the
+      joined resolved block back to the reviewers that had comments does help because each can
+      say yes my edits made it and are correct and the other edits do not negate that or cause
+      mine to be wrong."*
+
+      So the question a round-2 reviewer answers is not *"do you stand by your verdict"* — it
+      is three questions about stage 5's synthesis:
+
+      1. Did my edit SURVIVE into the joined block?
+      2. Is it still correct THERE?
+      3. Do the other edits negate it, or make it wrong?
+
+      ⚠ **Only the third can be answered by anyone but that reviewer, and only after the join.**
+      No round-1 reviewer saw the other findings, so nothing before this point could ask it.
+
+- [ ] ⚠⚠ **BLOCKER for a release: `verdicts.py` assumes ROUND ONE and cannot admit a round-2
+      record.** Round 2's subject is the synthesised block — text on no disk and in no census —
+      so `address_problem` refuses it (`original` will not match the census) and `edit_problem`
+      is measuring one claim against one edit when the block now holds several.
+
+      ⚠ Do NOT fix it by exempting round 2. That leaves the synthesised block — the only text
+      the author ever approves — as the one thing nothing checks. Options, unranked: a second
+      census taken over the proposed text; a distinct round-2 record shape with its own checks;
+      or `--round 2` selecting a different check set.
+
+- [ ] Decide WHICH BLOCKS get a round two. Roy's model — *"the reviewers that had comments"* —
+      is any block where two or more roles filed a finding, not only the contradicted ones.
+      ⚠ Measured on a live run: **51 of 150 blocks** had 2+ roles converge, against 8 flagged as
+      contradictions. That is a 6× change in how often round two fires, and it is a cost
+      decision, not a detail.
 
 - [ ] State the CHANNEL as a rule, with the measurement. Nothing in the shipped tree describes
       resuming an agent at all — stage 4 is a single dispatch and no file mentions a second one.

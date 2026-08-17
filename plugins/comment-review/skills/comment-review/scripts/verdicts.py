@@ -855,11 +855,18 @@ def edit_problem(f: Finding) -> str | None:
     whether the rounds CONVERGE. Do not read this passing as the prose being
     right -- it says each reviewer edited the sentence it said it was editing.
 
-    ⚠ A consequence worth predicting: a round-2 record's `original` is the text
-    stage 5 WROTE, not the text the round-1 census holds. `address_problem`
-    refuses that mismatch, so a re-review needs a re-censused `BLOCK` -- which
-    is one of the things `TODO/re-review-is-ordered-everywhere-and-defined-
-    nowhere.md` has to settle.
+    ⚠⚠ THIS GATE ASSUMES ROUND ONE, and a round-2 record does not fit it.
+    Roy, 2026-08-17: a re-review sends *"the joined resolved block back to the
+    reviewers that had comments ... each can say yes my edits made it and are
+    correct and the other edits do not negate that or cause mine to be wrong."*
+    So round 2's subject is stage 5's SYNTHESIS -- text that is on no disk and
+    in no census -- while `address_problem` compares `original` against the
+    census and this function compares one claim against one edit. Neither holds.
+
+    ⚠ Do not paper over it by exempting round 2: that would leave the
+    synthesised block, the only text the author ever approves, as the one thing
+    nothing checks. `TODO/re-review-is-ordered-everywhere-and-defined-
+    nowhere.md` owns the shape.
     """
     spans = removed_spans(f)
     if spans is None:
