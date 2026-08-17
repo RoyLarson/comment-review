@@ -75,6 +75,15 @@ def render(role: str, definitions: dict[str, str], roles: dict[str, list[str]]) 
 
 def main() -> int:
     """Print one role's vocabulary, or the roles that have one."""
+    # ⚠⚠ UTF-8 with replacement, and this file needs it MORE than the others:
+    # every definition is written with an em dash, and this output is PASTED
+    # VERBATIM into a reviewer's prompt. Measured 2026-08-17 on a live run --
+    # without this, a `cp1252` console corrupted every dash and exited 0, and a
+    # PowerShell redirect wrote UTF-16 that read as a binary file. The dispatch
+    # went out with three roles instead of four.
+    reconfigure = getattr(sys.stdout, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--reviewer", choices=[r.value for r in Reviewer])
     ap.add_argument("--roles", action="store_true", help="list the roles and exit")
