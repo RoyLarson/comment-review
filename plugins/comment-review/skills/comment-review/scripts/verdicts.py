@@ -36,6 +36,28 @@ grade a run from its DIFF, and not from this exit code.
 
 ! `--reviewers` is OPTIONAL, and its absence is ANNOUNCED: without it, a
 reviewer that never reported at all passes this tool unseen.
+
+!! WHEN THIS FILE CANNOT RECOGNISE A BOUNDARY, IT MUST NAME WHAT IT COULD NOT
+RECOGNISE -- NEVER MERGE ACROSS IT. Merging blames the neighbour, and the
+neighbour is always correct work. Three defects in one day, all this shape,
+each reported against something that was right:
+
+  D7  a malformed citation absorbed into the valid one above it, so the error
+      was reported against that valid citation
+  D8  a bare field label absorbed into the field above it, so the error was
+      reported against a correct SOURCES entry
+  D9  a dropped span absorbing the word before it, so a correct edit was
+      refused for naming a word its CLAIM does not mention
+
+! **It is the most expensive kind of diagnostic there is**, because it sends
+the reader to fix something that is not broken. D7 was fixed for citations
+specifically and the class survived to produce D8 and D9. A fourth is a reason
+to change the SHAPE of the boundary decision, not to add a fourth case.
+
+! What separated D9 from reviewer error was CORROBORATION: `block-context` had
+implemented its own single-edit checker and passed the record this gate
+refused. Two implementations of "did the edit match the claim" disagreeing is
+worth running down.
 """
 
 import argparse
@@ -96,6 +118,14 @@ class Verdict:
         owes_claim: every verdict but `clean` states what must happen.
         owes_reason: likewise -- why.
         owes_change: `clean` rules on nothing and `query` proposes no text.
+        may_empty: this verdict may leave the block with NOTHING in it, so an
+            empty `CHANGE` is the edit rather than a missing one. Only `drop`,
+            and only where `CLAIM` names the whole block -- `edit_problem`
+            checks that rather than taking the reviewer's word, so a blank
+            `CHANGE` is not a way to skip writing one. ! Without this a
+            whole-block `drop` could not be expressed at all: the reviewer
+            wrote the blank deliberately and said so in `REASON`, which nothing
+            downstream reads. Measured 2026-08-17.
         owes_address: `clean` is exempt because a role returns it on most of the
             census; transcribing each would be the bulk of a report.
         owes_sources: `clean` cites no claim, so it cites no place.
@@ -129,6 +159,7 @@ class Verdict:
     owes_claim: bool = True
     owes_reason: bool = True
     owes_change: bool = True
+    may_empty: bool = False
     owes_address: bool = True
     owes_sources: bool = True
     diffable: bool = True
@@ -169,6 +200,7 @@ VERDICTS: dict[str, Verdict] = {
         claim_help='drop needs the sentence in CLAIM, as `drop: "..."`',
         quotes_original="drop:",
         removes=True,
+        may_empty=True,
     ),
     "correct": Verdict(
         claim_all=("false:", "true:"),
@@ -229,6 +261,19 @@ CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S
 # ! `CHANGES` still does not match: after the label the pattern needs
 # whitespace or the end of the line, and `S` is neither.
 FIELD = re.compile(r"^(BLOCK|VERDICT|SOURCES|CLAIM|REASON|CHANGE)(?:\s+(.*))?$")
+# !! THE EDGE CHARACTERS A WORD PICKS UP, and the ONE place they are listed.
+# `_words` strips them from a quoted CLAIM; `removed_spans` strips them from the
+# tokens it diffs. **The two must agree or a correct record is refused**, and
+# they did not, twice:
+#
+#   * brackets were absent, so a `CLAIM` naming `the CLI` could not cover a
+#     `CHANGE` editing `the CLI)`
+#   * the diff kept punctuation the claim had lost, so `policy` and `policy.`
+#     could not align and a dropped trailing parenthetical was reported as
+#     starting one word early -- at a word the `CLAIM` does not name
+#
+# Both were one list being edited in one place. Measured 2026-08-17.
+EDGE = "\"'`.,;:!?()[]{}"
 # `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 # A citation half that is PATH-SHAPED, whether or not it resolves: no whitespace,
@@ -624,7 +669,12 @@ def payload_problem(f: Finding) -> str | None:
                 "add needs the anchor NAMED in backticks -- which declaration,"
                 " not the word 'anchor'"
             )
-    if spec.owes_change and not f.change.strip():
+    # ! A verdict that MAY EMPTY its block is exempt here and checked in
+    # `edit_problem` instead, which holds the census entry an empty `CHANGE`
+    # has to be measured against. Refusing here made a whole-block `drop`
+    # inexpressible: there is no text to show, and the record was rejected for
+    # not showing it.
+    if spec.owes_change and not f.change.strip() and not spec.may_empty:
         return (
             f"{f.verdict} carries no CHANGE -- the edit already made, written out"
             " with its surrounding block, which is what stage 5 applies"
@@ -807,7 +857,7 @@ def _words(text: str) -> str:
         # `edit_problem` normalises it again, while a diff span gets one pass --
         # so a claim and the edit naming it reduced to different strings, and a
         # correct finding was refused.
-        " ".join(w.strip("\"'`.,;:!?()[]{}") for w in text.split()).strip().lower()
+        " ".join(w.strip(EDGE) for w in text.split()).strip().lower()
     )
 
 
@@ -1045,10 +1095,30 @@ def removed_spans(f: Finding, entry: dict) -> list[str] | None:
     spec = VERDICTS.get(f.verdict)
     if spec is None or not spec.diffable:
         return None
-    if not f.change.strip():
+    # !! AN EMPTY `CHANGE` IS A DIFF, not a missing half, when the verdict may
+    # empty its block. A `drop` whose `CLAIM` names the block's only sentence
+    # leaves nothing behind, so the whole block IS the removed span -- and
+    # returning None there made the one unambiguous removal in the system read
+    # as "cannot compare". Every other verdict still owes text.
+    if not f.change.strip() and not spec.may_empty:
         return None
-    before = as_block(f.original, entry).lower().split()
-    after = as_block(f.change, entry).lower().split()
+    # !! STRIPPED WITH `EDGE`, the same characters `_words` takes off a `CLAIM`.
+    # A token still carrying its punctuation cannot align with the same word
+    # without it, so `policy` and `policy.` were different tokens and the
+    # matcher reported a dropped trailing parenthetical as beginning at
+    # `policy` -- a word no `CLAIM` names, refusing a correct record. Measured
+    # 2026-08-17. ! The spans this returns are punctuation-free for the same
+    # reason, which costs nothing: every caller reads them through `_words`.
+    before = [
+        w
+        for w in (t.strip(EDGE) for t in as_block(f.original, entry).lower().split())
+        if w
+    ]
+    after = [
+        w
+        for w in (t.strip(EDGE) for t in as_block(f.change, entry).lower().split())
+        if w
+    ]
     if not before:
         return None
     return [
@@ -1116,6 +1186,26 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
     """
     spans = removed_spans(f, entry)
     if spans is None:
+        return None
+    # !! AN EMPTY `CHANGE` IS CHECKED, NOT TRUSTED. A `drop` whose `CLAIM` names
+    # the block's only sentence empties it, and there is no text to show; the
+    # record was refused for not showing it, so a whole-block drop could not be
+    # expressed at all. The reviewer wrote the blank deliberately and said so in
+    # `REASON`, which nothing downstream reads -- so this reads the two things
+    # that ARE checkable instead. Measured 2026-08-17.
+    #
+    # ! It admits the blank only where CLAIM accounts for the WHOLE block. A
+    # blank `CHANGE` on a partial drop is still refused, which is what stops
+    # this becoming a way to skip writing one.
+    if not f.change.strip():
+        whole = _words(as_block(f.original, entry))
+        if not whole:
+            return f"{f.verdict}: CHANGE is empty and BLOCK carries no original"
+        if _words(ruled_text(f)) != whole:
+            return (
+                f"{f.verdict}: CHANGE is empty, which says the block empties --"
+                " but CLAIM names only part of it. Write the remainder."
+            )
         return None
     if as_block(f.original, entry).lower() == as_block(f.change, entry).lower():
         return (

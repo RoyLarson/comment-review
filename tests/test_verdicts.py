@@ -1345,20 +1345,72 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
             )
         )
 
-    def test_a_drop_that_removes_MORE_than_it_claims_is_refused(self):
+    def test_a_drop_that_empties_the_block_may_leave_CHANGE_blank(self):
+        """!! A WHOLE-BLOCK `drop` has no text to show, and had no way to say so.
+
+        `payload_problem` refused any empty `CHANGE`, so the one edit that
+        legitimately produces none could not be expressed. Measured 2026-08-17:
+        a reviewer wrote the blank deliberately and explained it in `REASON`,
+        which nothing downstream reads -- so the record was refused for not
+        showing text that does not exist.
+        """
+        # ! The CLAIM quotes the PROSE, as a reviewer writes it -- the block's
+        # markers and line breaks are the census's, not the sentence's.
+        self.assertIsNone(
+            self._at(
+                verdict="drop",
+                claim='drop: "the budget is 3. callers round separately"',
+                change="",
+            )
+        )
+
+    def test_a_blank_CHANGE_whose_CLAIM_names_only_part_is_refused(self):
+        # ! This is what stops a blank CHANGE becoming a way to skip writing
+        # one: an empty block is CHECKED against the CLAIM, not taken on trust.
         problem = self._at(
             verdict="drop",
             claim='drop: "callers round separately"',
             change="",
         )
-        # ! An empty CHANGE is `payload_problem`'s to refuse, not this one --
-        # reporting it twice would print two defects for one mistake.
-        self.assertIsNone(problem)
+        self.assertIn("CLAIM names only part of it", problem)
+
+    def test_payload_problem_no_longer_refuses_a_blank_drop(self):
+        # ! The check moved to `edit_problem`, which holds the census entry an
+        # empty CHANGE must be measured against. `payload_problem` has none.
+        self.assertIsNone(
+            verdicts.payload_problem(
+                _finding(verdict="drop", claim='drop: "x"', change="")
+            )
+        )
+
+    def test_a_blank_CHANGE_still_refused_where_the_verdict_owes_text(self):
         self.assertIn(
             "carries no CHANGE",
             verdicts.payload_problem(
-                _finding(verdict="drop", claim='drop: "x"', change="")
+                _finding(
+                    verdict="correct",
+                    claim='false: "x" / true: "y"',
+                    change="",
+                )
             ),
+        )
+
+    def test_dropping_a_trailing_parenthetical_does_not_swallow_the_word_before(self):
+        """!! The diff and the CLAIM must strip the SAME edge characters.
+
+        `policy` and `policy.` are different tokens, so the matcher could not
+        align them and reported the removal as starting at `policy` -- a word
+        no `CLAIM` names -- refusing a correct record. Both sides now strip
+        `EDGE`. Measured 2026-08-17; a trailing parenthetical whose sentence
+        punctuation re-attaches to the previous word is among the commonest
+        drops there is.
+        """
+        self.assertIsNone(
+            self._at(
+                verdict="drop",
+                claim='drop: "callers round separately"',
+                change="# the budget is 3.",
+            )
         )
 
     def test_two_findings_folded_into_one_CHANGE_are_refused(self):
