@@ -3,18 +3,17 @@
     python vocabulary.py --reviewer ownership-context
     python vocabulary.py --roles
 
-The task agent runs this at stage 4 and puts the output in that agent's prompt.
-Nothing summarises it and nothing else states these definitions: a shipped file
-that USES a term does not also define it, so a definition exists in exactly one
-place and reaches an agent by being emitted rather than by being copied.
+The task agent runs this at stage 4 and puts the output in that agent's prompt,
+verbatim. A definition lives in exactly one place and reaches an agent by being
+EMITTED: a shipped file that uses a term states no definition of its own.
 
 Which terms a role is given was MEASURED from the text that role actually reads,
 and lives in `references/vocabulary.toml` beside the definitions themselves.
 
-⚠ Reads the TOML with `tomllib`, which is stdlib from Python 3.11. That is the
-floor this plugin ships against; a `SyntaxError`-only gate cannot catch a version
-mismatch in an IMPORT, so the floor is stated in `scripts/check_shipped_syntax.py`
-and enforced by running on it.
+⚠ Reads the TOML with `tomllib`, stdlib from Python 3.11, which is the floor
+this plugin ships against. A version mismatch in an IMPORT gets past a
+syntax-only gate, so the floor is stated in `scripts/check_shipped_syntax.py`
+and enforced by parsing every shipped file at it.
 """
 
 from __future__ import annotations
@@ -27,7 +26,7 @@ from pathlib import Path
 
 VOCABULARY = Path(__file__).resolve().parent.parent / "references" / "vocabulary.toml"
 
-# The key every role's list is extended with. Not a role.
+# The key every role's list is extended with. A shared set, and no role's name.
 EVERY_AGENT = "all"
 
 READ_ERRORS = (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError)

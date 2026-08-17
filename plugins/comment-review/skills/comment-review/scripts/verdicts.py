@@ -15,9 +15,7 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   STANDS        blocks every reviewer that ran returned clean on
   REVIEWER      (only with `--reviewers`) every expected reviewer actually reported
 
-⚠ Exits nonzero on a coverage gap or an unverifiable citation. Measured: one
-graded run had FABRICATED 5 of its 7 reviewer reports and did not notice until
-asked to grade itself. A report is not evidence that a file was read.
+⚠ Exits nonzero on a coverage gap or an unverifiable citation.
 
 ⚠ It reports which findings are ADMISSIBLE. The ruling is stage 5's, in
 SKILL.md's synthesis order.
@@ -92,14 +90,12 @@ EVIDENCE_WINDOW = 3
 # the quote is long enough to have required reading the line.
 MIN_NEEDLE = 12
 
-# A `query` says the claim could not be settled, so by construction there is no
-# code line that settles it and no QUOTE to check. The forcing function has to
-# land somewhere else, and it lands on the PAYLOAD: a query must name a check
-# that was attempted and the thing that would settle the claim.
+# What a `query`'s PAYLOAD must name: a check that was attempted, and the thing
+# that would settle the claim.
 #
 # ⚠ A SHAPE check: it removes the query that names no check at all, and the
-# word "grepped" passes it. Requiring EVIDENCE of a query instead pushed
-# reviewers to invent a citation or downgrade to `clean`.
+# word "grepped" passes it. See `evidence_problem` for the DISPUTED question of
+# whether a query owes EVIDENCE on top of this.
 #
 # Matched on WORD BOUNDARIES. As substrings, "ran" hit *b**ran**ch*,
 # *****ran***ge* and *t**ran**sfer*, and "settle" hit *un**settle**d*, so
@@ -240,9 +236,8 @@ def allowed(verdict: str, level: str) -> bool:
 def payload_problem(f: Finding) -> str | None:
     """What the verdict's required payload is missing, or None.
 
-    `query` is the one row checked in any detail here, because it is the one
-    verdict with no EVIDENCE to check: `evidence_problem` exempts it, so this
-    is where a query that did no work is refused.
+    `query` is the one row checked in any detail here, because `evidence_problem`
+    exempts it — see the DISPUTED note there.
     """
     change = f.change.lower()
     if f.verdict == "query":
@@ -324,10 +319,9 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     checking it here made every counted claim structurally inadmissible. The
     forcing function lands on a field that carries verbatim text alone.
 
-    ⚠ `query` is exempt alongside `clean`, and its payload is checked instead.
-    A `query` is a claim the reviewer COULD NOT settle, so no line settles it;
-    demanding EVIDENCE left two exits, inventing a citation or downgrading to
-    `clean`, and the gate then produced the failure it was built to prevent.
+    ⚠ `query` is exempt alongside `clean`, and `payload_problem` checks it
+    instead. DISPUTED and UNRESOLVED: `reviewer-brief.md` requires EVIDENCE and
+    a QUOTE of a `query`, and this script requires neither.
     """
     if f.verdict in ("clean", "query"):
         return None

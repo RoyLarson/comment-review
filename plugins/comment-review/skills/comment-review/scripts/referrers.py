@@ -7,9 +7,9 @@ who cites the code being edited -- and it is the half that decides the
 REFERENCE ONLY list. Without it that list is assembled from memory, and a
 `target` run has no diff to widen from at all.
 
-Read-only, and always exits 0: this is an input to a review, not a gate. Every
-line it prints is a CANDIDATE. A file that names a token is a file to READ, not
-a file with a defect, and not a file a verdict may target.
+Read-only, always exits 0: an INPUT to a review. Every line it prints is a
+CANDIDATE — a file that names a token is a file to READ, and stays outside what
+a verdict may target.
 """
 
 from __future__ import annotations
@@ -22,10 +22,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-# ⚠ The exception tuples are IMPORTED, not re-declared. Each is bound to a
-# NAME so no `except` clause holds a tuple literal, and `repo.py` carries
-# the reason once; a second copy of that reasoning is the restated rule this
-# skill exists to find, and the copies drift before the code does.
+# ⚠ The exception tuples are IMPORTED. Each is bound to a NAME so no `except`
+# clause here holds a tuple literal; `repo.py` carries that reason once.
 from repo import (  # noqa: E402  -- path shim must run first
     GIT_ERRORS,
     PARSE_ERRORS,
@@ -47,7 +45,8 @@ def tokens_for(path: Path, text: str) -> set[str]:
     Returns:
         The stem, the posix path and each of its trailing suffixes, and the
         PUBLIC top-level definitions. Underscored names are excluded: prose
-        does not cite them, and they collide with unrelated private helpers.
+        cites the public surface, and a private helper's name collides with
+        every unrelated private helper spelled the same way.
     """
     out = {path.stem}
     parts = path.as_posix().split("/")
@@ -67,12 +66,10 @@ def tokens_for(path: Path, text: str) -> set[str]:
 def _grep(repo: Path, token: str) -> tuple[list[str] | None, str]:
     """Tracked files containing `token` as a fixed string.
 
-    ⚠ `git grep` exits 1 for a genuine ZERO-MATCH search -- not an error --
-    and anything else (a bad pathspec, a corrupt index, a timeout) means the
-    search could not be completed at all. Collapsing all three into `[]`
-    reads a failed search exactly like "nothing found," the same defect this
-    project's `git_ls_files` names for the index check: None is a THIRD
-    state, not an empty list.
+    ⚠ `git grep` exits 1 for a genuine ZERO-MATCH search; any other nonzero (a
+    bad pathspec, a corrupt index, a timeout) means the search never completed.
+    Collapsing both into `[]` reads a failed search as "nothing found", so None
+    is a THIRD state here, the same as in `git_ls_files`.
 
     Returns:
         `(files, "")` on a completed search -- `files` is `[]` for a real
@@ -114,7 +111,7 @@ def main() -> int:
 
     hits: dict[str, set[str]] = defaultdict(set)
     unreadable: list[str] = []
-    # A set, not a list: two targets sharing a token must not double-print it.
+    # A set, so two targets sharing a token print it once.
     unsearched: set[str] = set()
     for rel in sorted(under_review):
         target = repo / rel
@@ -126,9 +123,9 @@ def main() -> int:
         for token in sorted(tokens_for(Path(rel), text)):
             found, reason = _grep(repo, token)
             if found is None:
-                # ⚠ NOT a zero-match result. The search itself did not
-                # complete, so a real referrer for this token may exist and
-                # go unreported -- distinct from "searched, found nothing."
+                # ⚠ The search never completed, so a real referrer for this
+                # token may exist unreported. A different state from
+                # "searched, found nothing".
                 unsearched.add(f"token {token!r} could not be searched ({reason})")
                 continue
             found = [f for f in found if f not in under_review]
@@ -141,11 +138,10 @@ def main() -> int:
     )
     if not hits:
         if unsearched:
-            # ⚠ NOT the same claim as the clean-absence line below. `hits`
-            # being empty here may only mean every search that COULD run
-            # found nothing -- some did not run at all, and a real referrer
-            # may be sitting behind one of them. The unqualified "none" is
-            # exactly the reading C1 exists to prevent.
+            # ⚠ A weaker claim than the plain-absence line below. `hits` being
+            # empty here may only mean every search that COULD run found
+            # nothing -- some did not run at all, and a real referrer may be
+            # sitting behind one of them.
             print(
                 "  none among the tokens that could be searched — but some\n"
                 "  searches did not complete; see NOT CHECKED below before\n"
