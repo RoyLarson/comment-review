@@ -22,6 +22,7 @@ so settling a term removes it from this output on the next run.
 """
 
 import argparse
+import ast
 import re
 import sys
 import tomllib
@@ -36,15 +37,43 @@ EMITTED = SHIPPED / "comment-review/skills/comment-review/references/vocabulary.
 BACKTICKED = re.compile(r"`([A-Za-z][\w-]{2,})`")
 ALLCAPS = re.compile(r"\b([A-Z][A-Z-]{2,})\b")
 WORD = re.compile(r"\b([a-z][a-z-]{3,})\b")
-# A name this repo DELIBERATELY binds, at module level: a function, a class, a
-# dataclass field, or a CONSTANT. Locals are excluded on purpose -- `text`, `path`
-# and `first` are incidental, and including them buried every real hit.
-IDENT = re.compile(
-    r"^(?:def|class)\s+_?([A-Za-z]\w+)"
-    r"|^_?([A-Z][A-Z0-9_]+)\s*=[^=]"
-    r"|^    ([a-z]\w+):\s*\w",
-    re.MULTILINE,
-)
+
+
+def bound_names(text: str) -> set[str]:
+    """Names this repo DELIBERATELY binds: a def, a class, a CONSTANT, a field.
+
+    ⚠⚠ PARSED, not matched. The regex this replaces ended in
+    an alternative anchored on four-space indentation followed by `name: type`,
+    -- so annotated LOCALS and the parameters of a wrapped signature came in
+    too, the exact category the comment above it said was excluded. Run over
+    this very file it yielded `out, files, marked, plain, bound, title, found,
+    known, min_files, limit`, and `bound` feeds the DOUBLE list, so ordinary
+    English that is only ever a local variable was promoted to a term
+    candidate. Measured 2026-08-17.
+
+    ⚠ A field is an annotation in a CLASS BODY. That is the distinction the
+    indent was standing in for, and the parser knows it exactly.
+    """
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError):
+        return set()
+    out: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            out.add(node.name)
+        if isinstance(node, ast.Assign):
+            out.update(
+                t.id for t in node.targets if isinstance(t, ast.Name) and t.id.isupper()
+            )
+        if isinstance(node, ast.ClassDef):
+            out.update(
+                n.target.id
+                for n in node.body
+                if isinstance(n, ast.AnnAssign) and isinstance(n.target, ast.Name)
+            )
+    return {n.lower().lstrip("_") for n in out}
+
 
 # Markdown/code scaffolding, and English that ALLCAPS emphasis reaches constantly.
 # Not a suppression list: every entry is a word this repo uses as emphasis or as a
@@ -108,9 +137,8 @@ def collect(
         for hit in WORD.findall(text):
             plain[hit].add(path)
         if path.suffix == ".py":
-            for groups in IDENT.findall(text):
-                name = next(g for g in groups if g)
-                bound[name.lower().lstrip("_")].add(path)
+            for name in bound_names(text):
+                bound[name].add(path)
     return marked, plain, bound
 
 

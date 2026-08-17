@@ -15,6 +15,7 @@ measurement.
 
 import argparse
 import shutil
+import stat
 import subprocess
 import sys
 import tomllib
@@ -45,6 +46,26 @@ def run(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess:
 def _why(r: subprocess.CompletedProcess) -> str:
     """The last line of a failure, which is the line that says what broke."""
     return r.stderr.strip().splitlines()[-1] if r.stderr else "?"
+
+
+def _force_writable(func, path, _exc) -> None:
+    """`rmtree` error hook: clear the read-only bit and retry once.
+
+    ⚠ `onerror`, not `onexc`. `onexc` arrives in 3.12 and this repo's floor is
+    3.11 -- a `TypeError` on the interpreter the plugin claims. Caught by
+    running it; no test exercises `--clean`.
+
+    ⚠ Git writes `.git/objects/pack/*.pack` read-only, which is what makes
+    `shutil.rmtree` fail on Windows. `ignore_errors=True` turned that into a
+    silent no-op, so `--clean` printed `rm <name>` over a tree that was still
+    there.
+    """
+    try:
+        path_ = Path(path)
+        path_.chmod(stat.S_IWRITE | stat.S_IREAD)
+        func(path)
+    except OSError as e:
+        print(f"      ⚠ could not remove {path}: {e}")
 
 
 def head_of(path: Path) -> str:
@@ -148,7 +169,14 @@ def main() -> int:
             run("git", "-C", str(src), "worktree", "remove", "--force", str(d))
             run("git", "-C", str(src), "worktree", "prune")
         if d.exists():
-            shutil.rmtree(d, ignore_errors=True)
+            # ⚠⚠ `ignore_errors` HID A FAILED DELETE. Git marks pack files
+            # read-only, so on Windows `rmtree` cannot remove
+            # `.git/objects/pack/*.pack` and left the tree in place -- while
+            # the line below printed `rm <name>` regardless. The documented
+            # refetch then found `dest.exists()`, returned `have ...`, and
+            # never refetched anything. `onexc` clears the read-only bit and
+            # retries; what still fails is REPORTED.
+            shutil.rmtree(d, onerror=_force_writable)
         print(f"rm    {name}")
 
     bad = 0
@@ -167,7 +195,17 @@ def main() -> int:
             resolved = run(
                 "git", "-C", str(dest), "rev-parse", want + "^{commit}"
             ).stdout.strip()
-            if resolved and got and not got.startswith(want) and got != resolved:
+            # ⚠⚠ AN UNREADABLE CHECKOUT IS A FAILURE, not a skipped check.
+            # `got` is "" when `rev-parse` failed, and `and got` then
+            # short-circuited the whole guard -- so a directory that exists but
+            # is no longer a usable git repo printed `have <name> @ ` with an
+            # empty hash, had its pin unchecked, and exited 0 reporting a
+            # correctly-pinned corpus. Fixing `head_of` to return "" honestly
+            # moved where the "" came from; this is the caller that swallowed it.
+            if not got:
+                print(f"      ⚠ UNREADABLE: {dest} is not a usable git checkout")
+                bad += 1
+            elif resolved and not got.startswith(want) and got != resolved:
                 print(f"      ⚠ PIN MISMATCH: manifest {want}, checkout {got[:8]}")
                 bad += 1
     return 1 if bad else 0

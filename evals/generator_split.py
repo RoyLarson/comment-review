@@ -45,7 +45,18 @@ import census  # noqa: E402  - the census is the skill's, not a second copy
 # only the trailer, so a commit carrying just the footer was filed under
 # `human` — biasing the split against the very effect this module measures.
 # Measured 2026-08-17: both real footer forms returned False.
-TOOLS = r"(claude|copilot|gpt|codex|cursor|gemini|llm|ai)\b"
+# ⚠⚠ A LEADING BOUNDARY TOO. With `\b` only on the right, `ai` matched the tail
+# of ordinary words: `Co-authored-by: Priya Desai` and `Nikolai Petrov` both
+# read as assisted, filing a HUMAN co-author's whole commit under `assisted` and
+# moving its blocks out of `human`. The split then reports an authorship effect
+# the data does not contain — which is the one failure this module cannot
+# tolerate, since the effect is the whole measurement.
+#
+# ⚠ The comment below argues that false positives are the SAFE direction. That
+# holds for over-matching a TOOL name, which only dilutes the contrast. It does
+# not hold for matching a person, which moves real human prose into the other
+# bucket and manufactures the result.
+TOOLS = r"(?<![A-Za-z])(claude|copilot|gpt|codex|cursor|gemini|llm|ai)\b"
 ASSISTED = re.compile(
     r"(?im)^\s*(co-authored-by|assisted-by)\s*:.*"
     + TOOLS
