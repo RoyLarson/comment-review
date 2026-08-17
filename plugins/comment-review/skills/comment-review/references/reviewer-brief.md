@@ -59,9 +59,10 @@ does not count.
 BLOCK       17
 VERDICT     correct
 SOURCE      redacted_pkg/billing/rates.py:355 | def compute_rates(plan, period, *, clamp=True):
-CLAIM       "kept because twenty call sites want this"
+CLAIM       false: "twenty call sites want this" / true: "31 callers, all in tests/"
 REASON      31 callers and every one is under tests/, so the count is stale
-CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tests/"
+CHANGE      # Kept because 31 callers want this, all of them in tests/.
+            # Narrowing it means re-deriving the clamp bounds.
 ---
 ```
 
@@ -70,9 +71,15 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `BLOCK` | the census INDEX, and the finding's whole ADDRESS — the census resolves it to path and line range, so nothing else names where the prose is. ⚠ **A finding is ADDRESSED by index and RULED on a sentence, so several of your findings may carry the same `BLOCK`** |
 | `VERDICT` | one of the seven |
 | `SOURCE` | where you looked, as `file:line | verbatim` — the citation and the text AT it, both verbatim. **Repeat the line, one per place examined.** EVERY one is resolved and every verbatim half must be there |
-| `CLAIM` | the sentence as the PROSE writes it, quoted. ⚠ **CHECKED against the census text for your `BLOCK`** — a claim that is not in the block you cited means the finding is on the wrong block |
+| `CLAIM` | the SPEC: what must change, and from what to what, in the shape your verdict's row below gives. ⚠ **The half naming the EXISTING sentence is CHECKED against the census text for your `BLOCK`** — if it is not in the block you cited, the finding is on the wrong block |
 | `REASON` | what you DERIVED from the source, and why the claim is wrong — one statement |
-| `CHANGE` | the payload the verdict table requires |
+| `CHANGE` | the RESULT: that edit already made, written out **with the surrounding block**, ready to be substituted |
+
+⚠⚠ **`CLAIM` and `CHANGE` say the same edit twice, and that is deliberate.** `CLAIM` is
+surgical, so a checker can find the sentence you are ruling on and two roles ruling on one block
+can be told apart. `CHANGE` is the finished prose, so the task agent applies your text rather
+than re-deriving it from a diff. ⚠ Write the whole block in `CHANGE`, not just the line you
+touched — a block is what gets substituted.
 
 ⚠⚠ **`SOURCE`'s verbatim half is the forcing function, and it is CHECKED.** The cited line is
 read out of the file and your text must appear within three lines of it.
@@ -98,15 +105,47 @@ into one comment. It is only usable if it carries its payload, so **a verdict wi
 not a finding** — *"correct the count"* hands the judgement back; *"replace X with Y"* is the
 finding.
 
-| verdict   | payload |
+**Every shape below is `CLAIM`'s.** `CHANGE` is the same edit already made, written out with
+its surrounding block, and it is required for all of these but `clean` and `query` — those two
+propose no text, so there is nothing for the task agent to apply.
+
+| verdict   | `CLAIM` |
 | --------- | ------- |
 | `clean`   | nothing — name your role, nothing else |
 | `query`   | which of the three SHAPES it is, in those words, then the claim, the check you ATTEMPTED, and what WOULD settle it — the shape, the ATTEMPTED and the WOULD-settle halves are all CHECKED (as shape, not as truth); the claim itself is checked by nothing |
-| `drop`    | the sentence, verbatim |
-| `correct` | the false clause **and** the true one, plus the line that settles it |
-| `patch`   | the rewrite |
-| `add`     | the text, **the anchor NAMED in backticks**, and which side — above or below it. The word "anchor" is not an anchor |
-| `move`    | the destination **and** the verbatim extract |
+| `drop`    | `drop: "<the sentence, verbatim>"` |
+| `correct` | `false: "<the false clause>" / true: "<the true one>"`, and a `SOURCE` carrying the line that settles it |
+| `patch`   | `from: "<the sentence now>" / to: "<the rewrite>"` |
+| `add`     | `missing: "<the text>"`, **the anchor NAMED in backticks**, and which side — above or below it. The word "anchor" is not an anchor |
+| `move`    | `from: <where it sits> / to: <the destination>` |
+
+⚠⚠ **`correct` keeps `false:`/`true:` where `patch` and `move` take `from:`/`to:`, and the pair
+is not interchangeable.** `false:`/`true:` ASSERTS the sentence is wrong, and that assertion is
+the whole difference between the two verdicts: a `patch` sentence is TRUE and merely reads
+badly. A neutral from/to on a `correct` would erase the distinction the synthesis order rests
+on, and it is refused.
+
+⚠ **A `move`'s halves are PLACES, not text** — from where it sits, to where it belongs. It is
+the one edit whose `CLAIM` names no sentence, because the `BLOCK` is what identifies the prose.
+
+⚠⚠ **A `move` changes TWO blocks, so its `CHANGE` carries BOTH — and this is the only verdict
+where `CHANGE` is not a single block.** Write them labelled:
+
+```text
+CHANGE      to:   # the destination block, as it reads once the prose arrives
+                  # ...including the lines already there.
+            from: # the origin block, as it reads once the prose has left.
+```
+
+⚠ **`to:` is required. `from:` may be omitted, and omitting it ASSERTS the WHOLE block moved** —
+that nothing is left behind to show. Nothing can tell a whole-block move from a partial one by
+inspection, so you say which by what you supply. ⚠ If a sentence leaves and the rest stays,
+`from:` is how the task agent learns what the remainder reads like; without it, the block is
+applied as if it emptied.
+
+⚠ These are `CLAIM`'s two words used again, and they mean something different here: in `CLAIM`
+they are PLACES, in `CHANGE` they are the two resulting BLOCKS. The field you are writing
+decides which.
 
 #### Does a TRUE sentence earn its place?
 
@@ -141,7 +180,7 @@ unbounded as "robust"**, so the sentence refusing the claim fails the same test.
 
 ⚠ **One relocation verdict, and the DESTINATION is what varies.** A declaration ten lines
 down, another file, or out of the code entirely — all `move`, and which one goes in the
-payload. Say what is wrong in `FINDING`. **Only a destination outside the code can be
+payload. Say what is wrong in `REASON`. **Only a destination outside the code can be
 unavailable**, and your run context says whether it is; a relocation into tracked code is
 always available.
 
@@ -160,10 +199,10 @@ constraint — and none of those is your role's question unless your role file s
 #### `query` specific rules
 
 ⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
-still required to open the code that would settle it; on every other verdict your `QUOTE` proves
+still required to open the code that would settle it; on every other verdict your `SOURCE` proves
 you did. `query` is what you emit when you did and it was still not enough.
 
-⚠⚠ **Three shapes reach it, and your `CHANGE` must NAME which one — in these exact words.**
+⚠⚠ **Three shapes reach it, and your `CLAIM` must NAME which one — in these exact words.**
 The three are findings rather than admissions, and they route differently: the first says which
 scope owns the block, the other two are work that reaches the author. Nothing downstream can
 tell them apart if you do not say which:
@@ -185,7 +224,7 @@ always a line to quote.
 ⚠⚠ **`outside my role` is a FINDING, so you have to show it is not yours.** It is the shape a
 reviewer reaches for when it has nothing to say, and it is the one that costs the most when
 it is wrong — the block leaves your report certified by nobody. So quote the line that fixes
-the block's SUBJECT, and say in `FINDING` what about that subject your remit does not reach,
+the block's SUBJECT, and say in `REASON` what about that subject your remit does not reach,
 in the words your own role file uses for its remit. **Never name another role**; you do not
 know what the others were asked. *"Not mine"* is an admission. *"Its subject is the loop body,
 and my remit is what the module as a whole announces"* is a finding.
@@ -234,4 +273,4 @@ a place: `CODE CONCERNS`, one line, no verdict.
 
 REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two roles
 can reach the same or different decisions per sentence. Report what your role sees and say in
-`FINDING` what is wrong. Which verdict wins is the task agent's ruling later.
+`REASON` what is wrong. Which verdict wins is the task agent's ruling later.

@@ -28,7 +28,7 @@ census = "The numbered tree of every block in the files under review, with the r
 
 # --- the units that get ruled on --------------------------------------------
 sentence = "The unit a verdict rules on. A container of six sentences can hold six verdicts."
-clause = "A part of a sentence. `correct` carries a false clause and a true one; `FINDING` is one clause."
+clause = "A part of a sentence. `correct` carries a false clause and a true one; `REASON` is one clause."
 statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a clause."
 expression = "A piece of CODE that evaluates to a value. One of the kinds an anchor can be."
 declaration = "A piece of CODE that introduces a name. One of the kinds an anchor can be."

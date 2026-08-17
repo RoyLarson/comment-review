@@ -676,7 +676,10 @@ not once per verdict. The check compares against the original, and the original 
   deletion would win silently — and a `correct` written at an anchor another role calls wrong
   was measured against the wrong code.
 
-⚠ **Dedup on the CLAIM, not the block**, before any of this.
+⚠ **Dedup on the SENTENCE RULED ON, not the block**, before any of this — the half of `CLAIM`
+that quotes the existing prose (`drop:`, `false:`, `from:`), never the whole `CLAIM`. Two roles
+fixing one sentence propose different edits, so their `CLAIM`s differ while their subject does
+not; the join keys on that half for the same reason.
 
 ⚠⚠ **THE SENTENCE YOU PROPOSE TO KEEP IS A FINDING YOU HAVE NOT RAISED.** Before any `patch`
 or `move`, verify the retained clause the way stage 3 resolves an annotation. The reviewer keeps the

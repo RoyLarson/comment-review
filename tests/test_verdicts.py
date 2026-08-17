@@ -22,9 +22,9 @@ Some preamble the tool ignores.
 BLOCK       1
 VERDICT     correct
 SOURCE      a.py:5 | the settling line
-CLAIM       "only one caller"
+CLAIM       false: "only one caller" / true: "three callers"
 REASON      three callers here, so the count is wrong
-CHANGE      false: "only one caller" / true: "three callers"
+CHANGE      # three callers, all under tests/
 ---
 
 --- RECORD
@@ -64,9 +64,9 @@ def _finding(**kw):
         "block": 1,
         "verdict": "correct",
         "sources": ["a.py:5 | the settling line"],
-        "claim": '"x"',
+        "claim": 'false: "a" / true: "b"',
         "reason": "three callers, all under tests/, so the count is stale",
-        "change": 'false: "a" / true: "b"',
+        "change": "# b, written out with its surrounding block",
     }
     fields.update(kw)
     return verdicts.Finding(**fields)
@@ -105,16 +105,16 @@ class TestParsing(unittest.TestCase):
 BLOCK       1
 VERDICT     correct
 SOURCE      a.py:1 | one
-CLAIM       "x"
+CLAIM       false: "x" / true: "y"
 REASON      first record, never closed
 
 --- RECORD
 BLOCK       2
 VERDICT     correct
 SOURCE      a.py:1 | one
-CLAIM       "x"
+CLAIM       false: "x" / true: "y"
 REASON      second record, closed
-CHANGE      false: "x" / true: "y"
+CHANGE      # y, in its block
 ---
 """
         found, malformed = verdicts.parse_report(text, "block-context")
@@ -153,14 +153,16 @@ class TestCoverage(unittest.TestCase):
 
 class TestPayload(unittest.TestCase):
     def test_correct_without_a_pair_is_rejected(self):
-        f = _finding(change="fix it")
-        self.assertIn("true/false pair", verdicts.payload_problem(f))
+        f = _finding(claim="fix it")
+        self.assertIn("false/true pair", verdicts.payload_problem(f))
 
     def test_correct_with_a_pair_passes(self):
         self.assertIsNone(verdicts.payload_problem(_finding()))
 
     def test_add_without_an_anchor_is_rejected(self):
-        f = _finding(reviewer="ownership-context", verdict="add", change="some text")
+        f = _finding(
+            reviewer="ownership-context", verdict="add", claim='missing: "some text"'
+        )
         self.assertIn("side", verdicts.payload_problem(f))
 
     def test_a_verdict_that_states_no_reason_is_rejected(self):
@@ -169,7 +171,7 @@ class TestPayload(unittest.TestCase):
         self.assertIn("REASON", verdicts.payload_problem(_finding(reason="  ")))
 
     def test_clean_owes_no_reason(self):
-        f = _finding(verdict="clean", reason="", change="")
+        f = _finding(verdict="clean", claim="", reason="", change="")
         self.assertIsNone(verdicts.payload_problem(f))
 
 
@@ -179,19 +181,18 @@ class TestReasonSaysSomething(unittest.TestCase):
     claim back has filed a verdict with no reason.
     """
 
+    SPEC = 'false: "only one caller" / true: "31 callers, all in tests/"'
+
     def test_a_reason_that_restates_the_claim_is_refused(self):
-        f = _finding(claim='"only one caller"', reason="only one caller")
+        f = _finding(claim=self.SPEC, reason=self.SPEC)
         self.assertIn("restates", verdicts.payload_problem(f))
 
     def test_a_reason_that_adds_the_derivation_passes(self):
-        f = _finding(
-            claim='"only one caller"',
-            reason="31 callers and every one is under tests/",
-        )
+        f = _finding(claim=self.SPEC, reason="31 callers and every one is in tests/")
         self.assertIsNone(verdicts.payload_problem(f))
 
     def test_case_and_quoting_do_not_disguise_a_restatement(self):
-        f = _finding(claim='"Only One Caller"', reason='  "only one caller"  ')
+        f = _finding(claim=self.SPEC.upper(), reason=f"  {self.SPEC}  ")
         self.assertIn("restates", verdicts.payload_problem(f))
 
     def test_a_reason_that_QUOTES_the_claim_and_explains_it_passes(self):
@@ -199,8 +200,8 @@ class TestReasonSaysSomething(unittest.TestCase):
         # and then says what is wrong with it is doing its job, and a
         # containment test would refuse it.
         f = _finding(
-            claim='"only one caller"',
-            reason='"only one caller" is false — there are 31, all in tests/',
+            claim=self.SPEC,
+            reason=f"{self.SPEC} — the count came from a grep over tests/",
         )
         self.assertIsNone(verdicts.payload_problem(f))
 
@@ -213,26 +214,36 @@ class TestAddAnchor(unittest.TestCase):
     named a declaration without using the word failed.
     """
 
-    def _add(self, change):
+    def _add(self, spec):
         return verdicts.payload_problem(
-            _finding(reviewer="ownership-context", verdict="add", change=change)
+            _finding(reviewer="ownership-context", verdict="add", claim=spec)
         )
 
     def test_the_bare_word_anchor_no_longer_passes(self):
-        self.assertIsNotNone(self._add("add an anchor comment here"))
+        self.assertIsNotNone(self._add('missing: "an anchor comment here"'))
 
     def test_a_side_with_no_named_anchor_is_rejected(self):
-        self.assertIn("backticks", self._add("put it above the loop"))
+        self.assertIn("backticks", self._add('missing: "x" / put it above the loop'))
 
     def test_a_named_anchor_with_no_side_is_rejected(self):
-        self.assertIn("side", self._add("goes with `retry_budget`"))
+        self.assertIn("side", self._add('missing: "x" / goes with `retry_budget`'))
 
     def test_a_named_anchor_and_a_side_passes(self):
-        self.assertIsNone(self._add("above `retry_budget`: the ceiling is 100"))
+        self.assertIsNone(
+            self._add('missing: "the ceiling is 100" above `retry_budget`')
+        )
 
     def test_before_and_after_count_as_sides(self):
         for side in ("before", "after"):
-            self.assertIsNone(self._add(f"{side} `send()`: retries are capped"), side)
+            self.assertIsNone(
+                self._add(f'missing: "retries are capped" {side} `send()`'), side
+            )
+
+    def test_an_add_that_does_not_carry_its_text_is_rejected(self):
+        # ⚠ The anchor alone says WHERE and not WHAT. CLAIM is the spec, so the
+        # text belongs in it -- CHANGE shows it already placed in the block, and
+        # no checker can pick the new sentence back out of a block.
+        self.assertIn("missing:", self._add("above `send()`: retries are capped"))
 
 
 class TestQueryPayload(unittest.TestCase):
@@ -249,13 +260,13 @@ class TestQueryPayload(unittest.TestCase):
     )
 
     def test_a_documented_query_passes(self):
-        f = _finding(verdict="query", change=self.QUERY)
+        f = _finding(verdict="query", claim=self.QUERY)
         self.assertIsNone(verdicts.payload_problem(f))
 
     def test_a_query_naming_no_attempted_check_is_rejected(self):
         f = _finding(
             verdict="query",
-            change="outside the code. claim: unclear. someone should settle this",
+            claim="outside the code. claim: unclear. someone should settle this",
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
@@ -267,7 +278,7 @@ class TestQueryPayload(unittest.TestCase):
         for verb in ("resolved", "enumerated", "verified", "traced", "compared"):
             f = _finding(
                 verdict="query",
-                change=(
+                claim=(
                     f"outside the code. claim: x / {verb} the enclosing definition"
                     " / would settle: another role"
                 ),
@@ -277,7 +288,7 @@ class TestQueryPayload(unittest.TestCase):
     def test_a_query_that_does_not_say_what_would_settle_it_is_rejected(self):
         f = _finding(
             verdict="query",
-            change=(
+            claim=(
                 "outside the code. claim: the archive holds it / checked: git ls-files"
             ),
         )
@@ -295,28 +306,28 @@ class TestQueryWordBoundary(unittest.TestCase):
     def test_an_unsettled_branch_name_names_no_check_and_is_rejected(self):
         f = _finding(
             verdict="query",
-            change="outside the code. the branch name is unsettled",
+            claim="outside the code. the branch name is unsettled",
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
     def test_a_range_of_values_names_no_check_and_is_rejected(self):
         f = _finding(
             verdict="query",
-            change="outside the code. a range of values, unsettled",
+            claim="outside the code. a range of values, unsettled",
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
     def test_transfer_semantics_names_no_check_and_is_rejected(self):
         f = _finding(
             verdict="query",
-            change="outside the code. transfer semantics unsettled",
+            claim="outside the code. transfer semantics unsettled",
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
     def test_an_honest_query_worded_with_requires_is_admitted(self):
         f = _finding(
             verdict="query",
-            change=(
+            claim=(
                 "outside the code. claim: the cap is 6."
                 " attempted: ripgrep over src/ for CAP."
                 " resolving it requires the deploy config"
@@ -329,7 +340,7 @@ class TestQueryWordBoundary(unittest.TestCase):
     ):
         f = _finding(
             verdict="query",
-            change=(
+            claim=(
                 "outside the code. claim: x / attempted: ripgrep -n TODO src/"
                 " / would confirm nothing found"
             ),
@@ -343,7 +354,7 @@ class TestQueryWordBoundary(unittest.TestCase):
         # word that names no check at all -- matched by accident instead.
         f = _finding(
             verdict="query",
-            change=(
+            claim=(
                 "outside the code. claim: the timeout is 30s."
                 " I looked at config.py and found"
                 " nothing definitive, would need the deploy config to be sure"
@@ -354,7 +365,7 @@ class TestQueryWordBoundary(unittest.TestCase):
     def test_looking_up_the_constant_counts_as_an_attempted_check(self):
         f = _finding(
             verdict="query",
-            change=(
+            claim=(
                 "outside the code. claim: x / looking up the constant"
                 " in config.py turned up"
                 " nothing / would need the deploy config to settle it"
@@ -368,7 +379,7 @@ class TestQueryWordBoundary(unittest.TestCase):
         # shape this whole check exists to refuse.
         f = _finding(
             verdict="query",
-            change=(
+            claim=(
                 "outside the code. claim: x / locked the file"
                 " / would need a second opinion"
             ),
@@ -385,7 +396,7 @@ class TestScopeDeclaration(unittest.TestCase):
     """
 
     def _q(self, change):
-        return _finding(verdict="query", sources=[], change=change)
+        return _finding(verdict="query", sources=[], claim=change)
 
     def test_an_out_of_role_query_declares_scope(self):
         f = self._q("claim: x / outside my role, resolved the enclosing def")
@@ -394,11 +405,11 @@ class TestScopeDeclaration(unittest.TestCase):
     def test_the_other_two_query_shapes_are_still_work(self):
         # The brief names three shapes. Only the first is a non-ruling; these
         # two reach the AUTHOR and must stay in the work list.
-        for change in (
+        for spec in (
             "claim: x / checked the checkout / outside the checkout, it is gitignored",
             "claim: x / read the module / outside the code, needs someone who ran it",
         ):
-            self.assertFalse(verdicts.declares_scope(self._q(change)), change)
+            self.assertFalse(verdicts.declares_scope(self._q(spec)), spec)
 
     def test_a_substantive_verdict_never_declares_scope(self):
         self.assertFalse(verdicts.declares_scope(_finding(verdict="correct")))
@@ -443,8 +454,18 @@ class TestWorkList(unittest.TestCase):
     def test_it_groups_every_finding_by_block(self):
         found = [
             _finding(reviewer="block-context", block=7, verdict="correct"),
-            _finding(reviewer="ownership-context", block=7, verdict="move"),
-            _finding(reviewer="module-context", block=9, verdict="drop"),
+            _finding(
+                reviewer="ownership-context",
+                block=7,
+                verdict="move",
+                claim="from: `a.py` line 3 / to: `b.py` line 9",
+            ),
+            _finding(
+                reviewer="module-context",
+                block=9,
+                verdict="drop",
+                claim='drop: "the sentence"',
+            ),
         ]
         grouped = verdicts.by_block(found)
         self.assertEqual(sorted(grouped), [7, 9])
@@ -492,12 +513,12 @@ class TestContradiction(unittest.TestCase):
                 _finding(
                     reviewer="ownership-context",
                     verdict="drop",
-                    change=f'drop: "{drop_text}"',
+                    claim=f'drop: "{drop_text}"',
                 ),
                 _finding(
                     reviewer="block-context",
                     verdict=verdict,
-                    change=f'false: "{correct_text}" / true: "something else"',
+                    claim=f'false: "{correct_text}" / true: "something else"',
                 ),
             ]
         )
@@ -539,12 +560,12 @@ class TestContradiction(unittest.TestCase):
             _finding(
                 reviewer="ownership-context",
                 verdict="move",
-                change='move to `SYMBOLISH` -> extract: "the ordering is significant"',
+                claim="from: `census.py` line 12 / to: `SYMBOLISH`",
             ),
             _finding(
                 reviewer="block-context",
                 verdict="correct",
-                change=(
+                claim=(
                     'false: "the ordering is significant" / true: "the sort decides"'
                 ),
             ),
@@ -553,19 +574,39 @@ class TestContradiction(unittest.TestCase):
 
     def test_move_against_patch_is_not_flagged(self):
         found = [
-            _finding(reviewer="ownership-context", verdict="move"),
-            _finding(reviewer="block-context", verdict="patch"),
+            _finding(
+                reviewer="ownership-context",
+                verdict="move",
+                claim="from: `a.py` line 3 / to: `b.py` line 9",
+            ),
+            _finding(
+                reviewer="block-context",
+                verdict="patch",
+                claim='from: "the old wording" / to: "the new wording"',
+            ),
         ]
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
     def test_drop_alone_is_not_a_contradiction(self):
-        found = [_finding(reviewer="ownership-context", block=7, verdict="drop")]
+        found = [
+            _finding(
+                reviewer="ownership-context",
+                block=7,
+                verdict="drop",
+                claim='drop: "the sentence"',
+            )
+        ]
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
     def test_drop_with_clean_is_not_a_contradiction(self):
         # `clean` rules on nothing, so it collides with nothing.
         found = [
-            _finding(reviewer="ownership-context", block=7, verdict="drop"),
+            _finding(
+                reviewer="ownership-context",
+                block=7,
+                verdict="drop",
+                claim='drop: "the sentence"',
+            ),
             _finding(reviewer="block-context", block=7, verdict="clean"),
         ]
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
@@ -573,9 +614,9 @@ class TestContradiction(unittest.TestCase):
     def test_an_unreadable_payload_is_flagged_rather_than_passed(self):
         # ⚠ Silence here would hide a real collision behind a malformed payload.
         found = [
-            _finding(reviewer="ownership-context", verdict="drop", change="drop: "),
+            _finding(reviewer="ownership-context", verdict="drop", claim="drop: "),
             _finding(
-                reviewer="block-context", verdict="correct", change="fix the count"
+                reviewer="block-context", verdict="correct", claim="fix the count"
             ),
         ]
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [1])
@@ -736,19 +777,23 @@ class TestSeveralSources(unittest.TestCase):
             "--- RECORD\nBLOCK       1\nVERDICT     correct\nLOCATION    a.py:1\n"
             "SOURCE      a.py:5 | the settling line\n"
             "SOURCE      b.py:2 | beta\n"
-            'CLAIM       "x"\nREASON      y\nCHANGE      false: "a" / true: "b"\n---\n'
+            'CLAIM       false: "x" / true: "y"\nREASON      y\n'
+            "CHANGE      # b, in its block\n---\n"
         )
         found, _ = verdicts.parse_report(text, "block-context")
         self.assertEqual(len(found[0].sources), 2)
 
 
-class TestClaimAgainstTheCensus(unittest.TestCase):
-    """Is the CLAIM actually in the block the finding cites?
+class TestBlockProblem(unittest.TestCase):
+    """Is the sentence this finding rules on actually IN the block it cites?
 
-    ⚠⚠ This is what `LOCATION` never did. It was checked for resolvability and
-    never against the block it claimed to describe, so a finding attached to the
-    wrong block resolved cleanly. The census carries each block's joined text and
-    the gate already loads it.
+    ⚠⚠ Keyed on the ORIGINAL, which `CLAIM` carries in its `drop:`, `false:` or
+    `from:` half -- never on `CHANGE`, which holds the REPLACEMENT. Matching the
+    replacement against the original block would refuse every correct finding
+    and pass the ones that changed nothing.
+
+    ⚠ This is what `LOCATION` never did. It was checked for resolvability and
+    never against the block it claimed to describe.
     """
 
     BLOCKS = [
@@ -762,41 +807,218 @@ class TestClaimAgainstTheCensus(unittest.TestCase):
         {"path": "a.py", "start": 9, "end": 9, "kind": "interval", "text": ""},
     ]
 
-    def test_a_claim_present_in_the_block_passes(self):
-        f = _finding(block=1, claim='"the retry budget is 3"')
-        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
+    def _at(self, verdict, claim):
+        return verdicts.block_problem(
+            _finding(block=1, verdict=verdict, claim=claim), self.BLOCKS
+        )
 
-    def test_a_claim_absent_from_the_block_is_refused(self):
-        f = _finding(block=1, claim='"the timeout is 30 seconds"')
-        self.assertIn("not in block 1", verdicts.claim_problem(f, self.BLOCKS))
+    def test_a_correct_whose_false_half_is_in_the_block_passes(self):
+        self.assertIsNone(
+            self._at("correct", 'false: "the retry budget is 3" / true: "it is 5"')
+        )
+
+    def test_a_correct_whose_false_half_is_absent_is_refused(self):
+        problem = self._at("correct", 'false: "the timeout is 30s" / true: "60s"')
+        self.assertIn("not in block 1", problem)
+
+    def test_a_drop_whose_sentence_is_in_the_block_passes(self):
+        self.assertIsNone(self._at("drop", 'drop: "callers round separately"'))
+
+    def test_a_drop_whose_sentence_is_absent_is_refused(self):
+        problem = self._at("drop", 'drop: "a line from somewhere else"')
+        self.assertIn("not in block 1", problem)
+
+    def test_a_patch_is_checked_on_its_FROM_half(self):
+        # ⚠ The `from:` half is what makes a patch checkable at all. With only
+        # the rewrite, nothing said WHICH sentence it replaces.
+        self.assertIsNone(
+            self._at("patch", 'from: "the retry budget is 3" / to: "the budget is 3"')
+        )
+
+    def test_a_patch_whose_from_half_is_absent_is_refused(self):
+        problem = self._at("patch", 'from: "a line from elsewhere" / to: "x"')
+        self.assertIn("not in block 1", problem)
 
     def test_quoting_and_whitespace_do_not_defeat_the_match(self):
-        f = _finding(block=1, claim='  "The  Retry   Budget Is 3"  ')
-        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
-
-    def test_an_add_cites_an_empty_interval_and_owes_no_claim(self):
-        # `add` is a finding about prose that is MISSING, so there is no
-        # sentence in the block to quote.
-        f = _finding(
-            block=2,
-            verdict="add",
-            claim="",
-            change="above `send()`: retries are capped",
+        self.assertIsNone(
+            self._at("correct", 'false: "  The  Retry   Budget Is 3 " / true: "x"')
         )
-        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
 
-    def test_clean_owes_no_claim(self):
+    def test_a_move_names_PLACES_and_so_is_exempt(self):
+        # ⚠ A `move`'s from/to are locations, not text, so there is no sentence
+        # to look for. The BLOCK it cites is what identifies the prose.
+        self.assertIsNone(self._at("move", "from: `a.py` line 1 / to: `send()`"))
+
+    def test_an_add_owes_nothing_here(self):
+        # `add` is about prose that is MISSING, so there is no sentence in the
+        # block to find.
+        f = _finding(block=2, verdict="add", claim='missing: "capped" above `send()`')
+        self.assertIsNone(verdicts.block_problem(f, self.BLOCKS))
+
+    def test_clean_owes_nothing_here(self):
         f = _finding(block=1, verdict="clean", claim="", reason="", change="")
-        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
+        self.assertIsNone(verdicts.block_problem(f, self.BLOCKS))
 
-    def test_a_verdict_that_states_no_claim_is_refused(self):
-        f = _finding(block=1, claim="   ")
-        self.assertIn("states no CLAIM", verdicts.claim_problem(f, self.BLOCKS))
+    def test_a_spec_carrying_no_original_sentence_is_left_alone(self):
+        # ⚠ `payload_problem` refuses a malformed CLAIM. Reporting it here too
+        # would print two defects for one mistake.
+        self.assertIsNone(self._at("correct", "fix the count"))
 
     def test_an_out_of_range_block_is_left_to_the_range_check(self):
-        # `main()` already reports it, and reporting twice reads as two defects.
-        f = _finding(block=99)
-        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
+        f = _finding(block=99, claim='false: "x" / true: "y"')
+        self.assertIsNone(verdicts.block_problem(f, self.BLOCKS))
+
+
+class TestChangeIsRequired(unittest.TestCase):
+    """CHANGE is the RESULT -- the edit already made, with its surrounding block.
+
+    Roy, 2026-08-17: *"The change is what allows the apply section to apply the
+    claim appropriately."* CLAIM says what must change; CHANGE is the finished
+    prose stage 5 substitutes, so no checker can judge it beyond its presence.
+    """
+
+    def test_an_edit_verdict_with_no_change_is_refused(self):
+        self.assertIn(
+            "carries no CHANGE", verdicts.payload_problem(_finding(change=""))
+        )
+
+    def test_clean_owes_no_change(self):
+        f = _finding(verdict="clean", claim="", reason="", change="")
+        self.assertIsNone(verdicts.payload_problem(f))
+
+    def test_a_query_owes_no_change(self):
+        # ⚠ A query says the claim is UNSETTLED, so it proposes no text and
+        # there is nothing for stage 5 to apply.
+        f = _finding(
+            verdict="query",
+            claim=(
+                "outside the checkout. checked: git ls-files"
+                " / would settle: a copy in the tree"
+            ),
+            change="",
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+
+    def test_a_drop_needs_its_sentence_in_the_claim(self):
+        self.assertIn("drop needs", verdicts.payload_problem(_finding(verdict="drop")))
+
+    def test_a_move_needs_a_from_to_pair(self):
+        f = _finding(verdict="move", claim="put it in the docs")
+        self.assertIn("from/to", verdicts.payload_problem(f))
+
+    def test_correct_keeps_false_true_rather_than_from_to(self):
+        # ⚠ The pair differs on purpose: `correct` asserts the sentence is
+        # FALSE, and that assertion is what separates it from a `patch`. A
+        # neutral from/to would erase the distinction the synthesis order
+        # depends on.
+        f = _finding(verdict="correct", claim='from: "a" / to: "b"')
+        self.assertIn("false/true pair", verdicts.payload_problem(f))
+
+
+class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
+    """`CHANGE` is a whole block, so it is several lines by construction.
+
+    ⚠ Lines naming no field were SKIPPED, so a multi-line CHANGE arrived holding
+    only its first line and nothing said so. The task agent then applied one
+    line of a block it was told was the whole block.
+    """
+
+    def _one(self, body):
+        found, malformed = verdicts.parse_report(
+            f"--- RECORD\n{body}---\n", "block-context"
+        )
+        self.assertEqual(malformed, [])
+        self.assertEqual(len(found), 1)
+        return found[0]
+
+    def test_a_change_keeps_every_line(self):
+        f = self._one(
+            "BLOCK       1\n"
+            "VERDICT     correct\n"
+            'CLAIM       false: "three" / true: "31"\n'
+            "REASON      counted with git grep\n"
+            "CHANGE      # 31 callers want this, all under tests/.\n"
+            "            # Narrowing it re-derives the clamp bounds.\n"
+        )
+        self.assertIn("Narrowing it", f.change)
+        self.assertEqual(len(f.change.splitlines()), 2)
+
+    def test_a_blank_line_ends_the_continuation(self):
+        f = self._one(
+            "BLOCK       1\n"
+            "VERDICT     correct\n"
+            'CLAIM       false: "a" / true: "b"\n'
+            "REASON      why\n"
+            "CHANGE      # b\n"
+            "\n"
+            "some trailing prose the reviewer wrote to explain itself\n"
+        )
+        self.assertEqual(f.change, "# b")
+
+    def test_a_later_field_ends_the_continuation(self):
+        f = self._one(
+            "BLOCK       1\n"
+            "VERDICT     correct\n"
+            "CHANGE      # b\n"
+            "            # and a second line\n"
+            'CLAIM       false: "a" / true: "b"\n'
+            "REASON      why\n"
+        )
+        self.assertEqual(f.change, "# b\n            # and a second line")
+        self.assertEqual(f.reason, "why")
+
+    def test_a_continued_SOURCE_stays_with_its_own_citation(self):
+        # ⚠ SOURCE accumulates where the others overwrite, so a continuation
+        # must join the LAST citation rather than starting a new one.
+        f = self._one(
+            "BLOCK       1\n"
+            "VERDICT     correct\n"
+            "SOURCE      a.py:5 | def f(\n"
+            "                x, y\n"
+            "SOURCE      b.py:2 | beta\n"
+            'CLAIM       false: "a" / true: "b"\n'
+            "REASON      why\n"
+            "CHANGE      # b\n"
+        )
+        self.assertEqual(len(f.sources), 2)
+        self.assertIn("x, y", f.sources[0])
+        self.assertEqual(f.sources[1], "b.py:2 | beta")
+
+
+class TestMoveShowsBothBlocks(unittest.TestCase):
+    """A `move` changes TWO blocks, so its CHANGE shows both.
+
+    Roy, 2026-08-17: *"Move kind of needs both sides to be correct. What the
+    block where it comes from looks like and what the block the sentence looks
+    like after. The upstream side can be omitted if the full block moves not
+    just a sentence."*
+    """
+
+    def _move(self, change):
+        return verdicts.payload_problem(
+            _finding(
+                verdict="move",
+                claim="from: `a.py` line 3 / to: `docs/a.md`",
+                change=change,
+            )
+        )
+
+    def test_both_sides_pass(self):
+        self.assertIsNone(
+            self._move("to: # the destination, with it\nfrom: # the origin, without it")
+        )
+
+    def test_the_destination_alone_passes_as_a_WHOLE_block_move(self):
+        # ⚠ Omitting `from:` ASSERTS the whole block moved -- nothing is left at
+        # the origin to show. No checker can tell that from a partial move, so
+        # the reviewer says which by what it supplies.
+        self.assertIsNone(self._move("to: # the destination, with it"))
+
+    def test_the_origin_alone_is_refused(self):
+        self.assertIn("DESTINATION", self._move("from: # the origin, without it"))
+
+    def test_a_move_with_no_change_at_all_is_refused(self):
+        self.assertIn("carries no CHANGE", self._move("   "))
 
 
 class TestCLI(unittest.TestCase):
@@ -813,8 +1035,8 @@ class TestCLI(unittest.TestCase):
         self.census = Path(self.tmp.name) / "census.json"
         self.census.write_text(
             json.dumps(
-                # ⚠ `text` is not optional. `claim_problem` matches a finding's
-                # CLAIM against the block it cites, so a census fixture without
+                # ⚠ `text` is not optional. `block_problem` matches the sentence
+                # a finding rules on against the block it cites, so a fixture without
                 # it refuses every finding -- which is the check working, and
                 # the real census has carried `text` since it was written.
                 [
@@ -898,9 +1120,9 @@ class TestCLI(unittest.TestCase):
             "block-context.txt",
             "--- RECORD\n"
             "BLOCK       1\n"
-            "VERDICT     drop\n"
+            "VERDICT     move\n"
             "SOURCE      a.py:5 | five callers, all in tests\n"
-            'CLAIM       "x"\n'
+            "CLAIM       from: `a.py` line 1 / to: `docs/a.md`\n"
             "REASON      five callers, all in tests\n"
             "CHANGE      \n"
             "---\n"
@@ -917,7 +1139,7 @@ class TestCLI(unittest.TestCase):
         )
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("no payload", result.stdout)
+        self.assertIn("carries no CHANGE", result.stdout)
         self.assertNotIn("Every finding is admissible", result.stdout)
 
     def test_an_out_of_range_block_is_fatal(self):
@@ -926,9 +1148,9 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       999\n"
             "VERDICT     query\n"
-            'CLAIM       "x"\n'
+            'CLAIM       false: "x" / true: "y"\n'
             "REASON      could not be settled from the checkout\n"
-            "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
+            "CHANGE      # the settled line, in its block\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       1\n"
@@ -993,9 +1215,9 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     query\n"
-            'CLAIM       "x"\n'
+            'CLAIM       false: "x" / true: "y"\n'
             "REASON      could not be settled from the checkout\n"
-            "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
+            "CHANGE      # the settled line, in its block\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       2\n"
@@ -1022,16 +1244,16 @@ class TestCLI(unittest.TestCase):
             "BLOCK       1\n"
             "VERDICT     correct\n"
             "SOURCE      a.py:5 | five callers, all in tests\n"
-            'CLAIM       "x"\n'
+            'CLAIM       false: "x" / true: "y"\n'
             "REASON      the count is stale, and this record never closed\n"
             "\n"
             "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     correct\n"
             "SOURCE      a.py:5 | five callers, all in tests\n"
-            'CLAIM       "x"\n'
+            'CLAIM       false: "x" / true: "y"\n'
             "REASON      the count is stale, and this record closed\n"
-            'CHANGE      false: "x" / true: "y"\n'
+            "CHANGE      # y, in its block\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       3\n"
@@ -1054,20 +1276,20 @@ class TestCLI(unittest.TestCase):
             "BLOCK       1\n"
             "VERDICT     {verdict}\n"
             "SOURCE      a.py:5 | five callers, all in tests\n"
-            'CLAIM       "x"\n'
+            "CLAIM       {claim}\n"
             "REASON      the count is stale\n"
-            "CHANGE      {change}\n"
+            "CHANGE      # the block, as it reads after this edit\n"
             "---\n" + _CLEAN_RECORDS_23
         )
         drop = self._write(
             "ownership-context.txt",
             # ⚠ The two must name the SAME sentence, or there is no collision:
             # a contradiction is keyed on the text, not on the block index.
-            finding.format(verdict="drop", change='drop: "x"'),
+            finding.format(verdict="drop", claim='drop: "x"'),
         )
         correct = self._write(
             "block-context.txt",
-            finding.format(verdict="correct", change='false: "x" / true: "y"'),
+            finding.format(verdict="correct", claim='false: "x" / true: "y"'),
         )
         result = self._run(drop, correct)
         self.assertEqual(result.returncode, 0)
@@ -1154,15 +1376,30 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     def test_the_record_passes_the_source_check(self):
         self.assertIsNone(verdicts.source_problem(self.finding, self.repo))
 
-    def test_the_records_CLAIM_is_quoted_from_prose(self):
+    def test_the_records_CLAIM_carries_a_quoted_original(self):
         # ⚠ Not run against a census: the brief's record cites block 17 of a
         # tree that does not exist here. What IS checkable is that its CLAIM is
-        # a quoted sentence rather than a paraphrase, which is the field's
-        # contract and what `claim_problem` matches against the census text.
+        # a SPEC -- `false:` naming the existing sentence, quoted, and `true:`
+        # the replacement -- because the quoted half is what `block_problem`
+        # matches against the census text.
+        claim = self.finding.claim
+        self.assertIn("false:", claim)
+        self.assertIn("true:", claim)
         self.assertTrue(
-            self.finding.claim.strip().startswith('"'),
-            f"the brief's CLAIM is not quoted: {self.finding.claim!r}",
+            verdicts.ruled_text(self.finding),
+            f"no original sentence readable from the brief's CLAIM: {claim!r}",
         )
+
+    def test_the_records_CHANGE_is_the_finished_block(self):
+        # ⚠ CHANGE is what stage 5 substitutes, so the brief must SHOW prose
+        # rather than another from/to pair. A record whose CHANGE repeated the
+        # spec would teach every reviewer to hand back a diff.
+        change = self.finding.change
+        self.assertTrue(change.strip(), "the brief's record carries no CHANGE")
+        for marker in ("false:", "true:", "from:", "to:"):
+            self.assertNotIn(
+                marker, change, f"the brief's CHANGE restates the spec: {change!r}"
+            )
 
     def test_the_record_passes_the_payload_check(self):
         self.assertIsNone(verdicts.payload_problem(self.finding))
