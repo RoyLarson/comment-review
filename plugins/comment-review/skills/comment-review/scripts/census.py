@@ -84,9 +84,11 @@ def counted_lines(raw: list[str]) -> int:
     return sum(1 for ln in raw if not WORK_MARKER.match(LEAD_PUNCT.sub("", ln)))
 
 
-# ── Marks ─────────────────────────────────────────────────────────────────────
-# Each is located here and RESOLVED below. Locating is most of the work; the
-# resolution is what stops a reviewer treating a citation as a verified claim.
+# ── Annotations ───────────────────────────────────────────────────────────────
+# Each is located here and RESOLVED in `annotate.py`. Locating is most of the
+# work; the resolution is what stops a reviewer treating a citation as a
+# verified claim. ⚠ These are ANNOTATIONS, never marks -- a MARK is editorial,
+# and stage 4 emits those.
 
 
 @dataclass
@@ -148,7 +150,7 @@ class Language:
         doc_block: block openers that mean DOC (`/**`). Same idea.
         doc_is_structural: the doc is a string in a declaration's body (Python)
             or the run above a declaration (Go). Both need structure to decide,
-            so this tier reports `comment` and marks the block.
+            so this tier reports `comment` and annotates the block.
         quotes: string delimiters, so a marker inside a literal is skipped.
     """
 

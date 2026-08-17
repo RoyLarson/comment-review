@@ -371,7 +371,7 @@ wrong changes what the reviewers see:
   is where the census reads its anchor from.
 - **A trailing comment is its own block**, one line, anchored to the code on that line.
 
-Marks, and what resolving each one means:
+Annotations, and what resolving each one means:
 
 | annotation | resolved by |
 |---|---|
@@ -383,8 +383,9 @@ Marks, and what resolving each one means:
 | `repeated-literal` | where else is this number written? one source at both ends of a round trip? |
 | `narrative-in-docstring` | is the date, review label or *"used to"* a claim about HISTORY rather than about the code now? |
 
-⚠⚠ **The last four are where the defects are. Check the CLAIM, not the CITATION.** Resolving
-a path *feels* like verification; resolving a claim **is** it.
+⚠⚠ **Every row is a question a reviewer must answer, and none of them is answered by the
+census.** It says a path is cited; whether the claim about it is true is the reviewer's, and
+`reviewer-brief.md` holds that contract.
 
 ### Enrich the census with the language server, where 1.7 found one
 
