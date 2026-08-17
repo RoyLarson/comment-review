@@ -292,7 +292,8 @@ python <skill>/scripts/census.py [--cap N] [--width N] --repo . <paths...>
 python <skill>/scripts/census.py [--cap N] [--width N] --json --repo . <paths...> > <census>.json
 ```
 
-⚠ **A flag only for a number 1.2 found PUBLISHED** — no flag where the repo publishes none.
+⚠ **Pass `--cap` only if the run HAS one** — given as the `cap` argument, or published and
+found at 1.2 — **and `--width` only if 1.2 found one.**
 
 ⚠⚠ **TWO census files, and the JSON one is not optional.** The reviewers are handed the TEXT
 census; **the stage-5 join reads the JSON census and parses it as JSON**, so a run that wrote
@@ -428,9 +429,8 @@ the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 
 Report what the tool prints: `N files, N blocks`, the per-tier counts, the longest run and the
-widest line. ⚠ **Pass `--cap` only if the run HAS one — given as an argument or published and found at
-1.2 — and `--width` only if 1.2 found one.** Supplying either uninvited makes the census print
-an over-cap or over-width count that reads like a project fact and is your own guess.
+widest line. ⚠ **A flag you supplied uninvited** makes the census print an over-cap or
+over-width count that reads like a project fact and is your own guess.
 
 ## Stage 4 — MARK: four reviewers, in parallel
 
