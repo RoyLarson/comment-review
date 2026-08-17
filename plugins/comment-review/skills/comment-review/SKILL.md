@@ -106,7 +106,7 @@ handed in is censused or the run stops. `python <skill>/scripts/census.py --lang
 the languages it knows.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
-destroyed the finding. The brief holds that rule and binds the reviewers to it.
+destroyed the finding.
 
 **APPLY (5) writes at FULL LENGTH and is not allowed to consider the cap.** Its only job is a
 comment that is true, local and load-bearing. Length is not one of its questions, and a run
