@@ -90,6 +90,20 @@ finding today reaches:
       ⚠⚠ **(e) is the recommendation.** See the section below; the others are kept for the
       record and (d) remains worth weighing because stage 8 catches things no filer would.
 
+      ⚠⚠ **RULED, later the same day, and it is (e) with the question sharpened.** Roy:
+      *"Sending the joined resolved block back to the reviewers that had comments does help
+      because each can say yes my edits made it and are correct and the other edits do not
+      negate that or cause mine to be wrong."* Not *"is this what you mean"* — which a reviewer
+      can answer from memory — but three questions about the JOINED block: did my edit survive,
+      is it still correct there, and do the other edits break it.
+
+      ⚠ This is the SAME mechanism as round two of a re-review, and it is written up there
+      rather than twice:
+      [`re-review-is-ordered-everywhere-and-defined-nowhere`](re-review-is-ordered-everywhere-and-defined-nowhere.md).
+      ⚠ Stage 5's independent reader and re-review round two turn out to be one thing, so this
+      task closes when that file's shape is settled — including the blocker it names, that
+      `verdicts.py` cannot admit a round-2 record at all.
+
 ## ⭐ (e) — send the patch back to the reviewers
 
 Roy, 2026-08-17: *"instead of step 5 just asking step 4 to relitigate the editors answers, it
