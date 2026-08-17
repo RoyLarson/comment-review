@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks done
+Progress: 6 of 8 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it.
           Comments about 'cannot answer OWNERSHIP' are not helpful.")
@@ -36,6 +36,40 @@ Measured over `plugins/**/*.py`, counting comment and docstring lines carrying `
 the same defect — which is the argument for fixing it at the source rather than trusting a pass
 to notice. The second column is the baseline to work from.
 
+## Result, 2026-08-16
+
+| file | baseline | after the hand pass |
+| --- | ---: | ---: |
+| `annotate.py` | 4 / 35 | 2 / 37 |
+| `census.py` | 55 / 286 | 2 / 206 |
+| `prove_unchanged.py` | 22 / 110 | 12 / 116 |
+| `referrers.py` | 10 / 42 | 6 / 49 |
+| `repo.py` | 11 / 83 | 7 / 67 |
+| `run_context.py` | 17 / 96 | 6 / 115 |
+| `verdicts.py` | 28 / 144 | 16 / 165 |
+| `vocabulary.py` | 4 / 19 | 0 / 23 |
+| **total** | **136 / 697 (20%)** | **51 / 778 (6%)** |
+
+⚠ **The residue is deliberate.** Every survivor names an OUTPUT (*"REPORTED as unprovable"*), a
+refusal aimed at the next editor (*"Exceptions are RAISED to the caller"*), or a state
+distinction the code turns on (*"None is a THIRD state"*). The line count ROSE because several
+one-line hedges became two-line statements of what the code produces.
+
+⚠ **The pass found more than register.** Six defects a rewording would have preserved:
+
+| defect | where |
+| --- | --- |
+| three sites argued the DISPUTED `query`/EVIDENCE position as settled fact | `verdicts.py` |
+| `"is not one of the eight"` — there are seven verdicts | `verdicts.py` |
+| `"the eleven questions this packet asks"` — nine; `"the other eight are prose"` ×2 — six | `run_context.py` |
+| `"the 3.9 floor this script promises"` — the floor is 3.11 | `prove_unchanged.py` |
+| `"the same rule as census.py's READ_ERRORS"` — it moved to `repo.py` | `run_context.py` |
+| `"the reading C1 exists to prevent"` — a finding label from a session artifact a plugin user has no copy of | `referrers.py` |
+
+⚠ **The one count that had NOT drifted is the one a test guards** — `test_run_context` asserts
+the module docstring carries `len(REQUIRED)`. The three that drifted were in prose nothing
+checked. The closing line now derives its number rather than carrying a copy.
+
 Roy's example: `census.py:351` — *"cannot answer OWNERSHIP, so no block gets an owner and the
 ownership-context…"*. **`census.py` builds the pCST. That is what it does.** What it cannot
 answer is a fact about a tier, and where it is load-bearing it can be stated positively — *what
@@ -48,17 +82,17 @@ compare, hedge, or pre-empt — not to strip every `not`.
 
 ## Tasks
 
-- [ ] Establish the test before rewriting anything. A negative stays when it names an OUTPUT
+- [x] Establish the test before rewriting anything. A negative stays when it names an OUTPUT
       (*"reports UNPROVABLE rather than passing"*) or is a refusal aimed at whoever edits next.
       It goes when it only distinguishes this thing from another (*"it is NOT stage 8's proof
       pass"*), hedges, or answers a question nobody asked. Write the test down first; it is what
       makes this checkable rather than a matter of taste.
 
-- [ ] `census.py` first — 52 lines, the largest share, and the file Roy named. Start from the
+- [x] `census.py` first — 52 lines, the largest share, and the file Roy named. Start from the
       module docstring: say it builds the pCST and what each output contains, and move
       tier-capability statements to positive form.
 
-- [ ] `census.py`'s two uses of **suppressed** go with the rest. `:80` (*"a real obituary is
+- [x] `census.py`'s two uses of **suppressed** go with the rest. `:80` (*"a real obituary is
       suppressed because some library happens to define that name"*) and `:615` (*"it can only
       ever suppress an obituary, never manufacture one"*) describe a FAILURE — a true finding
       silently lost — in a word that named a mechanism this system no longer has. Roy,
@@ -66,13 +100,13 @@ compare, hedge, or pre-empt — not to strip every `not`.
       form of suppressed will also go."* ⚠ `:149` referenced the brief's *"suppression list"*
       and is fixed with it, not here.
 
-- [ ] Then `prove_unchanged.py`, `verdicts.py`, `run_context.py`, `referrers.py`.
+- [x] Then `prove_unchanged.py`, `verdicts.py`, `run_context.py`, `referrers.py`.
 
-- [ ] ⚠ Re-run the measurement afterwards and record both numbers. The point is not zero —
+- [x] ⚠ Re-run the measurement afterwards and record both numbers. The point is not zero —
       a target of zero would delete the legitimate refusals. Record what the residue was and
       why each survivor earned its place.
 
-- [ ] ⚠ **A second shape, ruled 2026-08-16: a script's output may state only what the script
+- [x] ⚠ **A second shape, ruled 2026-08-16: a script's output may state only what the script
       DID.** Roy: *"the python files are mechanical runs, they should only have documentation
       about what they are doing."* Two headers argued a rule at the reader instead —
       `census.py` printed *"every block. A block nobody mentions is a gap in the review"* and

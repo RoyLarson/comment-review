@@ -18,7 +18,7 @@ from pathlib import Path
 # 758's unparenthesised form, a SyntaxError on every older interpreter. This
 # file ships into other repositories and is formatted by THEIR config, so the
 # floor in our own pyproject reaches it nowhere: code with nothing to rewrite
-# is the whole defence. A `noqa` suppresses the report, and the rewrite stands.
+# is the whole defence. A `noqa` silences the report, and the rewrite stands.
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
 # ⚠ ValueError included: `ast.parse` raises it (not SyntaxError) on a source
@@ -38,7 +38,7 @@ PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError, ValueError)
 GIT_ERRORS = (OSError, subprocess.SubprocessError, UnicodeDecodeError)
 
 # A virtualenv in the tree POISONS the name corpus: every installed package's
-# methods become "known", so a real obituary is suppressed because some library
+# methods become "known", so a real obituary is HIDDEN because some library
 # happens to define that name. It also makes the count depend on what is
 # installed, so the same file censuses differently on two machines.
 EXCLUDED_DIRS = frozenset(
