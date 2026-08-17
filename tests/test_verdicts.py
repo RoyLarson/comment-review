@@ -1034,5 +1034,53 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         self.assertIsNone(verdicts.payload_problem(self.finding))
 
 
+class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
+    """The brief says a block can carry six verdicts; SKILL.md said one per role.
+
+    Six summaries have been found disagreeing with the detailed site they
+    summarise, every one drifting in the summary while the detail stayed
+    correct. This is the pair that was still doing it.
+    """
+
+    SKILL = BRIEF.parent.parent / "SKILL.md"
+
+    def _skill(self):
+        """SKILL.md with newlines flattened, so a wrapped phrase still matches.
+
+        ⚠ Read through a helper and asserted with `assertTrue` rather than
+        `assertIn`: the file is 40 KB and `assertIn` prints the whole haystack,
+        which buries the one line that failed.
+        """
+        return " ".join(self.SKILL.read_text(encoding="utf-8").split())
+
+    def test_the_brief_permits_several_verdicts_on_one_block(self):
+        brief = " ".join(BRIEF.read_text(encoding="utf-8").split())
+        self.assertTrue(
+            "A block of six sentences can carry six" in brief,
+            "the brief no longer says a block can carry several verdicts",
+        )
+
+    def test_the_skill_does_not_say_one_per_role_per_block(self):
+        self.assertFalse(
+            "one per role per block" in self._skill(),
+            "SKILL.md still says ONE verdict per role per block",
+        )
+
+    def test_the_skill_says_one_or_more(self):
+        self.assertTrue(
+            "one or more per role per block" in self._skill(),
+            "SKILL.md does not say a role may file several",
+        )
+
+    def test_the_skill_requires_reading_the_surrounding_code(self):
+        # Roy, 2026-08-17: the synthesiser is expected to read the context
+        # around where the replacement lands. Both worse-than-before findings
+        # from the rolled-back run die there.
+        self.assertTrue(
+            "read the code around where that replacement lands" in self._skill(),
+            "SKILL.md does not oblige the synthesiser to read the context",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

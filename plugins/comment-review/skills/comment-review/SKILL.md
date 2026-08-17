@@ -40,8 +40,15 @@ file restates another.
 
 ## The seven verdicts
 
-Everything below this line uses these seven words. A reviewer emits them; **you receive one per
-role per block and must synthesise ONE**, so what matters here is what each obliges *you* to do:
+Everything below this line uses these seven words. A reviewer emits them; **you receive one or
+more per role per block and must emit ONE replacement**, so what matters here is what each
+obliges *you* to do.
+
+⚠⚠ **And you are expected to read the code around where that replacement lands, to verify it.**
+A verdict rules on a SENTENCE; a block is only its address, so a block of six sentences can
+arrive carrying six. Synthesising them into one comment without re-reading the code beside it is
+how a run replaces an unfalsifiable claim with a checkably false one — measured twice in the
+pass stage 8 rolled back.
 
 | verdict | the claim is | what you do with it |
 |---|---|---|
