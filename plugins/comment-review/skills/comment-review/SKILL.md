@@ -495,11 +495,20 @@ python <skill>/scripts/run_context.py --check <run-dir>/context.md
 
 It refuses a section that is absent **or present and blank** — a published
 non-answer such as *"UNAVAILABLE"* is an answer and must be written; a blank is
-refused. It then refuses the two answers a machine can settle: `CENSUS` and
+refused. It then refuses the three answers a machine can settle: `REPO ROOT`, `CENSUS` and
 every `REVIEWER FILES` entry must be an **absolute path that exists**.
 ⚠ **The rest are prose it cannot check**, and passing says nothing about them. Hand every
 reviewer the one path. Dispatched without a style sheet, a run drifts the dialect while fixing
 the prose, and every role is satisfied because nothing owns consistency.
+
+⚠⚠ **`REPO ROOT` is what every other path resolves against.** The census, `FILES UNDER
+REVIEW` and every citation a reviewer writes are repo-relative, and a reviewer handed no root
+is guessing at a working directory.
+
+⚠⚠ **Withhold every TASK AGENT ONLY section when you paste the packet.** `REVIEWER FILES` is
+one: it names paths inside the installed plugin, which is not the tree under review, and the
+template marks it so the withholding is visible while you fill it. It is checked here because
+it is YOURS — the 1.6 fallback reads it.
 
 ⚠ **The templates go to the reviewers too, and stages 5 and 6 match their output against them.**
 A docstring's format decides which of its lines are structural and which are prose, so a
