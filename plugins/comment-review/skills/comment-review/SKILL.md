@@ -669,12 +669,17 @@ not once per verdict. The check compares against the original, and the original 
   role finding a falsehood; they were not looking for the same thing.
 - **`correct` and `patch` on the same sentence:** correct first, then re-read the patch against
   the corrected text. Usually it no longer applies.
-- **`drop` or `move` against `correct` OR `patch` on the same sentence is a contradiction**,
-  not a merge — one role rules on WHERE the sentence lives and another on WHAT IT SAYS. The
-  join prints both as `RE-REVIEW`; send the block back. ⚠ **Do not let the synthesis order
-  decide it.** Step 2 applies every `drop` and `move` before steps 3 and 4, so relocation or
-  deletion would win silently — and a `correct` written at an anchor another role calls wrong
-  was measured against the wrong code.
+- **`drop` against `correct` OR `patch` on the same sentence is a contradiction**, not a merge —
+  one role says the sentence should not exist and another says it should exist and be fixed.
+  Nothing composes those. The join prints it as `RE-REVIEW`; send the block back.
+- ⚠⚠ **`move` against either of them COMPOSES, and is not a contradiction.** Ruled 2026-08-17.
+  Relocation and a truth fix are a SEQUENCE: the synthesis order applies every `move` at step 2
+  and every `correct` at step 3, which is what applies the correction AT THE DESTINATION.
+  Measured on a live run: **5 of the 8 blocks the old set flagged were this shape**, and a
+  re-review round was spent on each establishing it was not a rivalry.
+  ⚠ This paragraph used to name `move` alongside `drop`; the ruling removed it from the join's
+  set and left the sentence here, so the skill and its own gate disagreed. See
+  `TODO/move-and-correct-compose.md`.
 
 ⚠ **Dedup on the SENTENCE RULED ON, not the block**, before any of this — the half of `CLAIM`
 that quotes the existing prose (`drop:`, `false:`, `from:`), never the whole `CLAIM`. Two roles

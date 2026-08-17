@@ -65,6 +65,14 @@ NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
 
 
+# ⚠⚠ A sentinel that CANNOT be a line number. `0` is one less than line 1, so
+# `block.start == trailing_end[0] + 1` was true for every comment opening a
+# file — stamping `continues-a-trailing-comment` with no trailing comment
+# anywhere, on 3 files in this repo's own tree. SKILL.md tells reviewers a
+# mid-clause ending on a stamped block "is not a `correct`", so the false stamp
+# SUPPRESSED real findings on file headers.
+_NO_TRAILING = -2
+
 # The work markers `counted_lines` leaves free of the cap.
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
@@ -85,7 +93,13 @@ def counted_lines(raw: list[str]) -> int:
     The exemption is one line wide. A run stays one run across a marker, and a
     marker's continuation lines are charged: six lines plus a `TODO:` is six.
     """
-    return sum(1 for ln in raw if not WORK_MARKER.match(LEAD_PUNCT.sub("", ln)))
+    # ⚠ A BLANK LINE IS FREE TOO. It sits inside the block by the interval
+    # definition — only code bounds a block — and SKILL.md says so directly:
+    # "The blank is inside the block and is charged nothing." It reaches here
+    # now that a blank no longer ends a lexical run.
+    return sum(
+        1 for ln in raw if ln.strip() and not WORK_MARKER.match(LEAD_PUNCT.sub("", ln))
+    )
 
 
 # ── Annotations ───────────────────────────────────────────────────────────────
@@ -281,7 +295,19 @@ class Language:
 # so `///` must precede `//` or every Rust doc line loses one slash into the
 # prose and the annotations then run over corrupted text.
 LANGUAGES: tuple[Language, ...] = (
-    Language("python", (".py", ".pyi"), ("#",), doc_is_structural=True),
+    Language(
+        "python",
+        (".py", ".pyi"),
+        ("#",),
+        doc_is_structural=True,
+        # ⚠⚠ A triple quote spans lines, and Python reaches the LEXICAL
+        # path whenever `ast.parse` fails -- syntax newer than the floor,
+        # a file mid-edit. Declaring nothing here left the same fail-open
+        # that was closed for JS the same day: two files differing only
+        # in a `#` line INSIDE a triple-quoted literal fingerprinted
+        # identically and the proof reported PROVEN.
+        spanning_quotes=('"""', "'''"),
+    ),
     Language(
         "rust",
         (".rs",),
@@ -296,6 +322,9 @@ LANGUAGES: tuple[Language, ...] = (
         ("//",),
         (("/*", "*/"),),
         doc_block=("/**",),
+        # ⚠ A Java TEXT BLOCK spans lines the same way, and a `//` inside one is
+        # not a comment.
+        spanning_quotes=('"""',),
     ),
     Language(
         "js-family",
@@ -375,13 +404,18 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     lines = text.splitlines()
     out: list[Block] = []
     run: list[tuple[int, str]] = []
+    # ⚠ Blank lines seen since the last comment line. They join the run only if
+    # another comment follows; otherwise they are dropped, so a run ends on its
+    # last comment line.
+    pending: list[tuple[int, str]] = []
     in_block: tuple[str, str] | None = None
     # ⚠ The line the last trailing comment ended on. Measured: this tier splits a
     # wrapped trailing comment exactly as `blocks_stdlib` does, so it needs the
     # same stamp. A list because `flush` is a closure and rebinds nothing.
-    trailing_end = [0]
+    trailing_end = [_NO_TRAILING]
 
     def flush(trailing: bool = False) -> None:
+        pending.clear()
         if not run:
             return
         raw = [t for _, t in run]
@@ -424,6 +458,28 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             if in_block[1] in raw_line:
                 in_block = None
                 flush()
+            continue
+        # ⚠⚠ ONLY CODE ENDS A BLOCK — a blank line does not, and this reached
+        # `flush()` because `"".startswith(openers)` is False. SKILL.md names
+        # the consequence exactly: "Split on blanks and a 9-line block reads as
+        # `6 + 3` and passes a cap of 6 — the quickest way to fake compliance."
+        # Measured 2026-08-17: a six-line run with one blank censused as 3L + 3L
+        # in every LEXICAL language, while `blocks_stdlib` skips NL tokens and
+        # kept it whole. Ten of the eleven languages could evade any cap.
+        #
+        # ⚠ The blank JOINS the run rather than being skipped, so `raw_lines`
+        # stays index-aligned with `start..end` — `prove_unchanged` walks the
+        # two together and a gap there makes the file unprovable.
+        #
+        # ⚠⚠ A blank line INSIDE a run joins it; a blank line AFTER one does
+        # NOT extend it. They are held here and committed only when another
+        # comment line arrives. A run's `end` must stay on its last comment
+        # line, because `doc-kind-unresolved` asks whether the very next line
+        # is a declaration — extend the block over the gap and an ORPHAN run,
+        # held off its declaration by exactly that gap, reads as documenting it.
+        if not raw_line.strip():
+            if run:
+                pending.append((n, ""))
             continue
         code = _strip_strings(raw_line, lang.quotes)
         line_at = min((code.index(o) for o in openers if o in code), default=-1)
@@ -475,6 +531,8 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
                 in_block = opened
             continue
         if code.strip().startswith(openers):
+            run.extend(pending)
+            pending.clear()
             run.append((n, raw_line.rstrip()))
             continue
         flush()  # ⚠ CODE ends a block; a blank line does not
@@ -546,7 +604,7 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
     # ⚠ The line the last trailing comment ended on. A comment opening on the
     # VERY NEXT line continues that sentence, and the flush below has already
     # split them. A list because `flush` is a closure and rebinds nothing.
-    trailing_end = [0]
+    trailing_end = [_NO_TRAILING]
 
     def flush() -> None:
         if run:

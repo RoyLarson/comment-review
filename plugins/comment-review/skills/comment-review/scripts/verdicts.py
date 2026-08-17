@@ -1310,7 +1310,10 @@ def main() -> int:
     grouped = by_block(found)
     clash = contradictions(grouped, blocks)
     if clash:
-        print(f"\nRE-REVIEW — drop/move against correct/patch on: {clash}")
+        # ⚠ Names what the check DOES. It read "drop/move" after `move` left the
+        # set by ruling, so the one line a user reads named a pairing the join
+        # had stopped making.
+        print(f"\nRE-REVIEW — drop against correct/patch on: {clash}")
         print(
             "  Not a tie-break. Send the block back; the synthesis order"
             " must not decide it."
