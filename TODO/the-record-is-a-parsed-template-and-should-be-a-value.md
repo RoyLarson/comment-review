@@ -131,11 +131,20 @@ keeping; the enforcement was defence against a scenario with no path to it.
 carries no comments. **That is what the CLI is for** -- nobody reads or writes the encoding by
 hand.
 
-## !! Timing
+## !! Timing -- RULED 2026-08-17: this SHIPS IN 0.2.3
 
-**Two sessions are mid-run against the current record contract.** Changing it now strands them,
-and the contract changed once already today. This is a 0.3.0-scale breaking change, and it wants
-the runs that are in flight to finish first.
+Roy: *"I think this change also has to be implemented so that the agents aren't working around
+the tool."*
+
+! **It overrules this file's own first answer**, which was that the change is 0.3.0-scale and
+should wait for the runs in flight. What decided it is the cost that does not appear as a
+refused record: a reviewer reshaped a sound finding TWICE to route around characters the checker
+mishandled. **An agent contorting its judgement to satisfy a mechanical defect is the system
+deciding what can be FOUND rather than whether it is true**, and shipping that is worse than
+stranding a run.
+
+! The in-flight cost is real and is accepted: two sessions are mid-run against the current
+contract, which changed once already today.
 
 ## Tasks
 

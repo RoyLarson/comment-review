@@ -76,6 +76,27 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+!! **0.2.3 HAS A GATE, and it is not "the fixes accumulated".** Roy, 2026-08-17: *"the goal of
+0.2.3 is still getting a full reviewer - rereviewer - cycle functional. We are not releasing
+until we have that."*
+
+**Two things clear it, and both are required:**
+
+| | |
+| --- | --- |
+| **the cycle RUNS** | 4 MARK -> 5 APPLY -> 5b RE-REVIEW -> 6 COMPACT -> 6b RE-REVIEW, end to end on a real repo. The pieces exist -- `re-review.md` defines it, `galley.py` gives a round-2 record a census to cite, `SKILL.md` carries 5b and 6b -- and **none of it has been run** |
+| **the record is a VALUE** | Roy: *"I think this change also has to be implemented so that the agents aren't working around the tool."* See `TODO/the-record-is-a-parsed-template-and-should-be-a-value.md` |
+
+!! **The second is a release condition because of a cost that leaves no trace.** A reviewer
+reshaped a sound finding TWICE to route around characters the checker mishandled -- moving its
+ruling onto a differently-bounded span to avoid a parser defect. A refused record is visible; a
+finding quietly re-bounded to satisfy a tool is not. **That is the system deciding what can be
+FOUND rather than whether it is true**, and it is CONSERVATIVE ON MEANING, FREE ON FORM failing
+from the tooling side.
+
+! Everything already on `main` since `v0.2.2` -- the galley, `re-review.md`, 5b/6b, D8, D9 in
+both shapes, the whole-block `drop` -- is **part of 0.2.3, not a release of its own.** The gate
+is the cycle working, not the count of fixes behind it.
 
 ## [0.2.2] -- 2026-08-17
 
