@@ -549,8 +549,10 @@ def main() -> int:
     # replacement, so this grouping is what it works from -- and rebuilding it
     # from the report files by hand is the step this tool can do exactly and a
     # reader cannot.
+    # ⚠ Withheld when anything is FATAL. The gate has just refused the report,
+    # so a work list here reads as permission to start on it.
     out_for_rereview = set(clash)
-    if ruled:
+    if ruled and not fatal:
         print("\nPER BLOCK — what you hold, in census order:")
         for b in sorted(ruled):
             marks = "  ".join(

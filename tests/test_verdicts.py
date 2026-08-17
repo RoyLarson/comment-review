@@ -306,6 +306,25 @@ class TestQueryWordBoundary(unittest.TestCase):
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
 
+class TestWorkList(unittest.TestCase):
+    """The grouping stage 5 works from, and when it is withheld."""
+
+    def test_it_groups_every_finding_by_block(self):
+        found = [
+            _finding(reviewer="block-context", block=7, verdict="correct"),
+            _finding(reviewer="ownership-context", block=7, verdict="move"),
+            _finding(reviewer="module-context", block=9, verdict="drop"),
+        ]
+        grouped = verdicts.by_block(found)
+        self.assertEqual(sorted(grouped), [7, 9])
+        self.assertEqual(len(grouped[7]), 2)
+
+    def test_a_malformed_record_is_left_out(self):
+        # `block=-1` names no real block, and main() already reported it fatal.
+        grouped = verdicts.by_block([_finding(block=-1, verdict="malformed")])
+        self.assertEqual(grouped, {})
+
+
 class TestVerdicts(unittest.TestCase):
     """Every verdict is admissible on every run."""
 
