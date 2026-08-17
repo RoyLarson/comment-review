@@ -62,7 +62,7 @@ pass stage 8 rolled back.
 
 ⚠⚠ **A relocation is ONE judgment, and the DESTINATION carries the rest.** Whether the prose
 belongs ten lines down, in another file, or out of the code altogether is payload — not a
-second verdict. The reason it belongs there goes in `FINDING`, which every record already
+second verdict. The reason it belongs there goes in `REASON`, which every record already
 has. **Availability keys on the destination, never on the verdict:** only a destination
 OUTSIDE the code needs the tree 1.4 resolved, so only that case can be unavailable. A
 relocation into tracked code needs nothing outside it and is never withheld.
@@ -743,7 +743,7 @@ carries the argument and the per-block procedure.
 ## Stage 7a — APPROVAL: present the FINAL text, then stop
 
 Grouped by verdict, most consequential first, in **five parts**
-(`VERDICT / LOCATION / SUMMARY / FINDING / CHANGE`) — the reviewer record minus the fields only
+(`VERDICT / LOCATION / CLAIM / REASON / CHANGE`) — the reviewer record minus the fields only
 the join reads — replacement text inline
 for every `correct` / `patch` / `add`. State **raised / clean** and the
 longest block that will remain. **The proposal ends here** — nothing further is written until

@@ -24,8 +24,8 @@ VERDICT     correct
 LOCATION    a.py:1-2
 EVIDENCE    a.py:5
 QUOTE       the settling line
-SUMMARY     "only one caller" || three callers here
-FINDING     the count is wrong
+CLAIM       "only one caller"
+REASON      three callers here, so the count is wrong
 CHANGE      false: "only one caller" / true: "three callers"
 ---
 
@@ -33,7 +33,7 @@ CHANGE      false: "only one caller" / true: "three callers"
 BLOCK       2
 VERDICT     clean
 LOCATION    a.py:10-11
-FINDING     nothing to report from this role
+REASON      nothing to report from this role
 ---
 """
 
@@ -45,7 +45,7 @@ def _clean_records(*blocks: int) -> str:
         f"BLOCK       {n}\n"
         "VERDICT     clean\n"
         "LOCATION    a.py:1\n"
-        "FINDING     nothing to report from this role\n"
+        "REASON      nothing to report from this role\n"
         "---\n"
         for n in blocks
     )
@@ -70,8 +70,8 @@ def _finding(**kw):
         "location": "a.py:1",
         "evidence": "a.py:5",
         "quote": "the settling line",
-        "summary": '"x" || three callers, all under tests/',
-        "finding": "f",
+        "claim": '"x"',
+        "reason": "three callers, all under tests/, so the count is stale",
         "change": 'false: "a" / true: "b"',
     }
     fields.update(kw)
@@ -113,16 +113,16 @@ BLOCK       1
 VERDICT     correct
 LOCATION    a.py:1
 EVIDENCE    a.py:1
-SUMMARY     "x" || y
-FINDING     first record, never closed
+CLAIM       "x"
+REASON      first record, never closed
 
 --- RECORD
 BLOCK       2
 VERDICT     correct
 LOCATION    a.py:1
 EVIDENCE    a.py:1
-SUMMARY     "x" || y
-FINDING     second record, closed
+CLAIM       "x"
+REASON      second record, closed
 CHANGE      false: "x" / true: "y"
 ---
 """
@@ -172,13 +172,13 @@ class TestPayload(unittest.TestCase):
         f = _finding(reviewer="ownership-context", verdict="add", change="some text")
         self.assertIn("side", verdicts.payload_problem(f))
 
-    def test_a_verdict_that_states_no_finding_is_rejected(self):
-        # FINDING went unchecked while it doubled as the diagnostic slot for a
-        # malformed record. It holds one thing now, so it can be required.
-        self.assertIn("FINDING", verdicts.payload_problem(_finding(finding="  ")))
+    def test_a_verdict_that_states_no_reason_is_rejected(self):
+        # The field went unchecked while it doubled as the diagnostic slot
+        # for a malformed record. It holds one thing now, so it is required.
+        self.assertIn("REASON", verdicts.payload_problem(_finding(reason="  ")))
 
-    def test_clean_owes_no_finding(self):
-        f = _finding(verdict="clean", finding="", change="")
+    def test_clean_owes_no_reason(self):
+        f = _finding(verdict="clean", reason="", change="")
         self.assertIsNone(verdicts.payload_problem(f))
 
 
@@ -391,7 +391,7 @@ class TestCodeConcerns(unittest.TestCase):
 BLOCK       1
 VERDICT     clean
 LOCATION    a.py:1
-FINDING     nothing to report from this role
+REASON      nothing to report from this role
 ---
 
 ## CODE CONCERNS
@@ -616,16 +616,22 @@ class TestEvidence(unittest.TestCase):
         self.assertIsNotNone(problem)
         self.assertIn("no QUOTE", problem)
 
-    def test_a_derived_summary_right_half_is_not_checked_verbatim(self):
-        # C2: the whole point. A count is not a line any file contains, so
-        # requiring SUMMARY's right half verbatim made every counted claim --
-        # the block-context reviewer's own category -- structurally inadmissible.
-        f = _finding(summary='"twenty call sites" || 31 callers, all under tests/')
+    def test_a_derived_REASON_is_not_checked_verbatim(self):
+        # C2: the whole point, and it survives the rename. A count is not a line
+        # any file contains, so checking the DERIVED statement against the tree
+        # made every counted claim -- block-context's own category --
+        # structurally inadmissible. Only the QUOTE is verbatim.
+        f = _finding(
+            claim='"twenty call sites"',
+            reason="31 callers and every one is under tests/",
+        )
         self.assertIsNone(verdicts.evidence_problem(f, self.repo))
 
-    def test_a_summary_with_no_right_half_is_still_rejected(self):
-        f = _finding(summary='"twenty call sites"')
-        self.assertIn("right half", verdicts.evidence_problem(f, self.repo))
+    # ⚠ `test_a_summary_with_no_right_half_is_still_rejected` retired here. The
+    # `||` check went with SUMMARY, and its job -- a finding must state
+    # something derived -- is REASON being required, which `payload_problem`
+    # enforces and `TestPayload.test_a_verdict_that_states_no_reason_is_rejected`
+    # covers. The coverage moved; it was not dropped.
 
     def test_a_query_MUST_carry_evidence(self):
         # Roy ruled 2026-08-16: "It must contain everything to say it was looked
@@ -783,7 +789,7 @@ class TestCLI(unittest.TestCase):
                 f"BLOCK       {n}\n"
                 "VERDICT     clean\n"
                 "LOCATION    a.py:1\n"
-                "FINDING     nothing to report from this role\n"
+                "REASON      nothing to report from this role\n"
                 "---\n"
                 for n in blocks
             ),
@@ -827,21 +833,21 @@ class TestCLI(unittest.TestCase):
             "LOCATION    a.py:1\n"
             "EVIDENCE    a.py:5\n"
             "QUOTE       five callers, all in tests\n"
-            'SUMMARY     "x" || five callers, all in tests\n'
-            "FINDING     f\n"
+            'CLAIM       "x"\n'
+            "REASON      five callers, all in tests\n"
             "CHANGE      \n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
-            "FINDING     nothing to report from this role\n"
+            "REASON      nothing to report from this role\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
-            "FINDING     nothing to report from this role\n"
+            "REASON      nothing to report from this role\n"
             "---\n",
         )
         result = self._run(report)
@@ -856,27 +862,27 @@ class TestCLI(unittest.TestCase):
             "BLOCK       999\n"
             "VERDICT     query\n"
             "LOCATION    a.py:1\n"
-            'SUMMARY     "x" || could not be settled from the checkout\n'
-            "FINDING     f\n"
+            'CLAIM       "x"\n'
+            "REASON      could not be settled from the checkout\n"
             "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
-            "FINDING     nothing to report from this role\n"
+            "REASON      nothing to report from this role\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
-            "FINDING     nothing to report from this role\n"
+            "REASON      nothing to report from this role\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
-            "FINDING     nothing to report from this role\n"
+            "REASON      nothing to report from this role\n"
             "---\n",
         )
         result = self._run(report)
@@ -927,21 +933,21 @@ class TestCLI(unittest.TestCase):
             "BLOCK       1\n"
             "VERDICT     query\n"
             "LOCATION    a.py:1\n"
-            'SUMMARY     "x" || could not be settled from the checkout\n'
-            "FINDING     f\n"
+            'CLAIM       "x"\n'
+            "REASON      could not be settled from the checkout\n"
             "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
-            "FINDING     nothing to report from this role\n"
+            "REASON      nothing to report from this role\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
-            "FINDING     nothing to report from this role\n"
+            "REASON      nothing to report from this role\n"
             "---\n",
         )
         result = self._run(report)
@@ -960,8 +966,8 @@ class TestCLI(unittest.TestCase):
             "LOCATION    a.py:1\n"
             "EVIDENCE    a.py:5\n"
             "QUOTE       five callers, all in tests\n"
-            'SUMMARY     "x" || the count is stale\n'
-            "FINDING     first record, never closed\n"
+            'CLAIM       "x"\n'
+            "REASON      the count is stale, and this record never closed\n"
             "\n"
             "--- RECORD\n"
             "BLOCK       2\n"
@@ -969,15 +975,15 @@ class TestCLI(unittest.TestCase):
             "LOCATION    a.py:1\n"
             "EVIDENCE    a.py:5\n"
             "QUOTE       five callers, all in tests\n"
-            'SUMMARY     "x" || the count is stale\n'
-            "FINDING     second record, closed\n"
+            'CLAIM       "x"\n'
+            "REASON      the count is stale, and this record closed\n"
             'CHANGE      false: "x" / true: "y"\n'
             "---\n"
             "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
             "LOCATION    a.py:1\n"
-            "FINDING     nothing to report from this role\n"
+            "REASON      nothing to report from this role\n"
             "---\n",
         )
         result = self._run(report)
@@ -997,8 +1003,8 @@ class TestCLI(unittest.TestCase):
             "LOCATION    a.py:1\n"
             "EVIDENCE    a.py:5\n"
             "QUOTE       five callers, all in tests\n"
-            'SUMMARY     "x" || the count is stale\n'
-            "FINDING     f\n"
+            'CLAIM       "x"\n'
+            "REASON      the count is stale\n"
             "CHANGE      {change}\n"
             "---\n" + _CLEAN_RECORDS_23
         )
@@ -1065,7 +1071,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         self.repo = Path(self.tmp.name)
         text = BRIEF.read_text(encoding="utf-8")
         match = self.RECORD.search(text)
-        self.assertIsNotNone(match, "no canonical FINDING record in reviewer-brief.md")
+        self.assertIsNotNone(match, "no canonical RECORD in reviewer-brief.md")
         self.record = match.group(1)
         found, _ = verdicts.parse_report(self.record + "\n", "block-context")
         self.assertEqual(len(found), 1, self.record)

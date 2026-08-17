@@ -88,7 +88,7 @@ OPENER = re.compile(r"^---\s*RECORD\s*$", re.M)
 # heading or the end, because it is the LAST section of a report by contract.
 CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S | re.I)
 FIELD = re.compile(
-    r"^\s*(BLOCK|VERDICT|LOCATION|EVIDENCE|QUOTE|SUMMARY|FINDING|CHANGE)\s+(.*)$"
+    r"^\s*(BLOCK|VERDICT|LOCATION|EVIDENCE|QUOTE|CLAIM|REASON|CHANGE)\s+(.*)$"
 )
 # `file:line` or `file:start-end`, shared by EVIDENCE and LOCATION -- a
 # fabricated prose location is exactly as inadmissible as a fabricated
@@ -151,9 +151,13 @@ class Finding:
     """One reviewer's ruling on one census block.
 
     Field order follows the record in `reviewer-brief.md`. `quote` is the
-    VERBATIM text at `evidence`; `summary`'s right half is the DERIVED
-    statement, where a count and its population live, so it is the reviewer's
-    own sentence rather than a line any file carries.
+    VERBATIM text at `evidence`.
+
+    ⚠ `claim` is the sentence as the PROSE writes it; `reason` is what the
+    reviewer DERIVED from the source and why the claim is wrong. They were one
+    field, `summary`, split by `||` -- and a checker cannot verify both halves
+    of one field, because a count is not a line any file contains. Two fields,
+    and only `quote` is checked verbatim.
     """
 
     reviewer: str
@@ -162,8 +166,8 @@ class Finding:
     location: str
     evidence: str
     quote: str
-    summary: str
-    finding: str
+    claim: str
+    reason: str
     change: str
 
 
@@ -187,9 +191,9 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
         `main()` reports and counts fatal.
 
     ⚠ A malformed record used to be a `Finding` carrying `block=-1`, and its
-    reason was stuffed into `FINDING`. That made one field mean two things,
+    reason was stuffed into `REASON`. That made one field mean two things,
     distinguished by a sentinel in another, and every consumer had to filter on
-    the sentinel before reading anything. They are separate now, so `FINDING`
+    the sentinel before reading anything. They are separate now, so `REASON`
     holds a reviewer's clause and only that.
     """
     found: list[Finding] = []
@@ -218,8 +222,8 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
                     location=fields.get("LOCATION", ""),
                     evidence=fields.get("EVIDENCE", ""),
                     quote=fields.get("QUOTE", ""),
-                    summary=fields.get("SUMMARY", ""),
-                    finding=fields.get("FINDING", ""),
+                    claim=fields.get("CLAIM", ""),
+                    reason=fields.get("REASON", ""),
                     change=fields.get("CHANGE", ""),
                 )
             )
@@ -279,11 +283,11 @@ def payload_problem(f: Finding) -> str | None:
     `query` is checked in the most detail, because it is the one verdict whose
     payload has a fixed shape the brief spells out.
     """
-    # ⚠ Every verdict but `clean` states WHY, and `FINDING` is the field that
+    # ⚠ Every verdict but `clean` states WHY, and `REASON` is the field that
     # holds it. It went unchecked while it doubled as a diagnostic slot for
     # malformed records; those are separate now, so it can be required.
-    if f.verdict != "clean" and not f.finding.strip():
-        return f"{f.verdict} states no FINDING — the reason the verdict was made"
+    if f.verdict != "clean" and not f.reason.strip():
+        return f"{f.verdict} states no REASON — why the verdict was made"
     change = f.change.lower()
     if f.verdict == "query":
         named = [s for s in QUERY_SHAPES if s in change]
@@ -381,10 +385,10 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     ⚠ The only floor is `MIN_NEEDLE`, which is ONE. What binds is that the quote
     be THERE: a short needle absent from the file is refused like any other.
 
-    ⚠ QUOTE is checked, and `SUMMARY`'s right half is the DERIVED statement —
+    ⚠ QUOTE is checked and `REASON` is not. `REASON` is the DERIVED statement —
     *"31 callers, all under tests/"* — which is the reviewer's own sentence, so
-    checking it here made every counted claim structurally inadmissible. The
-    forcing function lands on a field that carries verbatim text alone.
+    checking it against the tree made every counted claim structurally
+    inadmissible. The forcing function lands on the field that is verbatim.
 
     ⚠⚠ `query` is NOT exempt. `reviewer-brief.md` has always said a query
     "requires `EVIDENCE` and `QUOTE`(s), by construction -- this is where you
@@ -417,8 +421,6 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     needle = " ".join(f.quote.split()).strip().strip('"')
     if len(needle) < MIN_NEEDLE:
         return f"no QUOTE — nothing was read out of {f.evidence}"
-    if not f.summary.partition("||")[2].strip():
-        return "SUMMARY has no right half — the finding states nothing derived"
     # ⚠ The QUOTE has to sit near ONE of them, not all: a claim settled by two
     # sites quotes the line that settles it, and the other citation is where the
     # reviewer also looked. Requiring it at every site would refuse the very

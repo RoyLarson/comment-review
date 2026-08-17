@@ -61,8 +61,8 @@ VERDICT     correct
 LOCATION    redacted_pkg/billing/rates.py:342-347
 EVIDENCE    redacted_pkg/billing/rates.py:355
 QUOTE       def compute_rates(plan, period, *, clamp=True):
-SUMMARY     "kept because twenty call sites want this" || 31 callers, all under tests/
-FINDING     the count is stale and every caller is a test
+CLAIM       "kept because twenty call sites want this"
+REASON      31 callers and every one is under tests/, so the count is stale
 CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tests/"
 ---
 ```
@@ -74,8 +74,8 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `LOCATION` | `file:start-end` of the prose |
 | `EVIDENCE` | where you looked to settle the claim — **verified to exist**. One or more `file:line` or `file:start-end` citations, **comma-separated**. EVERY one is resolved; a bare filename with no line is refused |
 | `QUOTE` | the text at that line, **VERBATIM** |
-| `SUMMARY` | the claim as written, quoted `\|\|` what you DERIVED from the evidence |
-| `FINDING` | what is wrong, one clause |
+| `CLAIM` | the sentence as the PROSE writes it, quoted |
+| `REASON` | what you DERIVED from the source, and why the claim is wrong — one statement |
 | `CHANGE` | the payload the verdict table requires |
 
 ⚠⚠ **`QUOTE` is the forcing function, and it is CHECKED.** The cited line is read
@@ -87,10 +87,10 @@ this system exists to catch. All of them are resolved; the `QUOTE` has to sit ne
 site that settles it. ⚠ Each citation carries a LINE. A bare filename says you opened a file and
 not what you read in it, and it is refused.
 
-⚠ **`SUMMARY`'s right half is DERIVED, and is not checked verbatim** — that is why
-it is a separate field from `QUOTE`. A count is not a line any file contains, so
-checking the derived statement against the code made every counted claim
-inadmissible.
+⚠ **`REASON` is DERIVED, and is not checked verbatim** — that is why it is a separate field
+from `QUOTE`. A count is not a line any file contains, so checking the derived statement against
+the code made every counted claim inadmissible. ⚠ `CLAIM` and `REASON` were one field split by
+`||`; a checker cannot verify both halves of one field, so they are two.
 
 ### The verdicts, and what each one MUST carry
 
