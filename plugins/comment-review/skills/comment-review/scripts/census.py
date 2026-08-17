@@ -138,8 +138,7 @@ def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
 class Language:
     """What the LEXICAL tier needs to find prose in a language it only lexes.
 
-    Adding a language is this record — data, no code — which is what keeps the
-    floor cheap enough that a contributor supplies one.
+    Adding a language is this record — data, no code.
 
     Attributes:
         doc_line: line-comment openers that mean DOC rather than ordinary
@@ -202,7 +201,7 @@ BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 
 # The ladder is named by the QUESTION each rung answers, not by the library
 # that happens to answer it. Only the top rung knows which declaration a block
-# belongs to, which is why ownership-context is the one role that degrades below it.
+# belongs to.
 TIER_ANSWERS = {
     "tokenized": "blocks, annotations, and DOCSTRING anchors",
     "lexical": "blocks and annotations only",
@@ -217,11 +216,9 @@ def language_for(path: Path) -> Language | None:
 def _strip_strings(line: str, quotes: tuple[str, ...]) -> str:
     """Blank out string literals so a marker inside one stays out of the census.
 
-    This is the LEXICAL tier's one concession to correctness, and what makes it
-    usable: `url = "http://x"` holds `//` in most C-family languages, and a
-    scanner reporting those would drown its own output. It handles single-line
-    literals with backslash escapes; raw strings, heredocs and template nesting
-    are where this tier stops and a real lexer starts.
+    `url = "http://x"` holds `//` in most C-family languages. It handles
+    single-line literals with backslash escapes; raw strings, heredocs and
+    template nesting are where this tier stops and the lexer starts.
     """
     out, quote, esc = [], "", False
     for ch in line:
@@ -250,9 +247,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     """Comment runs for a language with no parser here — the FLOOR tier.
 
     Answers where every block is, its line range, its text and its annotations.
-    Every block comes back stamped `tier="lexical"` with an empty anchor, which
-    is how the ownership-context role learns that on this file its anchors come
-    from its own reading.
+    Every block comes back stamped `tier="lexical"` with an empty anchor.
 
     ⚠ A block opener with no closer swallows every remaining line into one run,
     so code below it is censused as prose. That block is STAMPED
@@ -336,8 +331,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
     Go and Ruby attach documentation by POSITION -- an ordinary line comment
     directly above a declaration IS that declaration's documentation -- so a
     doc reads like any other run, and telling them apart needs the structure
-    this tier lacks. Reading the file to settle it is the improvised parse
-    `docs/parsing.md` refuses.
+    this tier lacks.
 
     The block is annotated as an OPEN QUESTION instead. That matters because
     `compact.md` routes on KIND: a `comment` is governed by LENGTH and may be
@@ -360,7 +354,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
             continue
         # ⚠ The IMMEDIATELY next line. Both languages require a doc comment to
         # touch its declaration, so a run held off by a blank line is an ORPHAN
-        # -- an ownership-context finding, and still charged to the cap.
+        # -- left unmarked here, and charged to the cap.
         nxt = lines[block.end].strip() if block.end < len(lines) else ""
         if not nxt:
             continue
@@ -464,8 +458,7 @@ def _annotated_docs(path: Path, tree: ast.AST) -> list[Block]:
 
     ⚠ These are STRING LITERALS, so `ast.get_docstring` passes over them and so
     does the tokenizer. On a file that documents its parameters this way they
-    are most of its prose, and a block missing from the census is a block
-    nobody reviews.
+    are most of its prose.
     """
     out: list[Block] = []
     for node in ast.walk(tree):
@@ -525,7 +518,7 @@ def code_names(
     ⚠ TRACKED files only, when git can say which. A vendored, generated or
     gitignored tree under the repo root otherwise donates its whole namespace,
     so a symbol the repo defines nowhere resolves ALIVE. That failure is SILENT
-    and one-sided: it suppresses an obituary, and manufactures none.
+    and one-sided: it can hide an obituary, and manufactures none.
 
     Args:
         roots: directories or files to harvest.
@@ -643,9 +636,8 @@ def main() -> int:
     paths = path_index(repo)
 
     census: list[Block] = []
-    # An argument that matched nothing reads exactly like success: "0 blocks"
-    # from a typo and "0 blocks" from a file with no prose are the same line.
-    # Naming it is what keeps a whole directory from going unreviewed.
+    # A path argument that matched no file joins `unreadable`, so a typo errors
+    # on the same rule every other gap does.
     unreadable: list[str] = [
         f"{t.as_posix()} (matched no files)" for t in targets if not any(_walk(t))
     ]
@@ -719,10 +711,8 @@ def main() -> int:
         if tiers.get(name):
             print(f"  tier {name}: {tiers[name]} blocks - {TIER_ANSWERS[name]}")
     print(
-        "  ⚠ NO COMMENT carries an anchor at either tier, so every\n"
-        "    ownership-context verdict rests on a reviewer READING the file."
-        " Treat a placement\n"
-        "    finding as a CANDIDATE, not a resolution."
+        "  ⚠ NO COMMENT carries an anchor at either tier. A comment's anchor\n"
+        "    comes from READING the file, so a placement finding is a CANDIDATE."
     )
     print(f"  longest comment run: {longest} lines; widest line: {widest} chars")
     if args.cap:
