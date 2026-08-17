@@ -136,8 +136,13 @@ still carry the claim your `SOURCE` settles, and is anything from it gone?* — 
 ⚠ **Showing the competing verdict does not break MARK/APPLY separation.** The finding is already
 filed and already read by the join. Blindness protects the FIRST read and that is banked.
 
-**Termination:** a Kind-1 round that comes back still contradicting escalates to the author as a
-`query` — the existing path. Measured: both real contradictions resolved in one round.
+**Termination, Kind 1:** a round that comes back still contradicting escalates to the author as
+a `query` — the existing path. Measured: both real contradictions resolved in one round.
+
+**Termination, Kind 2:** a REVISE returns the text to the stage that wrote it, which re-emits
+and re-confirms **once**. A second disagreement on the same block escalates to the author with
+both texts. ⚠ Without this the loop is unbounded, because the reviewer is judging text the task
+agent keeps rewriting.
 
 **Consequence:** a coverage gap stops being fatal. Today the join exits nonzero and a human reads
 index numbers; under this it is a send-back and the outcome is a completed census.
@@ -305,6 +310,13 @@ census block indices and a reference file has no blocks until E1 lands.
 Roy has ruled them *"well verified at this point"*, so it is a measurement confirming a standing
 ruling, not a blocker.
 
+## Scope — five plans, not one
+
+⚠ **This spec is too large for a single implementation plan and must not be turned into one.**
+Each group is its own plan, executed and committed before the next begins, because each changes
+artifacts the next reads: A renames the record every later group references, B builds the
+mechanism C and D consume, E changes what the census accepts.
+
 ## Order
 
 **A → B → C → D → E → F**, with the reasons: A defines what a verdict is about and carries the
@@ -312,12 +324,15 @@ record change every later group references; B's mechanism is what C's `5b`/`6b` 
 resolution both use; C needs B; D reduces to one detached task; E is independent but grows scope
 and needs A's model for its own block definition.
 
+## Settled by approving the sections above
+
+**A3** — STAMP the split trailing comment; do not re-cut it. **C4** — SPLIT THE REPORT; the
+fingerprint is not weakened. Both were presented with their recommendation and approved with
+their section, so they are decisions and not open questions.
+
 ## Still Roy's to rule
 
-- **A3** — stamp, merge, or leave the split trailing comment
 - **A5** — `pCST` or `prose tree`; one name retires
-- **C4** — accept *split the report*, or go further and make the CODE CHECK a diff against the
-  approved set rather than a blanket nothing-changed proof
 - **F2** — is stage 6 bound by an OBSERVED wrap or only a published one
 - **F3** — where a style sheet lives; whether CodeGraph becomes a structure source
 - **B** — the name of the file that owns the send-back, now that it is more than re-review
