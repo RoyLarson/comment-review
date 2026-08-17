@@ -1,6 +1,6 @@
 """Stage 2: every comment run and every docstring, located as a numbered block.
 
-    python census.py [--repo D] [--cap N] [--width N] [--census-only] [--json] <paths>
+    python census.py [--repo D] [--census-only] [--json] <paths>
 
 The reviewers are handed this list, so it is the whole population they rule on.
 **Every file handed in is censused, or this errors** -- a file it could not read
@@ -379,7 +379,7 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
     def flush() -> None:
         if run:
             # ⚠ PROSE comes from the comment token; WIDTH from the physical
-            # line, which is the whole line `--width` measures. Using the
+            # line, which is the whole line a width rule measures. Using the
             # physical line for both fed a trailing comment's own code to the
             # annotation regexes -- reviewers saw
             # `models.Index(fields=(...)),  # note` as the note's text.
@@ -612,8 +612,6 @@ def main() -> int:
         reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="*")
-    ap.add_argument("--cap", type=int, default=0, help="max lines for a # run")
-    ap.add_argument("--width", type=int, default=0, help="max characters per line")
     ap.add_argument("--repo", default=".", help="repo root for citation resolution")
     ap.add_argument("--census-only", action="store_true")
     ap.add_argument("--json", action="store_true")
@@ -696,17 +694,6 @@ def main() -> int:
     tiers = Counter(b.tier for b in census)
     langs = Counter(lang.name for f in files if (lang := language_for(f)) is not None)
     deferred = [b for b in census if "doc-kind-unresolved" in b.annotations]
-    over = [
-        b
-        for b in census
-        if args.cap
-        and b.kind == "comment"
-        and "doc-kind-unresolved" not in b.annotations
-        and b.lines > args.cap
-    ]
-    wide = [b for b in census if args.width and b.widest > args.width]
-    longest = max((b.lines for b in census if b.kind == "comment"), default=0)
-    widest = max((b.widest for b in census), default=0)
 
     print(f"comment-review stages 2-3 - {len(files)} files, {len(census)} blocks")
     print(f"  languages: {', '.join(f'{k} {v}' for k, v in sorted(langs.items()))}")
@@ -717,16 +704,12 @@ def main() -> int:
         "  ⚠ NO COMMENT carries an anchor at either tier. A comment's anchor\n"
         "    comes from READING the file, so a placement finding is a CANDIDATE."
     )
-    print(f"  longest comment run: {longest} lines; widest line: {widest} chars")
-    if args.cap:
-        print(f"  over cap ({args.cap}): {len(over)}")
-        if deferred:
-            print(
-                f"  kind unresolved, NOT counted against the cap: {len(deferred)}"
-                " — a positional doc comment; confirm the kind before compacting"
-            )
-    if args.width:
-        print(f"  over width ({args.width}): {len(wide)}")
+    if deferred:
+        print(
+            f"  kind unresolved: {len(deferred)} — a positional doc comment."
+            " Confirm the kind before compacting; a cap governs one and not"
+            " the other"
+        )
     print()
 
     print("CENSUS - every block, numbered.")

@@ -19,7 +19,6 @@ development and measurement tooling that stays behind.
 ```bash
 # Run the census (stages 2-3 of the skill) over one or more files
 python plugins/comment-review/skills/comment-review/scripts/census.py --repo . <paths...>
-python plugins/comment-review/skills/comment-review/scripts/census.py --cap 6 --width 88 --repo . <paths...>
 python plugins/comment-review/skills/comment-review/scripts/census.py --languages   # list known languages
 
 # Materialise the pinned corpora (git worktrees / clones into corpora/<name>/, gitignored)

@@ -288,12 +288,13 @@ were given. A relative one resolves against whatever directory you are in, which
 guaranteed to be the skill's.
 
 ```bash
-python <skill>/scripts/census.py [--cap N] [--width N] --repo . <paths...>
-python <skill>/scripts/census.py [--cap N] [--width N] --json --repo . <paths...> > <census>.json
+python <skill>/scripts/census.py --repo . <paths...>
+python <skill>/scripts/census.py --json --repo . <paths...> > <census>.json
 ```
 
-⚠ **Pass `--cap` only if the run HAS one** — given as the `cap` argument, or published and
-found at 1.2 — **and `--width` only if 1.2 found one.**
+⚠ **The census takes no cap and no width.** The cap belongs to stage 6, and the reviewers are
+handed this file — printing an over-cap count here puts it in front of the four roles that must
+never see it.
 
 ⚠⚠ **TWO census files, and the JSON one is not optional.** The reviewers are handed the TEXT
 census; **the stage-5 join reads the JSON census and parses it as JSON**, so a run that wrote
@@ -428,9 +429,8 @@ which is exactly why the memory-based rule it replaces could not fire there —
 the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 
-Report what the tool prints: `N files, N blocks`, the per-tier counts, the longest run and the
-widest line. ⚠ **A flag you supplied uninvited** makes the census print an over-cap or
-over-width count that reads like a project fact and is your own guess.
+Report what the tool prints: `N files, N blocks`, the per-tier counts, and any block whose
+KIND it could not resolve.
 
 ## Stage 4 — MARK: four reviewers, in parallel
 
@@ -478,8 +478,9 @@ A docstring's format decides which of its lines are structural and which are pro
 reviewer that does not know the format cannot tell what a block contains. And a correct
 sentence in the wrong format is work the human has to redo by hand.
 
-⚠ **Do not paste the brief or a role file into the prompt.** They are single-sourced on purpose;
-a copy in a prompt is a copy that goes stale.
+⚠ **Hand the brief and the role file as PATHS — the agent reads them itself.** What you paste
+is what a command EMITS at dispatch, which is the VOCABULARY block above and nothing else: it
+is generated fresh every run, so it cannot go stale. A file's contents pasted by hand can.
 
 ⚠ **REFERENCE ONLY is a SELECTION, not a leftover.** Name the files that settle claims code
 cannot: the repo's **decision record** (*"ruled"*, *"rejected"*, *"deferred"* have no code
