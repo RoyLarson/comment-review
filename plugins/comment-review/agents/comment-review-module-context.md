@@ -70,9 +70,8 @@ that break silently — an undocumented one is `add`, not `clean`.
 ## The rule stated in several places
 
 The same rule explained across several modules usually means **the rule has no owning
-function**, and each site that performs part of it re-explains the whole. This is the most
-common structural finding in a long-commented codebase, and it is *why* the comments got long:
-nobody could state the rule once, because no function held it.
+function**, and each site that performs part of it re-explains the whole. That is *why* the
+comments got long: nobody could state the rule once, because no function held it.
 
 ⚠ **Do not stop at "this is restated." NAME THE OWNER** — the function that produces the
 artifact the rule constrains. A width budget is owned by the function that composes the text; a

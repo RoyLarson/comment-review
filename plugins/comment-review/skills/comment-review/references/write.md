@@ -115,8 +115,8 @@ Edits applied, files touched, the CODE CHECK and how you ran it, and every block
 could not write with the reason — that is a finding, not a silence.
 
 **Say explicitly whether every approved block landed byte-for-byte as approved.** A divergence
-between what the author saw and what is on disk is the most serious thing this pass can
-produce, and it is invisible in a diff that only shows the new text.
+between what the author saw and what is on disk is invisible in a diff that shows only the new
+text, so this line is the one place it can surface.
 
 Then hand to stage 8 (REVIEW), which reads each changed file end to end and is the only pass
 that can see damage the editing itself caused.

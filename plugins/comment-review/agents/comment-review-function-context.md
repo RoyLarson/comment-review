@@ -42,7 +42,7 @@ four words are usually the whole finding — a function with thirty references, 
 *"pinned by X"*, *"guarded by Y"*, *"asserted in Z"*: does that guard exist — **and would it
 fail if the claim were false?** A guard that cannot fail is not a guard. An assertion whose two
 sides are the same call with the same arguments asserts nothing, and a comment calling it *"THE
-invariant"* is the most dangerous prose in a test file.
+invariant"* licenses every future edit against a guard that cannot fail.
 
 ## A prohibition is resolved against its own file
 
@@ -69,7 +69,7 @@ so.** A raise is a *penalty*; where the governing invariant forbids penalizing, 
 "violation" is behaviour the system actively wants, the rule is forced down to prose by design.
 **A deliberately unenforced rule is indistinguishable from an oversight** — the next reader
 either promotes it to a check (breaking the invariant) or deletes it as unbacked. The *choice
-not to enforce* is the story, and the half most often missing.
+not to enforce* is the story.
 
 ⚠ Proposing *"make this a hard check"* is a behaviour change: name it in `CODE CONCERNS`, leave
 it, and check first whether the absence of the check is the point.

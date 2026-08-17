@@ -67,9 +67,9 @@ to do any of those, APPLY was not finished — go back, or file it for the next 
    editor; and what remains is still a proposition)?
 4. **If it fails, put it back and try again.**
 
-⚠ **Checking against your own EDITED text instead of the original is the failure mode this
-pass is most likely to have.** The edit already dropped things legitimately; checking against
-it lets a second, illegitimate drop through unnoticed. **The original is the baseline, twice.**
+⚠ **Checking against your own EDITED text instead of the original defeats the check.** The
+edit already dropped things legitimately; checking against it lets a second, illegitimate drop
+through unnoticed. **The original is the baseline, twice.**
 
 ⚠⚠ **The block's KIND is part of the input, and it decides whether this pass may touch the
 block at all.** The census stamps every block `comment`, `trailing-comment`, `docstring` or
