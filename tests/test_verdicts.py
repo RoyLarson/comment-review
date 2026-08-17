@@ -452,49 +452,111 @@ class TestVerdicts(unittest.TestCase):
 
 
 class TestContradiction(unittest.TestCase):
-    def test_drop_against_correct_is_flagged(self):
+    """A contradiction is two verdicts on ONE SENTENCE.
+
+    ⚠ The check keyed on the census BLOCK index while a verdict rules on a
+    sentence, so any `drop` in a block collided with any `correct` in it.
+    Measured on a live run: 8 blocks flagged, 2 genuine, and a re-review round
+    was spent on each of the other six.
+
+    ⚠⚠ `move` is not in the set at all. A relocation and a truth fix COMPOSE --
+    move the prose, then correct it at the destination, which is the synthesis
+    order at steps 2 and 3. Ruled 2026-08-17.
+    """
+
+    def _pair(self, drop_text, correct_text, verdict="correct"):
+        return verdicts.by_block(
+            [
+                _finding(
+                    reviewer="ownership-context",
+                    verdict="drop",
+                    change=f'drop: "{drop_text}"',
+                ),
+                _finding(
+                    reviewer="block-context",
+                    verdict=verdict,
+                    change=f'false: "{correct_text}" / true: "something else"',
+                ),
+            ]
+        )
+
+    def test_drop_and_correct_on_the_SAME_sentence_collide(self):
+        # Measured block 728: ownership dropped the sentence function-context
+        # was correcting. Delete it, or fix its count -- nothing composes those.
+        sentence = "check_shipped_syntax.py reads syntax and two runtime shapes"
+        self.assertEqual(verdicts.contradictions(self._pair(sentence, sentence)), [1])
+
+    def test_drop_and_correct_on_DIFFERENT_sentences_do_not_collide(self):
+        # Measured block 981: ownership dropped one clause, two roles corrected
+        # another in the same docstring. The join called it a contradiction and
+        # a re-review round established that it was not.
+        got = self._pair(
+            "a citation into gitignored runtime state is UNVERIFIABLE",
+            "TRACKED files only, via git ls-files",
+        )
+        self.assertEqual(verdicts.contradictions(got), [])
+
+    def test_a_containing_sentence_still_collides(self):
+        # One role drops a paragraph; another corrects a clause inside it.
+        got = self._pair(
+            "the budget is 3. Raising it re-opens the incident.", "the budget is 3"
+        )
+        self.assertEqual(verdicts.contradictions(got), [1])
+
+    def test_drop_against_patch_on_one_sentence_collides(self):
+        self.assertEqual(
+            verdicts.contradictions(
+                self._pair("the same line", "the same line", "patch")
+            ),
+            [1],
+        )
+
+    def test_move_against_correct_COMPOSES_and_is_not_flagged(self):
+        # Ruled 2026-08-17: placement and truth are a sequence, not a rivalry.
         found = [
-            _finding(reviewer="ownership-context", block=7, verdict="drop"),
-            _finding(reviewer="block-context", block=7, verdict="correct"),
+            _finding(
+                reviewer="ownership-context",
+                verdict="move",
+                change='move to `SYMBOLISH` -> extract: "the ordering is significant"',
+            ),
+            _finding(
+                reviewer="block-context",
+                verdict="correct",
+                change=(
+                    'false: "the ordering is significant" / true: "the sort decides"'
+                ),
+            ),
         ]
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [7])
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
+
+    def test_move_against_patch_is_not_flagged(self):
+        found = [
+            _finding(reviewer="ownership-context", verdict="move"),
+            _finding(reviewer="block-context", verdict="patch"),
+        ]
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
     def test_drop_alone_is_not_a_contradiction(self):
         found = [_finding(reviewer="ownership-context", block=7, verdict="drop")]
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
-    def test_move_against_correct_is_flagged(self):
-        # The claim was measured against the code the block sat with. One role
-        # says that anchor is wrong, so the `correct` was derived at the wrong
-        # place -- the same collision as drop/correct, one step earlier.
-        found = [
-            _finding(reviewer="ownership-context", block=7, verdict="move"),
-            _finding(reviewer="block-context", block=7, verdict="correct"),
-        ]
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [7])
-
-    def test_move_against_patch_is_flagged(self):
-        found = [
-            _finding(reviewer="ownership-context", block=7, verdict="move"),
-            _finding(reviewer="block-context", block=7, verdict="patch"),
-        ]
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [7])
-
-    def test_move_with_clean_is_not_a_contradiction(self):
+    def test_drop_with_clean_is_not_a_contradiction(self):
         # `clean` rules on nothing, so it collides with nothing.
         found = [
-            _finding(reviewer="ownership-context", block=7, verdict="move"),
+            _finding(reviewer="ownership-context", block=7, verdict="drop"),
             _finding(reviewer="block-context", block=7, verdict="clean"),
         ]
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
-    def test_move_and_drop_together_are_not_a_contradiction(self):
-        # Both relocate; neither rules on what the sentence says.
+    def test_an_unreadable_payload_is_flagged_rather_than_passed(self):
+        # ⚠ Silence here would hide a real collision behind a malformed payload.
         found = [
-            _finding(reviewer="ownership-context", block=7, verdict="move"),
-            _finding(reviewer="module-context", block=7, verdict="drop"),
+            _finding(reviewer="ownership-context", verdict="drop", change="drop: "),
+            _finding(
+                reviewer="block-context", verdict="correct", change="fix the count"
+            ),
         ]
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [1])
 
     def test_a_record_that_names_no_block_cannot_reach_a_contradiction(self):
         # It used to reach here as `block=-1` and surface as "RE-REVIEW [-1]".
@@ -942,7 +1004,9 @@ class TestCLI(unittest.TestCase):
         )
         drop = self._write(
             "ownership-context.txt",
-            finding.format(verdict="drop", change="the sentence, verbatim"),
+            # ⚠ The two must name the SAME sentence, or there is no collision:
+            # a contradiction is keyed on the text, not on the block index.
+            finding.format(verdict="drop", change='drop: "x"'),
         )
         correct = self._write(
             "block-context.txt",

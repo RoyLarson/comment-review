@@ -8,7 +8,8 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   EVIDENCE      each finding's citation resolves, and the QUOTE is really there
   LOCATION      the prose citation resolves too -- checked the same way
   PAYLOAD       the verdict carries what its row of the table requires
-  CONTRADICTION `drop` or `move` against `correct`/`patch` -- a re-review.
+  CONTRADICTION `drop` against `correct`/`patch` ON THE SAME SENTENCE -- a
+                re-review. `move` composes with both and is not flagged.
                 Counted apart from the fatal checks, and named in the closing
                 line so the summary says which blocks are still out
   STANDS        blocks every reviewer that ran returned clean on
@@ -57,10 +58,14 @@ VERDICTS = (
     "move",
 )
 
-# What a contradiction IS: one role ruling on where the prose lives, another on
-# what it says. Named rather than inlined so the join's message and this test
-# cannot drift apart.
-RELOCATES = frozenset({"drop", "move"})
+# What a contradiction IS: one role REMOVING the sentence another rules on.
+# Named rather than inlined so the join's message and this check cannot drift
+# apart.
+# ⚠⚠ `move` is NOT here. A relocation and a truth fix COMPOSE -- move the prose,
+# then correct it at the destination, which is the synthesis order at steps 2
+# and 3. Ruled 2026-08-17. Measured: 5 of 8 blocks the old set flagged were this
+# shape, and the re-review spent a round on each confirming they were not rivals.
+REMOVES = frozenset({"drop"})
 RULES_ON_TEXT = frozenset({"correct", "patch"})
 
 # ⚠⚠ The THREE shapes `reviewer-brief.md` says reach `query`, and a query must
@@ -470,21 +475,59 @@ def by_block(found: list[Finding]) -> dict[int, list[Finding]]:
     return out
 
 
+def ruled_text(f: Finding) -> str:
+    """The verbatim sentence this finding rules on, normalised for comparison.
+
+    A verdict rules on a SENTENCE and the census numbers BLOCKS, so two findings
+    on one block need not share a subject. Both payloads already carry the text:
+    a `drop`'s CHANGE is the sentence, a `correct`'s is `false: "..."`.
+
+    ⚠ Returns "" when no sentence can be read out of the payload. A caller must
+    treat that as "cannot compare", never as "no overlap" -- silence there would
+    hide a real collision behind a malformed payload.
+    """
+    if f.verdict in REMOVES:
+        _, _, rest = f.change.partition("drop:")
+        text = rest or f.change
+    elif f.verdict in RULES_ON_TEXT:
+        _, sep, rest = f.change.partition("false:")
+        if not sep:
+            return ""
+        text = rest.partition("/ true:")[0]
+    else:
+        return ""
+    return " ".join(text.split()).strip().strip('"').lower()
+
+
 def contradictions(grouped: dict[int, list[Finding]]) -> list[int]:
-    """Blocks where one role rules on the TEXT and another on WHERE it lives.
+    """Blocks where one role REMOVES the sentence another rules on.
 
     `drop` against `correct`/`patch` is one role saying the sentence should not
-    exist and another saying it should exist and be fixed. `move` against either
-    is the same collision one step earlier: a claim is measured against the code
-    it sits with, so a `correct` written at an anchor another role says is wrong
-    was measured against the wrong code. Both go back for re-review.
+    exist and another saying it should exist and be fixed. Nothing composes
+    those.
+
+    ⚠⚠ Keyed on the TEXT, not the block index. A block of six sentences can
+    carry six verdicts, so sharing an index is not sharing a subject -- measured
+    on a live run, one of eight flagged collisions was two roles ruling on two
+    different clauses of one docstring, and a re-review round was spent
+    establishing it.
+
+    ⚠ One sentence CONTAINING the other still collides: a role may drop a
+    paragraph whose clause another corrects.
+
+    ⚠⚠ `move` is absent by ruling. Relocation and a truth fix compose -- the
+    synthesis order applies every `move` at step 2 and every `correct` at step
+    3, which is the sequence, not a rivalry.
     """
-    return sorted(
-        b
-        for b, fs in grouped.items()
-        if (RELOCATES & {f.verdict for f in fs})
-        and (RULES_ON_TEXT & {f.verdict for f in fs})
-    )
+    out: list[int] = []
+    for block, fs in grouped.items():
+        removals = [ruled_text(f) for f in fs if f.verdict in REMOVES]
+        rulings = [ruled_text(f) for f in fs if f.verdict in RULES_ON_TEXT]
+        if not removals or not rulings:
+            continue
+        if any(not a or not b or a in b or b in a for a in removals for b in rulings):
+            out.append(block)
+    return sorted(out)
 
 
 def main() -> int:
