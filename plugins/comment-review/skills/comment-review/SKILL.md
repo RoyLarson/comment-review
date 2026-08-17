@@ -13,7 +13,7 @@ them to fit, the author approves **that** text, and the page is proofed. Structu
 first, then truth, then fit, then the page.
 
 ```
-1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
+1 PROJECT      2 COLLATE    3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
   DETERMINATION             REFERENCES               │                    7b WRITE
                                                      └──── no cap ────────▲
 ```
@@ -21,7 +21,7 @@ first, then truth, then fit, then the page.
 | # | stage | who acts | what exists at the end of it |
 |---|---|---|---|
 | 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
-| 2 | **ANNOTATE** | `census.py` | every comment run and docstring located, as a node on the prose tree |
+| 2 | **COLLATE** | `census.py` | every interval between two lines of code gathered into one numbered tree, each comment run and docstring a node on it |
 | 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved — paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers | findings on the nodes — read-only, nothing written |
 | 5 | **APPLY** | task agent | one verdict per block and the **full-length** replacement text |
@@ -66,9 +66,10 @@ enforce it at stage 5 by refusing a verdict that arrives without one.
 
 ## Why the stages are in this order
 
-**1–3 build the PROSE TREE.** The prose tree is every comment run and
-every docstring in the files under review, each one a NODE attached to the declaration it
-annotates, with every reference it makes already resolved.
+**1–3 build the PROSE TREE.** The prose tree is every interval between two lines of code in
+the files under review, numbered in order — each comment run and each docstring a NODE on it,
+attached to the declaration it annotates, with every reference it makes already resolved. The
+intervals that hold nothing are on it too, because that is where prose is MISSING.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding.
@@ -289,7 +290,7 @@ skip directories holding `pyvenv.cfg`; never harvest string constants from tests
 (`assert "x" not in y` makes a dead name read alive); exclude `.md`/`.txt`; resolve a dotted
 name on its **head** segment only.
 
-## Stages 2–3 — ANNOTATE, then FIND REFERENCES
+## Stages 2–3 — COLLATE, then FIND REFERENCES
 
 ⚠ `<skill>` below is the directory holding this SKILL.md — take it from the absolute path you
 were given. A relative one resolves against whatever directory you are in, which is not

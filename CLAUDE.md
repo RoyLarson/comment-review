@@ -93,7 +93,7 @@ stdlib-only rule. `evals/grade_hazards.py` remains the end-to-end grade, and
 read it before touching the skill. The pipeline:
 
 ```
-1 PROJECT      2 ANNOTATE   3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
+1 PROJECT      2 COLLATE    3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
   DETERMINATION             REFERENCES               │                    7b WRITE
                                                       └──── no cap ────────▲
 ```
@@ -101,7 +101,7 @@ read it before touching the skill. The pipeline:
 1. **PROJECT DETERMINATION** (task agent) — scope from the merge base, find the repo's cap/width
    conventions, doc style, `move` destination, style sheet, verify reviewer agents resolve, probe
    for a language server, decide the name-corpus source.
-2. **ANNOTATE** (`census.py`) — every comment run and docstring located as a node on a prose tree.
+2. **COLLATE** (`census.py`) — every interval between two lines of code gathered into one numbered tree, each comment run and docstring a node on it.
 3. **FIND REFERENCES** (`census.py`) — every reference each node makes, resolved (paths, symbols,
    counts).
 4. **MARK** (4 reviewer agents, dispatched in parallel, read-only) — findings on the nodes.

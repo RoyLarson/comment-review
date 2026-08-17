@@ -16,6 +16,120 @@ number as a semver claim, or "corrects" the next one to `0.2.0`.
 
 ## [Unreleased]
 
+Almost every entry below came from RUNNING the skill rather than reading it. Two
+real runs — one against a personal project, one against a larger tree — found
+defects a full day of reading the same files had not.
+
+### Changed — BREAKING
+
+- **Every interval between two lines of code is a block**, empty ones included.
+  A block was defined as an interval on 2026-08-15 and the census still
+  enumerated from PROSE, so an interval with nothing in it had no index — which
+  is why `add` never fit the finding record. `add` says a constraint exists in
+  code and NOWHERE in prose, a finding ABOUT an empty interval, and it had to
+  borrow a neighbouring block's index and read as being about that block's text.
+
+  ⚠ **ADDRESSABLE is not ACCOUNTABLE.** A reviewer owes a record on blocks that
+  HOLD PROSE; an empty interval exists to be cited. Owing one on all of them
+  would have made `CLEAN 1-N` — the cheapest fabrication there is — nine parts
+  in ten true. Rulings made along the way, all recorded in the TODO: the file
+  boundary counts as a bound, `start`/`end` are the bounding code lines so a
+  zero-width gap still resolves, and docstring/trailing-comment coexist with
+  intervals rather than becoming them.
+
+  Measured: `census.py` over itself is 546 blocks, 48 of them prose, against 44
+  before; `--json` is 177,615 bytes against 36,777.
+
+- **Stage 2 is COLLATE**, not ANNOTATE — ruled by Roy. ANNOTATE meant adding
+  notes and stage 2 adds none; it gathers every position in the file into one
+  numbered, ordered tree. It also pointed at two stages, since `annotate.py`
+  performs stage 3. ⚠ `annotation` is unaffected: it was ruled in for two
+  reasons and only one was the stage name.
+
+- **`census.py --out PATH` writes the report**, because a shell redirect is
+  REFUSED in a worktree-isolated harness and the run then has no census at all.
+
+- **A `query` NAMES which of three shapes it is, and carries EVIDENCE.** Roy:
+  *"Is the query one of the three variants of query — which one and why"*, then
+  *"It must contain everything to say it was looked at and this is why it is
+  query."* `evidence_problem` exempts `clean` alone now — the brief had always
+  required a query's citations and the gate had always waived them, which was
+  the one place the two actively contradicted. On top of that, `payload_problem`
+  refuses a `query` whose `CHANGE` does not name one of the brief's three shapes
+  in the brief's own words. ⚠ The named shape is stripped before the
+  attempted-check word search, because the pattern matches "checkout" and the
+  shape would otherwise satisfy the check it accompanies.
+
+- **`add` needs a side and the anchor NAMED IN BACKTICKS.** The check accepted
+  the bare word "anchor", so `add an anchor comment` passed while
+  ``above `retry_budget` `` failed for not using the word.
+
+- **A report file's stem must be a PUBLISHED role name.** It was taken as a role
+  name on sight, so `ownershp-context.md` became a reviewer called
+  `ownershp-context` and every line below named a role that does not exist.
+  Checked against `Reviewer`.
+
+- **The dispatch packet gains `REPO ROOT`**, checked like `CENSUS`. Roy: the
+  agents *"could get the full path to the root directory they are supposed to
+  work in"*. The census, `FILES UNDER REVIEW` and every citation are
+  repo-relative and nothing said what to.
+
+- **`REVIEWER FILES` is TASK AGENT ONLY and is withheld from reviewers.** Roy,
+  distinguishing it from the above: that *"is not the same as giving them reason
+  to search the plugin folder in `.claude/`"*. `SKILL.md` already said a path
+  into the installed plugin is an invitation to read its neighbours, while the
+  packet carrying those paths was headed *"Handed to every reviewer"*.
+
+### Added
+
+- **`CODE CONCERNS` is parsed, attributed and echoed.** Roy: *"told you you
+  can't stop coding agents from trying coding."* `reviewer-brief.md` had always
+  given code problems a section and `verdicts.py` contained the string zero
+  times, so a reviewer that filed one exactly where the brief says had hidden
+  it. ⚠ Printed whether or not the gate refuses — the run that proved this
+  stopped at stage 5, and the defect would have died with the refusal.
+
+- **The WORK LIST**: every block needing a ruling with the verdicts held on it,
+  which `contradictions` had been computing and discarding. Withheld when the
+  gate refuses.
+
+- **A third state in the join.** A block covered only by `clean` and
+  `query — outside my role` is neither STANDS nor NEEDS A RULING: nothing is
+  asked of stage 5, and no role certified it either. Measured: one run read
+  1159 blocks as work when 76 carried a verdict.
+
+### Fixed
+
+- **`outside my role` owes a showing.** Quote the line that fixes the block's
+  subject and say what about that subject your remit does not reach, in your own
+  role's words — never naming another role. *"Not mine"* is an admission.
+
+- **`FINDING` is checked, and holds one thing.** It doubled as the diagnostic
+  slot for a malformed record, keyed on a `block=-1` sentinel that three
+  consumers each filtered separately. `parse_report` returns
+  `(findings, malformed)`; every verdict but `clean` now states why it was made.
+
+- **`QUERY_ATTEMPTED` is derived from the verbs a reviewer is instructed in.** A
+  run refused 65 of 65 module-context queries reading *"resolved the enclosing
+  definition at ..."* — `resolve` was in `QUERY_SETTLES` and missing here, so
+  reports that were substantively complete were lexically refused.
+
+- **`MIN_NEEDLE` is 1.** The 12-character floor inverted on short code lines —
+  `x = 1`, `pass`, `return` — where its only route through was to quote MORE
+  than was read.
+
+- **The `move` destination can be available PER PATH.** A repo that built the
+  tree for some packages and not others had one answer imposed on all of them.
+
+- **One message protects INDEPENDENCE, not speed.** The file gave the weak
+  reason, and a run dispatched 2 + 2 on the strength of it.
+
+- **block-context searches by WHOLE NAME.** A count of `_block(` swept in
+  `compose_block(` and the enumeration was off by two in a report that named its
+  population correctly. Both halves look done, which is the trap.
+
+- **`docs/vocabulary.md` said 44 shipped definitions; there are 43.**
+
 
 ## [0.1.6] — 2026-08-16
 

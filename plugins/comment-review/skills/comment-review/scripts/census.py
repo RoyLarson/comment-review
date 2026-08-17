@@ -1,8 +1,12 @@
-"""Stage 2: every comment run and every docstring, located as a numbered block.
+"""Stage 2, COLLATE: every interval between two lines of code, numbered in order.
 
     python census.py [--repo D] [--census-only] [--json] [--out PATH] <paths>
 
-The reviewers are handed this list, so it is the whole population they rule on.
+The reviewers are handed this list, so it bounds everything they may rule on.
+⚠ Most of it is `interval` blocks, which hold no prose: they are ADDRESSABLE, so
+an `add` can cite the gap its missing sentence belongs in, and nobody owes them a
+record. Coverage is over the blocks that HOLD prose.
+
 **Every file handed in is censused, or this errors** -- a file it could not read
 or parse, or whose suffix has no language record, is named and the run exits
 nonzero, because a block missing from the census is a block nobody reviews.

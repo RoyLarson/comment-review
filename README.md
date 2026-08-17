@@ -102,7 +102,7 @@ claim attached to the wrong scope gets measured against the wrong code.
 The skill is broken up into eight phases to cover an editorial system.
 
 1) PROJECT DETERMINATION - Language, documentation style, project rules
-2) ANNOTATE - Review the current code and comments - determine where the comments and documentation is in the files.
+2) COLLATE - Gather every interval between two lines of code into one numbered tree, and locate the comments and documentation on it.
 3) FIND REFERENCES - Determine external links to the code comments that might also need updating
 4) MARK - Provide appropriate editorial marks to the Annotated comments and documentation to determine what to do
 

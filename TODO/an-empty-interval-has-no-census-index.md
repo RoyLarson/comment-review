@@ -3,7 +3,7 @@
 ```
 Status:   open — the census change is DONE 2026-08-17; what is left is a NAMING
           ruling, which is Roy's
-Progress: 8 of 9 tasks done
+Progress: 8 of 10 tasks done
 Owner:    session · Roy (⭐ 1 ruling, deferred by him and now unblocked)
 Raised:   2026-08-15 (Roy ruled (a): every interval is a block, empty ones included)
 ```
@@ -76,14 +76,24 @@ vocabulary and is done; this is the census change that follows from it.
       is closed with it. An `add` cites the empty interval the prose belongs in; it no longer
       borrows a neighbour's index and no longer reads as being about that neighbour's text.
 
-- [ ] ⭐ **DEFERRED BY ROY, and now UNBLOCKED.** Relitigate the name **ANNOTATE**. Roy,
+- [ ] ⭐ **`pCST` and `prose tree` now name ONE thing, and only one should.** Before
+      2026-08-17 the two were distinguishable: the pCST was every interval as a node, and the
+      prose tree was "what the census IS today", a node per comment run and per docstring. The
+      census now builds the first, so the second's definition had to be rewritten into it.
+      ⚠ Which name survives is a NAMING ruling. `pCST` is precise and is the word Roy used;
+      `prose tree` is the one every shipped file says. Whichever goes, the loser belongs in the
+      retired-words table with the reason.
+
+- [x] ⭐ **RULED 2026-08-17: stage 2 is COLLATE.** Was: relitigate the name **ANNOTATE**. Roy,
       2026-08-16: *"I think at a future time we might relitigate the word ANNOTATE. It seems
       close but not quite correct for the stage that is about turning the code into the pCST
       and finding external references."* The name was to be chosen against what the stage does
-      once it builds intervals rather than prose runs — and as of 2026-08-17 it does, so the
-      condition is met and this is the only task left open here. ⚠ Stage 2 keeping the name is
-      what made `annotation` the right word for the census's marks; if ANNOTATE moves, check
-      that pairing still holds.
+      once it builds intervals rather than prose runs, and on 2026-08-17 it does. ⚠ **The pairing check this
+      task called for came back BETTER, not neutral.** `annotation` was ruled in for two
+      reasons and only one was the stage name — the other, that an editorial MARK is what an
+      editor writes on a manuscript while the census's are mechanical observations, stands on
+      its own. And the rename ends a real collision: ANNOTATE named stage 2 while `annotate.py`
+      performs stage 3, so one word pointed at two stages.
 
 - [x] Re-measure the census afterwards and record it — ⚠ **measured 2026-08-17:**
       `census.py --json` over `census.py` is **177,615 bytes for 546 blocks**, against 36,777
