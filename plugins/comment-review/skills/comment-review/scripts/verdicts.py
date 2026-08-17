@@ -13,6 +13,7 @@ Checks the task agent was asked to perform by hand, every one mechanical:
                 line so the summary says which blocks are still out
   STANDS        blocks every reviewer that ran returned clean on
   WORK LIST     each block needing a ruling, with the verdicts held on it
+  CODE CONCERNS carried through, attributed, gated by nothing
   REVIEWER      (only with `--reviewers`) every expected reviewer actually reported
 
 ⚠ Exits nonzero on a coverage gap or an unverifiable citation.
@@ -66,6 +67,9 @@ RECORD = re.compile(r"^---\s*RECORD\s*$(.*?)^---\s*$", re.M | re.S)
 # fields silently overwrite the first's and a finding vanishes with no output.
 # Comparing this count against RECORD's match count is how that is caught.
 OPENER = re.compile(r"^---\s*RECORD\s*$", re.M)
+# The section `reviewer-brief.md` sends code problems to. Matched to the next
+# heading or the end, because it is the LAST section of a report by contract.
+CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S | re.I)
 FIELD = re.compile(
     r"^\s*(BLOCK|VERDICT|LOCATION|EVIDENCE|QUOTE|SUMMARY|FINDING|CHANGE)\s+(.*)$"
 )
@@ -97,8 +101,18 @@ MIN_NEEDLE = 1
 # "requires" / "resolves" / "determined by" was refused. `grep` is the one
 # deliberate exception, left unanchored on its left so "ripgrep" counts:
 # English words carry "ran" and "read" by accident, and "grep" they do not.
+#
+# ⚠⚠ The vocabulary is DERIVED from the verbs a reviewer is instructed in, never
+# invented. The brief and the four agent files say resolve, enumerate, verify,
+# list, trace, follow, compare, read, grep, count and open, so every one is here.
+# Measured: a run refused 65 of 65 module-context queries whose CHANGE read
+# "resolved the enclosing definition at ..." -- `resolve` was in QUERY_SETTLES
+# and missing here, so reports that were substantively complete were lexically
+# refused, and the only route through was to reword another agent's report.
 QUERY_ATTEMPTED = re.compile(
-    r"\bran\b|\bcheck\w*|grep\w*|\bread\w*|\bsearch\w*|\bopen\w*|\bcount\w*|\blook\w*",
+    r"\bran\b|\bcheck\w*|grep\w*|\bread\w*|\bsearch\w*|\bopen\w*|\bcount\w*"
+    r"|\blook\w*|\bresolv\w*|\benumerat\w*|\bverif\w*|\btrac(ed|ing|e)\b"
+    r"|\bfollow\w*|\bcompar\w*|\blisted\b|\binspect\w*",
     re.I,
 )
 QUERY_SETTLES = re.compile(
@@ -200,6 +214,31 @@ def parse_report(text: str, reviewer: str) -> list[Finding]:
         else:
             found.append(_malformed(reviewer, "a record with no BLOCK index"))
     return found
+
+
+def code_concerns(text: str) -> list[str]:
+    """The `CODE CONCERNS` lines a report carries, if it has the section.
+
+    ⚠ NOT a verdict and NOT gated. `reviewer-brief.md` sends a code problem here
+    -- "one line each ... with no verdict" -- because a reviewer that opens the
+    code to settle a comment will sometimes find the code wrong. Nothing here
+    reads them for admissibility; they are carried so they reach the author with
+    everything else, which is the half the brief could not do on its own.
+
+    Everything after the heading is taken, one finding per non-blank line, until
+    the next heading or the end.
+    """
+    m = CODE_CONCERNS.search(text)
+    if not m:
+        return []
+    out: list[str] = []
+    for line in m.group(1).splitlines():
+        line = line.strip().lstrip("-*+ ").strip()
+        if line.startswith("#"):
+            break
+        if line:
+            out.append(line)
+    return out
 
 
 def coverage_gaps(
@@ -438,6 +477,7 @@ def main() -> int:
 
     found: list[Finding] = []
     reported: set[str] = set()
+    concerns: list[tuple[str, str]] = []
     for raw in args.reports:
         path = Path(raw)
         reviewer = path.stem
@@ -450,6 +490,8 @@ def main() -> int:
             fatal += 1
             continue
         found.extend(parse_report(text, reviewer))
+        for line in code_concerns(text):
+            concerns.append((reviewer, line))
         reported.add(reviewer)
 
     print(
@@ -562,6 +604,15 @@ def main() -> int:
             )
             flag = "   ⚠ RE-REVIEW" if b in out_for_rereview else ""
             print(f"  {b:4d}  {marks}{flag}")
+
+    # ⚠ Printed whether or not the gate refuses, and counted toward nothing. A
+    # code problem is not a verdict, so it is neither admissible nor
+    # inadmissible -- but a run that stops at stage 5 must still carry it, or the
+    # defect dies with the refusal.
+    if concerns:
+        print(f"\nCODE CONCERNS — {_n(len(concerns), 'line')}, no verdict, not gated:")
+        for reviewer, line in concerns:
+            print(f"  {reviewer}: {line}")
 
     if fatal:
         print(f"\n{_n(fatal, 'problem')}. Resolve or send back before stage 5 rules.")

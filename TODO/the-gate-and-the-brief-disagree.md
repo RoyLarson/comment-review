@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks done
+Progress: 3 of 6 tasks done
 Owner:    session · Roy (2 rulings made, 1 left)
 Raised:   2026-08-15 (the vocabulary survey, which collected these while reading for terms)
 Re-filed: 2026-08-16 (Roy, on `query` needing EVIDENCE and QUOTE: "this is a TODO on
@@ -78,7 +78,17 @@ nothing reads.
       which `:539` prints as `MALFORMED {reviewer}: {finding}`. One field, two meanings,
       distinguished by a sentinel in another field.
 
-- [ ] **`CODE CONCERNS` is not parsed or gated at all** — zero occurrences in
+- [x] **`CODE CONCERNS` is not parsed or gated at all** — ⚠ **CARRIED, 2026-08-16.** Roy:
+      *"told you you can't stop coding agents from trying coding."* The first real run proved
+      it: block-context REPRODUCED a code defect (`complete --outcome "a | b"` writes a
+      malformed row) while opening the code to settle a comment. `verdicts.py` now parses the
+      section and echoes every line, attributed, **ungated** — they are not verdicts, so they
+      are neither admissible nor inadmissible, and they print whether or not the gate refuses.
+      ⚠ A run that stops at stage 5 must still carry them or the defect dies with the refusal.
+      Three tests, including one that they never enter the record parser: a code concern
+      counted as a finding would enter coverage arithmetic.
+
+- [ ] **[was: CODE CONCERNS is not parsed]** — zero occurrences in
       `sk-scripts/verdicts.py`. `ref/reviewer-brief.md` defines the section and tells reviewers
       what belongs in it; nothing reads it, so a reviewer that puts a comment finding there has
       hidden it from the join.

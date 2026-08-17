@@ -194,6 +194,23 @@ class TestQueryPayload(unittest.TestCase):
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
+    def test_the_attempted_vocabulary_covers_the_verbs_reviewers_are_given(self):
+        # A run refused 65 of 65 module-context queries reading "resolved the
+        # enclosing definition at ..." -- `resolve` was in QUERY_SETTLES and
+        # missing from ATTEMPTED. The list is derived from the brief and the
+        # agent files, so a reviewer using the word it was taught passes.
+        for verb in ("resolved", "enumerated", "verified", "traced", "compared"):
+            f = _finding(
+                verdict="query",
+                evidence="",
+                quote="",
+                change=(
+                    f"claim: x / {verb} the enclosing definition"
+                    " / would settle: another role"
+                ),
+            )
+            self.assertIsNone(verdicts.payload_problem(f), verb)
+
     def test_a_query_that_does_not_say_what_would_settle_it_is_rejected(self):
         f = _finding(
             verdict="query",
@@ -304,6 +321,40 @@ class TestQueryWordBoundary(unittest.TestCase):
             change="claim: x / locked the file / would need a second opinion",
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
+
+
+class TestCodeConcerns(unittest.TestCase):
+    """Carried, never gated. A reviewer WILL find code defects while opening the
+    code to settle a comment, and the brief gives them a place -- but nothing read
+    that place, so a reviewer following the rule was less visible than one
+    breaking it."""
+
+    REPORT = """--- RECORD
+BLOCK       1
+VERDICT     clean
+LOCATION    a.py:1
+FINDING     nothing to report from this role
+---
+
+## CODE CONCERNS
+
+- `complete --outcome "a | b"` writes a malformed row
+- `_ROW_FULL` accepts a row with no trailing pipe
+"""
+
+    def test_the_lines_are_carried(self):
+        self.assertEqual(len(verdicts.code_concerns(self.REPORT)), 2)
+        self.assertIn("malformed row", verdicts.code_concerns(self.REPORT)[0])
+
+    def test_a_report_without_the_section_carries_none(self):
+        self.assertEqual(verdicts.code_concerns(_clean_records(1)), [])
+
+    def test_they_are_not_findings(self):
+        # They carry no verdict, so they must never reach the record parser --
+        # a code concern counted as a finding would enter coverage arithmetic.
+        found = verdicts.parse_report(self.REPORT, "block-context")
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].verdict, "clean")
 
 
 class TestWorkList(unittest.TestCase):
