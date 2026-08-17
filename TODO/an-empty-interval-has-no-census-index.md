@@ -3,7 +3,7 @@
 ```
 Status:   open — the census change is DONE 2026-08-17; what is left is a NAMING
           ruling, which is Roy's
-Progress: 9 of 11 tasks done
+Progress: 10 of 11 tasks done
 Owner:    session · Roy (⭐ 1 ruling, deferred by him and now unblocked)
 Raised:   2026-08-15 (Roy ruled (a): every interval is a block, empty ones included)
 ```
@@ -86,7 +86,11 @@ vocabulary and is done; this is the census change that follows from it.
       is closed with it. An `add` cites the empty interval the prose belongs in; it no longer
       borrows a neighbour's index and no longer reads as being about that neighbour's text.
 
-- [ ] ⭐ **`pCST` and `prose tree` now name ONE thing, and only one should.** Before
+- [x] ⭐ **RULED 2026-08-17: `pCST` survives, `prose tree` retires.** Roy: *"pCST not prose
+      tree"*. The loser goes to the retired-words table in `docs/vocabulary.md` with its reason,
+      and every shipped use becomes `pCST`. ⚠ Carried out by group A.
+
+      Was: **`pCST` and `prose tree` now name ONE thing, and only one should.** Before
       2026-08-17 the two were distinguishable: the pCST was every interval as a node, and the
       prose tree was "what the census IS today", a node per comment run and per docstring. The
       census now builds the first, so the second's definition had to be rewritten into it.

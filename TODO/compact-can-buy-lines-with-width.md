@@ -60,7 +60,13 @@ part of it re-explains the whole."*
 
 ## Tasks
 
-- [ ] ⭐ Rule on whether stage 6 is bound by an OBSERVED wrap at all, or only by a published
+- [x] ⭐ **RULED 2026-08-17: WHICHEVER IS LESS.** Roy's words. Both the published width and the
+      observed wrap bind stage 6, and the tighter one wins. ⚠ That is what forbids the measured
+      trade: the repo published 104, the tree writes 76-80 over 144 lines, so 80 binds and the
+      98-column reflow is refused. ⚠ A block that cannot reach the cap under the tighter bound
+      is `compact.md`'s existing answer -- report it, name the owner, do not cut.
+
+      Was: Rule on whether stage 6 is bound by an OBSERVED wrap at all, or only by a published
       one. ⚠ Binding it to the observed wrap means a run can refuse to reach a published cap
       because of a habit nobody wrote down — which is a real cost, and it is the answer
       `compact.md` already gives for every other conflict: report the block, do not resolve it

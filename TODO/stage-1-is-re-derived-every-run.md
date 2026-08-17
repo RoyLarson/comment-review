@@ -113,7 +113,12 @@ all; it is whatever the structure sources say, computed at dispatch.
       all`) is written for LSP alone, and the third state — the tool is absent so no probe is
       possible — applies to CodeGraph identically.
 
-- [ ] Rule on WHERE a style sheet lives when the repo does not name one. Candidates: a
+- [x] ⭐ **RULED 2026-08-17: `.claude/comment-review/` in the repo under review.** Roy's words.
+      A per-repo location beside the other `.claude` configuration, so the sheet is found without
+      the human typing a path and travels with the repo it describes. ⚠ It is still written only
+      after approval, like everything else -- this does not make stage 1 a writing stage.
+
+      Was: Rule on WHERE a style sheet lives when the repo does not name one. Candidates: a
       conventional path the skill looks for, a path the human passes and the skill writes back
       to, or the skill continuing to hand the sheet over every run. ⚠ It writes to the repo only
       after approval, like everything else — this must not become a stage that writes before 7b.

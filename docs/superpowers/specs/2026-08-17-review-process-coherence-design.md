@@ -330,13 +330,16 @@ and needs A's model for its own block definition.
 fingerprint is not weakened. Both were presented with their recommendation and approved with
 their section, so they are decisions and not open questions.
 
-## Still Roy's to rule
+## Ruled 2026-08-17 — every gate closed
 
-- **A5** — `pCST` or `prose tree`; one name retires
-- **F2** — is stage 6 bound by an OBSERVED wrap or only a published one
-- **F3** — where a style sheet lives; whether CodeGraph becomes a structure source
-- **B** — the name of the file that owns the send-back, now that it is more than re-review
-- **E** — whether `CODE CONCERNS` widens to carry a systemic finding, or gets a sibling section
+- **A5** — **`pCST` survives; `prose tree` retires** to the retired-words table.
+- **B** — **`references/re-review.md`.** The term is already shipped; the file takes it.
+- **E** — a **sibling section, `REFERENCE CONCERNS`**. `CODE CONCERNS` does not widen: one is a
+  defect in the program, the other a defect in a document, and they reach different readers.
+- **F2** — **whichever is less.** Both the published width and the OBSERVED wrap bind stage 6,
+  and the tighter one wins. ⚠ That is what forbids the measured 98-column trade: the repo
+  published 104, the tree writes 76-80, so 80 binds.
+- **F3** — a style sheet lives at **`.claude/comment-review/`** in the repo under review.
 
 ## Not measured, and load-bearing
 

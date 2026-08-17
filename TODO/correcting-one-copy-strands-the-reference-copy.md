@@ -45,6 +45,15 @@ silently refuse. It **says so, and offers the human the one-line alternative** �
 or name another destination. ⚠ The difference here is timing: 1.4 settles at stage 1, and this
 cannot be known until stage 5, when the correction lands on a claim whose twin is out of scope.
 
+## ⭐ RULED 2026-08-17 — `REFERENCE CONCERNS`, a sibling to `CODE CONCERNS`
+
+Roy: *"Gets a sibling - REFERENCE CONCERNS"*. `CODE CONCERNS` does not widen to carry a defect
+in a document. One is a problem in the program and the other a problem in a document, and they
+reach different readers -- so they are two sections, each one line per entry and no verdict.
+
+⚠ It is also where a SYSTEMIC finding goes: 15 blocks citing `CLAUDE.md §N` where the scheme
+belongs to another file is one `REFERENCE CONCERNS` line, not thirty near-identical verdicts.
+
 ## Tasks
 
 - [ ] ⭐ Rule on what the run DOES, Roy having ruled that shipping the divergence is not it.

@@ -42,7 +42,11 @@ answer alone.
 
 ## Tasks
 
-- [ ] ⭐ Rule on whether this becomes `references/re-review.md`. Every other file in that
+- [x] ⭐ **RULED 2026-08-17: `references/re-review.md`.** Roy: *"Re-review authorized"*. The
+      term is already shipped -- ten sites order a re-review -- so the file takes the word that
+      exists rather than coining one for the wider job it now covers.
+
+      Was: Rule on whether this becomes `references/re-review.md`. Every other file in that
       directory owns one stage and carries an input contract and a return shape, which is what
       this now has. The alternative is a paragraph in `SKILL.md`'s stage 5. ⚠ It cannot stay
       unwritten: it ran on a procedure one session invented, and the next session will invent a
