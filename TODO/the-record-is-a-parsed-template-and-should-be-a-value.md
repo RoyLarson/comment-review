@@ -93,11 +93,28 @@ since it is a config format more than a storage format."*
 | | verdict |
 | --- | --- |
 | **TOML** | **wrong KIND of format.** `tomllib` is read-only BY DESIGN -- it is a config language, and a record is storage. ! That forecloses adding `tomli_w`: the objection is not that the stdlib cannot write it, it is that writing it was never the point of the format |
-| **YAML** | rejected. Roy: *"I really don't like yaml"* -- and it dropped an agent's entire metadata in this tree on 2026-08-17, silently, through every release to date |
+| **YAML** | **not in the stdlib at all** -- `yaml` and `ruamel.yaml` are both third party, so it fails the shipped-code rule before preference enters. ! It is also rejected on preference (Roy: *"I really don't like yaml"*) and on having dropped an agent's entire metadata in this tree on 2026-08-17, silently, through every release to date |
 | **JSON** | `json.dumps` is stdlib, and it round-tripped a block carrying emphasis, quotes, a tab, a backslash, a trailing brace and a blank line BYTE-IDENTICALLY. Measured 2026-08-17 |
 
-! The cost accepted with it: JSON escapes newlines, so a record is unreadable in a diff. **That
-is what the CLI is for** -- nobody reads or writes the encoding by hand.
+!! **JSON is not merely preferred: it is the only stdlib format that is both WRITABLE and SAFE
+to load from a file an agent produced.** The whole stdlib set, checked 2026-08-17 on the pinned
+3.11:
+
+| module | writes? | usable |
+| --- | --- | --- |
+| `json` | `dumps`/`dump` | **yes** |
+| `tomllib` | none | read-only by design |
+| `configparser`, `csv` | no nesting or flat only | no |
+| `plistlib` | `dumps`/`dump` | technically -- an Apple XML format no reader here would recognise |
+| `pickle` | `dumps`/`dump` | **NO -- it executes arbitrary code on load** |
+| `marshal` | `dumps`/`dump` | no -- internal, version-unstable, documented as not for general data |
+
+! **`pickle` is the trap worth naming.** It is stdlib, it round-trips anything, and loading it
+from a file an AGENT wrote would put arbitrary code execution inside a review tool.
+
+! The cost accepted with JSON: it escapes newlines, so a record is unreadable in a diff, and it
+carries no comments. **That is what the CLI is for** -- nobody reads or writes the encoding by
+hand.
 
 ## !! Timing
 
