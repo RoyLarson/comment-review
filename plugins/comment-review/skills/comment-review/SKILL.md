@@ -70,8 +70,6 @@ enforce it at stage 5 by refusing a verdict that arrives without one.
 every docstring in the files under review, each one a NODE attached to the declaration it
 annotates, with every reference it makes already resolved. What follows from that shape:
 
-- **coverage is a COMPLETE READ.** You read every node or you did not — *"a block nobody
-  mentioned is a gap in the review, not a block that passed"*.
 - **the annotations are attached to a node**, so a reviewer receives resolved references instead
   of re-deriving them.
 - **the edits are applied to NODES**, so *"never change a line of code"* holds by construction,
