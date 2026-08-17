@@ -1,6 +1,6 @@
 {
   "name": "comment-review",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Review the comments and docstrings in the files a change touched, across four editorial roles -- ownership-context, block-context, function-context, module-context -- as parallel read-only agents over one prose tree. Returns a verdict per finding for the human to approve, then applies them and proves the executable code byte-identical.",
   "author": {
     "name": "Roy"

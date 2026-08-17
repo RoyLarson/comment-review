@@ -77,6 +77,73 @@ and rust (`startraders`, 2026-08-17).
 ## [Unreleased]
 
 
+## [0.2.2] -- 2026-08-17
+
+**0.2.1 is broken and stays broken.** Its tag is not moved: another session had already pinned
+an evidence package to it, and a tag someone has measured against is a fact about that
+measurement. Roy: *"0.2.1 is broken - it is what it is including a broken tag."*
+
+### The frontmatter never parsed
+
+!! **`claude plugin validate` refuses two shipped files, and has since at least v0.2.0.**
+`SKILL.md` loaded with EMPTY metadata; `comment-review-block-context.md` loaded with its name
+taken from the filename and every other field dropped -- including the description, which is the
+text telling a model when to reach for that reviewer. **The symptom was visible in every session
+and unread**: that agent showed as *"Agent from comment-review plugin"* in the registry while the
+other five showed their own.
+
+The cause is a `: ` inside an unquoted value. YAML ends a plain scalar at colon-space, so
+`three kinds of claim: state ...` is a parse error rather than a string. Confirmed against the
+real validator with eight one-construct probes -- `?`, `"`, `--` and `()` mid-value all parse;
+colon-space does not, in any position. The five agents that parse hold no internal colon-space;
+the one that failed held two. `tests/test_frontmatter.py` is the gate, over every shipped file
+with a frontmatter fence.
+
+! **No test replaces `claude plugin validate`**, and CLAUDE.md now puts it in the release gate:
+it is the parser the runtime uses. The new test gates the one cause that is known; the validator
+is what finds the next one.
+
+### The plugin states its own version
+
+`plugin.json` carries `version`, and `tests/test_release.py` holds all three copies equal --
+`pyproject.toml`, the newest heading here, and the manifest. See the note at the top of this
+file for what it cost to lack it.
+
+### Fixed -- the join
+
+- **A malformed `SOURCES` citation was glued onto the entry above it.** `CITE` fails on
+  `b.py | text` exactly as it fails on a wrapped verbatim tail, so the bad line joined the good
+  entry's needle; that entry then failed its own lookup and the tool **reported the error against
+  a CORRECT citation while never naming the broken one**. `PATHISH` splits the two on whitespace,
+  which a PEP 604 union in a cited line (`-> str | None:`) does not survive.
+- **Brackets defeated the CLAIM-covers-CHANGE check.** `_words` stripped sentence punctuation and
+  not `()[]{}`, so a `CLAIM` naming `the CLI` could not cover a `CHANGE` editing `the CLI)`. The
+  only way through was to quote the bracket inside the claim -- arbitrary from a reviewer's side,
+  because the same phrase ending a sentence works.
+- **The WORK LIST is printed on a refusal**, labelled PROVISIONAL, where it used to be withheld.
+  The reasoning for withholding stands and is now in the heading; what it cost was the run's only
+  readable summary, exactly while someone iterates on refusals. Measured: five joins over one
+  report set printed it once, on the fifth.
+- `verdicts.py` gained the `sys.path` shim its three sibling importers carry. Invisible from the
+  documented invocation, because a script's own directory is already on the path.
+- `546 blocks, 48 prose` was stale and written in TWO places with nothing comparing them.
+  Re-measured 2026-08-17: **642 and 76**, corrected here and in `SKILL.md`.
+
+### Fixed -- the brief
+
+- !! **"A blank line ends it" was never what the parser did.** The brief taught the rule whose
+  opposite was 0.2.0's worst defect. A field ends at the next LABEL; a blank line is content.
+  Every run since 0.2.0 was written under a constraint the code did not have.
+- The brief now says that **N records on one block each read oddly alone, and that this is the
+  format working.** A reviewer merged three coordinated edits twice trying to keep a paragraph
+  readable, and was correctly refused both times.
+
+### Fixed -- prose the ASCII sweep falsified
+
+Four sites claimed a character the sweep had removed, including one comment that had the
+character it was explaining swept out from under it. ! One `!!` survived the sweep entirely, in a
+file that was untracked when it ran -- the sweep walks `git ls-files`.
+
 ## [0.2.1] -- 2026-08-17
 
 A bugfix release. **`0.3.0`'s gate is untouched by it** -- nothing here was measured against a
