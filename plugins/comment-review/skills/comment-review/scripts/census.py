@@ -460,7 +460,12 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             after = (
                 tail[tail.index(opened[1]) + len(opened[1]) :] if closes_here else ""
             )
-            cut = opens_at if closes_here and not after.strip() else 0
+            # ⚠ The ONE shape that must not cut is code AFTER the closer on this
+            # same line. When the run continues to the next line, everything
+            # from the opener onward is comment, so a multi-line block opening
+            # after a statement cuts too — without it the block's text read
+            # `int b = 2; /* opens ...`, the statement handed over as prose.
+            cut = 0 if (closes_here and after.strip()) else opens_at
             run.append((n, raw_line[cut:].rstrip()))
             if closes_here:
                 # ⚠ Code BEFORE the opener makes it a trailing comment, which is
@@ -776,16 +781,28 @@ def code_lines(text: str, prose: list[Block]) -> set[int]:
     run over a census that already holds intervals.
     """
     passes_through = ("trailing-comment", "interval")
+    lines = text.splitlines()
     occupied: set[int] = set()
     for b in prose:
         if b.kind in passes_through:
             continue
         occupied.update(range(b.start, b.end + 1))
-    return {
-        n
-        for n, ln in enumerate(text.splitlines(), 1)
-        if ln.strip() and n not in occupied
-    }
+        # ⚠⚠ A block's FIRST line is NOT occupied when code precedes its opener.
+        # A multi-line block comment opening after a statement --
+        # `int b = 2; /* opens` -- spans from that line, and taking the whole
+        # span dropped the statement from the code set, moving every interval
+        # boundary below it. Decided by SUFFIX, the same way `prove_unchanged`
+        # decides a line keeps its code prefix: the block stores from the
+        # opener, so its stored text is a proper tail of the physical line
+        # exactly when something real comes before it.
+        if b.raw_lines and 1 <= b.start <= len(lines):
+            physical = lines[b.start - 1].rstrip()
+            stored = b.raw_lines[0]
+            prefix = physical[: len(physical) - len(stored)]
+            if stored and physical != stored and physical.endswith(stored):
+                if prefix.strip():
+                    occupied.discard(b.start)
+    return {n for n, ln in enumerate(lines, 1) if ln.strip() and n not in occupied}
 
 
 def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:

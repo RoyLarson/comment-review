@@ -8,6 +8,7 @@ from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS
 import census
+import prove_unchanged as pu
 
 
 def blocks_for(name):
@@ -259,5 +260,77 @@ class TestTheLexicalTierStampsToo(unittest.TestCase):
 # the ones someone running a single file was iterating on. Measured
 # 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
 # test_vocabulary.py.
+class TestABlockCommentBesideCode(unittest.TestCase):
+    """Four shapes, and each one was wrong in a different way.
+
+    ⚠⚠ The rule: everything from the opener onward is comment, EXCEPT when the
+    comment closes on the same line with code after it. That one line cannot be
+    split into code and prose without losing half of it, so the census keeps it
+    whole and `prove_unchanged` refuses the file -- the safe answer for a proof.
+    """
+
+    def _read(self, body):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "x.c"
+            p.write_text(body, encoding="utf-8")
+            blocks = census.blocks_lexical(p, body, census.language_for(p))
+            prose = [b for b in blocks if b.text.strip()]
+            return prose, sorted(census.code_lines(body, blocks))
+
+    def test_a_comment_to_END_OF_LINE_leaves_its_statement_as_code(self):
+        prose, code = self._read("int a = 1;\nint b = 2; /* note */\nint c = 3;\n")
+        self.assertEqual(code, [1, 2, 3])
+        self.assertEqual(prose[0].kind, "trailing-comment")
+        self.assertNotIn("int b", prose[0].text)
+
+    def test_a_MULTILINE_comment_after_code_leaves_its_statement_as_code(self):
+        # ⚠ The residual case. The block spans from the line holding the
+        # statement, and taking that whole span dropped the statement from the
+        # code set -- moving every interval boundary below it -- while its text
+        # read `int b = 2; /* opens ...`, the statement handed over as prose.
+        prose, code = self._read(
+            "int a = 1;\nint b = 2; /* opens\n   and closes */\nint c = 3;\n"
+        )
+        self.assertEqual(code, [1, 2, 4])
+        self.assertEqual((prose[0].start, prose[0].end), (2, 3))
+        self.assertNotIn("int b", prose[0].text)
+
+    def test_a_comment_on_its_own_lines_occupies_them(self):
+        prose, code = self._read("int a = 1;\n/* opens\n   closes */\nint b = 2;\n")
+        self.assertEqual(code, [1, 4])
+        self.assertNotIn("int", prose[0].text)
+
+    def test_code_on_BOTH_sides_is_kept_whole_and_refused(self):
+        # ⚠⚠ Cutting at the opener here loses the trailing `5;`, so `5` and `7`
+        # compare EQUAL and the proof reports PROVEN on changed code. The line
+        # stays whole so `prove_unchanged` can refuse it instead.
+        prose, _ = self._read("int x = /* why */ 5;\nint y = 6;\n")
+        self.assertIn("int x", prose[0].text)
+
+
+class TestTheProofFollowsTheBlocks(unittest.TestCase):
+    """`prove_unchanged` must agree with the census about what is code."""
+
+    C = "int a = 1;\nint b = 2; /* opens\n   and closes */\nint c = 3;\n"
+
+    def test_the_statement_survives_into_the_fingerprint(self):
+        _, code = pu.code_fingerprint(self.C, Path("x.c"))
+        self.assertIn("int b = 2;", code)
+
+    def test_a_code_change_on_that_line_is_caught(self):
+        changed = self.C.replace("int b = 2;", "int b = 9;")
+        self.assertNotEqual(
+            pu.code_fingerprint(self.C, Path("x.c")),
+            pu.code_fingerprint(changed, Path("x.c")),
+        )
+
+    def test_a_prose_only_edit_on_that_line_proves_identical(self):
+        reworded = self.C.replace("opens", "OPENS").replace("closes", "CLOSES")
+        self.assertEqual(
+            pu.code_fingerprint(self.C, Path("x.c")),
+            pu.code_fingerprint(reworded, Path("x.c")),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
