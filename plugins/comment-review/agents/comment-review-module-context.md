@@ -91,8 +91,8 @@ standing.
 ⚠ **Restatement is evidence the rule is REAL** — N authors independently felt they had to say
 it. Treat a heavily restated rule as load-bearing until shown otherwise, never as noise.
 
-⚠ **Where the copies exist because the claim is in the wrong place rather than because no
-function owns the rule, it is `ownership-context`'s** — the split is in `reviewer-brief.md`.
+⚠ **Your finding is that no function OWNS the rule.** Copies that exist because the claim
+sits in the wrong place are a placement question, and outside your remit.
 
 ## ⚠⚠ Most of the census you are handed is not yours, and that is a trap
 

@@ -110,9 +110,8 @@ Read them as a sequence. A comment that describes a step the body performs later
 still describes a step an edit moved above it, is `move` — the claim is true and belongs
 to a different line in this function.
 
-⚠ **File it whatever `ownership-context` may find; it is the same block, ruled on twice.** Your
-`move` names a line inside this function; where that role places the block differently, report
-YOURS — resolving the disagreement is the task agent's, not yours.
+⚠ **File it regardless.** Your `move` names a line inside this function. Report yours; the
+synthesis resolves any disagreement, and withholding a finding to avoid one loses it.
 
 ## What your `clean` asserts
 

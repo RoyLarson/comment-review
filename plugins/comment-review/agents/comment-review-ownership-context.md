@@ -22,10 +22,10 @@ against the function, or against the module. A comment can be true, current, and
 subject, and still be in the wrong place — and where another role also places it,
 report YOURS; resolving the disagreement is the task agent's, not yours.
 
-## ⚠⚠ You run BEFORE the other three, and this is why
+## ⚠⚠ You are read FIRST, and this is why
 
-`block-context`, `function-context` and `module-context` each check a claim against the code
-at their scope. A claim attached to the wrong scope gets measured against the wrong code — a
+Every other role checks a claim against the code at its own scope. A claim attached to the
+wrong scope gets measured against the wrong code — a
 comment about `parse()` sitting above `render()` is checked against `render()`, found false,
 and CORRECTED into a falsehood. Your verdict decides which code the other three read.
 
@@ -60,9 +60,8 @@ several sites, name which site OWNS it — the anchor that ENFORCES the claim, o
 expected to hold it where nothing enforces it — and `drop` the rest, or `move` the claim
 there.
 
-⚠ **This is not `module-context`'s restatement rule** — see the split in `reviewer-brief.md`.
-You decide where a claim lives; that role decides whether the CODE is missing a function to
-hold it. If the copies exist because no function owns the rule, it is theirs, not yours.
+⚠ **You decide where a claim LIVES.** Whether the CODE is missing a function to hold the rule
+is a different question and outside your remit; those copies are not yours.
 
 ## ⚠⚠ Ownership-Context is a PRESERVATION property — so a misplaced rule is `move`, never `drop`
 
