@@ -59,8 +59,7 @@ does not count.
 BLOCK       17
 VERDICT     correct
 LOCATION    redacted_pkg/billing/rates.py:342-347
-EVIDENCE    redacted_pkg/billing/rates.py:355
-QUOTE       def compute_rates(plan, period, *, clamp=True):
+SOURCE      redacted_pkg/billing/rates.py:355 | def compute_rates(plan, period, *, clamp=True):
 CLAIM       "kept because twenty call sites want this"
 REASON      31 callers and every one is under tests/, so the count is stale
 CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tests/"
@@ -72,23 +71,22 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `BLOCK` | the census INDEX. This is how coverage is checked; a finding without it is unattributable |
 | `VERDICT` | one of the seven |
 | `LOCATION` | `file:start-end` of the prose |
-| `EVIDENCE` | where you looked to settle the claim — **verified to exist**. One or more `file:line` or `file:start-end` citations, **comma-separated**. EVERY one is resolved; a bare filename with no line is refused |
-| `QUOTE` | the text at that line, **VERBATIM** |
+| `SOURCE` | where you looked, as `file:line | verbatim` — the citation and the text AT it, both verbatim. **Repeat the line, one per place examined.** EVERY one is resolved and every verbatim half must be there |
 | `CLAIM` | the sentence as the PROSE writes it, quoted |
 | `REASON` | what you DERIVED from the source, and why the claim is wrong — one statement |
 | `CHANGE` | the payload the verdict table requires |
 
-⚠⚠ **`QUOTE` is the forcing function, and it is CHECKED.** The cited line is read
-out of the file and your `QUOTE` must appear within three lines of it.
+⚠⚠ **`SOURCE`'s verbatim half is the forcing function, and it is CHECKED.** The cited line is
+read out of the file and your text must appear within three lines of it.
 
 ⚠ **Cite every site you had to open.** A claim often needs two to settle — the definition and
 its callers — and citing one means dropping the other, which is the cut-the-provenance failure
-this system exists to catch. All of them are resolved; the `QUOTE` has to sit near **one**, the
-site that settles it. ⚠ Each citation carries a LINE. A bare filename says you opened a file and
-not what you read in it, and it is refused.
+this system exists to catch. ⚠⚠ EVERY one is resolved AND every verbatim half must be there:
+a `SOURCE` is one statement about one place, so each is checked on its own. ⚠ Each carries a
+LINE. A bare filename says you opened a file and not what you read in it, and it is refused.
 
 ⚠ **`REASON` is DERIVED, and is not checked verbatim** — that is why it is a separate field
-from `QUOTE`. A count is not a line any file contains, so checking the derived statement against
+from `SOURCE`. A count is not a line any file contains, so checking the derived statement against
 the code made every counted claim inadmissible. ⚠ `CLAIM` and `REASON` were one field split by
 `||`; a checker cannot verify both halves of one field, so they are two.
 
@@ -180,7 +178,7 @@ tell them apart if you do not say which:
 ⚠ **A claim you could not settle and marked `clean` is worse than the same claim marked
 `query`.** `clean` certifies; `query` asks.
 
-⚠ **A `query` requires `EVIDENCE` and `QUOTE`(s), by construction** — this is where you
+⚠ **A `query` requires `SOURCE`(s), by construction** — this is where you
 looked to try to find the answer. These are the statements in the code that make it
 ambiguous or the location not yours to determine. **All three shapes carry them**, including
 `outside my role`: the block is real and in the checkout on every one of them, so there is

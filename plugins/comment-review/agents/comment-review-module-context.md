@@ -91,7 +91,7 @@ converts an observation nobody can act on into a writable `add` with a destinati
 
 ⚠⚠ **A rule restated N times is at N× the risk of being deleted ENTIRELY** — the opposite of how
 redundancy feels. Each copy is individually redundant, so a trimming pass removes each on its
-own merits and the rule ends up stated nowhere. ⚠ **The copy carrying the EVIDENCE goes
+own merits and the rule ends up stated nowhere. ⚠ **The copy carrying the CITATIONS goes
 first** — it is the longest, so a trimming pass cuts it and leaves the bare assertions
 standing.
 

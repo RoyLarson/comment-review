@@ -5,7 +5,7 @@
 Checks the task agent was asked to perform by hand, every one mechanical:
 
   COVERAGE      every census index accounted for, by every reviewer that ran
-  EVIDENCE      each finding's citation resolves, and the QUOTE is really there
+  SOURCE        every citation resolves, and its verbatim half is really there
   LOCATION      the prose citation resolves too -- checked the same way
   PAYLOAD       the verdict carries what its row of the table requires
   CONTRADICTION `drop` against `correct`/`patch` ON THE SAME SENTENCE -- a
@@ -27,7 +27,7 @@ SKILL.md's synthesis order.
 ⚠ Every block is accounted for by a RECORD, `clean` included. A `clean` record
 carries a BLOCK, a VERDICT and a LOCATION, and the LOCATION resolves against the
 tree, so covering N blocks costs N records that each name a real prose range. A
-`clean` record carries no QUOTE, so it stops short of proof the file was read:
+`clean` record carries no SOURCE, so it stops short of proof the file was read:
 grade a run from its DIFF, and not from this exit code.
 
 ⚠ `--reviewers` is OPTIONAL, and its absence is ANNOUNCED: without it, a
@@ -87,10 +87,8 @@ OPENER = re.compile(r"^---\s*RECORD\s*$", re.M)
 # The section `reviewer-brief.md` sends code problems to. Matched to the next
 # heading or the end, because it is the LAST section of a report by contract.
 CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S | re.I)
-FIELD = re.compile(
-    r"^\s*(BLOCK|VERDICT|LOCATION|EVIDENCE|QUOTE|CLAIM|REASON|CHANGE)\s+(.*)$"
-)
-# `file:line` or `file:start-end`, shared by EVIDENCE and LOCATION -- a
+FIELD = re.compile(r"^\s*(BLOCK|VERDICT|LOCATION|SOURCE|CLAIM|REASON|CHANGE)\s+(.*)$")
+# `file:line` or `file:start-end`, shared by SOURCE and LOCATION -- a
 # fabricated prose location is exactly as inadmissible as a fabricated
 # citation once both are resolved the same way.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
@@ -98,11 +96,11 @@ CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 # How far from the cited line the quoted text may sit. Prose wraps and code
 # moves; a hard equality would reject honest citations, and a wide window would
 # accept a fabricated one.
-EVIDENCE_WINDOW = 3
+SOURCE_WINDOW = 3
 
-# The floor on a QUOTE, and it is ONE: a zero-length quote is not a quote. It was
-# 12, which refused `x = 1`, `pass` and `return` -- real short lines whose only
-# route through was to quote MORE than was read.
+# The floor on a SOURCE's verbatim half, and it is ONE: zero length is not text.
+# It was 12, which refused `x = 1`, `pass` and `return` -- real short lines whose
+# only route through was to quote MORE than was read.
 MIN_NEEDLE = 1
 
 # What an `add`'s PAYLOAD must carry: a SIDE, and the anchor NAMED.
@@ -117,8 +115,8 @@ ANCHOR_NAME = re.compile(r"`[^`\s][^`]*`")
 # that would settle the claim.
 #
 # ⚠ A SHAPE check: it removes the query that names no check at all, and the
-# word "grepped" passes it. A query owes EVIDENCE and a QUOTE on top of this --
-# `evidence_problem` exempts `clean` alone.
+# word "grepped" passes it. A query owes a SOURCE on top of this --
+# `source_problem` exempts `clean` alone.
 #
 # Matched on WORD BOUNDARIES. As substrings, "ran" hit *b**ran**ch*,
 # *****ran***ge* and *t**ran**sfer*, and "settle" hit *un**settle**d*, so
@@ -150,8 +148,10 @@ QUERY_SETTLES = re.compile(
 class Finding:
     """One reviewer's ruling on one census block.
 
-    Field order follows the record in `reviewer-brief.md`. `quote` is the
-    VERBATIM text at `evidence`.
+    Field order follows the record in `reviewer-brief.md`. `sources` holds one
+    entry per place examined, each `file:line | verbatim` -- BOTH halves
+    verbatim, which is why they are one field where `claim` and `reason` are
+    two.
 
     ⚠ `claim` is the sentence as the PROSE writes it; `reason` is what the
     reviewer DERIVED from the source and why the claim is wrong. They were one
@@ -164,8 +164,7 @@ class Finding:
     block: int
     verdict: str
     location: str
-    evidence: str
-    quote: str
+    sources: list[str]
     claim: str
     reason: str
     change: str
@@ -208,9 +207,17 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
         )
     for body in bodies:
         fields: dict[str, str] = {}
+        # ⚠ SOURCE ACCUMULATES where every other field overwrites: a finding may
+        # cite several places, one line each, and repeating the line avoids a
+        # separator that verbatim text could contain.
+        sources: list[str] = []
         for line in body.splitlines():
             m = FIELD.match(line)
-            if m:
+            if not m:
+                continue
+            if m.group(1) == "SOURCE":
+                sources.append(m.group(2).strip())
+            else:
                 fields[m.group(1)] = m.group(2).strip()
         raw_block = fields.get("BLOCK", "")
         if raw_block.isdecimal():
@@ -220,8 +227,7 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
                     block=int(raw_block),
                     verdict=fields.get("VERDICT", "").strip().lower(),
                     location=fields.get("LOCATION", ""),
-                    evidence=fields.get("EVIDENCE", ""),
-                    quote=fields.get("QUOTE", ""),
+                    sources=sources,
                     claim=fields.get("CLAIM", ""),
                     reason=fields.get("REASON", ""),
                     change=fields.get("CHANGE", ""),
@@ -334,15 +340,14 @@ def payload_problem(f: Finding) -> str | None:
 def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | str:
     """Resolve ONE `file:line` or `file:start-end` citation, or say why not.
 
-    Shared by EVIDENCE and LOCATION: both are inadmissible on exactly the same
+    Shared by SOURCE and LOCATION: both are inadmissible on exactly the same
     grounds -- an unparseable citation, a missing file, or a line number past
     the end of it (or below 1, which is off every file).
 
-    ⚠ It resolves a SINGLE citation. `evidence_problem` splits its field on
-    commas and calls this per citation, because the brief asks for
-    "`file(s):line(s)`" and a claim often needs two sites to settle.
+    ⚠ It resolves a SINGLE citation. `source_problem` calls it once per SOURCE
+    line, because a claim often needs two sites to settle.
 
-    ⚠ An `allow_range` flag held EVIDENCE to `file:line` and refused
+    ⚠ An `allow_range` flag held the citation to `file:line` and refused
     `file:start-end`. It stated no reason, and Roy removed it 2026-08-17: a
     range is where the reviewer looked, same as a line.
 
@@ -375,24 +380,25 @@ def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | 
     return target, start, end, lines
 
 
-def evidence_problem(f: Finding, repo: Path) -> str | None:
+def source_problem(f: Finding, repo: Path) -> str | None:
     """Why this finding's citation cannot be trusted, or None.
 
-    Reads the cited line out of the file and looks for the QUOTE within a few
-    lines of it. A finding whose quote is absent from the file it cites is a
-    finding the file did not supply — a report is evidence of nothing on its own.
+    Reads each cited line out of the file and looks for that SOURCE's verbatim
+    half within a few lines of it. A finding whose text is absent from the file
+    it cites is a finding the file did not supply — a report is evidence of
+    nothing on its own.
 
-    ⚠ The only floor is `MIN_NEEDLE`, which is ONE. What binds is that the quote
-    be THERE: a short needle absent from the file is refused like any other.
+    ⚠ The only floor is `MIN_NEEDLE`, which is ONE. What binds is PRESENCE: a
+    short needle absent from the file is refused like any other.
 
-    ⚠ QUOTE is checked and `REASON` is not. `REASON` is the DERIVED statement —
+    ⚠ SOURCE is checked and `REASON` is not. `REASON` is the DERIVED statement —
     *"31 callers, all under tests/"* — which is the reviewer's own sentence, so
     checking it against the tree made every counted claim structurally
     inadmissible. The forcing function lands on the field that is verbatim.
 
     ⚠⚠ `query` is NOT exempt. `reviewer-brief.md` has always said a query
-    "requires `EVIDENCE` and `QUOTE`(s), by construction -- this is where you
-    looked", and this script waived both; Roy ruled the brief right on
+    "requires `SOURCE`(s), by construction -- this is where you looked", and
+    this script waived it; Roy ruled the brief right on
     2026-08-16. Where you looked is a real line in the checkout on all three
     query shapes, so it resolves like any other citation. Only `clean` is
     exempt, because a `clean` reports no claim to cite.
@@ -408,38 +414,32 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     """
     if f.verdict == "clean":
         return None
-    cites = [c.strip() for c in f.evidence.split(",") if c.strip()]
-    if not cites:
-        return "EVIDENCE is empty — a finding cites where it looked"
-    windows: list[tuple[str, int, list[str]]] = []
-    for cite in cites:
-        resolved = _resolve_lines(cite, repo)
+    if not f.sources:
+        return "no SOURCE — a finding cites where it looked"
+    for source in f.sources:
+        cite, sep, verbatim = source.partition("|")
+        if not sep:
+            return f"SOURCE {source!r} has no `|` — it is `file:line | verbatim`"
+        resolved = _resolve_lines(cite.strip(), repo)
         if isinstance(resolved, str):
-            return f"EVIDENCE {resolved}"
+            return f"SOURCE {resolved}"
         _target, lineno, _end, lines = resolved
-        windows.append((cite, lineno, lines))
-    needle = " ".join(f.quote.split()).strip().strip('"')
-    if len(needle) < MIN_NEEDLE:
-        return f"no QUOTE — nothing was read out of {f.evidence}"
-    # ⚠ The QUOTE has to sit near ONE of them, not all: a claim settled by two
-    # sites quotes the line that settles it, and the other citation is where the
-    # reviewer also looked. Requiring it at every site would refuse the very
-    # multi-citation finding this widening exists to admit.
-    head = needle[:40]
-    for _cite, lineno, lines in windows:
-        lo = max(0, lineno - 1 - EVIDENCE_WINDOW)
+        needle = " ".join(verbatim.split()).strip().strip('"')
+        if len(needle) < MIN_NEEDLE:
+            return f"SOURCE {cite.strip()} carries no verbatim half"
+        lo = max(0, lineno - 1 - SOURCE_WINDOW)
         window = " ".join(
-            " ".join(ln.split()) for ln in lines[lo : lineno + EVIDENCE_WINDOW]
+            " ".join(ln.split()) for ln in lines[lo : lineno + SOURCE_WINDOW]
         )
-        if head.lower() in window.lower():
-            return None
-    return f"QUOTE not found near any of {f.evidence}: {head!r}"
+        if needle[:40].lower() not in window.lower():
+            return f"SOURCE not found near {cite.strip()}: {needle[:40]!r}"
+    return None
 
 
 def location_problem(f: Finding, repo: Path) -> str | None:
     """Why this finding's LOCATION cannot be trusted, or None.
 
-    Checked with the same `file:line` resolution as EVIDENCE, so a fabricated
+    Checked with the same `file:line` resolution as a SOURCE, so a fabricated
     prose location is as inadmissible as a fabricated citation.
     """
     if f.verdict == "clean":
@@ -680,7 +680,7 @@ def main() -> int:
                 f" ({', '.join(VERDICTS)})"
             )
             fatal += 1
-        problem = evidence_problem(f, repo)
+        problem = source_problem(f, repo)
         if problem:
             print(f"  BLOCK {f.block} {f.reviewer}: {problem}")
             fatal += 1

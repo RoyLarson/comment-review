@@ -22,8 +22,7 @@ Some preamble the tool ignores.
 BLOCK       1
 VERDICT     correct
 LOCATION    a.py:1-2
-EVIDENCE    a.py:5
-QUOTE       the settling line
+SOURCE      a.py:5 | the settling line
 CLAIM       "only one caller"
 REASON      three callers here, so the count is wrong
 CHANGE      false: "only one caller" / true: "three callers"
@@ -68,8 +67,7 @@ def _finding(**kw):
         "block": 1,
         "verdict": "correct",
         "location": "a.py:1",
-        "evidence": "a.py:5",
-        "quote": "the settling line",
+        "sources": ["a.py:5 | the settling line"],
         "claim": '"x"',
         "reason": "three callers, all under tests/, so the count is stale",
         "change": 'false: "a" / true: "b"',
@@ -84,8 +82,7 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(len(found), 2)
         self.assertEqual(found[0].block, 1)
         self.assertEqual(found[0].verdict, "correct")
-        self.assertEqual(found[0].evidence, "a.py:5")
-        self.assertEqual(found[0].quote, "the settling line")
+        self.assertEqual(found[0].sources, ["a.py:5 | the settling line"])
 
     def test_a_clean_record_parses_like_any_other(self):
         found, _ = verdicts.parse_report(REPORT, "block-context")
@@ -112,7 +109,7 @@ class TestParsing(unittest.TestCase):
 BLOCK       1
 VERDICT     correct
 LOCATION    a.py:1
-EVIDENCE    a.py:1
+SOURCE      a.py:1 | one
 CLAIM       "x"
 REASON      first record, never closed
 
@@ -120,7 +117,7 @@ REASON      first record, never closed
 BLOCK       2
 VERDICT     correct
 LOCATION    a.py:1
-EVIDENCE    a.py:1
+SOURCE      a.py:1 | one
 CLAIM       "x"
 REASON      second record, closed
 CHANGE      false: "x" / true: "y"
@@ -362,7 +359,7 @@ class TestScopeDeclaration(unittest.TestCase):
     """
 
     def _q(self, change):
-        return _finding(verdict="query", evidence="", quote="", change=change)
+        return _finding(verdict="query", sources=[], change=change)
 
     def test_an_out_of_role_query_declares_scope(self):
         f = self._q("claim: x / outside my role, resolved the enclosing def")
@@ -570,116 +567,16 @@ class TestContradiction(unittest.TestCase):
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
 
-class TestEvidence(unittest.TestCase):
-    def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.repo = Path(self.tmp.name)
-        (self.repo / "a.py").write_text(
-            "one\ntwo\nthree\nfour\nthe settling line\nsix\n"
-        )
+class TestSource(unittest.TestCase):
+    """`EVIDENCE` and `QUOTE` merged into `SOURCE` as `file:line | verbatim`.
 
-    def tearDown(self):
-        self.tmp.cleanup()
+    They were ONE field until a split, because the old `SUMMARY` mixed verbatim
+    with derived text and a checker cannot verify both in one field. SOURCE's
+    two halves are both VERBATIM, so the merge does not recreate that.
 
-    def test_a_resolvable_citation_passes(self):
-        self.assertIsNone(verdicts.evidence_problem(_finding(), self.repo))
-
-    def test_a_missing_file_is_caught(self):
-        f = _finding(evidence="gone.py:5")
-        self.assertIn("does not resolve", verdicts.evidence_problem(f, self.repo))
-
-    def test_a_line_past_the_end_is_caught(self):
-        f = _finding(evidence="a.py:900")
-        self.assertIn("900", verdicts.evidence_problem(f, self.repo))
-
-    def test_a_quote_that_is_not_there_is_caught(self):
-        f = _finding(quote="a line that appears nowhere at all")
-        self.assertIn("not found near", verdicts.evidence_problem(f, self.repo))
-
-    def test_a_short_quote_that_is_THERE_is_accepted(self):
-        # The 12-character floor refused `x = 1`, `pass` and `return` -- real
-        # short lines. Roy dropped it from the brief and the gate follows. What
-        # binds is PRESENCE, which the next test holds.
-        self.assertIsNone(verdicts.evidence_problem(_finding(quote="line"), self.repo))
-
-    def test_a_short_quote_that_is_ABSENT_is_still_rejected(self):
-        # The risk of dropping the floor: a short needle matches by accident.
-        # It does not -- absence is what the check is for.
-        problem = verdicts.evidence_problem(_finding(quote="zzz"), self.repo)
-        self.assertIn("not found near", problem)
-
-    def test_a_missing_quote_is_rejected(self):
-        # C2: QUOTE carries the verbatim text and is what the window is
-        # checked against. A record without one read nothing off the line.
-        f = _finding(quote="")
-        problem = verdicts.evidence_problem(f, self.repo)
-        self.assertIsNotNone(problem)
-        self.assertIn("no QUOTE", problem)
-
-    def test_a_derived_REASON_is_not_checked_verbatim(self):
-        # C2: the whole point, and it survives the rename. A count is not a line
-        # any file contains, so checking the DERIVED statement against the tree
-        # made every counted claim -- block-context's own category --
-        # structurally inadmissible. Only the QUOTE is verbatim.
-        f = _finding(
-            claim='"twenty call sites"',
-            reason="31 callers and every one is under tests/",
-        )
-        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
-
-    # ⚠ `test_a_summary_with_no_right_half_is_still_rejected` retired here. The
-    # `||` check went with SUMMARY, and its job -- a finding must state
-    # something derived -- is REASON being required, which `payload_problem`
-    # enforces and `TestPayload.test_a_verdict_that_states_no_reason_is_rejected`
-    # covers. The coverage moved; it was not dropped.
-
-    def test_a_query_MUST_carry_evidence(self):
-        # Roy ruled 2026-08-16: "It must contain everything to say it was looked
-        # at and this is why it is query." The brief always said so -- "a `query`
-        # requires EVIDENCE and QUOTE(s), by construction" -- and the gate
-        # waived both. Where you LOOKED is a real line on all three shapes.
-        f = _finding(verdict="query", evidence="", quote="")
-        self.assertIsNotNone(verdicts.evidence_problem(f, self.repo))
-
-    def test_a_query_with_evidence_that_resolves_passes(self):
-        f = _finding(verdict="query")
-        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
-
-    def test_evidence_line_zero_is_rejected(self):
-        f = _finding(evidence="a.py:0")
-        self.assertIsNotNone(verdicts.evidence_problem(f, self.repo))
-
-    def test_a_fabricated_location_is_caught(self):
-        # A prose LOCATION must be checked with the same machinery as
-        # EVIDENCE -- a fabricated location was admissible before this fix.
-        f = _finding(location="gone.py:1")
-        problem = verdicts.location_problem(f, self.repo)
-        self.assertIsNotNone(problem)
-        self.assertIn("does not resolve", problem)
-
-    def test_a_resolvable_location_passes(self):
-        f = _finding(location="a.py:1-2")
-        self.assertIsNone(verdicts.location_problem(f, self.repo))
-
-    def test_evidence_accepts_a_range(self):
-        # Was: EVIDENCE had to be file:line and a range was refused, on a rule
-        # that stated no reason. Roy removed it 2026-08-17 -- a range is where
-        # the reviewer looked, the same as a line.
-        f = _finding(evidence="a.py:4-6")
-        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
-
-
-class TestEvidenceTakesSeveralCitations(unittest.TestCase):
-    """The brief asks for "`file(s):line(s)` you opened", plural on both halves.
-
-    ⚠ The gate took ONE `file:line` for the whole field, so a reviewer citing
-    two sites was refused for following the brief. Measured 2026-08-17 on a live
-    run: 15 of 22 refusals were the contract, not the reviewer. Roy ruled the
-    gate widens.
-
-    ⚠⚠ Widening makes it STRICTER: every citation must resolve. What is NOT
-    required is the QUOTE at every one -- a claim settled by two sites quotes
-    the line that settles it, and the other is where the reviewer also looked.
+    ⚠ A SOURCE line may REPEAT, one per place examined -- which is what "plural
+    for a query" means, and it avoids a delimiter that verbatim text could
+    contain.
     """
 
     def setUp(self):
@@ -693,44 +590,136 @@ class TestEvidenceTakesSeveralCitations(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_two_citations_pass_when_the_quote_sits_at_one(self):
-        f = _finding(evidence="a.py:5, b.py:2")
-        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
+    def test_a_resolvable_source_passes(self):
+        self.assertIsNone(verdicts.source_problem(_finding(), self.repo))
 
-    def test_the_order_does_not_matter(self):
-        f = _finding(evidence="b.py:2, a.py:5")
-        self.assertIsNone(verdicts.evidence_problem(f, self.repo))
+    def test_a_missing_file_is_caught(self):
+        f = _finding(sources=["gone.py:5 | x"])
+        self.assertIn("does not resolve", verdicts.source_problem(f, self.repo))
 
-    def test_every_citation_must_resolve(self):
-        # The strictness the widening buys: a second citation nobody can open
-        # is refused even though the first one carries the quote.
-        f = _finding(evidence="a.py:5, gone.py:2")
-        self.assertIn("gone.py", verdicts.evidence_problem(f, self.repo))
+    def test_a_line_past_the_end_is_caught(self):
+        f = _finding(sources=["a.py:900 | x"])
+        self.assertIn("900", verdicts.source_problem(f, self.repo))
 
-    def test_a_line_past_the_end_of_the_second_file_is_refused(self):
-        f = _finding(evidence="a.py:5, b.py:99")
-        self.assertIn("b.py", verdicts.evidence_problem(f, self.repo))
+    def test_line_zero_is_rejected(self):
+        f = _finding(sources=["a.py:0 | one"])
+        self.assertIsNotNone(verdicts.source_problem(f, self.repo))
 
-    def test_the_quote_must_sit_near_ONE_of_them(self):
-        f = _finding(evidence="b.py:1, b.py:3")
-        self.assertIn("not found near any of", verdicts.evidence_problem(f, self.repo))
+    def test_a_verbatim_half_that_is_not_there_is_caught(self):
+        f = _finding(sources=["a.py:5 | a line that appears nowhere at all"])
+        self.assertIn("not found", verdicts.source_problem(f, self.repo))
 
-    def test_spacing_and_a_trailing_comma_are_tolerated(self):
-        for cite in ("a.py:5,b.py:2", "a.py:5 ,  b.py:2", "a.py:5, b.py:2,"):
-            with self.subTest(cite=cite):
-                f = _finding(evidence=cite)
-                self.assertIsNone(verdicts.evidence_problem(f, self.repo), cite)
+    def test_a_SHORT_verbatim_half_that_is_there_is_accepted(self):
+        # The 12-character floor refused `x = 1`, `pass` and `return` -- real
+        # short lines. What binds is PRESENCE, not length.
+        f = _finding(sources=["a.py:5 | line"])
+        self.assertIsNone(verdicts.source_problem(f, self.repo))
 
-    def test_an_empty_evidence_field_is_refused(self):
+    def test_a_range_is_accepted(self):
+        # `allow_range` held EVIDENCE to `file:line` on a rule that stated no
+        # reason. A range is where the reviewer looked, the same as a line.
+        f = _finding(sources=["a.py:4-6 | the settling line"])
+        self.assertIsNone(verdicts.source_problem(f, self.repo))
+
+    def test_a_source_with_no_pipe_is_refused(self):
+        f = _finding(sources=["a.py:5"])
+        self.assertIn("|", verdicts.source_problem(f, self.repo))
+
+    def test_a_source_with_no_verbatim_half_is_refused(self):
+        f = _finding(sources=["a.py:5 | "])
+        self.assertIn("verbatim", verdicts.source_problem(f, self.repo))
+
+    def test_no_source_at_all_is_refused(self):
         self.assertIn(
-            "empty", verdicts.evidence_problem(_finding(evidence=" "), self.repo)
+            "SOURCE", verdicts.source_problem(_finding(sources=[]), self.repo)
         )
 
-    def test_a_bare_filename_is_still_refused(self):
-        # ⚠ Widening the field did NOT license a citation with no line. On the
-        # measured run 6 of the 22 refusals were this, and they stay refused.
-        f = _finding(evidence="a.py, b.py:2")
-        self.assertIn("is not file:line", verdicts.evidence_problem(f, self.repo))
+    def test_clean_owes_no_source(self):
+        f = _finding(verdict="clean", sources=[], reason="", change="")
+        self.assertIsNone(verdicts.source_problem(f, self.repo))
+
+    def test_a_query_carries_a_source_like_any_other_verdict(self):
+        # Ruled 2026-08-16: "It must contain everything to say it was looked at
+        # and this is why it is query." Where you LOOKED is a real line on all
+        # three shapes.
+        self.assertIsNone(verdicts.source_problem(_finding(verdict="query"), self.repo))
+
+    def test_a_query_with_no_source_is_refused(self):
+        f = _finding(verdict="query", sources=[])
+        self.assertIsNotNone(verdicts.source_problem(f, self.repo))
+
+    def test_a_derived_REASON_is_not_checked_verbatim(self):
+        # A count is not a line any file contains, so checking the DERIVED
+        # statement against the tree made every counted claim -- block-context's
+        # own category -- structurally inadmissible. Only SOURCE is verbatim.
+        f = _finding(
+            claim='"twenty call sites"',
+            reason="31 callers and every one is under tests/",
+        )
+        self.assertIsNone(verdicts.source_problem(f, self.repo))
+
+    # ⚠ The `SUMMARY` right-half check retired with the field. Its job -- a
+    # finding must state something derived -- is REASON being required, which
+    # `payload_problem` enforces and `TestPayload` covers. The coverage moved.
+
+    def test_a_fabricated_location_is_caught(self):
+        f = _finding(location="gone.py:1")
+        problem = verdicts.location_problem(f, self.repo)
+        self.assertIsNotNone(problem)
+        self.assertIn("does not resolve", problem)
+
+    def test_a_resolvable_location_passes(self):
+        f = _finding(location="a.py:1-2")
+        self.assertIsNone(verdicts.location_problem(f, self.repo))
+
+
+class TestSeveralSources(unittest.TestCase):
+    """A claim often needs TWO sites to settle -- the definition and its callers.
+
+    ⚠ Stricter than the single-citation rule it replaces: EVERY source must
+    resolve AND carry its verbatim half. The old rule wanted the quote near one
+    citation; both halves of a SOURCE are one statement about one place.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name)
+        (self.repo / "a.py").write_text(
+            "one\ntwo\nthree\nfour\nthe settling line\nsix\n", encoding="utf-8"
+        )
+        (self.repo / "b.py").write_text("alpha\nbeta\ngamma\n", encoding="utf-8")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_two_sources_that_both_resolve_pass(self):
+        f = _finding(sources=["a.py:5 | the settling line", "b.py:2 | beta"])
+        self.assertIsNone(verdicts.source_problem(f, self.repo))
+
+    def test_a_second_source_that_does_not_resolve_is_refused(self):
+        f = _finding(sources=["a.py:5 | the settling line", "gone.py:2 | x"])
+        self.assertIn("gone.py", verdicts.source_problem(f, self.repo))
+
+    def test_a_second_verbatim_half_that_is_absent_is_refused(self):
+        # ⚠ This is the strictness the merge buys. Under the old rule the quote
+        # had to sit near ONE citation, so a second citation carried nothing.
+        f = _finding(sources=["a.py:5 | the settling line", "b.py:2 | not there"])
+        self.assertIn("not found", verdicts.source_problem(f, self.repo))
+
+    def test_a_pipe_inside_the_verbatim_half_survives(self):
+        (self.repo / "c.py").write_text('x = "a | b"\n', encoding="utf-8")
+        f = _finding(sources=['c.py:1 | x = "a | b"'])
+        self.assertIsNone(verdicts.source_problem(f, self.repo))
+
+    def test_repeated_SOURCE_lines_are_all_kept(self):
+        text = (
+            "--- RECORD\nBLOCK       1\nVERDICT     correct\nLOCATION    a.py:1\n"
+            "SOURCE      a.py:5 | the settling line\n"
+            "SOURCE      b.py:2 | beta\n"
+            'CLAIM       "x"\nREASON      y\nCHANGE      false: "a" / true: "b"\n---\n'
+        )
+        found, _ = verdicts.parse_report(text, "block-context")
+        self.assertEqual(len(found[0].sources), 2)
 
 
 class TestCLI(unittest.TestCase):
@@ -831,8 +820,7 @@ class TestCLI(unittest.TestCase):
             "BLOCK       1\n"
             "VERDICT     drop\n"
             "LOCATION    a.py:1\n"
-            "EVIDENCE    a.py:5\n"
-            "QUOTE       five callers, all in tests\n"
+            "SOURCE      a.py:5 | five callers, all in tests\n"
             'CLAIM       "x"\n'
             "REASON      five callers, all in tests\n"
             "CHANGE      \n"
@@ -964,8 +952,7 @@ class TestCLI(unittest.TestCase):
             "BLOCK       1\n"
             "VERDICT     correct\n"
             "LOCATION    a.py:1\n"
-            "EVIDENCE    a.py:5\n"
-            "QUOTE       five callers, all in tests\n"
+            "SOURCE      a.py:5 | five callers, all in tests\n"
             'CLAIM       "x"\n'
             "REASON      the count is stale, and this record never closed\n"
             "\n"
@@ -973,8 +960,7 @@ class TestCLI(unittest.TestCase):
             "BLOCK       2\n"
             "VERDICT     correct\n"
             "LOCATION    a.py:1\n"
-            "EVIDENCE    a.py:5\n"
-            "QUOTE       five callers, all in tests\n"
+            "SOURCE      a.py:5 | five callers, all in tests\n"
             'CLAIM       "x"\n'
             "REASON      the count is stale, and this record closed\n"
             'CHANGE      false: "x" / true: "y"\n'
@@ -1001,8 +987,7 @@ class TestCLI(unittest.TestCase):
             "BLOCK       1\n"
             "VERDICT     {verdict}\n"
             "LOCATION    a.py:1\n"
-            "EVIDENCE    a.py:5\n"
-            "QUOTE       five callers, all in tests\n"
+            "SOURCE      a.py:5 | five callers, all in tests\n"
             'CLAIM       "x"\n'
             "REASON      the count is stale\n"
             "CHANGE      {change}\n"
@@ -1082,20 +1067,26 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         self.tmp.cleanup()
 
     def _plant(self):
-        """Write the file the record cites, with its QUOTE on the cited line."""
-        rel, _, lineno = self.finding.evidence.rpartition(":")
-        target = self.repo / rel
-        target.parent.mkdir(parents=True, exist_ok=True)
-        lines = [f"filler {i}\n" for i in range(1, int(lineno) + 40)]
-        lines[int(lineno) - 1] = self.finding.quote + "\n"
-        target.write_text("".join(lines), encoding="utf-8")
+        """Write each file a SOURCE cites, with its verbatim half on that line.
+
+        ⚠ Every source is planted, not just the first: `source_problem` resolves
+        all of them, so a record citing two places needs both to exist.
+        """
+        for source in self.finding.sources:
+            cite, _, verbatim = source.partition("|")
+            rel, _, lineno = cite.strip().rpartition(":")
+            target = self.repo / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            lines = [f"filler {i}\n" for i in range(1, int(lineno) + 40)]
+            lines[int(lineno) - 1] = verbatim.strip() + "\n"
+            target.write_text("".join(lines), encoding="utf-8")
 
     def test_the_record_parses_into_a_real_block_index(self):
         self.assertGreaterEqual(self.finding.block, 1)
         self.assertIn(self.finding.verdict, verdicts.VERDICTS)
 
-    def test_the_record_passes_the_evidence_check(self):
-        self.assertIsNone(verdicts.evidence_problem(self.finding, self.repo))
+    def test_the_record_passes_the_source_check(self):
+        self.assertIsNone(verdicts.source_problem(self.finding, self.repo))
 
     def test_the_record_passes_the_location_check(self):
         self.assertIsNone(verdicts.location_problem(self.finding, self.repo))
