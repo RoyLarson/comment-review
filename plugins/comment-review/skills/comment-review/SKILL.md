@@ -193,8 +193,10 @@ sentence lands in the wrong format. The dispatch packet is a template too.
 The templates belong in the STYLE SHEET (1.5), which is what carries them to the reviewers, to
 stage 5 and to stage 6.
 
-**1.4 Resolve every `move` destination**, and decide NOW what happens if none resolves. A
-verdict pointing at a tree that does not exist is not a verdict.
+**1.4 Find the destination tree for prose that leaves the code**, and decide NOW what happens
+if there is none. WHERE a block belongs is the reviewers' to say; whether a tree outside the
+code exists to receive it is a fact about the repo, and only you can settle it before they run.
+A verdict pointing at a tree that does not exist is not a verdict.
 
 ⚠⚠ **If the destination tree is absent, only `move` OUT OF THE CODE is unavailable — and
 those blocks become `clean`, never `drop`. A `move` to a destination inside tracked code is
