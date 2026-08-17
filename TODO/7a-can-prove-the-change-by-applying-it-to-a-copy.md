@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 2 of 4 tasks done
 Owner:    session * Roy (raised it, 2026-08-17)
 Raised:   2026-08-17, while ruling on what CLAIM and CHANGE each carry
 ```
@@ -44,12 +44,23 @@ judges it would be MARK and APPLY in one actor, which is the thing the pipeline 
 
 ## Tasks
 
-- [ ] Decide WHERE the copy lives. The run directory already holds the census; a
-      `proposed/` tree mirroring only the files in scope is the smallest thing that works, and
-      it is discarded with the run.
+- [x] **DONE 2026-08-17 -- `scripts/galley.py --out DIR` decides where the copy lives**, and the
+      caller names it. The run directory already holds the census; a galley tree mirroring only
+      the files an edit touches is the smallest thing that works, and it is discarded with the
+      run. ! The name is the publishing one: a GALLEY is the trial impression, set but not yet
+      made into pages, produced so it can be corrected before anything is committed. `proof` was
+      unavailable -- `prove_unchanged.py` already owns it for the CODE CHECK.
 
-- [ ] Splice every approved `CHANGE` into the copy, then `git diff --no-index` the original
-      against it. ! `--no-index` is what lets this work on a tree git does not track.
+- [x] **DONE 2026-08-17 -- the splice.** `galley.splice` applies every edit in DESCENDING line
+      order, which is what makes the census ranges mean anything: a replacement rarely has the
+      line count of what it replaces, so a top-down splice shifts every range below the one just
+      written. Overlapping edits and stale ranges are refused before anything is written.
+      ! `git diff --no-index <original> <galley>` is then the author's view, and is still to be
+      wired into 7a -- see the task below.
+
+      !! **It was built for the re-review blocker and this task at once**, because both needed
+      the same thing: the proposed state rendered as real files. See
+      [`re-review-is-ordered-everywhere-and-defined-nowhere`](re-review-is-ordered-everywhere-and-defined-nowhere.md).
 
 - [ ] Show the diff at 7a INSTEAD OF or ALONGSIDE the block -- decide which. ! Roy's rule that
       *what you show IS what gets written* argues for the diff being primary: it is the closer

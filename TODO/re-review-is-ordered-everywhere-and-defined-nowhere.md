@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 8 tasks done
+Progress: 3 of 8 tasks done
 Owner:    session * Roy (* 1 ruling)
 Raised:   2026-08-17 (the first full run of 0.1.7 hit eight contradicted blocks and had to
           invent a procedure to clear them)
@@ -71,15 +71,35 @@ answer alone.
       ! **Only the third can be answered by anyone but that reviewer, and only after the join.**
       No round-1 reviewer saw the other findings, so nothing before this point could ask it.
 
-- [ ] !! **BLOCKER for a release: `verdicts.py` assumes ROUND ONE and cannot admit a round-2
-      record.** Round 2's subject is the synthesised block -- text on no disk and in no census --
-      so `address_problem` refuses it (`original` will not match the census) and `edit_problem`
-      is measuring one claim against one edit when the block now holds several.
+- [x] !! **BLOCKER CLEARED 2026-08-17 -- `scripts/galley.py`, and `verdicts.py` did not change.**
 
-      ! Do NOT fix it by exempting round 2. That leaves the synthesised block -- the only text
-      the author ever approves -- as the one thing nothing checks. Options, unranked: a second
-      census taken over the proposed text; a distinct round-2 record shape with its own checks;
-      or `--round 2` selecting a different check set.
+      Was: `verdicts.py` assumes ROUND ONE and cannot admit a round-2 record, because round 2's
+      subject is the synthesised block -- text on no disk and in no census -- so
+      `address_problem` refuses it and `edit_problem` measures one claim against one edit when
+      the block now holds several.
+
+      **The option taken is the first of the three: a second census over the proposed text.** A
+      GALLEY is the proposal spliced into a COPY of each file; censusing it gives every proposed
+      block a real address and a real transcription, so a round-2 record is an ORDINARY record
+      that happens to cite a different census. Demonstrated end to end on this repo's own census:
+      a block re-worded through the galley came back as `census.py:76-76` with its new text in
+      `raw_lines`.
+
+      ! The two rejected options are why: a distinct round-2 record shape is a second contract to
+      hold in sync with the first, which is the two-copies-of-a-rule defect this repo spends its
+      days catching; and `--round 2` selecting a different check set turns the checks off for the
+      one text the author actually approves, which this task's own wording forbade.
+
+      !! **INDICES DO NOT SURVIVE THE GALLEY, and nothing should pretend they do.** A replacement
+      whose line count differs shifts every block below it, so the same prose is index 123 in the
+      run census and 31 in the galley's. **Round 2 is self-consistent against its own census, and
+      maps back to round 1 by PATH AND CONTENT, never by index.** The task agent holds both
+      records and is the only participant that can relate them.
+
+      ! `galley.py` REFUSES rather than guesses: a census range that no longer matches the file,
+      two edits over one line, or an index outside the census stops that file instead of writing
+      a galley nobody can trust. Its exit is nonzero when anything refused, because a galley
+      missing a block is not a galley of the proposal.
 
 - [ ] Decide WHICH BLOCKS get a round two. Roy's model -- *"the reviewers that had comments"* --
       is any block where two or more roles filed a finding, not only the contradicted ones.
