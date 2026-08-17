@@ -86,6 +86,10 @@ uv run python plugins/comment-review/skills/comment-review/scripts/vocabulary.py
 # Terms of art in the shipped tree the inventory does not list. An INPUT, not a gate:
 # every row needs a human to say whether it is a term.
 uv run python scripts/vocabulary_sweep.py
+
+# Release gate no test replaces: the parser the RUNTIME uses on every frontmatter.
+# Run it before tagging -- see "Cutting a release" below.
+claude plugin validate plugins/comment-review
 ```
 
 Tests are stdlib `unittest` with per-language fixtures under `tests/fixtures/`;
@@ -210,6 +214,44 @@ history) since it depends on `git blame`.
   The git history on main contains work that should have been branch work because we decided
   to start implementing before realizing we were corrections to code that belongs on a branch
   first.
+
+### Cutting a release, and the version number
+
+!! **THE VERSION IS STATED THREE TIMES AND `tests/test_release.py` HOLDS THEM EQUAL.** Bump all
+three in one commit, or the gate fails:
+
+| file | field |
+| --- | --- |
+| `pyproject.toml` | `[project] version` |
+| `CHANGELOG.md` | the newest `## [x.y.z]` heading (`[Unreleased]` is skipped -- it carries no number) |
+| `plugins/comment-review/.claude-plugin/plugin.json` | `version` |
+
+!! **ANY CHANGE UNDER `plugins/` AFTER A TAG NEEDS A NEW VERSION.** The plugin cache keys its
+directory on that `version` field -- `~/.claude/plugins/cache/roy-local/comment-review/0.2.1/`
+-- so a second, different tree installed under the same number overwrites the first and
+`claude plugin list` reports both as the same release. Measured 2026-08-17: three commits after
+`v0.2.1` was tagged and pushed, `plugins/` held a block-context whose frontmatter parsed where
+the tag's did not. **Two materially different reviewers, one version number**, while another
+session had already pinned an evidence package to the tag. **Never move a tag someone has
+measured against; cut the next number instead.** ! The version field exists precisely to make a
+run attributable, so shipping two trees under one number returns the repo to the state the
+field was added to end.
+
+! **A tag here is ANNOTATED, so `git rev-parse vX.Y.Z` returns the TAG OBJECT, not the commit.**
+Use `vX.Y.Z^{}` wherever a commit is wanted -- `git diff "v0.2.1^{}" HEAD`, `git show
+"v0.2.0^{}:<path>"`. This is the trap anyone re-deriving which code produced a measurement hits
+first.
+
+! **Run `claude plugin validate plugins/comment-review` before tagging.** No test replaces it:
+it is the parser the runtime actually uses, and it caught a YAML frontmatter failure that had
+shipped through every release to date, silently dropping a skill's whole metadata and an agent's
+description. `tests/test_frontmatter.py` gates the one cause that is known; the validator is
+what finds the next one.
+
+! To publish the cut: `git tag -a vX.Y.Z -m "..."`, `git push origin main`, `git push origin
+vX.Y.Z`, then `claude plugin marketplace update roy-local` and `claude plugin update
+comment-review@roy-local`. **The install reads COMMITTED state**, so commit before updating, and
+a session already open keeps the old agents until it restarts.
 
 ## The metaphor is EDITORIAL, and it is a rule, not decoration
 
