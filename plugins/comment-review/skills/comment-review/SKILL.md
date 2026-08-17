@@ -81,9 +81,8 @@ instructions:
 - **the edits are applied to NODES**, so "never change a line of code" holds by construction
   — the CODE CHECK in `write.md` confirms that rather than being the only thing enforcing it.
 
-⚠ **The model is the tree; the implementation depends on nothing.** `scripts/census.py` builds
-it from the stdlib alone, at the tier available for each file's language. Both tiers find the
-same blocks and differ only in what else they can say:
+⚠ **The model is the tree, and `scripts/census.py` builds it at the tier available for each
+file's language.** Both tiers find the same blocks and differ only in what else they can say:
 
 | tier | needs | answers | cannot answer |
 |---|---|---|---|
