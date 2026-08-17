@@ -21,15 +21,29 @@ by accumulating changes**, however many or however breaking.
 | release | its gate |
 | --- | --- |
 | `0.2.0` | **cleared 2026-08-17** — the system made it all the way through a run. No earlier version did: *"the previous tests did not, so I think they still deserved the 0.1.x statements even with significant breaking changes in them."* |
-| `0.3.0` | **open** — Roy: *"something like it runs on my code bases and reliably makes things better."* |
+| `0.3.0` | **open, and MEASURED FAILING** — Roy: *"it runs on my code bases and reliably makes things better."* |
 | `0.4.0` | **open** — Roy: *"verified this works across the other languages claimed."* |
 
-⚠ **`0.3.0`'s gate is not checkable yet, and Roy's *"something like"* says as much.** *Reliably
-makes things better* needs an oracle before it can pass or fail anything. The nearest two this
-repo already has are `evals/grade_hazards.py` — twelve planted hazards — and
-`evidence/ga/ground_truth.py`. ⚠ Whatever it becomes, it is graded from the **diff**:
-self-reported confidence has been measured NOT to discriminate real findings from fabricated
-ones, so a run's own report cannot be the evidence that it helped.
+⚠⚠ **`0.3.0`'s gate is checkable, and it has already been run.** Roy, 2026-08-17: *"reliably
+means that the session agent doesn't revert changes after the system runs because the changes
+made things wrong/worse — its words and its evidence."* **A post-run rollback is the failure
+signal**, and it is a good one: the operating session states its reason in writing, and the
+result is a fact about the tree rather than a score anyone assigns.
+
+⚠ **The one run that reached the end was ROLLED BACK.** `evidence/todo-tool-full-run/`, run 2,
+2026-08-17 — `redacted_corpus` branch `todo-requires-roy` at `REDACTED_SHA_D`, 3333 blocks and 171
+holding prose, ~40 edits applied. `ruff check` clean, `ruff format` clean, **the AST proven
+unchanged**, 1103 tests passing — and stage 8 returned *NOT done* with twelve findings. From
+that README: *"Every mechanical check said the edit was good. The page was worse than before."*
+
+⚠ **Read the baseline with its confound.** The same README: both runs were operated by a
+session that KNEW it was testing the skill, and *"rolling back rather than shipping is cheap
+when the refusal is the result being sought."* The signal is real but its rate is not yet
+established — one run, by an operator with a reason to revert.
+
+⚠ Where the damage came from is named: **stage 5 was the only stage with no independent
+reader.** That is what Roy ruled on the same day — the joined block goes back to the reviewers
+that had findings — so the fix now targets the measured cause rather than a guess at it.
 
 ⚠ **`0.4.0`'s gate is checkable today**, which is why it can sit below an unmeasurable one:
 `census.py --languages` prints exactly what the plugin claims, and the claim is per-tier —
