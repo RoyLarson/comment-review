@@ -36,7 +36,7 @@ assignment = "A piece of CODE that binds a value to a name. One of the kinds an 
 
 # --- what a reviewer emits ---------------------------------------------------
 verdict = "One of the seven rulings a reviewer may emit: clean, query, drop, correct, patch, add, move."
-"edit mark" = "What you emit on a sentence: the VERDICT together with its payload. It NAMES the action that would improve or correct the prose; it does not perform it. Marking and applying are different stages and different actors."
+"edit mark" = "What you emit on a sentence: the VERDICT together with its payload. It is what would improve or correct the prose IF ITS `CHANGE` WERE APPLIED -- so it shows the result and does not write it. Marking and applying are different stages and different actors."
 clean = "Nothing to report FROM YOUR ROLE, on a block your role READ. Not a pass, and not a claim the block is correct. A block outside what your role reads is `query`."
 query = "You could not settle the claim -- as against one you did not try to settle. Three shapes reach it: outside your ROLE, outside the CHECKOUT, outside the CODE."
 drop = "The sentence should not exist at all."
