@@ -122,9 +122,10 @@ been reached for by someone optimising away an escaping problem.**
   `defusedxml` is the answer where XML is unavoidable, and it is third party -- so here the
   answer is that XML is avoidable.
 
-! **Both are now refused by `tests/test_shipped_safety.py`**, with their reasons kept separate,
-because a shared message would be wrong for one of them. A rule enforced by nothing is a rule
-that rots, which is this repo's own standard.
+! **Recorded here and nowhere else, deliberately.** A gate refusing these imports was written
+and removed the same day: nothing in this repo reaches for them, and no one relitigates a format
+already ruled. Roy: *"thorough - also very unnecessary."* The decision is the artifact worth
+keeping; the enforcement was defence against a scenario with no path to it.
 
 ! The cost accepted with JSON: it escapes newlines, so a record is unreadable in a diff, and it
 carries no comments. **That is what the CLI is for** -- nobody reads or writes the encoding by
