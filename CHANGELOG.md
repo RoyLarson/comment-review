@@ -17,6 +17,119 @@ number as a semver claim, or "corrects" the next one to `0.2.0`.
 ## [Unreleased]
 
 
+## [0.1.6] — 2026-08-16
+
+Roy read the shipped prose line by line and ruled on it. Almost every entry below
+started as a quoted sentence and a short verdict.
+
+### Changed — BREAKING
+
+- **`census.py` loses `--cap` and `--width`.** Measured: `--json` carries no cap or width
+  information at all, so the flags changed ONLY the text census — which is the file handed to
+  the four reviewers. `run_context.py` omits CAP and WIDTH from the dispatch packet on purpose
+  and `SKILL.md` says the cap is *"never passed to a reviewer"*; the census printed
+  `over cap (6): 0` in its first eight lines. Roy: *"why does census.py get a cap argument at
+  all?"* The over-cap count fed no decision — stage 6 works from stage 5's PROPOSED text.
+
+- **An agent is GIVEN what it needs and is never sent looking.** All six agents opened by being
+  told to read their brief or procedure *at a path* — an absolute path into the installed
+  plugin, handed to an agent with file tools. Roy: *"then the agents go looking where the
+  plugins are installed … and they see stuff they are not supposed to see and take actions that
+  they are not supposed to take."* The brief and each procedure are now pasted into the prompt,
+  as the vocabulary already was. **No agent file names a path, and no dispatch hands one over.**
+
+- **The synthesis order settles PLACEMENT first.** In-code `move` was applied LAST, after
+  `correct` and `patch`, so text was corrected at an anchor another role had already called
+  wrong. Roy: *"moves first."* Step 2 is now every `move` and every `drop`. Seven steps become
+  six.
+
+### Added
+
+- **The join prints a WORK LIST.** `contradictions()` computed the per-block grouping, used it
+  for one boolean and discarded it — while stage 5's task is *"four reviewers rule on the same
+  block … must emit ONE"*. Roy: *"give the agent the tool."* `by_block()` is now shared, and a
+  passing run prints `PER BLOCK — what you hold, in census order`, marking blocks out for
+  re-review. ⚠ Withheld when anything is fatal: the gate has just refused the report.
+
+- **The join flags `move` against `correct`/`patch`,** not only `drop`. A claim ruled on at an
+  anchor another role calls wrong was measured against the wrong code, and that pair passed in
+  silence.
+
+- **`module-context` owns module-level CONSTANTS and RUNTIME.** Roy: *"constants at the top of
+  the file are also part of their purview … any runtime things are also its purview — like what
+  happens under the `if __name__ == '__main__':`"*. A missing why is `add`; a constant the
+  module does not need at module level is a CODE CONCERN.
+
+### Fixed
+
+- **The stage-5 join could not run as documented.** `SKILL.md` invoked
+  `verdicts.py --census <census>.json` and `verdicts.py` calls `json.loads` on it, while stages
+  2–3 gave only text-census commands and `--json` appeared nowhere else. A run following the
+  file reached the join and got `CANNOT PARSE … as JSON`.
+
+- **`MIN_NEEDLE` refused true findings.** A 12-character floor rejected `x = 1`, `pass` and
+  `return` — real short lines — and the only route through was to quote MORE than was read,
+  which is the fabrication the check exists to stop. Roy: *"that is why I dropped the 12
+  character limit in the other files."* It is now **1**: a zero-length quote is not a quote.
+
+- **Six unfalsifiable claims** replaced with checkable ones — *"your highest-value work"*,
+  *"the most dangerous prose in a test file"*, *"reads badly"*, *"the best findings here"*.
+  ⚠ Two were introduced earlier the same day while cutting anecdotes: the replacement reached
+  for an adjective where the anecdote had carried a measurement.
+
+- **Five unmeasured rankings** — *"the most common structural finding"*, *"the last four are
+  where the defects are"*, *"the only form of this finding that ever gets fixed"*. Roy on the
+  last: *"really, are you certain we built all this to just use 4 unrelated things?"*
+
+- **Nine cross-role references removed from the agent files.** Roy: *"the agents do not need to
+  know about each other."* Every one was answerable from the role's own remit. ⚠ One survived a
+  case-sensitive sweep — `Block-Context` in title case — and was caught by Roy reading.
+
+- **`cap` carried three meanings**, `run` two, and the census called its own output `marks`.
+  `cap` is a NUMBER, so a block is OVER or UNDER it; `block` is what CODE bounds and a
+  `comment run` is the prose inside it; the census emits ANNOTATIONS, because a MARK is
+  editorial and stage 4 emits those. ⚠ `check_vocabulary.py` caught the `cap` collision on its
+  own: the term had been distributed to a role whose only use of the word was an invented
+  example about rounding.
+
+- **A docstring's anchor is the declaration it sits INSIDE.** `SKILL.md` said every block
+  belongs to the code BELOW it, which is true of `#` runs and wrong for docstrings — and
+  `ownership-context` is dispatched to rule on exactly that.
+
+- **Six summaries disagreed with the sites they summarise**, every one drifting in the summary
+  while the detail stayed right: the `move` payload, `clean` versus `query` in a Return section,
+  *"the eight verdicts"* in four agent files, `APPROVAL … only then applies`, *"if `move` is
+  unavailable"*, and a collision rule that had not caught up with the widened gate.
+
+- **Two dangling references a reader cannot resolve** — `at 1.4` in an agent file that never
+  reads `SKILL.md`, and `LANGUAGES` naming a tuple inside `census.py` that the task agent may
+  not open.
+
+- **`FORMATTING` was an undeclared verdict word.** `verdicts.py` makes an unknown verdict FATAL,
+  so a reviewer following that instruction would have killed the run. It is a `move` to the line
+  above. Roy: *"I definitely didn't want a formatting category."*
+
+- **Three stale counts and one stale floor** — *"the eleven questions this packet asks"* (nine),
+  *"the other eight are prose"* twice (six), and *"the 3.9 floor this script promises"* (3.11).
+  ⚠ The one count that had NOT drifted is the one a test asserts.
+
+### Changed
+
+- **The checkable/necessary matrix moved to `reviewer-brief.md`.** It decides a VERDICT, and
+  verdicts are the reviewers' — but it sat in the task agent's file alone, so the four roles
+  that emit `drop` and `move` had never been given the test their verdicts are judged by. Roy:
+  *"sends back to the other agents — not makes the determination itself."*
+
+- **The environment floor is stated once: a LOCAL GIT REPOSITORY.** Everything else is checked —
+  an upstream, a merge base, a clean tree, a cwd at the repo root.
+
+- **Run statistics removed from the shipped prose.** Roy's discriminator: does the number teach
+  a reviewer to CHECK a number, or only report what happened here? ⚠ A number inside an INVENTED
+  example stays, because it teaches that a number in prose is a checkable claim.
+
+- **`SKILL.md` 784 → 733 lines** across the sweep, with nothing removed that anyone acts on.
+
+
 ## [0.1.5] — 2026-08-16
 
 ### Changed — BREAKING
