@@ -765,9 +765,6 @@ list of changed files, the style sheet, and the absolute path of
 who remembers intending each edit reads the page they meant to write. If the
 agent does not resolve, fall back as at 1.6 and say so.
 
-It is the only stage that reads the finished ARTIFACT against itself rather than prose against code,
-so it is the only one that can see damage the editing caused.
-
 ⚠ **Fix only what THIS pass created.** A defect that predates the run is a finding for the next
 one, reported separately.
 

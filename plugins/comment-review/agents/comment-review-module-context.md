@@ -76,8 +76,7 @@ comments got long: nobody could state the rule once, because no function held it
 ⚠ **Do not stop at "this is restated." NAME THE OWNER** — the function that produces the
 artifact the rule constrains. A width budget is owned by the function that composes the text; a
 unit by the function that returns the number; an ordering by the function that sorts. That
-converts an observation nobody can act on into a writable `add` with a destination, and it is
-the only form of this finding that ever gets fixed.
+converts an observation nobody can act on into a writable `add` with a destination.
 
 ⚠⚠ **A rule restated N times is at N× the risk of being deleted ENTIRELY** — the opposite of how
 redundancy feels. Each copy is individually redundant, so a trimming pass removes each on its
