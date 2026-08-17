@@ -2,16 +2,17 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 1 of 5 tasks done
 Owner:    session · Roy (⭐ 1 ruling)
-Raised:   2026-08-17 (a live run's transcript reads "3 background agents launched" and names
-          three roles; the count is unexplained and nothing in the run objected)
+Raised:   2026-08-17, on a MISREADING that turned out to sharpen the task -- see below
 ```
 
 ## Objective
 
 **`⚠⚠ Every verdict is available on every run, and all four roles run every time`** is stated in
 `SKILL.md` and enforced by nothing at the moment it matters.
+
+⚠ The gap is real; the incident that raised it was not. See the last task.
 
 What exists today, and where each check sits:
 
@@ -25,7 +26,7 @@ What exists today, and where each check sits:
 The gap is the dispatch itself, and it is the one step the skill cannot inspect: `run_context.py`
 runs before it and `verdicts.py` runs after.
 
-⚠⚠ **`--reviewers` catches it LATE and that is the whole cost.** A three-role dispatch is
+⚠⚠ **`--reviewers` catches it LATE, and late may be the best available.** A three-role dispatch is
 detected only once three reviewers have read the census and written their reports — on a large
 run that is several hundred thousand tokens and twenty minutes before the run learns it was
 invalid. And it is only caught at all if the task agent passes `--reviewers`, which is optional.
@@ -43,9 +44,14 @@ complete reports read as complete coverage unless `--reviewers` names the fourth
       names in the PROPOSAL and the human sees a short list, (b) `--reviewers` stops being
       optional and defaults to the four editorial roles, (c) a stage-4 line in `SKILL.md`
       requiring the dispatch be re-read and the count stated before waiting on results.
-      ⚠ Recommendation: (b) plus (c). (b) costs nothing and removes the optional-ness that lets
-      a short dispatch through silently; (c) is the only one that fires BEFORE the tokens are
-      spent, and it is prose because there is nothing there to check mechanically.
+      ⚠ Recommendation: **(b), and (c) only with a caveat.** (b) costs nothing and removes the
+      optional-ness that lets a short dispatch through silently.
+
+      ⚠⚠ **(c) is weaker than it looks, and the incident below is why.** Counting the dispatch
+      means counting it from the display, and the display LAGS -- on 2026-08-17 the fourth agent
+      took time to appear and a reader watching it concluded three had launched. An instruction
+      to count would have produced a false alarm on a correct run. If (c) is adopted it has to
+      say what to count and when, not merely that four is the number.
 
 - [ ] Make `--reviewers` default to the four editorial roles rather than to `""`. Today its
       absence is announced — *"whether every expected reviewer reported was NOT checked"* — and
@@ -61,8 +67,9 @@ complete reports read as complete coverage unless `--reviewers` names the fourth
       reads like a four-role run and is not — but the ruling should be written down rather than
       inherited from an implementation detail.
 
-- [ ] ⚠ Record what actually happened on 2026-08-17, and record it as UNEXPLAINED. The
-      transcript shows three agents named and launched. The session's own account addresses a
-      vocabulary-encoding question and does not account for the count. Do not write a cause
-      into this file that nobody established — the point of the task is that the run had no
-      mechanism to notice, whatever the cause was.
+- [x] ⚠⚠ **Record what actually happened on 2026-08-17: FOUR were dispatched, and the fourth
+      took time to register in the display.** This file was raised on a transcript reading
+      "3 background agents launched", which was a UI lag read as an event. No run short-
+      dispatched. ⚠ Left in rather than deleted, because it is the evidence for the paragraph
+      above: the only signal available at dispatch time is one that lags, and it misled a
+      reader who was looking straight at it.
