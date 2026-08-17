@@ -23,8 +23,8 @@ has been measured failing. With the paths in the packet, the sanctioned fallback
 substitution rather than an improvisation.
 
 Three sections carry an answer a machine can settle, and they ARE checked:
-`LEVEL` against the four level names, `CENSUS` and each `REVIEWER FILES` entry
-against the filesystem. Presence alone let a packet whose every hint was
+`LEVEL` against `LEVELS`, `CENSUS` and each `REVIEWER FILES` entry against the
+filesystem. Presence alone let a packet whose every hint was
 replaced with `x` report itself complete. The rest carry prose no oracle
 settles, and this reports nothing about them.
 """
@@ -221,10 +221,9 @@ def _path_candidates(line: str) -> list[str]:
 def invalid_answers(text: str) -> list[str]:
     """Answers that are present but unusable, one line each.
 
-    Only the three sections a machine can settle: `LEVEL` against the four
-    published level names, `CENSUS` and each `REVIEWER FILES` entry against the
-    filesystem. The rest carry prose no oracle checks, so this list stays
-    silent about them.
+    Only the three sections a machine can settle: `LEVEL` against `LEVELS`,
+    `CENSUS` and each `REVIEWER FILES` entry against the filesystem. The rest
+    carry prose no oracle checks, so this list stays silent about them.
 
     Args:
         text: the filled packet, already known to have every section answered.
