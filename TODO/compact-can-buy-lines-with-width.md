@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    session · Roy (⭐ 1 ruling)
 Raised:   2026-08-17, on stage 6's FIRST exercise -- it returned two blocks at exactly the cap
           by writing lines 20 columns wider than anything in the file
@@ -41,6 +41,23 @@ a measured width passed as a flag.
 from 1.3 the same way. An observed wrap is that kind of fact, and the style sheet is already in
 stage 6's input contract. What is missing is any instruction to read it.
 
+## ⚠⚠ WIDTH is not the only free move — KIND is the other one
+
+A `#` run has a cap. A docstring does not: *"A `#` comment is governed by LENGTH; a docstring by
+FORMAT."* So **converting a comment into a docstring satisfies a cap at zero information cost**,
+exactly as widening does. Two escape hatches, same shape, neither named anywhere.
+
+⚠ The line between legitimate and dodging is thin and has to be written down: relocating prose
+into a docstring is a real `move` **when a declaration genuinely owns the rule**, and is
+cap-dodging when the docstring is the nearest place the cap cannot reach.
+
+⚠ The 2026-08-17 run stayed on the right side of it and shows how: it did NOT propose the
+relocation. It reported that no function owns the rule -- three rules stacked at one call site
+because clear-on-close has no home -- and named the owner that should exist. That is a code
+change, so it went to `CODE CONCERNS` and not to a verdict. `compact.md` had predicted the
+diagnosis in those words: *"usually a rule with no owning function, so every site performing
+part of it re-explains the whole."*
+
 ## Tasks
 
 - [ ] ⭐ Rule on whether stage 6 is bound by an OBSERVED wrap at all, or only by a published
@@ -48,6 +65,13 @@ stage 6's input contract. What is missing is any instruction to read it.
       because of a habit nobody wrote down — which is a real cost, and it is the answer
       `compact.md` already gives for every other conflict: report the block, do not resolve it
       by cutting. The same answer extends here, but it should be ruled rather than assumed.
+
+- [ ] Say in `compact.md` that a block may not change KIND to escape the cap, and state the
+      test: a `move` into a docstring is legitimate when the declaration OWNS the rule, and is
+      cap-dodging when the docstring is merely where the cap does not reach. ⚠ Stage 6 cannot
+      make that call itself -- it holds one block and its kind -- so the rule may have to be
+      that stage 6 REPORTS the conflict and never re-kinds anything, which is what it already
+      does for every other conflict.
 
 - [ ] Say in `compact.md` that lines may not be widened to buy a line. ⚠ Whatever the ruling
       above, this one holds: reaching a cap by reflowing wider is not compaction, and the file
