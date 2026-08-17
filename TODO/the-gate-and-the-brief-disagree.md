@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 1 of 6 tasks done
 Owner:    session · Roy (2 rulings made, 1 left)
 Raised:   2026-08-15 (the vocabulary survey, which collected these while reading for terms)
 Re-filed: 2026-08-16 (Roy, on `query` needing EVIDENCE and QUOTE: "this is a TODO on
@@ -48,7 +48,15 @@ nothing reads.
       is correct. All three now mark it DISPUTED and UNRESOLVED. The gate still behaves the old
       way; it no longer claims to be right about it.
 
-- [ ] **`QUOTE`'s row lost two rules the gate still enforces.** The brief's field table said
+- [x] **`QUOTE`'s row lost two rules the gate still enforces.** ⚠ **HALF RULED 2026-08-16.**
+      Roy: *"that is why I dropped the 12 character limit in the other files"* — the brief moved
+      first and the gate follows. `MIN_NEEDLE` is now **1**: a zero-length quote is not a quote,
+      and nothing longer is refused for length. ⚠ The 12-line floor had inverted on short code
+      lines — `x = 1`, `pass`, `return` — where its only route through was to quote MORE than
+      was read. ⚠ The `query` exemption at the same line is the OTHER half and is still open,
+      under task 1.
+
+- [ ] **[superseded rule text, kept for the record]** The brief's field table said
       *"VERBATIM and at least 12 characters. Required for every verdict except `clean` and
       `query`"* and now says only *"VERBATIM."* Both survive in code: `MIN_NEEDLE` at
       `sk-scripts/verdicts.py:387`, the exemption at `:380`. Decide which side moves.

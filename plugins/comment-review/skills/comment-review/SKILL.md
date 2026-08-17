@@ -529,8 +529,10 @@ not found near its cited line, a verdict outside the seven, a role
 that did not report, or a payload the verdict table requires and the record
 lacks. It also names the blocks where `drop` meets `correct`/`patch` — **a
 re-review, never a tie-break** — and the blocks where `move` meets either, since a claim
-ruled on at the wrong anchor was measured against the wrong code. It prints which blocks
-STAND UNCHANGED under
+ruled on at the wrong anchor was measured against the wrong code. ⚠⚠ **It then prints your
+WORK LIST: every block needing a ruling, with the verdicts held on it.** That is the grouping
+stage 5 works from — read it rather than rebuilding it from the report files. It prints which
+blocks STAND UNCHANGED under
 the clean-arithmetic.
 
 ⚠ **`query` is the one verdict this citation check does not touch.** Its PAYLOAD
@@ -720,8 +722,9 @@ list of changed files and the style sheet, and paste
 who remembers intending each edit reads the page they meant to write. If the
 agent does not resolve, fall back as at 1.6 and say so.
 
-⚠ **Fix only what THIS pass created.** A defect that predates the run is a finding for the next
-one, reported separately.
+⚠ **NOTHING is fixed here.** Stage 8 reads and reports; the author decides what follows. A
+defect that predates the run is reported SEPARATELY from damage this pass caused, because the
+two need different answers.
 
 ## What this skill is not
 

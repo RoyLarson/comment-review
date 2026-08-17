@@ -325,11 +325,11 @@ class TestContradiction(unittest.TestCase):
             _finding(reviewer="ownership-context", block=7, verdict="drop"),
             _finding(reviewer="block-context", block=7, verdict="correct"),
         ]
-        self.assertEqual(verdicts.contradictions(found), [7])
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [7])
 
     def test_drop_alone_is_not_a_contradiction(self):
         found = [_finding(reviewer="ownership-context", block=7, verdict="drop")]
-        self.assertEqual(verdicts.contradictions(found), [])
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
     def test_move_against_correct_is_flagged(self):
         # The claim was measured against the code the block sat with. One role
@@ -339,14 +339,14 @@ class TestContradiction(unittest.TestCase):
             _finding(reviewer="ownership-context", block=7, verdict="move"),
             _finding(reviewer="block-context", block=7, verdict="correct"),
         ]
-        self.assertEqual(verdicts.contradictions(found), [7])
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [7])
 
     def test_move_against_patch_is_flagged(self):
         found = [
             _finding(reviewer="ownership-context", block=7, verdict="move"),
             _finding(reviewer="block-context", block=7, verdict="patch"),
         ]
-        self.assertEqual(verdicts.contradictions(found), [7])
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [7])
 
     def test_move_with_clean_is_not_a_contradiction(self):
         # `clean` rules on nothing, so it collides with nothing.
@@ -354,7 +354,7 @@ class TestContradiction(unittest.TestCase):
             _finding(reviewer="ownership-context", block=7, verdict="move"),
             _finding(reviewer="block-context", block=7, verdict="clean"),
         ]
-        self.assertEqual(verdicts.contradictions(found), [])
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
     def test_move_and_drop_together_are_not_a_contradiction(self):
         # Both relocate; neither rules on what the sentence says.
@@ -362,7 +362,7 @@ class TestContradiction(unittest.TestCase):
             _finding(reviewer="ownership-context", block=7, verdict="move"),
             _finding(reviewer="module-context", block=7, verdict="drop"),
         ]
-        self.assertEqual(verdicts.contradictions(found), [])
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
     def test_a_malformed_block_is_never_reported_as_a_contradiction(self):
         # Minor: a -1 sentinel (a malformed record) must not surface as
@@ -371,7 +371,7 @@ class TestContradiction(unittest.TestCase):
             _finding(reviewer="ownership-context", block=-1, verdict="drop"),
             _finding(reviewer="block-context", block=-1, verdict="correct"),
         ]
-        self.assertEqual(verdicts.contradictions(found), [])
+        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
 
 class TestEvidence(unittest.TestCase):
@@ -400,14 +400,17 @@ class TestEvidence(unittest.TestCase):
         f = _finding(quote="a line that appears nowhere at all")
         self.assertIn("not found near", verdicts.evidence_problem(f, self.repo))
 
-    def test_a_one_character_needle_is_rejected(self):
-        # `head = needle[:40]` had no minimum, so a one-character QUOTE passed
-        # against nearly any file -- defeating the one mechanical defence
-        # against a fabricated report.
-        f = _finding(quote="e")
-        problem = verdicts.evidence_problem(f, self.repo)
-        self.assertIsNotNone(problem)
-        self.assertIn("too short", problem)
+    def test_a_short_quote_that_is_THERE_is_accepted(self):
+        # The 12-character floor refused `x = 1`, `pass` and `return` -- real
+        # short lines. Roy dropped it from the brief and the gate follows. What
+        # binds is PRESENCE, which the next test holds.
+        self.assertIsNone(verdicts.evidence_problem(_finding(quote="line"), self.repo))
+
+    def test_a_short_quote_that_is_ABSENT_is_still_rejected(self):
+        # The risk of dropping the floor: a short needle matches by accident.
+        # It does not -- absence is what the check is for.
+        problem = verdicts.evidence_problem(_finding(quote="zzz"), self.repo)
+        self.assertIn("not found near", problem)
 
     def test_a_missing_quote_is_rejected(self):
         # C2: QUOTE carries the verbatim text and is what the window is

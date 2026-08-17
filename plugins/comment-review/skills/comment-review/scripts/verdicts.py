@@ -12,6 +12,7 @@ Checks the task agent was asked to perform by hand, every one mechanical:
                 Counted apart from the fatal checks, and named in the closing
                 line so the summary says which blocks are still out
   STANDS        blocks every reviewer that ran returned clean on
+  WORK LIST     each block needing a ruling, with the verdicts held on it
   REVIEWER      (only with `--reviewers`) every expected reviewer actually reported
 
 ⚠ Exits nonzero on a coverage gap or an unverifiable citation.
@@ -78,10 +79,10 @@ CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 # accept a fabricated one.
 EVIDENCE_WINDOW = 3
 
-# A needle shorter than this could match almost any file by accident --
-# `QUOTE e` passed against nearly anything. The forcing function only forces if
-# the quote is long enough to have required reading the line.
-MIN_NEEDLE = 12
+# The floor on a QUOTE, and it is ONE: a zero-length quote is not a quote. It was
+# 12, which refused `x = 1`, `pass` and `return` -- real short lines whose only
+# route through was to quote MORE than was read.
+MIN_NEEDLE = 1
 
 # What a `query`'s PAYLOAD must name: a check that was attempted, and the thing
 # that would settle the claim.
@@ -302,6 +303,9 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     lines of it. A finding whose quote is absent from the file it cites is a
     finding the file did not supply — a report is evidence of nothing on its own.
 
+    ⚠ The only floor is `MIN_NEEDLE`, which is ONE. What binds is that the quote
+    be THERE: a short needle absent from the file is refused like any other.
+
     ⚠ QUOTE is checked, and `SUMMARY`'s right half is the DERIVED statement —
     *"31 callers, all under tests/"* — which is the reviewer's own sentence, so
     checking it here made every counted claim structurally inadmissible. The
@@ -318,10 +322,8 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
         return f"EVIDENCE {resolved}"
     _target, lineno, _end, lines = resolved
     needle = " ".join(f.quote.split()).strip().strip('"')
-    if not needle:
-        return f"no QUOTE — nothing was read out of {f.evidence}"
     if len(needle) < MIN_NEEDLE:
-        return f"QUOTE {needle!r} is too short to have been read off a line"
+        return f"no QUOTE — nothing was read out of {f.evidence}"
     if not f.summary.partition("||")[2].strip():
         return "SUMMARY has no right half — the finding states nothing derived"
     lo = max(0, lineno - 1 - EVIDENCE_WINDOW)
@@ -348,7 +350,25 @@ def location_problem(f: Finding, repo: Path) -> str | None:
     return None
 
 
-def contradictions(found: list[Finding]) -> list[int]:
+def by_block(found: list[Finding]) -> dict[int, list[Finding]]:
+    """Every finding, grouped by the block it rules on.
+
+    This is what stage 5 works from: several roles rule on one block and the
+    task agent emits ONE replacement, so the grouping IS the work list. It was
+    computed inside `contradictions`, used for one boolean and dropped, leaving
+    the agent to rebuild it from the report files by hand.
+
+    A malformed record is left out -- `block=-1` names no real block, and
+    `main()` has already reported each one as fatal.
+    """
+    out: dict[int, list[Finding]] = defaultdict(list)
+    for f in found:
+        if f.block >= 0:
+            out[f.block].append(f)
+    return out
+
+
+def contradictions(grouped: dict[int, list[Finding]]) -> list[int]:
     """Blocks where one role rules on the TEXT and another on WHERE it lives.
 
     `drop` against `correct`/`patch` is one role saying the sentence should not
@@ -357,13 +377,11 @@ def contradictions(found: list[Finding]) -> list[int]:
     it sits with, so a `correct` written at an anchor another role says is wrong
     was measured against the wrong code. Both go back for re-review.
     """
-    by_block: dict[int, set[str]] = defaultdict(set)
-    for f in found:
-        if f.block < 0:
-            continue  # a malformed record names no real block
-        by_block[f.block].add(f.verdict)
     return sorted(
-        b for b, vs in by_block.items() if (RELOCATES & vs) and (RULES_ON_TEXT & vs)
+        b
+        for b, fs in grouped.items()
+        if (RELOCATES & {f.verdict for f in fs})
+        and (RULES_ON_TEXT & {f.verdict for f in fs})
     )
 
 
@@ -501,7 +519,8 @@ def main() -> int:
             print(f"  BLOCK {f.block} {f.reviewer}: {payload}")
             fatal += 1
 
-    clash = contradictions(found)
+    grouped = by_block(found)
+    clash = contradictions(grouped)
     if clash:
         print(f"\nRE-REVIEW — drop/move against correct/patch on: {clash}")
         print(
@@ -525,6 +544,22 @@ def main() -> int:
     print(f"NEEDS A RULING:   {_n(len(ruled), 'block')}")
     if gaps:
         print("  ⚠ counts above are provisional: coverage is incomplete.")
+
+    # ⚠ The WORK LIST. Stage 5 holds several rulings per block and must emit ONE
+    # replacement, so this grouping is what it works from -- and rebuilding it
+    # from the report files by hand is the step this tool can do exactly and a
+    # reader cannot.
+    out_for_rereview = set(clash)
+    if ruled:
+        print("\nPER BLOCK — what you hold, in census order:")
+        for b in sorted(ruled):
+            marks = "  ".join(
+                f"{f.verdict}({f.reviewer})"
+                for f in sorted(grouped[b], key=lambda f: (f.verdict, f.reviewer))
+                if f.verdict != "clean"
+            )
+            flag = "   ⚠ RE-REVIEW" if b in out_for_rereview else ""
+            print(f"  {b:4d}  {marks}{flag}")
 
     if fatal:
         print(f"\n{_n(fatal, 'problem')}. Resolve or send back before stage 5 rules.")
