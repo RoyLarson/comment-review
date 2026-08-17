@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 6 tasks done
+Progress: 3 of 6 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on finding `worktree` in the shipped plugin: "that is
           indicating a wrong idea in the workflow requirements")
@@ -54,8 +54,8 @@ rather than finding them one at a time when someone happens to look.
       is required to use. ⚠ **The remaining leaks are not findable by word**, which is the
       finding: they are QUANTITIES, and the next task holds them.
 
-- [x] Check the direction of every MEASURED claim in the shipped **Python**. **Done
-      2026-08-16 under a ruling of Roy's**, given on `annotate.py`'s *"Measured on a scientific
+- [ ] Check the direction of every MEASURED claim in `plugins/`. ⚠ **The Python half is done
+      2026-08-16**, under a ruling of Roy's given on `annotate.py`'s *"Measured on a scientific
       library: 4 hits, 4 false"*: *"Unnecessary and potentially harmful quoting of hits that
       could no longer be true."* Applied across all eight scripts — the MECHANISM stays and the
       quantity goes. Removed: `5 of 8 blocks`, a dated `asanyarray` observation, `5 of 7
