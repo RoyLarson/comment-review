@@ -36,10 +36,10 @@ write the generalization and delete both.
 
 | agent file (`plugins/comment-review/agents/`) | lines |
 | --- | --- |
-| `comment-review-ownership-context.md` | 101 |
-| `comment-review-block-context.md` | 101 |
-| `comment-review-function-context.md` | 129 |
-| `comment-review-module-context.md` | 120 |
+| `comment-review-ownership-context.md` | 96 |
+| `comment-review-block-context.md` | 110 |
+| `comment-review-function-context.md` | 126 |
+| `comment-review-module-context.md` | 122 |
 
 ⚠ Each is AT budget, so the replaces-one rule is live on all four. Raising a number here is a
 change to this file that a reviewer rules on, not a side effect of adding a rule — and a count
@@ -54,12 +54,13 @@ orchestration → here. Restating one across two files is
 the antipattern this skill exists to find, and the four agents are the place it will happen —
 they read alike and invite copy-paste.
 
-⚠⚠ **THE TWO LARGEST FILES EVERY RUN LOADS HAVE NO BUDGET.** Measured 2026-08-15:
-`reviewer-brief.md` is 18,343 bytes and `SKILL.md` 47,438. A reviewer loads its role file
-plus the brief — about 26 KB, of which **70% is the brief, not its own role** — and four
-reviewers dispatched in parallel load **four copies of it**, 73 KB of the run's 101 KB. The
-numbers above budget the four role files only: 28 KB of the 224 KB shipped, and the
-smallest part of what a run actually costs.
+⚠⚠ **THE TWO LARGEST FILES A RUN LOADS AS CONTEXT HAVE NO BUDGET.** Measured 2026-08-16:
+`reviewer-brief.md` is 10,888 bytes and `SKILL.md` 48,421. A reviewer loads its role file
+plus the brief — about 17 KB, of which **61% is the brief, not its own role** — and four
+reviewers dispatched in parallel load **four copies of it**, 43 KB of the run's 70 KB. The
+numbers above budget the four role files only: 27 KB of the 217 KB shipped, and the
+smallest part of what a run actually costs. ⚠ Larger files ship — `census.py` is 31 KB — but
+are EXECUTED, never read into a prompt.
 
 **Any Python shipped here must be generic** — no hardcoded paths, no assumed directory names,
 no cap baked into a script whose prose says the skill has no cap of its own.
