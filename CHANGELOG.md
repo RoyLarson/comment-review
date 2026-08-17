@@ -16,7 +16,28 @@ number as a semver claim, or "corrects" the next one to `0.2.0`.
 
 ## [Unreleased]
 
+
+## [0.1.5] — 2026-08-16
+
 ### Changed — BREAKING
+
+- **The `level` ladder is REMOVED ENTIRELY. Every verdict is available on every run, and all
+  four roles run every time.** Roy: *"I am 100% certain there are not 'levels' allowed
+  anymore."* ⚠ **This is a behaviour change, not a rename.** `verdicts.py` refused a verdict
+  outside the level's set, so at `fact-check` a true-but-misplaced block could not be `move`d
+  and became `query`.
+
+  The ladder had no provenance: traced with `git log -S`, it exists at **zero commits** in the
+  project it was ported from. It was invented during the port.
+
+  Removed from `run_context.py` (`LEVELS`, the `LEVEL` packet section and its validation —
+  `REQUIRED` 9 → 8, the answers a machine can settle 3 → 2), `verdicts.py` (`LEVELS`,
+  `allowed()`, `--level`), `SKILL.md` (the table, its four notes, the `level` argument),
+  `vocabulary.toml`, and two `fact-check` carve-outs in the ownership-context agent.
+
+  ⚠ Three TRUE statements the ladder carried survive in another form: `ownership-context` is
+  read FIRST (same reason, no ladder); an unavailable `move` still puts blocks over the cap;
+  and *"every reviewer that ran"* needs no carve-out now that all four always do.
 
 - **`split` collapses into `move`. There are SEVEN verdicts, not eight.** Roy: *"how is that
   different than a move or drop? Would we ever split a sentence? Does that even make sense?"* It
@@ -37,6 +58,88 @@ number as a semver claim, or "corrects" the next one to `0.2.0`.
 
   ⚠ `drop`, `patch` and `add` were examined at the same time and STAY. Roy: *"everything else we
   have come up with has had a valid use case."*
+
+### Fixed
+
+- **The stage-7b gate was invoked with the wrong ref, and failed correct runs.** `write.md` ran
+  `prove_unchanged.py --base <merge-base>`. The merge base answers what the BRANCH changed; 7b
+  proves what WRITE changed. On a branch that edits code and comments together — the case this
+  skill exists for — the branch's own code changes are still in that diff. Reproduced, WRITE
+  having touched only a comment:
+
+  ```
+  --base <merge-base>     FAIL   a.py: executable code DIFFERS (ast proof)
+  --base <pre-edit-ref>   PROVEN a.py: reads the same (ast)
+  ```
+
+  ⚠ `write.md`'s next rail reads *"A `FAIL` is a stop, not a note … restore the file"*, so the
+  documented procedure was to **discard a correct edit** on every review of a branch that
+  changed code. The script was right throughout — `--base`'s own help says *"ref holding the
+  pre-edit text"* — and only the prose naming the ref was wrong.
+
+  **Fixed by naming the ref once.** Stage 1.1 records a PRE-EDIT REF — `HEAD` when nothing in
+  scope is uncommitted, `git stash create` otherwise — and stages 6 and 7b both use it.
+  `compact.md` carried the same bug, and `original` is defined as *"the text as it stood when
+  THIS RUN began"*, which is the pre-edit ref and never the merge base.
+
+- **`cap` carried three meanings, one of them foreign.** It is defined as *"The published line
+  limit a comment run may not exceed"* — a NUMBER — and was also used for the STATE of
+  complying with it (*"the cap is out of reach"*), as a VERB (*"COMPACT must cap prose"*), and
+  in `function-context`'s invented example as an unrelated rounding ceiling. Every site now
+  uses `cap` only as the number, with a block described as OVER or UNDER it.
+
+  ⚠ The collision had reached an agent's prompt: `check_vocabulary.py` went from 0 drifted to 1
+  the moment the example was fixed, reporting *"function-context is given 'cap', never uses
+  it"*. That role had been handed the `cap` definition for no reason but a word used in a
+  foreign sense.
+
+- **The census now ERRORS when a file handed to it is not censused.** A file it cannot read or
+  parse, or whose suffix has no language record, is named and the run exits nonzero. Roy: *"I
+  want a strong line — all blocks are resolved or the program errors."* The reviewers are handed
+  the CENSUS rather than the file list, so a gap there was invisible downstream.
+
+- **Stale counts and refs in the shipped prose.** `verdicts.py` printed *"is not one of the
+  eight"* when there are seven verdicts — it now lists `VERDICTS` itself and cannot go stale
+  again. `run_context.py` claimed *"the eleven questions this packet asks"* (nine) and *"the
+  other eight are prose"* twice (six). `prove_unchanged.py` cited *"the 3.9 floor this script
+  promises"* when the floor is 3.11. ⚠ The one count that had NOT drifted is the one a test
+  asserts against `len(REQUIRED)`.
+
+### Changed
+
+- **`census.py` is split into three modules, each announcing ONE subject.** Roy: *"I don't think
+  census.py would pass the module-context pass."* `repo.py` answers what the checkout says (git,
+  the filesystem, the exception tuples) and was already a shared layer nobody had declared —
+  two other scripts imported it *from* `census.py`. `annotate.py` is stage 3, the resolution a
+  reviewer would otherwise do by hand. `census.py` keeps stage 2 and composes the three.
+  ⚠ The cut was decided by a dependency, not by taste.
+
+- **The shipped Python's own prose, rewritten to say what the code does.** Roy: *"I don't want
+  the system picking up bad cues from the documentation in the code."* Comment and docstring
+  lines stating what the code does NOT do went from **136 / 697 (20%) to 51 / 778 (6%)** across
+  all eight scripts. The residue is deliberate: each survivor names an OUTPUT, a refusal aimed
+  at the next editor, or a state distinction the code turns on.
+
+- **Quoted run statistics removed from the shipped prose.** Roy's discriminator: does the number
+  teach a reviewer to CHECK a number, or only report what happened here? Ten went, including
+  *"5 of 7 reviewer reports FABRICATED"*, *"14 en-GB spellings"* (twice), *"2 of 28 authored
+  docstrings"* and *"548 blocks"* — Roy, on the last: an agent may go looking for that number of
+  blocks. ⚠ A number inside an INVENTED example STAYS, because it teaches that a number in prose
+  is a checkable claim.
+
+- **The environment floor is stated once: a LOCAL GIT REPOSITORY.** `git ls-files` answers and
+  `git show <ref>:<path>` answers for a ref that exists. Everything else is CHECKED — an
+  upstream, a merge base, a clean tree, a cwd at the repo root. With no upstream, scope from
+  `target`, else `git diff --name-only HEAD`, and NAME which of the three was used.
+
+- **`docs/limitations.md` asks a fourth question, and its example rule generalised.** The fourth
+  is *"is the REASON true in a fresh checkout?"* — a rule can be right with a reason fitted to
+  this repo's harness. The invented-example rule became *"an example carries the SHAPE and
+  nothing else"*, whose second case is that an example must not reuse a settled term in a
+  foreign sense. ⚠ Nothing automated catches that: `vocabulary_sweep.py` skips words already
+  settled, and `check_vocabulary.py` compares distribution against usage, never usage against
+  meaning.
+
 
 
 ## [0.1.4] — 2026-08-16
