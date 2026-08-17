@@ -8,36 +8,85 @@ file existed as a one-line stub until this release. Neither
 carries a `version` field, so a version number lives only here and an installed plugin
 cannot report which one it is.
 
-⚠ **The PATCH number moves, whatever the change.** Roy, 2026-08-16: *"these will continue to be
-bugfix versions. I know that is not really how developed systems are supposed to go but this is
-mine now."* So a release carrying breaking renames is still `0.1.x`, and a section headed
-**Changed — BREAKING** does not imply a minor bump here. Recorded so nobody reads a released
-number as a semver claim, or "corrects" the next one to `0.2.0`.
+⚠ **The number does not track breaking changes, and never has.** Roy, 2026-08-16: *"these will
+continue to be bugfix versions. I know that is not really how developed systems are supposed to
+go but this is mine now."* Every `0.1.x` carried breaking renames and stayed a patch. **Do not
+read a released number here as a semver claim.**
+
+⚠⚠ **What the MINOR bump marks is a version that COMPLETED A RUN.** Roy, 2026-08-17: *"The
+system made it all the way through a run. The previous tests did not, so I think they still
+deserved the 0.1.x statements even with significant breaking changes in them."* `0.2.0` is the
+first release that went end to end. That is the criterion — not the size of the diff, and not
+how much of the record changed shape.
 
 ## [Unreleased]
 
-**Group A of the coherence design** — `docs/superpowers/specs/2026-08-17-review-process-coherence-design.md`.
-The unit of review is settled in all four places that stated it differently: `SKILL.md`, the
-join, the census and the record.
+
+## [0.2.0] — 2026-08-17
+
+**Group A of the coherence design** — `docs/superpowers/specs/2026-08-17-review-process-coherence-design.md`
+— plus a day of rulings on what each field of the record is FOR. The unit of review is settled
+in all four places that stated it differently: `SKILL.md`, the join, the census and the record.
+
+⚠ **A report written for 0.1.7 is refused by this gate.** Every field but `VERDICT` and `REASON`
+changed name, meaning, or both.
+
+⚠ **Known defect, shipped knowingly:** `verdicts.py` assumes ROUND ONE and cannot admit a
+re-review record — see `TODO/re-review-is-ordered-everywhere-and-defined-nowhere.md`. The
+0.1.7 run cleared re-reviews outside the gate and this one will too.
 
 ### Changed — BREAKING
 
-- **The finding record is SIX fields:** `BLOCK VERDICT SOURCE CLAIM REASON CHANGE`.
-  - `LOCATION` retires — derivable from `BLOCK`, which the census resolves to a path and line
-    range, and it was only ever checked for RESOLVABILITY. ⚠ **Replaced by a stronger check:**
-    `CLAIM` must appear in the census text for its `BLOCK`, which catches a finding attached to
-    the wrong block. Nothing caught that before.
-  - `EVIDENCE` + `QUOTE` merge into `SOURCE`, as `file:line | verbatim`. ⚠ **A `SOURCE` line
-    REPEATS**, one per place examined — a separator would collide with verbatim text. Stricter
-    than what it replaces: every source must resolve AND carry its verbatim half, where the old
-    rule wanted the quote near one citation.
-  - `SUMMARY` splits: its quoted left half is `CLAIM`, its derived right half folds into
-    `REASON`, which is what `FINDING` was. ⚠ A checker cannot verify both halves of one field.
+- **The record is SIX fields in a CHAIN OF CUSTODY:**
+  `BLOCK VERDICT CLAIM REASON SOURCES CHANGE`. Roy: *"that is a clear chain of custody on the
+  reasoning and the required actions."* The ruling, what must change, why, the evidence the why
+  rests on, the result — each field answers the question the one above it raises. `SOURCES` sat
+  between `VERDICT` and `CLAIM`, which put the evidence before the thing it was evidence FOR.
 
-- **A contradiction is two verdicts on ONE SENTENCE.** The check keyed on the census BLOCK index
-  while a verdict rules on a sentence, so any `drop` in a block collided with any `correct` in
-  it. Measured on a live run: **8 blocks flagged, 2 genuine.** Now keyed on the text both
-  payloads already carry, and validated against all three measured cases before shipping.
+- **`CLAIM` is the SPEC and `CHANGE` is the RESULT.** `CLAIM` says what must change and from
+  what to what; `CHANGE` is that edit already made, written out **with the surrounding block**,
+  which is what stage 5 substitutes. Roy: *"the change is what allows the apply section to apply
+  the claim appropriately."*
+
+  | verdict | `CLAIM` | `CHANGE` |
+  | --- | --- | --- |
+  | `correct` | `false: … / true: …` | the result, with its block |
+  | `patch` | `from: … / to: …` | the result, with its block |
+  | `move` | `from: … / to: …` (PLACES) | BOTH blocks: `to:`, and `from:` unless the whole block moves |
+  | `add` | `missing: …` + anchor and side | the text added in |
+  | `drop` | `drop: …` | the block with it removed |
+
+  `clean` and `query` carry neither — a query says the claim is unsettled, so it proposes no
+  text to apply. ⚠ `correct` keeps `false:`/`true:` where `patch` and `move` take `from:`/`to:`:
+  that pair ASSERTS the sentence is wrong, which is the whole difference between the two
+  verdicts, and a neutral from/to would erase it.
+
+- **`BLOCK` carries its ADDRESS and the ORIGINAL TEXT** — `<index> | path:start-end`, then the
+  block's text as the file reads it now, on the lines below. All three checked against the
+  census. Roy: *"this allows the reviewer to have most the context and most of the time all of
+  the context it needs to understand."* A record can now be read on its own; stage 5 and any
+  re-review previously had to hold the census open beside it. ⚠ `clean` owes neither — a role
+  returns `clean` on most of the census (1159 blocks on one measured run).
+
+- **`SOURCE` → `SOURCES`**, the plural naming what it always did: one entry per place examined,
+  `file:line | verbatim`, every citation resolved and every verbatim half checked.
+
+- **`LOCATION` retires because it was AMBIGUOUS.** Roy: *"it could also have meant where this
+  should go in the case of move or add. Or on a granular level which sentence are we talking
+  about specifically."* One field carried four subjects; each now has its own home — where the
+  prose sits (`BLOCK`), where the reviewer looked (`SOURCES`), where it should go (`CLAIM`'s
+  `to:`), and which sentence exactly, which is DERIVED from `BLOCK`'s original against `CHANGE`.
+  ⚠ That is the gain, and it is not resolvability: a field whose subject is unknown can only be
+  checked for whether it resolves, because nothing says which of the four to check it against.
+
+- **`SUMMARY` splits**, its quoted half into `CLAIM` and its derived half into `REASON`, which
+  is what `FINDING` was. ⚠ A checker cannot verify both halves of one field.
+
+- **A contradiction is two verdicts on ONE SENTENCE, keyed on the DIFF.** The check keyed on the
+  census BLOCK index while a verdict rules on a sentence, so any `drop` in a block collided with
+  any `correct` in it. Measured on a live run: **8 blocks flagged, 2 genuine.** It now keys on
+  the difference between `BLOCK`'s original and `CHANGE` — two roles are rivals when their EDITS
+  collide, whatever each of them said.
 
 - **`move` leaves the contradiction set.** A relocation and a truth fix COMPOSE — the synthesis
   order applies every `move` at step 2 and every `correct` at step 3. ⚠ The `correct` is applied
@@ -48,6 +97,21 @@ join, the census and the record.
 
 ### Added
 
+- **The CLAIM and the EDIT are checked against each other** (`edit_problem`), authorised by Roy
+  *"as a backstop to the Apply agent not doing its due diligence"*. Every span the edit REMOVES
+  must lie inside the sentence `CLAIM` names. Nothing read the two accounts of one edit together
+  before: one check confirmed the claimed sentence was in the block, another confirmed `CHANGE`
+  existed, and neither noticed a reviewer that reasoned about one sentence and rewrote another.
+  A `CHANGE` word-identical to the original is refused too.
+  - ⚠ It governs ONE FINDING and must never be turned on stage 5's synthesis — a synthesised
+    block composes several findings, so no single `CLAIM` names everything it changes.
+  - ⚠ It checks ONE ROUND. Roy: *"this catches the 'first' round of edit reviews, it will not
+    catch the next N rounds required to make it correct."* A green gate is not a correct block.
+  - ⚠ It forces a rule the brief now states: **one finding's `CHANGE` makes one finding's
+    edit.** Stage 5 cannot compose records that have already been merged.
+- **A field may run onto CONTINUATION LINES**, indented, ended by a blank line. `CHANGE` is a
+  whole block by construction and those lines were previously SKIPPED — a multi-line `CHANGE`
+  arrived holding only its first line, and nothing said so.
 - **`continues-a-trailing-comment`**, at BOTH tiers. A trailing comment closes its run, so a
   sentence wrapped onto the next line becomes a second block anchored to the code below it —
   correct by the block definition and wrong about the prose. ⚠ Stamped rather than re-cut:
@@ -57,6 +121,23 @@ join, the census and the record.
   claim and then explains it is doing its job.
 - **`SKILL.md` says a role may file several verdicts on one block**, and that the synthesiser
   reads the code around where the replacement lands.
+
+### Fixed
+
+- **`FINDING` and `QUOTE` were still named in four places** in the shipped reviewer brief, after
+  both fields had been renamed. A reviewer following those lines emitted a field the parser
+  discards without saying so.
+- **`ruled_text` kept the whitespace INSIDE quotes** — `false: "  the budget is 3 "` matched
+  nothing in a block that plainly contained it.
+
+### Ruled, not yet built
+
+- **Re-review round two reads the JOINED RESOLVED BLOCK**, not the contradiction. Roy: *"sending
+  the joined resolved block back to the reviewers that had comments does help, because each can
+  say yes my edits made it and are correct and the other edits do not negate that or cause mine
+  to be wrong."* Three questions: did my edit survive, is it still correct there, do the others
+  break it. ⚠ This is the SAME mechanism as stage 5's missing independent reader; the two TODOs
+  are now one. ⚠ `verdicts.py` cannot admit such a record — the blocker named at the top.
 
 
 ## [0.1.7] — 2026-08-17
