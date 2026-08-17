@@ -77,8 +77,8 @@ destroyed the finding.
 comment that is true, local and load-bearing. Length is not one of its questions, and a run
 that returns long correct prose has succeeded.
 
-**COMPACT (6) is a separate pass over that text, and it comes AFTER edit and BEFORE
-approval.** Two constraints pin it into exactly this slot:
+**COMPACT (6) is a separate pass over that text.** It comes AFTER edit and BEFORE approval, and
+two constraints pin it into exactly that slot:
 
 - **After APPLY**, because prose can only be shortened without losing information once it is
   true. Shortening first is how a false sentence survives — it gets *trimmed around* rather
