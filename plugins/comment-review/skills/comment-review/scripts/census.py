@@ -274,6 +274,10 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     out: list[Block] = []
     run: list[tuple[int, str]] = []
     in_block: tuple[str, str] | None = None
+    # ⚠ The line the last trailing comment ended on. Measured: this tier splits a
+    # wrapped trailing comment exactly as `blocks_stdlib` does, so it needs the
+    # same stamp. A list because `flush` is a closure and rebinds nothing.
+    trailing_end = [0]
 
     def flush(trailing: bool = False) -> None:
         if not run:
@@ -287,18 +291,29 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             kind = "docstring"
         else:
             kind = "trailing-comment" if trailing else "comment"
-        out.append(
-            Block(
-                path=path.as_posix(),
-                start=run[0][0],
-                end=run[-1][0],
-                kind=kind,
-                lines=counted_lines(raw),
-                text=_join(raw, openers),
-                raw_lines=raw,
-                tier="lexical",
-            )
+        block = Block(
+            path=path.as_posix(),
+            start=run[0][0],
+            end=run[-1][0],
+            kind=kind,
+            lines=counted_lines(raw),
+            text=_join(raw, openers),
+            raw_lines=raw,
+            tier="lexical",
         )
+        # ⚠⚠ Same split as the tokenized tier: a trailing comment closes its run,
+        # so a sentence wrapped onto the next line becomes a SECOND block anchored
+        # to the code below it. Stamped, not re-cut.
+        if kind == "comment" and block.start == trailing_end[0] + 1:
+            block.annotations.add("continues-a-trailing-comment")
+            block.notes.append(
+                "opens on the line after a trailing comment, so it may be the"
+                " tail of that sentence rather than a note about the code"
+                " below. A mid-clause ending here may be the split."
+            )
+        if kind == "trailing-comment":
+            trailing_end[0] = block.end
+        out.append(block)
         run.clear()
 
     for n, raw_line in enumerate(lines, 1):

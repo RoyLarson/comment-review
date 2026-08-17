@@ -16,6 +16,48 @@ number as a semver claim, or "corrects" the next one to `0.2.0`.
 
 ## [Unreleased]
 
+**Group A of the coherence design** — `docs/superpowers/specs/2026-08-17-review-process-coherence-design.md`.
+The unit of review is settled in all four places that stated it differently: `SKILL.md`, the
+join, the census and the record.
+
+### Changed — BREAKING
+
+- **The finding record is SIX fields:** `BLOCK VERDICT SOURCE CLAIM REASON CHANGE`.
+  - `LOCATION` retires — derivable from `BLOCK`, which the census resolves to a path and line
+    range, and it was only ever checked for RESOLVABILITY. ⚠ **Replaced by a stronger check:**
+    `CLAIM` must appear in the census text for its `BLOCK`, which catches a finding attached to
+    the wrong block. Nothing caught that before.
+  - `EVIDENCE` + `QUOTE` merge into `SOURCE`, as `file:line | verbatim`. ⚠ **A `SOURCE` line
+    REPEATS**, one per place examined — a separator would collide with verbatim text. Stricter
+    than what it replaces: every source must resolve AND carry its verbatim half, where the old
+    rule wanted the quote near one citation.
+  - `SUMMARY` splits: its quoted left half is `CLAIM`, its derived right half folds into
+    `REASON`, which is what `FINDING` was. ⚠ A checker cannot verify both halves of one field.
+
+- **A contradiction is two verdicts on ONE SENTENCE.** The check keyed on the census BLOCK index
+  while a verdict rules on a sentence, so any `drop` in a block collided with any `correct` in
+  it. Measured on a live run: **8 blocks flagged, 2 genuine.** Now keyed on the text both
+  payloads already carry, and validated against all three measured cases before shipping.
+
+- **`move` leaves the contradiction set.** A relocation and a truth fix COMPOSE — the synthesis
+  order applies every `move` at step 2 and every `correct` at step 3. ⚠ The `correct` is applied
+  AT THE DESTINATION, and may leave a vacuous comment, which is the accepted outcome.
+
+- **`prose tree` retires; the census builds a `pCST`.** The two named one thing once the census
+  enumerated intervals.
+
+### Added
+
+- **`continues-a-trailing-comment`**, at BOTH tiers. A trailing comment closes its run, so a
+  sentence wrapped onto the next line becomes a second block anchored to the code below it —
+  correct by the block definition and wrong about the prose. ⚠ Stamped rather than re-cut:
+  merging would renumber every census. **A mid-clause ending on a stamped block is not a
+  `correct`.**
+- **`REASON` must not merely restate `CLAIM`** — equality only, since a `REASON` that quotes the
+  claim and then explains it is doing its job.
+- **`SKILL.md` says a role may file several verdicts on one block**, and that the synthesiser
+  reads the code around where the replacement lands.
+
 
 ## [0.1.7] — 2026-08-17
 

@@ -643,7 +643,7 @@ being settled:
    different places is several `move`s, one per sentence. ⚠ **Placement comes first because a
    claim is measured against the code it sits with** — correct it where it does not belong and
    you have corrected it against the wrong code.
-3. **`correct`** — fix truth, on what remains, at the anchor it now sits on.
+3. **`correct`** — fix truth, on what remains, **at the anchor it now sits on**. ⚠⚠ A `correct` that travelled with a `move` is applied AT THE DESTINATION and re-derived there, never against the code the prose left. ⚠ It may leave a VACUOUS comment, and that is the accepted outcome: another pass drops it, which is cheaper than a correction that was true only where the prose used to be.
 4. **`patch`** — fix wording, on text now known to be true. ⚠ **Never before step 3:** a
    `patch` on a false sentence polishes the wording of a falsehood and retires the finding.
    That is laundering, and this order is what prevents it.

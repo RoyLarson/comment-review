@@ -2,13 +2,17 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 4 of 5 tasks done
 Owner:    session · Roy (1 ruling, made)
 Raised:   2026-08-17 (the first full run of 0.1.7: 8 blocks flagged as contradictions,
           2 of them genuine)
 ```
 
 ## Objective
+
+⚠ **Group A landed everything but the re-measure**, which needs a live run: the
+measured 8 re-reviews should fall to 2 under sentence-keying, and until a run
+says so that is a prediction.
 
 **`contradictions()` flags `drop`/`move` against `correct`/`patch` as a collision. On a `move`
 it is not one.** Prose can belong somewhere else AND be false; those are two findings about one
@@ -49,23 +53,29 @@ is silent.
 
 ## Tasks
 
-- [ ] Change `contradictions()` so `move` against `correct`/`patch` is not fatal and not a
+- [x] Change `contradictions()` so `move` against `correct`/`patch` is not fatal and not a
       re-review. ⚠ Decide what it becomes: silent, or a distinct printed line (`COMPOSES —
       relocation and a truth fix on the same block; apply the move first`). Recommendation: the
       printed line, because the ORDER matters and this is the one place the run can state it
       per block.
+      ⚠ **DONE by group A, 2026-08-17.** `move` left the set. ⚠ SILENT rather than a printed
+      `COMPOSES` line -- the ordering is stated where the ordering happens, in the synthesis
+      order, and a per-block line would restate it 40 times a run.
 
-- [ ] Keep `drop` against `correct`/`patch` exactly as it is. It is the real contradiction and
+- [x] Keep `drop` against `correct`/`patch` exactly as it is. It is the real contradiction and
       it is what the check was built for.
+      ⚠ **DONE by group A, 2026-08-17.** Kept, and narrowed to the SAME SENTENCE.
 
-- [ ] Say in ONE file that a `correct` travelling with a `move` is applied AT THE DESTINATION.
+- [x] Say in ONE file that a `correct` travelling with a `move` is applied AT THE DESTINATION.
       `SKILL.md` step 3 says *"at the anchor it now sits on"*, which is correct and easy to read
       past. The 2026-08-17 run read past it.
+      ⚠ **DONE by group A, 2026-08-17.** `SKILL.md` synthesis step 3.
 
-- [ ] State that a `correct` applied after the move may leave a VACUOUS comment, and that this
+- [x] State that a `correct` applied after the move may leave a VACUOUS comment, and that this
       is the accepted outcome. Roy ruled it: another pass drops it, and that is cheaper than a
       correction that was true only where the prose used to be. ⚠ Without this the next agent
       re-derives the inversion, because leaving a vacuous comment feels like a defect.
+      ⚠ **DONE by group A, 2026-08-17.** Same sentence, `SKILL.md` step 3.
 
 - [ ] Re-measure after the change. The run's 8 re-reviews should fall to 2, and the count
       belongs in [`re-review-is-ordered-everywhere-and-defined-nowhere`](re-review-is-ordered-everywhere-and-defined-nowhere.md)

@@ -1,8 +1,8 @@
 # The unit of review is the statement, and three files disagree about it
 
 ```
-Status:   open
-Progress: 0 of 5 tasks done
+Status:   CLOSED 2026-08-17 by group A
+Progress: 5 of 5 tasks done
 Owner:    session · Roy (1 ruling)
 Raised:   2026-08-16 (Roy, on a proposed sentence saying "why the BLOCK belongs there":
           "A) each sentence/statement is under review not the 'block'. B) some of the
@@ -36,21 +36,32 @@ three files state differently.
 
 ## Tasks
 
-- [ ] ⭐ Rule what *"exactly once"* was protecting. Two readings: **coverage** (every index is
+- [x] ⭐ Rule what *"exactly once"* was protecting. Two readings: **coverage** (every index is
       accounted for somewhere) or **exclusivity** (one finding per index). Coverage is what the
       gate computes; exclusivity is what the sentence reads as. Only the ruling decides whether
       the brief's sentence is reworded or the gate gains a check.
+      ⚠ **DONE by group A, 2026-08-17.** Resolved as COVERAGE, and by the interval work rather
+      than by argument: the brief now reads "at least one RECORD for EVERY block that HOLDS
+      PROSE".
 
-- [ ] State the unit once: a finding is ADDRESSED by census index and RULED on a statement, so
+- [x] State the unit once: a finding is ADDRESSED by census index and RULED on a statement, so
       several findings may carry the same `BLOCK`. Say it where the record is defined
       (`ref/reviewer-brief.md:40-68`), not in a second place.
+      ⚠ **DONE by group A, 2026-08-17.** In `BLOCK`'s own row: a finding is ADDRESSED by index
+      and RULED on a sentence, so several may carry the same `BLOCK`.
 
-- [ ] Fix `ref/reviewer-brief.md:91-94` to whatever the ruling makes it.
+- [x] Fix `ref/reviewer-brief.md:91-94` to whatever the ruling makes it.
+      ⚠ **DONE by group A, 2026-08-17.** The `exactly once` text is gone.
 
-- [ ] Fix `ref/reviewer-brief.md:290`, which tells a reviewer to *"say in `FINDING` why the block
+- [x] Fix `ref/reviewer-brief.md:290`, which tells a reviewer to *"say in `FINDING` why the block
       belongs there"* — the wrong unit, and it covers only arrival, never a statement that is
       dropped or moved out. ⚠ The field table at `:67` already defines `FINDING` as *"what is
       wrong, one clause"*, so the likely fix is deleting the clause rather than rewording it.
+      ⚠ **DONE by group A, 2026-08-17.** That sentence is gone; `REASON` now says what it
+      carries.
 
-- [ ] Decide whether the gate should report a block that is both found and `CLEAN`. It is
+- [x] Decide whether the gate should report a block that is both found and `CLEAN`. It is
       silent today, and that is the one case where *"exactly once"* is unambiguously right.
+      ⚠ **DONE by group A, 2026-08-17.** **NO, and the coverage ruling decides it:** a role may
+      return `clean` on one sentence and `correct` on another in the same block, so reporting
+      the pair would refuse the thing the unit ruling permits.

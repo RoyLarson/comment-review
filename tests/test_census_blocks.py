@@ -226,3 +226,32 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTheLexicalTierStampsToo(unittest.TestCase):
+    """The wrapped trailing comment splits identically at BOTH tiers.
+
+    ⚠ Measured before it was fixed: `blocks_lexical` flushes on a trailing
+    comment exactly as `blocks_stdlib` does, so the continuation became its own
+    block with no stamp. The stamp is what tells a reviewer that a mid-clause
+    ending is the census's doing.
+    """
+
+    def _census(self, name, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / name
+            path.write_text(text, encoding="utf-8")
+            return census.census_for(path, text, census.language_for(path))
+
+    def test_go_stamps_a_wrapped_trailing_comment(self):
+        got = self._census(
+            "a.go", "x := 1  // a claim that\n        // wraps onto it\ny := 2\n"
+        )
+        prose = [b for b in got if b.kind != "interval"]
+        self.assertEqual([b.kind for b in prose], ["trailing-comment", "comment"])
+        self.assertIn("continues-a-trailing-comment", prose[1].annotations)
+
+    def test_go_does_not_stamp_an_ordinary_comment(self):
+        got = self._census("a.go", "x := 1\n// a fresh note\ny := 2\n")
+        prose = [b for b in got if b.kind != "interval"]
+        self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)

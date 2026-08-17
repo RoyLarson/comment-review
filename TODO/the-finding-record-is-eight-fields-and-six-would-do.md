@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 8 tasks done
+Progress: 7 of 8 tasks done
 Owner:    session · Roy (⭐ 1 ruling)
 Raised:   2026-08-15 (Roy: "It looks like another session got convinced by other
           sessions that they didn't have everything they needed to state what
@@ -10,6 +10,10 @@ Raised:   2026-08-15 (Roy: "It looks like another session got convinced by other
 ```
 
 ## Objective
+
+⚠ **Group A landed the six-field record and all four checks.** What is left is a
+BUDGET decision -- which worked examples ship -- and `query` and `add` are now
+ruled, so the reason they were held back is gone.
 
 **The record shipped with five fields and now has eight, and every field added since exists to
 serve the GATE, not the reviewer.** `BLOCK` and `EVIDENCE` came in with `8a2a1bd` (parse the
@@ -29,7 +33,7 @@ loads the census and takes only `len(blocks)` from it.
 
 ## Tasks
 
-- [ ] Implement the six-field record in `references/reviewer-brief.md` and
+- [x] Implement the six-field record in `references/reviewer-brief.md` and
       `scripts/verdicts.py`: `LOCATION` goes (derivable from `BLOCK`, which the census resolves
       to path/start/end); `EVIDENCE` + `QUOTE` merge into `SOURCE` as `file:line | verbatim`,
       split on `|` and each half checked exactly as now; `SUMMARY` splits, its left half
@@ -37,24 +41,38 @@ loads the census and takes only `len(blocks)` from it.
       `REASON`. ⚠ **The opener is ALREADY `--- RECORD`, done 2026-08-16** — Roy found the
       ambiguity in the brief's own example (*"is it the emitted full table or is it the row
       in the table?"*) and it was split out because it is independent of the field cut.
+      ⚠ **DONE 2026-08-17, group A tasks 4-6.** `BLOCK VERDICT SOURCE CLAIM REASON CHANGE`.
+      LOCATION retired, EVIDENCE+QUOTE merged as `file:line | verbatim`, SUMMARY split with its
+      derived half folding into REASON. ⚠ A SOURCE line REPEATS rather than comma-separating,
+      because verbatim text can contain a comma.
 
-- [ ] Keep `SOURCE` merged, not re-split. `EVIDENCE` and `QUOTE` were ONE field until
+- [x] Keep `SOURCE` merged, not re-split. `EVIDENCE` and `QUOTE` were ONE field until
       `9f481c3` split them, because the old `SUMMARY` mixed verbatim with derived text and a
       checker cannot verify both in one field. `SOURCE`'s two halves are both verbatim, so the
       merge does not recreate that. ⚠ Do not merge anything DERIVED into it.
+      ⚠ **HELD.** One field, and both halves verbatim -- which is why the merge does not
+      recreate the defect that split them. Nothing DERIVED went into it: the derived side is
+      REASON, and it is checked by nothing.
 
-- [ ] Add the cross-check the record never had: **does `CLAIM` appear in the census text for
+- [x] Add the cross-check the record never had: **does `CLAIM` appear in the census text for
       `BLOCK`?** The census carries each block's joined text and the gate already loads it. This
       catches a finding attached to the wrong block, which nothing catches today, and it is
       strictly stronger than the `LOCATION` check being removed.
+      ⚠ **DONE, task 6.** `claim_problem` matches CLAIM against the census text for its BLOCK. ⚠
+      Exempt: `clean` cites no claim, and `add` is a finding about prose that is MISSING, so its
+      block is an empty interval with no sentence to quote.
 
-- [ ] Check `REASON`. Minimum: non-empty, and not merely a restatement of `CLAIM`. Today
+- [x] Check `REASON`. Minimum: non-empty, and not merely a restatement of `CLAIM`. Today
       `Finding.finding` is read at exactly one site (`verdicts.py:539`) and only to print the
       reason a record was MALFORMED — so for a real finding the field is decoration.
       ⚠ `Finding.finding` is overloaded: reviewer clause, or diagnostic string when
       `block == -1`. One attribute, two meanings — fix with it.
+      ⚠ **DONE, tasks 4 and 7.** Required non-empty, and refused when it merely restates CLAIM
+      -- equality only, because a REASON that quotes the claim and then explains it is doing its
+      job. ⚠ The overload is gone too: `parse_report` returns malformed records separately, so
+      the field holds one thing.
 
-- [ ] `query` DOES carry `SOURCE`. **Roy, 2026-08-15:** *"EVIDENCE + QUOTE for query means I
+- [x] `query` DOES carry `SOURCE`. **Roy, 2026-08-15:** *"EVIDENCE + QUOTE for query means I
       looked here, and here, and here and I couldn't determine what this means."* The exemption
       rests on a conflation — "no line SETTLES it" is not "no line to CITE" — and
       `reviewer-brief.md` contradicts itself on it fifteen lines apart: *"You are still required
@@ -68,6 +86,8 @@ loads the census and takes only `len(blocks)` from it.
       but the attempted check IS the `SOURCE` list once it is carried — so that regex becomes
       redundant. Decide whether `QUERY_SETTLES` stays as a shape check on `REASON` or "what
       would settle it" becomes prose the gate does not police.
+      ⚠ **DONE 2026-08-16 and 08-17.** `source_problem` exempts `clean` alone, and SOURCE goes
+      plural by repeating the line.
 
 - [x] ⭐ Rule on `add` — ⚠ **RULED 2026-08-17: it carries a BLOCK, and the block is the empty
       INTERVAL.** Neither of the two options this task named: the borrowing was not stated as

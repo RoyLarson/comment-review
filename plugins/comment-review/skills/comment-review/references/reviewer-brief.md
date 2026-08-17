@@ -67,7 +67,7 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 
 | field | what it carries |
 | --- | --- |
-| `BLOCK` | the census INDEX, and the finding's whole ADDRESS — the census resolves it to path and line range, so nothing else names where the prose is |
+| `BLOCK` | the census INDEX, and the finding's whole ADDRESS — the census resolves it to path and line range, so nothing else names where the prose is. ⚠ **A finding is ADDRESSED by index and RULED on a sentence, so several of your findings may carry the same `BLOCK`** |
 | `VERDICT` | one of the seven |
 | `SOURCE` | where you looked, as `file:line | verbatim` — the citation and the text AT it, both verbatim. **Repeat the line, one per place examined.** EVERY one is resolved and every verbatim half must be there |
 | `CLAIM` | the sentence as the PROSE writes it, quoted. ⚠ **CHECKED against the census text for your `BLOCK`** — a claim that is not in the block you cited means the finding is on the wrong block |
