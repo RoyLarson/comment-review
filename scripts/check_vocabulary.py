@@ -15,8 +15,10 @@ each exists because the thing it looks for had already gone wrong unnoticed:
             terms had drifted across all six roles before this check existed.
 
 ⚠ The role -> files mapping is DERIVED, not listed here: an agent file names the
-reference it is told to read, so this reads it out of the tree. A listed copy
-would go stale exactly the way the term lists did.
+document it is told to read, so this reads it out of the tree. A listed copy
+would go stale exactly the way the term lists did. ⚠ It matches the DOCUMENT,
+never a path -- a shipped file naming its own location sends the agent to the
+installed plugin rather than to the absolute path it was handed.
 
 ⚠ It once also checked `file:line` citations in the vocabulary SURVEY documents.
 Those documents are gone -- they were the apparatus for finding the terms, and
@@ -37,8 +39,13 @@ AGENTS = REPO / "plugins/comment-review/agents"
 REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
 EMITTED = REFERENCES / "vocabulary.toml"
 
-# `references/<name>.md` as an agent file names the one it is told to read.
-READS = re.compile(r"references/([\w-]+\.md)")
+# How an agent file names the document it is told to read. ⚠ It names the
+# DOCUMENT and never its location: a shipped file that spells out a path sends
+# the agent looking for it in the installed plugin instead of using the absolute
+# path the task agent passed in. So this matches a backticked filename, and the
+# four reviewers -- which name no file at all -- are matched on the words.
+READS = re.compile(r"`([\w-]+\.md)`")
+BRIEF = ("reviewer brief", "reviewer-brief.md")
 
 # The key every role's list is extended with. Not a role.
 EVERY_AGENT = "all"
@@ -57,7 +64,10 @@ def text_for(role: str) -> str | None:
     if not agent.exists():
         return None
     text = agent.read_text(encoding="utf-8")
-    for name in sorted(set(READS.findall(text))):
+    named = set(READS.findall(text))
+    if BRIEF[0] in text.lower():
+        named.add(BRIEF[1])
+    for name in sorted(named):
         reference = REFERENCES / name
         if reference.exists():
             text += "\n" + reference.read_text(encoding="utf-8")

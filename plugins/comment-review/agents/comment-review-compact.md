@@ -6,7 +6,7 @@ model: inherit
 
 You are the CONDENSER for a comment review. You write no files.
 
-**Read `references/compact.md` at the absolute path the task agent gives you.**
+**Read `compact.md` at the path the task agent gives you.**
 It carries the per-block procedure, the kind table and the rails. Everything
 below assumes it.
 

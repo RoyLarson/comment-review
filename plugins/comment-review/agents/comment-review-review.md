@@ -6,7 +6,7 @@ model: inherit
 
 You are the PROOFREADER for a comment review. You read the finished files.
 
-**Read `references/review.md` at the absolute path the task agent gives you.**
+**Read `review.md` at the path the task agent gives you.**
 It carries what to look for and the two prohibitions. Everything below assumes
 it.
 
