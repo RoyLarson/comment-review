@@ -21,6 +21,31 @@ reach a run only as REFERENCE ONLY, which is read-to-settle and never ruled on.
 code prose attributing rules to `CLAUDE.md` that live in `conventions.md`. Six rules in one of
 them. The reviewers caught the citation from the CODE side; nothing can look at the documents.
 
+## ⚠⚠ The file this system CANNOT review is the one every agent reads first
+
+`CLAUDE.md` is an instruction file. Every session in a repo reads it before touching anything,
+and a wrong line in it is acted on rather than merely believed. **It is a `.md` file, so it is
+permanently outside scope** — the census exits nonzero rather than skipping it, and no run has
+ever ruled on one.
+
+**Measured twice on 2026-08-17, in two repos, by two independent readers:**
+
+| repo | defect | found by |
+| --- | --- | --- |
+| `comment-review` | `CLAUDE.md` listed `split` as one of the seven verdicts; the code says `move`, and `test_reanchor_collapsed_into_move` pins it | a session reading the file by hand, an hour before the run below |
+| `redacted_corpus` | **nine** `CLAUDE.md` citations naming section numbers and quoted phrases that file does not contain | `function-context`, 0.2.0 builder run |
+
+⚠⚠ **Both were found from the CODE side, and that is the only side there is.** The builder run
+reached them because functions in scope cited into `CLAUDE.md`; nothing looked at the document.
+A stale line no code happens to cite is unreachable by construction — and an instruction file's
+worst lines are exactly the ones no code cites, because nothing else forces them current.
+
+⚠ **A hygiene guard does not close this.** `redacted_corpus` publishes a cap and a width with
+a live guard over `redacted_pkg/` and `tests/`, and the same run still found six
+functions claiming production callers they do not have and a documented `None` return the body
+cannot produce. **The guard checks length and format; it has never checked whether a claim is
+true.** So "the guard is live" says nothing about the defect class this TODO is about.
+
 ## ⚠⚠ It is not a missing `LANGUAGES` row, and that is the whole difficulty
 
 **A block is the interval between two lines of CODE. A prose file has no code lines.** Adding a
