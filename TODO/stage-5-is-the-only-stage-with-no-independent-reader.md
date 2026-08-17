@@ -9,6 +9,22 @@ Raised:   2026-08-17, by the session that ran all eight stages and rolled its ow
           by the same agent that then decides it's correct."
 ```
 
+## ⚠⚠ INDEPENDENT is not FRESH, and only two readers are fresh
+
+Roy, 2026-08-17: *"The only 'fresh' reader is the human and stage 8."*
+
+Two different properties, and this file conflated them until he separated them:
+
+| | means | who has it |
+| --- | --- | --- |
+| **independent** | did not write the text it is reading | the join, the compact agent, the filers at 5b/6b, stage 8, the human |
+| **FRESH** | formed no prior view of this block | **stage 8 and the human, and nobody else** |
+
+A filer confirming at 5b already read the block and already ruled on it. That is worth having —
+it is the only participant who knows what its finding meant — but it is **not a fresh read**, and
+a design that leans on it must not claim one. Stage 8 reads the finished page and never sees a
+report; the human sees the proposal and nothing before it.
+
 ## Objective
 
 **Every stage but one is read by somebody who did not write it.**
@@ -152,10 +168,23 @@ every other finding travels 4 → 5, this one travels 6 → 4.
       because stage 5 has none. ⚠ That absence is itself a finding — stages 1, 2-3 and 5 are the
       only stages with no `references/` file, and 5 is the one this whole task is about.
 
-- [ ] Consider (d) seriously before building (b) or (c). Stage 8 already exists, already has a
-      separate reader, and already caught all of this. What it cannot do today is stop the
-      write, because it runs after 7b. ⚠ Against it: `review.md` reads the FINISHED PAGE, and a
+- [ ] Consider (d) — stage 8 before the write — with the objection Roy raised against it.
+      Stage 8 already exists, already reads fresh, and already caught all of this; what it
+      cannot do today is stop the write. ⚠ Against it, `review.md` reads a FINISHED PAGE and a
       proposal is not a page.
+
+      ⚠⚠ **And a pre-write read is only valid under BLANKET approval.** Roy, on the measured
+      run: *"all of the changes should be read before the proposal to the human — that was an
+      artifact of my blanket yes statement. If I had stated apply this one not that one would
+      nullify that effort."* A whole-page reader reads the 43 blocks as a SET. Approve 30 of
+      them and it read a page that never exists — the interactions it checked are between edits
+      that will not sit together.
+
+      ⚠ That is not fatal, because the absentee-author principle already assumes the blanket
+      case: *"They approve almost everything, quickly, unaudited"*, and *"every proposal must be
+      safe to approve blindly."* So the rule follows: **a pre-write whole-page read is valid for
+      an all-or-nothing approval, and a SELECTIVE approval invalidates it and needs a re-read.**
+      Say which, rather than letting a subset ship against a read of the whole.
 
 - [ ] Count how many of stage 8's twelve findings a pre-write reader could have caught, from
       that run's preserved artifacts. ⚠ That number decides whether this is worth paying for,
