@@ -117,10 +117,11 @@ under one substantive label, corrupting the summary for everyone reading it. An 
 any.
 
 **Emitting `clean` here asserts that the module docstring accounts for the exposed surface and
-reads as one set of ideas** — you enumerated the surface and checked it. A block you did not
-read for is `query`, not `clean`: `clean` certifies, and you have certified nothing.
+reads as one set of ideas** — you enumerated the surface and checked it. A block you READ and
+found outside your role is `query`: `clean` certifies, and outside your role there is nothing
+you can certify.
 
 ## Return
 
-Report as the brief specifies. Where a block is not yours, that is `clean` with the reason
-stated, never a word of your own.
+Report as the brief specifies. Where a block is outside your role, that is `query` with the
+reason stated, never a word of your own.
