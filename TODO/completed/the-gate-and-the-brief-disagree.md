@@ -1,8 +1,8 @@
 # The gate and the brief disagree about what a finding must carry
 
 ```
-Status:   open
-Progress: 5 of 8 tasks done
+Status:   CLOSED 2026-08-17
+Progress: 8 of 8 tasks done
 Owner:    session · Roy (3 rulings made, 0 left)
 Raised:   2026-08-15 (the vocabulary survey, which collected these while reading for terms)
 Re-filed: 2026-08-16 (Roy, on `query` needing EVIDENCE and QUOTE: "this is a TODO on
@@ -67,22 +67,29 @@ actively contradicted rather than merely differed. The three left differ; none c
       `sk-scripts/verdicts.py:387`, the exemption at `:380`. **Both sides moved:** `MIN_NEEDLE`
       is 1 (task 2) and the exemption is gone (task 1).
 
-- [ ] **The `add` payload check passes on the bare word "anchor".**
-      `sk-scripts/verdicts.py:302-308` accepts any `CHANGE` containing the string `anchor` and
-      refuses one that names a declaration without using the word. The brief asks for *"the text
-      **and its anchor** — which code, above or below"*, which is a NAMED site, not a word.
+- [x] **The `add` payload check passes on the bare word "anchor"** — ⚠ **FIXED 2026-08-17.**
+      Two conditions now, and the word "anchor" satisfies neither: `ANCHOR_SIDE` wants a side
+      (above, below, before, after) and `ANCHOR_NAME` wants the anchor NAMED IN BACKTICKS.
+      Backticks are the repo's own citation form — the brief already says cite by symbol or path,
+      never by line number — so "named" is checkable without guessing which token is an
+      identifier. `CHANGE  add an anchor comment` used to pass and now does not; ``above
+      `retry_budget` `` used to fail for not saying "anchor" and now passes. The brief's `add`
+      row states both. Five tests.
 
-- [ ] **`--reviewers` is compared to report file STEMS, never to the published role names.**
-      `sk-scripts/verdicts.py:475-479` derives each reviewer from `Path(r).stem` and only checks
-      for duplicates. A report named `ownershp-context.md` is accepted as a reviewer called
-      `ownershp-context`, and the coverage report then names a role that does not exist.
-      ⚠ `scripts/vocabulary.py` now has `Reviewer`, a StrEnum of the six dispatchable names —
-      the published list this could be checked against.
+- [x] **`--reviewers` is compared to report file STEMS, never to the published role names**
+      — ⚠ **FIXED 2026-08-17.** `verdicts.py` imports `Reviewer` from its sibling
+      `vocabulary.py` and refuses any stem, and any `--reviewers` name, that is not one of the
+      six published roles. A stem is still what keys a reviewer; it just has to be a real role
+      name now. Three tests, including one that walks the published names to catch the enum and
+      the gate drifting apart.
 
-- [ ] **`FINDING` is never checked, and `Finding.finding` holds two different things.**
-      It carries the reviewer's clause normally and a DIAGNOSTIC STRING when `block == -1`,
-      which `:539` prints as `MALFORMED {reviewer}: {finding}`. One field, two meanings,
-      distinguished by a sentinel in another field.
+- [x] **`FINDING` is never checked, and `Finding.finding` holds two different things** —
+      ⚠ **FIXED 2026-08-17, and the two halves were one defect.** `parse_report` returns
+      `(findings, malformed)`, so a record that names no block never becomes a `Finding` and the
+      `block=-1` sentinel is gone from the file. With `FINDING` holding one thing,
+      `payload_problem` can require it: every verdict but `clean` states why it was made.
+      ⚠ Three consumers each carried their own sentinel filter (`by_block`, `contradictions`,
+      `main`) and all three lost it.
 
 - [x] **`CODE CONCERNS` is not parsed or gated at all** — ⚠ **CARRIED, 2026-08-16.** Roy:
       *"told you you can't stop coding agents from trying coding."* The first real run proved

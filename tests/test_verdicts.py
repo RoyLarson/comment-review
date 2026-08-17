@@ -80,7 +80,7 @@ def _finding(**kw):
 
 class TestParsing(unittest.TestCase):
     def test_a_record_is_parsed(self):
-        found = verdicts.parse_report(REPORT, "block-context")
+        found, _ = verdicts.parse_report(REPORT, "block-context")
         self.assertEqual(len(found), 2)
         self.assertEqual(found[0].block, 1)
         self.assertEqual(found[0].verdict, "correct")
@@ -88,19 +88,21 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(found[0].quote, "the settling line")
 
     def test_a_clean_record_parses_like_any_other(self):
-        found = verdicts.parse_report(REPORT, "block-context")
+        found, _ = verdicts.parse_report(REPORT, "block-context")
         self.assertEqual(found[1].verdict, "clean")
         self.assertEqual(found[1].block, 2)
 
     def test_the_reviewer_is_attached(self):
-        found = verdicts.parse_report(REPORT, "block-context")
+        found, _ = verdicts.parse_report(REPORT, "block-context")
         self.assertEqual(found[0].reviewer, "block-context")
 
     def test_a_bare_range_line_accounts_for_nothing(self):
         # A range list used to cover N blocks in one line and cite nothing. It is
         # not a record, so it parses to no findings and every block it named is a
         # coverage gap.
-        self.assertEqual(verdicts.parse_report("CLEAN 1-9\n", "module-context"), [])
+        found, malformed = verdicts.parse_report("CLEAN 1-9\n", "module-context")
+        self.assertEqual(found, [])
+        self.assertEqual(malformed, [])
 
     def test_an_unterminated_record_is_flagged_not_silently_merged(self):
         # I4: two records, the first missing its closing "---", must not merge
@@ -124,10 +126,13 @@ FINDING     second record, closed
 CHANGE      false: "x" / true: "y"
 ---
 """
-        found = verdicts.parse_report(text, "block-context")
-        malformed = [f for f in found if f.block < 0]
+        found, malformed = verdicts.parse_report(text, "block-context")
         self.assertTrue(
-            malformed, "an opener/closer mismatch must produce a malformed finding"
+            malformed, "an opener/closer mismatch must be reported as malformed"
+        )
+        self.assertTrue(
+            all(f.block > 0 for f in found),
+            "a malformed record must not enter the findings at all",
         )
 
 
@@ -165,7 +170,46 @@ class TestPayload(unittest.TestCase):
 
     def test_add_without_an_anchor_is_rejected(self):
         f = _finding(reviewer="ownership-context", verdict="add", change="some text")
-        self.assertIn("anchor", verdicts.payload_problem(f))
+        self.assertIn("side", verdicts.payload_problem(f))
+
+    def test_a_verdict_that_states_no_finding_is_rejected(self):
+        # FINDING went unchecked while it doubled as the diagnostic slot for a
+        # malformed record. It holds one thing now, so it can be required.
+        self.assertIn("FINDING", verdicts.payload_problem(_finding(finding="  ")))
+
+    def test_clean_owes_no_finding(self):
+        f = _finding(verdict="clean", finding="", change="")
+        self.assertIsNone(verdicts.payload_problem(f))
+
+
+class TestAddAnchor(unittest.TestCase):
+    """The brief asks for "the text AND its anchor — which code, above or below".
+
+    That is a NAMED site and a side. The check accepted the bare WORD "anchor"
+    instead, so a finding that never named a declaration passed and one that
+    named a declaration without using the word failed.
+    """
+
+    def _add(self, change):
+        return verdicts.payload_problem(
+            _finding(reviewer="ownership-context", verdict="add", change=change)
+        )
+
+    def test_the_bare_word_anchor_no_longer_passes(self):
+        self.assertIsNotNone(self._add("add an anchor comment here"))
+
+    def test_a_side_with_no_named_anchor_is_rejected(self):
+        self.assertIn("backticks", self._add("put it above the loop"))
+
+    def test_a_named_anchor_with_no_side_is_rejected(self):
+        self.assertIn("side", self._add("goes with `retry_budget`"))
+
+    def test_a_named_anchor_and_a_side_passes(self):
+        self.assertIsNone(self._add("above `retry_budget`: the ceiling is 100"))
+
+    def test_before_and_after_count_as_sides(self):
+        for side in ("before", "after"):
+            self.assertIsNone(self._add(f"{side} `send()`: retries are capped"), side)
 
 
 class TestQueryPayload(unittest.TestCase):
@@ -366,7 +410,7 @@ FINDING     nothing to report from this role
     def test_they_are_not_findings(self):
         # They carry no verdict, so they must never reach the record parser --
         # a code concern counted as a finding would enter coverage arithmetic.
-        found = verdicts.parse_report(self.REPORT, "block-context")
+        found, _ = verdicts.parse_report(self.REPORT, "block-context")
         self.assertEqual(len(found), 1)
         self.assertEqual(found[0].verdict, "clean")
 
@@ -384,10 +428,14 @@ class TestWorkList(unittest.TestCase):
         self.assertEqual(sorted(grouped), [7, 9])
         self.assertEqual(len(grouped[7]), 2)
 
-    def test_a_malformed_record_is_left_out(self):
-        # `block=-1` names no real block, and main() already reported it fatal.
-        grouped = verdicts.by_block([_finding(block=-1, verdict="malformed")])
-        self.assertEqual(grouped, {})
+    def test_a_record_with_no_block_index_never_becomes_a_finding(self):
+        # It used to arrive as `block=-1` and every consumer filtered on the
+        # sentinel first. `parse_report` returns it on the side instead, so
+        # there is nothing for the work list to leave out.
+        text = "--- RECORD\nVERDICT     drop\nLOCATION    a.py:1\n---\n"
+        found, malformed = verdicts.parse_report(text, "block-context")
+        self.assertEqual(found, [])
+        self.assertEqual(malformed, ["a record with no BLOCK index"])
 
 
 class TestVerdicts(unittest.TestCase):
@@ -448,13 +496,15 @@ class TestContradiction(unittest.TestCase):
         ]
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
-    def test_a_malformed_block_is_never_reported_as_a_contradiction(self):
-        # Minor: a -1 sentinel (a malformed record) must not surface as
-        # "RE-REVIEW [-1]" -- it names no real block.
-        found = [
-            _finding(reviewer="ownership-context", block=-1, verdict="drop"),
-            _finding(reviewer="block-context", block=-1, verdict="correct"),
-        ]
+    def test_a_record_that_names_no_block_cannot_reach_a_contradiction(self):
+        # It used to reach here as `block=-1` and surface as "RE-REVIEW [-1]".
+        # Now it never becomes a Finding, so there is no index to collide on.
+        text = (
+            "--- RECORD\nVERDICT     drop\nLOCATION    a.py:1\n---\n"
+            "--- RECORD\nVERDICT     correct\nLOCATION    a.py:1\n---\n"
+        )
+        found, malformed = verdicts.parse_report(text, "ownership-context")
+        self.assertEqual(len(malformed), 2)
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
 
 
@@ -621,6 +671,27 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("STANDS UNCHANGED: 3 blocks", result.stdout)
         self.assertIn("NEEDS A RULING:   0 blocks", result.stdout)
+
+    def test_a_misspelt_report_stem_is_fatal(self):
+        # The stem WAS taken as a role name on sight, so `ownershp-context.md`
+        # became a reviewer called `ownershp-context` and every line below
+        # named a role that does not exist.
+        report = self._clean_report("ownershp-context.md")
+        result = self._run(report)
+        self.assertIn("UNKNOWN reviewer 'ownershp-context'", result.stdout)
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_a_misspelt_expected_reviewer_is_fatal(self):
+        report = self._clean_report("block-context.md")
+        result = self._run(report, reviewers="block-context,blck-context")
+        self.assertIn("UNKNOWN reviewer 'blck-context'", result.stdout)
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_every_published_role_name_is_accepted(self):
+        for role in ("ownership-context", "block-context", "function-context"):
+            report = self._clean_report(f"{role}.md")
+            result = self._run(report, reviewers=role)
+            self.assertEqual(result.returncode, 0, f"{role}: {result.stdout}")
 
     def test_a_missing_payload_is_fatal(self):
         # C2: a payload problem must not print and then exit 0.
@@ -870,7 +941,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         match = self.RECORD.search(text)
         self.assertIsNotNone(match, "no canonical FINDING record in reviewer-brief.md")
         self.record = match.group(1)
-        found = verdicts.parse_report(self.record + "\n", "block-context")
+        found, _ = verdicts.parse_report(self.record + "\n", "block-context")
         self.assertEqual(len(found), 1, self.record)
         self.finding = found[0]
         self._plant()

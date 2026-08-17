@@ -106,7 +106,9 @@ sits in the wrong place are a placement question, and outside your remit.
 You are scoped to what belongs to the module AS A WHOLE — its docstring, banners, top-of-file
 prose, module-level bindings and module-level runtime — so a block inside a function body is
 not yours. **Return `query` and name the reason as "outside my role"** rather
-than reaching for a substantive verdict to have something to write.
+than reaching for a substantive verdict to have something to write. ⚠ It is a FINDING and the
+brief says what it owes: quote the line that fixes the block's subject, and say what about that
+subject the module as a whole does not announce. Saying it is not yours is not showing it.
 
 ⚠⚠ **Do NOT invent a word for it.** The brief lists three shapes that reach `query`, and
 outside-your-role is the first. A word outside the seven breaks the arithmetic the task agent

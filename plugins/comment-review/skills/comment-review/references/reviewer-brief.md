@@ -92,7 +92,7 @@ finding.
 | `drop`    | the sentence, verbatim |
 | `correct` | the false clause **and** the true one, plus the line that settles it |
 | `patch`   | the rewrite |
-| `add`     | the text **and its anchor** — which code, above or below |
+| `add`     | the text, **the anchor NAMED in backticks**, and which side — above or below it. The word "anchor" is not an anchor |
 | `move`    | the destination **and** the verbatim extract |
 
 #### Does a TRUE sentence earn its place?
@@ -168,6 +168,14 @@ looked to try to find the answer. These are the statements in the code that make
 ambiguous or the location not yours to determine. **All three shapes carry them**, including
 `outside my role`: the block is real and in the checkout on every one of them, so there is
 always a line to quote.
+
+⚠⚠ **`outside my role` is a FINDING, so you have to show it is not yours.** It is the shape a
+reviewer reaches for when it has nothing to say, and it is the one that costs the most when
+it is wrong — the block leaves your report certified by nobody. So quote the line that fixes
+the block's SUBJECT, and say in `FINDING` what about that subject your remit does not reach,
+in the words your own role file uses for its remit. **Never name another role**; you do not
+know what the others were asked. *"Not mine"* is an admission. *"Its subject is the loop body,
+and my remit is what the module as a whole announces"* is a finding.
 
 ## Check the CLAIM, not the CITATION
 

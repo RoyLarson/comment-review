@@ -15,7 +15,8 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   SCOPED OUT    blocks nobody found anything in and nobody certified
   WORK LIST     each block needing a ruling, with the verdicts held on it
   CODE CONCERNS carried through, attributed, gated by nothing
-  REVIEWER      (only with `--reviewers`) every expected reviewer actually reported
+  REVIEWER      every report is named for a PUBLISHED role, and (only with
+                `--reviewers`) every expected reviewer actually reported
 
 ⚠ Exits nonzero on a coverage gap or an unverifiable citation.
 
@@ -41,6 +42,8 @@ import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+
+from vocabulary import Reviewer
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
@@ -97,12 +100,20 @@ EVIDENCE_WINDOW = 3
 # route through was to quote MORE than was read.
 MIN_NEEDLE = 1
 
+# What an `add`'s PAYLOAD must carry: a SIDE, and the anchor NAMED.
+#
+# ⚠ Backticks are the repo's own citation form -- the brief says cite by symbol
+# or path, never by line number, and every record in it writes a symbol that way.
+# So "named" is checkable without guessing which token is an identifier.
+ANCHOR_SIDE = re.compile(r"\b(above|below|before|after)\b", re.I)
+ANCHOR_NAME = re.compile(r"`[^`\s][^`]*`")
+
 # What a `query`'s PAYLOAD must name: a check that was attempted, and the thing
 # that would settle the claim.
 #
 # ⚠ A SHAPE check: it removes the query that names no check at all, and the
-# word "grepped" passes it. See `evidence_problem` for the DISPUTED question of
-# whether a query owes EVIDENCE on top of this.
+# word "grepped" passes it. A query owes EVIDENCE and a QUOTE on top of this --
+# `evidence_problem` exempts `clean` alone.
 #
 # Matched on WORD BOUNDARIES. As substrings, "ran" hit *b**ran**ch*,
 # *****ran***ge* and *t**ran**sfer*, and "settle" hit *un**settle**d*, so
@@ -156,26 +167,7 @@ def _n(count: int, noun: str) -> str:
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
 
-def _malformed(reviewer: str, why: str) -> Finding:
-    """A record that cannot be attributed to any real block.
-
-    `block=-1` is the sentinel `main()` treats as fatal on sight, for either
-    reason -- a missing BLOCK, or a record whose closing "---" is absent.
-    """
-    return Finding(
-        reviewer=reviewer,
-        block=-1,
-        verdict="malformed",
-        location="",
-        evidence="",
-        quote="",
-        summary="",
-        finding=why,
-        change="",
-    )
-
-
-def parse_report(text: str, reviewer: str) -> list[Finding]:
+def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
     """Every record in one reviewer's report, `clean` included.
 
     Args:
@@ -184,20 +176,26 @@ def parse_report(text: str, reviewer: str) -> list[Finding]:
         reviewer: the editorial role's name, attached to every finding it made.
 
     Returns:
-        The parsed findings. Coverage is computed from these alone -- a block a
-        reviewer never recorded is a block it never accounted for.
+        `(findings, malformed)`. Coverage is computed from the findings alone --
+        a block a reviewer never recorded is a block it never accounted for.
+        `malformed` holds one sentence per record that names no block, which
+        `main()` reports and counts fatal.
+
+    ⚠ A malformed record used to be a `Finding` carrying `block=-1`, and its
+    reason was stuffed into `FINDING`. That made one field mean two things,
+    distinguished by a sentinel in another, and every consumer had to filter on
+    the sentinel before reading anything. They are separate now, so `FINDING`
+    holds a reviewer's clause and only that.
     """
     found: list[Finding] = []
+    malformed: list[str] = []
     bodies = RECORD.findall(text)
     openers = len(OPENER.findall(text))
     if openers != len(bodies):
-        found.append(
-            _malformed(
-                reviewer,
-                f"{_n(openers, 'RECORD opener')} but"
-                f" {_n(len(bodies), 'closed record')}"
-                " -- an unterminated record swallows the next one",
-            )
+        malformed.append(
+            f"{_n(openers, 'RECORD opener')} but"
+            f" {_n(len(bodies), 'closed record')}"
+            " -- an unterminated record swallows the next one"
         )
     for body in bodies:
         fields: dict[str, str] = {}
@@ -221,8 +219,8 @@ def parse_report(text: str, reviewer: str) -> list[Finding]:
                 )
             )
         else:
-            found.append(_malformed(reviewer, "a record with no BLOCK index"))
-    return found
+            malformed.append("a record with no BLOCK index")
+    return found, malformed
 
 
 def code_concerns(text: str) -> list[str]:
@@ -273,9 +271,14 @@ def coverage_gaps(
 def payload_problem(f: Finding) -> str | None:
     """What the verdict's required payload is missing, or None.
 
-    `query` is the one row checked in any detail here, because `evidence_problem`
-    exempts it — see the DISPUTED note there.
+    `query` is checked in the most detail, because it is the one verdict whose
+    payload has a fixed shape the brief spells out.
     """
+    # ⚠ Every verdict but `clean` states WHY, and `FINDING` is the field that
+    # holds it. It went unchecked while it doubled as a diagnostic slot for
+    # malformed records; those are separate now, so it can be required.
+    if f.verdict != "clean" and not f.finding.strip():
+        return f"{f.verdict} states no FINDING — the reason the verdict was made"
     change = f.change.lower()
     if f.verdict == "query":
         named = [s for s in QUERY_SHAPES if s in change]
@@ -300,13 +303,18 @@ def payload_problem(f: Finding) -> str | None:
             return "query needs what WOULD settle the claim"
     if f.verdict == "correct" and not ("false:" in change and "true:" in change):
         return "correct needs a true/false pair in CHANGE"
-    if (
-        f.verdict == "add"
-        and "anchor" not in change
-        and "above" not in change
-        and "below" not in change
-    ):
-        return "add needs an anchor (which declaration, above or below)"
+    if f.verdict == "add":
+        # ⚠ The brief asks for "the text AND its anchor — which code, above or
+        # below": a NAMED site and a side. This used to accept the bare word
+        # "anchor", so `CHANGE  add an anchor comment` passed while
+        # `CHANGE  above `retry_budget`` failed for not saying "anchor".
+        if not ANCHOR_SIDE.search(change):
+            return "add needs a side — is the text above or below the anchor"
+        if not ANCHOR_NAME.search(f.change):
+            return (
+                "add needs the anchor NAMED in backticks — which declaration,"
+                " not the word 'anchor'"
+            )
     if f.verdict == "move" and "->" not in change and " to " not in change:
         return "move needs a destination and the verbatim extract"
     if f.verdict not in ("clean",) and not f.change.strip():
@@ -432,13 +440,12 @@ def by_block(found: list[Finding]) -> dict[int, list[Finding]]:
     computed inside `contradictions`, used for one boolean and dropped, leaving
     the agent to rebuild it from the report files by hand.
 
-    A malformed record is left out -- `block=-1` names no real block, and
-    `main()` has already reported each one as fatal.
+    Every finding here names a block, because a record that named none never
+    became a `Finding` -- `parse_report` returns those separately.
     """
     out: dict[int, list[Finding]] = defaultdict(list)
     for f in found:
-        if f.block >= 0:
-            out[f.block].append(f)
+        out[f.block].append(f)
     return out
 
 
@@ -506,13 +513,27 @@ def main() -> int:
     # report's stem, so two files with the same stem put one reviewer's
     # coverage in place of the other's.
     stems = [Path(r).stem for r in args.reports]
+    expected = {a.strip() for a in args.reviewers.split(",") if a.strip()}
     for stem in sorted({s for s, n in Counter(stems).items() if n > 1}):
         print(f"  DUPLICATE report stem {stem!r} — two files claim the same reviewer")
         fatal += 1
 
+    # ⚠ A stem was taken as a role name on sight, so `ownershp-context.md` was
+    # accepted as a reviewer called `ownershp-context` and every line below
+    # named a role that does not exist. `Reviewer` is the published list.
+    published = {r.value for r in Reviewer}
+    for name in sorted(set(stems) | expected):
+        if name not in published:
+            print(
+                f"  UNKNOWN reviewer {name!r} — not one of"
+                f" {', '.join(sorted(published))}"
+            )
+            fatal += 1
+
     found: list[Finding] = []
     reported: set[str] = set()
     concerns: list[tuple[str, str]] = []
+    malformed: list[tuple[str, str]] = []
     for raw in args.reports:
         path = Path(raw)
         reviewer = path.stem
@@ -524,7 +545,9 @@ def main() -> int:
             )
             fatal += 1
             continue
-        found.extend(parse_report(text, reviewer))
+        records, unattributable = parse_report(text, reviewer)
+        found.extend(records)
+        malformed.extend((reviewer, why) for why in unattributable)
         for line in code_concerns(text):
             concerns.append((reviewer, line))
         reported.add(reviewer)
@@ -538,7 +561,6 @@ def main() -> int:
     # --reviewers, "every reviewer" means "every file I was handed", so a
     # reviewer that reported nothing at all passes unseen.
     if args.reviewers:
-        expected = {a.strip() for a in args.reviewers.split(",") if a.strip()}
         for reviewer in sorted(expected - reported):
             print(
                 f"  NO REPORT from reviewer {reviewer!r} — a missing report is the"
@@ -565,11 +587,11 @@ def main() -> int:
             fatal += 1
         print()
 
+    for reviewer, why in malformed:
+        print(f"  MALFORMED {reviewer}: {why}")
+        fatal += 1
+
     for f in found:
-        if f.block < 0:
-            print(f"  MALFORMED {f.reviewer}: {f.finding}")
-            fatal += 1
-            continue
         if not 1 <= f.block <= len(blocks):
             print(
                 f"  BLOCK {f.block} {f.reviewer}: out of range for a"
