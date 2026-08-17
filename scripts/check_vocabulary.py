@@ -43,9 +43,10 @@ EMITTED = REFERENCES / "vocabulary.toml"
 # DOCUMENT and never its location: a shipped file that spells out a path sends
 # the agent looking for it in the installed plugin instead of using the absolute
 # path the task agent passed in. So this matches a backticked filename, and the
-# four reviewers -- which name no file at all -- are matched on the words.
+# four reviewers -- which name no file, because the brief is HANDED to them in
+# their prompt -- are matched on the word.
 READS = re.compile(r"`([\w-]+\.md)`")
-BRIEF = ("reviewer brief", "reviewer-brief.md")
+BRIEF = ("brief", "reviewer-brief.md")
 
 # The key every role's list is extended with. Not a role.
 EVERY_AGENT = "all"

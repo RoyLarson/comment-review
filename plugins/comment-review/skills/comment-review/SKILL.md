@@ -443,10 +443,11 @@ KIND it could not resolve.
 | `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
 | `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
 
-Each already carries its own editorial role and reads the shared brief itself.
+Each already carries its own editorial role.
 
-⚠⚠ **Put each agent's VOCABULARY in its prompt, verbatim.** One command per agent, and the
-output is pasted as it comes — it is the only statement of those words anywhere:
+⚠⚠ **Put the BRIEF and each agent's VOCABULARY in its prompt, verbatim.** Paste
+[`references/reviewer-brief.md`](references/reviewer-brief.md) whole — it is the same text for
+all four — then one command per agent, pasted as it comes:
 
 ```bash
 python <skill>/scripts/vocabulary.py --reviewer ownership-context
@@ -478,9 +479,10 @@ A docstring's format decides which of its lines are structural and which are pro
 reviewer that does not know the format cannot tell what a block contains. And a correct
 sentence in the wrong format is work the human has to redo by hand.
 
-⚠ **Hand the brief and the role file as PATHS — the agent reads them itself.** What you paste
-is what a command EMITS at dispatch, which is the VOCABULARY block above and nothing else: it
-is generated fresh every run, so it cannot go stale. A file's contents pasted by hand can.
+⚠⚠ **An agent is GIVEN what it needs, and is never sent looking.** A path into the installed
+plugin is an invitation to read its neighbours and act on what it finds there. Nothing a
+reviewer needs arrives as a path: the brief and the vocabulary are in the prompt, the census
+and the file lists come through the packet.
 
 ⚠ **REFERENCE ONLY is a SELECTION, not a leftover.** Name the files that settle claims code
 cannot: the repo's **decision record** (*"ruled"*, *"rejected"*, *"deferred"* have no code
