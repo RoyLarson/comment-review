@@ -12,8 +12,9 @@ satisfied because nothing owned consistency.
 ⚠ CAP and WIDTH are absent from REQUIRED. The cap reaches stage 6 through
 `compact.md`'s own input contract instead.
 
-⚠ A section present and EMPTY is a failure. "No cap published" is an answer and
-gets written; a blank is a question nobody answered.
+⚠ A section present and EMPTY is a failure. A published non-answer --
+`UNAVAILABLE` for MOVE DESTINATION, `no LSP tool` for LSP LANGUAGES -- is an
+answer and gets written; a blank is refused.
 
 ⚠ REVIEWER FILES carries ABSOLUTE paths. The plugin agents are namespaced and
 resolve only where the plugin was installed before the session started, which
