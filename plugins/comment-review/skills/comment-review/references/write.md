@@ -36,8 +36,14 @@ literal is REPORTED, never applied** — hand it to the human as a code concern.
 **Prove the code says the same; do not assert it.** Run the CODE CHECK — do not perform it:
 
 ```bash
-python <skill>/scripts/prove_unchanged.py --base <merge-base> --repo . <paths...>
+python <skill>/scripts/prove_unchanged.py --base <pre-edit-ref> --repo . <paths...>
 ```
+
+⚠⚠ **`--base` is the PRE-EDIT REF 1.1 recorded — NOT the merge base.** This proves what WRITE
+changed, and the branch's own code changes are not WRITE's. Measured: on a branch that edits
+code and comments together — which is what this skill reviews — a run where WRITE touched only
+a comment reports `FAIL: executable code DIFFERS` against the merge base, and `PROVEN` against
+the pre-edit ref. Against the merge base the rail below then says to restore a correct edit.
 
 It exits nonzero unless every path is proven, and it reports an **unprovable**
 file rather than passing it. It carries the AST comparison for Python, a

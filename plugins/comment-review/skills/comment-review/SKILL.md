@@ -199,9 +199,27 @@ and **never passed to a reviewer** — it is not a section of the stage-4 packet
 
 ## Stage 1 — PROJECT DETERMINATION: ground truth
 
+⚠⚠ **THE FLOOR IS A LOCAL GIT REPOSITORY, and that is the ONLY thing a rule here may assume.**
+`git ls-files` answers, and `git show <ref>:<path>` answers for a ref that exists. **Everything
+else is checked, not assumed** — an upstream, a merge base, a clean tree, a cwd at the repo
+root. Pass `--repo` to every script rather than relying on the working directory.
+
+⚠⚠ **Record the PRE-EDIT REF now, and carry it to stages 6 and 7b.** It is `HEAD` when the tree
+holds no uncommitted change to the files in scope, and `git stash create` otherwise — which
+writes a commit object for the current state and leaves the working tree untouched. **It is not
+the merge base**, and the two answer different questions: the merge base says what the BRANCH
+changed, the pre-edit ref says what THIS RUN changed. Stage 6 reads the ORIGINAL prose from it
+and stage 7b proves against it.
+
 **1.1 Scope from the MERGE BASE** — `git merge-base HEAD <upstream>`, then
 `git diff --name-only "$base"..HEAD`. Never `A...B` between two tips, never a `HEAD~1`
 fallback; both silently narrow. Add `git diff --name-only HEAD` if dirty.
+
+⚠ **No upstream, no merge base, detached HEAD — then there is no diff scope, and you say so
+rather than inventing one.** A repo with no remote is inside the floor. Scope from `target`
+instead, which REPLACES the diff scope and needs no base; failing that, from
+`git diff --name-only HEAD` alone. **Name in the report which of the three you used**, because
+the three cover different files and a reader cannot tell them apart from the findings.
 
 **1.2 Find the repo's published cap and line WIDTH, and read HOW each counts** — matching the
 number while counting differently produces a file that claims to comply and does not.

@@ -47,10 +47,9 @@ to do any of those, APPLY was not finished — go back, or file it for the next 
 
 ## Per block
 
-1. **Take the ORIGINAL prose from the pre-edit text** — `git show <base>:<path>` where 1.1
-   established a merge base, or **`git show HEAD:<path>` when `target` replaced the diff
-   scope**, because then 1.1 never ran and `<base>` has no referent. Either way it is what is
-   on disk today, which at this stage is still the UNEDITED text, and not your scratch copy.
+1. **Take the ORIGINAL prose from the PRE-EDIT REF** 1.1 recorded —
+   `git show <pre-edit-ref>:<path>`. Nothing has been written yet at this stage, so it is also
+   what is on disk; read the blob rather than your scratch copy.
    You are checking against what the block has ever said, not against your own last edit.
    ⚠ The blob is authoritative and cannot be lost to an interruption; keep the scratch copy
    only as a convenience.

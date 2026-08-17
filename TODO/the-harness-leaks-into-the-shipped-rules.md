@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 6 tasks done
+Progress: 5 of 6 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on finding `worktree` in the shipped plugin: "that is
           indicating a wrong idea in the workflow requirements")
@@ -90,9 +90,37 @@ rather than finding them one at a time when someone happens to look.
       same file. Restored. ⚠ It read as a quantity to me and would to an agent, so it is now
       bolded as a reference rather than run into the phrase.
 
-- [ ] Decide what a shipped rule may assume about its environment, and write it once. Today
-      nothing states the floor — whether a git repo exists, whether it is a worktree, whether
-      `--base` resolves, whether the cwd is the repo root. Several rules quietly assume answers.
+- [x] Decide what a shipped rule may assume about its environment, and write it once.
+      **Roy ruled the floor 2026-08-16: a LOCAL REPO.** Written once at the head of stage 1 in
+      `SKILL.md`: `git ls-files` answers and `git show <ref>:<path>` answers for a ref that
+      exists, and **everything else is checked** — an upstream, a merge base, a clean tree, a
+      cwd at the repo root. `--repo` goes to every script rather than trusting the cwd.
+
+      ⚠⚠ **Taking the task found a live defect, not just a missing sentence.** `write.md` ran
+      the stage-7b proof as `--base <merge-base>`, and the merge base is the wrong ref: it
+      answers what the BRANCH changed, while 7b proves what WRITE changed. On a branch that
+      edits code and comments together — the case this skill exists for — the branch's own code
+      changes are still in that diff. **Reproduced:**
+
+      ```
+      --base <merge-base>     FAIL   a.py: executable code DIFFERS (ast proof)
+      --base <pre-edit-ref>   PROVEN a.py: reads the same (ast)
+      ```
+
+      WRITE had touched only a comment. And `write.md`'s next rail reads *"A `FAIL` is a stop,
+      not a note … restore the file"* — so the documented procedure was to DISCARD a correct
+      edit, on every review of a branch that changed code.
+
+      **Fixed by naming the ref once.** 1.1 now records a PRE-EDIT REF — `HEAD` when the tree
+      holds no uncommitted change in scope, `git stash create` otherwise, which writes a commit
+      object and leaves the working tree alone — and stages 6 and 7b both use it. ⚠ That also
+      collapsed a special case: `compact.md` carried a `target`-replaced-the-scope branch
+      "because then 1.1 never ran and `<base>` has no referent", which disappears once 1.1
+      always records one.
+
+      ⚠ **No-upstream is now answered too**, since a repo with no remote is inside the floor:
+      scope from `target`, else from `git diff --name-only HEAD`, and NAME which of the three
+      was used, because they cover different files.
 
 - [x] Add the check to `docs/limitations.md`'s three questions. **Done 2026-08-16** — there are
       four now, and the fourth is *"is the REASON true in a fresh checkout?"*, with the failure
