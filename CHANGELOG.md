@@ -13,11 +13,30 @@ continue to be bugfix versions. I know that is not really how developed systems 
 go but this is mine now."* Every `0.1.x` carried breaking renames and stayed a patch. **Do not
 read a released number here as a semver claim.**
 
-⚠⚠ **What the MINOR bump marks is a version that COMPLETED A RUN.** Roy, 2026-08-17: *"The
-system made it all the way through a run. The previous tests did not, so I think they still
-deserved the 0.1.x statements even with significant breaking changes in them."* `0.2.0` is the
-first release that went end to end. That is the criterion — not the size of the diff, and not
-how much of the record changed shape.
+⚠⚠ **Each MINOR bump has its OWN gate, and the gates are named in advance.** Roy, 2026-08-17:
+a completed run *"was the justification for going from 0.1.x -> 0.2.x. That is not the gate for
+0.3.0."* The number tracks a ladder of capability, one rung at a time. **A rung is not reached
+by accumulating changes**, however many or however breaking.
+
+| release | its gate |
+| --- | --- |
+| `0.2.0` | **cleared 2026-08-17** — the system made it all the way through a run. No earlier version did: *"the previous tests did not, so I think they still deserved the 0.1.x statements even with significant breaking changes in them."* |
+| `0.3.0` | **open** — Roy: *"something like it runs on my code bases and reliably makes things better."* |
+| `0.4.0` | **open** — Roy: *"verified this works across the other languages claimed."* |
+
+⚠ **`0.3.0`'s gate is not checkable yet, and Roy's *"something like"* says as much.** *Reliably
+makes things better* needs an oracle before it can pass or fail anything. The nearest two this
+repo already has are `evals/grade_hazards.py` — twelve planted hazards — and
+`evidence/ga/ground_truth.py`. ⚠ Whatever it becomes, it is graded from the **diff**:
+self-reported confidence has been measured NOT to discriminate real findings from fabricated
+ones, so a run's own report cannot be the evidence that it helped.
+
+⚠ **`0.4.0`'s gate is checkable today**, which is why it can sit below an unmeasurable one:
+`census.py --languages` prints exactly what the plugin claims, and the claim is per-tier —
+`tokenized` resolves docstring owners, `lexical` finds blocks and marks and no owner at all. The
+gate is that list, verified, not a general claim about languages. As of `0.2.0` it is **11
+families, 1 `tokenized` and 10 `lexical`**, of which **2 have been run** — python (this repo)
+and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
