@@ -1032,8 +1032,9 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
     ⚠⚠ All three are CHECKED, and this is NOT `LOCATION` coming back. That
     field was dropped for AMBIGUITY: it could have named where the prose sits,
     where the reviewer looked, where the prose should GO, or which sentence
-    exactly. Those are four fields now -- `address_problem` sets out which --
-    and each is checked against a different thing.
+    exactly. Three of those are fields now and the fourth is DERIVED from the
+    difference between `BLOCK`'s original and `CHANGE` -- `address_problem`
+    sets out which is which -- and each is checked against a different thing.
     """
 
     BLOCKS = [

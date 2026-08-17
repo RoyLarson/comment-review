@@ -608,7 +608,13 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
     | where the prose SITS          | `BLOCK` -- index, address, original    |
     | where the reviewer LOOKED     | `SOURCES`                              |
     | where the prose SHOULD GO     | `CLAIM`'s `to:`, or an `add`'s anchor  |
-    | WHICH SENTENCE, exactly       | `CLAIM`'s `drop:`/`false:`/`from:`     |
+    | WHICH SENTENCE, exactly       | `BLOCK`'s original against `CHANGE`    |
+
+    ⚠⚠ The last one is DERIVED, not declared, and that is why it is reliable.
+    Roy, 2026-08-17: *"which sentence exactly is determined by the difference
+    between BLOCK and CHANGE, since CHANGE is the whole block with the
+    substitution."* Both hold the WHOLE block, before and after, so what differs
+    between them is the sentence and nothing else has to say so.
 
     ⚠ Each is checked against a DIFFERENT thing -- `BLOCK` against the census,
     `SOURCES` against the files, the sentence against the block's text. That is
