@@ -26,16 +26,14 @@ Read the module docstring, the section BANNERS — comment lines dividing a file
 - section banners reading like chapter breaks in a book rather than parts of one argument;
 - a summary line that describes one half of what the file contains.
 
-## ⚠ A module docstring also gets the Block-Context and Function-Context lenses
+## ⚠ A module docstring's CLAIMS are checked, not only its coherence
 
-Your question is *is this one thing*. It is **not** *is this so*. A module docstring is exactly
-where *"single source of truth"* and *"the only parser"* claims live, and if you are the only
-role reading it, nobody checks whether the claim is **true**.
+A module docstring is exactly where *"single source of truth"* and *"the only parser"* claims
+live, and reading for *is this one thing* passes straight over whether the claim is **true**.
 
 So for every module docstring: **enumerate its quantified and exclusivity claims and resolve
-each against the tree**, including other modules. A single-source claim is almost always
-refuted from somewhere else in the repo — which is precisely why no role scoped to this file
-would catch it.
+each against the tree**, including other modules. A single-source claim is usually refuted from
+somewhere else in the repo — outside the file the claim sits in.
 
 ## ⚠⚠ A universal is a CHECKLIST
 

@@ -72,9 +72,9 @@ string literals.
 then remove the source. The other order loses the text on any interruption — three times,
 before this became the rule.
 
-**Re-read what you wrote, against the block-context rule.** The failure mode is producing exactly
-what you are removing: a pass that cut seven obituaries wrote seven new ones, including the
-same one twice in one file.
+**Re-read what you wrote, against the block-context rule.** The failure mode is producing
+exactly what you are removing — a pass that cuts obituaries writes new ones, and writes the
+same one twice.
 
 **Fix the whole claim, not the copy in front of you.** If the claim-dedup found the same
 sentence in two files, both are in the same edit or neither is.
