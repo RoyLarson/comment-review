@@ -1,8 +1,8 @@
 # `apply` named two different stages — stage 5 is APPLY, stage 7b is WRITE
 
 ```
-Status:   in-progress
-Progress: 5 of 6 tasks done
+Status:   COMPLETE 2026-08-16
+Progress: 6 of 6 tasks done
 Owner:    session
 Raised:   2026-08-15 (Roy, stating the workflow as "Apply, Compact, Approval")
 ```

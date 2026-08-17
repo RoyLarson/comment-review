@@ -1,8 +1,8 @@
 # The level ladder was invented during the port and nobody asked for it
 
 ```
-Status:   open
-Progress: 6 of 7 tasks done
+Status:   COMPLETE 2026-08-16
+Progress: 7 of 7 tasks done
 Owner:    session · Roy (ruled 2026-08-16)
 Raised:   2026-08-15 (Roy: "Where did the 'levels' come from? Those weren't in the
           original format, and I didn't ask for them.")
@@ -88,8 +88,11 @@ knew it existed, and no fresh agent is one. The line now states the fact alone.
       relocation verdict is not carried, and `clean`'s meaning for a true-but-misplaced block are
       all written against a level. Grep `fact-check` before declaring this done.
 
-- [ ] ⚠ Fix the dangling recommendation in
-      [`the-task-agent-emits-the-vocabulary`](the-task-agent-emits-the-vocabulary.md), which
+- [x] ⚠ Fix the dangling recommendation in
+      [`the-task-agent-emits-the-vocabulary`](completed/the-task-agent-emits-the-vocabulary.md), which
       offered `LEVELS = (...)` as the idiom to copy for a `--reviewer` selector. If `LEVELS` is
       deleted, that model goes with it — and since the floor moved to 3.11 on 2026-08-16,
       `StrEnum` is available and is what that selector should use.
+      ⚠ **Closed 2026-08-16 without an edit being needed:** that task shipped as
+      `vocabulary.py`'s `Reviewer(StrEnum)`, so the recommendation was never taken
+      and `LEVELS` is deleted here. Nothing copied the model.

@@ -26,8 +26,11 @@ cap rule for comments**, and the reason is what is optimised: **a comment must b
 ONE thing, so cutting to fit deletes its evidence; a rule must cover MANY, so cutting to fit
 forces the covering abstraction.**
 
-Three questions before adding anything. Would it fire in a repo about something else? Is the
+Four questions before adding anything. Would it fire in a repo about something else? Is the
 evidence a **number or ratio** rather than a story? Does it change what a reviewer **does**?
+⚠ And is **the REASON** true in a fresh checkout? A rule can be right and its reason fitted to
+this repo's harness — a reader who tests the reason, finds it false, and drops the rule is the
+failure that question catches.
 Assume a reasoning reader: state the rule and its discriminator, not the argument for it. At
 budget, a new rule **replaces** one — and if two rules are instances of one generalization,
 write the generalization and delete both.

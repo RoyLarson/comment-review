@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks done
+Progress: 4 of 6 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on finding `worktree` in the shipped plugin: "that is
           indicating a wrong idea in the workflow requirements")
@@ -46,21 +46,36 @@ rather than finding them one at a time when someone happens to look.
       the section exists for is untouched: does the guard exist, and would it FAIL if the claim
       were false.
 
-- [ ] Sweep the shipped tree for other harness assumptions. Candidates to grep: `corpora`,
-      `eval`, `hazard`, `D1`–`D12`, `redacted_pkg`, `workout`, `grade`, `probe`, `base ref`,
-      `REDACTED_SHA_A`, `--base`, and any measurement quoted as a rule rather than as evidence.
-      **Done when every shipped statement is true in a fresh checkout of an unrelated repo.**
+- [x] Sweep the shipped tree for other harness assumptions. **Run 2026-08-16** over the listed
+      candidates. ⚠ **The word list found NOTHING.** Every hit was ordinary English (`degrade`,
+      `grade a run from its DIFF`, `git-decoding hazard`) or a false positive on a substring.
+      `redacted_pkg/billing/rates.py` in `reviewer-brief.md:50` reads like a corpus path and is NOT
+      one — no `redacted_pkg` in `corpora.toml`; it is an invented example, which is what the brief
+      is required to use. ⚠ **The remaining leaks are not findable by word**, which is the
+      finding: they are QUANTITIES, and the next task holds them.
 
-- [ ] Check the direction of every MEASURED claim in `plugins/`. The rules cite measurements
-      constantly and that is the house style — but a measurement taken on `redacted_corpus`
-      is evidence FOR a rule, not the rule's justification to a stranger. Where a site reads
-      *"because X was measured here"*, the rule needs a reason that holds in a repo the reader
-      owns.
+- [x] Check the direction of every MEASURED claim in the shipped **Python**. **Done
+      2026-08-16 under a ruling of Roy's**, given on `annotate.py`'s *"Measured on a scientific
+      library: 4 hits, 4 false"*: *"Unnecessary and potentially harmful quoting of hits that
+      could no longer be true."* Applied across all eight scripts — the MECHANISM stays and the
+      quantity goes. Removed: `5 of 8 blocks`, a dated `asanyarray` observation, `5 of 7
+      reviewer reports FABRICATED` (Roy, on that one: *"only needs the first line"*), `3 of 3
+      verification runs`, `14 en-GB spellings`, `80/84, 18/20 and 2/2 false dangling reports`,
+      `6 of 20 dangling reports were gitignored state`, `Measured four times`, `Measured on all
+      three runs`.
+
+      ⚠ **STILL OPEN FOR THE MARKDOWN, and it needs a ruling, because the two rules collide.**
+      `docs/limitations.md` REQUIRES a number — *"Is the evidence a number or ratio rather than
+      a story?"* — and this task says a number measured on one repo is not a justification to a
+      stranger. Seven sites are affected: `SKILL.md:222` (*"6, 19 and 8 rotted citations"*),
+      `:266` (*"templates measured at 1.3"*), `:270` and `:507` (*"14 en-GB spellings"*, twice),
+      `write.md:83` (*"14 dialect changes"*) and `:95` (*"2 of 28 authored docstrings"*), and
+      `module-context.md:110` (*"548 blocks"*). ⭐ Roy rules which of the two gives way.
 
 - [ ] Decide what a shipped rule may assume about its environment, and write it once. Today
       nothing states the floor — whether a git repo exists, whether it is a worktree, whether
       `--base` resolves, whether the cwd is the repo root. Several rules quietly assume answers.
 
-- [ ] Add the check to `docs/limitations.md`'s three questions. It asks "Would it fire in a repo
-      about something else?" — which catches a rule fitted to a project, but not a REASON fitted
-      to a harness. A fourth question would: *is the reason true in a fresh checkout?*
+- [x] Add the check to `docs/limitations.md`'s three questions. **Done 2026-08-16** — there are
+      four now, and the fourth is *"is the REASON true in a fresh checkout?"*, with the failure
+      it catches named: a reader who tests the reason, finds it false, and drops the rule.

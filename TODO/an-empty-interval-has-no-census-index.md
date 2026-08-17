@@ -30,8 +30,9 @@ vocabulary and is done; this is the census change that follows from it.
 
 - [ ] Enumerate every interval between two code lines, including empty ones. Today
       `blocks_stdlib` / `blocks_lexical` emit only where prose exists. Measured for scale:
-      `census.py` is 1044 lines, 606 of them code, and censuses as **59 blocks** — under (a)
-      it is ~606. `verdicts.py`: 617 lines, 388 code, **28 blocks** today.
+      re-measured 2026-08-16, after `census.py` was split into three modules: `census.py` is
+      768 lines, ~624 of them code, and censuses as **44 blocks** — under (a) it is ~624.
+      `verdicts.py`: 535 lines, ~426 code, **23 blocks** today.
 
 - [ ] Define **"a line of code"** per tier, because the two tiers cannot answer the same
       question. `tokenized` has an AST; `lexical` has only a comment-syntax record, so a line of
@@ -54,7 +55,7 @@ vocabulary and is done; this is the census change that follows from it.
       nine in ten blocks are empty, that report becomes MORE plausible, not less — decide
       whether the gate needs a compensating check before the count changes.
 
-- [ ] Check the clean-arithmetic and the acquittal rate. `verdicts.py`'s STANDS set is
+- [ ] Check the STANDS arithmetic and the acquittal rate. `verdicts.py`'s STANDS set is
       `all_blocks - ruled`, and `module-context` measures an acquittal rate whose denominator is
       blocks. Both shift by an order of magnitude when most blocks are empty, and neither states
       a denominator today.
@@ -73,7 +74,8 @@ vocabulary and is done; this is the census change that follows from it.
       check that pairing still holds.
 
 - [ ] Re-measure the census afterwards and record it. Today `census.py --json` over `census.py`
-      is 60,503 bytes for 59 blocks (~1,025 bytes each); an empty interval carries no text,
-      `raw_lines` or annotations, so ~203 bytes each puts the ~547 empty ones near 111 KB. ⚠ Record
+      is 36,777 bytes for 44 blocks (~836 bytes each, re-measured 2026-08-16); an empty interval
+      carries no text, `raw_lines` or annotations, so ~203 bytes each puts the ~580 empty ones
+      near 118 KB. ⚠ Record
       it as a fact, not as a budget question — `docs/limitations.md` states that rule files are
       budgeted and run data is not.

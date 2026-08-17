@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 6 tasks done
-Owner:    session · Roy (1 ruling made, 1 left)
+Owner:    session · Roy (2 rulings made, 1 left)
 Raised:   2026-08-15 (the vocabulary survey, which collected these while reading for terms)
 Re-filed: 2026-08-16 (Roy, on `query` needing EVIDENCE and QUOTE: "this is a TODO on
           the reviewer code")
@@ -32,8 +32,21 @@ nothing reads.
       returns early on `("clean", "query")`, so a reviewer supplies both and nothing checks
       them. ⚠ The code states a reason at `:375-378` — demanding evidence left two exits,
       inventing a citation or downgrading to `clean` — and Roy's version answers it, because the
-      evidence is WHERE YOU LOOKED rather than a line that settles it. The gate has not been
-      told. Ruling needed on what it checks instead: that the cited lines exist, and nothing more?
+      evidence is WHERE YOU LOOKED rather than a line that settles it.
+
+      ⚠ **HALF-RULED 2026-08-16.** Roy: *"query is definitely supposed to have evidence per that
+      other TODO."* That settles the DIRECTION — the brief is right and the GATE moves. What the
+      gate checks is still open. ⚠ Recommendation for that ruling: if `EVIDENCE` is where you
+      looked, the `QUOTE` is verbatim text from that place, so `evidence_problem`'s existing
+      check applies to a `query` unchanged and the fix is to drop `query` from the exemption at
+      `verdicts.py:342`. Decide before implementing whether `MIN_NEEDLE` and the `SUMMARY`
+      right-half check should come with it.
+
+      ⚠ **The prose was corrected 2026-08-16 without the code changing.** `verdicts.py` had
+      argued the exemption as settled fact at THREE sites -- `payload_problem`,
+      `evidence_problem` and the `QUERY_ATTEMPTED` comment -- each giving a reason the exemption
+      is correct. All three now mark it DISPUTED and UNRESOLVED. The gate still behaves the old
+      way; it no longer claims to be right about it.
 
 - [ ] **`QUOTE`'s row lost two rules the gate still enforces.** The brief's field table said
       *"VERBATIM and at least 12 characters. Required for every verdict except `clean` and

@@ -569,11 +569,11 @@ claim the reviewer could not settle. Its PAYLOAD is checked instead: a `query`
 naming no attempted check, or naming nothing that would settle the claim, is
 the one the gate refuses.
 
-⚠⚠ **A finding whose evidence does not resolve is not a finding — except a
-`query`, which by construction carries none.** Measured: one graded run had
-**fabricated 5 of its 7 reviewer reports** and did not notice until asked to
-grade itself; self-certified `CONFIRMED` ran at **97% across 298 findings**.
-**Never grade a review by reading its report.**
+⚠⚠ **A finding whose evidence does not resolve is not a finding.** ⚠ Whether a
+`query` owes EVIDENCE is DISPUTED and UNRESOLVED: `reviewer-brief.md` requires
+it, `verdicts.py` exempts it. **Never grade a review by reading its report** —
+self-reported confidence has been measured not to discriminate a real finding
+from a fabricated one.
 
 ⚠⚠ **It catches a fabricated FINDING, never a fabricated CLEAN — and the clean
 is the cheaper fabrication.** A report reading only `CLEAN 1-N` accounts for
