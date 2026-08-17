@@ -40,9 +40,9 @@ write the generalization and delete both.
 | agent file (`plugins/comment-review/agents/`) | lines |
 | --- | --- |
 | `comment-review-ownership-context.md` | 96 |
-| `comment-review-block-context.md` | 110 |
+| `comment-review-block-context.md` | 111 |
 | `comment-review-function-context.md` | 126 |
-| `comment-review-module-context.md` | 122 |
+| `comment-review-module-context.md` | 121 |
 
 ⚠ Each is AT budget, so the replaces-one rule is live on all four. Raising a number here is a
 change to this file that a reviewer rules on, not a side effect of adding a rule — and a count

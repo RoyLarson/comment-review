@@ -9,7 +9,7 @@ You are the BLOCK-CONTEXT reviewer for a comment review. You are READ-ONLY.
 **First, read the reviewer brief at the path the task agent gives you** (it is
 `references/reviewer-brief.md` inside the comment-review skill directory — but take the
 absolute path from the prompt, because your working directory is not the task agent's). It is
-the shared contract — the finding format, **the eight verdicts and the payload each one
+the shared contract — the finding format, **the verdicts and the payload each one
 must carry**, the CODE-vs-COMMENT boundary, and the rule that you never
 edit. Everything below assumes it, and names verdicts the brief defines.
 
@@ -42,9 +42,9 @@ prohibition against reintroducing it), and the block stays.
 
 ⚠ **Grep the STEM, not the identifier.** Prose does not obey identifier spelling: a dead
 `foo_bar` gets written `foo-bar`, `foo bar`, `FooBar`, or "the barrer". Search a loose stem
-(`grep -ri "foo.\?bar"`), then triage the hits. Measured: the identifier grep found ten
-mentions, every one a correctly dated tombstone, and **missed an eleventh written with a
-hyphen — the only present-tense claim about the dead path in the whole set.**
+(`grep -ri "foo.\?bar"`), then triage the hits — **the spelling the identifier grep misses is
+where the live claim hides**, because a dated tombstone is written carefully and a stale
+assertion is not.
 
 ## ⚠⚠ Quantified and exclusivity claims are yours
 
@@ -58,8 +58,9 @@ tested a number. The comment stays, now certified, and the next reader trusts it
 
 **So enumerate the sites, and state the POPULATION you enumerated over** — all callers, or
 production callers, or callers outside tests. A number with no population is a different claim
-from the one the comment made, and it can be right about the wrong set. Measured on the claim
-that motivated this rule: the population was named precisely and the count was still wrong.
+from the one the comment made, and it can be right about the wrong set. ⚠ **Naming the
+population is not counting it** — a precisely named population with a wrong count is still a
+false claim, and reads more convincing than a vague one.
 
 ⚠ **This checklist is naturally better at prose over-claiming LIVENESS than DEADNESS.** Finding
 a reader **REFUTES** a *"no reader"* claim — it never satisfies the check. Watch for the

@@ -227,9 +227,8 @@ number while counting differently produces a file that claims to comply and does
 ⚠ **Two separate questions, and either may be absent.** A cap bounds the LINES in one `#` run;
 a width bounds the CHARACTERS in one line, and they usually live in different files — a
 contributing guide, `.editorconfig`, a formatter config. **If the repo publishes neither, say
-so and pass neither flag at stages 2-3.** Measured: a run chose a width out of a contributing
-guide on its own judgement, and the census then printed `over width (72): 2` as though it were
-an established project fact.
+so and pass neither flag at stages 2-3.** ⚠ **A width you chose becomes a project fact in the
+output** — `over width (72): 2` reads identically whether the 72 was published or guessed.
 
 ⚠ **Then check the guard EXISTS, and if it does not, say what follows.** A convention citing
 an absent test publishes a rule enforced by nothing. **Proceed** — an unenforced rule is still
@@ -271,9 +270,8 @@ unaffected and always available.** Say so HERE, in the stage 1 report, and again
 *not-checkable + necessary* to `move`, and a repo that stages prose usually also rules that
 prose is MOVED, never deleted — so with no destination those two rules leave the block with no
 legal verdict at all — *the matrix* is the checkable/necessary table defined at stage 5, and
-it is named here only to explain the consequence. Measured: all three runs hit this, and one
-dropped a 40-line history under it. **Keeping true prose in place costs a cap violation you can report. Dropping it costs
-the only copy.**
+it is named here only to explain the consequence. **Keeping true prose in place costs a cap
+violation you can report. Dropping it costs the only copy.**
 
 **1.5 Read the STYLE SHEET if one exists** (`style` argument), and start one if not.
 
@@ -297,10 +295,9 @@ same way a code change is. If the sheet is wrong, that is a `query`, not a licen
 them. They are plugin agents and their names are NAMESPACED — `comment-review:comment-review-*`
 — and they resolve only if the plugin was installed **before this session started**.
 
-⚠⚠ **If they do not resolve, say so at stage 1 and say what you will do instead.** Measured on
-all three verification runs: every one failed at stage 4 with
-`Agent type 'comment-review-ownership-context' not found`, and every one silently improvised the same
-fallback. The sanctioned fallback is **four general-purpose agents given the REVIEWER FILES
+⚠⚠ **If they do not resolve, say so at stage 1 and say what you will do instead.** The failure
+arrives at stage 4 as `Agent type 'comment-review-ownership-context' not found`, and improvising
+a fallback silently is the reflex. The sanctioned fallback is **four general-purpose agents given the REVIEWER FILES
 paths from the packet** — never the role text pasted into a prompt, which goes
 stale the moment a role file is edited. Because the packet already carries those
 absolute paths, the fallback is a substitution rather than an improvisation.
@@ -335,8 +332,7 @@ anything can anchor it, so stages 2–3 always run.**
 
 ⚠⚠ **The third is not the second.** With no LSP tool the probe cannot be made, so "no server
 answered" would be an inference, which the rule above forbids. Say a probe was impossible.
-Measured: three runs hit this state and all three had to improvise the distinction. This is
-additive: with a server you gain anchors and cross-language liveness, without one you lose
+This is additive: with a server you gain anchors and cross-language liveness, without one you lose
 nothing you had. What you may not do is let a run that had no server read like one that did.
 
 **1.8 Decide where the name corpus comes from** — every liveness check downstream depends on
@@ -369,10 +365,9 @@ AGGREGATED across files, not per file — on a polyglot run you cannot tell whic
 which tier, which is exactly when it matters. Run it; do not
 re-derive its output by hand.
 
-⚠ **Write the census to a path unique to THIS run** and hand the reviewers that path. Measured:
-two concurrent reviews shared one scratch filename and the second overwrote the first between
-writing and reading it. Four reviewers happened to notice and regenerate their own; nothing in
-the document required them to.
+⚠ **Write the census to a path unique to THIS run** and hand the reviewers that path. Two
+concurrent reviews sharing one scratch filename overwrite each other between writing and
+reading, and nothing downstream can tell.
 
 **What it guarantees, and why the reviewers depend on it.** A run is bounded by CODE, not
 blank lines (else 9 lines becomes 6+3 and passes). A run is matched as ONE joined string,
@@ -469,9 +464,8 @@ python <skill>/scripts/referrers.py --repo . <paths under review...>
 It prints every tracked file that NAMES one of them — by path, by stem, or by a
 public top-level definition. Those files are the **REFERENCE ONLY** list you hand
 the reviewers at stage 4; a config, data or documentation file carrying prose that
-justifies a value is a node like any other. Measured: one unreviewed config file
-held 12 confirmed defects, six of them the same rewrite the pass had already
-applied in a `.py` file.
+justifies a value is a node like any other, and a file left out of scope carries the same
+defects as the code — including rewrites the pass already applied in a `.py` file.
 
 ⚠⚠ **This runs in `target` mode too.** A `target` run has no diff to widen from,
 which is exactly why the memory-based rule it replaces could not fire there —
@@ -542,8 +536,8 @@ was backwards. The code still settles code claims — a
 disagreement with the mirror is itself a finding.
 
 Overlap between roles is **signal**: a claim one affirms and another refutes is the
-highest-value output here. Measured — one role read a false absence claim and wrote
-it was true; another refuted it by grep. A single-role run ratifies falsehoods.
+highest-value output here. ⚠ **A single-role run ratifies falsehoods** — one role reading a
+false absence claim writes that it is true, where another refutes it by grep.
 
 **Re-review is normal.** An accreted block is layered — a live constraint, an origin story, a
 correction to it, a review label — and peeling one reveals the next. Send a block back when
