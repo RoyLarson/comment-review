@@ -62,6 +62,13 @@ complete reports read as complete coverage unless `--reviewers` names the fourth
       making it -- but a self-report that four were dispatched, against three reports on disk,
       is a contradiction the join can print.
 
+      ⚠⚠ **And the RELIABLE signal already exists -- it is the dispatch tool's own return, one
+      per call.** The 2026-08-17 session settled the question exactly that way: four launch
+      confirmations, and four task-output files, one per id it had been handed. That is a return
+      value, not a rendering, so it cannot lag. **(d) is therefore not "invent a record" but
+      "write down the one you were already given."** Say that in the rule, or an agent will
+      reach for the display again -- it is the thing in front of it.
+
 - [ ] Make `--reviewers` default to the four editorial roles rather than to `""`. Today its
       absence is announced — *"whether every expected reviewer reported was NOT checked"* — and
       an announcement in a wall of output is not a gate. ⚠ Check what this does to a deliberate
