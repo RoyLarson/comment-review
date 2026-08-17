@@ -63,6 +63,14 @@ text instead of the block list; `open(..., newline="")` stripped CRLF from every
 touched, in two separate runs, while the agent was reading this rail; a sweep regex without a
 leading boundary doubled a directory prefix.
 
+⚠⚠ **A HEREDOC is raw text, and it is the one that reaches the prose itself.** Passing
+replacement text through `<<'PY'` or any shell here-document hands it to two parsers before it
+lands: `\n` inside the new comment collapses into a real newline and breaks the sentence
+mid-token, and on Windows the redirect can write UTF-16. Measured in two independent sessions on
+2026-08-17, one of them while quoting this rail. ⚠ It is worse than the failures above because
+the CODE CHECK cannot see it — the damage is in prose, the AST is unchanged, and the run reports
+PROVEN. A formatter caught it once; nothing in this skill would have.
+
 ⚠ **A non-unique match is a re-review, not a `replace_all`.** N identical matches means N
 blocks, and they may not deserve the same verdict. Reaching for `replace_all` once rewrote two
 string literals.
