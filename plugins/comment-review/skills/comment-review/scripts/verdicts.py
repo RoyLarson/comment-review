@@ -38,8 +38,6 @@ grade a run from its DIFF, and not from this exit code.
 reviewer that never reported at all passes this tool unseen.
 """
 
-from __future__ import annotations
-
 import argparse
 import difflib
 import json
@@ -266,29 +264,6 @@ QUERY_SETTLES = re.compile(
 )
 
 
-def _substantive(f: Finding) -> bool:
-    """Does this finding ASK something of stage 5?
-
-    ⚠ An UNKNOWN verdict answers True. `_is` answers False to everything, so a
-    mistyped verdict fell out of the work list and was summarised as STANDS
-    UNCHANGED -- reported as clean from all reviewers on a block a role had
-    explicitly ruled on. The name check reports it fatal either way; the
-    summary must not also call it a pass.
-    """
-    return f.verdict not in VERDICTS or _is(f, "substantive")
-
-
-def _is(f: Finding, trait: str) -> bool:
-    """Does this finding's verdict carry `trait`? False for an unknown verdict.
-
-    ⚠ An unknown verdict answers False to everything rather than raising. The
-    VERDICT check reports it by name, and a lookup that raised would take the
-    whole join down over one typo in one record.
-    """
-    spec = VERDICTS.get(f.verdict)
-    return bool(spec and getattr(spec, trait))
-
-
 @dataclass
 class Finding:
     """One reviewer's ruling on one census block.
@@ -358,6 +333,29 @@ class Finding:
     change: str
     address: str = ""
     original: str = ""
+
+
+def _substantive(f: Finding) -> bool:
+    """Does this finding ASK something of stage 5?
+
+    ⚠ An UNKNOWN verdict answers True. `_is` answers False to everything, so a
+    mistyped verdict fell out of the work list and was summarised as STANDS
+    UNCHANGED -- reported as clean from all reviewers on a block a role had
+    explicitly ruled on. The name check reports it fatal either way; the
+    summary must not also call it a pass.
+    """
+    return f.verdict not in VERDICTS or _is(f, "substantive")
+
+
+def _is(f: Finding, trait: str) -> bool:
+    """Does this finding's verdict carry `trait`? False for an unknown verdict.
+
+    ⚠ An unknown verdict answers False to everything rather than raising. The
+    VERDICT check reports it by name, and a lookup that raised would take the
+    whole join down over one typo in one record.
+    """
+    spec = VERDICTS.get(f.verdict)
+    return bool(spec and getattr(spec, trait))
 
 
 def _n(count: int, noun: str) -> str:

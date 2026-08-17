@@ -23,8 +23,6 @@ Unauthenticated search allows ~10 requests/minute, so this is deliberately small
 and slow rather than thorough. Set GITHUB_TOKEN to go faster.
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import os

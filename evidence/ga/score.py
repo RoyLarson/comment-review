@@ -11,8 +11,6 @@ ground-truth block; each block can be hit only once, so duplicates do not pay.
 reviewer already returns.
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import sys
@@ -66,7 +64,9 @@ def main() -> int:
     f1 = 2 * recall * precision / (recall + precision) if (recall + precision) else 0.0
     # F2 is the ranked score: the goal is "as many of the real changes as
     # possible in ONE pass", which is recall. Precision still counts — a
-    # candidate cannot win by flagging every block — but at a third the weight.
+    # candidate cannot win by flagging every block — but at a QUARTER the
+    # weight: b2 is beta squared, and beta = 2 weights recall four times
+    # precision. The comment said a third, which is beta squared = 3.
     b2 = 4.0
     f2 = (
         (1 + b2) * precision * recall / (b2 * precision + recall)

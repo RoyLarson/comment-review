@@ -8,8 +8,6 @@ an empty answer produces the failure this whole skill exists to catch.
 Imported by `census.py`, `annotate.py`, `referrers.py` and `prove_unchanged.py`.
 """
 
-from __future__ import annotations
-
 import subprocess
 from pathlib import Path
 

@@ -1,6 +1,6 @@
 """Terms of art in the shipped tree that the vocabulary inventory does not list.
 
-    python scripts/vocabulary_sweep.py [--min-uses 3] [--min-files 2]
+    python scripts/vocabulary_sweep.py [--min-files 2] [--limit 40]
 
 The 2026-08-15 survey read the tree with twelve agents and still missed `budget`
 (18 sites, four senses) and `own` (four senses) -- both found later by Roy reading
@@ -20,8 +20,6 @@ this looks for the two shapes a reader does not have to notice:
 Known terms come from the SHIPPED `vocabulary.toml` and from `docs/vocabulary.md`,
 so settling a term removes it from this output on the next run.
 """
-
-from __future__ import annotations
 
 import argparse
 import re

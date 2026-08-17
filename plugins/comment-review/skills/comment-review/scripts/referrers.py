@@ -12,8 +12,6 @@ CANDIDATE — a file that names a token is a file to READ, and stays outside wha
 a verdict may target.
 """
 
-from __future__ import annotations
-
 import argparse
 import ast
 import sys
@@ -56,7 +54,11 @@ def tokens_for(path: Path, text: str) -> set[str]:
         try:
             tree = ast.parse(text)
         except PARSE_ERRORS:
-            return out
+            # ⚠ BREAK, not return. Returning here skipped the length filter
+            # below, so a two-character stem reached `git grep -l -F` and
+            # matched nearly every tracked file -- flooding the REFERENCE ONLY
+            # list on exactly the files whose harvest had already failed.
+            pass
         for node in tree.body:
             if isinstance(node, NAMED_DEFS) and not node.name.startswith("_"):
                 out.add(node.name)

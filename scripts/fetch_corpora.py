@@ -13,8 +13,6 @@ regression indistinguishable from the corpus having changed underneath the
 measurement.
 """
 
-from __future__ import annotations
-
 import argparse
 import shutil
 import subprocess
@@ -117,11 +115,24 @@ def main() -> int:
         )
         return 0
 
+    by_name = {c["name"]: c for c in corpora}
     for name in args.clean or []:
         d = CORPORA / name
+        if not d.exists():
+            continue
+        # ⚠⚠ A `local` corpus is a git WORKTREE, and its registration lives in
+        # the SOURCE repo's `.git/worktrees/`. Deleting the directory alone left
+        # a stale entry, so the documented refetch -- `--clean X --only X` --
+        # then failed in `fetch_local` with git's "missing but already
+        # registered working tree". Deregister first, then remove.
+        c = by_name.get(name)
+        if c and c.get("kind") == "local":
+            src = Path(c["source"])
+            run("git", "-C", str(src), "worktree", "remove", "--force", str(d))
+            run("git", "-C", str(src), "worktree", "prune")
         if d.exists():
             shutil.rmtree(d, ignore_errors=True)
-            print(f"rm    {name}")
+        print(f"rm    {name}")
 
     bad = 0
     for c in corpora:

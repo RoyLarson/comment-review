@@ -14,8 +14,6 @@ the floor. Run it in the gate, after `ruff format`.
 Exits nonzero and names every file that fails.
 """
 
-from __future__ import annotations
-
 import ast
 import sys
 from pathlib import Path
@@ -49,16 +47,56 @@ def runtime_defects(src: str) -> list[str]:
     Both shapes below are ordinary expressions to the parser at any version.
     """
     out: list[str] = []
-    for n in ast.walk(ast.parse(src)):
+    tree = ast.parse(src)
+    # ⚠⚠ FORWARD REFERENCES IN ANNOTATIONS. Python 3.14 evaluates annotations
+    # lazily (PEP 649), so a parameter annotated with a class defined LOWER in
+    # the file imports cleanly on a modern interpreter and raises `NameError` at
+    # IMPORT time on the floor. Found 2026-08-17 in this repo's own shipped
+    # code, the day `from __future__ import annotations` came out: two helpers
+    # annotated `Finding` above the class that defines it. The tests passed,
+    # this check passed, and the file could not have been imported at 3.11.
+    defined_at = {
+        n.name: n.lineno
+        for n in ast.walk(tree)
+        if isinstance(n, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    # ⚠ The future import restores lazy evaluation at the floor, so a file
+    # carrying it is exempt. Nothing shipped here carries it any more.
+    lazy = any(
+        isinstance(n, ast.ImportFrom)
+        and n.module == "__future__"
+        and any(a.name == "annotations" for a in n.names)
+        for n in tree.body
+    )
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and not lazy:
+            annotations = [a.annotation for a in n.args.args if a.annotation]
+            if n.returns is not None:
+                annotations.append(n.returns)
+            for ann in annotations:
+                for name in (x.id for x in ast.walk(ann) if isinstance(x, ast.Name)):
+                    if defined_at.get(name, 0) > n.lineno:
+                        out.append(
+                            f"line {n.lineno}: {n.name}() annotates {name}, defined "
+                            f"at line {defined_at[name]} — NameError on import"
+                        )
         if not isinstance(n, ast.Call):
             continue
         fn = getattr(n.func, "id", "")
         if fn not in ("isinstance", "issubclass") or len(n.args) < 2:
             continue
-        if isinstance(n.args[1], ast.BinOp) and isinstance(n.args[1].op, ast.BitOr):
+        # ⚠ Reported against the FLOOR, not against 3.9. This read "TypeError
+        # before 3.10" while `FLOOR` is 3.11, where the idiom works — a gate
+        # refusing a valid construct for a reason about an interpreter this
+        # repo does not claim to support.
+        if (
+            FLOOR < (3, 10)
+            and isinstance(n.args[1], ast.BinOp)
+            and isinstance(n.args[1].op, ast.BitOr)
+        ):
             out.append(
                 f"line {n.lineno}: PEP 604 union inside {fn}() — "
-                f"TypeError before 3.10, invisible to a syntax check"
+                f"TypeError on Python {FLOOR_TEXT}, invisible to a syntax check"
             )
     return out
 
@@ -87,10 +125,13 @@ def main() -> int:
         print(f"{f.relative_to(ROOT)}: {why}", file=sys.stderr)
 
     if bad:
+        # ⚠ FILES, not findings. `len(bad)` counted entries, so three defects in
+        # one file reported "3 of 8 shipped files" — and "do not parse" names a
+        # cause this check no longer only looks for.
         print(
-            f"\n{len(bad)} of {len(files)} shipped files do not parse on "
-            f"Python {FLOOR_TEXT}.\nThese ship into other people's repositories; "
-            "the break lands on a third party.",
+            f"\n{len({f for f, _ in bad})} of {len(files)} shipped files will not "
+            f"LOAD on Python {FLOOR_TEXT}.\nThese ship into other people's "
+            "repositories; the break lands on a third party.",
             file=sys.stderr,
         )
         return 1

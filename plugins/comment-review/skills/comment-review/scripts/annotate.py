@@ -12,8 +12,6 @@ holds the namespaces it was handed.
 `census.py` builds the blocks and calls `annotate()` on each one.
 """
 
-from __future__ import annotations
-
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING

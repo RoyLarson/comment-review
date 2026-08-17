@@ -20,8 +20,6 @@ are reported separately rather than forced into a bucket, and the line counts
 are printed so a lopsided split is visible rather than averaged away.
 """
 
-from __future__ import annotations
-
 import re
 import subprocess
 import sys
@@ -110,10 +108,30 @@ def main() -> int:
             text = f.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
+        # ⚠⚠ Through `census_for`, which DISPATCHES ON THE LANGUAGE. This called
+        # `blocks_stdlib` -- Python's `tokenize` plus `ast` -- on every file
+        # `_walk` yields, and `_walk` filters on `BY_EXT`, i.e. all eleven
+        # languages. A three-line `.yaml` raised `IndentationError` uncaught and
+        # killed the whole run; the quieter cases are worse, because a `.rs` or
+        # `.go` file was scanned for `#` comments only and contributed zero
+        # prose blocks, deflating every bucket without a word. Any polyglot
+        # corpus in `corpora.toml` hits this.
+        lang = census.language_for(f)
+        if lang is None:
+            continue
         rel = f.relative_to(repo).as_posix() if f.is_absolute() else f.as_posix()
         per_file[rel] = line_authors(repo, rel)
         all_shas.update(per_file[rel].values())
-        for b in census.blocks_stdlib(f, text):
+        try:
+            blocks = census.census_for(f, text, lang)
+        except census.PARSE_ERRORS:
+            # ⚠ A file this repo's own census would REFUSE is a gap in the
+            # split, not a crash in it. Named, so the count is readable.
+            notes["unparsed"][rel] += 1
+            continue
+        for b in blocks:
+            if not b.text.strip():
+                continue
             census.annotate(b, known, paths, repo)
             buckets["_pending"].append((rel, b))
 
@@ -141,7 +159,10 @@ def main() -> int:
 
     aid = assisted_shas(repo, all_shas)
 
-    for rel, b in buckets.pop("_pending"):
+    # ⚠ `dict.pop` does NOT consult a defaultdict's factory, so this raised
+    # KeyError when nothing was censused -- a path argument matching no file, or
+    # a corpus whose files were all unreadable. An empty split is a result.
+    for rel, b in buckets.pop("_pending", []):
         blame = per_file.get(rel, {})
         got = [blame.get(i) for i in range(b.start, b.end + 1) if blame.get(i)]
         if not got:

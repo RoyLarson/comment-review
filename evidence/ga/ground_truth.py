@@ -10,8 +10,6 @@ Emits {"path": [[start, end], ...]} in BASE-ref line numbers, because a
 reviewer runs against the base tree and reports positions there.
 """
 
-from __future__ import annotations
-
 import argparse
 import ast
 import json

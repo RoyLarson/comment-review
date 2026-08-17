@@ -16,8 +16,6 @@ syntax-only gate, so the floor is stated in `scripts/check_shipped_syntax.py`
 and enforced by parsing every shipped file at it.
 """
 
-from __future__ import annotations
-
 import argparse
 import sys
 import tomllib

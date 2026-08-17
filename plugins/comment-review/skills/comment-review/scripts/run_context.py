@@ -37,8 +37,6 @@ complete. The rest carry prose no oracle settles, and this reports nothing about
 them.
 """
 
-from __future__ import annotations
-
 import argparse
 import re
 import sys

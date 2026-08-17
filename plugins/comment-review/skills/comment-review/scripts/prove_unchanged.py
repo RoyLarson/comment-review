@@ -32,8 +32,6 @@ the working tree inconsistent with every file WRITE left alone -- and `git diff`
 hides that.
 """
 
-from __future__ import annotations
-
 import argparse
 import ast
 import sys

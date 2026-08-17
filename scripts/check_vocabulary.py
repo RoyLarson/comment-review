@@ -27,8 +27,6 @@ the terms are settled -- so the check went with them.
 Exits nonzero if either check finds something.
 """
 
-from __future__ import annotations
-
 import re
 import sys
 import tomllib

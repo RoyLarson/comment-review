@@ -31,8 +31,6 @@ tier, so read the per-file tier stamp to see which file reached which.
 `--languages` lists the languages known and the tier each reaches.
 """
 
-from __future__ import annotations
-
 import argparse
 import ast
 import io
