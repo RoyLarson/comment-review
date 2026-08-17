@@ -2,8 +2,8 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
-Owner:    Roy (⭐ 2 rulings, one proposed) · session
+Progress: 1 of 9 tasks done
+Owner:    Roy (⭐ 3 rulings, 2 made) · session
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
           Its words: "the synthesis -- where four verdicts become one sentence -- is written
           by the same agent that then decides it's correct."
@@ -16,7 +16,7 @@ Raised:   2026-08-17, by the session that ran all eight stages and rolled its ow
 | stage | who checks it |
 | --- | --- |
 | 4 MARK | `verdicts.py` — the join, mechanically |
-| 6 COMPACT | a separate agent, given a narrow contract and none of the reasoning |
+| 6 COMPACT | a separate agent reads stage 5's work — but ⚠ **nothing reads the compact agent's own output** until stage 8, after the write |
 | 7b WRITE | the CODE CHECK, against the pre-edit ref |
 | 8 REVIEW | a separate agent, reading the finished page |
 | **5 APPLY** | **itself** |
@@ -109,15 +109,48 @@ that is banked.
 specific — *does the replacement still carry the claim your `EVIDENCE` settles, and is anything
 from your `QUOTE` gone?* — not *is this OK*.
 
-**WHERE it sits, and this is unresolved.** Confirming BEFORE stage 6 means the reviewer approves
-text compaction then changes. Confirming AFTER means compaction runs on unconfirmed text — but
-the reviewer then sees what will actually land, which is `SKILL.md`'s own rule for approval, and
-it becomes a check on compaction as well.
+**WHERE it sits — ⭐ RULED 2026-08-17: BOTH, and they ask DIFFERENT questions.** Roy: *"I think
+it can run before and after stage 6. Stage 5 - is this what you meant. Stage 6 - is this still
+correct after my edits. The 4 editor roles i think are well verified roles at this point."*
+
+| | asked after | question | catches |
+| --- | --- | --- | --- |
+| **5b** | APPLY | *is this what you meant?* | a synthesis that misread a finding |
+| **6b** | COMPACT | *is this still correct after my edits?* | compaction that cut what the finding rested on |
+
+⚠⚠ **6b gives stage 6 a checker, which it did not have.** The table at the top of this file
+credits stage 6 with an independent reader — and that is the compact agent reading stage 5's
+work. **Nothing read the compact agent's own output** until stage 8, after the write. On the
+measured run it reached the cap by writing 98-column lines and flagged that itself; nothing
+would have caught it if it had not.
+
+⚠ Roy's stated basis for leaning on the reviewers for both: *"the 4 editor roles i think are
+well verified roles at this point."* Recorded as the reason, not as a measurement.
+
+### ⭐ RULED: a block stage 6 must edit that NO ROLE ruled on goes to all four
+
+Roy: *"If stage 6 has to edit a block not in the specific review results it sends it back to all
+of them for a response/verdict."*
+
+A block every role returned `clean` on can still be over the cap. Compacting it is an edit with
+no verdict behind it, and neither 5b nor 6b reaches it — there is no filer to ask. So it is
+dispatched to all four as a fresh block, and comes back with verdicts.
+
+⚠ It is the only path by which stage 6 originates work, and it inverts the usual direction:
+every other finding travels 4 → 5, this one travels 6 → 4.
 
 ## Tasks (continued)
 
-- [ ] ⭐ Decide whether (e) runs before or after COMPACT. See above; both have a rule behind
-      them and they conflict.
+- [x] ⭐ **RULED: (e) runs BEFORE and AFTER stage 6**, asking a different question each time,
+      and a block stage 6 must edit that no role ruled on goes to all four. See above.
+
+- [ ] Write the two questions as input contracts. ⚠ They are not interchangeable: 5b asks
+      whether the synthesis carried the finding, 6b asks whether compaction broke it. A single
+      "is this still right" prompt collapses them and answers neither.
+
+- [ ] Say where they live. `compact.md` owns stage 6 and would own 6b; 5b has no reference file
+      because stage 5 has none. ⚠ That absence is itself a finding — stages 1, 2-3 and 5 are the
+      only stages with no `references/` file, and 5 is the one this whole task is about.
 
 - [ ] Consider (d) seriously before building (b) or (c). Stage 8 already exists, already has a
       separate reader, and already caught all of this. What it cannot do today is stop the
