@@ -88,9 +88,19 @@ def main() -> int:
             if not m:
                 continue
             start, count = int(m.group(1)), int(m.group(2) or 1)
-            # A pure insertion reports count 0 at the line it follows; anchor it
-            # there so a reviewer pointing at that spot still scores.
-            span = range(start, start + max(count, 1))
+            # A pure insertion reports count 0 at the line it FOLLOWS.
+            #
+            # ⚠⚠ The anchor survived only when that preceding line happened to
+            # be prose ALREADY, so an added comment after `def f():` produced an
+            # empty truth set -- the skill's whole `add` verdict was invisible
+            # to the oracle, and a candidate correctly proposing one was
+            # PENALISED on precision. An insertion is now kept whether or not
+            # its anchor is prose; every other hunk still requires it, because
+            # a modified line that was not prose is not a prose defect.
+            if count == 0:
+                hit.add(start)
+                continue
+            span = range(start, start + count)
             hit.update(n for n in span if n in base_prose)
         if not hit:
             continue

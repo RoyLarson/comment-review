@@ -43,6 +43,8 @@ def main() -> int:
 
     total = sum(len(v) for v in gt.values())
     matched: set[tuple[str, int]] = set()
+    # ⚠ The same `file:line` may be offered many times; it is one finding.
+    seen_lines: set[tuple[str, int]] = set()
     hits = 0
     for f in findings:
         path = str(f.get("file", "")).replace("\\", "/")
@@ -50,11 +52,21 @@ def main() -> int:
             line = int(f.get("line", 0))
         except (TypeError, ValueError):
             continue
+        # ⚠⚠ ONE FINDING SCORES ONCE. The `continue` walked on to the NEXT
+        # ground-truth block, which the SAME line could also satisfy once
+        # `--slack` was applied -- so three identical findings at `a.py:12`
+        # scored two distinct blocks and recall 1.0, directly contradicting
+        # this module's own "duplicates do not pay". A candidate could inflate
+        # its rank by repeating one line wherever two blocks sit within twice
+        # the slack of each other.
+        if (path, line) in seen_lines:
+            continue
         for i, (lo, hi) in enumerate(gt.get(path, [])):
             if (path, i) in matched:
                 continue
             if lo - args.slack <= line <= hi + args.slack:
                 matched.add((path, i))
+                seen_lines.add((path, line))
                 hits += 1
                 break
 
