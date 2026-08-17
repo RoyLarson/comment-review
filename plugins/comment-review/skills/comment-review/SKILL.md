@@ -485,6 +485,15 @@ python <skill>/scripts/vocabulary.py --reviewer ownership-context
 think a file uses, and do not tell an agent where the vocabulary lives — it is given the words,
 not a path to go reading.
 
+⚠⚠ **Run it and paste the OUTPUT. Never stage it through a file.** A redirect puts an artifact
+between the command and the prompt, and the artifact can be from the previous run — which is the
+failure you will not see, because **a vocabulary one version stale reads perfectly plausible**.
+Measured 2026-08-17: a run redirected all four to disk, the plugin was updated mid-session, and
+the files on disk were then a version behind the script that had just been fixed. Nothing about
+them looked wrong. ⚠ This is the opposite instruction from the CENSUS, which is a file BY
+DESIGN and needs a path unique to this run — the census is too large to paste and is read once,
+where the vocabulary is small and is pasted four times.
+
 **You also supply the run context as a PACKET, and the packet is checked before anyone is
 dispatched:**
 
