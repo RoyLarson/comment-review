@@ -21,7 +21,7 @@ Some preamble the tool ignores.
 --- RECORD
 BLOCK       1
 VERDICT     correct
-SOURCE      a.py:5 | the settling line
+SOURCES     a.py:5 | the settling line
 CLAIM       false: "only one caller" / true: "three callers"
 REASON      three callers here, so the count is wrong
 CHANGE      # three callers, all under tests/
@@ -104,14 +104,14 @@ class TestParsing(unittest.TestCase):
 --- RECORD
 BLOCK       1
 VERDICT     correct
-SOURCE      a.py:1 | one
+SOURCES     a.py:1 | one
 CLAIM       false: "x" / true: "y"
 REASON      first record, never closed
 
 --- RECORD
 BLOCK       2
 VERDICT     correct
-SOURCE      a.py:1 | one
+SOURCES     a.py:1 | one
 CLAIM       false: "x" / true: "y"
 REASON      second record, closed
 CHANGE      # y, in its block
@@ -634,13 +634,13 @@ class TestContradiction(unittest.TestCase):
 
 
 class TestSource(unittest.TestCase):
-    """`EVIDENCE` and `QUOTE` merged into `SOURCE` as `file:line | verbatim`.
+    """`EVIDENCE` and `QUOTE` merged into `SOURCES` as `file:line | verbatim`.
 
     They were ONE field until a split, because the old `SUMMARY` mixed verbatim
-    with derived text and a checker cannot verify both in one field. SOURCE's
+    with derived text and a checker cannot verify both in one field. SOURCES's
     two halves are both VERBATIM, so the merge does not recreate that.
 
-    ⚠ A SOURCE line may REPEAT, one per place examined -- which is what "plural
+    ⚠ A SOURCES line may REPEAT, one per place examined -- which is what "plural
     for a query" means, and it avoids a delimiter that verbatim text could
     contain.
     """
@@ -697,7 +697,7 @@ class TestSource(unittest.TestCase):
 
     def test_no_source_at_all_is_refused(self):
         self.assertIn(
-            "SOURCE", verdicts.source_problem(_finding(sources=[]), self.repo)
+            "SOURCES", verdicts.source_problem(_finding(sources=[]), self.repo)
         )
 
     def test_clean_owes_no_source(self):
@@ -717,7 +717,7 @@ class TestSource(unittest.TestCase):
     def test_a_derived_REASON_is_not_checked_verbatim(self):
         # A count is not a line any file contains, so checking the DERIVED
         # statement against the tree made every counted claim -- block-context's
-        # own category -- structurally inadmissible. Only SOURCE is verbatim.
+        # own category -- structurally inadmissible. Only SOURCES is verbatim.
         f = _finding(
             claim='"twenty call sites"',
             reason="31 callers and every one is under tests/",
@@ -739,7 +739,7 @@ class TestSeveralSources(unittest.TestCase):
 
     ⚠ Stricter than the single-citation rule it replaces: EVERY source must
     resolve AND carry its verbatim half. The old rule wanted the quote near one
-    citation; both halves of a SOURCE are one statement about one place.
+    citation; both halves of a SOURCES are one statement about one place.
     """
 
     def setUp(self):
@@ -775,8 +775,8 @@ class TestSeveralSources(unittest.TestCase):
     def test_repeated_SOURCE_lines_are_all_kept(self):
         text = (
             "--- RECORD\nBLOCK       1\nVERDICT     correct\nLOCATION    a.py:1\n"
-            "SOURCE      a.py:5 | the settling line\n"
-            "SOURCE      b.py:2 | beta\n"
+            "SOURCES     a.py:5 | the settling line\n"
+            "SOURCES     b.py:2 | beta\n"
             'CLAIM       false: "x" / true: "y"\nREASON      y\n'
             "CHANGE      # b, in its block\n---\n"
         )
@@ -968,14 +968,14 @@ class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
         self.assertEqual(f.reason, "why")
 
     def test_a_continued_SOURCE_stays_with_its_own_citation(self):
-        # ⚠ SOURCE accumulates where the others overwrite, so a continuation
+        # ⚠ SOURCES accumulates where the others overwrite, so a continuation
         # must join the LAST citation rather than starting a new one.
         f = self._one(
             "BLOCK       1\n"
             "VERDICT     correct\n"
-            "SOURCE      a.py:5 | def f(\n"
+            "SOURCES     a.py:5 | def f(\n"
             "                x, y\n"
-            "SOURCE      b.py:2 | beta\n"
+            "SOURCES     b.py:2 | beta\n"
             'CLAIM       false: "a" / true: "b"\n'
             "REASON      why\n"
             "CHANGE      # b\n"
@@ -1019,6 +1019,181 @@ class TestMoveShowsBothBlocks(unittest.TestCase):
 
     def test_a_move_with_no_change_at_all_is_refused(self):
         self.assertIn("carries no CHANGE", self._move("   "))
+
+
+class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
+    """`BLOCK` is `<index> | <path>:<start>-<end>` plus the block's text.
+
+    Roy, 2026-08-17: *"BLOCK gets the address and the original text verbatim.
+    This allows the reviewer to have most the context and most of the time all
+    of the context it needs to understand."*
+
+    ⚠ All three are CHECKED. An address nobody verifies is the `LOCATION` field
+    this system already retired: it resolved, and it never had to agree with the
+    finding it was attached to.
+    """
+
+    BLOCKS = [
+        {
+            "path": "redacted_pkg/rates.py",
+            "start": 352,
+            "end": 354,
+            "kind": "comment",
+            "text": "the retry budget is 3 and callers round separately",
+        },
+        {
+            "path": "redacted_pkg/rates.py",
+            "start": 9,
+            "end": 9,
+            "kind": "interval",
+            "text": "",
+        },
+        {
+            "path": "redacted_pkg/rates.py",
+            "start": 20,
+            "end": 20,
+            "kind": "comment",
+            "text": "one line only",
+        },
+    ]
+
+    ORIGINAL = "# the retry budget is 3 and callers\n# round separately"
+
+    def _at(self, **kw):
+        fields = {
+            "block": 1,
+            "address": "redacted_pkg/rates.py:352-354",
+            "original": self.ORIGINAL,
+        }
+        fields.update(kw)
+        return verdicts.address_problem(_finding(**fields), self.BLOCKS)
+
+    def test_a_matching_address_and_original_passes(self):
+        self.assertIsNone(self._at())
+
+    def test_a_missing_address_is_refused_and_the_message_shows_the_right_one(self):
+        problem = self._at(address="")
+        self.assertIn("carries no ADDRESS", problem)
+        self.assertIn("1 | redacted_pkg/rates.py:352-354", problem)
+
+    def test_an_address_naming_the_wrong_lines_is_refused(self):
+        self.assertIn("census says", self._at(address="redacted_pkg/rates.py:352-353"))
+
+    def test_an_address_naming_the_wrong_file_is_refused(self):
+        self.assertIn("census says", self._at(address="redacted_pkg/other.py:352-354"))
+
+    def test_a_windows_separator_still_matches(self):
+        # ⚠ The census writes `/`; a reviewer on Windows may copy `\`. That is
+        # the same address and refusing it would be a platform bug, not a check.
+        self.assertIsNone(self._at(address="redacted_pkg\\rates.py:352-354"))
+
+    def test_a_one_line_block_is_addressed_without_a_range(self):
+        self.assertIsNone(
+            self._at(block=3, address="redacted_pkg/rates.py:20", original="# one line only")
+        )
+
+    def test_a_missing_original_is_refused(self):
+        self.assertIn("carries no ORIGINAL", self._at(original="  "))
+
+    def test_an_original_that_is_not_the_block_is_refused(self):
+        self.assertIn("does not match", self._at(original="# something else"))
+
+    def test_comment_markers_and_wrapping_are_forgiven(self):
+        # ⚠ Case, whitespace and leading markers only. The census stores the
+        # prose with its markers stripped; a reviewer transcribes what the FILE
+        # shows. Comparing those raw would refuse every honest transcription --
+        # a check that fires only on people who did the work.
+        self.assertIsNone(
+            self._at(
+                original="  #   The Retry Budget is 3 and\n"
+                "  # callers ROUND separately  "
+            )
+        )
+
+    def test_an_empty_INTERVAL_owes_no_original(self):
+        # ⚠ This is what an `add` cites: prose that is MISSING has no original.
+        self.assertIsNone(
+            self._at(
+                block=2,
+                verdict="add",
+                claim='missing: "capped" above `send()`',
+                address="redacted_pkg/rates.py:9",
+                original="",
+            )
+        )
+
+    def test_clean_owes_neither(self):
+        f = _finding(verdict="clean", claim="", reason="", change="", address="")
+        self.assertIsNone(verdicts.address_problem(f, self.BLOCKS))
+
+    def test_an_out_of_range_block_is_left_to_the_range_check(self):
+        self.assertIsNone(self._at(block=99))
+
+
+class TestTheBlockLineParses(unittest.TestCase):
+    """`BLOCK <index> | <address>` with the original on the lines below."""
+
+    def _one(self, body):
+        found, malformed = verdicts.parse_report(
+            f"--- RECORD\n{body}---\n", "block-context"
+        )
+        self.assertEqual(malformed, [])
+        return found[0]
+
+    def test_the_three_parts_come_apart(self):
+        f = self._one(
+            "BLOCK       17 | redacted_pkg/rates.py:352-354\n"
+            "            # Kept because twenty call sites want this.\n"
+            "            # Narrowing it re-derives the clamp bounds.\n"
+            "VERDICT     clean\n"
+            "REASON      nothing to report from this role\n"
+        )
+        self.assertEqual(f.block, 17)
+        self.assertEqual(f.address, "redacted_pkg/rates.py:352-354")
+        self.assertIn("twenty call sites", f.original)
+        self.assertIn("clamp bounds", f.original)
+
+    def test_a_bare_index_still_parses_for_clean(self):
+        f = self._one(
+            "BLOCK       17\n"
+            "VERDICT     clean\n"
+            "REASON      nothing to report from this role\n"
+        )
+        self.assertEqual(f.block, 17)
+        self.assertEqual(f.address, "")
+        self.assertEqual(f.original, "")
+
+
+class TestSourcesTakeContinuationLines(unittest.TestCase):
+    """SOURCES is plural because it repeats -- by label or by continuation."""
+
+    def _sources(self, body):
+        found, _ = verdicts.parse_report(f"--- RECORD\n{body}---\n", "block-context")
+        return found[0].sources
+
+    def test_a_second_citation_below_the_label_is_its_own_entry(self):
+        got = self._sources(
+            "BLOCK       1\n"
+            "VERDICT     clean\n"
+            "SOURCES     a.py:5 | def f():\n"
+            "            b.py:9 | f()\n"
+            "REASON      why\n"
+        )
+        self.assertEqual(got, ["a.py:5 | def f():", "b.py:9 | f()"])
+
+    def test_a_wrapped_verbatim_half_stays_with_its_own_citation(self):
+        # ⚠ The ambiguity this resolves: a continuation is either the NEXT
+        # citation or the wrapped tail of the one above. Only a line opening
+        # with `path:line` is the former.
+        got = self._sources(
+            "BLOCK       1\n"
+            "VERDICT     clean\n"
+            "SOURCES     a.py:5 | def compute(plan,\n"
+            "            week, *, clamp=True):\n"
+            "REASON      why\n"
+        )
+        self.assertEqual(len(got), 1)
+        self.assertIn("clamp=True", got[0])
 
 
 class TestCLI(unittest.TestCase):
@@ -1119,9 +1294,10 @@ class TestCLI(unittest.TestCase):
         report = self._write(
             "block-context.txt",
             "--- RECORD\n"
-            "BLOCK       1\n"
+            "BLOCK       1 | a.py:1-2\n"
+            "            x\n"
             "VERDICT     move\n"
-            "SOURCE      a.py:5 | five callers, all in tests\n"
+            "SOURCES     a.py:5 | five callers, all in tests\n"
             "CLAIM       from: `a.py` line 1 / to: `docs/a.md`\n"
             "REASON      five callers, all in tests\n"
             "CHANGE      \n"
@@ -1243,14 +1419,14 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     correct\n"
-            "SOURCE      a.py:5 | five callers, all in tests\n"
+            "SOURCES     a.py:5 | five callers, all in tests\n"
             'CLAIM       false: "x" / true: "y"\n'
             "REASON      the count is stale, and this record never closed\n"
             "\n"
             "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     correct\n"
-            "SOURCE      a.py:5 | five callers, all in tests\n"
+            "SOURCES     a.py:5 | five callers, all in tests\n"
             'CLAIM       false: "x" / true: "y"\n'
             "REASON      the count is stale, and this record closed\n"
             "CHANGE      # y, in its block\n"
@@ -1273,9 +1449,10 @@ class TestCLI(unittest.TestCase):
         # exit 0. The two outputs contradicted each other.
         finding = (
             "--- RECORD\n"
-            "BLOCK       1\n"
+            "BLOCK       1 | a.py:1-2\n"
+            "            x\n"
             "VERDICT     {verdict}\n"
-            "SOURCE      a.py:5 | five callers, all in tests\n"
+            "SOURCES     a.py:5 | five callers, all in tests\n"
             "CLAIM       {claim}\n"
             "REASON      the count is stale\n"
             "CHANGE      # the block, as it reads after this edit\n"
@@ -1355,7 +1532,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         self.tmp.cleanup()
 
     def _plant(self):
-        """Write each file a SOURCE cites, with its verbatim half on that line.
+        """Write each file a SOURCES cites, with its verbatim half on that line.
 
         ⚠ Every source is planted, not just the first: `source_problem` resolves
         all of them, so a record citing two places needs both to exist.

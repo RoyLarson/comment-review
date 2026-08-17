@@ -5,7 +5,8 @@
 Checks the task agent was asked to perform by hand, every one mechanical:
 
   COVERAGE      every census index accounted for, by every reviewer that ran
-  SOURCE        every citation resolves, and its verbatim half is really there
+  SOURCES       every citation resolves, and its verbatim half is really there
+  ADDRESS       BLOCK's `path:start-end` and transcribed text match the census
   BLOCK         the sentence a finding rules on is really in the block it cites
   PAYLOAD       the verdict carries what its row of the table requires
   CONTRADICTION `drop` against `correct`/`patch` ON THE SAME SENTENCE -- a
@@ -27,7 +28,7 @@ SKILL.md's synthesis order.
 ⚠ Every block is accounted for by a RECORD, `clean` included. A `clean` record
 carries a BLOCK and a VERDICT and nothing else, so covering N blocks costs N
 records that each name a real index and assert nothing about it. A
-`clean` record carries no SOURCE, so it stops short of proof the file was read:
+`clean` record carries no SOURCES, so it stops short of proof the file was read:
 grade a run from its DIFF, and not from this exit code.
 
 ⚠ `--reviewers` is OPTIONAL, and its absence is ANNOUNCED: without it, a
@@ -87,8 +88,8 @@ OPENER = re.compile(r"^---\s*RECORD\s*$", re.M)
 # The section `reviewer-brief.md` sends code problems to. Matched to the next
 # heading or the end, because it is the LAST section of a report by contract.
 CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S | re.I)
-FIELD = re.compile(r"^\s*(BLOCK|VERDICT|SOURCE|CLAIM|REASON|CHANGE)\s+(.*)$")
-# `file:line` or `file:start-end`, as a SOURCE writes its citation half.
+FIELD = re.compile(r"^\s*(BLOCK|VERDICT|SOURCES|CLAIM|REASON|CHANGE)\s+(.*)$")
+# `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 
 # How far from the cited line the quoted text may sit. Prose wraps and code
@@ -96,7 +97,7 @@ CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 # accept a fabricated one.
 SOURCE_WINDOW = 3
 
-# The floor on a SOURCE's verbatim half, and it is ONE: zero length is not text.
+# The floor on a SOURCES entry's verbatim half, and it is ONE: zero length is not text.
 # It was 12, which refused `x = 1`, `pass` and `return` -- real short lines whose
 # only route through was to quote MORE than was read.
 MIN_NEEDLE = 1
@@ -113,7 +114,7 @@ ANCHOR_NAME = re.compile(r"`[^`\s][^`]*`")
 # that would settle the claim.
 #
 # ⚠ A SHAPE check: it removes the query that names no check at all, and the
-# word "grepped" passes it. A query owes a SOURCE on top of this --
+# word "grepped" passes it. A query owes SOURCES on top of this --
 # `source_problem` exempts `clean` alone.
 #
 # Matched on WORD BOUNDARIES. As substrings, "ran" hit *b**ran**ch*,
@@ -181,6 +182,19 @@ class Finding:
 
     ⚠ `reason` is the why: the evidence that verifies the claim. It is DERIVED
     and no checker can settle it, which is why it stays out of `sources`.
+
+    ⚠⚠ `block` is an INDEX, `address` is `path:start-end`, and `original` is
+    that block's text as the file reads it now. The reviewer writes all three
+    and all three are CHECKED against the census. Ruled 2026-08-17: *"BLOCK gets
+    the address and the original text verbatim. This allows the reviewer to have
+    most the context and most of the time all of the context it needs to
+    understand."* The index alone made a record unreadable on its own -- a
+    re-review, or stage 5, had to hold the census open beside it to know what
+    prose a finding was even about.
+
+    ⚠ `clean` owes neither. A role returns `clean` on most of the census, so
+    transcribing every one would be the bulk of a report -- 1159 blocks on one
+    measured run.
     """
 
     reviewer: str
@@ -190,6 +204,8 @@ class Finding:
     claim: str
     reason: str
     change: str
+    address: str = ""
+    original: str = ""
 
 
 def _n(count: int, noun: str) -> str:
@@ -229,9 +245,10 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
         )
     for body in bodies:
         fields: dict[str, str] = {}
-        # ⚠ SOURCE ACCUMULATES where every other field overwrites: a finding may
-        # cite several places, one line each, and repeating the line avoids a
-        # separator that verbatim text could contain.
+        # ⚠ SOURCES ACCUMULATES where every other field overwrites: a finding
+        # may cite several places, one line each, and repeating the line avoids
+        # a separator that verbatim text could contain. The name is plural for
+        # that reason.
         sources: list[str] = []
         # ⚠⚠ A line that names no field CONTINUES the one above it. `CHANGE`
         # holds a whole block of replacement prose, which is several lines by
@@ -246,18 +263,30 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
             if not m:
                 if not line.strip():
                     last = None
-                elif last == "SOURCE" and sources:
-                    sources[-1] += "\n" + line.strip()
+                elif last == "SOURCES" and sources:
+                    # ⚠ Under SOURCES a continuation is ambiguous: it is either
+                    # the NEXT citation or the wrapped tail of the one above.
+                    # A line that opens with `path:line` is the former; a
+                    # verbatim half that happens to wrap is the latter.
+                    if CITE.match(line.strip().partition("|")[0].strip()):
+                        sources.append(line.strip())
+                    else:
+                        sources[-1] += "\n" + line.strip()
                 elif last:
                     fields[last] += "\n" + line.rstrip()
                 continue
             key = m.group(1)
             last = key
-            if key == "SOURCE":
+            if key == "SOURCES":
                 sources.append(m.group(2).strip())
             else:
                 fields[key] = m.group(2).strip()
-        raw_block = fields.get("BLOCK", "")
+        # ⚠⚠ BLOCK is `<index> | <path>:<start>-<end>`, and the lines under it
+        # are that block's text as the file reads it NOW. Only the index is
+        # required to parse -- a `clean` writes it alone.
+        raw = fields.get("BLOCK", "")
+        head, _, addr = raw.partition("\n")[0].partition("|")
+        raw_block = head.strip()
         if raw_block.isdecimal():
             found.append(
                 Finding(
@@ -268,6 +297,8 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
                     claim=fields.get("CLAIM", ""),
                     reason=fields.get("REASON", ""),
                     change=fields.get("CHANGE", ""),
+                    address=addr.strip(),
+                    original=raw.partition("\n")[2],
                 )
             )
         else:
@@ -427,11 +458,11 @@ def payload_problem(f: Finding) -> str | None:
 def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | str:
     """Resolve ONE `file:line` or `file:start-end` citation, or say why not.
 
-    Shared by SOURCE and LOCATION: both are inadmissible on exactly the same
+    Shared by SOURCES and LOCATION: both are inadmissible on exactly the same
     grounds -- an unparseable citation, a missing file, or a line number past
     the end of it (or below 1, which is off every file).
 
-    ⚠ It resolves a SINGLE citation. `source_problem` calls it once per SOURCE
+    ⚠ It resolves a SINGLE citation. `source_problem` calls it once per SOURCES entry
     line, because a claim often needs two sites to settle.
 
     ⚠ An `allow_range` flag held the citation to `file:line` and refused
@@ -470,7 +501,7 @@ def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | 
 def source_problem(f: Finding, repo: Path) -> str | None:
     """Why this finding's citation cannot be trusted, or None.
 
-    Reads each cited line out of the file and looks for that SOURCE's verbatim
+    Reads each cited line out of the file and looks for that entry's verbatim
     half within a few lines of it. A finding whose text is absent from the file
     it cites is a finding the file did not supply — a report is evidence of
     nothing on its own.
@@ -478,13 +509,13 @@ def source_problem(f: Finding, repo: Path) -> str | None:
     ⚠ The only floor is `MIN_NEEDLE`, which is ONE. What binds is PRESENCE: a
     short needle absent from the file is refused like any other.
 
-    ⚠ SOURCE is checked and `REASON` is not. `REASON` is the DERIVED statement —
+    ⚠ SOURCES is checked and `REASON` is not. `REASON` is the DERIVED statement —
     *"31 callers, all under tests/"* — which is the reviewer's own sentence, so
     checking it against the tree made every counted claim structurally
     inadmissible. The forcing function lands on the field that is verbatim.
 
     ⚠⚠ `query` is NOT exempt. `reviewer-brief.md` has always said a query
-    "requires `SOURCE`(s), by construction -- this is where you looked", and
+    "requires `SOURCES`, by construction -- this is where you looked", and
     this script waived it; Roy ruled the brief right on
     2026-08-16. Where you looked is a real line in the checkout on all three
     query shapes, so it resolves like any other citation. Only `clean` is
@@ -502,24 +533,102 @@ def source_problem(f: Finding, repo: Path) -> str | None:
     if f.verdict == "clean":
         return None
     if not f.sources:
-        return "no SOURCE — a finding cites where it looked"
+        return "no SOURCES — a finding cites where it looked"
     for source in f.sources:
         cite, sep, verbatim = source.partition("|")
         if not sep:
-            return f"SOURCE {source!r} has no `|` — it is `file:line | verbatim`"
+            return f"SOURCES entry {source!r} has no `|` — it is `file:line | verbatim`"
         resolved = _resolve_lines(cite.strip(), repo)
         if isinstance(resolved, str):
-            return f"SOURCE {resolved}"
+            return f"SOURCES {resolved}"
         _target, lineno, _end, lines = resolved
         needle = " ".join(verbatim.split()).strip().strip('"')
         if len(needle) < MIN_NEEDLE:
-            return f"SOURCE {cite.strip()} carries no verbatim half"
+            return f"SOURCES entry {cite.strip()} carries no verbatim half"
         lo = max(0, lineno - 1 - SOURCE_WINDOW)
         window = " ".join(
             " ".join(ln.split()) for ln in lines[lo : lineno + SOURCE_WINDOW]
         )
         if needle[:40].lower() not in window.lower():
-            return f"SOURCE not found near {cite.strip()}: {needle[:40]!r}"
+            return f"SOURCES not found near {cite.strip()}: {needle[:40]!r}"
+    return None
+
+
+def _same_text(a: str, b: str) -> bool:
+    """Two pieces of prose, compared the way a transcription should be judged.
+
+    ⚠⚠ Case, whitespace and LEADING COMMENT MARKERS are forgiven; the words are
+    not. The census stores a block's prose with its markers already stripped,
+    and a reviewer transcribes what the FILE shows -- `# the budget is 3`
+    against `the budget is 3`. Comparing those raw would refuse every honest
+    transcription, which is worse than not checking at all: the check would
+    only ever fire on people who did the work.
+
+    ⚠ Stripped as a CHARACTER CLASS, not a list of languages. `#`, `//`, `--`,
+    `;`, `%`, `*` and quote runs all open a comment somewhere, and the census
+    reaches languages this file does not enumerate.
+    """
+    return _words(a) == _words(b)
+
+
+def _words(text: str) -> str:
+    """`text` reduced to its words: markers off, whitespace collapsed, lowered."""
+    return (
+        " ".join(
+            " ".join(line.lstrip().lstrip("#/-;%*'\"!<>").split())
+            for line in text.split("\n")
+        )
+        .strip()
+        .lower()
+    )
+
+
+def address_problem(f: Finding, blocks: list[dict]) -> str | None:
+    """Does `BLOCK`'s address and transcribed text match the census?
+
+    ⚠⚠ The record carries the block's ADDRESS and its ORIGINAL TEXT so that it
+    can be read on its own -- a re-review, or stage 5, otherwise has to hold the
+    census open beside it to learn what prose a finding is about. Ruled
+    2026-08-17.
+
+    ⚠ Both are CHECKED, and that is what makes them worth writing. An address
+    nobody verifies is the `LOCATION` field this system already retired: it
+    resolved, and it never had to agree with the finding.
+
+    ⚠ `clean` is exempt. A role returns `clean` on most of the census -- 1159
+    blocks on one measured run -- so requiring a transcription of each would
+    make the bulk of every report text nobody reads.
+
+    Args:
+        f: the finding.
+        blocks: the census, as `census.py --json` emits it.
+
+    Returns:
+        One sentence naming what disagrees, or None. Out-of-range indices are
+        left to the range check, which reports them better.
+    """
+    if f.verdict == "clean":
+        return None
+    if not 1 <= f.block <= len(blocks):
+        return None
+    entry = blocks[f.block - 1]
+    start, end = entry.get("start"), entry.get("end")
+    path = str(entry.get("path", "")).replace("\\", "/")
+    want = f"{path}:{start}" if start == end else f"{path}:{start}-{end}"
+    got = f.address.replace("\\", "/").strip()
+    if not got:
+        return f"BLOCK {f.block} carries no ADDRESS — write `{f.block} | {want}`"
+    if got != want:
+        return f"BLOCK {f.block} address is {got!r}, the census says {want!r}"
+    text = str(entry.get("text", ""))
+    if not text.strip():
+        # ⚠ An empty INTERVAL has no text to transcribe, and it is exactly what
+        # an `add` cites: prose that is missing has no original.
+        return None
+    if not f.original.strip():
+        return f"BLOCK {f.block} carries no ORIGINAL — the block's text as it reads now"
+    if not _same_text(f.original, text):
+        return f"BLOCK {f.block} ORIGINAL does not match the census text"
     return None
 
 
@@ -813,6 +922,10 @@ def main() -> int:
         problem = source_problem(f, repo)
         if problem:
             print(f"  BLOCK {f.block} {f.reviewer}: {problem}")
+            fatal += 1
+        misaddressed = address_problem(f, blocks)
+        if misaddressed:
+            print(f"  BLOCK {f.block} {f.reviewer}: {misaddressed}")
             fatal += 1
         wrong_block = block_problem(f, blocks)
         if wrong_block:

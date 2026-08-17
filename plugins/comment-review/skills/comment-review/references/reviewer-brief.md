@@ -56,9 +56,12 @@ does not count.
 
 ```text
 --- RECORD
-BLOCK       17
+BLOCK       17 | redacted_pkg/billing/rates.py:352-354
+            # Kept because twenty call sites want this. Narrowing it
+            # means re-deriving the clamp bounds.
 VERDICT     correct
-SOURCE      redacted_pkg/billing/rates.py:355 | def compute_rates(plan, period, *, clamp=True):
+SOURCES     redacted_pkg/billing/rates.py:355 | def compute_rates(plan, period, *, clamp=True):
+            redacted_pkg/export/invoice.py:88 | rates = compute_rates(plan, period)
 CLAIM       false: "twenty call sites want this" / true: "31 callers, all in tests/"
 REASON      31 callers and every one is under tests/, so the count is stale
 CHANGE      # Kept because 31 callers want this, all of them in tests/.
@@ -66,11 +69,14 @@ CHANGE      # Kept because 31 callers want this, all of them in tests/.
 ---
 ```
 
+⚠ **A field may run onto the lines below it**, indented, as `BLOCK`, `SOURCES` and `CHANGE` do
+here. A blank line ends it.
+
 | field | what it carries |
 | --- | --- |
-| `BLOCK` | the census INDEX, and the finding's whole ADDRESS — the census resolves it to path and line range, so nothing else names where the prose is. ⚠ **A finding is ADDRESSED by index and RULED on a sentence, so several of your findings may carry the same `BLOCK`** |
+| `BLOCK` | THREE things: the census INDEX, then `\|`, then the ADDRESS as `path:start-end` — and on the lines below, **the block's text exactly as the file reads it now**. ⚠ **All three are CHECKED against the census.** ⚠ **A finding is ADDRESSED by index and RULED on a sentence, so several of your findings may carry the same `BLOCK`** |
 | `VERDICT` | one of the seven |
-| `SOURCE` | where you looked, as `file:line | verbatim` — the citation and the text AT it, both verbatim. **Repeat the line, one per place examined.** EVERY one is resolved and every verbatim half must be there |
+| `SOURCES` | where you looked, as `file:line | verbatim` — the citation and the text AT it, both verbatim. **Repeat the line, one per place examined.** EVERY one is resolved and every verbatim half must be there |
 | `CLAIM` | the SPEC: what must change, and from what to what, in the shape your verdict's row below gives. ⚠ **The half naming the EXISTING sentence is CHECKED against the census text for your `BLOCK`** — if it is not in the block you cited, the finding is on the wrong block |
 | `REASON` | what you DERIVED from the source, and why the claim is wrong — one statement |
 | `CHANGE` | the RESULT: that edit already made, written out **with the surrounding block**, ready to be substituted |
@@ -81,17 +87,26 @@ can be told apart. `CHANGE` is the finished prose, so the task agent applies you
 than re-deriving it from a diff. ⚠ Write the whole block in `CHANGE`, not just the line you
 touched — a block is what gets substituted.
 
-⚠⚠ **`SOURCE`'s verbatim half is the forcing function, and it is CHECKED.** The cited line is
+⚠⚠ **`BLOCK` carries the ORIGINAL so the record can be read on its own.** Whoever reads your
+finding — the task agent at stage 5, or another role on a re-review — otherwise has to hold the
+census open beside it to learn what prose you were even talking about. Transcribe the block;
+whitespace and case are forgiven, the words are not.
+
+⚠ **`clean` owes neither the address nor the original** — just the index. Your role returns
+`clean` on most of the census, and transcribing every one would make the bulk of your report
+text nobody reads.
+
+⚠⚠ **`SOURCES`'s verbatim half is the forcing function, and it is CHECKED.** The cited line is
 read out of the file and your text must appear within three lines of it.
 
 ⚠ **Cite every site you had to open.** A claim often needs two to settle — the definition and
 its callers — and citing one means dropping the other, which is the cut-the-provenance failure
 this system exists to catch. ⚠⚠ EVERY one is resolved AND every verbatim half must be there:
-a `SOURCE` is one statement about one place, so each is checked on its own. ⚠ Each carries a
+a `SOURCES` entry is one statement about one place, so each is checked on its own. ⚠ Each carries a
 LINE. A bare filename says you opened a file and not what you read in it, and it is refused.
 
 ⚠ **`REASON` is DERIVED, and is not checked verbatim** — that is why it is a separate field
-from `SOURCE`. A count is not a line any file contains, so checking the derived statement against
+from `SOURCES`. A count is not a line any file contains, so checking the derived statement against
 the code made every counted claim inadmissible. ⚠ `CLAIM` and `REASON` were one field split by
 `||`; a checker cannot verify both halves of one field, so they are two.
 
@@ -114,7 +129,7 @@ propose no text, so there is nothing for the task agent to apply.
 | `clean`   | nothing — name your role, nothing else |
 | `query`   | which of the three SHAPES it is, in those words, then the claim, the check you ATTEMPTED, and what WOULD settle it — the shape, the ATTEMPTED and the WOULD-settle halves are all CHECKED (as shape, not as truth); the claim itself is checked by nothing |
 | `drop`    | `drop: "<the sentence, verbatim>"` |
-| `correct` | `false: "<the false clause>" / true: "<the true one>"`, and a `SOURCE` carrying the line that settles it |
+| `correct` | `false: "<the false clause>" / true: "<the true one>"`, and a `SOURCES` entry carrying the line that settles it |
 | `patch`   | `from: "<the sentence now>" / to: "<the rewrite>"` |
 | `add`     | `missing: "<the text>"`, **the anchor NAMED in backticks**, and which side — above or below it. The word "anchor" is not an anchor |
 | `move`    | `from: <where it sits> / to: <the destination>` |
@@ -199,7 +214,7 @@ constraint — and none of those is your role's question unless your role file s
 #### `query` specific rules
 
 ⚠ **`query` is for a claim you could not settle — not one you did not try to settle.** You are
-still required to open the code that would settle it; on every other verdict your `SOURCE` proves
+still required to open the code that would settle it; on every other verdict your `SOURCES` proves
 you did. `query` is what you emit when you did and it was still not enough.
 
 ⚠⚠ **Three shapes reach it, and your `CLAIM` must NAME which one — in these exact words.**
@@ -215,7 +230,7 @@ tell them apart if you do not say which:
 ⚠ **A claim you could not settle and marked `clean` is worse than the same claim marked
 `query`.** `clean` certifies; `query` asks.
 
-⚠ **A `query` requires `SOURCE`(s), by construction** — this is where you
+⚠ **A `query` requires `SOURCES`, by construction** — this is where you
 looked to try to find the answer. These are the statements in the code that make it
 ambiguous or the location not yours to determine. **All three shapes carry them**, including
 `outside my role`: the block is real and in the checkout on every one of them, so there is

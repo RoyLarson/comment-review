@@ -81,7 +81,7 @@ truth"* is usually refuted from **another module**, and nothing prompts you to g
 
 Find the line that enforces the bound and compare four things: the VALUE, the DIRECTION
 (`>` vs `>=`), the UNITS, and what happens at the boundary. Report the enforcing line as your
-`SOURCE`'s verbatim half.
+`SOURCES`'s verbatim half.
 
 ## Cited paths and guards
 
