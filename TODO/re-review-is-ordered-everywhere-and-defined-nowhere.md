@@ -2,8 +2,8 @@
 
 ```
 Status:   open
-Progress: 7 of 11 tasks done
-Owner:    session * Roy (* 1 ruling)
+Progress: 8 of 10 tasks done
+Owner:    session * Roy (* 4 rulings, all made)
 Raised:   2026-08-17 (the first full run of 0.1.7 hit eight contradicted blocks and had to
           invent a procedure to clear them)
 ```
@@ -101,12 +101,6 @@ answer alone.
       a galley nobody can trust. Its exit is nonzero when anything refused, because a galley
       missing a block is not a galley of the proposal.
 
-- [ ] Decide WHICH BLOCKS get a round two. Roy's model -- *"the reviewers that had comments"* --
-      is any block where two or more roles filed a finding, not only the contradicted ones.
-      ! Measured on a live run: **51 of 150 blocks** had 2+ roles converge, against 8 flagged as
-      contradictions. That is a 6x change in how often round two fires, and it is a cost
-      decision, not a detail.
-
 - [x] **WRITTEN 2026-08-17: `references/re-review.md`**, and `SKILL.md` now loads it -- both in
       the references list at the top and at the *"Re-review is normal"* paragraph, which had
       ordered a re-review for ten sites' worth of prose without naming what one is. The file
@@ -120,12 +114,27 @@ answer alone.
       the report** -- it answers from the record rather than from its own read, and the two are
       not the same evidence.
 
-- [x] ! **TERMINATION: one round, then the author** -- and this one is the SESSION'S call, not a
-      ruling. If a block comes back split it reaches the author as a `query` carrying both
-      answers. The argument is this file's own: once both roles have seen each other's records,
-      **a second round between the same readers returns the same two answers**, because nothing
-      further enters the argument. ! Overrule it if the cost of a `query` to the author turns out
-      higher than another round; nothing measured either.
+- [x] * **RULED 2026-08-17: AT MOST TWO re-review rounds, then the APPLIER judges.** Roy:
+      *"2- rounds for the re-review and then the applier has to judge."*
+
+      ! **It overrules the session's own call**, which was one round and then the author as a
+      `query`. Two things changed: the bound is two rather than one, and the fallback is stage 5
+      rather than the author -- which is consistent with the absentee author the whole design
+      assumes, and keeps a question off a desk that approves *"almost everything, quickly,
+      unaudited"*.
+
+      !! **It also needed reconciling with *"never a tie-break"*, and the file now does that.**
+      That rule forbids stage 5 preferring one role INSTEAD OF sending the block back. Ruling
+      after two rounds is not that -- the process has run and not converged, and the applier is
+      the only participant holding every record, both rounds of answers, the census and the
+      code. **Deciding then is its job; deciding first is what it may not do.**
+
+      ! `re-review.md` also requires the report to NAME the blocks settled this way. A block
+      stage 5 ruled because two rounds did not converge is a weaker result than one the roles
+      agreed on, and the two must not read alike.
+
+      ! Nothing has yet reached a second round -- both genuine contradictions resolved in the
+      first -- so the bound is a decision about cost, not a response to a measured failure.
 
 - [x] **Recorded: what the run measured about the GATE.** 8 blocks flagged, **2 genuine
       contradictions**; six were composition or a sentence-level false positive. It is in the
@@ -133,13 +142,23 @@ answer alone.
       [`move-and-correct-compose`](move-and-correct-compose.md) and
       [`the-unit-of-review-is-the-statement-not-the-block`](the-unit-of-review-is-the-statement-not-the-block.md).
 
-- [ ] * **WHICH BLOCKS get a round two -- still open, and it is a COST decision.** Roy's model,
-      *"the reviewers that had comments"*, is any block where two or more roles filed, not only
-      the contradicted ones. ! Measured on a live run: **51 of 150 blocks** had 2+ roles
-      converge, against 8 flagged as contradictions -- a 6x change in how often round two fires.
-      ! **Deliberately NOT in `re-review.md`.** That file defines the mechanism; WHEN it fires is
-      the caller's, the same way `compact.md` defines compaction and `SKILL.md` says stage 6 is
-      skipped without a cap.
+- [x] * **RULED 2026-08-17: every block carrying a CONFLICTING mark, and `query` conflicts with
+      none.** Roy: *"for now all blocks that have a conflicting mark - query conflicts with
+      none."*
+
+      !! **That set already exists and needs no code.** It is what `contradictions()` computes --
+      one role whose verdict `removes` the sentence another `rules_on_text` -- and `query`'s row
+      in the `Verdict` table sets neither trait, so it can never enter either list. Verified by
+      reading the table and the loop, not inferred. `move` is absent by the earlier ruling,
+      because relocation and a truth fix compose.
+
+      ! **The broad model is NOT adopted, and *"for now"* is Roy's word.** *"The reviewers that
+      had comments"* would send every block two or more roles filed on: **51 of 150** against
+      **8**, a six-fold difference in firing rate. Taken narrow on cost.
+
+      ! The rule is in `SKILL.md`, not `re-review.md`. That file defines the mechanism; WHEN it
+      fires is the caller's, the same way `compact.md` defines compaction and `SKILL.md` says
+      stage 6 is skipped without a cap.
 
 - [ ] Decide whether a re-review may be dispatched to a role that did NOT rule on the block.
       The run sent only to the two roles that collided. Widening it costs a re-read; not

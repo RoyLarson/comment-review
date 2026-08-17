@@ -102,14 +102,25 @@ and the two are not the same evidence.
 
 ## When it stops
 
-**One round, then the author.** If a block comes back split -- one role holding, another
-revising the same sentence -- it reaches the author as a `query` carrying both answers.
+**AT MOST TWO re-review rounds, and then the APPLIER judges.** Ruled 2026-08-17. Counting, so
+nobody has to guess it: stage 4 is the first read and is not a round here. A block may go back
+twice. If it is still split after the second, **stage 5 rules on it** -- it does not go to the
+author and it does not go back a third time.
 
-!! **A second round between the same readers returns the same two answers.** They have now seen
-each other's records, so nothing further enters the argument; only the author can settle what
-two roles will not. ! Measured 2026-08-17: both genuine contradictions resolved in ONE round, 8
-HOLD from one role and 4 HOLD / 2 REVISE from the other, and both revisions kept the verdict and
-shortened the payload.
+!! **This does NOT license a tie-break, and the distinction is the whole rule.** *"Never a
+tie-break"* forbids stage 5 preferring one role over another INSTEAD OF sending the block back.
+Ruling after two rounds is not that: the process has been run and has not converged, and the
+applier is the participant holding every record, both rounds of answers, the census and the
+code. Deciding then is its job. Deciding first is the thing it may not do.
+
+! **Say in the report which blocks were ruled this way, and on what.** A block stage 5 settled
+because two rounds did not converge is a weaker result than one the roles agreed on, and the
+two must not read alike.
+
+! Measured 2026-08-17: both genuine contradictions resolved in the FIRST round -- 8 HOLD from
+one role, 4 HOLD and 2 REVISE from the other, and both revisions kept the verdict and shortened
+the payload. **Nothing has yet reached a second round**, so the bound is a decision about cost,
+not a response to a measured failure.
 
 ## Rails
 

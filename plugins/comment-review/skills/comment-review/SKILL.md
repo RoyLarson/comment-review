@@ -565,6 +565,17 @@ given, the three questions it answers about the JOINED block, the return shape, 
 and when the rounds stop. ! The subject is never the finding -- *"do you stand by your verdict"*
 returns the verdict already filed.
 
+!! **WHICH BLOCKS go back: every block carrying a CONFLICTING mark, and `query` conflicts with
+nothing.** Ruled 2026-08-17. That is exactly the set `verdicts.py` already prints as
+`RE-REVIEW` -- one role REMOVING the sentence another RULES ON -- so read the tool's list rather
+than deriving your own. `query` sets neither trait and can never enter it; `move` is absent by
+ruling, because relocation and a truth fix compose.
+
+! **This is the NARROW rule, taken on cost, and it is marked *for now*.** The alternative on the
+table is every block two or more roles filed on, which is the model behind *"the reviewers that
+had comments"*. Measured on a live run: **51 of 150 blocks** had two or more roles converge
+against **8** flagged as conflicts -- a six-fold difference in how often a round two fires.
+
 ## Stage 5 -- APPLY: one verdict, one FULL-LENGTH replacement
 
 !! **Run THE JOIN before you rule on anything** -- `verdicts.py`, which reads every
