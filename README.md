@@ -252,12 +252,13 @@ over a cap of two. And the name corpus is built from `git ls-files`, so a
 vendored or gitignored tree can no longer donate its namespace and mask an
 obituary.
 
-The quoting convention is the sharpest case, because it is **not** a language property: two
-Python projects in the corpus disagreed with each other about it, and on one of them the
-three best symbol findings were invisible to the detector for that reason alone. Sampling
-the repository and picking the convention it actually uses is strictly better than any
-default. Missing this made the census silently under-report — on one file it censused 3 of
-8 prose blocks and still reported the file covered, which is worse than reporting nothing.
+The quoting convention is the one that is **not** a language property: two Python projects in
+the corpus disagreed with each other about it, and on one of them three symbol findings were
+invisible to the detector for that reason alone. A single default is therefore wrong on
+whichever of those two projects it does not match; sampling the repository and reading the
+convention it uses is wrong on neither. Missing this made the census under-report without
+saying so — on one file it censused 3 of 8 prose blocks and reported the file covered, which
+is a false pass rather than a partial result.
 
 ### Smaller, also measured
 
