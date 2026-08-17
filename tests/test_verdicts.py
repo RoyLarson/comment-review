@@ -173,6 +173,38 @@ class TestPayload(unittest.TestCase):
         self.assertIsNone(verdicts.payload_problem(f))
 
 
+class TestReasonSaysSomething(unittest.TestCase):
+    """REASON is the field the `move` ruling rests on -- *"this comment belongs
+    to that line there"* -- and nothing checked it. A reviewer that echoes the
+    claim back has filed a verdict with no reason.
+    """
+
+    def test_a_reason_that_restates_the_claim_is_refused(self):
+        f = _finding(claim='"only one caller"', reason="only one caller")
+        self.assertIn("restates", verdicts.payload_problem(f))
+
+    def test_a_reason_that_adds_the_derivation_passes(self):
+        f = _finding(
+            claim='"only one caller"',
+            reason="31 callers and every one is under tests/",
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+
+    def test_case_and_quoting_do_not_disguise_a_restatement(self):
+        f = _finding(claim='"Only One Caller"', reason='  "only one caller"  ')
+        self.assertIn("restates", verdicts.payload_problem(f))
+
+    def test_a_reason_that_QUOTES_the_claim_and_explains_it_passes(self):
+        # ⚠ Equality only, never containment. A REASON that quotes the claim
+        # and then says what is wrong with it is doing its job, and a
+        # containment test would refuse it.
+        f = _finding(
+            claim='"only one caller"',
+            reason='"only one caller" is false — there are 31, all in tests/',
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+
+
 class TestAddAnchor(unittest.TestCase):
     """The brief asks for "the text AND its anchor — which code, above or below".
 

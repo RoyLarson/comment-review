@@ -290,6 +290,17 @@ def payload_problem(f: Finding) -> str | None:
     # malformed records; those are separate now, so it can be required.
     if f.verdict != "clean" and not f.reason.strip():
         return f"{f.verdict} states no REASON — why the verdict was made"
+    # ⚠ A reviewer that echoes the claim back has filed a verdict with no
+    # reason. Compared normalised, because quoting and case are what make an
+    # echo look like a statement.
+    #
+    # ⚠⚠ EQUALITY, never containment. A REASON that quotes the claim and then
+    # says what is wrong with it is doing its job, and a containment test would
+    # refuse exactly the well-written ones.
+    claim = " ".join(f.claim.split()).strip().strip('"').lower()
+    reason = " ".join(f.reason.split()).strip().strip('"').lower()
+    if claim and reason == claim:
+        return "REASON restates CLAIM — say what you derived, not what it says"
     change = f.change.lower()
     if f.verdict == "query":
         named = [s for s in QUERY_SHAPES if s in change]
