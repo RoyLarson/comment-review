@@ -70,6 +70,12 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+
+## [0.2.1] -- 2026-08-17
+
+A bugfix release. **`0.3.0`'s gate is untouched by it** -- nothing here was measured against a
+run on Roy's codebases, which is what that rung asks for.
+
 ### The shipped tree is ASCII
 
 !! **Nothing under `plugins/` holds a character outside ASCII**, and
