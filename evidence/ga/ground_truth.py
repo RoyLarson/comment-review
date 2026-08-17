@@ -49,15 +49,31 @@ def prose_lines(text: str) -> set[int]:
     return out
 
 
-def git(*args: str) -> str:
-    """Run a git command and return its stdout."""
-    return subprocess.run(
+def git(*args: str, must_work: bool = False) -> str:
+    """Run a git command and return its stdout.
+
+    ⚠⚠ A FAILURE WAS INDISTINGUISHABLE FROM NO OUTPUT. The return code was
+    discarded, so a mistyped or unfetched ref made `diff --name-only` return ""
+    -- no files, an empty truth set, `{}` written to gt.json, and exit 0.
+    `score.py` then had `total == 0`, which hardcodes recall to 0.0 for EVERY
+    candidate, so a whole GA generation ranked on nothing with no sign of it in
+    stdout or the exit status. Measured 2026-08-17.
+
+    Args:
+        *args: the git subcommand and its arguments.
+        must_work: raise `RuntimeError` on a nonzero exit rather than returning
+            "". Set where an empty result would be read as an answer.
+    """
+    r = subprocess.run(
         ["git", *args],
         capture_output=True,
         text=True,
         encoding="utf-8",
         errors="replace",
-    ).stdout
+    )
+    if must_work and r.returncode != 0:
+        raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip() or 'failed'}")
+    return r.stdout
 
 
 def main() -> int:
@@ -69,11 +85,20 @@ def main() -> int:
     ap.add_argument("--only", default="", help="substring a path must contain")
     args = ap.parse_args()
 
-    files = [
-        f
-        for f in git("diff", "--name-only", args.base, args.head, "--", "*.py").split()
-        if args.only in f
-    ]
+    try:
+        # ⚠ `splitlines`, not `split`: a path holding a space became two
+        # fragments whose `git show` then failed and was silently skipped.
+        changed = git(
+            "diff", "--name-only", args.base, args.head, "--", "*.py", must_work=True
+        ).splitlines()
+    except RuntimeError as e:
+        # ⚠⚠ REFUSE rather than write an empty oracle. `{}` in gt.json makes
+        # `score.py` report recall 0.0 for every candidate in the generation,
+        # which reads as "they all found nothing" rather than "the refs were
+        # wrong".
+        print(f"ground_truth: {e}", file=sys.stderr)
+        return 2
+    files = [f for f in changed if args.only in f]
     truth: dict[str, list[list[int]]] = {}
 
     for path in files:

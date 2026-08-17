@@ -117,7 +117,20 @@ def main() -> int:
     targets = [repo / p for p in sys.argv[2:]] or [repo]
 
     files = sorted({f for t in targets for f in census._walk(t)})
-    known, _ = census.code_names([repo])
+    # ⚠⚠ `unread` IS REPORTED. `code_names` returns it precisely because a hole
+    # in the name corpus is not benign: every symbol defined only in an
+    # unreadable file becomes a false `names-a-symbol` note, and those notes
+    # are what the `notes/block` column and the annotations table below are
+    # computed from. Discarding it meant a corrupted split looked like a clean
+    # one, with nothing in stdout either way.
+    known, unread = census.code_names([repo], tracked=census.tracked_paths(repo))
+    if unread:
+        print(f"⚠ {len(unread)} files could not be read for the name corpus:")
+        for name in unread[:5]:
+            print(f"    {name}")
+        if len(unread) > 5:
+            print(f"    ... and {len(unread) - 5} more")
+        print("  Symbol notes below are WEAKER than they look until this is empty.\n")
     paths = census.path_index(repo)
 
     buckets: dict[str, list] = defaultdict(list)
