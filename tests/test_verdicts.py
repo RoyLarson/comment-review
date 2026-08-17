@@ -792,8 +792,9 @@ class TestBlockProblem(unittest.TestCase):
     replacement against the original block would refuse every correct finding
     and pass the ones that changed nothing.
 
-    ⚠ This is what `LOCATION` never did. It was checked for resolvability and
-    never against the block it claimed to describe.
+    ⚠ This is what `LOCATION` could never do. It was AMBIGUOUS -- four
+    possible subjects, set out in `address_problem` -- so it could only be
+    checked for resolvability, never against the thing it described.
     """
 
     BLOCKS = [
@@ -1028,9 +1029,11 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
     This allows the reviewer to have most the context and most of the time all
     of the context it needs to understand."*
 
-    ⚠ All three are CHECKED. An address nobody verifies is the `LOCATION` field
-    this system already retired: it resolved, and it never had to agree with the
-    finding it was attached to.
+    ⚠⚠ All three are CHECKED, and this is NOT `LOCATION` coming back. That
+    field was dropped for AMBIGUITY: it could have named where the prose sits,
+    where the reviewer looked, where the prose should GO, or which sentence
+    exactly. Those are four fields now -- `address_problem` sets out which --
+    and each is checked against a different thing.
     """
 
     BLOCKS = [
@@ -1508,9 +1511,16 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     is invented on purpose (`docs/limitations.md`), so there is no real
     `redacted_pkg/` to read. What this pins is the record's SHAPE — every field the
     parser needs, a QUOTE long enough to have been read off a line, EVIDENCE
-    as `file:line` and LOCATION as `file:start-end`, and the payload the
+    as `file:line` and BLOCK as `<index> | file:start-end`, and the payload the
     verdict table demands.
     """
+
+    # ⚠⚠ The field ORDER is a contract, not a layout. Roy, 2026-08-17:
+    # *"Verdict -> Claim -> REASON -> SOURCES -> CHANGE ... that is a clear
+    # chain of custody on the reasoning and the required actions."* The parser
+    # is label-keyed and would accept any order, so nothing but this test stops
+    # the brief drifting out of the sequence it teaches.
+    CHAIN = ["BLOCK", "VERDICT", "CLAIM", "REASON", "SOURCES", "CHANGE"]
 
     # The fence may carry a language hint (```text). Matching it loosely keeps
     # this pinned to the RECORD's shape rather than to how the block is fenced.
@@ -1549,6 +1559,26 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     def test_the_record_parses_into_a_real_block_index(self):
         self.assertGreaterEqual(self.finding.block, 1)
         self.assertIn(self.finding.verdict, verdicts.VERDICTS)
+
+    def test_the_record_is_written_in_the_chain_of_custody_order(self):
+        labels = [
+            m.group(1)
+            for line in self.record.splitlines()
+            if (m := verdicts.FIELD.match(line))
+        ]
+        self.assertEqual(
+            labels,
+            self.CHAIN,
+            "the brief's record has drifted out of the chain-of-custody order",
+        )
+
+    def test_the_dataclass_is_written_in_the_same_order(self):
+        # ⚠ The Finding docstring says field order follows the brief's record.
+        # A dataclass reordered without the brief, or the reverse, makes that
+        # sentence false with nothing to catch it.
+        fields = [f for f in verdicts.Finding.__dataclass_fields__ if f != "reviewer"]
+        chain = [c.lower() for c in self.CHAIN]
+        self.assertEqual([f for f in fields if f in chain], chain)
 
     def test_the_record_passes_the_source_check(self):
         self.assertIsNone(verdicts.source_problem(self.finding, self.repo))

@@ -60,10 +60,10 @@ BLOCK       17 | redacted_pkg/billing/rates.py:352-354
             # Kept because twenty call sites want this. Narrowing it
             # means re-deriving the clamp bounds.
 VERDICT     correct
-SOURCES     redacted_pkg/billing/rates.py:355 | def compute_rates(plan, period, *, clamp=True):
-            redacted_pkg/export/invoice.py:88 | rates = compute_rates(plan, period)
 CLAIM       false: "twenty call sites want this" / true: "31 callers, all in tests/"
 REASON      31 callers and every one is under tests/, so the count is stale
+SOURCES     redacted_pkg/billing/rates.py:355 | def compute_rates(plan, period, *, clamp=True):
+            redacted_pkg/export/invoice.py:88 | rates = compute_rates(plan, period)
 CHANGE      # Kept because 31 callers want this, all of them in tests/.
             # Narrowing it means re-deriving the clamp bounds.
 ---
@@ -71,6 +71,11 @@ CHANGE      # Kept because 31 callers want this, all of them in tests/.
 
 ⚠ **A field may run onto the lines below it**, indented, as `BLOCK`, `SOURCES` and `CHANGE` do
 here. A blank line ends it.
+
+⚠⚠ **The order is a CHAIN OF CUSTODY, and it is why the fields are in this sequence.** The
+ruling, then what must change, then why, then the evidence the why rests on, then the result:
+each field answers the question the one above it raises. Write them in this order — a reader
+following your finding is following that chain.
 
 | field | what it carries |
 | --- | --- |

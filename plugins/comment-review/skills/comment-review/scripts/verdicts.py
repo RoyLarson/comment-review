@@ -147,10 +147,16 @@ QUERY_SETTLES = re.compile(
 class Finding:
     """One reviewer's ruling on one census block.
 
-    Field order follows the record in `reviewer-brief.md`. `sources` holds one
-    entry per place examined, each `file:line | verbatim` -- BOTH halves
-    verbatim, which is why they are one field where `claim` and `reason` are
-    two.
+    ⚠⚠ Field order follows the record in `reviewer-brief.md`, and the order is
+    a CHAIN OF CUSTODY. Roy, 2026-08-17: *"Verdict -> Claim -> REASON ->
+    SOURCES -> CHANGE ... that is a clear chain of custody on the reasoning and
+    the required actions."* The ruling, what must change, why, the evidence
+    the why rests on, and the result. `SOURCES` sat between `VERDICT` and
+    `CLAIM`, which put the evidence before the thing it was evidence FOR.
+
+    `sources` holds one entry per place examined, each `file:line | verbatim` --
+    BOTH halves verbatim, which is why they are one field where `claim` and
+    `reason` are two.
 
     ⚠⚠ `claim` is the SURGICAL SPEC -- what must change, and from what to what.
     `change` is the RESULT: that edit already made, written out with the
@@ -200,9 +206,9 @@ class Finding:
     reviewer: str
     block: int
     verdict: str
-    sources: list[str]
     claim: str
     reason: str
+    sources: list[str]
     change: str
     address: str = ""
     original: str = ""
@@ -591,9 +597,26 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
     census open beside it to learn what prose a finding is about. Ruled
     2026-08-17.
 
-    ⚠ Both are CHECKED, and that is what makes them worth writing. An address
-    nobody verifies is the `LOCATION` field this system already retired: it
-    resolved, and it never had to agree with the finding.
+    ⚠⚠ This is NOT `LOCATION` coming back. Roy, 2026-08-17: *"Location was
+    dropped because it was ambiguous ... It could also have meant where this
+    should go in the case of move or add. Or on a granular level which sentence
+    are we talking about specifically."* One `file:start-end` field carried FOUR
+    possible subjects, and each has its own home now:
+
+    | LOCATION could have meant     | where it lives now                     |
+    | ----------------------------- | -------------------------------------- |
+    | where the prose SITS          | `BLOCK` -- index, address, original    |
+    | where the reviewer LOOKED     | `SOURCES`                              |
+    | where the prose SHOULD GO     | `CLAIM`'s `to:`, or an `add`'s anchor  |
+    | WHICH SENTENCE, exactly       | `CLAIM`'s `drop:`/`false:`/`from:`     |
+
+    ⚠ Each is checked against a DIFFERENT thing -- `BLOCK` against the census,
+    `SOURCES` against the files, the sentence against the block's text. That is
+    the gain: a field with four possible subjects can only be checked for
+    RESOLVABILITY, because nothing says which subject to check it against.
+
+    ⚠ Both parts of `BLOCK` are CHECKED, and that is what makes them worth
+    writing. An address nobody verifies costs a line and settles nothing.
 
     ⚠ `clean` is exempt. A role returns `clean` on most of the census -- 1159
     blocks on one measured run -- so requiring a transcription of each would
@@ -635,11 +658,12 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
 def block_problem(f: Finding, blocks: list[dict]) -> str | None:
     """Is the sentence this finding rules on actually IN the block it cites?
 
-    ⚠⚠ This is what `LOCATION` never did, and why retiring it is a NET GAIN.
-    `LOCATION` was checked for RESOLVABILITY -- does `a.py:342` exist -- and
-    never against the block it claimed to describe, so a finding attached to the
-    wrong block resolved cleanly. The census carries each block's joined text
-    and the gate already loads it, so this costs nothing and catches that.
+    ⚠⚠ This is what `LOCATION` could never do — it was AMBIGUOUS, and the four
+    subjects it could have named are set out in `address_problem`. A field whose
+    subject is unknown can only be checked for RESOLVABILITY, never against the
+    thing it describes. The census carries each block's joined text and the gate
+    already loads it, so this costs nothing and catches a finding attached to
+    the wrong block.
 
     ⚠⚠ Keyed on the ORIGINAL SENTENCE, which `CLAIM` carries in its `drop:`,
     `false:` or `from:` half -- never on `CHANGE`, which is the finished block
