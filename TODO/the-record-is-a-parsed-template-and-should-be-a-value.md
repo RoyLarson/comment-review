@@ -2,8 +2,8 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
-Owner:    Roy (* 1 ruling) * session
+Progress: 1 of 7 tasks done
+Owner:    session * Roy (* 2 rulings, 1 made -- the format; the interface is open)
 Raised:   2026-08-17, by Roy, after three parser defects of one shape in one day
 ```
 
@@ -29,10 +29,31 @@ travels as prose.
 | **blank line ambiguity** | content inside a field, separator between records -- the wrong choice was 0.2.0's worst defect, refusing 113 of one reviewer's 134 correct findings | a string carries newlines; there is nothing to disambiguate |
 | **field order, indentation, duplicate stems** | rules the reviewer must hold and the parser must enforce | gone with the format |
 
-! **D9 is REDUCED, not killed.** Structure removes the outer quotes and the `drop:` marker, so
-a reviewer stops embedding a quoted sentence inside a prose field. But the SPAN still comes from
-file text carrying the file's markup, and matching a claimed sentence against it stays fuzzy.
-`EDGE` survives this change.
+!! **D9 IS KILLED TOO, IF THE RECORD CARRIES SENTENCES RATHER THAN BLOBS.** Roy: *"D9 is only a
+diff problem if the comparison is outside of code."*
+
+That has two readings and only one of them works:
+
+- **Carry the removed span as a FIELD**, computed where the edit was made. ! This reintroduces
+  trust. `removed_spans` exists because it is *"the reliable answer where `CLAIM` is the
+  reviewer's own account of it"*, and a field the reviewer fills is that account again.
+- **Compare SENTENCES, not tokens.** If `BLOCK` and `CHANGE` carry lists of sentences, what was
+  removed is a SET DIFFERENCE over whole sentences rather than an alignment over tokens. **A
+  span then cannot begin mid-sentence**, which is the mechanism of both D9 shapes -- the
+  swallowed word before a parenthetical, and the emphasis delimiters bracketing a claim.
+
+!! **The second is not new vocabulary.** This system already declares the sentence as its unit
+-- *"a verdict rules on a SENTENCE, not on a block"* -- and
+[`the-unit-of-review-is-the-statement-not-the-block`](completed/the-unit-of-review-is-the-statement-not-the-block.md)
+is closed. **The DATA never caught up with the rule.** Every remaining token-level comparison is
+the block-shaped structure outliving the block-shaped decision.
+
+! `EDGE` survives either way, for normalising a sentence to compare it. What it stops doing is
+deciding where a span BEGINS.
+
+! **Who splits the sentences is the open question**, and it is the one that decides whether this
+is cheap. The census already holds the block; splitting prose into sentences is not free and
+gets it wrong on abbreviations, code samples and lists.
 
 ! **Untouched:** whether the claim is TRUE, and whether the address matches the census. Those
 are the checks worth having, and they are not the ones that have been breaking.
@@ -56,9 +77,27 @@ loud total failure for a quiet local one is the right direction; it is not a fre
 - **That it can be hand-written at all.** A record carries two whole blocks of source text.
   Whether that survives JSON escaping in practice is an empirical question with an easy answer:
   try it on the reports already on disk.
-- **Which format.** JSON escapes newlines and is unreadable in a diff; TOML has multi-line
-  literals and no list-of-objects ergonomics; YAML has block scalars that suit this exactly and
-  a footgun this repo was bitten by today.
+- **Whether the reviewer can be kept out of the SYNTAX entirely.** Roy: *"we give them a cli to
+  emit one. No ambiguity on if they write it correctly."* ! The hazard moves rather than
+  vanishing if the values reach that CLI through a SHELL: multi-line text in an argument is the
+  same escaping problem one layer out, and heredocs mangled `\n` and `\w` five-plus times in the
+  session that raised this. The safe shape is the agent writing the file with its FILE-WRITE
+  tool -- no shell in the path -- and a CLI validating it, which is `run_context.py --template`
+  and `--check` already.
+
+## * RULED 2026-08-17: JSON
+
+Not on taste, and not on "no stdlib writer" alone. Roy: *"python chose to make it read only
+since it is a config format more than a storage format."*
+
+| | verdict |
+| --- | --- |
+| **TOML** | **wrong KIND of format.** `tomllib` is read-only BY DESIGN -- it is a config language, and a record is storage. ! That forecloses adding `tomli_w`: the objection is not that the stdlib cannot write it, it is that writing it was never the point of the format |
+| **YAML** | rejected. Roy: *"I really don't like yaml"* -- and it dropped an agent's entire metadata in this tree on 2026-08-17, silently, through every release to date |
+| **JSON** | `json.dumps` is stdlib, and it round-tripped a block carrying emphasis, quotes, a tab, a backslash, a trailing brace and a blank line BYTE-IDENTICALLY. Measured 2026-08-17 |
+
+! The cost accepted with it: JSON escapes newlines, so a record is unreadable in a diff. **That
+is what the CLI is for** -- nobody reads or writes the encoding by hand.
 
 ## !! Timing
 
@@ -68,19 +107,22 @@ the runs that are in flight to finish first.
 
 ## Tasks
 
-- [ ] * **Rule on whether the record becomes a value, and in what format.** The three candidates
-      and their trade-offs are above; the deciding evidence is the escaping question below, not
-      an argument.
+- [x] * **RULED 2026-08-17: the record becomes a value, and the format is JSON.** See above.
 
-- [ ] **Take the malformed-report rate for BOTH formats before choosing.** Convert the reports
-      already on disk -- four from this repo's own smoke test, plus whatever the live runs
-      leave -- and count what a reviewer would have had to get right. ! This is available now
-      and settles the "not established" points by measurement rather than by preference.
+- [ ] * **Decide the INTERFACE the reviewer uses**, now that the format is settled. A CLI it
+      calls per record, a template it fills, or a schema it writes to with its FILE-WRITE tool.
+      !! The deciding constraint is that **no multi-line value passes through a SHELL** -- that
+      is the same escaping problem one layer out, and it is the layer that actually failed in
+      the session that raised this file.
 
-- [ ] **Try the round trip on a real record.** Take one carrying two multi-line blocks with
-      comment markers, emphasis and quotes; write it in each candidate format; read it back and
-      compare byte for byte. A format that cannot carry `BLOCK` and `CHANGE` intact is
-      disqualified whatever else it offers.
+- [ ] **Take the malformed-report rate on the reports already on disk.** Four from this repo's
+      smoke test, plus whatever the live runs leave. ! The format is chosen, so this is no
+      longer a format comparison: it measures how often a reviewer gets the CURRENT template
+      wrong, which is the number the change has to beat.
+
+- [ ] **Round-trip a real record through JSON.** Already done for one synthetic block -- markers,
+      emphasis, quotes, tab, backslash, trailing brace, blank line, byte-identical. ! Repeat it
+      on a record from an actual report, because a synthetic block is one someone chose.
 
 - [ ] **Say what happens to a report that does not parse.** Today a malformed record is named
       and counted fatal while the rest of the report still joins. A total parse failure has no
