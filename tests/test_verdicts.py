@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
+import census
 import verdicts
 
 BRIEF = (
@@ -1483,6 +1484,178 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
         f = _finding(verdict="reanchor")
         self.assertFalse(verdicts._is(f, "removes"))
         self.assertIsNone(verdicts.payload_problem(f))
+
+
+class TestOneNormaliserOnBothSides(unittest.TestCase):
+    """Every comparison reduces BOTH sides the same way, or it refuses the honest.
+
+    ⚠⚠ Each case below was a live defect on 2026-08-17, found by review after
+    the run that the same class of bug had already refused 73% of. The shape
+    repeats: two texts that should be equal, reduced by two different rules.
+    """
+
+    def test_the_haystack_is_reduced_like_the_needle(self):
+        # ⚠ `ruled_text` returns `_words(...)`, which drops trailing punctuation
+        # per token. A haystack that was only whitespace-collapsed still held
+        # it, so any comma or colon inside a quoted sentence refused a correct
+        # finding.
+        blocks = [
+            {
+                "path": "a.py",
+                "start": 1,
+                "end": 2,
+                "kind": "comment",
+                "text": "the budget is 3, so callers round separately downstream.",
+            }
+        ]
+        f = _finding(
+            claim=(
+                'false: "the budget is 3, so callers round separately downstream."'
+                ' / true: "x"'
+            )
+        )
+        self.assertIsNone(verdicts.block_problem(f, blocks))
+
+    def test_a_backtick_inside_the_sentence_does_not_refuse_it(self):
+        blocks = [
+            {
+                "path": "a.py",
+                "start": 1,
+                "end": 2,
+                "kind": "comment",
+                "text": "the `cap`, set at 88, is the published one",
+            }
+        ]
+        f = _finding(claim='false: "the `cap`, set at 88" / true: "it is 104"')
+        self.assertIsNone(verdicts.block_problem(f, blocks))
+
+    def test_words_is_IDEMPOTENT(self):
+        # ⚠⚠ It was not. Stripping quotes and THEN punctuation left a backtick
+        # on `` `cap`, `` until a second pass -- and `edit_problem` normalised
+        # the claim twice while a diff span got one pass.
+        for raw in (
+            "the `cap`, set at 88.",
+            '"quoted", and then some',
+            "trailing... dots",
+            "`sym`; a clause",
+        ):
+            once = verdicts._words(raw)
+            self.assertEqual(once, verdicts._words(once), raw)
+
+    def test_a_claim_quoting_backticked_prose_matches_its_own_edit(self):
+        entry = {
+            "path": "a.py",
+            "start": 1,
+            "end": 2,
+            "kind": "comment",
+            "text": "the `cap`, set at 88. callers round separately.",
+        }
+        f = _finding(
+            verdict="drop",
+            claim='drop: "the `cap`, set at 88."',
+            original="# the `cap`, set at 88.\n# callers round separately.",
+            change="# callers round separately.",
+        )
+        self.assertIsNone(verdicts.edit_problem(f, entry))
+
+
+class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
+    """`block_text` must reproduce the census for every kind and every language.
+
+    ⚠⚠ It is the lines-to-block half of the block protocol and it claims to be
+    the ONLY one, so a kind it cannot reproduce is a claim the file does not
+    keep -- and a fatal on every block of that kind.
+    """
+
+    def test_a_MARKED_doc_is_a_comment_not_a_string_literal(self):
+        # ⚠⚠ The lexical tier stamps `docstring` on any run opening with a
+        # language's doc marker. Reading `///` as a quoted literal leaves the
+        # marker in the prose and refuses every doc comment in ten of the
+        # eleven languages -- everything but Python.
+        rust = ["/// Returns the budget.", "/// Callers round separately."]
+        self.assertEqual(
+            census.block_text(
+                "docstring", rust, ("///", "//!", "//"), structural=False
+            ),
+            "Returns the budget. Callers round separately.",
+        )
+
+    def test_a_STRUCTURAL_doc_is_read_past_its_delimiters(self):
+        self.assertEqual(
+            census.block_text("docstring", ['    """Returns the budget."""'], ("#",)),
+            "Returns the budget.",
+        )
+
+    def test_a_trailing_comment_is_cut_back_to_its_marker(self):
+        # ⚠ The census stores a trailing comment's PROSE from the comment token
+        # and its WIDTH from the physical line. A reviewer transcribes the line,
+        # so the code on it has to come off or every trailing comment is a
+        # fatal.
+        self.assertEqual(
+            census.block_text("trailing-comment", ["    x: int  # the cap"], ("#",)),
+            "the cap",
+        )
+
+    def test_every_prose_block_in_the_shipped_TREE_round_trips(self):
+        # ⚠⚠ THE REAL CHECK, and the one that found the trailing-comment gap.
+        # Each block's own `raw_lines` fed back through the normaliser must
+        # reproduce the text the census stored. Anything that does not is a
+        # block a correct transcription cannot match.
+        import json
+        import subprocess
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "census.json"
+            paths = subprocess.run(
+                ["git", "ls-files", "plugins/**/*.py"],
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.split()
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "census.py"),
+                    "--json",
+                    "--repo",
+                    ".",
+                    "--out",
+                    str(out),
+                    *paths,
+                ],
+                capture_output=True,
+                check=True,
+            )
+            blocks = json.loads(out.read_text(encoding="utf-8"))
+        prose = [b for b in blocks if b.get("text", "").strip()]
+        self.assertGreater(len(prose), 100, "the sample must be real")
+        self.assertGreaterEqual(
+            len({b["kind"] for b in prose}), 3, "comment, docstring and trailing"
+        )
+        bad = [
+            (b["kind"], b["path"], b["start"])
+            for b in prose
+            if verdicts.as_block("\n".join(b["raw_lines"]), b).lower()
+            != b["text"].lower()
+        ]
+        self.assertEqual(
+            bad, [], f"{len(bad)} of {len(prose)} blocks cannot round-trip"
+        )
+
+
+class TestAMistypedVerdictIsNeverSummarisedAsCLEAN(unittest.TestCase):
+    """An unknown verdict is a defect, and the summary must not call it a pass."""
+
+    def test_an_unknown_verdict_is_substantive(self):
+        # ⚠ `_is` answers False to every trait for an unknown verdict, so a
+        # record reading `VERDICT corect` fell out of the work list and was
+        # reported under STANDS UNCHANGED — "clean from all reviewers" on a
+        # block a role had explicitly ruled on.
+        self.assertTrue(verdicts._substantive(_finding(verdict="corect")))
+
+    def test_a_known_null_verdict_is_not(self):
+        self.assertFalse(verdicts._substantive(_finding(verdict="clean")))
 
 
 class TestCLI(unittest.TestCase):

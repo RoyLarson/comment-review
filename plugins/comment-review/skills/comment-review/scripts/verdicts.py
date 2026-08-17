@@ -266,6 +266,18 @@ QUERY_SETTLES = re.compile(
 )
 
 
+def _substantive(f: Finding) -> bool:
+    """Does this finding ASK something of stage 5?
+
+    ⚠ An UNKNOWN verdict answers True. `_is` answers False to everything, so a
+    mistyped verdict fell out of the work list and was summarised as STANDS
+    UNCHANGED -- reported as clean from all reviewers on a block a role had
+    explicitly ruled on. The name check reports it fatal either way; the
+    summary must not also call it a pass.
+    """
+    return f.verdict not in VERDICTS or _is(f, "substantive")
+
+
 def _is(f: Finding, trait: str) -> bool:
     """Does this finding's verdict carry `trait`? False for an unknown verdict.
 
@@ -703,7 +715,12 @@ def as_block(text: str, entry: dict) -> str:
     markers = (
         tuple(sorted(lang.line_comment, key=len, reverse=True)) if lang else ("#",)
     )
-    return block_text(str(entry.get("kind", "")), text.split("\n"), markers)
+    # ⚠ `doc_is_structural` decides how a `docstring` is READ: Python's is a
+    # string inside a declaration's body, where a `///` or `/**` run is a
+    # comment like any other. Reading the second as the first leaves the marker
+    # in the prose and refuses every doc comment in ten of the eleven languages.
+    structural = lang.doc_is_structural if lang else True
+    return block_text(str(entry.get("kind", "")), text.split("\n"), markers, structural)
 
 
 def _words(text: str) -> str:
@@ -721,7 +738,13 @@ def _words(text: str) -> str:
     honest correction would read as an edit to a sentence nobody claimed.
     """
     return (
-        " ".join(w.strip("\"'`").rstrip(".,;:!?") for w in text.split()).strip().lower()
+        # ⚠⚠ ONE strip over BOTH classes, so this is IDEMPOTENT. Stripping
+        # quotes and THEN punctuation is not: `` `cap`, `` loses its backtick
+        # only on a second pass. `ruled_text` already returns `_words(...)` and
+        # `edit_problem` normalises it again, while a diff span gets one pass --
+        # so a claim and the edit naming it reduced to different strings, and a
+        # correct finding was refused.
+        " ".join(w.strip("\"'`.,;:!?") for w in text.split()).strip().lower()
     )
 
 
@@ -844,7 +867,11 @@ def block_problem(f: Finding, blocks: list[dict]) -> str | None:
     needle = ruled_text(f)
     if not needle:
         return None
-    haystack = " ".join(str(blocks[f.block - 1].get("text", "")).split()).lower()
+    # ⚠⚠ THE SAME NORMALISER as the needle. `ruled_text` returns `_words(...)`,
+    # which drops per-token quotes and trailing punctuation; a haystack that
+    # was only whitespace-collapsed still holds them, so any comma, colon or
+    # backtick inside a quoted sentence refused a correct finding.
+    haystack = _words(str(blocks[f.block - 1].get("text", "")))
     if needle[:40] not in haystack:
         return f"the sentence ruled on is not in block {f.block}: {needle[:40]!r}"
     return None
@@ -1273,9 +1300,7 @@ def main() -> int:
     # verdicts inside 1159 on a measured run.
     ran = sorted(reported | {f.reviewer for f in found})
     in_range = [f for f in found if 1 <= f.block <= len(blocks)]
-    ruled = {
-        f.block for f in in_range if _is(f, "substantive") and not declares_scope(f)
-    }
+    ruled = {f.block for f in in_range if _substantive(f) and not declares_scope(f)}
     scoped_out = {f.block for f in in_range if declares_scope(f)} - ruled
     stands = sorted(all_blocks - ruled - scoped_out)
     print(
@@ -1305,7 +1330,7 @@ def main() -> int:
             marks = "  ".join(
                 f"{f.verdict}({f.reviewer})"
                 for f in sorted(grouped[b], key=lambda f: (f.verdict, f.reviewer))
-                if _is(f, "substantive") and not declares_scope(f)
+                if _substantive(f) and not declares_scope(f)
             )
             flag = "   ⚠ RE-REVIEW" if b in out_for_rereview else ""
             print(f"  {b:4d}  {marks}{flag}")

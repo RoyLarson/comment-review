@@ -186,7 +186,29 @@ def docstring_text(lines: list[str]) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def block_text(kind: str, lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
+def _from_marker(line: str, markers: tuple[str, ...]) -> str:
+    """A trailing comment's line, cut back to where its comment starts.
+
+    ⚠ The census stores a trailing comment's PROSE from the comment token and
+    its WIDTH from the physical line, so the text a reviewer transcribes -- the
+    line as the file reads it -- carries code the census never had. Cutting at
+    the marker is what makes the two comparable.
+
+    ⚠ This finds the marker by SEARCH where the census used a lexer, so a
+    marker inside a string literal cuts in the wrong place. That is a wrong
+    answer on a line the census read correctly; it replaces a guaranteed
+    mismatch on every trailing comment.
+    """
+    at = [i for m in markers if (i := line.find(m)) != -1]
+    return line[min(at) :] if at else line
+
+
+def block_text(
+    kind: str,
+    lines: list[str],
+    markers: tuple[str, ...] = ("#",),
+    structural: bool = True,
+) -> str:
     """A block's prose as the census stores it, from the file's LINES.
 
     ⚠⚠ The lines-to-block half of the block protocol, and the ONLY one. It is
@@ -202,10 +224,25 @@ def block_text(kind: str, lines: list[str], markers: tuple[str, ...] = ("#",)) -
     Args:
         kind: the block's `kind`, as the census records it.
         lines: the block's source lines, as the file reads them.
-        markers: the language's comment openers, longest first.
+        markers: the language's comment openers, longest first. ⚠ The
+            language's LINE comments only, because that is what the census
+            passed -- a set that also stripped `/**` would produce prose the
+            census never stored.
+        structural: whether this language's doc is a STRING IN A DECLARATION'S
+            BODY (Python) rather than a marked comment run (`///`, `/**`).
+            `Language.doc_is_structural` records it, and it is the whole
+            dispatch: `kind` alone says `docstring` for both.
     """
-    if kind == "docstring":
+    # ⚠⚠ Routed on STRUCTURAL, never on `kind` alone. The lexical tier stamps
+    # `docstring` on any run opening with a language's doc marker -- `///`,
+    # `//!`, `/**` -- and those are comments, not string literals. Reading them
+    # as literals leaves the marker in the prose and refuses every doc comment
+    # in ten of the eleven languages. Only Python's docstring is a string in a
+    # declaration's body, which is what `doc_is_structural` records.
+    if kind == "docstring" and structural:
         return docstring_text(lines)
+    if kind == "trailing-comment":
+        lines = [_from_marker(ln, markers) for ln in lines]
     return _join(lines, markers)
 
 
