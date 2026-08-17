@@ -14,12 +14,16 @@ Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
 **`_join` strips a language's LINE comment openers and nothing else, so `/*`, `*/` and the
 per-line `*` of a Javadoc or JSDoc block reach the reviewers as prose.**
 
-Measured on eleven files, one per language record, each fetched at a pinned tag:
+Measured on eleven files, one per language record, each fetched at a pinned tag.
+
+⚠ **The examples below are INVENTED**, per `docs/limitations.md`, and they are the shape the
+measurement found rather than a quotation from it. The sources are third-party code under their
+own licences; nothing from them is reproduced here or vendored anywhere in this repo.
 
 ```
-c-family   docstring   '/** * A container object which may or may not contain a non-{@code'
-js-family  docstring   '/** * Create a new instance of Axios * * @param {Object} instanceC'
-c-family   comment     '/* * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All r'
+c-family   docstring   '/** * The retry budget. * * @param verb the idempotent verb * @re'
+js-family  docstring   '/** * Build a client. * * @param {Object} config the caller optio'
+c-family   comment     '/* * Ownership: the scheduler owns this queue once start() returns'
 ```
 
 | | prose blocks | carrying a block marker |
@@ -66,6 +70,16 @@ of its sentences.
 
 ## The corpus, so the measurement is re-runnable
 
+⚠⚠ **CITED, never copied.** Each row is a third-party file under its own licence — GPL+CPE,
+BSD, MIT, Apache, the PostgreSQL licence. **None is vendored, and none may be**: the files were
+fetched into a scratch directory outside this repo, read by the census, and left there. What is
+recorded below is the ADDRESS, which is a fact about where to look, not their text.
+
+⚠ This is why `corpora/` fetches and never vendors, and the reason is not only tree size. The
+manifest names a repository and a ref; the fetch is the reader's, on their machine, under the
+upstream licence. Adding these eleven there keeps that property — pasting them into `tests/`
+would not.
+
 One heavily-documented file per record, each at a pinned tag:
 
 | record | source |
@@ -94,11 +108,20 @@ One heavily-documented file per record, each at a pinned tag:
       shape of the defect that refused 73% of a run on 2026-08-17.
 
 - [ ] **Add these eleven files to `corpora/corpora.toml`** as a `public` corpus, so the lexer
-      claim has a fixture instead of a one-off measurement. ⚠ Corpora are FETCHED, never
-      vendored; every ref above is a tag, so the fetch is reproducible.
+      claim has a fixture instead of a one-off measurement. ⚠⚠ Corpora are FETCHED, never
+      vendored, and here that is a LICENCE property before it is a size one — the manifest
+      names a repo and a ref, and the copy is made on the reader's machine under the upstream
+      terms. Every ref above is a tag, so the fetch is reproducible.
 
-- [ ] **Make the round-trip a test over that corpus**, per language. The in-tree version covers
-      Python only, which is the one language that cannot exercise a block comment.
+- [ ] **Make the round-trip a test over that corpus**, per language, SKIPPING when the corpus
+      has not been fetched. ⚠ The in-tree version covers Python only, which is the one language
+      that cannot exercise a block comment — and a test that fails for want of a third-party
+      checkout is a test that gets deleted.
+
+- [ ] ⚠ **Write the fixtures for the FIX from invented text, not from the corpus.** The corpus
+      answers "does this hold on real code"; a unit test asserting an exact string would paste
+      third-party prose into `tests/`, which `docs/limitations.md` already forbids for its own
+      reason. Two different jobs, two different sources.
 
 - [ ] ⚠ Decide whether a `=begin`/`=end` Ruby block and a `--[[ ]]` Lua block are worth the same
       treatment. Both are declared and neither appeared in the sampled files, so the measurement
