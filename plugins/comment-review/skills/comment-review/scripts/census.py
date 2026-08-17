@@ -310,7 +310,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         at = min((code.index(o) for o in openers if o in code), default=-1)
         if at >= 0:
             run.append((n, raw_line[at:].rstrip()))
-            flush(trailing=True)  # its own block, anchored to the line it sits on
+            flush(trailing=True)  # its own block, anchored to the code on that line
     flush()
     if in_block is not None and out:
         # The loop ended with a block comment still open, so the final flush
@@ -349,7 +349,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
     lines = text.splitlines()
     for block in blocks:
         # Only a leading `comment` run can be a positional doc: a trailing
-        # comment annotates the line it sits ON.
+        # comment annotates the code on its own line.
         if block.kind != "comment":
             continue
         # ⚠ The IMMEDIATELY next line. Both languages require a doc comment to

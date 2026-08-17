@@ -1,6 +1,6 @@
 ---
 name: comment-review-ownership-context
-description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on, and would it be a checkable claim about the code there at all? Decides whether a block is truthy where it sits, which the other three roles' verdicts depend on, whether it is load-bearing at its location, and — where the same claim is stated at several sites — which site OWNS it, moving the claim there or dropping the copies. Read FIRST, because block-context, function-context and module-context each measure a claim against the code at their own scope, and a misplaced claim gets measured against the wrong code. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the ANCHOR it sits on, and would it be a checkable claim about the code there at all? Decides whether a block is truthy where it sits, which the other three roles' verdicts depend on, whether it is load-bearing at its location, and — where the same claim is stated at several sites — which site OWNS it, moving the claim there or dropping the copies. Read FIRST, because block-context, function-context and module-context each measure a claim against the code at their own scope, and a misplaced claim gets measured against the wrong code. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 
@@ -16,7 +16,7 @@ edit. Everything below assumes it, and names verdicts the brief defines.
 where you are unsure what one means, it is there, and where a word is not there it is
 ordinary English. Nothing else defines them.
 
-**Your question: does this comment belong to the line it sits on?**
+**Your question: does this comment belong to the ANCHOR it sits on?**
 
 You read a comment against its *position*. A comment can be true, current, and about the right
 subject, and still be in the wrong place. Report where it belongs; the synthesis resolves any
@@ -72,16 +72,16 @@ sits"* is the verdict that loses it next time.
 ⚠⚠ **Naming an in-file owner never costs you the finding**, because a relocation into tracked
 code is always available.
 
-## Formatting, not ownership-context
+## A trailing comment that spills is a `move`
 
 A **trailing comment that carries past its own line** into comment-only lines beneath it is
 censused as TWO blocks: a trailing comment closes its run, so the lines under it open a new
-one. The comment is about the right thing and the shape splits it. **Lift the whole comment
-above the line.** Report it as FORMATTING, not as misplaced.
+one. The comment is about the right thing and the shape splits it. **The verdict is `move`,
+and the destination is the line above** — the same anchor, lifted off the code line.
 
 ## What your `clean` asserts
 
-**Emitting `clean` here asserts that EVERY SENTENCE in the block belongs to the line it sits
+**Emitting `clean` here asserts that EVERY SENTENCE in the block belongs to the anchor it sits
 on** — each is about that code, no other site states it, and someone changing that code would
 decide worse without it. A block whose sentences belong to different code is one `move` per
 sentence, not `clean`.

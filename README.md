@@ -61,7 +61,7 @@ FIRST, because the other three each measure a claim against the code at their ow
 claim attached to the wrong scope gets measured against the wrong code.
 
 - Ownership-Context
-  - Does the comment belong to the line it sits on — is it a checkable claim about the code
+  - Does the comment belong to the ANCHOR it sits on — is it a checkable claim about the code
     beside it, not narration of what came before, not a description of code elsewhere in the
     file, not an orphan sitting between definitions.
   - Is the block load-bearing where it sits — would someone changing that code decide worse

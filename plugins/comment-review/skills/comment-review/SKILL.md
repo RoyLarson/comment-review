@@ -414,7 +414,7 @@ wrong changes what the reviewers see:
   CONTINUATION lines still count** — only the marker line itself is free.
 - **A block belongs to the code BELOW it**, which is what makes ownership-context answerable. The
   block above is about `result`, and an ownership-context finding says so by naming that anchor.
-- **A trailing comment is its own block**, one line, anchored to the line it sits on — and a
+- **A trailing comment is its own block**, one line, anchored to the code on that line — and a
   trailing comment whose sentence carries past its own line is a finding in itself.
 
 Marks, and what resolving each one means:
@@ -483,7 +483,7 @@ an over-cap or over-width count that reads like a project fact and is your own g
 
 | agent | asks |
 |---|---|
-| `comment-review:comment-review-ownership-context` | does this comment belong to the line it sits on? |
+| `comment-review:comment-review-ownership-context` | does this comment belong to the ANCHOR it sits on? |
 | `comment-review:comment-review-block-context` | is every claim in this block true of the code it sits with? |
 | `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
 | `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
@@ -697,8 +697,8 @@ fails is a body carrying what is not documentation — a date, a quotation, a re
 rationale paragraph, a claim about callers or coverage — **at any length**. ⚠ **Acquit on
 KIND, never on LENGTH**: a two-line docstring whose summary runs on is still a finding.
 
-Invisible to any counter: a **trailing comment carrying past its own line** (a FORMATTING
-finding — lift it above); a **block split by an inserted statement**, where only the half still
+Invisible to any counter: a **trailing comment carrying past its own line** (a `move` to the
+line above); a **block split by an inserted statement**, where only the half still
 talking about what came before is the finding; **the wrong half surviving** — check what
 SURVIVED, not what went; **refactoring drift**.
 

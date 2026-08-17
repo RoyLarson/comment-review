@@ -43,7 +43,7 @@ kept deliberately with no shipped use, and the retired words.
 ⚠ **It appears nowhere in the shipped tree except as the root of a role's name.** Measured
 2026-08-16: `ownership-context`'s own file uses `belongs` three times, `owner` twice and `OWNS`
 twice, and the noun **zero** times — its question is stated without it, *"does this comment
-belong to the line it sits on?"*
+belong to the ANCHOR it sits on?"*
 
 Kept anyway. Roy: *"it could easily popup in future works and then we have a problem."* A word
 that returns with no ruling behind it is how the original polysemy happened.

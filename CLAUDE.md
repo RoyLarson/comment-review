@@ -121,7 +121,7 @@ restate it.
 Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) under
 `plugins/comment-review/agents/`, dispatched in one message so they run concurrently:
 
-- **ownership-context** — does this comment belong to the line it sits on?
+- **ownership-context** — does this comment belong to the ANCHOR it sits on?
 - **block-context** — is every claim in this block true of the code it sits with — its state
   (not past, not future), its constraints (value, direction, units, boundary), its worked
   examples?
