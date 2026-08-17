@@ -1789,7 +1789,8 @@ class TestALineCommentContainingABlockOpener(unittest.TestCase):
 
     def test_a_line_comment_wins_when_it_comes_first(self):
         got = self._blocks(
-            "int a = 1;\n// see /* the note\nint b = 2;\n// closing */ here\nint c = 3;\n"
+            "int a = 1;\n// see /* the note\nint b = 2;\n"
+            "// closing */ here\nint c = 3;\n"
         )
         self.assertEqual(len(got), 2)
         for b in got:

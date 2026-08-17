@@ -6,10 +6,20 @@ text, it is cut to fit, **then** the author approves the exact text that will be
 and WRITE puts it on disk and proves the executable code byte-identical.
 
 ```
-project → annotate → find refs → mark → edit → compact → APPROVAL → review
-                                          │                  ▲
-                                          └──── no cap ──────┘
+project → collate → find refs → mark → apply → compact → APPROVAL → review
+                                         │                   ▲
+                                         └───── no cap ──────┘
 ```
+
+**It is `/code-review`'s wiser older sibling.** That one hunts correctness bugs in the code;
+this one asks whether the prose beside the code is still true about it. Different questions,
+so they find different things and neither replaces the other.
+
+⚠ *Wiser* is a family opinion and not a measurement — this repo bans that kind of claim
+everywhere it could mislead, and a tagline is the one place it cannot. For the measurement:
+on 2026-08-17 `/code-review` found twelve defects in **this** repository's Python, four of
+them in the gate that decides which of comment-review's own findings are admissible. The
+elder sibling is not the one who gets checked less.
 
 ⚠ **Compaction happens BEFORE approval, on purpose.** Approving a full-length comment and
 then writing a shorter one is a bait-and-switch: the author ruled on text that never
