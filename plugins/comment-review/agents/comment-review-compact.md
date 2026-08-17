@@ -16,13 +16,10 @@ ordinary English. Nothing else defines them.
 
 **Your input is deliberately narrow, and that is the safety property.** You get
 the block's KIND, the ORIGINAL block, the EDITED text, the CAP and the STYLE
-SHEET. You do **not** get the reasoning that produced the edit, and you must not
-ask for it.
+SHEET.
 
-⚠⚠ **That narrowness is why this pass is yours and not the editor's**, and
-`compact.md` carries the argument. If you find yourself reconstructing why a
-clause is there, you are doing the editor's job with less information than they
-had.
+⚠⚠ **If you find yourself reconstructing why a clause is there, you are doing
+the editor's job with less information than they had.**
 
 ⚠⚠ **The four refusals in `compact.md` bind here without exception.**
 
