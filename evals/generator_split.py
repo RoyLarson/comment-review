@@ -157,7 +157,13 @@ def main() -> int:
     # `repo/.git/shallow` can never exist, and this guard was structurally dead
     # for exactly the corpora this script targets. The failure recorded above
     # would have gone unreported on every one of them.
-    gitdir = Path(git(repo, "rev-parse", "--absolute-git-dir").strip() or repo / ".git")
+    # ⚠⚠ `--git-common-dir`, not `--absolute-git-dir`. In a linked worktree the
+    # absolute gitdir is `<main>/.git/worktrees/<name>`, and `shallow` lives in
+    # the COMMON dir — so the first fix pointed at a path that never holds it,
+    # for exactly the corpora it was rewritten to cover. It is repo-relative
+    # when it answers `.git`, so it is resolved against the repo.
+    common = git(repo, "rev-parse", "--git-common-dir").strip() or ".git"
+    gitdir = Path(common) if Path(common).is_absolute() else repo / common
     shallow = gitdir / "shallow"
     grafts = (
         set(shallow.read_text(encoding="utf-8").split()) if shallow.exists() else set()

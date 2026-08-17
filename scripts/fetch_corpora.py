@@ -48,8 +48,17 @@ def _why(r: subprocess.CompletedProcess) -> str:
 
 
 def head_of(path: Path) -> str:
-    """The commit a checkout is actually sitting on."""
-    return run("git", "-C", str(path), "rev-parse", "HEAD").stdout.strip()
+    """The commit a checkout is actually sitting on, or "" if git could not say.
+
+    ⚠⚠ A caller must not read "" as a hash. This ignored `returncode`, so a
+    failed `rev-parse` -- a half-deleted corpus, `rmtree` having silently
+    no-opped on read-only git objects -- returned "" and the pin-mismatch guard
+    short-circuited to False. The next run printed `have <name> @ ` with an
+    empty hash, skipped the pin check, and exited 0: a broken corpus reporting
+    as correctly pinned.
+    """
+    r = run("git", "-C", str(path), "rev-parse", "HEAD")
+    return r.stdout.strip() if r.returncode == 0 else ""
 
 
 def fetch_local(c: dict, dest: Path) -> str:
@@ -91,6 +100,14 @@ def fetch_public(c: dict, dest: Path) -> str:
 
 def main() -> int:
     """Materialise every corpus in the manifest, and verify each pin landed."""
+    # ⚠⚠ A Windows console is cp1252 and this module's own docstring carries
+    # U+26A0, so `--help` died inside `argparse.print_help` before doing
+    # anything -- and the same fault hit mid-run, after some corpora were
+    # already cloned. `find_llm_repos.py` carries this guard; the gate that
+    # would have caught the gap only globs the shipped `plugins/` scripts.
+    reconfigure = getattr(sys.stdout, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--only", nargs="*", default=None, help="fetch just these")
     ap.add_argument("--list", action="store_true", help="show the manifest and stop")

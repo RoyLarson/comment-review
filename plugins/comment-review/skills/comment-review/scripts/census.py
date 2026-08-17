@@ -751,7 +751,16 @@ def _walk(root: Path):
         return
     for p in sorted(root.rglob("*")):
         if p.is_file() and p.suffix.lower() in BY_EXT:
-            if not EXCLUDED_DIRS.intersection(p.parts):
+            # ⚠⚠ RELATIVE to the root being walked. Matched against `p.parts`
+            # this tested every ANCESTOR too, so a checkout living anywhere
+            # under a directory called `venv`, `.venv`, `node_modules`,
+            # `site-packages`, `__pycache__` or `.git` excluded ITSELF.
+            # Measured 2026-08-17: `code_names` harvested 0 names from a repo
+            # under `.../venv/myproject`, and nothing joined `unread`, so the
+            # NOT CHECKED list stayed empty and the run read as complete --
+            # every `names-a-symbol` a false obituary, handed to four reviewers
+            # as settled fact.
+            if not EXCLUDED_DIRS.intersection(p.relative_to(root).parts):
                 yield p
 
 

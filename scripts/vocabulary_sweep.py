@@ -23,6 +23,7 @@ so settling a term removes it from this output on the next run.
 
 import argparse
 import re
+import sys
 import tomllib
 from collections import defaultdict
 from pathlib import Path
@@ -136,6 +137,14 @@ def report(
 
 def main() -> int:
     """Print both candidate lists. Always exits 0: this is an input, not a gate."""
+    # ⚠ A Windows console is cp1252; one non-ASCII glyph in this program's own
+    # output kills the run. Every CLI in this repo carries this, and
+    # `tests/test_shipped_cli_encoding.py` is the gate -- it globbed only the
+    # shipped `plugins/` scripts until 2026-08-17, which is how four of these
+    # went without it.
+    reconfigure = getattr(sys.stdout, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--min-files", type=int, default=2)
     ap.add_argument("--limit", type=int, default=40)

@@ -15,8 +15,11 @@ import re
 import subprocess
 import sys
 import unittest
+from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
+
+ROOT = Path(__file__).resolve().parent.parent
 
 # A shipped CLI is a script under `scripts/` that argparse's and runs itself.
 # The library modules -- `repo.py`, `annotate.py` -- write nothing and are
@@ -26,9 +29,21 @@ GUARD = re.compile(r"reconfigure\(encoding=\"utf-8\", errors=\"replace\"\)")
 
 
 def shipped_clis():
-    """Every `scripts/*.py` that runs as a program."""
+    """Every .py in the repo that runs as a program.
+
+    ⚠⚠ NOT just the shipped ones. This globbed `plugins/.../scripts/` alone, so
+    the root `scripts/` and `evals/` were outside the gate — and
+    `fetch_corpora.py` was found by review on 2026-08-17 with a U+26A0 in its
+    own docstring and no guard, so `--help` died inside `argparse.print_help`
+    on a cp1252 console and the same fault hit mid-run with corpora already
+    cloned. A program that prints is a program that prints, wherever it lives.
+    """
+    roots = (SCRIPTS, ROOT / "scripts", ROOT / "evals")
     return sorted(
-        p for p in SCRIPTS.glob("*.py") if ENTRY.search(p.read_text(encoding="utf-8"))
+        p
+        for root in roots
+        for p in root.glob("*.py")
+        if ENTRY.search(p.read_text(encoding="utf-8"))
     )
 
 

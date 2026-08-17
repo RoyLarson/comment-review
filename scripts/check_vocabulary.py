@@ -137,6 +137,14 @@ def check_drift(definitions: dict[str, str], roles: dict[str, list[str]]) -> int
 
 def main() -> int:
     """Run both checks; exit nonzero if either found something."""
+    # ⚠ A Windows console is cp1252; one non-ASCII glyph in this program's own
+    # output kills the run. Every CLI in this repo carries this, and
+    # `tests/test_shipped_cli_encoding.py` is the gate -- it globbed only the
+    # shipped `plugins/` scripts until 2026-08-17, which is how four of these
+    # went without it.
+    reconfigure = getattr(sys.stdout, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="replace")
     try:
         data = tomllib.loads(EMITTED.read_text(encoding="utf-8"))
     except READ_ERRORS as e:

@@ -56,7 +56,14 @@ FORBIDS = re.compile(
 # hand-copied threshold, and the copies drift.
 # ⚠ Dates are stripped first, so a `2026-08-09` reads as one date rather than
 # three numbers.
-NUMBER = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.%])")
+# ⚠⚠ A trailing `.` is allowed unless a DIGIT follows it. The lookahead was
+# `(?![\w.%])`, which rejected any match followed by a period and had no shorter
+# alternative to backtrack to -- so a SENTENCE-FINAL number was never found.
+# Measured 2026-08-17: `the cap is 3` gave `{'3'}` and `the cap is 3.` gave
+# nothing, while `budget 3, not 5.` lost the 5. Prose is written in sentences,
+# so `repeated-literal` never fired for the commonest form of the case its own
+# docstring cites. ⚠ `(?!\.\d)` still refuses a version or a decimal.
+NUMBER = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w%])(?!\.\d)")
 DATEISH = re.compile(r"\b\d{4}-\d{2}-\d{2}\w*|\bv?\d+\.\d+\.\d+\b")
 
 

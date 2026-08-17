@@ -219,7 +219,13 @@ def _read_raw(path: Path) -> str:
 def _show(repo: Path, ref: str, rel: str) -> str | None:
     """`git show <ref>:<rel>`, or None when git cannot produce it."""
     try:
-        got = git(repo, "show", f"{ref}:{rel}")
+        # ⚠⚠ `./` MATTERS. `git show <rev>:<path>` resolves the path against the
+        # TOP OF THE WORKTREE, not against `-C`'s directory, so running the
+        # stage-7b gate with `--repo` on a package subdirectory made every path
+        # print "UNPROVABLE ... new file, or bad ref" and exit 1 -- blaming a
+        # bad ref for a path-prefix bug. A leading `./` makes it cwd-relative,
+        # which is what every sibling script already assumes.
+        got = git(repo, "show", f"{ref}:./{rel}")
     except GIT_ERRORS:
         return None
     return got.stdout if got.returncode == 0 else None

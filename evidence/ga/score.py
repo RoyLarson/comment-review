@@ -61,14 +61,23 @@ def main() -> int:
         # the slack of each other.
         if (path, line) in seen_lines:
             continue
-        for i, (lo, hi) in enumerate(gt.get(path, [])):
-            if (path, i) in matched:
-                continue
-            if lo - args.slack <= line <= hi + args.slack:
-                matched.add((path, i))
-                seen_lines.add((path, line))
-                hits += 1
-                break
+        # ⚠⚠ CLOSEST block, not the first one in list order. Greedy first-fit
+        # let a finding consume a block a later finding needed, so the SCORE
+        # DEPENDED ON THE ORDER of the candidate's findings. Measured with
+        # gt {"a.py": [[10,12],[16,18]]} and --slack 3: findings [15, 11] scored
+        # recall 0.5 and the same two as [11, 15] scored 1.0 -- two candidates
+        # that found identical things given different fitness, which is a silent
+        # ranking error in the GA.
+        near = [
+            (abs(line - (lo + hi) / 2), i)
+            for i, (lo, hi) in enumerate(gt.get(path, []))
+            if (path, i) not in matched and lo - args.slack <= line <= hi + args.slack
+        ]
+        if near:
+            _, i = min(near)
+            matched.add((path, i))
+            seen_lines.add((path, line))
+            hits += 1
 
     n = len(findings)
     recall = hits / total if total else 0.0

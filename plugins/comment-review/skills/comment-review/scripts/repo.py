@@ -9,6 +9,7 @@ Imported by `census.py`, `annotate.py`, `referrers.py` and `prove_unchanged.py`.
 """
 
 import subprocess
+import tokenize
 from pathlib import Path
 
 # ⚠ Bound to a NAME so no `except` clause here holds a tuple LITERAL. Under
@@ -23,7 +24,18 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 # string containing a NUL byte -- a file that decoded as valid UTF-8 and so
 # passed `READ_ERRORS` cleanly. `code_names` walks the whole repo, so one such
 # file would crash the entire census rather than degrade one file's harvest.
-PARSE_ERRORS = (OSError, UnicodeDecodeError, SyntaxError, ValueError)
+# ⚠⚠ `tokenize.TokenError` is included and is NOT a SyntaxError -- it derives
+# straight from Exception. `blocks_stdlib` calls `tokenize.generate_tokens`,
+# which raises it on an unterminated triple-quote or bracket, so one such file
+# anywhere in a corpus aborted a whole run with a traceback. Every caller here
+# already treats a parse failure as ONE file degrading, never as the run ending.
+PARSE_ERRORS = (
+    OSError,
+    UnicodeDecodeError,
+    SyntaxError,
+    ValueError,
+    tokenize.TokenError,
+)
 
 # ⚠ UnicodeDecodeError included, deliberately: `git()` pins `encoding="utf-8"`
 # with the default `errors="strict"`, so a tracked path or a blob outside UTF-8
@@ -150,7 +162,9 @@ def path_index(repo: Path) -> set[str]:
         rels = [
             p.relative_to(repo).as_posix()
             for p in repo.rglob("*")
-            if p.is_file() and not EXCLUDED_DIRS.intersection(p.parts)
+            # ⚠ RELATIVE to the repo, not absolute: an ancestor named `venv`
+            # excluded the whole checkout. See `census._walk`.
+            if p.is_file() and not EXCLUDED_DIRS.intersection(p.relative_to(repo).parts)
         ]
     for rel in rels:
         parts = rel.split("/")
