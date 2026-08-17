@@ -2,9 +2,16 @@
 
 ## Notes for Changes
 
-**Every example here is invented. Keep it that way.** A real quotation teaches a reviewer to
-recognise *that comment* instead of the shape, and it rots — a hygiene skill carrying its own
-obituary. Measurements anonymise for free.
+**An example carries the SHAPE and nothing else.** Two ways it carries more:
+
+- **A real quotation** teaches a reviewer to recognise *that comment* instead of the shape,
+  and it rots — a hygiene skill carrying its own obituary. Measurements anonymise for free.
+- **A settled term in a foreign sense.** An example about a database `record` teaches a
+  second meaning for a word a reviewer emits, and `vocabulary.py` then hands that role a
+  definition it only appeared to need. ⚠ Nothing catches this. `vocabulary_sweep.py` skips
+  every word already in `vocabulary.toml`, because it hunts terms that are NOT yet settled;
+  `check_vocabulary.py` compares distribution against usage, never usage against meaning. A
+  term used in two senses is the complement of both, and is found by a person reading.
 
 ⚠⚠ **THE BUDGET IS THE POINT, AND IT IS PER FILE.** A **budget** is how much CONTEXT one of
 these files costs everyone who loads it, measured in lines. That is the only budget this
@@ -41,8 +48,9 @@ that no longer matches `wc -l` is a finding against this file.
 ⚠ **A rule belongs in exactly one file.** Shared reviewer contract →
 `reviewer-brief.md`; one role's → that role's agent definition; a stage's procedure → that
 stage's file under `references/` (`residue-check.md`, `compact.md`, `write.md`, `review.md`); a
-rule a SCRIPT enforces → that script's docstring (`census.py`, `referrers.py`, `verdicts.py`,
-`run_context.py`, `prove_unchanged.py`); orchestration → here. Restating one across two files is
+rule a SCRIPT enforces → that script's docstring (`census.py`, `annotate.py`, `repo.py`,
+`referrers.py`, `verdicts.py`, `run_context.py`, `prove_unchanged.py`, `vocabulary.py`);
+orchestration → here. Restating one across two files is
 the antipattern this skill exists to find, and the four agents are the place it will happen —
 they read alike and invite copy-paste.
 
