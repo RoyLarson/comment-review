@@ -535,9 +535,9 @@ docstrings and one live constant; and a mirror tree that held the CORRECT text w
 was backwards. The code still settles code claims — a
 disagreement with the mirror is itself a finding.
 
-Overlap between roles is **signal**: a claim one affirms and another refutes is the
-highest-value output here. ⚠ **A single-role run ratifies falsehoods** — one role reading a
-false absence claim writes that it is true, where another refutes it by grep.
+Overlap between roles is **signal**: a claim one affirms and another refutes goes back for
+re-review, never to a tie-break. ⚠ **A single-role run ratifies falsehoods** — one role reading
+a false absence claim writes that it is true, where another refutes it by grep.
 
 **Re-review is normal.** An accreted block is layered — a live constraint, an origin story, a
 correction to it, a review label — and peeling one reveals the next. Send a block back when

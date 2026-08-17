@@ -78,9 +78,10 @@ the finding.
 
 ## Formatting, not ownership-context
 
-A **trailing comment that carries past its own line** into comment-only lines beneath it reads
-badly. The comment is usually about the right thing; the shape is wrong. **Lift the whole
-comment above the line.** Report it as FORMATTING, not as misplaced.
+A **trailing comment that carries past its own line** into comment-only lines beneath it is
+censused as TWO blocks: a trailing comment closes its run, so the lines under it open a new
+one. The comment is about the right thing and the shape splits it. **Lift the whole comment
+above the line.** Report it as FORMATTING, not as misplaced.
 
 ## What your `clean` asserts
 

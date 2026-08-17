@@ -50,7 +50,7 @@ If the comment says *never a literal 65*, grep `65` in that file. A disagreement
 broke the rule — that half is a code concern — **but a comment claiming a rule the file does
 not follow is a comment finding**, and it is yours.
 
-## ⚠⚠ The absence question — your highest-value work
+## ⚠⚠ The absence question — what no signature can state
 
 **What must be true of this function's OUTPUT, or of its CALLER, that the SIGNATURE cannot
 express — and does the docstring say it?**
@@ -64,8 +64,8 @@ about a requirement the code must meet. Ask where the rule is actually enforced:
 | a check that fails LOUD  | **why** it exists; the message already says what |
 | nothing at all           | **everything.** Unwritten means nonexistent      |
 
-⚠⚠ **Sometimes the strong rule is the WRONG rule, and that is the most important thing to write
-down.** A raise is a *penalty*; where the governing invariant forbids penalizing, or the
+⚠⚠ **Sometimes the strong rule is the WRONG rule, and prose is the only place that can say
+so.** A raise is a *penalty*; where the governing invariant forbids penalizing, or the
 "violation" is behaviour the system actively wants, the rule is forced down to prose by design.
 **A deliberately unenforced rule is indistinguishable from an oversight** — the next reader
 either promotes it to a check (breaking the invariant) or deletes it as unbacked. The *choice

@@ -172,8 +172,8 @@ enforcing test was DELETED on the strength of a false dangling report.
 ## The subject is the prose, not the program
 
 Every verdict is a verdict on a comment. Code problems get **one line each** in a separate
-`CODE CONCERNS` section at the end, with no verdict. The best findings here *look* like code
-findings and are not:
+`CODE CONCERNS` section at the end, with no verdict. The findings this line exists for *look*
+like code findings and are not:
 
 | COMMENT finding                                     | CODE finding                          |
 | --------------------------------------------------- | ------------------------------------- |

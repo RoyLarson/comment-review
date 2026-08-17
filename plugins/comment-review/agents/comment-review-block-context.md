@@ -41,8 +41,8 @@ prohibition against reintroducing it), and the block stays.
 ⚠ **Grep the STEM, not the identifier.** Prose does not obey identifier spelling: a dead
 `foo_bar` gets written `foo-bar`, `foo bar`, `FooBar`, or "the barrer". Search a loose stem
 (`grep -ri "foo.\?bar"`), then triage the hits — **the spelling the identifier grep misses is
-where the live claim hides**, because a dated tombstone is written carefully and a stale
-assertion is not.
+where the live claim hides**: a dated tombstone is written in the identifier's own spelling,
+and a stale assertion is written in prose.
 
 ## ⚠⚠ Quantified and exclusivity claims are yours
 
