@@ -332,5 +332,80 @@ class TestTheProofFollowsTheBlocks(unittest.TestCase):
         )
 
 
+class TestNoIntervalOverlapsProse(unittest.TestCase):
+    """An `interval` is a gap that holds NO prose. It may not overlap a block.
+
+    ⚠⚠ `code_lines` discards a block's first line when code precedes the
+    opener, and a structural docstring's `raw_lines` are the AST VALUE, not the
+    file's lines -- so one opening on its quote line looked exactly like a
+    suffix and its first line was classified as CODE. Measured on `repo.py`:
+    eight spurious intervals overlapping real docstrings, in the artefact four
+    reviewers are bound by and the one an `add` cites to place missing prose.
+    """
+
+    def _overlaps(self, path):
+        # ⚠ `trailing-comment` is excluded, and that is not a loophole: it sits
+        # ON a code line by definition, so an interval bounded by that line
+        # touches it every time. `code_lines` documents the same pass-through.
+        # Only a block that OCCUPIES its lines may not overlap a gap.
+        text = path.read_text(encoding="utf-8")
+        blocks = census.census_for(path, text, census.language_for(path))
+        occupying = [
+            b for b in blocks if b.text.strip() and b.kind != "trailing-comment"
+        ]
+        gaps = [b for b in blocks if b.kind == "interval"]
+        return [
+            (g.start, g.end, b.kind, b.start, b.end)
+            for g in gaps
+            for b in occupying
+            if not (g.end < b.start or g.start > b.end)
+        ]
+
+    def test_no_interval_overlaps_prose_anywhere_in_the_shipped_tree(self):
+        files = subprocess.run(
+            ["git", "ls-files", "plugins/**/*.py"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split()
+        self.assertGreater(len(files), 5, "the sample must be real")
+        bad = [(f, o) for f in files if (o := self._overlaps(Path(f)))]
+        self.assertEqual(bad, [], "an interval overlaps a block that holds prose")
+
+    def test_a_RAW_docstring_is_not_read_as_code(self):
+        # ⚠ `r"""` survives quote-stripping as a bare `r`, which reads as code.
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "r.py"
+            src = "\n".join(
+                [
+                    "def f():",
+                    '    r"""Doc opens here.',
+                    "",
+                    "    More.",
+                    '    """',
+                    "",
+                ]
+            )
+            p.write_text(src, encoding="utf-8")
+            self.assertEqual(self._overlaps(p), [])
+
+    def test_code_before_a_block_opener_IS_still_discarded(self):
+        # ⚠ The case the discard exists for must keep working.
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "x.c"
+            body = "\n".join(
+                [
+                    "int a = 1;",
+                    "int b = 2; /* opens",
+                    "   and closes */",
+                    "int c = 3;",
+                    "",
+                ]
+            )
+            p.write_text(body, encoding="utf-8")
+            blocks = census.blocks_lexical(p, body, census.language_for(p))
+            self.assertIn(2, census.code_lines(body, blocks))
+
+
 if __name__ == "__main__":
     unittest.main()

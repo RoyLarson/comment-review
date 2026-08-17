@@ -862,12 +862,29 @@ def code_lines(text: str, prose: list[Block]) -> set[int]:
         # decides a line keeps its code prefix: the block stores from the
         # opener, so its stored text is a proper tail of the physical line
         # exactly when something real comes before it.
+        #
+        # ⚠⚠ The prefix must be CODE, not a delimiter. A structural docstring's
+        # `raw_lines` are the AST VALUE, not the file's lines, so one opening on
+        # its quote line looks exactly like a suffix — `    """Facts about…`
+        # ends with `Facts about…` — and the leading `"""` is not blank. This
+        # fired on EVERY Python docstring and called its first line code.
+        # Measured 2026-08-17 on `repo.py`: eight spurious `interval` blocks
+        # overlapping real docstrings, in the one artefact four reviewers are
+        # bound by and the one an `add` cites to place missing prose.
+        #
+        # ⚠ Tested on the PREFIX rather than on the kind or the tier: a `///`
+        # run after a statement is a `docstring` too and its discard is
+        # legitimate, and `blocks_stdlib` leaves `tier` at its default, so a
+        # tier test here is dead code that reads as a live one.
         if b.raw_lines and 1 <= b.start <= len(lines):
             physical = lines[b.start - 1].rstrip()
             stored = b.raw_lines[0]
             prefix = physical[: len(physical) - len(stored)]
             if stored and physical != stored and physical.endswith(stored):
-                if prefix.strip():
+                # ⚠ The string PREFIX comes off after the quotes, or `r"""Every
+                # git invocation…` leaves a bare `r` that reads as code. Same
+                # prefixes `docstring_text` strips, for the same reason.
+                if prefix.strip().strip("\"'`").strip("rRbBuUfF"):
                     occupied.discard(b.start)
     return {n for n, ln in enumerate(lines, 1) if ln.strip() and n not in occupied}
 
