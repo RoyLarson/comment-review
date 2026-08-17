@@ -3,12 +3,12 @@
     python census.py [--repo D] [--cap N] [--width N] [--census-only] [--json] <paths>
 
 The reviewers are handed this list, so it is the whole population they rule on.
-**Every file handed in is censused, or this errors** -- a file it could not read,
-could not parse, or has no language record for is named and exits nonzero,
-because a block missing from the census is a block nobody reviews.
+**Every file handed in is censused, or this errors** -- a file it could not read
+or parse, or whose suffix has no language record, is named and the run exits
+nonzero, because a block missing from the census is a block nobody reviews.
 
-Read-only otherwise. It calls `annotate.py` on each block for stage 3, and
-`repo.py` for the facts about the checkout that both need.
+Read-only. It calls `annotate.py` on each block for stage 3, and `repo.py` for
+the facts about the checkout that both need.
 
 A block is built at the TIER available for its file's language. Both tiers find
 the same blocks, and the tier says what else the file can answer:
@@ -23,9 +23,8 @@ a reviewer READING the file, so a placement finding is a CANDIDATE in every
 language.
 
 ⚠ Tier counts are AGGREGATED over the run. A polyglot run reports one total per
-tier, so read the per-file tier stamp to see which file reached which. Adding a
-language is a row in `LANGUAGES` -- data, not code -- which keeps the floor cheap
-enough to be worth having. `--languages` lists what is known.
+tier, so read the per-file tier stamp to see which file reached which.
+`--languages` lists the languages known and the tier each reaches.
 """
 
 from __future__ import annotations
@@ -56,36 +55,30 @@ from repo import (  # noqa: E402  -- path shim must run first
     tracked_paths,
 )
 
-# Same reason, second construct: `isinstance(x, A | B)` PARSES on 3.9 and
-# raises TypeError there. A syntax check cannot see it, so the tuple form is
-# the one that actually runs where this file is claimed to run.
+# Tuples, so `DOC_ANCHORS` is built by concatenation and both go straight to
+# `isinstance`.
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
 
 
-# Free markers point OUTWARD, at work that is not done, so they are not the
-# explanation and must not be charged to its cap. A cap that counts them makes
-# deleting the pointer to filed work the cheapest route to green.
+# The work markers `counted_lines` leaves free of the cap.
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
 # ⚠ Every punctuation a language opens a comment with, stripped before the
-# marker is matched. Anchoring on `#` made the exemption Python-only in a
-# script that censuses eleven languages: a `// TODO:` was charged to the cap,
-# so the cheapest route to green stayed "delete the pointer to filed work" —
-# exactly the outcome the exemption exists to prevent.
+# marker is matched. Anchored on `#`, the exemption was Python-only: a
+# `// TODO:` was charged to the cap in a script that censuses eleven languages.
 LEAD_PUNCT = re.compile(r"^[\s#/*\-!=;%<>]+")
 
 
 def counted_lines(raw: list[str]) -> int:
-    """Lines a cap should charge for: a marker LINE itself is free.
+    """Lines a cap charges for: a marker LINE itself is free.
 
-    A marker points outward, at work that is not done, so it is not the
-    explanation and must not be charged to the explanation's cap. It must not
-    validate an invalid block either, so it never splits a run and a marker's
-    continuation lines still count. Six lines plus a `TODO:` is six.
+    A marker points at filed work; the explanation is the rest of the block, and
+    the cap measures the explanation. Charge the marker and deleting the pointer
+    to filed work becomes the cheapest route to green.
 
-    A block reading 7L to the script and 6 by the rule makes deleting a pointer
-    to filed work the cheapest route to green.
+    The exemption is one line wide. A run stays one run across a marker, and a
+    marker's continuation lines are charged: six lines plus a `TODO:` is six.
     """
     return sum(1 for ln in raw if not WORK_MARKER.match(LEAD_PUNCT.sub("", ln)))
 
@@ -143,10 +136,10 @@ def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
 
 @dataclass(frozen=True)
 class Language:
-    """What the LEXICAL tier needs to find prose in a language it cannot parse.
+    """What the LEXICAL tier needs to find prose in a language it only lexes.
 
-    Adding a language is this record and nothing else — no code — which is the
-    point: the floor has to be cheap enough that a contributor supplies data.
+    Adding a language is this record — data, no code — which is what keeps the
+    floor cheap enough that a contributor supplies one.
 
     Attributes:
         doc_line: line-comment openers that mean DOC rather than ordinary
@@ -154,8 +147,8 @@ class Language:
             some other way.
         doc_block: block openers that mean DOC (`/**`). Same idea.
         doc_is_structural: the doc is a string in a declaration's body (Python)
-            or the run above a declaration (Go) — neither is decidable without
-            structure, so this tier reports `comment` and says so.
+            or the run above a declaration (Go). Both need structure to decide,
+            so this tier reports `comment` and marks the block.
         quotes: string delimiters, so a marker inside a literal is skipped.
     """
 
@@ -222,14 +215,13 @@ def language_for(path: Path) -> Language | None:
 
 
 def _strip_strings(line: str, quotes: tuple[str, ...]) -> str:
-    """Blank out string literals so a marker inside one is not seen as prose.
+    """Blank out string literals so a marker inside one stays out of the census.
 
-    This is the LEXICAL tier's one concession to correctness and the reason it
-    is usable at all: `url = "http://x"` holds `//` in most C-family languages,
-    and a scanner that reported it would drown its own output. It handles
-    single-line literals with backslash escapes — not raw strings, heredocs, or
-    template nesting, which is exactly where this tier stops and a real lexer
-    starts.
+    This is the LEXICAL tier's one concession to correctness, and what makes it
+    usable: `url = "http://x"` holds `//` in most C-family languages, and a
+    scanner reporting those would drown its own output. It handles single-line
+    literals with backslash escapes; raw strings, heredocs and template nesting
+    are where this tier stops and a real lexer starts.
     """
     out, quote, esc = [], "", False
     for ch in line:
@@ -257,17 +249,15 @@ def _strip_strings(line: str, quotes: tuple[str, ...]) -> str:
 def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     """Comment runs for a language with no parser here — the FLOOR tier.
 
-    Answers where every block is, its line range, its text and its annotations. It
-    cannot answer OWNERSHIP, so no block gets an anchor and the ownership-context
-    role degrades on this file; the census stamps the tier so a reviewer sees that
-    rather than inferring it.
+    Answers where every block is, its line range, its text and its annotations.
+    Every block comes back stamped `tier="lexical"` with an empty anchor, which
+    is how the ownership-context role learns that on this file its anchors come
+    from its own reading.
 
     ⚠ A block opener with no closer swallows every remaining line into one run,
-    so the code below it is censused as prose. That block is STAMPED
-    `unterminated-block-comment` rather than returned looking ordinary: a
-    consumer cannot otherwise tell a long comment from a lexer that lost the
-    rest of the file, and `prove_unchanged.py` refuses the whole file on this
-    annotation rather than comparing a stripped text the code never reached.
+    so code below it is censused as prose. That block is STAMPED
+    `unterminated-block-comment`, which is how a consumer tells it from a long
+    comment; `prove_unchanged.py` refuses the whole file on that annotation.
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     lines = text.splitlines()
@@ -330,7 +320,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     if in_block is not None and out:
         # The loop ended with a block comment still open, so the final flush
         # emitted the run that ate the rest of the file. It is the ONE block
-        # whose text is not known to be prose.
+        # that may hold code.
         out[-1].annotations.add("unterminated-block-comment")
         out[-1].notes.append(
             f"UNTERMINATED {in_block[0]}: no closing {in_block[1]} before end of "
@@ -341,19 +331,19 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
 
 
 def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None:
-    """Declare, per block, that this tier cannot tell a doc from a comment.
+    """Mark each run whose KIND is still an open question at this tier.
 
     Go and Ruby attach documentation by POSITION -- an ordinary line comment
-    directly above a declaration IS that declaration's documentation -- so
-    nothing in the text distinguishes it from any other run, and no rule this
-    tier can apply will separate them. Working it out by reading the file is
-    the improvised parse `docs/parsing.md` refuses.
+    directly above a declaration IS that declaration's documentation -- so a
+    doc reads like any other run, and telling them apart needs the structure
+    this tier lacks. Reading the file to settle it is the improvised parse
+    `docs/parsing.md` refuses.
 
-    So the block is annotated as an OPEN QUESTION instead. That matters because
+    The block is annotated as an OPEN QUESTION instead. That matters because
     `compact.md` routes on KIND: a `comment` is governed by LENGTH and may be
-    cut to the cap, a `docstring` by FORMAT and may not. Left unmarked, a
-    three-line Go export doc counts as over a cap of two and gets cut --
-    destroying documentation that was never in violation.
+    cut to the cap, a `docstring` by FORMAT and stands. Unmarked, a three-line
+    Go export doc reads as over a cap of two and is cut by a rule that governs
+    comments.
 
     Args:
         blocks: this file's blocks, mutated in place.
@@ -364,15 +354,13 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
         return
     lines = text.splitlines()
     for block in blocks:
-        # A trailing comment annotates the line it sits ON, so it is never the
-        # documentation of what follows.
+        # Only a leading `comment` run can be a positional doc: a trailing
+        # comment annotates the line it sits ON.
         if block.kind != "comment":
             continue
-        # ⚠ The IMMEDIATELY next line, not the next non-blank one. Both
-        # languages require a doc comment to touch its declaration; a blank
-        # line between them means the run documents nothing, which is an
-        # ORPHAN -- an ownership-context finding, and emphatically not a doc comment to
-        # be exempted from the cap.
+        # ⚠ The IMMEDIATELY next line. Both languages require a doc comment to
+        # touch its declaration, so a run held off by a blank line is an ORPHAN
+        # -- an ownership-context finding, and still charged to the cap.
         nxt = lines[block.end].strip() if block.end < len(lines) else ""
         if not nxt:
             continue
@@ -394,10 +382,10 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
     def flush() -> None:
         if run:
             # ⚠ PROSE comes from the comment token; WIDTH from the physical
-            # line. Using the physical line for both fed a trailing comment's
-            # own code to the annotation regexes -- reviewers saw
-            # `models.Index(fields=(...)),  # note` as the note's text -- while
-            # `--width` legitimately needs the whole line it must not exceed.
+            # line, which is the whole line `--width` measures. Using the
+            # physical line for both fed a trailing comment's own code to the
+            # annotation regexes -- reviewers saw
+            # `models.Index(fields=(...)),  # note` as the note's text.
             prose = [c for _, _, c, _ in run]
             out.append(
                 Block(
@@ -417,10 +405,10 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
             trailing = bool(raw.line[: raw.start[1]].strip())
             run.append((raw.start[0], raw.line.rstrip("\n"), raw.string, trailing))
             # ⚠ A trailing comment CLOSES its run. Its code sits before it, so
-            # no later token flushes it, and it silently absorbed the next
-            # leading block across two blank lines -- gluing `raise original
-            # DoesNotExist` to an unrelated `TODO` four lines down and giving a
-            # reviewer one block that was never one comment.
+            # the next token to arrive is the following leading comment, and the
+            # two merged across two blank lines -- gluing `raise original
+            # DoesNotExist` to an unrelated `TODO` four lines down and handing a
+            # reviewer one block built from two comments.
             if trailing:
                 flush()
         elif raw.type in (
@@ -474,11 +462,10 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
 def _annotated_docs(path: Path, tree: ast.AST) -> list[Block]:
     """Prose carried by a PEP 727 `Doc()` inside an `Annotated[...]`.
 
-    ⚠ These are STRING LITERALS, so `ast.get_docstring` cannot see them and the
-    tokenizer does not either. On a file that documents its parameters this way
-    they are the majority of its prose: measured 5 of 8 blocks on one, which the
-    census reported as covered. A block missing from the census is a block
-    nobody reviews, so finding them is not optional.
+    ⚠ These are STRING LITERALS, so `ast.get_docstring` passes over them and so
+    does the tokenizer. On a file that documents its parameters this way they
+    are most of its prose, and a block missing from the census is a block
+    nobody reviews.
     """
     out: list[Block] = []
     for node in ast.walk(tree):
@@ -511,11 +498,10 @@ def _annotated_docs(path: Path, tree: ast.AST) -> list[Block]:
 def _walk(root: Path):
     """Every file under `root` this script has a language record for.
 
-    ⚠ Filters on `BY_EXT`, not on `*.py`. Hardcoding one suffix here made a
-    directory scan silently Python-only while `--languages` advertised eleven —
-    and silently is the worst part: a file the walk never yields cannot appear
-    in the NOT CHECKED list either, so the run reports a clean census of a
-    fraction of the tree.
+    ⚠ Filters on `BY_EXT`, so every language `--languages` advertises is walked.
+    Hardcoded to `*.py`, the scan went Python-only, and a file the walk skips is
+    absent from the NOT CHECKED list too — the run then reports a full census of
+    a fraction of the tree.
     """
     if root.is_file():
         yield root
@@ -529,25 +515,23 @@ def _walk(root: Path):
 def code_names(
     roots: list[Path], tracked: set[Path] | None = None
 ) -> tuple[set[str], list[str]]:
-    """Every name the tree DEFINES, from the AST — never from raw text.
+    """Every name the tree DEFINES, harvested from the AST.
 
-    A corpus built from text contains the comments being checked, so every
+    A corpus built from raw text contains the comments being checked, so every
     obituary resolves against itself and the check always passes. Unreadable
-    files are RETURNED, not dropped: a hole in the corpus turns every symbol
-    defined only there into a false obituary, which fails loud-and-wrong.
+    files are RETURNED alongside the names: a hole in the corpus turns every
+    symbol defined only there into a false obituary, which fails loud and wrong.
 
     ⚠ TRACKED files only, when git can say which. A vendored, generated or
-    gitignored tree under the repo root otherwise donates its whole namespace:
-    measured 2026-08-15, `asanyarray` resolved ALIVE in a repo that does not
-    define it, because a fetched corpus sat in the working tree. That failure
-    is SILENT and one-sided -- it can only ever suppress an obituary, never
-    manufacture one.
+    gitignored tree under the repo root otherwise donates its whole namespace,
+    so a symbol the repo defines nowhere resolves ALIVE. That failure is SILENT
+    and one-sided: it suppresses an obituary, and manufactures none.
 
     Args:
         roots: directories or files to harvest.
         tracked: absolute paths git reports as tracked, or None when git could
             not answer — in which case the whole tree is walked and the caller
-            is told, because coverage that changes silently cannot be reported.
+            is told, so a change in coverage arrives with the result.
 
     Returns:
         The set of defined names, and the list of files that could not be read.
@@ -564,10 +548,11 @@ def code_names(
             if tracked is not None and p.resolve() not in tracked:
                 continue
             lang = language_for(p)
-            # ⚠ A non-Python file is a KNOWN hole, not a broken file. Parsing it
-            # as Python reported `a.go (SyntaxError)`, which reads as "your file
-            # is malformed" and sends a reviewer to fix nothing. Liveness for
-            # these languages needs its own harvester; until then say which.
+            # ⚠ A non-Python file is a KNOWN hole, reported as one. Parsed as
+            # Python it came back `a.go (SyntaxError)`, which reads as "your
+            # file is malformed" and sends a reviewer after an invented defect.
+            # Liveness in these languages needs its own harvester; this names
+            # the gap until there is one.
             if lang is None or lang.name != "python":
                 name = lang.name if lang else "unknown"
                 unread.append(f"{p.as_posix()} (no name harvester for {name})")
@@ -599,8 +584,8 @@ def code_names(
 def tier_for(lang: Language) -> str:
     """The highest rung reachable for this language, here and now.
 
-    One definition, read by the dispatcher and by `--languages`, so what the
-    listing advertises cannot drift from what a run actually does.
+    One definition, read by the dispatcher and by `--languages`, so the listing
+    and the run report the same tier.
     """
     return "tokenized" if lang.name == "python" else "lexical"
 
@@ -608,9 +593,9 @@ def tier_for(lang: Language) -> str:
 def census_for(path: Path, text: str, lang: Language) -> list[Block]:
     """The census for one file, at the highest tier available for its language.
 
-    The ladder is by QUESTION ANSWERED, not by library. Python reaches
-    TOKENIZED through the stdlib, which buys docstring anchors; every other
-    language has the LEXICAL floor. Neither resolves a COMMENT's anchor.
+    The ladder is by QUESTION ANSWERED. Python reaches TOKENIZED through the
+    stdlib, which buys docstring anchors; every other language has the LEXICAL
+    floor.
     """
     if lang.name == "python":
         got = blocks_stdlib(path, text)
@@ -624,7 +609,8 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
 
 def main() -> int:
     """Build the census, resolve its annotations, print both."""
-    # A report that dies on an em-dash in someone's docstring is not a tool.
+    # UTF-8 with replacement, so an em-dash in someone's docstring still prints
+    # on a console whose encoding lacks it.
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")
@@ -657,9 +643,9 @@ def main() -> int:
     paths = path_index(repo)
 
     census: list[Block] = []
-    # An argument that matched nothing is the one failure that reads exactly
-    # like success: "0 blocks" from a typo and "0 blocks" from a clean file are
-    # the same line. Name it, or a whole directory silently goes unreviewed.
+    # An argument that matched nothing reads exactly like success: "0 blocks"
+    # from a typo and "0 blocks" from a file with no prose are the same line.
+    # Naming it is what keeps a whole directory from going unreviewed.
     unreadable: list[str] = [
         f"{t.as_posix()} (matched no files)" for t in targets if not any(_walk(t))
     ]
@@ -675,7 +661,7 @@ def main() -> int:
             continue
         try:
             got = census_for(path, text, lang)
-        except Exception as e:  # a parse failure is a REPORTED gap, never a skip
+        except Exception as e:  # a parse failure is REPORTED, as a gap
             unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
             continue
         census.extend(got)
@@ -684,8 +670,8 @@ def main() -> int:
         annotate(b, known, paths, repo)
 
     # repeated-literal needs the whole census, so it is a second pass. A number
-    # written twice is a hand-copied value with nothing keeping the copies in
-    # step; one written once is just a number.
+    # written twice is a hand-copied value, and the copies drift; one written
+    # once is just a number.
     seen: Counter[str] = Counter()
     where: dict[str, set[str]] = defaultdict(set)
     for b in census:
@@ -709,9 +695,9 @@ def main() -> int:
         )
         return 0
 
-    # ⚠ A tier is per FILE, not per run: a polyglot repo mixes them in one
-    # census. Reporting one global mode let a finding on a file the run could
-    # say least about read exactly like one it could settle.
+    # ⚠ A tier is per FILE: a polyglot repo mixes them in one census. Reported
+    # as one global mode, a finding from the lexical floor read like one from
+    # the tokenized tier.
     tiers = Counter(b.tier for b in census)
     langs = Counter(lang.name for f in files if (lang := language_for(f)) is not None)
     deferred = [b for b in census if "doc-kind-unresolved" in b.annotations]
@@ -744,7 +730,7 @@ def main() -> int:
         if deferred:
             print(
                 f"  kind unresolved, NOT counted against the cap: {len(deferred)}"
-                " — a positional doc comment this tier cannot distinguish"
+                " — a positional doc comment; confirm the kind before compacting"
             )
     if args.width:
         print(f"  over width ({args.width}): {len(wide)}")
@@ -777,9 +763,8 @@ def main() -> int:
         "CANDIDATES a reviewer confirms; a resolved path is a fact about the\n"
         "filesystem, already settled. The whole list is printed every run."
     )
-    # A file that could not be censused is a set of blocks nobody will review,
-    # and the reviewers are handed the CENSUS rather than the file list -- so a
-    # gap here is invisible downstream. Exit on it.
+    # The reviewers are handed the CENSUS, so a file missing from it is blocks
+    # nobody reviews and there is nothing downstream that notices. Exit on it.
     if unreadable:
         print(
             f"\nERROR: {len(unreadable)} of {len(files)} files handed in were not"
