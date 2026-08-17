@@ -63,7 +63,8 @@ def _max_hits(eligible: list[list[tuple[str, int]]]) -> int:
 def main() -> int:
     """Score one candidate's findings against the ground truth."""
     # A Windows console is cp1252; one non-ASCII glyph in a report kills the
-    # run, and `--help` prints this module's docstring, which holds an em dash.
+    # run. Nothing here is outside ASCII now, so this stands against a candidate
+    # name or path reaching stdout, not against this file's own prose.
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")

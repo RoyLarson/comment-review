@@ -47,8 +47,16 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-from census import block_text, language_for
-from vocabulary import Reviewer
+# ! The shim its three sibling importers carry. Run as a program this file
+# resolves without it -- Python puts the script's own directory on `sys.path`
+# -- so the gap was invisible from the documented invocation and appeared only
+# on IMPORT, where a test or another script reaches in. `census.py`,
+# `referrers.py` and `prove_unchanged.py` all insert it; this was the one
+# sibling importer that did not.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from census import block_text, language_for  # noqa: E402  -- path shim must run first
+from vocabulary import Reviewer  # noqa: E402  -- path shim must run first
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
@@ -212,6 +220,16 @@ CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S
 FIELD = re.compile(r"^(BLOCK|VERDICT|SOURCES|CLAIM|REASON|CHANGE)\s+(.*)$")
 # `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
+# A citation half that is PATH-SHAPED, whether or not it resolves: no whitespace,
+# and a `.` or `/` in it. It is what tells a MALFORMED citation from the wrapped
+# tail of the entry above, and `CITE` alone cannot -- both fail it.
+#
+# !! The space is the discriminator, and it has to be. A verbatim half may hold
+# a `|` of its own: `def _show(repo: Path, ref: str, rel: str) -> str | None:`
+# is a real line in this tree, and its left half is not path-shaped because it
+# holds spaces. A wrapped line whose left half has neither a space nor anything
+# but `.`/`/` would still be misread, which is the residue accepted here.
+PATHISH = re.compile(r"^[^\s]*[./][^\s]*$")
 
 # How far from the cited line the quoted text may sit. Prose wraps and code
 # moves; a hard equality would reject honest citations, and a wide window would
@@ -426,9 +444,20 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
                     # A line that opens with `path:line` is the former; a
                     # verbatim half that happens to wrap is the latter.
                     # ! A blank line is neither -- a citation does not span one.
+                    #
+                    # !! A MALFORMED citation is the third case, and it used to
+                    # be filed as the second. `CITE` fails on `b.py | text` just
+                    # as it fails on a wrapped tail, so the bad entry was glued
+                    # onto the entry ABOVE it -- which then could not find its
+                    # own verbatim half, and the tool reported the error against
+                    # that CORRECT citation while never naming the broken one.
+                    # `PATHISH` splits them: a path-shaped left half is an entry
+                    # of its own, admissible or not, so `source_problem` rules
+                    # on it.
+                    head = line.strip().partition("|")[0].strip()
                     if not line.strip():
                         pass
-                    elif CITE.match(line.strip().partition("|")[0].strip()):
+                    elif CITE.match(head) or ("|" in line and PATHISH.match(head)):
                         sources.append(line.strip())
                     else:
                         sources[-1] += "\n" + line.strip()
@@ -747,6 +776,14 @@ def _words(text: str) -> str:
     budget is 3.` where the `CLAIM` quoting it reads `the budget is 3`, and a
     diff keyed on raw tokens would call `3.` and `3` different words -- so an
     honest correction would read as an edit to a sentence nobody claimed.
+
+    !! BRACKETS COME OFF TOO, and leaving them out was a defect. The set held
+    sentence punctuation only, so a `CLAIM` naming `the CLI` could not cover a
+    `CHANGE` editing `the CLI)` -- the closing paren stayed glued on and the two
+    reduced to different words. The only way through was to quote the bracket
+    inside the claim, which reads as arbitrary from a reviewer's side because
+    the same phrase at the end of a sentence works. Measured 2026-08-17 on a
+    live run, where it defeated the CLAIM-covers-CHANGE check.
     """
     return (
         # !! ONE strip over BOTH classes, so this is IDEMPOTENT. Stripping
@@ -755,7 +792,7 @@ def _words(text: str) -> str:
         # `edit_problem` normalises it again, while a diff span gets one pass --
         # so a claim and the edit naming it reduced to different strings, and a
         # correct finding was refused.
-        " ".join(w.strip("\"'`.,;:!?") for w in text.split()).strip().lower()
+        " ".join(w.strip("\"'`.,;:!?()[]{}") for w in text.split()).strip().lower()
     )
 
 
@@ -1184,9 +1221,13 @@ def main() -> int:
     # code is a block, so an `add` -- a finding about prose that is MISSING --
     # has an index to cite instead of borrowing a neighbour's. Most of them hold
     # nothing, and a reviewer owes no record on an empty one: coverage is over
-    # the blocks that HOLD PROSE. Measured: `census.py` over itself is 546
-    # blocks, 48 of them prose. Owing a record on all 546 would make `CLEAN 1-N`
-    # -- the cheapest fabrication there is -- nine parts out of ten true.
+    # the blocks that HOLD PROSE. Measured 2026-08-17: `census.py` over itself
+    # is 642 blocks, 76 of them prose. Owing a record on all 642 would make
+    # `CLEAN 1-N` -- the cheapest fabrication there is -- eight parts out of
+    # nine true.
+    # ! The figure was 546/48 and had rotted; it was written in TWO places,
+    # here and in `SKILL.md`, with nothing comparing them. Re-measure both or
+    # neither.
     all_blocks = {i for i, b in enumerate(blocks, 1) if b.get("kind") != "interval"}
 
     fatal = 0
@@ -1350,11 +1391,25 @@ def main() -> int:
     # replacement, so this grouping is what it works from -- and rebuilding it
     # from the report files by hand is the step this tool can do exactly and a
     # reader cannot.
-    # ! Withheld when anything is FATAL. The gate has just refused the report,
-    # so a work list here reads as permission to start on it.
+    #
+    # !! PRINTED EVEN WHEN FATAL, and LABELLED instead of withheld. It used to
+    # be withheld on any fatal problem, on the reasoning that a work list after
+    # a refusal reads as permission to start. That reasoning holds and the
+    # heading below carries it -- but withholding paid for it with the run's
+    # only readable summary of what the roles found, exactly while someone is
+    # iterating on refusals. Measured 2026-08-17: five joins over one report
+    # set, and the only one that printed the list was the fifth, which needed
+    # it least.
     out_for_rereview = set(clash)
-    if ruled and not fatal:
-        print("\nPER BLOCK -- what you hold, in census order:")
+    if ruled:
+        if fatal:
+            print(
+                "\nPER BLOCK -- PROVISIONAL, the gate refused this report."
+                "\n  Read it to see what the roles found; do not rule from it"
+                " until the problems above are resolved."
+            )
+        else:
+            print("\nPER BLOCK -- what you hold, in census order:")
         for b in sorted(ruled):
             marks = "  ".join(
                 f"{f.verdict}({f.reviewer})"

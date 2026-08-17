@@ -70,7 +70,14 @@ CHANGE      # Kept because 31 callers want this, all of them in tests/.
 ```
 
 ! **A field may run onto the lines below it**, indented, as `BLOCK`, `SOURCES` and `CHANGE` do
-here. A blank line ends it.
+here. **A field ends at the next FIELD LABEL, and the record ends at `---`.**
+
+!! **A BLANK LINE IS CONTENT, not a terminator.** Write the blank lines your prose needs: a
+docstring carries one between its summary and its `Args:`, and `BLOCK` and `CHANGE` carry whole
+blocks. This brief said the opposite until 0.2.1 and the parser never agreed with it -- the rule
+it described was the worst defect 0.2.0 shipped, truncating both fields to their first paragraph
+on every block holding a blank line and refusing 113 of one reviewer's 134 findings, every one
+of them correct.
 
 !! **The order is a CHAIN OF CUSTODY, and it is why the fields are in this sequence.** The
 ruling, then what must change, then why, then the evidence the why rests on, then the result:
@@ -102,6 +109,14 @@ record shows that block with ITS OWN change and no other -- do not hand in the b
 fixed twice. Composing your findings is the task agent's job at stage 5, and it cannot compose
 records that have already been merged. ! A `CHANGE` carrying edits its own `CLAIM` does not
 name is refused for that reason.
+
+!! **EXPECT YOUR OWN `CHANGE`S TO READ ODDLY ON THEIR OWN, and hand them in anyway.** A block
+needing three coordinated edits gives three records, and each shows the block with one edit
+applied and the other two still wrong -- so none of the three reads as finished prose. **That
+is the format working, not a demand for better writing.** Measured 2026-08-17: a reviewer
+merged its three edits into one record twice, trying to keep a paragraph readable, and was
+correctly refused both times. Only the task agent sees all three, which is the only place they
+can be composed.
 
 !! **`BLOCK` carries the ORIGINAL so the record can be read on its own.** Whoever reads your
 finding -- the task agent at stage 5, or another role on a re-review -- otherwise has to hold the

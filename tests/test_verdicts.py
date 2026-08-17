@@ -2270,6 +2270,72 @@ class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
         )
 
 
+class TestAMalformedSourceIsItsOwnEntry(unittest.TestCase):
+    """A bad citation must be REPORTED, not glued onto the good one above it.
+
+    !! `CITE` fails on a malformed citation exactly as it fails on a wrapped
+    verbatim tail, so the malformed line was appended to the previous entry.
+    That entry then searched for a needle carrying the bad line's text, failed,
+    and the tool reported the error against a CORRECT citation while never
+    naming the broken one. Measured 2026-08-17.
+    """
+
+    REPORT = (
+        "--- RECORD\n"
+        "BLOCK       1 | a.py:1-2\n"
+        "            # first\n"
+        "VERDICT     correct\n"
+        'CLAIM       false: "x" / true: "y"\n'
+        "REASON      because\n"
+        "SOURCES     a.py:10 | def real_line():\n"
+        "            b.py | this citation has no line number\n"
+        "CHANGE      # first\n"
+        "---\n"
+    )
+
+    def test_the_malformed_citation_becomes_its_own_entry(self):
+        findings, _ = verdicts.parse_report(self.REPORT, "block-context")
+        self.assertEqual(len(findings[0].sources), 2)
+
+    def test_the_good_citation_keeps_its_own_verbatim_half(self):
+        findings, _ = verdicts.parse_report(self.REPORT, "block-context")
+        self.assertEqual(findings[0].sources[0], "a.py:10 | def real_line():")
+
+    def test_a_wrapped_verbatim_half_holding_a_pipe_still_continues(self):
+        # !! A PEP 604 union in a cited line is a real case in this tree, and
+        # its left half is not path-shaped because it holds spaces.
+        report = self.REPORT.replace(
+            "            b.py | this citation has no line number\n",
+            "            def _show(repo: Path, ref: str) -> str | None:\n",
+        )
+        findings, _ = verdicts.parse_report(report, "block-context")
+        self.assertEqual(len(findings[0].sources), 1)
+
+
+class TestWordsStripsBrackets(unittest.TestCase):
+    """A CLAIM naming `the CLI` must cover a CHANGE editing `the CLI)`.
+
+    !! The strip set held sentence punctuation only, so a closing bracket
+    stayed glued to its word and the two reduced to different strings. The only
+    way through was to quote the bracket inside the claim -- arbitrary from a
+    reviewer's side, because the same phrase ending a sentence works.
+    """
+
+    def test_a_trailing_paren_comes_off(self):
+        self.assertEqual(verdicts._words("the CLI)"), verdicts._words("the CLI"))
+
+    def test_a_leading_paren_comes_off(self):
+        self.assertEqual(verdicts._words("(the CLI"), verdicts._words("the CLI"))
+
+    def test_square_and_curly_brackets_come_off(self):
+        self.assertEqual(verdicts._words("[the CLI]"), verdicts._words("the CLI"))
+        self.assertEqual(verdicts._words("{the CLI}"), verdicts._words("the CLI"))
+
+    def test_it_is_still_idempotent(self):
+        once = verdicts._words("`the CLI`),")
+        self.assertEqual(verdicts._words(once), once)
+
+
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
 # SHORTER suite than `unittest discover` -- and the tests it skipped were

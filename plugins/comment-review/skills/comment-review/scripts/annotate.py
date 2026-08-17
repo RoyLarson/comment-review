@@ -32,9 +32,11 @@ TICKED = re.compile(r"`([^`\s]+)`")
 # A token that could name a symbol. Single words count: every one-word module in
 # a package is otherwise invisible.
 # A trailing call form is stripped, so `foo()` resolves against `foo`.
-# `...` is the ellipsis, written as an escape so this file stays ASCII: `re`
-# resolves it inside a raw pattern, and a literal `...` here would match any
-# three characters instead.
+# The alternative is U+2026, the ellipsis CHARACTER, written as an escape so
+# this file stays ASCII -- `re` resolves it inside a raw pattern. It is not
+# spelled out here because a literal one would be the very character this line
+# exists to avoid, and `...` beside it means three dots, which the pattern
+# already matches on its own.
 CALLFORM = re.compile(r"\(\s*(?:\.\.\.|\u2026)?\s*\)$")
 SYMBOLISH = re.compile(r"^[A-Za-z_][\w.]*$")
 NOT_A_SYMBOL = frozenset(

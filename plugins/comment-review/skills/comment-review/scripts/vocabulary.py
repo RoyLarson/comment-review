@@ -73,12 +73,17 @@ def render(role: str, definitions: dict[str, str], roles: dict[str, list[str]]) 
 
 def main() -> int:
     """Print one role's vocabulary, or the roles that have one."""
-    # !! UTF-8 with replacement, and this file needs it MORE than the others:
-    # every definition is written with an em dash, and this output is PASTED
-    # VERBATIM into a reviewer's prompt. Measured 2026-08-17 on a live run --
-    # without this, a `cp1252` console corrupted every dash and exited 0, and a
-    # PowerShell redirect wrote UTF-16 that read as a binary file. The dispatch
-    # went out with three roles instead of four.
+    # !! UTF-8 with replacement, because this output is PASTED VERBATIM into a
+    # reviewer's prompt: corruption here reaches an agent as instruction.
+    # Measured 2026-08-17 on a live run -- without this, a `cp1252` console
+    # corrupted every dash and exited 0, and a PowerShell redirect wrote UTF-16
+    # that read as a binary file. The dispatch went out with three roles
+    # instead of four.
+    #
+    # ! What it defends has CHANGED. That run corrupted this file's own em
+    # dashes; since the tree went ASCII there are none, and `vocabulary.toml`
+    # holds no character above U+007F. The guard now stands against a
+    # definition someone else adds, not against the text shipped here.
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")

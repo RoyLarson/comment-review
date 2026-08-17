@@ -79,7 +79,8 @@ def git(*args: str, must_work: bool = False) -> str:
 def main() -> int:
     """Emit the changed-prose block map for the given ref range."""
     # A Windows console is cp1252; one non-ASCII glyph in a report kills the
-    # run, and the U+26A0 in this file's own prose reaches stdout via `--help`.
+    # run. Nothing here is outside ASCII now, so this stands against the repo
+    # paths and git output that reach stdout, not against this file's own prose.
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")

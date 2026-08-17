@@ -328,7 +328,7 @@ node's references already resolved, and it prints the tier counts for the run.
 between two lines of code is numbered, empty ones included, because an `add` is a finding about
 prose that is MISSING and the record needs a `BLOCK` index to carry it. They are ADDRESSABLE,
 not ACCOUNTABLE: `verdicts.py` computes coverage over the blocks that hold prose and says both
-counts on its first line. Measured: `census.py` over itself is 546 blocks, 48 of them prose.
+counts on its first line. Measured 2026-08-17: `census.py` over itself is 642 blocks, 76 of them prose.
 
 ! Those tier counts are
 AGGREGATED across files, not per file -- on a polyglot run you cannot tell which file reached
