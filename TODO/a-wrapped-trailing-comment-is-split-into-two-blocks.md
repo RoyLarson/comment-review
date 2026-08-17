@@ -42,7 +42,7 @@ verdict is `correct`."* So a reviewer meeting the first half files a real findin
 mid-clause ending **the census manufactured**, and a task agent applying it repairs prose that
 was never broken.
 
-⚠ And the second half is worse than orphaned: it is ATTRIBUTED. It sits above `y = 2` and is
+⚠ And the second half is not merely orphaned, it is ATTRIBUTED. It sits above `y = 2` and is
 indistinguishable from documentation for `y`, which is the wrong-code measurement
 `ownership-context` exists to catch — except here no role can catch it, because at the
 `tokenized` tier the census reports exactly this and offers no evidence of the join.

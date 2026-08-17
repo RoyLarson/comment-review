@@ -18,8 +18,8 @@ across two runs.** Observed on `todo_tool`, r1 against r2:
 | the *"Six call sites"* claim | `module-context` **cleared** it | `module-context` **corrected** it — four functions, and both test modules read the groups |
 | `_OWNER_SPLIT`'s *"five real fields"* | `module-context` **corrected** it — *"actually three"* | `module-context` **`query` — outside the code**, on the grounds that the fix erased the state that would settle it |
 
-⚠ The second row is the sharper one: r1's answer was relayed onward as a settled measurement,
-and r2's position is that it was never settleable. A `correct` that reads confident and a
+⚠ The second row retracts something already acted on: r1's answer was relayed onward as a
+settled measurement, and r2's position is that it was never settleable. A `correct` that reads confident and a
 `query` that says nobody can tell are not adjacent verdicts.
 
 ⚠⚠ **This is not the disagreement the system is built for.** Two ROLES disagreeing is designed

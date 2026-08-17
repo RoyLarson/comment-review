@@ -26,7 +26,7 @@ What exists today, and where each check sits:
 The gap is the dispatch itself, and it is the one step the skill cannot inspect: `run_context.py`
 runs before it and `verdicts.py` runs after.
 
-⚠⚠ **`--reviewers` catches it LATE, and late may be the best available.** A three-role dispatch is
+⚠⚠ **`--reviewers` catches it LATE, and nothing earlier has an artifact to read.** A three-role dispatch is
 detected only once three reviewers have read the census and written their reports — on a large
 run that is several hundred thousand tokens and twenty minutes before the run learns it was
 invalid. And it is only caught at all if the task agent passes `--reviewers`, which is optional.
