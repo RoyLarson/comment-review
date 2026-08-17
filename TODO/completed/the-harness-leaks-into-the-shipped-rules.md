@@ -1,8 +1,8 @@
 # The measurement harness leaks into the shipped rules
 
 ```
-Status:   open
-Progress: 5 of 6 tasks done
+Status:   COMPLETE 2026-08-16
+Progress: 6 of 6 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on finding `worktree` in the shipped plugin: "that is
           indicating a wrong idea in the workflow requirements")
