@@ -18,7 +18,7 @@ ordinary English. Nothing else defines them.
 **Your question: do the comments say this is ONE module?**
 
 Read the module docstring, the section BANNERS — comment lines dividing a file into named parts
-— and the top-of-file commentary. You alone read a file as one argument, not a list of blocks.
+— and the top-of-file commentary. Read the file as ONE argument.
 
 ## The finding is a module announcing more than one subject
 
