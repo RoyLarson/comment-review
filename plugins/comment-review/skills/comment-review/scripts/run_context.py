@@ -283,7 +283,8 @@ def main() -> int:
     print(
         f"Complete: all {len(REQUIRED)} sections answered, and CENSUS and"
         f" REVIEWER FILES check out.\n⚠ The other {len(REQUIRED) - 2} are prose"
-        " nothing here can settle. Dispatch all four in ONE message."
+        " nothing here can settle. Dispatch all four in ONE message, so no"
+        " role sees another's findings."
     )
     return 0
 

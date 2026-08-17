@@ -438,7 +438,7 @@ KIND it could not resolve.
 
 ## Stage 4 — MARK: four reviewers, in parallel
 
-**Dispatch all four in ONE message** so they run concurrently, by agent name:
+**Dispatch all four in ONE message**, by agent name:
 
 | agent | asks |
 |---|---|
@@ -446,6 +446,13 @@ KIND it could not resolve.
 | `comment-review:comment-review-block-context` | is every claim in this block true of the code it sits with? |
 | `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
 | `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
+
+⚠⚠ **They must read INDEPENDENTLY, and that is what one message protects — not speed.**
+Overlap between roles is signal ONLY if no role saw another's findings: two roles agreeing is
+corroboration when they read alone and nothing when the second read the first. A second
+dispatch runs concurrently too; what it risks is a prompt carrying what the first pair
+returned. **If you dispatch in more than one message, say so in the proposal** — the run is
+still usable, and a reader has to know the overlap was not blind.
 
 Each already carries its own editorial role.
 
