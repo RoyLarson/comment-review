@@ -89,11 +89,9 @@ file's language.** Both tiers find the same blocks and differ only in what else 
 | `tokenized` | a lexer + AST (Python: the stdlib) | blocks, annotations, **docstring** anchors | a **comment's** anchor |
 | `lexical` | a comment-syntax record, nothing else | blocks, annotations | any anchor; a marker inside an exotic string |
 
-⚠⚠ **NO COMMENT carries an anchor, in any language.** A docstring's anchor comes from the
-AST; a `#` run's does not, and nothing infers it. So **every ownership-context verdict rests on
-a reviewer reading the file** — a judgement no field records and nothing downstream can check.
-Treat a placement finding as a CANDIDATE and **say so in your stage 2-3 report**, the same way
-an unavailable `move` is said at stage 1 rather than discovered at stage 6.
+⚠⚠ **A placement finding is a CANDIDATE, and you say so in your stage 2-3 report.** No comment
+carries an anchor at either tier, so every ownership-context verdict rests on a reviewer READING
+the file — a judgement no field records and nothing downstream can check.
 
 ⚠ **Only OWNERSHIP-CONTEXT is affected.** Block-context and module-context never ask where a
 block belongs, and function-context's ordering read takes its structure from the body rather
