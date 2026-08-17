@@ -54,25 +54,6 @@ from vocabulary import Reviewer
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
-VERDICTS = (
-    "clean",
-    "query",
-    "drop",
-    "correct",
-    "patch",
-    "add",
-    "move",
-)
-
-# What a contradiction IS: one role REMOVING the sentence another rules on.
-# Named rather than inlined so the join's message and this check cannot drift
-# apart.
-# ⚠⚠ `move` is NOT here. A relocation and a truth fix COMPOSE -- move the prose,
-# then correct it at the destination, which is the synthesis order at steps 2
-# and 3. Ruled 2026-08-17. Measured: 5 of 8 blocks the old set flagged were this
-# shape, and the re-review spent a round on each confirming they were not rivals.
-REMOVES = frozenset({"drop"})
-RULES_ON_TEXT = frozenset({"correct", "patch"})
 
 # ⚠⚠ The THREE shapes `reviewer-brief.md` says reach `query`, and a query must
 # NAME the one it is. A closed set beats guessing at free text: the shape decides
@@ -81,6 +62,139 @@ RULES_ON_TEXT = frozenset({"correct", "patch"})
 # whether a sentence happens to contain the word "resolved".
 OUT_OF_ROLE = "outside my role"
 QUERY_SHAPES = (OUT_OF_ROLE, "outside the checkout", "outside the code")
+
+
+@dataclass(frozen=True)
+class Verdict:
+    """Everything this file knows about one verdict, in one place.
+
+    ⚠⚠ ADDING OR CHANGING A VERDICT IS A ROW, NOT NEW CODE -- the same promise
+    `census.py` makes about a language. It is written this way because the
+    alternative was measured: on 2026-08-17 the record's contract changed twice
+    and this knowledge lived in eight functions, each with its own branch on
+    `verdict`. Finding all eight is what nobody did, and five defects shipped in
+    one morning. A contract change should touch one row.
+
+    Attributes:
+        claim_all: markers `CLAIM` must ALL carry.
+        claim_any: markers `CLAIM` must carry at least ONE of.
+        claim_help: what to say when either is unmet -- per row, because
+            "correct needs a false/true pair" reads and a generated list does
+            not.
+        quotes_original: the `CLAIM` marker the EXISTING sentence follows, or ""
+            when the verdict quotes none. ⚠ `move`'s from/to are PLACES, and
+            `add` is about prose that is missing, so both quote nothing.
+        quotes_until: what ends that sentence; "" runs to the end of `CLAIM`.
+        change_all: markers `CHANGE` must carry. Only `move`, which changes two
+            blocks and shows both.
+        owes_claim: every verdict but `clean` states what must happen.
+        owes_reason: likewise -- why.
+        owes_change: `clean` rules on nothing and `query` proposes no text.
+        owes_address: `clean` is exempt because a role returns it on most of the
+            census; transcribing each would be the bulk of a report.
+        owes_sources: `clean` cites no claim, so it cites no place.
+        diffable: `BLOCK`-against-`CHANGE` names the edited sentence. False
+            where there is nothing to diff -- no text proposed, no original, or
+            a `CHANGE` holding two blocks rather than one.
+        needs_anchor: `CLAIM` names a site in backticks and a side.
+        needs_attempted: `CLAIM` names a check that was tried.
+        needs_settles: `CLAIM` names what would settle the claim.
+        substantive: this verdict ASKS something of stage 5. Only `clean`
+            does not, which is what makes it the null verdict rather than
+            a pass.
+        can_declare_scope: this verdict may be a BOUNDARY REPORT rather
+            than work -- `query`, and only in its `outside my role` shape.
+        removes: takes the sentence out of the block.
+        rules_on_text: keeps the sentence and changes it. ⚠ `removes` against
+            `rules_on_text` on ONE sentence is the contradiction, and `move` is
+            deliberately neither -- relocation and a truth fix COMPOSE, applied
+            at synthesis steps 2 and 3. Ruled 2026-08-17; measured, 5 of 8
+            blocks the old set flagged were this shape and each cost a
+            re-review round to establish it was not a rivalry.
+    """
+
+    claim_all: tuple[str, ...] = ()
+    claim_any: tuple[str, ...] = ()
+    claim_help: str = ""
+    quotes_original: str = ""
+    quotes_until: str = ""
+    change_all: tuple[str, ...] = ()
+    change_help: str = ""
+    owes_claim: bool = True
+    owes_reason: bool = True
+    owes_change: bool = True
+    owes_address: bool = True
+    owes_sources: bool = True
+    diffable: bool = True
+    needs_anchor: bool = False
+    needs_attempted: bool = False
+    needs_settles: bool = False
+    substantive: bool = True
+    can_declare_scope: bool = False
+    removes: bool = False
+    rules_on_text: bool = False
+
+
+VERDICTS: dict[str, Verdict] = {
+    "clean": Verdict(
+        owes_claim=False,
+        owes_reason=False,
+        owes_change=False,
+        owes_address=False,
+        owes_sources=False,
+        diffable=False,
+        substantive=False,
+    ),
+    "query": Verdict(
+        claim_any=QUERY_SHAPES,
+        claim_help=(
+            "query must NAME its shape — one of "
+            + ", ".join(f"'{s}'" for s in QUERY_SHAPES)
+            + " — so the reason is attached to the ruling"
+        ),
+        owes_change=False,
+        diffable=False,
+        needs_attempted=True,
+        needs_settles=True,
+        can_declare_scope=True,
+    ),
+    "drop": Verdict(
+        claim_all=("drop:",),
+        claim_help='drop needs the sentence in CLAIM, as `drop: "..."`',
+        quotes_original="drop:",
+        removes=True,
+    ),
+    "correct": Verdict(
+        claim_all=("false:", "true:"),
+        claim_help="correct needs a false/true pair in CLAIM",
+        quotes_original="false:",
+        quotes_until="/ true:",
+        rules_on_text=True,
+    ),
+    "patch": Verdict(
+        claim_all=("from:", "to:"),
+        claim_help="patch needs a from/to pair in CLAIM",
+        quotes_original="from:",
+        quotes_until="/ to:",
+        rules_on_text=True,
+    ),
+    "add": Verdict(
+        claim_all=("missing:",),
+        claim_help='add needs the text in CLAIM, as `missing: "..."`',
+        diffable=False,
+        needs_anchor=True,
+    ),
+    "move": Verdict(
+        claim_all=("from:", "to:"),
+        claim_help="move needs a from/to pair in CLAIM",
+        change_all=("to:",),
+        change_help=(
+            "move needs the DESTINATION block in CHANGE, as `to: ...` — plus"
+            " `from: ...`, the origin as it reads after, unless the WHOLE block moves"
+        ),
+        diffable=False,
+    ),
+}
 
 RECORD = re.compile(r"^---\s*RECORD\s*$(.*?)^---\s*$", re.M | re.S)
 # Counts "--- RECORD" OPENERS on their own, independent of whether a closing
@@ -150,6 +264,17 @@ QUERY_SETTLES = re.compile(
     r"\bsettl\w*|\bwould\s+\w+|\brequires?\b|\bresolv\w*|\bdetermined\s+by\b",
     re.I,
 )
+
+
+def _is(f: Finding, trait: str) -> bool:
+    """Does this finding's verdict carry `trait`? False for an unknown verdict.
+
+    ⚠ An unknown verdict answers False to everything rather than raising. The
+    VERDICT check reports it by name, and a lookup that raised would take the
+    whole join down over one typo in one record.
+    """
+    spec = VERDICTS.get(f.verdict)
+    return bool(spec and getattr(spec, trait))
 
 
 @dataclass
@@ -384,17 +509,23 @@ def coverage_gaps(
 def payload_problem(f: Finding) -> str | None:
     """What the verdict's required payload is missing, or None.
 
-    `query` is checked in the most detail, because it is the one verdict whose
-    payload has a fixed shape the brief spells out.
+    ⚠⚠ Reads the verdict's ROW. Every per-verdict fact this used to branch on
+    is a field of `Verdict`, so a verdict that changes shape changes one row --
+    which is the whole reason the table exists.
     """
+    spec = VERDICTS.get(f.verdict)
+    if spec is None:
+        # ⚠ An unknown verdict is the VERDICT check's to report, and it does so
+        # by name. Reporting it twice would print two defects for one mistake.
+        return None
     # ⚠ Every verdict but `clean` states WHY, and `REASON` is the field that
     # holds it. It went unchecked while it doubled as a diagnostic slot for
     # malformed records; those are separate now, so it can be required.
-    if f.verdict != "clean" and not f.reason.strip():
+    if spec.owes_reason and not f.reason.strip():
         return f"{f.verdict} states no REASON — why the verdict was made"
     # ⚠ CLAIM is the specific thing that must happen to make the result correct.
     # A finding without one has named a defect and asked for nothing.
-    if f.verdict != "clean" and not f.claim.strip():
+    if spec.owes_claim and not f.claim.strip():
         return f"{f.verdict} states no CLAIM — what must happen to make it right"
     # ⚠ A reviewer that echoes the claim back has filed a verdict with no
     # reason. Compared normalised, because quoting and case are what make an
@@ -403,85 +534,49 @@ def payload_problem(f: Finding) -> str | None:
     # ⚠⚠ EQUALITY, never containment. A REASON that quotes the claim and then
     # says what is wrong with it is doing its job, and a containment test would
     # refuse exactly the well-written ones.
-    claim = " ".join(f.claim.split()).strip().strip('"').lower()
-    reason = " ".join(f.reason.split()).strip().strip('"').lower()
-    if claim and reason == claim:
+    if f.claim.strip() and _words(f.reason) == _words(f.claim):
         return "REASON restates CLAIM — say what you derived, not what it says"
-    # ⚠⚠ Every per-verdict shape below is CLAIM's, because CLAIM is the SPEC.
-    # CHANGE is only required to EXIST: it is a block of finished prose, and no
-    # checker can judge whether prose is good -- only whether it was supplied.
-    spec = f.claim.lower()
-    if f.verdict == "query":
-        named = [s for s in QUERY_SHAPES if s in spec]
-        if not named:
-            return (
-                "query must NAME its shape — one of "
-                + ", ".join(f"'{s}'" for s in QUERY_SHAPES)
-                + " — so the reason is attached to the ruling"
-            )
-        # ⚠ The shape is REMOVED before the word search. `check\w*` matches
+
+    claim = f.claim.lower()
+    if any(marker not in claim for marker in spec.claim_all):
+        return spec.claim_help
+    named = [s for s in spec.claim_any if s in claim]
+    if spec.claim_any and not named:
+        return spec.claim_help
+    if spec.needs_attempted or spec.needs_settles:
+        # ⚠ The shape is REMOVED before the word search. `check\w*` matches
         # "checkout", so "outside the checkout" would satisfy the attempted-check
         # test by naming itself -- a query could pass by declaring its shape and
         # doing nothing.
-        probe = spec
+        probe = claim
         for shape in named:
             probe = probe.replace(shape, " ")
-        if not QUERY_ATTEMPTED.search(probe):
+        if spec.needs_attempted and not QUERY_ATTEMPTED.search(probe):
             return (
                 "query needs the check you ATTEMPTED — a query naming none"
                 " hands the judgement back"
             )
-        if not QUERY_SETTLES.search(probe):
+        if spec.needs_settles and not QUERY_SETTLES.search(probe):
             return "query needs what WOULD settle the claim"
-        # ⚠ A query proposes no text, so it owes no CHANGE and returns here.
-        return None
-    if f.verdict == "correct" and not ("false:" in spec and "true:" in spec):
-        return "correct needs a false/true pair in CLAIM"
-    # ⚠⚠ `patch` and `move` take `from:`/`to:` where `correct` takes
-    # `false:`/`true:`. The pair differs on purpose: `correct` asserts the
-    # sentence is FALSE, and that assertion is what separates it from a `patch`,
-    # where the sentence is true and merely reads badly. A neutral from/to would
-    # erase the distinction the synthesis order depends on.
-    #
-    # ⚠ `move`'s halves are PLACES, not text -- from here, to there -- so it is
-    # the one edit whose CLAIM names no sentence, and `ruled_text` reports ""
-    # for it. The BLOCK it cites is what identifies the prose.
-    if f.verdict in ("patch", "move") and not ("from:" in spec and "to:" in spec):
-        return f"{f.verdict} needs a from/to pair in CLAIM"
-    if f.verdict == "drop" and "drop:" not in spec:
-        return 'drop needs the sentence in CLAIM, as `drop: "..."`'
-    if f.verdict == "add":
+    if spec.needs_anchor:
         # ⚠ The brief asks for "the text AND its anchor — which code, above or
         # below": a NAMED site and a side. This used to accept the bare word
         # "anchor", so `add an anchor comment` passed while
         # `above `retry_budget`` failed for not saying "anchor".
-        if "missing:" not in spec:
-            return 'add needs the text in CLAIM, as `missing: "..."`'
-        if not ANCHOR_SIDE.search(spec):
+        if not ANCHOR_SIDE.search(claim):
             return "add needs a side — is the text above or below the anchor"
         if not ANCHOR_NAME.search(f.claim):
             return (
                 "add needs the anchor NAMED in backticks — which declaration,"
                 " not the word 'anchor'"
             )
-    if f.verdict != "clean" and not f.change.strip():
+    if spec.owes_change and not f.change.strip():
         return (
             f"{f.verdict} carries no CHANGE — the edit already made, written out"
             " with its surrounding block, which is what stage 5 applies"
         )
-    # ⚠⚠ A `move` is the one edit that changes TWO blocks, so its CHANGE shows
-    # both: `to:` is the destination as it reads once the prose arrives, and
-    # `from:` is the origin as it reads once the prose has left. Ruled
-    # 2026-08-17.
-    #
-    # ⚠ `from:` is OPTIONAL, and leaving it out ASSERTS the WHOLE block moved --
-    # there is no remainder to show. Nothing can tell a whole-block move from a
-    # partial one by inspection, so the reviewer says which by what it supplies.
-    if f.verdict == "move" and "to:" not in f.change.lower():
-        return (
-            "move needs the DESTINATION block in CHANGE, as `to: ...` — plus"
-            " `from: ...`, the origin as it reads after, unless the WHOLE block moves"
-        )
+    if any(marker not in f.change.lower() for marker in spec.change_all):
+        return spec.change_help
     return None
 
 
@@ -560,7 +655,8 @@ def source_problem(f: Finding, repo: Path) -> str | None:
     evidence than one, and a reviewer forced to pick one was being made to drop
     the other -- which is the cut-the-provenance failure stage 5 already names.
     """
-    if f.verdict == "clean":
+    spec = VERDICTS.get(f.verdict)
+    if spec is None or not spec.owes_sources:
         return None
     if not f.sources:
         return "no SOURCES — a finding cites where it looked"
@@ -676,7 +772,8 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
         One sentence naming what disagrees, or None. Out-of-range indices are
         left to the range check, which reports them better.
     """
-    if f.verdict == "clean":
+    spec = VERDICTS.get(f.verdict)
+    if spec is None or not spec.owes_address:
         return None
     if not 1 <= f.block <= len(blocks):
         return None
@@ -738,8 +835,10 @@ def block_problem(f: Finding, blocks: list[dict]) -> str | None:
         The problem, or None. ⚠ An out-of-range block returns None: `main()`
         reports it already, and saying so twice reads as two defects.
     """
-    if f.verdict in ("clean", "add"):
-        return None
+    # ⚠ No verdict list here. `ruled_text` returns "" for every verdict whose
+    # row quotes no original -- `clean`, `add`, `query`, `move` -- and for a
+    # malformed spec, and the next line already treats "" as nothing to check.
+    # A second list would be a second place to update.
     if not 1 <= f.block <= len(blocks):
         return None
     needle = ruled_text(f)
@@ -758,7 +857,7 @@ def declares_scope(f: Finding) -> bool:
     the boundary it was told to report. Every other `query` IS work -- it names a
     claim nobody could settle, and the brief sends it to the author.
     """
-    return f.verdict == "query" and OUT_OF_ROLE in f.claim.lower()
+    return _is(f, "can_declare_scope") and OUT_OF_ROLE in f.claim.lower()
 
 
 def by_block(found: list[Finding]) -> dict[int, list[Finding]]:
@@ -797,25 +896,17 @@ def ruled_text(f: Finding) -> str:
     compare", never as "no overlap" -- silence there would hide a real collision
     behind an unreadable payload.
     """
-    if f.verdict in REMOVES:
-        _, sep, rest = f.claim.partition("drop:")
-        text = rest if sep else f.claim
-    elif f.verdict == "correct":
-        _, sep, rest = f.claim.partition("false:")
-        if not sep:
-            return ""
-        text = rest.partition("/ true:")[0]
-    elif f.verdict == "patch":
-        _, sep, rest = f.claim.partition("from:")
-        if not sep:
-            return ""
-        text = rest.partition("/ to:")[0]
-    else:
+    spec = VERDICTS.get(f.verdict)
+    if spec is None or not spec.quotes_original:
         return ""
-    # ⚠ Strip AGAIN after the quotes come off. A reviewer that pads inside the
-    # quotes -- `false: "  the budget is 3 "` -- otherwise keeps those spaces,
-    # and the needle then matches nothing in a block that plainly contains it.
-    return " ".join(text.split()).strip().strip('"').strip().lower()
+    _, sep, rest = f.claim.partition(spec.quotes_original)
+    if not sep:
+        return ""
+    text = rest.partition(spec.quotes_until)[0] if spec.quotes_until else rest
+    # ⚠ `_words` strips the quotes PER TOKEN, so a reviewer that pads inside
+    # them -- `false: "  the budget is 3 "` -- does not keep those spaces and
+    # leave a needle that matches nothing in a block plainly containing it.
+    return _words(text)
 
 
 def removed_spans(f: Finding, entry: dict) -> list[str] | None:
@@ -845,7 +936,8 @@ def removed_spans(f: Finding, entry: dict) -> list[str] | None:
         f: the finding.
         entry: its census record, which selects how the block is read.
     """
-    if f.verdict in ("clean", "query", "add", "move"):
+    spec = VERDICTS.get(f.verdict)
+    if spec is None or not spec.diffable:
         return None
     if not f.change.strip():
         return None
@@ -930,7 +1022,7 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
     named = _words(ruled_text(f))
     if not named:
         return None
-    if f.verdict == "drop" and not spans:
+    if VERDICTS[f.verdict].removes and not spans:
         return "drop: CHANGE still holds the sentence — nothing was removed"
     for span in spans:
         # ⚠ `_words` HERE, not inside `as_block`. The spans come off the census
@@ -986,8 +1078,8 @@ def contradictions(grouped: dict[int, list[Finding]], blocks: list[dict]) -> lis
 
     out: list[int] = []
     for block, fs in grouped.items():
-        removals = [touched(f) for f in fs if f.verdict in REMOVES]
-        rulings = [touched(f) for f in fs if f.verdict in RULES_ON_TEXT]
+        removals = [touched(f) for f in fs if _is(f, "removes")]
+        rulings = [touched(f) for f in fs if _is(f, "rules_on_text")]
         if not removals or not rulings:
             continue
         if any(not a or not b or a in b or b in a for a in removals for b in rulings):
@@ -1182,7 +1274,7 @@ def main() -> int:
     ran = sorted(reported | {f.reviewer for f in found})
     in_range = [f for f in found if 1 <= f.block <= len(blocks)]
     ruled = {
-        f.block for f in in_range if f.verdict != "clean" and not declares_scope(f)
+        f.block for f in in_range if _is(f, "substantive") and not declares_scope(f)
     }
     scoped_out = {f.block for f in in_range if declares_scope(f)} - ruled
     stands = sorted(all_blocks - ruled - scoped_out)
@@ -1213,7 +1305,7 @@ def main() -> int:
             marks = "  ".join(
                 f"{f.verdict}({f.reviewer})"
                 for f in sorted(grouped[b], key=lambda f: (f.verdict, f.reviewer))
-                if f.verdict != "clean" and not declares_scope(f)
+                if _is(f, "substantive") and not declares_scope(f)
             )
             flag = "   ⚠ RE-REVIEW" if b in out_for_rereview else ""
             print(f"  {b:4d}  {marks}{flag}")

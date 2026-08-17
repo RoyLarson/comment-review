@@ -481,19 +481,6 @@ class TestWorkList(unittest.TestCase):
         self.assertEqual(malformed, ["a record with no BLOCK index"])
 
 
-class TestVerdicts(unittest.TestCase):
-    """Every verdict is admissible on every run."""
-
-    def test_the_seven_verdicts_are_the_whole_set(self):
-        self.assertEqual(
-            set(verdicts.VERDICTS),
-            {"clean", "query", "drop", "correct", "patch", "add", "move"},
-        )
-
-    def test_reanchor_collapsed_into_move(self):
-        self.assertNotIn("reanchor", verdicts.VERDICTS)
-
-
 class TestContradiction(unittest.TestCase):
     """A contradiction is two verdicts on ONE SENTENCE.
 
@@ -1419,6 +1406,83 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
     def test_a_record_with_no_original_is_left_to_the_address_check(self):
         f = _finding(original="", change="# anything")
         self.assertIsNone(verdicts.edit_problem(f, self.ENTRY))
+
+
+class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
+    """Adding or changing a verdict is a ROW, not new code.
+
+    ⚠⚠ The reason this class exists is measured. On 2026-08-17 the record's
+    contract changed twice in a morning while per-verdict knowledge lived in
+    eight functions, each branching on the verdict name. Nobody found all
+    eight, and five defects shipped -- two of which refused 73% of one run's
+    substantive findings and 83 of 171 blocks in another, every refusal
+    correct.
+    """
+
+    # ⚠ Read off the shipped source, not restated. A list here would be a
+    # ninth place to update, which is the defect.
+    SOURCE = (SCRIPTS / "verdicts.py").read_text(encoding="utf-8")
+
+    def test_the_seven_verdicts_are_the_table(self):
+        self.assertEqual(
+            set(verdicts.VERDICTS),
+            {"clean", "query", "drop", "correct", "patch", "add", "move"},
+        )
+
+    def test_reanchor_collapsed_into_move(self):
+        self.assertNotIn("reanchor", verdicts.VERDICTS)
+
+    def test_no_check_branches_on_a_VERDICT_NAME(self):
+        # ⚠⚠ THE POINT OF THE TABLE. A comparison against a verdict name below
+        # the table is a fact about a verdict living somewhere other than its
+        # row -- which is exactly what cost five defects. Names may appear in
+        # PROSE and in the table itself; what may not appear is a comparison.
+        table_ends = self.SOURCE.index("def _n(")
+        logic = self.SOURCE[table_ends:]
+        offenders = [
+            line.strip()
+            for line in logic.splitlines()
+            if "f.verdict" in line
+            and re.search(r'f\.verdict\s*(==|!=|in)\s*[("\']', line)
+        ]
+        self.assertEqual(offenders, [], "a check branches on a verdict NAME")
+
+    def test_every_row_is_reachable_by_payload_problem(self):
+        # ⚠ A row nothing consults is a rule that does not apply. Each verdict
+        # is given an EMPTY claim; every row that requires one must say so in
+        # its own words.
+        for name, spec in verdicts.VERDICTS.items():
+            f = _finding(verdict=name, claim="", reason="why", change="x")
+            problem = verdicts.payload_problem(f)
+            if spec.owes_claim:
+                self.assertIsNotNone(problem, f"{name} accepted an empty CLAIM")
+            else:
+                self.assertIsNone(problem, f"{name} was asked for a CLAIM")
+
+    def test_a_row_that_quotes_no_original_reads_as_nothing_to_check(self):
+        # ⚠ `block_problem` no longer lists its own exemptions; it relies on
+        # this. If a row gained `quotes_original` without a matching CLAIM
+        # marker, findings would be checked against a sentence nobody wrote.
+        for name, spec in verdicts.VERDICTS.items():
+            if spec.quotes_original:
+                self.assertIn(
+                    spec.quotes_original,
+                    spec.claim_all,
+                    f"{name} quotes a marker its CLAIM is never required to carry",
+                )
+
+    def test_every_row_that_can_fail_a_shape_says_what_it_wants(self):
+        for name, spec in verdicts.VERDICTS.items():
+            if spec.claim_all or spec.claim_any:
+                self.assertTrue(spec.claim_help, f"{name} refuses without saying why")
+            if spec.change_all:
+                self.assertTrue(spec.change_help, f"{name} refuses without saying why")
+
+    def test_an_unknown_verdict_answers_False_rather_than_raising(self):
+        # ⚠ One typo in one record must not take the whole join down.
+        f = _finding(verdict="reanchor")
+        self.assertFalse(verdicts._is(f, "removes"))
+        self.assertIsNone(verdicts.payload_problem(f))
 
 
 class TestCLI(unittest.TestCase):
