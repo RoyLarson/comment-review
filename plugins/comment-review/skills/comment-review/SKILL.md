@@ -150,22 +150,22 @@ fallback; both silently narrow. Add `git diff --name-only HEAD` if dirty.
 ⚠ **No upstream, no merge base, detached HEAD — then there is no diff scope, and you say so
 rather than inventing one.** A repo with no remote is inside the floor. Scope from `target`
 instead, which REPLACES the diff scope and needs no base; failing that, from
-`git diff --name-only HEAD` alone. **Name in the report which of the three you used**, because
+`git diff --name-only HEAD` alone. **Say in the PROPOSAL which of the three you used**, because
 the three cover different files and a reader cannot tell them apart from the findings.
 
 **1.2 Find the repo's published cap and line WIDTH, and read HOW each counts** — matching the
 number while counting differently produces a file that claims to comply and does not.
 
 ⚠ **Two separate questions, and either may be absent.** A cap bounds the LINES in one `#` run;
-a width bounds the CHARACTERS in one line, and they usually live in different files — a
-contributing guide, `.editorconfig`, a formatter config. **If the repo publishes neither, say
-so and pass neither flag at stages 2-3.** ⚠ **A width you chose becomes a project fact in the
+a width bounds the CHARACTERS in one line, and each is published where it is published — a
+contributing guide, `.editorconfig`, a formatter config. **Pass a flag only for one the repo
+published**, and say which it published. ⚠ **A number you chose becomes a project fact in the
 output** — `over width (72): 2` reads identically whether the 72 was published or guessed.
 
 ⚠ **Then check the guard EXISTS, and if it does not, say what follows.** A convention citing
 an absent test publishes a rule enforced by nothing. **Proceed** — an unenforced rule is still
 the repo's rule and you have no standing to overrule it — but change two things and say so in
-the final report:
+the proposal:
 
 - **Treat every citation in scope as unverified**, not as evidence. The prose was written
   against a checker that never ran.
@@ -175,7 +175,7 @@ the final report:
 
 ⚠ **Ask which markers the repo exempts from the cap** (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`
 is the common set). An exempt marker neither counts toward the cap nor splits a run — a block
-that is in-cap except for a marker is IN CAP. Without this, the cheapest route to green is
+that is in-cap except for a marker is IN CAP. Without this, the quickest route to green is
 deleting the pointer to filed work.
 
 **1.3 MEASURE the repo's documentation formats. Do not assume one.** Read the docstrings that
@@ -197,7 +197,7 @@ verdict pointing at a tree that does not exist is not a verdict.
 
 ⚠⚠ **If the destination tree is absent, only `move` OUT OF THE CODE is unavailable — and
 those blocks become `clean`, never `drop`. A `move` to a destination inside tracked code is
-unaffected and always available.** Say so HERE, in the stage 1 report, and again at 7a; offer the human the one-line alternative
+unaffected and always available.** Say so at stage 1, and again in the proposal; offer the human the one-line alternative
 (create the tree, or name another destination). This matters because the matrix routes
 *not-checkable + necessary* to `move`, and a repo that stages prose usually also rules that
 prose is MOVED, never deleted — so with no destination those two rules leave the block with no
@@ -236,7 +236,7 @@ absolute paths, the fallback is a substitution rather than an improvisation.
 
 **1.7 Probe for a LANGUAGE SERVER, once per language in scope.** One `LSP documentSymbol`
 call against a representative file of each. Record which answered — that is a fact about
-this run and it belongs in the final report.
+this run and it belongs in the proposal.
 
 The server is the user's, not ours: someone reviewing Rust already runs rust-analyzer, so
 this is structure available for free that `census.py` cannot ship. It buys exactly two
@@ -318,7 +318,7 @@ same blocks and differ only in what else they can say:
 | `tokenized` | a lexer + AST (Python: the stdlib) | blocks, annotations, **docstring** anchors | a **comment's** anchor |
 | `lexical` | a comment-syntax record, nothing else | blocks, annotations | any anchor; a marker inside an exotic string |
 
-⚠⚠ **Carry the census's CANDIDATE line into your stage 2-3 report.** It prints that no comment
+⚠⚠ **Carry the census's CANDIDATE line into the proposal.** It prints that no comment
 carries an anchor at either tier, so every PLACEMENT verdict rests on a reviewer READING the
 file — a judgement no field records and nothing downstream can check.
 
@@ -359,10 +359,10 @@ Three rules people state separately all follow from the one definition, and gett
 wrong changes what the reviewers see:
 
 - **Only code ends a run.** A blank line does not. Split on blanks and a 9-line block reads
-  as `6 + 3` and passes a cap of 6 — the single cheapest way to fake compliance.
+  as `6 + 3` and passes a cap of 6 — the quickest way to fake compliance.
 - **A work marker is free** (`TODO` `FIXME` `HACK` `XXX` `BUG`, or whatever 1.2 found this
   repo exempts). It does not count toward the cap and it does not split the comment run. Both halves
-  matter: if it counted, the cheapest route to green would be deleting a pointer to filed
+  matter: if it counted, the quickest route to green would be deleting a pointer to filed
   work; if it split, a block could be made compliant by adding one. ⚠ **A marker's
   CONTINUATION lines still count** — only the marker line itself is free.
 - **A block belongs to the code BELOW it**, which is what makes it answerable at all: the block
@@ -402,7 +402,7 @@ it and could disagree.
 comment is true" — the annotation stays a CANDIDATE a reviewer confirms, exactly as when the AST
 answered it. What changes is the cost of checking, not who decides.
 
-⚠⚠ **Say which servers answered, in the stage 2–3 report, per language.** Availability is a
+⚠⚠ **Say which servers answered, per language, in the proposal.** Availability is a
 property of the machine, so two runs over identical input can resolve different sets. A run
 that had no server must not read like one that did — and any measurement taken with a server
 is not comparable to one taken without.
@@ -523,7 +523,9 @@ It exits nonzero on a coverage gap, a citation that does not resolve, a quote
 not found near its cited line, a verdict outside the seven, a role
 that did not report, or a payload the verdict table requires and the record
 lacks. It also names the blocks where `drop` meets `correct`/`patch` — **a
-re-review, never a tie-break** — and prints which blocks STAND UNCHANGED under
+re-review, never a tie-break** — and the blocks where `move` meets either, since a claim
+ruled on at the wrong anchor was measured against the wrong code. It prints which blocks
+STAND UNCHANGED under
 the clean-arithmetic.
 
 ⚠ **`query` is the one verdict this citation check does not touch.** It carries
@@ -539,7 +541,7 @@ self-reported confidence has been measured not to discriminate a real finding
 from a fabricated one.
 
 ⚠⚠ **It catches a fabricated FINDING, never a fabricated CLEAN — and the clean
-is the cheaper fabrication.** A report reading only `CLEAN 1-N` accounts for
+is the easier fabrication.** A report reading only `CLEAN 1-N` accounts for
 every index, cites nothing, and exits 0 having read no file at all. Nothing
 mechanical can separate that from a real pass, because a negative leaves no
 artifact. **A green exit here is not evidence that anything was read.**
@@ -580,19 +582,18 @@ being settled:
 
 1. **`query`** — resolve it or escalate it. An unresolved claim cannot be corrected, patched or
    dropped, because you would be editing something nobody has read.
-2. **`drop`, and any `move` whose destination is OUTSIDE the code** — take out what is
-   leaving. Doing this first stops you correcting a sentence that is about to go. ⚠ A `move`
-   staying inside the code does NOT belong here: it removes nothing, so it waits until the
-   text is settled.
-3. **`correct`** — fix truth, on what remains.
+2. **Every `move`, and every `drop`** — settle WHERE the prose lives before touching what it
+   says. A `move` out of the code and a `drop` take out what is leaving; a `move` inside the
+   code re-attaches what belongs beside different code, and a block whose sentences belong in
+   different places is several `move`s, one per sentence. ⚠ **Placement comes first because a
+   claim is measured against the code it sits with** — correct it where it does not belong and
+   you have corrected it against the wrong code.
+3. **`correct`** — fix truth, on what remains, at the anchor it now sits on.
 4. **`patch`** — fix wording, on text now known to be true. ⚠ **Never before step 3:** a
    `patch` on a false sentence polishes the wording of a falsehood and retires the finding.
    That is laundering, and this order is what prevents it.
 5. **`add`** — insert at the stated anchors.
-6. **`move` inside the code** — re-attach what belongs beside different code. A block whose
-   sentences belong in different places is several `move`s, one per sentence. Last before
-   `clean`, because the text must be final first.
-7. **`clean`** — the null verdict. A block stands unchanged when **every reviewer that ran**
+6. **`clean`** — the null verdict. A block stands unchanged when **every reviewer that ran**
    returned `clean` and nothing else.
 
 ⚠ **Load [`references/residue-check.md`](references/residue-check.md) before you write anything**
@@ -614,7 +615,7 @@ not once per verdict. The check compares against the original, and the original 
 - **`drop` against `correct` OR `patch` on the same sentence is a contradiction**, not a merge —
   one role says it should not exist and another says it should exist and be fixed. Send it back
   for re-review. ⚠ **Do not let the synthesis order decide it.** Step 2 applies `drop` before
-  step 3 and 4, so deletion would win silently — and if the dropped sentence carries a fact the
+  steps 3 and 4, so deletion would win silently — and if the dropped sentence carries a fact the
   survivor does not, that is a meaning change made on an absent author's behalf, which
   CONSERVATIVE ON MEANING forbids.
 
@@ -670,7 +671,7 @@ below and the absolute path of [`references/compact.md`](references/compact.md).
 saw the argument cannot preserve a sentence because it remembers writing it.
 The narrow contract is only a safety property if the reader is different from
 the writer. If the agent does not resolve, use the same fallback as 1.6 — a
-general-purpose agent given the path — and **say in the report that you ran it
+general-purpose agent given the path — and **say in the proposal that you ran it
 yourself** if you had to.
 
 ⚠ **Nothing is on disk yet.** This pass condenses the PROPOSED text, not a file — the author

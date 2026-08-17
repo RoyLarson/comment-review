@@ -25,7 +25,7 @@ with the record.
 ⚠ **If the run context says a LANGUAGE SERVER answered, use it to settle a claim about a
 symbol** — `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`. It is faster and
 more exact than grep, it works in languages no parser here reads, and `findReferences` is the
-only cheap way to test a claim like *"the only caller"* or *"nothing reads this"*.
+only quick way to test a claim like *"the only caller"* or *"nothing reads this"*.
 
 ⚠⚠ **A server settles a FACT, never a VERDICT.** "This name exists" and "three files call it"
 are inputs to your judgement, not a substitute for it. And a server that is ABSENT proves
@@ -154,7 +154,7 @@ ambiguous or the location not yours to determine.
 
 ## Check the CLAIM, not the CITATION
 
-Resolving a path or a symbol is cheap and *feels* like verification. Resolving a claim **is**
+Resolving a path or a symbol is quick and *feels* like verification. Resolving a claim **is**
 the verification. A resolved citation is not a verified one — open the target and read it, or
 the verdict is `query`.
 

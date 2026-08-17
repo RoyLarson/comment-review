@@ -331,6 +331,39 @@ class TestContradiction(unittest.TestCase):
         found = [_finding(reviewer="ownership-context", block=7, verdict="drop")]
         self.assertEqual(verdicts.contradictions(found), [])
 
+    def test_move_against_correct_is_flagged(self):
+        # The claim was measured against the code the block sat with. One role
+        # says that anchor is wrong, so the `correct` was derived at the wrong
+        # place -- the same collision as drop/correct, one step earlier.
+        found = [
+            _finding(reviewer="ownership-context", block=7, verdict="move"),
+            _finding(reviewer="block-context", block=7, verdict="correct"),
+        ]
+        self.assertEqual(verdicts.contradictions(found), [7])
+
+    def test_move_against_patch_is_flagged(self):
+        found = [
+            _finding(reviewer="ownership-context", block=7, verdict="move"),
+            _finding(reviewer="block-context", block=7, verdict="patch"),
+        ]
+        self.assertEqual(verdicts.contradictions(found), [7])
+
+    def test_move_with_clean_is_not_a_contradiction(self):
+        # `clean` rules on nothing, so it collides with nothing.
+        found = [
+            _finding(reviewer="ownership-context", block=7, verdict="move"),
+            _finding(reviewer="block-context", block=7, verdict="clean"),
+        ]
+        self.assertEqual(verdicts.contradictions(found), [])
+
+    def test_move_and_drop_together_are_not_a_contradiction(self):
+        # Both relocate; neither rules on what the sentence says.
+        found = [
+            _finding(reviewer="ownership-context", block=7, verdict="move"),
+            _finding(reviewer="module-context", block=7, verdict="drop"),
+        ]
+        self.assertEqual(verdicts.contradictions(found), [])
+
     def test_a_malformed_block_is_never_reported_as_a_contradiction(self):
         # Minor: a -1 sentinel (a malformed record) must not surface as
         # "RE-REVIEW [-1]" -- it names no real block.

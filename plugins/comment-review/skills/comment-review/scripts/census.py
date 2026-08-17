@@ -75,7 +75,7 @@ def counted_lines(raw: list[str]) -> int:
 
     A marker points at filed work; the explanation is the rest of the block, and
     the cap measures the explanation. Charge the marker and deleting the pointer
-    to filed work becomes the cheapest route to green.
+    to filed work becomes the quickest route to green.
 
     The exemption is one line wide. A run stays one run across a marker, and a
     marker's continuation lines are charged: six lines plus a `TODO:` is six.

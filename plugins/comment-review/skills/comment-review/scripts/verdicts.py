@@ -8,7 +8,7 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   EVIDENCE      each finding's citation resolves, and the QUOTE is really there
   LOCATION      the prose citation resolves too -- checked the same way
   PAYLOAD       the verdict carries what its row of the table requires
-  CONTRADICTION `drop` against `correct`/`patch` on one block -- a re-review.
+  CONTRADICTION `drop` or `move` against `correct`/`patch` -- a re-review.
                 Counted apart from the fatal checks, and named in the closing
                 line so the summary says which blocks are still out
   STANDS        blocks every reviewer that ran returned clean on
@@ -50,6 +50,12 @@ VERDICTS = (
     "add",
     "move",
 )
+
+# What a contradiction IS: one role ruling on where the prose lives, another on
+# what it says. Named rather than inlined so the join's message and this test
+# cannot drift apart.
+RELOCATES = frozenset({"drop", "move"})
+RULES_ON_TEXT = frozenset({"correct", "patch"})
 
 RECORD = re.compile(r"^---\s*RECORD\s*$(.*?)^---\s*$", re.M | re.S)
 # Counts "--- RECORD" OPENERS on their own, independent of whether a closing
@@ -343,14 +349,21 @@ def location_problem(f: Finding, repo: Path) -> str | None:
 
 
 def contradictions(found: list[Finding]) -> list[int]:
-    """Blocks where one reviewer says delete and another says fix. Re-review."""
+    """Blocks where one role rules on the TEXT and another on WHERE it lives.
+
+    `drop` against `correct`/`patch` is one role saying the sentence should not
+    exist and another saying it should exist and be fixed. `move` against either
+    is the same collision one step earlier: a claim is measured against the code
+    it sits with, so a `correct` written at an anchor another role says is wrong
+    was measured against the wrong code. Both go back for re-review.
+    """
     by_block: dict[int, set[str]] = defaultdict(set)
     for f in found:
         if f.block < 0:
             continue  # a malformed record names no real block
         by_block[f.block].add(f.verdict)
     return sorted(
-        b for b, vs in by_block.items() if "drop" in vs and ({"correct", "patch"} & vs)
+        b for b, vs in by_block.items() if (RELOCATES & vs) and (RULES_ON_TEXT & vs)
     )
 
 
@@ -490,7 +503,7 @@ def main() -> int:
 
     clash = contradictions(found)
     if clash:
-        print(f"\nRE-REVIEW — drop against correct/patch on: {clash}")
+        print(f"\nRE-REVIEW — drop/move against correct/patch on: {clash}")
         print(
             "  Not a tie-break. Send the block back; the synthesis order"
             " must not decide it."
@@ -517,8 +530,8 @@ def main() -> int:
         print(f"\n{_n(fatal, 'problem')}. Resolve or send back before stage 5 rules.")
         return 1
     if clash:
-        # ⚠ A contradiction is counted apart from the fatal checks: `drop`
-        # against `correct` is a re-review, and both records are well formed.
+        # ⚠ A contradiction is counted apart from the fatal checks: it is a
+        # re-review, and both records are well formed.
         # The closing line still has to say so -- printing "send the block back"
         # and then "Stage 5 may rule" four lines later made the summary
         # contradict its own body at exit 0.
