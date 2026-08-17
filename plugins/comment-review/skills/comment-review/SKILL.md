@@ -101,9 +101,9 @@ placement, nothing else.
 An unresolved anchor weakens a verdict; an absent block produces none and reports no gap. **Adopt
 a richer source of structure only if it misses ZERO blocks.**
 
-**A suffix with no record in `LANGUAGES` is named, and the census EXITS NONZERO** — every file
+**A suffix the census has no record for is named, and the census EXITS NONZERO** — every file
 handed in is censused or the run stops. `python <skill>/scripts/census.py --languages` lists
-what is known.
+the languages it knows.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding. The brief holds that rule and binds the reviewers to it.

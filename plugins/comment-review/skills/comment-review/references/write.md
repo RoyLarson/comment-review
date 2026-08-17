@@ -47,8 +47,7 @@ the pre-edit ref. Against the merge base the rail below then says to restore a c
 
 It exits nonzero unless every path is proven, and it reports an **unprovable**
 file rather than passing it. It carries the AST comparison for Python, a
-comment-stripped byte comparison for every other language with a `LANGUAGES`
-record, and the line-ending check against an untouched sibling. ⚠ **Re-run it
+comment-stripped byte comparison for every other language the census knows, and the line-ending check against an untouched sibling. ⚠ **Re-run it
 after the formatter** — the formatter can reshape what you wrote.
 
 ⚠ **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The claim is
