@@ -259,6 +259,11 @@ class Language:
             or the run above a declaration (Go). Both need structure to decide,
             so this tier reports `comment` and annotates the block.
         quotes: string delimiters, so a marker inside a literal is skipped.
+        spanning_quotes: delimiters whose literal may cross LINES -- a JS
+            template literal, a Java text block. ⚠ `_strip_strings` is per-line
+            and carries no open-quote state, so a comment marker INSIDE one of
+            these reads as a comment; `prove_unchanged` refuses such a file
+            rather than proving it. Empty where a language has none.
     """
 
     name: str
@@ -269,6 +274,7 @@ class Language:
     doc_block: tuple[str, ...] = ()
     doc_is_structural: bool = False
     quotes: tuple[str, ...] = ('"', "'")
+    spanning_quotes: tuple[str, ...] = ()
 
 
 # ⚠ Ordering inside a field is significant: openers are matched longest-first,
@@ -298,6 +304,7 @@ LANGUAGES: tuple[Language, ...] = (
         (("/*", "*/"),),
         doc_block=("/**",),
         quotes=('"', "'", "`"),
+        spanning_quotes=("`",),
     ),
     Language("ruby", (".rb",), ("#",), (("=begin", "=end"),), doc_is_structural=True),
     Language("shell", (".sh", ".bash", ".zsh"), ("#",)),
@@ -432,9 +439,33 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             opened = None
         if opened is not None:
             flush()
-            run.append((n, raw_line.rstrip()))
-            if opened[1] in code[code.index(opened[0]) + len(opened[0]) :]:
-                flush()
+            # ⚠⚠ CUT AT THE OPENER, like the line-comment path below does. The
+            # whole raw line was appended, so `int b = 2; /* note */` was
+            # censused as one `comment` block whose TEXT held the statement --
+            # executable code handed to four reviewers as prose, run through the
+            # annotation regexes, and dropped from `code_lines`, which moved
+            # every interval boundary in the file. Measured 2026-08-17, the same
+            # shape as the `//`-before-`/*` case fixed directly above.
+            opens_at = code.index(opened[0])
+            tail = code[opens_at + len(opened[0]) :]
+            closes_here = opened[1] in tail
+            # ⚠⚠ CUT AT THE OPENER ONLY WHEN THE COMMENT RUNS TO END OF LINE.
+            # `int b = 2; /* note */` cuts, and the statement stays code. But
+            # `int x = /* why */ 5;` has code AFTER the closer, and cutting
+            # there loses the `5;` -- so `5` and `7` compare EQUAL and
+            # `prove_unchanged` reports PROVEN on a changed literal. Storing the
+            # whole line keeps `_delimiter_shares_the_line` able to refuse it,
+            # which is the safe answer for a proof. Measured 2026-08-17: the cut
+            # was written without this condition and the existing test caught it.
+            after = (
+                tail[tail.index(opened[1]) + len(opened[1]) :] if closes_here else ""
+            )
+            cut = opens_at if closes_here and not after.strip() else 0
+            run.append((n, raw_line[cut:].rstrip()))
+            if closes_here:
+                # ⚠ Code BEFORE the opener makes it a trailing comment, which is
+                # what it is: prose about the statement on its own line.
+                flush(trailing=bool(cut and code[:opens_at].strip()))
             else:
                 in_block = opened
             continue

@@ -54,12 +54,15 @@ def tokens_for(path: Path, text: str) -> set[str]:
         try:
             tree = ast.parse(text)
         except PARSE_ERRORS:
-            # ⚠ BREAK, not return. Returning here skipped the length filter
-            # below, so a two-character stem reached `git grep -l -F` and
-            # matched nearly every tracked file -- flooding the REFERENCE ONLY
-            # list on exactly the files whose harvest had already failed.
-            pass
-        for node in tree.body:
+            # ⚠⚠ A file that will not parse yields its PATH and STEM only, and
+            # must still reach the length filter below -- an earlier `return`
+            # here skipped it, so a two-character stem went to `git grep -l -F`
+            # and matched nearly every tracked file. ⚠ `tree = None`, not a bare
+            # `pass`: this is not a loop, and falling through left `tree`
+            # unbound, so the handler written for a mid-edit file crashed on
+            # one. Both shapes measured 2026-08-17.
+            tree = None
+        for node in tree.body if tree is not None else ():
             if isinstance(node, NAMED_DEFS) and not node.name.startswith("_"):
                 out.add(node.name)
     return {t for t in out if len(t) > 2}

@@ -690,7 +690,13 @@ def source_problem(f: Finding, repo: Path) -> str | None:
         window = " ".join(
             " ".join(ln.split()) for ln in lines[lo : end + SOURCE_WINDOW]
         )
-        if needle[:40].lower() not in window.lower():
+        # ⚠⚠ The WHOLE needle is compared; only the MESSAGE is truncated. The
+        # slice was on both, so a citation was verified on its first 40
+        # characters and anything after them was unchecked -- 44 real
+        # characters followed by 43 fabricated ones passed as admissible
+        # evidence. `40` is a display width, and it had quietly become the
+        # verification depth.
+        if needle.lower() not in window.lower():
             return f"SOURCES not found near {cite.strip()}: {needle[:40]!r}"
     return None
 
@@ -875,7 +881,10 @@ def block_problem(f: Finding, blocks: list[dict]) -> str | None:
     # was only whitespace-collapsed still holds them, so any comma, colon or
     # backtick inside a quoted sentence refused a correct finding.
     haystack = _words(str(blocks[f.block - 1].get("text", "")))
-    if needle[:40] not in haystack:
+    # ⚠ Same rule as SOURCES: compare all of it, truncate only the message. A
+    # fabricated tail here made `edit_problem` MORE permissive, because it
+    # widened the string every removed span is checked against.
+    if needle not in haystack:
         return f"the sentence ruled on is not in block {f.block}: {needle[:40]!r}"
     return None
 

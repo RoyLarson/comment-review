@@ -122,6 +122,21 @@ def _without_comments(text: str, path: Path) -> str | None:
         return None
     if any("unterminated-block-comment" in b.annotations for b in blocks):
         return None
+    # ⚠⚠ A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
+    # is per-line and carries no open-quote state, so a line INSIDE a JS
+    # template literal or a Java text block that begins with the language's
+    # comment marker is censused as a comment and deleted from BOTH
+    # fingerprints. Measured 2026-08-17: a template literal whose body changed
+    # from `// alpha` to `// omega` produced identical fingerprints and the file
+    # was reported PROVEN -- a fail-OPEN in the one gate whose whole claim is
+    # that executable code is byte-identical.
+    #
+    # ⚠ This refuses on the delimiter's PRESENCE, not on parity: parity is what
+    # the per-line lexer already cannot compute, so trusting it here would be
+    # the same mistake one layer up. A proof that refuses costs a report; a
+    # proof that lies costs the claim.
+    if any(q in text for q in lang.spanning_quotes):
+        return None
 
     lines = text.splitlines()
     # Pre-seed every line as itself; a block below either drops its entry

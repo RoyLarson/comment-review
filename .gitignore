@@ -38,3 +38,20 @@ uv.lock
 # ledger is the recovery map across a compaction; git history is the record
 # that outlives it, so none of this is committed.
 .superpowers/
+
+# ── Evidence is OPT-IN ────────────────────────────────────────────────────────
+# ⚠⚠ A run in flight writes into `evidence/<name>/` for as long as it lasts, and
+# a `git add -A` from another session sweeps that half-written state into a
+# commit. Measured 2026-08-17: it happened twice in one afternoon, from the
+# session that had already said it would stop doing it.
+#
+# So everything directly under `evidence/` is ignored and each directory is
+# added back BY NAME, which makes tracking a package a decision rather than an
+# accident. ⚠ The directory itself must be un-ignored, not its contents: git
+# does not descend into an excluded directory, so `!evidence/x/*` alone matches
+# nothing.
+evidence/*
+!evidence/ga/
+!evidence/probes/
+!evidence/todo-tool-full-run/
+!evidence/*.md
