@@ -1,6 +1,6 @@
 """Stage 2: every comment run and every docstring, located as a numbered block.
 
-    python census.py [--repo D] [--census-only] [--json] <paths>
+    python census.py [--repo D] [--census-only] [--json] [--out PATH] <paths>
 
 The reviewers are handed this list, so it is the whole population they rule on.
 **Every file handed in is censused, or this errors** -- a file it could not read
@@ -37,6 +37,7 @@ import re
 import sys
 import tokenize
 from collections import Counter, defaultdict
+from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -616,12 +617,28 @@ def main() -> int:
     ap.add_argument("--census-only", action="store_true")
     ap.add_argument("--json", action="store_true")
     ap.add_argument(
+        "--out", metavar="PATH", help="write the report to PATH, not stdout"
+    )
+    ap.add_argument(
         "--languages",
         action="store_true",
         help="list known languages and the tier each reaches, then exit",
     )
     args = ap.parse_args()
 
+    # ⚠ WRITES ITS OWN FILE. A shell redirect is refused outright by a
+    # worktree-isolated harness -- "too complex to verify that it stays inside
+    # the worktree" -- and the JSON census is what the stage-5 join parses, so
+    # the only documented route to it was unrunnable there.
+    if args.out:
+        with open(args.out, "w", encoding="utf-8", newline="") as fh:
+            with redirect_stdout(fh):
+                return _report(args)
+    return _report(args)
+
+
+def _report(args: argparse.Namespace) -> int:
+    """Everything the run prints, so `--out` can wrap it in one place."""
     if args.languages:
         print(f"{'language':<10} {'tier':<11} extensions")
         for lang in LANGUAGES:

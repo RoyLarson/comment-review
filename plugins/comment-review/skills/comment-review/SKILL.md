@@ -158,9 +158,9 @@ number while counting differently produces a file that claims to comply and does
 
 ⚠ **Two separate questions, and either may be absent.** A cap bounds the LINES in one `#` run;
 a width bounds the CHARACTERS in one line, and each is published where it is published — a
-contributing guide, `.editorconfig`, a formatter config. **Pass a flag only for one the repo
-published**, and say which it published. ⚠ **A number you chose becomes a project fact in the
-output** — `over width (72): 2` reads identically whether the 72 was published or guessed.
+contributing guide, `.editorconfig`, a formatter config. **Record what the repo published and
+say which** — the census takes neither number, so a cap you invented would reach stage 6 as a
+project fact nobody published.
 
 ⚠ **Then check the guard EXISTS, and if it does not, say what follows.** A convention citing
 an absent test publishes a rule enforced by nothing. **Proceed** — an unenforced rule is still
@@ -288,9 +288,13 @@ were given. A relative one resolves against whatever directory you are in, which
 guaranteed to be the skill's.
 
 ```bash
-python <skill>/scripts/census.py --repo . <paths...>
-python <skill>/scripts/census.py --json --repo . <paths...> > <census>.json
+python <skill>/scripts/census.py --repo . --out <run-dir>/census.txt <paths...>
+python <skill>/scripts/census.py --json --repo . --out <run-dir>/census.json <paths...>
 ```
+
+⚠⚠ **`--out`, never a shell redirect.** A worktree-isolated session REFUSES a command carrying
+one — *"too complex to verify that it stays inside the worktree"* — and the JSON census is what
+stage 5 parses, so a redirect makes the run impossible there rather than merely awkward.
 
 ⚠ **The census takes no cap and no width.** The cap belongs to stage 6, and the reviewers are
 handed this file — printing an over-cap count here puts it in front of the four roles that must
