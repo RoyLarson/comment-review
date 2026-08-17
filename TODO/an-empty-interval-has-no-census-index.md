@@ -3,7 +3,7 @@
 ```
 Status:   open — the census change is DONE 2026-08-17; what is left is a NAMING
           ruling, which is Roy's
-Progress: 8 of 10 tasks done
+Progress: 9 of 11 tasks done
 Owner:    session · Roy (⭐ 1 ruling, deferred by him and now unblocked)
 Raised:   2026-08-15 (Roy ruled (a): every interval is a block, empty ones included)
 ```
@@ -30,6 +30,16 @@ records.
 vocabulary and is done; this is the census change that follows from it.
 
 ## Tasks
+
+- [x] ⚠⚠ **MEASURED ON REVIEW YIELD, 2026-08-17, and the effect is larger than the change
+      was argued for.** Two runs of the same skill over the same repo at the same ref, before
+      and after the interval exemption: `function-context` went from **172 records / 11
+      findings** to **1175 records / 68 findings**. The session running it named the cause --
+      *"Removing the interval-coverage pressure is what did it; the role spent its budget
+      reading instead of accounting."* ⚠ This was argued as a correctness change -- `add` needs
+      an index -- and it turns out also to be a yield change, because coverage the role did not
+      owe was consuming the budget it reads with. ⚠ Two runs, one role, one repo: an effect, not
+      a rate.
 
 - [x] Enumerate every interval between two code lines, including empty ones — `intervals()`
       in `census.py`, run from `census_for` after the prose blocks are built. A gap that HOLDS
