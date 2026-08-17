@@ -365,10 +365,11 @@ wrong changes what the reviewers see:
   as `6 + 3` and passes a cap of 6 — the quickest way to fake compliance.
 - **A work marker does not split a block** (`TODO` `FIXME` `HACK` `XXX` `BUG`, or whatever
   1.2 found this repo exempts) — otherwise a block could be made compliant by adding one.
-- **A block belongs to the code BELOW it**, which is what makes it answerable at all: the block
-  above is about `result`, and a finding says so by naming that anchor.
-- **A trailing comment is its own block**, one line, anchored to the code on that line — and a
-  trailing comment whose sentence carries past its own line is a finding in itself.
+- **A COMMENT block belongs to the code BELOW it**, which is what makes it answerable at all:
+  the block above is about `result`, and a finding says so by naming that anchor. ⚠ **A
+  DOCSTRING belongs to the declaration it sits INSIDE** — the `def` or `class` above it, which
+  is where the census reads its anchor from.
+- **A trailing comment is its own block**, one line, anchored to the code on that line.
 
 Marks, and what resolving each one means:
 
