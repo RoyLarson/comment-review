@@ -18,7 +18,8 @@ ordinary English. Nothing else defines them.
 **Your question: do the comments say this is ONE module?**
 
 Read the module docstring, the section BANNERS — comment lines dividing a file into named parts
-— and the top-of-file commentary. Read the file as ONE argument.
+— the top-of-file commentary, the module-level BINDINGS, and whatever the module runs at import
+or as a script. Read the file as ONE argument.
 
 ## The finding is a module announcing more than one subject
 
@@ -61,11 +62,20 @@ finding.
 ⚠ **Coverage is not one line per name.** A docstring accounts for a name when a reader can
 tell why it exists — a paragraph naming the module's one job can cover several names at once.
 
-## Module-level state is documented or it is a trap
+## Module level is yours: its state, its constants, and what it RUNS
 
 For each module-level mutable binding, ask whether the docstring says who writes it, when, and
 what depends on it having been written. Import-order dependencies and caches are the shapes
 that break silently — an undocumented one is `add`, not `clean`.
+
+⚠ **A CONSTANT at module level claims the value belongs to the whole module.** Ask whether the
+prose says WHY it sits there rather than inside the one function that reads it, and whether
+anything outside that function reads it at all. The missing why is `add`; a constant the module
+does not need at module level is a **CODE CONCERN**, because moving it is a code change.
+
+⚠ **What the module RUNS is yours** — an `if __name__ == "__main__":` block, an import-time
+side effect, a registration call. It is behaviour the file performs on being loaded or invoked,
+and a docstring that describes only what the module DEFINES leaves it unaccounted for.
 
 ## The rule stated in several places
 
@@ -90,15 +100,16 @@ it. Treat a heavily restated rule as load-bearing until shown otherwise, never a
 ⚠ **Your finding is that no function OWNS the rule.** Copies that exist because the claim
 sits in the wrong place are a placement question, and outside your remit.
 
-## ⚠⚠ Most of the census you are handed is not yours, and that is a trap
+## ⚠⚠ Much of the census you are handed is not yours
 
-You are scoped to a small slice — module docstrings, banners, top-of-file prose — so most blocks
-in the census are not yours. **Return `query` and name the reason as "outside my role"** rather
+You are scoped to what belongs to the module AS A WHOLE — its docstring, banners, top-of-file
+prose, module-level bindings and module-level runtime — so a block inside a function body is
+not yours. **Return `query` and name the reason as "outside my role"** rather
 than reaching for a substantive verdict to have something to write.
 
 ⚠⚠ **Do NOT invent a word for it.** The brief lists three shapes that reach `query`, and
-outside-your-role is the first. A ninth verdict word breaks the arithmetic the task agent
-performs, because a word outside the seven counts as neither a finding nor a pass.
+outside-your-role is the first. A word outside the seven breaks the arithmetic the task agent
+performs, because it counts as neither a finding nor a pass.
 
 A coherence reviewer handed a long census of blocks outside its role filed nearly all of them
 under one substantive label, corrupting the summary for everyone reading it. An honest
