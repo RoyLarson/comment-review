@@ -60,15 +60,14 @@ has. **Availability keys on the destination, never on the verdict:** only a dest
 OUTSIDE the code needs the tree 1.4 resolved, so only that case can be unavailable. A
 relocation into tracked code needs nothing outside it and is never withheld.
 
-⚠⚠ **`correct` and `patch` are the distinction the whole design turns on.** `correct` says the
-sentence is wrong; `patch` says it is right and reads badly. Applying a `patch` to a false
-sentence polishes the wording of a falsehood and retires the finding — the laundering failure
-in its purest form. That is why stage 5 orders them, and why they are separate words.
+⚠⚠ **`correct` and `patch` are separate verdicts, and stage 5 applies them in that order.**
+`correct` says the sentence is wrong; `patch` says it is right and reads badly. Applying a
+`patch` to a false sentence polishes the wording of a falsehood and retires the finding — that
+is laundering, and it is what the ordering prevents.
 
-A reviewer's verdict is only usable if it carries its payload (`correct` carries a pair,
-`move` carries a source and destination, `add` carries an anchor). That contract is the reviewers', and
-[`references/reviewer-brief.md`](references/reviewer-brief.md) holds it — you enforce it at
-stage 5 by refusing a verdict that arrives without one.
+A reviewer's verdict is only usable if it carries its payload. That contract is the
+reviewers', and [`references/reviewer-brief.md`](references/reviewer-brief.md) holds it — you
+enforce it at stage 5 by refusing a verdict that arrives without one.
 
 ## Why the stages are in this order
 
@@ -163,7 +162,7 @@ Their disagreement is valuable; it is not a safety mechanism and must never be u
 CONSERVATIVE ON MEANING, FREE ON FORM.** An editor rules on form; the author rules on what a
 sentence claims. With the author not reading, you may fix wording, placement and length on your
 own judgement — but every change to what a sentence CLAIMS needs evidence in hand, or it is a
-`query`. That is why `correct` carries a pair and `patch` carries only a rewrite.
+`query`. That is why `correct` must carry the line that settles the claim, and `patch` need not.
 
 **The TASK AGENT — you.** Run stages 1–3, launch the reviewers, rule, present, and after
 approval apply. You are the only participant that writes, and only after approval. Reach

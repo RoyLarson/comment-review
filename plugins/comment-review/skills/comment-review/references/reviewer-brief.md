@@ -97,11 +97,11 @@ finding.
 
 #### `correct` and `patch` specific rules
 
-⚠ **`correct` and `patch` are not interchangeable, and the difference is the whole point.**
-`correct` says the claim is wrong; `patch` says it is right and reads badly. The task agent
-applies every `correct` **before** any `patch`, so mislabelling one as the other means a false
-claim gets its wording polished and never gets checked. That is the laundering failure in its
-purest form. If you are unsure which applies, you have not settled the claim — that is `query`.
+⚠ **`correct` and `patch` are not interchangeable.** `correct` says the claim is wrong;
+`patch` says it is right and reads badly. The task agent applies every `correct` **before** any
+`patch`, so mislabelling one as the other means a false claim gets its wording polished and
+never gets checked — that is laundering. If you are unsure which applies, you have not settled
+the claim — that is `query`.
 ⚠ **A sentence that is not truthy cannot be `correct`ed**, because there is nothing to correct
 it against — it is `drop` or `query`.
 *"The retry budget is 40"* is truthy, and false if the budget is 100. That is a `correct` mark.
