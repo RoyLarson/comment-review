@@ -9,7 +9,7 @@ reviewer with no error anywhere, and a run with no style sheet introduced en-GB
 spellings into a codebase whose identifiers are en-US, with every reviewer
 satisfied because nothing owned consistency.
 
-⚠ CAP and WIDTH are absent from REQUIRED. The cap reaches stage 6 through
+⚠ CAP and WIDTH are absent from REQUIRED. Stage 6 is handed the cap through
 `compact.md`'s own input contract instead.
 
 ⚠ A section present and EMPTY is a failure. A published non-answer --

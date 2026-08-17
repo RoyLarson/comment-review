@@ -187,10 +187,10 @@ to make.
 their scope; a claim attached to the wrong scope is measured against the wrong code and
 `correct`ed into a falsehood.
 
-⚠⚠ **If `move` is unavailable (1.4), the cap is out of reach — say so up front.** True
-rationale with no destination becomes `clean` and stays where it is, so COMPACT must cap prose
-it is forbidden to cut. Measured: the residual over-cap blocks were almost entirely this. The
-cap is reachable again the day the destination tree exists — that is worth telling the human at
+⚠⚠ **If `move` is unavailable (1.4), blocks will stay OVER the cap — say so up front.** True
+rationale with no destination becomes `clean` and stays where it is, and COMPACT may not cut
+evidence to shorten it. Measured: the residual over-cap blocks were almost entirely this. They
+come under the cap the day the destination tree exists — that is worth telling the human at
 stage 1, not at stage 6.
 
 ⚠⚠ **THE CAP IS APPLIED IN STAGE 6 AND NOWHERE ELSE** — never while text is being written,

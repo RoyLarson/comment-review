@@ -100,7 +100,7 @@ makes this pass safe. ⚠ **It IS a separate subagent —
 `comment-review:comment-review-compact` — not an optional handoff.** The
 contract only buys anything if the reader is not the writer.
 
-## When the cap cannot be reached
+## When a block cannot come under the cap
 
 **STOP and report it** — the block, its true length, and what holds it there. Do not resolve
 the conflict by cutting.
@@ -110,7 +110,7 @@ usually a rule with no owning function, so every site performing part of it re-e
 whole. Trimming the comment treats the symptom. Report it, name the owner if you can see one,
 and leave it.
 
-⚠ **Never reach the cap by deleting evidence.** Between a comment that is over the cap and one
+⚠ **Never cut evidence to bring a block under the cap.** Between a comment that is over the cap and one
 that is in-cap and unfalsifiable, **the over-cap one is correct and the in-cap one is a defect
 wearing a passing grade.**
 

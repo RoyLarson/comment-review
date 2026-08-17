@@ -132,7 +132,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "add",
   "anchor",
   "argument",
-  "cap",
   "census",
   "clean",
   "correct",

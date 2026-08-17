@@ -80,8 +80,8 @@ Four shapes, each measured as a real deletion. Verdict `add`; write the sentence
 
 - **An output contract the return type cannot state.** `-> str` cannot say *"and it must fit 42
   columns"*; `-> float` cannot say **which unit**; `-> list` cannot say **sorted by what**.
-- **A caller obligation.** *"Callers round separately — when the cap bites they must FLOOR,
-  never round to nearest."* **Imperative mood is the tell.** An instruction to a caller cannot
+- **A caller obligation.** *"Callers round separately — when the ceiling binds they must
+  FLOOR, never round to nearest."* **Imperative mood is the tell.** An instruction to a caller cannot
   be relocated to a document, because the caller is not reading the document.
 - **A parameter's restricted domain, and WHY.** A range that looks arbitrary is a rule nobody
   can defend. Measured: the sentence explaining why a lookup table covered only a subset was
