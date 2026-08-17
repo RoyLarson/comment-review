@@ -36,10 +36,26 @@ holding prose, ~40 edits applied. `ruff check` clean, `ruff format` clean, **the
 unchanged**, 1103 tests passing — and stage 8 returned *NOT done* with twelve findings. From
 that README: *"Every mechanical check said the edit was good. The page was worse than before."*
 
-⚠ **Read the baseline with its confound.** The same README: both runs were operated by a
-session that KNEW it was testing the skill, and *"rolling back rather than shipping is cheap
-when the refusal is the result being sought."* The signal is real but its rate is not yet
-established — one run, by an operator with a reason to revert.
+⚠⚠ **The confound is DIRECTIONAL, so the two outcomes are not worth the same.** Roy,
+2026-08-17: *"the agent that thinks it is easier to revert any bad comments is going to have a
+higher discrimination signal than one that thinks it is going to have to accept the edits. The
+strength of the signal is that it would accept the changes even though it 'knows' there is an
+out."* Knowing it is a test lowers the cost of reverting, which biases toward reverting:
+
+| outcome | what it is worth |
+| --- | --- |
+| **REVERTED** | weak — the cheap move, and the one a session being measured is pushed toward |
+| **KEPT** | strong — it accepted the edits while knowing an out was available |
+
+⚠⚠ **The OPPOSING confound is not captured, and it lands on the same outcome.** Roy: *"what it
+doesn't capture is if the agents are doing things to make the workflow follow all the way
+through."* A session told the run will reach stage 8 is under pressure to COMPLETE, which
+pushes toward keeping — and toward bending a gate to get there. **The two do not cancel.** Both
+bear on KEPT: one makes it informative, the other makes it suspect.
+
+⚠ **Gate-bending leaves a trace, which is why the evidence layout keeps EVERY join output.** A
+`refused → green` pair with no matching change in the underlying finding is a report reworded
+to satisfy the parser, not a defect fixed. Read the pair, not the final exit code.
 
 ⚠ Where the damage came from is named: **stage 5 was the only stage with no independent
 reader.** That is what Roy ruled on the same day — the joined block goes back to the reviewers
