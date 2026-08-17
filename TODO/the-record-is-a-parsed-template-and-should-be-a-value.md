@@ -2,8 +2,8 @@
 
 ```
 Status:   open
-Progress: 1 of 7 tasks done
-Owner:    session * Roy (* 2 rulings, 1 made -- the format; the interface is open)
+Progress: 1 of 9 tasks done (6 design rulings made; 7 build steps)
+Owner:    session (Roy made all 6 rulings 2026-08-17; the rest is build)
 Raised:   2026-08-17, by Roy, after three parser defects of one shape in one day
 ```
 
@@ -156,27 +156,63 @@ contract, which changed once already today.
       is the same escaping problem one layer out, and it is the layer that actually failed in
       the session that raised this file.
 
-- [ ] **Take the malformed-report rate on the reports already on disk.** Four from this repo's
-      smoke test, plus whatever the live runs leave. ! The format is chosen, so this is no
-      longer a format comparison: it measures how often a reviewer gets the CURRENT template
-      wrong, which is the number the change has to beat.
+### * The five design rulings, all made 2026-08-17
 
-- [ ] **Round-trip a real record through JSON.** Already done for one synthetic block -- markers,
-      emphasis, quotes, tab, backslash, trailing brace, blank line, byte-identical. ! Repeat it
-      on a record from an actual report, because a synthetic block is one someone chose.
+| | ruled |
+| --- | --- |
+| **the seed** | **SEEDED, not an empty shape.** `record.py --seed` reads the census and lays down one slot per PROSE block already carrying `block`, `address` and `original`. The reviewer sets only `verdict`, `claim`, `reason`, `sources`, `change`. ! It kills a SECOND class: two of one run's seven refusals were reviewer MISQUOTES of the block, and a reviewer that never types the block cannot mistype it. Coverage becomes structural -- an unruled block is a slot with `verdict: null`, not an index missing from a list |
+| **the break** | **CLEAN, but the old parser STAYS, deprecated.** Roy: *"clean break - but deprecate the code and leave it in there to parse out the other records just in case."* ! It also unstrands the two in-flight runs rather than forcing a restart |
+| **`CLAIM`** | **an OBJECT.** Its keys are the `Verdict` table's existing markers minus the colon, so adding a verdict stays a row |
+| **the module** | **a NEW file, `record.py`.** Roy: *"the modular-context should trigger stating that verdict.py seems to be doing more than one thing. It probably already is but this definitely would make that true."* ! The system's own rule applied to its own code |
+| **round two** | **NOT this shape.** Roy: *"it kind of collapses the ruling that the editors are supposed to state."* A round-2 answer is `SAME SENTENCE` / `HOLD`\|`REVISE` / one clause -- a RESPONSE, which CARRIES a record only on `REVISE`. Reusing the record shape would have the reviewer re-emit a ruling instead of answering the three questions |
 
-- [ ] **Say what happens to a report that does not parse.** Today a malformed record is named
-      and counted fatal while the rest of the report still joins. A total parse failure has no
-      such middle, so the run needs an answer: refuse the reviewer, or ask it again.
+! **One subject each, which is what makes it two files:** `record.py` owns what a record IS --
+seeding one, and whether a given one is well formed. `verdicts.py` owns what a SET of records
+MEANS against the census -- coverage, citations, contradictions, the work list.
 
-- [ ] **Keep `verdicts.py`'s SEMANTIC checks whatever the format.** Address against census,
-      citation resolution, verbatim-half lookup, CLAIM-covers-CHANGE, contradictions. Only
-      `parse_report` and the record's shape are in scope; deleting a check because the new
-      format made it awkward is how the synthesised block ends up unchecked.
+### !! A defect the object makes checkable, and it is bigger than the format
 
-- [ ] **Update `reviewer-brief.md` and the four role files together**, and re-run
-      `scripts/check_vocabulary.py`. The record contract is taught in the brief and the brief is
-      pasted into four prompts.
+**A finding sat in `REASON` while `CLAIM` named a different sentence. The gate checked what
+`CLAIM` named, passed it, and the real defect never reached a work list.** Measured 2026-08-17:
+`module-context` wrote in `REASON` *"the module's own prose already contradicts the 'three
+places' framing -- the fourth copy is named inside the file and nowhere in its docstring."* That
+sentence IS the finding. *"Three places"* is still wrong on disk.
+
+! `REASON` is unchecked prose BY DESIGN -- *"what you DERIVED, and not checked verbatim"* -- so
+a finding hiding there is invisible today. With `claim` as structured fields, comparing
+`REASON`'s quoted spans against `claim`'s is mechanical.
+
+## Build order, each step independently verifiable
+
+- [ ] **1. The schema and `record.py --seed`.** Verify: seeds this repo's own smoke-test census,
+      224 slots, and the file parses.
+
+- [ ] **2. `record.py` validates a filled record.** Shape only -- required fields present, the
+      verdict known, `claim`'s keys the ones its row requires. ! Say what happens to a report
+      that does NOT parse: today a malformed record is named and counted fatal while the rest of
+      the report still joins, and a total parse failure has no such middle.
+
+- [ ] **3. `verdicts.py` reads records instead of parsing prose**, and `parse_report` stays
+      behind a deprecation notice for the old text reports. !! **Free regression test: the four
+      smoke-test reports are on disk.** Convert, join, and the result must match the join
+      already taken -- **903 findings, 35 STANDS, 46 NEEDS A RULING, 14 CODE CONCERNS**. If the
+      numbers move, the new reader is wrong.
+
+- [ ] **4. The `REASON`-carries-the-finding check.** `REASON` quoting block text that `claim`
+      does not name is a finding filed in the wrong field. ! Its own step because it is a new
+      CHECK, not a format change, and it is the one that catches the defect above.
+
+- [ ] **5. `reviewer-brief.md`'s record contract**, and re-run `scripts/check_vocabulary.py`.
+      Verify: the brief's own worked example validates against the schema.
+
+- [ ] **6. The four role files**, together. Verify: `check_vocabulary.py` and
+      `claude plugin validate`.
+
+- [ ] **7. Run the cycle on this repo** -- 4 -> 5 -> 5b -> 6 -> 6b. That is 0.2.3's gate.
+
+! **Keep `verdicts.py`'s SEMANTIC checks throughout.** Address against census, citation
+resolution, verbatim-half lookup, CLAIM-covers-CHANGE, contradictions. Deleting one because the
+new shape made it awkward is how the synthesised block ends up unchecked.
 
 ## Related
 
@@ -184,4 +220,5 @@ contract, which changed once already today.
   -- the three defects that prompted this. ! If the record becomes a value, that file closes for
   `parse_report` and stays open for `removed_spans`.
 - [`re-review-is-ordered-everywhere-and-defined-nowhere`](re-review-is-ordered-everywhere-and-defined-nowhere.md)
-  -- a round-2 record is an ordinary record, so it inherits whatever shape is chosen here.
+  -- ! round two is NOT this shape. Its answer is a RESPONSE (`SAME SENTENCE` / HOLD|REVISE /
+  one clause) that carries a record only on a revise; ruled 2026-08-17.
