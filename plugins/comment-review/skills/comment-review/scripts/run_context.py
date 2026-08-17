@@ -9,11 +9,8 @@ reviewer with no error anywhere, and a run with no style sheet introduced en-GB
 spellings into a codebase whose identifiers are en-US, with every reviewer
 satisfied because nothing owned consistency.
 
-⚠ CAP and WIDTH are deliberately absent. Length is an editorial constraint
-rather than an editorial role, and an agent that knows the cap writes to the
-cap -- what survives a length-driven cut is the confident assertion, and the
-evidence for it goes. The cap reaches stage 6 through `compact.md`'s own input
-contract instead.
+⚠ CAP and WIDTH are absent from REQUIRED. The cap reaches stage 6 through
+`compact.md`'s own input contract instead.
 
 ⚠ A section present and EMPTY is a failure. "No cap published" is an answer and
 gets written; a blank is a question nobody answered.
