@@ -73,13 +73,11 @@ Most of the rules further down are consequences of that shape rather than separa
 instructions:
 
 - **coverage is a COMPLETE READ.** You read every node or you did not — *"a block nobody
-  mentioned is a gap in the review, not a block that passed"* is the read being complete, not a
-  discipline to remember.
+  mentioned is a gap in the review, not a block that passed"*.
 - **the annotations are attached to a node**, so a reviewer receives resolved references instead
   of re-deriving them.
-- **the four editorial roles are four visitors over one tree**, which is why their overlap is signal.
-- **the edits are applied to NODES**, so "never change a line of code" holds by construction
-  — the CODE CHECK in `write.md` confirms that rather than being the only thing enforcing it.
+- **the edits are applied to NODES**, so *"never change a line of code"* holds by construction,
+  and the CODE CHECK confirms it.
 
 ⚠ **The model is the tree, and `scripts/census.py` builds it at the tier available for each
 file's language.** Both tiers find the same blocks and differ only in what else they can say:
@@ -120,21 +118,7 @@ approval.** Two constraints pin it into exactly this slot:
   than checked, arriving shorter, cleaner, in-cap and strictly harder to falsify.
 - ⚠⚠ **Before APPROVAL, because the author must rule on the text that will actually be
   written.** Showing a full-length comment, getting a yes, and then writing a compacted one
-  means the author approved something that never reached the file. That is a bait-and-switch,
-  and it is worse here than almost anywhere, because this author approves quickly and
-  unaudited — the one thing they are relied on for is that what they saw is what lands.
-
-⚠ **The two stages have different inputs, and that is deliberate.** APPLY needs the code, the
-annotations and one verdict per role that ran. COMPACT needs only the **block's KIND**, the
-**original block**, the **edited text**, the **cap** and the **style sheet** — never the
-reasoning that produced the edit. That narrower contract is a safety property: an agent that
-never saw the argument cannot preserve a sentence because it remembers writing it, and it is
-why this may be handed to a **separate subagent** — one that composes, one that condenses.
-
-⚠⚠ **The KIND is in that list because the two kinds obey different rules.** A cap counts lines
-in a `#` run; a docstring is governed by FORMAT and long is not a violation. Hand COMPACT a
-107-line docstring without its kind and it looks like the same over-length problem as a 7-line
-comment run.
+  means the author approved something that never reached the file.
 
 **APPROVAL (7) presents the FINAL text**, takes the ruling, and only then applies.
 
