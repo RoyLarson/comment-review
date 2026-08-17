@@ -98,13 +98,15 @@ destroyed the finding.
 comment that is true, local and load-bearing. Length is not one of its questions, and a run
 that returns long correct prose has succeeded.
 
-!! **5b and 6b exist because APPLY was the only stage whose writer was also its checker.**
-Every other stage is read by somebody who did not write it -- the join reads MARK, the compact
-agent reads APPLY's text, the CODE CHECK reads WRITE, stage 8 reads the finished page. **Stage 5
-wrote the replacement and then ran the residue check on its own output.** Measured 2026-08-17: a
-run reached stage 8 with ruff clean, the AST PROVEN and 1103 tests green, and stage 8 returned
-twelve findings -- two of them the system replacing prose with something CHECKABLY FALSE -- and
-the whole pass was rolled back.
+!! **5b and 6b are what make every stage's output read by somebody who did not write it.** The
+join reads MARK, the compact agent reads APPLY's text, the CODE CHECK reads WRITE, stage 8 reads
+the finished page -- and 5b and 6b cover the two that write PROSE, which is the only thing here
+no mechanical check can judge. ! APPLY still runs the residue check on its own output; 5b is a
+second reader, not a replacement for that.
+
+! **Measured 2026-08-17, with neither in the pipeline:** a run reached stage 8 with ruff clean,
+the AST PROVEN and 1103 tests green, and stage 8 returned twelve findings -- two of them the
+system replacing prose with something CHECKABLY FALSE -- and the whole pass was rolled back.
 
 ! **The filer is the only participant who can answer.** Stage 5 turns several verdicts into one
 sentence; when it misreads one, no later reader can tell, because none of them saw the finding.
@@ -846,10 +848,11 @@ same file, **different question**: 5b asks whether the synthesis carried the fin
 whether shortening broke it. ! A single *"is this still right"* prompt collapses them and
 answers neither.
 
-!! **This is the only reader stage 6 has ever had.** The compact agent reads stage 5's work, and
-until now nothing read the compact agent's own output before it reached the author. ! Measured
-2026-08-17: on one run it came under the cap by writing 98-column lines and flagged that itself
--- nothing would have caught it otherwise.
+!! **NOTHING ELSE READS STAGE 6's OUTPUT BEFORE THE AUTHOR DOES.** Stage 7a presents it and
+rules on nothing; the CODE CHECK runs at 7b and reads only executable code; stage 8 runs after
+the write. **Skip 6b and the compacted text reaches the author read by nobody but the agent that
+wrote it.** ! Measured 2026-08-17: on one run the compact pass came under the cap by writing
+98-column lines and flagged that itself -- nothing else was positioned to catch it.
 
 !! **A block stage 6 must edit that NO role ruled on goes to ALL FOUR, as a fresh block.** A
 block every role returned `clean` on can still be over the cap; shortening it is an edit with no

@@ -39,8 +39,9 @@ findings, so nothing earlier in the pipeline could put this question to anyone.
 prompt answers neither: 5b asks whether the synthesis carried the finding, 6b asks whether
 shortening broke it.
 
-! **6b gives stage 6 its only reader.** The compact agent reads stage 5's work, but nothing read
-the compact agent's own output until stage 8 -- after the write.
+! **6b is the only reader of stage 6's output before the author sees it.** The compact agent
+reads stage 5's work; nothing else reads the compact agent's own. Stage 7a presents and rules on
+nothing, the CODE CHECK reads only executable code, and stage 8 runs after the write.
 
 ## The third case: a block NO role ruled on
 
