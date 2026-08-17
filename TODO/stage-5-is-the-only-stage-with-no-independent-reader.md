@@ -2,8 +2,8 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
-Owner:    Roy (⭐ 1 ruling) · session
+Progress: 0 of 7 tasks done
+Owner:    Roy (⭐ 2 rulings, one proposed) · session
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
           Its words: "the synthesis -- where four verdicts become one sentence -- is written
           by the same agent that then decides it's correct."
@@ -69,8 +69,55 @@ finding today reaches:
       four refusals — the narrowest contract, and it is the check that failed;
       **(c) a re-derivation agent** handed the claim and the code, asked only "is this true",
       which is the failure that produced both worse-than-before findings;
-      **(d) stage 8 moves BEFORE the write.**
-      ⚠ (d) is the cheapest and changes the stage order, which is Roy's to rule.
+      **(d) stage 8 moves BEFORE the write**;
+      **(e) ⭐ ROY, 2026-08-17 — send the PATCH BACK TO THE REVIEWERS: "is this what you mean?"**
+      ⚠⚠ **(e) is the recommendation.** See the section below; the others are kept for the
+      record and (d) remains worth weighing because stage 8 catches things no filer would.
+
+## ⭐ (e) — send the patch back to the reviewers
+
+Roy, 2026-08-17: *"instead of step 5 just asking step 4 to relitigate the editors answers, it
+should create the patch for the answer and send it back to the reviewers since that is what it
+needs. Basically stating - is this what you mean?"*
+
+**It is not relitigation, and that is the whole of it.** *"Reconsider your verdict"* is
+unanswerable — nothing changed. *"Is this the text your finding asked for?"* is a narrow
+question with a hold/revise answer, and **the filer is the only participant who knows.** Stage 5
+turns four verdicts into one sentence; when it misreads one, no other reader can tell.
+
+⚠ **It catches precisely the two failures that ended the measured run.** A reviewer would
+recognise its own claim replaced with a checkably false one, and the reviewer whose `correct`
+dropped a qualifier carrying a true sentence would see the qualifier gone.
+
+**Cheap, because the mechanism already exists.** It is the re-review channel: `SendMessage` to
+roles that still hold their reads, measured at ~2 minutes and ZERO tool calls. Each reviewer
+sees only the blocks it filed on, so a 43-block run is FOUR messages.
+
+**It needs no new contract.** The reviewer already holds the census, the code and its own
+reasoning; it is given its own record and the resulting text. That is the narrowest contract in
+the system, and it resolves the objection above that stage 6's narrow contract may not exist
+here — it does, and it is narrower.
+
+⚠ **MARK/APPLY separation is not broken.** The finding is already filed and already read by the
+join; the reviewer is not fixing, it is confirming the fix matches what it filed. Same argument
+Roy made for showing the competing verdict at re-review: blindness protects the FIRST read and
+that is banked.
+
+### ⚠ The two things to get right
+
+**Confirmation bias.** A reviewer shown a patch may wave it through. The question must be
+specific — *does the replacement still carry the claim your `EVIDENCE` settles, and is anything
+from your `QUOTE` gone?* — not *is this OK*.
+
+**WHERE it sits, and this is unresolved.** Confirming BEFORE stage 6 means the reviewer approves
+text compaction then changes. Confirming AFTER means compaction runs on unconfirmed text — but
+the reviewer then sees what will actually land, which is `SKILL.md`'s own rule for approval, and
+it becomes a check on compaction as well.
+
+## Tasks (continued)
+
+- [ ] ⭐ Decide whether (e) runs before or after COMPACT. See above; both have a rule behind
+      them and they conflict.
 
 - [ ] Consider (d) seriously before building (b) or (c). Stage 8 already exists, already has a
       separate reader, and already caught all of this. What it cannot do today is stop the
