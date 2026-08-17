@@ -1,6 +1,7 @@
 """A definition exists once, and every agent is given the terms it uses."""
 
 import unittest  # noqa: I001  -- path shim below must import before vocabulary
+from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
 import vocabulary as vocab
@@ -80,3 +81,33 @@ class TestWhatIsEmitted(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestProseTreeRetired(unittest.TestCase):
+    """Ruled 2026-08-17: the census builds a pCST, and one name had to go.
+
+    Roy: *"pCST not prose tree"*. While the pCST was an aspiration and the prose
+    tree was what the census actually built, the two were distinguishable. The
+    census enumerates intervals now, so they name one thing.
+    """
+
+    ROOT = Path(__file__).resolve().parent.parent
+
+    def test_no_shipped_file_says_prose_tree(self):
+        shipped = sorted((self.ROOT / "plugins").rglob("*.md"))
+        shipped += sorted((self.ROOT / "plugins").rglob("*.py"))
+        self.assertTrue(shipped, "no shipped files found — the glob is wrong")
+        for path in shipped:
+            with self.subTest(path=path.name):
+                # ⚠ `assertFalse` with a short message, not `assertNotIn`: these
+                # files are tens of kilobytes and `assertNotIn` prints the whole
+                # haystack, burying the name of the file that failed.
+                self.assertFalse(
+                    "prose tree" in path.read_text(encoding="utf-8").lower(),
+                    f"{path.name} still says 'prose tree'",
+                )
+
+    def test_the_retired_table_records_it_with_a_reason(self):
+        text = (self.ROOT / "docs" / "vocabulary.md").read_text(encoding="utf-8")
+        self.assertIn("`prose tree`", text)
+        self.assertIn("pCST", text)

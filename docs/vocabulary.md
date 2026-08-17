@@ -19,8 +19,7 @@ kept deliberately with no shipped use, and the retired words.
 
 | term | means |
 | --- | --- |
-| **pCST** | *pseudo Concrete Syntax Tree* — every interval between two lines of code as a node. *Pseudo* because it comes from a comment-syntax record and a lexer, not the language's own grammar. ⚠ BUILT 2026-08-17, so this and **prose tree** now name one thing; which name survives is unruled, and the question is filed on [`an-empty-interval-has-no-census-index`](../TODO/an-empty-interval-has-no-census-index.md) |
-| **prose tree** | what the census IS today — a node per INTERVAL between two lines of code, the comment runs and docstrings being the nodes that hold prose and the rest being where prose is missing |
+| **pCST** | *pseudo Concrete Syntax Tree* — what the census IS: a node per INTERVAL between two lines of code, the comment runs and docstrings being the nodes that hold prose and the rest being where prose is missing. *Pseudo* because it comes from a comment-syntax record and a lexer, not the language's own grammar |
 | **comment run** | the prose INSIDE a block: the contiguous comment lines between the two code lines that bound it |
 | **counted lines** | what a cap charges for |
 | **annotation** | a mechanical observation the census attaches to a node — `names-a-symbol`, `cites-a-path`, `counted` |
@@ -56,6 +55,7 @@ check.
 | word | what happened |
 | --- | --- |
 | `ANNOTATE` (stage 2) | → **COLLATE**, ruled by Roy 2026-08-17. ANNOTATE meant adding notes and stage 2 adds none — it gathers every position in the file into one numbered, ordered tree. ⚠ It also pointed at two stages: `annotate.py` performs stage 3, and `annotate` / `annotation` belong there alone now |
+| `prose tree` | → **pCST**. Both named one thing once the census enumerated intervals, and the precise word won. Roy, 2026-08-17: *"pCST not prose tree"* |
 | `angle` | → **editorial role** in prose, **reviewer** in identifiers. Borrowed from `/simplify`; six senses, defined nowhere |
 | `--angles`, `ANGLE FILES` | → `--reviewers`, `REVIEWER FILES` |
 | `sweep` | not a term. Stage 7b is **WRITE**; the word outlived `sweep.py`, now `census.py` |
@@ -92,7 +92,7 @@ check.
   stays** in the file that governs the stage.
 - **Polysemy is allowed when it is DECLARED and the contexts do not overlap** — `opener` (a
   comment delimiter, and a record's `--- RECORD`), `annotations` (the census's, and
-  `from __future__`), `node` (a prose-tree node, and an AST node).
+  `from __future__`), `node` (a pCST node, and an AST node).
 - **`clean` is reserved.** It is one of the seven verdicts and is never a loose adjective for
   code, prose, a grep result or a run.
 

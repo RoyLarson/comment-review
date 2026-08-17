@@ -1,7 +1,7 @@
 # comment-review
 
 A Claude Code plugin: an **editorial board** for the comments and docstrings a change
-touched. Four read-only reviewers walk one prose tree, an editor writes the replacement
+touched. Four read-only reviewers walk one pCST, an editor writes the replacement
 text, it is cut to fit, **then** the author approves the exact text that will be written —
 and WRITE puts it on disk and proves the executable code byte-identical.
 

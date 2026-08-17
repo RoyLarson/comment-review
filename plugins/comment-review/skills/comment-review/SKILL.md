@@ -73,10 +73,11 @@ enforce it at stage 5 by refusing a verdict that arrives without one.
 
 ## Why the stages are in this order
 
-**1–3 build the PROSE TREE.** The prose tree is every interval between two lines of code in
-the files under review, numbered in order — each comment run and each docstring a NODE on it,
-attached to the declaration it annotates, with every reference it makes already resolved. The
-intervals that hold nothing are on it too, because that is where prose is MISSING.
+**1–3 build the pCST** — a *pseudo* Concrete Syntax Tree, pseudo because it comes from a
+comment-syntax record and a lexer rather than the language's own grammar. It is every interval
+between two lines of code in the files under review, numbered in order, each comment run and
+each docstring a NODE on it with every reference it makes already resolved. The intervals that
+hold nothing are on it too, because that is where prose is MISSING.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding.
