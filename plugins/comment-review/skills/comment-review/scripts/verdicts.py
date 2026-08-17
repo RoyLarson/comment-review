@@ -12,6 +12,7 @@ Checks the task agent was asked to perform by hand, every one mechanical:
                 Counted apart from the fatal checks, and named in the closing
                 line so the summary says which blocks are still out
   STANDS        blocks every reviewer that ran returned clean on
+  SCOPED OUT    blocks nobody found anything in and nobody certified
   WORK LIST     each block needing a ruling, with the verdicts held on it
   CODE CONCERNS carried through, attributed, gated by nothing
   REVIEWER      (only with `--reviewers`) every expected reviewer actually reported
@@ -58,6 +59,13 @@ VERDICTS = (
 # cannot drift apart.
 RELOCATES = frozenset({"drop", "move"})
 RULES_ON_TEXT = frozenset({"correct", "patch"})
+
+# ⚠ The phrase the agent files MANDATE for a block a role does not own --
+# module-context: 'Return `query` and name the reason as "outside my role"'. It
+# is a declaration of SCOPE, not a ruling, and the brief lists it as the first
+# of three shapes that reach `query`. The other two -- outside the checkout,
+# outside the code -- reach the author and remain work.
+OUT_OF_ROLE = "outside my role"
 
 RECORD = re.compile(r"^---\s*RECORD\s*$(.*?)^---\s*$", re.M | re.S)
 # Counts "--- RECORD" OPENERS on their own, independent of whether a closing
@@ -389,6 +397,16 @@ def location_problem(f: Finding, repo: Path) -> str | None:
     return None
 
 
+def declares_scope(f: Finding) -> bool:
+    """A `query` saying the block is not this role's to read.
+
+    Not a ruling: nothing is asked of the task agent, and the role is reporting
+    the boundary it was told to report. Every other `query` IS work -- it names a
+    claim nobody could settle, and the brief sends it to the author.
+    """
+    return f.verdict == "query" and OUT_OF_ROLE in f"{f.change} {f.finding}".lower()
+
+
 def by_block(found: list[Finding]) -> dict[int, list[Finding]]:
     """Every finding, grouped by the block it rules on.
 
@@ -570,20 +588,29 @@ def main() -> int:
             " must not decide it."
         )
 
-    # A block stands only when EVERY reviewer that ran returned `clean` on it.
-    # Coverage gaps and out-of-range indices are already fatal above, so "no
-    # reviewer ruled on it" and "every reviewer returned `clean`" are the same
-    # set here and this subtraction is exact.
+    # ⚠⚠ THREE STATES, NOT TWO. A block covered only by `clean` and out-of-role
+    # queries is neither: no role certified it -- module-context returns `query`
+    # rather than `clean` so it does not certify what it never read -- and
+    # nothing is asked of stage 5 either. Counting those as work buried 76 real
+    # verdicts inside 1159 on a measured run.
     ran = sorted(reported | {f.reviewer for f in found})
+    in_range = [f for f in found if 1 <= f.block <= len(blocks)]
     ruled = {
-        f.block for f in found if f.verdict != "clean" and 1 <= f.block <= len(blocks)
+        f.block for f in in_range if f.verdict != "clean" and not declares_scope(f)
     }
-    stands = sorted(all_blocks - ruled)
+    scoped_out = {f.block for f in in_range if declares_scope(f)} - ruled
+    stands = sorted(all_blocks - ruled - scoped_out)
     print(
         f"\nSTANDS UNCHANGED: {_n(len(stands), 'block')} — clean from all"
         f" {_n(len(ran), 'reviewer')} that ran"
     )
     print(f"NEEDS A RULING:   {_n(len(ruled), 'block')}")
+    if scoped_out:
+        print(
+            f"NO FINDING, NOT CERTIFIED: {_n(len(scoped_out), 'block')} — every"
+            " role that read it was `clean`, and at least one said it was outside"
+            " its role. Nothing to rule; nothing certified either."
+        )
     if gaps:
         print("  ⚠ counts above are provisional: coverage is incomplete.")
 
@@ -600,7 +627,7 @@ def main() -> int:
             marks = "  ".join(
                 f"{f.verdict}({f.reviewer})"
                 for f in sorted(grouped[b], key=lambda f: (f.verdict, f.reviewer))
-                if f.verdict != "clean"
+                if f.verdict != "clean" and not declares_scope(f)
             )
             flag = "   ⚠ RE-REVIEW" if b in out_for_rereview else ""
             print(f"  {b:4d}  {marks}{flag}")

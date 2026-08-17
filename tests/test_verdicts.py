@@ -323,6 +323,34 @@ class TestQueryWordBoundary(unittest.TestCase):
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
 
+class TestScopeDeclaration(unittest.TestCase):
+    """`query — outside my role` is a boundary report, not work.
+
+    Measured: a run reported 1159 blocks needing a ruling when 76 carried a
+    substantive verdict. The other 1083 were out-of-role queries, which
+    module-context is instructed to return on every block it does not own.
+    """
+
+    def _q(self, change):
+        return _finding(verdict="query", evidence="", quote="", change=change)
+
+    def test_an_out_of_role_query_declares_scope(self):
+        f = self._q("claim: x / outside my role, resolved the enclosing def")
+        self.assertTrue(verdicts.declares_scope(f))
+
+    def test_the_other_two_query_shapes_are_still_work(self):
+        # The brief names three shapes. Only the first is a non-ruling; these
+        # two reach the AUTHOR and must stay in the work list.
+        for change in (
+            "claim: x / checked the checkout / outside the checkout, it is gitignored",
+            "claim: x / read the module / outside the code, needs someone who ran it",
+        ):
+            self.assertFalse(verdicts.declares_scope(self._q(change)), change)
+
+    def test_a_substantive_verdict_never_declares_scope(self):
+        self.assertFalse(verdicts.declares_scope(_finding(verdict="correct")))
+
+
 class TestCodeConcerns(unittest.TestCase):
     """Carried, never gated. A reviewer WILL find code defects while opening the
     code to settle a comment, and the brief gives them a place -- but nothing read

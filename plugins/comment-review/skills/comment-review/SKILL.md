@@ -550,9 +550,13 @@ lacks. It also names the blocks where `drop` meets `correct`/`patch` — **a
 re-review, never a tie-break** — and the blocks where `move` meets either, since a claim
 ruled on at the wrong anchor was measured against the wrong code. ⚠⚠ **It then prints your
 WORK LIST: every block needing a ruling, with the verdicts held on it.** That is the grouping
-stage 5 works from — read it rather than rebuilding it from the report files. It prints which
-blocks STAND UNCHANGED under
-the clean-arithmetic.
+stage 5 works from — read it rather than rebuilding it from the report files.
+
+⚠ **It reports THREE states, not two.** A block every role returned `clean` on STANDS. A block
+carrying a substantive verdict NEEDS A RULING. A block covered only by `clean` and
+`query — outside my role` is neither: nothing is asked of you, and no role certified it either,
+because a role returns `query` rather than `clean` on a block it never read. Measured: on one
+run 1159 blocks read as work when 76 carried a verdict.
 
 ⚠ **`query` is the one verdict this citation check does not touch.** Its PAYLOAD
 is checked instead: a `query` naming no attempted check, or naming nothing that
