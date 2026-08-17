@@ -296,9 +296,9 @@ python <skill>/scripts/census.py [--cap N] [--width N] --json --repo . <paths...
 
 ⚠ **A flag only for a number 1.2 found PUBLISHED** — no flag where the repo publishes none.
 
-⚠⚠ **Write it TWICE, and the second one is not optional.** The reviewers are handed the text
-census; **the stage-5 join reads the `--json` one and parses it as JSON**, so a run that wrote
-only the text census fails at stage 5 with `CANNOT PARSE ... as JSON`.
+⚠⚠ **TWO census files, and the JSON one is not optional.** The reviewers are handed the TEXT
+census; **the stage-5 join reads the JSON census and parses it as JSON**, so a run that wrote
+only the text one fails at stage 5 with `CANNOT PARSE ... as JSON`.
 
 It emits the numbered tree — `N  file:start-end  kind  lines  annotations  (anchor)` — with each
 node's references already resolved, and it prints the tier counts for the run. ⚠ Those are
@@ -306,7 +306,7 @@ AGGREGATED across files, not per file — on a polyglot run you cannot tell whic
 which tier, which is exactly when it matters. Run it; do not
 re-derive its output by hand.
 
-⚠ **Write the census to a path unique to THIS run** and hand the reviewers that path. Two
+⚠ **Give both files a path unique to THIS run**, and hand the reviewers the text one. Two
 concurrent reviews sharing one scratch filename overwrite each other between writing and
 reading, and nothing downstream can tell.
 
