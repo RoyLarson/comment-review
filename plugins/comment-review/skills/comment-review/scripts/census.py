@@ -74,8 +74,9 @@ def counted_lines(raw: list[str]) -> int:
     """Lines a cap charges for: a marker LINE itself is free.
 
     A marker points at filed work; the explanation is the rest of the block, and
-    the cap measures the explanation. Charge the marker and deleting the pointer
-    to filed work becomes the quickest route to green.
+    the cap measures the explanation. Charge the marker and the quickest route to
+    green is deleting the pointer -- which is quick to do and expensive to have
+    done: the work is still needed, and nothing names it any more.
 
     The exemption is one line wide. A run stays one run across a marker, and a
     marker's continuation lines are charged: six lines plus a `TODO:` is six.

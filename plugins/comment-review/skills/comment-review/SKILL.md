@@ -176,7 +176,8 @@ the proposal:
 ⚠ **Ask which markers the repo exempts from the cap** (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`
 is the common set). An exempt marker neither counts toward the cap nor splits a run — a block
 that is in-cap except for a marker is IN CAP. Without this, the quickest route to green is
-deleting the pointer to filed work.
+deleting the pointer to filed work — **quick to do and expensive to have done.** The work is
+still needed and nothing names it, so it is found again only by whoever hits the problem.
 
 **1.3 MEASURE the repo's documentation formats. Do not assume one.** Read the docstrings that
 are there and record what they actually do, separately for each of:
