@@ -679,13 +679,18 @@ def source_problem(f: Finding, repo: Path) -> str | None:
         resolved = _resolve_lines(cite.strip(), repo)
         if isinstance(resolved, str):
             return f"SOURCES {resolved}"
-        _target, lineno, _end, lines = resolved
+        _target, lineno, end, lines = resolved
         needle = " ".join(verbatim.split()).strip().strip('"')
         if len(needle) < MIN_NEEDLE:
             return f"SOURCES entry {cite.strip()} carries no verbatim half"
+        # ⚠⚠ The window spans the WHOLE citation, start to end. `_resolve_lines`
+        # says a range "is where the reviewer looked", and this windowed on the
+        # START alone -- so `a.py:10-55 | line 50` was refused and counted
+        # fatal, while only ranges three lines deep happened to pass. A
+        # reviewer citing a function-sized range is the honest case.
         lo = max(0, lineno - 1 - SOURCE_WINDOW)
         window = " ".join(
-            " ".join(ln.split()) for ln in lines[lo : lineno + SOURCE_WINDOW]
+            " ".join(ln.split()) for ln in lines[lo : end + SOURCE_WINDOW]
         )
         if needle[:40].lower() not in window.lower():
             return f"SOURCES not found near {cite.strip()}: {needle[:40]!r}"
@@ -926,10 +931,21 @@ def ruled_text(f: Finding) -> str:
     spec = VERDICTS.get(f.verdict)
     if spec is None or not spec.quotes_original:
         return ""
-    _, sep, rest = f.claim.partition(spec.quotes_original)
-    if not sep:
+    # ⚠⚠ Found CASE-INSENSITIVELY, because `payload_problem` matches these
+    # markers against `claim.lower()`. A record written `FALSE:` / `TRUE:`
+    # passed PAYLOAD and reduced to "" here, which silently switched off
+    # `block_problem`, `edit_problem` and `contradictions` -- a reviewer that
+    # shouted its markers had every finding admitted unchecked.
+    lowered = f.claim.lower()
+    at = lowered.find(spec.quotes_original)
+    if at == -1:
         return ""
-    text = rest.partition(spec.quotes_until)[0] if spec.quotes_until else rest
+    rest = f.claim[at + len(spec.quotes_original) :]
+    if spec.quotes_until:
+        stop = rest.lower().find(spec.quotes_until)
+        text = rest[:stop] if stop != -1 else rest
+    else:
+        text = rest
     # ⚠ `_words` strips the quotes PER TOKEN, so a reviewer that pads inside
     # them -- `false: "  the budget is 3 "` -- does not keep those spaces and
     # leave a needle that matches nothing in a block plainly containing it.

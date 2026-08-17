@@ -421,7 +421,17 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
                 flush()
             continue
         code = _strip_strings(raw_line, lang.quotes)
+        line_at = min((code.index(o) for o in openers if o in code), default=-1)
         opened = next((p for p in lang.block_comment if p[0] in code), None)
+        # ⚠⚠ WHICHEVER OPENER COMES FIRST on the line owns it. The block test
+        # ran first unconditionally, so `// see /* the note` opened a block run
+        # that swallowed every line up to the next `*/` -- executable code
+        # handed to four reviewers as prose, carrying no annotation to say so,
+        # and dropped from `code_lines`, which put every interval in that file
+        # at the wrong boundary. Measured on a five-line C file: one block
+        # spanning lines 2-4 whose text held `int b = 2;`.
+        if opened is not None and -1 < line_at < code.index(opened[0]):
+            opened = None
         if opened is not None:
             flush()
             run.append((n, raw_line.rstrip()))
@@ -434,7 +444,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             run.append((n, raw_line.rstrip()))
             continue
         flush()  # ⚠ CODE ends a block; a blank line does not
-        at = min((code.index(o) for o in openers if o in code), default=-1)
+        at = line_at
         if at >= 0:
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own block, anchored to the code on that line
@@ -820,6 +830,24 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
     return sorted(got, key=lambda b: (b.start, b.end))
 
 
+def _not_censused(files: list[Path], unreadable: list[str]) -> str:
+    """The refusal, worded ONCE for both output modes.
+
+    ⚠⚠ The reviewers are handed the census, so a file missing from it is blocks
+    nobody reviews and nothing downstream notices. `--json` used to return 0
+    with a SHORT array on exactly the input the text path refused -- and
+    `--json --out` is the route `SKILL.md` mandates for the census stage 5
+    parses, so the coverage check then certified every block accounted for over
+    blocks that were never collected.
+    """
+    listed = "\n".join(f"    {u}" for u in unreadable)
+    return (
+        f"NOT CENSUSED — these are gaps, not passes:\n{listed}\n"
+        f"ERROR: {len(unreadable)} of {len(files)} files handed in were not"
+        " censused. Every file is censused or this errors."
+    )
+
+
 def main() -> int:
     """Build the census, resolve its annotations, print both."""
     # UTF-8 with replacement, so an em-dash in someone's docstring still prints
@@ -912,6 +940,15 @@ def _report(args: argparse.Namespace) -> int:
                 b.notes.append(f"{n} also in prose at {', '.join(others)}")
 
     if args.json:
+        # ⚠⚠ THE GATE FIRST. `--json --out` is the route SKILL.md mandates for
+        # the census stage 5 parses, and this returned 0 with a SHORT array for
+        # a file that could not be read -- so a file with no language record,
+        # or one that failed to parse, vanished, and the coverage check then
+        # certified "every block accounted for" over blocks never collected.
+        # The text path errored on exactly the same input.
+        if unreadable:
+            print(_not_censused(files, unreadable), file=sys.stderr)
+            return 1
         print(
             json.dumps(
                 [vars(b) | {"annotations": sorted(b.annotations)} for b in census],
@@ -975,10 +1012,7 @@ def _report(args: argparse.Namespace) -> int:
     # The reviewers are handed the CENSUS, so a file missing from it is blocks
     # nobody reviews and there is nothing downstream that notices. Exit on it.
     if unreadable:
-        print(
-            f"\nERROR: {len(unreadable)} of {len(files)} files handed in were not"
-            " censused. Every file is censused or this errors."
-        )
+        print("\n" + _not_censused(files, unreadable))
         return 1
     return 0
 

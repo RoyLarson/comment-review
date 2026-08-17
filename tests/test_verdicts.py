@@ -1658,6 +1658,156 @@ class TestAMistypedVerdictIsNeverSummarisedAsCLEAN(unittest.TestCase):
         self.assertFalse(verdicts._substantive(_finding(verdict="clean")))
 
 
+class TestTheJSONCensusGatesLikeTheTextOne(unittest.TestCase):
+    """`--json` refused nothing, and it is the mandated route.
+
+    ⚠⚠ `SKILL.md` requires `--json --out` for the census stage 5 parses. This
+    returned 0 with a SHORT array on exactly the input the text mode refused,
+    so a file with no language record vanished and the coverage check then
+    certified "every block accounted for" over blocks never collected.
+    """
+
+    def _run(self, *args):
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "a.unknownext"
+            bad.write_text("x\n", encoding="utf-8")
+            return subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "census.py"),
+                    "--repo",
+                    tmp,
+                    *args,
+                    str(bad),
+                ],
+                capture_output=True,
+                text=True,
+            )
+
+    def test_text_mode_refuses(self):
+        self.assertEqual(self._run().returncode, 1)
+
+    def test_json_mode_refuses_the_same_input(self):
+        got = self._run("--json")
+        self.assertEqual(got.returncode, 1)
+        self.assertNotIn("[]", got.stdout)
+
+    def test_both_modes_say_the_same_thing(self):
+        # ⚠ One wording, so a reader cannot tell which mode refused them and
+        # the two cannot drift into disagreeing about what a gap is.
+        self.assertIn("not\n censused".replace("\n ", " "), self._run().stdout)
+        self.assertIn("NOT CENSUSED", self._run("--json").stdout + self._run().stdout)
+
+
+class TestMarkersAreFoundWhateverTheirCase(unittest.TestCase):
+    """`payload_problem` lowercased the claim and `ruled_text` did not.
+
+    ⚠⚠ A record written `FALSE:` / `TRUE:` passed PAYLOAD and reduced to "" in
+    `ruled_text`, which silently switched off `block_problem`, `edit_problem`
+    and `contradictions` at once. A reviewer that SHOUTED its markers had every
+    finding admitted unchecked -- the loudest possible way to skip the gate.
+    """
+
+    BLOCKS = [
+        {
+            "path": "a.py",
+            "start": 1,
+            "end": 2,
+            "kind": "comment",
+            "text": "the cap is 3",
+        }
+    ]
+
+    def test_a_shouted_marker_still_yields_the_sentence(self):
+        f = _finding(claim='FALSE: "the cap is 3" / TRUE: "the cap is 6"')
+        self.assertEqual(verdicts.ruled_text(f), "the cap is 3")
+
+    def test_a_shouted_marker_no_longer_skips_the_block_check(self):
+        f = _finding(claim='FALSE: "the cap is 9" / TRUE: "x"')
+        self.assertIn("not in block 1", verdicts.block_problem(f, self.BLOCKS))
+
+    def test_mixed_case_markers_work_for_every_row_that_quotes(self):
+        for verdict, claim, want in (
+            ("drop", 'Drop: "the cap is 3"', "the cap is 3"),
+            ("correct", 'False: "the cap is 3" / True: "x"', "the cap is 3"),
+            ("patch", 'From: "the cap is 3" / To: "x"', "the cap is 3"),
+        ):
+            got = verdicts.ruled_text(_finding(verdict=verdict, claim=claim))
+            self.assertEqual(got, want, verdict)
+
+
+class TestASourceWindowSpansTheWholeCitation(unittest.TestCase):
+    """A range citation was windowed on its START LINE alone.
+
+    ⚠ `_resolve_lines` says a range "is where the reviewer looked", and only
+    ranges three lines deep happened to pass. A reviewer citing a
+    function-sized range -- the honest case -- was refused and counted fatal.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name)
+        (self.repo / "a.py").write_text(
+            "\n".join(f"line {i}" for i in range(1, 60)) + "\n", encoding="utf-8"
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _at(self, cite):
+        return verdicts.source_problem(_finding(sources=[cite]), self.repo)
+
+    def test_a_hit_deep_inside_the_range_is_found(self):
+        self.assertIsNone(self._at("a.py:10-55 | line 50"))
+
+    def test_a_hit_at_the_start_still_works(self):
+        self.assertIsNone(self._at("a.py:10-55 | line 11"))
+
+    def test_a_hit_OUTSIDE_the_range_is_still_refused(self):
+        # ⚠ Widening the window must not make the check vacuous.
+        self.assertIn("not found near", self._at("a.py:10-20 | line 50"))
+
+
+class TestALineCommentContainingABlockOpener(unittest.TestCase):
+    """Whichever opener comes FIRST on the line owns it.
+
+    ⚠⚠ The block test ran first unconditionally, so `// see /* the note` opened
+    a run that swallowed every line to the next `*/` -- executable code handed
+    to four reviewers as prose, carrying no annotation, and dropped from
+    `code_lines` so every interval in that file sat at the wrong boundary.
+    """
+
+    def _blocks(self, body):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "b.c"
+            p.write_text(body, encoding="utf-8")
+            return [
+                b
+                for b in census.blocks_lexical(p, body, census.language_for(p))
+                if b.text.strip()
+            ]
+
+    def test_a_line_comment_wins_when_it_comes_first(self):
+        got = self._blocks(
+            "int a = 1;\n// see /* the note\nint b = 2;\n// closing */ here\nint c = 3;\n"
+        )
+        self.assertEqual(len(got), 2)
+        for b in got:
+            self.assertNotIn("int b", b.text)
+
+    def test_a_real_block_comment_still_spans_its_lines(self):
+        got = self._blocks(
+            "int a = 1;\n/* a real block\n   spanning lines */\nint b = 2;\n"
+        )
+        self.assertEqual(len(got), 1)
+        self.assertEqual((got[0].start, got[0].end), (2, 3))
+
+    def test_a_block_opener_first_still_wins(self):
+        got = self._blocks("int a = 1;\n/* see // note */\nint b = 2;\n")
+        self.assertEqual(len(got), 1)
+        self.assertIn("see // note", got[0].text)
+
+
 class TestCLI(unittest.TestCase):
     """`main()` end to end -- the gate must actually gate on exit code."""
 
