@@ -49,6 +49,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
+from census import block_text, language_for
 from vocabulary import Reviewer
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
@@ -92,7 +93,11 @@ OPENER = re.compile(r"^---\s*RECORD\s*$", re.M)
 # The section `reviewer-brief.md` sends code problems to. Matched to the next
 # heading or the end, because it is the LAST section of a report by contract.
 CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S | re.I)
-FIELD = re.compile(r"^\s*(BLOCK|VERDICT|SOURCES|CLAIM|REASON|CHANGE)\s+(.*)$")
+# ⚠⚠ ANCHORED AT COLUMN 0, which is what makes a continuation unambiguous. A
+# field's value runs until the next label, and a label is only a label at the
+# left margin -- so an indented line reading `CHANGE the budget` inside a
+# transcribed block is prose, not a new field.
+FIELD = re.compile(r"^(BLOCK|VERDICT|SOURCES|CLAIM|REASON|CHANGE)\s+(.*)$")
 # `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 
@@ -260,25 +265,35 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
         # a separator that verbatim text could contain. The name is plural for
         # that reason.
         sources: list[str] = []
-        # ⚠⚠ A line that names no field CONTINUES the one above it. `CHANGE`
-        # holds a whole block of replacement prose, which is several lines by
-        # construction, and those lines were previously skipped -- a multi-line
-        # CHANGE arrived holding only its first line, silently.
+        # ⚠⚠ A line that names no field CONTINUES the one above it, BLANK LINES
+        # INCLUDED. `BLOCK` carries a transcribed block and `CHANGE` carries a
+        # replacement one, and a docstring has blank lines between its summary
+        # and its `Args:` -- so a blank line is content here, not a separator.
         #
-        # ⚠ A blank line ends the continuation, so a record may still be spaced
-        # out without the gap being read as part of a field.
+        # ⚠⚠ A blank line USED to end the continuation, and that single line
+        # was the worst defect 0.2.0 shipped. Measured 2026-08-17: it truncated
+        # both fields to their first paragraph on every block containing a
+        # blank line -- 33% of one census, ~450 blocks of another -- so
+        # `ORIGINAL` could never match and `CHANGE` compared its unedited first
+        # paragraph against itself and reported the block UNCHANGED. It fell
+        # hardest on the role doing the most work: 113 of one reviewer's 134
+        # findings were refused, every one of them correct.
+        #
+        # ⚠ Nothing is needed in its place. The record is bounded by its
+        # `--- RECORD` and `---` lines, and a field ends at the next label.
         last: str | None = None
         for line in body.splitlines():
             m = FIELD.match(line)
             if not m:
-                if not line.strip():
-                    last = None
-                elif last == "SOURCES" and sources:
+                if last == "SOURCES" and sources:
                     # ⚠ Under SOURCES a continuation is ambiguous: it is either
                     # the NEXT citation or the wrapped tail of the one above.
                     # A line that opens with `path:line` is the former; a
                     # verbatim half that happens to wrap is the latter.
-                    if CITE.match(line.strip().partition("|")[0].strip()):
+                    # ⚠ A blank line is neither -- a citation does not span one.
+                    if not line.strip():
+                        pass
+                    elif CITE.match(line.strip().partition("|")[0].strip()):
                         sources.append(line.strip())
                     else:
                         sources[-1] += "\n" + line.strip()
@@ -291,6 +306,11 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
                 sources.append(m.group(2).strip())
             else:
                 fields[key] = m.group(2).strip()
+        # ⚠ Blank lines INSIDE a field are content; blank lines trailing one are
+        # the spacing between records. Only the trailing ones come off, so a
+        # docstring keeps the gap above its `Args:` and `CHANGE` does not end
+        # with the newline that preceded the next label.
+        fields = {k: v.rstrip() for k, v in fields.items()}
         # ⚠⚠ BLOCK is `<index> | <path>:<start>-<end>`, and the lines under it
         # are that block's text as the file reads it NOW. Only the index is
         # required to parse -- a `clean` writes it alone.
@@ -564,41 +584,48 @@ def source_problem(f: Finding, repo: Path) -> str | None:
     return None
 
 
-def _same_text(a: str, b: str) -> bool:
-    """Two pieces of prose, compared the way a transcription should be judged.
+def as_block(text: str, entry: dict) -> str:
+    """A reviewer's transcription, normalised the way the CENSUS normalises.
 
-    ⚠⚠ Case, whitespace and LEADING COMMENT MARKERS are forgiven; the words are
-    not. The census stores a block's prose with its markers already stripped,
-    and a reviewer transcribes what the FILE shows -- `# the budget is 3`
-    against `the budget is 3`. Comparing those raw would refuse every honest
-    transcription, which is worse than not checking at all: the check would
-    only ever fire on people who did the work.
+    ⚠⚠ This calls `census.block_text`, and that is the whole point. A second
+    implementation of lines-to-block is a second DEFINITION of what a block's
+    text is, and the two drift. Measured 2026-08-17: this file grew its own and
+    disagreed with the census three ways at once -- a blank line, a raw-string
+    prefix, and a closing delimiter -- refusing 83 of 171 blocks in one run and
+    roughly 450 in another. Every one of those transcriptions was correct.
 
-    ⚠ Stripped as a CHARACTER CLASS, not a list of languages. `#`, `//`, `--`,
-    `;`, `%`, `*` and quote runs all open a comment somewhere, and the census
-    reaches languages this file does not enumerate.
+    ⚠ The KIND selects the reading and the PATH selects the comment markers,
+    both taken from the census entry rather than guessed: a docstring is read
+    past its delimiters, a comment run past its openers, and `///` must come
+    off before `//` leaves a stray slash in the prose.
+
+    Args:
+        text: the reviewer's `original`, as lines from the file.
+        entry: that block's census record.
     """
-    return _words(a) == _words(b)
+    lang = language_for(Path(str(entry.get("path", ""))))
+    markers = (
+        tuple(sorted(lang.line_comment, key=len, reverse=True)) if lang else ("#",)
+    )
+    return block_text(str(entry.get("kind", "")), text.split("\n"), markers)
 
 
 def _words(text: str) -> str:
-    """`text` reduced to its words: markers off, whitespace collapsed, lowered.
+    """`text` reduced to its words, for comparing a CLAIM against a diff.
 
-    ⚠ Trailing sentence punctuation comes off each word too. A block reads
-    `the budget is 3.` where the `CLAIM` quoting it reads `the budget is 3`,
-    and a diff keyed on raw tokens would call `3.` and `3` different words --
-    so an honest correction would read as an edit to a sentence nobody claimed.
+    ⚠ This is NOT the block normaliser -- `as_block` is, and it defers to the
+    census. This one takes prose that never came from a file: a `CLAIM`'s
+    quoted half, and the spans a word-diff reports. Neither has comment markers
+    to strip, so all it owes is whitespace, case, and the punctuation a quoted
+    sentence picks up.
+
+    ⚠ Trailing sentence punctuation comes off each word. A block reads `the
+    budget is 3.` where the `CLAIM` quoting it reads `the budget is 3`, and a
+    diff keyed on raw tokens would call `3.` and `3` different words -- so an
+    honest correction would read as an edit to a sentence nobody claimed.
     """
     return (
-        " ".join(
-            " ".join(
-                word.rstrip(".,;:!?")
-                for word in line.lstrip().lstrip("#/-;%*'\"!<>").split()
-            )
-            for line in text.split("\n")
-        )
-        .strip()
-        .lower()
+        " ".join(w.strip("\"'`").rstrip(".,;:!?") for w in text.split()).strip().lower()
     )
 
 
@@ -656,11 +683,16 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
     entry = blocks[f.block - 1]
     start, end = entry.get("start"), entry.get("end")
     path = str(entry.get("path", "")).replace("\\", "/")
-    want = f"{path}:{start}" if start == end else f"{path}:{start}-{end}"
+    want = f"{path}:{start}-{end}"
+    # ⚠⚠ BOTH forms are accepted on a one-line block. The brief says write
+    # `path:start-end`, so a reviewer following it writes `a.py:225-225` while
+    # the census prints `a.py:225`. Measured 2026-08-17: 268 refusals in one
+    # run, every single one this collision and not one a wrong address.
+    ok = {want} if start != end else {want, f"{path}:{start}"}
     got = f.address.replace("\\", "/").strip()
     if not got:
         return f"BLOCK {f.block} carries no ADDRESS — write `{f.block} | {want}`"
-    if got != want:
+    if got not in ok:
         return f"BLOCK {f.block} address is {got!r}, the census says {want!r}"
     text = str(entry.get("text", ""))
     if not text.strip():
@@ -669,7 +701,10 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
         return None
     if not f.original.strip():
         return f"BLOCK {f.block} carries no ORIGINAL — the block's text as it reads now"
-    if not _same_text(f.original, text):
+    # ⚠ CASE is forgiven, the words are not — which is what the brief promises
+    # a reviewer. Everything else the two forms differ by (markers, delimiters,
+    # wrapping, indentation) `as_block` has already resolved.
+    if as_block(f.original, entry).lower() != text.lower():
         return f"BLOCK {f.block} ORIGINAL does not match the census text"
     return None
 
@@ -783,7 +818,7 @@ def ruled_text(f: Finding) -> str:
     return " ".join(text.split()).strip().strip('"').strip().lower()
 
 
-def removed_spans(f: Finding) -> list[str] | None:
+def removed_spans(f: Finding, entry: dict) -> list[str] | None:
     """What this finding's edit takes OUT of the block, span by span.
 
     ⚠⚠ DERIVED, never declared. `BLOCK`'s original and `CHANGE` both hold the
@@ -795,15 +830,28 @@ def removed_spans(f: Finding) -> list[str] | None:
     ⚠ This is the reliable answer where `CLAIM` is the reviewer's own account of
     it. They should agree; `edit_problem` is where they are made to.
 
+    ⚠⚠ Both halves are read through `as_block`, the CENSUS's normaliser, not
+    through `_words`. They are file text: a comment run carries its openers and
+    a docstring its delimiters, and a diff over raw tokens reports the marker as
+    a removed word. Measured 2026-08-17: a `drop` that removed one sentence
+    reported the span `# callers round separately`, which no `CLAIM` names.
+
     ⚠ Returns None where no diff is meaningful: `clean` and `query` propose no
     text, `add` has no original, a `move`'s `CHANGE` is two blocks rather than
     one, and a record missing either half cannot be diffed at all. A caller must
     treat None as "cannot compare", never as "nothing removed".
+
+    Args:
+        f: the finding.
+        entry: its census record, which selects how the block is read.
     """
     if f.verdict in ("clean", "query", "add", "move"):
         return None
-    before, after = _words(f.original).split(), _words(f.change).split()
-    if not before or not f.change.strip():
+    if not f.change.strip():
+        return None
+    before = as_block(f.original, entry).lower().split()
+    after = as_block(f.change, entry).lower().split()
+    if not before:
         return None
     return [
         " ".join(before[i1:i2])
@@ -814,7 +862,7 @@ def removed_spans(f: Finding) -> list[str] | None:
     ]
 
 
-def edit_problem(f: Finding) -> str | None:
+def edit_problem(f: Finding, entry: dict) -> str | None:
     """Does `CHANGE` edit the sentence `CLAIM` says it edits?
 
     ⚠⚠ A BACKSTOP, and it is the only check that reads the two accounts of one
@@ -868,24 +916,29 @@ def edit_problem(f: Finding) -> str | None:
     nothing checks. `TODO/re-review-is-ordered-everywhere-and-defined-
     nowhere.md` owns the shape.
     """
-    spans = removed_spans(f)
+    spans = removed_spans(f, entry)
     if spans is None:
         return None
-    if _words(f.original) == _words(f.change):
+    if as_block(f.original, entry).lower() == as_block(f.change, entry).lower():
         return (
             f"{f.verdict}: CHANGE is the block UNCHANGED — the verdict proposes"
             " an edit and the text does not make one"
         )
-    # ⚠ Through the SAME normaliser as the spans. Comparing a `_words` span
-    # against a differently-normalised claim is how punctuation and comment
-    # markers turn an agreeing pair into a disagreement.
+    # ⚠ `CLAIM` is not file text -- it is a sentence the reviewer quoted -- so
+    # it goes through `_words` while the spans go through `as_block`. The two
+    # meet here, which is why both end lowercased and punctuation-stripped.
     named = _words(ruled_text(f))
     if not named:
         return None
     if f.verdict == "drop" and not spans:
         return "drop: CHANGE still holds the sentence — nothing was removed"
     for span in spans:
-        if span and span not in named:
+        # ⚠ `_words` HERE, not inside `as_block`. The spans come off the census
+        # normaliser and keep their punctuation, because that is what the census
+        # stores; the claim is a quoted sentence and loses it. They are only
+        # comparable at the point they meet, so the conversion belongs here and
+        # `as_block` stays faithful to the census for every other caller.
+        if span and _words(span) not in named:
             return (
                 f"CHANGE edits {span[:40]!r}, which CLAIM does not name —"
                 " the claim and the edit are about different prose"
@@ -893,7 +946,7 @@ def edit_problem(f: Finding) -> str | None:
     return None
 
 
-def contradictions(grouped: dict[int, list[Finding]]) -> list[int]:
+def contradictions(grouped: dict[int, list[Finding]], blocks: list[dict]) -> list[int]:
     """Blocks where one role REMOVES the sentence another rules on.
 
     `drop` against `correct`/`patch` is one role saying the sentence should not
@@ -924,8 +977,11 @@ def contradictions(grouped: dict[int, list[Finding]]) -> list[int]:
     def touched(f: Finding) -> str:
         # ⚠ "" means CANNOT COMPARE, and the caller flags it rather than
         # passing: silence would hide a real collision behind an unreadable
-        # record.
-        spans = removed_spans(f)
+        # record. An out-of-range index reads the same way -- the range check
+        # reports it, and this must not pass the block for lack of an entry.
+        if not 1 <= f.block <= len(blocks):
+            return ""
+        spans = removed_spans(f, blocks[f.block - 1])
         return " ".join(spans) if spans else ""
 
     out: list[int] = []
@@ -1099,17 +1155,18 @@ def main() -> int:
         if wrong_block:
             print(f"  BLOCK {f.block} {f.reviewer}: {wrong_block}")
             fatal += 1
-        disagrees = edit_problem(f)
-        if disagrees:
-            print(f"  BLOCK {f.block} {f.reviewer}: {disagrees}")
-            fatal += 1
+        if 1 <= f.block <= len(blocks):
+            disagrees = edit_problem(f, blocks[f.block - 1])
+            if disagrees:
+                print(f"  BLOCK {f.block} {f.reviewer}: {disagrees}")
+                fatal += 1
         payload = payload_problem(f)
         if payload:
             print(f"  BLOCK {f.block} {f.reviewer}: {payload}")
             fatal += 1
 
     grouped = by_block(found)
-    clash = contradictions(grouped)
+    clash = contradictions(grouped, blocks)
     if clash:
         print(f"\nRE-REVIEW — drop/move against correct/patch on: {clash}")
         print(

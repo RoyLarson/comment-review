@@ -10,6 +10,19 @@
 [tool.ruff]
 target-version = "py311"
 line-length = 88
+# ⚠⚠ A CAPTURED RUN IS EVIDENCE, NOT SOURCE. `evidence/<name>-full-*/` holds
+# what a run actually produced -- reports, censuses, and the scratch scripts the
+# reviewers wrote to settle their own claims. Reformatting one edits the record
+# of what happened, which is the same argument the format exclude below makes
+# about specifications.
+#
+# Measured 2026-08-17: a `ruff format .` in one session's gate rewrote another
+# session's in-flight run artifacts, and `ruff check .` then failed on a scratch
+# script that was never repo code -- a red gate belonging to nobody.
+#
+# ⚠ `evidence/ga/` is NOT excluded: it is tracked, maintained code that scores
+# the corpora, and it is linted like anything else.
+extend-exclude = ["evidence/*-full-*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "D"]

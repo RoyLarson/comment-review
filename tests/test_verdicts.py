@@ -512,6 +512,19 @@ class TestContradiction(unittest.TestCase):
     # 2026-08-17. A fixture that named sentences without editing any text would
     # exercise nothing.
     ORIGINAL = "the budget is 3. callers round separately."
+    # ⚠ The collision is keyed on the DIFF, and a diff is read through the
+    # census -- the block's KIND selects how, its PATH selects the markers. So
+    # these tests need a census, and one entry per index they cite.
+    BLOCKS = [
+        {
+            "path": "a.py",
+            "start": n,
+            "end": n,
+            "kind": "comment",
+            "text": "the budget is 3. callers round separately.",
+        }
+        for n in range(1, 8)
+    ]
 
     def _pair(self, drop_text, correct_text, verdict="correct"):
         """A `drop` of one sentence against a `correct`/`patch` of another.
@@ -545,23 +558,23 @@ class TestContradiction(unittest.TestCase):
         # Measured block 728: ownership dropped the sentence function-context
         # was correcting. Delete it, or fix its count -- nothing composes those.
         got = self._pair("the budget is 3.", "the budget is 3")
-        self.assertEqual(verdicts.contradictions(got), [1])
+        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), [1])
 
     def test_drop_and_correct_on_DIFFERENT_sentences_do_not_collide(self):
         # Measured block 981: ownership dropped one clause, two roles corrected
         # another in the same docstring. The join called it a contradiction and
         # a re-review round established that it was not.
         got = self._pair("callers round separately.", "the budget is 3")
-        self.assertEqual(verdicts.contradictions(got), [])
+        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), [])
 
     def test_a_containing_sentence_still_collides(self):
         # One role drops the whole block; another corrects a clause inside it.
         got = self._pair(self.ORIGINAL, "the budget is 3")
-        self.assertEqual(verdicts.contradictions(got), [1])
+        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), [1])
 
     def test_drop_against_patch_on_one_sentence_collides(self):
         got = self._pair("the budget is 3.", "the budget is 3", "patch")
-        self.assertEqual(verdicts.contradictions(got), [1])
+        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), [1])
 
     def test_move_against_correct_COMPOSES_and_is_not_flagged(self):
         # Ruled 2026-08-17: placement and truth are a sequence, not a rivalry.
@@ -579,7 +592,9 @@ class TestContradiction(unittest.TestCase):
                 ),
             ),
         ]
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
+        self.assertEqual(
+            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+        )
 
     def test_move_against_patch_is_not_flagged(self):
         found = [
@@ -594,7 +609,9 @@ class TestContradiction(unittest.TestCase):
                 claim='from: "the old wording" / to: "the new wording"',
             ),
         ]
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
+        self.assertEqual(
+            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+        )
 
     def test_drop_alone_is_not_a_contradiction(self):
         found = [
@@ -605,7 +622,9 @@ class TestContradiction(unittest.TestCase):
                 claim='drop: "the sentence"',
             )
         ]
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
+        self.assertEqual(
+            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+        )
 
     def test_drop_with_clean_is_not_a_contradiction(self):
         # `clean` rules on nothing, so it collides with nothing.
@@ -618,7 +637,9 @@ class TestContradiction(unittest.TestCase):
             ),
             _finding(reviewer="block-context", block=7, verdict="clean"),
         ]
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
+        self.assertEqual(
+            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+        )
 
     def test_an_unreadable_payload_is_flagged_rather_than_passed(self):
         # ⚠ Silence here would hide a real collision behind a malformed payload.
@@ -628,7 +649,9 @@ class TestContradiction(unittest.TestCase):
                 reviewer="block-context", verdict="correct", claim="fix the count"
             ),
         ]
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [1])
+        self.assertEqual(
+            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), [1]
+        )
 
     def test_a_record_that_names_no_block_cannot_reach_a_contradiction(self):
         # It used to reach here as `block=-1` and surface as "RE-REVIEW [-1]".
@@ -639,7 +662,9 @@ class TestContradiction(unittest.TestCase):
         )
         found, malformed = verdicts.parse_report(text, "ownership-context")
         self.assertEqual(len(malformed), 2)
-        self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [])
+        self.assertEqual(
+            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+        )
 
 
 class TestSource(unittest.TestCase):
@@ -953,7 +978,27 @@ class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
         self.assertIn("Narrowing it", f.change)
         self.assertEqual(len(f.change.splitlines()), 2)
 
-    def test_a_blank_line_ends_the_continuation(self):
+    def test_a_blank_line_INSIDE_a_field_is_content(self):
+        # ⚠⚠ The worst defect 0.2.0 shipped was the opposite of this. A blank
+        # line ended the continuation, so every docstring -- which has one
+        # between its summary and its `Args:` -- was truncated to its first
+        # paragraph. Measured: 33% of one census, ~450 blocks of another, and
+        # every refused transcription was correct.
+        f = self._one(
+            "BLOCK       1\n"
+            "VERDICT     correct\n"
+            'CLAIM       false: "a" / true: "b"\n'
+            "REASON      why\n"
+            "CHANGE      # b, first paragraph.\n"
+            "\n"
+            "            # and the second, after a gap.\n"
+        )
+        self.assertIn("second", f.change)
+        self.assertIn("\n\n", f.change)
+
+    def test_trailing_blank_lines_come_off_a_field(self):
+        # ⚠ Blank lines INSIDE a field are content; the ones before the next
+        # label are the spacing between records.
         f = self._one(
             "BLOCK       1\n"
             "VERDICT     correct\n"
@@ -961,7 +1006,7 @@ class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
             "REASON      why\n"
             "CHANGE      # b\n"
             "\n"
-            "some trailing prose the reviewer wrote to explain itself\n"
+            "\n"
         )
         self.assertEqual(f.change, "# b")
 
@@ -1221,8 +1266,20 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
 
     ORIGINAL = "# the budget is 3.\n# callers round separately."
 
+    # ⚠ The diff is read through the CENSUS: `kind` selects how the block is
+    # read, `path` selects the comment markers. A hand-rolled normaliser here
+    # would be the third definition of a block's text, which is the defect
+    # this whole class exists to pin.
+    ENTRY = {
+        "path": "a.py",
+        "start": 1,
+        "end": 2,
+        "kind": "comment",
+        "text": "the budget is 3. callers round separately.",
+    }
+
     def _at(self, **kw):
-        return verdicts.edit_problem(_finding(original=self.ORIGINAL, **kw))
+        return verdicts.edit_problem(_finding(original=self.ORIGINAL, **kw), self.ENTRY)
 
     def test_an_edit_confined_to_the_claimed_sentence_passes(self):
         self.assertIsNone(
@@ -1344,7 +1401,8 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
                     claim='missing: "capped" above `send()`',
                     original="",
                     change="# capped\ndef send():",
-                )
+                ),
+                self.ENTRY,
             )
         )
 
@@ -1352,14 +1410,15 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         for verdict in ("clean", "query"):
             self.assertIsNone(
                 verdicts.edit_problem(
-                    _finding(verdict=verdict, claim="", reason="", change="")
+                    _finding(verdict=verdict, claim="", reason="", change=""),
+                    self.ENTRY,
                 ),
                 verdict,
             )
 
     def test_a_record_with_no_original_is_left_to_the_address_check(self):
         f = _finding(original="", change="# anything")
-        self.assertIsNone(verdicts.edit_problem(f))
+        self.assertIsNone(verdicts.edit_problem(f, self.ENTRY))
 
 
 class TestCLI(unittest.TestCase):

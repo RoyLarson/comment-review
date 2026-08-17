@@ -149,6 +149,66 @@ def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
     return re.sub(r"\s+", " ", " ".join(out)).strip()
 
 
+# A docstring's delimiters, and the prefixes that may sit in front of them.
+# ⚠ Longest first: `"""` must be tried before `"`, or one quote comes off a
+# triple and two are left in the prose.
+_QUOTES = ('"""', "'''", '"', "'")
+_PREFIXES = ("rb", "br", "r", "b", "f", "u")
+
+
+def docstring_text(lines: list[str]) -> str:
+    """A docstring as ONE normalised string, read from the FILE's lines.
+
+    ⚠⚠ The census never takes this path: it reads a docstring's VALUE from the
+    AST, which arrives with no delimiters. Anyone comparing against that value
+    starts from the file instead -- delimiters, prefix and all -- and this is
+    what makes the two comparable. Measured 2026-08-17: without it a perfect
+    transcription kept its CLOSING delimiter, so a block ending `did it` ran
+    together with the quotes into one token and was refused against a census
+    holding the same sentence.
+
+    Args:
+        lines: the block's source lines, as the file reads them.
+    """
+    text = "\n".join(lines).strip()
+    for prefix in _PREFIXES:
+        if text[: len(prefix)].lower() == prefix and text[len(prefix) :].startswith(
+            _QUOTES
+        ):
+            text = text[len(prefix) :]
+            break
+    for quote in _QUOTES:
+        if text.startswith(quote):
+            text = text[len(quote) :]
+            if text.endswith(quote):
+                text = text[: -len(quote)]
+            break
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def block_text(kind: str, lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
+    """A block's prose as the census stores it, from the file's LINES.
+
+    ⚠⚠ The lines-to-block half of the block protocol, and the ONLY one. It is
+    here rather than in a caller because the census defines what a block's text
+    IS; a second implementation elsewhere is a second definition, and the two
+    drift. Measured 2026-08-17: `verdicts.py` grew its own and disagreed with
+    this file three ways at once -- a blank line, a raw-string prefix and a
+    closing delimiter -- refusing 83 of 171 blocks in one run, ~450 in another.
+
+    ⚠ The inverse, block-to-lines, is stage 7b's and does not exist yet: WRITE
+    is prose instructing an agent. When it is built it belongs beside this.
+
+    Args:
+        kind: the block's `kind`, as the census records it.
+        lines: the block's source lines, as the file reads them.
+        markers: the language's comment openers, longest first.
+    """
+    if kind == "docstring":
+        return docstring_text(lines)
+    return _join(lines, markers)
+
+
 @dataclass(frozen=True)
 class Language:
     """What the LEXICAL tier needs to find prose in a language it only lexes.
