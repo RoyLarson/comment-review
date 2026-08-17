@@ -66,11 +66,9 @@ enforce it at stage 5 by refusing a verdict that arrives without one.
 
 ## Why the stages are in this order
 
-**1–3 build the PROSE TREE and write nothing.** The prose tree is every comment run and
+**1–3 build the PROSE TREE.** The prose tree is every comment run and
 every docstring in the files under review, each one a NODE attached to the declaration it
-annotates, with every reference it makes already resolved.
-Most of the rules further down are consequences of that shape rather than separate
-instructions:
+annotates, with every reference it makes already resolved. What follows from that shape:
 
 - **coverage is a COMPLETE READ.** You read every node or you did not — *"a block nobody
   mentioned is a gap in the review, not a block that passed"*.
