@@ -1,14 +1,30 @@
 # A comment INSIDE a line makes the whole file unprovable
 
 ```
-Status:   open
-Progress: 0 of 5 tasks done
-Owner:    session · Roy (⭐ 1 ruling wanted — task 1)
+Status:   DEFERRED — the model change waits for a pull request
+Progress: 0 of 2 tasks done (3 deferred)
+Owner:    session · Roy (⭐ 1 ruling, MADE)
 Raised:   2026-08-17 (Roy, on the fixture for the fix that landed the same day:
           "Is this actually possible in code? int x = /* why */ 5; That is crazy
           - I have never seen someone put a comment in the middle of the
           expression")
 ```
+
+## ⭐ RULED 2026-08-17: build it when someone needs it
+
+Roy: *"we are going to wait for a pull request to implement it. If I am the only one that ever
+uses this project that is a non-op always so why."*
+
+**The measurement below is the argument for the ruling, not against it.** The shape is zero in
+Rust, Go, Java and JS and concentrated in C-family application code; this project's author works
+in Python and Rust. A model change that buys back the code check for a language nobody here
+writes is cost with no reader.
+
+⚠⚠ **What is NOT deferred is saying WHY a file was refused.** `prove_unchanged` returns
+`unprovable` with no cause, and that fires for THIS author today — the `spanning_quotes`
+refusal added 2026-08-17 catches any JS file holding a template literal, which is most of them.
+A user cannot currently tell a mid-line comment from an unterminated block from a language with
+no record. That is the first task and it stands on its own.
 
 ## Objective
 
@@ -52,9 +68,10 @@ space is legal. Verified rather than assumed: official `rustc` stable compiled a
 `let x = /* why */ 5;`, and `node v24.11.1` ran the JS equivalent. `SemaDecl.cpp` is Clang's own
 source, so C++ settles itself.
 
-**So the cost is concentrated in one language family and absent from the rest** — which is the
-argument for fixing it rather than accepting the refusal. A C++ repository loses the code check
-entirely; a Rust one never notices.
+**So the cost is concentrated in one language family and absent from the rest** — which is why
+the ruling above defers it. A C++ repository loses the code check entirely; a Rust one never
+notices, and nobody writing C++ uses this yet. ⚠ The concentration is the whole finding: read
+it as a map of who would be hurt, and by that map nobody currently is.
 
 ## Why it is a model change, not a patch
 
@@ -75,28 +92,26 @@ executable code is byte-identical.
 
 ## Tasks
 
-- [ ] ⭐ **RULE on whether this is worth the model change.** It buys the code check back for
-      C-family repositories and nothing for the other seven languages. ⚠ The alternative is
-      honest and cheap: keep refusing, and say in the run's report WHY a file was unprovable, so
-      a C++ user is told rather than left wondering.
+- [x] ⭐ **RULED: wait for a pull request.** See the ruling above.
 
-- [ ] **Report the reason today, whatever is decided above.** `prove_unchanged` returns
-      `unprovable` with no cause, so a user cannot tell a mid-line comment from an unterminated
-      block from a language with no record. That is a one-line change and it is worth having
-      even if the model never moves.
+- [ ] **Report the REASON. Not deferred — it fires on this author's own files.**
+      `prove_unchanged` returns `unprovable` with no cause, so nobody can tell a mid-line
+      comment from an unterminated block from a language with no record. ⚠ The
+      `spanning_quotes` refusal added the same day catches every JS file holding a template
+      literal, so this is reachable today without a single line of C++.
 
-- [ ] **Count the shape across the corpora before building anything.** One Clang file is not a
+- [ ] ⏸ DEFERRED **Count the shape across the corpora before building anything.** One Clang file is not a
       measurement of C++. `corpora.toml` is where a real sample lives, and the eleven-language
       corpus in
       [`block-comment-markers-survive-into-the-prose`](block-comment-markers-survive-into-the-prose.md)
       is the start of one.
 
-- [ ] **If the model moves: give `Block` a column span, and make `code_lines` and
+- [ ] ⏸ DEFERRED **If the model moves: give `Block` a column span, and make `code_lines` and
       `_without_comments` read it.** ⚠ Those two must be changed in ONE commit — they are the
       halves of the same claim, and 2026-08-17 has two separate measurements of what happens
       when one half moves alone.
 
-- [ ] ⚠ **Keep the four existing shapes pinned.** `TestABlockCommentBesideCode` and
+- [ ] ⏸ DEFERRED **Keep the four existing shapes pinned.** `TestABlockCommentBesideCode` and
       `TestTheProofFollowsTheBlocks` in `tests/test_census_blocks.py` are what caught the
       cut-at-the-opener fail-open, and an interior-comment change touches exactly that code.
 
