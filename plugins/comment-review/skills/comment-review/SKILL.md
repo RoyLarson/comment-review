@@ -174,7 +174,7 @@ the proposal:
   report as a finding about the REPO, above any individual block.
 
 ⚠ **Ask which markers the repo exempts from the cap** (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`
-is the common set). An exempt marker neither counts toward the cap nor splits a run — a block
+is the common set). An exempt marker neither counts toward the cap nor splits a block — one
 that is in-cap except for a marker is IN CAP. Without this, the quickest route to green is
 deleting the pointer to filed work — **quick to do and expensive to have done.** The work is
 still needed and nothing names it, so it is found again only by whoever hits the problem.
@@ -326,8 +326,9 @@ same blocks and differ only in what else they can say:
 carries an anchor at either tier, so every PLACEMENT verdict rests on a reviewer READING the
 file — a judgement no field records and nothing downstream can check.
 
-**What it guarantees, and why the reviewers depend on it.** A run is bounded by CODE, not
-blank lines (else 9 lines becomes 6+3 and passes). A run is matched as ONE joined string,
+**What it guarantees, and why the reviewers depend on it.** A block is bounded by CODE, not
+blank lines (else 9 lines becomes 6+3 and passes). Its comment run is matched as ONE joined
+string,
 because prose wraps and a line-local match reports the fragment instead of the claim. Nothing
 is truncated — a partial list cannot be used to skip anything. Anything it could not read is
 **named**, because a hole in the name corpus turns every symbol defined only there into a
@@ -336,8 +337,8 @@ false obituary.
 ### What counts as ONE block
 
 ⚠ **A COMMENT RUN is the prose INSIDE a block** — the contiguous comment lines between the
-two code lines that bound it. `run` alone means one invocation of this skill; both senses
-appear in this file, and only the qualifier tells them apart.
+two code lines that bound it. It is always written with its qualifier, because `run` alone
+means one invocation of this skill.
 
 ⚠⚠ **A block is the interval between two lines of CODE.** The lines of code above and below
 define it; what is written between them does not. Only code is a boundary — not a blank line,
@@ -362,7 +363,7 @@ example would be a comment sitting inside the very interval it describes, and wo
 Three rules people state separately all follow from the one definition, and getting any of them
 wrong changes what the reviewers see:
 
-- **Only code ends a run.** A blank line does not. Split on blanks and a 9-line block reads
+- **Only code ends a block.** A blank line does not. Split on blanks and a 9-line block reads
   as `6 + 3` and passes a cap of 6 — the quickest way to fake compliance.
 - **A work marker is free** (`TODO` `FIXME` `HACK` `XXX` `BUG`, or whatever 1.2 found this
   repo exempts). It does not count toward the cap and it does not split the comment run. Both halves

@@ -307,7 +307,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         if code.strip().startswith(openers):
             run.append((n, raw_line.rstrip()))
             continue
-        flush()  # ⚠ CODE ends a run; a blank line does not
+        flush()  # ⚠ CODE ends a block; a blank line does not
         at = min((code.index(o) for o in openers if o in code), default=-1)
         if at >= 0:
             run.append((n, raw_line[at:].rstrip()))
@@ -369,7 +369,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
 
 
 def blocks_stdlib(path: Path, text: str) -> list[Block]:
-    """Comment runs (bounded by CODE) and docstrings, via tokenize + ast."""
+    """Comment blocks (bounded by CODE) and docstrings, via tokenize + ast."""
     out: list[Block] = []
     # (line, physical source line, the comment token alone, is it trailing)
     run: list[tuple[int, str, str, bool]] = []
