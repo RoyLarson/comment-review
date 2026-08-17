@@ -93,10 +93,9 @@ file's language.** Both tiers find the same blocks and differ only in what else 
 carries an anchor at either tier, so every ownership-context verdict rests on a reviewer READING
 the file — a judgement no field records and nothing downstream can check.
 
-⚠ **Only OWNERSHIP-CONTEXT is affected.** Block-context and module-context never ask where a
-block belongs, and function-context's ordering read takes its structure from the body rather
-than from a census field — so three of the four roles are at full strength on any file the
-census can read. "No parser for this language" reads like "no review" and is not.
+⚠ **A file the census reads at the LEXICAL tier is still fully reviewed.** *"No parser for this
+language"* reads like *"no review"* and is not — what the tier costs is mechanical support for
+placement, nothing else.
 
 ⚠⚠ **A block missing from the census is a block nobody reviews, and that outranks anchoring.**
 An unresolved anchor weakens a verdict; an absent block produces none and reports no gap. **Adopt
