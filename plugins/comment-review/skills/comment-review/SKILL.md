@@ -87,7 +87,8 @@ two constraints pin it into exactly that slot:
   written.** Showing a full-length comment, getting a yes, and then writing a compacted one
   means the author approved something that never reached the file.
 
-**APPROVAL (7) presents the FINAL text**, takes the ruling, and only then applies.
+**APPROVAL (7) presents the FINAL text and STOPS.** It takes the author's ruling, and applies
+that text only if it was approved.
 
 **REVIEW (8) is the only stage that reads the artifact against itself.** Everything before it
 compares prose to code; this asks whether the finished page still reads.
