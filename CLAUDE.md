@@ -111,7 +111,7 @@ read it before touching the skill. The pipeline:
 8. **REVIEW** (task agent) — read the finished page against itself.
 
 The seven verdicts (`clean`, `query`, `drop`, `correct`, `patch`, `add`,
-`split`) and the checkable/necessary matrix that resolves them are defined in SKILL.md — read it
+`move`) and the checkable/necessary matrix that resolves them are defined in SKILL.md — read it
 rather than re-deriving the rules here, since it is the single source and this file must not
 restate it.
 
