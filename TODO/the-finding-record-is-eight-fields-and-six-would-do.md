@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks done
+Progress: 2 of 8 tasks done
 Owner:    session · Roy (⭐ 1 ruling)
 Raised:   2026-08-15 (Roy: "It looks like another session got convinced by other
           sessions that they didn't have everything they needed to state what
@@ -69,10 +69,14 @@ loads the census and takes only `len(blocks)` from it.
       redundant. Decide whether `QUERY_SETTLES` stays as a shape check on `REASON` or "what
       would settle it" becomes prose the gate does not police.
 
-- [ ] ⭐ Rule on `add`. It is the one verdict whose finding is not ABOUT an existing block — a
-      constraint exists in code and nowhere in prose — yet `BLOCK` is required and coverage is
-      computed from it, so it must borrow a neighbouring index. Either `add` carries an anchor
-      instead of a block, or the borrowing is stated as intended.
+- [x] ⭐ Rule on `add` — ⚠ **RULED 2026-08-17: it carries a BLOCK, and the block is the empty
+      INTERVAL.** Neither of the two options this task named: the borrowing was not stated as
+      intended and no anchor field was added. The census now enumerates every gap between two
+      lines of code, so the finding is about a real numbered block that holds nothing, which is
+      what an `add` was always claiming. Closed by
+      [`an-empty-interval-has-no-census-index`](an-empty-interval-has-no-census-index.md).
+      ⚠ The `add` PAYLOAD gained its own rule the same day — a side, and the anchor named in
+      backticks — under `the-gate-and-the-brief-disagree`.
 
 - [x] **Reversed by a later ruling, 2026-08-16.** Was: *"say once that `clean` produces NO
       record — it is the `CLEAN` range line."* Roy ruled the opposite the same day: *"every block
@@ -137,5 +141,7 @@ CHANGE    "Returns UTC." above `def now` / "Converts to local on the way out." a
           `Scheduler.emit`
 ```
 
-`query` and `add` are deliberately absent — they are the two ⭐ rulings above, and an example
-written before the ruling would fix the answer by illustrating it.
+`query` and `add` are deliberately absent — they WERE the two ⭐ rulings above, and an example
+written before the ruling would have fixed the answer by illustrating it. ⚠ Both are ruled as
+of 2026-08-17, so the reason for their absence is gone and writing them is now in scope for the
+worked-examples task below.

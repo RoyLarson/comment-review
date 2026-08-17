@@ -39,6 +39,7 @@ import tokenize
 from collections import Counter, defaultdict
 from contextlib import redirect_stdout
 from dataclasses import dataclass, field
+from itertools import pairwise
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -94,12 +95,18 @@ def counted_lines(raw: list[str]) -> int:
 
 @dataclass
 class Block:
-    """The interval between two lines of code — the unit a reviewer rules on."""
+    """The interval between two lines of code — the unit a reviewer rules on.
+
+    ⚠ An interval holding no prose is a block too, `kind="interval"`. It is the
+    only thing an `add` can cite: the finding is that a constraint exists in
+    code and NOWHERE in prose, so it is about an empty interval, and the record
+    requires a `BLOCK` index. Without one an `add` had to borrow a neighbour's.
+    """
 
     path: str
     start: int
     end: int
-    kind: str  # "comment" | "docstring"
+    kind: str  # "comment" | "docstring" | "trailing-comment" | "interval"
     lines: int
     text: str  # the run JOINED, so a wrapped claim matches as one string
     anchor: str = ""  # the declaration it annotates, when structurally known
@@ -578,6 +585,73 @@ def code_names(
     return names, unread
 
 
+def code_lines(text: str, prose: list[Block]) -> set[int]:
+    """Which lines of this file are LINES OF CODE, at the tier the census ran.
+
+    A line is code when it holds something that is not blank and not prose. The
+    two tiers cannot answer that identically, and the difference is the
+    docstring: `tokenized` knows a string literal is a declaration's
+    documentation, `lexical` knows only what its comment-syntax record spells.
+    So a block's BOUNDS are tier-dependent while its CONTENT is not.
+
+    ⚠ A `trailing-comment` sits ON a code line, so that line stays code. A
+    `comment` or `docstring` block occupies its lines entirely, so those lines
+    are not. An `interval` occupies nothing, which is what makes this safe to
+    run over a census that already holds intervals.
+    """
+    passes_through = ("trailing-comment", "interval")
+    occupied: set[int] = set()
+    for b in prose:
+        if b.kind in passes_through:
+            continue
+        occupied.update(range(b.start, b.end + 1))
+    return {
+        n
+        for n, ln in enumerate(text.splitlines(), 1)
+        if ln.strip() and n not in occupied
+    }
+
+
+def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
+    """Every gap between two lines of code that holds no prose.
+
+    A gap holding a comment run IS that run's block, so only the empty ones are
+    emitted here and the census stays one block per interval either way.
+
+    ⚠ **The file boundary counts as a bound.** There is no code line above a
+    module docstring and none below a comment at EOF, so the first and last
+    intervals are bounded by the file itself rather than special-cased away. A
+    file with no code at all is therefore one interval.
+
+    ⚠ `start` and `end` are the BOUNDING CODE LINES, not the blank lines
+    between them, because a zero-width gap has no lines of its own and every
+    citation in this system has to resolve. Two adjacent code lines give an
+    interval whose range is those two lines.
+    """
+    lines = text.splitlines()
+    last = len(lines)
+    if last == 0:
+        return []
+    code = sorted(code_lines(text, prose))
+    starts = {b.start for b in prose}
+    edges = [0, *code, last + 1]
+    out: list[Block] = []
+    for prev, nxt in pairwise(edges):
+        if any(prev < s < nxt for s in starts):
+            continue  # a prose block already IS this interval
+        out.append(
+            Block(
+                path=path.as_posix(),
+                start=max(prev, 1),
+                end=min(nxt, last),
+                kind="interval",
+                lines=0,
+                text="",
+            )
+        )
+    return out
+
+
 def tier_for(lang: Language) -> str:
     """The highest rung reachable for this language, here and now.
 
@@ -599,9 +673,14 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
     else:
         got = blocks_lexical(path, text, lang)
         flag_structural_docs(got, text, lang)
+    # ⚠ A file the parser refused is NOT enumerated into intervals. Its one
+    # `unparsed` block reports the refusal, and the code lines below it were
+    # never established, so any interval drawn there would be invented.
+    if not any(b.kind == "unparsed" for b in got):
+        got = got + intervals(path, text, got)
     for b in got:
         b.tier = tier_for(lang)
-    return got
+    return sorted(got, key=lambda b: (b.start, b.end))
 
 
 def main() -> int:

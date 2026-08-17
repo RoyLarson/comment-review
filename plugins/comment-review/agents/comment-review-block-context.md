@@ -61,6 +61,13 @@ from the one the comment made, and it can be right about the wrong set. ⚠ **Na
 population is not counting it** — a precisely named population with a wrong count is still a
 false claim, and reads more convincing than a vague one.
 
+⚠⚠ **SEARCH BY WHOLE NAME, because a substring counts a different population than the one you
+meant.** Measured on a real run: a count of `_block(` swept in `compose_block(`, and the
+enumeration was off by two in a report that named its population correctly. The trap is that
+both halves look done — you named the population, you produced a number, and the number is of
+the wrong set. Anchor the name at both ends, or resolve it as a symbol and count the
+references.
+
 ⚠ **This checklist is naturally better at prose over-claiming LIVENESS than DEADNESS.** Finding
 a reader **REFUTES** a *"no reader"* claim — it never satisfies the check. Watch for the
 inversion where the evidence that disproves the comment is what you were treating as a reason

@@ -3,11 +3,16 @@
     python run_context.py --template > run-<id>/context.md
     python run_context.py --check run-<id>/context.md
 
-Stage 4 hands each reviewer the 8 sections `REQUIRED` names below. This gate runs
-before four agents fire in parallel: a section quietly absent degrades a
-reviewer with no error anywhere, and a run with no style sheet introduced en-GB
-spellings into a codebase whose identifiers are en-US, with every reviewer
-satisfied because nothing owned consistency.
+`REQUIRED` names 9 sections below, and stage 4 hands each reviewer all of them
+EXCEPT the ones in `TASK_AGENT_ONLY`. This gate runs before four agents fire in
+parallel: a section quietly absent degrades a reviewer with no error anywhere,
+and a run with no style sheet introduced en-GB spellings into a codebase whose
+identifiers are en-US, with every reviewer satisfied because nothing owned
+consistency.
+
+⚠ REPO ROOT is what every other path is relative to. FILES UNDER REVIEW, the
+census entries and every citation a reviewer writes are repo-relative, and
+without the root a reviewer resolving `a.py` is guessing at a working directory.
 
 ⚠ CAP and WIDTH are absent from REQUIRED. Stage 6 is handed the cap through
 `compact.md`'s own input contract instead.
@@ -16,16 +21,20 @@ satisfied because nothing owned consistency.
 `UNAVAILABLE` for MOVE DESTINATION, `no LSP tool` for LSP LANGUAGES -- is an
 answer and gets written; a blank is refused.
 
-⚠ REVIEWER FILES carries ABSOLUTE paths. The plugin agents are namespaced and
-resolve only where the plugin was installed before the session started, which
-has been measured failing. With the paths in the packet, the sanctioned fallback
--- four general-purpose agents handed their reviewer file and the brief -- is a
-substitution rather than an improvisation.
+⚠⚠ REVIEWER FILES is the TASK AGENT's section and is NOT pasted to a reviewer.
+It carries absolute paths into the installed plugin under `.claude/`, and the
+plugin's tree is not the tree under review -- handing them over is a reason to go
+reading it. They are here for the stage-1.6 fallback: the plugin agents are
+namespaced and resolve only where the plugin was installed before the session
+started, which has been measured failing, and with the paths already in the
+packet the fallback -- four general-purpose agents handed their reviewer file and
+the brief -- is a substitution rather than an improvisation.
 
-Two sections carry an answer a machine can settle, and they ARE checked:
-`CENSUS` and each `REVIEWER FILES` entry, against the filesystem. Presence alone
-let a packet whose every hint was replaced with `x` report itself complete. The
-rest carry prose no oracle settles, and this reports nothing about them.
+Three sections carry an answer a machine can settle, and they ARE checked:
+`REPO ROOT`, `CENSUS` and each `REVIEWER FILES` entry, against the filesystem.
+Presence alone let a packet whose every hint was replaced with `x` report itself
+complete. The rest carry prose no oracle settles, and this reports nothing about
+them.
 """
 
 from __future__ import annotations
@@ -36,6 +45,7 @@ import sys
 from pathlib import Path
 
 REQUIRED = (
+    "REPO ROOT",
     "DOC CONVENTION",
     "STYLE SHEET",
     "LSP LANGUAGES",
@@ -46,7 +56,15 @@ REQUIRED = (
     "REFERENCE ONLY",
 )
 
+# ⚠ Filled by the task agent, checked here, and NOT handed to a reviewer: it
+# names paths inside the installed plugin, which is not the tree under review.
+TASK_AGENT_ONLY = frozenset({"REVIEWER FILES"})
+
 HINTS = {
+    "REPO ROOT": (
+        "absolute path to the repo under review — what every relative path in"
+        " this packet, in the census and in every citation resolves against"
+    ),
     "DOC CONVENTION": (
         "MEASURED templates: module docstring, function docstring, and comment"
         " format if the repo is consistent about one — never a standard's name alone"
@@ -96,11 +114,14 @@ def template() -> str:
     out = [
         "# comment-review run context",
         "",
-        "Handed to every reviewer. Fill every section; `--check` refuses a blank.",
+        "Fill every section; `--check` refuses a blank. Every section is handed"
+        " to every reviewer EXCEPT the ones marked TASK AGENT ONLY.",
         "",
     ]
     for name in REQUIRED:
         out.append(f"## {name}")
+        if name in TASK_AGENT_ONLY:
+            out.append("<!-- ⚠ TASK AGENT ONLY — do not paste this section -->")
         out.append(f"<!-- {HINTS[name]} -->")
         out.append("")
     return "\n".join(out)
@@ -216,7 +237,7 @@ def _path_candidates(line: str) -> list[str]:
 def invalid_answers(text: str) -> list[str]:
     """Answers that are present but unusable, one line each.
 
-    Only the two sections a machine can settle: `CENSUS` and each
+    Only the three sections a machine can settle: `REPO ROOT`, `CENSUS` and each
     `REVIEWER FILES` entry, against the filesystem. The rest carry prose no
     oracle checks, so this list stays silent about them.
 
@@ -228,6 +249,10 @@ def invalid_answers(text: str) -> list[str]:
     """
     bodies = section_bodies(text)
     bad: list[str] = []
+    for body in bodies.get("REPO ROOT", []):
+        for line in _answer_lines(body):
+            if not any(_resolves(c) for c in _path_candidates(line)):
+                bad.append(f"REPO ROOT: {line!r} is not an absolute path that exists")
     for body in bodies.get("CENSUS", []):
         for line in _answer_lines(body):
             if not any(_resolves(c) for c in _path_candidates(line)):
@@ -285,10 +310,11 @@ def main() -> int:
         return 1
 
     print(
-        f"Complete: all {len(REQUIRED)} sections answered, and CENSUS and"
-        f" REVIEWER FILES check out.\n⚠ The other {len(REQUIRED) - 2} are prose"
-        " nothing here can settle. Dispatch all four in ONE message, so no"
-        " role sees another's findings."
+        f"Complete: all {len(REQUIRED)} sections answered, and REPO ROOT, CENSUS"
+        f" and REVIEWER FILES check out.\n⚠ The other {len(REQUIRED) - 3} are"
+        " prose nothing here can settle. Dispatch all four in ONE message, so no"
+        " role sees another's findings.\n⚠ Withhold every TASK AGENT ONLY"
+        f" section: {', '.join(sorted(TASK_AGENT_ONLY))}."
     )
     return 0
 

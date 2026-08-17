@@ -11,6 +11,9 @@ import run_context
 
 
 FULL = """
+## REPO ROOT
+/abs/repo
+
 ## DOC CONVENTION
 google
 
@@ -167,20 +170,35 @@ class TestCheckableAnswers(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def _packet(self, census=None, reviewers=None):
+    def _packet(self, census=None, reviewers=None, root=None):
         census = self.census.as_posix() if census is None else census
         reviewers = [self.reviewer.as_posix()] if reviewers is None else reviewers
-        return FULL.replace(
-            "## CENSUS\n/tmp/run-abc/census.txt", f"## CENSUS\n{census}"
-        ).replace(
-            "## REVIEWER FILES\n/abs/agents/comment-review-ownership-context.md",
-            "## REVIEWER FILES\n" + "\n".join(reviewers),
+        root = self.root.as_posix() if root is None else root
+        return (
+            FULL.replace("## REPO ROOT\n/abs/repo", f"## REPO ROOT\n{root}")
+            .replace("## CENSUS\n/tmp/run-abc/census.txt", f"## CENSUS\n{census}")
+            .replace(
+                "## REVIEWER FILES\n/abs/agents/comment-review-ownership-context.md",
+                "## REVIEWER FILES\n" + "\n".join(reviewers),
+            )
         )
 
     def test_a_valid_packet_has_no_invalid_answers(self):
         packet = self._packet()
         self.assertEqual(run_context.missing_sections(packet), [])
         self.assertEqual(run_context.invalid_answers(packet), [])
+
+    def test_a_relative_repo_root_is_named(self):
+        # Roy, 2026-08-17: the reviewers "could get the full path to the root
+        # directory they are supposed to work in". A relative one is the same
+        # guess at a working directory the packet exists to remove.
+        problems = run_context.invalid_answers(self._packet(root="."))
+        self.assertTrue(any(p.startswith("REPO ROOT:") for p in problems), problems)
+
+    def test_a_repo_root_that_is_not_there_is_named(self):
+        gone = (self.root / "no-such-repo").as_posix()
+        problems = run_context.invalid_answers(self._packet(root=gone))
+        self.assertTrue(any(p.startswith("REPO ROOT:") for p in problems), problems)
 
     def test_a_relative_census_path_is_named(self):
         problems = run_context.invalid_answers(self._packet(census="census.json"))
@@ -211,7 +229,7 @@ class TestCheckableAnswers(unittest.TestCase):
         packet = "\n".join(f"## {name}\nx\n" for name in run_context.REQUIRED)
         self.assertEqual(run_context.missing_sections(packet), [])
         problems = run_context.invalid_answers(packet)
-        self.assertEqual(len(problems), 2, problems)
+        self.assertEqual(len(problems), 3, problems)
 
 
 class TestCLI(unittest.TestCase):

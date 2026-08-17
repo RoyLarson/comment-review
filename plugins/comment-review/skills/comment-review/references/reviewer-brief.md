@@ -35,7 +35,13 @@ not check rather than reporting it clean.
 ## Read the census end to end
 
 You are given a numbered census and the mechanical resolutions for it. **Read it start to
-finish and return at least one RECORD for EVERY numbered block.**
+finish and return at least one RECORD for EVERY block that HOLDS PROSE.**
+
+⚠⚠ **An `interval` block holds nothing, and you owe it no record.** Every gap between two
+lines of code is numbered, so most of the census is empty intervals — they are there to be
+CITED, not accounted for. An `add` says a constraint exists in code and NOWHERE in prose, which
+is a finding about an empty interval; without an index for it the finding had to borrow a
+neighbouring block's and read as being about that block's text.
 
 ## Every finding is a RECORD, and it is parsed
 

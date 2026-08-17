@@ -50,7 +50,7 @@ role per block and must synthesise ONE**, so what matters here is what each obli
 | `drop` | true but not worth keeping | delete the sentence |
 | `correct` | **FALSE** | apply the true/false pair. **Always before any `patch`** |
 | `patch` | **TRUE**, badly worded | apply the rewrite |
-| `add` | missing entirely | insert the text at the anchor named with it |
+| `add` | missing entirely | insert the text at the anchor named with it. Its `BLOCK` is the empty INTERVAL the prose belongs in, so read it as being about that gap and not about a neighbour |
 | `move` | true, but **it belongs somewhere else** | re-attach the block, unchanged, at the destination carried with it — another line in this file, another file, or out of the code entirely |
 
 ⚠⚠ **A relocation is ONE judgment, and the DESTINATION carries the rest.** Whether the prose
@@ -313,7 +313,15 @@ census; **the stage-5 join reads the JSON census and parses it as JSON**, so a r
 only the text one fails at stage 5 with `CANNOT PARSE ... as JSON`.
 
 It emits the numbered tree — `N  file:start-end  kind  lines  annotations  (anchor)` — with each
-node's references already resolved, and it prints the tier counts for the run. ⚠ Those are
+node's references already resolved, and it prints the tier counts for the run.
+
+⚠⚠ **Most of that tree is `interval` blocks, and nobody owes them a record.** Every gap
+between two lines of code is numbered, empty ones included, because an `add` is a finding about
+prose that is MISSING and the record needs a `BLOCK` index to carry it. They are ADDRESSABLE,
+not ACCOUNTABLE: `verdicts.py` computes coverage over the blocks that hold prose and says both
+counts on its first line. Measured: `census.py` over itself is 546 blocks, 48 of them prose.
+
+⚠ Those tier counts are
 AGGREGATED across files, not per file — on a polyglot run you cannot tell which file reached
 which tier, which is exactly when it matters. Run it; do not
 re-derive its output by hand.

@@ -1,9 +1,10 @@
 # An empty interval has no census index, so `add` has no block to cite
 
 ```
-Status:   open
-Progress: 0 of 9 tasks done
-Owner:    session
+Status:   open — the census change is DONE 2026-08-17; what is left is a NAMING
+          ruling, which is Roy's
+Progress: 8 of 9 tasks done
+Owner:    session · Roy (⭐ 1 ruling, deferred by him and now unblocked)
 Raised:   2026-08-15 (Roy ruled (a): every interval is a block, empty ones included)
 ```
 
@@ -28,54 +29,62 @@ vocabulary and is done; this is the census change that follows from it.
 
 ## Tasks
 
-- [ ] Enumerate every interval between two code lines, including empty ones. Today
-      `blocks_stdlib` / `blocks_lexical` emit only where prose exists. Measured for scale:
-      re-measured 2026-08-16, after `census.py` was split into three modules: `census.py` is
-      768 lines, ~624 of them code, and censuses as **44 blocks** — under (a) it is ~624.
-      `verdicts.py`: 535 lines, ~426 code, **23 blocks** today.
+- [x] Enumerate every interval between two code lines, including empty ones — `intervals()`
+      in `census.py`, run from `census_for` after the prose blocks are built. A gap that HOLDS
+      a comment run is that run's block already, so only the empty ones are emitted and the
+      census stays one block per interval either way. ⚠ **Measured 2026-08-17:** `census.py`
+      over itself is 847 lines and **546 blocks**, 48 of them prose — up from 44.
 
-- [ ] Define **"a line of code"** per tier, because the two tiers cannot answer the same
-      question. `tokenized` has an AST; `lexical` has only a comment-syntax record, so a line of
-      code is whatever is neither comment nor blank. State both, and state that a block's
-      boundaries are therefore tier-dependent while its CONTENT is not.
+- [x] Define **"a line of code"** per tier — `code_lines()` states it: a line is code when it
+      holds something that is not blank and not prose. The tiers differ on the DOCSTRING, which
+      is the whole of the difference: `tokenized` knows a string literal is a declaration's
+      documentation and `lexical` knows only what its comment-syntax record spells. So a
+      block's BOUNDS are tier-dependent while its CONTENT is not, and the docstring says so.
+      ⚠ A `trailing-comment` sits ON a code line, so that line stays code.
 
-- [ ] Decide what bounds the FIRST and LAST interval in a file. There is no code line above a
-      module docstring or a file header, and none below a trailing comment at EOF. Either the
-      file boundary counts as a bound, or those two intervals are special-cased — say which.
+- [x] Decide what bounds the FIRST and LAST interval in a file — ⚠ **the FILE BOUNDARY counts
+      as a bound.** Special-casing them would have left a module docstring and a comment at EOF
+      in no interval at all, which is the hole this whole file is about. A file with no code is
+      therefore one interval. Tested on both ends.
 
-- [ ] Reconcile with the block kinds that are not intervals. A `docstring` is owned by a
-      declaration, and a `trailing-comment` shares a line with code rather than sitting between
-      two. Both are blocks today. Say whether they are intervals under the new definition or a
-      second kind of block that coexists with it.
+- [x] Reconcile with the block kinds that are not intervals — they COEXIST, and `kind` is
+      what tells them apart. A `docstring` and a `comment` occupy their lines entirely, so those
+      lines are not code and the block IS its interval. A `trailing-comment` shares a line with
+      code, so its line stays code and it hangs off that line rather than sitting between two.
+      An `interval` occupies nothing. ⚠ That last one is what makes `code_lines` safe to run
+      over a census that already holds intervals.
 
-- [ ] Update coverage and the `CLEAN` range line in `references/reviewer-brief.md`. A reviewer
-      must account for every index, and the count rises roughly tenfold. ⚠ **Check what this
-      does to the cheapest fabrication.** The brief already records that a report reading only
-      `CLEAN 1-N` accounts for everything, cites nothing, and exits 0 having read no file. If
-      nine in ten blocks are empty, that report becomes MORE plausible, not less — decide
-      whether the gate needs a compensating check before the count changes.
+- [x] Update coverage in `references/reviewer-brief.md` — ⚠⚠ **ADDRESSABLE is not
+      ACCOUNTABLE, and that is the ruling the fabrication question forces.** A reviewer returns
+      a record for every block that HOLDS PROSE; an empty interval is there to be CITED, not
+      accounted for. Owing a record on all 546 would have made `CLEAN 1-N` — the cheapest
+      fabrication there is — nine parts in ten true, which is the compensating check this task
+      asked for and the reason coverage did not simply widen. `verdicts.py` computes
+      `all_blocks` from `kind != "interval"`; the range line was already deleted by an earlier
+      ruling, so there was none left to update.
 
-- [ ] Check the STANDS arithmetic and the acquittal rate. `verdicts.py`'s STANDS set is
-      `all_blocks - ruled`, and `module-context` measures an acquittal rate whose denominator is
-      blocks. Both shift by an order of magnitude when most blocks are empty, and neither states
-      a denominator today.
+- [x] Check the STANDS arithmetic — it reads `all_blocks`, which is now the PROSE blocks, so
+      it did not shift at all: an empty interval nobody wrote about is not standing unchanged,
+      it is empty. The join's first line states both denominators rather than one. ⚠ The
+      `acquittal` rate named here no longer exists; `acquittal` was deleted from the vocabulary
+      on 2026-08-16 as a term that arrived from LAW.
 
-- [ ] Give `add` its block, which is the point of the change: the empty interval where the
-      prose should go. Then close the ⭐ on `add` in
-      [`the-finding-record-is-eight-fields-and-six-would-do`](the-finding-record-is-eight-fields-and-six-would-do.md),
-      which is blocked on exactly this.
+- [x] Give `add` its block — done, and the ⭐ in
+      [`the-finding-record-is-eight-fields-and-six-would-do`](the-finding-record-is-eight-fields-and-six-would-do.md)
+      is closed with it. An `add` cites the empty interval the prose belongs in; it no longer
+      borrows a neighbour's index and no longer reads as being about that neighbour's text.
 
-- [ ] ⭐ Relitigate the name **ANNOTATE** once the pCST exists. Roy, 2026-08-16: *"I think at a
-      future time we might relitigate the word ANNOTATE. It seems close but not quite correct
-      for the stage that is about turning the code into the pCST and finding external
-      references."* Deliberately deferred — the name should be chosen against what the stage
-      does once it builds intervals rather than prose runs, not before. ⚠ Stage 2 keeping the
-      name is what made `annotation` the right word for the census's marks; if ANNOTATE moves,
-      check that pairing still holds.
+- [ ] ⭐ **DEFERRED BY ROY, and now UNBLOCKED.** Relitigate the name **ANNOTATE**. Roy,
+      2026-08-16: *"I think at a future time we might relitigate the word ANNOTATE. It seems
+      close but not quite correct for the stage that is about turning the code into the pCST
+      and finding external references."* The name was to be chosen against what the stage does
+      once it builds intervals rather than prose runs — and as of 2026-08-17 it does, so the
+      condition is met and this is the only task left open here. ⚠ Stage 2 keeping the name is
+      what made `annotation` the right word for the census's marks; if ANNOTATE moves, check
+      that pairing still holds.
 
-- [ ] Re-measure the census afterwards and record it. Today `census.py --json` over `census.py`
-      is 36,777 bytes for 44 blocks (~836 bytes each, re-measured 2026-08-16); an empty interval
-      carries no text, `raw_lines` or annotations, so ~203 bytes each puts the ~580 empty ones
-      near 118 KB. ⚠ Record
-      it as a fact, not as a budget question — `docs/limitations.md` states that rule files are
-      budgeted and run data is not.
+- [x] Re-measure the census afterwards and record it — ⚠ **measured 2026-08-17:**
+      `census.py --json` over `census.py` is **177,615 bytes for 546 blocks**, against 36,777
+      bytes for 44 before. The estimate here was ~118 KB and it was low. Recorded as a fact, not
+      as a budget question — `docs/limitations.md` states that rule files are budgeted and run
+      data is not.

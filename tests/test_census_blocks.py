@@ -140,5 +140,65 @@ class TestEveryFileIsCensusedOrItErrors(unittest.TestCase):
         self.assertIn("matched no files", result.stdout)
 
 
+class TestEveryIntervalIsABlock(unittest.TestCase):
+    """A block is the interval between two lines of code, empty ones included.
+
+    The census enumerated from PROSE, so an interval with nothing in it had no
+    index -- and an `add` says a constraint exists in code and NOWHERE in
+    prose, which is a finding ABOUT an empty interval. It had to borrow a
+    neighbour's index to be filed at all.
+    """
+
+    def _census(self, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "a.py"
+            path.write_text(text, encoding="utf-8")
+            lang = census.language_for(path)
+            return census.census_for(path, text, lang)
+
+    def test_three_adjacent_code_lines_are_no_longer_zero_blocks(self):
+        # The measurement that raised this: three code lines with nothing
+        # between them censused as 0 blocks and could not be cited.
+        got = self._census("a = 1\nb = 2\nc = 3\n")
+        self.assertTrue(got, "three code lines must enumerate as intervals")
+        self.assertTrue(all(b.kind == "interval" for b in got), got)
+
+    def test_the_file_boundary_bounds_the_first_and_last_interval(self):
+        got = self._census("a = 1\nb = 2\nc = 3\n")
+        self.assertEqual((got[0].start, got[0].end), (1, 1))
+        self.assertEqual((got[-1].start, got[-1].end), (3, 3))
+
+    def test_an_interval_holding_prose_is_not_enumerated_twice(self):
+        got = self._census("a = 1\n# a note\nb = 2\n")
+        kinds = [b.kind for b in got]
+        self.assertEqual(kinds.count("comment"), 1, got)
+        # Two code lines, one gap between them, and the gap holds the comment.
+        self.assertNotIn(
+            (2, 2), [(b.start, b.end) for b in got if b.kind == "interval"]
+        )
+
+    def test_every_interval_citation_resolves_to_a_real_line(self):
+        text = "a = 1\n\n\nb = 2\nc = 3\n"
+        last = len(text.splitlines())
+        for b in self._census(text):
+            self.assertLessEqual(b.start, b.end, b)
+            self.assertGreaterEqual(b.start, 1, b)
+            self.assertLessEqual(b.end, last, b)
+
+    def test_a_trailing_comments_line_is_still_a_line_of_code(self):
+        got = self._census("a = 1  # note\nb = 2\n")
+        self.assertEqual(census.code_lines("a = 1  # note\nb = 2\n", got), {1, 2})
+
+    def test_a_file_the_parser_refused_is_not_enumerated(self):
+        # An interval drawn over a file whose code lines were never established
+        # would be invented, so the `unparsed` block stands alone.
+        got = self._census("a = = 1\n")
+        self.assertEqual([b.kind for b in got], ["unparsed"])
+
+    def test_a_file_of_only_prose_is_one_interval(self):
+        got = self._census("# just a note\n")
+        self.assertEqual([b.kind for b in got], ["comment"])
+
+
 if __name__ == "__main__":
     unittest.main()

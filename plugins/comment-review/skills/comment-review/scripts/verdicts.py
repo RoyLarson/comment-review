@@ -505,7 +505,14 @@ def main() -> int:
             " — is this census.py --json output?"
         )
         return 1
-    all_blocks = set(range(1, len(blocks) + 1))
+    # ⚠⚠ ADDRESSABLE is not ACCOUNTABLE. Every interval between two lines of
+    # code is a block, so an `add` -- a finding about prose that is MISSING --
+    # has an index to cite instead of borrowing a neighbour's. Most of them hold
+    # nothing, and a reviewer owes no record on an empty one: coverage is over
+    # the blocks that HOLD PROSE. Measured: `census.py` over itself is 546
+    # blocks, 48 of them prose. Owing a record on all 546 would make `CLEAN 1-N`
+    # -- the cheapest fabrication there is -- nine parts out of ten true.
+    all_blocks = {i for i, b in enumerate(blocks, 1) if b.get("kind") != "interval"}
 
     fatal = 0
 
@@ -554,7 +561,9 @@ def main() -> int:
 
     print(
         f"{_n(len(found), 'finding')} from {_n(len(args.reports), 'reviewer')}"
-        f" over {_n(len(blocks), 'block')}\n"
+        f" over {_n(len(all_blocks), 'prose block')}"
+        f" ({_n(len(blocks), 'block')} in the census, the rest empty intervals"
+        " an `add` may cite)\n"
     )
 
     # ⚠ DECLARED, the way this repo names a population everywhere else. Without
