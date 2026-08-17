@@ -106,11 +106,25 @@ to load from a file an agent produced.** The whole stdlib set, checked 2026-08-1
 | `tomllib` | none | read-only by design |
 | `configparser`, `csv` | no nesting or flat only | no |
 | `plistlib` | `dumps`/`dump` | technically -- an Apple XML format no reader here would recognise |
-| `pickle` | `dumps`/`dump` | **NO -- it executes arbitrary code on load** |
-| `marshal` | `dumps`/`dump` | no -- internal, version-unstable, documented as not for general data |
+| `xml.etree` | `tostring`/`write` | **no -- it EXPANDS ENTITIES**; see below |
+| `pickle`, `shelve`, `dill` | `dumps`/`dump` | **NO -- they execute arbitrary code on load** |
+| `marshal` | `dumps`/`dump` | no -- executes what it loads, and version-unstable |
 
-! **`pickle` is the trap worth naming.** It is stdlib, it round-trips anything, and loading it
-from a file an AGENT wrote would put arbitrary code execution inside a review tool.
+!! **TWO stdlib formats are disqualified on SECURITY, for different reasons, and both would have
+been reached for by someone optimising away an escaping problem.**
+
+- **`pickle`** round-trips anything, including the multi-line source blocks a record carries.
+  Loading it from a file an AGENT wrote is arbitrary code execution inside a review tool.
+- **`xml.etree`** is the one this list originally MISSED. Roy: *"technically that does leave us
+  the worst of the worst options -- xml itself -- that is stdlib."* It does not execute code; it
+  expands entities. Measured 2026-08-17 on the pinned 3.11: **three levels of nested internal
+  entity became 1000 characters**, and the unbounded form of that shape is a denial of service.
+  `defusedxml` is the answer where XML is unavoidable, and it is third party -- so here the
+  answer is that XML is avoidable.
+
+! **Both are now refused by `tests/test_shipped_safety.py`**, with their reasons kept separate,
+because a shared message would be wrong for one of them. A rule enforced by nothing is a rule
+that rots, which is this repo's own standard.
 
 ! The cost accepted with JSON: it escapes newlines, so a record is unreadable in a diff, and it
 carries no comments. **That is what the CLI is for** -- nobody reads or writes the encoding by
