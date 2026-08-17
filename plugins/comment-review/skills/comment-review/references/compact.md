@@ -45,6 +45,23 @@ approval.
 block, drop a constraint, or resolve anything stage 5 left open. If compacting makes you want
 to do any of those, APPLY was not finished -- go back, or file it for the next run.
 
+!! **ASK FIRST WHETHER THE BLOCK IS LONG BECAUSE IT IS SPECIFIC.** A block stating ONE INSTANCE
+of a rule it could state generally is over-length for a reason cutting cannot reach.
+**Generalising costs nothing; cutting an over-specified block keeps the defect and loses
+evidence.**
+
+! **Report it rather than cutting it.** Altitude is a claim about what the sentence SAYS, which
+is stage 5's and the reviewers', not this pass's -- so an over-specified block is one you hand
+back, the same as a block you cannot bring under the cap.
+
+! Measured 2026-08-17: an instance-level sentence plus an imported argument ran to EIGHT lines
+where the rule-level version ran to six with **nothing cut** -- the rule, four named functions,
+both test files, the exception, its cause, its failure condition and a document pointer all
+survived. Handed the eight-line version, this pass would have been asked to cut from a block
+where every remaining sentence was true and evidenced, which is the trade this file forbids
+below. It would have reported the block at length, correctly, **and been reporting the wrong
+problem.**
+
 ## Per block
 
 1. **Take the ORIGINAL prose from the PRE-EDIT REF** 1.1 recorded --

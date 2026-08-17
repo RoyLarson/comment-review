@@ -11,6 +11,14 @@ Raised:   2026-08-17 (Roy: "both todo-tool and redacted_lane_a ended up in / six
 
 ## Objective
 
+!! **MEASURED 2026-08-17: 190 of the 196 files in one branch's merge-base diff were `TODO/*.md`
+and could not be reviewed at all.** The run reviewed the six that were code.
+
+! **A downstream cost from the same run:** `function-context` found the same stale sentence in a
+docstring AND in `.claude/skills/todo-tool/SKILL.md`. The `.md` is REFERENCE ONLY, so no verdict
+could target it -- **the pair is still drifted.** A prose file being uncensusable is not only a
+coverage gap; it makes the copy that a reviewer CAN see unfixable in the copy it cannot.
+
 **`.md`, `.rst` and `.txt` have no `LANGUAGES` record, so a documentation file cannot be
 reviewed at all** -- handing one in is fatal: *"1 of 1 files handed in were not censused."* They
 reach a run only as REFERENCE ONLY, which is read-to-settle and never ruled on.

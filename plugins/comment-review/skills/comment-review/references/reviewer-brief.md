@@ -207,6 +207,22 @@ changing this code make a **worse decision** without it? Those two questions dec
 point on it -- it is `correct`. Read generally, *"truth is not one of the questions"* acquits a
 falsehood. It applies to history that is TRUE-but-useless and nowhere else.
 
+!! **A THIRD question the matrix cannot ask: is this the RULE, or ONE INSTANCE of it?** If a
+reader can construct a case the sentence does not cover but the code still governs, the ALTITUDE
+is wrong -- and that is a `patch`, not a `clean`.
+
+**The matrix passes an over-specified sentence cleanly**, because it is confirmable and a reader
+would decide worse without it. Both axes are satisfied and the sentence is still the wrong one.
+! **A number can be WRONG; an over-specified sentence can only be NARROW**, and nothing else in
+this pass measures narrowness.
+
+! Measured 2026-08-17: one run caught *"Six call sites"* and *"Four kinds"* -- countable claims,
+which the annotations surface -- and missed, in the same file, a sentence describing one
+positional column by name where the rule it stands for governs every column after any insertion.
+**Generalising it lost nothing**: the rule, the four functions it names, both test files, the
+exception, its cause and its pointer all survived. ! A reader who inserts a DIFFERENT column is
+governed by the code and unserved by the sentence, which is the test above.
+
 #### `correct` and `patch` specific rules
 
 ! **`correct` and `patch` are not interchangeable.** `correct` says the claim is wrong;
