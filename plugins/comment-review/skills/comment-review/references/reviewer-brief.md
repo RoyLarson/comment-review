@@ -88,7 +88,7 @@ finding.
 | verdict   | payload |
 | --------- | ------- |
 | `clean`   | nothing — name your role, nothing else |
-| `query`   | the claim, the check you ATTEMPTED, and what WOULD settle it — the ATTEMPTED and WOULD-settle halves are CHECKED (as shape, not as truth); the claim itself is checked by nothing |
+| `query`   | which of the three SHAPES it is, in those words, then the claim, the check you ATTEMPTED, and what WOULD settle it — the shape, the ATTEMPTED and the WOULD-settle halves are all CHECKED (as shape, not as truth); the claim itself is checked by nothing |
 | `drop`    | the sentence, verbatim |
 | `correct` | the false clause **and** the true one, plus the line that settles it |
 | `patch`   | the rewrite |
@@ -150,21 +150,24 @@ constraint — and none of those is your role's question unless your role file s
 still required to open the code that would settle it; on every other verdict your `QUOTE` proves
 you did. `query` is what you emit when you did and it was still not enough.
 
-Three shapes reach it, and all three are findings rather than admissions:
+⚠⚠ **Three shapes reach it, and your `CHANGE` must NAME which one — in these exact words.**
+The three are findings rather than admissions, and they route differently: the first says which
+scope owns the block, the other two are work that reaches the author. Nothing downstream can
+tell them apart if you do not say which:
 
-- **outside your role** — what settles it belongs to another scope. ⚠ Do not invent a word
-  for "outside my role": it is `query`.
+- **outside my role** — what settles it belongs to another scope.
 - **outside the checkout** — generated, gitignored, remote, or on one machine. No reviewer in a
   fresh checkout can settle it.
 - **outside the code** — settling it needs someone who knows the system or how it is operated.
-  It reaches the author as a question.
 
 ⚠ **A claim you could not settle and marked `clean` is worse than the same claim marked
 `query`.** `clean` certifies; `query` asks.
 
 ⚠ **A `query` requires `EVIDENCE` and `QUOTE`(s), by construction** — this is where you
 looked to try to find the answer. These are the statements in the code that make it
-ambiguous or the location not yours to determine.
+ambiguous or the location not yours to determine. **All three shapes carry them**, including
+`outside my role`: the block is real and in the checkout on every one of them, so there is
+always a line to quote.
 
 ## Check the CLAIM, not the CITATION
 

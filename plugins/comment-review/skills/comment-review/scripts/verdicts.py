@@ -60,12 +60,13 @@ VERDICTS = (
 RELOCATES = frozenset({"drop", "move"})
 RULES_ON_TEXT = frozenset({"correct", "patch"})
 
-# ⚠ The phrase the agent files MANDATE for a block a role does not own --
-# module-context: 'Return `query` and name the reason as "outside my role"'. It
-# is a declaration of SCOPE, not a ruling, and the brief lists it as the first
-# of three shapes that reach `query`. The other two -- outside the checkout,
-# outside the code -- reach the author and remain work.
+# ⚠⚠ The THREE shapes `reviewer-brief.md` says reach `query`, and a query must
+# NAME the one it is. A closed set beats guessing at free text: the shape decides
+# whether the block is work (the author must answer) or a boundary report (the
+# role is saying which scope owns it), and that is not something to infer from
+# whether a sentence happens to contain the word "resolved".
 OUT_OF_ROLE = "outside my role"
+QUERY_SHAPES = (OUT_OF_ROLE, "outside the checkout", "outside the code")
 
 RECORD = re.compile(r"^---\s*RECORD\s*$(.*?)^---\s*$", re.M | re.S)
 # Counts "--- RECORD" OPENERS on their own, independent of whether a closing
@@ -277,6 +278,19 @@ def payload_problem(f: Finding) -> str | None:
     """
     change = f.change.lower()
     if f.verdict == "query":
+        named = [s for s in QUERY_SHAPES if s in change]
+        if not named:
+            return (
+                "query must NAME its shape — one of "
+                + ", ".join(f"'{s}'" for s in QUERY_SHAPES)
+                + " — so the reason is attached to the ruling"
+            )
+        # ⚠ The shape is REMOVED before the word search. `check\w*` matches
+        # "checkout", so "outside the checkout" would satisfy the attempted-check
+        # test by naming itself -- a query could pass by declaring its shape and
+        # doing nothing.
+        for shape in named:
+            change = change.replace(shape, " ")
         if not QUERY_ATTEMPTED.search(change):
             return (
                 "query needs the check you ATTEMPTED — a query naming none"
@@ -358,11 +372,14 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     checking it here made every counted claim structurally inadmissible. The
     forcing function lands on a field that carries verbatim text alone.
 
-    ⚠ `query` is exempt alongside `clean`, and `payload_problem` checks it
-    instead. DISPUTED and UNRESOLVED: `reviewer-brief.md` requires EVIDENCE and
-    a QUOTE of a `query`, and this script requires neither.
+    ⚠⚠ `query` is NOT exempt. `reviewer-brief.md` has always said a query
+    "requires `EVIDENCE` and `QUOTE`(s), by construction -- this is where you
+    looked", and this script waived both; Roy ruled the brief right on
+    2026-08-16. Where you looked is a real line in the checkout on all three
+    query shapes, so it resolves like any other citation. Only `clean` is
+    exempt, because a `clean` reports no claim to cite.
     """
-    if f.verdict in ("clean", "query"):
+    if f.verdict == "clean":
         return None
     resolved = _resolve_lines(f.evidence, repo, allow_range=False)
     if isinstance(resolved, str):
@@ -404,7 +421,7 @@ def declares_scope(f: Finding) -> bool:
     the boundary it was told to report. Every other `query` IS work -- it names a
     claim nobody could settle, and the brief sends it to the author.
     """
-    return f.verdict == "query" and OUT_OF_ROLE in f"{f.change} {f.finding}".lower()
+    return f.verdict == "query" and OUT_OF_ROLE in f.change.lower()
 
 
 def by_block(found: list[Finding]) -> dict[int, list[Finding]]:

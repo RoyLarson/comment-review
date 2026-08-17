@@ -558,17 +558,15 @@ carrying a substantive verdict NEEDS A RULING. A block covered only by `clean` a
 because a role returns `query` rather than `clean` on a block it never read. Measured: on one
 run 1159 blocks read as work when 76 carried a verdict.
 
-⚠ **`query` is the one verdict this citation check does not touch.** Its PAYLOAD
-is checked instead: a `query` naming no attempted check, or naming nothing that
-would settle the claim, is the one the gate refuses. ⚠⚠ **DISPUTED and
-UNRESOLVED** — `reviewer-brief.md` requires `EVIDENCE` and a `QUOTE` of a
-`query`, and the gate requires neither.
+⚠ **`query` is checked TWICE, and carries evidence like every other verdict.** Its citations
+resolve as any other's do; on top of that its payload must NAME which of the brief's three
+shapes it is — in the brief's own words — and name the check it attempted. A `query` that
+names no shape is refused, and so is one that names no check.
 
-⚠⚠ **A finding whose evidence does not resolve is not a finding.** ⚠ Whether a
-`query` owes EVIDENCE is DISPUTED and UNRESOLVED: `reviewer-brief.md` requires
-it, `verdicts.py` exempts it. **Never grade a review by reading its report** —
-self-reported confidence has been measured not to discriminate a real finding
-from a fabricated one.
+⚠⚠ **A finding whose evidence does not resolve is not a finding.** Only `clean`
+is exempt, because it cites no claim. **Never grade a review by reading its
+report** — self-reported confidence has been measured not to discriminate a real
+finding from a fabricated one.
 
 ⚠⚠ **It catches a fabricated FINDING, never a fabricated CLEAN — and the clean
 is the easier fabrication.** A report reading only `CLEAN 1-N` accounts for

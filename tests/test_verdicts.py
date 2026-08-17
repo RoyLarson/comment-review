@@ -176,21 +176,19 @@ class TestQueryPayload(unittest.TestCase):
     """
 
     QUERY = (
-        "claim: the archive holds the original"
+        "outside the checkout. claim: the archive holds the original"
         " / checked: git ls-files, git log -- archive/"
         " / would settle: a copy of the archive inside the checkout"
     )
 
     def test_a_documented_query_passes(self):
-        f = _finding(verdict="query", evidence="", quote="", change=self.QUERY)
+        f = _finding(verdict="query", change=self.QUERY)
         self.assertIsNone(verdicts.payload_problem(f))
 
     def test_a_query_naming_no_attempted_check_is_rejected(self):
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
-            change="claim: unclear. someone should settle this",
+            change="outside the code. claim: unclear. someone should settle this",
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
@@ -202,10 +200,8 @@ class TestQueryPayload(unittest.TestCase):
         for verb in ("resolved", "enumerated", "verified", "traced", "compared"):
             f = _finding(
                 verdict="query",
-                evidence="",
-                quote="",
                 change=(
-                    f"claim: x / {verb} the enclosing definition"
+                    f"outside the code. claim: x / {verb} the enclosing definition"
                     " / would settle: another role"
                 ),
             )
@@ -214,9 +210,9 @@ class TestQueryPayload(unittest.TestCase):
     def test_a_query_that_does_not_say_what_would_settle_it_is_rejected(self):
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
-            change="claim: the archive holds it / checked: git ls-files",
+            change=(
+                "outside the code. claim: the archive holds it / checked: git ls-files"
+            ),
         )
         self.assertIn("WOULD settle", verdicts.payload_problem(f))
 
@@ -232,37 +228,30 @@ class TestQueryWordBoundary(unittest.TestCase):
     def test_an_unsettled_branch_name_names_no_check_and_is_rejected(self):
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
-            change="the branch name is unsettled",
+            change="outside the code. the branch name is unsettled",
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
     def test_a_range_of_values_names_no_check_and_is_rejected(self):
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
-            change="a range of values, unsettled",
+            change="outside the code. a range of values, unsettled",
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
     def test_transfer_semantics_names_no_check_and_is_rejected(self):
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
-            change="transfer semantics unsettled",
+            change="outside the code. transfer semantics unsettled",
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
     def test_an_honest_query_worded_with_requires_is_admitted(self):
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
             change=(
-                "claim: the cap is 6. attempted: ripgrep over src/ for CAP."
+                "outside the code. claim: the cap is 6."
+                " attempted: ripgrep over src/ for CAP."
                 " resolving it requires the deploy config"
             ),
         )
@@ -273,10 +262,8 @@ class TestQueryWordBoundary(unittest.TestCase):
     ):
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
             change=(
-                "claim: x / attempted: ripgrep -n TODO src/"
+                "outside the code. claim: x / attempted: ripgrep -n TODO src/"
                 " / would confirm nothing found"
             ),
         )
@@ -289,10 +276,9 @@ class TestQueryWordBoundary(unittest.TestCase):
         # word that names no check at all -- matched by accident instead.
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
             change=(
-                "claim: the timeout is 30s. I looked at config.py and found"
+                "outside the code. claim: the timeout is 30s."
+                " I looked at config.py and found"
                 " nothing definitive, would need the deploy config to be sure"
             ),
         )
@@ -301,10 +287,9 @@ class TestQueryWordBoundary(unittest.TestCase):
     def test_looking_up_the_constant_counts_as_an_attempted_check(self):
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
             change=(
-                "claim: x / looking up the constant in config.py turned up"
+                "outside the code. claim: x / looking up the constant"
+                " in config.py turned up"
                 " nothing / would need the deploy config to settle it"
             ),
         )
@@ -316,9 +301,10 @@ class TestQueryWordBoundary(unittest.TestCase):
         # shape this whole check exists to refuse.
         f = _finding(
             verdict="query",
-            evidence="",
-            quote="",
-            change="claim: x / locked the file / would need a second opinion",
+            change=(
+                "outside the code. claim: x / locked the file"
+                " / would need a second opinion"
+            ),
         )
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
@@ -529,12 +515,16 @@ class TestEvidence(unittest.TestCase):
         f = _finding(summary='"twenty call sites"')
         self.assertIn("right half", verdicts.evidence_problem(f, self.repo))
 
-    def test_a_query_needs_no_evidence(self):
-        # C3: a query is a claim the reviewer COULD NOT settle, so no line
-        # settles it. Demanding EVIDENCE left inventing one or downgrading to
-        # `clean` -- the fabrication and the finding-loss this gate exists to
-        # prevent.
+    def test_a_query_MUST_carry_evidence(self):
+        # Roy ruled 2026-08-16: "It must contain everything to say it was looked
+        # at and this is why it is query." The brief always said so -- "a `query`
+        # requires EVIDENCE and QUOTE(s), by construction" -- and the gate
+        # waived both. Where you LOOKED is a real line on all three shapes.
         f = _finding(verdict="query", evidence="", quote="")
+        self.assertIsNotNone(verdicts.evidence_problem(f, self.repo))
+
+    def test_a_query_with_evidence_that_resolves_passes(self):
+        f = _finding(verdict="query")
         self.assertIsNone(verdicts.evidence_problem(f, self.repo))
 
     def test_evidence_line_zero_is_rejected(self):

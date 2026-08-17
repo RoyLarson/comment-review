@@ -2,8 +2,8 @@
 
 ```
 Status:   open
-Progress: 3 of 6 tasks done
-Owner:    session · Roy (2 rulings made, 1 left)
+Progress: 5 of 8 tasks done
+Owner:    session · Roy (3 rulings made, 0 left)
 Raised:   2026-08-15 (the vocabulary survey, which collected these while reading for terms)
 Re-filed: 2026-08-16 (Roy, on `query` needing EVIDENCE and QUOTE: "this is a TODO on
           the reviewer code")
@@ -19,13 +19,12 @@ else, so a report can be correct-by-the-brief and rejected, or wrong-by-the-brie
 ⚠ **Not vocabulary, and it sat on the vocabulary TODO for a day because the survey collected it
 while reading for terms.** Moved here so the vocabulary work could close.
 
-⚠ **The first one is already half-ruled**, and it is the only one where the two now actively
-contradict rather than merely differ — a reviewer following the brief supplies evidence that
-nothing reads.
+⚠ **The `query` row is RULED and closed, 2026-08-17.** It was the only one where the two
+actively contradicted rather than merely differed. The three left differ; none contradicts.
 
 ## Tasks
 
-- [ ] ⭐ **`query` — the brief now REQUIRES `EVIDENCE` and `QUOTE`; the gate exempts both.**
+- [x] ⭐ **`query` — the brief now REQUIRES `EVIDENCE` and `QUOTE`; the gate exempts both.**
       Roy rewrote `ref/reviewer-brief.md` on 2026-08-16: *"A `query` requires `EVIDENCE` and
       `QUOTE`(s), by construction — this is where you looked to try to find the answer. These
       are the statements in the code that make it ambiguous."* `sk-scripts/verdicts.py:380`
@@ -42,11 +41,17 @@ nothing reads.
       `verdicts.py:342`. Decide before implementing whether `MIN_NEEDLE` and the `SUMMARY`
       right-half check should come with it.
 
-      ⚠ **The prose was corrected 2026-08-16 without the code changing.** `verdicts.py` had
-      argued the exemption as settled fact at THREE sites -- `payload_problem`,
-      `evidence_problem` and the `QUERY_ATTEMPTED` comment -- each giving a reason the exemption
-      is correct. All three now mark it DISPUTED and UNRESOLVED. The gate still behaves the old
-      way; it no longer claims to be right about it.
+      ⚠ **RULED AND IMPLEMENTED 2026-08-17.** Roy: *"Having the ruling be query and having it
+      be related to not my scope needs the reason attached. Is the query one of the three
+      variants of query — which one and why"*, then *"It must contain everything to say it was
+      looked at and this is why it is query."* Two changes, and they are wider than the task
+      asked: `evidence_problem` now exempts `clean` alone, so a `query`'s citations resolve like
+      any other verdict's; and `payload_problem` requires the `CHANGE` to NAME one of the
+      brief's three shapes in the brief's own words before anything else is read of it.
+      `QUERY_SHAPES` is that closed set. ⚠ The named shape is STRIPPED before the attempted-check
+      word search, because the ATTEMPTED pattern matches "checkout" and the shape would otherwise
+      satisfy the check it is supposed to accompany. `declares_scope` reads the declaration rather
+      than sniffing free text. The brief and SKILL.md both lost their DISPUTED notes.
 
 - [x] **`QUOTE`'s row lost two rules the gate still enforces.** ⚠ **HALF RULED 2026-08-16.**
       Roy: *"that is why I dropped the 12 character limit in the other files"* — the brief moved
@@ -56,10 +61,11 @@ nothing reads.
       was read. ⚠ The `query` exemption at the same line is the OTHER half and is still open,
       under task 1.
 
-- [ ] **[superseded rule text, kept for the record]** The brief's field table said
+- [x] **[superseded rule text, kept for the record — both halves resolved]** The brief's field table said
       *"VERBATIM and at least 12 characters. Required for every verdict except `clean` and
       `query`"* and now says only *"VERBATIM."* Both survive in code: `MIN_NEEDLE` at
-      `sk-scripts/verdicts.py:387`, the exemption at `:380`. Decide which side moves.
+      `sk-scripts/verdicts.py:387`, the exemption at `:380`. **Both sides moved:** `MIN_NEEDLE`
+      is 1 (task 2) and the exemption is gone (task 1).
 
 - [ ] **The `add` payload check passes on the bare word "anchor".**
       `sk-scripts/verdicts.py:302-308` accepts any `CHANGE` containing the string `anchor` and
@@ -88,7 +94,7 @@ nothing reads.
       Three tests, including one that they never enter the record parser: a code concern
       counted as a finding would enter coverage arithmetic.
 
-- [ ] **[was: CODE CONCERNS is not parsed]** — zero occurrences in
+- [x] **[was: CODE CONCERNS is not parsed — carried, see above]** — zero occurrences in
       `sk-scripts/verdicts.py`. `ref/reviewer-brief.md` defines the section and tells reviewers
       what belongs in it; nothing reads it, so a reviewer that puts a comment finding there has
       hidden it from the join.
