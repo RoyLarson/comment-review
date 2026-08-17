@@ -68,33 +68,12 @@ enforce it at stage 5 by refusing a verdict that arrives without one.
 
 **1–3 build the PROSE TREE.** The prose tree is every comment run and
 every docstring in the files under review, each one a NODE attached to the declaration it
-annotates, with every reference it makes already resolved. What follows from that shape:
-
-- **the annotations are attached to a node**, so a reviewer receives resolved references instead
-  of re-deriving them.
-- **the edits are applied to NODES**, so *"never change a line of code"* holds by construction,
-  and the CODE CHECK confirms it.
-
-⚠ **The model is the tree, and `scripts/census.py` builds it at the tier available for each
-file's language.** Both tiers find the same blocks and differ only in what else they can say:
-
-| tier | needs | answers | cannot answer |
-|---|---|---|---|
-| `tokenized` | a lexer + AST (Python: the stdlib) | blocks, annotations, **docstring** anchors | a **comment's** anchor |
-| `lexical` | a comment-syntax record, nothing else | blocks, annotations | any anchor; a marker inside an exotic string |
-
-⚠⚠ **Carry the census's CANDIDATE line into your stage 2-3 report.** It prints that no comment
-carries an anchor at either tier, so every PLACEMENT verdict rests on a reviewer READING the
-file — a judgement no field records and nothing downstream can check.
-
-**A suffix the census has no record for is named, and the census EXITS NONZERO** — every file
-handed in is censused or the run stops, so a file that reaches a reviewer is reviewed like any
-other whatever its tier. `python <skill>/scripts/census.py --languages` lists what it knows.
+annotates, with every reference it makes already resolved.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding.
 
-**APPLY (5) writes at FULL LENGTH and is not allowed to consider the cap.** Its only job is a
+**APPLY (5) writes at FULL LENGTH.** Its only job is a
 comment that is true, local and load-bearing. Length is not one of its questions, and a run
 that returns long correct prose has succeeded.
 
@@ -333,6 +312,22 @@ re-derive its output by hand.
 ⚠ **Write the census to a path unique to THIS run** and hand the reviewers that path. Two
 concurrent reviews sharing one scratch filename overwrite each other between writing and
 reading, and nothing downstream can tell.
+
+**A suffix the census has no record for is named, and the census EXITS NONZERO** — every file
+handed in is censused or the run stops, so a file that reaches a reviewer is reviewed like any
+other whatever its tier. `python <skill>/scripts/census.py --languages` lists what it knows.
+
+⚠ **It builds the tree at the TIER available for each file's language.** Both tiers find the
+same blocks and differ only in what else they can say:
+
+| tier | needs | answers | cannot answer |
+|---|---|---|---|
+| `tokenized` | a lexer + AST (Python: the stdlib) | blocks, annotations, **docstring** anchors | a **comment's** anchor |
+| `lexical` | a comment-syntax record, nothing else | blocks, annotations | any anchor; a marker inside an exotic string |
+
+⚠⚠ **Carry the census's CANDIDATE line into your stage 2-3 report.** It prints that no comment
+carries an anchor at either tier, so every PLACEMENT verdict rests on a reviewer READING the
+file — a judgement no field records and nothing downstream can check.
 
 **What it guarantees, and why the reviewers depend on it.** A run is bounded by CODE, not
 blank lines (else 9 lines becomes 6+3 and passes). A run is matched as ONE joined string,
