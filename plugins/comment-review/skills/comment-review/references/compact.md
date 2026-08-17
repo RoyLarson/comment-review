@@ -82,6 +82,12 @@ block at all.** The census stamps every block `comment`, `trailing-comment`, `do
 | `comment` with `doc-kind-unresolved` | **UNKNOWN** — the census could not tell | **nothing.** Ask, or carry it at length |
 | `unparsed` | **NOT PROSE** — the file did not parse, so nothing was censused | **nothing.** It is a diagnostic standing in for a file, not a block. Report it |
 
+⚠ **A work marker LINE is free of the cap** — `TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or
+whatever the run context names. Its CONTINUATION lines are charged, so six lines plus a
+`TODO:` is six. Charge the marker line and the quickest route to green is deleting a pointer to
+filed work: quick to do and expensive to have done, because the work is still needed and
+nothing names it any more.
+
 **A cap never applies to a docstring.** Without the kind in front of you, a 107-line numpydoc
 docstring and a 7-line `#` run look like the same over-length problem, and cutting the first to
 six destroys documentation that was never in violation.

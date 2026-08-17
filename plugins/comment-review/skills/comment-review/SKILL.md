@@ -173,11 +173,9 @@ the proposal:
   ever measured is defective at a high rate by construction, and that fact belongs in the
   report as a finding about the REPO, above any individual block.
 
-⚠ **Ask which markers the repo exempts from the cap** (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`
-is the common set). An exempt marker neither counts toward the cap nor splits a block — one
-that is in-cap except for a marker is IN CAP. Without this, the quickest route to green is
-deleting the pointer to filed work — **quick to do and expensive to have done.** The work is
-still needed and nothing names it, so it is found again only by whoever hits the problem.
+⚠ **Ask which markers the repo exempts from the cap**, and say so in the proposal. `census.py`
+exempts `TODO`, `FIXME`, `HACK`, `XXX` and `BUG` and takes no flag for any other set, so a repo
+that exempts a different one is a fact you REPORT, not one you can pass down.
 
 **1.3 MEASURE the repo's documentation formats. Do not assume one.** Read the docstrings that
 are there and record what they actually do, separately for each of:
@@ -365,11 +363,8 @@ wrong changes what the reviewers see:
 
 - **Only code ends a block.** A blank line does not. Split on blanks and a 9-line block reads
   as `6 + 3` and passes a cap of 6 — the quickest way to fake compliance.
-- **A work marker is free** (`TODO` `FIXME` `HACK` `XXX` `BUG`, or whatever 1.2 found this
-  repo exempts). It does not count toward the cap and it does not split the comment run. Both halves
-  matter: if it counted, the quickest route to green would be deleting a pointer to filed
-  work; if it split, a block could be made compliant by adding one. ⚠ **A marker's
-  CONTINUATION lines still count** — only the marker line itself is free.
+- **A work marker does not split a block** (`TODO` `FIXME` `HACK` `XXX` `BUG`, or whatever
+  1.2 found this repo exempts) — otherwise a block could be made compliant by adding one.
 - **A block belongs to the code BELOW it**, which is what makes it answerable at all: the block
   above is about `result`, and a finding says so by naming that anchor.
 - **A trailing comment is its own block**, one line, anchored to the code on that line — and a
