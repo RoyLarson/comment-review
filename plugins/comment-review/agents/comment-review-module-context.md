@@ -107,10 +107,10 @@ than reaching for a substantive verdict to have something to write.
 outside-your-role is the first. A ninth verdict word breaks the arithmetic the task agent
 performs, because a word outside the seven counts as neither a finding nor a pass.
 
-Measured: a coherence reviewer facing 548 blocks it was not reading for filed them under one
-substantive label — 95% of the blocks it was handed — corrupting the summary for everyone
-reading it. An honest *"query — outside my role"* on five hundred blocks is a better result
-than a plausible label on any of them.
+A coherence reviewer handed a long census of blocks outside its role filed nearly all of them
+under one substantive label, corrupting the summary for everyone reading it. An honest
+*"query — outside my role"* on every one of them is a better result than a plausible label on
+any.
 
 **Emitting `clean` here asserts that the module docstring accounts for the exposed surface and
 reads as one set of ideas** — you enumerated the surface and checked it. A block you did not

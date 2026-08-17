@@ -80,8 +80,7 @@ citation form and docstring convention; do NOT sweep the file for departures fro
 
 **A change no verdict asked for is out of scope** — a re-spelling, a dialect harmonisation, a
 de-personalisation, an alignment with the neighbours. The residue check cannot see any of it,
-because it only asks what was LOST. Measured: 14 dialect changes in one slice, in a codebase
-whose identifiers use the other dialect. A departure in a block you are not editing is a
+because it only asks what was LOST. A departure in a block you are not editing is a
 finding for the next run. Record any new decision on the sheet as you make it.
 
 ⚠⚠ **Touching a block obliges re-deriving its claim.** A mechanical repair — a renamed symbol,
@@ -92,8 +91,8 @@ only the ghost.
 
 ⚠⚠ **Run a FORWARD pass on anything you authored.** The residue check is inbound-only, so text
 with no predecessor — an `add`, a coverage-driven docstring, a clause added while compacting —
-is outside it entirely. Measured: **2 of 28** authored docstrings were confirmed false, and one
-faithful compaction gained a clause with no antecedent anywhere. Ask of each addition: what
+is outside it entirely. An authored docstring has been confirmed false, and a faithful
+compaction has gained a clause with no antecedent anywhere. Ask of each addition: what
 line settles this? The name of the function does not count.
 
 ⚠ **Re-resolve every pointer that names the block you edited.** Grep the file for *"see X's

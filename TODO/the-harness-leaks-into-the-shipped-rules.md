@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 6 tasks done
+Progress: 4 of 6 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on finding `worktree` in the shipped plugin: "that is
           indicating a wrong idea in the workflow requirements")
@@ -54,7 +54,7 @@ rather than finding them one at a time when someone happens to look.
       is required to use. ⚠ **The remaining leaks are not findable by word**, which is the
       finding: they are QUANTITIES, and the next task holds them.
 
-- [ ] Check the direction of every MEASURED claim in `plugins/`. ⚠ **The Python half is done
+- [x] Check the direction of every MEASURED claim in `plugins/`. ⚠ **The Python half was done
       2026-08-16**, under a ruling of Roy's given on `annotate.py`'s *"Measured on a scientific
       library: 4 hits, 4 false"*: *"Unnecessary and potentially harmful quoting of hits that
       could no longer be true."* Applied across all eight scripts — the MECHANISM stays and the
@@ -64,13 +64,31 @@ rather than finding them one at a time when someone happens to look.
       `6 of 20 dangling reports were gitignored state`, `Measured four times`, `Measured on all
       three runs`.
 
-      ⚠ **STILL OPEN FOR THE MARKDOWN, and it needs a ruling, because the two rules collide.**
-      `docs/limitations.md` REQUIRES a number — *"Is the evidence a number or ratio rather than
-      a story?"* — and this task says a number measured on one repo is not a justification to a
-      stranger. Seven sites are affected: `SKILL.md:222` (*"6, 19 and 8 rotted citations"*),
-      `:266` (*"templates measured at 1.3"*), `:270` and `:507` (*"14 en-GB spellings"*, twice),
-      `write.md:83` (*"14 dialect changes"*) and `:95` (*"2 of 28 authored docstrings"*), and
-      `module-context.md:110` (*"548 blocks"*). ⭐ Roy rules which of the two gives way.
+      ⚠ **THE MARKDOWN HALF, ruled by Roy 2026-08-16.** The two rules never collided; the
+      number question in `docs/limitations.md` was being read as licence to paste run
+      statistics into instructions. Roy's discriminator: **does the number teach a reviewer to
+      CHECK a number, or does it merely report what happened here?**
+
+      | cut, and why | site |
+      | --- | --- |
+      | *"6, 19 and 8 rotted citations"* — helps no one discriminate | `SKILL.md` |
+      | *"14 en-GB spellings"*, twice — the session talking about its own mistakes | `SKILL.md` |
+      | *"14 dialect changes"* — same | `write.md` |
+      | *"2 of 28 authored docstrings"* — same | `write.md` |
+      | *"548 blocks"* — an unidentifiable source; an agent may go looking for that many | `module-context.md` |
+      | *"27 of 48 remaining runs"*, *"3 of 3 known inversions"* — not shown to Roy, same shape | `compact.md`, `SKILL.md` |
+
+      ⚠ **`2 of 7 passes` in `module-context.md:51` STAYS.** It is inside an INVENTED example —
+      a loudness guarantee — and it teaches that a number in prose is a checkable claim. Roy:
+      *"the better answers are in `reviewer-brief.md`"*, where *"The retry budget is 40"* is
+      truthy and false if the budget is 100, and *"this is robust"* is not truthy at all.
+      `block-context` carries the same shape.
+
+      ⚠ **One FALSE POSITIVE of mine, caught by Roy.** I listed *"templates measured at 1.3"* as
+      a statistic and cut it. **1.3 is a STAGE** — `SKILL.md:232`, *"MEASURE the repo's
+      documentation formats"* — so it was a cross-reference like *"(1.4)"* and *"see 1.5"* in the
+      same file. Restored. ⚠ It read as a quantity to me and would to an agent, so it is now
+      bolded as a reference rather than run into the phrase.
 
 - [ ] Decide what a shipped rule may assume about its environment, and write it once. Today
       nothing states the floor — whether a git repo exists, whether it is a worktree, whether

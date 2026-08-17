@@ -219,8 +219,7 @@ the repo's rule and you have no standing to overrule it — but change two thing
 the final report:
 
 - **Treat every citation in scope as unverified**, not as evidence. The prose was written
-  against a checker that never ran; measured, three runs found 6, 19 and 8 rotted citations in
-  four files each.
+  against a checker that never ran.
 - **Expect a high finding rate and do not read it as a defective codebase.** Prose no guard has
   ever measured is defective at a high rate by construction, and that fact belongs in the
   report as a finding about the REPO, above any individual block.
@@ -263,13 +262,13 @@ the only copy.**
 This is the copy-editor's artifact and it is the only thing in this skill that PERSISTS between
 runs. It records decisions made for THIS codebase so the next pass does not relitigate them:
 the dialect its identifiers use, how domain terms are capitalised, the house citation form, the
-**documentation TEMPLATES measured at 1.3** — module docstring, function docstring, and the
+**documentation TEMPLATES** measured at **1.3** — module docstring, function docstring, and the
 comment format where there is one — terms of art with a fixed meaning, and any ruling the human
 made last time.
 
-⚠⚠ **Without it, a pass drifts the prose while fixing it.** Measured: one run introduced **14
-en-GB spellings** into a codebase whose identifiers are en-US — including *"the event's colour"*
-on a function returning a `colorId`. Every role was satisfied; nothing owned consistency. There
+⚠⚠ **Without it, a pass drifts the prose while fixing it.** A run with no sheet wrote *"the
+event's colour"* on a function returning a `colorId`. Every role was satisfied; nothing owned
+consistency. There
 is no fifth reviewer for this, deliberately — consistency is enforced at WRITE, against the
 sheet, not by another visitor over the tree.
 
@@ -503,10 +502,9 @@ It refuses a section that is absent **or present and blank** — a published
 non-answer such as *"UNAVAILABLE"* is an answer and must be written; a blank is
 refused. It then refuses the two answers a machine can settle: `CENSUS` and
 every `REVIEWER FILES` entry must be an **absolute path that exists**.
-⚠ **The rest are prose it cannot check**, and passing says nothing about them. Hand every reviewer the one path.
-Measured: a run dispatched without a style sheet introduced **14 en-GB
-spellings** into a codebase whose identifiers are en-US, and every role was
-satisfied because nothing owned consistency.
+⚠ **The rest are prose it cannot check**, and passing says nothing about them. Hand every
+reviewer the one path. Dispatched without a style sheet, a run drifts the dialect while fixing
+the prose, and every role is satisfied because nothing owns consistency.
 
 ⚠ **The templates go to the reviewers too, and stages 5 and 6 match their output against them.**
 A docstring's format decides which of its lines are structural and which are prose, so a
@@ -521,8 +519,8 @@ cannot: the repo's **decision record** (*"ruled"*, *"rejected"*, *"deferred"* ha
 oracle), any **authority document** holding dated facts, and — where the repo stages prose out
 of code — the **extracted/mirror copy** of the files under review. Measured: an invented
 ruling with zero entries in the record on its cited date; a retracted fact surviving in two
-docstrings and one live constant; and a mirror tree that held the CORRECT text in **3 of 3**
-known inversions while the code was backwards. The code still settles code claims — a
+docstrings and one live constant; and a mirror tree that held the CORRECT text while the code
+was backwards. The code still settles code claims — a
 disagreement with the mirror is itself a finding.
 
 Overlap between roles is **signal**: a claim one affirms and another refutes is the

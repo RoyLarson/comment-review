@@ -55,9 +55,9 @@ to do any of those, APPLY was not finished — go back, or file it for the next 
    ⚠ The blob is authoritative and cannot be lost to an interruption; keep the scratch copy
    only as a convenience.
 2. **Cut, do not re-author.** For a block one or two lines over, remove the single
-   least-checkable line — a hedge, an aside, a line restating the line below it. Measured:
-   27 of 48 remaining runs were over by exactly ONE line, and re-authoring them all would
-   have rewritten blocks that were already true, current and on-subject.
+   least-checkable line — a hedge, an aside, a line restating the line below it. A block
+   that is one line over gets re-authored into prose that was already true, current and
+   on-subject.
    ⚠ The four refusals still bind, and the least-checkable line is often a block's only
    refusal or the evidence for its surviving claim. If so it is not the line to cut, and the
    block reports at length.
