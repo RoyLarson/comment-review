@@ -46,7 +46,7 @@ write the generalization and delete both.
 
 | agent file (`plugins/comment-review/agents/`) | lines |
 | --- | --- |
-| `comment-review-ownership-context.md` | 94 |
+| `comment-review-ownership-context.md` | 91 |
 | `comment-review-block-context.md` | 110 |
 | `comment-review-function-context.md` | 124 |
 | `comment-review-module-context.md` | 128 |

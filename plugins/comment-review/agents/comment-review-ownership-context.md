@@ -69,11 +69,8 @@ is a different question and outside your remit; those copies are not yours.
 declaration or assignment it constrains and propose it there. *"Misplaced, compact it where it
 sits"* is the verdict that loses it next time.
 
-⚠⚠ **The word is `move`, and the DESTINATION is the payload.** Ten lines down, another file,
-or out of the code entirely — one verdict, and you say which. The reason it belongs there is
-your `FINDING`. Only a destination outside the code can be ruled unavailable at 1.4; a
-relocation into tracked code is always available, so naming an in-file owner never costs you
-the finding.
+⚠⚠ **Naming an in-file owner never costs you the finding**, because a relocation into tracked
+code is always available.
 
 ## Formatting, not ownership-context
 
