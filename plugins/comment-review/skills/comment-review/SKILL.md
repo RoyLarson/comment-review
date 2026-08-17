@@ -533,11 +533,11 @@ ruled on at the wrong anchor was measured against the wrong code. It prints whic
 STAND UNCHANGED under
 the clean-arithmetic.
 
-⚠ **`query` is the one verdict this citation check does not touch.** It carries
-no `EVIDENCE` and no `QUOTE`, by construction — there is no line that settles a
-claim the reviewer could not settle. Its PAYLOAD is checked instead: a `query`
-naming no attempted check, or naming nothing that would settle the claim, is
-the one the gate refuses.
+⚠ **`query` is the one verdict this citation check does not touch.** Its PAYLOAD
+is checked instead: a `query` naming no attempted check, or naming nothing that
+would settle the claim, is the one the gate refuses. ⚠⚠ **DISPUTED and
+UNRESOLVED** — `reviewer-brief.md` requires `EVIDENCE` and a `QUOTE` of a
+`query`, and the gate requires neither.
 
 ⚠⚠ **A finding whose evidence does not resolve is not a finding.** ⚠ Whether a
 `query` owes EVIDENCE is DISPUTED and UNRESOLVED: `reviewer-brief.md` requires
@@ -670,7 +670,8 @@ absent a cap "long" is not a defect.
 
 If there is a cap, and only once **every** block from stage 5 is CORRECT,
 dispatch `comment-review:comment-review-compact` with the narrow input contract
-below and the absolute path of [`references/compact.md`](references/compact.md).
+below, and paste [`references/compact.md`](references/compact.md) into its prompt
+whole.
 
 ⚠⚠ **This pass is not yours to run.** You wrote the text; an agent that never
 saw the argument cannot preserve a sentence because it remembers writing it.
@@ -719,8 +720,8 @@ the author never saw.
 ## Stage 8 — REVIEW: the finished page
 
 On completion of 7b, dispatch `comment-review:comment-review-review` with the
-list of changed files, the style sheet, and the absolute path of
-[`references/review.md`](references/review.md).
+list of changed files and the style sheet, and paste
+[`references/review.md`](references/review.md) into its prompt whole.
 
 ⚠⚠ **This pass is not yours to run either**, and for the same reason: a reader
 who remembers intending each edit reads the page they meant to write. If the

@@ -68,6 +68,10 @@ def text_for(role: str) -> str | None:
     named = set(READS.findall(text))
     if BRIEF[0] in text.lower():
         named.add(BRIEF[1])
+    # A stage agent is handed the procedure named for its role -- `compact.md`
+    # for `compact` -- and no longer names the file, because naming it is a path
+    # into the installed plugin. Derived from the tree, never listed here.
+    named.add(f"{role}.md")
     for name in sorted(named):
         reference = REFERENCES / name
         if reference.exists():
