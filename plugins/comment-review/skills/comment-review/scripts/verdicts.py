@@ -6,7 +6,7 @@ Checks the task agent was asked to perform by hand, every one mechanical:
 
   COVERAGE      every census index accounted for, by every reviewer that ran
   SOURCE        every citation resolves, and its verbatim half is really there
-  LOCATION      the prose citation resolves too -- checked the same way
+  CLAIM         the sentence a finding rules on is really in the block it cites
   PAYLOAD       the verdict carries what its row of the table requires
   CONTRADICTION `drop` against `correct`/`patch` ON THE SAME SENTENCE -- a
                 re-review. `move` composes with both and is not flagged.
@@ -25,8 +25,8 @@ Checks the task agent was asked to perform by hand, every one mechanical:
 SKILL.md's synthesis order.
 
 ⚠ Every block is accounted for by a RECORD, `clean` included. A `clean` record
-carries a BLOCK, a VERDICT and a LOCATION, and the LOCATION resolves against the
-tree, so covering N blocks costs N records that each name a real prose range. A
+carries a BLOCK and a VERDICT and nothing else, so covering N blocks costs N
+records that each name a real index and assert nothing about it. A
 `clean` record carries no SOURCE, so it stops short of proof the file was read:
 grade a run from its DIFF, and not from this exit code.
 
@@ -87,10 +87,8 @@ OPENER = re.compile(r"^---\s*RECORD\s*$", re.M)
 # The section `reviewer-brief.md` sends code problems to. Matched to the next
 # heading or the end, because it is the LAST section of a report by contract.
 CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S | re.I)
-FIELD = re.compile(r"^\s*(BLOCK|VERDICT|LOCATION|SOURCE|CLAIM|REASON|CHANGE)\s+(.*)$")
-# `file:line` or `file:start-end`, shared by SOURCE and LOCATION -- a
-# fabricated prose location is exactly as inadmissible as a fabricated
-# citation once both are resolved the same way.
+FIELD = re.compile(r"^\s*(BLOCK|VERDICT|SOURCE|CLAIM|REASON|CHANGE)\s+(.*)$")
+# `file:line` or `file:start-end`, as a SOURCE writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 
 # How far from the cited line the quoted text may sit. Prose wraps and code
@@ -163,7 +161,6 @@ class Finding:
     reviewer: str
     block: int
     verdict: str
-    location: str
     sources: list[str]
     claim: str
     reason: str
@@ -226,7 +223,6 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
                     reviewer=reviewer,
                     block=int(raw_block),
                     verdict=fields.get("VERDICT", "").strip().lower(),
-                    location=fields.get("LOCATION", ""),
                     sources=sources,
                     claim=fields.get("CLAIM", ""),
                     reason=fields.get("REASON", ""),
@@ -436,17 +432,37 @@ def source_problem(f: Finding, repo: Path) -> str | None:
     return None
 
 
-def location_problem(f: Finding, repo: Path) -> str | None:
-    """Why this finding's LOCATION cannot be trusted, or None.
+def claim_problem(f: Finding, blocks: list[dict]) -> str | None:
+    """Is the CLAIM actually in the block the finding cites?
 
-    Checked with the same `file:line` resolution as a SOURCE, so a fabricated
-    prose location is as inadmissible as a fabricated citation.
+    ⚠⚠ This is what `LOCATION` never did, and why retiring it is a NET GAIN.
+    `LOCATION` was checked for RESOLVABILITY -- does `a.py:342` exist -- and
+    never against the block it claimed to describe, so a finding attached to the
+    wrong block resolved cleanly. The census carries each block's joined text
+    and the gate already loads it, so this costs nothing and catches that.
+
+    ⚠ `clean` cites no claim. `add` is a finding about prose that is MISSING --
+    its block is an empty interval with no sentence to quote -- so both are
+    exempt.
+
+    Args:
+        f: the finding.
+        blocks: the census, as `census.py --json` emits it.
+
+    Returns:
+        The problem, or None. ⚠ An out-of-range block returns None: `main()`
+        reports it already, and saying so twice reads as two defects.
     """
-    if f.verdict == "clean":
+    if f.verdict in ("clean", "add"):
         return None
-    resolved = _resolve_lines(f.location, repo)
-    if isinstance(resolved, str):
-        return f"LOCATION {resolved}"
+    if not 1 <= f.block <= len(blocks):
+        return None
+    needle = " ".join(f.claim.split()).strip().strip('"').lower()
+    if not needle:
+        return f"{f.verdict} states no CLAIM — the sentence it rules on"
+    haystack = " ".join(str(blocks[f.block - 1].get("text", "")).split()).lower()
+    if needle[:40] not in haystack:
+        return f"CLAIM not in block {f.block}: {needle[:40]!r}"
     return None
 
 
@@ -684,9 +700,9 @@ def main() -> int:
         if problem:
             print(f"  BLOCK {f.block} {f.reviewer}: {problem}")
             fatal += 1
-        loc_problem = location_problem(f, repo)
-        if loc_problem:
-            print(f"  BLOCK {f.block} {f.reviewer}: {loc_problem}")
+        wrong_block = claim_problem(f, blocks)
+        if wrong_block:
+            print(f"  BLOCK {f.block} {f.reviewer}: {wrong_block}")
             fatal += 1
         payload = payload_problem(f)
         if payload:

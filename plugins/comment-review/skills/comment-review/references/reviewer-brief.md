@@ -58,7 +58,6 @@ does not count.
 --- RECORD
 BLOCK       17
 VERDICT     correct
-LOCATION    redacted_pkg/billing/rates.py:342-347
 SOURCE      redacted_pkg/billing/rates.py:355 | def compute_rates(plan, period, *, clamp=True):
 CLAIM       "kept because twenty call sites want this"
 REASON      31 callers and every one is under tests/, so the count is stale
@@ -68,11 +67,10 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 
 | field | what it carries |
 | --- | --- |
-| `BLOCK` | the census INDEX. This is how coverage is checked; a finding without it is unattributable |
+| `BLOCK` | the census INDEX, and the finding's whole ADDRESS — the census resolves it to path and line range, so nothing else names where the prose is |
 | `VERDICT` | one of the seven |
-| `LOCATION` | `file:start-end` of the prose |
 | `SOURCE` | where you looked, as `file:line | verbatim` — the citation and the text AT it, both verbatim. **Repeat the line, one per place examined.** EVERY one is resolved and every verbatim half must be there |
-| `CLAIM` | the sentence as the PROSE writes it, quoted |
+| `CLAIM` | the sentence as the PROSE writes it, quoted. ⚠ **CHECKED against the census text for your `BLOCK`** — a claim that is not in the block you cited means the finding is on the wrong block |
 | `REASON` | what you DERIVED from the source, and why the claim is wrong — one statement |
 | `CHANGE` | the payload the verdict table requires |
 

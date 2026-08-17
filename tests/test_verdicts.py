@@ -21,7 +21,6 @@ Some preamble the tool ignores.
 --- RECORD
 BLOCK       1
 VERDICT     correct
-LOCATION    a.py:1-2
 SOURCE      a.py:5 | the settling line
 CLAIM       "only one caller"
 REASON      three callers here, so the count is wrong
@@ -31,7 +30,6 @@ CHANGE      false: "only one caller" / true: "three callers"
 --- RECORD
 BLOCK       2
 VERDICT     clean
-LOCATION    a.py:10-11
 REASON      nothing to report from this role
 ---
 """
@@ -43,7 +41,6 @@ def _clean_records(*blocks: int) -> str:
         "--- RECORD\n"
         f"BLOCK       {n}\n"
         "VERDICT     clean\n"
-        "LOCATION    a.py:1\n"
         "REASON      nothing to report from this role\n"
         "---\n"
         for n in blocks
@@ -66,7 +63,6 @@ def _finding(**kw):
         "reviewer": "block-context",
         "block": 1,
         "verdict": "correct",
-        "location": "a.py:1",
         "sources": ["a.py:5 | the settling line"],
         "claim": '"x"',
         "reason": "three callers, all under tests/, so the count is stale",
@@ -108,7 +104,6 @@ class TestParsing(unittest.TestCase):
 --- RECORD
 BLOCK       1
 VERDICT     correct
-LOCATION    a.py:1
 SOURCE      a.py:1 | one
 CLAIM       "x"
 REASON      first record, never closed
@@ -116,7 +111,6 @@ REASON      first record, never closed
 --- RECORD
 BLOCK       2
 VERDICT     correct
-LOCATION    a.py:1
 SOURCE      a.py:1 | one
 CLAIM       "x"
 REASON      second record, closed
@@ -387,7 +381,6 @@ class TestCodeConcerns(unittest.TestCase):
     REPORT = """--- RECORD
 BLOCK       1
 VERDICT     clean
-LOCATION    a.py:1
 REASON      nothing to report from this role
 ---
 
@@ -662,15 +655,10 @@ class TestSource(unittest.TestCase):
     # finding must state something derived -- is REASON being required, which
     # `payload_problem` enforces and `TestPayload` covers. The coverage moved.
 
-    def test_a_fabricated_location_is_caught(self):
-        f = _finding(location="gone.py:1")
-        problem = verdicts.location_problem(f, self.repo)
-        self.assertIsNotNone(problem)
-        self.assertIn("does not resolve", problem)
-
-    def test_a_resolvable_location_passes(self):
-        f = _finding(location="a.py:1-2")
-        self.assertIsNone(verdicts.location_problem(f, self.repo))
+    # ⚠ The two LOCATION tests retired with the field. LOCATION was checked for
+    # RESOLVABILITY and never against the block it claimed to describe, so a
+    # finding attached to the wrong block resolved cleanly. `TestClaimAgainstTheCensus`
+    # is what replaces it, and it is a stronger check than the one removed.
 
 
 class TestSeveralSources(unittest.TestCase):
@@ -722,6 +710,63 @@ class TestSeveralSources(unittest.TestCase):
         self.assertEqual(len(found[0].sources), 2)
 
 
+class TestClaimAgainstTheCensus(unittest.TestCase):
+    """Is the CLAIM actually in the block the finding cites?
+
+    ⚠⚠ This is what `LOCATION` never did. It was checked for resolvability and
+    never against the block it claimed to describe, so a finding attached to the
+    wrong block resolved cleanly. The census carries each block's joined text and
+    the gate already loads it.
+    """
+
+    BLOCKS = [
+        {
+            "path": "a.py",
+            "start": 1,
+            "end": 2,
+            "kind": "comment",
+            "text": "the retry budget is 3 and callers round separately",
+        },
+        {"path": "a.py", "start": 9, "end": 9, "kind": "interval", "text": ""},
+    ]
+
+    def test_a_claim_present_in_the_block_passes(self):
+        f = _finding(block=1, claim='"the retry budget is 3"')
+        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
+
+    def test_a_claim_absent_from_the_block_is_refused(self):
+        f = _finding(block=1, claim='"the timeout is 30 seconds"')
+        self.assertIn("not in block 1", verdicts.claim_problem(f, self.BLOCKS))
+
+    def test_quoting_and_whitespace_do_not_defeat_the_match(self):
+        f = _finding(block=1, claim='  "The  Retry   Budget Is 3"  ')
+        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
+
+    def test_an_add_cites_an_empty_interval_and_owes_no_claim(self):
+        # `add` is a finding about prose that is MISSING, so there is no
+        # sentence in the block to quote.
+        f = _finding(
+            block=2,
+            verdict="add",
+            claim="",
+            change="above `send()`: retries are capped",
+        )
+        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
+
+    def test_clean_owes_no_claim(self):
+        f = _finding(block=1, verdict="clean", claim="", reason="", change="")
+        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
+
+    def test_a_verdict_that_states_no_claim_is_refused(self):
+        f = _finding(block=1, claim="   ")
+        self.assertIn("states no CLAIM", verdicts.claim_problem(f, self.BLOCKS))
+
+    def test_an_out_of_range_block_is_left_to_the_range_check(self):
+        # `main()` already reports it, and reporting twice reads as two defects.
+        f = _finding(block=99)
+        self.assertIsNone(verdicts.claim_problem(f, self.BLOCKS))
+
+
 class TestCLI(unittest.TestCase):
     """`main()` end to end -- the gate must actually gate on exit code."""
 
@@ -736,10 +781,14 @@ class TestCLI(unittest.TestCase):
         self.census = Path(self.tmp.name) / "census.json"
         self.census.write_text(
             json.dumps(
+                # ⚠ `text` is not optional. `claim_problem` matches a finding's
+                # CLAIM against the block it cites, so a census fixture without
+                # it refuses every finding -- which is the check working, and
+                # the real census has carried `text` since it was written.
                 [
-                    {"path": "a.py", "start": 1, "end": 2},
-                    {"path": "a.py", "start": 3, "end": 4},
-                    {"path": "a.py", "start": 5, "end": 6},
+                    {"path": "a.py", "start": 1, "end": 2, "text": "x"},
+                    {"path": "a.py", "start": 3, "end": 4, "text": "x"},
+                    {"path": "a.py", "start": 5, "end": 6, "text": "x"},
                 ]
             ),
             encoding="utf-8",
@@ -777,7 +826,6 @@ class TestCLI(unittest.TestCase):
                 "--- RECORD\n"
                 f"BLOCK       {n}\n"
                 "VERDICT     clean\n"
-                "LOCATION    a.py:1\n"
                 "REASON      nothing to report from this role\n"
                 "---\n"
                 for n in blocks
@@ -819,7 +867,6 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     drop\n"
-            "LOCATION    a.py:1\n"
             "SOURCE      a.py:5 | five callers, all in tests\n"
             'CLAIM       "x"\n'
             "REASON      five callers, all in tests\n"
@@ -828,13 +875,11 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     clean\n"
-            "LOCATION    a.py:1\n"
             "REASON      nothing to report from this role\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
-            "LOCATION    a.py:1\n"
             "REASON      nothing to report from this role\n"
             "---\n",
         )
@@ -849,7 +894,6 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       999\n"
             "VERDICT     query\n"
-            "LOCATION    a.py:1\n"
             'CLAIM       "x"\n'
             "REASON      could not be settled from the checkout\n"
             "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
@@ -857,19 +901,16 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     clean\n"
-            "LOCATION    a.py:1\n"
             "REASON      nothing to report from this role\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     clean\n"
-            "LOCATION    a.py:1\n"
             "REASON      nothing to report from this role\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
-            "LOCATION    a.py:1\n"
             "REASON      nothing to report from this role\n"
             "---\n",
         )
@@ -920,7 +961,6 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     query\n"
-            "LOCATION    a.py:1\n"
             'CLAIM       "x"\n'
             "REASON      could not be settled from the checkout\n"
             "CHANGE      claim: x / checked: git grep / would settle: a caller\n"
@@ -928,13 +968,11 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     clean\n"
-            "LOCATION    a.py:1\n"
             "REASON      nothing to report from this role\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
-            "LOCATION    a.py:1\n"
             "REASON      nothing to report from this role\n"
             "---\n",
         )
@@ -951,7 +989,6 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     correct\n"
-            "LOCATION    a.py:1\n"
             "SOURCE      a.py:5 | five callers, all in tests\n"
             'CLAIM       "x"\n'
             "REASON      the count is stale, and this record never closed\n"
@@ -959,7 +996,6 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       2\n"
             "VERDICT     correct\n"
-            "LOCATION    a.py:1\n"
             "SOURCE      a.py:5 | five callers, all in tests\n"
             'CLAIM       "x"\n'
             "REASON      the count is stale, and this record closed\n"
@@ -968,7 +1004,6 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       3\n"
             "VERDICT     clean\n"
-            "LOCATION    a.py:1\n"
             "REASON      nothing to report from this role\n"
             "---\n",
         )
@@ -986,7 +1021,6 @@ class TestCLI(unittest.TestCase):
             "--- RECORD\n"
             "BLOCK       1\n"
             "VERDICT     {verdict}\n"
-            "LOCATION    a.py:1\n"
             "SOURCE      a.py:5 | five callers, all in tests\n"
             'CLAIM       "x"\n'
             "REASON      the count is stale\n"
@@ -1088,8 +1122,15 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     def test_the_record_passes_the_source_check(self):
         self.assertIsNone(verdicts.source_problem(self.finding, self.repo))
 
-    def test_the_record_passes_the_location_check(self):
-        self.assertIsNone(verdicts.location_problem(self.finding, self.repo))
+    def test_the_records_CLAIM_is_quoted_from_prose(self):
+        # ⚠ Not run against a census: the brief's record cites block 17 of a
+        # tree that does not exist here. What IS checkable is that its CLAIM is
+        # a quoted sentence rather than a paraphrase, which is the field's
+        # contract and what `claim_problem` matches against the census text.
+        self.assertTrue(
+            self.finding.claim.strip().startswith('"'),
+            f"the brief's CLAIM is not quoted: {self.finding.claim!r}",
+        )
 
     def test_the_record_passes_the_payload_check(self):
         self.assertIsNone(verdicts.payload_problem(self.finding))

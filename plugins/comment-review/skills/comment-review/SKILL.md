@@ -743,7 +743,7 @@ carries the argument and the per-block procedure.
 ## Stage 7a — APPROVAL: present the FINAL text, then stop
 
 Grouped by verdict, most consequential first, in **five parts**
-(`VERDICT / LOCATION / CLAIM / REASON / CHANGE`) — the reviewer record minus the fields only
+(`VERDICT / BLOCK / CLAIM / REASON / CHANGE`) — the reviewer record minus the fields only
 the join reads — replacement text inline
 for every `correct` / `patch` / `add`. State **raised / clean** and the
 longest block that will remain. **The proposal ends here** — nothing further is written until
