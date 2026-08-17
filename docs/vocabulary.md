@@ -31,8 +31,7 @@ kept deliberately with no shipped use, and the retired words.
 | **fingerprint** | what the CODE CHECK compares: an `ast.dump` for Python, the stripped text otherwise |
 | **CODE CHECK** | stage 7b's gate. Proves the parser reads the file the same before and after |
 | **residue check** | the per-block procedure at 5, 6 and 7b: did this edit drop anything true, necessary and checkable? |
-| **proof** | the finished page. The `proof` LEVEL is the run that only reads it |
-| **level** | how deep a run edits. ⚠ Slated for removal — it has no provenance |
+| **proof** | the finished page |
 | **budget** | what a shipped instruction file costs everyone to load, in lines. Run data is not budgeted |
 
 ### ownership — settled, and deliberately not emitted
@@ -65,6 +64,8 @@ check.
 | `signature` (the CODE CHECK's) | → **fingerprint**. `signature` means a function's, only |
 | `residue` (the string) | → **stripped**. The prose check keeps the word |
 | `owner` (the census field) | → **anchor**. The census computes the next declaration, which is a position, not a judgement |
+| `level` | removed ENTIRELY in 0.1.5. It gated which verdicts a reviewer could emit and had no provenance — zero commits in the project this was ported from. Every verdict is available on every run |
+| `FORMATTING` | → **`move`** to the line above. Never declared in the vocabulary, the brief or the gate — and `verdicts.py` makes an unknown verdict fatal, so the instruction to emit it would have failed the run. Roy: *"I definitely didn't want a formatting category"* |
 | `marks` (the census's) | → **annotations**, including the JSON key |
 | `walk` | an editor READS a manuscript and CHECKS a list. `ast.walk` is untouched |
 | `detector` | the word is **annotation**. Everything it supported went with the suppression list |
