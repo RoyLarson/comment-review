@@ -217,7 +217,18 @@ CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S
 # field's value runs until the next label, and a label is only a label at the
 # left margin -- so an indented line reading `CHANGE the budget` inside a
 # transcribed block is prose, not a new field.
-FIELD = re.compile(r"^(BLOCK|VERDICT|SOURCES|CLAIM|REASON|CHANGE)\s+(.*)$")
+#
+# !! THE VALUE IS OPTIONAL, because a label with nothing after it is still a
+# LABEL. `\s+` required at least one space, so a bare `CHANGE` line failed to
+# match, fell into the continuation branch and was glued onto the field above
+# it -- producing a SOURCES needle ending `... MAY LIVE.\nCHANGE`. The record
+# was then refused for a citation whose verbatim half could not be found,
+# rather than for the empty `CHANGE` that `payload_problem` was waiting to
+# report. Measured 2026-08-17, on a live run.
+#
+# ! `CHANGES` still does not match: after the label the pattern needs
+# whitespace or the end of the line, and `S` is neither.
+FIELD = re.compile(r"^(BLOCK|VERDICT|SOURCES|CLAIM|REASON|CHANGE)(?:\s+(.*))?$")
 # `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
 # A citation half that is PATH-SHAPED, whether or not it resolves: no whitespace,
@@ -466,10 +477,14 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
                 continue
             key = m.group(1)
             last = key
+            # ! `or ""` because the value is OPTIONAL: a bare label matches with
+            # group 2 unset, and an empty field is what `payload_problem` reads
+            # to say the verdict carries no such payload.
+            value = (m.group(2) or "").strip()
             if key == "SOURCES":
-                sources.append(m.group(2).strip())
+                sources.append(value)
             else:
-                fields[key] = m.group(2).strip()
+                fields[key] = value
         # ! Blank lines INSIDE a field are content; blank lines trailing one are
         # the spacing between records. Only the trailing ones come off, so a
         # docstring keeps the gap above its `Args:` and `CHANGE` does not end

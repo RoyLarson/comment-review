@@ -2312,6 +2312,57 @@ class TestAMalformedSourceIsItsOwnEntry(unittest.TestCase):
         self.assertEqual(len(findings[0].sources), 1)
 
 
+class TestABareFieldLabelIsStillALabel(unittest.TestCase):
+    """A label with nothing after it must not be glued onto the field above.
+
+    !! `FIELD` required `\\s+` after the label, so a bare `CHANGE` line did not
+    match, fell into the continuation branch and joined the last `SOURCES`
+    entry -- giving a needle ending `... MAY LIVE.\\nCHANGE`. The record was
+    then refused for a citation whose verbatim half could not be found, instead
+    of for the empty `CHANGE` that `payload_problem` was waiting to report.
+    Measured 2026-08-17 on a live run.
+    """
+
+    REPORT = (
+        "--- RECORD\n"
+        "BLOCK       1 | a.py:1-2\n"
+        "            # first\n"
+        "VERDICT     correct\n"
+        'CLAIM       false: "x" / true: "y"\n'
+        "REASON      because\n"
+        "SOURCES     a.py:10 | THE ONE PLACE ANY ASSERTION MAY LIVE.\n"
+        "CHANGE\n"
+        "---\n"
+    )
+
+    def test_a_bare_label_matches(self):
+        self.assertTrue(verdicts.FIELD.match("CHANGE"))
+
+    def test_a_longer_word_starting_with_a_label_does_not(self):
+        # After the label the pattern needs whitespace or the end of the line.
+        self.assertIsNone(verdicts.FIELD.match("CHANGES  x"))
+        self.assertIsNone(verdicts.FIELD.match("CHANGE: x"))
+
+    def test_the_bare_label_does_not_pollute_the_source_above_it(self):
+        findings, _ = verdicts.parse_report(self.REPORT, "block-context")
+        self.assertEqual(
+            findings[0].sources,
+            ["a.py:10 | THE ONE PLACE ANY ASSERTION MAY LIVE."],
+        )
+
+    def test_the_empty_field_is_what_survives(self):
+        findings, _ = verdicts.parse_report(self.REPORT, "block-context")
+        self.assertEqual(findings[0].change, "")
+
+    def test_the_record_is_refused_for_the_empty_change(self):
+        # ! The point of the fix: the RIGHT refusal, not a citation error on a
+        # correct citation.
+        findings, _ = verdicts.parse_report(self.REPORT, "block-context")
+        problem = verdicts.payload_problem(findings[0])
+        self.assertIsNotNone(problem)
+        self.assertIn("CHANGE", problem)
+
+
 class TestWordsStripsBrackets(unittest.TestCase):
     """A CLAIM naming `the CLI` must cover a CHANGE editing `the CLI)`.
 
