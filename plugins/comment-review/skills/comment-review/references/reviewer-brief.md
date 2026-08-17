@@ -37,6 +37,11 @@ not check rather than reporting it clean.
 You are given a numbered census and the mechanical resolutions for it. **Read it start to
 finish and return at least one RECORD for EVERY block that HOLDS PROSE.**
 
+⚠⚠ **`continues-a-trailing-comment` means the census may have split one sentence.** A trailing
+comment closes its run, so a sentence wrapped onto the next line becomes a SECOND block, anchored
+to the code BELOW it. Read the two together before ruling. **A mid-clause ending on a block
+carrying this annotation is the census's doing, not the author's, and is not a `correct`.**
+
 ⚠⚠ **An `interval` block holds nothing, and you owe it no record.** Every gap between two
 lines of code is numbered, so most of the census is empty intervals — they are there to be
 CITED, not accounted for. An `add` says a constraint exists in code and NOWHERE in prose, which

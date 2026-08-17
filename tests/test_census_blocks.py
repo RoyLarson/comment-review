@@ -195,6 +195,30 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         got = self._census("a = = 1\n")
         self.assertEqual([b.kind for b in got], ["unparsed"])
 
+    def test_a_wrapped_trailing_comment_stamps_its_continuation(self):
+        # One sentence, two blocks: a trailing comment closes its run, so the
+        # line beneath opens a new one and re-anchors to the NEXT declaration.
+        # Correct by the block definition and wrong about the prose, so the
+        # census says so rather than re-cutting -- merging would renumber every
+        # census and invalidate every measurement taken against one.
+        got = self._census("x = 1  # a claim that\n       # wraps onto it\ny = 2\n")
+        prose = [b for b in got if b.kind != "interval"]
+        self.assertEqual([b.kind for b in prose], ["trailing-comment", "comment"])
+        self.assertIn("continues-a-trailing-comment", prose[1].annotations)
+        self.assertIn("trailing comment", " ".join(prose[1].notes))
+
+    def test_an_ordinary_comment_after_CODE_is_not_stamped(self):
+        got = self._census("x = 1\n# a fresh note\ny = 2\n")
+        prose = [b for b in got if b.kind != "interval"]
+        self.assertEqual([b.kind for b in prose], ["comment"])
+        self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
+
+    def test_a_blank_line_breaks_the_continuation(self):
+        # A gap means the author started something new, not wrapped a sentence.
+        got = self._census("x = 1  # a claim\n\n# unrelated\ny = 2\n")
+        prose = [b for b in got if b.kind == "comment"]
+        self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
+
     def test_a_file_of_only_prose_is_one_interval(self):
         got = self._census("# just a note\n")
         self.assertEqual([b.kind for b in got], ["comment"])

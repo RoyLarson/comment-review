@@ -412,6 +412,7 @@ Annotations, and what resolving each one means:
 | `forbids-a-literal` | grep the forbidden literal across that file |
 | `repeated-literal` | where else is this number written? one source at both ends of a round trip? |
 | `narrative-in-docstring` | is the date, review label or *"used to"* a claim about HISTORY rather than about the code now? |
+| `continues-a-trailing-comment` | read it WITH the trailing comment above it — the split is the census's, so a mid-clause ending here is not a `correct` |
 
 ⚠⚠ **Every row is a question a reviewer must answer, and none of them is answered by the
 census.** It says a path is cited; whether the claim about it is true is the reviewer's, and

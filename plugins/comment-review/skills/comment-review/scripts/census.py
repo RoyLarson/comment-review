@@ -387,6 +387,10 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
     out: list[Block] = []
     # (line, physical source line, the comment token alone, is it trailing)
     run: list[tuple[int, str, str, bool]] = []
+    # ⚠ The line the last trailing comment ended on. A comment opening on the
+    # VERY NEXT line continues that sentence, and the flush below has already
+    # split them. A list because `flush` is a closure and rebinds nothing.
+    trailing_end = [0]
 
     def flush() -> None:
         if run:
@@ -397,7 +401,7 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
             # `models.Index(fields=(...)),  # note` as the note's text.
             prose = [c for _, _, c, _ in run]
             out.append(
-                Block(
+                block := Block(
                     path=path.as_posix(),
                     start=run[0][0],
                     end=run[-1][0],
@@ -407,6 +411,23 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
                     raw_lines=[ln for _, ln, _, _ in run],
                 )
             )
+            # ⚠⚠ A trailing comment CLOSES its run, so a sentence wrapped onto
+            # the next line becomes a SECOND block and re-anchors to the
+            # declaration below it. That is correct by the block definition --
+            # the continuation sits between two lines of code -- and wrong about
+            # the prose, which is one sentence. STAMPED rather than re-cut:
+            # merging would change block boundaries and renumber every census,
+            # and the harm is a reviewer filing `correct` against a mid-clause
+            # ending the census manufactured.
+            if block.kind == "comment" and block.start == trailing_end[0] + 1:
+                block.annotations.add("continues-a-trailing-comment")
+                block.notes.append(
+                    "opens on the line after a trailing comment, so it may be"
+                    " the tail of that sentence rather than a note about the"
+                    " code below. A mid-clause ending here may be the split."
+                )
+            if block.kind == "trailing-comment":
+                trailing_end[0] = block.end
             run.clear()
 
     for raw in tokenize.generate_tokens(io.StringIO(text).readline):
