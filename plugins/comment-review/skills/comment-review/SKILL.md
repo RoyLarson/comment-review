@@ -101,11 +101,9 @@ placement, nothing else.
 An unresolved anchor weakens a verdict; an absent block produces none and reports no gap. **Adopt
 a richer source of structure only if it misses ZERO blocks.**
 
-Depending on nothing is the point: this skill must run on a fresh checkout, and a tier chosen
-by whether some package happens to be importable makes coverage depend on the ambient
-environment. **Adding a language is a row of data in `LANGUAGES`** — `python
-<skill>/scripts/census.py --languages` lists what is known. A suffix with no record is
-**named, and the census EXITS NONZERO** — every file handed in is censused or the run stops.
+**A suffix with no record in `LANGUAGES` is named, and the census EXITS NONZERO** — every file
+handed in is censused or the run stops. `python <skill>/scripts/census.py --languages` lists
+what is known.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding. The brief holds that rule and binds the reviewers to it.
