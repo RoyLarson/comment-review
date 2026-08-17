@@ -3,7 +3,7 @@
     python run_context.py --template > run-<id>/context.md
     python run_context.py --check run-<id>/context.md
 
-Stage 4 hands each reviewer the 9 sections `REQUIRED` names below. This gate runs
+Stage 4 hands each reviewer the 8 sections `REQUIRED` names below. This gate runs
 before four agents fire in parallel: a section quietly absent degrades a
 reviewer with no error anywhere, and a run with no style sheet introduced en-GB
 spellings into a codebase whose identifiers are en-US, with every reviewer
@@ -22,11 +22,10 @@ has been measured failing. With the paths in the packet, the sanctioned fallback
 -- four general-purpose agents handed their reviewer file and the brief -- is a
 substitution rather than an improvisation.
 
-Three sections carry an answer a machine can settle, and they ARE checked:
-`LEVEL` against `LEVELS`, `CENSUS` and each `REVIEWER FILES` entry against the
-filesystem. Presence alone let a packet whose every hint was
-replaced with `x` report itself complete. The rest carry prose no oracle
-settles, and this reports nothing about them.
+Two sections carry an answer a machine can settle, and they ARE checked:
+`CENSUS` and each `REVIEWER FILES` entry, against the filesystem. Presence alone
+let a packet whose every hint was replaced with `x` report itself complete. The
+rest carry prose no oracle settles, and this reports nothing about them.
 """
 
 from __future__ import annotations
@@ -37,7 +36,6 @@ import sys
 from pathlib import Path
 
 REQUIRED = (
-    "LEVEL",
     "DOC CONVENTION",
     "STYLE SHEET",
     "LSP LANGUAGES",
@@ -49,7 +47,6 @@ REQUIRED = (
 )
 
 HINTS = {
-    "LEVEL": "fact-check | line | full | proof",
     "DOC CONVENTION": (
         "MEASURED templates: module docstring, function docstring, and comment"
         " format if the repo is consistent about one — never a standard's name alone"
@@ -84,12 +81,6 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 # `Path.exists()` raises it (not OSError) on a candidate holding a NUL byte,
 # and a packet is arbitrary text a person typed.
 PATH_ERRORS = (OSError, ValueError)
-
-# The four names `SKILL.md`'s level table defines. A level names a VERDICT
-# VOCABULARY and how many reviewers run -- three of the four run fewer than
-# four -- so a level outside this set dispatches against a vocabulary no table
-# publishes.
-LEVELS = ("fact-check", "line", "full", "proof")
 
 # A leading list marker, so `- /abs/path` and `1. /abs/path` name the path
 # rather than the bullet.
@@ -221,9 +212,9 @@ def _path_candidates(line: str) -> list[str]:
 def invalid_answers(text: str) -> list[str]:
     """Answers that are present but unusable, one line each.
 
-    Only the three sections a machine can settle: `LEVEL` against `LEVELS`,
-    `CENSUS` and each `REVIEWER FILES` entry against the filesystem. The rest
-    carry prose no oracle checks, so this list stays silent about them.
+    Only the two sections a machine can settle: `CENSUS` and each
+    `REVIEWER FILES` entry, against the filesystem. The rest carry prose no
+    oracle checks, so this list stays silent about them.
 
     Args:
         text: the filled packet, already known to have every section answered.
@@ -233,10 +224,6 @@ def invalid_answers(text: str) -> list[str]:
     """
     bodies = section_bodies(text)
     bad: list[str] = []
-    for body in bodies.get("LEVEL", []):
-        answer = " ".join(_hintless(body).split()).strip("`. ")
-        if answer.lower() not in LEVELS:
-            bad.append(f"LEVEL: {answer!r} is not one of {' | '.join(LEVELS)}")
     for body in bodies.get("CENSUS", []):
         for line in _answer_lines(body):
             if not any(_resolves(c) for c in _path_candidates(line)):
@@ -294,8 +281,8 @@ def main() -> int:
         return 1
 
     print(
-        f"Complete: all {len(REQUIRED)} sections answered, and LEVEL, CENSUS and"
-        f" REVIEWER FILES check out.\n⚠ The other {len(REQUIRED) - 3} are prose"
+        f"Complete: all {len(REQUIRED)} sections answered, and CENSUS and"
+        f" REVIEWER FILES check out.\n⚠ The other {len(REQUIRED) - 2} are prose"
         " nothing here can settle. Dispatch all four in ONE message."
     )
     return 0

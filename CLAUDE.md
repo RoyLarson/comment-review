@@ -47,7 +47,7 @@ python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo 
 # Each report file is NAMED FOR ITS ROLE -- the tool takes the role name from
 # the file stem, and --reviewers compares against those stems.
 python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
-  --census <census>.json --level full --repo . \
+  --census <census>.json --repo . \
   --reviewers ownership-context,block-context,function-context,module-context \
   ownership-context.md block-context.md function-context.md module-context.md
 

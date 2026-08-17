@@ -57,8 +57,8 @@ documentation.
 ## What
 
 The skill judges comments based upon four criteria. `ownership-context` resolves placement
-first, at every level, because the other three each measure a claim against the code at their
-own scope — a claim attached to the wrong scope gets measured against the wrong code.
+FIRST, because the other three each measure a claim against the code at their own scope — a
+claim attached to the wrong scope gets measured against the wrong code.
 
 - Ownership-Context
   - Does the comment belong to the line it sits on — is it a checkable claim about the code

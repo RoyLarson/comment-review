@@ -1,6 +1,6 @@
 ---
 name: comment-review-ownership-context
-description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on, and would it be a checkable claim about the code there at all? Decides whether a block is truthy where it sits, which the other three roles' verdicts depend on, whether it is load-bearing at its location, and — where the same claim is stated at several sites — which site OWNS it, moving the claim there or dropping the copies. Runs at every level, including fact-check, because block-context, function-context and module-context each measure a claim against the code at their own scope, and a misplaced claim gets measured against the wrong code. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: One of four parallel reviewers dispatched by the /comment-review skill. Reads every comment and docstring in a supplied census against the POSITION it occupies — does this prose belong to the line it sits on, and would it be a checkable claim about the code there at all? Decides whether a block is truthy where it sits, which the other three roles' verdicts depend on, whether it is load-bearing at its location, and — where the same claim is stated at several sites — which site OWNS it, moving the claim there or dropping the copies. Read FIRST, because block-context, function-context and module-context each measure a claim against the code at their own scope, and a misplaced claim gets measured against the wrong code. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 
@@ -70,16 +70,13 @@ hold it. If the copies exist because no function owns the rule, it is theirs, no
 
 **The finding is where it BELONGS, not that it is misplaced.** Name the statement, expression,
 declaration or assignment it constrains and propose it there. *"Misplaced, compact it where it
-sits"* is the verdict that loses it next time. At `fact-check`, where `move` is not in your
-verdict set, name that destination inside a `query` instead — the claim cannot be settled where
-it sits, and the destination you name is what WOULD settle it.
+sits"* is the verdict that loses it next time.
 
 ⚠⚠ **The word is `move`, and the DESTINATION is the payload.** Ten lines down, another file,
 or out of the code entirely — one verdict, and you say which. The reason it belongs there is
 your `FINDING`. Only a destination outside the code can be ruled unavailable at 1.4; a
 relocation into tracked code is always available, so naming an in-file owner never costs you
-the finding. At `fact-check` no relocation verdict is carried — the finding is `query` there,
-not `clean`.
+the finding.
 
 ## Formatting, not ownership-context
 

@@ -11,9 +11,6 @@ import run_context
 
 
 FULL = """
-## LEVEL
-full
-
 ## DOC CONVENTION
 google
 
@@ -154,10 +151,9 @@ class TestAnswered(unittest.TestCase):
 class TestCheckableAnswers(unittest.TestCase):
     """I4: presence was the whole check, so `x` in every section passed.
 
-    Replacing every hint with `x` reported "Complete: all 11 sections
-    answered" and dispatched four reviewers at a level that does not exist,
-    against a census path that does not resolve. Three of the eleven answers
-    are settleable by a machine and are now settled.
+    Replacing every hint with `x` reported every section complete and
+    dispatched four reviewers against a census path that does not resolve.
+    The two answers a machine can settle are now settled.
     """
 
     def setUp(self):
@@ -171,32 +167,20 @@ class TestCheckableAnswers(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def _packet(self, level="full", census=None, reviewers=None):
+    def _packet(self, census=None, reviewers=None):
         census = self.census.as_posix() if census is None else census
         reviewers = [self.reviewer.as_posix()] if reviewers is None else reviewers
-        return (
-            FULL.replace("## LEVEL\nfull", f"## LEVEL\n{level}")
-            .replace("## CENSUS\n/tmp/run-abc/census.txt", f"## CENSUS\n{census}")
-            .replace(
-                "## REVIEWER FILES\n/abs/agents/comment-review-ownership-context.md",
-                "## REVIEWER FILES\n" + "\n".join(reviewers),
-            )
+        return FULL.replace(
+            "## CENSUS\n/tmp/run-abc/census.txt", f"## CENSUS\n{census}"
+        ).replace(
+            "## REVIEWER FILES\n/abs/agents/comment-review-ownership-context.md",
+            "## REVIEWER FILES\n" + "\n".join(reviewers),
         )
 
     def test_a_valid_packet_has_no_invalid_answers(self):
         packet = self._packet()
         self.assertEqual(run_context.missing_sections(packet), [])
         self.assertEqual(run_context.invalid_answers(packet), [])
-
-    def test_a_level_outside_the_four_is_named(self):
-        problems = run_context.invalid_answers(self._packet(level="deep"))
-        self.assertTrue(any(p.startswith("LEVEL:") for p in problems), problems)
-
-    def test_every_published_level_is_accepted(self):
-        for level in run_context.LEVELS:
-            self.assertEqual(
-                run_context.invalid_answers(self._packet(level=level)), [], level
-            )
 
     def test_a_relative_census_path_is_named(self):
         problems = run_context.invalid_answers(self._packet(census="census.json"))
@@ -227,7 +211,7 @@ class TestCheckableAnswers(unittest.TestCase):
         packet = "\n".join(f"## {name}\nx\n" for name in run_context.REQUIRED)
         self.assertEqual(run_context.missing_sections(packet), [])
         problems = run_context.invalid_answers(packet)
-        self.assertEqual(len(problems), 3, problems)
+        self.assertEqual(len(problems), 2, problems)
 
 
 class TestCLI(unittest.TestCase):
@@ -261,8 +245,8 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("Traceback", result.stderr)
 
     def test_a_present_but_unusable_answer_gates_at_the_exit_code(self):
-        # I4, end to end: every section answered with `x` reported "Complete:
-        # all 11 sections answered" at exit 0 and dispatched four reviewers.
+        # I4, end to end: every section answered with `x` reported itself
+        # complete at exit 0 and dispatched four reviewers.
         packet = Path(self.tmp.name) / "context.md"
         packet.write_text(
             "\n".join(f"## {name}\nx\n" for name in run_context.REQUIRED),
@@ -271,7 +255,6 @@ class TestCLI(unittest.TestCase):
         result = self._run("--check", str(packet))
         self.assertEqual(result.returncode, 1)
         self.assertIn("UNUSABLE", result.stdout)
-        self.assertIn("LEVEL:", result.stdout)
         self.assertIn("CENSUS:", result.stdout)
         self.assertIn("REVIEWER FILES:", result.stdout)
         self.assertNotIn("Complete:", result.stdout)

@@ -1,6 +1,6 @@
 """Stage 5's gate: join four reviewers' reports against the census.
 
-    python verdicts.py --census census.json --level full --repo D <report>...
+    python verdicts.py --census census.json --repo D <report>...
 
 Checks the task agent was asked to perform by hand, every one mechanical:
 
@@ -8,7 +8,6 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   EVIDENCE      each finding's citation resolves, and the QUOTE is really there
   LOCATION      the prose citation resolves too -- checked the same way
   PAYLOAD       the verdict carries what its row of the table requires
-  LEVEL         the verdict is one this run's level carries
   CONTRADICTION `drop` against `correct`/`patch` on one block -- a re-review.
                 Counted apart from the fatal checks, and named in the closing
                 line so the summary says which blocks are still out
@@ -51,18 +50,6 @@ VERDICTS = (
     "add",
     "move",
 )
-
-# The FULL verdict set each level carries, per SKILL.md's level table -- these
-# are cumulative sets, not the deltas the table reads as. `allowed()` is a
-# membership test against one entry, so an entry listing only what its level
-# ADDS would reject `correct` at `full`. `proof` runs stage 8 alone and carries
-# no verdict, so its set is empty rather than everything.
-LEVELS = {
-    "fact-check": {"correct", "query", "clean"},
-    "line": {"correct", "query", "clean", "drop", "move", "add"},
-    "full": set(VERDICTS),
-    "proof": set(),
-}
 
 RECORD = re.compile(r"^---\s*RECORD\s*$(.*?)^---\s*$", re.M | re.S)
 # Counts "--- RECORD" OPENERS on their own, independent of whether a closing
@@ -228,11 +215,6 @@ def coverage_gaps(
     return gaps
 
 
-def allowed(verdict: str, level: str) -> bool:
-    """Does this run's level carry this verdict?"""
-    return verdict in LEVELS.get(level, set())
-
-
 def payload_problem(f: Finding) -> str | None:
     """What the verdict's required payload is missing, or None.
 
@@ -380,7 +362,6 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("reports", nargs="+", help="one report file per reviewer")
     ap.add_argument("--census", required=True, help="census.py --json output")
-    ap.add_argument("--level", default="full", choices=sorted(LEVELS))
     ap.add_argument("--repo", default=".", help="repo root for evidence resolution")
     ap.add_argument(
         "--reviewers",
@@ -492,12 +473,6 @@ def main() -> int:
             print(
                 f"  BLOCK {f.block} {f.reviewer}: {f.verdict!r} is not a verdict"
                 f" ({', '.join(VERDICTS)})"
-            )
-            fatal += 1
-        elif not allowed(f.verdict, args.level):
-            print(
-                f"  BLOCK {f.block} {f.reviewer}: {f.verdict}"
-                f" not carried at {args.level}"
             )
             fatal += 1
         problem = evidence_problem(f, repo)

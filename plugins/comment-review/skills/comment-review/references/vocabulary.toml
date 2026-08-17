@@ -69,7 +69,6 @@ laundering = "Applying a `patch` to a FALSE claim: the wording gets polished, an
 template = "A shape written out with its slots, not a shape NAMED. Measured from the tree for each kind of documentation."
 cap = "The published line limit a comment run may not exceed."
 width = "The published column limit for a line."
-level = "How deep a run edits, declared before it starts. It restricts which verdicts you may emit."
 original = "The text as it stood when THIS RUN began -- not the first version ever written. A file this run edits is the next run's original."
 residue = "The check asking, of each ORIGINAL sentence, whether anything true, necessary and checkable is missing from the new text."
 proofreader = "Who reads the finished PROOF and decides whether the document deserves more marks."
@@ -92,7 +91,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "editorial role",
   "expression",
   "laundering",
-  "level",
   "load-bearing",
   "owner",
   "patch",

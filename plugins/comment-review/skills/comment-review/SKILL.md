@@ -5,7 +5,7 @@ description: Review the comments and docstrings in the files a change touched, a
 
 # comment-review
 
-`/comment-review [level] [cap] [target] [style]`
+`/comment-review [cap] [target] [style]`
 
 **An editorial board for the comments and docstrings a change touched.** Four editors read
 the same manuscript in four editorial roles, a copy editor writes one set of edits, a condenser cuts
@@ -179,33 +179,19 @@ to make.
   own** and must not invent one. None given and none published → **no cap**; report the
   longest block left.
 - **`target`** — a path; **replaces** the diff scope, never intersects it.
-- **`level`** — how deep to edit, declared before starting. Default `full`.
-
-| level | roles | verdicts available |
-|---|---|---|
-| `fact-check` | ownership-context, block-context, function-context | `correct` · `query` · `clean` |
-| `line` | the same three | + `drop` · `move` · `add` |
-| `full` | + module-context | + `patch` |
-| `proof` | none — stage 8 (REVIEW) only, over files a previous pass edited. ⚠ It has no 7b to complete, so it loads `review.md` directly | — |
-
-⚠⚠ **`ownership-context` runs at every level, including `fact-check`.** The other three check
-a claim against the code at their scope; a claim attached to the wrong scope is measured
-against the wrong code and `correct`ed into a falsehood.
-
-⚠⚠ **The ladder changes shape and that is the point.** It used to add a ROLE at each rung;
-now `line` adds only VERDICTS, because `ownership-context` already ran at `fact-check`.
-
-⚠⚠ **If `move` is unavailable (1.4), NO level reaches the cap, and say so up front.** True
-rationale with no destination becomes `clean` and stays where it is, so COMPACT must cap prose
-it is forbidden to cut. Measured on all three runs: the residual over-cap blocks were almost
-entirely this. The cap is reachable again the day the destination tree exists — that is worth
-telling the human at stage 1, not at stage 6.
-
-⚠ **A level is a real answer to a file too big for one pass.** Measured: a run over a
-4,000-line module left 73 blocks over cap and said plainly *"I ran out of budget, not
-justification."* `fact-check` on that file finishes, and finishes with the falsehoods gone —
-which is the half that matters. Say which level you ran, in the report.
 - **`style`** — a path to a style sheet from a previous run. Optional; see 1.5.
+
+⚠⚠ **Every verdict is available on every run, and all four roles run every time.**
+
+⚠⚠ **`ownership-context` is read FIRST.** The other three check a claim against the code at
+their scope; a claim attached to the wrong scope is measured against the wrong code and
+`correct`ed into a falsehood.
+
+⚠⚠ **If `move` is unavailable (1.4), the cap is out of reach — say so up front.** True
+rationale with no destination becomes `clean` and stays where it is, so COMPACT must cap prose
+it is forbidden to cut. Measured: the residual over-cap blocks were almost entirely this. The
+cap is reachable again the day the destination tree exists — that is worth telling the human at
+stage 1, not at stage 6.
 
 ⚠⚠ **THE CAP IS APPLIED IN STAGE 6 AND NOWHERE ELSE** — never while text is being written,
 and **never passed to a reviewer** — it is not a section of the stage-4 packet, and neither is
@@ -513,12 +499,11 @@ python <skill>/scripts/run_context.py --template > <run-dir>/context.md
 python <skill>/scripts/run_context.py --check <run-dir>/context.md
 ```
 
-It refuses a section that is absent **or present and blank** — *"no cap
-published"* is an answer and must be written; a blank is a question nobody
-asked. It then refuses the three answers a machine can settle: `LEVEL` must be
-one of the four level names, and `CENSUS` and every `REVIEWER FILES` entry must be
-an **absolute path that exists**. ⚠ **The other six are prose it cannot
-check**, and passing says nothing about them. Hand every reviewer the one path.
+It refuses a section that is absent **or present and blank** — a published
+non-answer such as *"UNAVAILABLE"* is an answer and must be written; a blank is
+refused. It then refuses the two answers a machine can settle: `CENSUS` and
+every `REVIEWER FILES` entry must be an **absolute path that exists**.
+⚠ **The rest are prose it cannot check**, and passing says nothing about them. Hand every reviewer the one path.
 Measured: a run dispatched without a style sheet introduced **14 en-GB
 spellings** into a codebase whose identifiers are en-US, and every role was
 satisfied because nothing owned consistency.
@@ -556,7 +541,7 @@ reviewer's report against the census and against the others', and refuses what i
 verify. It is the gate between MARK and APPLY:
 
 ```bash
-python <skill>/scripts/verdicts.py --census <census>.json --level <level> \
+python <skill>/scripts/verdicts.py --census <census>.json \
   --reviewers ownership-context,block-context,function-context,module-context \
   --repo . <one report file per role>
 ```
@@ -567,13 +552,12 @@ report's FILE STEM, and `--reviewers` compares against those stems, so a report
 saved as `report1.md` is a role nobody expected and every expected role
 reads as missing. Two files with the same stem are refused outright.
 
-⚠ **Pass `--reviewers` every time, listing the roles this LEVEL ran.** Without it
-a reviewer that never reported at all is invisible — "every reviewer" silently
+⚠ **Pass `--reviewers` every time, listing all four roles.** Without it a
+reviewer that never reported at all is invisible — "every reviewer" silently
 means "every file I was handed", the easier version of the fabrication below.
-The list above is `full`; at `fact-check` it is `ownership-context,block-context,function-context`.
 
 It exits nonzero on a coverage gap, a citation that does not resolve, a quote
-not found near its cited line, a verdict the level does not carry, a role
+not found near its cited line, a verdict outside the seven, a role
 that did not report, or a payload the verdict table requires and the record
 lacks. It also names the blocks where `drop` meets `correct`/`patch` — **a
 re-review, never a tie-break** — and prints which blocks STAND UNCHANGED under
@@ -644,8 +628,7 @@ being settled:
    sentences belong in different places is several `move`s, one per sentence. Last before
    `clean`, because the text must be final first.
 7. **`clean`** — the null verdict. A block stands unchanged when **every reviewer that ran**
-   returned `clean` and nothing else. ⚠ *Every reviewer that RAN*, not four: at `fact-check` only
-   three run, and requiring four would make a block unblessable at that level.
+   returned `clean` and nothing else.
 
 ⚠ **Load [`references/residue-check.md`](references/residue-check.md) before you write anything**
 — the check is defined there, and this is the first stage that owes it. Stages 6 and 7b re-run
@@ -739,7 +722,7 @@ carries the argument and the per-block procedure.
 Grouped by verdict, most consequential first, in **five parts**
 (`VERDICT / LOCATION / SUMMARY / FINDING / CHANGE`) — the reviewer record minus the fields only
 the join reads — replacement text inline
-for every `correct` / `patch` / `add`. State the **level** you ran, **raised / clean**, and the
+for every `correct` / `patch` / `add`. State **raised / clean** and the
 longest block that will remain. **The proposal ends here** — nothing further is written until
 the author rules.
 

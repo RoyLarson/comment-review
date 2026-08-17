@@ -306,19 +306,17 @@ class TestQueryWordBoundary(unittest.TestCase):
         self.assertIn("ATTEMPTED", verdicts.payload_problem(f))
 
 
-class TestLevel(unittest.TestCase):
-    def test_patch_is_illegal_at_fact_check(self):
-        self.assertFalse(verdicts.allowed("patch", "fact-check"))
+class TestVerdicts(unittest.TestCase):
+    """Every verdict is admissible on every run."""
 
-    def test_correct_is_legal_at_every_level(self):
-        for level in ("fact-check", "line", "full"):
-            self.assertTrue(verdicts.allowed("correct", level))
+    def test_the_seven_verdicts_are_the_whole_set(self):
+        self.assertEqual(
+            set(verdicts.VERDICTS),
+            {"clean", "query", "drop", "correct", "patch", "add", "move"},
+        )
 
-    def test_relocation_needs_line(self):
-        self.assertFalse(verdicts.allowed("move", "fact-check"))
-        self.assertTrue(verdicts.allowed("move", "line"))
-        # `reanchor` collapsed into `move`; it is no longer a verdict at any level.
-        self.assertFalse(verdicts.allowed("reanchor", "line"))
+    def test_reanchor_collapsed_into_move(self):
+        self.assertNotIn("reanchor", verdicts.VERDICTS)
 
 
 class TestContradiction(unittest.TestCase):
@@ -462,14 +460,12 @@ class TestCLI(unittest.TestCase):
         path.write_text(text, encoding="utf-8")
         return path
 
-    def _run(self, *reports, level="full", reviewers=None, census=None):
+    def _run(self, *reports, reviewers=None, census=None):
         cmd = [
             sys.executable,
             str(SCRIPTS / "verdicts.py"),
             "--census",
             str(census if census is not None else self.census),
-            "--level",
-            level,
             "--repo",
             str(self.repo),
         ]
