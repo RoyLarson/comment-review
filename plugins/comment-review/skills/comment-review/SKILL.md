@@ -60,11 +60,6 @@ has. **Availability keys on the destination, never on the verdict:** only a dest
 OUTSIDE the code needs the tree 1.4 resolved, so only that case can be unavailable. A
 relocation into tracked code needs nothing outside it and is never withheld.
 
-⚠⚠ **`correct` and `patch` are separate verdicts, and stage 5 applies them in that order.**
-`correct` says the sentence is wrong; `patch` says it is right and reads badly. Applying a
-`patch` to a false sentence polishes the wording of a falsehood and retires the finding — that
-is laundering, and it is what the ordering prevents.
-
 A reviewer's verdict is only usable if it carries its payload. That contract is the
 reviewers', and [`references/reviewer-brief.md`](references/reviewer-brief.md) holds it — you
 enforce it at stage 5 by refusing a verdict that arrives without one.
@@ -631,7 +626,9 @@ being settled:
    staying inside the code does NOT belong here: it removes nothing, so it waits until the
    text is settled.
 3. **`correct`** — fix truth, on what remains.
-4. **`patch`** — fix wording, on text now known to be true. ⚠ Never before step 3.
+4. **`patch`** — fix wording, on text now known to be true. ⚠ **Never before step 3:** a
+   `patch` on a false sentence polishes the wording of a falsehood and retires the finding.
+   That is laundering, and this order is what prevents it.
 5. **`add`** — insert at the stated anchors.
 6. **`move` inside the code** — re-attach what belongs beside different code. A block whose
    sentences belong in different places is several `move`s, one per sentence. Last before
