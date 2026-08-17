@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 9 tasks done (6 design rulings made; 7 build steps)
+Progress: 1 of 10 tasks done (6 design rulings made; 8 build steps)
 Owner:    session (Roy made all 6 rulings 2026-08-17; the rest is build)
 Raised:   2026-08-17, by Roy, after three parser defects of one shape in one day
 ```
@@ -51,12 +51,14 @@ the block-shaped structure outliving the block-shaped decision.
 ! `EDGE` survives either way, for normalising a sentence to compare it. What it stops doing is
 deciding where a span BEGINS.
 
-! **Who splits the sentences is the open question**, and it is the one that decides whether this
-is cheap. The census already holds the block; splitting prose into sentences is not free and
-gets it wrong on abbreviations, code samples and lists.
+!! **ANSWERED, and not by splitting sentences: LINES.** Roy: `change` as a line array against the
+census's `raw_lines`. **Lines are unambiguous and the census already stores them**; sentence
+splitting is not free and gets abbreviations, code samples and lists wrong. What was called the
+deciding cost of this change turns out not to be paid.
 
-! **Untouched:** whether the claim is TRUE, and whether the address matches the census. Those
-are the checks worth having, and they are not the ones that have been breaking.
+! **Untouched: whether the claim is TRUE.** That is the check worth having and it is not the one
+breaking. ! **The ADDRESS check is not untouched -- it is DELETED**, because a record that
+carries only an index has no address to disagree with the census. See the section below.
 
 ## !! The counter-argument, which is measured and from today
 
@@ -74,9 +76,9 @@ loud total failure for a quiet local one is the right direction; it is not a fre
 
 - **That an agent writes the structured form more reliably than the template.** Nobody has
   measured it. The comparison that matters is malformed-report rate, and both formats have one.
-- **That it can be hand-written at all.** A record carries two whole blocks of source text.
-  Whether that survives JSON escaping in practice is an empirical question with an easy answer:
-  try it on the reports already on disk.
+- **That it can be hand-written at all.** ! **Much less text is at stake than this line assumed
+  when it was written**: the record no longer carries the ORIGINAL, so the only long field left
+  is `change`. That does not settle the question, it shrinks it.
 - **Whether the reviewer can be kept out of the SYNTAX entirely.** Roy: *"we give them a cli to
   emit one. No ambiguity on if they write it correctly."* ! The hazard moves rather than
   vanishing if the values reach that CLI through a SHELL: multi-line text in an argument is the
@@ -160,7 +162,7 @@ contract, which changed once already today.
 
 | | ruled |
 | --- | --- |
-| **the seed** | **SEEDED, not an empty shape.** `record.py --seed` reads the census and lays down one slot per PROSE block already carrying `block`, `address` and `original`. The reviewer sets only `verdict`, `claim`, `reason`, `sources`, `change`. ! It kills a SECOND class: two of one run's seven refusals were reviewer MISQUOTES of the block, and a reviewer that never types the block cannot mistype it. Coverage becomes structural -- an unruled block is a slot with `verdict: null`, not an index missing from a list |
+| **the seed** | **SEEDED SLOTS, and the record does NOT CARRY THE ORIGINAL AT ALL.** See below -- this supersedes the first answer, which was to pre-fill the text |
 | **the break** | **CLEAN, but the old parser STAYS, deprecated.** Roy: *"clean break - but deprecate the code and leave it in there to parse out the other records just in case."* ! It also unstrands the two in-flight runs rather than forcing a restart |
 | **`CLAIM`** | **an OBJECT.** Its keys are the `Verdict` table's existing markers minus the colon, so adding a verdict stays a row |
 | **the module** | **a NEW file, `record.py`.** Roy: *"the modular-context should trigger stating that verdict.py seems to be doing more than one thing. It probably already is but this definitely would make that true."* ! The system's own rule applied to its own code |
@@ -169,6 +171,52 @@ contract, which changed once already today.
 ! **One subject each, which is what makes it two files:** `record.py` owns what a record IS --
 seeding one, and whether a given one is well formed. `verdicts.py` owns what a SET of records
 MEANS against the census -- coverage, citations, contradictions, the work list.
+
+### !! THE BIGGER WIN: the record carries an INDEX, not the text
+
+**From the todo-tool session, which navigated the tool to get work done rather than reasoning
+about it from outside.** Roy: *"stop sending the original at all ... the census already has the
+text, keyed by index. If a record carries `block: 2262` and nothing else about the original, the
+tool looks it up and the entire mismatch class stops existing -- not just the parsing half."*
+
+**The transcription exists so a record reads standalone, and it is the source of every
+comparison defect there is** -- `_same_text`, joined-versus-literal, marker stripping,
+punctuation. **83 refusals in that one run were spent on transcription fidelity, and not one of
+them was about a finding.**
+
+! **Standalone readability becomes a RENDERING concern**: inject the census text when the record
+is displayed. Nothing is lost that was worth having.
+
+!! **This is stronger than seeding the text, which was the first answer here.** A seeded original
+still matches by construction, but the field is still THERE -- to be edited, to drift, to be
+compared. **Absent, `address_problem` stops existing rather than becoming vacuous.**
+
+! **What still needs text comparison is only CLAIM-covers-CHANGE**, which is genuinely a diff
+question. Roy: *"much cleaner if `change` is a line array against the census's line array."*
+!! **That also settles the sentence-splitting problem this file called the deciding cost.** Lines
+are unambiguous and the census already stores `raw_lines`; sentences are not, and splitting them
+gets abbreviations, code samples and lists wrong.
+
+### ! Three things JSON does NOT fix, so they must not be lost in the migration
+
+- **Both P1 proposals survive untouched** -- ALTITUDE, and a `REASON` naming a sentence no
+  `CLAIM` names. They are about what reviewers SAY. ! The second gets EASIER: with structured
+  fields, *does `reason` quote block text no `claim` names* needs no parsing at all.
+- **THE FABRICATED-CLEAN HOLE GETS WORSE.** `verdicts.py` already records that a report reading
+  only `CLEAN 1-N` accounts for every block, cites nothing, and exits 0 having read no file.
+  **JSON makes emitting 3,000 clean records cheaper, so the cost of faking a pass drops.** The
+  format change wants pairing with something that SAMPLES cleans; nothing does today.
+- **ENFORCED structured output is not the same as asking for JSON.** Roy: *"if an agent
+  hand-writes JSON in a text response, you've swapped a parser you control for one you don't."*
+  The prose being carried is full of warning marks, dashes, backticks, `|` and embedded
+  newlines, and `write.md` already records a heredoc turning `\n` into a real newline
+  mid-sentence -- invisible to the CODE CHECK, because the AST was unchanged.
+
+!! **The enforcement gap is real and this file must not paper over it.** A reviewer is a plugin
+agent writing a report FILE; there is no schema-constrained emission on a file write. **The
+closest available shape is: the agent writes, `record.py` refuses PRECISELY, the agent fixes** --
+which is what `run_context.py --check` already does for the packet. That is self-correcting, not
+enforced, and the difference should be measured rather than assumed away.
 
 ### !! A defect the object makes checkable, and it is bigger than the format
 
@@ -184,8 +232,13 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
 
 ## Build order, each step independently verifiable
 
-- [ ] **1. The schema and `record.py --seed`.** Verify: seeds this repo's own smoke-test census,
+- [ ] **1. The schema and `record.py --seed`.** One slot per prose block carrying the INDEX and
+      empty fields -- no address, no original. Verify: seeds this repo's own smoke-test census,
       224 slots, and the file parses.
+
+- [ ] **1b. `verdicts.py` resolves the block from the census by index**, and
+      `address_problem` is DELETED rather than made vacuous. ! Verify by the count: the four
+      smoke-test reports must join with no transcription check at all and the same totals.
 
 - [ ] **2. `record.py` validates a filled record.** Shape only -- required fields present, the
       verdict known, `claim`'s keys the ones its row requires. ! Say what happens to a report
