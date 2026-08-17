@@ -31,6 +31,13 @@ evidence a **number or ratio** rather than a story? Does it change what a review
 ⚠ And is **the REASON** true in a fresh checkout? A rule can be right and its reason fitted to
 this repo's harness — a reader who tests the reason, finds it false, and drops the rule is the
 failure that question catches.
+
+**Cutting has one exception: ROLE FRAMING is not justification.** *"You are the PROOFREADER"*,
+*"You did not write this text, and that is the point"* — a sentence establishing the role an
+agent occupies stays, though no rule depends on it. Roy, 2026-08-16: *"the role framing is
+doing work."* An agent that occupies a role writes in it better than one consulting a glossary,
+which is the same argument the editorial register rests on. Everything else that only explains
+WHY a rule exists is cuttable; state the rule and its discriminator instead.
 Assume a reasoning reader: state the rule and its discriminator, not the argument for it. At
 budget, a new rule **replaces** one — and if two rules are instances of one generalization,
 write the generalization and delete both.
