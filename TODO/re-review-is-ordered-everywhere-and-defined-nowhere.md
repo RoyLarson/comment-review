@@ -152,6 +152,21 @@ answer alone.
       reading the table and the loop, not inferred. `move` is absent by the earlier ruling,
       because relocation and a truth fix compose.
 
+      !! **Sharpened the same day: the conflict must be on ONE SENTENCE.** Roy: *"assuming that
+      the conflict is on the same sentance, not on two different sentances - those can
+      compose."* Also already implemented -- `contradictions()` keys on the edited SPAN, not the
+      block index -- and already paid for: one of the eight flagged collisions was two roles
+      ruling on two different clauses of one docstring, and a re-review round went on
+      establishing it. **A block of six sentences can carry six verdicts and hold no conflict.**
+
+      ! One case stays deliberately WIDER than the sentence rule: where the span cannot be
+      computed, the block is flagged rather than passed, because silence would hide a real
+      collision behind an unreadable record.
+
+      ! **The 51-vs-8 comparison is not one measurement.** 51 counts roles converging on a
+      BLOCK; the 8 already applies the sentence rule. Widening would cost less than six-fold and
+      more than nothing, and the honest number is not yet taken.
+
       ! **The broad model is NOT adopted, and *"for now"* is Roy's word.** *"The reviewers that
       had comments"* would send every block two or more roles filed on: **51 of 150** against
       **8**, a six-fold difference in firing rate. Taken narrow on cost.

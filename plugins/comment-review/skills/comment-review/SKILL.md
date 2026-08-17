@@ -13,9 +13,13 @@ them to fit, the author approves **that** text, and the page is proofed. Structu
 first, then truth, then fit, then the page.
 
 ```
-1 PROJECT      2 COLLATE    3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION             REFERENCES               |                    7b WRITE
-                                                     +---- no cap --------^
+1 PROJECT      2 COLLATE   3 FIND       4 MARK   5 APPLY   6 COMPACT   7a PRESENT   8 REVIEW
+  DETERMINATION            REFERENCES      ^       5b RE-    6b RE-        7b WRITE
+                                           |       REVIEW    REVIEW            ^
+                                           |         |         |               |
+                                           +---------+---------+               |
+                                             back to the roles that ruled      |
+                                                             +---- no cap -----+
 ```
 
 | # | stage | who acts | what exists at the end of it |
@@ -25,10 +29,16 @@ first, then truth, then fit, then the page.
 | 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved -- paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers | findings on the nodes -- read-only, nothing written |
 | 5 | **APPLY** | task agent | one verdict per block and the **full-length** replacement text |
+| 5b | **RE-REVIEW** | the roles that ruled | *is this what you meant?* -- answered on the JOINED block |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
+| 6b | **RE-REVIEW** | the roles that ruled | *is this still correct after my edits?* -- **stage 6's only reader** |
 | 7a | **APPROVAL -- present** | task agent | the FINAL text in front of the author; **the run stops here** |
 | 7b | **APPROVAL -- write** | **author**, then task agent | the approved text on disk, byte-for-byte as approved |
 | 8 | **REVIEW** | `comment-review-review` | the finished page read as a reader would read it |
+
+!! **5b and 6b are the same mechanism asking DIFFERENT questions**, and
+[`references/re-review.md`](references/re-review.md) is the only file that defines either.
+Neither runs on every block: the set is the one the join prints as `RE-REVIEW`.
 
 **This file is the task agent's.** Each reviewer is a named agent carrying its own editorial role and
 reading [`references/reviewer-brief.md`](references/reviewer-brief.md) itself.
@@ -87,6 +97,20 @@ destroyed the finding.
 **APPLY (5) writes at FULL LENGTH.** Its only job is a
 comment that is true, local and load-bearing. Length is not one of its questions, and a run
 that returns long correct prose has succeeded.
+
+!! **5b and 6b exist because APPLY was the only stage whose writer was also its checker.**
+Every other stage is read by somebody who did not write it -- the join reads MARK, the compact
+agent reads APPLY's text, the CODE CHECK reads WRITE, stage 8 reads the finished page. **Stage 5
+wrote the replacement and then ran the residue check on its own output.** Measured 2026-08-17: a
+run reached stage 8 with ruff clean, the AST PROVEN and 1103 tests green, and stage 8 returned
+twelve findings -- two of them the system replacing prose with something CHECKABLY FALSE -- and
+the whole pass was rolled back.
+
+! **The filer is the only participant who can answer.** Stage 5 turns several verdicts into one
+sentence; when it misreads one, no later reader can tell, because none of them saw the finding.
+That is why the question goes back to the role rather than to a fresh reader, and why it is
+narrow -- *did your edit survive, is it still correct there, do the other edits break it* --
+rather than *is this OK*, which a role will wave through.
 
 **COMPACT (6) is a separate pass over that text.** It comes AFTER edit and BEFORE approval, and
 two constraints pin it into exactly that slot:
@@ -566,15 +590,29 @@ and when the rounds stop. ! The subject is never the finding -- *"do you stand b
 returns the verdict already filed.
 
 !! **WHICH BLOCKS go back: every block carrying a CONFLICTING mark, and `query` conflicts with
-nothing.** Ruled 2026-08-17. That is exactly the set `verdicts.py` already prints as
-`RE-REVIEW` -- one role REMOVING the sentence another RULES ON -- so read the tool's list rather
-than deriving your own. `query` sets neither trait and can never enter it; `move` is absent by
-ruling, because relocation and a truth fix compose.
+nothing.** Ruled 2026-08-17. That is exactly the set `verdicts.py` prints as `RE-REVIEW`, so
+read the tool's list rather than deriving your own.
 
-! **This is the NARROW rule, taken on cost, and it is marked *for now*.** The alternative on the
-table is every block two or more roles filed on, which is the model behind *"the reviewers that
-had comments"*. Measured on a live run: **51 of 150 blocks** had two or more roles converge
-against **8** flagged as conflicts -- a six-fold difference in how often a round two fires.
+!! **A CONFLICT IS ON ONE SENTENCE. Two marks on two different sentences COMPOSE and are not a
+conflict**, however much they share a block. Ruled 2026-08-17. `contradictions()` already keys
+on the edited SPAN rather than the block index for exactly this reason -- and it was paid for:
+measured on a live run, one of eight flagged collisions was two roles ruling on two different
+clauses of one docstring, and a whole re-review round went on establishing that. A block of six
+sentences can carry six verdicts and still hold no conflict at all.
+
+! `query` sets neither trait and can never enter the set; `move` is absent by ruling, because
+relocation and a truth fix compose.
+
+! **One case is DELIBERATELY wider than the sentence rule**: where the edited span cannot be
+computed at all, the block is flagged rather than passed. Silence there would hide a real
+collision behind an unreadable record, so the set is *conflicts, plus what could not be read*.
+
+! **This is the NARROW model, taken on cost, and it is marked *for now*.** The alternative is
+every block two or more roles filed on -- the *"reviewers that had comments"* model. Measured on
+a live run: **51 of 150 blocks** had two or more roles converge against **8** flagged as
+conflicts. ! The two numbers are not the same measurement: 51 counts roles converging on a
+BLOCK, and the 8 already applies the sentence rule, so widening would cost less than six-fold
+but more than nothing.
 
 ## Stage 5 -- APPLY: one verdict, one FULL-LENGTH replacement
 
@@ -742,6 +780,39 @@ line above); a **block split by an inserted statement**, where only the half sti
 talking about what came before is the finding; **the wrong half surviving** -- check what
 SURVIVED, not what went; **refactoring drift**.
 
+## Stage 5b -- RE-REVIEW: is this what you meant?
+
+**Every block the join printed as `RE-REVIEW` goes back to the roles that ruled on it**, once
+you have written its replacement. Load
+[`references/re-review.md`](references/re-review.md); it carries the payload, the three
+questions, the return shape, the channel and the stop rule, and this section does not restate
+them.
+
+!! **SET A GALLEY FIRST, and census it.** The joined block is on no disk and in no census, so
+nothing can address it -- `address_problem` refuses a record whose original matches no census
+entry, which is every round-2 record until this runs:
+
+```bash
+python <skill>/scripts/galley.py --repo . --census <run-dir>/census.json \
+  --edits <run-dir>/edits.json --out <run-dir>/galley
+python <skill>/scripts/census.py --json --repo <run-dir>/galley \
+  --out <run-dir>/galley-census.json <the same paths, under the galley>
+```
+
+`--edits` is `{"<census index>": "<your replacement block>"}`. **Nothing under the repo is
+touched**; a galley is a copy and it is discarded with the run.
+
+! **A round-2 record is an ORDINARY record** citing the galley census, so it joins exactly as a
+round-1 record does. Run `verdicts.py` against `galley-census.json` for it.
+
+!! **Do not carry a round-1 index into round 2.** A replacement whose line count differs shifts
+every block below it, so the same prose holds different indices in the two censuses. They relate
+by PATH and CONTENT, and you are the only participant holding both.
+
+! **`galley.py` REFUSES rather than guesses** -- a census range that no longer matches the file,
+two edits over one line, an index outside the census. It exits nonzero and names what refused,
+because a galley missing a block is not a galley of your proposal.
+
 ## Stage 6 -- COMPACT: only if there is a cap
 
 **If no cap applies, the run SKIPS this stage entirely.** Say so: the prose is correct, and
@@ -767,6 +838,27 @@ you hand to stage 7a is what will be written.
 whole tree -- a `move` that relocates prose between blocks, an owner that collapses N
 restatements into one -- and none of that is settled until every block is edited. `compact.md`
 carries the argument and the per-block procedure.
+
+## Stage 6b -- RE-REVIEW: is this still correct after my edits?
+
+**Runs only if stage 6 ran**, and over the blocks it actually shortened. Same mechanism as 5b,
+same file, **different question**: 5b asks whether the synthesis carried the finding, 6b asks
+whether shortening broke it. ! A single *"is this still right"* prompt collapses them and
+answers neither.
+
+!! **This is the only reader stage 6 has ever had.** The compact agent reads stage 5's work, and
+until now nothing read the compact agent's own output before it reached the author. ! Measured
+2026-08-17: on one run it came under the cap by writing 98-column lines and flagged that itself
+-- nothing would have caught it otherwise.
+
+!! **A block stage 6 must edit that NO role ruled on goes to ALL FOUR, as a fresh block.** A
+block every role returned `clean` on can still be over the cap; shortening it is an edit with no
+verdict behind it, and neither 5b nor 6b reaches it because there is no filer to ask. It comes
+back with verdicts. ! It is the only path by which stage 6 originates work, and it runs the
+opposite way to everything else: every other finding travels 4 -> 5, this one travels 6 -> 4.
+
+! **Set a galley of the COMPACTED text and census it**, exactly as 5b does. The text stage 6
+hands on is again on no disk, and it is not the text 5b addressed.
 
 ## Stage 7a -- APPROVAL: present the FINAL text, then stop
 

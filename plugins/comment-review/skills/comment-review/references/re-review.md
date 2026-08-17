@@ -78,10 +78,12 @@ VERDICT        HOLD | REVISE
 REASON         one clause
 ```
 
-- **`SAME SENTENCE`** is answered FIRST. A verdict rules on a sentence and the join keys on the
-  block, so the collision the task agent saw may not exist at all. ! Measured 2026-08-17: of 8
-  blocks the gate flagged, **2 were genuine contradictions**; six were composition or a
-  sentence-level false positive.
+- **`SAME SENTENCE`** is answered FIRST, because **two marks on two different sentences
+  COMPOSE** -- they are not a conflict, however much they share a block. Ruled 2026-08-17. ! The
+  join already keys on the edited span rather than the block index, so most of this is caught
+  before you are asked; you are the last check on it, and the only one that can read the
+  sentences as sentences. ! Measured 2026-08-17: of 8 blocks the gate flagged, **2 were genuine
+  contradictions**; six were composition or a sentence-level false positive.
 - **`HOLD`** -- the block carries what I filed, and the other edits do not break it. Nothing
   further is owed.
 - **`REVISE`** -- it does not, and the **full record** comes with it, in the shape
