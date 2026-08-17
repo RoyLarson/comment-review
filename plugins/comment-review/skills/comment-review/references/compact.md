@@ -1,9 +1,9 @@
-# The COMPACT pass — stage 6
+# The COMPACT pass -- stage 6
 
 Loaded by the task agent **after every block is edited (stage 5) and BEFORE the author is
 asked to approve anything (stage 7)**. Never by a reviewer.
 
-⚠⚠ **Nothing is on disk when this runs.** You are condensing PROPOSED text, not a file. That
+!! **Nothing is on disk when this runs.** You are condensing PROPOSED text, not a file. That
 is the point of the slot: the author must rule on the text that will actually be written, and
 compacting after their approval would hand them one comment and write another.
 
@@ -11,12 +11,12 @@ compacting after their approval would hand them one comment and write another.
 
 By the end of stage 5 every block is **true, in the right place, and stripped of history**.
 Only then is it safe to ask how short it can be, and only then can the question be answered
-correctly — because **compaction decisions depend on the final state of the tree, not of one
+correctly -- because **compaction decisions depend on the final state of the tree, not of one
 block**:
 
 - a `move` relocates prose *between* blocks, so a block condensed before the move lands is
   condensed against a picture that is about to change;
-- naming an **owner** collapses N restatements into one plus N pointers — the restatements only
+- naming an **owner** collapses N restatements into one plus N pointers -- the restatements only
   become compactable once the owner exists;
 - a block that looks over-length often shrinks to nothing once the duplicated claim it carries
   is corrected somewhere else.
@@ -24,65 +24,65 @@ block**:
 Condensing per-block during APPLY gets all three wrong, and each error looks like a
 successful edit.
 
-⚠ **If any block is still marked incorrect or misplaced, stage 6 has not started yet.** Finish
+! **If any block is still marked incorrect or misplaced, stage 6 has not started yet.** Finish
 stage 5.
 
-⚠⚠ **An ESCALATED `query` does not block this pass, and must not.** Its destination is the
+!! **An ESCALATED `query` does not block this pass, and must not.** Its destination is the
 author, who is first reached at 7a -- *after* this stage. Read as "unresolved blocks stage 6", a
 capped run holding one externally-unsettleable query could never legally reach approval.
 Measured on a real run: two such queries, both settleable only inside a dependency outside the
 checkout. **Compact the blocks whose verdicts are closed; carry an escalated query's block at
 its full length and say why.**
 
-## ⚠ This pass exists only to apply a CAP
+## ! This pass exists only to apply a CAP
 
 **If no cap applies, this pass does not run at all.** Stage 5 already removed everything
 false, historical and unnecessary, so what stands is true, current, local and load-bearing.
-Absent a cap, "long" is not a defect and there is nothing here to do — go straight to
+Absent a cap, "long" is not a defect and there is nothing here to do -- go straight to
 approval.
 
 **Only shorten prose that is already correct.** This pass may not change a claim, relocate a
 block, drop a constraint, or resolve anything stage 5 left open. If compacting makes you want
-to do any of those, APPLY was not finished — go back, or file it for the next run.
+to do any of those, APPLY was not finished -- go back, or file it for the next run.
 
 ## Per block
 
-1. **Take the ORIGINAL prose from the PRE-EDIT REF** 1.1 recorded —
+1. **Take the ORIGINAL prose from the PRE-EDIT REF** 1.1 recorded --
    `git show <pre-edit-ref>:<path>`. Nothing has been written yet at this stage, so it is also
    what is on disk; read the blob rather than your scratch copy.
    You are checking against what the block has ever said, not against your own last edit.
-   ⚠ The blob is authoritative and cannot be lost to an interruption; keep the scratch copy
+   ! The blob is authoritative and cannot be lost to an interruption; keep the scratch copy
    only as a convenience.
 2. **Cut, do not re-author.** For a block one or two lines over, remove the single
-   least-checkable line — a hedge, an aside, a line restating the line below it. A block
+   least-checkable line -- a hedge, an aside, a line restating the line below it. A block
    that is one line over gets re-authored into prose that was already true, current and
    on-subject.
-   ⚠ The four refusals still bind, and the least-checkable line is often a block's only
+   ! The four refusals still bind, and the least-checkable line is often a block's only
    refusal or the evidence for its surviving claim. If so it is not the line to cut, and the
    block reports at length.
 3. **Re-run the residue check** on the condensed text against that same original: is anything
-   in it **true & necessary & checkable** that the condensed version does not contain — and
+   in it **true & necessary & checkable** that the condensed version does not contain -- and
    does the condensed version still pass the four refusals (not the only record of its fact;
    not what makes a surviving claim falsifiable; not a positional refusal aimed at a future
    editor; and what remains is still a proposition)?
 4. **If it fails, put it back and try again.**
 
-⚠ **Checking against your own EDITED text instead of the original defeats the check.** The
+! **Checking against your own EDITED text instead of the original defeats the check.** The
 edit already dropped things legitimately; checking against it lets a second, illegitimate drop
 through unnoticed. **The original is the baseline, twice.**
 
-⚠⚠ **The block's KIND is part of the input, and it decides whether this pass may touch the
+!! **The block's KIND is part of the input, and it decides whether this pass may touch the
 block at all.** The census stamps every block `comment`, `trailing-comment`, `docstring` or
 `unparsed`, and they are governed by different rules:
 
 | kind | governed by | what this pass may do |
 | --- | --- | --- |
-| `comment` / `trailing-comment` | **LENGTH** — the cap counts lines in one `#` run | cut it to the cap |
-| `docstring` | **FORMAT** — the convention resolved at 1.3 | **nothing.** Long is not a violation |
-| `comment` with `doc-kind-unresolved` | **UNKNOWN** — the census could not tell | **nothing.** Ask, or carry it at length |
-| `unparsed` | **NOT PROSE** — the file did not parse, so nothing was censused | **nothing.** It is a diagnostic standing in for a file, not a block. Report it |
+| `comment` / `trailing-comment` | **LENGTH** -- the cap counts lines in one `#` run | cut it to the cap |
+| `docstring` | **FORMAT** -- the convention resolved at 1.3 | **nothing.** Long is not a violation |
+| `comment` with `doc-kind-unresolved` | **UNKNOWN** -- the census could not tell | **nothing.** Ask, or carry it at length |
+| `unparsed` | **NOT PROSE** -- the file did not parse, so nothing was censused | **nothing.** It is a diagnostic standing in for a file, not a block. Report it |
 
-⚠ **A work marker LINE is free of the cap** — `TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or
+! **A work marker LINE is free of the cap** -- `TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or
 whatever the run context names. Its CONTINUATION lines are charged, so six lines plus a
 `TODO:` is six. Charge the marker line and the quickest route to green is deleting a pointer to
 filed work: quick to do and expensive to have done, because the work is still needed and
@@ -92,30 +92,30 @@ nothing names it any more.
 docstring and a 7-line `#` run look like the same over-length problem, and cutting the first to
 six destroys documentation that was never in violation.
 
-⚠ **A block whose kind is UNRESOLVED is not a block whose kind is `comment`.**
+! **A block whose kind is UNRESOLVED is not a block whose kind is `comment`.**
 The census stamps `doc-kind-unresolved` where a language attaches documentation
 by position (Go, Ruby) and this tier cannot separate a doc run from an ordinary
 one. Do not infer it from the text, and do not cut it: carry it at length and
 say why. Measured: a three-line Go export doc counted as over a cap of two.
 
-⚠ **This is the input contract, and it is deliberately narrow:** the block's KIND, the original block, the
+! **This is the input contract, and it is deliberately narrow:** the block's KIND, the original block, the
 edited text, the cap, the style sheet. Not the reasoning that produced the edit. An agent that
-never saw the argument cannot keep a sentence because it remembers writing it — which is what
-makes this pass safe. ⚠ **It IS a separate subagent —
-`comment-review:comment-review-compact` — not an optional handoff.** The
+never saw the argument cannot keep a sentence because it remembers writing it -- which is what
+makes this pass safe. ! **It IS a separate subagent --
+`comment-review:comment-review-compact` -- not an optional handoff.** The
 contract only buys anything if the reader is not the writer.
 
 ## When a block cannot come under the cap
 
-**STOP and report it** — the block, its true length, and what holds it there. Do not resolve
+**STOP and report it** -- the block, its true length, and what holds it there. Do not resolve
 the conflict by cutting.
 
-⚠ **A block that cannot be made both correct and short is a finding about the CODE** —
+! **A block that cannot be made both correct and short is a finding about the CODE** --
 usually a rule with no owning function, so every site performing part of it re-explains the
 whole. Trimming the comment treats the symptom. Report it, name the owner if you can see one,
 and leave it.
 
-⚠ **Never cut evidence to bring a block under the cap.** Between a comment that is over the cap and one
+! **Never cut evidence to bring a block under the cap.** Between a comment that is over the cap and one
 that is in-cap and unfalsifiable, **the over-cap one is correct and the in-cap one is a defect
 wearing a passing grade.**
 
@@ -133,6 +133,6 @@ wrong word read as house style and the result was wrong on two independent axes.
 Blocks condensed, blocks left at length with the reason, and the final longest block. A block
 you could not condense is a finding, not a silence.
 
-⚠ **No CODE CHECK here** — nothing has been written yet. That check belongs to
+! **No CODE CHECK here** -- nothing has been written yet. That check belongs to
 WRITE (stage 7b), which is the only pass that touches a file. What you hand back is the text
 stage 7a will put in front of the author.

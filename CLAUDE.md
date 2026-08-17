@@ -16,10 +16,10 @@ development and measurement tooling that stays behind.
 
 ## Commands
 
-⚠⚠ **RUN EVERYTHING THROUGH `uv run`.** The project is pinned to **Python 3.11**, the floor
+!! **RUN EVERYTHING THROUGH `uv run`.** The project is pinned to **Python 3.11**, the floor
 `plugins/` ships against, in `.python-version` and `[project] requires-python`. Measured
 2026-08-17: with 3.14 as the ambient interpreter, four of the eight shipped scripts raised
-`NameError` at IMPORT on 3.11 while every test and the shipped-syntax gate passed — PEP 649
+`NameError` at IMPORT on 3.11 while every test and the shipped-syntax gate passed -- PEP 649
 makes annotations lazy from 3.14, so the break was invisible locally. Roy: *"the floor will not
 fail if we are using the floor to evaluate the code."* Substituting a bare `python` re-opens
 exactly that gap.
@@ -97,29 +97,29 @@ stdlib-only rule. `evals/grade_hazards.py` remains the end-to-end grade, and
 
 ### The skill's 8 stages
 
-`plugins/comment-review/skills/comment-review/SKILL.md` is the task agent's own instructions —
+`plugins/comment-review/skills/comment-review/SKILL.md` is the task agent's own instructions --
 read it before touching the skill. The pipeline:
 
 ```
 1 PROJECT      2 COLLATE    3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION             REFERENCES               │                    7b WRITE
-                                                      └──── no cap ────────▲
+  DETERMINATION             REFERENCES               |                    7b WRITE
+                                                      +---- no cap --------^
 ```
 
-1. **PROJECT DETERMINATION** (task agent) — scope from the merge base, find the repo's cap/width
+1. **PROJECT DETERMINATION** (task agent) -- scope from the merge base, find the repo's cap/width
    conventions, doc style, `move` destination, style sheet, verify reviewer agents resolve, probe
    for a language server, decide the name-corpus source.
-2. **COLLATE** (`census.py`) — every interval between two lines of code gathered into one numbered tree, each comment run and docstring a node on it.
-3. **FIND REFERENCES** (`census.py`) — every reference each node makes, resolved (paths, symbols,
+2. **COLLATE** (`census.py`) -- every interval between two lines of code gathered into one numbered tree, each comment run and docstring a node on it.
+3. **FIND REFERENCES** (`census.py`) -- every reference each node makes, resolved (paths, symbols,
    counts).
-4. **MARK** (4 reviewer agents, dispatched in parallel, read-only) — findings on the nodes.
-5. **APPLY** (task agent) — one verdict per block, full-length replacement text.
-6. **COMPACT** (task agent) — cut to the cap; skipped entirely if there is no cap.
-7. **APPROVAL** — present the final text and stop (7a); on approval, apply verbatim (7b).
-8. **REVIEW** (task agent) — read the finished page against itself.
+4. **MARK** (4 reviewer agents, dispatched in parallel, read-only) -- findings on the nodes.
+5. **APPLY** (task agent) -- one verdict per block, full-length replacement text.
+6. **COMPACT** (task agent) -- cut to the cap; skipped entirely if there is no cap.
+7. **APPROVAL** -- present the final text and stop (7a); on approval, apply verbatim (7b).
+8. **REVIEW** (task agent) -- read the finished page against itself.
 
 The seven verdicts (`clean`, `query`, `drop`, `correct`, `patch`, `add`,
-`move`) and the checkable/necessary matrix that resolves them are defined in SKILL.md — read it
+`move`) and the checkable/necessary matrix that resolves them are defined in SKILL.md -- read it
 rather than re-deriving the rules here, since it is the single source and this file must not
 restate it.
 
@@ -128,18 +128,18 @@ restate it.
 Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) under
 `plugins/comment-review/agents/`, dispatched in one message so they run concurrently:
 
-- **ownership-context** — does this comment belong to the ANCHOR it sits on?
-- **block-context** — is every claim in this block true of the code it sits with — its state
+- **ownership-context** -- does this comment belong to the ANCHOR it sits on?
+- **block-context** -- is every claim in this block true of the code it sits with -- its state
   (not past, not future), its constraints (value, direction, units, boundary), its worked
   examples?
-- **function-context** — does the commentary match what the function is for?
-- **module-context** — do the comments say this module is one set of ideas?
+- **function-context** -- does the commentary match what the function is for?
+- **module-context** -- do the comments say this module is one set of ideas?
 
 Reviewers are read-only and never see SKILL.md directly; they read the shared
-`references/reviewer-brief.md`. Fixing what you find destroys the finding — MARK and APPLY are
+`references/reviewer-brief.md`. Fixing what you find destroys the finding -- MARK and APPLY are
 deliberately separate stages/actors.
 
-### `census.py` — the only thing the reviewers depend on
+### `census.py` -- the only thing the reviewers depend on
 
 `plugins/comment-review/skills/comment-review/scripts/census.py` builds the pCST from the
 stdlib alone (no third-party dependency), at a per-language tier. It is one of three: `repo.py`
@@ -159,7 +159,7 @@ the file, or from an LSP `documentSymbol` enrichment when a language server answ
 probe. Every ownership-context verdict therefore rests on a reviewer reading the file.
 
 `references/` under the skill directory (`write.md`, `compact.md`, `residue-check.md`,
-`review.md`, `reviewer-brief.md`) are each single-sourced for one stage — nothing pastes their
+`review.md`, `reviewer-brief.md`) are each single-sourced for one stage -- nothing pastes their
 content elsewhere, and a change to a rule belongs in exactly one of these files (or in
 `docs/limitations.md` for orchestration-level rules).
 
@@ -167,27 +167,27 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 
 | path                              | what                                                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `plugins/comment-review/`         | the shipped plugin — `skills/`, `agents/`, manifests                                                                                                                       |
-| `docs/`                           | how this system behaves today, and the rules for changing it: `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself — budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using) |
-| `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ⚠ Nothing here describes this system's own behavior — that is `docs/`                                                    |
+| `plugins/comment-review/`         | the shipped plugin -- `skills/`, `agents/`, manifests                                                                                                                       |
+| `docs/`                           | how this system behaves today, and the rules for changing it: `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using) |
+| `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ! Nothing here describes this system's own behavior -- that is `docs/`                                                    |
 | `evals/`                          | the twelve planted hazards (`evals.json`, `discriminators.md`), `grade_hazards.py`, and `generator_split.py` (the authorship split)                                        |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |
-| `scripts/`                        | `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` — none of this ships with the plugin                                                                    |
+| `scripts/`                        | `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` -- none of this ships with the plugin                                                                    |
 | `.claude-plugin/marketplace.json` | lets this checkout be installed as a plugin marketplace in the same session (`claude plugin marketplace add <path>` then `claude plugin install comment-review`)           |
 
 ### Shipped-code constraint that shapes how every `plugins/` script is written
 
 Anything under `plugins/` is copied into other people's `.claude/` and formatted by **their**
-ruff config, not this repo's — a repo targeting a newer `target-version` can rewrite valid
-syntax (e.g. `except (A, B):` → PEP 758 unparenthesised form) into a `SyntaxError` on an older
+ruff config, not this repo's -- a repo targeting a newer `target-version` can rewrite valid
+syntax (e.g. `except (A, B):` -> PEP 758 unparenthesised form) into a `SyntaxError` on an older
 interpreter, and the author of this repo never sees the failure. Consequences enforced in this
 codebase:
 
-- No `except` clause in a shipped file holds a tuple literal — every exception tuple is bound to
+- No `except` clause in a shipped file holds a tuple literal -- every exception tuple is bound to
   a name (e.g. `READ_ERRORS`, `PARSE_ERRORS`) so there is nothing for a formatter to rewrite.
   A `noqa` was tried and does not hold, because it suppresses the report, not the rewrite.
 - `pyproject.toml`'s `target-version = "py311"` protects *this repo's own* formatting only; it
-  cannot protect a file after it has been copied elsewhere — `scripts/check_shipped_syntax.py`
+  cannot protect a file after it has been copied elsewhere -- `scripts/check_shipped_syntax.py`
   is the actual floor check, and it must be run after `ruff format`.
 
 ### Corpora are fetched, never vendored
@@ -195,13 +195,13 @@ codebase:
 `corpora/corpora.toml` pins nine repositories at specific refs (seven third-party, plus two
 personal projects used as an over-fitting control), chosen for variety of prose convention. A
 `local` corpus becomes a `git worktree` of a repo already on the machine; a `public` one is a
-sparse clone at a tag. `corpora/*/` is gitignored — only the manifest and the fetch script are
+sparse clone at a tag. `corpora/*/` is gitignored -- only the manifest and the fetch script are
 tracked. Corpora used with `evals/generator_split.py` must be fetched with `depth = 0` (full
 history) since it depends on `git blame`.
 
 ## Working on this repo
 
-- Grade a comment-review run from its **diff**, never from its own report — self-reported
+- Grade a comment-review run from its **diff**, never from its own report -- self-reported
   confidence has been measured to not discriminate real from fabricated findings.
 - `docs/limitations.md` governs changes to the skill's prose/rules themselves: every example
   used there must be invented (never a real quotation), each new rule should replace an
@@ -211,21 +211,21 @@ history) since it depends on `git blame`.
 
 **This is an editorial board.** Four **editorial roles** read a manuscript and write **editorial
 marks** on it; a **PROOFREADER** reads the finished **proof** and says whether the document
-deserves more marks. Think about the work that way, and take a new term from publishing — what
-would an editor, a copy desk or a proofreader call this? — before reaching anywhere else.
+deserves more marks. Think about the work that way, and take a new term from publishing -- what
+would an editor, a copy desk or a proofreader call this? -- before reaching anywhere else.
 
-⚠ **Check a candidate against the register before proposing it, not after.** Three words entered
+! **Check a candidate against the register before proposing it, not after.** Three words entered
 from LAW and each named something publishing already had a word for: `acquittal` and
 `suppression` arrived with the initial plugin import and are deleted; `jurisdiction` was added
 2026-08-16 by a session that checked it for collisions and never checked it for register, and is
 now `remit`.
 
-⚠ **The register is itself an instruction, and that is the point.** Roy, 2026-08-16: *"I bet it
+! **The register is itself an instruction, and that is the point.** Roy, 2026-08-16: *"I bet it
 helps the LLM focus in on what it is doing. Because of locality and other context items the llm
 will return words and phrases and comment suggestions based upon 'being' an editor better."* An
 agent reads these files and then writes in them, so one consistent register is a role it can
 occupy rather than a glossary it has to consult. A reader who knows the metaphor can also predict
-what an unfamiliar term means instead of guessing. ⚠ Recorded as the REASON for the rule, not as
+what an unfamiliar term means instead of guessing. ! Recorded as the REASON for the rule, not as
 a measurement: nothing in this repo tests it.
 
 ## Documentation Rules
@@ -235,11 +235,11 @@ a measurement: nothing in this repo tests it.
 - Never attribute assumptions about Q unless they stated them in this session or they are
   recorded in a cited file. Cite the source inline.
 - Prefer a glossary entry over repeated inline definitions.
-- Do not write subjective statements about properties of the project — "robust", "elegant",
-  "carefully designed", "solid", "maintainable", "intuitive", "works well" — in comments,
+- Do not write subjective statements about properties of the project -- "robust", "elegant",
+  "carefully designed", "solid", "maintainable", "intuitive", "works well" -- in comments,
   docstrings, README prose, or commit messages. A false *measurement* can be re-derived and
   corrected; a claim that something is "robust" has no oracle. Nothing can check it, so it
-  survives every review and every rewrite regardless of whether it was ever true — it is the
+  survives every review and every rewrite regardless of whether it was ever true -- it is the
   one class of prose this repo's four editorial roles cannot catch, because both block-context and
   function-context need something to resolve the claim against. Write what is measured, what is
   enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
@@ -247,7 +247,7 @@ a measurement: nothing in this repo tests it.
 - `clean` is reserved, not a synonym for "vaguely good": it is one of the seven verdicts named
   under "The skill's 8 stages" above and must not be used as a loose adjective for code or
   prose anywhere in this repo. As a verdict it means nothing to report from that role, and
-  each role's `clean` asserts something specific — read what, in that role's own file under
+  each role's `clean` asserts something specific -- read what, in that role's own file under
   `plugins/comment-review/agents/`, which states it.
 
 ## Exploration Budget

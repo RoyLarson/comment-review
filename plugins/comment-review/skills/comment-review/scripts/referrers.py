@@ -8,7 +8,7 @@ REFERENCE ONLY list. Without it that list is assembled from memory, and a
 `target` run has no diff to widen from at all.
 
 Read-only, always exits 0: an INPUT to a review. Every line it prints is a
-CANDIDATE — a file that names a token is a file to READ, and stays outside what
+CANDIDATE -- a file that names a token is a file to READ, and stays outside what
 a verdict may target.
 """
 
@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-# ⚠ The exception tuples are IMPORTED. Each is bound to a NAME so no `except`
+# ! The exception tuples are IMPORTED. Each is bound to a NAME so no `except`
 # clause here holds a tuple literal; `repo.py` carries that reason once.
 from repo import (  # noqa: E402  -- path shim must run first
     GIT_ERRORS,
@@ -54,10 +54,10 @@ def tokens_for(path: Path, text: str) -> set[str]:
         try:
             tree = ast.parse(text)
         except PARSE_ERRORS:
-            # ⚠⚠ A file that will not parse yields its PATH and STEM only, and
+            # !! A file that will not parse yields its PATH and STEM only, and
             # must still reach the length filter below -- an earlier `return`
             # here skipped it, so a two-character stem went to `git grep -l -F`
-            # and matched nearly every tracked file. ⚠ `tree = None`, not a bare
+            # and matched nearly every tracked file. ! `tree = None`, not a bare
             # `pass`: this is not a loop, and falling through left `tree`
             # unbound, so the handler written for a mid-edit file crashed on
             # one. Both shapes measured 2026-08-17.
@@ -71,7 +71,7 @@ def tokens_for(path: Path, text: str) -> set[str]:
 def _grep(repo: Path, token: str) -> tuple[list[str] | None, str]:
     """Tracked files containing `token` as a fixed string.
 
-    ⚠ `git grep` exits 1 for a genuine ZERO-MATCH search; any other nonzero (a
+    ! `git grep` exits 1 for a genuine ZERO-MATCH search; any other nonzero (a
     bad pathspec, a corrupt index, a timeout) means the search never completed.
     Collapsing both into `[]` reads a failed search as "nothing found", so None
     is a THIRD state here, the same as in `git_ls_files`.
@@ -104,7 +104,7 @@ def main() -> int:
 
     repo = Path(args.repo).resolve()
     if git_ls_files(repo) is None:
-        print("NO GIT INDEX — cannot resolve referrers. Say so in the stage 3 report.")
+        print("NO GIT INDEX -- cannot resolve referrers. Say so in the stage 3 report.")
         return 0
 
     under_review = set()
@@ -128,7 +128,7 @@ def main() -> int:
         for token in sorted(tokens_for(Path(rel), text)):
             found, reason = _grep(repo, token)
             if found is None:
-                # ⚠ The search never completed, so a real referrer for this
+                # ! The search never completed, so a real referrer for this
                 # token may exist unreported. A different state from
                 # "searched, found nothing".
                 unsearched.add(f"token {token!r} could not be searched ({reason})")
@@ -143,21 +143,21 @@ def main() -> int:
     )
     if not hits:
         if unsearched:
-            # ⚠ A weaker claim than the plain-absence line below. `hits` being
+            # ! A weaker claim than the plain-absence line below. `hits` being
             # empty here may only mean every search that COULD run found
             # nothing -- some did not run at all, and a real referrer may be
             # sitting behind one of them.
             print(
-                "  none among the tokens that could be searched — but some\n"
+                "  none among the tokens that could be searched -- but some\n"
                 "  searches did not complete; see NOT CHECKED below before\n"
                 "  treating this as a complete result."
             )
         else:
-            print("  none — nothing tracked names these files.")
+            print("  none -- nothing tracked names these files.")
     for f in sorted(hits):
         print(f"  {f}\n      names: {', '.join(sorted(hits[f]))}")
     if unreadable or unsearched:
-        print("\nNOT CHECKED — these are gaps, not passes:")
+        print("\nNOT CHECKED -- these are gaps, not passes:")
         for u in unreadable:
             print(f"    {u}")
         for u in sorted(unsearched):
@@ -175,7 +175,7 @@ def main() -> int:
                 "      incomplete for these tokens until this list is empty."
             )
     print(
-        "\n⚠ CANDIDATES, not findings. A file here is REFERENCE ONLY unless it is "
+        "\n! CANDIDATES, not findings. A file here is REFERENCE ONLY unless it is "
         "also under review."
     )
     return 0

@@ -3,7 +3,7 @@
 `plugins/` is copied into other people's `.claude/` directories and is then
 formatted by THEIR ruff config, not ours. A repo targeting a newer Python
 rewrites shipped code into syntax its own interpreter accepts, and the failure
-surfaces on a THIRD party's machine — never on the author's, never on the
+surfaces on a THIRD party's machine -- never on the author's, never on the
 formatter's.
 
 This checks the one half we control: that what leaves this repository parses at
@@ -26,7 +26,7 @@ FLOOR_TEXT = ".".join(str(n) for n in FLOOR)
 
 SHIPPED = "plugins"
 
-# ⚠ A tuple literal in an `except` clause is the known regression: under
+# ! A tuple literal in an `except` clause is the known regression: under
 # `target-version = "py314"` a formatter rewrites `except (A, B):` into PEP
 # 758's unparenthesised form, which `ast.parse` at the floor then rejects.
 # Binding the tuple to a NAME leaves nothing to rewrite. Found in the shipped
@@ -34,7 +34,7 @@ SHIPPED = "plugins"
 # failed to hold it.
 ROOT = Path(__file__).resolve().parent.parent
 
-# Bound to a name for the same reason the shipped file does it — a checker that
+# Bound to a name for the same reason the shipped file does it -- a checker that
 # uses the construct it refuses is one formatter run from being the defect.
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
@@ -42,13 +42,13 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 def _annotations(tree: ast.AST) -> list[tuple[int, str, ast.expr]]:
     """Every annotation the floor EVALUATES, as `(line, where, expression)`.
 
-    ⚠⚠ ALL SIX POSITIONS, and the first version of this checked two. It read
+    !! ALL SIX POSITIONS, and the first version of this checked two. It read
     `args.args` and `returns` only, so a keyword-only parameter, `*args`,
     `**kwargs`, a positional-only parameter, and a dataclass field annotation
-    were all unexamined — and a dataclass field is exactly how this repo
+    were all unexamined -- and a dataclass field is exactly how this repo
     declares its records.
 
-    ⚠ A STRING annotation is skipped: quoting is the sanctioned way to name a
+    ! A STRING annotation is skipped: quoting is the sanctioned way to name a
     type that is not bound at runtime, and it is what the fix looks like.
     """
     out: list[tuple[int, str, ast.expr]] = []
@@ -75,7 +75,7 @@ def runtime_defects(src: str) -> list[str]:
     """
     out: list[str] = []
     tree = ast.parse(src)
-    # ⚠ The future import restores lazy evaluation at the floor, so a file
+    # ! The future import restores lazy evaluation at the floor, so a file
     # carrying it is exempt from everything below.
     if any(
         isinstance(n, ast.ImportFrom)
@@ -85,15 +85,15 @@ def runtime_defects(src: str) -> list[str]:
     ):
         return out
 
-    # ⚠⚠ AN ANNOTATION MAY NAME ONLY WHAT IS BOUND AT RUNTIME. Python 3.14
+    # !! AN ANNOTATION MAY NAME ONLY WHAT IS BOUND AT RUNTIME. Python 3.14
     # evaluates annotations lazily (PEP 649), so a name that does not exist yet
-    # — or never exists — is fine on a modern interpreter and raises
+    # -- or never exists -- is fine on a modern interpreter and raises
     # `NameError` AT IMPORT on the floor.
     #
     # Two ways to get it wrong, and this repo has now shipped both:
     #   2026-08-17  two helpers annotated `Finding` twelve lines ABOVE the class
     #   2026-08-17  `annotate.py` annotated `Block`, imported under
-    #               TYPE_CHECKING only — which took census, prove_unchanged and
+    #               TYPE_CHECKING only -- which took census, prove_unchanged and
     #               verdicts down with it, four of eight shipped scripts, while
     #               this gate reported success
     defined_at = {
@@ -115,17 +115,17 @@ def runtime_defects(src: str) -> list[str]:
             if name in type_only:
                 out.append(
                     f"line {line}: {where} annotates {name}, which is imported"
-                    " under TYPE_CHECKING and is NOT bound at runtime — quote it"
+                    " under TYPE_CHECKING and is NOT bound at runtime -- quote it"
                 )
             elif defined_at.get(name, 0) > line:
                 out.append(
                     f"line {line}: {where} annotates {name}, defined at line "
-                    f"{defined_at[name]} — NameError on import"
+                    f"{defined_at[name]} -- NameError on import"
                 )
 
-    # ⚠ PEP 604 inside isinstance()/issubclass() is a TypeError before 3.10.
+    # ! PEP 604 inside isinstance()/issubclass() is a TypeError before 3.10.
     # `FLOOR` is 3.11, so this cannot fire today and is kept as a guard for a
-    # floor that drops — the summary and the docstring must not claim otherwise.
+    # floor that drops -- the summary and the docstring must not claim otherwise.
     if FLOOR >= (3, 10):
         return out
     for n in ast.walk(tree):
@@ -136,7 +136,7 @@ def runtime_defects(src: str) -> list[str]:
             continue
         if isinstance(n.args[1], ast.BinOp) and isinstance(n.args[1].op, ast.BitOr):
             out.append(
-                f"line {n.lineno}: PEP 604 union inside {fn}() — "
+                f"line {n.lineno}: PEP 604 union inside {fn}() -- "
                 f"TypeError on Python {FLOOR_TEXT}, invisible to a syntax check"
             )
     return out
@@ -144,7 +144,7 @@ def runtime_defects(src: str) -> list[str]:
 
 def main() -> int:
     """Parse every shipped .py at the floor; report each failure."""
-    # ⚠ A Windows console is cp1252; one non-ASCII glyph in this program's own
+    # ! A Windows console is cp1252; one non-ASCII glyph in this program's own
     # output kills the run. Every CLI in this repo carries this, and
     # `tests/test_shipped_cli_encoding.py` is the gate -- it globbed only the
     # shipped `plugins/` scripts until 2026-08-17, which is how four of these
@@ -174,8 +174,8 @@ def main() -> int:
         print(f"{f.relative_to(ROOT)}: {why}", file=sys.stderr)
 
     if bad:
-        # ⚠ FILES, not findings. `len(bad)` counted entries, so three defects in
-        # one file reported "3 of 8 shipped files" — and "do not parse" names a
+        # ! FILES, not findings. `len(bad)` counted entries, so three defects in
+        # one file reported "3 of 8 shipped files" -- and "do not parse" names a
         # cause this check no longer only looks for.
         print(
             f"\n{len({f for f, _ in bad})} of {len(files)} shipped files will not "

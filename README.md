@@ -2,26 +2,26 @@
 
 A Claude Code plugin: an **editorial board** for the comments and docstrings a change
 touched. Four read-only reviewers walk one pCST, an editor writes the replacement
-text, it is cut to fit, **then** the author approves the exact text that will be written —
+text, it is cut to fit, **then** the author approves the exact text that will be written --
 and WRITE puts it on disk and proves the executable code byte-identical.
 
 ```
-project → collate → find refs → mark → apply → compact → APPROVAL → review
-                                         │                   ▲
-                                         └───── no cap ──────┘
+project -> collate -> find refs -> mark -> apply -> compact -> APPROVAL -> review
+                                         |                   ^
+                                         +----- no cap ------+
 ```
 
 **It is `/code-review`'s wiser older sibling.** That one hunts correctness bugs in the code;
 this one asks whether the prose beside the code is still true about it. Different questions,
 so they find different things and neither replaces the other.
 
-⚠ *Wiser* is a family opinion and not a measurement — this repo bans that kind of claim
+! *Wiser* is a family opinion and not a measurement -- this repo bans that kind of claim
 everywhere it could mislead, and a tagline is the one place it cannot. For the measurement:
 on 2026-08-17 `/code-review` found twelve defects in **this** repository's Python, four of
 them in the gate that decides which of comment-review's own findings are admissible. The
 elder sibling is not the one who gets checked less.
 
-⚠ **Compaction happens BEFORE approval, on purpose.** Approving a full-length comment and
+! **Compaction happens BEFORE approval, on purpose.** Approving a full-length comment and
 then writing a shorter one is a bait-and-switch: the author ruled on text that never
 reached the file. Whatever is approved is what lands, byte for byte.
 
@@ -67,29 +67,29 @@ documentation.
 ## What
 
 The skill judges comments based upon four criteria. `ownership-context` resolves placement
-FIRST, because the other three each measure a claim against the code at their own scope — a
+FIRST, because the other three each measure a claim against the code at their own scope -- a
 claim attached to the wrong scope gets measured against the wrong code.
 
 - Ownership-Context
-  - Does the comment belong to the ANCHOR it sits on — is it a checkable claim about the code
+  - Does the comment belong to the ANCHOR it sits on -- is it a checkable claim about the code
     beside it, not narration of what came before, not a description of code elsewhere in the
     file, not an orphan sitting between definitions.
-  - Is the block load-bearing where it sits — would someone changing that code decide worse
+  - Is the block load-bearing where it sits -- would someone changing that code decide worse
     without it.
   - Where the same claim is stated at several sites, which site OWNS it; the rest are
     dropped or moved to it.
 - Block-Context
   - Does the comment state something specific about what the code is doing now, not past
-    behavior, not future behavior — dated rulings, review-round labels, "this used to", and
+    behavior, not future behavior -- dated rulings, review-round labels, "this used to", and
     obituaries for a symbol, file, test or flag that exists nowhere.
   - Does a stated constraint match the value, direction, units and boundary the code actually
     enforces.
-  - Does a worked example still produce what it claims — run it.
+  - Does a worked example still produce what it claims -- run it.
   - Quantified and exclusivity claims ("the ONE place", "only one caller", "single source of
-    truth") — enumerate the sites and report the count.
+    truth") -- enumerate the sites and report the count.
   - Do cited paths and guards still exist, and still mean what the prose says.
 - Function-Context
-  - Does the function documentation describe what the code does — name, signature, docstring
+  - Does the function documentation describe what the code does -- name, signature, docstring
     and body read together.
   - Does the documentation describe one function, or does it need "and" to be accurate.
   - Are the comments in the function's body in the correct order.
@@ -102,7 +102,7 @@ claim attached to the wrong scope gets measured against the wrong code.
   - Is the module/package level documentation one set of ideas, not several unrelated subjects.
   - Does it cover all of the functions, classes and constants that the module exposes, walked
     from the module's own definitions.
-  - Does the documentation account for the module's mutable state — who writes it, when, and
+  - Does the documentation account for the module's mutable state -- who writes it, when, and
     what depends on it having been written.
   - Are a module docstring's own quantified and exclusivity claims ("single source of truth",
     "the only parser") true, resolved against the rest of the tree.
@@ -118,13 +118,13 @@ The skill is broken up into eight phases to cover an editorial system.
 
 | verdict    | the claim is                                     | what you do with it                                                       |
 | ---------- | ------------------------------------------------- | -------------------------------------------------------------------------- |
-| `clean`    | nothing to report **from this role**, on a block it READ | nothing. Not a pass, and not a claim the block is correct — one role having no finding. A block outside what the role reads is `query` |
+| `clean`    | nothing to report **from this role**, on a block it READ | nothing. Not a pass, and not a claim the block is correct -- one role having no finding. A block outside what the role reads is `query` |
 | `query`    | unsettled                                        | resolve it or escalate it. It blocks every other verdict on that sentence |
 | `drop`     | true but not worth keeping                       | delete the sentence                                                       |
 | `correct`  | **FALSE**                                        | apply the true/false pair. **Always before any `patch`**                  |
 | `patch`    | **TRUE**, badly worded                           | apply the rewrite                                                         |
 | `add`      | missing entirely                                 | insert the text at the anchor named with it                               |
-| `move`     | true, but it belongs somewhere else              | re-attach the block, unchanged, at the destination carried with it — another line, another file, or out of the code |
+| `move`     | true, but it belongs somewhere else              | re-attach the block, unchanged, at the destination carried with it -- another line, another file, or out of the code |
 
 5) APPLY - Agent combines the marks to be a correct, truthful, load-bearing comment for the location
 6) COMPACT - Only if you want to force the LLMs to keep it short
@@ -135,28 +135,28 @@ The skill is broken up into eight phases to cover an editorial system.
 ## Results
 
 One file per project, chosen by measured prose density, reviewed at full depth. No project
-is named — these are calibration measurements for a detector, not a defect report about
+is named -- these are calibration measurements for a detector, not a defect report about
 anyone's work, and every finding stays with the run that produced it.
 
 | Projects | Comment blocks | Lines reviewed | Findings | Worth acting on immediately | Per 100 lines |
 | -------- | -------------- | -------------- | -------- | --------------------------- | ------------- |
 | 7        | 339            | 6,736          | 97       | **27**                      | **0.40**      |
 
-⚠ **Measured against the pre-hardening instrument.** Both the census and the four reviewer
-agents changed after this run — the census now reads `git ls-files` for its name corpus and
+! **Measured against the pre-hardening instrument.** Both the census and the four reviewer
+agents changed after this run -- the census now reads `git ls-files` for its name corpus and
 declares a kind gap for positional docs, and the reviewers gained an admissibility gate and a
 dispatch pre-flight. A measurement taken with a different detector is not comparable to one
-taken before it, the same discipline this repo applies to corpus refs — this table is not a
+taken before it, the same discipline this repo applies to corpus refs -- this table is not a
 current claim, and no corpus has been re-run since.
 
 Roughly **one comment block in twelve** carried something a maintainer would fix, and about
-**one finding in four** was worth acting on immediately — the rest were true, minor, or a
+**one finding in four** was worth acting on immediately -- the rest were true, minor, or a
 matter of taste.
 
 ### What generalized, and what did not
 
 The four editorial roles carried every high-value finding in every corpus. The mechanical
-detectors — path resolution, symbol liveness, counted claims — did not: across the seven
+detectors -- path resolution, symbol liveness, counted claims -- did not: across the seven
 third-party corpora they fired roughly 70 times and produced about two real findings, and
 on one corpus they fired zero times while the file still held six genuine defects. They
 were fitted to the codebase the tool grew up in.
@@ -165,8 +165,8 @@ That is the n-of-1 problem, measured. A rule that fires in one codebase may be a
 editing, or it may be about that codebase's house style, and a single corpus cannot tell
 them apart.
 
-⚠ **Read these as an upper bound.** One file per project, and the file was chosen for the
-highest prose density in the repository — the place most likely to hold something. A random
+! **Read these as an upper bound.** One file per project, and the file was chosen for the
+highest prose density in the repository -- the place most likely to hold something. A random
 file would score lower.
 
 ## Install
@@ -188,13 +188,13 @@ lives outside every project and is available in all of them.
 
 | path                      | what                                                                                                                                                    |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `plugins/comment-review/` | the plugin — `skills/` (with `scripts/`: `census.py`, `referrers.py`, `verdicts.py`, `run_context.py`, `prove_unchanged.py`), `agents/`, manifests      |
+| `plugins/comment-review/` | the plugin -- `skills/` (with `scripts/`: `census.py`, `referrers.py`, `verdicts.py`, `run_context.py`, `prove_unchanged.py`), `agents/`, manifests      |
 | `docs/`                   | durable guidance: how the census gets structure (`parsing.md`), and the rules for changing the skill itself (`limitations.md`)                          |
 | `evidence/`               | why each rule exists: ten probe reports that attacked the design, a genetic search over 28 candidate rewrites, and the triage that ranked what survived |
 | `evals/`                  | twelve planted hazards, a grader, and the authorship split                                                                                              |
 | `corpora/`                | the MANIFEST of pinned corpora. The trees themselves are fetched, never vendored                                                                        |
 | `scripts/`                | `fetch_corpora.py` to materialise them, `find_llm_repos.py` to find more                                                                                |
-| `tests/`                  | a stdlib `unittest` suite for the five scripts, with one census fixture per language under `fixtures/` — `python -m unittest discover -s tests` |
+| `tests/`                  | a stdlib `unittest` suite for the five scripts, with one census fixture per language under `fixtures/` -- `python -m unittest discover -s tests` |
 
 ## The corpora
 
@@ -203,16 +203,16 @@ python scripts/fetch_corpora.py --list     # the manifest
 python scripts/fetch_corpora.py            # materialise everything missing
 ```
 
-Nine repositories at pinned refs — seven third-party, plus the two personal projects the
+Nine repositories at pinned refs -- seven third-party, plus the two personal projects the
 tool was developed against, kept as the over-fitting control. Chosen for **variety of prose
 convention**, not popularity, so that Google, numpydoc and Sphinx styles are all exercised
 and a rule that only works on one house style has somewhere to fail.
 
 Nothing is vendored. A local corpus becomes a `git worktree` of a repo already on the
 machine; a public one is a clone at a tag, sparse where the manifest says so. This
-repository carries names, sources and refs — not other people's code.
+repository carries names, sources and refs -- not other people's code.
 
-⚠ **Pin every corpus.** A moving corpus makes a regression indistinguishable from the
+! **Pin every corpus.** A moving corpus makes a regression indistinguishable from the
 corpus having changed underneath the measurement, which cost a full day's comparison when
 the reference repository advanced mid-run.
 
@@ -220,30 +220,30 @@ the reference repository advanced mid-run.
 
 Grade a run from its **diff**, never from its report. Measured: one graded run had
 fabricated five of its seven reviewer reports and did not notice until asked to grade
-itself; self-certified `CONFIRMED` ran at 97% across 298 findings — a label that two runs
+itself; self-certified `CONFIRMED` ran at 97% across 298 findings -- a label that two runs
 in three thousand disagree with does not discriminate.
 
 ```
 python evals/grade_hazards.py <worktree> [<worktree> ...]
 ```
 
-⚠ It reports `NEEDS-EYES` where it has no signal. Two of the twelve hazards are positional
+! It reports `NEEDS-EYES` where it has no signal. Two of the twelve hazards are positional
 or leave true prose standing, so no text probe can separate a correct repair from an
-ignored one — and a check that cannot see a defect must not report it clean.
+ignored one -- and a check that cannot see a defect must not report it clean.
 
 ## Known gaps
 
 ### The census reads eleven languages, but only lexically
 
-The four editorial roles are language-neutral — they ask whether prose is in the right
+The four editorial roles are language-neutral -- they ask whether prose is in the right
 place, still true, describes what the code does, and agrees with its neighbours, and none
 of that is about syntax. The census underneath them now reads eleven languages from a
 data table (`census.py --languages`), but at two very different depths: Python gets a real
 lexer and AST, everything else gets a comment-syntax record and a hand-rolled string
 skipper that is wrong on heredocs, raw strings and template nesting.
 
-⚠ **No comment carries an owner, in any language.** A docstring's owner comes free from
-the AST; a `#` run's does not, and nothing infers it — so every ownership-context verdict rests on
+! **No comment carries an owner, in any language.** A docstring's owner comes free from
+the AST; a `#` run's does not, and nothing infers it -- so every ownership-context verdict rests on
 a reviewer reading the file. See [docs/parsing.md](docs/parsing.md) for where structure
 could come from and what was already tried and rejected.
 
@@ -251,13 +251,13 @@ What is still compiled in rather than detected per project:
 
 | what varies                    | today                  | should be                                                                  |
 | ------------------------------ | ---------------------- | -------------------------------------------------------------------------- |
-| how prose names a symbol       | `` `backticks` `` only | whichever the codebase actually uses — measured from the tree, not assumed |
+| how prose names a symbol       | `` `backticks` `` only | whichever the codebase actually uses -- measured from the tree, not assumed |
 | what a citable path looks like | a fixed suffix list    | the extensions present in the repo                                         |
 | Markdown and reStructuredText  | no record at all       | prose files are where cited documentation actually lives                   |
 
-⚠ **Two of these moved.** A `LANGUAGES` row that sets `doc_is_structural` now
+! **Two of these moved.** A `LANGUAGES` row that sets `doc_is_structural` now
 declares a per-block KIND GAP instead of silently classifying a positional doc
-comment as an ordinary run — measured, a three-line Go export doc counted as
+comment as an ordinary run -- measured, a three-line Go export doc counted as
 over a cap of two. And the name corpus is built from `git ls-files`, so a
 vendored or gitignored tree can no longer donate its namespace and mask an
 obituary.
@@ -267,12 +267,12 @@ the corpus disagreed with each other about it, and on one of them three symbol f
 invisible to the detector for that reason alone. A single default is therefore wrong on
 whichever of those two projects it does not match; sampling the repository and reading the
 convention it uses is wrong on neither. Missing this made the census under-report without
-saying so — on one file it censused 3 of 8 prose blocks and reported the file covered, which
+saying so -- on one file it censused 3 of 8 prose blocks and reported the file covered, which
 is a false pass rather than a partial result.
 
 ### Smaller, also measured
 
-- There is **no verdict for an executable example** — a doctest, a `@example`, a README
+- There is **no verdict for an executable example** -- a doctest, a `@example`, a README
   snippet under test. Its expected output can be *wrong* in a way that is a test failure
   rather than a wording problem, and the reviewer has no vocabulary for saying so.
 - The docstring-format rule, read literally, condemns every numpydoc `Notes` section. A
@@ -285,7 +285,7 @@ is a false pass rather than a partial result.
 
 The most useful contribution is **a corpus in a language that is not Python**, plus whatever
 the census needs in order to read it. That is the fastest way to find out which of these
-rules are about editing and which are about Python — a question one language cannot answer
+rules are about editing and which are about Python -- a question one language cannot answer
 about itself.
 
 ## License

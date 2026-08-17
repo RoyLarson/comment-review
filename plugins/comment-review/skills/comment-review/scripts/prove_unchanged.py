@@ -18,15 +18,15 @@ Two proofs, because two tiers:
             right-stripped, blanks dropped. A PROJECTION of the file; line
             endings are compared separately below, since this drops them.
 
-⚠ For Python the proof is CPython parsing its own language. Elsewhere it rests
+! For Python the proof is CPython parsing its own language. Elsewhere it rests
 on a lexer built from a data row, so where that lexer is unsure this refuses: a
 delimiter sharing a line with code, an unterminated block comment, or a census
 that disagrees with the file all return `unprovable`.
 
-⚠ A file this cannot prove is REPORTED as unprovable and counted a failure. A
+! A file this cannot prove is REPORTED as unprovable and counted a failure. A
 proof that degrades to "looks fine" still prints PROVEN.
 
-⚠ Line endings are compared against an UNTOUCHED SIBLING rather than the stored
+! Line endings are compared against an UNTOUCHED SIBLING rather than the stored
 blob: under `core.autocrlf` the blob is always LF, so normalising to it leaves
 the working tree inconsistent with every file WRITE left alone -- and `git diff`
 hides that.
@@ -39,7 +39,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-# ⚠ `READ_ERRORS` is IMPORTED. It is bound to a NAME so no `except` clause here
+# ! `READ_ERRORS` is IMPORTED. It is bound to a NAME so no `except` clause here
 # holds a tuple literal; `repo.py` carries that reason once.
 from census import (  # noqa: E402  -- path shim must run first
     Language,
@@ -84,7 +84,7 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
     that is comment start to end. Re-scanning the line for the delimiters
     themselves is what separates them.
 
-    ⚠ A raw substring search, where census's own lexer is string-literal-aware.
+    ! A raw substring search, where census's own lexer is string-literal-aware.
     A delimiter spelled inside a string literal on the same line trips this and
     routes a safe line to `unprovable` -- the SAFE direction for a proof to
     fail, so it stands in place of a second copy of census's quoting logic.
@@ -122,7 +122,7 @@ def _without_comments(text: str, path: Path) -> str | None:
         return None
     if any("unterminated-block-comment" in b.annotations for b in blocks):
         return None
-    # ⚠⚠ A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
+    # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
     # is per-line and carries no open-quote state, so a line INSIDE a JS
     # template literal or a Java text block that begins with the language's
     # comment marker is censused as a comment and deleted from BOTH
@@ -131,7 +131,7 @@ def _without_comments(text: str, path: Path) -> str | None:
     # was reported PROVEN -- a fail-OPEN in the one gate whose whole claim is
     # that executable code is byte-identical.
     #
-    # ⚠ This refuses on the delimiter's PRESENCE, not on parity: parity is what
+    # ! This refuses on the delimiter's PRESENCE, not on parity: parity is what
     # the per-line lexer already cannot compute, so trusting it here would be
     # the same mistake one layer up. A proof that refuses costs a report; a
     # proof that lies costs the claim.
@@ -206,7 +206,7 @@ def _read_raw(path: Path) -> str:
     indistinguishable by the time `dominant_ending` looks at them. `newline=""`
     disables that translation.
 
-    ⚠ `Path.read_text`'s own `newline=` parameter arrived in Python 3.13, so at
+    ! `Path.read_text`'s own `newline=` parameter arrived in Python 3.13, so at
     the 3.11 floor this script promises it raises `TypeError`.
     `check_shipped_syntax.py` reads syntax and two runtime shapes, so a keyword
     argument that exists only on a newer interpreter gets past it.
@@ -216,16 +216,28 @@ def _read_raw(path: Path) -> str:
         return f.read()
 
 
+def _spec(ref: str, rel: str) -> str:
+    """The `git show` argument, built in ONE place so a failure can quote it.
+
+    !! `./` MATTERS. `git show <rev>:<path>` resolves the path against the
+    TOP OF THE WORKTREE, not against `-C`'s directory, so running the stage-7b
+    gate with `--repo` on a package subdirectory made every path print
+    "UNPROVABLE ... new file, or bad ref" and exit 1 -- blaming a bad ref for a
+    path-prefix bug. A leading `./` makes it cwd-relative, which is what every
+    sibling script already assumes.
+
+    !! The failure message then read `no <base>:<rel>` -- a spec git was never
+    asked for, and one that resolves DIFFERENTLY from the one that failed. It
+    put the same misdirection back for exactly the case the `./` fixed, so both
+    callers now read the spec from here.
+    """
+    return f"{ref}:./{rel}"
+
+
 def _show(repo: Path, ref: str, rel: str) -> str | None:
-    """`git show <ref>:<rel>`, or None when git cannot produce it."""
+    """`git show <ref>:./<rel>`, or None when git cannot produce it."""
     try:
-        # ⚠⚠ `./` MATTERS. `git show <rev>:<path>` resolves the path against the
-        # TOP OF THE WORKTREE, not against `-C`'s directory, so running the
-        # stage-7b gate with `--repo` on a package subdirectory made every path
-        # print "UNPROVABLE ... new file, or bad ref" and exit 1 -- blaming a
-        # bad ref for a path-prefix bug. A leading `./` makes it cwd-relative,
-        # which is what every sibling script already assumes.
-        got = git(repo, "show", f"{ref}:./{rel}")
+        got = git(repo, "show", _spec(ref, rel))
     except GIT_ERRORS:
         return None
     return got.stdout if got.returncode == 0 else None
@@ -292,7 +304,8 @@ def main() -> int:
 
         before = _show(repo, args.base, rel)
         if before is None:
-            print(f"UNPROVABLE {rel}: no {args.base}:{rel} — new file, or bad ref")
+            spec = _spec(args.base, rel)
+            print(f"UNPROVABLE {rel}: no {spec} -- new file, or bad ref")
             failures += 1
             continue
         try:
@@ -307,13 +320,13 @@ def main() -> int:
         if kind_a == "unprovable" or kind_b == "unprovable":
             print(
                 f"UNPROVABLE {rel}: prose could not be separated from code"
-                " — sameness NOT shown"
+                " -- sameness NOT shown"
             )
             failures += 1
         elif kind_a != kind_b:
             print(
                 f"FAIL      {rel}: proof kind changed ({kind_b} -> {kind_a}) "
-                "— likely broke Python syntax"
+                "-- likely broke Python syntax"
             )
             failures += 1
         elif fp_a != fp_b:
@@ -324,12 +337,12 @@ def main() -> int:
 
         sib = _sibling(repo, target, edited, tracked)
         if sib is None:
-            print(f"UNCHECKED  {rel}: no readable untouched sibling — line endings")
+            print(f"UNCHECKED  {rel}: no readable untouched sibling -- line endings")
             unchecked += 1
         else:
             want = dominant_ending(_read_raw(sib))
             got = dominant_ending(_read_raw(target))
-            # ⚠ BOTH sides are guarded against "none". A single-line file with
+            # ! BOTH sides are guarded against "none". A single-line file with
             # no trailing newline has no ending to measure, so it reads "none"
             # and would FAIL against any CRLF sibling on ABSENT endings rather
             # than wrong ones.

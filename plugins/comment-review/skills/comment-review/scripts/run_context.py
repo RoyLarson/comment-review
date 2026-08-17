@@ -10,18 +10,18 @@ and a run with no style sheet introduced en-GB spellings into a codebase whose
 identifiers are en-US, with every reviewer satisfied because nothing owned
 consistency.
 
-⚠ REPO ROOT is what every other path is relative to. FILES UNDER REVIEW, the
+! REPO ROOT is what every other path is relative to. FILES UNDER REVIEW, the
 census entries and every citation a reviewer writes are repo-relative, and
 without the root a reviewer resolving `a.py` is guessing at a working directory.
 
-⚠ CAP and WIDTH are absent from REQUIRED. Stage 6 is handed the cap through
+! CAP and WIDTH are absent from REQUIRED. Stage 6 is handed the cap through
 `compact.md`'s own input contract instead.
 
-⚠ A section present and EMPTY is a failure. A published non-answer --
+! A section present and EMPTY is a failure. A published non-answer --
 `UNAVAILABLE` for MOVE DESTINATION, `no LSP tool` for LSP LANGUAGES -- is an
 answer and gets written; a blank is refused.
 
-⚠⚠ REVIEWER FILES is the TASK AGENT's section and is NOT pasted to a reviewer.
+!! REVIEWER FILES is the TASK AGENT's section and is NOT pasted to a reviewer.
 It carries absolute paths into the installed plugin under `.claude/`, and the
 plugin's tree is not the tree under review -- handing them over is a reason to go
 reading it. They are here for the stage-1.6 fallback: the plugin agents are
@@ -54,38 +54,38 @@ REQUIRED = (
     "REFERENCE ONLY",
 )
 
-# ⚠ Filled by the task agent, checked here, and NOT handed to a reviewer: it
+# ! Filled by the task agent, checked here, and NOT handed to a reviewer: it
 # names paths inside the installed plugin, which is not the tree under review.
 TASK_AGENT_ONLY = frozenset({"REVIEWER FILES"})
 
 HINTS = {
     "REPO ROOT": (
-        "absolute path to the repo under review — what every relative path in"
+        "absolute path to the repo under review -- what every relative path in"
         " this packet, in the census and in every citation resolves against"
     ),
     "DOC CONVENTION": (
         "MEASURED templates: module docstring, function docstring, and comment"
-        " format if the repo is consistent about one — never a standard's name alone"
+        " format if the repo is consistent about one -- never a standard's name alone"
     ),
-    "STYLE SHEET": "path to it, or `new — started this run`",
+    "STYLE SHEET": "path to it, or `new -- started this run`",
     "LSP LANGUAGES": (
-        "which answered, which had no server, or `no LSP tool — no probe possible`"
+        "which answered, which had no server, or `no LSP tool -- no probe possible`"
     ),
     "MOVE DESTINATION": (
-        "the tree, or `UNAVAILABLE` — say which here, not at stage 6."
-        " ⚠ May be PER PATH: one line per scope where a repo built the tree"
+        "the tree, or `UNAVAILABLE` -- say which here, not at stage 6."
+        " ! May be PER PATH: one line per scope where a repo built the tree"
         " for some packages and not others"
     ),
     "CENSUS": "absolute path, unique to THIS run",
     "REVIEWER FILES": (
         "absolute path per reviewer, the brief, and the compact + review agents"
     ),
-    "FILES UNDER REVIEW": "one per line — the ONLY files a verdict may target",
-    "REFERENCE ONLY": "one per line — read to settle a claim, never propose a change",
+    "FILES UNDER REVIEW": "one per line -- the ONLY files a verdict may target",
+    "REFERENCE ONLY": "one per line -- read to settle a claim, never propose a change",
 }
 
 SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
-# ⚠ Any line starting with "##" is a boundary, even inside another section's
+# ! Any line starting with "##" is a boundary, even inside another section's
 # answer prose -- a REFERENCE ONLY entry quoting `"see the ## CENSUS heading"`
 # splits the packet there. The failure direction is over-rejection: a spurious
 # split makes a real answer read as empty.
@@ -96,7 +96,7 @@ SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
-# ⚠ Bound to a NAME so no `except` clause here holds a tuple LITERAL -- the
+# ! Bound to a NAME so no `except` clause here holds a tuple LITERAL -- the
 # same rule `repo.py` carries in full. ValueError is in this one because
 # `Path.exists()` raises it (not OSError) on a candidate holding a NUL byte,
 # and a packet is arbitrary text a person typed.
@@ -119,7 +119,7 @@ def template() -> str:
     for name in REQUIRED:
         out.append(f"## {name}")
         if name in TASK_AGENT_ONLY:
-            out.append("<!-- ⚠ TASK AGENT ONLY — do not paste this section -->")
+            out.append("<!-- ! TASK AGENT ONLY -- do not paste this section -->")
         out.append(f"<!-- {HINTS[name]} -->")
         out.append("")
     return "\n".join(out)
@@ -150,7 +150,7 @@ def missing_sections(text: str) -> list[str]:
         The names of sections a reviewer would be dispatched without. A
         section counts as answered when a letter or digit survives outside
         its comment spans (see `_answered`), so the template's own hints
-        have to be REPLACED — reflowing one, half-closing it, or leaving a
+        have to be REPLACED -- reflowing one, half-closing it, or leaving a
         bare delimiter all still read as unanswered.
     """
     bodies = section_bodies(text)
@@ -176,7 +176,7 @@ def _answered(body: str) -> bool:
     count -- carries none.
 
     HTML comments do not nest: `<!--` opens and the FIRST `-->` closes it, so
-    `"<!--- a <!-- b --> c --->"` reports answered — `c` sits outside that
+    `"<!--- a <!-- b --> c --->"` reports answered -- `c` sits outside that
     first span by the same rule.
     """
     return any(ch.isalnum() for ch in _hintless(body))
@@ -283,12 +283,12 @@ def main() -> int:
     try:
         text = Path(args.check).read_text(encoding="utf-8")
     except READ_ERRORS as e:
-        print(f"CANNOT READ {args.check} ({type(e).__name__}) — no packet to check")
+        print(f"CANNOT READ {args.check} ({type(e).__name__}) -- no packet to check")
         return 1
 
     bad = missing_sections(text)
     if bad:
-        print(f"INCOMPLETE — {len(bad)} section(s) would dispatch unanswered:")
+        print(f"INCOMPLETE -- {len(bad)} section(s) would dispatch unanswered:")
         for name in bad:
             print(f"  {name}: {HINTS[name]}")
         print(
@@ -298,7 +298,7 @@ def main() -> int:
 
     invalid = invalid_answers(text)
     if invalid:
-        print(f"UNUSABLE — {len(invalid)} answer(s) a reviewer cannot act on:")
+        print(f"UNUSABLE -- {len(invalid)} answer(s) a reviewer cannot act on:")
         for problem in invalid:
             print(f"  {problem}")
         print(
@@ -309,9 +309,9 @@ def main() -> int:
 
     print(
         f"Complete: all {len(REQUIRED)} sections answered, and REPO ROOT, CENSUS"
-        f" and REVIEWER FILES check out.\n⚠ The other {len(REQUIRED) - 3} are"
+        f" and REVIEWER FILES check out.\n! The other {len(REQUIRED) - 3} are"
         " prose nothing here can settle. Dispatch all four in ONE message, so no"
-        " role sees another's findings.\n⚠ Withhold every TASK AGENT ONLY"
+        " role sees another's findings.\n! Withhold every TASK AGENT ONLY"
         f" section: {', '.join(sorted(TASK_AGENT_ONLY))}."
     )
     return 0

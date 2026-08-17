@@ -5,17 +5,17 @@ Status:   open
 Progress: 0 of 5 tasks done
 Owner:    session
 Raised:   2026-08-17 (referrers.py's FIRST real exercise, the redacted_corpus
-          builder run on 0.2.0 — 24 files under review, ~490 files returned)
+          builder run on 0.2.0 -- 24 files under review, ~490 files returned)
 ```
 
 ## Objective
 
 **`referrers.py` returned roughly every document in the repo, and the operator hand-picked 28.**
-Reported from that run: generic public names — `run`, `main`, `lift`, `schedule` — *"pulled in
+Reported from that run: generic public names -- `run`, `main`, `lift`, `schedule` -- *"pulled in
 ~490 files, essentially every doc in the repo, so I selected 28 rather than passing its output
 through."*
 
-⚠⚠ **Both 0.2.0 runs hit it independently, on the same day and the same repo.** It is the
+!! **Both 0.2.0 runs hit it independently, on the same day and the same repo.** It is the
 tool's normal behaviour, not one unlucky scope:
 
 | run | files under review | returned | handed to reviewers |
@@ -23,10 +23,10 @@ tool's normal behaviour, not one unlucky scope:
 | builder (`redacted-branch-b`) | 24 | ~490 | 28 |
 | todo-tool (`todo-requires-roy`) | 3 | 337 | ~20, via 46 |
 
-⚠ The todo-tool run narrowed in TWO steps (337 → 46 → ~20) and only the endpoints were
+! The todo-tool run narrowed in TWO steps (337 -> 46 -> ~20) and only the endpoints were
 reported. Neither the rule used at each step nor the files dropped is recoverable.
 
-⚠⚠ **The hand-selection is the real defect, not the noise.** The tool is stage 3's INBOUND
+!! **The hand-selection is the real defect, not the noise.** The tool is stage 3's INBOUND
 half, and its output becomes the `REFERENCE ONLY` list in the stage-4 packet. A list narrowed
 from 490 to 28 by unrecorded judgement means the reviewers' inputs cannot be reconstructed from
 the package, and the next run cannot be compared with this one. A tool whose output must be
@@ -38,17 +38,17 @@ hand-filtered has moved the decision out of the tool and into a place nothing re
 and every trailing suffix of that path, and **every PUBLIC top-level definition** when the file
 is Python. Each token is then grepped across the tree.
 
-The only guard is the last line — `{t for t in out if len(t) > 2}`. `run`, `main`, `sort` and
+The only guard is the last line -- `{t for t in out if len(t) > 2}`. `run`, `main`, `sort` and
 `schedule` all clear it, and each is grepped as a bare substring.
 
-⚠ **A length floor cannot fix this and should not be raised.** `sort` is four characters and
+! **A length floor cannot fix this and should not be raised.** `sort` is four characters and
 `rates` is five; both are real module names in that repo and both are generic English. Length
 does not separate a citation from a coincidence.
 
-## ⚠⚠ What must NOT be lost
+## !! What must NOT be lost
 
 The same run: `referrers.py` *"surfaced `docs/tests/billing/test_period_wiring.md` and
-`docs/tests/billing/test_block_rates_respect_the_tier_grid.md` — mirror docs for two files
+`docs/tests/billing/test_block_rates_respect_the_tier_grid.md` -- mirror docs for two files
 under review, which prior runs never handed the reviewers."*
 
 **That is the tool working, and it is why it exists.** `SKILL.md` names the extracted/mirror
@@ -61,16 +61,16 @@ and a missing mirror doc is invisible.
 
 - [ ] **Drop a token by its MEASURED match count, not by a wordlist.** A token matching several
       hundred files is not a citation of one file, and that is observable without anyone
-      curating English. ⚠ Recommendation: compute every token's match count first, then drop
-      the ones above a threshold — and derive the threshold from the run (a token matching more
+      curating English. ! Recommendation: compute every token's match count first, then drop
+      the ones above a threshold -- and derive the threshold from the run (a token matching more
       than some fraction of tracked files) rather than hard-coding a number that fits one repo.
-      ⚠⚠ **Never a stopword list.** `run` is generic in that repo and load-bearing in this one,
+      !! **Never a stopword list.** `run` is generic in that repo and load-bearing in this one,
       where the word names a single invocation of the skill.
 
 - [ ] **Require the match to look like a CITATION for bare NAME tokens.** The brief already
       rules how prose cites: by symbol or path, in backticks. A `` `run` ``, `run()` or
-      `module.run` match is a reference; the word *run* in a sentence is not. ⚠ Path tokens
-      keep matching as plain substrings — a path is already specific.
+      `module.run` match is a reference; the word *run* in a sentence is not. ! Path tokens
+      keep matching as plain substrings -- a path is already specific.
 
 - [ ] **PRINT what was dropped and why.** *No silent caps*: a tool that quietly narrows reads as
       "these are all the referrers" when it is not. One line per dropped token with its count,
@@ -78,20 +78,20 @@ and a missing mirror doc is invisible.
 
 - [ ] **Say in `SKILL.md` what to do when the output is still too large.** The rule today is
       that its output IS the `REFERENCE ONLY` list; this run shows that can be unusable, and the
-      skill offers no sanctioned response. ⚠ Whatever it becomes, hand-selection must be
-      RECORDED in the packet — the current wording lets a run substitute judgement for the tool
+      skill offers no sanctioned response. ! Whatever it becomes, hand-selection must be
+      RECORDED in the packet -- the current wording lets a run substitute judgement for the tool
       with nothing written down.
 
 - [ ] **Re-run against the same 24 files and compare.** The gate is that the two mirror docs
-      above still appear and the count is workable. ⚠ Take the number from a run, not from a
-      prediction — this whole file exists because the tool's first real exercise disagreed with
+      above still appear and the count is workable. ! Take the number from a run, not from a
+      prediction -- this whole file exists because the tool's first real exercise disagreed with
       how it was expected to behave.
 
 ## Related
 
-- [`reference-only-misses-the-documentation`](reference-only-misses-the-documentation.md) — the
-  gap `referrers.py` was built to close. ⚠ This file is the cost of closing it.
-- [`the-two-lists-were-tuned-to-one-diff`](the-two-lists-were-tuned-to-one-diff.md) — the same
+- [`reference-only-misses-the-documentation`](reference-only-misses-the-documentation.md) -- the
+  gap `referrers.py` was built to close. ! This file is the cost of closing it.
+- [`the-two-lists-were-tuned-to-one-diff`](the-two-lists-were-tuned-to-one-diff.md) -- the same
   two lists, tuned rather than derived.
-- [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) — why the `.md` files it finds
+- [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) -- why the `.md` files it finds
   can be handed to reviewers as REFERENCE ONLY but never censused.

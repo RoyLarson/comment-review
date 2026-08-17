@@ -71,7 +71,8 @@ class TestNameCorpusScope(unittest.TestCase):
 class TestNonAsciiTrackedPath(unittest.TestCase):
     """C4: `core.quotePath` defaults to TRUE, so git octal-escapes a path.
 
-    A tracked `café.py` came back as `"caf\\303\\251.py"`, quotes included, so
+    A tracked `caf\303\251.py` -- a name holding one non-ASCII
+    letter -- came back as `"caf\\303\\251.py"`, quotes included, so
     it matched nothing in `tracked_paths` and was skipped by `code_names` --
     every symbol defined only there became a false obituary, with NOTHING
     appended to `unread`. `path_index` indexed the escaped string, so a
@@ -79,7 +80,7 @@ class TestNonAsciiTrackedPath(unittest.TestCase):
     to four reviewers as settled fact.
     """
 
-    NAME = "café.py"
+    NAME = "caf\u00e9.py"
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -172,9 +173,9 @@ class TestGitOutputNotValidUtf8(unittest.TestCase):
             self.assertIsNone(prove_unchanged._show(self.repo, "HEAD", "a.py"))
 
 
-# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` — and the tests it skipped were
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
 # the ones someone running a single file was iterating on. Measured
 # 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
 # test_vocabulary.py.

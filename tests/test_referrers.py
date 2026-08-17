@@ -200,7 +200,7 @@ class TestEmptyHitsFromFailedSearches(unittest.TestCase):
             code = referrers.main()
         output = out.getvalue()
         self.assertEqual(code, 0)
-        self.assertNotIn("none — nothing tracked names these files.", output)
+        self.assertNotIn("none -- nothing tracked names these files.", output)
         self.assertIn("NOT CHECKED", output)
         self.assertIn("could not be searched", output)
 
@@ -296,9 +296,9 @@ class TestNothingIsWithheld(unittest.TestCase):
             self.assertIn(f"noise_{i}.py", result.stdout)
 
 
-# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` — and the tests it skipped were
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
 # the ones someone running a single file was iterating on. Measured
 # 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
 # test_vocabulary.py.

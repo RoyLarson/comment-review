@@ -228,7 +228,7 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
 class TestTheLexicalTierStampsToo(unittest.TestCase):
     """The wrapped trailing comment splits identically at BOTH tiers.
 
-    ⚠ Measured before it was fixed: `blocks_lexical` flushes on a trailing
+    ! Measured before it was fixed: `blocks_lexical` flushes on a trailing
     comment exactly as `blocks_stdlib` does, so the continuation became its own
     block with no stamp. The stamp is what tells a reviewer that a mid-clause
     ending is the census's doing.
@@ -254,16 +254,16 @@ class TestTheLexicalTierStampsToo(unittest.TestCase):
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
 
-# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` — and the tests it skipped were
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
 # the ones someone running a single file was iterating on. Measured
 # 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
 # test_vocabulary.py.
 class TestABlockCommentBesideCode(unittest.TestCase):
     """Four shapes, and each one was wrong in a different way.
 
-    ⚠⚠ The rule: everything from the opener onward is comment, EXCEPT when the
+    !! The rule: everything from the opener onward is comment, EXCEPT when the
     comment closes on the same line with code after it. That one line cannot be
     split into code and prose without losing half of it, so the census keeps it
     whole and `prove_unchanged` refuses the file -- the safe answer for a proof.
@@ -284,7 +284,7 @@ class TestABlockCommentBesideCode(unittest.TestCase):
         self.assertNotIn("int b", prose[0].text)
 
     def test_a_MULTILINE_comment_after_code_leaves_its_statement_as_code(self):
-        # ⚠ The residual case. The block spans from the line holding the
+        # ! The residual case. The block spans from the line holding the
         # statement, and taking that whole span dropped the statement from the
         # code set -- moving every interval boundary below it -- while its text
         # read `int b = 2; /* opens ...`, the statement handed over as prose.
@@ -301,7 +301,7 @@ class TestABlockCommentBesideCode(unittest.TestCase):
         self.assertNotIn("int", prose[0].text)
 
     def test_code_on_BOTH_sides_is_kept_whole_and_refused(self):
-        # ⚠⚠ Cutting at the opener here loses the trailing `5;`, so `5` and `7`
+        # !! Cutting at the opener here loses the trailing `5;`, so `5` and `7`
         # compare EQUAL and the proof reports PROVEN on changed code. The line
         # stays whole so `prove_unchanged` can refuse it instead.
         prose, _ = self._read("int x = /* why */ 5;\nint y = 6;\n")
@@ -335,7 +335,7 @@ class TestTheProofFollowsTheBlocks(unittest.TestCase):
 class TestNoIntervalOverlapsProse(unittest.TestCase):
     """An `interval` is a gap that holds NO prose. It may not overlap a block.
 
-    ⚠⚠ `code_lines` discards a block's first line when code precedes the
+    !! `code_lines` discards a block's first line when code precedes the
     opener, and a structural docstring's `raw_lines` are the AST VALUE, not the
     file's lines -- so one opening on its quote line looked exactly like a
     suffix and its first line was classified as CODE. Measured on `repo.py`:
@@ -344,7 +344,7 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
     """
 
     def _overlaps(self, path):
-        # ⚠ `trailing-comment` is excluded, and that is not a loophole: it sits
+        # ! `trailing-comment` is excluded, and that is not a loophole: it sits
         # ON a code line by definition, so an interval bounded by that line
         # touches it every time. `code_lines` documents the same pass-through.
         # Only a block that OCCUPIES its lines may not overlap a gap.
@@ -373,7 +373,7 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
         self.assertEqual(bad, [], "an interval overlaps a block that holds prose")
 
     def test_a_RAW_docstring_is_not_read_as_code(self):
-        # ⚠ `r"""` survives quote-stripping as a bare `r`, which reads as code.
+        # ! `r"""` survives quote-stripping as a bare `r`, which reads as code.
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "r.py"
             src = "\n".join(
@@ -390,7 +390,7 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
             self.assertEqual(self._overlaps(p), [])
 
     def test_code_before_a_block_opener_IS_still_discarded(self):
-        # ⚠ The case the discard exists for must keep working.
+        # ! The case the discard exists for must keep working.
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "x.c"
             body = "\n".join(

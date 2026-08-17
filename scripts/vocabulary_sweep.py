@@ -42,7 +42,7 @@ WORD = re.compile(r"\b([a-z][a-z-]{3,})\b")
 def bound_names(text: str) -> set[str]:
     """Names this repo DELIBERATELY binds: a def, a class, a CONSTANT, a field.
 
-    ⚠⚠ PARSED, not matched. The regex this replaces ended in
+    !! PARSED, not matched. The regex this replaces ended in
     an alternative anchored on four-space indentation followed by `name: type`,
     -- so annotated LOCALS and the parameters of a wrapped signature came in
     too, the exact category the comment above it said was excluded. Run over
@@ -51,7 +51,7 @@ def bound_names(text: str) -> set[str]:
     English that is only ever a local variable was promoted to a term
     candidate. Measured 2026-08-17.
 
-    ⚠ A field is an annotation in a CLASS BODY. That is the distinction the
+    ! A field is an annotation in a CLASS BODY. That is the distinction the
     indent was standing in for, and the parser knows it exactly.
     """
     try:
@@ -165,7 +165,7 @@ def report(
 
 def main() -> int:
     """Print both candidate lists. Always exits 0: this is an input, not a gate."""
-    # ⚠ A Windows console is cp1252; one non-ASCII glyph in this program's own
+    # ! A Windows console is cp1252; one non-ASCII glyph in this program's own
     # output kills the run. Every CLI in this repo carries this, and
     # `tests/test_shipped_cli_encoding.py` is the gate -- it globbed only the
     # shipped `plugins/` scripts until 2026-08-17, which is how four of these

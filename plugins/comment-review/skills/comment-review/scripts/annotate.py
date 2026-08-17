@@ -5,7 +5,7 @@ does this path exist, is this name defined anywhere, what number does this claim
 -- is resolved here and handed over as an ANNOTATION on the block, so the
 reviewer spends its reading on the claim instead of on the lookup.
 
-⚠ Every annotation is a CANDIDATE. `names-a-symbol` most of all: a backticked
+! Every annotation is a CANDIDATE. `names-a-symbol` most of all: a backticked
 token can name a config key, a record field or an API payload, and the resolver
 holds the namespaces it was handed.
 
@@ -13,10 +13,11 @@ holds the namespaces it was handed.
 """
 
 import re
+from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-# ⚠⚠ `Block` exists for TYPING ONLY -- `census.py` imports this module, so a
+# !! `Block` exists for TYPING ONLY -- `census.py` imports this module, so a
 # real import would be circular -- and it is therefore NOT BOUND AT RUNTIME.
 # Every annotation naming it is QUOTED for that reason. Measured 2026-08-17:
 # unquoted and without `from __future__ import annotations`, this module and
@@ -31,7 +32,10 @@ TICKED = re.compile(r"`([^`\s]+)`")
 # A token that could name a symbol. Single words count: every one-word module in
 # a package is otherwise invisible.
 # A trailing call form is stripped, so `foo()` resolves against `foo`.
-CALLFORM = re.compile(r"\(\s*(?:\.\.\.|…)?\s*\)$")
+# `...` is the ellipsis, written as an escape so this file stays ASCII: `re`
+# resolves it inside a raw pattern, and a literal `...` here would match any
+# three characters instead.
+CALLFORM = re.compile(r"\(\s*(?:\.\.\.|\u2026)?\s*\)$")
 SYMBOLISH = re.compile(r"^[A-Za-z_][\w.]*$")
 NOT_A_SYMBOL = frozenset(
     {"true", "false", "none", "null", "and", "or", "not", "if", "in", "is"}
@@ -54,29 +58,46 @@ FORBIDS = re.compile(
 )
 # A bare number in prose. The PAIR is the finding: a number stated twice is a
 # hand-copied threshold, and the copies drift.
-# ⚠ Dates are stripped first, so a `2026-08-09` reads as one date rather than
+# ! Dates are stripped first, so a `2026-08-09` reads as one date rather than
 # three numbers.
-# ⚠⚠ A trailing `.` is allowed unless a DIGIT follows it. The lookahead was
+# !! A trailing `.` is allowed unless a DIGIT follows it. The lookahead was
 # `(?![\w.%])`, which rejected any match followed by a period and had no shorter
 # alternative to backtrack to -- so a SENTENCE-FINAL number was never found.
 # Measured 2026-08-17: `the cap is 3` gave `{'3'}` and `the cap is 3.` gave
 # nothing, while `budget 3, not 5.` lost the 5. Prose is written in sentences,
 # so `repeated-literal` never fired for the commonest form of the case its own
-# docstring cites. ⚠ `(?!\.\d)` still refuses a version or a decimal.
+# docstring cites. ! `(?!\.\d)` still refuses a version or a decimal.
 NUMBER = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w%])(?!\.\d)")
 DATEISH = re.compile(r"\b\d{4}-\d{2}-\d{2}\w*|\bv?\d+\.\d+\.\d+\b")
+# An ORDINAL opening a line -- `1.`, `2)`, after any comment marker, all of which
+# are non-word characters. Allowing the sentence-final `3.` above also admitted
+# the `1.` of a numbered list, and a list ordinal is not a value: two files that
+# each number their steps share `1`, `2`, `3` and were annotated
+# `repeated-literal` for it. Measured 2026-08-17: two files whose only numbers
+# were list markers cross-reported at every ordinal.
+LISTMARK = re.compile(r"^\W*\d+[.)]\s")
 
 
-def prose_numbers(text: str) -> set[str]:
-    """Numbers a reader would call a VALUE — dates and versions removed.
+def prose_numbers(text: str, raw_lines: Sequence[str] = ()) -> set[str]:
+    """Numbers a reader would call a VALUE -- dates, versions and ordinals gone.
 
-    ⚠⚠ SINGLE DIGITS COUNT. A `len(n) > 1` filter discarded every one of them,
+    !! SINGLE DIGITS COUNT. A `len(n) > 1` filter discarded every one of them,
     and `repeated-literal` exists to catch a hand-copied threshold whose copies
-    drift — where the thresholds in this domain are overwhelmingly single
+    drift -- where the thresholds in this domain are overwhelmingly single
     digits. `the cap is 3` in two files never tripped it, which is precisely
     the case the annotation was built for. Measured 2026-08-17: `prose_numbers`
     returned nothing at all for `the cap is 3` and `retry 5 times`.
+
+    Args:
+        text: the block's prose, already joined.
+        raw_lines: the block's lines as they sit in the file. Supplied, a list
+            ordinal can be told from a sentence-final number -- the two are the
+            same characters once the run is joined, and only the line start
+            separates them. Re-joined here rather than reusing `text`, and the
+            two agree on numbers because a comment marker holds no digit.
     """
+    if raw_lines:
+        text = " ".join(LISTMARK.sub(" ", ln) for ln in raw_lines)
     return set(NUMBER.findall(DATEISH.sub(" ", text)))
 
 
@@ -86,7 +107,7 @@ NARRATIVE = {
         r"(?i)\bfix (wave|round)\b|\bfinding [A-Z]?\d|\breview finding\b"
         r"|\bround \d\b|\bCRITICAL [A-Z0-9]\b"
     ),
-    # ⚠ `used to` needs a VERB OF SAYING after it, not any verb. A bare
+    # ! `used to` needs a VERB OF SAYING after it, not any verb. A bare
     # `\bused to\b` matches "often used to model a count process" -- ordinary
     # English about what a thing is FOR, rather than a claim about what the
     # code once was.
@@ -130,12 +151,12 @@ def annotate(block: "Block", known: set[str], paths: set[str], repo: Path) -> No
         if cited not in paths and (repo / cited).exists():
             # Present on disk, absent from the index: derived or gitignored. A
             # fresh checkout holds no such file, so a claim resting on it is
-            # UNVERIFIABLE — a different note from one that resolves nowhere.
+            # UNVERIFIABLE -- a different note from one that resolves nowhere.
             block.notes.append(f"UNVERIFIABLE path {cited} (untracked/derived)")
         elif cited not in paths:
             block.notes.append(f"UNRESOLVED path {cited}")
         elif member and member.startswith("test_"):
-            block.notes.append(f"cites {cited}::{member} — confirm the test exists")
+            block.notes.append(f"cites {cited}::{member} -- confirm the test exists")
 
     if m := COUNTED.search(t):
         block.annotations.add("counted")

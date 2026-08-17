@@ -6,14 +6,14 @@
 checks the skill currently asks an agent to perform freehand, and convert the
 task agent's most error-prone prose obligations into gates that exit nonzero.
 
-**Architecture:** Two phases that ship independently. **Phase A** (Tasks 1–5)
-fixes shipped code behind a new stdlib test harness — no change to the skill's
+**Architecture:** Two phases that ship independently. **Phase A** (Tasks 1-5)
+fixes shipped code behind a new stdlib test harness -- no change to the skill's
 contract, so it can land and be measured against the existing corpora
-immediately. **Phase B** (Tasks 6–9) changes the pipeline contract: reviewers
+immediately. **Phase B** (Tasks 6-9) changes the pipeline contract: reviewers
 emit a parseable finding record, a new `verdicts.py` performs the census join
 and the evidence check mechanically, a run-context packet gates stage-4
 dispatch, and COMPACT and REVIEW become mandatory separate subagents. Every new
-script replaces prose in `SKILL.md`/`references/` rather than adding to it —
+script replaces prose in `SKILL.md`/`references/` rather than adding to it --
 `docs/limitations.md` caps the prose budget per file, so a rule that becomes a
 gate must be **deleted** from the document that used to carry it.
 
@@ -41,21 +41,21 @@ Every task's requirements implicitly include this section.
   `convention = "google"`. New shipped functions need Google-style docstrings.
 - **No hardcoded paths, directory names, or caps in shipped scripts**
   (`docs/limitations.md`). The skill has no cap of its own.
-- **A rule belongs in exactly one file.** Shared reviewer contract →
-  `reviewer-brief.md`; one angle's → that angle's agent file; apply-side →
-  `apply.md`; orchestration → `SKILL.md`. Moving a rule into a script means
+- **A rule belongs in exactly one file.** Shared reviewer contract ->
+  `reviewer-brief.md`; one angle's -> that angle's agent file; apply-side ->
+  `apply.md`; orchestration -> `SKILL.md`. Moving a rule into a script means
   deleting its prose from wherever it lived.
 - **The census must miss ZERO blocks.** A block missing from the census is a
   block nobody reviews. A weaker verdict beats an absent one.
 - **Absence is declared, never inferred.** A check that cannot see a defect must
-  report that it could not see it — never report it clean.
+  report that it could not see it -- never report it clean.
 - **Never improvise a parse.** On an unknown structure the answer is to declare
   the gap or propose a `LANGUAGES` row, never to have an agent work it out by
   reading the file.
 
 ---
 
-# PHASE A — correctness of shipped code
+# PHASE A -- correctness of shipped code
 
 ## Task 1: Test harness and per-language fixtures
 
@@ -249,10 +249,10 @@ if __name__ == "__main__":
 Run: `python -m unittest discover -s tests -v`
 
 Expected: **every test PASSES.** These assertions describe behaviour `census.py`
-already documents, so a green run is the point — this task is the net, not a
+already documents, so a green run is the point -- this task is the net, not a
 bug hunt.
 
-⚠ **If a test fails, do NOT relax the assertion to make it green.** A failure
+! **If a test fails, do NOT relax the assertion to make it green.** A failure
 means the script and its own documentation disagree, which is a finding. Report
 it in your report file with the actual output and stop; the controller rules on
 whether the code or the fixture is wrong.
@@ -293,7 +293,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 2: Build the name corpus from TRACKED files only
 
-**Why — confirmed by measurement, 2026-08-15.** `code_names()` walks the
+**Why -- confirmed by measurement, 2026-08-15.** `code_names()` walks the
 filesystem while `path_index()` uses `git ls-files`. In this very repository the
 gitignored `corpora/` trees are therefore harvested into the live-name set:
 
@@ -303,8 +303,8 @@ gitignored `corpora/` trees are therefore harvested into the live-name set:
   -> UNRESOLVED symbol `zzz_definitely_not_real` (CANDIDATE)
 ```
 
-`asanyarray` exists nowhere in this repo's own source — only in
-`corpora/numpy/` — and resolved as **alive**. This is the poisoned-name-corpus
+`asanyarray` exists nowhere in this repo's own source -- only in
+`corpora/numpy/` -- and resolved as **alive**. This is the poisoned-name-corpus
 failure the `EXCLUDED_DIRS` comment already warns about, arriving through a
 route that list does not cover: any vendored, generated or gitignored tree.
 It **suppresses obituaries**, which is the currency angle's highest-value
@@ -319,7 +319,7 @@ that tracked-files-only is the more correct rule; this makes the two agree.
 
 **Interfaces:**
 - Consumes: `tests/_paths.py` from Task 1.
-- Produces: `census.git_ls_files(repo: Path) -> list[str] | None` — tracked
+- Produces: `census.git_ls_files(repo: Path) -> list[str] | None` -- tracked
   repo-relative posix paths, or `None` when git could not answer.
   `census.code_names(roots: list[Path], tracked: set[Path] | None = None)` keeps
   its `(names, unread)` return shape.
@@ -400,7 +400,7 @@ In `census.py`, insert immediately above `path_index` (around line 586):
 
 ```python
 def git_ls_files(repo: Path) -> "list[str] | None":
-    """Tracked, repo-relative posix paths — or None when git cannot answer.
+    """Tracked, repo-relative posix paths -- or None when git cannot answer.
 
     None is a THIRD state, not an empty list: "this is not a git checkout" and
     "this checkout tracks nothing" lead to different fallbacks, and collapsing
@@ -464,14 +464,14 @@ loop head (lines 531-536) with:
 def code_names(
     roots: list[Path], tracked: "set[Path] | None" = None
 ) -> tuple[set[str], list[str]]:
-    """Every name the tree DEFINES, from the AST — never from raw text.
+    """Every name the tree DEFINES, from the AST -- never from raw text.
 
     A corpus built from text contains the comments being checked, so every
     obituary resolves against itself and the check always passes. Unreadable
     files are RETURNED, not dropped: a hole in the corpus turns every symbol
     defined only there into a false obituary, which fails loud-and-wrong.
 
-    ⚠ TRACKED files only, when git can say which. A vendored, generated or
+    ! TRACKED files only, when git can say which. A vendored, generated or
     gitignored tree under the repo root otherwise donates its whole namespace:
     measured 2026-08-15, `asanyarray` resolved ALIVE in a repo that does not
     define it, because a fetched corpus sat in the working tree. That failure
@@ -481,7 +481,7 @@ def code_names(
     Args:
         roots: directories or files to harvest.
         tracked: absolute paths git reports as tracked, or None when git could
-            not answer — in which case the whole tree is walked and the caller
+            not answer -- in which case the whole tree is walked and the caller
             is told, because coverage that changes silently cannot be reported.
 
     Returns:
@@ -492,7 +492,7 @@ def code_names(
     if tracked is None:
         unread.append(
             "name corpus built by WALKING the tree (not a git checkout, or git "
-            "unavailable) — untracked or vendored code may mask an obituary"
+            "unavailable) -- untracked or vendored code may mask an obituary"
         )
     for root in roots:
         for p in _walk(root):
@@ -544,29 +544,29 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ---
 
-## Task 3: Make `doc_is_structural` load-bearing — declare the kind gap
+## Task 3: Make `doc_is_structural` load-bearing -- declare the kind gap
 
-**Why — confirmed by measurement, 2026-08-15.** `doc_is_structural` is set on
+**Why -- confirmed by measurement, 2026-08-15.** `doc_is_structural` is set on
 `python`, `go` and `ruby` and is **read nowhere in the file**. Go and Ruby also
 declare no `doc_line`/`doc_block`, because their documentation is attached by
 POSITION, so at the lexical tier every Go doc comment is classified
-`kind="comment"`. Measured on a three-line `// Add returns…` doc run above
+`kind="comment"`. Measured on a three-line `// Add returns...` doc run above
 `func Add`, with `--cap 2`: `over cap (2): 1`. `compact.md` makes kind the field
 that decides whether a block is LENGTH-governed (cuttable) or FORMAT-governed
 (*"A cap never applies to a docstring"*), so today the cap will cut a Go export
-doc — precisely the harm the kind field exists to prevent.
+doc -- precisely the harm the kind field exists to prevent.
 
 The fix is **not** to detect declarations: `docs/parsing.md` forbids improvising
 a parse, and that rule is right. `compact.md` already states the correct
-behaviour for this case — *"If a block arrives without its kind, stop and ask
-for it — do not infer it."* So the tier declares the gap instead of guessing.
+behaviour for this case -- *"If a block arrives without its kind, stop and ask
+for it -- do not infer it."* So the tier declares the gap instead of guessing.
 
 **Files:**
-- Modify: `plugins/comment-review/skills/comment-review/scripts/census.py` — `blocks_lexical` (stamp `trailing-comment`), a new `flag_structural_docs` beside it, `census_for`, and `main`'s over-cap tally and report
+- Modify: `plugins/comment-review/skills/comment-review/scripts/census.py` -- `blocks_lexical` (stamp `trailing-comment`), a new `flag_structural_docs` beside it, `census_for`, and `main`'s over-cap tally and report
 - Modify: `plugins/comment-review/skills/comment-review/references/compact.md`
 - Create: `tests/test_census_doc_kind.py`
 
-⚠ **Locate every edit by the quoted CONTENT, not by line number.** Task 2 adds
+! **Locate every edit by the quoted CONTENT, not by line number.** Task 2 adds
 roughly forty lines to `census.py` above these sites, so every line number in
 the original plan text has already shifted by the time this task runs.
 
@@ -637,12 +637,12 @@ if __name__ == "__main__":
 - [ ] **Step 2: Run it to verify it fails**
 
 Run: `python -m unittest discover -s tests -k doc_kind -v`
-Expected: FAIL — `'doc-kind-unresolved' not found in set()`.
+Expected: FAIL -- `'doc-kind-unresolved' not found in set()`.
 
 - [ ] **Step 3: Stamp `trailing-comment` at the lexical tier**
 
 `compact.md` says *"The census stamps every block `comment`, `trailing-comment`
-or `docstring`"*, but only `blocks_stdlib` ever stamps the middle one —
+or `docstring`"*, but only `blocks_stdlib` ever stamps the middle one --
 `blocks_lexical` calls the same `flush()` for a leading run and for a trailing
 comment, so every Go/Rust/Ruby trailing comment arrives as `comment`. Step 4
 needs the distinction (a trailing comment can never be a positional doc), and
@@ -722,7 +722,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
         # documentation of what follows.
         if block.kind != "comment":
             continue
-        # ⚠ The IMMEDIATELY next line, not the next non-blank one. Both
+        # ! The IMMEDIATELY next line, not the next non-blank one. Both
         # languages require a doc comment to touch its declaration; a blank
         # line between them means the run documents nothing, which is an
         # ORPHAN -- a locality finding, and emphatically not a doc comment to
@@ -776,7 +776,7 @@ And immediately after the existing `if args.cap:` report line, add:
         if deferred:
             print(
                 f"  kind unresolved, NOT counted against the cap: {len(deferred)}"
-                " — a positional doc comment this tier cannot distinguish"
+                " -- a positional doc comment this tier cannot distinguish"
             )
 ```
 
@@ -800,14 +800,14 @@ Before this change it read `over cap (2): 1`.
 In `references/compact.md`, in the kind table, add a third row:
 
 ```markdown
-| `comment` with `doc-kind-unresolved` | **UNKNOWN** — the census could not tell | **nothing.** Ask, or carry it at length |
+| `comment` with `doc-kind-unresolved` | **UNKNOWN** -- the census could not tell | **nothing.** Ask, or carry it at length |
 ```
 
 And directly below that table, replace the sentence *"If a block arrives without
-its kind, stop and ask for it — do not infer it."* with:
+its kind, stop and ask for it -- do not infer it."* with:
 
 ```markdown
-⚠ **A block whose kind is UNRESOLVED is not a block whose kind is `comment`.**
+! **A block whose kind is UNRESOLVED is not a block whose kind is `comment`.**
 The census stamps `doc-kind-unresolved` where a language attaches documentation
 by position (Go, Ruby) and this tier cannot separate a doc run from an ordinary
 one. Do not infer it from the text, and do not cut it: carry it at length and
@@ -842,12 +842,12 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 **Why:** `apply.md` asks the task agent to *"Parse both versions, blank every
 docstring `Constant`, compare `ast.dump`"*, to re-run it after the formatter,
-and to *"Check LINE ENDINGS against an UNTOUCHED SIBLING FILE"* — a check whose
+and to *"Check LINE ENDINGS against an UNTOUCHED SIBLING FILE"* -- a check whose
 own prose records being **measured wrong four times**. This is the single most
 consequential claim the pipeline makes (*"the executable code is byte-identical"*)
 and it is the one thing left to a model to perform freehand every run. It is a
 pure function of two strings. The project already refuses to trust unscripted
-claims of exactly this kind — that is why `scripts/check_shipped_syntax.py`
+claims of exactly this kind -- that is why `scripts/check_shipped_syntax.py`
 exists.
 
 **Files:**
@@ -1000,11 +1000,11 @@ Two proofs, because two tiers:
   residue   Any language with a `LANGUAGES` record. Delete every comment block
             the census finds, compare what remains, byte for byte.
 
-⚠ A file this cannot prove is REPORTED as unprovable, never passed. A proof
+! A file this cannot prove is REPORTED as unprovable, never passed. A proof
 that quietly degrades to "looks fine" is worse than no proof, because the
 report still says PROVEN.
 
-⚠ Line endings are checked against an UNTOUCHED SIBLING, never against the
+! Line endings are checked against an UNTOUCHED SIBLING, never against the
 stored blob: under `core.autocrlf` the blob is always LF, so normalising to it
 leaves the working tree inconsistent with every file the sweep did not touch --
 and `git diff` hides it. Measured four times.
@@ -1149,7 +1149,7 @@ def main() -> int:
 
         before = _show(repo, args.base, rel)
         if before is None:
-            print(f"UNPROVABLE {rel}: no {args.base}:{rel} — new file, or bad ref")
+            print(f"UNPROVABLE {rel}: no {args.base}:{rel} -- new file, or bad ref")
             failures += 1
             continue
         try:
@@ -1162,7 +1162,7 @@ def main() -> int:
         kind_b, sig_b = code_signature(before, target)
         kind_a, sig_a = code_signature(after, target)
         if kind_a == "unprovable" or kind_b == "unprovable":
-            print(f"UNPROVABLE {rel}: no language record — code identity NOT shown")
+            print(f"UNPROVABLE {rel}: no language record -- code identity NOT shown")
             failures += 1
         elif sig_a != sig_b:
             print(f"FAIL      {rel}: executable code DIFFERS ({kind_a} proof)")
@@ -1172,7 +1172,7 @@ def main() -> int:
 
         sib = _sibling(repo, target, edited)
         if sib is None:
-            print(f"          {rel}: no untouched sibling — line endings UNCHECKED")
+            print(f"          {rel}: no untouched sibling -- line endings UNCHECKED")
         else:
             try:
                 want = dominant_ending(sib.read_text(encoding="utf-8", newline=""))
@@ -1203,11 +1203,11 @@ Expected: PASS.
 - [ ] **Step 5: Replace the hand-execution prose in `apply.md`**
 
 In `references/apply.md`, replace the block from *"**Prove code identity; do not
-assert it.**"* through the end of the `⚠ **The stored blob is the wrong baseline…**`
+assert it.**"* through the end of the `! **The stored blob is the wrong baseline...**`
 paragraph (lines 44-57) with:
 
 ```markdown
-**Prove code identity; do not assert it.** Run the proof — do not perform it:
+**Prove code identity; do not assert it.** Run the proof -- do not perform it:
 
 ```bash
 python <skill>/scripts/prove_unchanged.py --base <merge-base> --repo . <paths...>
@@ -1216,10 +1216,10 @@ python <skill>/scripts/prove_unchanged.py --base <merge-base> --repo . <paths...
 It exits nonzero unless every path is proven, and it reports an **unprovable**
 file rather than passing it. It carries the AST proof for Python, a
 comment-stripped byte comparison for every other language with a `LANGUAGES`
-record, and the line-ending check against an untouched sibling. ⚠ **Re-run it
-after the formatter** — the formatter can reshape what you wrote.
+record, and the line-ending check against an untouched sibling. ! **Re-run it
+after the formatter** -- the formatter can reshape what you wrote.
 
-⚠ **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The identity claim is
+! **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The identity claim is
 what this skill promises the people who run it; report the line verbatim and
 restore the file.
 ```
@@ -1233,7 +1233,7 @@ python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
   --base HEAD --repo . plugins/comment-review/skills/comment-review/scripts/census.py
 ```
 Expected: with a clean tree, `PROVEN` and exit 0. (If census.py has uncommitted
-prose edits from Tasks 2–3, it should still read PROVEN — that is the point.)
+prose edits from Tasks 2-3, it should still read PROVEN -- that is the point.)
 
 - [ ] **Step 7: Commit**
 
@@ -1256,14 +1256,14 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ---
 
-## Task 5: `referrers.py` — the missing inbound half of stage 3
+## Task 5: `referrers.py` -- the missing inbound half of stage 3
 
-**Why:** Stage 3 is called FIND REFERENCES and finds only *outbound* ones —
+**Why:** Stage 3 is called FIND REFERENCES and finds only *outbound* ones --
 what a comment cites. The inbound direction (who cites the code under review) is
 a single prose instruction at `SKILL.md:429`, and it **explicitly does not apply
 in `target` mode**: *"Under `target` there is no diff; the named path is the
 whole scope and this widening does not apply."* So `/comment-review full path/to/file.py`
-— the invocation a person reaches for first — gets **zero** backlink discovery,
+-- the invocation a person reaches for first -- gets **zero** backlink discovery,
 and the REFERENCE ONLY list is assembled from the task agent's memory of the
 repo. Measured consequence already recorded in `SKILL.md`: one unreviewed config
 file held 12 confirmed defects, six of them the same rewrite already applied in
@@ -1277,10 +1277,10 @@ a `.py` file.
 **Interfaces:**
 - Consumes: `census.git_ls_files` (Task 2), `census.language_for`.
 - Produces:
-  - `referrers.tokens_for(path: Path, text: str) -> set[str]` — the names by
+  - `referrers.tokens_for(path: Path, text: str) -> set[str]` -- the names by
     which prose elsewhere would refer to this file.
   - CLI: `python referrers.py --repo <dir> <target>...` printing a
-    REFERENCE-ONLY candidate list. Always exits 0 — it is an input to a review.
+    REFERENCE-ONLY candidate list. Always exits 0 -- it is an input to a review.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1364,7 +1364,7 @@ Read-only, and always exits 0: this is an input to a review, not a gate. Every
 line it prints is a CANDIDATE. A file that names a token is a file to READ, not
 a file with a defect, and not a file a verdict may target.
 
-⚠ A token too common to discriminate is reported as SUPPRESSED with its hit
+! A token too common to discriminate is reported as SUPPRESSED with its hit
 count, never dumped. A detector below roughly 10% precision buries its own
 hits, so the list a human is asked to read must stay readable.
 """
@@ -1419,9 +1419,9 @@ def tokens_for(path: Path, text: str) -> set[str]:
 def _grep(repo: Path, token: str) -> list[str]:
     """Tracked files containing `token` as a fixed string.
 
-    ⚠ The encoding is PINNED. git emits UTF-8; `text=True` alone decodes with
+    ! The encoding is PINNED. git emits UTF-8; `text=True` alone decodes with
     whatever locale the user's machine has, and a non-ASCII path then arrives
-    corrupted — so a real referrer is reported under a name that resolves to
+    corrupted -- so a real referrer is reported under a name that resolves to
     nothing. Measured on this repo's own `cp1252` machine against the same
     construct in `prove_unchanged.py`.
     """
@@ -1451,7 +1451,7 @@ def main() -> int:
 
     repo = Path(args.repo).resolve()
     if git_ls_files(repo) is None:
-        print("NO GIT INDEX — cannot resolve referrers. Say so in the stage 3 report.")
+        print("NO GIT INDEX -- cannot resolve referrers. Say so in the stage 3 report.")
         return 0
 
     under_review = set()
@@ -1480,15 +1480,15 @@ def main() -> int:
     print(f"REFERENCE ONLY candidates for {len(under_review)} file(s) under review")
     print("Every line is a file to READ. None of them may be the target of a verdict.\n")
     if not hits:
-        print("  none — nothing tracked names these files.")
+        print("  none -- nothing tracked names these files.")
     for f in sorted(hits):
         print(f"  {f}\n      names: {', '.join(sorted(hits[f]))}")
     if suppressed:
-        print("\nSUPPRESSED — too common to discriminate, triage by hand if needed:")
+        print("\nSUPPRESSED -- too common to discriminate, triage by hand if needed:")
         for s in suppressed:
             print(f"  {s}")
     print(
-        "\n⚠ CANDIDATES, not findings. A file here is REFERENCE ONLY unless it is "
+        "\n! CANDIDATES, not findings. A file here is REFERENCE ONLY unless it is "
         "also under review."
     )
     return 0
@@ -1511,31 +1511,31 @@ python plugins/comment-review/skills/comment-review/scripts/referrers.py \
   --repo . plugins/comment-review/skills/comment-review/scripts/census.py
 ```
 Expected: names `SKILL.md`, `docs/parsing.md`, `README.md` and the reference
-files among the candidates — the documents that actually discuss census.py.
+files among the candidates -- the documents that actually discuss census.py.
 
 - [ ] **Step 6: Wire it into `SKILL.md` stage 3, replacing the prose rule**
 
-In `SKILL.md`, replace the paragraph at lines 426-432 (*"⚠ **Scope by SUBJECT,
-not by file extension.**…"* through *"…this widening does not apply."*) with:
+In `SKILL.md`, replace the paragraph at lines 426-432 (*"! **Scope by SUBJECT,
+not by file extension.**..."* through *"...this widening does not apply."*) with:
 
 ```markdown
-⚠ **Scope by SUBJECT, not by file extension**, and resolve it with the tool
-rather than from memory — this is the INBOUND half of stage 3:
+! **Scope by SUBJECT, not by file extension**, and resolve it with the tool
+rather than from memory -- this is the INBOUND half of stage 3:
 
 ```bash
 python <skill>/scripts/referrers.py --repo . <paths under review...>
 ```
 
-It prints every tracked file that NAMES one of them — by path, by stem, or by a
-public top-level definition — and suppresses a token too common to discriminate
+It prints every tracked file that NAMES one of them -- by path, by stem, or by a
+public top-level definition -- and suppresses a token too common to discriminate
 rather than dumping it. Those files are the **REFERENCE ONLY** list you hand the
 reviewers at stage 4; a config, data or documentation file carrying prose that
 justifies a value is a node like any other. Measured: one unreviewed config file
 held 12 confirmed defects, six of them the same rewrite the pass had already
 applied in a `.py` file.
 
-⚠⚠ **This runs in `target` mode too.** A `target` run has no diff to widen from,
-which is exactly why the memory-based rule it replaces could not fire there —
+!! **This runs in `target` mode too.** A `target` run has no diff to widen from,
+which is exactly why the memory-based rule it replaces could not fire there --
 the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 ```
@@ -1557,29 +1557,29 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ---
 
-# PHASE B — the pipeline contract
+# PHASE B -- the pipeline contract
 
 Phase B changes what reviewers emit and how stages are dispatched. Land Phase A
 first and re-measure the corpora, so a change in finding rate is attributable.
 
 ## Task 6: A parseable finding record, and `verdicts.py` to join it
 
-**Why — this is the highest-value item in the plan.** `SKILL.md:485-490`
+**Why -- this is the highest-value item in the plan.** `SKILL.md:485-490`
 instructs the task agent to *"Open each finding's `SUMMARY` right half and
 confirm the quoted line is within a few lines of its citation"*, because
 **one graded run had fabricated 5 of its 7 reviewer reports**. It also asks the
-agent to compute, by hand, across four reviewers × N blocks: coverage gaps
+agent to compute, by hand, across four reviewers x N blocks: coverage gaps
 (*"a block nobody mentioned is a gap"*), contradictions (`drop` vs `correct`),
 payload completeness, level legality, and the clean-arithmetic (*"every angle
 that RAN"*). All six of those are mechanical. None is checked today.
 
 The blocker is that findings are free prose. The brief already mandates a rigid
-five-part shape — this makes it *parseable* and adds the two fields the checks
+five-part shape -- this makes it *parseable* and adds the two fields the checks
 need: the census **BLOCK** index (enables the join) and an **EVIDENCE**
 `file:line` (enables the fabrication check).
 
-It also adds a `CLEAN` range line. Without one, the module-coherence reviewer —
-whose own agent file says it will return clean on ~500 blocks — must emit 500
+It also adds a `CLEAN` range line. Without one, the module-coherence reviewer --
+whose own agent file says it will return clean on ~500 blocks -- must emit 500
 full records, and *that* is why coverage walking degrades in practice.
 
 **Files:**
@@ -1593,7 +1593,7 @@ full records, and *that* is why coverage walking degrades in practice.
 - Produces:
   - `verdicts.parse_report(text: str, angle: str) -> tuple[list[Finding], set[int]]`
     returning findings and the set of block indices declared clean.
-  - `verdicts.Finding` — a dataclass with `angle, block, verdict, location,
+  - `verdicts.Finding` -- a dataclass with `angle, block, verdict, location,
     evidence, summary, finding, change`.
   - CLI: `python verdicts.py --census <census.json> --level <level> <report>...`
     exiting nonzero on any coverage gap, unverifiable evidence, missing payload
@@ -1628,7 +1628,7 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 | `BLOCK` | the census INDEX. This is how coverage is checked; a finding without it is unattributable |
 | `VERDICT` | one of the nine, and one your LEVEL carries |
 | `LOCATION` | `file:start-end` of the prose |
-| `EVIDENCE` | `file:line` of the code that SETTLES the claim — **verified to exist, and to say what you quoted** |
+| `EVIDENCE` | `file:line` of the code that SETTLES the claim -- **verified to exist, and to say what you quoted** |
 | `SUMMARY` | the claim as written, quoted `\|\|` the code line that settles it |
 | `FINDING` | what is wrong, one clause |
 | `CHANGE` | the payload the verdict table requires |
@@ -1639,13 +1639,13 @@ CHANGE      false: "twenty call sites want this" / true: "31 callers, all in tes
 CLEAN 1-16,18,20-45,47
 ```
 
-⚠⚠ **`EVIDENCE` is the forcing function, and it is now CHECKED.** The line is
+!! **`EVIDENCE` is the forcing function, and it is now CHECKED.** The line is
 read out of the file and compared against your `SUMMARY`'s right half. Measured:
 one graded run had **fabricated 5 of its 7 reviewer reports**, and a
 self-certified confidence label ran at **97% across 298 findings**. A citation
-that does not resolve is not a weaker finding — it is not a finding.
+that does not resolve is not a weaker finding -- it is not a finding.
 
-⚠ **`CLEAN` is a range list, not an invitation to skip.** Every census index
+! **`CLEAN` is a range list, not an invitation to skip.** Every census index
 must appear exactly once across your findings and your clean ranges. The join
 reports any index you did not account for as a COVERAGE GAP against your angle
 by name.
@@ -1656,7 +1656,7 @@ by name.
 `tests/test_verdicts.py`:
 
 ```python
-"""The census join, the evidence check, and the clean arithmetic — mechanically."""
+"""The census join, the evidence check, and the clean arithmetic -- mechanically."""
 
 import json
 import tempfile
@@ -1818,11 +1818,11 @@ Six checks the task agent was asked to perform by hand, every one mechanical:
   CONTRADICTION `drop` against `correct`/`patch` on one block -- a re-review
   STANDS        blocks every angle that ran returned clean on
 
-⚠ Exits nonzero on a coverage gap or an unverifiable citation. Measured: one
+! Exits nonzero on a coverage gap or an unverifiable citation. Measured: one
 graded run had FABRICATED 5 of its 7 reviewer reports and did not notice until
 asked to grade itself. A report is not evidence that a file was read.
 
-⚠ It cannot tell a correct verdict from an incorrect one. It tells you which
+! It cannot tell a correct verdict from an incorrect one. It tells you which
 findings are ADMISSIBLE. Ruling remains stage 5's, and the synthesis order in
 SKILL.md is unchanged.
 """
@@ -1970,7 +1970,7 @@ def payload_problem(f: Finding) -> str | None:
     if f.verdict == "split" and change.count("/") < 1:
         return "split needs each fragment and its own anchor"
     if f.verdict not in ("clean",) and not f.change.strip():
-        return f"{f.verdict} carries no payload — the judgement was handed back"
+        return f"{f.verdict} carries no payload -- the judgement was handed back"
     return None
 
 
@@ -1979,7 +1979,7 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
 
     Reads the cited line out of the file and looks for the SUMMARY's right half
     within a few lines of it. A finding whose evidence is not there is not a
-    finding — the report is not evidence that the file was read.
+    finding -- the report is not evidence that the file was read.
     """
     if f.verdict == "clean":
         return None
@@ -1998,7 +1998,7 @@ def evidence_problem(f: Finding, repo: Path) -> str | None:
     _, _, right = f.summary.partition("||")
     needle = " ".join(right.split()).strip().strip('"')
     if not needle:
-        return "SUMMARY has no right half — nothing was checked against the code"
+        return "SUMMARY has no right half -- nothing was checked against the code"
     lo = max(0, lineno - 1 - EVIDENCE_WINDOW)
     window = " ".join(" ".join(ln.split()) for ln in lines[lo : lineno + EVIDENCE_WINDOW])
     head = needle[:40]
@@ -2047,11 +2047,11 @@ def main() -> int:
     fatal = 0
     gaps = coverage_gaps(all_blocks, clean, found)
     if gaps:
-        print("COVERAGE GAPS — a block nobody mentioned is a gap, not a pass:")
+        print("COVERAGE GAPS -- a block nobody mentioned is a gap, not a pass:")
         for angle, missing in sorted(gaps.items()):
             shown = ", ".join(str(n) for n in missing[:20])
             more = f" (+{len(missing) - 20} more)" if len(missing) > 20 else ""
-            print(f"  {angle}: {len(missing)} unaccounted — {shown}{more}")
+            print(f"  {angle}: {len(missing)} unaccounted -- {shown}{more}")
             fatal += 1
         print()
 
@@ -2076,7 +2076,7 @@ def main() -> int:
 
     clash = contradictions(found)
     if clash:
-        print(f"\nRE-REVIEW — drop against correct/patch on: {clash}")
+        print(f"\nRE-REVIEW -- drop against correct/patch on: {clash}")
         print("  Not a tie-break. Send the block back; the synthesis order must not decide it.")
 
     # A block stands only when EVERY angle that ran returned clean on it. With
@@ -2086,10 +2086,10 @@ def main() -> int:
     ran = sorted(set(clean) | {f.angle for f in found})
     ruled = {f.block for f in found if f.verdict != "clean"}
     stands = sorted(all_blocks - ruled)
-    print(f"\nSTANDS UNCHANGED: {len(stands)} blocks — clean from all {len(ran)} angles that ran")
+    print(f"\nSTANDS UNCHANGED: {len(stands)} blocks -- clean from all {len(ran)} angles that ran")
     print(f"NEEDS A RULING:   {len(ruled)} blocks")
     if gaps:
-        print("  ⚠ counts above are provisional: coverage is incomplete.")
+        print("  ! counts above are provisional: coverage is incomplete.")
 
     if fatal:
         print(f"\n{fatal} inadmissible. Resolve or send back before stage 5 rules.")
@@ -2109,11 +2109,11 @@ Expected: PASS.
 
 - [ ] **Step 6: Replace the hand-check prose in `SKILL.md`**
 
-In `SKILL.md`, replace the two paragraphs at lines 485-499 (from *"⚠⚠ **Resolve
-the reviewers' evidence yourself.**"* through *"…never a tie-break."*) with:
+In `SKILL.md`, replace the two paragraphs at lines 485-499 (from *"!! **Resolve
+the reviewers' evidence yourself.**"* through *"...never a tie-break."*) with:
 
 ```markdown
-⚠⚠ **Run the join before you rule on anything.** It is the gate between MARK and
+!! **Run the join before you rule on anything.** It is the gate between MARK and
 EDIT:
 
 ```bash
@@ -2124,15 +2124,15 @@ python <skill>/scripts/verdicts.py --census <census>.json --level <level> \
 It exits nonzero on a coverage gap, a citation that does not resolve, a quote
 not found near its cited line, a verdict the level does not carry, or a payload
 the verdict table requires and the record lacks. It also names the blocks where
-`drop` meets `correct`/`patch` — **a re-review, never a tie-break** — and prints
+`drop` meets `correct`/`patch` -- **a re-review, never a tie-break** -- and prints
 which blocks STAND UNCHANGED under the clean-arithmetic.
 
-⚠⚠ **A finding whose evidence does not resolve is not a finding.** Measured: one
+!! **A finding whose evidence does not resolve is not a finding.** Measured: one
 graded run had **fabricated 5 of its 7 reviewer reports** and did not notice
 until asked to grade itself; self-certified `CONFIRMED` ran at **97% across 298
 findings**. **Never grade a review by reading its report.**
 
-⚠ **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct
+! **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct
 verdict from an incorrect one. Synthesis, and the order below, remain yours.
 ```
 
@@ -2159,7 +2159,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 7: A validated run-context packet for stage-4 dispatch
 
-**Why:** Stage 4 requires the task agent to hand each reviewer seven things —
+**Why:** Stage 4 requires the task agent to hand each reviewer seven things --
 census path, stage-1 resolutions, docstring template, style sheet, level, which
 languages an LSP answered for, and the two file lists. Nothing checks the
 dispatch prompt before four agents fire in parallel; a missing style sheet
@@ -2179,7 +2179,7 @@ general-purpose fallback a one-line substitution.
 **Interfaces:**
 - Consumes: nothing from earlier tasks.
 - Produces:
-  - `run_context.REQUIRED` — the tuple of section names.
+  - `run_context.REQUIRED` -- the tuple of section names.
   - `run_context.missing_sections(text: str) -> list[str]`.
   - CLI: `--template` prints the skeleton; `--check <file>` exits nonzero naming
     every empty or absent section.
@@ -2218,7 +2218,7 @@ docs/style-sheet.md
 python answered; go had no server
 
 ## MOVE DESTINATION
-UNAVAILABLE — no destination tree
+UNAVAILABLE -- no destination tree
 
 ## CENSUS
 /tmp/run-abc/census.txt
@@ -2280,11 +2280,11 @@ with no error anywhere: measured, a run with no style sheet introduced 14
 en-GB spellings into a codebase whose identifiers are en-US, and every angle
 was satisfied because nothing owned consistency.
 
-⚠ A section that is present and EMPTY is a failure, not a default. "No cap
+! A section that is present and EMPTY is a failure, not a default. "No cap
 published" is an answer and must be written; a blank is a question nobody
 asked.
 
-⚠ ANGLE FILES carries ABSOLUTE paths on purpose. The plugin agents are
+! ANGLE FILES carries ABSOLUTE paths on purpose. The plugin agents are
 namespaced and resolve only if the plugin was installed before the session
 started -- measured failing on 3 of 3 verification runs. With the paths in the
 packet, the sanctioned fallback (four general-purpose agents given the paths of
@@ -2314,16 +2314,16 @@ REQUIRED = (
 
 HINTS = {
     "LEVEL": "fact-check | line | full | proof",
-    "CAP": "the number, or `none published` — never invent one",
+    "CAP": "the number, or `none published` -- never invent one",
     "WIDTH": "the number, or `none published`",
     "DOC CONVENTION": "google | numpy | sphinx | none found, plus a template",
-    "STYLE SHEET": "path to it, or `new — started this run`",
-    "LSP LANGUAGES": "which answered, which had no server, or `no LSP tool — no probe possible`",
-    "MOVE DESTINATION": "the tree, or `UNAVAILABLE` — say which here, not at stage 6",
+    "STYLE SHEET": "path to it, or `new -- started this run`",
+    "LSP LANGUAGES": "which answered, which had no server, or `no LSP tool -- no probe possible`",
+    "MOVE DESTINATION": "the tree, or `UNAVAILABLE` -- say which here, not at stage 6",
     "CENSUS": "absolute path, unique to THIS run",
     "ANGLE FILES": "absolute path per angle, plus the brief",
-    "FILES UNDER REVIEW": "one per line — the ONLY files a verdict may target",
-    "REFERENCE ONLY": "one per line — read to settle a claim, never propose a change",
+    "FILES UNDER REVIEW": "one per line -- the ONLY files a verdict may target",
+    "REFERENCE ONLY": "one per line -- read to settle a claim, never propose a change",
 }
 
 SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
@@ -2352,7 +2352,7 @@ def missing_sections(text: str) -> list[str]:
 
     Returns:
         The names of sections a reviewer would be dispatched without. A comment
-        line is not an answer — the template's own hints must be replaced.
+        line is not an answer -- the template's own hints must be replaced.
     """
     heads = list(SECTION.finditer(text))
     bodies: dict[str, str] = {}
@@ -2395,7 +2395,7 @@ def main() -> int:
     text = Path(args.check).read_text(encoding="utf-8")
     bad = missing_sections(text)
     if bad:
-        print(f"INCOMPLETE — {len(bad)} section(s) would dispatch unanswered:")
+        print(f"INCOMPLETE -- {len(bad)} section(s) would dispatch unanswered:")
         for name in bad:
             print(f"  {name}: {HINTS[name]}")
         print("\nDo not dispatch. A reviewer cannot report a context it never received.")
@@ -2420,13 +2420,13 @@ Run:
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --template > /tmp/ctx.md
 python plugins/comment-review/skills/comment-review/scripts/run_context.py --check /tmp/ctx.md; echo "exit=$?"
 ```
-Expected: `INCOMPLETE — 11 section(s)…` and `exit=1`.
+Expected: `INCOMPLETE -- 11 section(s)...` and `exit=1`.
 
 - [ ] **Step 6: Wire it into `SKILL.md` stage 4**
 
 In `SKILL.md`, replace the paragraph beginning *"Each already carries its own
 angle and reads the shared brief itself. **You supply the run context, and only
-that:**"* through *"…which disables every cross-file check."* (lines 449-456)
+that:**"* through *"...which disables every cross-file check."* (lines 449-456)
 with:
 
 ```markdown
@@ -2440,7 +2440,7 @@ python <skill>/scripts/run_context.py --template > <run-dir>/context.md
 python <skill>/scripts/run_context.py --check <run-dir>/context.md
 ```
 
-It refuses a section that is absent **or present and blank** — *"no cap
+It refuses a section that is absent **or present and blank** -- *"no cap
 published"* is an answer and must be written; a blank is a question nobody
 asked. Hand every reviewer the one path. Measured: a run dispatched without a
 style sheet introduced **14 en-GB spellings** into a codebase whose identifiers
@@ -2450,12 +2450,12 @@ are en-US, and every angle was satisfied because nothing owned consistency.
 - [ ] **Step 7: Point stage 1.6's fallback at the packet**
 
 In `SKILL.md`, replace the final sentence of 1.6 (lines 280-283, *"The sanctioned
-fallback is…which is what this file forbids for a different reason (a copy goes
+fallback is...which is what this file forbids for a different reason (a copy goes
 stale)."*) with:
 
 ```markdown
 The sanctioned fallback is **four general-purpose agents given the ANGLE FILES
-paths from the packet** — never the angle text pasted into a prompt, which goes
+paths from the packet** -- never the angle text pasted into a prompt, which goes
 stale the moment an angle is edited. Because the packet already carries those
 absolute paths, the fallback is a substitution rather than an improvisation.
 ```
@@ -2484,12 +2484,12 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 **Why:** Stage 4 gets independence because four agents are dispatched
 separately. Stages 6 and 8 do not: by default they run in the same task-agent
-context that just wrote the text they are checking — the exact self-grading
+context that just wrote the text they are checking -- the exact self-grading
 shape this project's own evidence indicts. Both documents already argue for the
 separation and then leave it optional: `compact.md` says its narrow input
 contract *"is what makes this pass safe to hand to a **separate subagent**"*,
 and `review.md` says it is *"the only one that reads the ARTIFACT rather than
-the plan"* — a claim that is weaker when the reader is the author.
+the plan"* -- a claim that is weaker when the reader is the author.
 
 **Files:**
 - Create: `plugins/comment-review/agents/comment-review-compact.md`
@@ -2512,7 +2512,7 @@ the plan"* — a claim that is weaker when the reader is the author.
 ```markdown
 ---
 name: comment-review-compact
-description: Stage 6 of the /comment-review skill. Condenses ALREADY-CORRECT proposed comment text to a published cap, working from a deliberately narrow input — the block's KIND, the original block, the edited text, the cap and the style sheet — and never from the reasoning that produced the edit. Refuses to shorten a docstring, refuses a block whose kind is unresolved, and reports a block it cannot condense rather than cutting evidence. Not for direct invocation; the skill supplies the inputs and loads references/compact.md.
+description: Stage 6 of the /comment-review skill. Condenses ALREADY-CORRECT proposed comment text to a published cap, working from a deliberately narrow input -- the block's KIND, the original block, the edited text, the cap and the style sheet -- and never from the reasoning that produced the edit. Refuses to shorten a docstring, refuses a block whose kind is unresolved, and reports a block it cannot condense rather than cutting evidence. Not for direct invocation; the skill supplies the inputs and loads references/compact.md.
 model: inherit
 ---
 
@@ -2527,7 +2527,7 @@ the block's KIND, the ORIGINAL block, the EDITED text, the CAP and the STYLE
 SHEET. You do **not** get the reasoning that produced the edit, and you must not
 ask for it.
 
-⚠⚠ **An agent that never saw the argument cannot keep a sentence because it
+!! **An agent that never saw the argument cannot keep a sentence because it
 remembers writing it.** That is the whole reason this pass is yours and not the
 editor's. If you find yourself reconstructing why a clause is there, you are
 doing the editor's job with less information than they had.
@@ -2535,7 +2535,7 @@ doing the editor's job with less information than they had.
 ## What you may not do
 
 - **You may not change a claim.** Truth was settled at stage 5. If shortening
-  requires deciding whether something is true, the EDIT was not finished — say
+  requires deciding whether something is true, the EDIT was not finished -- say
   so and return the block at length.
 - **You may not touch a `docstring`.** A cap never applies to one; it is
   governed by FORMAT.
@@ -2559,7 +2559,7 @@ a silence.**
 ```markdown
 ---
 name: comment-review-review
-description: Stage 8 of the /comment-review skill. Reads each file a sweep changed end to end, as a reader would rather than as a list of blocks, looking for damage the editing itself caused — a block that is no longer a proposition, two runs that merged across a blank line, the same sentence now in two places, drift from the style sheet. Reports defects that predate the run separately and may not re-open a verdict. Not for direct invocation; the skill supplies the file list and loads references/review.md.
+description: Stage 8 of the /comment-review skill. Reads each file a sweep changed end to end, as a reader would rather than as a list of blocks, looking for damage the editing itself caused -- a block that is no longer a proposition, two runs that merged across a blank line, the same sentence now in two places, drift from the style sheet. Reports defects that predate the run separately and may not re-open a verdict. Not for direct invocation; the skill supplies the file list and loads references/review.md.
 model: inherit
 ---
 
@@ -2571,19 +2571,19 @@ it.
 
 **You did not write this text, and that is the point.** Every earlier stage
 compared prose to code; you compare the artifact to itself. Damage the editing
-caused is visible only to someone reading the page rather than the plan — and
+caused is visible only to someone reading the page rather than the plan -- and
 only barely to someone who remembers intending each edit.
 
-⚠⚠ **You may not re-open a verdict.** Truth was settled at stage 5, length at
+!! **You may not re-open a verdict.** Truth was settled at stage 5, length at
 6, and the author ruled at 7a. A better wording you notice here is next run's
 `patch`; writing it now puts text on disk the author never saw.
 
-⚠ **Fix only what THIS pass created.** A defect that predates the run goes in a
+! **Fix only what THIS pass created.** A defect that predates the run goes in a
 separate list, which is the next run's input. Do not fold the two together.
 
 ## Return
 
-Files read end to end; damage found and repaired; and — separately — every
+Files read end to end; damage found and repaired; and -- separately -- every
 defect that predates this run.
 ```
 
@@ -2599,11 +2599,11 @@ If there is a cap, and only once **every** block from stage 5 is CORRECT,
 dispatch `comment-review:comment-review-compact` with the narrow input contract
 below and the absolute path of [`references/compact.md`](references/compact.md).
 
-⚠⚠ **This pass is not yours to run.** You wrote the text; an agent that never
+!! **This pass is not yours to run.** You wrote the text; an agent that never
 saw the argument cannot preserve a sentence because it remembers writing it.
 The narrow contract is only a safety property if the reader is different from
-the writer. If the agent does not resolve, use the same fallback as 1.6 — a
-general-purpose agent given the path — and **say in the report that you ran it
+the writer. If the agent does not resolve, use the same fallback as 1.6 -- a
+general-purpose agent given the path -- and **say in the report that you ran it
 yourself** if you had to.
 ```
 
@@ -2617,19 +2617,19 @@ On completion of 7b, dispatch `comment-review:comment-review-review` with the
 list of changed files, the style sheet, and the absolute path of
 [`references/review.md`](references/review.md).
 
-⚠⚠ **This pass is not yours to run either**, and for the same reason: a reader
+!! **This pass is not yours to run either**, and for the same reason: a reader
 who remembers intending each edit reads the page they meant to write. If the
 agent does not resolve, fall back as at 1.6 and say so.
 ```
 
 - [ ] **Step 5: Update `compact.md`'s input-contract note**
 
-In `references/compact.md`, replace the sentence *"…which is what makes this
+In `references/compact.md`, replace the sentence *"...which is what makes this
 pass safe to hand to a separate subagent."* (line 92) with:
 
 ```markdown
-…which is what makes this pass safe. ⚠ **It IS a separate subagent —
-`comment-review:comment-review-compact` — not an optional handoff.** The
+...which is what makes this pass safe. ! **It IS a separate subagent --
+`comment-review:comment-review-compact` -- not an optional handoff.** The
 contract only buys anything if the reader is not the writer.
 ```
 
@@ -2687,9 +2687,9 @@ project"* table (lines 213-218), delete the `Doc()` row if present and add a
 line beneath the table:
 
 ```markdown
-⚠ **Two of these moved.** A `LANGUAGES` row that sets `doc_is_structural` now
+! **Two of these moved.** A `LANGUAGES` row that sets `doc_is_structural` now
 declares a per-block KIND GAP instead of silently classifying a positional doc
-comment as an ordinary run — measured, a three-line Go export doc counted as
+comment as an ordinary run -- measured, a three-line Go export doc counted as
 over a cap of two. And the name corpus is built from `git ls-files`, so a
 vendored or gitignored tree can no longer donate its namespace and mask an
 obituary.
@@ -2700,13 +2700,13 @@ obituary.
 In the `Layout` table, change the `plugins/comment-review/` row's description to:
 
 ```markdown
-| `plugins/comment-review/` | the plugin — `skills/` (with `scripts/`: `census.py`, `referrers.py`, `verdicts.py`, `run_context.py`, `prove_unchanged.py`), `agents/`, manifests |
+| `plugins/comment-review/` | the plugin -- `skills/` (with `scripts/`: `census.py`, `referrers.py`, `verdicts.py`, `run_context.py`, `prove_unchanged.py`), `agents/`, manifests |
 ```
 
 And add a row:
 
 ```markdown
-| `tests/`                  | a stdlib fixture harness for the census, one file per language tier — `python -m unittest discover -s tests`                                            |
+| `tests/`                  | a stdlib fixture harness for the census, one file per language tier -- `python -m unittest discover -s tests`                                            |
 ```
 
 - [ ] **Step 3: Update CLAUDE.md**
@@ -2749,12 +2749,12 @@ In `docs/parsing.md`, at the end of the *"The refusal: never improvise a parse"*
 section (after line 79), add:
 
 ```markdown
-⭐ **The refusal has a second instance now, and it is the same shape.** Go and
+* **The refusal has a second instance now, and it is the same shape.** Go and
 Ruby attach docs by POSITION, so the lexical tier cannot separate a doc comment
-from an ordinary run — and detecting declarations to find out would be the
+from an ordinary run -- and detecting declarations to find out would be the
 improvised parse this section refuses. The census marks `doc-kind-unresolved`
 and excludes the block from the cap tally instead. Measured 2026-08-15: without
-it, a three-line `// Add returns…` run above `func Add` reported `over cap (2): 1`,
+it, a three-line `// Add returns...` run above `func Add` reported `over cap (2): 1`,
 and `compact.md` routes on KIND, so the cap would have cut an export doc.
 ```
 
@@ -2793,23 +2793,23 @@ worth acting on, 0.40 per 100 lines), which were taken with the old detectors.
       over the same one-file-per-project slice.
 - [ ] Re-run `python evals/grade_hazards.py <worktree>` against the twelve
       planted hazards. **Expect the obituary hazards (D9, D11) to change
-      behaviour** — Task 2 stops vendored trees masking dead names, so a run
+      behaviour** -- Task 2 stops vendored trees masking dead names, so a run
       that previously passed them by luck should now pass them by detection.
-- [ ] Publish the new numbers with a note that the instrument changed. ⚠ A
+- [ ] Publish the new numbers with a note that the instrument changed. ! A
       measurement taken with a different detector is not comparable to one
-      taken before it — the same discipline the corpus manifest applies to refs.
+      taken before it -- the same discipline the corpus manifest applies to refs.
 
 ---
 
 # Self-review
 
 **Spec coverage.** Every finding from the 2026-08-15 review maps to a task:
-census has no tests → 1; name corpus poisoned by untracked trees → 2;
-`doc_is_structural` dead and Go/Ruby docs cap-cuttable → 3; AST/CRLF proof
-performed freehand → 4; inbound links absent, and absent entirely under
-`target` → 5; no mechanical evidence/coverage/contradiction check → 6; no
-pre-flight on the dispatch prompt, and 1.6 failing 3/3 → 7; self-grading at
-stages 6 and 8 → 8; docs drift → 9.
+census has no tests -> 1; name corpus poisoned by untracked trees -> 2;
+`doc_is_structural` dead and Go/Ruby docs cap-cuttable -> 3; AST/CRLF proof
+performed freehand -> 4; inbound links absent, and absent entirely under
+`target` -> 5; no mechanical evidence/coverage/contradiction check -> 6; no
+pre-flight on the dispatch prompt, and 1.6 failing 3/3 -> 7; self-grading at
+stages 6 and 8 -> 8; docs drift -> 9.
 
 **Deliberately out of scope, and why.** Markdown and reStructuredText get no
 `LANGUAGES` row. The census model is *find the prose among the code*; in a
@@ -2817,7 +2817,7 @@ prose file every line is prose, so a row would report one enormous block per
 file and satisfy no angle. Reviewing prose files needs a different node model
 (heading-scoped sections), which is a separate plan and should follow the
 corpus-in-another-language work the README already names as the higher-value
-step. Saying so here is the point — a gap declared is not a gap skipped.
+step. Saying so here is the point -- a gap declared is not a gap skipped.
 
 **Type consistency.** `git_ls_files` returns `list[str] | None` and
 `tracked_paths` returns `set[Path] | None`; Task 2 defines both, Task 4 uses

@@ -14,7 +14,7 @@ RELEASE = re.compile(r"^## \[(\d+\.\d+\.\d+)\]", re.M)
 class TestTheVersionIsStatedOnce(unittest.TestCase):
     """`pyproject.toml` and `CHANGELOG.md` must name the same release.
 
-    ⚠⚠ `CHANGELOG.md` says a version number lives only there, and that is still
+    !! `CHANGELOG.md` says a version number lives only there, and that is still
     the intent. `uv` forces a second copy -- it requires `project.version` or a
     `dynamic` one, and a dynamic version can only be read by BUILDING, which
     `[tool.uv] package = false` otherwise avoids. This is what makes the copy
@@ -38,13 +38,13 @@ class TestTheVersionIsStatedOnce(unittest.TestCase):
         )
 
     def test_the_project_is_not_a_package(self):
-        # ⚠ Without this `uv run` tries to BUILD the tree and setuptools refuses
+        # ! Without this `uv run` tries to BUILD the tree and setuptools refuses
         # it -- five top-level directories in a flat layout. Nothing here is
         # installed; the plugin is COPIED into a `.claude/` directory.
         self.assertFalse(self.pyproject["tool"]["uv"]["package"])
 
     def test_the_floor_is_declared_where_uv_enforces_it(self):
-        # ⚠ Measured 2026-08-17: with 3.14 on the dev machine, four of eight
+        # ! Measured 2026-08-17: with 3.14 on the dev machine, four of eight
         # shipped scripts raised NameError at IMPORT on 3.11 while every test
         # and the shipped-syntax gate passed.
         self.assertEqual(self.pyproject["project"]["requires-python"], ">=3.11")
@@ -53,9 +53,9 @@ class TestTheVersionIsStatedOnce(unittest.TestCase):
         )
 
 
-# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` — and the tests it skipped were
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
 # the ones someone running a single file was iterating on. Measured
 # 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
 # test_vocabulary.py.

@@ -24,7 +24,7 @@ docs/style-sheet.md
 python answered; go had no server
 
 ## MOVE DESTINATION
-UNAVAILABLE — no destination tree
+UNAVAILABLE -- no destination tree
 
 ## CENSUS
 /tmp/run-abc/census.txt
@@ -143,7 +143,7 @@ class TestAnswered(unittest.TestCase):
         self.assertTrue(run_context._answered("docs/style-sheet.md"))
 
     def test_unavailable_with_an_em_dash_is_accepted(self):
-        self.assertTrue(run_context._answered("UNAVAILABLE — no destination tree"))
+        self.assertTrue(run_context._answered("UNAVAILABLE -- no destination tree"))
 
     def test_a_hint_followed_by_a_real_answer_is_accepted(self):
         self.assertTrue(
@@ -278,9 +278,9 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("Complete:", result.stdout)
 
 
-# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` — and the tests it skipped were
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
 # the ones someone running a single file was iterating on. Measured
 # 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
 # test_vocabulary.py.

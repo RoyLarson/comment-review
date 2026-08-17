@@ -52,7 +52,7 @@ def prose_lines(text: str) -> set[int]:
 def git(*args: str, must_work: bool = False) -> str:
     """Run a git command and return its stdout.
 
-    ⚠⚠ A FAILURE WAS INDISTINGUISHABLE FROM NO OUTPUT. The return code was
+    !! A FAILURE WAS INDISTINGUISHABLE FROM NO OUTPUT. The return code was
     discarded, so a mistyped or unfetched ref made `diff --name-only` return ""
     -- no files, an empty truth set, `{}` written to gt.json, and exit 0.
     `score.py` then had `total == 0`, which hardcodes recall to 0.0 for EVERY
@@ -78,6 +78,11 @@ def git(*args: str, must_work: bool = False) -> str:
 
 def main() -> int:
     """Emit the changed-prose block map for the given ref range."""
+    # A Windows console is cp1252; one non-ASCII glyph in a report kills the
+    # run, and the U+26A0 in this file's own prose reaches stdout via `--help`.
+    reconfigure = getattr(sys.stdout, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("base")
     ap.add_argument("head")
@@ -86,13 +91,13 @@ def main() -> int:
     args = ap.parse_args()
 
     try:
-        # ⚠ `splitlines`, not `split`: a path holding a space became two
+        # ! `splitlines`, not `split`: a path holding a space became two
         # fragments whose `git show` then failed and was silently skipped.
         changed = git(
             "diff", "--name-only", args.base, args.head, "--", "*.py", must_work=True
         ).splitlines()
     except RuntimeError as e:
-        # ⚠⚠ REFUSE rather than write an empty oracle. `{}` in gt.json makes
+        # !! REFUSE rather than write an empty oracle. `{}` in gt.json makes
         # `score.py` report recall 0.0 for every candidate in the generation,
         # which reads as "they all found nothing" rather than "the refs were
         # wrong".
@@ -115,7 +120,7 @@ def main() -> int:
             start, count = int(m.group(1)), int(m.group(2) or 1)
             # A pure insertion reports count 0 at the line it FOLLOWS.
             #
-            # ⚠⚠ The anchor survived only when that preceding line happened to
+            # !! The anchor survived only when that preceding line happened to
             # be prose ALREADY, so an added comment after `def f():` produced an
             # empty truth set -- the skill's whole `add` verdict was invisible
             # to the oracle, and a candidate correctly proposing one was

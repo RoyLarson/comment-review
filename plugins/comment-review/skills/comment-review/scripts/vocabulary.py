@@ -10,7 +10,7 @@ EMITTED: a shipped file that uses a term states no definition of its own.
 Which terms a role is given was MEASURED from the text that role actually reads,
 and lives in `references/vocabulary.toml` beside the definitions themselves.
 
-⚠ Reads the TOML with `tomllib`, stdlib from Python 3.11, which is the floor
+! Reads the TOML with `tomllib`, stdlib from Python 3.11, which is the floor
 this plugin ships against. A version mismatch in an IMPORT gets past a
 syntax-only gate, so the floor is stated in `scripts/check_shipped_syntax.py`
 and enforced by parsing every shipped file at it.
@@ -67,13 +67,13 @@ def render(role: str, definitions: dict[str, str], roles: dict[str, list[str]]) 
         "word means, it is here; where it is not here, it is ordinary English.",
         "",
     ]
-    lines += [f"- **{term}** — {definitions[term]}" for term in wanted]
+    lines += [f"- **{term}** -- {definitions[term]}" for term in wanted]
     return "\n".join(lines) + "\n"
 
 
 def main() -> int:
     """Print one role's vocabulary, or the roles that have one."""
-    # ⚠⚠ UTF-8 with replacement, and this file needs it MORE than the others:
+    # !! UTF-8 with replacement, and this file needs it MORE than the others:
     # every definition is written with an em dash, and this output is PASTED
     # VERBATIM into a reviewer's prompt. Measured 2026-08-17 on a live run --
     # without this, a `cp1252` console corrupted every dash and exited 0, and a

@@ -12,7 +12,7 @@ import subprocess
 import tokenize
 from pathlib import Path
 
-# ⚠ Bound to a NAME so no `except` clause here holds a tuple LITERAL. Under
+# ! Bound to a NAME so no `except` clause here holds a tuple LITERAL. Under
 # `target-version = "py314"` a formatter rewrites `except (A, B):` into PEP
 # 758's unparenthesised form, a SyntaxError on every older interpreter. This
 # file ships into other repositories and is formatted by THEIR config, so the
@@ -20,11 +20,11 @@ from pathlib import Path
 # is the whole defence. A `noqa` silences the report, and the rewrite stands.
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
-# ⚠ ValueError included: `ast.parse` raises it (not SyntaxError) on a source
+# ! ValueError included: `ast.parse` raises it (not SyntaxError) on a source
 # string containing a NUL byte -- a file that decoded as valid UTF-8 and so
 # passed `READ_ERRORS` cleanly. `code_names` walks the whole repo, so one such
 # file would crash the entire census rather than degrade one file's harvest.
-# ⚠⚠ `tokenize.TokenError` is included and is NOT a SyntaxError -- it derives
+# !! `tokenize.TokenError` is included and is NOT a SyntaxError -- it derives
 # straight from Exception. `blocks_stdlib` calls `tokenize.generate_tokens`,
 # which raises it on an unterminated triple-quote or bracket, so one such file
 # anywhere in a corpus aborted a whole run with a traceback. Every caller here
@@ -37,7 +37,7 @@ PARSE_ERRORS = (
     tokenize.TokenError,
 )
 
-# ⚠ UnicodeDecodeError included, deliberately: `git()` pins `encoding="utf-8"`
+# ! UnicodeDecodeError included, deliberately: `git()` pins `encoding="utf-8"`
 # with the default `errors="strict"`, so a tracked path or a blob outside UTF-8
 # raises OUT OF `subprocess.run` itself, before any caller sees a return code.
 # Every caller of `git()` already reads `GIT_ERRORS` as "git could not produce
@@ -59,15 +59,16 @@ EXCLUDED_DIRS = frozenset(
 def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
     r"""Every git invocation this plugin makes. ONE place, on purpose.
 
-    ⚠ `core.quotePath` DEFAULTS TO TRUE, so git renders a non-ASCII path as
+    ! `core.quotePath` DEFAULTS TO TRUE, so git renders a non-ASCII path as
     octal escapes -- `"caf\303\251.py"`, quotes included. Measured: a tracked
-    `café.py` defining `helper_name` dropped out of the live-name corpus and
+    path holding one non-ASCII letter, defining `helper_name`, dropped out of
+    the live-name corpus and
     `unread` stayed empty, so every symbol defined only there became a false
     obituary behind a silent coverage hole. The same escaping makes
     `path_index` report a comment citing that file as UNRESOLVED -- a false
     finding handed to four reviewers as settled fact.
 
-    ⚠ The encoding is PINNED for the same reason: git writes UTF-8, and
+    ! The encoding is PINNED for the same reason: git writes UTF-8, and
     `text=True` alone decodes with the machine's locale, so a non-ASCII path
     arrives corrupted on this repo's own cp1252 machine.
 
@@ -100,7 +101,7 @@ def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProces
 
 
 def git_ls_files(repo: Path) -> list[str] | None:
-    """Tracked, repo-relative posix paths — or None when git cannot answer.
+    """Tracked, repo-relative posix paths -- or None when git cannot answer.
 
     None is a THIRD state: "this is not a git checkout" and "this checkout
     tracks nothing" lead to different fallbacks, and collapsing them lets a
@@ -144,7 +145,7 @@ def path_index(repo: Path) -> set[str]:
     which is the question prose is actually asking. Walking the tree once and
     indexing beats trying N candidate roots per citation.
 
-    ⚠ TRACKED files only, via `git ls-files`. That is faster than walking a tree
+    ! TRACKED files only, via `git ls-files`. That is faster than walking a tree
     full of generated data, and more correct: a citation into gitignored runtime
     state is UNVERIFIABLE (absent from every fresh checkout), which is a
     different finding from a citation that resolves nowhere.
@@ -153,7 +154,7 @@ def path_index(repo: Path) -> set[str]:
     if not repo.is_dir():
         return out
     rels = git_ls_files(repo)
-    # ⚠ Written out rather than collapsed to `if not rels`. The two states DO
+    # ! Written out rather than collapsed to `if not rels`. The two states DO
     # take the same fallback here -- an index that tracks nothing indexes the
     # same set as no index at all -- and `git_ls_files` documents None as a
     # THIRD state, so a reader who saw them collapsed would learn the opposite
@@ -162,7 +163,7 @@ def path_index(repo: Path) -> set[str]:
         rels = [
             p.relative_to(repo).as_posix()
             for p in repo.rglob("*")
-            # ⚠ RELATIVE to the repo, not absolute: an ancestor named `venv`
+            # ! RELATIVE to the repo, not absolute: an ancestor named `venv`
             # excluded the whole checkout. See `census._walk`.
             if p.is_file() and not EXCLUDED_DIRS.intersection(p.relative_to(repo).parts)
         ]

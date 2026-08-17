@@ -10,12 +10,12 @@ comparison unavailable: assistant-written code that a review culture did see.
 
 This looks for candidates to fill it.
 
-⚠ A trailer count is a WEAK proxy and this only produces candidates. It says an
+! A trailer count is a WEAK proxy and this only produces candidates. It says an
 assistant touched a commit, not that it wrote the prose, and a repo with many
 such commits may still be mostly hand-written. Anything it returns is a shortlist
 for reading, not a corpus.
 
-⚠ GitHub commit search has no `language:` qualifier -- passing one matches the
+! GitHub commit search has no `language:` qualifier -- passing one matches the
 literal text and returns nonsense. Language is a property of the REPO, so the
 search finds commits and a second pass filters the repos they came from.
 

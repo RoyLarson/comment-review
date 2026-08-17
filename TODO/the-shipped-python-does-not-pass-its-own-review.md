@@ -10,7 +10,7 @@ Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it
 
 ## Objective
 
-⚠⚠ **The reason is not tidiness — it is what the system learns from reading itself.** Roy,
+!! **The reason is not tidiness -- it is what the system learns from reading itself.** Roy,
 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*
 `CLAUDE.md` carries the same argument for vocabulary: an agent reads these files and then writes
 in them, so the REGISTER is an instruction. A repo whose own scripts spend a fifth of their prose
@@ -29,11 +29,11 @@ Measured over `plugins/**/*.py`, counting comment and docstring lines carrying `
 | `referrers.py` | 9 / 54 (17%) | 10 / 42 (24%) |
 | `run_context.py` | 14 / 104 (13%) | 17 / 96 (18%) |
 | `verdicts.py` | 27 / 161 (17%) | 28 / 144 (19%) |
-| `vocabulary.py` | — | 4 / 19 (21%) |
+| `vocabulary.py` | -- | 4 / 19 (21%) |
 | **total** | **123 / 714 (17%)** | **136 / 697 (20%)** |
 
-⚠ **It went UP.** All five scripts were rewritten that day and the prose written with them carries
-the same defect — which is the argument for fixing it at the source rather than trusting a pass
+! **It went UP.** All five scripts were rewritten that day and the prose written with them carries
+the same defect -- which is the argument for fixing it at the source rather than trusting a pass
 to notice. The second column is the baseline to work from.
 
 ## Result, 2026-08-16
@@ -50,35 +50,35 @@ to notice. The second column is the baseline to work from.
 | `vocabulary.py` | 4 / 19 | 0 / 23 |
 | **total** | **136 / 697 (20%)** | **51 / 778 (6%)** |
 
-⚠ **The residue is deliberate.** Every survivor names an OUTPUT (*"REPORTED as unprovable"*), a
+! **The residue is deliberate.** Every survivor names an OUTPUT (*"REPORTED as unprovable"*), a
 refusal aimed at the next editor (*"Exceptions are RAISED to the caller"*), or a state
 distinction the code turns on (*"None is a THIRD state"*). The line count ROSE because several
 one-line hedges became two-line statements of what the code produces.
 
-⚠ **The pass found more than register.** Six defects a rewording would have preserved:
+! **The pass found more than register.** Six defects a rewording would have preserved:
 
 | defect | where |
 | --- | --- |
 | three sites argued the DISPUTED `query`/EVIDENCE position as settled fact | `verdicts.py` |
-| `"is not one of the eight"` — there are seven verdicts | `verdicts.py` |
-| `"the eleven questions this packet asks"` — nine; `"the other eight are prose"` ×2 — six | `run_context.py` |
-| `"the 3.9 floor this script promises"` — the floor is 3.11 | `prove_unchanged.py` |
-| `"the same rule as census.py's READ_ERRORS"` — it moved to `repo.py` | `run_context.py` |
-| `"the reading C1 exists to prevent"` — a finding label from a session artifact a plugin user has no copy of | `referrers.py` |
+| `"is not one of the eight"` -- there are seven verdicts | `verdicts.py` |
+| `"the eleven questions this packet asks"` -- nine; `"the other eight are prose"` x2 -- six | `run_context.py` |
+| `"the 3.9 floor this script promises"` -- the floor is 3.11 | `prove_unchanged.py` |
+| `"the same rule as census.py's READ_ERRORS"` -- it moved to `repo.py` | `run_context.py` |
+| `"the reading C1 exists to prevent"` -- a finding label from a session artifact a plugin user has no copy of | `referrers.py` |
 
-⚠ **The one count that had NOT drifted is the one a test guards** — `test_run_context` asserts
+! **The one count that had NOT drifted is the one a test guards** -- `test_run_context` asserts
 the module docstring carries `len(REQUIRED)`. The three that drifted were in prose nothing
 checked. The closing line now derives its number rather than carrying a copy.
 
-Roy's example: `census.py:351` — *"cannot answer OWNERSHIP, so no block gets an owner and the
-ownership-context…"*. **`census.py` builds the pCST. That is what it does.** What it cannot
-answer is a fact about a tier, and where it is load-bearing it can be stated positively — *what
+Roy's example: `census.py:351` -- *"cannot answer OWNERSHIP, so no block gets an owner and the
+ownership-context..."*. **`census.py` builds the pCST. That is what it does.** What it cannot
+answer is a fact about a tier, and where it is load-bearing it can be stated positively -- *what
 IS recorded* rather than what is not.
 
-⚠ **A negative is not automatically wrong.** *"A file this cannot prove is REPORTED as
+! **A negative is not automatically wrong.** *"A file this cannot prove is REPORTED as
 unprovable, never passed"* states a real behavior, and a refusal aimed at a future editor is
 one of the four refusals the residue check protects. The task is to find the ones that only
-compare, hedge, or pre-empt — not to strip every `not`.
+compare, hedge, or pre-empt -- not to strip every `not`.
 
 ## Tasks
 
@@ -88,37 +88,37 @@ compare, hedge, or pre-empt — not to strip every `not`.
       pass"*), hedges, or answers a question nobody asked. Write the test down first; it is what
       makes this checkable rather than a matter of taste.
 
-- [x] `census.py` first — 52 lines, the largest share, and the file Roy named. Start from the
+- [x] `census.py` first -- 52 lines, the largest share, and the file Roy named. Start from the
       module docstring: say it builds the pCST and what each output contains, and move
       tier-capability statements to positive form.
 
 - [x] `census.py`'s two uses of **suppressed** go with the rest. `:80` (*"a real obituary is
       suppressed because some library happens to define that name"*) and `:615` (*"it can only
-      ever suppress an obituary, never manufacture one"*) describe a FAILURE — a true finding
-      silently lost — in a word that named a mechanism this system no longer has. Roy,
-      2026-08-16, ruling `NOISE_FLOOR` out of `referrers.py`: *"Nothing gets suppressed… that
-      form of suppressed will also go."* ⚠ `:149` referenced the brief's *"suppression list"*
+      ever suppress an obituary, never manufacture one"*) describe a FAILURE -- a true finding
+      silently lost -- in a word that named a mechanism this system no longer has. Roy,
+      2026-08-16, ruling `NOISE_FLOOR` out of `referrers.py`: *"Nothing gets suppressed... that
+      form of suppressed will also go."* ! `:149` referenced the brief's *"suppression list"*
       and is fixed with it, not here.
 
 - [x] Then `prove_unchanged.py`, `verdicts.py`, `run_context.py`, `referrers.py`.
 
-- [x] ⚠ Re-run the measurement afterwards and record both numbers. The point is not zero —
+- [x] ! Re-run the measurement afterwards and record both numbers. The point is not zero --
       a target of zero would delete the legitimate refusals. Record what the residue was and
       why each survivor earned its place.
 
-- [x] ⚠ **A second shape, ruled 2026-08-16: a script's output may state only what the script
+- [x] ! **A second shape, ruled 2026-08-16: a script's output may state only what the script
       DID.** Roy: *"the python files are mechanical runs, they should only have documentation
-      about what they are doing."* Two headers argued a rule at the reader instead —
+      about what they are doing."* Two headers argued a rule at the reader instead --
       `census.py` printed *"every block. A block nobody mentions is a gap in the review"* and
       `verdicts.py` *"a block nobody mentioned is a gap, not a pass"*. Both are now what they
-      print: *"every block, numbered"* and *"indices no reviewer accounted for"*. ⚠ Sweep the
+      print: *"every block, numbered"* and *"indices no reviewer accounted for"*. ! Sweep the
       other output strings in all five scripts for the same shape; the rule the two carried is
       the task agent's and is stated at `SKILL.md:82-84`.
 
 - [ ] Check the same shape in the shipped MARKDOWN before deciding it is a Python problem.
       `SKILL.md`, the brief and the agent files are instructions, where prohibitions are
-      legitimate — but *"it is NOT X"* used as a definition is the same defect wherever it sits.
+      legitimate -- but *"it is NOT X"* used as a definition is the same defect wherever it sits.
 
-- [ ] ⚠ Do not run `/comment-review` on this repo to do it. The skill is mid-rewrite across
+- [ ] ! Do not run `/comment-review` on this repo to do it. The skill is mid-rewrite across
       several branches; a run now would review prose that is about to change and would grade
       itself. This is a hand pass, and the eval harness stays out of it.

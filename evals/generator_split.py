@@ -13,7 +13,7 @@ reviewer and house style are all held constant. The only thing that varies is
 whether the commit introducing a line carries a `Co-Authored-By: <assistant>`
 trailer.
 
-⚠ It is a correlation over commits, not an experiment. A trailer says an
+! It is a correlation over commits, not an experiment. A trailer says an
 assistant was involved, not that it wrote the prose; a human may have edited it
 afterwards, and a block's lines can come from several commits. `mixed` blocks
 are reported separately rather than forced into a bucket, and the line counts
@@ -38,21 +38,22 @@ import census  # noqa: E402  - the census is the skill's, not a second copy
 # purpose: a false positive dilutes the contrast and understates the effect,
 # which is the safe direction for a claim like this one.
 #
-# ⚠⚠ TWO SHAPES, because they are punctuated differently. A TRAILER is
+# !! TWO SHAPES, because they are punctuated differently. A TRAILER is
 # `Key: value` at the start of a line. The FOOTER is a sentence with no colon
-# and no line start to anchor to — `🤖 Generated with [Claude Code](...)`, where
-# an emoji is not `\s`. One pattern demanding both `^\s*` and `\s*:` matched
+# and no line start to anchor to -- an emoji, then
+# `Generated with [Claude Code](...)`, and an emoji is not `\s`. One pattern
+# demanding both `^\s*` and `\s*:` matched
 # only the trailer, so a commit carrying just the footer was filed under
-# `human` — biasing the split against the very effect this module measures.
+# `human` -- biasing the split against the very effect this module measures.
 # Measured 2026-08-17: both real footer forms returned False.
-# ⚠⚠ A LEADING BOUNDARY TOO. With `\b` only on the right, `ai` matched the tail
+# !! A LEADING BOUNDARY TOO. With `\b` only on the right, `ai` matched the tail
 # of ordinary words: `Co-authored-by: Priya Desai` and `Nikolai Petrov` both
 # read as assisted, filing a HUMAN co-author's whole commit under `assisted` and
 # moving its blocks out of `human`. The split then reports an authorship effect
-# the data does not contain — which is the one failure this module cannot
+# the data does not contain -- which is the one failure this module cannot
 # tolerate, since the effect is the whole measurement.
 #
-# ⚠ The comment below argues that false positives are the SAFE direction. That
+# ! The comment below argues that false positives are the SAFE direction. That
 # holds for over-matching a TOOL name, which only dilutes the contrast. It does
 # not hold for matching a person, which moves real human prose into the other
 # bucket and manufactures the result.
@@ -117,19 +118,40 @@ def main() -> int:
     targets = [repo / p for p in sys.argv[2:]] or [repo]
 
     files = sorted({f for t in targets for f in census._walk(t)})
-    # ⚠⚠ `unread` IS REPORTED. `code_names` returns it precisely because a hole
+    # !! `unread` IS REPORTED. `code_names` returns it precisely because a hole
     # in the name corpus is not benign: every symbol defined only in an
     # unreadable file becomes a false `names-a-symbol` note, and those notes
     # are what the `notes/block` column and the annotations table below are
     # computed from. Discarding it meant a corrupted split looked like a clean
     # one, with nothing in stdout either way.
-    known, unread = census.code_names([repo], tracked=census.tracked_paths(repo))
-    if unread:
-        print(f"⚠ {len(unread)} files could not be read for the name corpus:")
-        for name in unread[:5]:
+    # !! THREE KINDS OF ROW, and only one is a failure. Reporting all of them
+    # as "files could not be read" was false on every corpus this script
+    # targets: a polyglot tree has a row per non-Python file, so the banner
+    # listed `sample.go` and `pyproject.toml` as unreadable and then said the
+    # notes stay weak "until this is empty" -- a state a numpy or sentry
+    # checkout can never reach. Standing noise masks the real corruption the
+    # banner exists to surface, so the known holes are counted and the genuine
+    # failures are the only thing that raises a warning.
+    tracked = census.tracked_paths(repo)
+    known, unread = census.code_names([repo], tracked=tracked)
+    holes = [r for r in unread if census.NO_HARVESTER in r]
+    caveats = [r for r in unread if census.WALKED_TREE in r]
+    failed = [r for r in unread if r not in holes and r not in caveats]
+    for row in caveats:
+        print(f"! {row}\n")
+    if holes:
+        langs = Counter(r.rsplit(census.NO_HARVESTER, 1)[1].strip(" )") for r in holes)
+        spread = ", ".join(f"{lang} {n}" for lang, n in sorted(langs.items()))
+        print(
+            f"  {len(holes)} files have no name harvester ({spread}); liveness is\n"
+            "  Python-only, so a symbol defined solely in one of them reads DEAD.\n"
+        )
+    if failed:
+        print(f"! {len(failed)} files could not be read for the name corpus:")
+        for name in failed[:5]:
             print(f"    {name}")
-        if len(unread) > 5:
-            print(f"    ... and {len(unread) - 5} more")
+        if len(failed) > 5:
+            print(f"    ... and {len(failed) - 5} more")
         print("  Symbol notes below are WEAKER than they look until this is empty.\n")
     paths = census.path_index(repo)
 
@@ -143,7 +165,7 @@ def main() -> int:
             text = f.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        # ⚠⚠ Through `census_for`, which DISPATCHES ON THE LANGUAGE. This called
+        # !! Through `census_for`, which DISPATCHES ON THE LANGUAGE. This called
         # `blocks_stdlib` -- Python's `tokenize` plus `ast` -- on every file
         # `_walk` yields, and `_walk` filters on `BY_EXT`, i.e. all eleven
         # languages. A three-line `.yaml` raised `IndentationError` uncaught and
@@ -160,7 +182,7 @@ def main() -> int:
         try:
             blocks = census.census_for(f, text, lang)
         except census.PARSE_ERRORS:
-            # ⚠ A file this repo's own census would REFUSE is a gap in the
+            # ! A file this repo's own census would REFUSE is a gap in the
             # split, not a crash in it. Named, so the count is readable.
             notes["unparsed"][rel] += 1
             continue
@@ -170,20 +192,20 @@ def main() -> int:
             census.annotate(b, known, paths, repo)
             buckets["_pending"].append((rel, b))
 
-    # ⚠ A SHALLOW CLONE SILENTLY CORRUPTS THIS. Blame attributes every line older
+    # ! A SHALLOW CLONE SILENTLY CORRUPTS THIS. Blame attributes every line older
     # than the horizon to the graft commit, so one sha swallows most of the file
     # and the split measures clone depth instead of authorship. Measured: a
     # depth-2000 checkout put 1177 of one file's 1364 lines on the graft point,
     # which happened to carry a trailer, labelling the whole pre-existing
     # codebase "assisted". The numbers looked entirely reasonable.
-    # ⚠⚠ ASK GIT, do not build the path. A `local` corpus is a WORKTREE, where
-    # `.git` is a FILE pointing at the source repo's gitdir — so
+    # !! ASK GIT, do not build the path. A `local` corpus is a WORKTREE, where
+    # `.git` is a FILE pointing at the source repo's gitdir -- so
     # `repo/.git/shallow` can never exist, and this guard was structurally dead
     # for exactly the corpora this script targets. The failure recorded above
     # would have gone unreported on every one of them.
-    # ⚠⚠ `--git-common-dir`, not `--absolute-git-dir`. In a linked worktree the
+    # !! `--git-common-dir`, not `--absolute-git-dir`. In a linked worktree the
     # absolute gitdir is `<main>/.git/worktrees/<name>`, and `shallow` lives in
-    # the COMMON dir — so the first fix pointed at a path that never holds it,
+    # the COMMON dir -- so the first fix pointed at a path that never holds it,
     # for exactly the corpora it was rewritten to cover. It is repo-relative
     # when it answers `.git`, so it is resolved against the repo.
     common = git(repo, "rev-parse", "--git-common-dir").strip() or ".git"
@@ -197,7 +219,7 @@ def main() -> int:
         total_lines = sum(len(m) for m in per_file.values()) or 1
         pct = 100 * swallowed / total_lines
         print(
-            f"⚠ SHALLOW CLONE: {pct:.0f}% of blamed lines land on a graft commit.\n"
+            f"! SHALLOW CLONE: {pct:.0f}% of blamed lines land on a graft commit.\n"
             f"  Authorship is unknowable beyond the horizon; this split is invalid.\n"
             f"  Refetch with depth = 0 in corpora.toml.\n"
         )
@@ -206,7 +228,7 @@ def main() -> int:
 
     aid = assisted_shas(repo, all_shas)
 
-    # ⚠ `dict.pop` does NOT consult a defaultdict's factory, so this raised
+    # ! `dict.pop` does NOT consult a defaultdict's factory, so this raised
     # KeyError when nothing was censused -- a path argument matching no file, or
     # a corpus whose files were all unreadable. An empty split is a result.
     for rel, b in buckets.pop("_pending", []):
@@ -248,7 +270,7 @@ def main() -> int:
             print(f"  {key:9s} {top}")
 
     print(
-        "\n⚠ A trailer means an assistant was involved in the COMMIT, not that it\n"
+        "\n! A trailer means an assistant was involved in the COMMIT, not that it\n"
         "  wrote the prose. `mixed` blocks straddle both and are not forced into a\n"
         "  bucket. Read this as a correlation worth following, not a result."
     )

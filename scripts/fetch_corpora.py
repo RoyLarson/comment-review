@@ -7,7 +7,7 @@ of a repo already on the machine; a `public` one is a shallow clone at a tag,
 optionally sparse. Both land under `corpora/<name>/`, which is gitignored --
 this repo carries the MANIFEST, not the code.
 
-⚠ Every corpus is pinned, and a fetch that lands on a different ref than the
+! Every corpus is pinned, and a fetch that lands on a different ref than the
 manifest names is a hard failure rather than a warning. A moving corpus makes a
 regression indistinguishable from the corpus having changed underneath the
 measurement.
@@ -51,11 +51,11 @@ def _why(r: subprocess.CompletedProcess) -> str:
 def _force_writable(func, path, _exc) -> None:
     """`rmtree` error hook: clear the read-only bit and retry once.
 
-    ⚠ `onerror`, not `onexc`. `onexc` arrives in 3.12 and this repo's floor is
+    ! `onerror`, not `onexc`. `onexc` arrives in 3.12 and this repo's floor is
     3.11 -- a `TypeError` on the interpreter the plugin claims. Caught by
     running it; no test exercises `--clean`.
 
-    ⚠ Git writes `.git/objects/pack/*.pack` read-only, which is what makes
+    ! Git writes `.git/objects/pack/*.pack` read-only, which is what makes
     `shutil.rmtree` fail on Windows. `ignore_errors=True` turned that into a
     silent no-op, so `--clean` printed `rm <name>` over a tree that was still
     there.
@@ -65,13 +65,13 @@ def _force_writable(func, path, _exc) -> None:
         path_.chmod(stat.S_IWRITE | stat.S_IREAD)
         func(path)
     except OSError as e:
-        print(f"      ⚠ could not remove {path}: {e}")
+        print(f"      ! could not remove {path}: {e}")
 
 
 def head_of(path: Path) -> str:
     """The commit a checkout is actually sitting on, or "" if git could not say.
 
-    ⚠⚠ A caller must not read "" as a hash. This ignored `returncode`, so a
+    !! A caller must not read "" as a hash. This ignored `returncode`, so a
     failed `rev-parse` -- a half-deleted corpus, `rmtree` having silently
     no-opped on read-only git objects -- returned "" and the pin-mismatch guard
     short-circuited to False. The next run printed `have <name> @ ` with an
@@ -83,7 +83,7 @@ def head_of(path: Path) -> str:
 
 
 def fetch_local(c: dict, dest: Path) -> str:
-    """A worktree of a repo already on disk — pinned, and nothing duplicated."""
+    """A worktree of a repo already on disk -- pinned, and nothing duplicated."""
     src = Path(c["source"])
     if not (src / ".git").exists():
         return f"SKIP  {c['name']}: {src} is not a git repo"
@@ -100,7 +100,7 @@ def fetch_public(c: dict, dest: Path) -> str:
     if dest.exists():
         return f"have  {c['name']} @ {head_of(dest)[:8]}"
     sparse = c.get("sparse")
-    # ⚠ depth 1 gives a TREE and no history, which is enough to census but makes
+    # ! depth 1 gives a TREE and no history, which is enough to census but makes
     # `git blame` impossible -- so any corpus used for the trailer split must
     # declare a depth. 0 means full.
     depth = c.get("depth", 1)
@@ -115,13 +115,13 @@ def fetch_public(c: dict, dest: Path) -> str:
     if sparse:
         s = run("git", "-C", str(dest), "sparse-checkout", "set", *sparse)
         if s.returncode:
-            return f"FAIL  {c['name']}: sparse-checkout — {s.stderr.strip()}"
+            return f"FAIL  {c['name']}: sparse-checkout -- {s.stderr.strip()}"
     return f"ok    {c['name']} @ {c['ref']} ({'sparse ' if sparse else ''}clone)"
 
 
 def main() -> int:
     """Materialise every corpus in the manifest, and verify each pin landed."""
-    # ⚠⚠ A Windows console is cp1252 and this module's own docstring carries
+    # !! A Windows console is cp1252 and this module's own docstring carries
     # U+26A0, so `--help` died inside `argparse.print_help` before doing
     # anything -- and the same fault hit mid-run, after some corpora were
     # already cloned. `find_llm_repos.py` carries this guard; the gate that
@@ -153,12 +153,13 @@ def main() -> int:
         )
         return 0
 
+    bad = 0
     by_name = {c["name"]: c for c in corpora}
     for name in args.clean or []:
         d = CORPORA / name
         if not d.exists():
             continue
-        # ⚠⚠ A `local` corpus is a git WORKTREE, and its registration lives in
+        # !! A `local` corpus is a git WORKTREE, and its registration lives in
         # the SOURCE repo's `.git/worktrees/`. Deleting the directory alone left
         # a stale entry, so the documented refetch -- `--clean X --only X` --
         # then failed in `fetch_local` with git's "missing but already
@@ -169,17 +170,28 @@ def main() -> int:
             run("git", "-C", str(src), "worktree", "remove", "--force", str(d))
             run("git", "-C", str(src), "worktree", "prune")
         if d.exists():
-            # ⚠⚠ `ignore_errors` HID A FAILED DELETE. Git marks pack files
+            # !! `ignore_errors` HID A FAILED DELETE. Git marks pack files
             # read-only, so on Windows `rmtree` cannot remove
             # `.git/objects/pack/*.pack` and left the tree in place -- while
             # the line below printed `rm <name>` regardless. The documented
             # refetch then found `dest.exists()`, returned `have ...`, and
-            # never refetched anything. `onexc` clears the read-only bit and
-            # retries; what still fails is REPORTED.
+            # never refetched anything. `onerror` clears the read-only bit and
+            # retries; what still fails is REPORTED. (`onerror`, not `onexc`:
+            # `onexc` arrives in 3.12 and the floor is 3.11.)
             shutil.rmtree(d, onerror=_force_writable)
-        print(f"rm    {name}")
+        # !! ASK THE FILESYSTEM, and COUNT what it says. `rm <name>` still
+        # printed unconditionally and nothing incremented `bad`, so a delete
+        # that failed on the retry too -- a locked pack, an open handle --
+        # reported the tree removed and exited 0. The documented refetch
+        # (`--clean X --only X`) then hit `dest.exists()`, returned `have ...`,
+        # and passed the pin check against the STALE checkout: the same
+        # silent-no-op the `ignore_errors` fix above was written to end.
+        if d.exists():
+            print(f"      ! NOT REMOVED: {d} is still on disk; a refetch would skip it")
+            bad += 1
+        else:
+            print(f"rm    {name}")
 
-    bad = 0
     for c in corpora:
         dest = CORPORA / c["name"]
         line = fetch_local(c, dest) if c["kind"] == "local" else fetch_public(c, dest)
@@ -195,7 +207,7 @@ def main() -> int:
             resolved = run(
                 "git", "-C", str(dest), "rev-parse", want + "^{commit}"
             ).stdout.strip()
-            # ⚠⚠ AN UNREADABLE CHECKOUT IS A FAILURE, not a skipped check.
+            # !! AN UNREADABLE CHECKOUT IS A FAILURE, not a skipped check.
             # `got` is "" when `rev-parse` failed, and `and got` then
             # short-circuited the whole guard -- so a directory that exists but
             # is no longer a usable git repo printed `have <name> @ ` with an
@@ -203,10 +215,10 @@ def main() -> int:
             # correctly-pinned corpus. Fixing `head_of` to return "" honestly
             # moved where the "" came from; this is the caller that swallowed it.
             if not got:
-                print(f"      ⚠ UNREADABLE: {dest} is not a usable git checkout")
+                print(f"      ! UNREADABLE: {dest} is not a usable git checkout")
                 bad += 1
             elif resolved and not got.startswith(want) and got != resolved:
-                print(f"      ⚠ PIN MISMATCH: manifest {want}, checkout {got[:8]}")
+                print(f"      ! PIN MISMATCH: manifest {want}, checkout {got[:8]}")
                 bad += 1
     return 1 if bad else 0
 

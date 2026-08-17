@@ -1,11 +1,11 @@
-# ── The corpora are FETCHED, never vendored ───────────────────────────────────
+# -- The corpora are FETCHED, never vendored -----------------------------------
 # This repo carries `corpora/corpora.toml` -- names, sources and PINNED refs --
 # plus `scripts/fetch_corpora.py` to materialise it. The code itself belongs to
 # other people and is not ours to redistribute; a local corpus is a git worktree
 # of a repo already on the machine, and a public one is a clone recreatable from
 # the manifest at any time.
 #
-# ⚠ Ignore the SUBDIRECTORIES, not `corpora/` itself, or the manifest and the
+# ! Ignore the SUBDIRECTORIES, not `corpora/` itself, or the manifest and the
 # fetch script disappear with them.
 corpora/*/
 
@@ -14,7 +14,7 @@ corpora/*/
 evals/results/
 evals/**/scratch/
 
-# ── Ordinary Python ───────────────────────────────────────────────────────────
+# -- Ordinary Python -----------------------------------------------------------
 __pycache__/
 *.py[cod]
 .venv/
@@ -23,7 +23,7 @@ venv/
 .ruff_cache/
 .pytest_cache/
 
-# ── Editors and platforms ─────────────────────────────────────────────────────
+# -- Editors and platforms -----------------------------------------------------
 .vscode/
 .idea/
 .DS_Store
@@ -39,15 +39,15 @@ uv.lock
 # that outlives it, so none of this is committed.
 .superpowers/
 
-# ── Evidence is OPT-IN ────────────────────────────────────────────────────────
-# ⚠⚠ A run in flight writes into `evidence/<name>/` for as long as it lasts, and
+# -- Evidence is OPT-IN --------------------------------------------------------
+# !! A run in flight writes into `evidence/<name>/` for as long as it lasts, and
 # a `git add -A` from another session sweeps that half-written state into a
 # commit. Measured 2026-08-17: it happened twice in one afternoon, from the
 # session that had already said it would stop doing it.
 #
 # So everything directly under `evidence/` is ignored and each directory is
 # added back BY NAME, which makes tracking a package a decision rather than an
-# accident. ⚠ The directory itself must be un-ignored, not its contents: git
+# accident. ! The directory itself must be un-ignored, not its contents: git
 # does not descend into an excluded directory, so `!evidence/x/*` alone matches
 # nothing.
 evidence/*

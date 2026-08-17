@@ -14,13 +14,13 @@ each exists because the thing it looks for had already gone wrong unnoticed:
             text uses", so the lists go stale whenever the prose is edited -- 26
             terms had drifted across all six roles before this check existed.
 
-⚠ The role -> files mapping is DERIVED, not listed here: an agent file names the
+! The role -> files mapping is DERIVED, not listed here: an agent file names the
 document it is told to read, so this reads it out of the tree. A listed copy
-would go stale exactly the way the term lists did. ⚠ It matches the DOCUMENT,
+would go stale exactly the way the term lists did. ! It matches the DOCUMENT,
 never a path -- a shipped file naming its own location sends the agent to the
 installed plugin rather than to the absolute path it was handed.
 
-⚠ It once also checked `file:line` citations in the vocabulary SURVEY documents.
+! It once also checked `file:line` citations in the vocabulary SURVEY documents.
 Those documents are gone -- they were the apparatus for finding the terms, and
 the terms are settled -- so the check went with them.
 
@@ -37,7 +37,7 @@ AGENTS = REPO / "plugins/comment-review/agents"
 REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
 EMITTED = REFERENCES / "vocabulary.toml"
 
-# How an agent file names the document it is told to read. ⚠ It names the
+# How an agent file names the document it is told to read. ! It names the
 # DOCUMENT and never its location: a shipped file that spells out a path sends
 # the agent looking for it in the installed plugin instead of using the absolute
 # path the task agent passed in. So this matches a backticked filename, and the
@@ -89,7 +89,7 @@ def check_complete(definitions: dict[str, str], roles: dict[str, list[str]]) -> 
     for term in sorted(set(definitions) - given):
         print(f"vocabulary.toml  NO RECIPIENT   {term!r} is defined for nobody")
         holes += 1
-    # ⚠ The shared row is not a role; every other key is. Counted rather than
+    # ! The shared row is not a role; every other key is. Counted rather than
     # assumed, so a second non-role key would not silently shift the number.
     roles_n = len([r for r in roles if r != EVERY_AGENT])
     print(f"\n{len(definitions)} definitions across {roles_n} roles, {holes} holes.")
@@ -100,9 +100,9 @@ def check_drift(definitions: dict[str, str], roles: dict[str, list[str]]) -> int
     """Report every term a role is given but never uses, and the reverse."""
     shared = set(roles.get(EVERY_AGENT, []))
     drift = 0
-    # ⚠⚠ EVERY AGENT FILE, not every row of the table. Enumerating from
+    # !! EVERY AGENT FILE, not every row of the table. Enumerating from
     # `vocabulary.toml` alone meant a new agent with no row there was never
-    # checked — the gate printed "N roles checked, 0 drifted" and exited 0
+    # checked -- the gate printed "N roles checked, 0 drifted" and exited 0
     # while that agent used defined terms it had never been given, which is the
     # drift this check exists to catch. The table is one of the two things that
     # can be out of date, and it cannot be the one that decides.
@@ -137,7 +137,7 @@ def check_drift(definitions: dict[str, str], roles: dict[str, list[str]]) -> int
 
 def main() -> int:
     """Run both checks; exit nonzero if either found something."""
-    # ⚠ A Windows console is cp1252; one non-ASCII glyph in this program's own
+    # ! A Windows console is cp1252; one non-ASCII glyph in this program's own
     # output kills the run. Every CLI in this repo carries this, and
     # `tests/test_shipped_cli_encoding.py` is the gate -- it globbed only the
     # shipped `plugins/` scripts until 2026-08-17, which is how four of these

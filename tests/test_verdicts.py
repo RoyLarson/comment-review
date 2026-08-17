@@ -1,4 +1,4 @@
-"""The census join, the evidence check, and the clean arithmetic — mechanically."""
+"""The census join, the evidence check, and the clean arithmetic -- mechanically."""
 
 import json  # noqa: I001  -- path shim below must import before verdicts
 import re
@@ -197,18 +197,18 @@ class TestReasonSaysSomething(unittest.TestCase):
         self.assertIn("restates", verdicts.payload_problem(f))
 
     def test_a_reason_that_QUOTES_the_claim_and_explains_it_passes(self):
-        # ⚠ Equality only, never containment. A REASON that quotes the claim
+        # ! Equality only, never containment. A REASON that quotes the claim
         # and then says what is wrong with it is doing its job, and a
         # containment test would refuse it.
         f = _finding(
             claim=self.SPEC,
-            reason=f"{self.SPEC} — the count came from a grep over tests/",
+            reason=f"{self.SPEC} -- the count came from a grep over tests/",
         )
         self.assertIsNone(verdicts.payload_problem(f))
 
 
 class TestAddAnchor(unittest.TestCase):
-    """The brief asks for "the text AND its anchor — which code, above or below".
+    """The brief asks for "the text AND its anchor -- which code, above or below".
 
     That is a NAMED site and a side. The check accepted the bare WORD "anchor"
     instead, so a finding that never named a declaration passed and one that
@@ -241,7 +241,7 @@ class TestAddAnchor(unittest.TestCase):
             )
 
     def test_an_add_that_does_not_carry_its_text_is_rejected(self):
-        # ⚠ The anchor alone says WHERE and not WHAT. CLAIM is the spec, so the
+        # ! The anchor alone says WHERE and not WHAT. CLAIM is the spec, so the
         # text belongs in it -- CHANGE shows it already placed in the block, and
         # no checker can pick the new sentence back out of a block.
         self.assertIn("missing:", self._add("above `send()`: retries are capped"))
@@ -389,7 +389,7 @@ class TestQueryWordBoundary(unittest.TestCase):
 
 
 class TestScopeDeclaration(unittest.TestCase):
-    """`query — outside my role` is a boundary report, not work.
+    """`query -- outside my role` is a boundary report, not work.
 
     Measured: a run reported 1159 blocks needing a ruling when 76 carried a
     substantive verdict. The other 1083 were out-of-role queries, which
@@ -485,22 +485,22 @@ class TestWorkList(unittest.TestCase):
 class TestContradiction(unittest.TestCase):
     """A contradiction is two verdicts on ONE SENTENCE.
 
-    ⚠ The check keyed on the census BLOCK index while a verdict rules on a
+    ! The check keyed on the census BLOCK index while a verdict rules on a
     sentence, so any `drop` in a block collided with any `correct` in it.
     Measured on a live run: 8 blocks flagged, 2 genuine, and a re-review round
     was spent on each of the other six.
 
-    ⚠⚠ `move` is not in the set at all. A relocation and a truth fix COMPOSE --
+    !! `move` is not in the set at all. A relocation and a truth fix COMPOSE --
     move the prose, then correct it at the destination, which is the synthesis
     order at steps 2 and 3. Ruled 2026-08-17.
     """
 
-    # ⚠⚠ These fixtures carry a real ORIGINAL and a real CHANGE, because the
+    # !! These fixtures carry a real ORIGINAL and a real CHANGE, because the
     # collision is keyed on the DIFF between them and not on `CLAIM`. Ruled
     # 2026-08-17. A fixture that named sentences without editing any text would
     # exercise nothing.
     ORIGINAL = "the budget is 3. callers round separately."
-    # ⚠ The collision is keyed on the DIFF, and a diff is read through the
+    # ! The collision is keyed on the DIFF, and a diff is read through the
     # census -- the block's KIND selects how, its PATH selects the markers. So
     # these tests need a census, and one entry per index they cite.
     BLOCKS = [
@@ -630,7 +630,7 @@ class TestContradiction(unittest.TestCase):
         )
 
     def test_an_unreadable_payload_is_flagged_rather_than_passed(self):
-        # ⚠ Silence here would hide a real collision behind a malformed payload.
+        # ! Silence here would hide a real collision behind a malformed payload.
         found = [
             _finding(reviewer="ownership-context", verdict="drop", claim="drop: "),
             _finding(
@@ -662,7 +662,7 @@ class TestSource(unittest.TestCase):
     with derived text and a checker cannot verify both in one field. SOURCES's
     two halves are both VERBATIM, so the merge does not recreate that.
 
-    ⚠ A SOURCES line may REPEAT, one per place examined -- which is what "plural
+    ! A SOURCES line may REPEAT, one per place examined -- which is what "plural
     for a query" means, and it avoids a delimiter that verbatim text could
     contain.
     """
@@ -746,11 +746,11 @@ class TestSource(unittest.TestCase):
         )
         self.assertIsNone(verdicts.source_problem(f, self.repo))
 
-    # ⚠ The `SUMMARY` right-half check retired with the field. Its job -- a
+    # ! The `SUMMARY` right-half check retired with the field. Its job -- a
     # finding must state something derived -- is REASON being required, which
     # `payload_problem` enforces and `TestPayload` covers. The coverage moved.
 
-    # ⚠ The two LOCATION tests retired with the field. LOCATION was checked for
+    # ! The two LOCATION tests retired with the field. LOCATION was checked for
     # RESOLVABILITY and never against the block it claimed to describe, so a
     # finding attached to the wrong block resolved cleanly. `TestClaimAgainstTheCensus`
     # is what replaces it, and it is a stronger check than the one removed.
@@ -759,7 +759,7 @@ class TestSource(unittest.TestCase):
 class TestSeveralSources(unittest.TestCase):
     """A claim often needs TWO sites to settle -- the definition and its callers.
 
-    ⚠ Stricter than the single-citation rule it replaces: EVERY source must
+    ! Stricter than the single-citation rule it replaces: EVERY source must
     resolve AND carry its verbatim half. The old rule wanted the quote near one
     citation; both halves of a SOURCES are one statement about one place.
     """
@@ -784,7 +784,7 @@ class TestSeveralSources(unittest.TestCase):
         self.assertIn("gone.py", verdicts.source_problem(f, self.repo))
 
     def test_a_second_verbatim_half_that_is_absent_is_refused(self):
-        # ⚠ This is the strictness the merge buys. Under the old rule the quote
+        # ! This is the strictness the merge buys. Under the old rule the quote
         # had to sit near ONE citation, so a second citation carried nothing.
         f = _finding(sources=["a.py:5 | the settling line", "b.py:2 | not there"])
         self.assertIn("not found", verdicts.source_problem(f, self.repo))
@@ -809,12 +809,12 @@ class TestSeveralSources(unittest.TestCase):
 class TestBlockProblem(unittest.TestCase):
     """Is the sentence this finding rules on actually IN the block it cites?
 
-    ⚠⚠ Keyed on the ORIGINAL, which `CLAIM` carries in its `drop:`, `false:` or
+    !! Keyed on the ORIGINAL, which `CLAIM` carries in its `drop:`, `false:` or
     `from:` half -- never on `CHANGE`, which holds the REPLACEMENT. Matching the
     replacement against the original block would refuse every correct finding
     and pass the ones that changed nothing.
 
-    ⚠ This is what `LOCATION` could never do. It was AMBIGUOUS -- four
+    ! This is what `LOCATION` could never do. It was AMBIGUOUS -- four
     possible subjects, set out in `address_problem` -- so it could only be
     checked for resolvability, never against the thing it described.
     """
@@ -852,7 +852,7 @@ class TestBlockProblem(unittest.TestCase):
         self.assertIn("not in block 1", problem)
 
     def test_a_patch_is_checked_on_its_FROM_half(self):
-        # ⚠ The `from:` half is what makes a patch checkable at all. With only
+        # ! The `from:` half is what makes a patch checkable at all. With only
         # the rewrite, nothing said WHICH sentence it replaces.
         self.assertIsNone(
             self._at("patch", 'from: "the retry budget is 3" / to: "the budget is 3"')
@@ -868,7 +868,7 @@ class TestBlockProblem(unittest.TestCase):
         )
 
     def test_a_move_names_PLACES_and_so_is_exempt(self):
-        # ⚠ A `move`'s from/to are locations, not text, so there is no sentence
+        # ! A `move`'s from/to are locations, not text, so there is no sentence
         # to look for. The BLOCK it cites is what identifies the prose.
         self.assertIsNone(self._at("move", "from: `a.py` line 1 / to: `send()`"))
 
@@ -883,7 +883,7 @@ class TestBlockProblem(unittest.TestCase):
         self.assertIsNone(verdicts.block_problem(f, self.BLOCKS))
 
     def test_a_spec_carrying_no_original_sentence_is_left_alone(self):
-        # ⚠ `payload_problem` refuses a malformed CLAIM. Reporting it here too
+        # ! `payload_problem` refuses a malformed CLAIM. Reporting it here too
         # would print two defects for one mistake.
         self.assertIsNone(self._at("correct", "fix the count"))
 
@@ -910,7 +910,7 @@ class TestChangeIsRequired(unittest.TestCase):
         self.assertIsNone(verdicts.payload_problem(f))
 
     def test_a_query_owes_no_change(self):
-        # ⚠ A query says the claim is UNSETTLED, so it proposes no text and
+        # ! A query says the claim is UNSETTLED, so it proposes no text and
         # there is nothing for stage 5 to apply.
         f = _finding(
             verdict="query",
@@ -930,7 +930,7 @@ class TestChangeIsRequired(unittest.TestCase):
         self.assertIn("from/to", verdicts.payload_problem(f))
 
     def test_correct_keeps_false_true_rather_than_from_to(self):
-        # ⚠ The pair differs on purpose: `correct` asserts the sentence is
+        # ! The pair differs on purpose: `correct` asserts the sentence is
         # FALSE, and that assertion is what separates it from a `patch`. A
         # neutral from/to would erase the distinction the synthesis order
         # depends on.
@@ -941,7 +941,7 @@ class TestChangeIsRequired(unittest.TestCase):
 class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
     """`CHANGE` is a whole block, so it is several lines by construction.
 
-    ⚠ Lines naming no field were SKIPPED, so a multi-line CHANGE arrived holding
+    ! Lines naming no field were SKIPPED, so a multi-line CHANGE arrived holding
     only its first line and nothing said so. The task agent then applied one
     line of a block it was told was the whole block.
     """
@@ -967,7 +967,7 @@ class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
         self.assertEqual(len(f.change.splitlines()), 2)
 
     def test_a_blank_line_INSIDE_a_field_is_content(self):
-        # ⚠⚠ The worst defect 0.2.0 shipped was the opposite of this. A blank
+        # !! The worst defect 0.2.0 shipped was the opposite of this. A blank
         # line ended the continuation, so every docstring -- which has one
         # between its summary and its `Args:` -- was truncated to its first
         # paragraph. Measured: 33% of one census, ~450 blocks of another, and
@@ -985,7 +985,7 @@ class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
         self.assertIn("\n\n", f.change)
 
     def test_trailing_blank_lines_come_off_a_field(self):
-        # ⚠ Blank lines INSIDE a field are content; the ones before the next
+        # ! Blank lines INSIDE a field are content; the ones before the next
         # label are the spacing between records.
         f = self._one(
             "BLOCK       1\n"
@@ -1011,7 +1011,7 @@ class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
         self.assertEqual(f.reason, "why")
 
     def test_a_continued_SOURCE_stays_with_its_own_citation(self):
-        # ⚠ SOURCES accumulates where the others overwrite, so a continuation
+        # ! SOURCES accumulates where the others overwrite, so a continuation
         # must join the LAST citation rather than starting a new one.
         f = self._one(
             "BLOCK       1\n"
@@ -1052,7 +1052,7 @@ class TestMoveShowsBothBlocks(unittest.TestCase):
         )
 
     def test_the_destination_alone_passes_as_a_WHOLE_block_move(self):
-        # ⚠ Omitting `from:` ASSERTS the whole block moved -- nothing is left at
+        # ! Omitting `from:` ASSERTS the whole block moved -- nothing is left at
         # the origin to show. No checker can tell that from a partial move, so
         # the reviewer says which by what it supplies.
         self.assertIsNone(self._move("to: # the destination, with it"))
@@ -1071,7 +1071,7 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
     This allows the reviewer to have most the context and most of the time all
     of the context it needs to understand."*
 
-    ⚠⚠ All three are CHECKED, and this is NOT `LOCATION` coming back. That
+    !! All three are CHECKED, and this is NOT `LOCATION` coming back. That
     field was dropped for AMBIGUITY: it could have named where the prose sits,
     where the reviewer looked, where the prose should GO, or which sentence
     exactly. Three of those are fields now and the fourth is DERIVED from the
@@ -1129,7 +1129,7 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
         self.assertIn("census says", self._at(address="redacted_pkg/other.py:352-354"))
 
     def test_a_windows_separator_still_matches(self):
-        # ⚠ The census writes `/`; a reviewer on Windows may copy `\`. That is
+        # ! The census writes `/`; a reviewer on Windows may copy `\`. That is
         # the same address and refusing it would be a platform bug, not a check.
         self.assertIsNone(self._at(address="redacted_pkg\\rates.py:352-354"))
 
@@ -1145,7 +1145,7 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
         self.assertIn("does not match", self._at(original="# something else"))
 
     def test_comment_markers_and_wrapping_are_forgiven(self):
-        # ⚠ Case, whitespace and leading markers only. The census stores the
+        # ! Case, whitespace and leading markers only. The census stores the
         # prose with its markers stripped; a reviewer transcribes what the FILE
         # shows. Comparing those raw would refuse every honest transcription --
         # a check that fires only on people who did the work.
@@ -1157,7 +1157,7 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
         )
 
     def test_an_empty_INTERVAL_owes_no_original(self):
-        # ⚠ This is what an `add` cites: prose that is MISSING has no original.
+        # ! This is what an `add` cites: prose that is MISSING has no original.
         self.assertIsNone(
             self._at(
                 block=2,
@@ -1228,7 +1228,7 @@ class TestSourcesTakeContinuationLines(unittest.TestCase):
         self.assertEqual(got, ["a.py:5 | def f():", "b.py:9 | f()"])
 
     def test_a_wrapped_verbatim_half_stays_with_its_own_citation(self):
-        # ⚠ The ambiguity this resolves: a continuation is either the NEXT
+        # ! The ambiguity this resolves: a continuation is either the NEXT
         # citation or the wrapped tail of the one above. Only a line opening
         # with `path:line` is the former.
         got = self._sources(
@@ -1245,7 +1245,7 @@ class TestSourcesTakeContinuationLines(unittest.TestCase):
 class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
     """A BACKSTOP: does CHANGE edit the sentence CLAIM says it edits?
 
-    ⚠⚠ Nothing else reads the two accounts of one edit against each other.
+    !! Nothing else reads the two accounts of one edit against each other.
     `block_problem` confirms the claimed sentence is IN the block;
     `payload_problem` confirms CHANGE exists. Neither notices a reviewer that
     reasoned about one sentence and rewrote another. Roy authorised this
@@ -1254,7 +1254,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
 
     ORIGINAL = "# the budget is 3.\n# callers round separately."
 
-    # ⚠ The diff is read through the CENSUS: `kind` selects how the block is
+    # ! The diff is read through the CENSUS: `kind` selects how the block is
     # read, `path` selects the comment markers. A hand-rolled normaliser here
     # would be the third definition of a block's text, which is the defect
     # this whole class exists to pin.
@@ -1278,7 +1278,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         )
 
     def test_an_edit_to_a_sentence_the_claim_does_not_name_is_refused(self):
-        # ⚠ THE CASE THIS EXISTS FOR. The claim is about the budget; the text
+        # ! THE CASE THIS EXISTS FOR. The claim is about the budget; the text
         # rewrites the rounding. Both halves look fine on their own.
         problem = self._at(
             claim='false: "the budget is 3" / true: "the budget is 5"',
@@ -1287,7 +1287,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         self.assertIn("CLAIM does not name", problem)
 
     def test_a_change_identical_to_the_original_is_refused(self):
-        # ⚠ Otherwise the backstop passes vacuously: no removed span means
+        # ! Otherwise the backstop passes vacuously: no removed span means
         # nothing to disagree with, and a verdict that edits nothing sails
         # through the check built to catch it.
         problem = self._at(
@@ -1297,7 +1297,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         self.assertIn("UNCHANGED", problem)
 
     def test_rewrapping_alone_is_not_an_edit(self):
-        # ⚠ Compared on WORDS, so a reviewer that reflows the block while
+        # ! Compared on WORDS, so a reviewer that reflows the block while
         # correcting one sentence is not accused of editing the rest.
         self.assertIsNone(
             self._at(
@@ -1307,7 +1307,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         )
 
     def test_a_purely_additive_edit_passes(self):
-        # ⚠ Words that only APPEAR are not a claim about existing prose, so
+        # ! Words that only APPEAR are not a claim about existing prose, so
         # there is nothing for the claim to disagree with.
         self.assertIsNone(
             self._at(
@@ -1326,7 +1326,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         self.assertIn("UNCHANGED", problem)
 
     def test_a_drop_that_only_ADDS_is_refused(self):
-        # ⚠ Not word-identical, so the unchanged check does not fire -- and yet
+        # ! Not word-identical, so the unchanged check does not fire -- and yet
         # the sentence the drop names is still there. This is the case the
         # drop-specific message exists for.
         problem = self._at(
@@ -1351,7 +1351,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
             claim='drop: "callers round separately"',
             change="",
         )
-        # ⚠ An empty CHANGE is `payload_problem`'s to refuse, not this one --
+        # ! An empty CHANGE is `payload_problem`'s to refuse, not this one --
         # reporting it twice would print two defects for one mistake.
         self.assertIsNone(problem)
         self.assertIn(
@@ -1362,7 +1362,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         )
 
     def test_two_findings_folded_into_one_CHANGE_are_refused(self):
-        # ⚠⚠ The brief rules that ONE finding's CHANGE makes ONE finding's
+        # !! The brief rules that ONE finding's CHANGE makes ONE finding's
         # edit. A reviewer handing in the block fully fixed on both records is
         # claiming one edit and showing two, and stage 5 cannot compose records
         # that have already been merged.
@@ -1412,7 +1412,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
 class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
     """Adding or changing a verdict is a ROW, not new code.
 
-    ⚠⚠ The reason this class exists is measured. On 2026-08-17 the record's
+    !! The reason this class exists is measured. On 2026-08-17 the record's
     contract changed twice in a morning while per-verdict knowledge lived in
     eight functions, each branching on the verdict name. Nobody found all
     eight, and five defects shipped -- two of which refused 73% of one run's
@@ -1420,7 +1420,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
     correct.
     """
 
-    # ⚠ Read off the shipped source, not restated. A list here would be a
+    # ! Read off the shipped source, not restated. A list here would be a
     # ninth place to update, which is the defect.
     SOURCE = (SCRIPTS / "verdicts.py").read_text(encoding="utf-8")
 
@@ -1434,7 +1434,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
         self.assertNotIn("reanchor", verdicts.VERDICTS)
 
     def test_no_check_branches_on_a_VERDICT_NAME(self):
-        # ⚠⚠ THE POINT OF THE TABLE. A comparison against a verdict name below
+        # !! THE POINT OF THE TABLE. A comparison against a verdict name below
         # the table is a fact about a verdict living somewhere other than its
         # row -- which is exactly what cost five defects. Names may appear in
         # PROSE and in the table itself; what may not appear is a comparison.
@@ -1449,7 +1449,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
         self.assertEqual(offenders, [], "a check branches on a verdict NAME")
 
     def test_every_row_is_reachable_by_payload_problem(self):
-        # ⚠ A row nothing consults is a rule that does not apply. Each verdict
+        # ! A row nothing consults is a rule that does not apply. Each verdict
         # is given an EMPTY claim; every row that requires one must say so in
         # its own words.
         for name, spec in verdicts.VERDICTS.items():
@@ -1461,7 +1461,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
                 self.assertIsNone(problem, f"{name} was asked for a CLAIM")
 
     def test_a_row_that_quotes_no_original_reads_as_nothing_to_check(self):
-        # ⚠ `block_problem` no longer lists its own exemptions; it relies on
+        # ! `block_problem` no longer lists its own exemptions; it relies on
         # this. If a row gained `quotes_original` without a matching CLAIM
         # marker, findings would be checked against a sentence nobody wrote.
         for name, spec in verdicts.VERDICTS.items():
@@ -1480,7 +1480,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
                 self.assertTrue(spec.change_help, f"{name} refuses without saying why")
 
     def test_an_unknown_verdict_answers_False_rather_than_raising(self):
-        # ⚠ One typo in one record must not take the whole join down.
+        # ! One typo in one record must not take the whole join down.
         f = _finding(verdict="reanchor")
         self.assertFalse(verdicts._is(f, "removes"))
         self.assertIsNone(verdicts.payload_problem(f))
@@ -1489,13 +1489,13 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
 class TestOneNormaliserOnBothSides(unittest.TestCase):
     """Every comparison reduces BOTH sides the same way, or it refuses the honest.
 
-    ⚠⚠ Each case below was a live defect on 2026-08-17, found by review after
+    !! Each case below was a live defect on 2026-08-17, found by review after
     the run that the same class of bug had already refused 73% of. The shape
     repeats: two texts that should be equal, reduced by two different rules.
     """
 
     def test_the_haystack_is_reduced_like_the_needle(self):
-        # ⚠ `ruled_text` returns `_words(...)`, which drops trailing punctuation
+        # ! `ruled_text` returns `_words(...)`, which drops trailing punctuation
         # per token. A haystack that was only whitespace-collapsed still held
         # it, so any comma or colon inside a quoted sentence refused a correct
         # finding.
@@ -1530,7 +1530,7 @@ class TestOneNormaliserOnBothSides(unittest.TestCase):
         self.assertIsNone(verdicts.block_problem(f, blocks))
 
     def test_words_is_IDEMPOTENT(self):
-        # ⚠⚠ It was not. Stripping quotes and THEN punctuation left a backtick
+        # !! It was not. Stripping quotes and THEN punctuation left a backtick
         # on `` `cap`, `` until a second pass -- and `edit_problem` normalised
         # the claim twice while a diff span got one pass.
         for raw in (
@@ -1562,13 +1562,13 @@ class TestOneNormaliserOnBothSides(unittest.TestCase):
 class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
     """`block_text` must reproduce the census for every kind and every language.
 
-    ⚠⚠ It is the lines-to-block half of the block protocol and it claims to be
+    !! It is the lines-to-block half of the block protocol and it claims to be
     the ONLY one, so a kind it cannot reproduce is a claim the file does not
     keep -- and a fatal on every block of that kind.
     """
 
     def test_a_MARKED_doc_is_a_comment_not_a_string_literal(self):
-        # ⚠⚠ The lexical tier stamps `docstring` on any run opening with a
+        # !! The lexical tier stamps `docstring` on any run opening with a
         # language's doc marker. Reading `///` as a quoted literal leaves the
         # marker in the prose and refuses every doc comment in ten of the
         # eleven languages -- everything but Python.
@@ -1587,7 +1587,7 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
         )
 
     def test_a_trailing_comment_is_cut_back_to_its_marker(self):
-        # ⚠ The census stores a trailing comment's PROSE from the comment token
+        # ! The census stores a trailing comment's PROSE from the comment token
         # and its WIDTH from the physical line. A reviewer transcribes the line,
         # so the code on it has to come off or every trailing comment is a
         # fatal.
@@ -1597,7 +1597,7 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
         )
 
     def test_every_prose_block_in_the_shipped_TREE_round_trips(self):
-        # ⚠⚠ THE REAL CHECK, and the one that found the trailing-comment gap.
+        # !! THE REAL CHECK, and the one that found the trailing-comment gap.
         # Each block's own `raw_lines` fed back through the normaliser must
         # reproduce the text the census stored. Anything that does not is a
         # block a correct transcription cannot match.
@@ -1648,9 +1648,9 @@ class TestAMistypedVerdictIsNeverSummarisedAsCLEAN(unittest.TestCase):
     """An unknown verdict is a defect, and the summary must not call it a pass."""
 
     def test_an_unknown_verdict_is_substantive(self):
-        # ⚠ `_is` answers False to every trait for an unknown verdict, so a
+        # ! `_is` answers False to every trait for an unknown verdict, so a
         # record reading `VERDICT corect` fell out of the work list and was
-        # reported under STANDS UNCHANGED — "clean from all reviewers" on a
+        # reported under STANDS UNCHANGED -- "clean from all reviewers" on a
         # block a role had explicitly ruled on.
         self.assertTrue(verdicts._substantive(_finding(verdict="corect")))
 
@@ -1661,7 +1661,7 @@ class TestAMistypedVerdictIsNeverSummarisedAsCLEAN(unittest.TestCase):
 class TestTheJSONCensusGatesLikeTheTextOne(unittest.TestCase):
     """`--json` refused nothing, and it is the mandated route.
 
-    ⚠⚠ `SKILL.md` requires `--json --out` for the census stage 5 parses. This
+    !! `SKILL.md` requires `--json --out` for the census stage 5 parses. This
     returned 0 with a SHORT array on exactly the input the text mode refused,
     so a file with no language record vanished and the coverage check then
     certified "every block accounted for" over blocks never collected.
@@ -1693,7 +1693,7 @@ class TestTheJSONCensusGatesLikeTheTextOne(unittest.TestCase):
         self.assertNotIn("[]", got.stdout)
 
     def test_both_modes_say_the_same_thing(self):
-        # ⚠ One wording, so a reader cannot tell which mode refused them and
+        # ! One wording, so a reader cannot tell which mode refused them and
         # the two cannot drift into disagreeing about what a gap is.
         self.assertIn("not\n censused".replace("\n ", " "), self._run().stdout)
         self.assertIn("NOT CENSUSED", self._run("--json").stdout + self._run().stdout)
@@ -1702,7 +1702,7 @@ class TestTheJSONCensusGatesLikeTheTextOne(unittest.TestCase):
 class TestMarkersAreFoundWhateverTheirCase(unittest.TestCase):
     """`payload_problem` lowercased the claim and `ruled_text` did not.
 
-    ⚠⚠ A record written `FALSE:` / `TRUE:` passed PAYLOAD and reduced to "" in
+    !! A record written `FALSE:` / `TRUE:` passed PAYLOAD and reduced to "" in
     `ruled_text`, which silently switched off `block_problem`, `edit_problem`
     and `contradictions` at once. A reviewer that SHOUTED its markers had every
     finding admitted unchecked -- the loudest possible way to skip the gate.
@@ -1739,7 +1739,7 @@ class TestMarkersAreFoundWhateverTheirCase(unittest.TestCase):
 class TestASourceWindowSpansTheWholeCitation(unittest.TestCase):
     """A range citation was windowed on its START LINE alone.
 
-    ⚠ `_resolve_lines` says a range "is where the reviewer looked", and only
+    ! `_resolve_lines` says a range "is where the reviewer looked", and only
     ranges three lines deep happened to pass. A reviewer citing a
     function-sized range -- the honest case -- was refused and counted fatal.
     """
@@ -1764,14 +1764,14 @@ class TestASourceWindowSpansTheWholeCitation(unittest.TestCase):
         self.assertIsNone(self._at("a.py:10-55 | line 11"))
 
     def test_a_hit_OUTSIDE_the_range_is_still_refused(self):
-        # ⚠ Widening the window must not make the check vacuous.
+        # ! Widening the window must not make the check vacuous.
         self.assertIn("not found near", self._at("a.py:10-20 | line 50"))
 
 
 class TestALineCommentContainingABlockOpener(unittest.TestCase):
     """Whichever opener comes FIRST on the line owns it.
 
-    ⚠⚠ The block test ran first unconditionally, so `// see /* the note` opened
+    !! The block test ran first unconditionally, so `// see /* the note` opened
     a run that swallowed every line to the next `*/` -- executable code handed
     to four reviewers as prose, carrying no annotation, and dropped from
     `code_lines` so every interval in that file sat at the wrong boundary.
@@ -1823,7 +1823,7 @@ class TestCLI(unittest.TestCase):
         self.census = Path(self.tmp.name) / "census.json"
         self.census.write_text(
             json.dumps(
-                # ⚠ `text` is not optional. `block_problem` matches the sentence
+                # ! `text` is not optional. `block_problem` matches the sentence
                 # a finding rules on against the block it cites, so a fixture without
                 # it refuses every finding -- which is the check working, and
                 # the real census has carried `text` since it was written.
@@ -1861,7 +1861,7 @@ class TestCLI(unittest.TestCase):
         )
 
     def _clean_report(self, name, blocks=(1, 2, 3)):
-        """One `clean` RECORD per block — there is no range list."""
+        """One `clean` RECORD per block -- there is no range list."""
         return self._write(
             name,
             "".join(
@@ -2073,7 +2073,7 @@ class TestCLI(unittest.TestCase):
         )
         drop = self._write(
             "ownership-context.txt",
-            # ⚠ The two must name the SAME sentence, or there is no collision:
+            # ! The two must name the SAME sentence, or there is no collision:
             # a contradiction is keyed on the text, not on the block index.
             finding.format(verdict="drop", claim='drop: "x"'),
         )
@@ -2114,18 +2114,18 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
 
     The format and its checker were designed in one task and never run against
     each other, so the brief's worked example failed `verdicts.py` on the same
-    commit that shipped both — and the field it failed on, a counted claim,
+    commit that shipped both -- and the field it failed on, a counted claim,
     is the block-context reviewer's own category.
 
     The cited file is SYNTHESISED from the record's own citations: the example
     is invented on purpose (`docs/limitations.md`), so there is no real
-    `redacted_pkg/` to read. What this pins is the record's SHAPE — every field the
+    `redacted_pkg/` to read. What this pins is the record's SHAPE -- every field the
     parser needs, a QUOTE long enough to have been read off a line, EVIDENCE
     as `file:line` and BLOCK as `<index> | file:start-end`, and the payload the
     verdict table demands.
     """
 
-    # ⚠⚠ The field ORDER is a contract, not a layout. Roy, 2026-08-17:
+    # !! The field ORDER is a contract, not a layout. Roy, 2026-08-17:
     # *"Verdict -> Claim -> REASON -> SOURCES -> CHANGE ... that is a clear
     # chain of custody on the reasoning and the required actions."* The parser
     # is label-keyed and would accept any order, so nothing but this test stops
@@ -2154,7 +2154,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     def _plant(self):
         """Write each file a SOURCES cites, with its verbatim half on that line.
 
-        ⚠ Every source is planted, not just the first: `source_problem` resolves
+        ! Every source is planted, not just the first: `source_problem` resolves
         all of them, so a record citing two places needs both to exist.
         """
         for source in self.finding.sources:
@@ -2183,7 +2183,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         )
 
     def test_the_dataclass_is_written_in_the_same_order(self):
-        # ⚠ The Finding docstring says field order follows the brief's record.
+        # ! The Finding docstring says field order follows the brief's record.
         # A dataclass reordered without the brief, or the reverse, makes that
         # sentence false with nothing to catch it.
         fields = [f for f in verdicts.Finding.__dataclass_fields__ if f != "reviewer"]
@@ -2194,7 +2194,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         self.assertIsNone(verdicts.source_problem(self.finding, self.repo))
 
     def test_the_records_CLAIM_carries_a_quoted_original(self):
-        # ⚠ Not run against a census: the brief's record cites block 17 of a
+        # ! Not run against a census: the brief's record cites block 17 of a
         # tree that does not exist here. What IS checkable is that its CLAIM is
         # a SPEC -- `false:` naming the existing sentence, quoted, and `true:`
         # the replacement -- because the quoted half is what `block_problem`
@@ -2208,7 +2208,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         )
 
     def test_the_records_CHANGE_is_the_finished_block(self):
-        # ⚠ CHANGE is what stage 5 substitutes, so the brief must SHOW prose
+        # ! CHANGE is what stage 5 substitutes, so the brief must SHOW prose
         # rather than another from/to pair. A record whose CHANGE repeated the
         # spec would teach every reviewer to hand back a diff.
         change = self.finding.change
@@ -2235,7 +2235,7 @@ class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
     def _skill(self):
         """SKILL.md with newlines flattened, so a wrapped phrase still matches.
 
-        ⚠ Read through a helper and asserted with `assertTrue` rather than
+        ! Read through a helper and asserted with `assertTrue` rather than
         `assertIn`: the file is 40 KB and `assertIn` prints the whole haystack,
         which buries the one line that failed.
         """
@@ -2270,9 +2270,9 @@ class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
         )
 
 
-# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` — and the tests it skipped were
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
 # the ones someone running a single file was iterating on. Measured
 # 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
 # test_vocabulary.py.

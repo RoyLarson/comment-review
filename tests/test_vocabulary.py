@@ -92,10 +92,10 @@ class TestProseTreeRetired(unittest.TestCase):
     def test_no_shipped_file_says_prose_tree(self):
         shipped = sorted((self.ROOT / "plugins").rglob("*.md"))
         shipped += sorted((self.ROOT / "plugins").rglob("*.py"))
-        self.assertTrue(shipped, "no shipped files found — the glob is wrong")
+        self.assertTrue(shipped, "no shipped files found -- the glob is wrong")
         for path in shipped:
             with self.subTest(path=path.name):
-                # ⚠ `assertFalse` with a short message, not `assertNotIn`: these
+                # ! `assertFalse` with a short message, not `assertNotIn`: these
                 # files are tens of kilobytes and `assertNotIn` prints the whole
                 # haystack, burying the name of the file that failed.
                 self.assertFalse(
@@ -109,9 +109,9 @@ class TestProseTreeRetired(unittest.TestCase):
         self.assertIn("pCST", text)
 
 
-# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` — and the tests it skipped were
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
 # the ones someone running a single file was iterating on. Measured
 # 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
 # test_vocabulary.py.

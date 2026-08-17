@@ -6,7 +6,7 @@
 # were a property of the detector. It may instead be a property of that project's
 # house style. A single corpus cannot tell those apart.
 #
-# ⚠ EVERY ENTRY IS PINNED. A moving corpus makes a regression indistinguishable
+# ! EVERY ENTRY IS PINNED. A moving corpus makes a regression indistinguishable
 # from the corpus having changed underneath the measurement, which cost a full
 # day's comparison when the reference repository advanced mid-run.
 #
@@ -51,11 +51,11 @@ nowhere else is about the author; one that fires here and in django is about
 prose.
 """
 
-# ── Public corpora ────────────────────────────────────────────────────────────
+# -- Public corpora ------------------------------------------------------------
 # Chosen for VARIETY OF PROSE CONVENTION, not popularity. Curation level is the
 # independent variable; docstring style is the confound worth spanning.
 #
-# ⚠ These exist to CALIBRATE A DETECTOR. Findings against them are measurements,
+# ! These exist to CALIBRATE A DETECTOR. Findings against them are measurements,
 # not defect reports, and are not a queue of pull requests to send anybody.
 
 [[corpus]]
@@ -109,14 +109,14 @@ much here per block as in a solo project, the detector is noisy and the gradient
 hypothesis is refuted.
 """
 
-# ── The cell that was missing ─────────────────────────────────────────────────
+# -- The cell that was missing -------------------------------------------------
 # Every other public corpus here is pre-assistant AND heavily reviewed, so
 # "curated" and "human-written" are collinear and no measurement can separate
 # them. The reference corpus is the opposite corner: solo and essentially
 # entirely assistant-written. These two are the corner neither can reach --
 # assistant-written code that a real review culture DID see.
 #
-# ⚠ They need HISTORY, not just a tree. The within-repo split blames each comment
+# ! They need HISTORY, not just a tree. The within-repo split blames each comment
 # block to the commit that introduced it and asks whether that commit carries an
 # assistant trailer; a depth-1 clone makes that impossible. `depth = 0` is full.
 #
@@ -152,12 +152,12 @@ expect = "medium"
 note = """
 44.5k stars and 2451 assistant-trailer commits, against deep pre-assistant
 history -- the largest available sample of both arms under one review culture.
-⚠ 895 MB, so it is sparse and depth-limited, and `ref` is a BRANCH rather than a
+! 895 MB, so it is sparse and depth-limited, and `ref` is a BRANCH rather than a
 tag: the visible tags are stale and a branch pin is weaker than a commit. Record
 the resolved SHA when a measurement is taken from it, or the result is not
 reproducible. Fetched once at b8df2b57097d2c452a4ba22d56054ae8e51931ac.
 
-⚠⚠ depth MUST be 0. A depth-2000 fetch put 96% of blamed lines on the graft
+!! depth MUST be 0. A depth-2000 fetch put 96% of blamed lines on the graft
 commit -- which carried a trailer, so the entire pre-assistant codebase was
 labelled assisted and the split reported 1213 assisted blocks against 28 human.
 The numbers were clean, plausible and meaningless. generator_split.py now

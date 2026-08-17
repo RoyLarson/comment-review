@@ -354,6 +354,16 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("UNPROVABLE", result.stdout)
 
+    def test_a_missing_object_is_reported_as_the_spec_git_was_asked_for(self):
+        # The message quoted `<base>:<rel>`, which git was never asked for and
+        # which resolves differently from `<base>:./<rel>` under `--repo` on a
+        # subdirectory -- sending a reader after the wrong failure.
+        fresh = self.repo / "brand_new.py"
+        _write(fresh, "x = 1\n")
+        result = self._run(fresh)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("no HEAD:./brand_new.py", result.stdout)
+
     def test_a_code_change_behind_a_runaway_block_comment_does_not_read_proven(self):
         # C1 end to end. A fingerprint-level test only shows the stripped text is
         # refused; only the CLI shows that PROVEN is never printed and the
@@ -461,7 +471,7 @@ class TestGitShowEncoding(unittest.TestCase):
         # docstring: a docstring's value is blanked before comparison and
         # would hide exactly the corruption this test exists to catch (this
         # is the real shape of the bug found in census.py's CALLFORM regex).
-        self.text = 'MARK = "an ellipsis … and a warning ⚠ mark"\n'
+        self.text = 'MARK = "an ellipsis \u2026 and a warning \u26a0 mark"\n'
         self.path.write_text(self.text, encoding="utf-8")
         subprocess.run(["git", "-C", str(self.repo), "add", "x.py"], check=True)
         subprocess.run(
@@ -496,9 +506,9 @@ class TestGitShowEncoding(unittest.TestCase):
         )
 
 
-# ⚠⚠ LAST LINE, ALWAYS. A runner placed above a class runs before that
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` — and the tests it skipped were
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
 # the ones someone running a single file was iterating on. Measured
 # 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
 # test_vocabulary.py.
