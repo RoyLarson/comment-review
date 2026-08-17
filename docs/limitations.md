@@ -65,9 +65,9 @@ the antipattern this skill exists to find, and the four agents are the place it 
 they read alike and invite copy-paste.
 
 ⚠⚠ **THE TWO LARGEST FILES A RUN LOADS AS CONTEXT HAVE NO BUDGET.** Measured 2026-08-16:
-`reviewer-brief.md` is 10,888 bytes and `SKILL.md` 48,421. A reviewer loads its role file
-plus the brief — about 17 KB, of which **61% is the brief, not its own role** — and four
-reviewers dispatched in parallel load **four copies of it**, 43 KB of the run's 70 KB. The
+`reviewer-brief.md` is 11,579 bytes and `SKILL.md` 45,257. A reviewer loads its role file
+plus the brief — about 18 KB, of which **63% is the brief, not its own role** — and four
+reviewers dispatched in parallel load **four copies of it**, 45 KB of the run's 72 KB. The
 numbers above budget the four role files only: 27 KB of the 217 KB shipped, and the
 smallest part of what a run actually costs. ⚠ Larger files ship — `census.py` is 31 KB — but
 are EXECUTED, never read into a prompt.

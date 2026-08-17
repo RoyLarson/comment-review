@@ -95,6 +95,20 @@ finding.
 | `add`     | the text **and its anchor** — which code, above or below |
 | `move`    | the destination **and** the verbatim extract |
 
+#### Does a TRUE sentence earn its place?
+
+**Is it CHECKABLE?** confirmable from the code as it stands. **Is it NECESSARY?** would someone
+changing this code make a **worse decision** without it? Those two questions decide:
+
+| | **necessary** | **not necessary** |
+|---|---|---|
+| **checkable** | it stays | **drop** — it narrates what the code already says |
+| **not checkable** | **move** — real rationale, unverifiable in place | **drop** — history |
+
+⚠ **This runs only on sentences you have already established are TRUE.** A false claim is not a
+point on it — it is `correct`. Read generally, *"truth is not one of the questions"* acquits a
+falsehood. It applies to history that is TRUE-but-useless and nowhere else.
+
 #### `correct` and `patch` specific rules
 
 ⚠ **`correct` and `patch` are not interchangeable.** `correct` says the claim is wrong;

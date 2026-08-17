@@ -202,7 +202,7 @@ unaffected and always available.** Say so at stage 1, and again in the proposal;
 (create the tree, or name another destination). This matters because the matrix routes
 *not-checkable + necessary* to `move`, and a repo that stages prose usually also rules that
 prose is MOVED, never deleted — so with no destination those two rules leave the block with no
-legal verdict at all — *the matrix* is the checkable/necessary table defined at stage 5, and
+legal verdict at all — *the matrix* is the checkable/necessary table in the reviewers' brief, and
 it is named here only to explain the consequence. **Keeping true prose in place costs a cap
 violation you can report. Dropping it costs the only copy.**
 
@@ -565,19 +565,10 @@ it never opened. Contradicting verdicts trigger a **re-review**, never a tie-bre
 cannot see this for you — `contradictions()` keys on the census BLOCK index, and the same
 sentence copied into two files is two different blocks it can never relate.
 
-**Is it CHECKABLE?** confirmable from the code as it stands. **Is it NECESSARY?** would
-someone changing this code make a **worse decision** without it? Those two questions decide
-whether a TRUE sentence earns its place:
-
-| | **necessary** | **not necessary** |
-|---|---|---|
-| **checkable** | it stays | **drop** — it narrates what the code already says |
-| **not checkable** | **move** — real rationale, unverifiable in place | **drop** — history |
-
-⚠ **The matrix only runs on sentences you have already established are TRUE.** A false claim is
-not a point on it — it is `correct`, and correcting it comes first. Read generally, *"truth is
-not one of the questions"* acquits a falsehood, which is measured twice in independent runs.
-The rule applies to history that is TRUE-but-useless and nowhere else.
+⚠⚠ **Whether a TRUE sentence earns its place is a VERDICT, and verdicts are theirs.** The
+CHECKABLE/NECESSARY matrix that settles it is in `reviewer-brief.md`, and every reviewer is
+handed it. A block whose place no verdict settles goes BACK for re-review; you do not rule it
+here.
 
 ### Synthesising one comment out of N verdicts
 
@@ -598,8 +589,9 @@ being settled:
    `patch` on a false sentence polishes the wording of a falsehood and retires the finding.
    That is laundering, and this order is what prevents it.
 5. **`add`** — insert at the stated anchors.
-6. **`clean`** — the null verdict. A block stands unchanged when **every reviewer that ran**
-   returned `clean` and nothing else.
+6. **`clean`** — the null verdict, and **the join already did this one.** The blocks it printed
+   as `STANDS UNCHANGED` are exactly those every reviewer that ran returned `clean` on. Read
+   that number; do not re-derive the set.
 
 ⚠ **Load [`references/residue-check.md`](references/residue-check.md) before you write anything**
 — the check is defined there, and this is the first stage that owes it. Stages 6 and 7b re-run
