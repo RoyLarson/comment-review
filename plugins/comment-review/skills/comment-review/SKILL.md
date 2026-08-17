@@ -604,17 +604,18 @@ not once per verdict. The check compares against the original, and the original 
 
 - **Two placement verdicts on one block, naming different destinations:**
   `ownership-context`'s destination governs. Both findings stand; only the destination is
-  decided.
+  decided. ⚠ This is the PRECEDENCE that role already holds, not a tie-break — the rules below
+  break no ties.
 - **Any `correct` outranks every `clean`.** Three roles finding nothing does not soften one
   role finding a falsehood; they were not looking for the same thing.
 - **`correct` and `patch` on the same sentence:** correct first, then re-read the patch against
   the corrected text. Usually it no longer applies.
-- **`drop` against `correct` OR `patch` on the same sentence is a contradiction**, not a merge —
-  one role says it should not exist and another says it should exist and be fixed. Send it back
-  for re-review. ⚠ **Do not let the synthesis order decide it.** Step 2 applies `drop` before
-  steps 3 and 4, so deletion would win silently — and if the dropped sentence carries a fact the
-  survivor does not, that is a meaning change made on an absent author's behalf, which
-  CONSERVATIVE ON MEANING forbids.
+- **`drop` or `move` against `correct` OR `patch` on the same sentence is a contradiction**,
+  not a merge — one role rules on WHERE the sentence lives and another on WHAT IT SAYS. The
+  join prints both as `RE-REVIEW`; send the block back. ⚠ **Do not let the synthesis order
+  decide it.** Step 2 applies every `drop` and `move` before steps 3 and 4, so relocation or
+  deletion would win silently — and a `correct` written at an anchor another role calls wrong
+  was measured against the wrong code.
 
 ⚠ **Dedup on the CLAIM, not the block**, before any of this.
 
