@@ -16,6 +16,9 @@ number as a semver claim, or "corrects" the next one to `0.2.0`.
 
 ## [Unreleased]
 
+
+## [0.1.7] — 2026-08-17
+
 Almost every entry below came from RUNNING the skill rather than reading it. Two
 real runs — one against a personal project, one against a larger tree — found
 defects a full day of reading the same files had not.
