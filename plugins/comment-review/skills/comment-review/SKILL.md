@@ -35,8 +35,10 @@ reading [`references/reviewer-brief.md`](references/reviewer-brief.md) itself.
 [`references/residue-check.md`](references/residue-check.md) loads at stage 5,
 [`references/compact.md`](references/compact.md) at stage 6 -- **before** the author sees
 anything -- [`references/write.md`](references/write.md) only after approval, and
-[`references/review.md`](references/review.md) at stage 8. **Nobody loads all of it**, and no
-file restates another.
+[`references/review.md`](references/review.md) at stage 8.
+[`references/re-review.md`](references/re-review.md) loads whenever a block goes BACK to the
+roles that ruled on it, which is after stage 5 and again after stage 6. **Nobody loads all of
+it**, and no file restates another.
 
 ## The seven verdicts
 
@@ -556,6 +558,12 @@ a false absence claim writes that it is true, where another refutes it by grep.
 correction to it, a review label -- and peeling one reveals the next. Send a block back when
 roles contradict, when a citation resolves to a *different* thing than the prose implies, or
 when you cannot write the replacement text.
+
+!! **[`references/re-review.md`](references/re-review.md) is what a re-review IS**, and it is
+the only file that says. Load it before sending anything back: it carries what the role is
+given, the three questions it answers about the JOINED block, the return shape, the channel,
+and when the rounds stop. ! The subject is never the finding -- *"do you stand by your verdict"*
+returns the verdict already filed.
 
 ## Stage 5 -- APPLY: one verdict, one FULL-LENGTH replacement
 

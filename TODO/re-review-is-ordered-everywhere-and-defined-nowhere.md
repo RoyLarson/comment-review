@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 8 tasks done
+Progress: 7 of 11 tasks done
 Owner:    session * Roy (* 1 ruling)
 Raised:   2026-08-17 (the first full run of 0.1.7 hit eight contradicted blocks and had to
           invent a procedure to clear them)
@@ -15,8 +15,8 @@ Raised:   2026-08-17 (the first full run of 0.1.7 hit eight contradicted blocks 
 - `SKILL.md` x 7 -- *"never to a tie-break"*, *"Re-review is normal"*, *"send the block back"*,
   *"you do not rule it here"*
 - `verdicts.py` x 3 -- prints the block list and *"Not a tie-break. Send the block back"*
-- `references/` holds `compact.md`, `residue-check.md`, `review.md`, `reviewer-brief.md`,
-  `write.md`. There is no `re-review.md`.
+- `references/` held `compact.md`, `residue-check.md`, `review.md`, `reviewer-brief.md`,
+  `write.md` and no `re-review.md`. ! It has one as of 2026-08-17 -- see the tasks below.
 
 Every one of them says what a re-review is NOT, and who must not decide it. None says who reads
 it, what they are given, what comes back, or when it stops.
@@ -107,19 +107,47 @@ answer alone.
       contradictions. That is a 6x change in how often round two fires, and it is a cost
       decision, not a detail.
 
-- [ ] State the CHANNEL as a rule, with the measurement. Nothing in the shipped tree describes
-      resuming an agent at all -- stage 4 is a single dispatch and no file mentions a second one.
+- [x] **WRITTEN 2026-08-17: `references/re-review.md`**, and `SKILL.md` now loads it -- both in
+      the references list at the top and at the *"Re-review is normal"* paragraph, which had
+      ordered a re-review for ten sites' worth of prose without naming what one is. The file
+      carries what the role is given, the three questions, the return shape, the channel and the
+      stop rule.
 
-- [ ] Decide when it TERMINATES. If round two comes back split, is there a bound, or does the
-      block reach the author as a `query`? The 2026-08-17 run did not hit this: both real
-      contradictions resolved in one round.
+- [x] **The CHANNEL is stated, with the measurement.** Message the roles that still hold their
+      read; do not dispatch fresh ones. Measured 2026-08-17: two roles answered in about two
+      minutes with ZERO tool calls, where a fresh instance would have re-read a 165 KB census to
+      answer eight questions. ! A role that cannot be reached is replaced and **that is said in
+      the report** -- it answers from the record rather than from its own read, and the two are
+      not the same evidence.
+
+- [x] ! **TERMINATION: one round, then the author** -- and this one is the SESSION'S call, not a
+      ruling. If a block comes back split it reaches the author as a `query` carrying both
+      answers. The argument is this file's own: once both roles have seen each other's records,
+      **a second round between the same readers returns the same two answers**, because nothing
+      further enters the argument. ! Overrule it if the cost of a `query` to the author turns out
+      higher than another round; nothing measured either.
+
+- [x] **Recorded: what the run measured about the GATE.** 8 blocks flagged, **2 genuine
+      contradictions**; six were composition or a sentence-level false positive. It is in the
+      file as the reason `SAME SENTENCE` is answered FIRST -- see
+      [`move-and-correct-compose`](move-and-correct-compose.md) and
+      [`the-unit-of-review-is-the-statement-not-the-block`](the-unit-of-review-is-the-statement-not-the-block.md).
+
+- [ ] * **WHICH BLOCKS get a round two -- still open, and it is a COST decision.** Roy's model,
+      *"the reviewers that had comments"*, is any block where two or more roles filed, not only
+      the contradicted ones. ! Measured on a live run: **51 of 150 blocks** had 2+ roles
+      converge, against 8 flagged as contradictions -- a 6x change in how often round two fires.
+      ! **Deliberately NOT in `re-review.md`.** That file defines the mechanism; WHEN it fires is
+      the caller's, the same way `compact.md` defines compaction and `SKILL.md` says stage 6 is
+      skipped without a cap.
 
 - [ ] Decide whether a re-review may be dispatched to a role that did NOT rule on the block.
       The run sent only to the two roles that collided. Widening it costs a re-read; not
-      widening it means a third role never learns the block was contested.
+      widening it means a third role never learns the block was contested. ! Partly answered:
+      the third case -- a block stage 6 must edit that NO role ruled on -- goes to all four, and
+      that is in the file. What is open is whether a CONTESTED block widens beyond its filers.
 
-- [ ] Record what the run measured about the GATE, since it is the reason re-review fired at
-      all: 8 blocks flagged, **2 genuine contradictions**. Six were composition or a
-      sentence-level false positive -- see
-      [`move-and-correct-compose`](move-and-correct-compose.md) and
-      [`the-unit-of-review-is-the-statement-not-the-block`](the-unit-of-review-is-the-statement-not-the-block.md).
+- [ ] ! `re-review.md` is PASTED into a round-2 message the way the brief is, so no agent file
+      names it -- which means `check_vocabulary.py` does not cover its terms for those roles. It
+      introduces one: **galley**. Defined inline there today. Decide whether it earns a
+      `vocabulary.toml` entry when 5b/6b are wired into `SKILL.md`'s stages.
