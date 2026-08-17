@@ -290,10 +290,11 @@ were given. A relative one resolves against whatever directory you are in, which
 guaranteed to be the skill's.
 
 ```bash
-python <skill>/scripts/census.py --repo . <paths...>          # no cap, no width rule
-python <skill>/scripts/census.py --cap 6 --width 88 --repo . <paths...>   # both published
-python <skill>/scripts/census.py --json --repo . <paths...> > <census>.json   # for stage 5
+python <skill>/scripts/census.py [--cap N] [--width N] --repo . <paths...>
+python <skill>/scripts/census.py [--cap N] [--width N] --json --repo . <paths...> > <census>.json
 ```
+
+⚠ **A flag only for a number 1.2 found PUBLISHED** — no flag where the repo publishes none.
 
 ⚠⚠ **Write it TWICE, and the second one is not optional.** The reviewers are handed the text
 census; **the stage-5 join reads the `--json` one and parses it as JSON**, so a run that wrote
