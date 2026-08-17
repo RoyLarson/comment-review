@@ -18,8 +18,17 @@ across two runs.** Observed on `todo_tool`, r1 against r2:
 | the *"Six call sites"* claim | `module-context` **cleared** it | `module-context` **corrected** it — four functions, and both test modules read the groups |
 | `_OWNER_SPLIT`'s *"five real fields"* | `module-context` **corrected** it — *"actually three"* | `module-context` **`query` — outside the code**, on the grounds that the fix erased the state that would settle it |
 
-⚠ The second row retracts something already acted on: r1's answer was relayed onward as a
-settled measurement, and r2's position is that it was never settleable. A `correct` that reads confident and a
+⚠⚠ **The second row RESOLVED, 2026-08-17, and both runs were right about different things.**
+The operator settled it from `git` rather than from the checkout: of the five fields, three used
+the separators the code parses and two used an em dash and a `⚠` continuation it cannot see. So
+r1's *"five is three"* was correct, and r2 was correct that **the checkout alone could not prove
+it** -- the state that would settle it had been erased by the very fix under review.
+
+⚠ That downgrades this row from a contradiction to a scope difference, and it sharpens the
+question rather than retiring it: a role that can settle a claim only from history, not from the
+tree, has no verdict for that. `query — outside the checkout` is the nearest, and it says
+"generated, gitignored, remote" -- not "the checkout no longer holds what would settle this,
+because this change removed it". ⚠ The first row is unresolved and remains the evidence. A `correct` that reads confident and a
 `query` that says nobody can tell are not adjacent verdicts.
 
 ⚠⚠ **This is not the disagreement the system is built for.** Two ROLES disagreeing is designed
