@@ -9,6 +9,7 @@ from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
 import record
+import verdicts
 
 CENSUS = [
     {
@@ -50,19 +51,28 @@ class TestWhatTheToolFills(unittest.TestCase):
     def test_the_address_is_built_from_the_census(self):
         self.assertEqual(self.records[0]["address"], "pkg/m.py:1-3")
 
-    def test_the_original_is_a_LINE_ARRAY(self):
-        self.assertEqual(self.records[0]["original"], ["Summary.", "", "Args:"])
+    def test_the_record_does_NOT_carry_the_block_text(self):
+        """!! The reviewer is told WHERE, not WHAT, and that is deliberate.
 
-    def test_a_blank_line_inside_a_block_survives(self):
-        # !! The defect this shape makes impossible. A blank line ending a field
-        # was 0.2.0's worst: it truncated BLOCK and CHANGE to their first
-        # paragraph and refused 113 of one reviewer's 134 correct findings.
-        self.assertIn("", self.records[0]["original"])
+        A record carrying the prose lets a reviewer produce a complete,
+        admissible ruling without opening the file, and nothing in the gate can
+        tell that from real work. Every role's remit requires the read.
+
+        !! The two errors are not symmetric, which is what decided it. Reading
+        the wrong lines makes `CLAIM` quote a sentence the census block does not
+        contain, and `block_problem` already catches that. Ruling from the
+        record instead of the code is invisible. ! Re-check that asymmetry
+        before reversing this; it has flipped three times.
+        """
+        self.assertNotIn("original", self.records[0])
 
     def test_every_seeded_field_is_present(self):
         for field in record.SEEDED:
             with self.subTest(field=field):
                 self.assertIn(field, self.records[0])
+
+    def test_only_the_index_and_the_address_are_seeded(self):
+        self.assertEqual(record.SEEDED, ("block", "address"))
 
 
 class TestWhatTheReviewerFills(unittest.TestCase):
@@ -89,6 +99,55 @@ class TestWhatTheReviewerFills(unittest.TestCase):
         # ! One more boundary that cannot be guessed wrong: it was a markdown
         # heading found with a regex.
         self.assertEqual(record.seed(CENSUS, "x")["code_concerns"], [])
+
+
+class TestTheTemplateStatesWhatIsAllowed(unittest.TestCase):
+    """A constrained field that does not say its values has only moved the guessing.
+
+    !! Every value here is DERIVED from the `Verdict` table, so adding a verdict
+    stays a ROW and this block cannot drift from what the gate enforces. These
+    tests pin the correspondence, not the current contents.
+    """
+
+    def setUp(self):
+        self.allowed = record.allowed()
+
+    def test_every_verdict_the_gate_knows_is_offered(self):
+        self.assertEqual(set(self.allowed["verdict"]), set(verdicts.VERDICTS))
+
+    def test_a_claim_key_is_the_gates_marker_without_its_colon(self):
+        for name, spec in verdicts.VERDICTS.items():
+            for marker in spec.claim_all:
+                with self.subTest(verdict=name, marker=marker):
+                    self.assertIn(marker.rstrip(":"), self.allowed["claim"][name])
+
+    def test_clean_is_offered_no_claim_keys(self):
+        self.assertEqual(self.allowed["claim"]["clean"], [])
+
+    def test_query_is_told_its_three_shapes(self):
+        self.assertEqual(self.allowed["values"]["shape"], list(verdicts.QUERY_SHAPES))
+        self.assertIn("shape", self.allowed["claim"]["query"])
+
+    def test_query_is_told_it_owes_attempted_and_settles(self):
+        # ! Both are `needs_` flags on the table, not markers, so they would be
+        # invisible to a reviewer that only saw the claim markers.
+        self.assertIn("attempted", self.allowed["claim"]["query"])
+        self.assertIn("settles", self.allowed["claim"]["query"])
+
+    def test_add_is_told_it_owes_an_anchor_and_a_side(self):
+        self.assertIn("anchor", self.allowed["claim"]["add"])
+        self.assertIn("side", self.allowed["claim"]["add"])
+        self.assertEqual(self.allowed["values"]["side"], ["above", "below"])
+
+    def test_the_boundary_shape_is_named(self):
+        # ! One of the three query shapes is a scope report rather than work,
+        # and a reader of the file alone cannot tell which.
+        self.assertEqual(self.allowed["scope_shape"], verdicts.OUT_OF_ROLE)
+        self.assertIn(self.allowed["scope_shape"], self.allowed["values"]["shape"])
+
+    def test_the_seeded_file_carries_it_before_the_records(self):
+        keys = list(record.seed(CENSUS, "x"))
+        self.assertLess(keys.index("allowed"), keys.index("records"))
 
 
 class TestCLI(unittest.TestCase):

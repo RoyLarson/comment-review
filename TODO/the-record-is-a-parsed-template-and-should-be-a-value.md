@@ -163,7 +163,7 @@ contract, which changed once already today.
 
 | | ruled |
 | --- | --- |
-| **the seed** | **THE TEMPLATE PRE-FILLS `block`, `address` and `original` from the census, and `record.py` CHECKS the original still matches.** The reviewer sets only `verdict`, `claim`, `reason`, `sources`, `change`. See the ruling below |
+| **the seed** | **THE TEMPLATE CARRIES `block` AND `address` -- WHERE, NOT WHAT.** The reviewer opens the file. It never transcribes the block and is never handed its text. See the ruling below |
 | **the break** | **CLEAN, but the old parser STAYS, deprecated.** Roy: *"clean break - but deprecate the code and leave it in there to parse out the other records just in case."* ! It also unstrands the two in-flight runs rather than forcing a restart |
 | **`CLAIM`** | **an OBJECT.** Its keys are the `Verdict` table's existing markers minus the colon, so adding a verdict stays a row |
 | **the module** | **a NEW file, `record.py`.** Roy: *"the modular-context should trigger stating that verdict.py seems to be doing more than one thing. It probably already is but this definitely would make that true."* ! The system's own rule applied to its own code |
@@ -173,7 +173,34 @@ contract, which changed once already today.
 seeding one, and whether a given one is well formed. `verdicts.py` owns what a SET of records
 MEANS against the census -- coverage, citations, contradictions, the work list.
 
-### * RULED 2026-08-17: the template PRE-FILLS the original, and the tool CHECKS it
+### * RULED 2026-08-17 (final): the record says WHERE, never WHAT
+
+**A reviewer is given `block` and `address`. It opens the file.** Roy: *"I think it would be
+better if we try just sending the block path to the reviewers and let them use the other stuff
+to determine -- but then the other error that introduces if they go to the wrong spot in the
+code."*
+
+!! **THE TWO ERRORS ARE NOT SYMMETRIC, AND THAT IS THE WHOLE ARGUMENT.**
+
+| the error | is it caught? |
+| --- | --- |
+| the reviewer reads the WRONG LINES | **yes, today.** Its `CLAIM` then quotes a sentence the census block does not contain, and `block_problem` exists for exactly that -- *"catches a finding attached to the wrong block"* -- against a census the gate has already loaded |
+| the reviewer rules FROM THE RECORD without opening the file | **no, and nothing could.** A complete, well-formed, admissible record is producible from the prose alone, and no check can tell it from real work |
+
+**Every role's remit requires the read**: block-context checks a claim against the code it sits
+with, ownership-context cannot resolve an anchor without reading, function-context reads name,
+signature and body together. Handing over the text makes skipping that possible AND cheap --
+the same shape as the fabricated-clean hole, the format lowering the price of not doing the job.
+
+!! **THIS HAS FLIPPED THREE TIMES -- drop it, seed it, drop it. Re-check the asymmetry before a
+fourth**, because it is the only argument here that does not rest on taste.
+
+! **Two costs accepted.** Standalone readability becomes a RENDERING concern: stage 5 and
+re-review inject the census text when they display a record, which is real work. And the
+integrity check settled an hour earlier **disappears with the field** -- no pre-filled text
+means nothing to corrupt, so `record.py --check` verifies only `block` and `address`.
+
+### Superseded: the template pre-fills the original, and the tool checks it
 
 Roy: *"it is going to come as a template so it is not going to be figure out how to fill out a
 json message I can parse. It is going to be fill out THIS json message so I can load it. It will

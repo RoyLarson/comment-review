@@ -10,20 +10,24 @@ span absorbing the punctuation beside it. Each of those reported its error
 against work that was CORRECT.
 
 !! A REVIEWER FILLS A TEMPLATE; IT DOES NOT COMPOSE A DOCUMENT. `--seed` writes
-one slot per prose block with `block`, `address` and `original` already in it,
-so the reviewer sets only what it decides: `verdict`, `claim`, `reason`,
-`sources`, `change`. **Validation then asks whether the answer is COMPLETE
-rather than whether the syntax can be parsed** -- a missing field is visibly
-empty, not absent.
+one slot per prose block with `block` and `address` already in it, so the
+reviewer sets only what it decides: `verdict`, `claim`, `reason`, `sources`,
+`change`. **Validation then asks whether the answer is COMPLETE rather than
+whether the syntax can be parsed** -- a missing field is visibly empty, not
+absent.
 
 !! THE REVIEWER NEVER TRANSCRIBES THE BLOCK, and that retires a whole class of
 refusal rather than a bug in one. Measured 2026-08-17: **83 refusals in one run
 were spent on transcription fidelity, and not one of them was about a finding.**
 
-! `original` and `change` are LINE ARRAYS, which is what the census stores and
-what a diff can compare without aligning tokens. A token diff had to decide
-where a span BEGAN, and got it wrong on a trailing full stop and on markdown
-emphasis; lines have no such question.
+!! IT IS NOT GIVEN THE TEXT EITHER -- only where to find it. A record carrying
+the prose lets a reviewer rule without opening the file, which every role's
+remit forbids and no check can detect. `slot()` carries the argument.
+
+! `change` is a LINE ARRAY, which is what the census stores and what a diff can
+compare without aligning tokens. A token diff had to decide where a span BEGAN,
+and got it wrong on a trailing full stop and on markdown emphasis; lines have
+no such question.
 
 ! COVERAGE IS STRUCTURAL. Every prose block gets a slot, so a block nobody
 ruled on is a slot with a null verdict rather than an index missing from a
@@ -38,11 +42,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
+from verdicts import (  # noqa: E402  -- path shim must run first
+    OUT_OF_ROLE,
+    QUERY_SHAPES,
+    VERDICTS,
+)
 
-# The fields the TOOL fills from the census, and which `--check` verifies are
-# unchanged. ! A mismatch here means the file was CORRUPTED, never that the
-# reviewer misquoted -- it never typed them.
-SEEDED = ("block", "address", "original")
+# The fields the TOOL fills from the census. ! A mismatch here means the file
+# was CORRUPTED, never that the reviewer misquoted -- it never typed them.
+SEEDED = ("block", "address")
 # The fields the REVIEWER fills. Empty is a legitimate answer for every one of
 # them except `verdict`, which is the ruling itself.
 ANSWERED = ("verdict", "claim", "reason", "sources", "change")
@@ -71,12 +79,25 @@ def slot(index: int, block: dict) -> dict:
     """
     return {
         "block": index,
+        # !! THE ADDRESS AND NOTHING ELSE. The record does not carry the block's
+        # text, so a reviewer cannot rule on it without OPENING THE FILE -- and
+        # every role's remit requires that: block-context checks a claim against
+        # the code it sits with, ownership-context cannot resolve an anchor
+        # without reading, function-context reads name, signature and body
+        # together.
+        #
+        # !! THE TWO ERRORS ARE NOT SYMMETRIC, which is what decides this. Hand
+        # a reviewer the prose and it can produce a complete, admissible record
+        # without opening anything, and NOTHING in the gate can tell that from
+        # real work. Hand it only the address and it may read the wrong lines --
+        # but then its `CLAIM` quotes a sentence the census block does not
+        # contain, and `block_problem` already catches exactly that, using a
+        # census the gate has already loaded. **One error is checked; the other
+        # is invisible.**
+        #
+        # ! Re-check that asymmetry before reversing this. It has flipped three
+        # times, and it is the only argument here that does not rest on taste.
         "address": f"{block['path']}:{block['start']}-{block['end']}",
-        # ! The lines AS THE FILE READS THEM, which is what the census stores
-        # and what a reviewer needs in front of it. Not the joined text: that
-        # is a normalisation, and normalising before a diff is what made a
-        # token comparison necessary in the first place.
-        "original": list(block.get("raw_lines") or []),
         # ! `null`, not `""`. An unruled block must be distinguishable from one
         # ruled with an empty verdict, and only one of those is a coverage gap.
         "verdict": None,
@@ -87,10 +108,56 @@ def slot(index: int, block: dict) -> dict:
     }
 
 
+def allowed() -> dict:
+    """What may go in each CONSTRAINED field, stated in the file itself.
+
+    !! A TEMPLATE THAT CONSTRAINS A FIELD WITHOUT SAYING WHAT IS ALLOWED HAS
+    ONLY MOVED THE GUESSING. Half of *"fill out THIS message"* is the message
+    saying what may go in each slot -- otherwise the reviewer is back to
+    remembering a contract, which is the thing the template replaces.
+
+    !! DERIVED FROM THE VERDICT TABLE, never restated. A JSON claim key is the
+    table's marker minus its colon, so adding a verdict stays a ROW and this
+    block cannot drift from what the gate enforces. `tests/test_record.py` pins
+    that correspondence.
+
+    Returns:
+        `verdict` -> the seven; `claim` -> the keys each verdict's claim must
+        carry; `values` -> the fields whose value is itself a closed set.
+    """
+    claims: dict[str, list[str]] = {}
+    for name, spec in VERDICTS.items():
+        keys = [marker.rstrip(":") for marker in spec.claim_all]
+        # ! `query` is the one whose claim_any is a set of PHRASES rather than
+        # keys -- it names its SHAPE. The phrase is the value; the key is fixed.
+        if spec.claim_any:
+            keys.append("shape")
+        if spec.needs_attempted:
+            keys.append("attempted")
+        if spec.needs_settles:
+            keys.append("settles")
+        if spec.needs_anchor:
+            keys += ["anchor", "side"]
+        claims[name] = keys
+    return {
+        "verdict": sorted(VERDICTS),
+        "claim": claims,
+        "values": {
+            "shape": list(QUERY_SHAPES),
+            "side": ["above", "below"],
+        },
+        # ! The one shape that is a BOUNDARY REPORT rather than work, named so a
+        # reader of this file can tell the three apart without the brief.
+        "scope_shape": OUT_OF_ROLE,
+    }
+
+
 def seed(census: list[dict], reviewer: str) -> dict:
     """The whole file a reviewer is handed, ready to fill."""
     return {
         "reviewer": reviewer,
+        # ! FIRST, so it is read before the records it governs.
+        "allowed": allowed(),
         "records": [slot(i, b) for i, b in prose_blocks(census)],
         # ! Code problems get one line each and carry no verdict. A list rather
         # than a section to find with a regex, which is one more boundary that
