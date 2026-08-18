@@ -11,6 +11,7 @@ from pathlib import Path
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
 import census
 import record
+import desk
 import verdicts
 
 BRIEF = (
@@ -1717,8 +1718,7 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
         bad = [
             (b["kind"], b["path"], b["start"])
             for b in prose
-            if verdicts.as_block("\n".join(b["raw_lines"]), b).lower()
-            != b["text"].lower()
+            if desk.as_block("\n".join(b["raw_lines"]), b).lower() != b["text"].lower()
         ]
         self.assertEqual(
             bad, [], f"{len(bad)} of {len(prose)} blocks cannot round-trip"
@@ -2238,7 +2238,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
                 self.assertIn("cite", source)
                 self.assertIn("verbatim", source)
                 self.assertRegex(source["cite"], r":\d+")
-                self.assertGreater(len(source["verbatim"]), verdicts.MIN_NEEDLE)
+                self.assertGreater(len(source["verbatim"]), desk.MIN_NEEDLE)
 
     def test_its_change_is_an_array_of_file_ready_lines(self):
         self.assertIsInstance(self.record["change"], list)
@@ -2639,7 +2639,7 @@ class TestAChecksOwnFieldOutranksTheRenderedString(unittest.TestCase):
             },
             change="",
         )
-        self.assertEqual(verdicts._said(f, "shape"), "outside my role")
+        self.assertEqual(record._said(f, "shape"), "outside my role")
 
 
 class TestAMalformedEntryIsReportedNotRaised(unittest.TestCase):

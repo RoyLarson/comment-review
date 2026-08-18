@@ -142,7 +142,7 @@ class TestTheTemplateStatesWhatIsAllowed(unittest.TestCase):
     def test_the_boundary_shape_is_named(self):
         # ! One of the three query shapes is a scope report rather than work,
         # and a reader of the file alone cannot tell which.
-        self.assertEqual(self.allowed["scope_shape"], verdicts.OUT_OF_ROLE)
+        self.assertEqual(self.allowed["scope_shape"], record.OUT_OF_ROLE)
         self.assertIn(self.allowed["scope_shape"], self.allowed["values"]["shape"])
 
     def test_the_seeded_file_carries_it_before_the_records(self):
