@@ -186,8 +186,6 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
     FILE = "a = 1\nb = 2\nc = 3\n"
 
     def _census(self, text):
-        import census
-
         prose = census.blocks_stdlib(Path("m.py"), text)
         return [b.__dict__ for b in census.intervals(Path("m.py"), text, prose)]
 
@@ -285,8 +283,6 @@ class TestADocstringBlockMatchesItsFile(unittest.TestCase):
 '''
 
     def _census(self):
-        import census
-
         return [b.__dict__ for b in census.blocks_stdlib(Path("m.py"), self.SOURCE)]
 
     def test_the_docstring_block_matches_the_source_it_came_from(self):
@@ -353,8 +349,6 @@ class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
     SOURCE = "def f():\n    z = 3  # trailing\n    return z\n"
 
     def _blocks(self, text=None):
-        import census
-
         return [
             b.__dict__ for b in census.blocks_stdlib(Path("m.py"), text or self.SOURCE)
         ]
@@ -408,8 +402,6 @@ class TestTheGalleyRefusesAPartialBlockEndToEnd(unittest.TestCase):
     SOURCE = "def f():\n    z = 3  # trailing\n    return z\n"
 
     def test_the_statement_survives_and_the_run_refuses(self):
-        import census
-
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "m.py").write_text(self.SOURCE, encoding="utf-8")

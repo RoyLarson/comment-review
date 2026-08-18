@@ -2468,9 +2468,14 @@ class TestAFilledFieldOutranksTheWordSearch(unittest.TestCase):
             "settles": self.SETTLES,
         }
         base.update(claim)
-        f = _finding(block=1, verdict="query", claim=verdicts.claim_text("query", base))
-        f.claim_fields = base
-        return f
+        # ! `_finding(**kw)` forwards to `Finding(...)`, so the fields go in
+        # with everything else rather than being set on the way out.
+        return _finding(
+            block=1,
+            verdict="query",
+            claim=verdicts.claim_text("query", base),
+            claim_fields=base,
+        )
 
     def test_a_settles_in_its_own_words_passes(self):
         self.assertIsNone(verdicts.payload_problem(self._query()))
@@ -2519,19 +2524,22 @@ class TestAChecksOwnFieldOutranksTheRenderedString(unittest.TestCase):
     """
 
     def _f(self, verdict, claim, **kw):
+        """A record with typed fields, through the factory the file already has.
+
+        ! `_finding` exists so a field added to the record costs ONE line
+        here; restating the eight by hand is the twenty-site edit its own
+        docstring describes. This adds only what a typed record needs: the
+        rendered claim, and the fields it was rendered from.
+        """
         fields = {
-            "reviewer": "r",
-            "block": 1,
             "verdict": verdict,
             "claim": verdicts.claim_text(verdict, claim),
-            "reason": "what I derived from the source",
-            "sources": ["a.py:1 | x"],
-            "change": "# x",
-            "address": "a.py:1-1",
             "claim_fields": claim,
+            "reason": "what I derived from the source",
+            "address": "a.py:1-1",
         }
         fields.update(kw)
-        return verdicts.Finding(**fields)
+        return _finding(**fields)
 
     def test_the_echo_check_fires_on_a_JSON_record(self):
         """!! It could not fire on ANY of them, for any verdict.

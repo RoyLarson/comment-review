@@ -436,9 +436,6 @@ class TestCLI(unittest.TestCase):
         self.assertRegex(result.stdout, r"line \d+ column \d+")
 
 
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
-# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
-# than `unittest discover`.
 class TestABlankClaimKeyIsMissing(unittest.TestCase):
     """A key present and empty answers nothing, and must not read as answered.
 
@@ -607,5 +604,8 @@ class TestTheAnchorFormIsCheckedHereToo(unittest.TestCase):
         self.assertIn("backticks", record.allowed()["anchor_form"])
 
 
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
+# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
+# than `unittest discover`.
 if __name__ == "__main__":
     unittest.main()
