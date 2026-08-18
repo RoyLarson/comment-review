@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 9 tasks done
+Progress: 3 of 10 tasks done
 Owner:    session (serialisation and 4b ruled 2026-08-17; the rest is build)
 Raised:   2026-08-16 (Roy: "Does this require a 4a, b, c -- 4a the ownership run,
           b the resolution and update to the pieces made by the reviewer so the
@@ -31,6 +31,42 @@ there.
 so `block-context` measures a misplaced claim against whatever code it sits with, and spends a
 verdict on it, before anything knows the placement is wrong. The join now sends that block back
 -- which is a round trip, not a prevention.
+
+## !! WHY 4a/b/c EXISTS AT ALL, stated 2026-08-18 with the consequences known
+
+Roy: this role is the reason for the split. The two rulings that make it concrete arrived two
+days after the shape was sketched, and the role file now carries both.
+
+**IT RULES ON TRUTH, and the truth is PRIOR.** Roy, 2026-08-18: it settles *"is this statement
+specifically about this piece of code"* and *"is this statement about any specific piece of
+code or documentation in this project"*. Both are propositions that can be false and are
+settled by evidence. What it does not rule on is the truth of what the sentence ASSERTS -- the
+count, the bound, the worked example -- which is the other three's, each at its own scope.
+**Yours is the truth of the ANCHORING; theirs is the truth of the ASSERTION.**
+
+! The role file had understated this as *"You do not rule on whether the claim is TRUE ... You
+rule on whether truth is assessable here at all."* Assessability IS a truth ruling. Corrected
+in place, together with the frontmatter a dispatcher reads.
+
+**AND IT IS NEVER DROPPED.** Ruled 2026-08-18: a run may omit `block-context`,
+`function-context` or `module-context` and still be a review; omitting this one leaves every
+remaining verdict resting on an assumption nobody made. So the legal sets are
+`{ownership-context}` plus any subset of the other three -- which is the same asymmetry 4a/b/c
+encodes in TIME, now stated as a property of the ROLE.
+
+! **The two are the same fact seen from two sides.** 4a/b/c exists because the other three
+cannot correctly read until this one has answered; the never-dropped rule exists because they
+cannot correctly read if it never answers at all. A run that keeps all four but reads them
+concurrently has the ordering defect this file is about; a run that drops this one has the
+population defect. Both end with a claim measured against code it does not belong to.
+
+! **The scope widened with the restatement, and that is worth flagging rather than burying.**
+The file asked whether a block would be truthy *"in the right place"* with the surrounding text
+file-scoped -- *"equally useful anywhere in the FILE"*. Roy's second proposition is
+project-wide and names documentation, so the role file now says the right place is anywhere in
+the PROJECT. That changes a verdict: prose about nothing in the project is a `drop`, prose
+about something elsewhere in it is a `move`, and reaching for `drop` because the subject is not
+in THIS file is how a true sentence gets deleted.
 
 ## The shape Roy sketched
 
@@ -193,6 +229,14 @@ Permissions has no counterpart, and needs none -- nobody clears rights on a comm
 four-for-four with one function automated. Re-check it when a fifth role is proposed.
 
 ## Tasks
+
+- [x] **DONE 2026-08-18 -- the role file states its remit at full width.** Two propositions
+      named, anchoring-truth distinguished from assertion-truth, the never-dropped rule stated,
+      and the right place widened from the file to the project. The frontmatter `description`
+      carries it too, because that is what a dispatcher reads. ! The frontmatter gate earned
+      its place on the way in: the first draft put a colon-space in `description`, which ends a
+      plain YAML scalar, and `claude plugin validate` plus `tests/test_frontmatter.py` both
+      refused it before it shipped.
 
 - [x] * **RULED 2026-08-17: stage 4 SERIALISES.** Roy, on the desk mapping above: *"I guess
       that means we go back to 4A - ownership runs 4B - marks are applied 4C - the other
