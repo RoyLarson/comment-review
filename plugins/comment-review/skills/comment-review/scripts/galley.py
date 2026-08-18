@@ -96,16 +96,49 @@ def block_matches(lines: list[str], block: dict) -> bool:
     ! The census may be older than the file. Splicing a range whose content has
     moved writes the replacement over whatever is there now, which is the one
     failure a galley must not produce quietly.
+
+    !! AN EMPTY INTERVAL IS CHECKED DIFFERENTLY, because it has no text to
+    compare. What must still hold is that it is still EMPTY: every line strictly
+    between its two code lines is blank. An `add` is the verdict that cites an
+    interval, and its whole finding is that the gap holds no prose -- so prose
+    appearing there since the census is exactly the staleness that matters.
+
+    ! Before this, `raw_lines` being empty answered False, which refused every
+    `add` in the run. It read as a stale range and was a block with nothing
+    stored, and the message said the range no longer matched the census.
     """
     start, end = block["start"], block["end"]
     if start < 1 or end > len(lines) or start > end:
         return False
+    if block.get("kind") == "interval":
+        return all(not ln.strip() for ln in lines[start : end - 1])
     stored = block.get("raw_lines") or []
     if not stored:
         return False
     return [ln.rstrip() for ln in lines[start - 1 : end]] == [
         ln.rstrip() for ln in stored
     ]
+
+
+def splice_range(block: dict) -> tuple[int, int]:
+    """The 1-based inclusive lines `splice` replaces to realise this block's edit.
+
+    !! A PROSE BLOCK IS REPLACED; AN INTERVAL IS INSERTED INTO. An interval's
+    `start` and `end` are the two lines of CODE that bound it, so replacing
+    `start..end` would write the replacement over both of them. What the edit
+    means is "put this between them", which is `start + 1 .. end - 1` -- the
+    gap itself. For adjacent code lines that is `n+1 .. n`, an empty range, and
+    `splice` assigns into an empty slice, which is a pure insertion.
+
+    Args:
+        block: one census entry.
+
+    Returns:
+        `(start, end)` for `splice`.
+    """
+    if block.get("kind") == "interval":
+        return (block["start"] + 1, block["end"] - 1)
+    return (block["start"], block["end"])
 
 
 def main() -> int:
@@ -171,7 +204,9 @@ def main() -> int:
             refused += len(file_edits)
             continue
         lines = text.splitlines()
-        ranges = [(s, e, r) for s, e, r, _ in file_edits]
+        # ! The range comes from the BLOCK, not from the census numbers the
+        # edit was grouped by: an interval is inserted into, not replaced.
+        ranges = [(*splice_range(block), r) for _, _, r, block in file_edits]
 
         # ! Every block is checked against the file BEFORE anything is written,
         # so one stale range refuses its file rather than half-splicing it.
@@ -184,7 +219,13 @@ def main() -> int:
             refused += len(file_edits)
             continue
         if stale:
-            print(f"REFUSED  {rel}: {len(stale)} range(s) no longer match the census")
+            # ! NAME THE RANGES. "3 range(s) no longer match" sends a reader to
+            # diff a whole file; the lines say which block to look at.
+            where = ", ".join(f"{s}-{e}" for s, e in stale)
+            print(
+                f"REFUSED  {rel}: {len(stale)} range(s) no longer match"
+                f" the census: {where}"
+            )
             refused += len(file_edits)
             continue
 

@@ -665,6 +665,7 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
             flush()
     flush()
 
+    source_lines = text.splitlines()
     try:
         tree = ast.parse(text)
     except SyntaxError as e:
@@ -687,16 +688,32 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
         if not doc:
             continue
         stmt = node.body[0]
+        start = stmt.lineno
+        end = getattr(stmt, "end_lineno", stmt.lineno) or stmt.lineno
+        # !! `raw_lines` IS THE FILE'S LINES, sliced, and never the AST value.
+        # `ast.get_docstring` returns the string CONTENT: no quote delimiters,
+        # and no indent on the first line. Stored, it made every consumer that
+        # compares a block to the file compare unlike things -- measured
+        # 2026-08-17 on `galley.py`'s own census, `block_matches` returned False
+        # for all six docstring blocks of an UNMODIFIED file and True for all
+        # five comment blocks, so a docstring edit was refused as stale and the
+        # galley could not be set for it at all. `text` is the whole source and
+        # the node carries 1-based inclusive lines, so the slice is exact.
+        raw = source_lines[start - 1 : end]
         out.append(
             Block(
                 path=path.as_posix(),
-                start=stmt.lineno,
-                end=getattr(stmt, "end_lineno", stmt.lineno) or stmt.lineno,
+                start=start,
+                end=end,
                 kind="docstring",
-                lines=len(doc.splitlines()),
+                # ! The PHYSICAL count, which is what `end - start` spans. The
+                # AST value is one line short of a multi-line docstring, having
+                # no closing-delimiter line, so `lines` and `len(raw_lines)`
+                # disagreed by one on every one of them.
+                lines=len(raw),
                 text=re.sub(r"\s+", " ", doc).strip(),
                 anchor=getattr(node, "name", "<module>"),
-                raw_lines=doc.splitlines(),
+                raw_lines=raw,
             )
         )
     out.extend(_annotated_docs(path, tree))
@@ -878,14 +895,16 @@ def code_lines(text: str, prose: list[Block]) -> set[int]:
         # opener, so its stored text is a proper tail of the physical line
         # exactly when something real comes before it.
         #
-        # !! The prefix must be CODE, not a delimiter. A structural docstring's
-        # `raw_lines` are the AST VALUE, not the file's lines, so one opening on
-        # its quote line looks exactly like a suffix -- `    """Facts about...`
-        # ends with `Facts about...` -- and the leading `"""` is not blank. This
-        # fired on EVERY Python docstring and called its first line code.
-        # Measured 2026-08-17 on `repo.py`: eight spurious `interval` blocks
-        # overlapping real docstrings, in the one artefact four reviewers are
-        # bound by and the one an `add` cites to place missing prose.
+        # !! The prefix must be CODE, not a delimiter, and a PEP 727 `Doc()`
+        # still reaches here that way: its block is a string literal inside a
+        # line of code, so its stored text is a genuine suffix of a line that
+        # really does begin with code. A structural docstring no longer can --
+        # its `raw_lines` is now the file's own slice, so `physical == stored`
+        # and the suffix test does not fire. It did fire on every one of them
+        # while they held the AST value, because `    """Facts about...` ends
+        # with `Facts about...` and the leading `"""` is not blank. Measured
+        # 2026-08-17 on `repo.py`: eight spurious `interval` blocks overlapping
+        # real docstrings, in the one artefact four reviewers are bound by.
         #
         # ! Tested on the PREFIX rather than on the kind or the tier: a `///`
         # run after a statement is a `docstring` too and its discard is

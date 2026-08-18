@@ -162,5 +162,116 @@ class TestCLI(unittest.TestCase):
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
 # exists, so `python tests/<file>.py` reports a green bar over a shorter suite
 # than `unittest discover`.
+class TestAnIntervalIsInsertedInto(unittest.TestCase):
+    """An `add` cites the empty INTERVAL its prose is missing from.
+
+    !! An interval's `start` and `end` are the two lines of CODE that bound it,
+    so replacing `start..end` writes over both of them. Measured 2026-08-17 on
+    the first cycle run: `block_matches` answered False for all 99 intervals in
+    one census, so every `add` was refused before the range was ever used --
+    which hid the fact that the range would have deleted code.
+    """
+
+    FILE = "a = 1\nb = 2\nc = 3\n"
+
+    def _interval(self, start, end):
+        return {
+            "path": "m.py",
+            "start": start,
+            "end": end,
+            "kind": "interval",
+            "lines": 0,
+            "raw_lines": [],
+        }
+
+    def test_adjacent_code_lines_give_an_EMPTY_range(self):
+        # ! `n+1 .. n` -- `splice` assigns into an empty slice, which inserts.
+        self.assertEqual(galley.splice_range(self._interval(1, 2)), (2, 1))
+
+    def test_a_prose_block_keeps_its_own_range(self):
+        block = {"start": 4, "end": 6, "kind": "comment", "raw_lines": ["# x"]}
+        self.assertEqual(galley.splice_range(block), (4, 6))
+
+    def test_the_insertion_lands_BETWEEN_the_two_code_lines(self):
+        start, end = galley.splice_range(self._interval(1, 2))
+        out = galley.splice(self.FILE, [(start, end, "# note")])
+        self.assertEqual(out, "a = 1\n# note\nb = 2\nc = 3\n")
+
+    def test_it_deletes_no_code(self):
+        # !! The failure this range exists to avoid: `(1, 2)` would have
+        # replaced BOTH bounding lines with the new prose.
+        start, end = galley.splice_range(self._interval(1, 2))
+        out = galley.splice(self.FILE, [(start, end, "# note")])
+        for line in ("a = 1", "b = 2", "c = 3"):
+            self.assertIn(line, out)
+
+    def test_an_empty_interval_MATCHES(self):
+        lines = self.FILE.splitlines()
+        self.assertTrue(galley.block_matches(lines, self._interval(1, 2)))
+
+    def test_an_interval_spanning_a_blank_line_matches(self):
+        lines = "a = 1\n\nb = 2\n".splitlines()
+        self.assertTrue(galley.block_matches(lines, self._interval(1, 3)))
+
+    def test_an_interval_that_GAINED_prose_is_stale(self):
+        # !! The staleness that matters for an `add`: the gap it says holds no
+        # prose now holds some.
+        lines = "a = 1\n# someone wrote this\nb = 2\n".splitlines()
+        self.assertFalse(galley.block_matches(lines, self._interval(1, 3)))
+
+    def test_an_interval_past_the_end_of_the_file_is_stale(self):
+        self.assertFalse(
+            galley.block_matches(self.FILE.splitlines(), self._interval(3, 9))
+        )
+
+
+class TestADocstringBlockMatchesItsFile(unittest.TestCase):
+    """`raw_lines` is the file's slice, so a docstring compares to itself.
+
+    !! Measured 2026-08-17 before the census fix: on `galley.py`'s own census,
+    all six docstring blocks answered False against an UNMODIFIED file and all
+    five comment blocks answered True. A docstring edit could not be spliced at
+    all, which blocked every re-review whose block was a docstring.
+    """
+
+    SOURCE = '''def f():
+    """One line.
+
+    More prose.
+    """
+    return 1
+'''
+
+    def _census(self):
+        import census
+
+        return [
+            b.__dict__ if hasattr(b, "__dict__") else b
+            for b in census.blocks_stdlib(Path("m.py"), self.SOURCE)
+        ]
+
+    def test_the_docstring_block_matches_the_source_it_came_from(self):
+        blocks = [b for b in self._census() if b["kind"] == "docstring"]
+        self.assertEqual(len(blocks), 1)
+        self.assertTrue(galley.block_matches(self.SOURCE.splitlines(), blocks[0]))
+
+    def test_raw_lines_carries_the_delimiters(self):
+        # ! The AST value has neither the opening `"""` nor its indent.
+        block = next(b for b in self._census() if b["kind"] == "docstring")
+        self.assertTrue(block["raw_lines"][0].lstrip().startswith('"""'))
+        self.assertTrue(block["raw_lines"][-1].strip().endswith('"""'))
+
+    def test_lines_agrees_with_raw_lines(self):
+        # ! They disagreed by one on every multi-line docstring: the AST value
+        # has no closing-delimiter line.
+        block = next(b for b in self._census() if b["kind"] == "docstring")
+        self.assertEqual(block["lines"], len(block["raw_lines"]))
+
+    def test_an_EDITED_docstring_is_stale(self):
+        block = next(b for b in self._census() if b["kind"] == "docstring")
+        edited = self.SOURCE.replace("More prose.", "Different prose.")
+        self.assertFalse(galley.block_matches(edited.splitlines(), block))
+
+
 if __name__ == "__main__":
     unittest.main()
