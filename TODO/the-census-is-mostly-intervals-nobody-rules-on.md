@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 9 tasks done
 Owner:    session * Roy (* 1 ruling -- whether a reviewer is still handed the whole
           census. The enumeration itself stands and the filter depends on it)
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -38,6 +38,34 @@ everything below:
 enumerated; the copy pasted into a reviewer's prompt stops being the whole thing. The cost
 ruled acceptable in 2026-08-17 is still paid -- once, on disk, by the tool -- rather than four
 times, in four prompts.
+
+## The design, as Roy stated it 2026-08-18
+
+1. **The census is a HASHED STATIC TABLE** -- exact, constant, fully enumerated. It is computed
+   once and addressed by index; nothing that follows edits it.
+2. **The agents get a FILTERED VIEW of that table.**
+3. **A destination outside their set comes from the TOOL.** They are told: if you need to move
+   something to another spot in the code and it is not in your current set, use the tool to
+   determine the values for the correct place.
+4. !! **A RAW LINE NUMBER IS DISMISSED.** Any reference that says *put it here* by naming a line
+   is not a destination and is not accepted.
+5. **After the first round, the spot joins the filtered table FOR EVERY AGENT.** A destination
+   one role looked up is common ground in round 2, where a re-review rules on a joined block and
+   has to see where its neighbours sent things.
+
+### ! What rule 4 buys, beyond bytes
+
+**`move`'s destination is the one payload in this system that NOTHING checks.** Its row requires
+the `from` and `to` KEYS -- `claim_all=("from:", "to:")` -- and stops there: `quotes_original` is
+empty, so `from` is not compared against the block, and no check resolves `to` at all. A `move`
+can name a destination that does not exist and the join passes it.
+
+! Making the destination a census index makes it resolvable exactly as an address already is:
+the same lookup, the same failure message, the same refusal. **The cheapest form of the filter
+is also the first time a relocation says somewhere real.**
+
+! It also removes the ambiguity `LOCATION` was retired for. A line number can mean where the
+prose SITS or where it SHOULD GO; an index into a table of intervals can only mean the second.
 
 ## What it costs, per reviewer, before any work is done
 
@@ -89,6 +117,16 @@ not.** The change is to filter the census the same way and give the reviewer som
       two given lines, and which interval sits above or below a named declaration -- the
       `add`'s anchor question, in the reviewer's own terms. ! It answers with the index from
       the FULL census, which is the only thing that makes the filtered one citable.
+
+- [ ] **Refuse a destination that is not a census index**, which is rule 4 and is enforceable
+      today: `move`'s `to` is free text no check resolves. Verify: a `move` naming a line
+      number is refused with the message an unresolvable address already gets, and a `move`
+      naming an index resolves through the same path.
+
+- [ ] **Grow the filtered table between rounds, for every role.** Rule 5. A spot one role looked
+      up is in everyone's view at 5b, because a re-review rules on the JOINED block and must be
+      able to see where a neighbour sent something. ! Whatever is added is a projection of the
+      same static table -- indices never change, the view widens.
 
 - [ ] **Keep the indices STABLE -- a projection, never a renumbering.** The filtered census
       must carry the same block numbers as the full one, or every citation resolves to the
