@@ -460,6 +460,49 @@ def _is(f: Finding, trait: str) -> bool:
     return bool(spec and getattr(spec, trait))
 
 
+def _said(f: Finding, key: str) -> str:
+    """What the record put in this `claim` key, or "" if it carries no fields.
+
+    !! THE FIELD IS THE ANSWER; the rendered string is a fallback. `claim_text`
+    builds one string out of every key, so a check that searches it for one
+    key's value can be satisfied by another key's prose. Measured 2026-08-17: a
+    `query` whose `settles` mentioned the phrase "outside my role" was
+    classified as a scope declaration and dropped out of the work list.
+
+    ! Empty for a 0.2.x text record, and every caller falls back to searching
+    the string for exactly that case. That is the only path the deprecated
+    format has.
+
+    Args:
+        f: the finding.
+        key: the `claim` key wanted.
+
+    Returns:
+        The value as a string, or "".
+    """
+    return str(f.claim_fields.get(key, "")) if f.claim_fields else ""
+
+
+def _claim_values(f: Finding) -> str:
+    """Everything the reviewer WROTE in `claim`, without the marker words.
+
+    !! `claim_text` prepends each key as a marker -- `drop: "..."` -- so a check
+    comparing prose against the rendered string is comparing against a string
+    that can never equal it. Measured 2026-08-17: the REASON-restates-CLAIM
+    gate could not fire on any JSON record, for any verdict. It was switched
+    off by the bridge that generated the string, silently.
+
+    Args:
+        f: the finding.
+
+    Returns:
+        The claim's values joined, or the rendered claim for a text record.
+    """
+    if not f.claim_fields:
+        return f.claim
+    return " ".join(str(v) for v in f.claim_fields.values())
+
+
 def _answered(f: Finding, key: str, pattern: re.Pattern, probe: str) -> bool:
     """Did the reviewer answer `key` -- by its field, or failing that its words?
 
@@ -811,13 +854,25 @@ def payload_problem(f: Finding) -> str | None:
     # !! EQUALITY, never containment. A REASON that quotes the claim and then
     # says what is wrong with it is doing its job, and a containment test would
     # refuse exactly the well-written ones.
-    if f.claim.strip() and _words(f.reason) == _words(f.claim):
+    # ! Against the claim's VALUES, not its rendered form -- the markers
+    # `claim_text` prepends are not the reviewer's words, and comparing prose
+    # against them made this unable to fire on any JSON record.
+    echoed = _claim_values(f)
+    if echoed.strip() and _words(f.reason) == _words(echoed):
         return "REASON restates CLAIM -- say what you derived, not what it says"
 
     claim = f.claim.lower()
     if any(marker not in claim for marker in spec.claim_all):
         return spec.claim_help
-    named = [s for s in spec.claim_any if s in claim]
+    # ! The SHAPE comes from its own key where there is one. Searching the
+    # whole rendered claim for it lets a reviewer's `attempted` prose name a
+    # shape the record never declared.
+    shape = _said(f, "shape")
+    named = (
+        [shape]
+        if shape in spec.claim_any
+        else [s for s in spec.claim_any if s in claim]
+    )
     if spec.claim_any and not named:
         return spec.claim_help
     if spec.needs_attempted or spec.needs_settles:
@@ -842,9 +897,21 @@ def payload_problem(f: Finding) -> str | None:
         # below": a NAMED site and a side. This used to accept the bare word
         # "anchor", so `add an anchor comment` passed while
         # `above `retry_budget`` failed for not saying "anchor".
-        if not ANCHOR_SIDE.search(claim):
+        # ! Each half from its own key where the record has one. Read off the
+        # rendered string instead, a backtick anywhere in `missing` satisfied
+        # the anchor test -- so an `add` with an EMPTY anchor passed the join
+        # while `record.py --check` refused it. Two tools, one record,
+        # different answers.
+        # !! `or` will not do: an EMPTY field would fall back to the rendered
+        # string, which is exactly the case being fixed. A record that carries
+        # fields is answered from them, filled or not.
+        if f.claim_fields:
+            side, anchor = _said(f, "side"), _said(f, "anchor")
+        else:
+            side, anchor = claim, f.claim
+        if not ANCHOR_SIDE.search(side):
             return "add needs a side -- is the text above or below the anchor"
-        if not ANCHOR_NAME.search(f.claim):
+        if not ANCHOR_NAME.search(anchor):
             return (
                 "add needs the anchor NAMED in backticks -- which declaration,"
                 " not the word 'anchor'"
@@ -1195,7 +1262,17 @@ def declares_scope(f: Finding) -> bool:
     the boundary it was told to report. Every other `query` IS work -- it names a
     claim nobody could settle, and the brief sends it to the author.
     """
-    return _is(f, "can_declare_scope") and OUT_OF_ROLE in f.claim.lower()
+    if not _is(f, "can_declare_scope"):
+        return False
+    # !! FROM THE SHAPE KEY, which `record.value_problems` has already checked
+    # against a closed set. The rendered claim also carries the reviewer's
+    # `attempted` and `settles` prose, and a query whose prose merely MENTIONED
+    # the phrase was reclassified as a boundary report -- real work, silently
+    # moved out of the work list.
+    shape = _said(f, "shape")
+    if shape:
+        return shape == OUT_OF_ROLE
+    return OUT_OF_ROLE in f.claim.lower()
 
 
 def by_block(found: list[Finding]) -> dict[int, list[Finding]]:

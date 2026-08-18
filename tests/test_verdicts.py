@@ -2486,6 +2486,126 @@ class TestAFilledFieldOutranksTheWordSearch(unittest.TestCase):
         self.assertIsNone(verdicts.payload_problem(f))
 
 
+class TestAChecksOwnFieldOutranksTheRenderedString(unittest.TestCase):
+    """`claim_text` builds ONE string from every key, and checks searched it.
+
+    !! Each of these was a live gate reading the wrong thing, and none of them
+    failed loudly -- two stopped firing and one fired on the wrong records.
+    They share a cause: the record became typed and the checks kept reading the
+    string it renders into.
+    """
+
+    def _f(self, verdict, claim, **kw):
+        fields = {
+            "reviewer": "r",
+            "block": 1,
+            "verdict": verdict,
+            "claim": verdicts.claim_text(verdict, claim),
+            "reason": "what I derived from the source",
+            "sources": ["a.py:1 | x"],
+            "change": "# x",
+            "address": "a.py:1-1",
+            "claim_fields": claim,
+        }
+        fields.update(kw)
+        return verdicts.Finding(**fields)
+
+    def test_the_echo_check_fires_on_a_JSON_record(self):
+        """!! It could not fire on ANY of them, for any verdict.
+
+        `claim_text` prepends the key as a marker -- `drop: "..."` -- so the
+        reviewer's own words never equalled the rendered string. The gate was
+        switched off by the bridge that generated it.
+        """
+        f = self._f("drop", {"drop": "the budget is 3"}, reason="the budget is 3")
+        self.assertIn("REASON restates CLAIM", verdicts.payload_problem(f))
+
+    def test_a_reason_that_quotes_the_claim_and_adds_to_it_passes(self):
+        # ! EQUALITY, never containment -- a REASON that quotes the claim and
+        # then says what is wrong with it is doing its job.
+        f = self._f(
+            "drop",
+            {"drop": "the budget is 3"},
+            reason='it says "the budget is 3" and no caller reads the budget',
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+
+    def test_a_TEXT_record_still_gets_the_echo_check(self):
+        f = _finding(
+            block=1, verdict="drop", claim='drop: "x y z"', reason='drop: "x y z"'
+        )
+        self.assertIn("REASON restates CLAIM", verdicts.payload_problem(f))
+
+    def test_a_work_query_is_not_a_scope_declaration(self):
+        """!! Its `settles` merely MENTIONED the phrase.
+
+        `declares_scope` substring-searched the whole rendered claim, which
+        carries the reviewer's `attempted` and `settles` prose, so real work
+        was reclassified as a boundary report and left the work list.
+        """
+        f = self._f(
+            "query",
+            {
+                "shape": "outside the code",
+                "attempted": "grepped the tree",
+                "settles": "whether the outside my role rule applies here",
+            },
+            change="",
+        )
+        self.assertFalse(verdicts.declares_scope(f))
+
+    def test_a_real_scope_declaration_still_is_one(self):
+        f = self._f(
+            "query",
+            {
+                "shape": "outside my role",
+                "attempted": "read the module docstring",
+                "settles": "the owning role reading it",
+            },
+            change="",
+        )
+        self.assertTrue(verdicts.declares_scope(f))
+
+    def test_an_add_with_an_EMPTY_anchor_is_refused(self):
+        """!! `record.py --check` refused it and the join did not.
+
+        The anchor test searched the rendered string for a backtick, and
+        `missing` had one. Two tools disagreeing about one record is the thing
+        a typed record was adopted to end.
+        """
+        f = self._f(
+            "add",
+            {
+                "missing": "the guard on `retry_budget` is undocumented",
+                "anchor": "",
+                "side": "above",
+            },
+        )
+        self.assertIn("anchor NAMED in backticks", verdicts.payload_problem(f))
+
+    def test_an_add_with_an_EMPTY_side_is_refused(self):
+        f = self._f("add", {"missing": "x", "anchor": "`f`", "side": ""})
+        self.assertIn("needs a side", verdicts.payload_problem(f))
+
+    def test_a_filled_add_passes(self):
+        f = self._f("add", {"missing": "x", "anchor": "`f`", "side": "above"})
+        self.assertIsNone(verdicts.payload_problem(f))
+
+    def test_a_shape_named_only_in_the_prose_does_not_satisfy_the_shape_check(self):
+        # ! The shape comes from its own key. Searching the whole claim let a
+        # reviewer's prose name a shape the record never declared.
+        f = self._f(
+            "query",
+            {
+                "shape": "outside my role",
+                "attempted": "read it",
+                "settles": "the owner",
+            },
+            change="",
+        )
+        self.assertEqual(verdicts._said(f, "shape"), "outside my role")
+
+
 class TestTheJoinReadsRecords(unittest.TestCase):
     """A JSON record file joins exactly as the text report it replaces.
 
