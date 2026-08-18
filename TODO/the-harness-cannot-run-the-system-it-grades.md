@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 18 tasks done
+Progress: 5 of 19 tasks done
 Owner:    session * Roy (* 1 ruling left -- the suite layout. `plugin eval`
           access is open and this file already says it is not a blocker)
 Requires-Roy: true
@@ -130,6 +130,38 @@ reported as though it were.
 
 ! The two strong kinds need no network, no third-party tree, and no planting: the defect is at
 the parent, the fix is the key, and both are commits on a branch that is already pushed.
+
+## !! THE RICHEST FIXTURE IS ALREADY ON DISK, PINNED, AND EXTERNAL
+
+Roy, 2026-08-18: the `todo_tool` runs were made against
+`REDACTED_SHA_D`, so `evidence/` already holds what a case needs.
+
+**Two complete packages, same subject, same hash** -- `redacted_corpus` branch
+`todo-requires-roy` at `REDACTED_SHA_D`, three files, 3,333 census blocks, **171 holding prose** (88
+docstring, 75 comment, 8 trailing):
+
+| package | what it holds |
+| --- | --- |
+| [`evidence/todo-tool-full-run/`](../evidence/todo-tool-full-run/) | the first run -- one blocked, one complete, plus `tool-findings.md` |
+| [`evidence/todo-tool-full-v0_2/`](../evidence/todo-tool-full-v0_2/) | the second: census, all four reviewer reports, four joins, stage 5, 6, 7a and 8 artifacts, `applied.patch`, and two miss analyses |
+
+! Its own README already says what this file wants: *"kept as a documented test case for the
+next iteration of the tool."*
+
+!! **THIS IS THE THIRD KIND OF CASE, and the one our own history cannot supply.** The subject is
+ANOTHER REPOSITORY, so a finding here is not a defect this system already knew about -- which is
+exactly the DISCOVERY axis the taxonomy above marks weak for our own commits. It also carries
+what a synthetic case cannot: 171 prose blocks, four roles, and a stage 8 that ROLLED A RUN BACK.
+
+!! **A CASE MUST CHECK OUT `REDACTED_SHA_D`; IT MUST NOT READ `scripts/todo_tool.py`.** The vendored
+copy in this repo is no longer the fixture -- it carries a local stdout-encoding patch and is
+1,646 lines against the fixture's 1,638. Reading the convenient copy would grade the system
+against a file the run never saw.
+
+! **One number in the evidence is off and is NOT corrected here**, because a captured run is a
+record: `todo-tool-full-v0_2/README.md` states `todo_tool.py` at 1640 lines where `REDACTED_SHA_D` has
+1638. The run edited these files and restored them, so the count was most likely taken after its
+own edits. ! Anything keying on a line number in that package should re-derive it from the hash.
 
 ## Tasks
 
@@ -296,6 +328,11 @@ the parent, the fix is the key, and both are commits on a branch that is already
       no self-serve request route; enablement is an organisation-level environment variable
       issued by Anthropic. ! Not a blocker -- `skill-creator` covers isolation, the baseline
       and assertions today.
+- [ ] **Parse the two `todo-tool` packages into cases.** Subject
+      `redacted_corpus@REDACTED_SHA_D`, three files, 171 prose blocks, four reviewer
+      reports and stage 5-8 artifacts per run. ! Check the hash out; do NOT read
+      this repo's vendored `scripts/todo_tool.py`, which carries a local patch and
+      is eight lines longer than the fixture.
 
 ## What this costs today
 
