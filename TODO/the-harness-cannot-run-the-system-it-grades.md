@@ -2,9 +2,10 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 12 tasks done
-Owner:    session * Roy (* 4 rulings -- the reduced set, the fixture source, the
-          suite layout, and whether `plugin eval` access is worth asking for)
+Progress: 0 of 14 tasks done
+Owner:    session * Roy (* 5 rulings -- the reduced set, placement without
+          ownership-context, the fixture source, the suite layout, and whether
+          `plugin eval` access is worth asking for)
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
 ```
 
@@ -64,6 +65,44 @@ by name, and the skill's arguments (`cap`, `target`, `style`) carry no role set.
 report.** It is not a re-architecture, and if N roles is a supported configuration then role
 CASES stop being a test-only hack -- they are the same thing a user gets by asking for one.
 
+## !! STAGE 5 IS WRITTEN FOR FOUR, AND THE ROLES ARE NOT INTERCHANGEABLE
+
+Roy, 2026-08-18: *"SKILL.md also states that step 5 is expected to negotiate the result between
+the agents. If one editorial role ran that can create confusion."*
+
+Correct, and the confusion is specific. What breaks at N=1:
+
+- **The premise is stated as a fact.** *"Four reviewers rule on the same block, so you hold
+  several recommendations and must emit ONE replacement."* An agent holding one report reads
+  that and has to decide whether it is missing three.
+- **A count is used as an argument.** *"Any `correct` outranks every `clean`. THREE ROLES
+  finding nothing does not soften one role finding a falsehood."*
+- **A precedence names a role that may be absent.** *"Two placement verdicts on one block,
+  naming different destinations: `ownership-context`'s destination governs."* If
+  `ownership-context` is not in the set, that rule points at nobody and nothing says who
+  governs instead.
+- **The re-review it sends a contradiction to becomes SELF-review.** `drop` against `correct`
+  on one sentence is ruled a contradiction and goes back -- to its filers, which at N=1 is the
+  role that filed both.
+
+!! **AND THE ROLES ARE NOT A SET, THEY ARE A LATTICE.** `SKILL.md` reads
+`ownership-context` FIRST because the other three measure a claim against the code at their own
+scope, and a misplaced claim gets measured against the wrong code. So a run without
+`ownership-context` is not a smaller run -- it is a run whose remaining verdicts rest on an
+unchecked assumption. Dropping `module-context` costs coverage; dropping `ownership-context`
+costs correctness. **"1..N roles" is not one configuration and must not be ruled on as one.**
+
+! **What SURVIVES N=1 is more than it looks, and worth saying so the ruling is not overbroad.**
+The synthesis ORDER -- `query`, then `move`/`drop`, then `correct`, then `patch`, then `add` --
+is about VERDICT KINDS and not about roles. One role files several marks on one block routinely:
+measured 2026-08-18, `block-context` filed two `correct`s on one docstring and stage 5 composed
+three marks into one replacement. The residue check, the verification duty and step 6's already
+set-agnostic wording (*"every reviewer that ran"*) all hold unchanged.
+
+! So stage 5 at N=1 is not empty -- it is MIS-DESCRIBED, and the hazard is an agent reading a
+negotiation it does not have and inferring that a single uncorroborated finding needs less
+scrutiny, in the one stage whose own text says a single-role run ratifies falsehoods.
+
 ## Tasks
 
 - [ ] * **Rule whether a run of 1..N roles is a SUPPORTED CONFIGURATION or a test-only
@@ -74,6 +113,19 @@ CASES stop being a test-only hack -- they are the same thing a user gets by aski
       cost is stated where the reader sees the findings. Test-only means role cases are a
       second harness that never calls itself a review. ! The machinery is already
       set-agnostic; this rules on the PROMISE, not the code.
+
+- [ ] **Rewrite stage 5's synthesis section so it does not state the population as a fact.**
+      The premise sentence, the "three roles finding nothing" argument and the
+      `ownership-context` placement precedence each assume four. ! Say what the ORDER is about
+      -- verdict kinds, not roles -- so it reads correctly whether one role filed three marks
+      or three roles filed one each. Verify: the section names no count, and every rule that
+      needs a role says what happens when that role did not run.
+
+- [ ] * **Rule who governs placement when `ownership-context` did not run**, or rule that it is
+      never optional. It is read first because the other three measure a claim against the code
+      at their own scope; a set without it is not a smaller run but one whose verdicts rest on
+      an unchecked assumption. ! This is why the reduced-set ruling above cannot be a single
+      yes or no.
 
 - [ ] **Then make the tool say which it was.** A run with fewer than four roles produces a
       report that reads like any other today. Whatever is ruled above, the join's output has to
