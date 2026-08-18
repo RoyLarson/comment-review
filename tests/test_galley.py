@@ -326,37 +326,101 @@ class TestALineNobodyEditedKeepsItsEnding(unittest.TestCase):
 class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
     """A splice replaces WHOLE LINES, so such a block cannot be expressed.
 
-    !! It was refused already -- its stored text is not the file's whole line,
-    so `block_matches` failed -- and reported as "no longer match the census",
-    which sends a reader to diff a file nobody has touched. The refusal names
-    what is actually wrong now.
+    !! THE BLOCKS COME FROM A REAL CENSUS. Hand-written ones passed while the
+    shipped path failed: the fixture put the comment token alone in
+    `raw_lines`, and `census.py` stores the whole physical line for a trailing
+    comment -- so the suffix test the check used answered False on every real
+    one, the galley spliced over the code, and the test said it would not.
+    Measured 2026-08-18: a galley read `# reworded trailing` where
+    `z = 3  # trailing` had been.
     """
 
-    LINES = ["def f(x):  # trailing note", "    return x"]
+    SOURCE = "def f():\n    z = 3  # trailing\n    return z\n"
 
-    def test_a_block_starting_partway_through_its_line_is_partial(self):
-        block = {
-            "start": 1,
-            "end": 1,
-            "kind": "trailing-comment",
-            "raw_lines": ["# trailing note"],
-        }
-        self.assertTrue(galley.shares_a_line_with_code(self.LINES, block))
+    def _blocks(self, text=None):
+        import census
 
-    def test_a_block_holding_its_whole_line_is_not(self):
-        block = {"start": 2, "end": 2, "kind": "comment", "raw_lines": ["    return x"]}
-        self.assertFalse(galley.shares_a_line_with_code(self.LINES, block))
+        return [
+            b.__dict__ for b in census.blocks_stdlib(Path("m.py"), text or self.SOURCE)
+        ]
 
-    def test_a_block_whose_text_merely_DIFFERS_is_not_partial(self):
-        # ! Not a suffix, so it is STALENESS -- a different refusal with a
-        # different remedy. Re-census, rather than "this cannot be spliced".
-        block = {"start": 2, "end": 2, "kind": "comment", "raw_lines": ["    return y"]}
-        self.assertFalse(galley.shares_a_line_with_code(self.LINES, block))
-        self.assertFalse(galley.block_matches(self.LINES, block))
+    def _kind(self, kind, text=None):
+        found = [b for b in self._blocks(text) if b["kind"] == kind]
+        self.assertTrue(found, f"no {kind} in the census")
+        return found[0]
 
-    def test_an_out_of_range_block_is_not_partial(self):
-        block = {"start": 9, "end": 9, "kind": "comment", "raw_lines": ["x"]}
-        self.assertFalse(galley.shares_a_line_with_code(self.LINES, block))
+    def test_a_trailing_comment_is_partial(self):
+        block = self._kind("trailing-comment")
+        self.assertTrue(galley.shares_a_line_with_code(self.SOURCE.splitlines(), block))
+
+    def test_a_trailing_comment_matches_its_file_ANYWAY(self):
+        # !! Which is why the kind has to be asked. `block_matches` passes --
+        # the census stores the whole line -- so nothing downstream would have
+        # stopped the splice.
+        block = self._kind("trailing-comment")
+        self.assertTrue(galley.block_matches(self.SOURCE.splitlines(), block))
+
+    def test_a_comment_on_its_own_line_is_not_partial(self):
+        text = "def f():\n    # a note\n    return 1\n"
+        block = self._kind("comment", text)
+        self.assertFalse(galley.shares_a_line_with_code(text.splitlines(), block))
+
+    def test_a_docstring_is_not_partial(self):
+        text = 'def f():\n    """A note."""\n    return 1\n'
+        block = self._kind("docstring", text)
+        self.assertFalse(galley.shares_a_line_with_code(text.splitlines(), block))
+
+    def test_a_census_without_the_field_answers_not_partial(self):
+        # ! A census taken before the field existed. Its whole-line blocks are
+        # spliceable and its partial ones were already refused as stale.
+        self.assertFalse(galley.shares_a_line_with_code([], {"start": 1, "end": 1}))
+
+
+class TestTheGalleyRefusesAPartialBlockEndToEnd(unittest.TestCase):
+    """The CLI, because the unit answered correctly while the CLI deleted code."""
+
+    SOURCE = "def f():\n    z = 3  # trailing\n    return z\n"
+
+    def test_the_statement_survives_and_the_run_refuses(self):
+        import census
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "m.py").write_text(self.SOURCE, encoding="utf-8")
+            blocks = [
+                b.__dict__ for b in census.blocks_stdlib(Path("m.py"), self.SOURCE)
+            ]
+            index = next(
+                i for i, b in enumerate(blocks, 1) if b["kind"] == "trailing-comment"
+            )
+            # ! `default=list` -- a Block holds a set field, and the shipped
+            # writer converts it. The test only needs it readable back.
+            (root / "c.json").write_text(
+                json.dumps(blocks, default=list), encoding="utf-8"
+            )
+            (root / "e.json").write_text(
+                json.dumps({str(index): "    # reworded trailing"}), encoding="utf-8"
+            )
+            code = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "galley.py"),
+                    "--repo",
+                    str(root),
+                    "--census",
+                    str(root / "c.json"),
+                    "--edits",
+                    str(root / "e.json"),
+                    "--out",
+                    str(root / "out"),
+                ],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(code.returncode, 1, code.stdout)
+            self.assertIn("share a line with code", code.stdout)
+            self.assertFalse((root / "out" / "m.py").exists())
+            self.assertIn("z = 3", (root / "m.py").read_text(encoding="utf-8"))
 
 
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that class

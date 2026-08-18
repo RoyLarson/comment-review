@@ -2629,6 +2629,42 @@ class TestAChecksOwnFieldOutranksTheRenderedString(unittest.TestCase):
         self.assertEqual(verdicts._said(f, "shape"), "outside my role")
 
 
+class TestAMalformedEntryIsReportedNotRaised(unittest.TestCase):
+    """Every neighbouring read names the file and the reason in one line.
+
+    !! These raised instead, and took the whole join down over one bad record
+    in one of four reports. The second passes `record.py --check` cleanly --
+    `SHAPES` checks that `change` is a LIST and not what is in it -- so the
+    documented pre-flight does not protect the join from it.
+    """
+
+    def _load(self, doc):
+        return verdicts.load_report(Path("block-context.json"), doc, "block-context")
+
+    def test_a_report_that_is_a_JSON_list_is_reported(self):
+        found, malformed, _ = self._load('[{"path": "a.py"}]')
+        self.assertEqual(found, [])
+        self.assertIn("not a report object", malformed[0])
+
+    def test_a_record_that_is_not_an_object_is_reported(self):
+        found, malformed, _ = self._load('{"records": ["not an object"]}')
+        self.assertEqual(found, [])
+        self.assertIn("not an object", malformed[0])
+
+    def test_one_bad_record_does_not_lose_the_good_ones(self):
+        found, malformed, _ = self._load(
+            '{"records": ["bad", {"block": 2, "verdict": "clean"}]}'
+        )
+        self.assertEqual([f.block for f in found], [2])
+        self.assertEqual(len(malformed), 1)
+
+    def test_a_non_string_in_CHANGE_does_not_raise(self):
+        found, _, _ = self._load(
+            '{"records": [{"block": 1, "verdict": "clean", "change": [1, 2]}]}'
+        )
+        self.assertEqual(found[0].change, "1\n2")
+
+
 class TestTheJoinReadsRecords(unittest.TestCase):
     """A JSON record file joins exactly as the text report it replaces.
 

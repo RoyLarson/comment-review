@@ -146,6 +146,12 @@ constraint holds in code and appears in NO prose. Intervals get no seeded slot -
 addressable, not accountable -- so **append a new record carrying that interval's census index
 and address.** Read it as being about that gap, not about a neighbour.
 
+!! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two
+lines of CODE and the gap between them is whatever sits there -- nothing, or blank lines. The
+edit is applied to the GAP, so a two-blank-line separation you do not write out is a separation
+the file loses. **Write the blank lines you want kept**, as empty strings in the array, the
+same way you would write them in the file.
+
 ### Code problems
 
 `code_concerns` at the end of your file is a list of strings, one line each, no verdict. See

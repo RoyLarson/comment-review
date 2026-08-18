@@ -157,6 +157,22 @@ class Block:
     # every construction site.
     edit_start: int = 0
     edit_end: int = 0
+    # !! DOES THIS BLOCK OCCUPY ITS LINES, or does code share the first one?
+    # False for a trailing comment, for a PEP 727 `Doc()` literal, and for a
+    # block comment opened after a statement. Every one of those is prose
+    # beginning partway through a line of code.
+    #
+    # !! IT IS STATED BY THE PRODUCER BECAUSE NO READER CAN INFER IT. Two tried
+    # -- `code_lines` and `galley.shares_a_line_with_code` -- both by testing
+    # whether the stored text is a proper SUFFIX of the physical line, and the
+    # test cannot work: `blocks_stdlib` stores the WHOLE line for a trailing
+    # comment, so the suffix test answers False and the galley spliced over the
+    # code. Measured 2026-08-18: censusing `z = 3  # trailing` and editing that
+    # block produced a galley reading `# reworded trailing` where the statement
+    # had been -- a deleted statement, in the one artefact a human is asked to
+    # approve. A `Doc()` fails the same test for the opposite reason: its
+    # stored text is the AST value and is not a suffix of anything.
+    whole_lines: bool = True
 
     def __post_init__(self) -> None:
         """Default the edit range to the addressing range."""
@@ -440,9 +456,17 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     # same stamp. A list because `flush` is a closure and rebinds nothing.
     trailing_end = [_NO_TRAILING]
 
+    # ! Did the run's FIRST line get cut back to the opener, with real code
+    # before it? `trailing` does not answer that: a MULTI-LINE block comment
+    # opened after a statement cuts the same way and flushes with
+    # `trailing=False`, because by then the run spans several lines. A list
+    # because `flush` is a closure and rebinds nothing.
+    cut_first = [False]
+
     def flush(trailing: bool = False) -> None:
         pending.clear()
         if not run:
+            cut_first[0] = False
             return
         raw = [t for _, t in run]
         stripped = raw[0].strip()
@@ -462,7 +486,9 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             text=_join(raw, openers),
             raw_lines=raw,
             tier="lexical",
+            whole_lines=not cut_first[0],
         )
+        cut_first[0] = False
         # !! Same split as the tokenized tier: a trailing comment closes its run,
         # so a sentence wrapped onto the next line becomes a SECOND block anchored
         # to the code below it. Stamped, not re-cut.
@@ -548,6 +574,10 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             # after a statement cuts too -- without it the block's text read
             # `int b = 2; /* opens ...`, the statement handed over as prose.
             cut = 0 if (closes_here and after.strip()) else opens_at
+            # ! Only the run's FIRST line decides it. A continuation line of a
+            # block comment is entirely prose whatever precedes the run.
+            if not run and cut and code[:opens_at].strip():
+                cut_first[0] = True
             run.append((n, raw_line[cut:].rstrip()))
             if closes_here:
                 # ! Code BEFORE the opener makes it a trailing comment, which is
@@ -564,6 +594,9 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         flush()  # ! CODE ends a block; a blank line does not
         at = line_at
         if at >= 0:
+            # ! `flush()` above emptied the run, so this line is the first one
+            # and the code before `at` is what makes it trailing.
+            cut_first[0] = bool(at and code[:at].strip())
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own block, anchored to the code on that line
     flush()
@@ -647,6 +680,9 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
                     start=run[0][0],
                     end=run[-1][0],
                     kind="trailing-comment" if run[0][3] else "comment",
+                    # ! A TRAILING comment is by definition preceded by code on
+                    # its line, whatever `raw_lines` happens to hold.
+                    whole_lines=not run[0][3],
                     lines=counted_lines(prose),
                     text=_join(prose),
                     # !! THE LINES THE BLOCK SPANS, not the lines that carry a
@@ -785,6 +821,13 @@ def _annotated_docs(path: Path, tree: ast.AST) -> list[Block]:
                 lines=len(val.splitlines()) or 1,
                 text=re.sub(r"\s+", " ", val).strip(),
                 raw_lines=val.splitlines() or [val],
+                # !! A `Doc()` IS A STRING INSIDE A LINE OF CODE. `raw_lines`
+                # stays the AST value here, deliberately: the file's slice
+                # would carry the `Annotated[...]` wrapper, which is code, and
+                # no consumer wants that as prose. Saying so is what lets a
+                # consumer refuse the block for what it is rather than call it
+                # stale.
+                whole_lines=False,
             )
         )
     return out
@@ -922,39 +965,20 @@ def code_lines(text: str, prose: list[Block]) -> set[int]:
             continue
         occupied.update(range(b.start, b.end + 1))
         # !! A block's FIRST line is NOT occupied when code precedes its opener.
-        # A multi-line block comment opening after a statement --
-        # `int b = 2; /* opens` -- spans from that line, and taking the whole
-        # span dropped the statement from the code set, moving every interval
-        # boundary below it. Decided by SUFFIX, the same way `prove_unchanged`
-        # decides a line keeps its code prefix: the block stores from the
-        # opener, so its stored text is a proper tail of the physical line
-        # exactly when something real comes before it.
+        # !! A BLOCK'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
+        # `int b = 2; /* opens` spans from that line, and taking the whole span
+        # dropped the statement from the code set, moving every interval
+        # boundary below it.
         #
-        # !! The prefix must be CODE, not a delimiter, and a PEP 727 `Doc()`
-        # still reaches here that way: its block is a string literal inside a
-        # line of code, so its stored text is a genuine suffix of a line that
-        # really does begin with code. A structural docstring no longer can --
-        # its `raw_lines` is now the file's own slice, so `physical == stored`
-        # and the suffix test does not fire. It did fire on every one of them
-        # while they held the AST value, because `    """Facts about...` ends
-        # with `Facts about...` and the leading `"""` is not blank. Measured
-        # 2026-08-17 on `repo.py`: eight spurious `interval` blocks overlapping
-        # real docstrings, in the one artefact four reviewers are bound by.
-        #
-        # ! Tested on the PREFIX rather than on the kind or the tier: a `///`
-        # run after a statement is a `docstring` too and its discard is
-        # legitimate, and `blocks_stdlib` leaves `tier` at its default, so a
-        # tier test here is dead code that reads as a live one.
-        if b.raw_lines and 1 <= b.start <= len(lines):
-            physical = lines[b.start - 1].rstrip()
-            stored = b.raw_lines[0]
-            prefix = physical[: len(physical) - len(stored)]
-            if stored and physical != stored and physical.endswith(stored):
-                # ! The string PREFIX comes off after the quotes, or `r"""Every
-                # git invocation...` leaves a bare `r` that reads as code. Same
-                # prefixes `docstring_text` strips, for the same reason.
-                if prefix.strip().strip("\"'`").strip("rRbBuUfF"):
-                    occupied.discard(b.start)
+        # !! THE BLOCK SAYS SO. This tested whether the stored text was a
+        # proper SUFFIX of the physical line, which is an inference and was
+        # wrong in both directions: `blocks_stdlib` stores the WHOLE line for a
+        # trailing comment, so the test never fired for one, and a PEP 727
+        # `Doc()` stores the AST value, which is a suffix of nothing -- so its
+        # declaration line was dropped from the code set and every interval
+        # boundary in the file moved. Measured 2026-08-18.
+        if not b.whole_lines:
+            occupied.discard(b.start)
     return {n for n, ln in enumerate(lines, 1) if ln.strip() and n not in occupied}
 
 
@@ -1000,9 +1024,14 @@ def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
                 lines=0,
                 text="",
                 # The EDIT: unclamped, so the file boundary keeps its side.
-                # `prev + 1 .. nxt - 1` is the gap itself -- empty for adjacent
-                # code lines, `1..0` above the first line, `last+1..last` below
-                # the last.
+                # `prev + 1 .. nxt - 1` is THE GAP ITSELF -- its own blank
+                # lines, not the code lines that bound it. Empty for adjacent
+                # code lines, and `1..0` above the first line of a file, which
+                # is an empty range and so a pure insertion.
+                #
+                # ! The gap below the last code line is `last+1..last` only
+                # when that line ENDS the file. With trailing blanks it spans
+                # them, which is right: they are the gap.
                 edit_start=prev + 1,
                 edit_end=nxt - 1,
             )

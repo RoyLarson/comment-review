@@ -148,29 +148,34 @@ def shares_a_line_with_code(lines: list[str], block: dict) -> bool:
     """Does code come before this block's text on its first line?
 
     !! A SPLICE REPLACES WHOLE LINES, so such a block cannot be spliced at all
-    -- writing over its first line would delete the code that shares it. Two
-    kinds reach here: a `trailing-comment`, and a PEP 727 `Doc()` literal,
-    which is a string inside a line of code and which the census records as a
-    `docstring`.
+    -- writing over its first line would delete the code that shares it. Three
+    kinds reach here: a `trailing-comment`, a PEP 727 `Doc()` literal, and a
+    block comment opened after a statement.
 
-    ! It is asked so the REFUSAL CAN SAY WHY. Both kinds already failed
-    `block_matches` -- their stored text is not the file's whole line -- and
-    were reported as "no longer match the census", which sends a reader to diff
-    a file that has not changed.
+    !! IT READS THE CENSUS RATHER THAN INFERRING. This asked whether the stored
+    text was a proper SUFFIX of the physical line, and that answers False for a
+    trailing comment -- `blocks_stdlib` stores the whole line for one -- so the
+    galley spliced over the code and printed success. Measured 2026-08-18: a
+    galley read `# reworded trailing` where `z = 3  # trailing` had been.
+
+    ! It is asked so the REFUSAL CAN SAY WHY. These blocks failed
+    `block_matches` or passed it wrongly, and were reported as "no longer match
+    the census" -- which sends a reader to diff a file nobody touched.
+
+    ! A census without the field answers True, because every block that
+    predates it was written by a producer that only emitted whole-line blocks
+    or was already refused by the staleness check.
 
     Args:
-        lines: the file, split.
+        lines: the file, split. Unused now, and kept because the caller pairs
+            this with `block_matches`, which needs it.
         block: one census entry.
 
     Returns:
         True if the block's text begins partway through its first line.
     """
-    stored = block.get("raw_lines") or []
-    start = block["start"]
-    if not stored or not 1 <= start <= len(lines):
-        return False
-    physical, first = lines[start - 1].rstrip(), stored[0].rstrip()
-    return bool(first) and physical != first and physical.endswith(first)
+    del lines
+    return not block.get("whole_lines", True)
 
 
 def splice_range(block: dict) -> tuple[int, int]:
@@ -185,6 +190,12 @@ def splice_range(block: dict) -> tuple[int, int]:
     ! It reads `edit_start`/`edit_end`, falling back to `start`/`end` for a
     census taken before those existed. The fallback is why this function is
     still here rather than inlined.
+
+    !! AN INTERVAL'S RANGE IS THE GAP'S OWN LINES, so a replacement REPLACES
+    them -- blank lines included. Editing a two-blank-line gap with one line of
+    prose leaves one line where three were, and the separation is gone. That is
+    what an edit to that block means, and `reviewer-brief.md` tells a reviewer
+    so; it is written here because the arithmetic does not show it.
 
     Args:
         block: one census entry.

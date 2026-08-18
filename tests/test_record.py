@@ -554,5 +554,58 @@ class TestTheRecordVersionIsRead(unittest.TestCase):
         self.assertIn("no `record_version`", record.version_problem({}))
 
 
+class TestTheAnchorFormIsCheckedHereToo(unittest.TestCase):
+    """`--check` passed an `add` the join fatally refused.
+
+    !! Two tools, one record, different answers -- which is the defect the
+    typed record was adopted to end, and this file had it in the direction
+    opposite the one already fixed: an EMPTY anchor used to pass the join, and
+    a BARE one passed `--check`.
+    """
+
+    BLOCK = {
+        "path": "a.py",
+        "start": 1,
+        "end": 1,
+        "kind": "comment",
+        "text": "x",
+        "raw_lines": ["# x"],
+    }
+
+    def _rec(self, anchor):
+        return {
+            "block": 1,
+            "address": "a.py:1-1",
+            "verdict": "add",
+            "claim": {"missing": "a note", "anchor": anchor, "side": "below"},
+            "reason": "derived it",
+            "sources": [{"cite": "a.py:1", "verbatim": "# x"}],
+            "change": ["# x", "# a note"],
+        }
+
+    def test_a_bare_anchor_is_refused(self):
+        problems = record.record_problems("block 1", self._rec("compute"), self.BLOCK)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("backticks", problems[0])
+
+    def test_a_backticked_anchor_passes(self):
+        self.assertEqual(
+            record.record_problems("block 1", self._rec("`compute`"), self.BLOCK), []
+        )
+
+    def test_an_empty_anchor_is_reported_as_EMPTY_not_as_unbackticked(self):
+        # ! Two messages for two mistakes. A reviewer fixes them differently.
+        problems = record.record_problems("block 1", self._rec(""), self.BLOCK)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("empty", problems[0])
+
+    def test_the_template_SAYS_the_form(self):
+        # !! The file's own rule: constraining a field without saying what is
+        # allowed has only moved the guessing.
+        # ! Beside `scope_shape`, not under `values`: it is a FORM, and
+        # `values` holds the closed sets a field may be one of.
+        self.assertIn("backticks", record.allowed()["anchor_form"])
+
+
 if __name__ == "__main__":
     unittest.main()

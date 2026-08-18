@@ -633,6 +633,13 @@ def load_report(
     findings: list[Finding] = []
     malformed: list[str] = []
     for rec in report.get("records") or []:
+        # ! An ENTRY that is not an object. The guard above catches a report
+        # that is not one; this catches a record inside a well-shaped report,
+        # which `record.py --check` also reports and which raised
+        # `AttributeError` here and took the whole join down.
+        if not isinstance(rec, dict):
+            malformed.append(f"a record is a {type(rec).__name__}, not an object")
+            continue
         if rec.get("verdict") is None:
             # ! An unfilled slot is a COVERAGE gap, counted by the caller from
             # the findings it does not see. It is not a malformed record.
@@ -654,7 +661,11 @@ def load_report(
                     for s in rec.get("sources") or []
                     if isinstance(s, dict)
                 ],
-                change="\n".join(rec.get("change") or []),
+                # ! `str()` per line. `change` is a LINE ARRAY and `SHAPES`
+                # checks only that it is a list, so a number in it raised
+                # `TypeError` from `join` -- a crash the documented pre-flight
+                # does not catch, on a file it calls well formed.
+                change="\n".join(str(line) for line in rec.get("change") or []),
                 address=str(rec.get("address") or ""),
                 # ! The record no longer carries the block's text -- the census
                 # does. `address_problem` reads this, so it is filled from the
@@ -1486,9 +1497,12 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
     # blank `CHANGE` on a partial drop is still refused, which is what stops
     # this becoming a way to skip writing one.
     if not f.change.strip():
+        # ! No empty-original branch here. It was reachable while a REVIEWER
+        # wrote `original`; the tool fills it from the census now, and a block
+        # with nothing to fill it from returns from `removed_spans` above
+        # before this runs. A message for a refusal the tool cannot issue reads
+        # like a rule.
         whole = _words(as_block(f.original, entry))
-        if not whole:
-            return f"{f.verdict}: CHANGE is empty and BLOCK carries no original"
         if ruled_text(f) != whole:
             return (
                 f"{f.verdict}: CHANGE is empty, which says the block empties --"

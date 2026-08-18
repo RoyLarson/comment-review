@@ -176,6 +176,13 @@ def allowed() -> dict:
         # ! The one shape that is a BOUNDARY REPORT rather than work, named so a
         # reader of this file can tell the three apart without the brief.
         "scope_shape": OUT_OF_ROLE,
+        # ! A FORM, not a value set, and it is stated for the same reason the
+        # sets are: a template that constrains a field without saying what is
+        # allowed has only moved the guessing. The join refuses an `add` whose
+        # anchor is not backticked, and this file passed one -- two tools, one
+        # record, different answers, which is the defect the typed record was
+        # adopted to end.
+        "anchor_form": "the anchor NAMED in backticks, e.g. `compute_rates`",
     }
 
 
@@ -257,6 +264,14 @@ def claim_problems(where: str, rec: dict) -> list[str]:
     # prose it renders into, so an empty field would answer a check by existing.
     blank = [k for k in spec if k in claim and not str(claim[k]).strip()]
     out = []
+    # ! The one FORM the join enforces. Checked here so a record that passes
+    # `--check` is a record the join admits.
+    anchor = str(claim.get("anchor", ""))
+    if "anchor" in spec and anchor.strip() and not ANCHOR_NAME.search(anchor):
+        out.append(
+            f"{where}: `claim.anchor` reads {anchor!r} -- it must NAME the"
+            " declaration in backticks, which is what the join checks"
+        )
     if blank:
         out.append(f"{where}: {verdict} left `claim` keys {blank} empty")
     if missing:
