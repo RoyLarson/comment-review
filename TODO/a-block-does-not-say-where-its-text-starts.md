@@ -4,6 +4,7 @@
 Status:   open
 Progress: 1 of 4 tasks done
 Owner:    session
+Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
 ```
 

@@ -4,6 +4,7 @@
 Status:   open
 Progress: 1 of 10 tasks done
 Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
+Requires-Roy: true
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
 ```
 

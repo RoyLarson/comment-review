@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 7 tasks done
 Owner:    Roy (* 2 rulings) * session
+Requires-Roy: true
 Raised:   2026-08-17 (Roy: "both todo-tool and redacted_lane_a ended up in / six rules are
           attributed to CLAUDE.md while living in conventions.md / which tells me that the
           system does need to figure out how to work with .md, .rst, .txt files")

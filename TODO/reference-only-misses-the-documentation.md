@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 4 tasks done
 Owner:    session * Roy (1 ruling)
+Requires-Roy: true
 Raised:   2026-08-17 (Roy, during the first full run of 0.1.7: "At some point the
           references also need to include the actual documentation files")
 ```

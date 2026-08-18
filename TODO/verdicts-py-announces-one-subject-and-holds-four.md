@@ -5,6 +5,7 @@ Status:   decision-needed
 Progress: 0 of 8 tasks done
 Owner:    session * Roy (* 1 ruling -- the module names, which `docs/vocabulary.md`
           constrains)
+Requires-Roy: true
 Raised:   2026-08-18, from the dev review of the file by its own editorial board
 ```
 

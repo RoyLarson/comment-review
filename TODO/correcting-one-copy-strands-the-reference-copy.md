@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 6 tasks done
 Owner:    Roy (* 1 ruling, direction given) * session
+Requires-Roy: true
 Raised:   2026-08-17 (Roy: "This shouldn't happen - As much as FOR REFERENCE only might make
           sence - leaving stale documenation behind references just asks to make these harder
           to trace down later")

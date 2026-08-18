@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 6 tasks done
 Owner:    session * Roy (* 1 ruling)
+Requires-Roy: true
 Raised:   2026-08-17 (two runs of the same skill over the same repo at the same ref;
           one role returned opposite verdicts on the same block)
 ```

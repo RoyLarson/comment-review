@@ -4,6 +4,7 @@
 Status:   in-progress
 Progress: 1 of 8 tasks done
 Owner:    session * Roy (* 2 rulings)
+Requires-Roy: true
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established
           from scratch both times and both style sheets were left in a session scratchpad)
 Sharpened: 2026-08-17 (Roy: "Figure out why twice / LSP state and name corpus -- twice /

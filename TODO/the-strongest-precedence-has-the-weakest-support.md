@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 5 tasks done
 Owner:    session * Roy (* 1 ruling)
+Requires-Roy: true
 Raised:   2026-08-17, by the session that ran all eight stages -- "the weakest-verified input
           to the strongest-precedence role"
 ```

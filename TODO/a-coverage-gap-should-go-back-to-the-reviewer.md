@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 5 tasks done
 Owner:    session * Roy (1 ruling)
+Requires-Roy: true
 Raised:   2026-08-16 (Roy, on the re-sweep's `gap`: "looks like a different form of the
           SUPPRESSED or acquittal list - and should be dropped - if comment blocks are
           missed by a reviewer then they are returned to the reviewer to rule on")

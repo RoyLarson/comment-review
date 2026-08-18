@@ -2,8 +2,9 @@
 
 ```
 Status:   DEFERRED -- the model change waits for a pull request
-Progress: 1 of 2 tasks done (3 deferred)
+Progress: 1 of 5 tasks done
 Owner:    session * Roy (* 1 ruling, MADE)
+Requires-Roy: true
 Raised:   2026-08-17 (Roy, on the fixture for the fix that landed the same day:
           "Is this actually possible in code? int x = /* why */ 5; That is crazy
           - I have never seen someone put a comment in the middle of the

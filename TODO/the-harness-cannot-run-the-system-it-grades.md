@@ -5,6 +5,7 @@ Status:   open
 Progress: 5 of 18 tasks done
 Owner:    session * Roy (* 1 ruling left -- the suite layout. `plugin eval`
           access is open and this file already says it is not a blocker)
+Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
 ```
 

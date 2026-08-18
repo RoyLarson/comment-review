@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 4 tasks done
 Owner:    session * Roy (* 1 ruling)
+Requires-Roy: true
 Raised:   2026-08-17, the day the query contract landed. `module-context`'s report on a
           1,174-block repo is 1.1 MB and most of it is the words "outside my role".
 ```

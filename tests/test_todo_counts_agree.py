@@ -7,6 +7,9 @@ session spends context discovering that. It also names the condition for
 writing this test: port it "at the point where hand-arithmetic starts being
 wrong, not before". Five files disagreed with their own boxes on 2026-08-18.
 
+! `scripts/todo_tool.py` is the WRITER of both; this only reads. Every box
+counts, including a deferred one, because that is what the tool writes.
+
 ! A file counting something OTHER than tasks is skipped by the `tasks done`
 suffix, not by name. `two-live-runs-proposed-fifteen-changes` counts PROPOSALS,
 which the two field reports number separately, so its total is not its boxes.
@@ -19,14 +22,14 @@ from pathlib import Path
 TODO = Path(__file__).resolve().parent.parent / "TODO"
 
 BOX_DONE = re.compile(r"^- \[x\]", re.M)
-# ! A `(paused)` box is DEFERRED and is not counted, which is what lets
-# `a-comment-inside-a-line-makes-the-file-unprovable` say "1 of 2 (3 deferred)"
-# while carrying five boxes. The Progress line counts what is ACTIONABLE.
-BOX_OPEN = re.compile(r"^- \[ \](?! \(paused\))", re.M)
+BOX_OPEN = re.compile(r"^- \[ \]", re.M)
 # Only a line that counts TASKS is checked against boxes.
 PROGRESS = re.compile(r"^Progress: (\d+) of (\d+) tasks done", re.M)
-# `| [name](path.md) | owner | 3/10 | ...` -- the README's open table.
-ROW = re.compile(r"^\| \[([^\]]+)\]\(([^)]+\.md)\) \| [^|]* \| \**(\d+)/(\d+)", re.M)
+# `| [name](path.md) | owner | roy? | 3/10 | ...` -- the README's open table,
+# in the five-column shape `scripts/todo_tool.py` reads and writes.
+ROW = re.compile(
+    r"^\| \[([^\]]+)\]\(([^)]+\.md)\) \| [^|]* \| [^|]* \| \**(\d+)/(\d+)", re.M
+)
 
 
 def todo_files():

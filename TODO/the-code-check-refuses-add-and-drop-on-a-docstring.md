@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 5 tasks done
 Owner:    session * Roy (* 1 ruling)
+Requires-Roy: true
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
           CODE CHECK, the rail said restore, and an approved edit was reverted.
 ```

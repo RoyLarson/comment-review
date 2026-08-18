@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 6 tasks done
 Owner:    session
+Requires-Roy: true
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
           for each of the languages so we can verify that the lexers work for the
           11 languages we claim")

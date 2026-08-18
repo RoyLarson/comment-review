@@ -4,6 +4,7 @@
 Status:   open
 Progress: 0 of 8 tasks done
 Owner:    session * Roy (* 1 ruling -- where the verdict table lives)
+Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
 ```
 
