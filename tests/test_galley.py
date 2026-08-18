@@ -159,9 +159,6 @@ class TestCLI(unittest.TestCase):
         self.assertFalse((self.out / "pkg" / "m.py").exists())
 
 
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
-# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
-# than `unittest discover`.
 class TestAnIntervalIsInsertedInto(unittest.TestCase):
     """An `add` cites the empty INTERVAL its prose is missing from.
 
@@ -275,10 +272,7 @@ class TestADocstringBlockMatchesItsFile(unittest.TestCase):
     def _census(self):
         import census
 
-        return [
-            b.__dict__ if hasattr(b, "__dict__") else b
-            for b in census.blocks_stdlib(Path("m.py"), self.SOURCE)
-        ]
+        return [b.__dict__ for b in census.blocks_stdlib(Path("m.py"), self.SOURCE)]
 
     def test_the_docstring_block_matches_the_source_it_came_from(self):
         blocks = [b for b in self._census() if b["kind"] == "docstring"]
@@ -303,5 +297,8 @@ class TestADocstringBlockMatchesItsFile(unittest.TestCase):
         self.assertFalse(galley.block_matches(edited.splitlines(), block))
 
 
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
+# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
+# than `unittest discover`.
 if __name__ == "__main__":
     unittest.main()

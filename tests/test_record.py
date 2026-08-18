@@ -297,14 +297,24 @@ class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
     Measured 2026-08-17: 228 findings became 226.
     """
 
-    class _F:
-        def __init__(self, block, verdict):
-            self.block = block
-            self.verdict = verdict
-            self.claim = 'missing: "x", above `F`'
-            self.reason = "r"
-            self.sources = ["a.py:1 | x"]
-            self.change = "# x"
+    @staticmethod
+    def _F(block, verdict):
+        """A finding, as `parse_report` builds them -- `convert`'s real input.
+
+        ! A hand-rolled stub stood here and re-declared six of `Finding`'s
+        fields. `convert` consumes real ones, so a field added to `Finding` --
+        `claim_fields` was, on this branch -- would not have reached these
+        tests, and a conversion could lose data with a green suite.
+        """
+        return verdicts.Finding(
+            reviewer="module-context",
+            block=block,
+            verdict=verdict,
+            claim='missing: "x", above `F`',
+            reason="r",
+            sources=["a.py:1 | x"],
+            change="# x",
+        )
 
     def test_a_finding_on_an_interval_is_not_dropped(self):
         report = record.convert([self._F(2, "add")], CENSUS, "module-context")

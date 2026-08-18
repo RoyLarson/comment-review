@@ -2650,7 +2650,9 @@ class TestTheJoinReadsRecords(unittest.TestCase):
                 }
             ]
         )
-        found, malformed = verdicts.load_report(path, "block-context")
+        found, malformed, _ = verdicts.load_report(
+            path, path.read_text(encoding="utf-8"), "block-context"
+        )
         self.assertEqual(malformed, [])
         self.assertEqual(len(found), 1)
         self.assertEqual(found[0].block, 3)
@@ -2660,12 +2662,16 @@ class TestTheJoinReadsRecords(unittest.TestCase):
 
     def test_an_unfilled_slot_is_skipped_not_malformed(self):
         path = self._write([{"block": 1, "address": "a.py:1-1", "verdict": None}])
-        found, malformed = verdicts.load_report(path, "block-context")
+        found, malformed, _ = verdicts.load_report(
+            path, path.read_text(encoding="utf-8"), "block-context"
+        )
         self.assertEqual((found, malformed), ([], []))
 
     def test_unparseable_json_names_its_own_position(self):
         self.path.write_text('{"records": [ ,, ]}', encoding="utf-8")
-        found, malformed = verdicts.load_report(self.path, "block-context")
+        found, malformed, _ = verdicts.load_report(
+            self.path, self.path.read_text(encoding="utf-8"), "block-context"
+        )
         self.assertEqual(found, [])
         self.assertRegex(" ".join(malformed), r"line \d+ column \d+")
 
@@ -2678,7 +2684,9 @@ class TestTheJoinReadsRecords(unittest.TestCase):
             "VERDICT     clean\n---\n",
             encoding="utf-8",
         )
-        found, _ = verdicts.load_report(path, "block-context")
+        found, _, _ = verdicts.load_report(
+            path, path.read_text(encoding="utf-8"), "block-context"
+        )
         self.assertEqual(len(found), 1)
 
 

@@ -405,18 +405,26 @@ class Finding:
     ! `reason` is the why: the evidence that verifies the claim. It is DERIVED
     and no checker can settle it, which is why it stays out of `sources`.
 
-    !! `block` is an INDEX, `address` is `path:start-end`, and `original` is
-    that block's text as the file reads it now. The reviewer writes all three
-    and all three are CHECKED against the census. Ruled 2026-08-17: *"BLOCK gets
-    the address and the original text verbatim. This allows the reviewer to have
-    most the context and most of the time all of the context it needs to
-    understand."* The index alone made a record unreadable on its own -- a
-    re-review, or stage 5, had to hold the census open beside it to know what
-    prose a finding was even about.
+    !! `block` is an INDEX and `address` is `path:start-end`. THE REVIEWER
+    WRITES NEITHER: `record.py --seed` puts both in the slot and both are
+    checked against the census, so a mismatch says the file was edited rather
+    than that a reviewer misquoted.
 
-    ! `clean` owes neither. A role returns `clean` on most of the census, so
-    transcribing every one would be the bulk of a report -- 1159 blocks on one
-    measured run.
+    ! `original` is that block's text, and it is filled from the CENSUS by
+    `main` after the report is read. It was the reviewer's to transcribe under
+    the first ruling of 2026-08-17 -- *"BLOCK gets the address and the original
+    text verbatim"* -- and a second ruling the same day replaced it: handed the
+    prose, a reviewer can produce a complete admissible ruling without opening
+    the file, and no check can tell that from real work. 83 refusals in one
+    measured run were spent on transcription fidelity and none was about a
+    finding.
+
+    ! `claim_fields` is the claim as the record held it, and empty for a 0.2.x
+    text record. A check that can read a FIELD must not search the string
+    `claim_text` renders it into -- see `_said`.
+
+    ! `clean` owes no claim and no change. A role returns `clean` on most of
+    the census -- 1159 blocks on one measured run.
     """
 
     reviewer: str
@@ -578,7 +586,9 @@ def claim_text(verdict: str, claim: dict) -> str:
     return out
 
 
-def load_report(path: Path, reviewer: str) -> tuple[list[Finding], list[str]]:
+def load_report(
+    path: Path, text: str, reviewer: str
+) -> tuple[list[Finding], list[str], list[str]]:
     """One reviewer's report, from either shape.
 
     !! JSON IS THE SHIPPED SHAPE. `record.py --seed` writes it and a reviewer
@@ -591,21 +601,28 @@ def load_report(path: Path, reviewer: str) -> tuple[list[Finding], list[str]]:
     `record.py --convert` needs it to carry those forward. It is the only route
     by which a held run stays a regression test.
 
+    ! IT TAKES THE TEXT rather than reading the file. The caller has already
+    read it -- guarded, which this was not -- and the report was read twice and
+    JSON-parsed twice, once here and once in `report_concerns`. The format
+    decision was written out in both places too, and had to stay in agreement.
+
     Args:
-        path: the report. `.json` is a record file; anything else is 0.2.x text.
+        path: the report. Its SUFFIX chooses the reader: `.json` is a record
+            file, anything else the 0.2.x text parser.
+        text: the file's contents.
         reviewer: the editorial role, taken from the file's stem by the caller.
 
     Returns:
-        `(findings, malformed)`, the same pair either way.
+        `(findings, malformed, code_concerns)`, the same triple either way.
     """
-    text = path.read_text(encoding="utf-8")
     if path.suffix.lower() != ".json":
-        return parse_report(text, reviewer)
+        findings, malformed = parse_report(text, reviewer)
+        return (findings, malformed, code_concerns(text))
     try:
         report = json.loads(text)
     except json.JSONDecodeError as e:
         # ! Names its own position, which a merged field never could.
-        return ([], [f"CANNOT PARSE as JSON ({e})"])
+        return ([], [f"CANNOT PARSE as JSON ({e})"], [])
     findings: list[Finding] = []
     malformed: list[str] = []
     for rec in report.get("records") or []:
@@ -639,7 +656,7 @@ def load_report(path: Path, reviewer: str) -> tuple[list[Finding], list[str]]:
                 claim_fields=claim if isinstance(claim, dict) else {},
             )
         )
-    return (findings, malformed)
+    return (findings, malformed, [str(c) for c in (report.get("code_concerns") or [])])
 
 
 def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
@@ -763,22 +780,6 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
         else:
             malformed.append("a record with no BLOCK index")
     return found, malformed
-
-
-def report_concerns(path: Path, text: str) -> list[str]:
-    """A report's CODE CONCERNS, from either shape.
-
-    ! In a record file it is a LIST -- one more boundary that cannot be guessed
-    wrong, where the text shape needed a heading found by regex.
-    """
-    if path.suffix.lower() != ".json":
-        return code_concerns(text)
-    try:
-        report = json.loads(text)
-    except json.JSONDecodeError:
-        # ! Already reported by `load_report`; not worth saying twice.
-        return []
-    return [str(line) for line in (report.get("code_concerns") or [])]
 
 
 def code_concerns(text: str) -> list[str]:
@@ -1730,7 +1731,7 @@ def _report(args: argparse.Namespace) -> int:
             )
             fatal += 1
             continue
-        records, unattributable = load_report(path, reviewer)
+        records, unattributable, code_lines_flagged = load_report(path, text, reviewer)
         # !! THE TOOL SUPPLIES THE ORIGINAL, NOT THE REVIEWER. A record carries
         # an INDEX and an address; the census holds the text. Filling it here
         # means `removed_spans` and `edit_problem` work unchanged, and the
@@ -1742,7 +1743,7 @@ def _report(args: argparse.Namespace) -> int:
                 f.original = "\n".join(blocks[f.block - 1].get("raw_lines") or [])
         found.extend(records)
         malformed.extend((reviewer, why) for why in unattributable)
-        for line in report_concerns(path, text):
+        for line in code_lines_flagged:
             concerns.append((reviewer, line))
         reported.add(reviewer)
 

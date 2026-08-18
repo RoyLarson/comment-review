@@ -179,6 +179,17 @@ def allowed() -> dict:
     }
 
 
+# !! BUILT ONCE. `allowed()` walks all seven verdicts and allocates four
+# structures; it was called twice per record, from `claim_problems` and
+# `value_problems`. Measured 2026-08-17 over a 1174-record report with every
+# slot filled: 5.44 ms of `check()`'s 8.24 ms total.
+#
+# ! `seed()` still calls `allowed()` for a FRESH copy, because the result is
+# embedded in the JSON it writes and a shared mutable would let one run's
+# report edit the next one's.
+ALLOWED = allowed()
+
+
 def seed(census: list[dict], reviewer: str) -> dict:
     """The whole file a reviewer is handed, ready to fill."""
     return {
@@ -229,12 +240,15 @@ def seeded_problems(where: str, rec: dict, block: dict | None) -> list[str]:
 def claim_problems(where: str, rec: dict) -> list[str]:
     """Does `claim` carry the keys this verdict's row requires, and no others?"""
     verdict = rec.get("verdict")
-    spec = allowed()["claim"].get(verdict)
+    spec = ALLOWED["claim"].get(verdict)
     if spec is None:
         return []
     claim = rec.get("claim")
     if not isinstance(claim, dict):
-        return [f"{where}: `claim` is {type(claim).__name__}, not an object"]
+        # ! SILENT, because `record_problems` has already reported the type
+        # through `SHAPES`. Reported here too, one defect produced two messages
+        # in two vocabularies -- "not a dict" and "not an object".
+        return []
     missing = [k for k in spec if k not in claim]
     extra = [k for k in claim if k not in spec]
     # !! PRESENT AND EMPTY IS MISSING. A slot is seeded for every key the
@@ -263,7 +277,7 @@ def value_problems(where: str, rec: dict) -> list[str]:
     claim = rec.get("claim")
     if not isinstance(claim, dict):
         return out
-    for field, permitted in allowed()["values"].items():
+    for field, permitted in ALLOWED["values"].items():
         if field in claim and claim[field] not in permitted:
             out.append(
                 f"{where}: `claim.{field}` reads {claim[field]!r}, and the"
@@ -307,7 +321,7 @@ def version_problem(report: dict) -> str | None:
 
 def record_problems(where: str, rec: dict, block: dict | None) -> list[str]:
     """Everything wrong with the SHAPE of one record."""
-    out = list(seeded_problems(where, rec, block))
+    out = seeded_problems(where, rec, block)
     verdict = rec.get("verdict")
     if verdict is not None and verdict not in VERDICTS:
         out.append(f"{where}: verdict {verdict!r} is not one of {sorted(VERDICTS)}")
@@ -372,7 +386,7 @@ def claim_object(verdict: str, claim: str) -> dict:
     spec = VERDICTS.get(verdict)
     if spec is None or not claim.strip():
         return {}
-    markers = [m for m in spec.claim_all]
+    markers = list(spec.claim_all)
     out: dict[str, str] = {}
     # Split on each marker in turn, keeping what follows it up to the next one.
     positions: list[tuple[int, str]] = []

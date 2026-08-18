@@ -193,7 +193,10 @@ def main() -> int:
     # travels with each edit: its `raw_lines` is the only record of what the
     # file said when the reviewers read it, and comparing the file to itself
     # would make the staleness check below unable to fail.
-    by_path: dict[str, list[tuple[int, int, str, dict]]] = {}
+    # ! `(replacement, block)`. It held the block's `start` and `end` alongside
+    # the block that carries them, and each consumer destructured away the half
+    # the other used.
+    by_path: dict[str, list[tuple[str, dict]]] = {}
     refused = 0
     for key, replacement in edits.items():
         try:
@@ -207,9 +210,7 @@ def main() -> int:
             refused += 1
             continue
         block = blocks[index - 1]
-        by_path.setdefault(block["path"], []).append(
-            (block["start"], block["end"], replacement, block)
-        )
+        by_path.setdefault(block["path"], []).append((replacement, block))
 
     written = 0
     for rel, file_edits in sorted(by_path.items()):
@@ -227,18 +228,23 @@ def main() -> int:
         lines = text.splitlines()
         # ! The range comes from the BLOCK, not from the census numbers the
         # edit was grouped by: an interval is inserted into, not replaced.
-        ranges = [(*splice_range(block), r) for _, _, r, block in file_edits]
+        ranges = [(*splice_range(block), r) for r, block in file_edits]
 
-        # ! Every block is checked against the file BEFORE anything is written,
-        # so one stale range refuses its file rather than half-splicing it.
-        stale = [
-            (s, e) for s, e, _, block in file_edits if not block_matches(lines, block)
-        ]
+        # ! The CHEAPER refusal first. A clash is decided from the ranges
+        # alone; staleness reads every block's lines, and computing it for a
+        # file already refused was work nobody could use.
         clash = overlaps(ranges)
         if clash:
             print(f"REFUSED  {rel}: edits at {clash[0]} and {clash[1]} share a line")
             refused += len(file_edits)
             continue
+        # ! Every block is checked against the file BEFORE anything is written,
+        # so one stale range refuses its file rather than half-splicing it.
+        stale = [
+            (block["start"], block["end"])
+            for _, block in file_edits
+            if not block_matches(lines, block)
+        ]
         if stale:
             # ! NAME THE RANGES. "3 range(s) no longer match" sends a reader to
             # diff a whole file; the lines say which block to look at.
