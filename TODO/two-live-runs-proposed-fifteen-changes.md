@@ -145,7 +145,7 @@ contract still has to be written down; which of the two it should be is the part
 
 ## Related
 
-- [`the-record-is-a-parsed-template-and-should-be-a-value`](the-record-is-a-parsed-template-and-should-be-a-value.md)
+- [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)
   -- P4, P7 and P10 are all record-shape changes and belong to that build.
 - [`stage-5-is-the-only-stage-with-no-independent-reader`](stage-5-is-the-only-stage-with-no-independent-reader.md)
   -- P5's four questions are what 5b should ask.

@@ -98,6 +98,42 @@ from the tooling side.
 5b/6b, D8, D9 in both shapes, the whole-block `drop`, the JSON record -- is **part of 0.2.3,
 not a release of its own.** The gate is the cycle working, not the count of fixes behind it.
 
+### !! BOTH CONDITIONS ARE MET, 2026-08-17
+
+**The record is a value.** `record.py` owns the shape; `--seed` writes one slot per prose block
+carrying `block` and `address`, and the reviewer sets `verdict`, `claim`, `reason`, `sources`,
+`change`. The record says WHERE, never WHAT: handed the prose a reviewer could produce a
+complete admissible ruling without opening the file, and no check could tell that from real
+work, while reading the WRONG lines is caught. The conversion of four held reports joined to
+output `diff` could not separate from the original join.
+
+**The cycle ran, 4 -> 5 -> 5b -> 6 -> 6b**, over `galley.py`: 110 census blocks, 11 prose, four
+roles, **47 findings, stage-5 gate exit 0**. Five 5b answers over three roles -- 4 HOLD, 1
+REVISE -- and two 6b answers, both HOLD.
+
+!! **The REVISE is what shows 5b earns its slot.** A role read its own round-1 correction in the
+joined block and found that IT miscounted, filing a full record cited against the galley census.
+The round-1 gate had already passed that finding, and stage 8 runs after the write, so nothing
+else in the pipeline was positioned to catch it.
+
+!! **THE RUN'S REAL YIELD WAS TWO DEFECTS THAT MADE 5b IMPOSSIBLE**, either alone sufficient,
+both in the tree under review and both found by the roles reading it:
+
+- A structural docstring's `raw_lines` was the AST value, so `block_matches` compared unlike
+  things -- **6 of 6 docstring blocks refused as stale against an UNMODIFIED file.**
+- An interval's `start` and `end` are the two lines of CODE bounding it, and the galley
+  replaced both, so an `add` would have DELETED CODE. It never got that far: all 99 intervals
+  were refused first, and the lesser fault hid the worse one.
+
+105 of 110 blocks could not be spliced before the fix; 110 of 110 can now.
+
+! **Three things the run measured that are not defects in the pipeline:** a cap had to be
+supplied by the operator, because this repo publishes none and stage 6 is skipped without one;
+`--repo` does not decide how a path ARGUMENT resolves, so `census.py` read the live file while
+`--repo` pointed at a pinned one; and editing a REFERENCE ONLY file during MARK moved a cited
+line, which the join correctly reported as an unresolved citation. Joining against a worktree
+pinned at the commit the roles read cleared it.
+
 ## [0.2.2] -- 2026-08-17
 
 **0.2.1 is broken and stays broken.** Its tag is not moved: another session had already pinned

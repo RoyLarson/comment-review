@@ -51,5 +51,5 @@ conflicts.
 - [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)
   -- defines what a re-review IS, and carries the ruling that a contested block goes back to
   its FILERS. This file asks what makes a block contested.
-- [`the-record-is-a-parsed-template-and-should-be-a-value`](the-record-is-a-parsed-template-and-should-be-a-value.md)
+- [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)
   -- step 7 is the run this was found on.

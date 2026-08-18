@@ -1,8 +1,8 @@
 # The record is a template someone parses, and it should be a value
 
 ```
-Status:   open
-Progress: 1 of 10 tasks done (6 design rulings made; 8 build steps)
+Status:   done
+Progress: 10 of 10 tasks done (6 design rulings made; 8 build steps, all shipped)
 Owner:    session (Roy made all 6 rulings 2026-08-17; the rest is build)
 Raised:   2026-08-17, by Roy, after three parser defects of one shape in one day
 ```
@@ -16,7 +16,7 @@ should be using a real class or something that it can paste into and knows that 
 strings, not 'can I parse this into the table'."*
 
 Every defect in
-[`the-parser-merges-across-boundaries-it-cannot-read`](the-parser-merges-across-boundaries-it-cannot-read.md)
+[`the-parser-merges-across-boundaries-it-cannot-read`](../the-parser-merges-across-boundaries-it-cannot-read.md)
 is a boundary guess. The guessing is the defect surface, and it exists only because the record
 travels as prose.
 
@@ -44,7 +44,7 @@ That has two readings and only one of them works:
 
 !! **The second is not new vocabulary.** This system already declares the sentence as its unit
 -- *"a verdict rules on a SENTENCE, not on a block"* -- and
-[`the-unit-of-review-is-the-statement-not-the-block`](completed/the-unit-of-review-is-the-statement-not-the-block.md)
+[`the-unit-of-review-is-the-statement-not-the-block`](../completed/the-unit-of-review-is-the-statement-not-the-block.md)
 is closed. **The DATA never caught up with the rule.** Every remaining token-level comparison is
 the block-shaped structure outliving the block-shaped decision.
 
@@ -375,7 +375,56 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       with the one exception named: a reviewer that believes it may write nothing
       reports in prose instead, which is the parser this shape replaced.
 
-- [ ] **7. Run the cycle on this repo** -- 4 -> 5 -> 5b -> 6 -> 6b. That is 0.2.3's gate.
+- [x] **7. DONE 2026-08-17 -- the cycle ran, 4 -> 5 -> 5b -> 6 -> 6b.** On
+      `plugins/comment-review/skills/comment-review/scripts/galley.py`, 110 census blocks, 11
+      of them prose. Four roles filled seeded JSON records; **47 findings, and the stage-5 gate
+      exited 0**.
+
+      !! **TWO DEFECTS BLOCKED 5b ENTIRELY, and either alone was enough.** Both were in the
+      tree under review and both were found by the roles reading it.
+
+      - **A docstring never matched its own file.** `census.py` filled a structural
+        docstring's `raw_lines` from the AST value -- no quote delimiters, no first-line
+        indent -- and `block_matches` compared that to the file's physical lines. Measured on
+        the file's own census: **all 6 docstring blocks refused as stale against an UNMODIFIED
+        file**, all 5 comment blocks passed. block-context and function-context filed it
+        independently.
+      - **An `add` would have deleted code.** An interval's `start` and `end` are the two
+        lines of CODE that bound it, and the galley replaced both. It never got that far --
+        `block_matches` answered False for **all 99 intervals**, so every `add` was refused
+        before the range was used, and the refusal hid the worse fault behind the lesser one.
+
+      After the fix all 110 blocks match; before it, 105 of 110 would have been refused.
+      `splice_range` returns the gap for an interval, which is an empty slice for adjacent code
+      lines and so a pure insertion.
+
+      !! **5b RETURNED A `REVISE`, and it is the result that shows the stage earns its place.**
+      block-context read its own round-1 correction in the joined block and found that IT
+      miscounted: it had written *"one of the two failures that stop a file"* where `main`
+      stops a file on three paths. It filed a full record with four citations against the
+      GALLEY census, not its round-1 index. Nothing else was positioned to catch it -- the
+      round-1 gate had already passed the finding, and stage 8 runs after the write.
+
+      ! Five 5b answers over three roles: 4 HOLD, 1 REVISE. Two 6b answers: 2 HOLD, both
+      measuring the compacted widths themselves. Every reply came back in 12-100 seconds with
+      1-3 tool calls, which is what messaging a role that still holds its read buys.
+
+      ! **The cap was supplied by the operator (4 lines); this repo publishes none.** Without
+      one stage 6 is skipped and 6b with it, so the last two legs cannot be exercised here by
+      a run that invents nothing.
+
+      ! **The tree moved under the run and the citations had to be pinned.** Editing a
+      REFERENCE ONLY file during MARK moved a cited line from 1320 to 1365, and the join
+      reported the reviewer's correct citation as unresolved. Joining against a worktree
+      pinned at the commit the roles read cleared it. `--repo` does not decide how a path
+      argument resolves -- `census.py` read the live file while `--repo` pointed at the pinned
+      one, and only a block count 10 higher than the reviewers' gave it away.
+
+      ! Two findings raised, neither acted on here:
+      [`correct-against-patch-is-a-conflict-and-is-not-flagged`](../correct-against-patch-is-a-conflict-and-is-not-flagged.md),
+      and a second width measurement on
+      [`compact-can-buy-lines-with-width`](../compact-can-buy-lines-with-width.md) -- supplying
+      the PUBLISHED width bounds the free move without stopping it.
 
 ! **Keep `verdicts.py`'s SEMANTIC checks throughout.** Address against census, citation
 resolution, verbatim-half lookup, CLAIM-covers-CHANGE, contradictions. Deleting one because the
@@ -383,9 +432,9 @@ new shape made it awkward is how the synthesised block ends up unchecked.
 
 ## Related
 
-- [`the-parser-merges-across-boundaries-it-cannot-read`](the-parser-merges-across-boundaries-it-cannot-read.md)
+- [`the-parser-merges-across-boundaries-it-cannot-read`](../the-parser-merges-across-boundaries-it-cannot-read.md)
   -- the three defects that prompted this. ! If the record becomes a value, that file closes for
   `parse_report` and stays open for `removed_spans`.
-- [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)
+- [`re-review-is-ordered-everywhere-and-defined-nowhere`](../completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)
   -- ! round two is NOT this shape. Its answer is a RESPONSE (`SAME SENTENCE` / HOLD|REVISE /
   one clause) that carries a record only on a revise; ruled 2026-08-17.
