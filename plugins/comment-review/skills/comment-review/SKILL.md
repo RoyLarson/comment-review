@@ -832,7 +832,7 @@ questions, the return shape, the channel and the stop rule, and this section doe
 them.
 
 !! **SET A GALLEY FIRST, and census it.** The joined block is on no disk and in no census, so
-nothing can address it -- `address_problem` refuses a record whose original matches no census
+nothing can address it -- `address_problem` refuses a record whose ADDRESS matches no census
 entry, which is every round-2 record until this runs:
 
 ```bash

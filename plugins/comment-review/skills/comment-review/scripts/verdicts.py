@@ -997,12 +997,15 @@ def _words(text: str) -> str:
 
 
 def address_problem(f: Finding, blocks: list[dict]) -> str | None:
-    """Does `BLOCK`'s address and transcribed text match the census?
+    """Does the record's address, and the text it stands for, match the census?
 
-    !! The record carries the block's ADDRESS and its ORIGINAL TEXT so that it
-    can be read on its own -- a re-review, or stage 5, otherwise has to hold the
-    census open beside it to learn what prose a finding is about. Ruled
-    2026-08-17.
+    !! THE RECORD CARRIES THE ADDRESS AND NOT THE TEXT. Ruled 2026-08-17, after
+    a first ruling the same day that it should carry both. Handed the prose, a
+    reviewer can produce a complete admissible ruling without opening the file,
+    and no check can tell that from real work; reading the WRONG lines is
+    caught, because the sentence the claim quotes will not be in the block. The
+    caller fills `original` from the census before this runs, so what is
+    compared here is unchanged and where it comes from is not.
 
     !! This is NOT `LOCATION` coming back. Roy, 2026-08-17: *"Location was
     dropped because it was ambiguous ... It could also have meant where this
@@ -1012,10 +1015,10 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
 
     | LOCATION could have meant     | where it lives now                     |
     | ----------------------------- | -------------------------------------- |
-    | where the prose SITS          | `BLOCK` -- index, address, original    |
-    | where the reviewer LOOKED     | `SOURCES`                              |
-    | where the prose SHOULD GO     | `CLAIM`'s `to:`, or an `add`'s anchor  |
-    | WHICH SENTENCE, exactly       | `BLOCK`'s original against `CHANGE`    |
+    | where the prose SITS          | `block` and `address`                  |
+    | where the reviewer LOOKED     | `sources`                              |
+    | where the prose SHOULD GO     | `claim`'s `to`, or an `add`'s anchor   |
+    | WHICH SENTENCE, exactly       | the census text against `change`       |
 
     !! The last one is DERIVED, not declared, and that is why it is reliable.
     Roy, 2026-08-17: *"which sentence exactly is determined by the difference
@@ -1028,12 +1031,15 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
     the gain: a field with four possible subjects can only be checked for
     RESOLVABILITY, because nothing says which subject to check it against.
 
-    ! Both parts of `BLOCK` are CHECKED, and that is what makes them worth
-    writing. An address nobody verifies costs a line and settles nothing.
+    ! The address is CHECKED, and that is what makes it worth writing. An
+    address nobody verifies costs a line and settles nothing.
 
-    ! `clean` is exempt. A role returns `clean` on most of the census -- 1159
-    blocks on one measured run -- so requiring a transcription of each would
-    make the bulk of every report text nobody reads.
+    ! `clean` is exempt, and stays exempt for a different reason than it had. It
+    was exempt because a role returns `clean` on most of the census -- 1159
+    blocks on one measured run -- and transcribing each would have made the bulk
+    of every report text nobody reads. Nothing is transcribed now; a `clean`
+    record's address is the tool's own, so there is nothing a reviewer could
+    have got wrong.
 
     Args:
         f: the finding.
