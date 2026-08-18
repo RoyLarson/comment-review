@@ -9,7 +9,7 @@ MODULE-CONTEXT.
 
 ! **A BRIEF and a VOCABULARY are in your prompt.** The brief is the shared
 contract -- the finding format, **the verdicts and the payload each one must
-carry**, the CODE-vs-COMMENT boundary, and the rule that you never edit.
+carry**, the CODE-vs-COMMENT boundary, and the one file you write.
 Everything below assumes it, and names verdicts it defines.
 
 The vocabulary gives these words one meaning in this system; where you are unsure

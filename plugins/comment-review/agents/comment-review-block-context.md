@@ -9,7 +9,7 @@ BLOCK-CONTEXT.
 
 ! **A BRIEF and a VOCABULARY are in your prompt.** The brief is the shared
 contract -- the finding format, **the verdicts and the payload each one must
-carry**, the CODE-vs-COMMENT boundary, and the rule that you never edit.
+carry**, the CODE-vs-COMMENT boundary, and the one file you write.
 Everything below assumes it, and names verdicts it defines.
 
 The vocabulary gives these words one meaning in this system; where you are unsure
@@ -81,7 +81,7 @@ truth"* is usually refuted from **another module**, and nothing prompts you to g
 
 Find the line that enforces the bound and compare four things: the VALUE, the DIRECTION
 (`>` vs `>=`), the UNITS, and what happens at the boundary. Report the enforcing line as your
-`SOURCES`'s verbatim half.
+`sources` entry's `verbatim`.
 
 ## Cited paths and guards
 

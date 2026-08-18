@@ -9,7 +9,7 @@ FUNCTION-CONTEXT.
 
 ! **A BRIEF and a VOCABULARY are in your prompt.** The brief is the shared
 contract -- the finding format, **the verdicts and the payload each one must
-carry**, the CODE-vs-COMMENT boundary, and the rule that you never edit.
+carry**, the CODE-vs-COMMENT boundary, and the one file you write.
 Everything below assumes it, and names verdicts it defines.
 
 The vocabulary gives these words one meaning in this system; where you are unsure
@@ -29,7 +29,7 @@ A docstring that needs "and" to be accurate -- *"parses the row and updates the 
 describing two functions sharing a name. The prose finding is that the summary line cannot
 summarize; the code finding is that the function should split.
 
-! **Report the prose, name the split in `CODE CONCERNS`.** Splitting the function is a
+! **Report the prose, name the split in `code_concerns`.** Splitting the function is a
 behavior change and is not yours.
 
 ## Reachability lives here
@@ -72,7 +72,7 @@ so.** A raise is a *penalty*; where the governing invariant forbids penalizing, 
 either promotes it to a check (breaking the invariant) or deletes it as unbacked. The *choice
 not to enforce* is the story.
 
-! Proposing *"make this a hard check"* is a behaviour change: name it in `CODE CONCERNS`, leave
+! Proposing *"make this a hard check"* is a behaviour change: name it in `code_concerns`, leave
 it, and check first whether the absence of the check is the point.
 
 Four shapes. Verdict `add`; write the sentence.

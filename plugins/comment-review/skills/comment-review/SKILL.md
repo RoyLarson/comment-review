@@ -576,6 +576,42 @@ docstrings and one live constant; and a mirror tree that held the CORRECT text w
 was backwards. The code still settles code claims -- a
 disagreement with the mirror is itself a finding.
 
+**And you SEED each reviewer's report before dispatching it.** One file per role, named for
+the role, with a slot already laid down for every prose block:
+
+```bash
+for role in ownership-context block-context function-context module-context; do
+  python <skill>/scripts/record.py --seed --census <run-dir>/census.json \
+    --reviewer "$role" --out <run-dir>/"$role".json
+done
+```
+
+!! **A REVIEWER FILLS A TEMPLATE; IT DOES NOT COMPOSE A DOCUMENT.** Each slot arrives carrying
+the census `block` index and the `address`, and the reviewer sets only the five that are its
+own. **Hand each agent the absolute path to ITS file and no other**, and tell it to edit that
+file in place. It is the one path a reviewer is given, and the exception to *given, never sent
+looking* above: it is being given a form, not a tree.
+
+! **The seeded file is why coverage is structural.** A block nobody ruled on is a slot with a
+null verdict, not an index missing from a list, so nothing downstream reconciles what was
+expected against what arrived.
+
+! **A reviewer may APPEND a record for any census index, and must for an `add`** -- an `add`
+cites the empty INTERVAL prose is missing from, and intervals get no seeded slot. The brief
+tells the reviewer this; you need it to read the count `--check` prints, which counts slots
+and not findings.
+
+**Check each file when the agent returns**, before the join:
+
+```bash
+python <skill>/scripts/record.py --check <run-dir>/<role>.json --census <run-dir>/census.json
+```
+
+! It separates INCOMPLETE from MALFORMED and exits differently on each: a reviewer part-way
+through its blocks is not in error, a record whose shape is wrong is. **Send a malformed file
+back to its own reviewer rather than repairing it** -- a record you fixed is a finding you
+authored.
+
 Overlap between roles is **signal**: a claim one affirms and another refutes goes back for
 re-review, never to a tie-break. ! **A single-role run ratifies falsehoods** -- one role reading
 a false absence claim writes that it is true, where another refutes it by grep.
@@ -628,11 +664,16 @@ python <skill>/scripts/verdicts.py --census <census>.json \
   --repo . <one report file per role>
 ```
 
-!! **NAME EACH REPORT FILE AFTER ITS ROLE** -- `ownership-context.md`, `block-context.md`,
-`function-context.md`, `module-context.md`. The tool takes the role name from the
-report's FILE STEM, and `--reviewers` compares against those stems, so a report
-saved as `report1.md` is a role nobody expected and every expected role
-reads as missing. Two files with the same stem are refused outright.
+!! **NAME EACH REPORT FILE AFTER ITS ROLE** -- `ownership-context.json`,
+`block-context.json`, `function-context.json`, `module-context.json`, which is what stage 4
+seeded. The tool takes the role name from the report's FILE STEM, and `--reviewers` compares
+against those stems, so a report saved as `report1.json` is a role nobody expected and every
+expected role reads as missing. Two files with the same stem are refused outright.
+
+! **The SUFFIX chooses the reader**, and only `.json` is the shipped shape. Anything else is
+read by the DEPRECATED 0.2.x text parser, which is kept so a run already captured on disk stays
+usable -- `record.py --convert` carries one forward. A report saved as `.md` today is not
+refused; it is read by the parser whose boundary guesses this format exists to retire.
 
 ! **Pass `--reviewers` every time, listing all four roles.** Without it a
 reviewer that never reported at all is invisible -- "every reviewer" silently
