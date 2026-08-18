@@ -1,0 +1,26 @@
+47 findings from 4 reviewers over 11 prose blocks (110 blocks in the census, the rest empty intervals an `add` may cite)
+
+
+STANDS UNCHANGED: 0 blocks -- clean from all 4 reviewers that ran
+NEEDS A RULING:   8 blocks
+NO FINDING, NOT CERTIFIED: 4 blocks -- every role that read it was `clean`, and at least one said it was outside its role. Nothing to rule; nothing certified either.
+
+PER BLOCK -- what you hold, in census order:
+     1  correct(block-context)  patch(module-context)
+     9  patch(function-context)
+    11  add(function-context)
+    19  correct(block-context)  correct(function-context)
+    25  add(function-context)  correct(block-context)  correct(block-context)
+    35  correct(function-context)
+    61  correct(block-context)  correct(function-context)
+   103  add(ownership-context)
+
+CODE CONCERNS -- 6 lines, no verdict, not gated:
+  block-context: `block_matches` can never pass a Python docstring block: `census.py` stores a structural docstring's `raw_lines` as the AST value, so all six docstring blocks of galley.py's own census are refused as stale against an unmodified file, while all five comment blocks pass.
+  block-context: `tests/test_galley.py` exercises `block_matches` only with comment-shaped `raw_lines` (indented `#` lines), so the docstring case above has no test.
+  block-context: `main` writes each file as it goes, so a run that refuses file B after writing file A leaves a partial galley tree; only the per-file guarantee is enforced.
+  function-context: block_matches compares the file's physical lines against a docstring block's `raw_lines`, which census.py sets to the AST value, so no Python docstring block can pass the staleness check: measured on this file's own census, blocks 1, 9, 11, 19, 25 and 35 return False and the four comment blocks return True -- a docstring edit is refused as stale rather than spliced.
+  function-context: splice accepts a range outside the file: `lines[start - 1 : end] = ...` appends instead of raising, so a bad range lands at the end of the file with no error.
+  function-context: main computes `stale` before it tests `clash`, so `block_matches` runs over every edit on a file that is about to be refused for a clash.
+
+Every finding is admissible. Stage 5 may rule.

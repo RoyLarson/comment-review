@@ -54,4 +54,5 @@ evidence/*
 !evidence/ga/
 !evidence/probes/
 !evidence/todo-tool-full-run/
+!evidence/cycle-0.2.3/
 !evidence/*.md

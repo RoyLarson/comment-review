@@ -100,6 +100,11 @@ not a release of its own.** The gate is the cycle working, not the count of fixe
 
 ### !! BOTH CONDITIONS ARE MET, 2026-08-17
 
+**The run is kept: `evidence/cycle-0.2.3/`** -- the packet, both censuses, the four
+filled record files, the green join, the edits stage 5 ruled, and both galleys. ! The
+5b and 6b answers are in its README and NOWHERE ELSE: a re-review is a message, so
+nothing wrote them to disk. ! Its README states what the run did NOT test.
+
 **The record is a value.** `record.py` owns the shape; `--seed` writes one slot per prose block
 carrying `block` and `address`, and the reviewer sets `verdict`, `claim`, `reason`, `sources`,
 `change`. The record says WHERE, never WHAT: handed the prose a reviewer could produce a

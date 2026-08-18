@@ -1,0 +1,278 @@
+{
+ "record_version": "1",
+ "reviewer": "ownership-context",
+ "allowed": {
+  "verdict": [
+   "add",
+   "clean",
+   "correct",
+   "drop",
+   "move",
+   "patch",
+   "query"
+  ],
+  "claim": {
+   "clean": [],
+   "query": [
+    "shape",
+    "attempted",
+    "settles"
+   ],
+   "drop": [
+    "drop"
+   ],
+   "correct": [
+    "false",
+    "true"
+   ],
+   "patch": [
+    "from",
+    "to"
+   ],
+   "add": [
+    "missing",
+    "anchor",
+    "side"
+   ],
+   "move": [
+    "from",
+    "to"
+   ]
+  },
+  "values": {
+   "shape": [
+    "outside my role",
+    "outside the checkout",
+    "outside the code"
+   ],
+   "side": [
+    "above",
+    "below"
+   ]
+  },
+  "scope_shape": "outside my role"
+ },
+ "records": [
+  {
+   "block": 1,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:1-33",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: The module docstring's every sentence is a proposition about this module: what it sets, that it renders and does not rule, the two consumers that need it, and the refusal policy. It is also the anchor's own text -- `__doc__` is the parser description -- so no sentence in it belongs to a narrower site.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:118",
+     "verbatim": "ap = argparse.ArgumentParser(description=__doc__)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:8",
+     "verbatim": "its file under `--out`. Nothing under `--repo` is touched."
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:191",
+     "verbatim": "target = out / rel"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 7,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:42-42",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: A trailing comment points AT its own line, and the `noqa` must sit on the suppressed import. `path shim must run first` states why THIS import is out of order, so its anchor is this statement and no other.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:40",
+     "verbatim": "sys.path.insert(0, str(Path(__file__).resolve().parent))"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:42",
+     "verbatim": "from repo import READ_ERRORS  # noqa: E402  -- path shim must run first"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 9,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:46-51",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: Both sentences are about the ending this function derives: the return expression reads the ending out of `text` rather than from the platform, which is the anchor that enforces the claim.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:52",
+     "verbatim": "return \"\\r\\n\" if \"\\r\\n\" in text else \"\\n\""
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 11,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:56-70",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: Every sentence, the descending-order paragraph and the overlap precondition included, is about `splice`: the ordering is enforced by this function's own loop, and a precondition belongs at the callee that depends on it.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:73",
+     "verbatim": "for start, end, replacement in sorted(edits, reverse=True):"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 19,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:81-85",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: The rationale sits on the detector: this comparison is the statement that finds the shared line, so the sentence saying why a shared line has no defined result is anchored to the code that enforces it.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:87",
+     "verbatim": "for (a_start, a_end, _), (b_start, _, _) in zip(ordered, ordered[1:], strict=False):"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:88",
+     "verbatim": "if b_start <= a_end:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 25,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:94-99",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: The staleness rationale sits on the comparison that detects staleness -- the file's lines against the census's `raw_lines` -- which is the site that enforces the claim.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:106",
+     "verbatim": "return [ln.rstrip() for ln in lines[start - 1 : end]] == ["
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:103",
+     "verbatim": "stored = block.get(\"raw_lines\") or []"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 35,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:112-112",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: Both halves of the one-line docstring name what this function's body does -- it writes galleys and prints refusals -- so the sentence belongs to `main` and to no narrower statement.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:194",
+     "verbatim": "print(f\"galley   {rel} ({len(file_edits)} block(s))\")"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:200",
+     "verbatim": "return 1 if refused else 0"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 36,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:113-113",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: The comment faces DOWN onto the reconfigure guard immediately beneath it, which is the only code in this file that touches console encoding.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:114",
+     "verbatim": "reconfigure = getattr(sys.stdout, \"reconfigure\", None)"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 61,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:142-145",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: Both sentences are about the declaration beneath them: the grouping and the fourth tuple element that carries the census block are both in `by_path`'s own annotation, and the tuple is built nowhere else.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:146",
+     "verbatim": "by_path: dict[str, list[tuple[int, int, str, dict]]] = {}"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:161",
+     "verbatim": "(block[\"start\"], block[\"end\"], replacement, block)"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 89,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:176-177",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: The comment heads the guard region it describes: the staleness list beneath it, and the two refusals that follow, all run before the write, so the sentence is anchored to the code it constrains.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:179",
+     "verbatim": "(s, e) for s, e, _, block in file_edits if not block_matches(lines, block)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:186",
+     "verbatim": "if stale:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 107,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:198-199",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "ownership-context: The comment faces DOWN onto the return that produces the exit code, which is the statement that enforces the claim.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:200",
+     "verbatim": "return 1 if refused else 0"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 103,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:192-193",
+   "verdict": "add",
+   "claim": {
+    "missing": "`newline=\"\"` is what carries `line_endings`'s choice to disk. The default re-translates a newline to the platform's ending, so a galley of an LF file written on Windows would differ from it on every line.",
+    "anchor": "`target.write_text(splice(text, ranges), encoding=\"utf-8\", newline=\"\")`",
+    "side": "above"
+   },
+   "reason": "ownership-context: the line-ending constraint has two enforcement sites and prose at only one. `line_endings` and `splice` choose and join with the source's ending, and their docstring owns that half; the write is the second site, where `newline=\"\"` is the only thing stopping Python re-translating a newline to the platform's ending, and that gap between two lines of code holds nothing. The gap is the owner of the missing sentence, not `line_endings`, whose docstring is about deriving the ending rather than writing it.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:193",
+     "verbatim": "target.write_text(splice(text, ranges), encoding=\"utf-8\", newline=\"\")"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:48",
+     "verbatim": "! Taken from the file being spliced, not from the platform. A galley is"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:75",
+     "verbatim": "return end_of_line.join(lines) + ("
+    },
+    {
+     "cite": "tests/test_galley.py:140",
+     "verbatim": "(self.out / \"pkg\" / \"m.py\").read_text(encoding=\"utf-8\"),"
+    }
+   ],
+   "change": [
+    "        # ! `newline=\"\"` is what carries `line_endings`'s choice to disk. The",
+    "        # default re-translates a newline to the platform's ending, so a galley",
+    "        # of an LF file written on Windows would differ from it on every line."
+   ]
+  }
+ ],
+ "code_concerns": []
+}

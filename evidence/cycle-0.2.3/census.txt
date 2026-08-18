@@ -1,0 +1,137 @@
+comment-review stages 2-3 - 1 files, 110 blocks
+  languages: python 1
+  tier tokenized: 110 blocks - blocks, annotations, and DOCSTRING anchors
+  ! NO COMMENT carries an anchor at either tier. A comment's anchor
+    comes from READING the file, so a placement finding is a CANDIDATE.
+
+CENSUS - every block, numbered.
+   1  plugins/comment-review/skills/comment-review/scripts/galley.py:1-33  docstring  32L  cites-a-path,forbids-a-literal,names-a-symbol,narrative-in-docstring  (<module>)
+        -> UNRESOLVED path edits.json
+        -> GREP this file for what it forbids: 'no disk and in no census -- so `address_problem`'
+        -> a review label: round 2   A re-review rules on the SYNTHESISED block -- text
+        -> a retraction: no longer matches the file, or two edits over one line, stop
+   2  plugins/comment-review/skills/comment-review/scripts/galley.py:35-36  interval  0L  -
+   3  plugins/comment-review/skills/comment-review/scripts/galley.py:36-37  interval  0L  -
+   4  plugins/comment-review/skills/comment-review/scripts/galley.py:37-38  interval  0L  -
+   5  plugins/comment-review/skills/comment-review/scripts/galley.py:38-40  interval  0L  -
+   6  plugins/comment-review/skills/comment-review/scripts/galley.py:40-42  interval  0L  -
+   7  plugins/comment-review/skills/comment-review/scripts/galley.py:42-42  trailing-comment  1L  -
+   8  plugins/comment-review/skills/comment-review/scripts/galley.py:42-45  interval  0L  -
+   9  plugins/comment-review/skills/comment-review/scripts/galley.py:46-51  docstring  6L  -  (line_endings)
+  10  plugins/comment-review/skills/comment-review/scripts/galley.py:52-55  interval  0L  -
+  11  plugins/comment-review/skills/comment-review/scripts/galley.py:56-70  docstring  15L  names-a-symbol  (splice)
+  12  plugins/comment-review/skills/comment-review/scripts/galley.py:71-72  interval  0L  -
+  13  plugins/comment-review/skills/comment-review/scripts/galley.py:72-73  interval  0L  -
+  14  plugins/comment-review/skills/comment-review/scripts/galley.py:73-74  interval  0L  -
+  15  plugins/comment-review/skills/comment-review/scripts/galley.py:74-75  interval  0L  -
+  16  plugins/comment-review/skills/comment-review/scripts/galley.py:75-76  interval  0L  -
+  17  plugins/comment-review/skills/comment-review/scripts/galley.py:76-77  interval  0L  -
+  18  plugins/comment-review/skills/comment-review/scripts/galley.py:77-80  interval  0L  -
+  19  plugins/comment-review/skills/comment-review/scripts/galley.py:81-85  docstring  5L  names-a-symbol  (overlaps)
+  20  plugins/comment-review/skills/comment-review/scripts/galley.py:86-87  interval  0L  -
+  21  plugins/comment-review/skills/comment-review/scripts/galley.py:87-88  interval  0L  -
+  22  plugins/comment-review/skills/comment-review/scripts/galley.py:88-89  interval  0L  -
+  23  plugins/comment-review/skills/comment-review/scripts/galley.py:89-90  interval  0L  -
+  24  plugins/comment-review/skills/comment-review/scripts/galley.py:90-93  interval  0L  -
+  25  plugins/comment-review/skills/comment-review/scripts/galley.py:94-99  docstring  6L  -  (block_matches)
+  26  plugins/comment-review/skills/comment-review/scripts/galley.py:100-101  interval  0L  -
+  27  plugins/comment-review/skills/comment-review/scripts/galley.py:101-102  interval  0L  -
+  28  plugins/comment-review/skills/comment-review/scripts/galley.py:102-103  interval  0L  -
+  29  plugins/comment-review/skills/comment-review/scripts/galley.py:103-104  interval  0L  -
+  30  plugins/comment-review/skills/comment-review/scripts/galley.py:104-105  interval  0L  -
+  31  plugins/comment-review/skills/comment-review/scripts/galley.py:105-106  interval  0L  -
+  32  plugins/comment-review/skills/comment-review/scripts/galley.py:106-107  interval  0L  -
+  33  plugins/comment-review/skills/comment-review/scripts/galley.py:107-108  interval  0L  -
+  34  plugins/comment-review/skills/comment-review/scripts/galley.py:108-111  interval  0L  -
+  35  plugins/comment-review/skills/comment-review/scripts/galley.py:112-112  docstring  1L  counted  (main)
+        -> RE-COUNT, and name the population: 'every file'
+  36  plugins/comment-review/skills/comment-review/scripts/galley.py:113-113  comment  1L  -
+  37  plugins/comment-review/skills/comment-review/scripts/galley.py:114-115  interval  0L  -
+  38  plugins/comment-review/skills/comment-review/scripts/galley.py:115-116  interval  0L  -
+  39  plugins/comment-review/skills/comment-review/scripts/galley.py:116-118  interval  0L  -
+  40  plugins/comment-review/skills/comment-review/scripts/galley.py:118-119  interval  0L  -
+  41  plugins/comment-review/skills/comment-review/scripts/galley.py:119-120  interval  0L  -
+  42  plugins/comment-review/skills/comment-review/scripts/galley.py:120-121  interval  0L  -
+  43  plugins/comment-review/skills/comment-review/scripts/galley.py:121-122  interval  0L  -
+  44  plugins/comment-review/skills/comment-review/scripts/galley.py:122-123  interval  0L  -
+  45  plugins/comment-review/skills/comment-review/scripts/galley.py:123-124  interval  0L  -
+  46  plugins/comment-review/skills/comment-review/scripts/galley.py:124-125  interval  0L  -
+  47  plugins/comment-review/skills/comment-review/scripts/galley.py:125-126  interval  0L  -
+  48  plugins/comment-review/skills/comment-review/scripts/galley.py:126-127  interval  0L  -
+  49  plugins/comment-review/skills/comment-review/scripts/galley.py:127-129  interval  0L  -
+  50  plugins/comment-review/skills/comment-review/scripts/galley.py:129-130  interval  0L  -
+  51  plugins/comment-review/skills/comment-review/scripts/galley.py:130-131  interval  0L  -
+  52  plugins/comment-review/skills/comment-review/scripts/galley.py:131-132  interval  0L  -
+  53  plugins/comment-review/skills/comment-review/scripts/galley.py:132-133  interval  0L  -
+  54  plugins/comment-review/skills/comment-review/scripts/galley.py:133-134  interval  0L  -
+  55  plugins/comment-review/skills/comment-review/scripts/galley.py:134-135  interval  0L  -
+  56  plugins/comment-review/skills/comment-review/scripts/galley.py:135-136  interval  0L  -
+  57  plugins/comment-review/skills/comment-review/scripts/galley.py:136-137  interval  0L  -
+  58  plugins/comment-review/skills/comment-review/scripts/galley.py:137-138  interval  0L  -
+  59  plugins/comment-review/skills/comment-review/scripts/galley.py:138-139  interval  0L  -
+  60  plugins/comment-review/skills/comment-review/scripts/galley.py:139-141  interval  0L  -
+  61  plugins/comment-review/skills/comment-review/scripts/galley.py:142-145  comment  4L  names-a-symbol
+  62  plugins/comment-review/skills/comment-review/scripts/galley.py:146-147  interval  0L  -
+  63  plugins/comment-review/skills/comment-review/scripts/galley.py:147-148  interval  0L  -
+  64  plugins/comment-review/skills/comment-review/scripts/galley.py:148-149  interval  0L  -
+  65  plugins/comment-review/skills/comment-review/scripts/galley.py:149-150  interval  0L  -
+  66  plugins/comment-review/skills/comment-review/scripts/galley.py:150-151  interval  0L  -
+  67  plugins/comment-review/skills/comment-review/scripts/galley.py:151-152  interval  0L  -
+  68  plugins/comment-review/skills/comment-review/scripts/galley.py:152-153  interval  0L  -
+  69  plugins/comment-review/skills/comment-review/scripts/galley.py:153-154  interval  0L  -
+  70  plugins/comment-review/skills/comment-review/scripts/galley.py:154-155  interval  0L  -
+  71  plugins/comment-review/skills/comment-review/scripts/galley.py:155-156  interval  0L  -
+  72  plugins/comment-review/skills/comment-review/scripts/galley.py:156-157  interval  0L  -
+  73  plugins/comment-review/skills/comment-review/scripts/galley.py:157-158  interval  0L  -
+  74  plugins/comment-review/skills/comment-review/scripts/galley.py:158-159  interval  0L  -
+  75  plugins/comment-review/skills/comment-review/scripts/galley.py:159-160  interval  0L  -
+  76  plugins/comment-review/skills/comment-review/scripts/galley.py:160-161  interval  0L  -
+  77  plugins/comment-review/skills/comment-review/scripts/galley.py:161-162  interval  0L  -
+  78  plugins/comment-review/skills/comment-review/scripts/galley.py:162-164  interval  0L  -
+  79  plugins/comment-review/skills/comment-review/scripts/galley.py:164-165  interval  0L  -
+  80  plugins/comment-review/skills/comment-review/scripts/galley.py:165-166  interval  0L  -
+  81  plugins/comment-review/skills/comment-review/scripts/galley.py:166-167  interval  0L  -
+  82  plugins/comment-review/skills/comment-review/scripts/galley.py:167-168  interval  0L  -
+  83  plugins/comment-review/skills/comment-review/scripts/galley.py:168-169  interval  0L  -
+  84  plugins/comment-review/skills/comment-review/scripts/galley.py:169-170  interval  0L  -
+  85  plugins/comment-review/skills/comment-review/scripts/galley.py:170-171  interval  0L  -
+  86  plugins/comment-review/skills/comment-review/scripts/galley.py:171-172  interval  0L  -
+  87  plugins/comment-review/skills/comment-review/scripts/galley.py:172-173  interval  0L  -
+  88  plugins/comment-review/skills/comment-review/scripts/galley.py:173-174  interval  0L  -
+  89  plugins/comment-review/skills/comment-review/scripts/galley.py:176-177  comment  2L  -
+  90  plugins/comment-review/skills/comment-review/scripts/galley.py:178-179  interval  0L  -
+  91  plugins/comment-review/skills/comment-review/scripts/galley.py:179-180  interval  0L  -
+  92  plugins/comment-review/skills/comment-review/scripts/galley.py:180-181  interval  0L  -
+  93  plugins/comment-review/skills/comment-review/scripts/galley.py:181-182  interval  0L  -
+  94  plugins/comment-review/skills/comment-review/scripts/galley.py:182-183  interval  0L  -
+  95  plugins/comment-review/skills/comment-review/scripts/galley.py:183-184  interval  0L  -
+  96  plugins/comment-review/skills/comment-review/scripts/galley.py:184-185  interval  0L  -
+  97  plugins/comment-review/skills/comment-review/scripts/galley.py:185-186  interval  0L  -
+  98  plugins/comment-review/skills/comment-review/scripts/galley.py:186-187  interval  0L  -
+  99  plugins/comment-review/skills/comment-review/scripts/galley.py:187-188  interval  0L  -
+ 100  plugins/comment-review/skills/comment-review/scripts/galley.py:188-189  interval  0L  -
+ 101  plugins/comment-review/skills/comment-review/scripts/galley.py:189-191  interval  0L  -
+ 102  plugins/comment-review/skills/comment-review/scripts/galley.py:191-192  interval  0L  -
+ 103  plugins/comment-review/skills/comment-review/scripts/galley.py:192-193  interval  0L  -
+ 104  plugins/comment-review/skills/comment-review/scripts/galley.py:193-194  interval  0L  -
+ 105  plugins/comment-review/skills/comment-review/scripts/galley.py:194-195  interval  0L  -
+ 106  plugins/comment-review/skills/comment-review/scripts/galley.py:195-197  interval  0L  -
+ 107  plugins/comment-review/skills/comment-review/scripts/galley.py:198-199  comment  2L  -
+ 108  plugins/comment-review/skills/comment-review/scripts/galley.py:200-203  interval  0L  -
+ 109  plugins/comment-review/skills/comment-review/scripts/galley.py:203-204  interval  0L  -
+ 110  plugins/comment-review/skills/comment-review/scripts/galley.py:204-204  interval  0L  -
+
+NOT CHECKED -- these are gaps, not passes:
+    C:/Users/Roy/projects/comment-review/corpora/corpora.toml (no name harvester for toml-ini)
+    C:/Users/Roy/projects/comment-review/plugins/comment-review/skills/comment-review/references/vocabulary.toml (no name harvester for toml-ini)
+    C:/Users/Roy/projects/comment-review/pyproject.toml (no name harvester for toml-ini)
+    C:/Users/Roy/projects/comment-review/tests/fixtures/sample.go (no name harvester for go)
+    C:/Users/Roy/projects/comment-review/tests/fixtures/sample.rb (no name harvester for ruby)
+    C:/Users/Roy/projects/comment-review/tests/fixtures/sample.rs (no name harvester for rust)
+    !! A file missing from the name corpus turns every symbol defined
+      only there into a false obituary. Treat symbol notes as weaker
+      until this list is empty.
+
+110 blocks censused. `names-a-symbol` and `counted` are
+CANDIDATES a reviewer confirms; a resolved path is a fact about the
+filesystem, already settled. The whole list is printed every run.

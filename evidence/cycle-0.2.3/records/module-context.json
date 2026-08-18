@@ -1,0 +1,421 @@
+{
+ "record_version": "1",
+ "reviewer": "module-context",
+ "allowed": {
+  "verdict": [
+   "add",
+   "clean",
+   "correct",
+   "drop",
+   "move",
+   "patch",
+   "query"
+  ],
+  "claim": {
+   "clean": [],
+   "query": [
+    "shape",
+    "attempted",
+    "settles"
+   ],
+   "drop": [
+    "drop"
+   ],
+   "correct": [
+    "false",
+    "true"
+   ],
+   "patch": [
+    "from",
+    "to"
+   ],
+   "add": [
+    "missing",
+    "anchor",
+    "side"
+   ],
+   "move": [
+    "from",
+    "to"
+   ]
+  },
+  "values": {
+   "shape": [
+    "outside my role",
+    "outside the checkout",
+    "outside the code"
+   ],
+   "side": [
+    "above",
+    "below"
+   ]
+  },
+  "scope_shape": "outside my role"
+ },
+ "records": [
+  {
+   "block": 1,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:1-33",
+   "verdict": "patch",
+   "claim": {
+    "from": "`git diff --no-index` over the galley shows the author what will land, including whether an adjacent block was clipped -- which a `CHANGE` cannot show, because each one carries its own surrounding context.",
+    "to": "`git diff --no-index` over the galley would show the author what will land, including whether an adjacent block was clipped -- which a `CHANGE` cannot show, because each one carries its own surrounding context. It is not wired into 7a yet -- `TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md` owns it."
+   },
+   "reason": "The docstring enumerates two things that need this module and only the re-review one invokes it today: SKILL.md runs galley.py at stage 5b and again at 6b, while its stage 7a section names neither a galley nor a diff, and the task file that owns 7a records the diff as still to be wired and lists showing it at 7a as an open task -- so the present tense here describes a step no stage performs.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:26",
+     "verbatim": "over the galley shows the author what will land, including whether"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/SKILL.md:839",
+     "verbatim": "python <skill>/scripts/galley.py --repo . --census <run-dir>/census.json \\"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/SKILL.md:904",
+     "verbatim": "! **Set a galley of the COMPACTED text and census it**, exactly as 5b does. The text stage 6"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/SKILL.md:907",
+     "verbatim": "## Stage 7a -- APPROVAL: present the FINAL text, then stop"
+    },
+    {
+     "cite": "TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md:58",
+     "verbatim": "! `git diff --no-index <original> <galley>` is then the author's view, and is still to be"
+    },
+    {
+     "cite": "TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md:65",
+     "verbatim": "- [ ] Show the diff at 7a INSTEAD OF or ALONGSIDE the block -- decide which. ! Roy's rule that"
+    }
+   ],
+   "change": [
+    "\"\"\"The proposed text, SET AS FILES, so it can be read and censused like any tree.",
+    "",
+    "    python galley.py --repo D --census census.json --edits edits.json --out DIR",
+    "",
+    "A galley is the trial impression: the text set, but not yet made into pages, so",
+    "that it can be corrected before anything is committed. That is exactly what",
+    "this writes -- every block a stage proposes to change, spliced into a copy of",
+    "its file under `--out`. Nothing under `--repo` is touched.",
+    "",
+    "!! IT RENDERS; IT DOES NOT RULE. A stage that both produced the galley and",
+    "judged it would be MARK and APPLY in one actor, which is the separation the",
+    "pipeline exists to keep.",
+    "",
+    "Two things need it, and they needed the same thing:",
+    "",
+    "  round 2   A re-review rules on the SYNTHESISED block -- text on no disk and",
+    "            in no census -- so `address_problem` refuses it and `edit_problem`",
+    "            measures one claim against one edit where the block now holds",
+    "            several. Censusing the galley gives that text a real address and a",
+    "            real transcription, so every check in `verdicts.py` works on it",
+    "            UNCHANGED. The alternatives were a second record shape to hold in",
+    "            sync, or a flag that turns the checks off for the one text the",
+    "            author actually approves.",
+    "  stage 7a  What lands at 7b is a block spliced into a file, and the splice is",
+    "            the first time anyone sees the two together. `git diff --no-index`",
+    "            over the galley would show the author what will land, including",
+    "            whether an adjacent block was clipped -- which a `CHANGE` cannot",
+    "            show, because each one carries its own surrounding context. It is",
+    "            not wired into 7a yet --",
+    "            `TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md` owns it.",
+    "",
+    "! A SPLICE THAT CANNOT BE MADE IS REPORTED, NEVER GUESSED. A census range that",
+    "no longer matches the file, or two edits over one line, stops that file rather",
+    "than writing a galley nobody can trust.",
+    "\"\"\""
+   ]
+  },
+  {
+   "block": 1,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:1-33",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "Enumerated the module's whole surface from its own definitions -- five public functions, no private ones: `line_endings`, `splice`, `overlaps`, `block_matches`, `main` -- and read the docstring against that list. `splice` is accounted for by the blocks spliced into a copy of the file under --out, `block_matches` and `overlaps` by the census range that no longer matches and by two edits over one line, `main` by the usage line. `line_endings` is the one name the module docstring does not reach, and the constraint behind it -- the joiner is taken from the file being spliced so the diff shows the prose edit rather than every line -- is stated at its own site, so it is not a constraint absent from prose. No name in the docstring is missing from the surface, and the file announces one subject, the proposed text set as files, which the definition of a galley, the renders-not-rules paragraph, the two needs and the refusal rule all argue for.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:45",
+     "verbatim": "def line_endings(text: str) -> str:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:48",
+     "verbatim": "! Taken from the file being spliced, not from the platform. A galley is"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:55",
+     "verbatim": "def splice(text: str, edits: list[tuple[int, int, str]]) -> str:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:80",
+     "verbatim": "def overlaps(edits: list[tuple[int, int, str]]) -> tuple[int, int] | None:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:93",
+     "verbatim": "def block_matches(lines: list[str], block: dict) -> bool:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:111",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 7,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:42-42",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "Module-level runtime enumerated: one import-time side effect, the `sys.path.insert` on the line above, and one `__main__` block that calls `main`. The comment states the ordering that side effect imposes -- the shim runs before `repo` is imported -- and the usage line at the top of the module states the invocation the `__main__` block serves, so nothing the module RUNS is unannounced. The same sentence stands verbatim on the same shim in census.py, record.py and verdicts.py, and no function can own it: each script has to be runnable on its own, so the shim is per-module by construction.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:40",
+     "verbatim": "sys.path.insert(0, str(Path(__file__).resolve().parent))"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:42",
+     "verbatim": "from repo import READ_ERRORS  # noqa: E402  -- path shim must run first"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:3",
+     "verbatim": "python galley.py --repo D --census census.json --edits edits.json --out DIR"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:203",
+     "verbatim": "if __name__ == \"__main__\":"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 9,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:46-51",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "read the module docstring and every module-level binding for a sentence whose subject is this block's; the module prose reaches the splice and the refusals only.",
+    "settles": "reading this docstring against the body of `line_endings` and against `splice`, which is where its return value is used."
+   },
+   "reason": "Its subject is the joiner one function returns and where that function takes it from, fixed by the `def line_endings` line it sits under. What the module as a whole announces is the galley and what refuses to be spliced, never the return value of a single function measured against its own body.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:45",
+     "verbatim": "def line_endings(text: str) -> str:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:52",
+     "verbatim": "return \"\\r\\n\" if \"\\r\\n\" in text else \"\\n\""
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:71",
+     "verbatim": "end_of_line = line_endings(text)"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 11,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:56-70",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "read the module docstring for a sentence that fixes this block's subject at module level; it names the splice as an outcome and never the order edits are applied in.",
+    "settles": "reading the Args, Returns and descending-order paragraphs against the loop in `splice`."
+   },
+   "reason": "Its subject is one function's parameters, its return value and the order it applies edits in, fixed by the `def splice` line it sits under. The module as a whole announces that blocks are spliced into a copy; the descending-order argument is a claim about this body.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:55",
+     "verbatim": "def splice(text: str, edits: list[tuple[int, int, str]]) -> str:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:73",
+     "verbatim": "for start, end, replacement in sorted(edits, reverse=True):"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:74",
+     "verbatim": "lines[start - 1 : end] = replacement.splitlines()"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 19,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:81-85",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "read the module docstring for a sentence whose subject is this block's; the refusal rule at module level names the outcome, not the pairwise scan that produces it.",
+    "settles": "reading this docstring against the pairwise loop in `overlaps` and its return value."
+   },
+   "reason": "Its subject is what one function returns for a pair of edits sharing a line, fixed by the `def overlaps` line it sits under. The module docstring says two edits over one line stop the file; whether this body finds the first such pair is a claim about the body.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:80",
+     "verbatim": "def overlaps(edits: list[tuple[int, int, str]]) -> tuple[int, int] | None:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:87",
+     "verbatim": "for (a_start, a_end, _), (b_start, _, _) in zip(ordered, ordered[1:], strict=False):"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:89",
+     "verbatim": "return (a_start, b_start)"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 25,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:94-99",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "read the module docstring for a sentence fixing this block's subject at module level; it states the refusal, not the per-line comparison that reaches it.",
+    "settles": "reading this docstring against the range check and the comparison in `block_matches`."
+   },
+   "reason": "Its subject is whether one function's comparison still matches what the census recorded, fixed by the `def block_matches` line it sits under. The module as a whole announces that a stale range stops the file; how this body decides staleness is a claim about the body.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:93",
+     "verbatim": "def block_matches(lines: list[str], block: dict) -> bool:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:101",
+     "verbatim": "if start < 1 or end > len(lines) or start > end:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:106",
+     "verbatim": "return [ln.rstrip() for ln in lines[start - 1 : end]] == ["
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 35,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:112-112",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "read the module docstring and the `__main__` block for a sentence that fixes this block's subject; the usage line states how the module is invoked and says nothing about what a run covers.",
+    "settles": "reading this summary against the per-file loop in `main` and the refusal branches that skip a file before it is written."
+   },
+   "reason": "Its subject is what one function does and returns, fixed by the `def main` line it sits under, and the population it counts -- every file an edit touches -- is a claim about that function's own loop. The module as a whole announces how the script is invoked, not the coverage of one function's write path.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:111",
+     "verbatim": "def main() -> int:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:165",
+     "verbatim": "for rel, file_edits in sorted(by_path.items()):"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:194",
+     "verbatim": "print(f\"galley   {rel} ({len(file_edits)} block(s))\")"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 36,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:113-113",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "read the module docstring for a sentence whose subject is this block's; the module prose reaches the galley files and the refusals, never the report stream.",
+    "settles": "reading this comment against the getattr and reconfigure calls beneath it and the print calls that use the stream."
+   },
+   "reason": "Its subject is the encoding of the standard output stream inside one function's body, fixed by the `reconfigure` lines it sits above. The module as a whole announces what is written under --out, not how a console renders the report.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:114",
+     "verbatim": "reconfigure = getattr(sys.stdout, \"reconfigure\", None)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:116",
+     "verbatim": "reconfigure(encoding=\"utf-8\", errors=\"replace\")"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:135",
+     "verbatim": "print(f\"CANNOT READ ({type(e).__name__}) -- no galley written\")"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 61,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:142-145",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "read the module docstring and the module-level bindings for a sentence fixing this block's subject; the module holds no state of its own and this mapping is built inside the function.",
+    "settles": "reading this comment against the `by_path` mapping, the `raw_lines` comparison it points at, and the block appended to it."
+   },
+   "reason": "Its subject is why one local mapping is keyed by path and carries the census block with each edit, fixed by the `by_path` binding it sits above -- a local, not a module-level one. The module as a whole announces that a splice is refused rather than guessed, not how one body groups its edits.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:146",
+     "verbatim": "by_path: dict[str, list[tuple[int, int, str, dict]]] = {}"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:160",
+     "verbatim": "by_path.setdefault(block[\"path\"], []).append("
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:179",
+     "verbatim": "(s, e) for s, e, _, block in file_edits if not block_matches(lines, block)"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 89,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:176-177",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "read the module docstring for a sentence fixing this block's subject; its refusal paragraph names what stops a file and not the point in the body at which it stops.",
+    "settles": "reading this comment against the `stale` comprehension and the two refusal branches that precede the write."
+   },
+   "reason": "Its subject is the order of two statements inside one function -- every block checked before anything is written -- fixed by the `stale` binding beneath it. The module as a whole announces that a splice that cannot be made is reported, not where in a body the check sits.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:178",
+     "verbatim": "stale = ["
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:179",
+     "verbatim": "(s, e) for s, e, _, block in file_edits if not block_matches(lines, block)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:186",
+     "verbatim": "if stale:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 107,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:198-199",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "read the module docstring and the `__main__` block for a sentence fixing this block's subject; the usage line states how the module is invoked and states no exit status.",
+    "settles": "reading this comment against the return value of `main` and the `sys.exit` call that propagates it."
+   },
+   "reason": "Its subject is the value one function returns and why, fixed by the `return` statement it sits above. The module as a whole announces the invocation and the refusal rule; the exit status is a claim about this body's return value.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:200",
+     "verbatim": "return 1 if refused else 0"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:203",
+     "verbatim": "if __name__ == \"__main__\":"
+    }
+   ],
+   "change": []
+  }
+ ],
+ "code_concerns": []
+}

@@ -1,0 +1,397 @@
+{
+ "record_version": "1",
+ "reviewer": "function-context",
+ "allowed": {
+  "verdict": [
+   "add",
+   "clean",
+   "correct",
+   "drop",
+   "move",
+   "patch",
+   "query"
+  ],
+  "claim": {
+   "clean": [],
+   "query": [
+    "shape",
+    "attempted",
+    "settles"
+   ],
+   "drop": [
+    "drop"
+   ],
+   "correct": [
+    "false",
+    "true"
+   ],
+   "patch": [
+    "from",
+    "to"
+   ],
+   "add": [
+    "missing",
+    "anchor",
+    "side"
+   ],
+   "move": [
+    "from",
+    "to"
+   ]
+  },
+  "values": {
+   "shape": [
+    "outside my role",
+    "outside the checkout",
+    "outside the code"
+   ],
+   "side": [
+    "above",
+    "below"
+   ]
+  },
+  "scope_shape": "outside my role"
+ },
+ "records": [
+  {
+   "block": 1,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:1-33",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the whole docstring against `main`, then opened `verdicts.py` and confirmed `edit_problem` states the same round-2 limit this block states.",
+    "settles": "A reading whose subject is the module -- what a galley IS, and whether the two consumers it names are the ones this file serves -- would settle it."
+   },
+   "reason": "Its subject is what the module is and which two stages consume it, and its load-bearing claims are about `address_problem` and `edit_problem` in `verdicts.py`, a file no verdict here may target. My remit is whether a function's name, signature, docstring and body agree, and what a function's output or caller requires that the signature cannot state; nothing in this block is a claim about a function in this file.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:5",
+     "verbatim": "A galley is the trial impression: the text set, but not yet made into pages, so"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:16",
+     "verbatim": "round 2   A re-review rules on the SYNTHESISED block -- text on no disk and"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1320",
+     "verbatim": "in no census -- while `address_problem` compares `original` against the"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 7,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:42-42",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the trailing comment against the two module-level statements it governs, and confirmed `READ_ERRORS` is read at both of its uses in this file.",
+    "settles": "A reading whose subject is the import statement's POSITION -- does this prose belong to the line it sits on -- would settle it."
+   },
+   "reason": "Its subject is the order of two module-level statements, not a function. My remit is the agreement of a function's name, signature, docstring and body, and what a function's output or caller requires that the signature cannot state, and this comment sits inside no function.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:40",
+     "verbatim": "sys.path.insert(0, str(Path(__file__).resolve().parent))"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:42",
+     "verbatim": "from repo import READ_ERRORS  # noqa: E402  -- path shim must run first"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:134",
+     "verbatim": "except READ_ERRORS as e:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 9,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:46-51",
+   "verdict": "patch",
+   "claim": {
+    "from": "The ending this text uses, as the joiner a rewrite must use.",
+    "to": "CRLF if the text uses it anywhere, LF otherwise -- the joiner for a rewrite."
+   },
+   "reason": "The body returns CRLF when CRLF appears ANYWHERE and LF for every other text, including one whose endings are mixed and one that holds no line break at all -- for those there is no ending this text uses, so the summary states one instance and not the rule the code follows. `splice` joins EVERY line with the value, so on a mixed-ending file each LF line is rewritten to CRLF, which is the outcome the paragraph below says the design avoids.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:52",
+     "verbatim": "return \"\\r\\n\" if \"\\r\\n\" in text else \"\\n\""
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:71",
+     "verbatim": "end_of_line = line_endings(text)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:75",
+     "verbatim": "return end_of_line.join(lines) + ("
+    },
+    {
+     "cite": "tests/test_galley.py:35",
+     "verbatim": "out = galley.splice(\"a\\r\\n# old\\r\\nb\\r\\n\", [(2, 2, \"# new\")])"
+    }
+   ],
+   "change": [
+    "    \"\"\"CRLF if the text uses it anywhere, LF otherwise -- the joiner for a rewrite.",
+    "",
+    "    ! Taken from the file being spliced, not from the platform. A galley is",
+    "    diffed against its original; a rewrite that normalised the endings would",
+    "    report every line as changed and bury the prose edit.",
+    "    \"\"\""
+   ]
+  },
+  {
+   "block": 11,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:56-70",
+   "verdict": "add",
+   "claim": {
+    "missing": "! A RANGE OUTSIDE THE FILE IS NOT REFUSED HERE. Python's slice assignment accepts any bound, so a start past the last line appends the replacement instead of raising. The caller settles the range with `block_matches` first.",
+    "anchor": "`splice`",
+    "side": "below"
+   },
+   "reason": "The docstring names one caller obligation -- overlaps already refused -- and the body has a second the signature cannot state: `lines[start - 1 : end] = ...` is a slice assignment, which accepts any bound, so a range past the end of the file appends at the end rather than raising and the galley is written silently in the wrong place. Nothing in `splice` checks it; `block_matches` is where the range is settled, and only `main` calls it.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:74",
+     "verbatim": "lines[start - 1 : end] = replacement.splitlines()"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:101",
+     "verbatim": "if start < 1 or end > len(lines) or start > end:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:179",
+     "verbatim": "(s, e) for s, e, _, block in file_edits if not block_matches(lines, block)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:193",
+     "verbatim": "target.write_text(splice(text, ranges), encoding=\"utf-8\", newline=\"\")"
+    }
+   ],
+   "change": [
+    "    \"\"\"`text` with each `(start, end, replacement)` put in place of those lines.",
+    "",
+    "    Args:",
+    "        text: the file as it reads now.",
+    "        edits: one per block, 1-based and inclusive, in any order.",
+    "",
+    "    Returns:",
+    "        The file with every edit applied.",
+    "",
+    "    !! APPLIED IN DESCENDING ORDER, which is what makes the ranges mean",
+    "    anything. A replacement rarely has the same number of lines as what it",
+    "    replaces, so splicing top-down shifts every range below the one just",
+    "    written and each later edit lands further from where its census said. The",
+    "    caller has already refused overlaps, so descending order is exact.",
+    "",
+    "    ! A RANGE OUTSIDE THE FILE IS NOT REFUSED HERE. Python's slice assignment",
+    "    accepts any bound, so a start past the last line appends the replacement",
+    "    instead of raising. The caller settles the range with `block_matches`",
+    "    first.",
+    "    \"\"\""
+   ]
+  },
+  {
+   "block": 19,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:81-85",
+   "verdict": "correct",
+   "claim": {
+    "false": "The first pair of edits sharing a line, or None.",
+    "true": "The START LINES of the first two edits sharing a line, or None."
+   },
+   "reason": "The body returns `(a_start, b_start)` -- two line numbers -- and the signature says `tuple[int, int] | None`, so the return holds no edit. `main` reads it as line numbers when it reports the refusal, and the test pins (1, 3) for edits (1, 3, x) and (3, 5, y). A reader who believed the summary and indexed a replacement out of the result gets a TypeError.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:80",
+     "verbatim": "def overlaps(edits: list[tuple[int, int, str]]) -> tuple[int, int] | None:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:89",
+     "verbatim": "return (a_start, b_start)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:183",
+     "verbatim": "print(f\"REFUSED  {rel}: edits at {clash[0]} and {clash[1]} share a line\")"
+    },
+    {
+     "cite": "tests/test_galley.py:44",
+     "verbatim": "self.assertEqual(galley.overlaps([(1, 3, \"x\"), (3, 5, \"y\")]), (1, 3))"
+    }
+   ],
+   "change": [
+    "    \"\"\"The START LINES of the first two edits sharing a line, or None.",
+    "",
+    "    ! Two `CHANGE`s over one line have no defined result: each carries its",
+    "    surrounding block, so the second would overwrite context the first wrote.",
+    "    \"\"\""
+   ]
+  },
+  {
+   "block": 25,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:94-99",
+   "verdict": "add",
+   "claim": {
+    "missing": "! False also means COULD NOT BE CHECKED. A block carrying no `raw_lines` has nothing to compare and a range outside the file has nowhere to compare it, so both refuse rather than pass.",
+    "anchor": "`block_matches`",
+    "side": "below"
+   },
+   "reason": "The docstring asks one question and the body answers two: `if not stored: return False` refuses a block the census gave no `raw_lines`, and the bounds test refuses a range outside the file. Both return the same False as a real mismatch, so `-> bool` cannot say which happened, and the fail-closed choice is pinned by a test and stated in no prose here -- a reader who takes False to mean the file moved will look for a change that never happened.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:101",
+     "verbatim": "if start < 1 or end > len(lines) or start > end:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:104",
+     "verbatim": "if not stored:"
+    },
+    {
+     "cite": "tests/test_galley.py:81",
+     "verbatim": "# An interval block stores none, and nothing can be verified against it."
+    },
+    {
+     "cite": "tests/test_galley.py:82",
+     "verbatim": "self.assertFalse(galley.block_matches(self.LINES, {\"start\": 2, \"end\": 3}))"
+    }
+   ],
+   "change": [
+    "    \"\"\"Does the file still read the way the census recorded this block?",
+    "",
+    "    ! The census may be older than the file. Splicing a range whose content has",
+    "    moved writes the replacement over whatever is there now, which is the one",
+    "    failure a galley must not produce quietly.",
+    "",
+    "    ! False also means COULD NOT BE CHECKED. A block carrying no `raw_lines`",
+    "    has nothing to compare and a range outside the file has nowhere to compare",
+    "    it, so both refuse rather than pass.",
+    "    \"\"\""
+   ]
+  },
+  {
+   "block": 35,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:112-112",
+   "verdict": "correct",
+   "claim": {
+    "false": "Write a galley of every file an edit touches",
+    "true": "Write a galley of each file whose edits applied"
+   },
+   "reason": "A file whose edits clash, or whose census range no longer matches, is refused and nothing is written for it -- the loop prints REFUSED and continues before it reaches `write_text`, and the end-to-end test asserts the output file does not exist. So the population is not every file an edit touches; it is every file whose edits all applied.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:187",
+     "verbatim": "print(f\"REFUSED  {rel}: {len(stale)} range(s) no longer match the census\")"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:193",
+     "verbatim": "target.write_text(splice(text, ranges), encoding=\"utf-8\", newline=\"\")"
+    },
+    {
+     "cite": "tests/test_galley.py:159",
+     "verbatim": "self.assertFalse((self.out / \"pkg\" / \"m.py\").exists())"
+    }
+   ],
+   "change": [
+    "    \"\"\"Write a galley of each file whose edits applied, and report what refused.\"\"\""
+   ]
+  },
+  {
+   "block": 36,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:113-113",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "function-context: the comment is the reason for the two lines below it, which reconfigure the stream it names, and it constrains rather than sequences.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:113",
+     "verbatim": "# A Windows console is cp1252; one non-ASCII glyph in a report kills the run."
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:116",
+     "verbatim": "reconfigure(encoding=\"utf-8\", errors=\"replace\")"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 61,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:142-145",
+   "verdict": "correct",
+   "claim": {
+    "false": "its `raw_lines` is the only record of what the file said when the reviewers read it",
+    "true": "its `raw_lines` is the census's transcription of the block -- the file's own lines for a comment run, and the AST value for a docstring"
+   },
+   "reason": "`census.py` fills `raw_lines` two different ways: a comment run stores the file's lines, and a docstring stores `doc.splitlines()`, the AST VALUE, which carries neither the quotes nor the first line's indentation -- census.py says so itself where it works around the same fact. So for a docstring `raw_lines` is not what the file said, and `block_matches` compares it against the file's physical lines: measured on this file's own census, all six docstring blocks return False and all four comment blocks return True.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/census.py:625",
+     "verbatim": "raw_lines=[ln for _, ln, _, _ in run],"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/census.py:699",
+     "verbatim": "raw_lines=doc.splitlines(),"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/census.py:882",
+     "verbatim": "# `raw_lines` are the AST VALUE, not the file's lines, so one opening on"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:106",
+     "verbatim": "return [ln.rstrip() for ln in lines[start - 1 : end]] == ["
+    }
+   ],
+   "change": [
+    "    # Group by file, because a splice is a whole-file rewrite. The CENSUS BLOCK",
+    "    # travels with each edit: its `raw_lines` is the census's transcription of",
+    "    # the block -- the file's own lines for a comment run, and the AST value for",
+    "    # a docstring -- and comparing the file to itself would make the staleness",
+    "    # check below unable to fail."
+   ]
+  },
+  {
+   "block": 89,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:176-177",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "function-context: the claim holds -- every edit for a file is measured against the file before the loop reaches `write_text`, and a stale range refuses the whole file rather than part of it -- and the comment sits above the step it describes.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:179",
+     "verbatim": "(s, e) for s, e, _, block in file_edits if not block_matches(lines, block)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:188",
+     "verbatim": "refused += len(file_edits)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:193",
+     "verbatim": "target.write_text(splice(text, ranges), encoding=\"utf-8\", newline=\"\")"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 107,
+   "address": "plugins/comment-review/skills/comment-review/scripts/galley.py:198-199",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "function-context: the exit code the sentence states is the one the line below it returns, and it is the contract the caller depends on -- `sys.exit(main())` is what the module runs.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:200",
+     "verbatim": "return 1 if refused else 0"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:204",
+     "verbatim": "sys.exit(main())"
+    }
+   ],
+   "change": []
+  }
+ ],
+ "code_concerns": [
+  "block_matches compares the file's physical lines against a docstring block's `raw_lines`, which census.py sets to the AST value, so no Python docstring block can pass the staleness check: measured on this file's own census, blocks 1, 9, 11, 19, 25 and 35 return False and the four comment blocks return True -- a docstring edit is refused as stale rather than spliced.",
+  "splice accepts a range outside the file: `lines[start - 1 : end] = ...` appends instead of raising, so a bad range lands at the end of the file with no error.",
+  "main computes `stale` before it tests `clash`, so `block_matches` runs over every edit on a file that is about to be refused for a clash."
+ ]
+}
