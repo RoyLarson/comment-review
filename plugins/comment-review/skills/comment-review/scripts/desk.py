@@ -44,6 +44,8 @@ from record import (  # noqa: E402  -- path shim must run first
     _is,
     _n,
     _said,
+    claim_keys,
+    filled,
 )
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
@@ -156,6 +158,18 @@ def payload_problem(f: Finding) -> str | None:
         return "REASON restates CLAIM -- say what you derived, not what it says"
 
     claim = f.claim.lower()
+    # !! PRESENT AND EMPTY IS MISSING, and only the FIELD can tell. `claim_text`
+    # renders an empty value as `false: ""`, so the marker IS in the rendered
+    # string and the search below admits it -- and `ruled_text` then reads ""
+    # and returns "", which its own contract calls "cannot compare", so
+    # `block_problem`, `edit_problem` and `contradictions` all skip in silence.
+    # The finding is admitted AND unchecked. Measured 2026-08-18: the join
+    # returned None where `record.claim_problems` reported the empty key.
+    markers, _extras = claim_keys(spec)
+    if f.claim_fields and markers:
+        empty = [k for k in markers if not filled(f.claim_fields.get(k))]
+        if empty:
+            return spec.claim_help
     if any(marker not in claim for marker in spec.claim_all):
         return spec.claim_help
     # ! The SHAPE comes from its own key where there is one. Searching the

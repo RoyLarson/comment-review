@@ -157,7 +157,7 @@ class TestCoverage(unittest.TestCase):
 class TestPayload(unittest.TestCase):
     def test_correct_without_a_pair_is_rejected(self):
         f = _finding(claim="fix it")
-        self.assertIn("false/true pair", desk.payload_problem(f))
+        self.assertIn("claim.false", desk.payload_problem(f))
 
     def test_correct_with_a_pair_passes(self):
         self.assertIsNone(desk.payload_problem(_finding()))
@@ -246,7 +246,7 @@ class TestAddAnchor(unittest.TestCase):
         # ! The anchor alone says WHERE and not WHAT. CLAIM is the spec, so the
         # text belongs in it -- CHANGE shows it already placed in the block, and
         # no checker can pick the new sentence back out of a block.
-        self.assertIn("missing:", self._add("above `send()`: retries are capped"))
+        self.assertIn("claim.missing", self._add("above `send()`: retries are capped"))
 
 
 class TestQueryPayload(unittest.TestCase):
@@ -925,7 +925,7 @@ class TestChangeIsRequired(unittest.TestCase):
 
     def test_a_move_needs_a_from_to_pair(self):
         f = _finding(verdict="move", claim="put it in the docs")
-        self.assertIn("from/to", desk.payload_problem(f))
+        self.assertIn("claim.from", desk.payload_problem(f))
 
     def test_correct_keeps_false_true_rather_than_from_to(self):
         # ! The pair differs on purpose: `correct` asserts the sentence is
@@ -933,7 +933,7 @@ class TestChangeIsRequired(unittest.TestCase):
         # neutral from/to would erase the distinction the synthesis order
         # depends on.
         f = _finding(verdict="correct", claim='from: "a" / to: "b"')
-        self.assertIn("false/true pair", desk.payload_problem(f))
+        self.assertIn("claim.false", desk.payload_problem(f))
 
 
 class TestAFieldMayRunOverSeveralLines(unittest.TestCase):

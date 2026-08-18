@@ -200,7 +200,7 @@ VERDICTS: dict[str, Verdict] = {
             " against the census text, so a paraphrase is refused"
         ),
         claim_all=("drop:",),
-        claim_help='drop needs the sentence in CLAIM, as `drop: "..."`',
+        claim_help="drop needs the sentence being removed in `claim.drop`",
         quotes_original="drop:",
         removes=True,
         may_empty=True,
@@ -212,7 +212,7 @@ VERDICTS: dict[str, Verdict] = {
             " if it is not there, the finding is on the wrong block"
         ),
         claim_all=("false:", "true:"),
-        claim_help="correct needs a false/true pair in CLAIM",
+        claim_help="correct needs `claim.false` and `claim.true`, both filled",
         quotes_original="false:",
         quotes_until="/ true:",
         rules_on_text=True,
@@ -224,7 +224,7 @@ VERDICTS: dict[str, Verdict] = {
             " only its wording is at issue"
         ),
         claim_all=("from:", "to:"),
-        claim_help="patch needs a from/to pair in CLAIM",
+        claim_help="patch needs `claim.from` and `claim.to`, both filled",
         quotes_original="from:",
         quotes_until="/ to:",
         rules_on_text=True,
@@ -235,7 +235,7 @@ VERDICTS: dict[str, Verdict] = {
             ' of it. ! The word "anchor" is not an anchor -- name the declaration'
         ),
         claim_all=("missing:",),
-        claim_help='add needs the text in CLAIM, as `missing: "..."`',
+        claim_help="add needs the text in `claim.missing`",
         diffable=False,
         needs_anchor=True,
     ),
@@ -246,7 +246,7 @@ VERDICTS: dict[str, Verdict] = {
             " same two key names in `change` mean the resulting BLOCKS"
         ),
         claim_all=("from:", "to:"),
-        claim_help="move needs a from/to pair in CLAIM",
+        claim_help="move needs `claim.from` and `claim.to`, both filled",
         change_all=("to:",),
         change_help=(
             "move needs the DESTINATION block in CHANGE, as `to: ...` -- plus"
@@ -417,6 +417,22 @@ def _is(f: Finding, trait: str) -> bool:
     return bool(spec and getattr(spec, trait))
 
 
+def filled(value: object) -> bool:
+    """Is this `claim` value a real answer?
+
+    !! A CLAIM VALUE IS PROSE, so anything that is not a non-blank STRING is
+    empty -- and `str(value).strip()` cannot say so, because it renders `None`
+    as `"None"`, `False` as `"False"` and `0` as `"0"`, all of them truthy.
+    Measured 2026-08-18: a record carrying `"false": null` was admitted by the
+    join AND by `--check`, and `_said` then handed `ruled_text` the literal
+    word "None" to compare against the block.
+
+    ! `""` and `"   "` were already caught. The three this adds are the ones a
+    JSON record can carry and a text one cannot.
+    """
+    return isinstance(value, str) and bool(value.strip())
+
+
 def _said(f: Finding, key: str) -> str:
     """What the record put in this `claim` key, or "" if it carries no fields.
 
@@ -439,7 +455,12 @@ def _said(f: Finding, key: str) -> str:
     Returns:
         The value as a string, or "".
     """
-    return str(f.claim_fields.get(key, "")) if f.claim_fields else ""
+    if not f.claim_fields:
+        return ""
+    value = f.claim_fields.get(key, "")
+    # ! A non-string is NOT an answer. `str()` here rendered `None` as the word
+    # "None" and handed it downstream as the sentence being ruled on.
+    return value if isinstance(value, str) else ""
 
 
 def _claim_values(f: Finding) -> str:
@@ -1035,7 +1056,7 @@ def claim_problems(where: str, rec: dict) -> list[str]:
     # verdict owes, so a reviewer that skips one leaves it there holding "" --
     # and downstream `verdicts.py` now reads the FIELD rather than searching the
     # prose it renders into, so an empty field would answer a check by existing.
-    blank = [k for k in spec if k in claim and not str(claim[k]).strip()]
+    blank = [k for k in spec if k in claim and not filled(claim[k])]
     out = []
     # ! The one FORM the join enforces. Checked here so a record that passes
     # `--check` is a record the join admits.
