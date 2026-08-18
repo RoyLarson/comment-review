@@ -84,7 +84,7 @@ def overlaps(edits: list[tuple[int, int, str]]) -> tuple[int, int] | None:
     surrounding block, so the second would overwrite context the first wrote.
     """
     ordered = sorted(edits)
-    for (a_start, a_end, _), (b_start, _, _) in zip(ordered, ordered[1:]):
+    for (a_start, a_end, _), (b_start, _, _) in zip(ordered, ordered[1:], strict=False):
         if b_start <= a_end:
             return (a_start, b_start)
     return None

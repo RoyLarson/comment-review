@@ -150,6 +150,94 @@ class TestTheTemplateStatesWhatIsAllowed(unittest.TestCase):
         self.assertLess(keys.index("allowed"), keys.index("records"))
 
 
+class TestCheckNamesTheRightThing(unittest.TestCase):
+    """Shape problems, each reported against the field that is actually wrong.
+
+    !! This is the lesson from D7, D8 and D9, all in one day: every one of them
+    reported its error against work that was CORRECT, which is the most
+    expensive diagnostic there is. These tests assert WHAT IS NAMED, not merely
+    that something was refused -- all three of those defects passed tests that
+    checked only the latter.
+    """
+
+    def _filled(self, **fields):
+        rec = record.slot(1, CENSUS[0])
+        rec.update(fields)
+        return rec
+
+    def _at(self, **fields):
+        return record.record_problems("block 1", self._filled(**fields), CENSUS[0])
+
+    def test_a_well_formed_record_has_no_problems(self):
+        self.assertEqual(
+            self._at(
+                verdict="correct",
+                claim={"false": "x", "true": "y"},
+                reason="because",
+                sources=[{"cite": "a.py:1", "verbatim": "x"}],
+                change=["# y"],
+            ),
+            [],
+        )
+
+    def test_a_wrong_claim_key_names_the_verdict_and_what_it_owes(self):
+        problems = " ".join(self._at(verdict="drop", claim={"from": "x"}))
+        self.assertIn("drop", problems)
+        self.assertIn("'drop'", problems)
+        self.assertIn("'from'", problems)
+
+    def test_a_clobbered_address_blames_the_EDIT_not_the_reviewer(self):
+        # !! The whole point. The reviewer never typed this field, so a message
+        # accusing it of misquoting would send it to fix correct work.
+        rec = self._filled(verdict="clean", address="WRONG:1-2")
+        problem = " ".join(record.seeded_problems("block 1", rec, CENSUS[0]))
+        self.assertIn("WRITTEN BY THE TOOL", problem)
+        self.assertIn("edited after seeding", problem)
+        self.assertNotIn("misquot", problem.lower())
+
+    def test_a_source_that_is_a_string_is_named_by_its_position(self):
+        problems = " ".join(self._at(verdict="clean", sources=["a.py:1 | x"]))
+        self.assertIn("source 1", problems)
+        self.assertIn("{cite, verbatim}", problems)
+
+    def test_a_constrained_value_shows_what_was_offered(self):
+        problems = " ".join(
+            self._at(
+                verdict="query",
+                claim={"shape": "outside the office", "attempted": "a", "settles": "s"},
+            )
+        )
+        self.assertIn("outside the office", problems)
+        self.assertIn("outside my role", problems)
+
+    def test_an_unknown_verdict_lists_the_seven(self):
+        problems = " ".join(self._at(verdict="reject"))
+        self.assertIn("'reject'", problems)
+        self.assertIn("correct", problems)
+
+    def test_a_field_of_the_wrong_type_names_both_types(self):
+        problems = " ".join(self._at(verdict="clean", reason=["a list"]))
+        self.assertIn("`reason` is list, not str", problems)
+
+
+class TestUnruledIsCountedNotRefused(unittest.TestCase):
+    def test_an_empty_report_is_not_malformed(self):
+        report = record.seed(CENSUS, "block-context")
+        problems, unruled = record.check(report, CENSUS)
+        self.assertEqual(problems, [])
+        self.assertEqual(unruled, 2)
+
+    def test_a_filled_record_is_not_counted_as_unruled(self):
+        report = record.seed(CENSUS, "block-context")
+        report["records"][0].update(verdict="clean")
+        _, unruled = record.check(report, CENSUS)
+        self.assertEqual(unruled, 1)
+
+    def test_a_file_that_is_not_a_report_says_so(self):
+        problems, _ = record.check({"nothing": "here"}, CENSUS)
+        self.assertIn("not a seeded report", " ".join(problems))
+
+
 class TestCLI(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -201,6 +289,50 @@ class TestCLI(unittest.TestCase):
         result = self._run("--seed")
         self.assertEqual(result.returncode, 2)
         self.assertIn("CANNOT PARSE", result.stdout)
+
+    def _check(self, path):
+        return subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPTS / "record.py"),
+                "--check",
+                str(path),
+                "--census",
+                str(self.census),
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+
+    def test_an_empty_report_exits_0_and_says_how_much_is_left(self):
+        # ! INCOMPLETE is not MALFORMED. A reviewer checking its own work
+        # part-way through is not in error, and the two must exit differently.
+        self._run("--seed")
+        result = self._check(self.out)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("0 of 2 records ruled; 2 still empty", result.stdout)
+
+    def test_a_malformed_record_exits_1(self):
+        self._run("--seed")
+        report = json.loads(self.out.read_text(encoding="utf-8"))
+        report["records"][0].update(verdict="drop", claim={"from": "x"})
+        self.out.write_text(json.dumps(report), encoding="utf-8")
+        result = self._check(self.out)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("The shape is wrong, not the finding", result.stdout)
+
+    def test_unparseable_json_NAMES_ITS_OWN_POSITION(self):
+        # !! The one failure this format adds, and the reason it is acceptable:
+        # a parse error says WHERE it is. A merged field never could -- it
+        # blamed the neighbour, which is what D7, D8 and D9 each cost a session.
+        self._run("--seed")
+        self.out.write_text('{"records": [ {"block": 1,, } ]}', encoding="utf-8")
+        result = self._check(self.out)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("CANNOT PARSE", result.stdout)
+        self.assertRegex(result.stdout, r"line \d+ column \d+")
 
 
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that class

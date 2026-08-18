@@ -300,10 +300,23 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       INTEGRITY check, not the old transcription check: it can only fail if a filled record was
       corrupted, so its message must say so rather than accusing the reviewer of misquoting.
 
-- [ ] **2. `record.py` validates a filled record.** Shape only -- required fields present, the
-      verdict known, `claim`'s keys the ones its row requires. ! Say what happens to a report
-      that does NOT parse: today a malformed record is named and counted fatal while the rest of
-      the report still joins, and a total parse failure has no such middle.
+- [x] **2. DONE 2026-08-17 -- `record.py --check`.** Shape only: fields present and of the right
+      type, the verdict one of the seven, `claim`'s keys the ones its row requires, constrained
+      values among those the template offered, and `sources` a list of `{cite, verbatim}`.
+
+      !! **THREE EXITS, because incomplete is not malformed.** `2` the file does not parse,
+      `1` a filled record is malformed, `0` every filled record is well formed -- and an
+      EMPTY report exits 0 while reporting `0 of 224 records ruled`. A reviewer checking its own
+      work part-way through is not in error; the coverage GATE stays `verdicts.py`'s.
+
+      !! **Every message names the field that is wrong**, which is the lesson from D7, D8 and D9.
+      The address message is the one that mattered most: it says the field **was written by the
+      tool and edited after seeding**, and a test asserts it never says misquoted -- accusing
+      the reviewer would send it to fix work it never did.
+
+      ! And the answer to what happens when a report does not parse: it exits 2 and **names its
+      own position**, . That is the failure this format ADDS, and it is
+      acceptable precisely because a merged field never could -- it blamed the neighbour.
 
 - [ ] **3. `verdicts.py` reads records instead of parsing prose**, and `parse_report` stays
       behind a deprecation notice for the old text reports. !! **Free regression test: the four
