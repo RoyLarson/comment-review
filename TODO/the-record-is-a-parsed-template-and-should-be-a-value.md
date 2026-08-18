@@ -57,8 +57,9 @@ splitting is not free and gets abbreviations, code samples and lists wrong. What
 deciding cost of this change turns out not to be paid.
 
 ! **Untouched: whether the claim is TRUE.** That is the check worth having and it is not the one
-breaking. ! **The ADDRESS check is not untouched -- it is DELETED**, because a record that
-carries only an index has no address to disagree with the census. See the section below.
+breaking. ! **The ADDRESS check survives but changes MEANING**: it stops measuring a reviewer's
+transcription and starts measuring whether a pre-filled field survived being edited. Same
+comparison, a different thing being checked -- see the ruling below.
 
 ## !! The counter-argument, which is measured and from today
 
@@ -76,9 +77,9 @@ loud total failure for a quiet local one is the right direction; it is not a fre
 
 - **That an agent writes the structured form more reliably than the template.** Nobody has
   measured it. The comparison that matters is malformed-report rate, and both formats have one.
-- **That it can be hand-written at all.** ! **Much less text is at stake than this line assumed
-  when it was written**: the record no longer carries the ORIGINAL, so the only long field left
-  is `change`. That does not settle the question, it shrinks it.
+- **That it can be hand-written at all.** ! The record carries TWO long fields -- `original`
+  (pre-filled, so the reviewer only has to not break it) and `change` (written by hand). The
+  question is really about `change` alone, which shrinks it without settling it.
 - **Whether the reviewer can be kept out of the SYNTAX entirely.** Roy: *"we give them a cli to
   emit one. No ambiguity on if they write it correctly."* ! The hazard moves rather than
   vanishing if the values reach that CLI through a SHELL: multi-line text in an argument is the
@@ -162,7 +163,7 @@ contract, which changed once already today.
 
 | | ruled |
 | --- | --- |
-| **the seed** | **SEEDED SLOTS, and the record does NOT CARRY THE ORIGINAL AT ALL.** See below -- this supersedes the first answer, which was to pre-fill the text |
+| **the seed** | **THE TEMPLATE PRE-FILLS `block`, `address` and `original` from the census, and `record.py` CHECKS the original still matches.** The reviewer sets only `verdict`, `claim`, `reason`, `sources`, `change`. See the ruling below |
 | **the break** | **CLEAN, but the old parser STAYS, deprecated.** Roy: *"clean break - but deprecate the code and leave it in there to parse out the other records just in case."* ! It also unstrands the two in-flight runs rather than forcing a restart |
 | **`CLAIM`** | **an OBJECT.** Its keys are the `Verdict` table's existing markers minus the colon, so adding a verdict stays a row |
 | **the module** | **a NEW file, `record.py`.** Roy: *"the modular-context should trigger stating that verdict.py seems to be doing more than one thing. It probably already is but this definitely would make that true."* ! The system's own rule applied to its own code |
@@ -172,7 +173,36 @@ contract, which changed once already today.
 seeding one, and whether a given one is well formed. `verdicts.py` owns what a SET of records
 MEANS against the census -- coverage, citations, contradictions, the work list.
 
-### !! THE BIGGER WIN: the record carries an INDEX, not the text
+### * RULED 2026-08-17: the template PRE-FILLS the original, and the tool CHECKS it
+
+Roy: *"it is going to come as a template so it is not going to be figure out how to fill out a
+json message I can parse. It is going to be fill out THIS json message so I can load it. It will
+have to be verified but it won't be incomplete."*
+
+!! **That makes validation a COMPLETENESS check rather than a SYNTAX one.** A missing field in a
+pre-structured template is visibly EMPTY rather than absent, which is a different and much
+cheaper failure than a record the parser could not find the edges of.
+
+**Two questions were merged in getting here, and only one of them the template settles:**
+
+| | |
+| --- | --- |
+| **does the reviewer ever TYPE the original?** | **No, settled.** That is where the 83 refusals went, and a tool-written field cannot be mistyped |
+| **does the FILE carry a copy?** | **Yes, and it is CHECKED.** The template pre-fills it from the census; `record.py` verifies it still matches |
+
+!! **The check is NOT the transcription-mismatch class coming back.** That class was a reviewer
+QUOTING the block and getting it wrong -- 83 refusals, none about a finding. A pre-filled field
+can only differ if something CORRUPTED it, and a reviewer editing 224 records in one file
+clipping a neighbouring value is ordinary, not hypothetical. **What the old check measured was
+the reviewer's typing; what this one measures is whether the file survived being edited.**
+
+! **And that is the distinction to keep.** Roy, on the security gate written and removed the same
+day: the argument against it was that `pickle` is *"a well known foot gun"* and XML *"a dead
+markup language"* -- **gates against a DECISION no competent person makes.** A field-integrity
+check guards an ACCIDENT during ordinary work. Refusing to build the first does not argue against
+the second, and this file said it did.
+
+### Superseded: the record carries an INDEX, not the text
 
 **From the todo-tool session, which navigated the tool to get work done rather than reasoning
 about it from outside.** Roy: *"stop sending the original at all ... the census already has the
@@ -232,13 +262,13 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
 
 ## Build order, each step independently verifiable
 
-- [ ] **1. The schema and `record.py --seed`.** One slot per prose block carrying the INDEX and
-      empty fields -- no address, no original. Verify: seeds this repo's own smoke-test census,
-      224 slots, and the file parses.
+- [ ] **1. The schema and `record.py --seed`.** One slot per prose block, pre-filled with
+      `block`, `address` and `original` from the census, every reviewer field empty. Verify:
+      seeds this repo's own smoke-test census, 224 slots, and the file parses.
 
-- [ ] **1b. `verdicts.py` resolves the block from the census by index**, and
-      `address_problem` is DELETED rather than made vacuous. ! Verify by the count: the four
-      smoke-test reports must join with no transcription check at all and the same totals.
+- [ ] **1b. `record.py` checks the pre-filled fields still match the census.** ! It is an
+      INTEGRITY check, not the old transcription check: it can only fail if a filled record was
+      corrupted, so its message must say so rather than accusing the reviewer of misquoting.
 
 - [ ] **2. `record.py` validates a filled record.** Shape only -- required fields present, the
       verdict known, `claim`'s keys the ones its row requires. ! Say what happens to a report
