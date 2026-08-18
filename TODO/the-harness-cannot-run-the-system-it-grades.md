@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 20 tasks done
+Progress: 6 of 20 tasks done
 Owner:    session * Roy (* 1 ruling left -- the suite layout. `plugin eval`
           access is open and this file already says it is not a blocker)
 Requires-Roy: true
@@ -174,15 +174,26 @@ supplied both halves 2026-08-18; verified the same day:
 | comment-review `v0.2.1` | `7a0945ad3f40` | `origin/main`, annotated tag | yes |
 | comment-review `v0.2.2` | `5e0b0f75105b` | `origin/main`, annotated tag | yes |
 | redacted_corpus BASE | `REDACTED_SHA_E` | `origin/master` | yes |
-| redacted_corpus RUN | `REDACTED_SHA_F` | `redacted-branch-b` | **NO -- local only** |
-| redacted_corpus todo-tool | `REDACTED_SHA_D` | `todo-requires-roy` | **NO -- local only** |
+| redacted_corpus RUN | `REDACTED_SHA_F` | `origin/redacted-branch-b` (tip) | yes |
+| redacted_corpus todo-tool | `REDACTED_SHA_D` | `origin/todo-requires-roy`, 1 behind tip | yes |
 
-!! **TWO SEPARATE PROBLEMS, and only one of them is fixable here.**
+!! **CORRECTED 2026-08-18: ALL SIX ARE ON A REMOTE. The durability problem does not exist,
+and the way it was mis-measured is worth more than the scare.**
 
-- **DURABILITY -- fixable.** The two SUBJECT commits, the things that were actually REVIEWED,
-  exist only in one clone on unpushed branches. `git branch -D` on either and `gc` eventually
-  takes the commit, and the answer key with it. Pushing them, even to a PRIVATE remote, ends
-  that. The other four are already durable.
+The first reading said the two SUBJECT commits were local-only. It came from
+`git branch -r --contains <sha>`, which searches `refs/remotes` -- and this clone had never
+FETCHED those two branches, so there was nothing there to find. The commits were on `origin` the
+whole time. `git ls-remote --heads origin` is the authoritative check and disagreed immediately.
+
+!! **A HARNESS MUST ASK THE REMOTE, NOT THE CLONE.** Every fixture claim of the form *"this
+commit is safe"* has to come from `git ls-remote` or an explicit fetch. A stale or absent
+tracking ref reads exactly like a commit that was never pushed, and the failure is silent in
+the direction that matters -- it says a durable fixture is at risk, and it would equally say a
+lost one is fine if a tracking ref were stale the other way.
+
+- **DURABILITY -- not a problem.** All six are reachable from a branch on `origin`. `REDACTED_SHA_D`
+  sits one commit behind `origin/todo-requires-roy`'s tip `REDACTED_SHA_G` and is still an ancestor
+  of it.
 - **ACCESS -- not fixable, and not a defect.** Roy, 2026-08-18: *"None because they are
   private."* Both repositories are private, so no commit here is fetchable without his
   credentials, INCLUDING the four that are durable. **A case runs against a local clone or an
@@ -373,13 +384,11 @@ only which side of the network each commit is on.
       reports and stage 5-8 artifacts per run. ! Check the hash out; do NOT read
       this repo's vendored `scripts/todo_tool.py`, which carries a local patch and
       is eight lines longer than the fixture.
-- [ ] !! **Get the two SUBJECT commits onto a remote before writing any case
-      against them.** `REDACTED_SHA_F` and `REDACTED_SHA_D` exist only in one clone of
-      `redacted_corpus`, on unpushed branches. Push or tag them -- a PRIVATE
-      remote is enough, because the goal is surviving a deleted branch, not
-      public access. Neither is this repo's to do. !
-      Until then every case built on those two packages is one `git branch -D`
-      from unreproducible.
+- [x] **MOOT 2026-08-18: both were already on `origin`.** Filed on a reading of
+      `git branch -r --contains`, which searches only the tracking refs this clone
+      had fetched -- and it had fetched neither branch. `git push` reported
+      *"Everything up-to-date"* and `git ls-remote` confirmed both. ! What the task
+      leaves behind is the RULE above: ask the remote, not the clone.
 
 ## What this costs today
 
