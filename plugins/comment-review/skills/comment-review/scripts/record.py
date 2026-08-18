@@ -365,9 +365,10 @@ class Finding:
     measured run were spent on transcription fidelity and none was about a
     finding.
 
-    ! `claim_fields` is the claim as the record held it, and empty for a 0.2.x
-    text record. A check that can read a FIELD must not search the string
-    `claim_text` renders it into -- see `_said`.
+    ! `claim_fields` is the claim as the record held it -- from the file for a
+    JSON record, and from `claim_object` at load for a 0.2.x one, so both
+    formats arrive typed. A check that can read a FIELD must not search the
+    string `claim_text` renders it into -- see `_said`.
 
     ! `clean` owes no claim and no change. A role returns `clean` on most of
     the census -- 1159 blocks on one measured run.
@@ -382,12 +383,14 @@ class Finding:
     change: str
     address: str = ""
     original: str = ""
-    # !! THE CLAIM AS THE RECORD CARRIED IT, empty for a 0.2.x text record. A
-    # check that can read the FIELD must not word-search the string the field
-    # rendered into: the reviewer answered, and searching its wording for five
-    # accepted verbs refuses correct answers written in other words. Measured
-    # 2026-08-17 on the first JSON run: nine well-formed `query` records
-    # refused, every one carrying a filled `settles`.
+    # !! THE CLAIM AS THE RECORD CARRIED IT. Filled from the file for a JSON
+    # record and by `claim_object` at load for a 0.2.x one, so it is empty only
+    # where that conversion found no markers. A check that can read the FIELD
+    # must not word-search the string the field rendered into: the reviewer
+    # answered, and searching its wording for five accepted verbs refuses
+    # correct answers written in other words. Measured 2026-08-17 on the first
+    # JSON run: nine well-formed `query` records refused, every one carrying a
+    # filled `settles`.
     claim_fields: dict = dataclass_field(default_factory=dict)
 
 
@@ -423,8 +426,10 @@ def _said(f: Finding, key: str) -> str:
     `query` whose `settles` mentioned the phrase "outside my role" was
     classified as a scope declaration and dropped out of the work list.
 
-    ! Empty for a 0.2.x text record, and every caller falls back to searching
-    the string for exactly that case. That is the only path the deprecated
+    ! A 0.2.x text record is TYPED AT LOAD now -- `parse_report` runs
+    `claim_object` over its `CLAIM` -- so this is empty only where that
+    conversion found no markers at all. A caller still falls back to searching
+    the rendered string for that case, which is the last path the deprecated
     format has.
 
     Args:
@@ -779,6 +784,16 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
                     verdict=fields.get("VERDICT", "").strip().lower(),
                     sources=sources,
                     claim=fields.get("CLAIM", ""),
+                    # !! THE 0.2.x CLAIM IS TYPED HERE, at the one place the two
+                    # formats meet. `claim_object` reads the markers back into
+                    # the keys they always were, so a check downstream reads a
+                    # FIELD whichever format the report arrived in. Before this,
+                    # a text record left `claim_fields` empty and every check
+                    # fell back to searching a rendered string for its own key.
+                    claim_fields=claim_object(
+                        fields.get("VERDICT", "").strip().lower(),
+                        fields.get("CLAIM", ""),
+                    ),
                     reason=fields.get("REASON", ""),
                     change=fields.get("CHANGE", ""),
                     address=addr.strip(),

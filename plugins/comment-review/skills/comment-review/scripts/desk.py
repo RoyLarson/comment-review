@@ -596,6 +596,17 @@ def ruled_text(f: Finding) -> str:
     spec = VERDICTS.get(f.verdict)
     if spec is None or not spec.quotes_original:
         return ""
+    # !! THE FIELD FIRST, and the scan below is now the FALLBACK. A JSON record
+    # carries the keys already and `parse_report` types a 0.2.x claim at load,
+    # so a record reaches here typed unless its claim did not parse at all.
+    #
+    # !! It is also the only way a value CONTAINING another key's marker
+    # survives. `false: "the cap is 5 / true: not really" / true: "..."` is one
+    # `false` value with `/ true:` inside it; the scan stops at the FIRST
+    # `quotes_until` and truncates it, where the field is exact.
+    said = _said(f, spec.quotes_original.rstrip(":"))
+    if said:
+        return _words(said)
     # !! Found CASE-INSENSITIVELY, because `payload_problem` matches these
     # markers against `claim.lower()`. A record written `FALSE:` / `TRUE:`
     # passed PAYLOAD and reduced to "" here, which silently switched off
