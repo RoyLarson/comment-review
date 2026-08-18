@@ -366,7 +366,7 @@ class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
 
     def test_a_trailing_comment_is_partial(self):
         block = self._kind("trailing-comment")
-        self.assertTrue(galley.shares_a_line_with_code(self.SOURCE.splitlines(), block))
+        self.assertTrue(galley.shares_a_line_with_code(block))
 
     def test_a_trailing_comment_matches_its_file_ANYWAY(self):
         # !! Which is why the kind has to be asked. `block_matches` passes --
@@ -378,12 +378,12 @@ class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
     def test_a_comment_on_its_own_line_is_not_partial(self):
         text = "def f():\n    # a note\n    return 1\n"
         block = self._kind("comment", text)
-        self.assertFalse(galley.shares_a_line_with_code(text.splitlines(), block))
+        self.assertFalse(galley.shares_a_line_with_code(block))
 
     def test_a_docstring_is_not_partial(self):
         text = 'def f():\n    """A note."""\n    return 1\n'
         block = self._kind("docstring", text)
-        self.assertFalse(galley.shares_a_line_with_code(text.splitlines(), block))
+        self.assertFalse(galley.shares_a_line_with_code(block))
 
     def test_a_census_without_the_field_is_REFUSED_not_defaulted(self):
         """!! Defaulting it put the deleted statement back.

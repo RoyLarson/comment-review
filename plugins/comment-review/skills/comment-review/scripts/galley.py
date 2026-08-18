@@ -144,7 +144,7 @@ def block_matches(lines: list[str], block: dict) -> bool:
     ]
 
 
-def shares_a_line_with_code(lines: list[str], block: dict) -> bool:
+def shares_a_line_with_code(block: dict) -> bool:
     """Does code come before this block's text on its first line?
 
     !! A SPLICE REPLACES WHOLE LINES, so such a block cannot be spliced at all
@@ -169,14 +169,13 @@ def shares_a_line_with_code(lines: list[str], block: dict) -> bool:
     check passes it and nothing else would have stopped the write.
 
     Args:
-        lines: the file, split. Unused now, and kept because the caller pairs
-            this with `block_matches`, which needs it.
-        block: one census entry.
+        block: one census entry. ! The FILE is not a parameter: the census is
+            the sole authority on this, and a signature taking `lines` said
+            the opposite of the paragraph above.
 
     Returns:
         True if the block's text begins or ends partway through a line of code.
     """
-    del lines
     return not block["whole_lines"]
 
 
@@ -300,6 +299,23 @@ def main() -> int:
 
     written = 0
     for rel, file_edits in sorted(by_path.items()):
+        # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `--out`, BEFORE READING.
+        # `out / rel` is the source path itself when `rel` is absolute --
+        # Python's join lets an absolute right-hand side win -- and an absolute
+        # path is exactly what a census taken before that was fixed carries.
+        # Measured 2026-08-17: the galley overwrote the file under review,
+        # wrote nothing under `--out`, and reported success.
+        #
+        # ! FIRST, because it needs neither the file nor the census. Run last,
+        # it read and validated the out-of-tree file first -- so an unreadable
+        # one was refused as `PermissionError`, which sends a reader to the
+        # wrong problem. Checked on the RESOLVED path, so a `..` inside a
+        # census path is refused by the same rule rather than a second one.
+        target = (out / rel).resolve()
+        if not target.is_relative_to(out):
+            print(f"REFUSED  {rel}: would be written outside --out")
+            refused += len(file_edits)
+            continue
         source = repo / rel
         try:
             # !! READ RAW. `read_text` collapses every `\r\n` to `\n`, so
@@ -332,7 +348,7 @@ def main() -> int:
         partial = [
             (block["start"], block["end"])
             for _, block in file_edits
-            if shares_a_line_with_code(lines, block)
+            if shares_a_line_with_code(block)
         ]
         if partial:
             where = ", ".join(f"{s}-{e}" for s, e in partial)
@@ -358,20 +374,6 @@ def main() -> int:
             refused += len(file_edits)
             continue
 
-        # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `--out`. `out / rel` is
-        # the source path itself when `rel` is absolute -- Python's join lets
-        # an absolute right-hand side win -- and an absolute path is exactly
-        # what a census taken before this was fixed carries. Measured
-        # 2026-08-17: the galley overwrote the file under review, wrote nothing
-        # under `--out`, and reported that it had succeeded.
-        #
-        # ! Checked on the RESOLVED path, so `..` inside a census path is
-        # refused on the same rule rather than by a second one.
-        target = (out / rel).resolve()
-        if not target.is_relative_to(out):
-            print(f"REFUSED  {rel}: would be written outside --out")
-            refused += len(file_edits)
-            continue
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(splice(text, ranges), encoding="utf-8", newline="")
         print(f"galley   {rel} ({len(file_edits)} block(s))")

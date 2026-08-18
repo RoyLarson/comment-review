@@ -685,7 +685,14 @@ def load_report(
         if not isinstance(block, int):
             malformed.append(f"a record carries block {block!r}, which is not an index")
             continue
-        claim = rec.get("claim") or {}
+        claim = rec.get("claim")
+        # ! NORMALISED HERE, not at the constructor. `claim_text` does
+        # `claim[m]`, and the type test sat 23 lines below the use -- so a
+        # record carrying `"claim": "drop: the note"`, which is exactly what a
+        # hand-converted 0.2.x record looks like and what `record.py --check`
+        # reports, took the whole join down with a traceback.
+        if not isinstance(claim, dict):
+            claim = {}
         findings.append(
             Finding(
                 reviewer=reviewer,
@@ -708,7 +715,7 @@ def load_report(
                 # does. `address_problem` reads this, so it is filled from the
                 # census by the caller rather than by the reviewer.
                 original="",
-                claim_fields=claim if isinstance(claim, dict) else {},
+                claim_fields=claim,
             )
         )
     return (findings, malformed, [str(c) for c in (report.get("code_concerns") or [])])
@@ -1245,11 +1252,6 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
         return f"BLOCK {f.block} carries no ADDRESS -- write `{f.block} | {want}`"
     if got not in ok:
         return f"BLOCK {f.block} address is {got!r}, the census says {want!r}"
-    text = str(entry.get("text", ""))
-    if not text.strip():
-        # ! An empty INTERVAL has no text to transcribe, and it is exactly what
-        # an `add` cites: prose that is missing has no original.
-        return None
     # !! THE TEXT IS NO LONGER COMPARED, and it must not be. `original` is
     # filled from the census's `raw_lines` by `_report`, and `text` is the
     # census's own normalised copy of the same block -- so the comparison put

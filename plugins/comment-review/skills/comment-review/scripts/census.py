@@ -1232,9 +1232,9 @@ def _report(args: argparse.Namespace) -> int:
         # that it had succeeded. The module whose one promise is "nothing under
         # `--repo` is touched" was editing the tree under review.
         #
-        # ! A file outside the repo keeps its absolute path, because there is
-        # no relative form of it. `galley.py` refuses to write such a block
-        # rather than guessing where it belongs.
+        # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
+        # `_repo_relative`, which says what that means. `galley.py` refuses to
+        # write such a block rather than guessing where it belongs.
         # ! HOISTED. `_repo_relative` calls `Path.resolve()`, a filesystem
         # call, and both arguments are the same for every block of a file.
         # Measured 2026-08-18: 120 us a call, so one 793-block file spent
