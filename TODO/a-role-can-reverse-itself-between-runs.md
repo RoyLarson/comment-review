@@ -97,5 +97,8 @@ other condition.
       the honest state today and the file already exists to hold exactly this kind of statement.
 
 - [ ] ! Do NOT add a "confidence" field to the record in response to this.
-      `the-finding-record-is-eight-fields-and-six-would-do` is open for the opposite reason, and
-      self-reported confidence is the thing this repo has already measured as worthless.
+      [`the-finding-record-is-eight-fields-and-six-would-do`](completed/the-finding-record-is-eight-fields-and-six-would-do.md)
+      cut the record from eight fields to six for the opposite reason -- every field added
+      since the import served the GATE and not the reviewer -- and self-reported confidence is
+      the thing this repo has already measured as worthless. ! That file is DONE; the argument
+      it made is why this stays a `do NOT`.

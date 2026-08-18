@@ -1027,7 +1027,7 @@ quoting: a REASON that quotes the claim and then explains it is doing its job."
 - Move: `TODO/the-unit-of-review-is-the-statement-not-the-block.md`,
   `TODO/move-and-correct-compose.md`,
   `TODO/a-wrapped-trailing-comment-is-split-into-two-blocks.md`,
-  `TODO/the-finding-record-is-eight-fields-and-six-would-do.md` -> `TODO/completed/`
+  `TODO/completed/the-finding-record-is-eight-fields-and-six-would-do.md` -> `TODO/completed/`
 - Modify: `TODO/an-empty-interval-has-no-census-index.md`
 - Modify: `CHANGELOG.md`
 

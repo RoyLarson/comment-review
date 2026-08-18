@@ -1,8 +1,8 @@
 # The finding record is eight fields, six would do, and one of them is checked by nothing
 
 ```
-Status:   open
-Progress: 7 of 8 tasks done
+Status:   done
+Progress: 8 of 8 tasks done
 Owner:    session * Roy (* 1 ruling)
 Raised:   2026-08-15 (Roy: "It looks like another session got convinced by other
           sessions that they didn't have everything they needed to state what
@@ -105,11 +105,31 @@ loads the census and takes only `len(blocks)` from it.
       `_expand` are deleted from `verdicts.py`. ! That closed the fabrication this file's own
       objective describes: a range covered N blocks in one line and cited nothing.
 
-- [ ] Decide which worked examples ship. ! **This is a budget decision, not a completeness
-      one.** `reviewer-brief.md` is 18 KB -- the largest single thing a reviewer loads, and four
-      parallel reviewers load four copies. Seven examples add ~2-3 KB to every one of them.
-      Recommendation: ship **`move` and `split`** only, whose payload shape is least guessable,
-      and keep the rest below as the record.
+- [x] **RULED 2026-08-18 by Roy: the payload prose SHIPS, all seven, and it is generated.**
+      The budget objection is answered by the branch that raised it. Roy: *"The total number of
+      tokens necessary to get the agents to start their work is significantly down ... what we
+      cut out of the records, the raw block content, is probably going to more than pay off the
+      extra tokens written into the brief."*
+
+      !! **MEASURED, and the two costs scale differently.** The brief is FIXED per reviewer; the
+      record is PER BLOCK. Dropping the block text from records saves 332,828 bytes per run at
+      four reviewers against a brief of 87,284 -- and the +1,109 the payload prose actually cost
+      breaks even at about two prose blocks. On `galley.py`, 11 prose blocks and the smallest
+      real target measured, the cut removed 4,045 against 1,109 spent.
+
+      ! **The recommendation this task carried was stale in three ways** and none of them was
+      the budget: it named `split`, a verdict collapsed into `move` on 2026-08-16; its examples
+      were in the 0.2.x text format this branch replaced; and its 18 KB was 21,467 by the time
+      anyone read it again.
+
+      !! **AND THE HAND COPY HAD DRIFTED, which is why the answer is a GENERATOR and not a
+      choice.** The brief's verdict table taught the retired marker form -- `false: "..." /
+      true: "..."` -- forty lines under a JSON worked example using JSON keys; `query`'s row
+      never named `settles`; and ten of the eleven keys a reviewer must type appeared nowhere
+      in the brief AS KEYS. Four reviewers read that table, so it was not a documentation
+      defect but an instruction to write the wrong thing. `VERDICTS` now owns the keys and the
+      prose, `scripts/render_brief.py` writes the table, and `tests/test_brief_table.py`
+      refuses a brief that has drifted from the row.
 
 ## Worked examples -- kept at Roy's request, all INVENTED
 
