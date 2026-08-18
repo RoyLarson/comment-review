@@ -315,7 +315,7 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       the reviewer would send it to fix work it never did.
 
       ! And the answer to what happens when a report does not parse: it exits 2 and **names its
-      own position**, . That is the failure this format ADDS, and it is
+      own position**, `line N column M`. That is the failure this format ADDS, and it is
       acceptable precisely because a merged field never could -- it blamed the neighbour.
 
 - [ ] **3. `verdicts.py` reads records instead of parsing prose**, and `parse_report` stays
