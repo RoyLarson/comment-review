@@ -125,7 +125,7 @@ class TestTheTemplateStatesWhatIsAllowed(unittest.TestCase):
         self.assertEqual(self.allowed["claim"]["clean"], [])
 
     def test_query_is_told_its_three_shapes(self):
-        self.assertEqual(self.allowed["values"]["shape"], list(verdicts.QUERY_SHAPES))
+        self.assertEqual(self.allowed["values"]["shape"], list(record.QUERY_SHAPES))
         self.assertIn("shape", self.allowed["claim"]["query"])
 
     def test_query_is_told_it_owes_attempted_and_settles(self):

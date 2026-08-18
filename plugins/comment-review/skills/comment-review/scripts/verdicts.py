@@ -84,203 +84,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from census import block_text, language_for  # noqa: E402  -- path shim must run first
+from record import (  # noqa: E402  -- path shim must run first
+    ANCHOR_NAME,
+    ANCHOR_SIDE,
+    OUT_OF_ROLE,
+    VERDICTS,
+    claim_keys,
+)
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 from vocabulary import Reviewer  # noqa: E402  -- path shim must run first
-
-# !! The THREE shapes `reviewer-brief.md` says reach `query`, and a query must
-# NAME the one it is. A closed set beats guessing at free text: the shape decides
-# whether the block is work (the author must answer) or a boundary report (the
-# role is saying which scope owns it), and that is not something to infer from
-# whether a sentence happens to contain the word "resolved".
-OUT_OF_ROLE = "outside my role"
-QUERY_SHAPES = (OUT_OF_ROLE, "outside the checkout", "outside the code")
-
-
-@dataclass(frozen=True)
-class Verdict:
-    """Everything this file knows about one verdict, in one place.
-
-    !! ADDING OR CHANGING A VERDICT IS A ROW, NOT NEW CODE -- the same promise
-    `census.py` makes about a language. It is written this way because the
-    alternative was measured: on 2026-08-17 the record's contract changed twice
-    and this knowledge lived in eight functions, each with its own branch on
-    `verdict`. Finding all eight is what nobody did, and five defects shipped in
-    one morning. A contract change should touch one row.
-
-    Attributes:
-        claim_all: markers `CLAIM` must ALL carry.
-        claim_any: markers `CLAIM` must carry at least ONE of.
-        claim_help: what to say when either is unmet -- per row, because
-            "correct needs a false/true pair" reads and a generated list does
-            not.
-        quotes_original: the `CLAIM` marker the EXISTING sentence follows, or ""
-            when the verdict quotes none. ! `move`'s from/to are PLACES, and
-            `add` is about prose that is missing, so both quote nothing.
-        quotes_until: what ends that sentence; "" runs to the end of `CLAIM`.
-        change_all: markers `CHANGE` must carry. Only `move`, which changes two
-            blocks and shows both.
-        owes_claim: every verdict but `clean` states what must happen.
-        owes_reason: likewise -- why.
-        owes_change: `clean` rules on nothing and `query` proposes no text.
-        may_empty: this verdict may leave the block with NOTHING in it, so an
-            empty `CHANGE` is the edit rather than a missing one. Only `drop`,
-            and only where `CLAIM` names the whole block -- `edit_problem`
-            checks that rather than taking the reviewer's word, so a blank
-            `CHANGE` is not a way to skip writing one. ! Without this a
-            whole-block `drop` could not be expressed at all: the reviewer
-            wrote the blank deliberately and said so in `REASON`, which nothing
-            downstream reads. Measured 2026-08-17.
-        owes_address: `clean` is exempt because a role returns it on most of the
-            census; transcribing each would be the bulk of a report.
-        owes_sources: `clean` cites no claim, so it cites no place.
-        diffable: `BLOCK`-against-`CHANGE` names the edited sentence. False
-            where there is nothing to diff -- no text proposed, no original, or
-            a `CHANGE` holding two blocks rather than one.
-        needs_anchor: `CLAIM` names a site in backticks and a side.
-        needs_attempted: `CLAIM` names a check that was tried.
-        needs_settles: `CLAIM` names what would settle the claim.
-        substantive: this verdict ASKS something of stage 5. Only `clean`
-            does not, which is what makes it the null verdict rather than
-            a pass.
-        can_declare_scope: this verdict may be a BOUNDARY REPORT rather
-            than work -- `query`, and only in its `outside my role` shape.
-        removes: takes the sentence out of the block.
-        rules_on_text: keeps the sentence and changes it. ! `removes` against
-            `rules_on_text` on ONE sentence is the contradiction, and `move` is
-            deliberately neither -- relocation and a truth fix COMPOSE, applied
-            at synthesis steps 2 and 3. Ruled 2026-08-17; measured, 5 of 8
-            blocks the old set flagged were this shape and each cost a
-            re-review round to establish it was not a rivalry.
-    """
-
-    claim_all: tuple[str, ...] = ()
-    claim_any: tuple[str, ...] = ()
-    claim_help: str = ""
-    quotes_original: str = ""
-    quotes_until: str = ""
-    change_all: tuple[str, ...] = ()
-    change_help: str = ""
-    owes_claim: bool = True
-    owes_reason: bool = True
-    owes_change: bool = True
-    may_empty: bool = False
-    owes_address: bool = True
-    owes_sources: bool = True
-    diffable: bool = True
-    needs_anchor: bool = False
-    needs_attempted: bool = False
-    needs_settles: bool = False
-    substantive: bool = True
-    can_declare_scope: bool = False
-    removes: bool = False
-    rules_on_text: bool = False
-    # !! WHAT THE BRIEF SAYS THIS VERDICT'S `claim` CARRIES, and the row owns it
-    # so there is one source and one way to copy it. `scripts/render_brief.py`
-    # writes the table in `reviewer-brief.md` from these plus `claim_keys`, and
-    # a test refuses a brief that has drifted from them.
-    #
-    # ! It does NOT restate the key names -- those are generated. Measured
-    # 2026-08-18, which is why: the hand-written table taught the 0.2.x marker
-    # form (`false: "..." / true: "..."`) forty lines under a JSON worked
-    # example, and ten of the eleven keys a reviewer must type appeared nowhere
-    # in the brief as keys.
-    payload: str = ""
-
-
-VERDICTS: dict[str, Verdict] = {
-    "clean": Verdict(
-        payload=(
-            "nothing. Name your role and stop -- `clean` proposes no text, so there"
-            " is nothing for the task agent to apply"
-        ),
-        owes_claim=False,
-        owes_reason=False,
-        owes_change=False,
-        owes_address=False,
-        owes_sources=False,
-        diffable=False,
-        substantive=False,
-    ),
-    "query": Verdict(
-        payload=(
-            "the SHAPE in the brief's own words, the check you ATTEMPTED, and what"
-            " WOULD settle it. All three are checked as SHAPE and none as truth; the"
-            " claim itself is checked by nothing, so the other three are all that"
-            " stands behind the ruling"
-        ),
-        claim_any=QUERY_SHAPES,
-        claim_help=(
-            "query must NAME its shape -- one of "
-            + ", ".join(f"'{s}'" for s in QUERY_SHAPES)
-            + " -- so the reason is attached to the ruling"
-        ),
-        owes_change=False,
-        diffable=False,
-        needs_attempted=True,
-        needs_settles=True,
-        can_declare_scope=True,
-    ),
-    "drop": Verdict(
-        payload=(
-            "the sentence, verbatim, as it stands in the block. ! It is CHECKED"
-            " against the census text, so a paraphrase is refused"
-        ),
-        claim_all=("drop:",),
-        claim_help='drop needs the sentence in CLAIM, as `drop: "..."`',
-        quotes_original="drop:",
-        removes=True,
-        may_empty=True,
-    ),
-    "correct": Verdict(
-        payload=(
-            "the false clause and the true one, and a `sources` entry carrying the"
-            " line that settles it. ! The FALSE half is checked against the block --"
-            " if it is not there, the finding is on the wrong block"
-        ),
-        claim_all=("false:", "true:"),
-        claim_help="correct needs a false/true pair in CLAIM",
-        quotes_original="false:",
-        quotes_until="/ true:",
-        rules_on_text=True,
-    ),
-    "patch": Verdict(
-        payload=(
-            "the sentence as it stands and the rewrite. ! `from` is checked against"
-            " the block. A `patch` needs no source: the claim is already true, and"
-            " only its wording is at issue"
-        ),
-        claim_all=("from:", "to:"),
-        claim_help="patch needs a from/to pair in CLAIM",
-        quotes_original="from:",
-        quotes_until="/ to:",
-        rules_on_text=True,
-    ),
-    "add": Verdict(
-        payload=(
-            "the text that is missing, the anchor NAMED IN BACKTICKS, and which side"
-            ' of it. ! The word "anchor" is not an anchor -- name the declaration'
-        ),
-        claim_all=("missing:",),
-        claim_help='add needs the text in CLAIM, as `missing: "..."`',
-        diffable=False,
-        needs_anchor=True,
-    ),
-    "move": Verdict(
-        payload=(
-            "where the prose sits now and where it belongs -- another line, another"
-            " file, or out of the code entirely. ! These are PLACES, not text: the"
-            " same two key names in `change` mean the resulting BLOCKS"
-        ),
-        claim_all=("from:", "to:"),
-        claim_help="move needs a from/to pair in CLAIM",
-        change_all=("to:",),
-        change_help=(
-            "move needs the DESTINATION block in CHANGE, as `to: ...` -- plus"
-            " `from: ...`, the origin as it reads after, unless the WHOLE block moves"
-        ),
-        diffable=False,
-    ),
-}
 
 RECORD = re.compile(r"^---\s*RECORD\s*$(.*?)^---\s*$", re.M | re.S)
 # Counts "--- RECORD" OPENERS on their own, independent of whether a closing
@@ -360,13 +172,6 @@ SOURCE_WINDOW = 3
 # only route through was to quote MORE than was read.
 MIN_NEEDLE = 1
 
-# What an `add`'s PAYLOAD must carry: a SIDE, and the anchor NAMED.
-#
-# ! Backticks are the repo's own citation form -- the brief says cite by symbol
-# or path, never by line number, and every record in it writes a symbol that way.
-# So "named" is checkable without guessing which token is an identifier.
-ANCHOR_SIDE = re.compile(r"\b(above|below|before|after)\b", re.I)
-ANCHOR_NAME = re.compile(r"`[^`\s][^`]*`")
 
 # What a `query`'s PAYLOAD must name: a check that was attempted, and the thing
 # that would settle the claim.
@@ -590,41 +395,6 @@ def _answered(f: Finding, key: str, pattern: re.Pattern, probe: str) -> bool:
 def _n(count: int, noun: str) -> str:
     """`"1 block"`, `"2 blocks"` -- this output decides whether an agent proceeds."""
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
-
-
-def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
-    """The `claim` keys this verdict owes: `(markers, extras)`.
-
-    !! ONE ROW, which is the promise the `Verdict` table makes and which four
-    sites had taken back. `record.allowed` told a reviewer what to fill,
-    `record.claim_object` read the deprecated form, `claim_text` rendered it
-    and `payload_problem` checked it -- each deriving the same key list from
-    the same traits, and two of them hardcoding the names. A new trait had to
-    be added in four places and nothing failed if one was missed.
-
-    ! `markers` are the keys that render as `key: "value"`; `extras` are the
-    ones carried as prose beside them. The split is what `claim_text` needs and
-    it is the only reason this returns a pair.
-
-    Args:
-        spec: the verdict's row.
-
-    Returns:
-        `(markers, extras)`, each in the order a record states them.
-    """
-    markers = [marker.rstrip(":") for marker in spec.claim_all]
-    extras: list[str] = []
-    # ! `query`'s `claim_any` is a set of PHRASES, not keys -- it names its
-    # SHAPE, so the phrase is the value and the key is fixed.
-    if spec.claim_any:
-        extras.append("shape")
-    if spec.needs_attempted:
-        extras.append("attempted")
-    if spec.needs_settles:
-        extras.append("settles")
-    if spec.needs_anchor:
-        extras += ["anchor", "side"]
-    return (markers, extras)
 
 
 def claim_text(verdict: str, claim: dict) -> str:
