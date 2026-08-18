@@ -306,7 +306,7 @@ class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
         `claim_fields` was, on this branch -- would not have reached these
         tests, and a conversion could lose data with a green suite.
         """
-        return verdicts.Finding(
+        return record.Finding(
             reviewer="module-context",
             block=block,
             verdict=verdict,

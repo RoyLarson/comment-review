@@ -35,6 +35,7 @@ from census import block_text, language_for  # noqa: E402  -- path shim must run
 from record import (  # noqa: E402  -- path shim must run first
     ANCHOR_NAME,
     ANCHOR_SIDE,
+    CITE,
     OUT_OF_ROLE,
     VERDICTS,
     Finding,
@@ -74,18 +75,6 @@ from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 # false pass costs a finding the next round catches; a false refusal costs a
 # session, and has three times.
 EDGE = string.punctuation
-# `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
-CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
-# A citation half that is PATH-SHAPED, whether or not it resolves: no whitespace,
-# and a `.` or `/` in it. It is what tells a MALFORMED citation from the wrapped
-# tail of the entry above, and `CITE` alone cannot -- both fail it.
-#
-# !! The space is the discriminator, and it has to be. A verbatim half may hold
-# a `|` of its own: `def _show(repo: Path, ref: str, rel: str) -> str | None:`
-# is a real line in this tree, and its left half is not path-shaped because it
-# holds spaces. A wrapped line whose left half has neither a space nor anything
-# but `.`/`/` would still be misread, which is the residue accepted here.
-PATHISH = re.compile(r"^[^\s]*[./][^\s]*$")
 
 # How far from the cited line the quoted text may sit. Prose wraps and code
 # moves; a hard equality would reject honest citations, and a wide window would
