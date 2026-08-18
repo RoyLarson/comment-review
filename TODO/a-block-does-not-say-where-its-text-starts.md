@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 1 of 4 tasks done
 Owner:    session
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
 ```
@@ -19,30 +19,49 @@ the same rule independently to decide whether a line keeps a code prefix.
 docstring's `raw_lines` became the file's own slice on the 0.2.3 branch, which fixed
 `galley.block_matches` -- it had answered False for every docstring against an unmodified file.
 `_annotated_docs`, twelve lines below it, still stores the AST value for a PEP 727 `Doc()`
-literal, and **it has to**: store the file slice there and `physical == stored`, the suffix
-test stops firing, and the real line of code the literal sits inside drops out of the code set,
-moving every interval boundary below it. That is the failure the same comment block already
-records twice.
+literal.
 
-So one string comparison carries two unrelated facts -- what text this block holds, and whether
-code precedes it -- and they are now pulling in opposite directions.
+! **SUPERSEDED 2026-08-18: the reason given here for that -- that storing the file slice would
+stop the suffix test firing and drop the declaration line out of the code set -- no longer
+holds.** `code_lines` has no suffix test: it reads `Block.whole_lines`, which the producer
+states, so what `raw_lines` holds does not affect it. The remaining readers of the AST value
+are `Block.widest` and `annotate.prose_numbers`, and both want the literal's text rather than
+the line it sits in -- which is a reason to KEEP the AST value there, and a better one than the
+superseded one. **The task below is cheaper than this paragraph says.**
+
+!! **AND `whole_lines` IS NOT THE END OF IT, which is the case for the column.** It answers
+one question -- does code share this block's first line -- and the two readers wanted different
+things. `prove_unchanged._without_comments` still cannot use it: it must reconstruct the
+surviving PREFIX TEXT of a line, and a boolean cannot give it one, so that file still re-derives
+the suffix rule independently. Two implementations of one rule, as this file found them.
+
+So ONE FACT is still inferred where a producer knows it: not "does code share this line",
+which `whole_lines` now answers, but WHERE the block's text sits on that line -- which is what
+`prove_unchanged` needs and a boolean cannot carry.
 
 ! The information exists at both producers and is thrown away: `ast.Constant` carries
 `col_offset`, and `blocks_lexical` already computes `opens_at` and discards it.
 
 ## Tasks
 
-- [ ] **Give `Block` the column its text starts at**, set by every producer. Verify: a
-      `Doc()` block and a trailing comment both report a nonzero column, a comment run on its
-      own line reports zero.
+- [ ] **Give `Block` the column its text starts at -- and the column it ends at**, set by
+      every producer. ! The SPAN, not one edge: `whole_lines` was derived from the start alone
+      and missed `/* note */ x = 1`, where the code is after the closer, so the galley was
+      willing to write over the statement. Both edges are already in hand at the producer.
+      Verify: a `Doc()` block, a trailing comment and a `/* note */ x = 1` all report a partial
+      span; a comment run on its own line reports the whole line.
 
-- [ ] **`code_lines` tests that field instead of the suffix.** Verify: `census.py` over
-      `repo.py` emits the same blocks before and after -- the measurement that caught the last
-      regression here was eight spurious `interval` blocks overlapping real docstrings.
+- [x] **DONE 2026-08-18 -- `code_lines` tests a field instead of the suffix.** It reads
+      `Block.whole_lines`. ! The field is a BOOLEAN and this file argues for a span; the
+      remaining tasks are what the span buys over it.
 
-- [ ] **Then `_annotated_docs` stores the file's slice**, like every other producer. Verify:
-      `galley.block_matches` answers True for a `Doc()` block against an unmodified file, and
-      `Block.widest` reports the real column width rather than the AST value's.
+- [ ] **Rule whether `_annotated_docs` should store the file's slice at all.** It was
+      going to be forced; it is now a genuine question, and the answer may be no. The slice for
+      a `Doc()` carries the `Annotated[...]` wrapper, which is CODE, and the two remaining
+      readers of that field -- `Block.widest` and `annotate.prose_numbers` -- want the literal's
+      text rather than the line it sits in. ! Whichever way it goes, `Block.widest` reports the
+      AST value's width for these blocks today and that is a measurement, so say which it
+      should be.
 
 - [ ] **`prove_unchanged._without_comments` reads the same field** rather than re-deriving the
       suffix rule. Verify: its CLI tests pass unchanged, and the two implementations of one

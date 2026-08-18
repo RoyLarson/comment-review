@@ -852,9 +852,16 @@ round-1 record does. Run `verdicts.py` against `galley-census.json` for it.
 every block below it, so the same prose holds different indices in the two censuses. They relate
 by PATH and CONTENT, and you are the only participant holding both.
 
-! **`galley.py` REFUSES rather than guesses** -- a census range that no longer matches the file,
-two edits over one line, an index outside the census. It exits nonzero and names what refused,
-because a galley missing a block is not a galley of your proposal.
+! **`galley.py` REFUSES rather than guesses.** It exits nonzero and NAMES what refused --
+**read that, rather than the list you remember**: this section carried three of the seven
+reasons and was wrong about the set for two releases, in the same way the RE-REVIEW set is
+`verdicts.py`'s to print and not this file's to derive.
+
+!! **One of them is not about your edits.** A census taken before the fields the galley needs
+is refused WHOLE, before any block is read, because every per-field default is a guess about a
+file this tool is about to overwrite -- and the one default that was tried put a deleted
+statement back. Re-run `census.py` and set the galley again. ! It is `CANNOT USE`, not
+`REFUSED`, and it exits **2**: nothing was wrong with the proposal.
 
 ## Stage 6 -- COMPACT: only if there is a cap
 
