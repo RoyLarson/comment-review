@@ -153,11 +153,13 @@ contract, which changed once already today.
 
 - [x] * **RULED 2026-08-17: the record becomes a value, and the format is JSON.** See above.
 
-- [ ] * **Decide the INTERFACE the reviewer uses**, now that the format is settled. A CLI it
-      calls per record, a template it fills, or a schema it writes to with its FILE-WRITE tool.
-      !! The deciding constraint is that **no multi-line value passes through a SHELL** -- that
-      is the same escaping problem one layer out, and it is the layer that actually failed in
-      the session that raised this file.
+- [x] * **RULED 2026-08-17: a SEEDED TEMPLATE the reviewer edits in place with its FILE-WRITE
+      tool.** Not a CLI it calls per record. !! The deciding constraint was that **no multi-line
+      value passes through a SHELL** -- the same escaping problem one layer out, and the layer
+      that actually failed in the session that raised this file. `change` is a line array and
+      `sources` carries verbatim source text, so both would have had to cross that boundary.
+      The task agent runs `record.py --seed` once per role before dispatch; the reviewer runs
+      nothing.
 
 ### * The five design rulings, all made 2026-08-17
 
@@ -290,13 +292,15 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
 ## Build order, each step independently verifiable
 
 - [x] **1. DONE 2026-08-17 -- the schema and `record.py --seed`.** One slot per prose block,
-      pre-filled with `block`, `address` and `original`, every reviewer field empty. Verified
+      pre-filled with `block`, `address` and `original`, every reviewer field empty.
+      SUPERSEDED -- `original` is not seeded; see the ruling below. Verified
       against this repo's own smoke-test census: **224 records seeded from 1954 blocks**, which
       is exactly the prose count, and the file round-trips as JSON. ! `original` and `change`
       are LINE ARRAYS, so a blank line inside a docstring survives as an empty element -- the
       0.2.0 defect is not fixed here, it is unrepresentable.
 
-- [ ] **1b. `record.py` checks the pre-filled fields still match the census.** ! It is an
+- [x] **1b. DONE 2026-08-17 -- `record.py` checks the pre-filled fields still match the
+      census.** ! It is an
       INTEGRITY check, not the old transcription check: it can only fail if a filled record was
       corrupted, so its message must say so rather than accusing the reviewer of misquoting.
 
@@ -349,11 +353,27 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       PLACES, never text, so a phrase its `REASON` calls wrong can be named by NO claim at all.
       The block gets relocated and nothing records that the phrase still needs correcting.
 
-- [ ] **5. `reviewer-brief.md`'s record contract**, and re-run `scripts/check_vocabulary.py`.
-      Verify: the brief's own worked example validates against the schema.
+- [x] **5. DONE 2026-08-17 -- `reviewer-brief.md`'s record contract.** One JSON record,
+      the five fields the reviewer sets, and the address-not-text argument in the text a
+      reviewer reads. `TestTheBriefsOwnRecordPasses` now extracts the ```json fence and
+      runs it through `record.record_problems`, so the worked example is checked by the
+      code that ships. ! `original` left the four editorial roles' term lists; the
+      definition stays for `compact` and `review`, which still use the word.
 
-- [ ] **6. The four role files**, together. Verify: `check_vocabulary.py` and
-      `claude plugin validate`.
+- [x] **6. DONE 2026-08-17 -- the four role files, and the two places that outranked
+      them.** The roles themselves held three field names (`SOURCES` -> `sources`,
+      `CODE CONCERNS` -> `code_concerns`) and a pointer at the brief.
+
+      !! **The gap was not in the roles.** Stage 4 dispatched four agents and never said
+      where a record goes, and stage 5 named the reports `.md` -- so a reviewer
+      following the shipped text still composed prose for the deprecated parser. Stage 4
+      now seeds one file per role and hands each agent its own path; stage 5 names them
+      `.json` and says what the suffix chooses.
+
+      !! **And the brief forbade it.** *"Do not edit, write or format any file"* is what
+      a reviewer reads first, and the seeded file contradicts it. Scoped to the code,
+      with the one exception named: a reviewer that believes it may write nothing
+      reports in prose instead, which is the parser this shape replaced.
 
 - [ ] **7. Run the cycle on this repo** -- 4 -> 5 -> 5b -> 6 -> 6b. That is 0.2.3's gate.
 
