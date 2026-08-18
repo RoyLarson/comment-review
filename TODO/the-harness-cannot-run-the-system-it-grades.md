@@ -1,11 +1,10 @@
 # The harness cannot run the system it grades, and the cheap fix is the unsafe one
 
 ```
-Status:   decision-needed
-Progress: 0 of 14 tasks done
-Owner:    session * Roy (* 5 rulings -- the reduced set, placement without
-          ownership-context, the fixture source, the suite layout, and whether
-          `plugin eval` access is worth asking for)
+Status:   open
+Progress: 2 of 15 tasks done
+Owner:    session * Roy (* 3 rulings left -- the fixture source, the suite layout,
+          and whether `plugin eval` access is worth asking for. 2 ruled 2026-08-18)
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
 ```
 
@@ -17,9 +16,10 @@ another repository, against twelve planted defects -- so a new question cannot b
 without planting it there, and no measurement exists that a human did not perform.
 
 The fix is per-role cases: one role, one fixture, one assertion, and an answer known in
-advance. **That collides with the skill's own safety property** -- stages 4 and 5 are built on
-four roles reading blind and corroborating, and `SKILL.md` states that a single-role run
-ratifies falsehoods. The test needs the configuration the system says is unsafe.
+advance. Ruled 2026-08-18: a reduced set is supported and `ownership-context` is never
+dropped, so a case is a legal run rather than a test-only shape. **What remains is that the
+prose does not say so** -- stage 4 dispatches four by name and stage 5 is written as a
+negotiation between them, so a run of two reads as a run missing two.
 
 ## ! The confound is ASYMMETRIC, and only half of it was recorded
 
@@ -105,14 +105,34 @@ scrutiny, in the one stage whose own text says a single-role run ratifies falseh
 
 ## Tasks
 
-- [ ] * **Rule whether a run of 1..N roles is a SUPPORTED CONFIGURATION or a test-only
-      shape.** `SKILL.md` dispatches four by name and says a single-role run ratifies
-      falsehoods -- one role reading a false absence claim writes that it is true where another
-      refutes it by grep. That is a real cost and it does not go away by being declared.
-      Supported means the skill takes a role set as an argument, the report names it, and the
-      cost is stated where the reader sees the findings. Test-only means role cases are a
-      second harness that never calls itself a review. ! The machinery is already
-      set-agnostic; this rules on the PROMISE, not the code.
+- [x] * **RULED 2026-08-18 by Roy: a reduced set is SUPPORTED, and
+      `ownership-context` is NON-NEGOTIABLE.** Every run carries it; the other three flex. So
+      the legal sets are `{ownership-context}` plus any subset of `{block-context,
+      function-context, module-context}`.
+
+      !! **It is the right role to pin, and for a reason the other three do not share: it rules
+      on no truth at all.** Its own file says so -- *"You do not rule on whether the claim is
+      TRUE -- that is outside your remit"* -- it decides which ANCHOR a claim belongs to. Every
+      other role then measures that claim against the code at its own scope. So dropping
+      `ownership-context` does not remove a check, it removes the ground the remaining checks
+      stand on; dropping any other removes a remit and nothing else.
+
+      ! **`ownership-context` ALONE is therefore a coherent run, not a degenerate one**: it
+      answers *is this prose in the right place* and emits no truth findings to be
+      uncorroborated.
+
+      ! **The upper bound is left OPEN deliberately** -- `1..N`, not `1..4`. Roy, 2026-08-18: a
+      fifth editorial role might be found, *"though the fact the editorial roles mimic
+      real-world roles makes me think it is unlikely."* The four are a copy desk; `compact` and
+      `review` are stages rather than members of the board.
+
+- [ ] **State the RESIDUAL cost, which this ruling does not remove.** Pinning
+      `ownership-context` fixes SCOPE -- a claim measured against the code it belongs to. It
+      does not supply CORROBORATION, and those are different: `SKILL.md` says a single-role run
+      ratifies falsehoods because one role reading a false absence claim writes that it is
+      true where another refutes it by grep. A run carrying one truth-ruling role has every
+      truth finding uncorroborated. ! Say it where the findings are read, not only in the
+      arguments.
 
 - [ ] **Rewrite stage 5's synthesis section so it does not state the population as a fact.**
       The premise sentence, the "three roles finding nothing" argument and the
@@ -121,11 +141,10 @@ scrutiny, in the one stage whose own text says a single-role run ratifies falseh
       or three roles filed one each. Verify: the section names no count, and every rule that
       needs a role says what happens when that role did not run.
 
-- [ ] * **Rule who governs placement when `ownership-context` did not run**, or rule that it is
-      never optional. It is read first because the other three measure a claim against the code
-      at their own scope; a set without it is not a smaller run but one whose verdicts rest on
-      an unchecked assumption. ! This is why the reduced-set ruling above cannot be a single
-      yes or no.
+- [x] * **RULED 2026-08-18: it is never optional, so the question does not arise.**
+      `ownership-context`'s destination governs two placement verdicts, and that role is in
+      every legal set. ! The rule stays as written; what needs saying is that it may now
+      assume its own presence.
 
 - [ ] **Then make the tool say which it was.** A run with fewer than four roles produces a
       report that reads like any other today. Whatever is ruled above, the join's output has to
