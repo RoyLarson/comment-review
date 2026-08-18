@@ -76,6 +76,68 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+## [0.2.3] -- 2026-08-18
+
+**The gate was the cycle, and the cycle ran.** Everything below is one branch,
+`feat/0.2.3-cycle-and-record`, and the release is the gate being met rather than the count of
+fixes behind it.
+
+### What the run cost, and what it caught
+
+!! **THE RUN'S REAL YIELD WAS THE DEFECTS IT FOUND IN ITSELF.** Three review passes over the
+branch -- one `/simplify`, two `/code-review`, one more `/simplify` -- found eleven, every one
+reproduced before it was fixed. The expensive ones:
+
+- **The galley OVERWROTE THE FILE UNDER REVIEW and reported success.** `census.py` emitted an
+  absolute `path` when handed absolute arguments, and `out / rel` returns `rel` when `rel` is
+  absolute -- so the splice landed on the source, nothing reached `--out`, and the run printed
+  that it had worked. Fixed at both layers: a block's path is repo-relative, and the galley
+  refuses a target that resolves outside `--out`.
+- **The galley DELETED A STATEMENT**, twice over -- a trailing comment, then a block comment
+  with code on either side. `whole_lines` is stated by the producer now, because both readers
+  that inferred it were wrong in opposite directions.
+- **A CRLF file's galley was written in LF**, every line of the diff an ending change; and on a
+  mixed file, editing one line converted an untouched one.
+- **Three gates were reading a string the tool generates.** REASON-restates-CLAIM could not
+  fire on ANY JSON record; `declares_scope` reclassified real work as a boundary report; an
+  `add` with an empty anchor passed the join while `record.py --check` refused it.
+- **`address_problem` refused findings for the tool disagreeing with itself** -- 3 of 663 prose
+  blocks, unfixable by any reviewer, because both sides of the comparison were tool-supplied.
+- **`_words` claimed idempotence and was not**, so a whole-block `drop` of any block containing
+  `...` or `--` was refused, telling the reviewer to write a remainder already there.
+- **A coverage gap was summarised as a pass** -- `STANDS UNCHANGED: N blocks, clean from all
+  reviewers`, one line under the list naming those same blocks as unaccounted for.
+
+### One source, one way to copy it
+
+- **The brief's verdict table is GENERATED from `VERDICTS`.** `scripts/render_brief.py` writes
+  it; `tests/test_brief_table.py` refuses a brief that has drifted. ! It had drifted: the table
+  taught the 0.2.x marker form forty lines under a JSON worked example, `query`'s row never
+  named `settles`, and ten of the eleven keys a reviewer must type appeared nowhere as keys.
+- **`claim_keys` is the one row the claim keys come from**, where four sites had enumerated
+  them from the same traits and two hardcoded the names.
+- **`census.address` owns `path:start-end`**, where four sites wrote it out and had already
+  diverged on separator and short form.
+
+### Ruled
+
+- **`ownership-context` is NEVER DROPPED; the other three flex.** It rules on the truth of the
+  ANCHORING -- is this statement about this code, and about anything in this project -- which
+  every other role's verdict presupposes. Its role file and frontmatter state it, and the
+  right place for prose is now anywhere in the PROJECT rather than the file.
+- **A reduced role set is supported.** `verdicts.py --reviewers` was always set-agnostic; what
+  hardcodes four is `SKILL.md`.
+
+### Also
+
+- **`tests/test_shipped_imports.py`** -- a shipped file imports the stdlib and its neighbours
+  and nothing else. The rule was previously kept by the repo having no dependency to import;
+  planting one passed every gate.
+- **`version_problem`** reads `RECORD_VERSION`, which was written by `seed` and read by nothing.
+- **`galley.py` refuses a census too old to answer it**, whole, rather than defaulting a
+  missing field -- the one default that was tried put the deleted statement back.
+
+
 !! **0.2.3 HAS A GATE, and it is not "the fixes accumulated".** Roy, 2026-08-17: *"the goal of
 0.2.3 is still getting a full reviewer - rereviewer - cycle functional. We are not releasing
 until we have that."*
@@ -113,7 +175,7 @@ work, while reading the WRONG lines is caught. The conversion of four held repor
 output `diff` could not separate from the original join.
 
 **The cycle ran, 4 -> 5 -> 5b -> 6 -> 6b**, over `galley.py`: 110 census blocks, 11 prose, four
-roles, **47 findings, stage-5 gate exit 0**. Five 5b answers over three roles -- 4 HOLD, 1
+roles, **47 findings, stage-5 gate exit 0**. SIX 5b answers over three roles -- 5 HOLD, 1
 REVISE -- and two 6b answers, both HOLD.
 
 !! **The REVISE is what shows 5b earns its slot.** A role read its own round-1 correction in the

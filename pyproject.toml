@@ -29,7 +29,7 @@ requires-python = ">=3.11"
 # catching -- it shipped a stale verdict name and a stale stage diagram from
 # exactly that shape on 2026-08-17. Two copies WITH a check is a release gate:
 # it also catches cutting a release and forgetting to bump.
-version = "0.2.2"
+version = "0.2.3"
 
 # ! NOT A PACKAGE, said where a tool reads it rather than only in a comment.
 [tool.uv]
