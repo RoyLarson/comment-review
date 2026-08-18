@@ -1,0 +1,1293 @@
+comment-review stages 2-3 - 2 files, 1120 blocks
+  languages: python 2
+  tier tokenized: 1120 blocks - blocks, annotations, and DOCSTRING anchors
+  ! NO COMMENT carries an anchor at either tier. A comment's anchor
+    comes from READING the file, so a placement finding is a CANDIDATE.
+
+CENSUS - every block, numbered.
+   1  plugins/comment-review/skills/comment-review/scripts/record.py:1-46  docstring  46L  cites-a-path,names-a-symbol,narrative-in-docstring,repeated-literal  (<module>)
+        -> UNRESOLVED path DIR/ROLE.json
+        -> UNRESOLVED path DIR/ROLE.json
+        -> a date: refusal rather than a bug in one. Measured 2026-08-17: **83 
+        -> 228 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:417, plugins/comment-review/skills/comment-review/scripts/record.py:472
+        -> 83 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1111, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1814, plugins/comment-review/skills/comment-review/scripts/verdicts.py:362
+        -> 226 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:472
+   2  plugins/comment-review/skills/comment-review/scripts/record.py:48-49  interval  0L  -
+   3  plugins/comment-review/skills/comment-review/scripts/record.py:49-50  interval  0L  -
+   4  plugins/comment-review/skills/comment-review/scripts/record.py:50-51  interval  0L  -
+   5  plugins/comment-review/skills/comment-review/scripts/record.py:51-53  interval  0L  -
+   6  plugins/comment-review/skills/comment-review/scripts/record.py:53-55  interval  0L  -
+   7  plugins/comment-review/skills/comment-review/scripts/record.py:55-55  trailing-comment  1L  -
+   8  plugins/comment-review/skills/comment-review/scripts/record.py:55-56  interval  0L  -
+   9  plugins/comment-review/skills/comment-review/scripts/record.py:56-56  trailing-comment  1L  -
+  10  plugins/comment-review/skills/comment-review/scripts/record.py:56-57  interval  0L  -
+  11  plugins/comment-review/skills/comment-review/scripts/record.py:57-58  interval  0L  -
+  12  plugins/comment-review/skills/comment-review/scripts/record.py:58-59  interval  0L  -
+  13  plugins/comment-review/skills/comment-review/scripts/record.py:59-60  interval  0L  -
+  14  plugins/comment-review/skills/comment-review/scripts/record.py:60-61  interval  0L  -
+  15  plugins/comment-review/skills/comment-review/scripts/record.py:61-62  interval  0L  -
+  16  plugins/comment-review/skills/comment-review/scripts/record.py:62-63  interval  0L  -
+  17  plugins/comment-review/skills/comment-review/scripts/record.py:63-64  interval  0L  -
+  18  plugins/comment-review/skills/comment-review/scripts/record.py:64-65  interval  0L  -
+  19  plugins/comment-review/skills/comment-review/scripts/record.py:67-68  comment  2L  -
+  20  plugins/comment-review/skills/comment-review/scripts/record.py:70-80  comment  11L  counted,names-a-symbol,repeated-literal
+        -> RE-COUNT, and name the population: 'one file'
+        -> 4 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:447
+  21  plugins/comment-review/skills/comment-review/scripts/record.py:82-83  comment  2L  names-a-symbol
+  22  plugins/comment-review/skills/comment-review/scripts/record.py:84-87  interval  0L  -
+  23  plugins/comment-review/skills/comment-review/scripts/record.py:88-94  docstring  7L  names-a-symbol,repeated-literal  (prose_blocks)
+        -> 1 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:99, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1762
+  24  plugins/comment-review/skills/comment-review/scripts/record.py:95-98  interval  0L  -
+  25  plugins/comment-review/skills/comment-review/scripts/record.py:99-107  docstring  9L  repeated-literal  (slot)
+        -> 1 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:88, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1762
+  26  plugins/comment-review/skills/comment-review/scripts/record.py:108-109  interval  0L  -
+  27  plugins/comment-review/skills/comment-review/scripts/record.py:110-127  comment  18L  names-a-symbol
+  28  plugins/comment-review/skills/comment-review/scripts/record.py:129-130  comment  2L  -
+  29  plugins/comment-review/skills/comment-review/scripts/record.py:131-132  interval  0L  -
+  30  plugins/comment-review/skills/comment-review/scripts/record.py:132-133  interval  0L  -
+  31  plugins/comment-review/skills/comment-review/scripts/record.py:133-134  interval  0L  -
+  32  plugins/comment-review/skills/comment-review/scripts/record.py:134-135  interval  0L  -
+  33  plugins/comment-review/skills/comment-review/scripts/record.py:135-136  interval  0L  -
+  34  plugins/comment-review/skills/comment-review/scripts/record.py:136-139  interval  0L  -
+  35  plugins/comment-review/skills/comment-review/scripts/record.py:140-155  docstring  16L  cites-a-path,names-a-symbol  (allowed)
+  36  plugins/comment-review/skills/comment-review/scripts/record.py:156-157  interval  0L  -
+  37  plugins/comment-review/skills/comment-review/scripts/record.py:157-158  interval  0L  -
+  38  plugins/comment-review/skills/comment-review/scripts/record.py:158-159  interval  0L  -
+  39  plugins/comment-review/skills/comment-review/scripts/record.py:159-160  interval  0L  -
+  40  plugins/comment-review/skills/comment-review/scripts/record.py:160-161  interval  0L  -
+  41  plugins/comment-review/skills/comment-review/scripts/record.py:161-162  interval  0L  -
+  42  plugins/comment-review/skills/comment-review/scripts/record.py:162-163  interval  0L  -
+  43  plugins/comment-review/skills/comment-review/scripts/record.py:163-164  interval  0L  -
+  44  plugins/comment-review/skills/comment-review/scripts/record.py:164-165  interval  0L  -
+  45  plugins/comment-review/skills/comment-review/scripts/record.py:165-166  interval  0L  -
+  46  plugins/comment-review/skills/comment-review/scripts/record.py:167-168  comment  2L  -
+  47  plugins/comment-review/skills/comment-review/scripts/record.py:170-175  comment  6L  names-a-symbol
+  48  plugins/comment-review/skills/comment-review/scripts/record.py:176-177  interval  0L  -
+  49  plugins/comment-review/skills/comment-review/scripts/record.py:180-187  comment  8L  names-a-symbol
+  50  plugins/comment-review/skills/comment-review/scripts/record.py:188-191  interval  0L  -
+  51  plugins/comment-review/skills/comment-review/scripts/record.py:192-192  docstring  1L  -  (seed)
+  52  plugins/comment-review/skills/comment-review/scripts/record.py:193-194  interval  0L  -
+  53  plugins/comment-review/skills/comment-review/scripts/record.py:194-195  interval  0L  -
+  54  plugins/comment-review/skills/comment-review/scripts/record.py:196-196  comment  1L  -
+  55  plugins/comment-review/skills/comment-review/scripts/record.py:197-198  interval  0L  -
+  56  plugins/comment-review/skills/comment-review/scripts/record.py:199-201  comment  3L  -
+  57  plugins/comment-review/skills/comment-review/scripts/record.py:202-203  interval  0L  -
+  58  plugins/comment-review/skills/comment-review/scripts/record.py:206-208  comment  3L  cites-a-path,counted,names-a-symbol
+        -> RE-COUNT, and name the population: 'two files'
+  59  plugins/comment-review/skills/comment-review/scripts/record.py:209-210  interval  0L  -
+  60  plugins/comment-review/skills/comment-review/scripts/record.py:210-211  interval  0L  -
+  61  plugins/comment-review/skills/comment-review/scripts/record.py:211-212  interval  0L  -
+  62  plugins/comment-review/skills/comment-review/scripts/record.py:212-213  interval  0L  -
+  63  plugins/comment-review/skills/comment-review/scripts/record.py:213-214  interval  0L  -
+  64  plugins/comment-review/skills/comment-review/scripts/record.py:214-217  interval  0L  -
+  65  plugins/comment-review/skills/comment-review/scripts/record.py:218-225  docstring  8L  forbids-a-literal  (seeded_problems)
+        -> GREP this file for what it forbids: 'never typed these: `--seed`'
+  66  plugins/comment-review/skills/comment-review/scripts/record.py:226-227  interval  0L  -
+  67  plugins/comment-review/skills/comment-review/scripts/record.py:227-228  interval  0L  -
+  68  plugins/comment-review/skills/comment-review/scripts/record.py:228-229  interval  0L  -
+  69  plugins/comment-review/skills/comment-review/scripts/record.py:229-230  interval  0L  -
+  70  plugins/comment-review/skills/comment-review/scripts/record.py:230-231  interval  0L  -
+  71  plugins/comment-review/skills/comment-review/scripts/record.py:231-232  interval  0L  -
+  72  plugins/comment-review/skills/comment-review/scripts/record.py:232-233  interval  0L  -
+  73  plugins/comment-review/skills/comment-review/scripts/record.py:233-234  interval  0L  -
+  74  plugins/comment-review/skills/comment-review/scripts/record.py:234-235  interval  0L  -
+  75  plugins/comment-review/skills/comment-review/scripts/record.py:235-238  interval  0L  -
+  76  plugins/comment-review/skills/comment-review/scripts/record.py:239-239  docstring  1L  names-a-symbol  (claim_problems)
+  77  plugins/comment-review/skills/comment-review/scripts/record.py:240-241  interval  0L  -
+  78  plugins/comment-review/skills/comment-review/scripts/record.py:241-242  interval  0L  -
+  79  plugins/comment-review/skills/comment-review/scripts/record.py:242-243  interval  0L  -
+  80  plugins/comment-review/skills/comment-review/scripts/record.py:243-244  interval  0L  -
+  81  plugins/comment-review/skills/comment-review/scripts/record.py:244-245  interval  0L  -
+  82  plugins/comment-review/skills/comment-review/scripts/record.py:246-248  comment  3L  names-a-symbol
+  83  plugins/comment-review/skills/comment-review/scripts/record.py:249-250  interval  0L  -
+  84  plugins/comment-review/skills/comment-review/scripts/record.py:250-251  interval  0L  -
+  85  plugins/comment-review/skills/comment-review/scripts/record.py:252-255  comment  4L  cites-a-path,names-a-symbol
+  86  plugins/comment-review/skills/comment-review/scripts/record.py:256-257  interval  0L  -
+  87  plugins/comment-review/skills/comment-review/scripts/record.py:258-259  comment  2L  -
+  88  plugins/comment-review/skills/comment-review/scripts/record.py:260-261  interval  0L  -
+  89  plugins/comment-review/skills/comment-review/scripts/record.py:261-262  interval  0L  -
+  90  plugins/comment-review/skills/comment-review/scripts/record.py:262-263  interval  0L  -
+  91  plugins/comment-review/skills/comment-review/scripts/record.py:263-264  interval  0L  -
+  92  plugins/comment-review/skills/comment-review/scripts/record.py:264-265  interval  0L  -
+  93  plugins/comment-review/skills/comment-review/scripts/record.py:265-266  interval  0L  -
+  94  plugins/comment-review/skills/comment-review/scripts/record.py:266-267  interval  0L  -
+  95  plugins/comment-review/skills/comment-review/scripts/record.py:267-268  interval  0L  -
+  96  plugins/comment-review/skills/comment-review/scripts/record.py:268-269  interval  0L  -
+  97  plugins/comment-review/skills/comment-review/scripts/record.py:269-270  interval  0L  -
+  98  plugins/comment-review/skills/comment-review/scripts/record.py:270-271  interval  0L  -
+  99  plugins/comment-review/skills/comment-review/scripts/record.py:271-272  interval  0L  -
+ 100  plugins/comment-review/skills/comment-review/scripts/record.py:272-273  interval  0L  -
+ 101  plugins/comment-review/skills/comment-review/scripts/record.py:274-275  comment  2L  -
+ 102  plugins/comment-review/skills/comment-review/scripts/record.py:276-277  interval  0L  -
+ 103  plugins/comment-review/skills/comment-review/scripts/record.py:277-280  interval  0L  -
+ 104  plugins/comment-review/skills/comment-review/scripts/record.py:281-281  docstring  1L  -  (value_problems)
+ 105  plugins/comment-review/skills/comment-review/scripts/record.py:282-283  interval  0L  -
+ 106  plugins/comment-review/skills/comment-review/scripts/record.py:283-284  interval  0L  -
+ 107  plugins/comment-review/skills/comment-review/scripts/record.py:284-285  interval  0L  -
+ 108  plugins/comment-review/skills/comment-review/scripts/record.py:285-286  interval  0L  -
+ 109  plugins/comment-review/skills/comment-review/scripts/record.py:286-287  interval  0L  -
+ 110  plugins/comment-review/skills/comment-review/scripts/record.py:287-288  interval  0L  -
+ 111  plugins/comment-review/skills/comment-review/scripts/record.py:288-289  interval  0L  -
+ 112  plugins/comment-review/skills/comment-review/scripts/record.py:289-290  interval  0L  -
+ 113  plugins/comment-review/skills/comment-review/scripts/record.py:290-291  interval  0L  -
+ 114  plugins/comment-review/skills/comment-review/scripts/record.py:291-292  interval  0L  -
+ 115  plugins/comment-review/skills/comment-review/scripts/record.py:292-295  interval  0L  -
+ 116  plugins/comment-review/skills/comment-review/scripts/record.py:296-313  docstring  18L  coverage-claim,repeated-literal  (version_problem)
+        -> CHECK the guard exists AND can fail, exemptions OFF: 'READ BY NOTHING'
+        -> 0.2 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:381, plugins/comment-review/skills/comment-review/scripts/record.py:447, plugins/comment-review/skills/comment-review/scripts/verdicts.py:362
+ 117  plugins/comment-review/skills/comment-review/scripts/record.py:314-315  interval  0L  -
+ 118  plugins/comment-review/skills/comment-review/scripts/record.py:315-316  interval  0L  -
+ 119  plugins/comment-review/skills/comment-review/scripts/record.py:316-317  interval  0L  -
+ 120  plugins/comment-review/skills/comment-review/scripts/record.py:317-318  interval  0L  -
+ 121  plugins/comment-review/skills/comment-review/scripts/record.py:318-319  interval  0L  -
+ 122  plugins/comment-review/skills/comment-review/scripts/record.py:319-320  interval  0L  -
+ 123  plugins/comment-review/skills/comment-review/scripts/record.py:320-321  interval  0L  -
+ 124  plugins/comment-review/skills/comment-review/scripts/record.py:321-322  interval  0L  -
+ 125  plugins/comment-review/skills/comment-review/scripts/record.py:322-323  interval  0L  -
+ 126  plugins/comment-review/skills/comment-review/scripts/record.py:323-324  interval  0L  -
+ 127  plugins/comment-review/skills/comment-review/scripts/record.py:324-325  interval  0L  -
+ 128  plugins/comment-review/skills/comment-review/scripts/record.py:325-328  interval  0L  -
+ 129  plugins/comment-review/skills/comment-review/scripts/record.py:329-329  docstring  1L  -  (record_problems)
+ 130  plugins/comment-review/skills/comment-review/scripts/record.py:330-331  interval  0L  -
+ 131  plugins/comment-review/skills/comment-review/scripts/record.py:331-332  interval  0L  -
+ 132  plugins/comment-review/skills/comment-review/scripts/record.py:332-333  interval  0L  -
+ 133  plugins/comment-review/skills/comment-review/scripts/record.py:333-334  interval  0L  -
+ 134  plugins/comment-review/skills/comment-review/scripts/record.py:334-335  interval  0L  -
+ 135  plugins/comment-review/skills/comment-review/scripts/record.py:335-336  interval  0L  -
+ 136  plugins/comment-review/skills/comment-review/scripts/record.py:336-337  interval  0L  -
+ 137  plugins/comment-review/skills/comment-review/scripts/record.py:337-338  interval  0L  -
+ 138  plugins/comment-review/skills/comment-review/scripts/record.py:338-339  interval  0L  -
+ 139  plugins/comment-review/skills/comment-review/scripts/record.py:339-340  interval  0L  -
+ 140  plugins/comment-review/skills/comment-review/scripts/record.py:340-341  interval  0L  -
+ 141  plugins/comment-review/skills/comment-review/scripts/record.py:341-342  interval  0L  -
+ 142  plugins/comment-review/skills/comment-review/scripts/record.py:342-343  interval  0L  -
+ 143  plugins/comment-review/skills/comment-review/scripts/record.py:343-344  interval  0L  -
+ 144  plugins/comment-review/skills/comment-review/scripts/record.py:344-345  interval  0L  -
+ 145  plugins/comment-review/skills/comment-review/scripts/record.py:345-346  interval  0L  -
+ 146  plugins/comment-review/skills/comment-review/scripts/record.py:346-347  interval  0L  -
+ 147  plugins/comment-review/skills/comment-review/scripts/record.py:347-348  interval  0L  -
+ 148  plugins/comment-review/skills/comment-review/scripts/record.py:348-349  interval  0L  -
+ 149  plugins/comment-review/skills/comment-review/scripts/record.py:349-350  interval  0L  -
+ 150  plugins/comment-review/skills/comment-review/scripts/record.py:350-353  interval  0L  -
+ 151  plugins/comment-review/skills/comment-review/scripts/record.py:354-361  docstring  8L  cites-a-path,names-a-symbol  (check)
+ 152  plugins/comment-review/skills/comment-review/scripts/record.py:362-363  interval  0L  -
+ 153  plugins/comment-review/skills/comment-review/scripts/record.py:363-364  interval  0L  -
+ 154  plugins/comment-review/skills/comment-review/scripts/record.py:364-365  interval  0L  -
+ 155  plugins/comment-review/skills/comment-review/scripts/record.py:365-366  interval  0L  -
+ 156  plugins/comment-review/skills/comment-review/scripts/record.py:366-367  interval  0L  -
+ 157  plugins/comment-review/skills/comment-review/scripts/record.py:367-368  interval  0L  -
+ 158  plugins/comment-review/skills/comment-review/scripts/record.py:368-369  interval  0L  -
+ 159  plugins/comment-review/skills/comment-review/scripts/record.py:369-370  interval  0L  -
+ 160  plugins/comment-review/skills/comment-review/scripts/record.py:370-371  interval  0L  -
+ 161  plugins/comment-review/skills/comment-review/scripts/record.py:371-372  interval  0L  -
+ 162  plugins/comment-review/skills/comment-review/scripts/record.py:373-374  comment  2L  -
+ 163  plugins/comment-review/skills/comment-review/scripts/record.py:375-376  interval  0L  -
+ 164  plugins/comment-review/skills/comment-review/scripts/record.py:376-377  interval  0L  -
+ 165  plugins/comment-review/skills/comment-review/scripts/record.py:377-380  interval  0L  -
+ 166  plugins/comment-review/skills/comment-review/scripts/record.py:381-391  docstring  11L  forbids-a-literal,names-a-symbol,repeated-literal  (claim_object)
+        -> GREP this file for what it forbids: 'never matched its markers converts to a partial object and `'
+        -> 0.2 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:296, plugins/comment-review/skills/comment-review/scripts/record.py:447, plugins/comment-review/skills/comment-review/scripts/verdicts.py:362
+ 167  plugins/comment-review/skills/comment-review/scripts/record.py:392-393  interval  0L  -
+ 168  plugins/comment-review/skills/comment-review/scripts/record.py:393-394  interval  0L  -
+ 169  plugins/comment-review/skills/comment-review/scripts/record.py:394-395  interval  0L  -
+ 170  plugins/comment-review/skills/comment-review/scripts/record.py:395-396  interval  0L  -
+ 171  plugins/comment-review/skills/comment-review/scripts/record.py:397-397  comment  1L  -
+ 172  plugins/comment-review/skills/comment-review/scripts/record.py:398-399  interval  0L  -
+ 173  plugins/comment-review/skills/comment-review/scripts/record.py:399-400  interval  0L  -
+ 174  plugins/comment-review/skills/comment-review/scripts/record.py:400-401  interval  0L  -
+ 175  plugins/comment-review/skills/comment-review/scripts/record.py:401-402  interval  0L  -
+ 176  plugins/comment-review/skills/comment-review/scripts/record.py:402-403  interval  0L  -
+ 177  plugins/comment-review/skills/comment-review/scripts/record.py:403-404  interval  0L  -
+ 178  plugins/comment-review/skills/comment-review/scripts/record.py:404-405  interval  0L  -
+ 179  plugins/comment-review/skills/comment-review/scripts/record.py:405-406  interval  0L  -
+ 180  plugins/comment-review/skills/comment-review/scripts/record.py:406-407  interval  0L  -
+ 181  plugins/comment-review/skills/comment-review/scripts/record.py:407-408  interval  0L  -
+ 182  plugins/comment-review/skills/comment-review/scripts/record.py:409-410  comment  2L  -
+ 183  plugins/comment-review/skills/comment-review/scripts/record.py:411-412  interval  0L  -
+ 184  plugins/comment-review/skills/comment-review/scripts/record.py:412-413  interval  0L  -
+ 185  plugins/comment-review/skills/comment-review/scripts/record.py:413-414  interval  0L  -
+ 186  plugins/comment-review/skills/comment-review/scripts/record.py:414-415  interval  0L  -
+ 187  plugins/comment-review/skills/comment-review/scripts/record.py:415-416  interval  0L  -
+ 188  plugins/comment-review/skills/comment-review/scripts/record.py:417-425  comment  9L  names-a-symbol,repeated-literal
+        -> 228 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:1, plugins/comment-review/skills/comment-review/scripts/record.py:472
+ 189  plugins/comment-review/skills/comment-review/scripts/record.py:426-427  interval  0L  -
+ 190  plugins/comment-review/skills/comment-review/scripts/record.py:427-428  interval  0L  -
+ 191  plugins/comment-review/skills/comment-review/scripts/record.py:428-429  interval  0L  -
+ 192  plugins/comment-review/skills/comment-review/scripts/record.py:430-431  comment  2L  counted,names-a-symbol
+        -> RE-COUNT, and name the population: 'two places'
+ 193  plugins/comment-review/skills/comment-review/scripts/record.py:432-433  interval  0L  -
+ 194  plugins/comment-review/skills/comment-review/scripts/record.py:433-434  interval  0L  -
+ 195  plugins/comment-review/skills/comment-review/scripts/record.py:435-437  comment  3L  -
+ 196  plugins/comment-review/skills/comment-review/scripts/record.py:438-439  interval  0L  -
+ 197  plugins/comment-review/skills/comment-review/scripts/record.py:439-440  interval  0L  -
+ 198  plugins/comment-review/skills/comment-review/scripts/record.py:440-441  interval  0L  -
+ 199  plugins/comment-review/skills/comment-review/scripts/record.py:441-442  interval  0L  -
+ 200  plugins/comment-review/skills/comment-review/scripts/record.py:442-443  interval  0L  -
+ 201  plugins/comment-review/skills/comment-review/scripts/record.py:443-446  interval  0L  -
+ 202  plugins/comment-review/skills/comment-review/scripts/record.py:447-466  docstring  20L  names-a-symbol,repeated-literal  (convert)
+        -> 0.2 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:296, plugins/comment-review/skills/comment-review/scripts/record.py:381, plugins/comment-review/skills/comment-review/scripts/verdicts.py:362
+        -> 4 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:70
+ 203  plugins/comment-review/skills/comment-review/scripts/record.py:467-468  interval  0L  -
+ 204  plugins/comment-review/skills/comment-review/scripts/record.py:468-469  interval  0L  -
+ 205  plugins/comment-review/skills/comment-review/scripts/record.py:469-470  interval  0L  -
+ 206  plugins/comment-review/skills/comment-review/scripts/record.py:472-478  comment  7L  names-a-symbol,repeated-literal
+        -> 228 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:1, plugins/comment-review/skills/comment-review/scripts/record.py:417
+        -> 226 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:1
+ 207  plugins/comment-review/skills/comment-review/scripts/record.py:479-480  interval  0L  -
+ 208  plugins/comment-review/skills/comment-review/scripts/record.py:480-481  interval  0L  -
+ 209  plugins/comment-review/skills/comment-review/scripts/record.py:481-482  interval  0L  -
+ 210  plugins/comment-review/skills/comment-review/scripts/record.py:482-483  interval  0L  -
+ 211  plugins/comment-review/skills/comment-review/scripts/record.py:483-485  interval  0L  -
+ 212  plugins/comment-review/skills/comment-review/scripts/record.py:485-486  interval  0L  -
+ 213  plugins/comment-review/skills/comment-review/scripts/record.py:486-487  interval  0L  -
+ 214  plugins/comment-review/skills/comment-review/scripts/record.py:487-488  interval  0L  -
+ 215  plugins/comment-review/skills/comment-review/scripts/record.py:488-489  interval  0L  -
+ 216  plugins/comment-review/skills/comment-review/scripts/record.py:489-490  interval  0L  -
+ 217  plugins/comment-review/skills/comment-review/scripts/record.py:491-493  comment  3L  -
+ 218  plugins/comment-review/skills/comment-review/scripts/record.py:494-495  interval  0L  -
+ 219  plugins/comment-review/skills/comment-review/scripts/record.py:495-496  interval  0L  -
+ 220  plugins/comment-review/skills/comment-review/scripts/record.py:496-497  interval  0L  -
+ 221  plugins/comment-review/skills/comment-review/scripts/record.py:497-498  interval  0L  -
+ 222  plugins/comment-review/skills/comment-review/scripts/record.py:498-499  interval  0L  -
+ 223  plugins/comment-review/skills/comment-review/scripts/record.py:499-500  interval  0L  -
+ 224  plugins/comment-review/skills/comment-review/scripts/record.py:500-501  interval  0L  -
+ 225  plugins/comment-review/skills/comment-review/scripts/record.py:501-502  interval  0L  -
+ 226  plugins/comment-review/skills/comment-review/scripts/record.py:502-503  interval  0L  -
+ 227  plugins/comment-review/skills/comment-review/scripts/record.py:503-504  interval  0L  -
+ 228  plugins/comment-review/skills/comment-review/scripts/record.py:504-505  interval  0L  -
+ 229  plugins/comment-review/skills/comment-review/scripts/record.py:505-506  interval  0L  -
+ 230  plugins/comment-review/skills/comment-review/scripts/record.py:506-509  interval  0L  -
+ 231  plugins/comment-review/skills/comment-review/scripts/record.py:510-510  docstring  1L  -  (main)
+ 232  plugins/comment-review/skills/comment-review/scripts/record.py:511-511  comment  1L  -
+ 233  plugins/comment-review/skills/comment-review/scripts/record.py:512-513  interval  0L  -
+ 234  plugins/comment-review/skills/comment-review/scripts/record.py:513-514  interval  0L  -
+ 235  plugins/comment-review/skills/comment-review/scripts/record.py:514-516  interval  0L  -
+ 236  plugins/comment-review/skills/comment-review/scripts/record.py:516-517  interval  0L  -
+ 237  plugins/comment-review/skills/comment-review/scripts/record.py:517-518  interval  0L  -
+ 238  plugins/comment-review/skills/comment-review/scripts/record.py:518-519  interval  0L  -
+ 239  plugins/comment-review/skills/comment-review/scripts/record.py:519-520  interval  0L  -
+ 240  plugins/comment-review/skills/comment-review/scripts/record.py:520-521  interval  0L  -
+ 241  plugins/comment-review/skills/comment-review/scripts/record.py:521-522  interval  0L  -
+ 242  plugins/comment-review/skills/comment-review/scripts/record.py:522-523  interval  0L  -
+ 243  plugins/comment-review/skills/comment-review/scripts/record.py:523-524  interval  0L  -
+ 244  plugins/comment-review/skills/comment-review/scripts/record.py:524-525  interval  0L  -
+ 245  plugins/comment-review/skills/comment-review/scripts/record.py:525-527  interval  0L  -
+ 246  plugins/comment-review/skills/comment-review/scripts/record.py:527-528  interval  0L  -
+ 247  plugins/comment-review/skills/comment-review/scripts/record.py:528-529  interval  0L  -
+ 248  plugins/comment-review/skills/comment-review/scripts/record.py:529-530  interval  0L  -
+ 249  plugins/comment-review/skills/comment-review/scripts/record.py:530-531  interval  0L  -
+ 250  plugins/comment-review/skills/comment-review/scripts/record.py:531-532  interval  0L  -
+ 251  plugins/comment-review/skills/comment-review/scripts/record.py:532-533  interval  0L  -
+ 252  plugins/comment-review/skills/comment-review/scripts/record.py:533-534  interval  0L  -
+ 253  plugins/comment-review/skills/comment-review/scripts/record.py:534-535  interval  0L  -
+ 254  plugins/comment-review/skills/comment-review/scripts/record.py:535-536  interval  0L  -
+ 255  plugins/comment-review/skills/comment-review/scripts/record.py:536-537  interval  0L  -
+ 256  plugins/comment-review/skills/comment-review/scripts/record.py:537-538  interval  0L  -
+ 257  plugins/comment-review/skills/comment-review/scripts/record.py:538-540  interval  0L  -
+ 258  plugins/comment-review/skills/comment-review/scripts/record.py:540-541  interval  0L  -
+ 259  plugins/comment-review/skills/comment-review/scripts/record.py:541-542  interval  0L  -
+ 260  plugins/comment-review/skills/comment-review/scripts/record.py:542-543  interval  0L  -
+ 261  plugins/comment-review/skills/comment-review/scripts/record.py:543-544  interval  0L  -
+ 262  plugins/comment-review/skills/comment-review/scripts/record.py:544-545  interval  0L  -
+ 263  plugins/comment-review/skills/comment-review/scripts/record.py:545-546  interval  0L  -
+ 264  plugins/comment-review/skills/comment-review/scripts/record.py:547-548  comment  2L  -
+ 265  plugins/comment-review/skills/comment-review/scripts/record.py:549-550  interval  0L  -
+ 266  plugins/comment-review/skills/comment-review/scripts/record.py:550-551  interval  0L  -
+ 267  plugins/comment-review/skills/comment-review/scripts/record.py:552-553  comment  2L  -
+ 268  plugins/comment-review/skills/comment-review/scripts/record.py:554-555  interval  0L  -
+ 269  plugins/comment-review/skills/comment-review/scripts/record.py:555-556  interval  0L  -
+ 270  plugins/comment-review/skills/comment-review/scripts/record.py:556-557  interval  0L  -
+ 271  plugins/comment-review/skills/comment-review/scripts/record.py:557-558  interval  0L  -
+ 272  plugins/comment-review/skills/comment-review/scripts/record.py:558-559  interval  0L  -
+ 273  plugins/comment-review/skills/comment-review/scripts/record.py:559-560  interval  0L  -
+ 274  plugins/comment-review/skills/comment-review/scripts/record.py:560-561  interval  0L  -
+ 275  plugins/comment-review/skills/comment-review/scripts/record.py:561-562  interval  0L  -
+ 276  plugins/comment-review/skills/comment-review/scripts/record.py:562-563  interval  0L  -
+ 277  plugins/comment-review/skills/comment-review/scripts/record.py:564-565  comment  2L  -
+ 278  plugins/comment-review/skills/comment-review/scripts/record.py:566-567  interval  0L  -
+ 279  plugins/comment-review/skills/comment-review/scripts/record.py:567-569  interval  0L  -
+ 280  plugins/comment-review/skills/comment-review/scripts/record.py:569-570  interval  0L  -
+ 281  plugins/comment-review/skills/comment-review/scripts/record.py:570-571  interval  0L  -
+ 282  plugins/comment-review/skills/comment-review/scripts/record.py:571-572  interval  0L  -
+ 283  plugins/comment-review/skills/comment-review/scripts/record.py:572-573  interval  0L  -
+ 284  plugins/comment-review/skills/comment-review/scripts/record.py:573-574  interval  0L  -
+ 285  plugins/comment-review/skills/comment-review/scripts/record.py:574-575  interval  0L  -
+ 286  plugins/comment-review/skills/comment-review/scripts/record.py:575-576  interval  0L  -
+ 287  plugins/comment-review/skills/comment-review/scripts/record.py:576-577  interval  0L  -
+ 288  plugins/comment-review/skills/comment-review/scripts/record.py:578-579  comment  2L  -
+ 289  plugins/comment-review/skills/comment-review/scripts/record.py:580-581  interval  0L  -
+ 290  plugins/comment-review/skills/comment-review/scripts/record.py:582-585  comment  4L  -
+ 291  plugins/comment-review/skills/comment-review/scripts/record.py:586-587  interval  0L  -
+ 292  plugins/comment-review/skills/comment-review/scripts/record.py:587-588  interval  0L  -
+ 293  plugins/comment-review/skills/comment-review/scripts/record.py:588-589  interval  0L  -
+ 294  plugins/comment-review/skills/comment-review/scripts/record.py:589-590  interval  0L  -
+ 295  plugins/comment-review/skills/comment-review/scripts/record.py:591-592  comment  2L  -
+ 296  plugins/comment-review/skills/comment-review/scripts/record.py:593-594  interval  0L  -
+ 297  plugins/comment-review/skills/comment-review/scripts/record.py:594-595  interval  0L  -
+ 298  plugins/comment-review/skills/comment-review/scripts/record.py:595-596  interval  0L  -
+ 299  plugins/comment-review/skills/comment-review/scripts/record.py:596-597  interval  0L  -
+ 300  plugins/comment-review/skills/comment-review/scripts/record.py:597-599  interval  0L  -
+ 301  plugins/comment-review/skills/comment-review/scripts/record.py:599-600  interval  0L  -
+ 302  plugins/comment-review/skills/comment-review/scripts/record.py:600-601  interval  0L  -
+ 303  plugins/comment-review/skills/comment-review/scripts/record.py:601-602  interval  0L  -
+ 304  plugins/comment-review/skills/comment-review/scripts/record.py:602-603  interval  0L  -
+ 305  plugins/comment-review/skills/comment-review/scripts/record.py:603-604  interval  0L  -
+ 306  plugins/comment-review/skills/comment-review/scripts/record.py:604-605  interval  0L  -
+ 307  plugins/comment-review/skills/comment-review/scripts/record.py:605-607  interval  0L  -
+ 308  plugins/comment-review/skills/comment-review/scripts/record.py:607-608  interval  0L  -
+ 309  plugins/comment-review/skills/comment-review/scripts/record.py:608-609  interval  0L  -
+ 310  plugins/comment-review/skills/comment-review/scripts/record.py:609-610  interval  0L  -
+ 311  plugins/comment-review/skills/comment-review/scripts/record.py:610-611  interval  0L  -
+ 312  plugins/comment-review/skills/comment-review/scripts/record.py:611-614  interval  0L  -
+ 313  plugins/comment-review/skills/comment-review/scripts/record.py:614-615  interval  0L  -
+ 314  plugins/comment-review/skills/comment-review/scripts/record.py:615-615  interval  0L  -
+ 315  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1-64  docstring  64L  cites-a-path,counted,names-a-symbol,repeated-literal  (<module>)
+        -> RE-COUNT, and name the population: 'no SOURCES'
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1347
+ 316  plugins/comment-review/skills/comment-review/scripts/verdicts.py:66-67  interval  0L  -
+ 317  plugins/comment-review/skills/comment-review/scripts/verdicts.py:67-68  interval  0L  -
+ 318  plugins/comment-review/skills/comment-review/scripts/verdicts.py:68-69  interval  0L  -
+ 319  plugins/comment-review/skills/comment-review/scripts/verdicts.py:69-70  interval  0L  -
+ 320  plugins/comment-review/skills/comment-review/scripts/verdicts.py:70-71  interval  0L  -
+ 321  plugins/comment-review/skills/comment-review/scripts/verdicts.py:71-72  interval  0L  -
+ 322  plugins/comment-review/skills/comment-review/scripts/verdicts.py:72-73  interval  0L  -
+ 323  plugins/comment-review/skills/comment-review/scripts/verdicts.py:73-74  interval  0L  -
+ 324  plugins/comment-review/skills/comment-review/scripts/verdicts.py:74-75  interval  0L  -
+ 325  plugins/comment-review/skills/comment-review/scripts/verdicts.py:75-76  interval  0L  -
+ 326  plugins/comment-review/skills/comment-review/scripts/verdicts.py:78-83  comment  6L  cites-a-path,names-a-symbol
+ 327  plugins/comment-review/skills/comment-review/scripts/verdicts.py:84-86  interval  0L  -
+ 328  plugins/comment-review/skills/comment-review/scripts/verdicts.py:86-86  trailing-comment  1L  -
+ 329  plugins/comment-review/skills/comment-review/scripts/verdicts.py:86-87  interval  0L  -
+ 330  plugins/comment-review/skills/comment-review/scripts/verdicts.py:87-87  trailing-comment  1L  -
+ 331  plugins/comment-review/skills/comment-review/scripts/verdicts.py:87-88  interval  0L  -
+ 332  plugins/comment-review/skills/comment-review/scripts/verdicts.py:88-88  trailing-comment  1L  -
+ 333  plugins/comment-review/skills/comment-review/scripts/verdicts.py:90-94  comment  5L  cites-a-path,names-a-symbol
+ 334  plugins/comment-review/skills/comment-review/scripts/verdicts.py:95-96  interval  0L  -
+ 335  plugins/comment-review/skills/comment-review/scripts/verdicts.py:96-99  interval  0L  -
+ 336  plugins/comment-review/skills/comment-review/scripts/verdicts.py:99-100  interval  0L  -
+ 337  plugins/comment-review/skills/comment-review/scripts/verdicts.py:101-154  docstring  54L  cites-a-path,counted,forbids-a-literal,names-a-symbol,narrative-in-docstring,repeated-literal  (Verdict)
+        -> RE-COUNT, and name the population: 'one place'
+        -> GREP this file for what it forbids: 'no text proposed, no original, or a `CHANGE`'
+        -> a date: alternative was measured: on 2026-08-17 the record's contrac
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1347
+        -> 3 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1142, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1255, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1400
+        -> 2 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1472, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1649, plugins/comment-review/skills/comment-review/scripts/verdicts.py:547
+ 338  plugins/comment-review/skills/comment-review/scripts/verdicts.py:156-157  interval  0L  -
+ 339  plugins/comment-review/skills/comment-review/scripts/verdicts.py:157-158  interval  0L  -
+ 340  plugins/comment-review/skills/comment-review/scripts/verdicts.py:158-159  interval  0L  -
+ 341  plugins/comment-review/skills/comment-review/scripts/verdicts.py:159-160  interval  0L  -
+ 342  plugins/comment-review/skills/comment-review/scripts/verdicts.py:160-161  interval  0L  -
+ 343  plugins/comment-review/skills/comment-review/scripts/verdicts.py:161-162  interval  0L  -
+ 344  plugins/comment-review/skills/comment-review/scripts/verdicts.py:162-163  interval  0L  -
+ 345  plugins/comment-review/skills/comment-review/scripts/verdicts.py:163-164  interval  0L  -
+ 346  plugins/comment-review/skills/comment-review/scripts/verdicts.py:164-165  interval  0L  -
+ 347  plugins/comment-review/skills/comment-review/scripts/verdicts.py:165-166  interval  0L  -
+ 348  plugins/comment-review/skills/comment-review/scripts/verdicts.py:166-167  interval  0L  -
+ 349  plugins/comment-review/skills/comment-review/scripts/verdicts.py:167-168  interval  0L  -
+ 350  plugins/comment-review/skills/comment-review/scripts/verdicts.py:168-169  interval  0L  -
+ 351  plugins/comment-review/skills/comment-review/scripts/verdicts.py:169-170  interval  0L  -
+ 352  plugins/comment-review/skills/comment-review/scripts/verdicts.py:170-171  interval  0L  -
+ 353  plugins/comment-review/skills/comment-review/scripts/verdicts.py:171-172  interval  0L  -
+ 354  plugins/comment-review/skills/comment-review/scripts/verdicts.py:172-173  interval  0L  -
+ 355  plugins/comment-review/skills/comment-review/scripts/verdicts.py:173-174  interval  0L  -
+ 356  plugins/comment-review/skills/comment-review/scripts/verdicts.py:174-175  interval  0L  -
+ 357  plugins/comment-review/skills/comment-review/scripts/verdicts.py:175-176  interval  0L  -
+ 358  plugins/comment-review/skills/comment-review/scripts/verdicts.py:176-179  interval  0L  -
+ 359  plugins/comment-review/skills/comment-review/scripts/verdicts.py:179-180  interval  0L  -
+ 360  plugins/comment-review/skills/comment-review/scripts/verdicts.py:180-181  interval  0L  -
+ 361  plugins/comment-review/skills/comment-review/scripts/verdicts.py:181-182  interval  0L  -
+ 362  plugins/comment-review/skills/comment-review/scripts/verdicts.py:182-183  interval  0L  -
+ 363  plugins/comment-review/skills/comment-review/scripts/verdicts.py:183-184  interval  0L  -
+ 364  plugins/comment-review/skills/comment-review/scripts/verdicts.py:184-185  interval  0L  -
+ 365  plugins/comment-review/skills/comment-review/scripts/verdicts.py:185-186  interval  0L  -
+ 366  plugins/comment-review/skills/comment-review/scripts/verdicts.py:186-187  interval  0L  -
+ 367  plugins/comment-review/skills/comment-review/scripts/verdicts.py:187-188  interval  0L  -
+ 368  plugins/comment-review/skills/comment-review/scripts/verdicts.py:188-189  interval  0L  -
+ 369  plugins/comment-review/skills/comment-review/scripts/verdicts.py:189-190  interval  0L  -
+ 370  plugins/comment-review/skills/comment-review/scripts/verdicts.py:190-191  interval  0L  -
+ 371  plugins/comment-review/skills/comment-review/scripts/verdicts.py:191-192  interval  0L  -
+ 372  plugins/comment-review/skills/comment-review/scripts/verdicts.py:192-193  interval  0L  -
+ 373  plugins/comment-review/skills/comment-review/scripts/verdicts.py:193-194  interval  0L  -
+ 374  plugins/comment-review/skills/comment-review/scripts/verdicts.py:194-195  interval  0L  -
+ 375  plugins/comment-review/skills/comment-review/scripts/verdicts.py:195-196  interval  0L  -
+ 376  plugins/comment-review/skills/comment-review/scripts/verdicts.py:196-197  interval  0L  -
+ 377  plugins/comment-review/skills/comment-review/scripts/verdicts.py:197-198  interval  0L  -
+ 378  plugins/comment-review/skills/comment-review/scripts/verdicts.py:198-199  interval  0L  -
+ 379  plugins/comment-review/skills/comment-review/scripts/verdicts.py:199-200  interval  0L  -
+ 380  plugins/comment-review/skills/comment-review/scripts/verdicts.py:200-201  interval  0L  -
+ 381  plugins/comment-review/skills/comment-review/scripts/verdicts.py:201-202  interval  0L  -
+ 382  plugins/comment-review/skills/comment-review/scripts/verdicts.py:202-203  interval  0L  -
+ 383  plugins/comment-review/skills/comment-review/scripts/verdicts.py:203-204  interval  0L  -
+ 384  plugins/comment-review/skills/comment-review/scripts/verdicts.py:204-205  interval  0L  -
+ 385  plugins/comment-review/skills/comment-review/scripts/verdicts.py:205-206  interval  0L  -
+ 386  plugins/comment-review/skills/comment-review/scripts/verdicts.py:206-207  interval  0L  -
+ 387  plugins/comment-review/skills/comment-review/scripts/verdicts.py:207-208  interval  0L  -
+ 388  plugins/comment-review/skills/comment-review/scripts/verdicts.py:208-209  interval  0L  -
+ 389  plugins/comment-review/skills/comment-review/scripts/verdicts.py:209-210  interval  0L  -
+ 390  plugins/comment-review/skills/comment-review/scripts/verdicts.py:210-211  interval  0L  -
+ 391  plugins/comment-review/skills/comment-review/scripts/verdicts.py:211-212  interval  0L  -
+ 392  plugins/comment-review/skills/comment-review/scripts/verdicts.py:212-213  interval  0L  -
+ 393  plugins/comment-review/skills/comment-review/scripts/verdicts.py:213-214  interval  0L  -
+ 394  plugins/comment-review/skills/comment-review/scripts/verdicts.py:214-215  interval  0L  -
+ 395  plugins/comment-review/skills/comment-review/scripts/verdicts.py:215-216  interval  0L  -
+ 396  plugins/comment-review/skills/comment-review/scripts/verdicts.py:216-217  interval  0L  -
+ 397  plugins/comment-review/skills/comment-review/scripts/verdicts.py:217-218  interval  0L  -
+ 398  plugins/comment-review/skills/comment-review/scripts/verdicts.py:218-219  interval  0L  -
+ 399  plugins/comment-review/skills/comment-review/scripts/verdicts.py:219-220  interval  0L  -
+ 400  plugins/comment-review/skills/comment-review/scripts/verdicts.py:220-221  interval  0L  -
+ 401  plugins/comment-review/skills/comment-review/scripts/verdicts.py:221-222  interval  0L  -
+ 402  plugins/comment-review/skills/comment-review/scripts/verdicts.py:222-223  interval  0L  -
+ 403  plugins/comment-review/skills/comment-review/scripts/verdicts.py:223-224  interval  0L  -
+ 404  plugins/comment-review/skills/comment-review/scripts/verdicts.py:224-225  interval  0L  -
+ 405  plugins/comment-review/skills/comment-review/scripts/verdicts.py:225-226  interval  0L  -
+ 406  plugins/comment-review/skills/comment-review/scripts/verdicts.py:226-227  interval  0L  -
+ 407  plugins/comment-review/skills/comment-review/scripts/verdicts.py:227-228  interval  0L  -
+ 408  plugins/comment-review/skills/comment-review/scripts/verdicts.py:228-229  interval  0L  -
+ 409  plugins/comment-review/skills/comment-review/scripts/verdicts.py:229-230  interval  0L  -
+ 410  plugins/comment-review/skills/comment-review/scripts/verdicts.py:230-231  interval  0L  -
+ 411  plugins/comment-review/skills/comment-review/scripts/verdicts.py:231-232  interval  0L  -
+ 412  plugins/comment-review/skills/comment-review/scripts/verdicts.py:232-233  interval  0L  -
+ 413  plugins/comment-review/skills/comment-review/scripts/verdicts.py:233-234  interval  0L  -
+ 414  plugins/comment-review/skills/comment-review/scripts/verdicts.py:234-235  interval  0L  -
+ 415  plugins/comment-review/skills/comment-review/scripts/verdicts.py:235-236  interval  0L  -
+ 416  plugins/comment-review/skills/comment-review/scripts/verdicts.py:236-237  interval  0L  -
+ 417  plugins/comment-review/skills/comment-review/scripts/verdicts.py:237-238  interval  0L  -
+ 418  plugins/comment-review/skills/comment-review/scripts/verdicts.py:238-239  interval  0L  -
+ 419  plugins/comment-review/skills/comment-review/scripts/verdicts.py:239-241  interval  0L  -
+ 420  plugins/comment-review/skills/comment-review/scripts/verdicts.py:242-247  comment  6L  -
+ 421  plugins/comment-review/skills/comment-review/scripts/verdicts.py:249-250  comment  2L  cites-a-path
+ 422  plugins/comment-review/skills/comment-review/scripts/verdicts.py:252-266  comment  15L  names-a-symbol,repeated-literal
+        -> UNRESOLVED symbol `CHANGES` (CANDIDATE)
+        -> 0 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:2024
+ 423  plugins/comment-review/skills/comment-review/scripts/verdicts.py:268-294  comment  27L  forbids-a-literal,names-a-symbol,repeated-literal
+        -> UNRESOLVED symbol `policy` (CANDIDATE)
+        -> UNRESOLVED symbol `policy.` (CANDIDATE)
+        -> UNRESOLVED symbol `policy` (CANDIDATE)
+        -> UNRESOLVED symbol `_private` (CANDIDATE)
+        -> UNRESOLVED symbol `private` (CANDIDATE)
+        -> GREP this file for what it forbids: 'no `CLAIM`'
+        -> 3 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1142, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1255
+ 424  plugins/comment-review/skills/comment-review/scripts/verdicts.py:296-296  comment  1L  -
+ 425  plugins/comment-review/skills/comment-review/scripts/verdicts.py:298-306  comment  9L  forbids-a-literal,names-a-symbol
+        -> GREP this file for what it forbids: 'no whitespace, and a `.`'
+ 426  plugins/comment-review/skills/comment-review/scripts/verdicts.py:309-311  comment  3L  -
+ 427  plugins/comment-review/skills/comment-review/scripts/verdicts.py:314-316  comment  3L  names-a-symbol,repeated-literal
+        -> UNRESOLVED symbol `pass` (CANDIDATE)
+        -> UNRESOLVED symbol `return` (CANDIDATE)
+        -> 1 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:88, plugins/comment-review/skills/comment-review/scripts/record.py:99, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595
+ 428  plugins/comment-review/skills/comment-review/scripts/verdicts.py:319-323  comment  5L  names-a-symbol
+ 429  plugins/comment-review/skills/comment-review/scripts/verdicts.py:324-325  interval  0L  -
+ 430  plugins/comment-review/skills/comment-review/scripts/verdicts.py:327-347  comment  21L  counted,names-a-symbol
+        -> RE-COUNT, and name the population: '65 module'
+ 431  plugins/comment-review/skills/comment-review/scripts/verdicts.py:348-349  interval  0L  -
+ 432  plugins/comment-review/skills/comment-review/scripts/verdicts.py:349-350  interval  0L  -
+ 433  plugins/comment-review/skills/comment-review/scripts/verdicts.py:350-351  interval  0L  -
+ 434  plugins/comment-review/skills/comment-review/scripts/verdicts.py:351-352  interval  0L  -
+ 435  plugins/comment-review/skills/comment-review/scripts/verdicts.py:352-353  interval  0L  -
+ 436  plugins/comment-review/skills/comment-review/scripts/verdicts.py:353-354  interval  0L  -
+ 437  plugins/comment-review/skills/comment-review/scripts/verdicts.py:354-355  interval  0L  -
+ 438  plugins/comment-review/skills/comment-review/scripts/verdicts.py:355-356  interval  0L  -
+ 439  plugins/comment-review/skills/comment-review/scripts/verdicts.py:356-357  interval  0L  -
+ 440  plugins/comment-review/skills/comment-review/scripts/verdicts.py:357-360  interval  0L  -
+ 441  plugins/comment-review/skills/comment-review/scripts/verdicts.py:360-361  interval  0L  -
+ 442  plugins/comment-review/skills/comment-review/scripts/verdicts.py:362-426  docstring  65L  cites-a-path,forbids-a-literal,names-a-symbol,narrative-in-docstring,repeated-literal  (Finding)
+        -> GREP this file for what it forbids: 'no text for stage 5'
+        -> a date: a CHAIN OF CUSTODY. Roy, 2026-08-17: *"Verdict -> Claim -> R
+        -> 1159 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1182, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1937
+        -> 0.2 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:296, plugins/comment-review/skills/comment-review/scripts/record.py:381, plugins/comment-review/skills/comment-review/scripts/record.py:447
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+        -> 83 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1111, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1814
+ 443  plugins/comment-review/skills/comment-review/scripts/verdicts.py:428-429  interval  0L  -
+ 444  plugins/comment-review/skills/comment-review/scripts/verdicts.py:429-430  interval  0L  -
+ 445  plugins/comment-review/skills/comment-review/scripts/verdicts.py:430-431  interval  0L  -
+ 446  plugins/comment-review/skills/comment-review/scripts/verdicts.py:431-432  interval  0L  -
+ 447  plugins/comment-review/skills/comment-review/scripts/verdicts.py:432-433  interval  0L  -
+ 448  plugins/comment-review/skills/comment-review/scripts/verdicts.py:433-434  interval  0L  -
+ 449  plugins/comment-review/skills/comment-review/scripts/verdicts.py:434-435  interval  0L  -
+ 450  plugins/comment-review/skills/comment-review/scripts/verdicts.py:435-436  interval  0L  -
+ 451  plugins/comment-review/skills/comment-review/scripts/verdicts.py:437-442  comment  6L  names-a-symbol,repeated-literal
+        -> 0.2 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:296, plugins/comment-review/skills/comment-review/scripts/record.py:381, plugins/comment-review/skills/comment-review/scripts/record.py:447
+ 452  plugins/comment-review/skills/comment-review/scripts/verdicts.py:443-446  interval  0L  -
+ 453  plugins/comment-review/skills/comment-review/scripts/verdicts.py:447-454  docstring  8L  names-a-symbol,repeated-literal  (_substantive)
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+ 454  plugins/comment-review/skills/comment-review/scripts/verdicts.py:455-458  interval  0L  -
+ 455  plugins/comment-review/skills/comment-review/scripts/verdicts.py:459-464  docstring  6L  names-a-symbol  (_is)
+ 456  plugins/comment-review/skills/comment-review/scripts/verdicts.py:465-466  interval  0L  -
+ 457  plugins/comment-review/skills/comment-review/scripts/verdicts.py:466-469  interval  0L  -
+ 458  plugins/comment-review/skills/comment-review/scripts/verdicts.py:470-488  docstring  19L  counted,names-a-symbol,narrative-in-docstring,repeated-literal  (_said)
+        -> RE-COUNT, and name the population: 'every caller'
+        -> a date: key's value can be satisfied by another key's prose. Measure
+        -> 0.2 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:296, plugins/comment-review/skills/comment-review/scripts/record.py:381, plugins/comment-review/skills/comment-review/scripts/record.py:447
+ 459  plugins/comment-review/skills/comment-review/scripts/verdicts.py:489-492  interval  0L  -
+ 460  plugins/comment-review/skills/comment-review/scripts/verdicts.py:493-506  docstring  14L  names-a-symbol,narrative-in-docstring  (_claim_values)
+        -> a date: that can never equal it. Measured 2026-08-17: the REASON-res
+ 461  plugins/comment-review/skills/comment-review/scripts/verdicts.py:507-508  interval  0L  -
+ 462  plugins/comment-review/skills/comment-review/scripts/verdicts.py:508-509  interval  0L  -
+ 463  plugins/comment-review/skills/comment-review/scripts/verdicts.py:509-512  interval  0L  -
+ 464  plugins/comment-review/skills/comment-review/scripts/verdicts.py:513-540  docstring  28L  cites-a-path,forbids-a-literal,names-a-symbol,narrative-in-docstring,repeated-literal  (_answered)
+        -> UNRESOLVED symbol `settl` (CANDIDATE)
+        -> UNRESOLVED symbol `would` (CANDIDATE)
+        -> UNRESOLVED symbol `requires` (CANDIDATE)
+        -> UNRESOLVED symbol `resolv` (CANDIDATE)
+        -> GREP this file for what it forbids: 'no field to read: `claim_fields`'
+        -> a date: ! Measured 2026-08-17, the first run over JSON records: nine
+        -> 0.2 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:296, plugins/comment-review/skills/comment-review/scripts/record.py:381, plugins/comment-review/skills/comment-review/scripts/record.py:447
+ 465  plugins/comment-review/skills/comment-review/scripts/verdicts.py:541-542  interval  0L  -
+ 466  plugins/comment-review/skills/comment-review/scripts/verdicts.py:542-543  interval  0L  -
+ 467  plugins/comment-review/skills/comment-review/scripts/verdicts.py:543-546  interval  0L  -
+ 468  plugins/comment-review/skills/comment-review/scripts/verdicts.py:547-547  docstring  1L  repeated-literal  (_n)
+        -> 1 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:88, plugins/comment-review/skills/comment-review/scripts/record.py:99, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595
+        -> 2 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1472, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1649
+ 469  plugins/comment-review/skills/comment-review/scripts/verdicts.py:548-551  interval  0L  -
+ 470  plugins/comment-review/skills/comment-review/scripts/verdicts.py:552-570  docstring  19L  counted,names-a-symbol  (claim_keys)
+        -> RE-COUNT, and name the population: 'four places'
+ 471  plugins/comment-review/skills/comment-review/scripts/verdicts.py:571-572  interval  0L  -
+ 472  plugins/comment-review/skills/comment-review/scripts/verdicts.py:573-574  comment  2L  names-a-symbol
+ 473  plugins/comment-review/skills/comment-review/scripts/verdicts.py:575-576  interval  0L  -
+ 474  plugins/comment-review/skills/comment-review/scripts/verdicts.py:576-577  interval  0L  -
+ 475  plugins/comment-review/skills/comment-review/scripts/verdicts.py:577-578  interval  0L  -
+ 476  plugins/comment-review/skills/comment-review/scripts/verdicts.py:578-579  interval  0L  -
+ 477  plugins/comment-review/skills/comment-review/scripts/verdicts.py:579-580  interval  0L  -
+ 478  plugins/comment-review/skills/comment-review/scripts/verdicts.py:580-581  interval  0L  -
+ 479  plugins/comment-review/skills/comment-review/scripts/verdicts.py:581-582  interval  0L  -
+ 480  plugins/comment-review/skills/comment-review/scripts/verdicts.py:582-583  interval  0L  -
+ 481  plugins/comment-review/skills/comment-review/scripts/verdicts.py:583-586  interval  0L  -
+ 482  plugins/comment-review/skills/comment-review/scripts/verdicts.py:587-604  docstring  18L  cites-a-path,names-a-symbol  (claim_text)
+ 483  plugins/comment-review/skills/comment-review/scripts/verdicts.py:605-606  interval  0L  -
+ 484  plugins/comment-review/skills/comment-review/scripts/verdicts.py:606-607  interval  0L  -
+ 485  plugins/comment-review/skills/comment-review/scripts/verdicts.py:607-608  interval  0L  -
+ 486  plugins/comment-review/skills/comment-review/scripts/verdicts.py:608-609  interval  0L  -
+ 487  plugins/comment-review/skills/comment-review/scripts/verdicts.py:609-610  interval  0L  -
+ 488  plugins/comment-review/skills/comment-review/scripts/verdicts.py:610-611  interval  0L  -
+ 489  plugins/comment-review/skills/comment-review/scripts/verdicts.py:611-612  interval  0L  -
+ 490  plugins/comment-review/skills/comment-review/scripts/verdicts.py:613-615  comment  3L  names-a-symbol
+ 491  plugins/comment-review/skills/comment-review/scripts/verdicts.py:616-617  interval  0L  -
+ 492  plugins/comment-review/skills/comment-review/scripts/verdicts.py:617-618  interval  0L  -
+ 493  plugins/comment-review/skills/comment-review/scripts/verdicts.py:618-619  interval  0L  -
+ 494  plugins/comment-review/skills/comment-review/scripts/verdicts.py:619-620  interval  0L  -
+ 495  plugins/comment-review/skills/comment-review/scripts/verdicts.py:620-621  interval  0L  -
+ 496  plugins/comment-review/skills/comment-review/scripts/verdicts.py:621-622  interval  0L  -
+ 497  plugins/comment-review/skills/comment-review/scripts/verdicts.py:622-623  interval  0L  -
+ 498  plugins/comment-review/skills/comment-review/scripts/verdicts.py:623-626  interval  0L  -
+ 499  plugins/comment-review/skills/comment-review/scripts/verdicts.py:626-627  interval  0L  -
+ 500  plugins/comment-review/skills/comment-review/scripts/verdicts.py:627-628  interval  0L  -
+ 501  plugins/comment-review/skills/comment-review/scripts/verdicts.py:629-654  docstring  26L  cites-a-path,names-a-symbol,repeated-literal  (load_report)
+        -> UNRESOLVED symbol `report_concerns` (CANDIDATE)
+        -> 0.2 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:296, plugins/comment-review/skills/comment-review/scripts/record.py:381, plugins/comment-review/skills/comment-review/scripts/record.py:447
+ 502  plugins/comment-review/skills/comment-review/scripts/verdicts.py:655-656  interval  0L  -
+ 503  plugins/comment-review/skills/comment-review/scripts/verdicts.py:656-657  interval  0L  -
+ 504  plugins/comment-review/skills/comment-review/scripts/verdicts.py:657-658  interval  0L  -
+ 505  plugins/comment-review/skills/comment-review/scripts/verdicts.py:658-659  interval  0L  -
+ 506  plugins/comment-review/skills/comment-review/scripts/verdicts.py:659-660  interval  0L  -
+ 507  plugins/comment-review/skills/comment-review/scripts/verdicts.py:661-661  comment  1L  -
+ 508  plugins/comment-review/skills/comment-review/scripts/verdicts.py:663-666  comment  4L  names-a-symbol
+        -> UNRESOLVED symbol `AttributeError` (CANDIDATE)
+ 509  plugins/comment-review/skills/comment-review/scripts/verdicts.py:667-668  interval  0L  -
+ 510  plugins/comment-review/skills/comment-review/scripts/verdicts.py:668-669  interval  0L  -
+ 511  plugins/comment-review/skills/comment-review/scripts/verdicts.py:669-670  interval  0L  -
+ 512  plugins/comment-review/skills/comment-review/scripts/verdicts.py:670-671  interval  0L  -
+ 513  plugins/comment-review/skills/comment-review/scripts/verdicts.py:671-672  interval  0L  -
+ 514  plugins/comment-review/skills/comment-review/scripts/verdicts.py:673-676  comment  4L  cites-a-path,names-a-symbol
+        -> UNRESOLVED symbol `AttributeError` (CANDIDATE)
+ 515  plugins/comment-review/skills/comment-review/scripts/verdicts.py:677-678  interval  0L  -
+ 516  plugins/comment-review/skills/comment-review/scripts/verdicts.py:678-679  interval  0L  -
+ 517  plugins/comment-review/skills/comment-review/scripts/verdicts.py:679-680  interval  0L  -
+ 518  plugins/comment-review/skills/comment-review/scripts/verdicts.py:681-682  comment  2L  -
+ 519  plugins/comment-review/skills/comment-review/scripts/verdicts.py:683-684  interval  0L  -
+ 520  plugins/comment-review/skills/comment-review/scripts/verdicts.py:684-685  interval  0L  -
+ 521  plugins/comment-review/skills/comment-review/scripts/verdicts.py:685-686  interval  0L  -
+ 522  plugins/comment-review/skills/comment-review/scripts/verdicts.py:686-687  interval  0L  -
+ 523  plugins/comment-review/skills/comment-review/scripts/verdicts.py:687-688  interval  0L  -
+ 524  plugins/comment-review/skills/comment-review/scripts/verdicts.py:689-693  comment  5L  cites-a-path,names-a-symbol,repeated-literal
+        -> 0.2 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:296, plugins/comment-review/skills/comment-review/scripts/record.py:381, plugins/comment-review/skills/comment-review/scripts/record.py:447
+ 525  plugins/comment-review/skills/comment-review/scripts/verdicts.py:694-695  interval  0L  -
+ 526  plugins/comment-review/skills/comment-review/scripts/verdicts.py:695-696  interval  0L  -
+ 527  plugins/comment-review/skills/comment-review/scripts/verdicts.py:696-697  interval  0L  -
+ 528  plugins/comment-review/skills/comment-review/scripts/verdicts.py:697-698  interval  0L  -
+ 529  plugins/comment-review/skills/comment-review/scripts/verdicts.py:698-699  interval  0L  -
+ 530  plugins/comment-review/skills/comment-review/scripts/verdicts.py:699-700  interval  0L  -
+ 531  plugins/comment-review/skills/comment-review/scripts/verdicts.py:700-701  interval  0L  -
+ 532  plugins/comment-review/skills/comment-review/scripts/verdicts.py:701-702  interval  0L  -
+ 533  plugins/comment-review/skills/comment-review/scripts/verdicts.py:702-703  interval  0L  -
+ 534  plugins/comment-review/skills/comment-review/scripts/verdicts.py:703-704  interval  0L  -
+ 535  plugins/comment-review/skills/comment-review/scripts/verdicts.py:704-705  interval  0L  -
+ 536  plugins/comment-review/skills/comment-review/scripts/verdicts.py:705-706  interval  0L  -
+ 537  plugins/comment-review/skills/comment-review/scripts/verdicts.py:706-707  interval  0L  -
+ 538  plugins/comment-review/skills/comment-review/scripts/verdicts.py:708-711  comment  4L  names-a-symbol
+ 539  plugins/comment-review/skills/comment-review/scripts/verdicts.py:712-713  interval  0L  -
+ 540  plugins/comment-review/skills/comment-review/scripts/verdicts.py:714-716  comment  3L  names-a-symbol
+ 541  plugins/comment-review/skills/comment-review/scripts/verdicts.py:717-718  interval  0L  -
+ 542  plugins/comment-review/skills/comment-review/scripts/verdicts.py:718-719  interval  0L  -
+ 543  plugins/comment-review/skills/comment-review/scripts/verdicts.py:719-720  interval  0L  -
+ 544  plugins/comment-review/skills/comment-review/scripts/verdicts.py:720-721  interval  0L  -
+ 545  plugins/comment-review/skills/comment-review/scripts/verdicts.py:721-724  interval  0L  -
+ 546  plugins/comment-review/skills/comment-review/scripts/verdicts.py:725-743  docstring  19L  counted,forbids-a-literal,names-a-symbol,narrative-in-docstring,repeated-literal  (parse_report)
+        -> RE-COUNT, and name the population: 'every consumer'
+        -> GREP this file for what it forbids: 'no block, which `main()`'
+        -> a retraction: ! A malformed record used to be a `Finding` carrying `block=
+        -> 1 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:88, plugins/comment-review/skills/comment-review/scripts/record.py:99, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595
+ 547  plugins/comment-review/skills/comment-review/scripts/verdicts.py:744-745  interval  0L  -
+ 548  plugins/comment-review/skills/comment-review/scripts/verdicts.py:745-746  interval  0L  -
+ 549  plugins/comment-review/skills/comment-review/scripts/verdicts.py:746-747  interval  0L  -
+ 550  plugins/comment-review/skills/comment-review/scripts/verdicts.py:747-748  interval  0L  -
+ 551  plugins/comment-review/skills/comment-review/scripts/verdicts.py:748-749  interval  0L  -
+ 552  plugins/comment-review/skills/comment-review/scripts/verdicts.py:749-750  interval  0L  -
+ 553  plugins/comment-review/skills/comment-review/scripts/verdicts.py:750-751  interval  0L  -
+ 554  plugins/comment-review/skills/comment-review/scripts/verdicts.py:751-752  interval  0L  -
+ 555  plugins/comment-review/skills/comment-review/scripts/verdicts.py:752-753  interval  0L  -
+ 556  plugins/comment-review/skills/comment-review/scripts/verdicts.py:753-754  interval  0L  -
+ 557  plugins/comment-review/skills/comment-review/scripts/verdicts.py:754-755  interval  0L  -
+ 558  plugins/comment-review/skills/comment-review/scripts/verdicts.py:756-759  comment  4L  -
+ 559  plugins/comment-review/skills/comment-review/scripts/verdicts.py:761-776  comment  16L  forbids-a-literal,names-a-symbol,repeated-literal
+        -> GREP this file for what it forbids: 'never match and `CHANGE`'
+        -> 450 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1111
+ 560  plugins/comment-review/skills/comment-review/scripts/verdicts.py:777-778  interval  0L  -
+ 561  plugins/comment-review/skills/comment-review/scripts/verdicts.py:778-779  interval  0L  -
+ 562  plugins/comment-review/skills/comment-review/scripts/verdicts.py:779-780  interval  0L  -
+ 563  plugins/comment-review/skills/comment-review/scripts/verdicts.py:780-781  interval  0L  -
+ 564  plugins/comment-review/skills/comment-review/scripts/verdicts.py:782-796  comment  15L  cites-a-path,names-a-symbol
+        -> UNRESOLVED path b.py
+ 565  plugins/comment-review/skills/comment-review/scripts/verdicts.py:797-798  interval  0L  -
+ 566  plugins/comment-review/skills/comment-review/scripts/verdicts.py:798-799  interval  0L  -
+ 567  plugins/comment-review/skills/comment-review/scripts/verdicts.py:799-800  interval  0L  -
+ 568  plugins/comment-review/skills/comment-review/scripts/verdicts.py:800-801  interval  0L  -
+ 569  plugins/comment-review/skills/comment-review/scripts/verdicts.py:801-802  interval  0L  -
+ 570  plugins/comment-review/skills/comment-review/scripts/verdicts.py:802-803  interval  0L  -
+ 571  plugins/comment-review/skills/comment-review/scripts/verdicts.py:803-804  interval  0L  -
+ 572  plugins/comment-review/skills/comment-review/scripts/verdicts.py:804-805  interval  0L  -
+ 573  plugins/comment-review/skills/comment-review/scripts/verdicts.py:805-806  interval  0L  -
+ 574  plugins/comment-review/skills/comment-review/scripts/verdicts.py:806-807  interval  0L  -
+ 575  plugins/comment-review/skills/comment-review/scripts/verdicts.py:807-808  interval  0L  -
+ 576  plugins/comment-review/skills/comment-review/scripts/verdicts.py:809-811  comment  3L  names-a-symbol,repeated-literal
+        -> 2 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1472, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1649
+ 577  plugins/comment-review/skills/comment-review/scripts/verdicts.py:812-813  interval  0L  -
+ 578  plugins/comment-review/skills/comment-review/scripts/verdicts.py:813-814  interval  0L  -
+ 579  plugins/comment-review/skills/comment-review/scripts/verdicts.py:814-815  interval  0L  -
+ 580  plugins/comment-review/skills/comment-review/scripts/verdicts.py:815-816  interval  0L  -
+ 581  plugins/comment-review/skills/comment-review/scripts/verdicts.py:817-820  comment  4L  names-a-symbol
+ 582  plugins/comment-review/skills/comment-review/scripts/verdicts.py:822-824  comment  3L  names-a-symbol
+ 583  plugins/comment-review/skills/comment-review/scripts/verdicts.py:825-826  interval  0L  -
+ 584  plugins/comment-review/skills/comment-review/scripts/verdicts.py:826-827  interval  0L  -
+ 585  plugins/comment-review/skills/comment-review/scripts/verdicts.py:827-828  interval  0L  -
+ 586  plugins/comment-review/skills/comment-review/scripts/verdicts.py:828-829  interval  0L  -
+ 587  plugins/comment-review/skills/comment-review/scripts/verdicts.py:829-830  interval  0L  -
+ 588  plugins/comment-review/skills/comment-review/scripts/verdicts.py:830-831  interval  0L  -
+ 589  plugins/comment-review/skills/comment-review/scripts/verdicts.py:831-832  interval  0L  -
+ 590  plugins/comment-review/skills/comment-review/scripts/verdicts.py:832-833  interval  0L  -
+ 591  plugins/comment-review/skills/comment-review/scripts/verdicts.py:833-834  interval  0L  -
+ 592  plugins/comment-review/skills/comment-review/scripts/verdicts.py:834-835  interval  0L  -
+ 593  plugins/comment-review/skills/comment-review/scripts/verdicts.py:835-836  interval  0L  -
+ 594  plugins/comment-review/skills/comment-review/scripts/verdicts.py:836-837  interval  0L  -
+ 595  plugins/comment-review/skills/comment-review/scripts/verdicts.py:837-838  interval  0L  -
+ 596  plugins/comment-review/skills/comment-review/scripts/verdicts.py:838-839  interval  0L  -
+ 597  plugins/comment-review/skills/comment-review/scripts/verdicts.py:839-840  interval  0L  -
+ 598  plugins/comment-review/skills/comment-review/scripts/verdicts.py:840-841  interval  0L  -
+ 599  plugins/comment-review/skills/comment-review/scripts/verdicts.py:841-842  interval  0L  -
+ 600  plugins/comment-review/skills/comment-review/scripts/verdicts.py:842-843  interval  0L  -
+ 601  plugins/comment-review/skills/comment-review/scripts/verdicts.py:843-844  interval  0L  -
+ 602  plugins/comment-review/skills/comment-review/scripts/verdicts.py:844-847  interval  0L  -
+ 603  plugins/comment-review/skills/comment-review/scripts/verdicts.py:848-858  docstring  11L  cites-a-path  (code_concerns)
+ 604  plugins/comment-review/skills/comment-review/scripts/verdicts.py:859-860  interval  0L  -
+ 605  plugins/comment-review/skills/comment-review/scripts/verdicts.py:860-861  interval  0L  -
+ 606  plugins/comment-review/skills/comment-review/scripts/verdicts.py:861-862  interval  0L  -
+ 607  plugins/comment-review/skills/comment-review/scripts/verdicts.py:862-863  interval  0L  -
+ 608  plugins/comment-review/skills/comment-review/scripts/verdicts.py:863-864  interval  0L  -
+ 609  plugins/comment-review/skills/comment-review/scripts/verdicts.py:864-865  interval  0L  -
+ 610  plugins/comment-review/skills/comment-review/scripts/verdicts.py:865-866  interval  0L  -
+ 611  plugins/comment-review/skills/comment-review/scripts/verdicts.py:866-867  interval  0L  -
+ 612  plugins/comment-review/skills/comment-review/scripts/verdicts.py:867-868  interval  0L  -
+ 613  plugins/comment-review/skills/comment-review/scripts/verdicts.py:868-869  interval  0L  -
+ 614  plugins/comment-review/skills/comment-review/scripts/verdicts.py:869-872  interval  0L  -
+ 615  plugins/comment-review/skills/comment-review/scripts/verdicts.py:872-873  interval  0L  -
+ 616  plugins/comment-review/skills/comment-review/scripts/verdicts.py:873-874  interval  0L  -
+ 617  plugins/comment-review/skills/comment-review/scripts/verdicts.py:875-880  docstring  6L  names-a-symbol  (coverage_gaps)
+ 618  plugins/comment-review/skills/comment-review/scripts/verdicts.py:881-882  interval  0L  -
+ 619  plugins/comment-review/skills/comment-review/scripts/verdicts.py:882-883  interval  0L  -
+ 620  plugins/comment-review/skills/comment-review/scripts/verdicts.py:883-884  interval  0L  -
+ 621  plugins/comment-review/skills/comment-review/scripts/verdicts.py:884-885  interval  0L  -
+ 622  plugins/comment-review/skills/comment-review/scripts/verdicts.py:885-886  interval  0L  -
+ 623  plugins/comment-review/skills/comment-review/scripts/verdicts.py:886-887  interval  0L  -
+ 624  plugins/comment-review/skills/comment-review/scripts/verdicts.py:887-888  interval  0L  -
+ 625  plugins/comment-review/skills/comment-review/scripts/verdicts.py:888-889  interval  0L  -
+ 626  plugins/comment-review/skills/comment-review/scripts/verdicts.py:889-892  interval  0L  -
+ 627  plugins/comment-review/skills/comment-review/scripts/verdicts.py:893-898  docstring  6L  names-a-symbol  (payload_problem)
+ 628  plugins/comment-review/skills/comment-review/scripts/verdicts.py:899-900  interval  0L  -
+ 629  plugins/comment-review/skills/comment-review/scripts/verdicts.py:901-902  comment  2L  -
+ 630  plugins/comment-review/skills/comment-review/scripts/verdicts.py:904-906  comment  3L  names-a-symbol
+ 631  plugins/comment-review/skills/comment-review/scripts/verdicts.py:907-908  interval  0L  -
+ 632  plugins/comment-review/skills/comment-review/scripts/verdicts.py:909-910  comment  2L  -
+ 633  plugins/comment-review/skills/comment-review/scripts/verdicts.py:911-912  interval  0L  -
+ 634  plugins/comment-review/skills/comment-review/scripts/verdicts.py:913-922  comment  10L  names-a-symbol
+ 635  plugins/comment-review/skills/comment-review/scripts/verdicts.py:923-924  interval  0L  -
+ 636  plugins/comment-review/skills/comment-review/scripts/verdicts.py:924-925  interval  0L  -
+ 637  plugins/comment-review/skills/comment-review/scripts/verdicts.py:925-927  interval  0L  -
+ 638  plugins/comment-review/skills/comment-review/scripts/verdicts.py:927-928  interval  0L  -
+ 639  plugins/comment-review/skills/comment-review/scripts/verdicts.py:928-929  interval  0L  -
+ 640  plugins/comment-review/skills/comment-review/scripts/verdicts.py:930-932  comment  3L  names-a-symbol
+ 641  plugins/comment-review/skills/comment-review/scripts/verdicts.py:933-934  interval  0L  -
+ 642  plugins/comment-review/skills/comment-review/scripts/verdicts.py:934-935  interval  0L  -
+ 643  plugins/comment-review/skills/comment-review/scripts/verdicts.py:935-936  interval  0L  -
+ 644  plugins/comment-review/skills/comment-review/scripts/verdicts.py:936-937  interval  0L  -
+ 645  plugins/comment-review/skills/comment-review/scripts/verdicts.py:937-938  interval  0L  -
+ 646  plugins/comment-review/skills/comment-review/scripts/verdicts.py:938-939  interval  0L  -
+ 647  plugins/comment-review/skills/comment-review/scripts/verdicts.py:939-940  interval  0L  -
+ 648  plugins/comment-review/skills/comment-review/scripts/verdicts.py:940-941  interval  0L  -
+ 649  plugins/comment-review/skills/comment-review/scripts/verdicts.py:942-945  comment  4L  -
+ 650  plugins/comment-review/skills/comment-review/scripts/verdicts.py:946-947  interval  0L  -
+ 651  plugins/comment-review/skills/comment-review/scripts/verdicts.py:947-948  interval  0L  -
+ 652  plugins/comment-review/skills/comment-review/scripts/verdicts.py:948-949  interval  0L  -
+ 653  plugins/comment-review/skills/comment-review/scripts/verdicts.py:949-950  interval  0L  -
+ 654  plugins/comment-review/skills/comment-review/scripts/verdicts.py:950-951  interval  0L  -
+ 655  plugins/comment-review/skills/comment-review/scripts/verdicts.py:951-952  interval  0L  -
+ 656  plugins/comment-review/skills/comment-review/scripts/verdicts.py:952-953  interval  0L  -
+ 657  plugins/comment-review/skills/comment-review/scripts/verdicts.py:953-954  interval  0L  -
+ 658  plugins/comment-review/skills/comment-review/scripts/verdicts.py:954-955  interval  0L  -
+ 659  plugins/comment-review/skills/comment-review/scripts/verdicts.py:955-956  interval  0L  -
+ 660  plugins/comment-review/skills/comment-review/scripts/verdicts.py:956-957  interval  0L  -
+ 661  plugins/comment-review/skills/comment-review/scripts/verdicts.py:957-958  interval  0L  -
+ 662  plugins/comment-review/skills/comment-review/scripts/verdicts.py:959-970  comment  12L  cites-a-path,names-a-symbol
+        -> UNRESOLVED symbol `retry_budget` (CANDIDATE)
+ 663  plugins/comment-review/skills/comment-review/scripts/verdicts.py:971-972  interval  0L  -
+ 664  plugins/comment-review/skills/comment-review/scripts/verdicts.py:972-973  interval  0L  -
+ 665  plugins/comment-review/skills/comment-review/scripts/verdicts.py:973-974  interval  0L  -
+ 666  plugins/comment-review/skills/comment-review/scripts/verdicts.py:974-975  interval  0L  -
+ 667  plugins/comment-review/skills/comment-review/scripts/verdicts.py:975-976  interval  0L  -
+ 668  plugins/comment-review/skills/comment-review/scripts/verdicts.py:976-977  interval  0L  -
+ 669  plugins/comment-review/skills/comment-review/scripts/verdicts.py:977-978  interval  0L  -
+ 670  plugins/comment-review/skills/comment-review/scripts/verdicts.py:978-979  interval  0L  -
+ 671  plugins/comment-review/skills/comment-review/scripts/verdicts.py:979-980  interval  0L  -
+ 672  plugins/comment-review/skills/comment-review/scripts/verdicts.py:980-981  interval  0L  -
+ 673  plugins/comment-review/skills/comment-review/scripts/verdicts.py:982-986  comment  5L  coverage-claim,names-a-symbol
+        -> CHECK the guard exists AND can fail, exemptions OFF: 'checked in'
+ 674  plugins/comment-review/skills/comment-review/scripts/verdicts.py:987-988  interval  0L  -
+ 675  plugins/comment-review/skills/comment-review/scripts/verdicts.py:988-989  interval  0L  -
+ 676  plugins/comment-review/skills/comment-review/scripts/verdicts.py:989-990  interval  0L  -
+ 677  plugins/comment-review/skills/comment-review/scripts/verdicts.py:990-991  interval  0L  -
+ 678  plugins/comment-review/skills/comment-review/scripts/verdicts.py:991-992  interval  0L  -
+ 679  plugins/comment-review/skills/comment-review/scripts/verdicts.py:992-993  interval  0L  -
+ 680  plugins/comment-review/skills/comment-review/scripts/verdicts.py:993-994  interval  0L  -
+ 681  plugins/comment-review/skills/comment-review/scripts/verdicts.py:994-997  interval  0L  -
+ 682  plugins/comment-review/skills/comment-review/scripts/verdicts.py:998-1017  docstring  20L  counted,forbids-a-literal,names-a-symbol,narrative-in-docstring,repeated-literal  (_resolve_lines)
+        -> UNRESOLVED symbol `allow_range` (CANDIDATE)
+        -> RE-COUNT, and name the population: 'every file'
+        -> GREP this file for what it forbids: 'no reason, and Roy removed it 2026'
+        -> a date: `file:start-end`. It stated no reason, and Roy removed it 20
+        -> 1 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:88, plugins/comment-review/skills/comment-review/scripts/record.py:99, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595
+ 683  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1018-1019  interval  0L  -
+ 684  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1019-1020  interval  0L  -
+ 685  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1020-1021  interval  0L  -
+ 686  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1021-1022  interval  0L  -
+ 687  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1022-1023  interval  0L  -
+ 688  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1023-1024  interval  0L  -
+ 689  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1024-1025  interval  0L  -
+ 690  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1025-1026  interval  0L  -
+ 691  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1026-1027  interval  0L  -
+ 692  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1027-1028  interval  0L  -
+ 693  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1028-1029  interval  0L  -
+ 694  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1029-1030  interval  0L  -
+ 695  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1030-1031  interval  0L  -
+ 696  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1031-1032  interval  0L  -
+ 697  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1032-1033  interval  0L  -
+ 698  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1033-1034  interval  0L  -
+ 699  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1034-1035  interval  0L  -
+ 700  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1035-1036  interval  0L  -
+ 701  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1036-1037  interval  0L  -
+ 702  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1037-1040  interval  0L  -
+ 703  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041-1071  docstring  31L  cites-a-path,counted,names-a-symbol,narrative-in-docstring,repeated-literal  (source_problem)
+        -> RE-COUNT, and name the population: '31 callers'
+        -> a date: 2026-08-16. Where you looked is a real line in the checkout 
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1347
+ 704  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1072-1073  interval  0L  -
+ 705  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1073-1074  interval  0L  -
+ 706  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1074-1075  interval  0L  -
+ 707  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1075-1076  interval  0L  -
+ 708  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1076-1077  interval  0L  -
+ 709  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1077-1078  interval  0L  -
+ 710  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1078-1079  interval  0L  -
+ 711  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1079-1080  interval  0L  -
+ 712  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1080-1081  interval  0L  -
+ 713  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1081-1082  interval  0L  -
+ 714  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1082-1083  interval  0L  -
+ 715  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1083-1084  interval  0L  -
+ 716  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1084-1085  interval  0L  -
+ 717  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1085-1086  interval  0L  -
+ 718  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1086-1087  interval  0L  -
+ 719  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1087-1088  interval  0L  -
+ 720  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1088-1089  interval  0L  -
+ 721  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1090-1094  comment  5L  cites-a-path,names-a-symbol
+        -> UNRESOLVED path a.py
+ 722  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1095-1096  interval  0L  -
+ 723  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1096-1097  interval  0L  -
+ 724  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1097-1098  interval  0L  -
+ 725  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1099-1104  comment  6L  -
+ 726  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1105-1106  interval  0L  -
+ 727  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1106-1107  interval  0L  -
+ 728  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1107-1110  interval  0L  -
+ 729  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1111-1128  docstring  18L  names-a-symbol,narrative-in-docstring,repeated-literal  (as_block)
+        -> a date: text is, and the two drift. Measured 2026-08-17: this file g
+        -> 450 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:761
+        -> 83 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1814, plugins/comment-review/skills/comment-review/scripts/verdicts.py:362
+ 730  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1129-1130  interval  0L  -
+ 731  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1130-1131  interval  0L  -
+ 732  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1131-1132  interval  0L  -
+ 733  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1133-1136  comment  4L  names-a-symbol
+ 734  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1137-1138  interval  0L  -
+ 735  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1138-1141  interval  0L  -
+ 736  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1142-1162  docstring  21L  forbids-a-literal,names-a-symbol,narrative-in-docstring,repeated-literal  (_words)
+        -> GREP this file for what it forbids: 'never came from a file: a `CLAIM`'
+        -> a date: the same phrase at the end of a sentence works. Measured 202
+        -> 3 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1255, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1400
+ 737  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1163-1177  comment  15L  names-a-symbol
+        -> UNRESOLVED symbol `cap` (CANDIDATE)
+ 738  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1178-1181  interval  0L  -
+ 739  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1182-1235  docstring  54L  cites-a-path,names-a-symbol,narrative-in-docstring,repeated-literal  (address_problem)
+        -> UNRESOLVED symbol `LOCATION` (CANDIDATE)
+        -> UNRESOLVED symbol `to` (CANDIDATE)
+        -> a date: !! THE RECORD CARRIES THE ADDRESS AND NOT THE TEXT. Ruled 20
+        -> 1159 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1937, plugins/comment-review/skills/comment-review/scripts/verdicts.py:362
+ 740  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1236-1237  interval  0L  -
+ 741  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1237-1238  interval  0L  -
+ 742  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1238-1239  interval  0L  -
+ 743  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1239-1240  interval  0L  -
+ 744  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1240-1241  interval  0L  -
+ 745  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1241-1242  interval  0L  -
+ 746  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1242-1243  interval  0L  -
+ 747  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1243-1244  interval  0L  -
+ 748  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1245-1248  comment  4L  cites-a-path
+        -> UNRESOLVED path a.py
+        -> UNRESOLVED path a.py
+ 749  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1249-1250  interval  0L  -
+ 750  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1250-1251  interval  0L  -
+ 751  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1251-1252  interval  0L  -
+ 752  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1252-1253  interval  0L  -
+ 753  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1253-1254  interval  0L  -
+ 754  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1255-1271  comment  17L  names-a-symbol,repeated-literal
+        -> 3 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1142, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1400
+ 755  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1272-1275  interval  0L  -
+ 756  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1276-1303  docstring  28L  cites-a-path,forbids-a-literal,names-a-symbol  (block_problem)
+        -> UNRESOLVED symbol `LOCATION` (CANDIDATE)
+        -> GREP this file for what it forbids: 'never on `CHANGE`'
+ 757  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1304-1307  comment  4L  forbids-a-literal,names-a-symbol
+        -> GREP this file for what it forbids: 'no original -- `clean`'
+ 758  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1308-1309  interval  0L  -
+ 759  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1309-1310  interval  0L  -
+ 760  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1310-1311  interval  0L  -
+ 761  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1311-1312  interval  0L  -
+ 762  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1313-1316  comment  4L  names-a-symbol
+ 763  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1318-1320  comment  3L  names-a-symbol
+ 764  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1321-1322  interval  0L  -
+ 765  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1322-1323  interval  0L  -
+ 766  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1323-1326  interval  0L  -
+ 767  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1327-1332  docstring  6L  names-a-symbol  (declares_scope)
+ 768  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1333-1334  interval  0L  -
+ 769  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1335-1339  comment  5L  names-a-symbol
+ 770  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1340-1341  interval  0L  -
+ 771  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1341-1342  interval  0L  -
+ 772  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1342-1343  interval  0L  -
+ 773  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1343-1346  interval  0L  -
+ 774  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1347-1356  docstring  10L  forbids-a-literal,names-a-symbol,repeated-literal  (by_block)
+        -> GREP this file for what it forbids: 'never became a `Finding`'
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+ 775  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1357-1358  interval  0L  -
+ 776  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1358-1359  interval  0L  -
+ 777  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1359-1360  interval  0L  -
+ 778  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1360-1363  interval  0L  -
+ 779  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1364-1381  docstring  18L  forbids-a-literal,names-a-symbol  (ruled_text)
+        -> GREP this file for what it forbids: 'no edit; and `move`'
+ 780  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1382-1383  interval  0L  -
+ 781  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1383-1384  interval  0L  -
+ 782  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1385-1389  comment  5L  names-a-symbol
+ 783  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1390-1391  interval  0L  -
+ 784  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1391-1392  interval  0L  -
+ 785  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1392-1393  interval  0L  -
+ 786  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1393-1394  interval  0L  -
+ 787  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1394-1395  interval  0L  -
+ 788  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1395-1396  interval  0L  -
+ 789  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1396-1397  interval  0L  -
+ 790  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1397-1398  interval  0L  -
+ 791  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1398-1399  interval  0L  -
+ 792  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1400-1402  comment  3L  names-a-symbol,repeated-literal
+        -> 3 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1142, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1255
+ 793  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1403-1406  interval  0L  -
+ 794  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1407-1432  docstring  26L  forbids-a-literal,names-a-symbol,narrative-in-docstring  (removed_spans)
+        -> GREP this file for what it forbids: 'no `CLAIM`'
+        -> a date: prose the finding acts on. Roy, 2026-08-17: *"which sentence
+ 795  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1433-1434  interval  0L  -
+ 796  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1434-1435  interval  0L  -
+ 797  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1436-1440  comment  5L  names-a-symbol
+ 798  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1441-1442  interval  0L  -
+ 799  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1443-1449  comment  7L  counted,forbids-a-literal,names-a-symbol
+        -> UNRESOLVED symbol `policy` (CANDIDATE)
+        -> UNRESOLVED symbol `policy.` (CANDIDATE)
+        -> UNRESOLVED symbol `policy` (CANDIDATE)
+        -> RE-COUNT, and name the population: 'every caller'
+        -> GREP this file for what it forbids: 'no `CLAIM`'
+ 800  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1450-1451  interval  0L  -
+ 801  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1451-1452  interval  0L  -
+ 802  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1452-1453  interval  0L  -
+ 803  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1453-1454  interval  0L  -
+ 804  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1454-1455  interval  0L  -
+ 805  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1455-1456  interval  0L  -
+ 806  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1456-1457  interval  0L  -
+ 807  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1457-1458  interval  0L  -
+ 808  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1458-1459  interval  0L  -
+ 809  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1459-1460  interval  0L  -
+ 810  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1460-1461  interval  0L  -
+ 811  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1461-1462  interval  0L  -
+ 812  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1462-1463  interval  0L  -
+ 813  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1463-1464  interval  0L  -
+ 814  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1464-1465  interval  0L  -
+ 815  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1465-1466  interval  0L  -
+ 816  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1466-1467  interval  0L  -
+ 817  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1467-1468  interval  0L  -
+ 818  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1468-1471  interval  0L  -
+ 819  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1472-1524  docstring  53L  cites-a-path,counted,forbids-a-literal,names-a-symbol,narrative-in-docstring,repeated-literal  (edit_problem)
+        -> UNRESOLVED path nowhere.md
+        -> RE-COUNT, and name the population: 'only place'
+        -> GREP this file for what it forbids: 'never be turned on stage 5'
+        -> a date: 5's synthesis. Roy, 2026-08-17: *"at some point we are going
+        -> a review label: So round 2's subject is stage 5's SYNTHESIS -- text that is 
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+        -> 2 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1649, plugins/comment-review/skills/comment-review/scripts/verdicts.py:547
+ 820  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1525-1526  interval  0L  -
+ 821  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1526-1527  interval  0L  -
+ 822  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1528-1537  comment  10L  names-a-symbol
+ 823  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1539-1543  comment  5L  names-a-symbol
+ 824  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1544-1545  interval  0L  -
+ 825  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1545-1546  interval  0L  -
+ 826  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1546-1547  interval  0L  -
+ 827  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1547-1548  interval  0L  -
+ 828  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1548-1549  interval  0L  -
+ 829  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1549-1550  interval  0L  -
+ 830  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1550-1551  interval  0L  -
+ 831  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1551-1552  interval  0L  -
+ 832  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1552-1553  interval  0L  -
+ 833  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1553-1554  interval  0L  -
+ 834  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1554-1555  interval  0L  -
+ 835  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1556-1558  comment  3L  names-a-symbol
+ 836  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1559-1560  interval  0L  -
+ 837  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1560-1561  interval  0L  -
+ 838  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1561-1562  interval  0L  -
+ 839  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1562-1563  interval  0L  -
+ 840  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1563-1564  interval  0L  -
+ 841  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1565-1569  comment  5L  names-a-symbol
+ 842  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1570-1571  interval  0L  -
+ 843  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1571-1572  interval  0L  -
+ 844  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1572-1573  interval  0L  -
+ 845  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1573-1574  interval  0L  -
+ 846  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1574-1575  interval  0L  -
+ 847  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1578-1588  comment  11L  names-a-symbol
+ 848  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1589-1592  interval  0L  -
+ 849  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1592-1593  interval  0L  -
+ 850  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1593-1594  interval  0L  -
+ 851  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595-1623  docstring  29L  counted,forbids-a-literal,names-a-symbol,narrative-in-docstring,repeated-literal  (unrecorded_findings)
+        -> RE-COUNT, and name the population: 'three places'
+        -> GREP this file for what it forbids: 'no `CLAIM`'
+        -> a date: ! Measured 2026-08-17. `module-context` wrote in `REASON` on
+        -> 1 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:88, plugins/comment-review/skills/comment-review/scripts/record.py:99, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1762
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+ 852  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1624-1626  comment  3L  names-a-symbol
+ 853  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1627-1628  interval  0L  -
+ 854  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1628-1629  interval  0L  -
+ 855  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1629-1630  interval  0L  -
+ 856  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1630-1631  interval  0L  -
+ 857  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1631-1632  interval  0L  -
+ 858  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1632-1633  interval  0L  -
+ 859  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1633-1634  interval  0L  -
+ 860  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1634-1635  interval  0L  -
+ 861  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1635-1636  interval  0L  -
+ 862  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1636-1637  interval  0L  -
+ 863  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1638-1639  comment  2L  -
+ 864  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1640-1641  interval  0L  -
+ 865  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1641-1642  interval  0L  -
+ 866  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1642-1643  interval  0L  -
+ 867  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1643-1644  interval  0L  -
+ 868  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1644-1645  interval  0L  -
+ 869  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1645-1648  interval  0L  -
+ 870  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1649-1674  docstring  26L  names-a-symbol,narrative-in-docstring,repeated-literal  (contradictions)
+        -> a date: `CLAIM`. Ruled 2026-08-17. Both are accounts of the same edi
+        -> 3 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1142, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1255
+        -> 2 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1472, plugins/comment-review/skills/comment-review/scripts/verdicts.py:547
+ 871  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1677-1680  comment  4L  -
+ 872  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1681-1682  interval  0L  -
+ 873  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1682-1683  interval  0L  -
+ 874  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1683-1684  interval  0L  -
+ 875  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1684-1686  interval  0L  -
+ 876  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1686-1687  interval  0L  -
+ 877  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1687-1688  interval  0L  -
+ 878  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1688-1689  interval  0L  -
+ 879  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1689-1690  interval  0L  -
+ 880  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1690-1691  interval  0L  -
+ 881  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1691-1692  interval  0L  -
+ 882  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1692-1693  interval  0L  -
+ 883  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1693-1694  interval  0L  -
+ 884  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1694-1697  interval  0L  -
+ 885  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1698-1698  docstring  1L  -  (main)
+ 886  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1699-1700  interval  0L  -
+ 887  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1700-1701  interval  0L  -
+ 888  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1701-1702  interval  0L  -
+ 889  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1702-1703  interval  0L  -
+ 890  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1703-1704  interval  0L  -
+ 891  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1704-1705  interval  0L  -
+ 892  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1706-1710  comment  5L  -
+ 893  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1711-1712  interval  0L  -
+ 894  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1712-1713  interval  0L  -
+ 895  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1713-1714  interval  0L  -
+ 896  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1714-1715  interval  0L  -
+ 897  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1715-1716  interval  0L  -
+ 898  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1716-1717  interval  0L  -
+ 899  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1717-1718  interval  0L  -
+ 900  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1718-1719  interval  0L  -
+ 901  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1719-1720  interval  0L  -
+ 902  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1720-1721  interval  0L  -
+ 903  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1721-1722  interval  0L  -
+ 904  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1722-1723  interval  0L  -
+ 905  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1723-1724  interval  0L  -
+ 906  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1724-1725  interval  0L  -
+ 907  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1725-1726  interval  0L  -
+ 908  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1726-1727  interval  0L  -
+ 909  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1728-1733  comment  6L  cites-a-path,names-a-symbol,repeated-literal
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+ 910  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1734-1735  interval  0L  -
+ 911  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1735-1736  interval  0L  -
+ 912  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1736-1737  interval  0L  -
+ 913  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1737-1738  interval  0L  -
+ 914  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1738-1741  interval  0L  -
+ 915  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1742-1742  docstring  1L  counted  (_report)
+        -> RE-COUNT, and name the population: 'one place'
+ 916  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1744-1745  comment  2L  -
+ 917  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1746-1747  interval  0L  -
+ 918  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1747-1748  interval  0L  -
+ 919  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1748-1749  interval  0L  -
+ 920  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1749-1750  interval  0L  -
+ 921  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1750-1751  interval  0L  -
+ 922  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1751-1752  interval  0L  -
+ 923  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1752-1753  interval  0L  -
+ 924  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1753-1754  interval  0L  -
+ 925  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1754-1755  interval  0L  -
+ 926  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1755-1756  interval  0L  -
+ 927  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1756-1757  interval  0L  -
+ 928  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1757-1758  interval  0L  -
+ 929  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1758-1759  interval  0L  -
+ 930  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1759-1760  interval  0L  -
+ 931  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1760-1761  interval  0L  -
+ 932  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1762-1772  comment  11L  cites-a-path,counted,names-a-symbol,repeated-literal
+        -> RE-COUNT, and name the population: 'TWO places'
+        -> 76 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1937
+        -> 1 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:88, plugins/comment-review/skills/comment-review/scripts/record.py:99, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595
+ 933  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1773-1775  interval  0L  -
+ 934  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1777-1779  comment  3L  counted
+        -> RE-COUNT, and name the population: 'two files'
+ 935  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1780-1781  interval  0L  -
+ 936  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1781-1782  interval  0L  -
+ 937  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1782-1783  interval  0L  -
+ 938  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1783-1784  interval  0L  -
+ 939  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1786-1788  comment  3L  cites-a-path,names-a-symbol
+        -> UNRESOLVED path ownershp-context.md
+ 940  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1789-1790  interval  0L  -
+ 941  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1790-1791  interval  0L  -
+ 942  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1791-1792  interval  0L  -
+ 943  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1792-1793  interval  0L  -
+ 944  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1793-1794  interval  0L  -
+ 945  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1794-1795  interval  0L  -
+ 946  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1795-1796  interval  0L  -
+ 947  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1796-1798  interval  0L  -
+ 948  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1798-1799  interval  0L  -
+ 949  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1799-1800  interval  0L  -
+ 950  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1800-1801  interval  0L  -
+ 951  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1801-1802  interval  0L  -
+ 952  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1802-1803  interval  0L  -
+ 953  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1803-1804  interval  0L  -
+ 954  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1804-1805  interval  0L  -
+ 955  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1805-1806  interval  0L  -
+ 956  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1806-1807  interval  0L  -
+ 957  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1807-1808  interval  0L  -
+ 958  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1808-1809  interval  0L  -
+ 959  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1809-1810  interval  0L  -
+ 960  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1810-1811  interval  0L  -
+ 961  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1811-1812  interval  0L  -
+ 962  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1812-1813  interval  0L  -
+ 963  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1814-1819  comment  6L  names-a-symbol,repeated-literal
+        -> 83 also in prose at plugins/comment-review/skills/comment-review/scripts/record.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1111, plugins/comment-review/skills/comment-review/scripts/verdicts.py:362
+ 964  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1820-1821  interval  0L  -
+ 965  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1821-1822  interval  0L  -
+ 966  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1822-1823  interval  0L  -
+ 967  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1823-1824  interval  0L  -
+ 968  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1824-1825  interval  0L  -
+ 969  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1825-1826  interval  0L  -
+ 970  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1826-1827  interval  0L  -
+ 971  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1827-1829  interval  0L  -
+ 972  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1829-1830  interval  0L  -
+ 973  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1830-1831  interval  0L  -
+ 974  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1831-1832  interval  0L  -
+ 975  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1832-1833  interval  0L  -
+ 976  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1833-1834  interval  0L  -
+ 977  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1836-1838  comment  3L  counted
+        -> RE-COUNT, and name the population: 'every file'
+ 978  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1839-1840  interval  0L  -
+ 979  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1840-1841  interval  0L  -
+ 980  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1841-1842  interval  0L  -
+ 981  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1842-1843  interval  0L  -
+ 982  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1843-1844  interval  0L  -
+ 983  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1844-1845  interval  0L  -
+ 984  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1845-1846  interval  0L  -
+ 985  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1846-1847  interval  0L  -
+ 986  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1847-1848  interval  0L  -
+ 987  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1848-1849  interval  0L  -
+ 988  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1849-1850  interval  0L  -
+ 989  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1850-1851  interval  0L  -
+ 990  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1851-1852  interval  0L  -
+ 991  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1852-1854  interval  0L  -
+ 992  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1854-1855  interval  0L  -
+ 993  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1855-1856  interval  0L  -
+ 994  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1856-1857  interval  0L  -
+ 995  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1857-1858  interval  0L  -
+ 996  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1858-1859  interval  0L  -
+ 997  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1859-1860  interval  0L  -
+ 998  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1860-1861  interval  0L  -
+ 999  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1861-1862  interval  0L  -
+1000  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1862-1863  interval  0L  -
+1001  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1863-1865  interval  0L  -
+1002  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1865-1866  interval  0L  -
+1003  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1866-1867  interval  0L  -
+1004  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1867-1869  interval  0L  -
+1005  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1869-1870  interval  0L  -
+1006  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1870-1871  interval  0L  -
+1007  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1871-1872  interval  0L  -
+1008  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1872-1873  interval  0L  -
+1009  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1873-1874  interval  0L  -
+1010  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1874-1875  interval  0L  -
+1011  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1875-1876  interval  0L  -
+1012  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1876-1877  interval  0L  -
+1013  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1877-1878  interval  0L  -
+1014  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1878-1879  interval  0L  -
+1015  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1879-1880  interval  0L  -
+1016  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1880-1881  interval  0L  -
+1017  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1881-1882  interval  0L  -
+1018  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1882-1883  interval  0L  -
+1019  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1883-1884  interval  0L  -
+1020  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1884-1885  interval  0L  -
+1021  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1885-1886  interval  0L  -
+1022  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1886-1887  interval  0L  -
+1023  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1887-1888  interval  0L  -
+1024  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1888-1889  interval  0L  -
+1025  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1889-1890  interval  0L  -
+1026  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1890-1891  interval  0L  -
+1027  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1891-1892  interval  0L  -
+1028  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1892-1893  interval  0L  -
+1029  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1893-1894  interval  0L  -
+1030  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1894-1895  interval  0L  -
+1031  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1895-1896  interval  0L  -
+1032  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1896-1897  interval  0L  -
+1033  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1897-1898  interval  0L  -
+1034  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1898-1899  interval  0L  -
+1035  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1899-1900  interval  0L  -
+1036  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1900-1901  interval  0L  -
+1037  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1901-1902  interval  0L  -
+1038  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1902-1903  interval  0L  -
+1039  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1903-1905  interval  0L  -
+1040  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1906-1910  comment  5L  forbids-a-literal,names-a-symbol
+        -> GREP this file for what it forbids: 'no `CLAIM`'
+1041  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1911-1912  interval  0L  -
+1042  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1912-1913  interval  0L  -
+1043  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1913-1914  interval  0L  -
+1044  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1914-1915  interval  0L  -
+1045  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1915-1916  interval  0L  -
+1046  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1916-1917  interval  0L  -
+1047  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1917-1918  interval  0L  -
+1048  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1918-1919  interval  0L  -
+1049  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1919-1920  interval  0L  -
+1050  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1920-1921  interval  0L  -
+1051  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1921-1922  interval  0L  -
+1052  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1922-1923  interval  0L  -
+1053  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1923-1924  interval  0L  -
+1054  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1924-1926  interval  0L  -
+1055  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1926-1927  interval  0L  -
+1056  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1928-1930  comment  3L  names-a-symbol
+1057  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1931-1932  interval  0L  -
+1058  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1932-1933  interval  0L  -
+1059  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1933-1934  interval  0L  -
+1060  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1934-1935  interval  0L  -
+1061  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1937-1941  comment  5L  forbids-a-literal,names-a-symbol,repeated-literal
+        -> GREP this file for what it forbids: 'no role certified it -- module-context returns `query`'
+        -> 76 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1762
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+        -> 1159 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1182, plugins/comment-review/skills/comment-review/scripts/verdicts.py:362
+1062  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1942-1943  interval  0L  -
+1063  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1943-1944  interval  0L  -
+1064  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1944-1945  interval  0L  -
+1065  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1946-1955  comment  10L  names-a-symbol
+1066  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1956-1957  interval  0L  -
+1067  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1957-1958  interval  0L  -
+1068  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1958-1959  interval  0L  -
+1069  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1959-1960  interval  0L  -
+1070  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1960-1961  interval  0L  -
+1071  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1961-1962  interval  0L  -
+1072  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1962-1963  interval  0L  -
+1073  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1964-1965  comment  2L  -
+1074  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1966-1967  interval  0L  -
+1075  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1967-1968  interval  0L  -
+1076  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1968-1969  interval  0L  -
+1077  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1969-1970  interval  0L  -
+1078  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1970-1971  interval  0L  -
+1079  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1971-1972  interval  0L  -
+1080  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1972-1973  interval  0L  -
+1081  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1973-1974  interval  0L  -
+1082  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1974-1975  interval  0L  -
+1083  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1975-1976  interval  0L  -
+1084  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1976-1977  interval  0L  -
+1085  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1979-1991  comment  13L  repeated-literal
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+1086  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1992-1993  interval  0L  -
+1087  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1993-1994  interval  0L  -
+1088  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1994-1995  interval  0L  -
+1089  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1995-1996  interval  0L  -
+1090  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1996-1997  interval  0L  -
+1091  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1997-1998  interval  0L  -
+1092  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1998-1999  interval  0L  -
+1093  plugins/comment-review/skills/comment-review/scripts/verdicts.py:1999-2000  interval  0L  -
+1094  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2000-2001  interval  0L  -
+1095  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2001-2002  interval  0L  -
+1096  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2002-2003  interval  0L  -
+1097  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2003-2004  interval  0L  -
+1098  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2004-2005  interval  0L  -
+1099  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2005-2006  interval  0L  -
+1100  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2006-2007  interval  0L  -
+1101  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2007-2008  interval  0L  -
+1102  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2008-2009  interval  0L  -
+1103  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2011-2014  comment  4L  repeated-literal
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+1104  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2015-2016  interval  0L  -
+1105  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2016-2017  interval  0L  -
+1106  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2017-2018  interval  0L  -
+1107  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2018-2020  interval  0L  -
+1108  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2020-2021  interval  0L  -
+1109  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2021-2022  interval  0L  -
+1110  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2022-2023  interval  0L  -
+1111  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2024-2028  comment  5L  repeated-literal
+        -> 5 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:1, plugins/comment-review/skills/comment-review/scripts/verdicts.py:101, plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041
+        -> 0 also in prose at plugins/comment-review/skills/comment-review/scripts/verdicts.py:252
+1112  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2029-2030  interval  0L  -
+1113  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2030-2031  interval  0L  -
+1114  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2031-2032  interval  0L  -
+1115  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2032-2033  interval  0L  -
+1116  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2033-2034  interval  0L  -
+1117  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2034-2035  interval  0L  -
+1118  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2035-2038  interval  0L  -
+1119  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2038-2039  interval  0L  -
+1120  plugins/comment-review/skills/comment-review/scripts/verdicts.py:2039-2039  interval  0L  -
+
+NOT CHECKED -- these are gaps, not passes:
+    C:/Users/Roy/projects/comment-review/corpora/corpora.toml (no name harvester for toml-ini)
+    C:/Users/Roy/projects/comment-review/plugins/comment-review/skills/comment-review/references/vocabulary.toml (no name harvester for toml-ini)
+    C:/Users/Roy/projects/comment-review/pyproject.toml (no name harvester for toml-ini)
+    C:/Users/Roy/projects/comment-review/tests/fixtures/sample.go (no name harvester for go)
+    C:/Users/Roy/projects/comment-review/tests/fixtures/sample.rb (no name harvester for ruby)
+    C:/Users/Roy/projects/comment-review/tests/fixtures/sample.rs (no name harvester for rust)
+    !! A file missing from the name corpus turns every symbol defined
+      only there into a false obituary. Treat symbol notes as weaker
+      until this list is empty.
+
+1120 blocks censused. `names-a-symbol` and `counted` are
+CANDIDATES a reviewer confirms; a resolved path is a fact about the
+filesystem, already settled. The whole list is printed every run.
