@@ -1,8 +1,8 @@
 # COMPACT can buy lines with width, and nothing stops it
 
 ```
-Status:   open
-Progress: 0 of 6 tasks done
+Status:   in-progress
+Progress: 1 of 6 tasks done
 Owner:    session * Roy (* 1 ruling)
 Raised:   2026-08-17, on stage 6's FIRST exercise -- it returned two blocks at exactly the cap
           by writing lines 20 columns wider than anything in the file

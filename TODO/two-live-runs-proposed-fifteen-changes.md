@@ -2,7 +2,8 @@
 
 ```
 Status:   open
-Progress: 5 of 15 proposals resolved
+Progress: 5 of 15 proposals resolved (1 superseded, 9 open). ! PROPOSALS, not
+          boxes -- the two field reports number their own from P1
 Owner:    session * Roy (* 3 rulings)
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
           `evidence/redacted-corpus-full-v0_2/PROPOSALS.md` (10)
