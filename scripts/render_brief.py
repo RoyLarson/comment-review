@@ -3,7 +3,7 @@
     python scripts/render_brief.py            # check, exit 1 if the brief drifted
     python scripts/render_brief.py --write    # rewrite the brief's block in place
 
-!! ONE SOURCE, ONE WAY TO COPY IT. `VERDICTS` in `verdicts.py` already decides
+!! ONE SOURCE, ONE WAY TO COPY IT. `VERDICTS` in `record.py` already decides
 what each verdict's `claim` must carry -- the keys through `claim_keys`, the
 prose through `payload` -- and `reviewer-brief.md` restated it by hand. Roy,
 2026-08-18: it all moves to the Python file, definitions and prose, and the
@@ -38,7 +38,7 @@ BRIEF = (
 
 sys.path.insert(0, str(SCRIPTS))
 
-from verdicts import VERDICTS, claim_keys  # noqa: E402  -- path shim must run first
+from record import VERDICTS, claim_keys  # noqa: E402  -- path shim must run first
 
 # ! The markers are HTML comments so they render as nothing and survive a
 # formatter. `ruff format` excludes `**/*.md`, but a future tool might not.

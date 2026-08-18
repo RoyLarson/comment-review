@@ -1,6 +1,6 @@
 """The brief's verdict table is generated, and stays equal to the row it came from.
 
-`VERDICTS` in `verdicts.py` decides what each verdict's `claim` must carry --
+`VERDICTS` in `record.py` decides what each verdict's `claim` must carry --
 the keys through `claim_keys`, the prose through each row's `payload` --
 and `reviewer-brief.md` restated it by hand.
 
@@ -22,7 +22,7 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
-from verdicts import VERDICTS, claim_keys
+from record import VERDICTS, claim_keys
 
 ROOT = Path(__file__).resolve().parents[1]
 RENDER = ROOT / "scripts" / "render_brief.py"
