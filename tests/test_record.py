@@ -238,6 +238,97 @@ class TestUnruledIsCountedNotRefused(unittest.TestCase):
         self.assertIn("not a seeded report", " ".join(problems))
 
 
+class TestConvertKeepsAHeldRunReplayable(unittest.TestCase):
+    """A 0.2.x report becomes records, so a captured run stays a regression test.
+
+    !! Replaying held stage-4 output is what made 0.2.1 and 0.2.2 cheap to
+    validate -- five joins over one set of reports, about 1.6M tokens of review
+    reused -- and that property dies the day the shape moves unless something
+    carries the old reports across.
+    """
+
+    def test_a_two_marker_claim_becomes_its_two_keys(self):
+        self.assertEqual(
+            record.claim_object(
+                "correct", 'false: "the budget is 3" / true: "it is 5"'
+            ),
+            {"false": "the budget is 3", "true": "it is 5"},
+        )
+
+    def test_a_drop_carries_its_one_key(self):
+        self.assertEqual(
+            record.claim_object("drop", 'drop: "callers round separately"'),
+            {"drop": "callers round separately"},
+        )
+
+    def test_an_add_recovers_its_ANCHOR_AND_SIDE_from_the_prose(self):
+        # !! The old format carried these as prose inside CLAIM, checked by
+        # regex rather than by marker. A conversion reading only markers turned
+        # 179 of one report's 228 admissible records into malformed ones.
+        got = record.claim_object(
+            "add", 'missing: "the units are seconds", above `COOLDOWN_HOLD_S`'
+        )
+        self.assertEqual(got["anchor"], "`COOLDOWN_HOLD_S`")
+        self.assertEqual(got["side"], "above")
+
+    def test_before_and_after_map_onto_the_two_sides_offered(self):
+        got = record.claim_object("add", 'missing: "x", before `F`')
+        self.assertEqual(got["side"], "above")
+
+    def test_a_query_recovers_its_shape_and_owes_the_rest(self):
+        got = record.claim_object(
+            "query", "outside my role -- I grepped for it and found nothing"
+        )
+        self.assertEqual(got["shape"], "outside my role")
+        self.assertIn("attempted", got)
+        self.assertIn("settles", got)
+
+    def test_an_unknown_verdict_converts_to_an_empty_claim(self):
+        self.assertEqual(record.claim_object("reject", 'drop: "x"'), {})
+
+
+class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
+    """!! `add` cites an EMPTY INTERVAL, which `--seed` gives no slot.
+
+    Seeding lays down the PROSE blocks because those are what a reviewer is
+    accountable for. But an `add`'s finding is that a constraint holds in code
+    and appears in no prose, so its subject is the GAP -- and a conversion that
+    filled only seeded slots dropped both of one report's `add`s in silence.
+    Measured 2026-08-17: 228 findings became 226.
+    """
+
+    class _F:
+        def __init__(self, block, verdict):
+            self.block = block
+            self.verdict = verdict
+            self.claim = 'missing: "x", above `F`'
+            self.reason = "r"
+            self.sources = ["a.py:1 | x"]
+            self.change = "# x"
+
+    def test_a_finding_on_an_interval_is_not_dropped(self):
+        report = record.convert([self._F(2, "add")], CENSUS, "module-context")
+        cited = [r for r in report["records"] if r["block"] == 2]
+        self.assertEqual(len(cited), 1)
+        self.assertEqual(cited[0]["verdict"], "add")
+
+    def test_the_interval_slot_carries_the_censuss_address(self):
+        report = record.convert([self._F(2, "add")], CENSUS, "module-context")
+        cited = next(r for r in report["records"] if r["block"] == 2)
+        self.assertEqual(cited["address"], "pkg/m.py:4-4")
+
+    def test_records_stay_in_census_order(self):
+        report = record.convert([self._F(2, "add")], CENSUS, "module-context")
+        blocks = [r["block"] for r in report["records"]]
+        self.assertEqual(blocks, sorted(blocks))
+
+    def test_no_finding_is_lost(self):
+        findings = [self._F(1, "add"), self._F(2, "add"), self._F(3, "add")]
+        report = record.convert(findings, CENSUS, "module-context")
+        ruled = [r for r in report["records"] if r["verdict"] is not None]
+        self.assertEqual(len(ruled), 3)
+
+
 class TestCLI(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

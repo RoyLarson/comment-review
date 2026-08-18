@@ -33,6 +33,16 @@ no such question.
 ! COVERAGE IS STRUCTURAL. Every prose block gets a slot, so a block nobody
 ruled on is a slot with a null verdict rather than an index missing from a
 list, and nothing has to reconcile what was expected against what arrived.
+
+!! A SEEDED SLOT IS NOT THE ONLY LEGAL RECORD -- APPEND ONE FOR ANY CENSUS
+INDEX. `--seed` lays down the PROSE blocks because those are what a reviewer is
+ACCOUNTABLE for, and an empty `interval` gets none. But `add` exists to cite an
+interval: its finding is that a constraint holds in code and appears in NO
+prose, so its subject is the gap. **A reviewer filing an `add` writes a new
+record carrying that interval's index and address**, and `--check` reads it
+like any other. ! Measured 2026-08-17: converting a held report that filled only
+seeded slots turned 228 findings into 226, losing both of its `add`s in
+silence.
 """
 
 import argparse
@@ -44,9 +54,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 from verdicts import (  # noqa: E402  -- path shim must run first
+    ANCHOR_NAME,
+    ANCHOR_SIDE,
     OUT_OF_ROLE,
     QUERY_SHAPES,
     VERDICTS,
+    parse_report,
 )
 
 # The fields the TOOL fills from the census. ! A mismatch here means the file
@@ -303,6 +316,135 @@ def check(report: dict, census: list[dict]) -> tuple[list[str], int]:
     return (problems, unruled)
 
 
+def claim_object(verdict: str, claim: str) -> dict:
+    """A 0.2.x `CLAIM` string as the object this shape carries.
+
+    The markers ARE the keys, minus their colons, which is why the two formats
+    can be converted at all -- `false: "x" / true: "y"` was always an object
+    written as prose.
+
+    ! Best effort, and it says so. The old field was free text a checker read
+    with `in`, so a claim that never matched its markers converts to a partial
+    object and `--check` reports it -- which is the right outcome, because the
+    record was already inadmissible.
+    """
+    spec = VERDICTS.get(verdict)
+    if spec is None or not claim.strip():
+        return {}
+    markers = [m for m in spec.claim_all]
+    out: dict[str, str] = {}
+    # Split on each marker in turn, keeping what follows it up to the next one.
+    positions: list[tuple[int, str]] = []
+    lowered = claim.lower()
+    for marker in markers:
+        at = lowered.find(marker.lower())
+        if at >= 0:
+            positions.append((at, marker))
+    positions.sort()
+    for i, (at, marker) in enumerate(positions):
+        start = at + len(marker)
+        end = positions[i + 1][0] if i + 1 < len(positions) else len(claim)
+        value = claim[start:end].strip()
+        # ! The old form separated the halves with ` / `, which is not part of
+        # either value.
+        out[marker.rstrip(":")] = value.rstrip("/ ").strip().strip('"')
+    if spec.claim_any:
+        for shape in spec.claim_any:
+            if shape.lower() in lowered:
+                out["shape"] = shape
+                break
+    # !! THE OLD FORMAT CARRIED THESE AS PROSE INSIDE `CLAIM`, not as markers.
+    # `needs_anchor`, `needs_attempted` and `needs_settles` were checked with a
+    # regex over the whole field, so a conversion that read only the markers
+    # dropped them and turned admissible records into malformed ones. Measured
+    # 2026-08-17: 179 of one held report's 228 records failed on exactly this,
+    # having passed the gate they were written for.
+    #
+    # ! The SAME patterns the gate used, imported rather than restated -- the
+    # conversion has to agree with what it is converting from.
+    if spec.needs_anchor:
+        named = ANCHOR_NAME.search(claim)
+        side = ANCHOR_SIDE.search(claim)
+        out["anchor"] = named.group(0) if named else ""
+        # ! `before`/`after` were accepted as sides and mean the same two
+        # places; the new shape offers only two, so they map onto them.
+        word = side.group(1).lower() if side else ""
+        out["side"] = {"before": "above", "after": "below"}.get(word, word)
+    if spec.needs_attempted or spec.needs_settles:
+        # ! The old field ran both together in one sentence, and nothing marked
+        # where one ended. The whole remaining claim goes to each, which is
+        # lossy and says so: it preserves ADMISSIBILITY, not authorship.
+        rest = claim.strip()
+        if spec.needs_attempted:
+            out["attempted"] = rest
+        if spec.needs_settles:
+            out["settles"] = rest
+    return out
+
+
+def convert(findings: list, census: list[dict], reviewer: str) -> dict:
+    """A 0.2.x report, already parsed, as a seeded-and-filled record file.
+
+    !! A CAPTURED RUN STAYS A REGRESSION TEST INSTEAD OF BECOMING AN ARCHIVE.
+    Replaying held stage-4 output is what made 0.2.1 and 0.2.2 cheap to
+    validate -- five joins over one set of reports, about 1.6M tokens of review
+    reused -- and that property dies the day the shape moves unless something
+    carries the old reports across.
+
+    ! It seeds first and FILLS, so every block still gets a slot and coverage
+    stays structural. A block the old report never mentioned keeps its null
+    verdict rather than vanishing.
+
+    Args:
+        findings: `verdicts.parse_report`'s output for one reviewer.
+        census: the census that report was written against.
+        reviewer: the editorial role's name.
+
+    Returns:
+        The report in the current shape.
+    """
+    report = seed(census, reviewer)
+    by_block: dict[int, list] = {}
+    for f in findings:
+        by_block.setdefault(f.block, []).append(f)
+
+    # !! EVERY CITED BLOCK GETS A SLOT, PROSE OR NOT. `seed` lays down the prose
+    # blocks because those are the ones a reviewer is ACCOUNTABLE for -- but an
+    # `add` cites an empty INTERVAL by design, since its finding is that a
+    # constraint exists in code and NOWHERE in prose. Seeding alone therefore
+    # cannot express the one verdict that needs an interval, and a conversion
+    # that only filled seeded slots dropped both of them silently. Measured
+    # 2026-08-17 on this repo's own smoke test: 228 findings became 226.
+    seeded = {rec["block"] for rec in report["records"]}
+    for index in sorted(set(by_block) - seeded):
+        if 1 <= index <= len(census):
+            report["records"].append(slot(index, census[index - 1]))
+    report["records"].sort(key=lambda r: r["block"])
+
+    filled = []
+    for rec in report["records"]:
+        found = by_block.get(rec["block"], [])
+        if not found:
+            filled.append(rec)
+            continue
+        # ! One record per FINDING, not per block. A block ruled on twice by one
+        # role is two records that share an index, which the format allows and
+        # the old one did too.
+        for f in found:
+            out = dict(rec)
+            out["verdict"] = f.verdict
+            out["claim"] = claim_object(f.verdict, f.claim)
+            out["reason"] = f.reason
+            out["sources"] = [
+                {"cite": c.strip(), "verbatim": v.strip()}
+                for c, _, v in (s.partition("|") for s in f.sources)
+            ]
+            out["change"] = f.change.splitlines()
+            filled.append(out)
+    report["records"] = filled
+    return report
+
+
 def main() -> int:
     """Seed a reviewer's record file from the census."""
     # A Windows console is cp1252; one non-ASCII glyph in a report kills the run.
@@ -313,13 +455,16 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--seed", action="store_true", help="write an empty record file")
     ap.add_argument("--check", metavar="PATH", help="check a filled record file")
+    ap.add_argument(
+        "--convert", metavar="PATH", help="a 0.2.x text report, as record JSON"
+    )
     ap.add_argument("--census", required=True, help="census.py --json output")
     ap.add_argument("--reviewer", help="the editorial role's name (--seed only)")
     ap.add_argument("--out", help="the file to write (--seed only)")
     args = ap.parse_args()
 
-    if not args.seed and not args.check:
-        print("nothing to do: pass --seed or --check")
+    if not args.seed and not args.check and not args.convert:
+        print("nothing to do: pass --seed, --check or --convert")
         return 2
     try:
         loaded = json.loads(Path(args.census).read_text(encoding="utf-8"))
@@ -353,6 +498,31 @@ def main() -> int:
         # ! An unfilled report is INCOMPLETE, not malformed, and the two exit
         # differently: a reviewer part-way through is not in error.
         print("Every filled record is well formed." if total else "No records.")
+        return 0
+
+    if args.convert:
+        if not args.reviewer or not args.out:
+            print("--convert needs --reviewer and --out")
+            return 2
+        try:
+            text = Path(args.convert).read_text(encoding="utf-8")
+        except READ_ERRORS as e:
+            print(f"CANNOT READ {args.convert} ({type(e).__name__})")
+            return 2
+        # ! The DEPRECATED parser, kept for exactly this. It is how a report
+        # written before the shape moved stays a regression test.
+        findings, malformed = parse_report(text, args.reviewer)
+        report = convert(findings, census, args.reviewer)
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(report, indent=1), encoding="utf-8")
+        ruled = sum(1 for r in report["records"] if r["verdict"] is not None)
+        # ! The two counts are printed together so a LOSS is visible. A
+        # conversion that quietly dropped findings read as a clean run.
+        print(f"{args.reviewer}: {len(findings)} findings -> {ruled} filled records")
+        print(f"  -> {out}")
+        for line in malformed:
+            print(f"  MALFORMED IN THE SOURCE: {line}")
         return 0
 
     if not args.reviewer or not args.out:
