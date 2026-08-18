@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 8 tasks done
+Progress: 7 of 9 tasks done
 Owner:    session
 Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it.
           Comments about 'cannot answer OWNERSHIP' are not helpful.")
@@ -119,6 +119,28 @@ compare, hedge, or pre-empt -- not to strip every `not`.
       `SKILL.md`, the brief and the agent files are instructions, where prohibitions are
       legitimate -- but *"it is NOT X"* used as a definition is the same defect wherever it sits.
 
-- [ ] ! Do not run `/comment-review` on this repo to do it. The skill is mid-rewrite across
-      several branches; a run now would review prose that is about to change and would grade
-      itself. This is a hand pass, and the eval harness stays out of it.
+- [x] !! **STRUCK 2026-08-18 by Roy: the hand-pass rule goes, and this file closes on a RUN.**
+      It read *"Do not run `/comment-review` on this repo to do it ... This is a hand pass, and
+      the eval harness stays out of it"*, written 2026-08-16 while the skill was mid-rewrite
+      across several branches.
+
+      !! **A hand pass produces a REWRITE, not a pass.** Roy, 2026-08-18: *"By definition the
+      code has to go through the review to state that it has passed."* This file's title is a
+      claim about what the review returns, and only the review can settle it -- every number in
+      the two tables above was produced by a person, which is the same gap
+      [`the-harness-cannot-run-the-system-it-grades`](the-harness-cannot-run-the-system-it-grades.md)
+      opens with: *"no measurement exists that a human did not perform."*
+
+      ! **The reason it was written has expired on one count and not the other.** The skill is
+      no longer mid-rewrite -- `v0.2.3` is cut, tagged and installed. Self-grading is still
+      real, and is answered by grading from the DIFF rather than from the run's own report,
+      which is already this repo's rule for every measured run.
+
+      ! **The harness is NOT a precondition.** Running `/comment-review` over the shipped tree
+      needs the skill, not the harness; what the harness adds is the same run repeated with an
+      assertion. Ruled 2026-08-18: harness work is not a release candidate and does not gate
+      this.
+
+- [ ] **Run the review over the shipped tree and record what it returns**, against the residue
+      test in task 1. Verify: the run's verdicts are graded from the diff, and the negative-prose
+      count is re-measured from the result rather than asserted.

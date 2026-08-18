@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 2 of 17 tasks done
-Owner:    session * Roy (* 4 rulings left -- the anchoring scope, the fixture
-          source, the suite layout, and `plugin eval` access. 2 ruled 2026-08-18)
+Progress: 5 of 18 tasks done
+Owner:    session * Roy (* 1 ruling left -- the suite layout. `plugin eval`
+          access is open and this file already says it is not a blocker)
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
 ```
 
@@ -103,6 +103,33 @@ set-agnostic wording (*"every reviewer that ran"*) all hold unchanged.
 negotiation it does not have and inferring that a single uncorroborated finding needs less
 scrutiny, in the one stage whose own text says a single-role run ratifies falsehoods.
 
+## !! OUR OWN HISTORY IS A FIXTURE SOURCE, and the three kinds of case are not equal
+
+Roy, 2026-08-18: previous commits on this repo's history are valid test cases. They are, and
+saying WHAT EACH IS EVIDENCE OF decides which cases go where -- two of the three are enough for
+the work in hand and the third is a different question wearing the same shape.
+
+| kind | the question | strength | answer key |
+| --- | --- | --- | --- |
+| REGRESSION | does the system still catch what it caught at `882635ba`? | strong | a commit we wrote |
+| KNOWN MISS | did it stop emitting the two-subject `patch` at `4fd8384`? | strong | the role file's own trigger |
+| DISCOVERY | does it find a defect class nobody has shown it? | weak from our history | none -- the point is that there is none |
+
+!! **The KNOWN MISS is the only kind that can prove a fix to the SYSTEM rather than to the
+code.** A regression case says the tool still works; a discovery case says nothing yet. Only a
+pinned miss, re-run after the role file changes, distinguishes a role that was taught something
+from a role that got a different draw.
+
+!! **And DISCOVERY from our own history is the over-fitting risk `corpora.toml` already keeps
+two personal projects as a control for.** Every defect in this history was found either by this
+system or by somebody reviewing it, so a case built from one measures RECALL on a class already
+known. That is what the public-history survey one task down answers, and it stays separate --
+not because it is less important, but because it is not the same measurement and must not be
+reported as though it were.
+
+! The two strong kinds need no network, no third-party tree, and no planting: the defect is at
+the parent, the fix is the key, and both are commits on a branch that is already pushed.
+
 ## Tasks
 
 - [x] * **RULED 2026-08-18 by Roy: a reduced set is SUPPORTED, and
@@ -133,7 +160,10 @@ scrutiny, in the one stage whose own text says a single-role run ratifies falseh
       real-world roles makes me think it is unlikely."* The four are a copy desk; `compact` and
       `review` are stages rather than members of the board.
 
-- [ ] **Correct `ownership-context`'s own sentence, which understates its remit.** It reads
+- [x] **Corrected 2026-08-18, `4fd8384`.** The agent file now reads *"the truth of the
+      ANCHORING, as against the truth of the ASSERTION -- the count, the bound, the worked
+      example -- which belongs to the other three"*, and its frontmatter carries the same
+      sentence. The text it replaced:
       *"You do not rule on whether the claim is TRUE -- that is outside your remit. You rule on
       whether truth is assessable here at all."* Roy, 2026-08-18: the assessability ruling IS a
       truth ruling -- it settles a proposition about the statement's relation to the code, and
@@ -142,7 +172,13 @@ scrutiny, in the one stage whose own text says a single-role run ratifies falseh
       wording: the role that is never dropped should state its remit at full width, or a reader
       deciding a set will under-rate it.
 
-- [ ] * **Rule the SCOPE of the second question: the file, or the project?** The role file asks
+- [x] * **RULED 2026-08-18 by Roy: the PROJECT, and it shipped in `4fd8384`.** The role file
+      now asks whether the block is about any specific piece of code or documentation IN THIS
+      PROJECT, and says so twice -- the second question itself, and *"the right place is
+      anywhere in the PROJECT, not only this file -- another module, or the documentation tree
+      the run named"*. So prose about nothing in the project is a `drop` and prose about
+      something elsewhere in it is a `move`, and the documentation tree stage 1.4 resolves is
+      in scope for that ruling. The question as it was put:
       whether a block would be truthy where it sits, and whether it would be truthy *"in the
       right place"* -- with the surrounding text file-scoped (*"equally useful anywhere in the
       FILE"*). Roy states it wider: *"about any specific piece of code or documentation in this
@@ -179,14 +215,21 @@ scrutiny, in the one stage whose own text says a single-role run ratifies falseh
       `record.py --check` is its gate, and nothing downstream runs. Verify: a case asserts on a
       record file and the tree is unmodified afterwards.
 
-- [ ] * **Rule the fixture source: extracted files, or a checkout at a hash.**
-      Roy, 2026-08-18: give the harness a GitHub address and a hash, check it out, focus on the
-      files for the test, drop everything after reporting. That answers "how much context do we
-      copy" by copying none -- the tree is real and complete -- at the cost of a harder setup
-      and a network dependency in the suite.
-      ! The documented format takes `files: [...]`, a list copied in, and neither it nor
-      `claude plugin eval` pins a repository state natively. `scripts/fetch_corpora.py` already
-      does address-plus-ref checkout for `corpora/`, so the mechanism exists in this repo.
+- [x] * **RULED 2026-08-18 by Roy: a checkout at a hash, and THIS REPO'S OWN HISTORY is a
+      valid source of them.** Give the harness an address and a hash, check it out, focus on
+      the files for the test, drop everything after reporting. That answers "how much context
+      do we copy" by copying none -- the tree is real and complete.
+
+      !! **The second half is what settled it.** Roy, 2026-08-18: previous commits on this
+      repo's own history are valid test cases. `evals/test-cases.jsonl` is already built that
+      way, and the two commits it pins were verified 2026-08-18 as ancestors of `main`,
+      reachable from `origin/main`, and contained in `v0.2.3` -- so the fixtures cannot be
+      collected and cannot drift. The network dependency this task was weighing does not
+      arise for them.
+
+      ! **The mechanism ships already.** `corpora.toml` supports a `local` corpus as a
+      `git worktree` of a repo on the machine and a `public` one as a sparse clone at a tag;
+      `scripts/fetch_corpora.py` builds both. Nothing new is needed to check out a fixture.
 
 - [ ] **Answer "how much context" for the extracted case, since it is the fallback either way.**
       A reviewer is given a census, a packet, a brief and a vocabulary; the packet names
@@ -205,6 +248,13 @@ scrutiny, in the one stage whose own text says a single-role run ratifies falseh
       role cases live in the skill's suite with a prompt that dispatches one role, or they are
       a second suite with its own layout and the shipped runner covers only whole-skill cases.
       This decides whether the corpus is one file or five, so it comes before writing cases.
+
+      ! **The fixture ruling above narrows this to one option, and the ruling should say so
+      rather than arrive at it twice.** The documented schema takes `files: [...]` -- a list
+      copied INTO the case -- and neither it nor `claude plugin eval` pins a repository state.
+      A case whose fixture is `(address, hash, files)` has nowhere to put the hash in that
+      format. So the choice is not between two shapes of equal cost: it is a second suite, or
+      it is abandoning hash fixtures.
 
 - [ ] **Add `assertions` to `evals/evals.json`.** The documented schema is `id`, `prompt`,
       `expected_output`, `files`, `assertions`; this repo's three cases carry every field but
@@ -229,6 +279,13 @@ scrutiny, in the one stage whose own text says a single-role run ratifies falseh
       than one subject" and never says what verdict one earns; the same file does say a
       misplaced module constant is a CODE CONCERN, so the pattern exists and was not applied
       here.
+
+- [ ] **Locate the 2026-08-16 hand pass over the shipped Python, and make its parent a case.**
+      `the-shipped-python-does-not-pass-its-own-review.md` records the before and after --
+      `census.py` 55 negative-prose lines of 286 down to 2 of 206, and five more files -- so the
+      defect is MEASURED at the parent and MEASURED as fixed by the commit. ! It is the case
+      that bears most directly on the claim that file exists to make, because a human found
+      those by hand and the question is whether the system finds them.
 
 - [ ] * **Decide whether to ask for `claude plugin eval` early access.** Separate, newer,
       CLI-driven -- `evals/**/case.yaml` or `prompt.md` plus `graders/*.md`, `--ablation
