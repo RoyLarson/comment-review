@@ -175,13 +175,34 @@ answer alone.
       fires is the caller's, the same way `compact.md` defines compaction and `SKILL.md` says
       stage 6 is skipped without a cap.
 
-- [ ] Decide whether a re-review may be dispatched to a role that did NOT rule on the block.
-      The run sent only to the two roles that collided. Widening it costs a re-read; not
-      widening it means a third role never learns the block was contested. ! Partly answered:
-      the third case -- a block stage 6 must edit that NO role ruled on -- goes to all four, and
-      that is in the file. What is open is whether a CONTESTED block widens beyond its filers.
+- [x] RULED 2026-08-17: **a contested block goes back to the roles that FILED on it, and to no
+      others.** In `re-review.md`, beside the three questions it is derived from: all three ask
+      about the role's OWN edit -- did it survive, is it still correct, did the others negate it
+      -- so a role that filed nothing has no edit to answer for and would return what a first
+      reading returns.
 
-- [ ] ! `re-review.md` is PASTED into a round-2 message the way the brief is, so no agent file
-      names it -- which means `check_vocabulary.py` does not cover its terms for those roles. It
-      introduces one: **galley**. Defined inline there today. Decide whether it earns a
-      `vocabulary.toml` entry when 5b/6b are wired into `SKILL.md`'s stages.
+      ! A third role can still be sent the block. That is a FRESH REVIEW travelling 6 -> 4, the
+      route the no-verdict case below already uses, and it comes back with verdicts rather than
+      with answers about an edit. What is forbidden is calling it a re-review.
+
+      ! The cost is written down rather than argued away: between 5b and stage 8, a block that
+      became wrong for a role that never filed on it reaches the author.
+
+- [x] RULED 2026-08-17: **`galley` does not earn a `vocabulary.toml` entry**, and the reason
+      is one word.
+
+      !! Deriving `re-review.md` into the four reviewers' text -- which the checker's own rule
+      says it should, since the document is HANDED exactly as the brief is -- adds exactly one
+      term to all four: **`cap`**. Those are the four roles the cap is never passed to, because
+      length is not an editorial role. A per-role vocabulary is one list, so a document's terms
+      cannot be handed minus one.
+
+      ! So an entry is not merely unnecessary, it is refused: give `galley` to a role and the
+      drift check finds the word in no text that role reads. It stays defined inline in
+      `re-review.md`, where it is used. The reasoning is in `check_vocabulary.py`'s docstring,
+      next to the derivation it is an exception to.
+
+      ! **The underlying finding, recorded and NOT acted on**: `re-review.md` addresses two
+      audiences -- the task agent (when a round fires, when the rounds stop) and the role being
+      re-reviewed (what it is given, what it returns). `cap` is in the task agent's half.
+      Splitting the file would make both halves derivable.

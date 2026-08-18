@@ -28,6 +28,23 @@ once, and answers three questions about it:
 !! **Only the third could not be asked before now.** No round-1 reviewer saw another role's
 findings, so nothing earlier in the pipeline could put this question to anyone.
 
+!! **SO A BLOCK GOES BACK TO THE ROLES THAT FILED ON IT, AND TO NO OTHERS.** Ruled 2026-08-17.
+All three questions are about the role's OWN edit -- did it survive, is it still correct, did
+the others negate it -- and a role that filed nothing has no edit to answer for. Handing it the
+joined block asks a different question in the same envelope, and it would come back with what a
+first reading returns rather than what a re-review returns.
+
+! **A third role CAN be sent that block; it is a FRESH REVIEW and it is stage 4's, not this
+file's.** That route already exists for the case below, where nobody filed at all, and it runs
+6 -> 4. What is forbidden is calling it a re-review: the round comes back with verdicts on a
+block, which is what stage 5 joins, and not with answers about an edit, which is what stage 5b
+reads.
+
+! **The cost of the narrow rule is stated so it is not mistaken for free**: a role whose remit
+the merged text now violates does not hear about it here. Stage 6b catches what compaction
+broke, and stage 8 reads the finished page against itself -- but between the two, a block that
+became wrong for a role that never filed on it reaches the author.
+
 ## Two slots, and they ask different things
 
 | | runs after | the question | what it catches |

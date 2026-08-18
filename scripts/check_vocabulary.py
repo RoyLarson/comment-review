@@ -24,6 +24,26 @@ installed plugin rather than to the absolute path it was handed.
 Those documents are gone -- they were the apparatus for finding the terms, and
 the terms are settled -- so the check went with them.
 
+!! ONE HANDED DOCUMENT IS DELIBERATELY NOT COVERED: `re-review.md`. It reaches
+the four editorial roles in a round-2 message the way the brief reaches them in
+round 1, so by the rule above it should be part of their text -- and it cannot
+be. Measured 2026-08-17: deriving it adds exactly one term to all four,
+**`cap`**, and the four reviewers are the roles the cap is never passed to,
+because length is not an editorial role. A per-role vocabulary is one list, so
+there is no way to hand a role a document's terms minus one.
+
+! The cost is that `re-review.md`'s own terms are checked by nothing, and it
+introduces one -- **galley** -- which is therefore defined inline there rather
+than in `vocabulary.toml`. An entry would have to be given to a role, the drift
+check would find the word in no text that role reads, and the gate would refuse
+it.
+
+! The underlying reason is that `re-review.md` addresses TWO audiences: the task
+agent, which learns when a round fires and when the rounds stop, and the role
+being re-reviewed, which learns what it is given and what to return. `cap` is in
+the task agent's half. Splitting the file would make both halves derivable; it
+has not been done.
+
 Exits nonzero if either check finds something.
 """
 
