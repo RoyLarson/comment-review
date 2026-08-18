@@ -48,98 +48,100 @@ CITED, not accounted for. An `add` says a constraint exists in code and NOWHERE 
 is a finding about an empty interval; without an index for it the finding had to borrow a
 neighbouring block's and read as being about that block's text.
 
-## Every finding is a RECORD, and it is parsed
+## You FILL a record; you do not write one
 
-Emit findings in exactly this shape. A tool joins your report against the
-census and against the other roles', so a malformed record is a finding that
-does not count.
+**You are handed a file with one slot per prose block.** Each already carries the two things
+the tool knows -- the census `block` index and the `address` -- and you set the five that are
+yours:
 
-```text
---- RECORD
-BLOCK       17 | redacted_pkg/billing/rates.py:352-354
-            # Kept because twenty call sites want this. Narrowing it
-            # means re-deriving the clamp bounds.
-VERDICT     correct
-CLAIM       false: "twenty call sites want this" / true: "31 callers, all in tests/"
-REASON      31 callers and every one is under tests/, so the count is stale
-SOURCES     redacted_pkg/billing/rates.py:355 | def compute_rates(plan, period, *, clamp=True):
-            redacted_pkg/export/invoice.py:88 | rates = compute_rates(plan, period)
-CHANGE      # Kept because 31 callers want this, all of them in tests/.
-            # Narrowing it means re-deriving the clamp bounds.
----
+```json
+{ "block": 17,
+  "address": "redacted_pkg/billing/rates.py:352-354",
+  "verdict": "correct",
+  "claim":   { "false": "twenty call sites want this",
+               "true":  "31 callers, all in tests/" },
+  "reason":  "31 callers and every one is under tests/, so the count is stale",
+  "sources": [ { "cite": "redacted_pkg/billing/rates.py:355",
+                 "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
+               { "cite": "redacted_pkg/export/invoice.py:88",
+                 "verbatim": "rates = compute_rates(plan, period)" } ],
+  "change":  [ "# Kept because 31 callers want this, all of them in tests/.",
+               "# Narrowing it means re-deriving the clamp bounds." ] }
 ```
 
-! **A field may run onto the lines below it**, indented, as `BLOCK`, `SOURCES` and `CHANGE` do
-here. **A field ends at the next FIELD LABEL, and the record ends at `---`.**
+!! **YOU ARE TOLD WHERE, NOT WHAT. Open the file.** The record carries no copy of the block's
+prose, deliberately: handed the text you could produce a complete, admissible ruling without
+ever reading the code, and nothing could tell that from real work. Your remit requires the
+read. ! If you read the wrong lines, the sentence your `claim` quotes will not be in the block
+and the join says so -- that error is caught, and the other one is invisible.
 
-!! **A BLANK LINE IS CONTENT, not a terminator.** Write the blank lines your prose needs: a
-docstring carries one between its summary and its `Args:`, and `BLOCK` and `CHANGE` carry whole
-blocks. This brief said the opposite until 0.2.1 and the parser never agreed with it -- the rule
-it described was the worst defect 0.2.0 shipped, truncating both fields to their first paragraph
-on every block holding a blank line and refusing 113 of one reviewer's 134 findings, every one
-of them correct.
+!! **YOU NEVER TRANSCRIBE THE BLOCK.** `block` and `address` are the tool's. Leave them alone;
+a mismatch there means the file was edited, not that you misquoted.
 
-!! **The order is a CHAIN OF CUSTODY, and it is why the fields are in this sequence.** The
-ruling, then what must change, then why, then the evidence the why rests on, then the result:
-each field answers the question the one above it raises. Write them in this order -- a reader
-following your finding is following that chain.
+! **The file states what each constrained field allows** -- the seven verdicts, the `claim` keys
+each one owes, `query`'s three shapes, `add`'s two sides. Read `allowed` at the top of your file
+rather than remembering them.
+
+### The five fields you fill
 
 | field | what it carries |
 | --- | --- |
-| `BLOCK` | THREE things: the census INDEX, then `\|`, then the ADDRESS as `path:start-end` -- and on the lines below, **the block's text exactly as the file reads it now**. ! **All three are CHECKED against the census.** ! **A finding is ADDRESSED by index and RULED on a sentence, so several of your findings may carry the same `BLOCK`** |
-| `VERDICT` | one of the seven |
-| `SOURCES` | where you looked, as `file:line | verbatim` -- the citation and the text AT it, both verbatim. **Repeat the line, one per place examined.** EVERY one is resolved and every verbatim half must be there |
-| `CLAIM` | the SPEC: what must change, and from what to what, in the shape your verdict's row below gives. ! **The half naming the EXISTING sentence is CHECKED against the census text for your `BLOCK`** -- if it is not in the block you cited, the finding is on the wrong block |
-| `REASON` | what you DERIVED from the source, and why the claim is wrong -- one statement |
-| `CHANGE` | the RESULT: that edit already made, written out **with the surrounding block**, ready to be substituted |
+| `verdict` | one of the seven. ! `null` means you have not ruled yet, and a block left `null` is a coverage gap |
+| `claim` | an OBJECT whose keys are set by your verdict -- see the table below. It is the SPEC: what must change, and from what to what. ! **The key naming the EXISTING sentence is CHECKED against the census text for your block** -- if it is not in the block you are filling, the finding is on the wrong block |
+| `reason` | what you DERIVED from the source, and why the claim is wrong -- one statement |
+| `sources` | a list of `{ "cite": "file:line", "verbatim": "the text AT it" }`, **one entry per place examined.** Every one is resolved and every `verbatim` must really be there |
+| `change` | the RESULT: an array of **file-ready lines**, the whole block as it reads once your edit is made. Indentation and comment markers exactly as they will sit on disk |
 
-!! **`CLAIM` and `CHANGE` say the same edit twice, and that is deliberate.** `CLAIM` is
-surgical, so a checker can find the sentence you are ruling on and two roles ruling on one block
-can be told apart. `CHANGE` is the finished prose, so the task agent applies your text rather
-than re-deriving it from a diff. ! Write the whole block in `CHANGE`, not just the line you
-touched -- a block is what gets substituted.
+!! **`claim` and `change` say the same edit twice, and that is deliberate.** `claim` is surgical,
+so a checker can find the sentence you rule on and two roles ruling on one block can be told
+apart. `change` is the finished prose, so the task agent applies your text rather than
+re-deriving it from a diff.
 
-!! **The two are CHECKED AGAINST EACH OTHER.** `BLOCK`'s original and `CHANGE` are the same
-block before and after, so the difference between them is exactly what your edit does -- and it
-must be the sentence your `CLAIM` names. A record that reasons about one sentence and rewrites
-another is refused, whichever of the two is right.
+!! **THE TWO ARE CHECKED AGAINST EACH OTHER.** The difference between the block and your `change`
+is exactly what your edit does, and it must be the sentence your `claim` names. A record that
+reasons about one sentence and rewrites another is refused, whichever of the two is right.
 
-!! **ONE finding's `CHANGE` makes ONE finding's edit.** If you rule twice on one block, each
-record shows that block with ITS OWN change and no other -- do not hand in the block fully
-fixed twice. Composing your findings is the task agent's job at stage 5, and it cannot compose
-records that have already been merged. ! A `CHANGE` carrying edits its own `CLAIM` does not
-name is refused for that reason.
+!! **ONE record's `change` makes ONE record's edit.** If you rule twice on one block, write TWO
+records with the same `block`, each showing that block with ITS OWN change and no other. Do not
+hand in the block fully fixed twice: composing is the task agent's job, and it cannot compose
+records that have already been merged.
 
-!! **EXPECT YOUR OWN `CHANGE`S TO READ ODDLY ON THEIR OWN, and hand them in anyway.** A block
-needing three coordinated edits gives three records, and each shows the block with one edit
-applied and the other two still wrong -- so none of the three reads as finished prose. **That
-is the format working, not a demand for better writing.** Measured 2026-08-17: a reviewer
-merged its three edits into one record twice, trying to keep a paragraph readable, and was
-correctly refused both times. Only the task agent sees all three, which is the only place they
-can be composed.
+!! **EXPECT YOUR OWN `change`S TO READ ODDLY ALONE, and hand them in anyway.** A block needing
+three coordinated edits gives three records, each showing the block with one edit applied and
+the other two still wrong -- so none reads as finished prose. **That is the format working, not
+a demand for better writing.** Measured: a reviewer merged its three edits into one record
+twice, trying to keep a paragraph readable, and was correctly refused both times.
 
-!! **`BLOCK` carries the ORIGINAL so the record can be read on its own.** Whoever reads your
-finding -- the task agent at stage 5, or another role on a re-review -- otherwise has to hold the
-census open beside it to learn what prose you were even talking about. Transcribe the block;
-whitespace and case are forgiven, the words are not.
-
-! **`clean` owes neither the address nor the original** -- just the index. Your role returns
-`clean` on most of the census, and transcribing every one would make the bulk of your report
-text nobody reads.
-
-!! **`SOURCES`'s verbatim half is the forcing function, and it is CHECKED.** The cited line is
-read out of the file and your text must appear within three lines of it.
+!! **`sources`'s `verbatim` is the forcing function, and it is CHECKED.** The cited line is read
+out of the file and your text must appear within three lines of it.
 
 ! **Cite every site you had to open.** A claim often needs two to settle -- the definition and
 its callers -- and citing one means dropping the other, which is the cut-the-provenance failure
-this system exists to catch. !! EVERY one is resolved AND every verbatim half must be there:
-a `SOURCES` entry is one statement about one place, so each is checked on its own. ! Each carries a
-LINE. A bare filename says you opened a file and not what you read in it, and it is refused.
+this system exists to catch. ! Each entry carries a LINE. A bare filename says you opened a file
+and not what you read in it.
 
-! **`REASON` is DERIVED, and is not checked verbatim** -- that is why it is a separate field
-from `SOURCES`. A count is not a line any file contains, so checking the derived statement against
-the code made every counted claim inadmissible. ! `CLAIM` and `REASON` were one field split by
-`||`; a checker cannot verify both halves of one field, so they are two.
+! **`reason` is DERIVED and is not checked verbatim** -- that is why it is a field of its own. A
+count is not a line any file contains, so checking it against the code made every counted claim
+inadmissible.
+
+!! **A DEFECT YOU STATE IN `reason` REACHES NOBODY.** `reason` is read by no check, so a sentence
+there that your `claim` does not name is a second finding with no record -- the gate checks the
+claim it was given, passes, and the defect never reaches a work list. **If your reasoning names a
+defect in a sentence your `claim` does not name, write a SECOND RECORD on that block.** The join
+reports a phrase you quote from the block that no claim names, so you will see it; write the
+record instead.
+
+### Filing an `add`
+
+**An `add` cites the EMPTY INTERVAL the prose belongs in**, because its finding is that a
+constraint holds in code and appears in NO prose. Intervals get no seeded slot -- they are
+addressable, not accountable -- so **append a new record carrying that interval's census index
+and address.** Read it as being about that gap, not about a neighbour.
+
+### Code problems
+
+`code_concerns` at the end of your file is a list of strings, one line each, no verdict. See
+"The subject is the prose, not the program" below for what belongs there.
 
 ### The verdicts, and what each one MUST carry
 

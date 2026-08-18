@@ -10,6 +10,7 @@ from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
 import census
+import record
 import verdicts
 
 BRIEF = (
@@ -2166,112 +2167,75 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
 
     The format and its checker were designed in one task and never run against
     each other, so the brief's worked example failed `verdicts.py` on the same
-    commit that shipped both -- and the field it failed on, a counted claim,
-    is the block-context reviewer's own category.
+    commit that shipped both -- and the field it failed on, a counted claim, is
+    the block-context reviewer's own category.
 
-    The cited file is SYNTHESISED from the record's own citations: the example
-    is invented on purpose (`docs/limitations.md`), so there is no real
-    `redacted_pkg/` to read. What this pins is the record's SHAPE -- every field the
-    parser needs, a QUOTE long enough to have been read off a line, EVIDENCE
-    as `file:line` and BLOCK as `<index> | file:start-end`, and the payload the
-    verdict table demands.
+    ! The example is INVENTED on purpose (`docs/limitations.md` forbids a real
+    quotation), so there is no `redacted_pkg/` to read. What this pins is the
+    record's SHAPE: every field the reader needs, a `verbatim` long enough to
+    have been read off a line, and the `claim` keys the verdict table demands.
     """
 
-    # !! The field ORDER is a contract, not a layout. Roy, 2026-08-17:
-    # *"Verdict -> Claim -> REASON -> SOURCES -> CHANGE ... that is a clear
-    # chain of custody on the reasoning and the required actions."* The parser
-    # is label-keyed and would accept any order, so nothing but this test stops
-    # the brief drifting out of the sequence it teaches.
-    CHAIN = ["BLOCK", "VERDICT", "CLAIM", "REASON", "SOURCES", "CHANGE"]
-
-    # The fence may carry a language hint (```text). Matching it loosely keeps
-    # this pinned to the RECORD's shape rather than to how the block is fenced.
-    RECORD = re.compile(r"```\w*\n(--- RECORD\n.*?\n---)\n```", re.S)
+    # The fence carries a language hint; the record is the JSON inside it.
+    RECORD = re.compile(r"```json\n(\{.*?\})\n```", re.S)
 
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.repo = Path(self.tmp.name)
         text = BRIEF.read_text(encoding="utf-8")
         match = self.RECORD.search(text)
-        self.assertIsNotNone(match, "no canonical RECORD in reviewer-brief.md")
-        self.record = match.group(1)
-        found, _ = verdicts.parse_report(self.record + "\n", "block-context")
-        self.assertEqual(len(found), 1, self.record)
-        self.finding = found[0]
-        self._plant()
+        self.assertIsNotNone(match, "no worked record in reviewer-brief.md")
+        self.record = json.loads(match.group(1))
 
-    def tearDown(self):
-        self.tmp.cleanup()
+    def test_the_worked_example_is_valid_json(self):
+        # ! The whole argument for the format: a reader needs no parser of ours.
+        self.assertIsInstance(self.record, dict)
 
-    def _plant(self):
-        """Write each file a SOURCES cites, with its verbatim half on that line.
+    def test_it_carries_every_field_a_record_has(self):
+        for field in record.SEEDED + record.ANSWERED:
+            with self.subTest(field=field):
+                self.assertIn(field, self.record)
 
-        ! Every source is planted, not just the first: `source_problem` resolves
-        all of them, so a record citing two places needs both to exist.
-        """
-        for source in self.finding.sources:
-            cite, _, verbatim = source.partition("|")
-            rel, _, lineno = cite.strip().rpartition(":")
-            target = self.repo / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            lines = [f"filler {i}\n" for i in range(1, int(lineno) + 40)]
-            lines[int(lineno) - 1] = verbatim.strip() + "\n"
-            target.write_text("".join(lines), encoding="utf-8")
+    def test_it_does_NOT_carry_the_block_text(self):
+        # !! The reviewer is told WHERE, not WHAT. A brief that showed the prose
+        # in the record would teach the thing the shape exists to prevent.
+        self.assertNotIn("original", self.record)
 
-    def test_the_record_parses_into_a_real_block_index(self):
-        self.assertGreaterEqual(self.finding.block, 1)
-        self.assertIn(self.finding.verdict, verdicts.VERDICTS)
+    def test_its_claim_keys_are_the_ones_its_verdict_owes(self):
+        want = record.allowed()["claim"][self.record["verdict"]]
+        self.assertEqual(sorted(self.record["claim"]), sorted(want))
 
-    def test_the_record_is_written_in_the_chain_of_custody_order(self):
-        labels = [
-            m.group(1)
-            for line in self.record.splitlines()
-            if (m := verdicts.FIELD.match(line))
-        ]
+    def test_its_sources_are_cite_and_verbatim_objects(self):
+        self.assertTrue(self.record["sources"])
+        for source in self.record["sources"]:
+            with self.subTest(cite=source.get("cite")):
+                self.assertIn("cite", source)
+                self.assertIn("verbatim", source)
+                self.assertRegex(source["cite"], r":\d+")
+                self.assertGreater(len(source["verbatim"]), verdicts.MIN_NEEDLE)
+
+    def test_its_change_is_an_array_of_file_ready_lines(self):
+        self.assertIsInstance(self.record["change"], list)
+        self.assertTrue(self.record["change"])
+        for line in self.record["change"]:
+            with self.subTest(line=line):
+                self.assertIsInstance(line, str)
+
+    def test_it_passes_the_shape_check_that_ships(self):
+        # !! The point of the class: the brief's own example, through
+        # `record.py`, on the census entry its address names.
+        block = {
+            "path": "redacted_pkg/billing/rates.py",
+            "start": 352,
+            "end": 354,
+            "kind": "comment",
+        }
         self.assertEqual(
-            labels,
-            self.CHAIN,
-            "the brief's record has drifted out of the chain-of-custody order",
+            record.record_problems("the brief's example", self.record, block), []
         )
 
-    def test_the_dataclass_is_written_in_the_same_order(self):
-        # ! The Finding docstring says field order follows the brief's record.
-        # A dataclass reordered without the brief, or the reverse, makes that
-        # sentence false with nothing to catch it.
-        fields = [f for f in verdicts.Finding.__dataclass_fields__ if f != "reviewer"]
-        chain = [c.lower() for c in self.CHAIN]
-        self.assertEqual([f for f in fields if f in chain], chain)
-
-    def test_the_record_passes_the_source_check(self):
-        self.assertIsNone(verdicts.source_problem(self.finding, self.repo))
-
-    def test_the_records_CLAIM_carries_a_quoted_original(self):
-        # ! Not run against a census: the brief's record cites block 17 of a
-        # tree that does not exist here. What IS checkable is that its CLAIM is
-        # a SPEC -- `false:` naming the existing sentence, quoted, and `true:`
-        # the replacement -- because the quoted half is what `block_problem`
-        # matches against the census text.
-        claim = self.finding.claim
-        self.assertIn("false:", claim)
-        self.assertIn("true:", claim)
-        self.assertTrue(
-            verdicts.ruled_text(self.finding),
-            f"no original sentence readable from the brief's CLAIM: {claim!r}",
-        )
-
-    def test_the_records_CHANGE_is_the_finished_block(self):
-        # ! CHANGE is what stage 5 substitutes, so the brief must SHOW prose
-        # rather than another from/to pair. A record whose CHANGE repeated the
-        # spec would teach every reviewer to hand back a diff.
-        change = self.finding.change
-        self.assertTrue(change.strip(), "the brief's record carries no CHANGE")
-        for marker in ("false:", "true:", "from:", "to:"):
-            self.assertNotIn(
-                marker, change, f"the brief's CHANGE restates the spec: {change!r}"
-            )
-
-    def test_the_record_passes_the_payload_check(self):
-        self.assertIsNone(verdicts.payload_problem(self.finding))
+    def test_the_example_the_shape_check_reads_is_the_one_taught(self):
+        # ! Guards the guard: a brief that stopped carrying an address would
+        # make the test above pass vacuously.
+        self.assertEqual(self.record["address"], "redacted_pkg/billing/rates.py:352-354")
 
 
 class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
