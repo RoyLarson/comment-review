@@ -262,9 +262,12 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
 
 ## Build order, each step independently verifiable
 
-- [ ] **1. The schema and `record.py --seed`.** One slot per prose block, pre-filled with
-      `block`, `address` and `original` from the census, every reviewer field empty. Verify:
-      seeds this repo's own smoke-test census, 224 slots, and the file parses.
+- [x] **1. DONE 2026-08-17 -- the schema and `record.py --seed`.** One slot per prose block,
+      pre-filled with `block`, `address` and `original`, every reviewer field empty. Verified
+      against this repo's own smoke-test census: **224 records seeded from 1954 blocks**, which
+      is exactly the prose count, and the file round-trips as JSON. ! `original` and `change`
+      are LINE ARRAYS, so a blank line inside a docstring survives as an empty element -- the
+      0.2.0 defect is not fixed here, it is unrepresentable.
 
 - [ ] **1b. `record.py` checks the pre-filled fields still match the census.** ! It is an
       INTEGRITY check, not the old transcription check: it can only fail if a filled record was
