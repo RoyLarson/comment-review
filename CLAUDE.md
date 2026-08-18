@@ -66,6 +66,11 @@ uv run python plugins/comment-review/skills/comment-review/scripts/run_context.p
 uv run python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
   --base <merge-base> --repo . <paths...>
 
+# The TODO backlog is WRITTEN BY A TOOL, not by hand -- see "The TODO backlog" below.
+# `.claude/skills/todo-tool/SKILL.md` holds every command; these are the two run most.
+uv run python scripts/todo_tool.py list [--owner T] [--status S] [--requires-roy]
+uv run python scripts/todo_tool.py resync     # after a merge, before trusting any count
+
 # Lint (ruff config lives in pyproject.toml; corpora/** is excluded from linting)
 ruff check .
 ruff format .
@@ -214,6 +219,48 @@ history) since it depends on `git blame`.
   The git history on main contains work that should have been branch work because we decided
   to start implementing before realizing we were corrections to code that belongs on a branch
   first.
+
+### The TODO backlog, and who writes it
+
+**`scripts/todo_tool.py` writes `TODO/`. Do not hand-edit a `Progress:` line or a README row.**
+Every command recomputes the counts from the boxes it just wrote, which is the thing a hand edit
+gets wrong. The full command table is
+[`.claude/skills/todo-tool/SKILL.md`](.claude/skills/todo-tool/SKILL.md) and is not restated
+here; `resync` is what fixes drift after a merge.
+
+! **The tool is VENDORED from `redacted_corpus` at `todo-requires-roy` REDACTED_SHA_D** and is
+re-grabbed rather than maintained here, so ruff excludes it. One local patch -- the stdout
+encoding guard -- says so at the patch.
+
+!! **TWO WRITING METHODS COEXIST AND ROY KNOWS.** 2026-08-18: *"I know this is two methods of
+writing the todos but right now I don't want to fix that."* The tool owns counts, rows and
+status; the prose inside a file is still written by hand. Do not spend a session reconciling
+them.
+
+#### A box is a claim about whether work remains
+
+!! **AN UNCHECKED BOX SAYS THE WORK IS STILL TO DO, and something automated now reads it.** Roy,
+2026-08-18: *"a check box not-marked is left as something todo, even if it was superseded and no
+longer necessary."* Measured the same day: five RESOLVED proposals held in a prose table with no
+boxes made `resync` generate a README row reading `0/9` on a file a third finished.
+
+| the task is | the box | the file's `Status:` |
+| --- | --- | --- |
+| **done** | `[x]` | -- |
+| **superseded** -- overtaken, no longer necessary | `[x]` | -- |
+| **superseded IN PART**, remainder still wanted | `[ ]`, tracking the remainder | -- |
+| **deferred** -- waiting on a named event | `[ ]` | say what it waits on |
+| not started | `[ ]` | -- |
+
+! **Deferred is not done.** Roy, 2026-08-18: *"Deferred is not done - just waiting so its status
+is still correct."* Waiting on an event is work not started, which is what an unchecked box
+already says.
+
+! **`in-progress` means some boxes are ticked** -- not blocked, not waiting on a ruling. A file
+where only a RULING has landed is `in-progress`, because a ruling is work.
+
+! **A superseded ARGUMENT is not a superseded task.** Reasoning kept so an error stays legible
+carries no box at all; only work does.
 
 ### Cutting a release, and the version number
 
