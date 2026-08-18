@@ -386,6 +386,6 @@ new shape made it awkward is how the synthesised block ends up unchecked.
 - [`the-parser-merges-across-boundaries-it-cannot-read`](the-parser-merges-across-boundaries-it-cannot-read.md)
   -- the three defects that prompted this. ! If the record becomes a value, that file closes for
   `parse_report` and stays open for `removed_spans`.
-- [`re-review-is-ordered-everywhere-and-defined-nowhere`](re-review-is-ordered-everywhere-and-defined-nowhere.md)
+- [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)
   -- ! round two is NOT this shape. Its answer is a RESPONSE (`SAME SENTENCE` / HOLD|REVISE /
   one clause) that carries a record only on a revise; ruled 2026-08-17.

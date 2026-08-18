@@ -60,7 +60,7 @@ judges it would be MARK and APPLY in one actor, which is the thing the pipeline 
 
       !! **It was built for the re-review blocker and this task at once**, because both needed
       the same thing: the proposed state rendered as real files. See
-      [`re-review-is-ordered-everywhere-and-defined-nowhere`](re-review-is-ordered-everywhere-and-defined-nowhere.md).
+      [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md).
 
 - [ ] Show the diff at 7a INSTEAD OF or ALONGSIDE the block -- decide which. ! Roy's rule that
       *what you show IS what gets written* argues for the diff being primary: it is the closer

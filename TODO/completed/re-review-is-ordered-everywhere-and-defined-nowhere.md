@@ -1,8 +1,8 @@
 # Re-review is ordered in ten places and defined in none
 
 ```
-Status:   open
-Progress: 8 of 10 tasks done
+Status:   done
+Progress: 10 of 10 tasks done
 Owner:    session * Roy (* 4 rulings, all made)
 Raised:   2026-08-17 (the first full run of 0.1.7 hit eight contradicted blocks and had to
           invent a procedure to clear them)
@@ -139,7 +139,7 @@ answer alone.
 - [x] **Recorded: what the run measured about the GATE.** 8 blocks flagged, **2 genuine
       contradictions**; six were composition or a sentence-level false positive. It is in the
       file as the reason `SAME SENTENCE` is answered FIRST -- see
-      [`move-and-correct-compose`](move-and-correct-compose.md) and
+      [`move-and-correct-compose`](../move-and-correct-compose.md) and
       [`the-unit-of-review-is-the-statement-not-the-block`](the-unit-of-review-is-the-statement-not-the-block.md).
 
 - [x] * **RULED 2026-08-17: every block carrying a CONFLICTING mark, and `query` conflicts with

@@ -99,7 +99,7 @@ finding today reaches:
 
       ! This is the SAME mechanism as round two of a re-review, and it is written up there
       rather than twice:
-      [`re-review-is-ordered-everywhere-and-defined-nowhere`](re-review-is-ordered-everywhere-and-defined-nowhere.md).
+      [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md).
       ! Stage 5's independent reader and re-review round two turn out to be one thing, so this
       task closes when that file's shape is settled -- including the blocker it names, that
       `verdicts.py` cannot admit a round-2 record at all.

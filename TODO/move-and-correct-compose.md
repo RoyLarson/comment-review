@@ -78,5 +78,5 @@ is silent.
       ! **DONE by group A, 2026-08-17.** Same sentence, `SKILL.md` step 3.
 
 - [ ] Re-measure after the change. The run's 8 re-reviews should fall to 2, and the count
-      belongs in [`re-review-is-ordered-everywhere-and-defined-nowhere`](re-review-is-ordered-everywhere-and-defined-nowhere.md)
+      belongs in [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)
       as the load that procedure actually carries.

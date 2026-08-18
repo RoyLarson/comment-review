@@ -84,5 +84,5 @@ is*, so every unrecognised thing becomes its neighbour's problem.
 
 ## Related
 
-- [`re-review-is-ordered-everywhere-and-defined-nowhere`](re-review-is-ordered-everywhere-and-defined-nowhere.md)
+- [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)
   -- a refused record is what sends a block back, so a wrong refusal spends a whole round.
