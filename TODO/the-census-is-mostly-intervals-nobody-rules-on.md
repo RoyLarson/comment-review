@@ -3,21 +3,41 @@
 ```
 Status:   open
 Progress: 0 of 7 tasks done
-Owner:    session * Roy (* 1 ruling -- whether the filter ships, given it revisits
-          a cost he accepted on 2026-08-17)
+Owner:    session * Roy (* 1 ruling -- whether a reviewer is still handed the whole
+          census. The enumeration itself stands and the filter depends on it)
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
 ```
 
 ## Objective
 
 Every interval between two lines of code is enumerated so that `add` and `move` have an index
-to cite -- ruled 2026-08-17, and the cost was named and accepted then:
-*"I don't see a way around this pseudo-concrete syntax tree and I don't think it matters."*
-**Measured 2026-08-18, it is the largest single thing a reviewer is handed.**
+to cite -- ruled 2026-08-17. **Measured 2026-08-18, that artifact is the largest single thing a
+reviewer is handed.**
 
-Roy, 2026-08-18, naming the way around it: a tool retrieves the correct spot from the
-enumerated spots, the agents are sent only the FILTERED places, and they call the tool when
-they need a place outside the filter.
+Roy, 2026-08-18: a tool retrieves the correct spot from the enumerated spots, the agents are
+sent only the FILTERED places, and they call the tool when they need a place outside the
+filter.
+
+!! **THIS DOES NOT REVERSE THE 2026-08-17 RULING; IT DEPENDS ON IT.** Roy, 2026-08-18: *"We had
+to enumerate everything first -- I was right about that. We had to get here before we could get
+back to the cheaper answer."* Three things follow from that and they are the frame for
+everything below:
+
+- **`add` was not expressible before it.** The finding is about an EMPTY interval, and with no
+  index for one, an `add` had to borrow a neighbouring block's. Enumeration is what made the
+  verdict statable at all -- the record could not hold the finding until the gap had a name.
+- **The filter is a PROJECTION of the full enumeration, not an alternative to it.** The lookup
+  returns an index FROM the full census; the filtered view is citable only because the complete
+  one exists underneath. Ship the cheap form without the expensive one and every citation
+  resolves to nothing.
+- **The measurement could only be taken here.** Which gaps actually get cited, by which role,
+  and reasoned from what, is a fact about runs -- and there were no runs until the census could
+  express the whole pipeline.
+
+! So what changes is not the ARTIFACT but WHO CARRIES IT. The census on disk stays fully
+enumerated; the copy pasted into a reviewer's prompt stops being the whole thing. The cost
+ruled acceptable in 2026-08-17 is still paid -- once, on disk, by the tool -- rather than four
+times, in four prompts.
 
 ## What it costs, per reviewer, before any work is done
 
@@ -59,10 +79,11 @@ not.** The change is to filter the census the same way and give the reviewer som
 
 ## Tasks
 
-- [ ] * **Rule whether the filter ships.** It revisits a cost ruled acceptable on 2026-08-17,
-      with a measurement that did not exist then. ! The counter-argument to weigh: a reviewer
-      holding the whole census can see that a gap is BETWEEN two named declarations without
-      asking anything, and a filtered census plus a tool call is two steps where there was one.
+- [ ] * **Rule whether the filter ships.** Not whether the enumeration was right -- it was,
+      and the filter needs it -- but whether a reviewer should still be handed all of it.
+      ! The counter-argument to weigh: a reviewer holding the whole census can see that a gap
+      is BETWEEN two named declarations without asking anything, and a filtered census plus a
+      tool call is two steps where there was one.
 
 - [ ] **Write the lookup, and decide what it answers.** At least: which interval lies between
       two given lines, and which interval sits above or below a named declaration -- the
