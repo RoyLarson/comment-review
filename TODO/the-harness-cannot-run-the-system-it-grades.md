@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 19 tasks done
+Progress: 5 of 20 tasks done
 Owner:    session * Roy (* 1 ruling left -- the suite layout. `plugin eval`
           access is open and this file already says it is not a blocker)
 Requires-Roy: true
@@ -162,6 +162,46 @@ against a file the run never saw.
 record: `todo-tool-full-v0_2/README.md` states `todo_tool.py` at 1640 lines where `REDACTED_SHA_D` has
 1638. The run edited these files and restored them, so the count was most likely taken after its
 own edits. ! Anything keying on a line number in that package should re-derive it from the hash.
+
+## !! A CASE IS TWO PINS, AND HALF OF THEM LIVE ON ONE DISK
+
+**A run is only reproducible if BOTH the tool version and the subject tree are pinned.** Roy
+supplied both halves 2026-08-18; verified the same day:
+
+| pin | commit | where | durable |
+| --- | --- | --- | --- |
+| comment-review `v0.2.0` | `4621569cf370` | `origin/main`, annotated tag | yes |
+| comment-review `v0.2.1` | `7a0945ad3f40` | `origin/main`, annotated tag | yes |
+| comment-review `v0.2.2` | `5e0b0f75105b` | `origin/main`, annotated tag | yes |
+| redacted_corpus BASE | `REDACTED_SHA_E` | `origin/master` | yes |
+| redacted_corpus RUN | `REDACTED_SHA_F` | `redacted-branch-b` | **NO -- local only** |
+| redacted_corpus todo-tool | `REDACTED_SHA_D` | `todo-requires-roy` | **NO -- local only** |
+
+!! **TWO SEPARATE PROBLEMS, and only one of them is fixable here.**
+
+- **DURABILITY -- fixable.** The two SUBJECT commits, the things that were actually REVIEWED,
+  exist only in one clone on unpushed branches. `git branch -D` on either and `gc` eventually
+  takes the commit, and the answer key with it. Pushing them, even to a PRIVATE remote, ends
+  that. The other four are already durable.
+- **ACCESS -- not fixable, and not a defect.** Roy, 2026-08-18: *"None because they are
+  private."* Both repositories are private, so no commit here is fetchable without his
+  credentials, INCLUDING the four that are durable. **A case runs against a local clone or an
+  authenticated fetch, and public CI is out of scope until a repository is public.**
+
+! **Durable does not mean available.** Durable means it survives a deleted branch or a lost
+disk; a runner still cannot get it. A case should say which of the two it needs.
+
+! **The comment-review self-history cases differ on ONE axis only.** Their commits are ancestors
+of `main` and contained in `v0.2.3`, so they are durable -- and that repository is private too,
+so they are no more publicly fetchable than these. Durability is the whole difference.
+
+! **The tags are ANNOTATED**, so `git rev-parse v0.2.2` returns the tag object. Use `v0.2.2^{}`
+wherever a commit is wanted. The two whose tag object could be mistaken for the commit are
+recorded in that package's `VERSIONS.md`.
+
+! `evidence/redacted-corpus-full-v0_2/VERSIONS.md` is already the authoritative pin for that
+package and states all of this except reachability. It is not restated there; this table adds
+only which side of the network each commit is on.
 
 ## Tasks
 
@@ -333,6 +373,13 @@ own edits. ! Anything keying on a line number in that package should re-derive i
       reports and stage 5-8 artifacts per run. ! Check the hash out; do NOT read
       this repo's vendored `scripts/todo_tool.py`, which carries a local patch and
       is eight lines longer than the fixture.
+- [ ] !! **Get the two SUBJECT commits onto a remote before writing any case
+      against them.** `REDACTED_SHA_F` and `REDACTED_SHA_D` exist only in one clone of
+      `redacted_corpus`, on unpushed branches. Push or tag them -- a PRIVATE
+      remote is enough, because the goal is surviving a deleted branch, not
+      public access. Neither is this repo's to do. !
+      Until then every case built on those two packages is one `git branch -D`
+      from unreproducible.
 
 ## What this costs today
 
