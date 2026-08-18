@@ -57,7 +57,7 @@ EXCLUDED_DIRS = frozenset(
 
 
 def read_raw(path: Path) -> str:
-    r"""The file\'s own line endings, untranslated.
+    r"""The file's own line endings, untranslated.
 
     `Path.read_text` (and a plain `open` with no `newline=`) applies
     universal-newline translation, collapsing every `\r\n` to `\n` before the
@@ -71,7 +71,7 @@ def read_raw(path: Path) -> str:
     galley read with `read_text` instead, so a 245-line CRLF source was written
     out with 223 bare LF and every line of the diff was an ending change.
 
-    ! `Path.read_text`\'s own `newline=` parameter arrived in Python 3.13, and
+    ! `Path.read_text`'s own `newline=` parameter arrived in Python 3.13, and
     the floor here is 3.11, where passing it raises `TypeError`.
     `check_shipped_syntax.py` reads syntax and two runtime shapes, so a keyword
     argument that exists only on a newer interpreter gets past it.

@@ -297,6 +297,68 @@ class TestADocstringBlockMatchesItsFile(unittest.TestCase):
         self.assertFalse(galley.block_matches(edited.splitlines(), block))
 
 
+class TestALineNobodyEditedKeepsItsEnding(unittest.TestCase):
+    """`splice` joined split lines with ONE ending and rewrote the whole file.
+
+    !! Measured 2026-08-18 on a mixed file: editing line 1 converted the
+    untouched LF line 2 to CRLF, so the `git diff --no-index` stage 7a exists
+    for showed both as changed. That is the diff noise `line_endings` says it
+    prevents, arriving by the other route.
+    """
+
+    MIXED = "a\r\nb\nc\r\n"
+
+    def test_editing_one_line_leaves_the_others_alone(self):
+        self.assertEqual(galley.splice(self.MIXED, [(1, 1, "A")]), "A\r\nb\nc\r\n")
+
+    def test_the_edited_line_gets_the_files_ending(self):
+        # ! A NEW line has no ending of its own, so `line_endings` decides it --
+        # and deciding that is now the only thing it does.
+        self.assertEqual(galley.splice(self.MIXED, [(2, 2, "B")]), "a\r\nB\r\nc\r\n")
+
+    def test_a_file_with_no_final_newline_still_has_none(self):
+        self.assertEqual(galley.splice("a\nb", [(1, 1, "A")]), "A\nb")
+
+    def test_an_insertion_at_the_top_keeps_every_ending(self):
+        self.assertEqual(galley.splice("a\r\nb\n", [(1, 0, "T")]), "T\r\na\r\nb\n")
+
+
+class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
+    """A splice replaces WHOLE LINES, so such a block cannot be expressed.
+
+    !! It was refused already -- its stored text is not the file's whole line,
+    so `block_matches` failed -- and reported as "no longer match the census",
+    which sends a reader to diff a file nobody has touched. The refusal names
+    what is actually wrong now.
+    """
+
+    LINES = ["def f(x):  # trailing note", "    return x"]
+
+    def test_a_block_starting_partway_through_its_line_is_partial(self):
+        block = {
+            "start": 1,
+            "end": 1,
+            "kind": "trailing-comment",
+            "raw_lines": ["# trailing note"],
+        }
+        self.assertTrue(galley.shares_a_line_with_code(self.LINES, block))
+
+    def test_a_block_holding_its_whole_line_is_not(self):
+        block = {"start": 2, "end": 2, "kind": "comment", "raw_lines": ["    return x"]}
+        self.assertFalse(galley.shares_a_line_with_code(self.LINES, block))
+
+    def test_a_block_whose_text_merely_DIFFERS_is_not_partial(self):
+        # ! Not a suffix, so it is STALENESS -- a different refusal with a
+        # different remedy. Re-census, rather than "this cannot be spliced".
+        block = {"start": 2, "end": 2, "kind": "comment", "raw_lines": ["    return y"]}
+        self.assertFalse(galley.shares_a_line_with_code(self.LINES, block))
+        self.assertFalse(galley.block_matches(self.LINES, block))
+
+    def test_an_out_of_range_block_is_not_partial(self):
+        block = {"start": 9, "end": 9, "kind": "comment", "raw_lines": ["x"]}
+        self.assertFalse(galley.shares_a_line_with_code(self.LINES, block))
+
+
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
 # exists, so `python tests/<file>.py` reports a green bar over a shorter suite
 # than `unittest discover`.

@@ -29,10 +29,18 @@ class TestPythonTier(unittest.TestCase):
         self.assertEqual(len(runs), 1, [b.text for b in runs])
 
     def test_a_marker_line_is_free(self):
-        # Three COMMENT tokens (the blank line yields NL, which is skipped and
-        # never joins the run), of which the TODO line is not charged.
+        # !! Two counts, and they measure different things. `raw_lines` is
+        # every line the block SPANS -- four here, the interior blank
+        # included, because the block runs from its first `#` to its last and
+        # only CODE ends a run. `lines` is what the CAP charges: three comment
+        # lines, of which the TODO is free.
+        #
+        # ! `raw_lines` used to come from the comment TOKENS, so the blank was
+        # missing and the list was shorter than the span. Anything comparing
+        # the two disagreed on a file nobody had touched.
         run = [b for b in blocks_for("sample.py") if b.kind == "comment"][0]
-        self.assertEqual(len(run.raw_lines), 3)
+        self.assertEqual(len(run.raw_lines), 4)
+        self.assertEqual(len(run.raw_lines), run.end - run.start + 1)
         self.assertEqual(run.lines, 2)
 
     def test_a_trailing_comment_is_its_own_block(self):

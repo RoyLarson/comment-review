@@ -53,8 +53,9 @@ def line_endings(text: str) -> str:
 
     ! NOT `prove_unchanged.dominant_ending`, which answers a different
     question. That one names the ending a file MOSTLY uses, for a report; this
-    one picks the joiner a rewrite must use, and prefers CRLF on a mixed file
-    so that the lines already carrying it are left alone.
+    one picks the ending to give a NEW line, and only that -- `splice` keeps
+    every existing line's own ending, so on a mixed file the answer here
+    decides nothing except what the replacement text is written with.
     """
     return "\r\n" if "\r\n" in text else "\n"
 
@@ -76,12 +77,25 @@ def splice(text: str, edits: list[tuple[int, int, str]]) -> str:
     caller has already refused overlaps, so descending order is exact.
     """
     end_of_line = line_endings(text)
-    lines = text.splitlines()
+    # !! KEEPENDS, so a line nobody edited is re-emitted with the ending it
+    # had. Joining split lines with one ending rewrote every line in the file:
+    # on a MIXED file, editing line 1 converted the untouched LF line 2 to
+    # CRLF, and the `git diff --no-index` that stage 7a exists for showed both
+    # as changed. Measured 2026-08-18.
+    lines = text.splitlines(keepends=True)
+    ended = text.endswith(("\n", "\r"))
     for start, end, replacement in sorted(edits, reverse=True):
-        lines[start - 1 : end] = replacement.splitlines()
-    return end_of_line.join(lines) + (
-        end_of_line if text.endswith(("\n", "\r")) else ""
-    )
+        # ! NEW lines get the file's ending, because they have none of their
+        # own. That is the only place `line_endings` is consulted now.
+        lines[start - 1 : end] = [
+            line + end_of_line for line in replacement.splitlines()
+        ]
+    out = "".join(lines)
+    # ! A file that did not end in a newline still does not. An edit landing on
+    # the last line, or appended after it, would otherwise add one.
+    if not ended and out.endswith(end_of_line):
+        out = out[: -len(end_of_line)]
+    return out
 
 
 def overlaps(edits: list[tuple[int, int, str]]) -> tuple[int, int] | None:
@@ -128,6 +142,35 @@ def block_matches(lines: list[str], block: dict) -> bool:
     return [ln.rstrip() for ln in lines[start - 1 : end]] == [
         ln.rstrip() for ln in stored
     ]
+
+
+def shares_a_line_with_code(lines: list[str], block: dict) -> bool:
+    """Does code come before this block's text on its first line?
+
+    !! A SPLICE REPLACES WHOLE LINES, so such a block cannot be spliced at all
+    -- writing over its first line would delete the code that shares it. Two
+    kinds reach here: a `trailing-comment`, and a PEP 727 `Doc()` literal,
+    which is a string inside a line of code and which the census records as a
+    `docstring`.
+
+    ! It is asked so the REFUSAL CAN SAY WHY. Both kinds already failed
+    `block_matches` -- their stored text is not the file's whole line -- and
+    were reported as "no longer match the census", which sends a reader to diff
+    a file that has not changed.
+
+    Args:
+        lines: the file, split.
+        block: one census entry.
+
+    Returns:
+        True if the block's text begins partway through its first line.
+    """
+    stored = block.get("raw_lines") or []
+    start = block["start"]
+    if not stored or not 1 <= start <= len(lines):
+        return False
+    physical, first = lines[start - 1].rstrip(), stored[0].rstrip()
+    return bool(first) and physical != first and physical.endswith(first)
 
 
 def splice_range(block: dict) -> tuple[int, int]:
@@ -240,6 +283,22 @@ def main() -> int:
             continue
         # ! Every block is checked against the file BEFORE anything is written,
         # so one stale range refuses its file rather than half-splicing it.
+        # ! ASKED FIRST, because it is a different refusal with a different
+        # remedy: a stale range means re-census, and a partial-line block means
+        # this tool cannot express the edit at all.
+        partial = [
+            (block["start"], block["end"])
+            for _, block in file_edits
+            if shares_a_line_with_code(lines, block)
+        ]
+        if partial:
+            where = ", ".join(f"{s}-{e}" for s, e in partial)
+            print(
+                f"REFUSED  {rel}: {len(partial)} block(s) share a line with code"
+                f" and a splice replaces whole lines: {where}"
+            )
+            refused += len(file_edits)
+            continue
         stale = [
             (block["start"], block["end"])
             for _, block in file_edits

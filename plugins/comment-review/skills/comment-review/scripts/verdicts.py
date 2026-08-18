@@ -623,6 +623,13 @@ def load_report(
     except json.JSONDecodeError as e:
         # ! Names its own position, which a merged field never could.
         return ([], [f"CANNOT PARSE as JSON ({e})"], [])
+    # ! A top-level list parses as JSON and is not a report -- handing in the
+    # CENSUS by mistake does exactly that. Every neighbouring read in this file
+    # names the file and the reason in one line; this raised `AttributeError`
+    # and took the whole join down.
+    if not isinstance(report, dict):
+        why = f"is a JSON {type(report).__name__}, not a report object"
+        return ([], [why], [])
     findings: list[Finding] = []
     malformed: list[str] = []
     for rec in report.get("records") or []:
@@ -1117,7 +1124,7 @@ def _words(text: str) -> str:
 
 
 def address_problem(f: Finding, blocks: list[dict]) -> str | None:
-    """Does the record's address, and the text it stands for, match the census?
+    """Does the record's address name the block the census has at that index?
 
     !! THE RECORD CARRIES THE ADDRESS AND NOT THE TEXT. Ruled 2026-08-17, after
     a first ruling the same day that it should carry both. Handed the prose, a
@@ -1151,8 +1158,10 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
     the gain: a field with four possible subjects can only be checked for
     RESOLVABILITY, because nothing says which subject to check it against.
 
-    ! The address is CHECKED, and that is what makes it worth writing. An
-    address nobody verifies costs a line and settles nothing.
+    ! The ADDRESS is checked and the TEXT is not, because only one of them is
+    a reviewer's answer. An address nobody verifies costs a line and settles
+    nothing; a text nobody wrote, compared against another copy the same tool
+    made, only reports that the tool disagrees with itself.
 
     ! `clean` is exempt, and stays exempt for a different reason than it had. It
     was exempt because a role returns `clean` on most of the census -- 1159
@@ -1193,15 +1202,23 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
         # ! An empty INTERVAL has no text to transcribe, and it is exactly what
         # an `add` cites: prose that is missing has no original.
         return None
-    if not f.original.strip():
-        return (
-            f"BLOCK {f.block} carries no ORIGINAL -- the block's text as it reads now"
-        )
-    # ! CASE is forgiven, the words are not -- which is what the brief promises
-    # a reviewer. Everything else the two forms differ by (markers, delimiters,
-    # wrapping, indentation) `as_block` has already resolved.
-    if as_block(f.original, entry).lower() != text.lower():
-        return f"BLOCK {f.block} ORIGINAL does not match the census text"
+    # !! THE TEXT IS NO LONGER COMPARED, and it must not be. `original` is
+    # filled from the census's `raw_lines` by `_report`, and `text` is the
+    # census's own normalised copy of the same block -- so the comparison put
+    # two TOOL-SUPPLIED strings against each other and refused the finding when
+    # they disagreed, with a message that accused nobody.
+    #
+    # !! They do disagree. `raw_lines` is the file's literal slice and `text` is
+    # the AST value for a Python docstring, so any escape sequence renders in
+    # one and not the other. Measured 2026-08-18 over this repo: 3 of 663 prose
+    # blocks -- a `\r\n` in a source string, a `\\s+`, a unicode escape. Every
+    # finding on those blocks was fatally refused, and no reviewer could have
+    # fixed it.
+    #
+    # ! What the check was FOR is gone with the transcription it guarded. The
+    # ADDRESS is still compared above, and `block_problem` still measures the
+    # claim's sentence against the census text -- which is the check that
+    # catches a reviewer reading the wrong lines.
     return None
 
 
@@ -1630,7 +1647,16 @@ def main() -> int:
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("reports", nargs="+", help="one report file per reviewer")
+    ap.add_argument(
+        "reports",
+        nargs="+",
+        # ! The SUFFIX chooses the reader and the STEM names the role, so both
+        # halves of the filename are load-bearing. A record file named `.md`
+        # goes to the deprecated text parser, which finds no records in it and
+        # reports the reviewer as a total coverage gap with nothing pointing at
+        # the extension.
+        help="one report file per reviewer, named <role>.json",
+    )
     ap.add_argument("--census", required=True, help="census.py --json output")
     ap.add_argument("--repo", default=".", help="repo root for evidence resolution")
     ap.add_argument(
@@ -1763,7 +1789,7 @@ def _report(args: argparse.Namespace) -> int:
                 f"  NO REPORT from reviewer {reviewer!r} -- a missing report is the"
                 " easier version of a fabricated one. --reviewers is matched against"
                 f" each report file's STEM, so a report for {reviewer!r} must be"
-                f" named {reviewer}.md"
+                f" named {reviewer}.json"
             )
             fatal += 1
     else:
@@ -1864,12 +1890,30 @@ def _report(args: argparse.Namespace) -> int:
     in_range = [f for f in found if 1 <= f.block <= len(blocks)]
     ruled = {f.block for f in in_range if _substantive(f) and not declares_scope(f)}
     scoped_out = {f.block for f in in_range if declares_scope(f)} - ruled
-    stands = sorted(all_blocks - ruled - scoped_out)
+    # !! A BLOCK NOBODY ACCOUNTED FOR IS NOT A BLOCK EVERY ROLE PASSED. It fell
+    # into `stands` and was printed as "clean from all N reviewers", which is a
+    # claim no reviewer made -- on a report where every slot was still empty,
+    # every prose block in the file was summarised that way, one line under the
+    # COVERAGE GAPS list naming the same blocks. Measured 2026-08-18.
+    #
+    # ! It is the same shape `_substantive` already guards at the other end: an
+    # unknown verdict answered False to everything, dropped out of the work
+    # list, and was reported as clean on a block a role HAD ruled on. Both
+    # directions end in the summary asserting a pass nobody gave.
+    unaccounted = {index for missing in gaps.values() for index in missing}
+    stands = sorted(all_blocks - ruled - scoped_out - unaccounted)
     print(
         f"\nSTANDS UNCHANGED: {_n(len(stands), 'block')} -- clean from all"
         f" {_n(len(ran), 'reviewer')} that ran"
     )
     print(f"NEEDS A RULING:   {_n(len(ruled), 'block')}")
+    if unaccounted:
+        # ! Counted here as well as listed above, because the three lines
+        # around it are counts and a reader compares them.
+        print(
+            f"NOT ACCOUNTED FOR: {_n(len(unaccounted), 'block')} -- at least one"
+            " reviewer left them out. Neither ruled on nor certified."
+        )
     if scoped_out:
         print(
             f"NO FINDING, NOT CERTIFIED: {_n(len(scoped_out), 'block')} -- every"

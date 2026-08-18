@@ -625,6 +625,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
 def blocks_stdlib(path: Path, text: str) -> list[Block]:
     """Comment blocks (bounded by CODE) and docstrings, via tokenize + ast."""
     out: list[Block] = []
+    source_lines = text.splitlines()
     # (line, physical source line, the comment token alone, is it trailing)
     run: list[tuple[int, str, str, bool]] = []
     # ! The line the last trailing comment ended on. A comment opening on the
@@ -648,7 +649,16 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
                     kind="trailing-comment" if run[0][3] else "comment",
                     lines=counted_lines(prose),
                     text=_join(prose),
-                    raw_lines=[ln for _, ln, _, _ in run],
+                    # !! THE LINES THE BLOCK SPANS, not the lines that carry a
+                    # comment token. A blank line inside a run has no token, so
+                    # taking them from `run` skipped it while `start..end`
+                    # still spanned it -- `raw_lines` was then SHORTER than the
+                    # block, and anything comparing the two disagreed on an
+                    # untouched file. Measured 2026-08-18: 4 blocks in this
+                    # repo, each refused by `galley.block_matches` as stale,
+                    # and each one a splice that would have deleted the blank
+                    # line it did not know about.
+                    raw_lines=source_lines[run[0][0] - 1 : run[-1][0]],
                 )
             )
             # !! A trailing comment CLOSES its run, so a sentence wrapped onto
@@ -691,7 +701,6 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
             flush()
     flush()
 
-    source_lines = text.splitlines()
     try:
         tree = ast.parse(text)
     except SyntaxError as e:
@@ -1018,9 +1027,13 @@ def _repo_relative(path: Path, repo: Path) -> str:
         repo: the root every citation resolves against.
 
     Returns:
-        The relative posix path, or the absolute one when the file is not under
-        `repo` -- there is no relative form of it, and inventing one with `..`
-        would give a consumer a path that escapes the root it was handed.
+        The posix path relative to `repo`. ! A file NOT under `repo` keeps the
+        path AS IT WAS PASSED, which may itself be relative -- run from a
+        subdirectory, `--repo /r ../other/x.py` records `../other/x.py`. There
+        is no relative-to-`repo` form of such a file and inventing one with
+        `..` would hand a consumer a path that escapes the root it was given,
+        so it is passed through unresolved and the consumers refuse it:
+        `galley.py` writes nothing that lands outside `--out`.
     """
     try:
         return path.resolve().relative_to(repo).as_posix()

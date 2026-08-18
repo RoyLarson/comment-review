@@ -1139,23 +1139,46 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
             self._at(block=3, address="redacted_pkg/rates.py:20", original="# one line only")
         )
 
-    def test_a_missing_original_is_refused(self):
-        self.assertIn("carries no ORIGINAL", self._at(original="  "))
+    def test_the_ORIGINAL_is_NOT_compared(self):
+        """!! Both sides of that comparison were the tool's own.
 
-    def test_an_original_that_is_not_the_block_is_refused(self):
-        self.assertIn("does not match", self._at(original="# something else"))
+        `original` is filled from the census's `raw_lines` by `_report`, and
+        the census's `text` is its own normalised copy of the same block. The
+        check put one against the other and refused the finding when they
+        disagreed -- accusing nobody, and unfixable by anyone.
+        """
+        self.assertIsNone(self._at(original="# something else entirely"))
 
-    def test_comment_markers_and_wrapping_are_forgiven(self):
-        # ! Case, whitespace and leading markers only. The census stores the
-        # prose with its markers stripped; a reviewer transcribes what the FILE
-        # shows. Comparing those raw would refuse every honest transcription --
-        # a check that fires only on people who did the work.
-        self.assertIsNone(
-            self._at(
-                original="  #   The Retry Budget is 3 and\n"
-                "  # callers ROUND separately  "
-            )
+    def test_an_empty_original_is_not_refused_either(self):
+        # ! It means the census carried no `raw_lines` for the block, which is
+        # not a fact about the finding. `edit_problem` reports it where it
+        # matters, holding the census entry an empty CHANGE is measured against.
+        self.assertIsNone(self._at(original="  "))
+
+    def test_a_block_whose_two_census_copies_DISAGREE_still_passes(self):
+        """!! The shape measured on this repo: 3 of 663 prose blocks.
+
+        `raw_lines` is the file's literal slice; `text` is the AST value for a
+        Python docstring. Any escape sequence renders in one and not the other,
+        so every finding on such a block was fatally refused.
+        """
+        blocks = [
+            {
+                "path": "m.py",
+                "start": 1,
+                "end": 2,
+                "kind": "docstring",
+                # The FILE shows the escape; the AST value shows a real newline.
+                "raw_lines": ['"""a source with \\r\\n in it.', '"""'],
+                "text": "a source with \r\n in it.",
+            }
+        ]
+        f = _finding(
+            block=1,
+            address="m.py:1-2",
+            original='"""a source with \\r\\n in it.\n"""',
         )
+        self.assertIsNone(verdicts.address_problem(f, blocks))
 
     def test_an_empty_INTERVAL_owes_no_original(self):
         # ! This is what an `add` cites: prose that is MISSING has no original.
