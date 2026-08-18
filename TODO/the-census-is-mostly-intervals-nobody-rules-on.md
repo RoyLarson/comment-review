@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 9 tasks done
+Progress: 1 of 10 tasks done
 Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
 ```
@@ -151,8 +151,23 @@ not.** The change is to filter the census the same way and give the reviewer som
 - [ ] **Re-run a known case both ways and diff the verdicts.** The cycle run is on disk in
       `evidence/cycle-0.2.3/` with its four record files, so the comparison has an answer key.
 
+- [ ] !! **STATE THE OPERATION, because an interval's range does not mean what a block's means.**
+      P7 of [`two-live-runs-proposed-fifteen-changes`](two-live-runs-proposed-fifteen-changes.md):
+      an interval's `path:start-end` spans the two CODE LINES bounding the gap, so a range
+      replace DELETES BOTH STATEMENTS. It was caught on that run by a guard rather than by
+      design. Measured 2026-08-18: `galley.py:134` and `:332` still decide insert-against-replace
+      by branching on `block.get("kind") == "interval"`, and `record.py:428` scrapes the side out
+      of prose with `ANCHOR_SIDE.search(claim)`. ! **Both are consumers inferring what the
+      producer knows**, which is the rule 0.2.3 settled when `whole_lines` became a stated fact.
+      The record should carry `{"op": "insert", "anchor": ..., "side": "above"}`. Verify: the
+      galley branches on the stated op, and an `add` with no op is refused rather than guessed.
+
 ## Related
 
+- [`verdicts-py-announces-one-subject-and-holds-four`](verdicts-py-announces-one-subject-and-holds-four.md)
+  -- **a dependency.** The lookup tool answers with an address, `census.address` owns
+  `path:start-end`, and the verdict table is where that type belongs -- today it is 300 lines
+  inside a 2,000-line file
 - [`an-empty-interval-has-no-census-index`](completed/an-empty-interval-has-no-census-index.md)
   -- why every interval is enumerated, and the cost accepted at the time
 - [`the-harness-cannot-run-the-system-it-grades`](the-harness-cannot-run-the-system-it-grades.md)

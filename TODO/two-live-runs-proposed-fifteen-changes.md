@@ -64,6 +64,30 @@ census has no reliable way to know the file's frame."* ! The record now carries 
 census text nor the original, so the reviewer opens the file and does know the frame. **The
 contract still has to be written down; which of the two it should be is the part that moved.**
 
+## Routed 2026-08-18, against the 0.2.4 scope
+
+**Four of the ten go into 0.2.4, and three of those four are one defect.** P7, P4 and the
+todo-tool P1 are each a consumer inferring what only the producer knows -- the shape 0.2.3 spent
+its eleven findings on, continuing into the record's remaining untyped fields. They are scheduled
+with the split rather than after it because they all edit the same two halves.
+
+| # | why now |
+| --- | --- |
+| **P10** typed `SOURCES` | the run's best finding -- **213 citations resolving to nothing** -- was an ABSENCE, which `file:line \| verbatim` cannot express. It was blocked on the record being a value, and 0.2.3 shipped that. Lands in the per-finding checker |
+| **P7** the insertion op | now a task on the census filter. `galley.py` still infers insert-against-replace from `kind`, and `record.py` regexes the side out of prose |
+| **P4** deletion scope | `may_empty` half-addressed it; WHOLE against PARTIAL is still inferred rather than stated |
+| **P1** todo-tool, `REASON` naming an unclaimed sentence | a checker change, and *"three places"* is still wrong on disk |
+
+! **P6 -- SHIP THE APPLIER -- is not scoped until it is RE-READ against `galley.py`.** It was
+written before the galley existed and calls itself *"the deepest finding here"*, naming four
+defects: placeholder handling, drop scoping, comment prefixes, indent framing. `galley.py`
+shipped in 0.2.3, does the splice, and refuses overlapping and stale ranges. **Read the four
+against what the galley now does before giving this a size** -- what remains may be P3's indent
+contract alone.
+
+! **P5, P3, P2 and P8 are group C and stage 6/7a work**, not this release. See
+[`docs/superpowers/specs/2026-08-17-review-process-coherence-design.md`](../docs/superpowers/specs/2026-08-17-review-process-coherence-design.md).
+
 ## Open, in the order the evidence argues for
 
 - [ ] * **P6 -- SHIP THE APPLIER.** *"The deepest finding here."* `census.py`, `verdicts.py`,
