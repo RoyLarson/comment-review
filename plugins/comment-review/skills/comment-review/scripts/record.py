@@ -558,8 +558,13 @@ def main() -> int:
             print(f"  {problem}")
         total = len(report.get("records") or [])
         print(f"\n{total - unruled} of {total} records ruled; {unruled} still empty.")
-        if problems or stale:
-            print(f"{len(problems)} problem(s). The shape is wrong, not the finding.")
+        # ! The VERSION counts as one. It is reported above and it is not in
+        # `problems`, so a file whose only fault was a missing version printed
+        # "0 problem(s)" and exited 1 -- a count contradicting the line above it
+        # and the exit code below it.
+        counted = len(problems) + bool(stale)
+        if counted:
+            print(f"{counted} problem(s). The shape is wrong, not the finding.")
             return 1
         # ! An unfilled report is INCOMPLETE, not malformed, and the two exit
         # differently: a reviewer part-way through is not in error.

@@ -1,0 +1,163 @@
+# The harness cannot run the system it grades, and the cheap fix is the unsafe one
+
+```
+Status:   decision-needed
+Progress: 0 of 12 tasks done
+Owner:    session * Roy (* 4 rulings -- the reduced set, the fixture source, the
+          suite layout, and whether `plugin eval` access is worth asking for)
+Raised:   2026-08-18, after a run whose only question needed one role and cost four
+```
+
+## Objective
+
+`evals/evals.json` is the documented skill-eval format and nothing in this repo runs it.
+`grade_hazards.py` scores worktrees a person produced by hand, from a base hardcoded to
+another repository, against twelve planted defects -- so a new question cannot be asked
+without planting it there, and no measurement exists that a human did not perform.
+
+The fix is per-role cases: one role, one fixture, one assertion, and an answer known in
+advance. **That collides with the skill's own safety property** -- stages 4 and 5 are built on
+four roles reading blind and corroborating, and `SKILL.md` states that a single-role run
+ratifies falsehoods. The test needs the configuration the system says is unsafe.
+
+## ! The confound is ASYMMETRIC, and only half of it was recorded
+
+`a-role-can-reverse-itself-between-runs.md` records that every measurement here was made by an
+operator who knew it was a test, and treats that as a flat loss. Roy, 2026-08-18: an agent
+running the skill *as a test it may abandon* **drops the whole review the moment the skill is
+even marginally worse than reading the file itself**, where an agent that believes it must
+apply the skill pushes through.
+
+So the two confounds pull opposite ways, and they measure different things:
+
+| axis | a test-aware operator | a real one |
+| --- | --- | --- |
+| GATE COMPLIANCE | flatters -- refusing to reword a record to satisfy a parser is cheap when the refusal is the result being sought | the gate stands between them and finishing, so they route around it |
+| SKILL ADOPTION | harsher -- abandons a skill that is not clearly worth its cost | carries on, having asked for the review |
+
+! **A finding that survives a test-aware run is therefore STRONGER on skill quality, not
+weaker.** What such a run cannot measure is whether the gates hold for someone who needs to
+finish. The existing note should be corrected rather than deleted.
+
+## !! WHERE DOES A CASE STOP? -- and the second question dissolves the first
+
+Roy, 2026-08-18: *"How to stop the run at the correct level? Or do we if we have built the
+system to take 1 or more subagents?"*
+
+**THE ASSERTION PICKS THE STAGE. There is nothing to stop.** A case's terminus is wherever the
+artifact its assertion reads is written, and stage 4 already writes one to disk -- the reviewer's
+own record file, checked by `record.py --check`. A case asking *"does `module-context` raise
+this as a code concern"* reads that file and needs no synthesis, no galley, no approval and no
+write. A case asking *"is the final text correct"* needs 5, 6 and 7b, and grades the diff. Two
+kinds of case, two artifacts, no stop mechanism.
+
+! That also decides the fixture question one row down: a MARK-level case never writes to the
+tree, so it needs no worktree to throw away -- only somewhere to put the record file.
+
+**AND THE JOIN ALREADY TAKES ANY SET.** `verdicts.py --reviewers` is a comma-separated list
+matched against report stems; it does not know the number four. `coverage_gaps` counts against
+the declared population and the summary already carries a NOT ACCOUNTED FOR line. So a one-role
+run is machinery this repo has -- what hardcodes four is `SKILL.md`'s stage 4, which dispatches
+by name, and the skill's arguments (`cap`, `target`, `style`) carry no role set.
+
+! **So the reduced-set question is smaller than it looks: a ruling, an argument, and a line of
+report.** It is not a re-architecture, and if N roles is a supported configuration then role
+CASES stop being a test-only hack -- they are the same thing a user gets by asking for one.
+
+## Tasks
+
+- [ ] * **Rule whether a run of 1..N roles is a SUPPORTED CONFIGURATION or a test-only
+      shape.** `SKILL.md` dispatches four by name and says a single-role run ratifies
+      falsehoods -- one role reading a false absence claim writes that it is true where another
+      refutes it by grep. That is a real cost and it does not go away by being declared.
+      Supported means the skill takes a role set as an argument, the report names it, and the
+      cost is stated where the reader sees the findings. Test-only means role cases are a
+      second harness that never calls itself a review. ! The machinery is already
+      set-agnostic; this rules on the PROMISE, not the code.
+
+- [ ] **Then make the tool say which it was.** A run with fewer than four roles produces a
+      report that reads like any other today. Whatever is ruled above, the join's output has to
+      carry it, because the report is what a reader grades from -- and the corroboration a
+      missing role would have supplied is exactly what an absence claim needs.
+
+- [ ] **Give a MARK-level case its terminus in writing.** Stage 4's record file is the artifact,
+      `record.py --check` is its gate, and nothing downstream runs. Verify: a case asserts on a
+      record file and the tree is unmodified afterwards.
+
+- [ ] * **Rule the fixture source: extracted files, or a checkout at a hash.**
+      Roy, 2026-08-18: give the harness a GitHub address and a hash, check it out, focus on the
+      files for the test, drop everything after reporting. That answers "how much context do we
+      copy" by copying none -- the tree is real and complete -- at the cost of a harder setup
+      and a network dependency in the suite.
+      ! The documented format takes `files: [...]`, a list copied in, and neither it nor
+      `claude plugin eval` pins a repository state natively. `scripts/fetch_corpora.py` already
+      does address-plus-ref checkout for `corpora/`, so the mechanism exists in this repo.
+
+- [ ] **Answer "how much context" for the extracted case, since it is the fallback either way.**
+      A reviewer is given a census, a packet, a brief and a vocabulary; the packet names
+      REFERENCE ONLY files whose whole purpose is settling claims that the file under review
+      cannot. A fixture that copies only the file under review makes every cross-file claim
+      unsettleable and turns `query` into the correct answer for most of them. Verify by
+      re-running a known case with the reference set removed and comparing the verdict mix.
+
+- [ ] **Survey public histories for cases with a known answer.** The property wanted is a commit
+      where prose and code disagree and a later commit fixes it -- the fix is the answer key.
+      `evals/generator_split.py` already splits a corpus's prose defects by whether the
+      introducing commit carries an assistant trailer, so the search tooling half exists.
+
+- [ ] * **Rule the suite layout, because roles are not skills.** The documented format is
+      `evals/evals.json` inside a SKILL directory, and the four reviewers are AGENTS. Either
+      role cases live in the skill's suite with a prompt that dispatches one role, or they are
+      a second suite with its own layout and the shipped runner covers only whole-skill cases.
+      This decides whether the corpus is one file or five, so it comes before writing cases.
+
+- [ ] **Add `assertions` to `evals/evals.json`.** The documented schema is `id`, `prompt`,
+      `expected_output`, `files`, `assertions`; this repo's three cases carry every field but
+      that one, plus a local `hazards`. `assertions` is the field that states a known result,
+      which is the whole point of the upgrade.
+
+- [ ] **Install `skill-creator` and run the existing three cases through it.** It is generally
+      available -- `/plugin marketplace add anthropics/claude-plugins-official` then
+      `/plugin install skill-creator@claude-plugins-official` -- and it supplies what this repo
+      has none of: a subagent per case with clean context, a WITHOUT-SKILL baseline arm, and a
+      blind A/B between two skill versions. Verify: `benchmark.json` reports a delta.
+
+- [ ] **Keep `grade_hazards.py` as the verification SCRIPT, not the harness.** The guidance is
+      explicit that mechanical assertions belong in a script rather than an LLM judge. Its base
+      is hardcoded to another repository, which the fixture ruling above will move.
+
+- [ ] **Write the first role case, which already has a known answer.** Given `verdicts.py`,
+      `module-context` should raise the two-subject finding as a `code_concerns` entry and at
+      most `query` the summary line. Measured 2026-08-18: it emitted a `patch` widening the
+      docstring to announce both subjects -- the defect its own role file names as the trigger,
+      applied as the remedy. ! Its role file lists three triggers for "a module announcing more
+      than one subject" and never says what verdict one earns; the same file does say a
+      misplaced module constant is a CODE CONCERN, so the pattern exists and was not applied
+      here.
+
+- [ ] * **Decide whether to ask for `claude plugin eval` early access.** Separate, newer,
+      CLI-driven -- `evals/**/case.yaml` or `prompt.md` plus `graders/*.md`, `--ablation
+      with-without`, `--json`, `--threshold`, built for CI. Verified 2026-08-18: `--help`
+      works and lists the full option set; running it prints `plugin eval is currently in early
+      access` and exits 1, and `eval init` is gated too. No public documentation was found and
+      no self-serve request route; enablement is an organisation-level environment variable
+      issued by Anthropic. ! Not a blocker -- `skill-creator` covers isolation, the baseline
+      and assertions today.
+
+## What this costs today
+
+One run over two files, 154 prose blocks, four roles: **~870,000 subagent tokens** -- 186k
+ownership, 184k module, 253k function, 247k block. The question being asked needed one role.
+
+## Sources
+
+- [Extend Claude with skills](https://code.claude.com/docs/en/skills) -- the skill-creator loop
+- [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills) --
+  the `evals.json` schema, `grading.json`, `benchmark.json`, and the with/without pattern
+
+## Related
+
+- [`a-role-can-reverse-itself-between-runs`](a-role-can-reverse-itself-between-runs.md) -- holds
+  the confound note this file corrects, and the observation that nothing measures one run twice
+- [`nothing-checks-that-four-reviewers-were-launched`](nothing-checks-that-four-reviewers-were-launched.md)
+  -- the same population question from the gate's side
