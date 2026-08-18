@@ -94,9 +94,9 @@ finding quietly re-bounded to satisfy a tool is not. **That is the system decidi
 FOUND rather than whether it is true**, and it is CONSERVATIVE ON MEANING, FREE ON FORM failing
 from the tooling side.
 
-! Everything already on `main` since `v0.2.2` -- the galley, `re-review.md`, 5b/6b, D8, D9 in
-both shapes, the whole-block `drop` -- is **part of 0.2.3, not a release of its own.** The gate
-is the cycle working, not the count of fixes behind it.
+! Everything on `feat/0.2.3-cycle-and-record` since `v0.2.2` -- the galley, `re-review.md`,
+5b/6b, D8, D9 in both shapes, the whole-block `drop`, the JSON record -- is **part of 0.2.3,
+not a release of its own.** The gate is the cycle working, not the count of fixes behind it.
 
 ## [0.2.2] -- 2026-08-17
 
