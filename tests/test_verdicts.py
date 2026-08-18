@@ -2423,6 +2423,69 @@ class TestAFindingStatedOnlyInReason(unittest.TestCase):
         self.assertIsNone(verdicts.block_problem(f, self.BLOCKS))
 
 
+class TestAFilledFieldOutranksTheWordSearch(unittest.TestCase):
+    """A `query` that answered in its own words is not refused.
+
+    !! Measured 2026-08-17 on the first run over JSON records: nine well-formed
+    `query` records were refused for want of a settles-word, every one carrying
+    a filled `settles`. The reviewer's remedy would have been to pad the
+    sentence with an accepted verb -- a finding reshaped to satisfy a parser,
+    which is the cost this format exists to remove.
+    """
+
+    # ! Deliberately contains none of `settl`, `would`, `requires`, `resolv`,
+    # `determined by`. It is still a named check.
+    SETTLES = "reading this docstring against the body of `line_endings`"
+    ATTEMPTED = "read the module docstring and every module-level binding"
+
+    def _query(self, **claim):
+        base = {
+            "shape": "outside my role",
+            "attempted": self.ATTEMPTED,
+            "settles": self.SETTLES,
+        }
+        base.update(claim)
+        f = _finding(block=1, verdict="query", claim=verdicts.claim_text("query", base))
+        f.claim_fields = base
+        return f
+
+    def test_a_settles_in_its_own_words_passes(self):
+        self.assertIsNone(verdicts.payload_problem(self._query()))
+
+    def test_an_empty_settles_is_still_refused(self):
+        problem = verdicts.payload_problem(self._query(settles=""))
+        self.assertIn("WOULD settle", problem)
+
+    def test_a_whitespace_settles_is_still_refused(self):
+        self.assertIsNotNone(verdicts.payload_problem(self._query(settles="   ")))
+
+    def test_an_empty_attempted_is_still_refused(self):
+        problem = verdicts.payload_problem(self._query(attempted=""))
+        self.assertIn("ATTEMPTED", problem)
+
+    def test_a_TEXT_record_still_gets_the_word_search(self):
+        # !! The deprecated path has no field to read, so the search is the only
+        # guarantee it has. `claim_fields` empty is what selects it.
+        f = _finding(
+            block=1,
+            verdict="query",
+            claim="outside my role -- I read the module docstring; nothing here",
+        )
+        self.assertEqual(f.claim_fields, {})
+        self.assertIn("WOULD settle", verdicts.payload_problem(f))
+
+    def test_a_TEXT_record_naming_a_settles_word_still_passes(self):
+        f = _finding(
+            block=1,
+            verdict="query",
+            claim=(
+                "outside my role -- I read the module docstring, and reading it"
+                " against `splice` would settle it"
+            ),
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+
+
 class TestTheJoinReadsRecords(unittest.TestCase):
     """A JSON record file joins exactly as the text report it replaces.
 

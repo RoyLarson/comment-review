@@ -429,5 +429,92 @@ class TestCLI(unittest.TestCase):
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
 # exists, so `python tests/<file>.py` reports a green bar over a shorter suite
 # than `unittest discover`.
+class TestABlankClaimKeyIsMissing(unittest.TestCase):
+    """A key present and empty answers nothing, and must not read as answered.
+
+
+
+    !! It is D8's shape one layer in. The seed lays down every key the verdict
+
+    owes, so a reviewer that skips one leaves it there holding `""` -- and
+
+    `verdicts.py` now reads the FIELD rather than the prose it renders into, so
+
+    an empty field would satisfy a check by existing.
+
+    """
+
+    def _rec(self, **claim):
+
+        return {
+            "block": 1,
+            "address": "a.py:1-2",
+            "verdict": "query",
+            "claim": claim,
+            "reason": "r",
+            "sources": [],
+            "change": [],
+        }
+
+    def test_an_empty_value_is_reported(self):
+
+        problems = record.claim_problems(
+            "x", self._rec(shape="outside my role", attempted="grepped", settles="")
+        )
+
+        self.assertEqual(len(problems), 1)
+
+        self.assertIn("empty", problems[0])
+
+        self.assertIn("settles", problems[0])
+
+    def test_whitespace_is_empty(self):
+
+        problems = record.claim_problems(
+            "x", self._rec(shape="outside my role", attempted="grepped", settles="  ")
+        )
+
+        self.assertIn("empty", problems[0])
+
+    def test_every_blank_key_is_named_at_once(self):
+
+        # ! One message per record, not one per key: a reviewer fixes the record.
+
+        problems = record.claim_problems(
+            "x", self._rec(shape="", attempted="", settles="")
+        )
+
+        self.assertEqual(len(problems), 1)
+
+        for key in ("shape", "attempted", "settles"):
+            self.assertIn(key, problems[0])
+
+    def test_a_filled_claim_is_not_reported(self):
+
+        self.assertEqual(
+            record.claim_problems(
+                "x",
+                self._rec(
+                    shape="outside my role", attempted="grepped", settles="reading it"
+                ),
+            ),
+            [],
+        )
+
+    def test_a_MISSING_key_still_reads_as_missing_not_blank(self):
+
+        # ! The two messages tell a reviewer different things: one field was
+
+        # skipped, or the record was built from the wrong verdict's shape.
+
+        problems = record.claim_problems(
+            "x", self._rec(shape="outside my role", attempted="grepped")
+        )
+
+        self.assertEqual(len(problems), 1)
+
+        self.assertIn("needs `claim` keys", problems[0])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -72,6 +72,7 @@ import sys
 from collections import Counter, defaultdict
 from contextlib import redirect_stdout
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from pathlib import Path
 
 # ! The shim its three sibling importers carry. Run as a program this file
@@ -427,6 +428,13 @@ class Finding:
     change: str
     address: str = ""
     original: str = ""
+    # !! THE CLAIM AS THE RECORD CARRIED IT, empty for a 0.2.x text record. A
+    # check that can read the FIELD must not word-search the string the field
+    # rendered into: the reviewer answered, and searching its wording for five
+    # accepted verbs refuses correct answers written in other words. Measured
+    # 2026-08-17 on the first JSON run: nine well-formed `query` records
+    # refused, every one carrying a filled `settles`.
+    claim_fields: dict = dataclass_field(default_factory=dict)
 
 
 def _substantive(f: Finding) -> bool:
@@ -450,6 +458,40 @@ def _is(f: Finding, trait: str) -> bool:
     """
     spec = VERDICTS.get(f.verdict)
     return bool(spec and getattr(spec, trait))
+
+
+def _answered(f: Finding, key: str, pattern: re.Pattern, probe: str) -> bool:
+    """Did the reviewer answer `key` -- by its field, or failing that its words?
+
+    !! THE FIELD OUTRANKS THE WORD SEARCH, and that is the whole point of a
+    typed record. `record.py` gives a `query` a `settles` slot and refuses a
+    record that leaves it out, so a filled slot has already answered the
+    question this check asks. Searching the rendered prose for `settl`, `would`,
+    `requires`, `resolv` or `determined by` then refuses an answer written in
+    any other words -- and the reviewer's remedy is to pad the sentence with an
+    accepted verb, which is a finding reshaped to satisfy a parser.
+
+    ! Measured 2026-08-17, the first run over JSON records: nine `query` records
+    refused for want of a settles-word, every one carrying a filled `settles`.
+    One reads *"reading this docstring against the body of `line_endings` and
+    against `splice`"* -- a check, named, containing none of the five.
+
+    ! The word search STAYS for a 0.2.x text record, where there is no field to
+    read: `claim_fields` is empty and this falls through to `pattern`. That is
+    the only route by which the deprecated format keeps its guarantee.
+
+    Args:
+        f: the finding.
+        key: the `claim` key that answers this check.
+        pattern: the word search, for a record with no fields.
+        probe: the rendered claim with its shape removed.
+
+    Returns:
+        True if the question was answered.
+    """
+    if f.claim_fields:
+        return bool(str(f.claim_fields.get(key, "")).strip())
+    return bool(pattern.search(probe))
 
 
 def _n(count: int, noun: str) -> str:
@@ -551,6 +593,7 @@ def load_report(path: Path, reviewer: str) -> tuple[list[Finding], list[str]]:
                 # does. `address_problem` reads this, so it is filled from the
                 # census by the caller rather than by the reviewer.
                 original="",
+                claim_fields=claim if isinstance(claim, dict) else {},
             )
         )
     return (findings, malformed)
@@ -785,12 +828,14 @@ def payload_problem(f: Finding) -> str | None:
         probe = claim
         for shape in named:
             probe = probe.replace(shape, " ")
-        if spec.needs_attempted and not QUERY_ATTEMPTED.search(probe):
+        if spec.needs_attempted and not _answered(
+            f, "attempted", QUERY_ATTEMPTED, probe
+        ):
             return (
                 "query needs the check you ATTEMPTED -- a query naming none"
                 " hands the judgement back"
             )
-        if spec.needs_settles and not QUERY_SETTLES.search(probe):
+        if spec.needs_settles and not _answered(f, "settles", QUERY_SETTLES, probe):
             return "query needs what WOULD settle the claim"
     if spec.needs_anchor:
         # ! The brief asks for "the text AND its anchor -- which code, above or

@@ -237,7 +237,14 @@ def claim_problems(where: str, rec: dict) -> list[str]:
         return [f"{where}: `claim` is {type(claim).__name__}, not an object"]
     missing = [k for k in spec if k not in claim]
     extra = [k for k in claim if k not in spec]
+    # !! PRESENT AND EMPTY IS MISSING. A slot is seeded for every key the
+    # verdict owes, so a reviewer that skips one leaves it there holding "" --
+    # and downstream `verdicts.py` now reads the FIELD rather than searching the
+    # prose it renders into, so an empty field would answer a check by existing.
+    blank = [k for k in spec if k in claim and not str(claim[k]).strip()]
     out = []
+    if blank:
+        out.append(f"{where}: {verdict} left `claim` keys {blank} empty")
     if missing:
         out.append(
             f"{where}: {verdict} needs `claim` keys {missing} -- it carries"
