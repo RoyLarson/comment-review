@@ -2,9 +2,8 @@
 
 ```
 Status:   open
-Progress: 0 of 9 tasks done
-Owner:    session * Roy (* 1 ruling -- whether a reviewer is still handed the whole
-          census. The enumeration itself stands and the filter depends on it)
+Progress: 1 of 9 tasks done
+Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
 ```
 
@@ -47,8 +46,12 @@ times, in four prompts.
 3. **A destination outside their set comes from the TOOL.** They are told: if you need to move
    something to another spot in the code and it is not in your current set, use the tool to
    determine the values for the correct place.
-4. !! **A RAW LINE NUMBER IS DISMISSED.** Any reference that says *put it here* by naming a line
-   is not a destination and is not accepted.
+4. !! **A RAW LINE NUMBER IS DISMISSED.** Any reference that says *put it here* by naming a
+   line is not a destination and is not accepted.
+   !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** The two rules only look
+   contradictory: the tool TAKES a line of code, because that is what a reviewer has in hand
+   after reading one, and RETURNS the address. What is refused is a line number written into a
+   record as though it were a destination.
 5. **After the first round, the spot joins the filtered table FOR EVERY AGENT.** A destination
    one role looked up is common ground in round 2, where a re-review rules on a joined block and
    has to see where its neighbours sent things.
@@ -107,16 +110,15 @@ not.** The change is to filter the census the same way and give the reviewer som
 
 ## Tasks
 
-- [ ] * **Rule whether the filter ships.** Not whether the enumeration was right -- it was,
-      and the filter needs it -- but whether a reviewer should still be handed all of it.
-      ! The counter-argument to weigh: a reviewer holding the whole census can see that a gap
-      is BETWEEN two named declarations without asking anything, and a filtered census plus a
-      tool call is two steps where there was one.
+- [x] * **RULED 2026-08-18 by Roy: the filter ships, and the reviewer is handed the TOOL.**
+      Not the whole census. The tool answers one question -- *what is the ADDRESS of this line
+      of code* -- and that is the whole of what a reviewer needs to place prose it cannot
+      already cite.
 
-- [ ] **Write the lookup, and decide what it answers.** At least: which interval lies between
-      two given lines, and which interval sits above or below a named declaration -- the
-      `add`'s anchor question, in the reviewer's own terms. ! It answers with the index from
-      the FULL census, which is the only thing that makes the filtered one citable.
+- [ ] **Write the lookup. It answers ONE question: what is the ADDRESS of this line of
+      code.** Roy, 2026-08-18. In goes a line; out comes the census index and address of the
+      spot there. ! Resist widening it -- every extra question is a second way to name a place,
+      and one way to name a place is the property this whole design is buying.
 
 - [ ] **Refuse a destination that is not a census index**, which is rule 4 and is enforceable
       today: `move`'s `to` is free text no check resolves. Verify: a `move` naming a line
