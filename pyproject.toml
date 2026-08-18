@@ -51,13 +51,13 @@ line-length = 88
 # ! `evidence/ga/` is NOT excluded: it is tracked, maintained code that scores
 # the corpora, and it is linted like anything else.
 #
-# !! VENDORED CODE IS SOMEBODY ELSE'S SOURCE. `scripts/todo_tool.py` and
-# `scripts/tests/` are copied verbatim from `redacted_corpus` at
-# `todo-requires-roy` REDACTED_SHA_D, and are re-grabbed rather than maintained here.
-# Formatting them to THIS repo's config forks them, so the next grab arrives as
-# a conflict in every file -- the same argument the evidence exclude makes, one
-# repository over. ! A local patch to a vendored file says so at the patch.
-extend-exclude = ["evidence/*-full-*", "scripts/todo_tool.py", "scripts/tests"]
+# !! VENDORED CODE IS SOMEBODY ELSE'S SOURCE. `scripts/todo_tool.py` is copied
+# verbatim from `redacted_corpus` at `todo-requires-roy` REDACTED_SHA_D, and is
+# re-grabbed rather than maintained here. Formatting it to THIS repo's config
+# forks it, so the next grab arrives as a conflict in every file -- the same
+# argument the evidence exclude makes, one repository over. ! A local patch to a
+# vendored file says so at the patch.
+extend-exclude = ["evidence/*-full-*", "scripts/todo_tool.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "D"]
