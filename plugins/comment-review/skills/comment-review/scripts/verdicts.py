@@ -70,6 +70,7 @@ import re
 import string
 import sys
 from collections import Counter, defaultdict
+from contextlib import redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -1312,6 +1313,9 @@ def main() -> int:
     ap.add_argument("--census", required=True, help="census.py --json output")
     ap.add_argument("--repo", default=".", help="repo root for evidence resolution")
     ap.add_argument(
+        "--out", metavar="PATH", help="write the report to PATH, not stdout"
+    )
+    ap.add_argument(
         "--reviewers",
         default="",
         help=(
@@ -1321,7 +1325,21 @@ def main() -> int:
         ),
     )
     args = ap.parse_args()
+    # !! `--out`, BECAUSE A REDIRECT IS NOT AVAILABLE EVERYWHERE. A
+    # worktree-isolated session REFUSES a command carrying one -- "too complex
+    # to verify that it stays inside the worktree" -- and this gate's output is
+    # what stage 5 works from, so the only route to keeping it was unrunnable
+    # in the session type the skill is written for. `census.py` carries the
+    # same flag for the same reason; this is the one that was missed.
+    if args.out:
+        with open(args.out, "w", encoding="utf-8", newline="") as fh:
+            with redirect_stdout(fh):
+                return _report(args)
+    return _report(args)
 
+
+def _report(args: argparse.Namespace) -> int:
+    """Everything the join prints, so `--out` can wrap it in one place."""
     repo = Path(args.repo).resolve()
     # ! Guarded like a report file, so a missing census prints which file and
     # why in one line.

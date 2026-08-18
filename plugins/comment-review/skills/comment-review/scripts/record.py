@@ -52,6 +52,18 @@ from verdicts import (  # noqa: E402  -- path shim must run first
 # The fields the TOOL fills from the census. ! A mismatch here means the file
 # was CORRUPTED, never that the reviewer misquoted -- it never typed them.
 SEEDED = ("block", "address")
+# !! THE SHAPE IS VERSIONED, so a held report stays a REGRESSION TEST rather than
+# becoming an archive the day the format moves. Replaying stage-4 output is what
+# made 0.2.1 and 0.2.2 cheap to validate -- five joins over one set of reports,
+# ~1.6M tokens of review reused -- and that property dies silently when the
+# shape changes and nothing says so.
+#
+# ! PINNING THE CENSUS IS NOT ENOUGH. `SOURCES` cites the WORKING TREE, so a
+# replay needs the tree at the run's commit too. Measured 2026-08-17: the same
+# four reports joined green against a worktree at their commit and produced 78
+# "SOURCES not found" against HEAD, 197 lines later in one file. Neither the
+# reader nor the reports were wrong.
+RECORD_VERSION = "1"
 # The fields the REVIEWER fills. Empty is a legitimate answer for every one of
 # them except `verdict`, which is the ruling itself.
 ANSWERED = ("verdict", "claim", "reason", "sources", "change")
@@ -156,6 +168,7 @@ def allowed() -> dict:
 def seed(census: list[dict], reviewer: str) -> dict:
     """The whole file a reviewer is handed, ready to fill."""
     return {
+        "record_version": RECORD_VERSION,
         "reviewer": reviewer,
         # ! FIRST, so it is read before the records it governs.
         "allowed": allowed(),
