@@ -59,6 +59,7 @@ from verdicts import (  # noqa: E402  -- path shim must run first
     OUT_OF_ROLE,
     QUERY_SHAPES,
     VERDICTS,
+    code_concerns,
     parse_report,
 )
 
@@ -513,6 +514,11 @@ def main() -> int:
         # written before the shape moved stays a regression test.
         findings, malformed = parse_report(text, args.reviewer)
         report = convert(findings, census, args.reviewer)
+        # ! CODE CONCERNS travel too. They carry no verdict and are gated by
+        # nothing, which is exactly why a conversion drops them without any
+        # count moving -- measured here, 14 lines that vanished while the
+        # finding totals matched to the block.
+        report["code_concerns"] = code_concerns(text)
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, indent=1), encoding="utf-8")

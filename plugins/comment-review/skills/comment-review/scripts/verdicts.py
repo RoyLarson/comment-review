@@ -457,6 +457,105 @@ def _n(count: int, noun: str) -> str:
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
 
+def claim_text(verdict: str, claim: dict) -> str:
+    """A record's `claim` OBJECT as the marker string the checks still read.
+
+    !! A BRIDGE, and a deliberate one. The object is what a reviewer now fills
+    and what `record.py` validates; the checks below -- `ruled_text`,
+    `payload_problem` -- read the marker form the text record carried. Rendering
+    the object into that form makes every one of them work UNCHANGED on a JSON
+    report, which is what lets the change be proven equivalent before anything
+    is rewritten to read the object directly.
+
+    !! THE STRING IS NOW GENERATED, NEVER PARSED FROM A REVIEWER. That is the
+    whole difference. The marker form was a defect surface because a reviewer
+    wrote it and this file guessed where each half ended; built here from typed
+    fields it is well-formed by construction.
+
+    ! Keys the table does not name -- `anchor`, `side`, `attempted`, `settles`
+    -- are appended as prose, because that is where the old format carried them
+    and where `ANCHOR_NAME`, `ANCHOR_SIDE` and the attempted check look.
+    """
+    spec = VERDICTS.get(verdict)
+    if spec is None or not claim:
+        return ""
+    markers = [m.rstrip(":") for m in spec.claim_all]
+    parts = [f'{m}: "{claim[m]}"' for m in markers if m in claim]
+    out = " / ".join(parts)
+    if "shape" in claim:
+        out = f"{claim['shape']} {out}".strip()
+    trailing = [str(claim[k]) for k in ("anchor", "side") if claim.get(k)]
+    for key in ("attempted", "settles"):
+        if claim.get(key) and str(claim[key]) not in out:
+            trailing.append(str(claim[key]))
+    if trailing:
+        out = f"{out} {' '.join(trailing)}".strip()
+    return out
+
+
+def load_report(path: Path, reviewer: str) -> tuple[list[Finding], list[str]]:
+    """One reviewer's report, from either shape.
+
+    !! JSON IS THE SHIPPED SHAPE. `record.py --seed` writes it and a reviewer
+    fills it, so nothing here guesses where a field ends -- the three defects
+    that cost this system a day each were boundary guesses, and there are no
+    boundaries left to guess.
+
+    ! The TEXT reader is kept and DEPRECATED, not deleted. A run already in
+    flight, and every captured package on disk, is written in it -- and
+    `record.py --convert` needs it to carry those forward. It is the only route
+    by which a held run stays a regression test.
+
+    Args:
+        path: the report. `.json` is a record file; anything else is 0.2.x text.
+        reviewer: the editorial role, taken from the file's stem by the caller.
+
+    Returns:
+        `(findings, malformed)`, the same pair either way.
+    """
+    text = path.read_text(encoding="utf-8")
+    if path.suffix.lower() != ".json":
+        return parse_report(text, reviewer)
+    try:
+        report = json.loads(text)
+    except json.JSONDecodeError as e:
+        # ! Names its own position, which a merged field never could.
+        return ([], [f"CANNOT PARSE as JSON ({e})"])
+    findings: list[Finding] = []
+    malformed: list[str] = []
+    for rec in report.get("records") or []:
+        if rec.get("verdict") is None:
+            # ! An unfilled slot is a COVERAGE gap, counted by the caller from
+            # the findings it does not see. It is not a malformed record.
+            continue
+        block = rec.get("block")
+        if not isinstance(block, int):
+            malformed.append(f"a record carries block {block!r}, which is not an index")
+            continue
+        claim = rec.get("claim") or {}
+        findings.append(
+            Finding(
+                reviewer=reviewer,
+                block=block,
+                verdict=str(rec.get("verdict")),
+                claim=claim_text(str(rec.get("verdict")), claim),
+                reason=str(rec.get("reason") or ""),
+                sources=[
+                    f"{s.get('cite', '')} | {s.get('verbatim', '')}"
+                    for s in rec.get("sources") or []
+                    if isinstance(s, dict)
+                ],
+                change="\n".join(rec.get("change") or []),
+                address=str(rec.get("address") or ""),
+                # ! The record no longer carries the block's text -- the census
+                # does. `address_problem` reads this, so it is filled from the
+                # census by the caller rather than by the reviewer.
+                original="",
+            )
+        )
+    return (findings, malformed)
+
+
 def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
     """Every record in one reviewer's report, `clean` included.
 
@@ -578,6 +677,22 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
         else:
             malformed.append("a record with no BLOCK index")
     return found, malformed
+
+
+def report_concerns(path: Path, text: str) -> list[str]:
+    """A report's CODE CONCERNS, from either shape.
+
+    ! In a record file it is a LIST -- one more boundary that cannot be guessed
+    wrong, where the text shape needed a heading found by regex.
+    """
+    if path.suffix.lower() != ".json":
+        return code_concerns(text)
+    try:
+        report = json.loads(text)
+    except json.JSONDecodeError:
+        # ! Already reported by `load_report`; not worth saying twice.
+        return []
+    return [str(line) for line in (report.get("code_concerns") or [])]
 
 
 def code_concerns(text: str) -> list[str]:
@@ -1410,10 +1525,19 @@ def _report(args: argparse.Namespace) -> int:
             )
             fatal += 1
             continue
-        records, unattributable = parse_report(text, reviewer)
+        records, unattributable = load_report(path, reviewer)
+        # !! THE TOOL SUPPLIES THE ORIGINAL, NOT THE REVIEWER. A record carries
+        # an INDEX and an address; the census holds the text. Filling it here
+        # means `removed_spans` and `edit_problem` work unchanged, and the
+        # transcription-mismatch class -- 83 refusals in one measured run, none
+        # of them about a finding -- cannot arise, because nobody transcribed
+        # anything.
+        for f in records:
+            if not f.original and 1 <= f.block <= len(blocks):
+                f.original = "\n".join(blocks[f.block - 1].get("raw_lines") or [])
         found.extend(records)
         malformed.extend((reviewer, why) for why in unattributable)
-        for line in code_concerns(text):
+        for line in report_concerns(path, text):
             concerns.append((reviewer, line))
         reported.add(reviewer)
 

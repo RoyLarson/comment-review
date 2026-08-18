@@ -2364,6 +2364,117 @@ class TestAMalformedSourceIsItsOwnEntry(unittest.TestCase):
         self.assertEqual(len(findings[0].sources), 1)
 
 
+class TestTheJoinReadsRecords(unittest.TestCase):
+    """A JSON record file joins exactly as the text report it replaces.
+
+    !! The equivalence is what makes the format change safe to land: the same
+    four held reports, converted, produce a join BYTE-IDENTICAL to the one the
+    text parser produces -- 903 findings, 35 STANDS, 46 NEEDS A RULING, 145 not
+    certified, 14 CODE CONCERNS. Verified against a worktree pinned at the
+    reports' own commit, because `SOURCES` cites the working tree.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "block-context.json"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _write(self, records, concerns=None):
+        self.path.write_text(
+            json.dumps(
+                {
+                    "reviewer": "block-context",
+                    "records": records,
+                    "code_concerns": concerns or [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return self.path
+
+    def test_a_filled_record_becomes_a_finding(self):
+        path = self._write(
+            [
+                {
+                    "block": 3,
+                    "address": "a.py:1-2",
+                    "verdict": "correct",
+                    "claim": {"false": "x", "true": "y"},
+                    "reason": "because",
+                    "sources": [{"cite": "a.py:1", "verbatim": "x"}],
+                    "change": ["# y", "# z"],
+                }
+            ]
+        )
+        found, malformed = verdicts.load_report(path, "block-context")
+        self.assertEqual(malformed, [])
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].block, 3)
+        self.assertEqual(found[0].sources, ["a.py:1 | x"])
+        # ! `change` is a line array in the record and a string downstream.
+        self.assertEqual(found[0].change, "# y\n# z")
+
+    def test_an_unfilled_slot_is_skipped_not_malformed(self):
+        path = self._write([{"block": 1, "address": "a.py:1-1", "verdict": None}])
+        found, malformed = verdicts.load_report(path, "block-context")
+        self.assertEqual((found, malformed), ([], []))
+
+    def test_unparseable_json_names_its_own_position(self):
+        self.path.write_text('{"records": [ ,, ]}', encoding="utf-8")
+        found, malformed = verdicts.load_report(self.path, "block-context")
+        self.assertEqual(found, [])
+        self.assertRegex(" ".join(malformed), r"line \d+ column \d+")
+
+    def test_a_text_report_still_loads(self):
+        # ! The deprecated reader is kept: runs in flight and every captured
+        # package on disk are written in it, and `--convert` needs it.
+        path = Path(self.tmp.name) / "block-context.md"
+        path.write_text(
+            "--- RECORD\nBLOCK       1 | a.py:1-1\n            # x\n"
+            "VERDICT     clean\n---\n",
+            encoding="utf-8",
+        )
+        found, _ = verdicts.load_report(path, "block-context")
+        self.assertEqual(len(found), 1)
+
+
+class TestClaimTextRendersTheObject(unittest.TestCase):
+    """The bridge: an object rendered into the marker form the checks read.
+
+    ! The string is now GENERATED rather than parsed from a reviewer, which is
+    the whole difference. The marker form was a defect surface because this
+    file had to guess where each half ended; built from typed fields it is
+    well formed by construction.
+    """
+
+    def test_a_two_marker_claim_round_trips(self):
+        self.assertEqual(
+            verdicts.claim_text("correct", {"false": "x", "true": "y"}),
+            'false: "x" / true: "y"',
+        )
+
+    def test_a_query_leads_with_its_shape(self):
+        got = verdicts.claim_text(
+            "query",
+            {"shape": "outside my role", "attempted": "I grepped", "settles": "s"},
+        )
+        self.assertTrue(got.startswith("outside my role"))
+        self.assertIn("I grepped", got)
+
+    def test_an_add_carries_its_anchor_and_side_as_prose(self):
+        # ! Where `ANCHOR_NAME` and `ANCHOR_SIDE` look for them.
+        got = verdicts.claim_text(
+            "add", {"missing": "x", "anchor": "`F`", "side": "above"}
+        )
+        self.assertIn("`F`", got)
+        self.assertIn("above", got)
+
+    def test_an_empty_claim_renders_empty(self):
+        self.assertEqual(verdicts.claim_text("clean", {}), "")
+
+
 class TestABareFieldLabelIsStillALabel(unittest.TestCase):
     """A label with nothing after it must not be glued onto the field above.
 

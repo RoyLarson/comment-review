@@ -318,11 +318,22 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       own position**, `line N column M`. That is the failure this format ADDS, and it is
       acceptable precisely because a merged field never could -- it blamed the neighbour.
 
-- [ ] **3. `verdicts.py` reads records instead of parsing prose**, and `parse_report` stays
-      behind a deprecation notice for the old text reports. !! **Free regression test: the four
-      smoke-test reports are on disk.** Convert, join, and the result must match the join
-      already taken -- **903 findings, 35 STANDS, 46 NEEDS A RULING, 14 CODE CONCERNS**. If the
-      numbers move, the new reader is wrong.
+- [x] **3. DONE 2026-08-17 -- `verdicts.py` reads records**, and `parse_report` stays behind a
+      deprecation notice. !! **The regression is BYTE-IDENTICAL.** The four held
+      reports, converted, join to output `diff` cannot separate from the join over
+      the originals -- 903 findings, 35 STANDS, 46 NEEDS A RULING, 145 not certified,
+      14 CODE CONCERNS, exit 0 -- against a worktree pinned at the reports' own commit.
+
+      ! `claim_text` renders the object back into the marker form the checks read, so
+      every existing check works UNCHANGED. **The string is now generated rather than
+      parsed from a reviewer**, which is the whole difference: the marker form was a
+      defect surface because this file guessed where each half ended.
+
+      ! The tool supplies `original` from the census after loading, so `removed_spans`
+      and `edit_problem` work while nobody transcribes anything.
+
+      ! CODE CONCERNS carry no verdict and are gated by nothing, so a conversion
+      dropped all 14 with no count moving. Caught only by diffing the two joins.
 
 - [ ] **4. The `REASON`-carries-the-finding check.** `REASON` quoting block text that `claim`
       does not name is a finding filed in the wrong field. ! Its own step because it is a new
