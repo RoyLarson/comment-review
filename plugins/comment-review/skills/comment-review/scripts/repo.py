@@ -56,6 +56,37 @@ EXCLUDED_DIRS = frozenset(
 )
 
 
+def read_raw(path: Path) -> str:
+    r"""The file\'s own line endings, untranslated.
+
+    `Path.read_text` (and a plain `open` with no `newline=`) applies
+    universal-newline translation, collapsing every `\r\n` to `\n` before the
+    caller ever sees it -- so a CRLF file and an LF file become
+    indistinguishable to anything that then asks which ending the text uses.
+    `newline=""` disables that translation.
+
+    !! TWO CALLERS NEED IT AND BOTH ARE ABOUT COMPARING A FILE TO ITSELF.
+    `prove_unchanged` asks whether the code is byte-identical; `galley` writes a
+    copy meant to be diffed against its original. Measured 2026-08-17: the
+    galley read with `read_text` instead, so a 245-line CRLF source was written
+    out with 223 bare LF and every line of the diff was an ending change.
+
+    ! `Path.read_text`\'s own `newline=` parameter arrived in Python 3.13, and
+    the floor here is 3.11, where passing it raises `TypeError`.
+    `check_shipped_syntax.py` reads syntax and two runtime shapes, so a keyword
+    argument that exists only on a newer interpreter gets past it.
+    `open(...).read()` works at the floor and does the same thing.
+
+    Args:
+        path: the file to read.
+
+    Returns:
+        Its text, with every line ending exactly as it sits on disk.
+    """
+    with open(path, encoding="utf-8", newline="") as f:
+        return f.read()
+
+
 def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
     r"""Every git invocation this plugin makes. ONE place, on purpose.
 

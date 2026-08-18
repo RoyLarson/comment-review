@@ -51,6 +51,7 @@ from repo import (  # noqa: E402  -- path shim must run first
     READ_ERRORS,
     git,
     git_ls_files,
+    read_raw,
 )
 
 DOC_ANCHORS = (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
@@ -197,25 +198,6 @@ def dominant_ending(text: str) -> str:
     return "crlf" if crlf >= lf else "lf"
 
 
-def _read_raw(path: Path) -> str:
-    r"""The file's own line endings, untranslated.
-
-    `Path.read_text` (and a plain `open` with no `newline=`) applies
-    universal-newline translation, collapsing every `\r\n` to `\n` before
-    this code ever sees it -- so a CRLF file and an LF file become
-    indistinguishable by the time `dominant_ending` looks at them. `newline=""`
-    disables that translation.
-
-    ! `Path.read_text`'s own `newline=` parameter arrived in Python 3.13, so at
-    the 3.11 floor this script promises it raises `TypeError`.
-    `check_shipped_syntax.py` reads syntax and two runtime shapes, so a keyword
-    argument that exists only on a newer interpreter gets past it.
-    `open(...).read()` works at the floor and does the same thing.
-    """
-    with open(path, encoding="utf-8", newline="") as f:
-        return f.read()
-
-
 def _spec(ref: str, rel: str) -> str:
     """The `git show` argument, built in ONE place so a failure can quote it.
 
@@ -266,7 +248,7 @@ def _sibling(
         if cand.parent != target.parent or cand in edited or cand == target:
             continue
         try:
-            _read_raw(cand)
+            read_raw(cand)
         except READ_ERRORS:
             continue
         return cand
@@ -340,8 +322,8 @@ def main() -> int:
             print(f"UNCHECKED  {rel}: no readable untouched sibling -- line endings")
             unchecked += 1
         else:
-            want = dominant_ending(_read_raw(sib))
-            got = dominant_ending(_read_raw(target))
+            want = dominant_ending(read_raw(sib))
+            got = dominant_ending(read_raw(target))
             # ! BOTH sides are guarded against "none". A single-line file with
             # no trailing newline has no ending to measure, so it reads "none"
             # and would FAIL against any CRLF sibling on ABSENT endings rather

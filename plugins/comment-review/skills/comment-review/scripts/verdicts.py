@@ -1030,15 +1030,22 @@ def _words(text: str) -> str:
     the same phrase at the end of a sentence works. Measured 2026-08-17 on a
     live run, where it defeated the CLAIM-covers-CHANGE check.
     """
-    return (
-        # !! ONE strip over BOTH classes, so this is IDEMPOTENT. Stripping
-        # quotes and THEN punctuation is not: `` `cap`, `` loses its backtick
-        # only on a second pass. `ruled_text` already returns `_words(...)` and
-        # `edit_problem` normalises it again, while a diff span gets one pass --
-        # so a claim and the edit naming it reduced to different strings, and a
-        # correct finding was refused.
-        " ".join(w.strip(EDGE) for w in text.split()).strip().lower()
-    )
+    # !! ONE strip over BOTH classes, and a token that strips to NOTHING is
+    # dropped. Both are needed for the idempotence callers rely on, and each
+    # was a separate refusal of a correct finding:
+    #
+    #   - stripping quotes and THEN punctuation is not idempotent -- `` `cap`, ``
+    #     loses its backtick only on a second pass;
+    #   - a token that is punctuation ALONE -- `...`, `--`, `*` -- reduces to
+    #     the empty string, and joining on it leaves a double space that only a
+    #     second pass collapses. Measured 2026-08-17: a whole-block `drop` of
+    #     any block containing such a token was refused, telling the reviewer to
+    #     write a remainder that was already there.
+    #
+    # ! The property is what lets `ruled_text` return `_words(...)` and a caller
+    # normalise the other side once. Without it the two sides are reduced a
+    # different number of times and cannot agree.
+    return " ".join(s for w in text.split() if (s := w.strip(EDGE))).lower()
 
 
 def address_problem(f: Finding, blocks: list[dict]) -> str | None:
@@ -1387,7 +1394,7 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
         whole = _words(as_block(f.original, entry))
         if not whole:
             return f"{f.verdict}: CHANGE is empty and BLOCK carries no original"
-        if _words(ruled_text(f)) != whole:
+        if ruled_text(f) != whole:
             return (
                 f"{f.verdict}: CHANGE is empty, which says the block empties --"
                 " but CLAIM names only part of it. Write the remainder."
@@ -1401,7 +1408,7 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
     # ! `CLAIM` is not file text -- it is a sentence the reviewer quoted -- so
     # it goes through `_words` while the spans go through `as_block`. The two
     # meet here, which is why both end lowercased and punctuation-stripped.
-    named = _words(ruled_text(f))
+    named = ruled_text(f)
     if not named:
         return None
     if VERDICTS[f.verdict].removes and not spans:
@@ -1467,9 +1474,9 @@ def unrecorded_findings(
         `(block, reviewer, phrase)` per phrase, in block order.
     """
     # Every phrase any CLAIM in this run names, normalised once.
-    claimed = {
-        _words(ruled_text(f)) for fs in grouped.values() for f in fs if ruled_text(f)
-    }
+    # ! One call per finding. `ruled_text` already returns `_words(...)`, so
+    # the walrus keeps the text rather than computing it twice to test it.
+    claimed = {text for fs in grouped.values() for f in fs if (text := ruled_text(f))}
     out: list[tuple[int, str, str]] = []
     for block, fs in sorted(grouped.items()):
         if not 1 <= block <= len(blocks):

@@ -39,7 +39,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
+from repo import READ_ERRORS, read_raw  # noqa: E402  -- path shim must run first
 
 
 def line_endings(text: str) -> str:
@@ -47,7 +47,14 @@ def line_endings(text: str) -> str:
 
     ! Taken from the file being spliced, not from the platform. A galley is
     diffed against its original; a rewrite that normalised the endings would
-    report every line as changed and bury the prose edit.
+    report every line as changed and bury the prose edit. ! Which is why the
+    caller reads with `repo.read_raw`: `read_text` would have collapsed the
+    endings before this saw them.
+
+    ! NOT `prove_unchanged.dominant_ending`, which answers a different
+    question. That one names the ending a file MOSTLY uses, for a report; this
+    one picks the joiner a rewrite must use, and prefers CRLF on a mixed file
+    so that the lines already carrying it are left alone.
     """
     return "\r\n" if "\r\n" in text else "\n"
 
@@ -111,7 +118,10 @@ def block_matches(lines: list[str], block: dict) -> bool:
     if start < 1 or end > len(lines) or start > end:
         return False
     if block.get("kind") == "interval":
-        return all(not ln.strip() for ln in lines[start : end - 1])
+        # ! The same lines `splice_range` returns, read the same way, so the
+        # check and the write cannot disagree about which lines the gap is.
+        first, last = splice_range(block)
+        return all(not ln.strip() for ln in lines[first - 1 : last])
     stored = block.get("raw_lines") or []
     if not stored:
         return False
@@ -123,12 +133,15 @@ def block_matches(lines: list[str], block: dict) -> bool:
 def splice_range(block: dict) -> tuple[int, int]:
     """The 1-based inclusive lines `splice` replaces to realise this block's edit.
 
-    !! A PROSE BLOCK IS REPLACED; AN INTERVAL IS INSERTED INTO. An interval's
-    `start` and `end` are the two lines of CODE that bound it, so replacing
-    `start..end` would write the replacement over both of them. What the edit
-    means is "put this between them", which is `start + 1 .. end - 1` -- the
-    gap itself. For adjacent code lines that is `n+1 .. n`, an empty range, and
-    `splice` assigns into an empty slice, which is a pure insertion.
+    !! THE CENSUS DECIDES THIS, NOT THIS MODULE. A prose block is replaced and
+    an empty interval is inserted into, and there are more kinds than those two
+    -- a trailing comment shares its line with code, and a PEP 727 `Doc()` is a
+    literal inside one. Branching on kind here would have to grow a case for
+    each, and the census already knows which lines each block's text occupies.
+
+    ! It reads `edit_start`/`edit_end`, falling back to `start`/`end` for a
+    census taken before those existed. The fallback is why this function is
+    still here rather than inlined.
 
     Args:
         block: one census entry.
@@ -136,9 +149,13 @@ def splice_range(block: dict) -> tuple[int, int]:
     Returns:
         `(start, end)` for `splice`.
     """
-    if block.get("kind") == "interval":
-        return (block["start"] + 1, block["end"] - 1)
-    return (block["start"], block["end"])
+    start = block.get("edit_start") or block["start"]
+    end = block.get("edit_end")
+    # ! `or` will not do for `end`: a legitimate edit range ends at 0, which is
+    # the gap above the first line of a file.
+    if end is None:
+        end = block["end"]
+    return (start, end)
 
 
 def main() -> int:
@@ -198,7 +215,11 @@ def main() -> int:
     for rel, file_edits in sorted(by_path.items()):
         source = repo / rel
         try:
-            text = source.read_text(encoding="utf-8")
+            # !! READ RAW. `read_text` collapses every `\r\n` to `\n`, so
+            # `line_endings` below would never see a CRLF file and every line
+            # of the galley would differ from its original by its ending --
+            # which is the whole thing this module is diffed for.
+            text = read_raw(source)
         except READ_ERRORS as e:
             print(f"REFUSED  {rel}: {type(e).__name__}")
             refused += len(file_edits)
@@ -229,7 +250,20 @@ def main() -> int:
             refused += len(file_edits)
             continue
 
-        target = out / rel
+        # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `--out`. `out / rel` is
+        # the source path itself when `rel` is absolute -- Python's join lets
+        # an absolute right-hand side win -- and an absolute path is exactly
+        # what a census taken before this was fixed carries. Measured
+        # 2026-08-17: the galley overwrote the file under review, wrote nothing
+        # under `--out`, and reported that it had succeeded.
+        #
+        # ! Checked on the RESOLVED path, so `..` inside a census path is
+        # refused on the same rule rather than by a second one.
+        target = (out / rel).resolve()
+        if not target.is_relative_to(out):
+            print(f"REFUSED  {rel}: would be written outside --out")
+            refused += len(file_edits)
+            continue
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(splice(text, ranges), encoding="utf-8", newline="")
         print(f"galley   {rel} ({len(file_edits)} block(s))")

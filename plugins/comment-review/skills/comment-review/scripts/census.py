@@ -136,6 +136,32 @@ class Block:
         return max((len(ln) for ln in self.raw_lines), default=0)
 
     raw_lines: list[str] = field(default_factory=list)
+    # !! THE LINES AN EDIT TO THIS BLOCK OCCUPIES, which is NOT always the
+    # range that ADDRESSES it. A prose block is replaced, so the two coincide.
+    # An empty INTERVAL is inserted into: `start` and `end` are the two lines
+    # of CODE that bound it, and writing over them would delete code, so its
+    # edit range is the gap between them -- `(n+1, n)` for adjacent lines,
+    # which is an empty slice and therefore a pure insertion.
+    #
+    # !! IT IS COMPUTED HERE BECAUSE ONLY HERE IS IT KNOWABLE. `intervals()`
+    # walks edges that carry SENTINELS -- 0 above the first code line, one past
+    # the last below it -- and then clamps them, because a citation has to
+    # resolve to a real line. The clamp is what says "this gap is at the file
+    # boundary", and it destroys which SIDE it is on. Measured 2026-08-17: an
+    # `add` citing the gap above the first line of a file landed BELOW that
+    # line, and on a one-line file the gap above and the gap below reduced to
+    # the same address, so a reviewer could not tell them apart either.
+    #
+    # ! Left 0/0 by a producer, they mirror `start`/`end` -- see
+    # `__post_init__`. That is what makes this safe to add without visiting
+    # every construction site.
+    edit_start: int = 0
+    edit_end: int = 0
+
+    def __post_init__(self) -> None:
+        """Default the edit range to the addressing range."""
+        if not self.edit_start and not self.edit_end:
+            self.edit_start, self.edit_end = self.start, self.end
 
 
 def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
@@ -938,6 +964,11 @@ def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
     between them, because a zero-width gap has no lines of its own and every
     citation in this system has to resolve. Two adjacent code lines give an
     interval whose range is those two lines.
+
+    !! `edit_start` and `edit_end` are the OTHER range -- the gap itself, which
+    is what an edit to this interval occupies. They are set here and nowhere
+    else, because the edges walked here carry the file-boundary sentinels that
+    `start` and `end` clamp away. See `Block`.
     """
     lines = text.splitlines()
     last = len(lines)
@@ -953,11 +984,18 @@ def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
         out.append(
             Block(
                 path=path.as_posix(),
+                # The ADDRESS: clamped, because a citation has to resolve.
                 start=max(prev, 1),
                 end=min(nxt, last),
                 kind="interval",
                 lines=0,
                 text="",
+                # The EDIT: unclamped, so the file boundary keeps its side.
+                # `prev + 1 .. nxt - 1` is the gap itself -- empty for adjacent
+                # code lines, `1..0` above the first line, `last+1..last` below
+                # the last.
+                edit_start=prev + 1,
+                edit_end=nxt - 1,
             )
         )
     return out
@@ -970,6 +1008,24 @@ def tier_for(lang: Language) -> str:
     and the run report the same tier.
     """
     return "tokenized" if lang.name == "python" else "lexical"
+
+
+def _repo_relative(path: Path, repo: Path) -> str:
+    """`path` as `repo` sees it: posix, relative, no `..`.
+
+    Args:
+        path: the file censused.
+        repo: the root every citation resolves against.
+
+    Returns:
+        The relative posix path, or the absolute one when the file is not under
+        `repo` -- there is no relative form of it, and inventing one with `..`
+        would give a consumer a path that escapes the root it was handed.
+    """
+    try:
+        return path.resolve().relative_to(repo).as_posix()
+    except ValueError:
+        return path.as_posix()
 
 
 def census_for(path: Path, text: str, lang: Language) -> list[Block]:
@@ -1082,6 +1138,24 @@ def _report(args: argparse.Namespace) -> int:
         except Exception as e:  # a parse failure is REPORTED, as a gap
             unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
             continue
+        # !! EVERY BLOCK'S PATH IS REPO-RELATIVE. It is what `--repo` is for:
+        # the census, the file lists and every citation a reviewer writes all
+        # resolve against that root, so a block carrying an absolute path is a
+        # block no consumer can place. It happened whenever the run was handed
+        # absolute file arguments, which is how a task agent that resolved its
+        # own paths would call this.
+        #
+        # !! Measured 2026-08-17: `galley.py` joins `out / block["path"]`, and
+        # in Python an absolute right-hand side WINS a join -- so the galley
+        # wrote over the source file, put nothing under `--out`, and printed
+        # that it had succeeded. The module whose one promise is "nothing under
+        # `--repo` is touched" was editing the tree under review.
+        #
+        # ! A file outside the repo keeps its absolute path, because there is
+        # no relative form of it. `galley.py` refuses to write such a block
+        # rather than guessing where it belongs.
+        for b in got:
+            b.path = _repo_relative(path, repo)
         census.extend(got)
 
     for b in census:
