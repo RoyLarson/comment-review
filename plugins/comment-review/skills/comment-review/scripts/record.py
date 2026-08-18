@@ -272,6 +272,39 @@ def value_problems(where: str, rec: dict) -> list[str]:
     return out
 
 
+def version_problem(report: dict) -> str | None:
+    """Was this file written by a reader that agrees with this one?
+
+    !! THE VERSION WAS WRITTEN AND READ BY NOTHING, which made the property it
+    claims -- that a held report stays a regression test rather than becoming
+    an archive the day the shape moves -- a sentence rather than a guarantee.
+    A file from a future version was read as if it were this one, and the first
+    sign of it would have been a field silently absent.
+
+    ! A MISSING version is the 0.2.x text format converted by hand, or a file
+    written before the field existed. Reported, not refused: `--convert` is the
+    supported route and it writes the field.
+
+    Args:
+        report: the parsed record file.
+
+    Returns:
+        One sentence naming the disagreement, or None.
+    """
+    got = report.get("record_version")
+    if got == RECORD_VERSION:
+        return None
+    if got is None:
+        return (
+            f"no `record_version` -- this reader writes {RECORD_VERSION!r}, and a"
+            " file without one was not written by `record.py --seed`"
+        )
+    return (
+        f"`record_version` is {got!r} and this reader is {RECORD_VERSION!r} --"
+        " the shape moved, so what is missing here would not announce itself"
+    )
+
+
 def record_problems(where: str, rec: dict, block: dict | None) -> list[str]:
     """Everything wrong with the SHAPE of one record."""
     out = list(seeded_problems(where, rec, block))
@@ -496,11 +529,16 @@ def main() -> int:
             print(f"CANNOT PARSE {args.check} as JSON ({e})")
             return 2
         problems, unruled = check(report, census)
+        # ! The version first, because every message below it assumes this
+        # reader and that file agree about what a record is.
+        stale = version_problem(report)
+        if stale:
+            print(f"  {stale}")
         for problem in problems:
             print(f"  {problem}")
         total = len(report.get("records") or [])
         print(f"\n{total - unruled} of {total} records ruled; {unruled} still empty.")
-        if problems:
+        if problems or stale:
             print(f"{len(problems)} problem(s). The shape is wrong, not the finding.")
             return 1
         # ! An unfilled report is INCOMPLETE, not malformed, and the two exit

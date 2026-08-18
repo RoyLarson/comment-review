@@ -516,5 +516,33 @@ class TestABlankClaimKeyIsMissing(unittest.TestCase):
         self.assertIn("needs `claim` keys", problems[0])
 
 
+class TestTheRecordVersionIsRead(unittest.TestCase):
+    """The field was written by `seed` and read by nothing.
+
+    !! Its own comment claims it keeps a held report a REGRESSION TEST rather
+    than an archive the day the shape moves. Nothing said so, so a file from a
+    future version read as one of this version and the first sign of it would
+    have been a field silently absent.
+    """
+
+    def test_this_readers_own_version_passes(self):
+        self.assertIsNone(
+            record.version_problem({"record_version": record.RECORD_VERSION})
+        )
+
+    def test_a_seeded_file_passes(self):
+        self.assertIsNone(record.version_problem(record.seed(CENSUS, "block-context")))
+
+    def test_a_different_version_is_named(self):
+        problem = record.version_problem({"record_version": "2"})
+        self.assertIn("'2'", problem)
+        self.assertIn(repr(record.RECORD_VERSION), problem)
+
+    def test_a_missing_version_is_reported_differently(self):
+        # ! The two mean different things: a shape that moved, against a file
+        # `--seed` never wrote. A reviewer fixes them differently.
+        self.assertIn("no `record_version`", record.version_problem({}))
+
+
 if __name__ == "__main__":
     unittest.main()

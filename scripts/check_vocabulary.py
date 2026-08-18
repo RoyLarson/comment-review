@@ -24,25 +24,9 @@ installed plugin rather than to the absolute path it was handed.
 Those documents are gone -- they were the apparatus for finding the terms, and
 the terms are settled -- so the check went with them.
 
-!! ONE HANDED DOCUMENT IS DELIBERATELY NOT COVERED: `re-review.md`. It reaches
-the four editorial roles in a round-2 message the way the brief reaches them in
-round 1, so by the rule above it should be part of their text -- and it cannot
-be. Measured 2026-08-17: deriving it adds exactly one term to all four,
-**`cap`**, and the four reviewers are the roles the cap is never passed to,
-because length is not an editorial role. A per-role vocabulary is one list, so
-there is no way to hand a role a document's terms minus one.
-
-! The cost is that `re-review.md`'s own terms are checked by nothing, and it
-introduces one -- **galley** -- which is therefore defined inline there rather
-than in `vocabulary.toml`. An entry would have to be given to a role, the drift
-check would find the word in no text that role reads, and the gate would refuse
-it.
-
-! The underlying reason is that `re-review.md` addresses TWO audiences: the task
-agent, which learns when a round fires and when the rounds stop, and the role
-being re-reviewed, which learns what it is given and what to return. `cap` is in
-the task agent's half. Splitting the file would make both halves derivable; it
-has not been done.
+!! ONE HANDED DOCUMENT IS DELIBERATELY NOT DERIVED, and `NOT_DERIVED`
+below names it and says why. It is stated there rather than here because
+the exclusion used to happen by accident.
 
 Exits nonzero if either check finds something.
 """
@@ -64,6 +48,26 @@ EMITTED = REFERENCES / "vocabulary.toml"
 # four reviewers -- which name no file, because the brief is HANDED to them in
 # their prompt -- are matched on the word.
 READS = re.compile(r"`([\w-]+\.md)`")
+
+# !! HANDED TO A ROLE AND DELIBERATELY NOT DERIVED. `re-review.md` reaches the
+# four editorial roles in a round-2 message the way the brief reaches them in
+# round 1, so the rule above says it should be part of their text. Deriving it
+# adds exactly one term to all four -- `cap` -- and those are the roles the cap
+# is never passed to, because length is not an editorial role. A per-role
+# vocabulary is one list, so a document's terms cannot be handed minus one.
+#
+# !! IT IS NAMED HERE BECAUSE IT WAS EXCLUDED BY ACCIDENT. Nothing referred to
+# the file: the four reviewer agents happen not to name it in backticks, so
+# `text_for` never reached it. Adding it to an agent file -- which the round-2
+# protocol arguably calls for -- would have started the derivation and failed
+# the gate over `cap`, with the reason sitting in a docstring nobody reads at
+# that moment.
+#
+# ! The cost is that this file's own terms are checked by nothing, and it
+# introduces one: `galley`, defined inline there for that reason. The deeper
+# answer is to split it by audience -- the task agent learns when a round fires,
+# the role learns what it is given, and `cap` is in the task agent's half.
+NOT_DERIVED = frozenset({"re-review.md"})
 BRIEF = ("brief", "reviewer-brief.md")
 
 # The key every role's list is extended with. Not a role.
@@ -90,7 +94,7 @@ def text_for(role: str) -> str | None:
     # for `compact` -- and no longer names the file, because naming it is a path
     # into the installed plugin. Derived from the tree, never listed here.
     named.add(f"{role}.md")
-    for name in sorted(named):
+    for name in sorted(named - NOT_DERIVED):
         reference = REFERENCES / name
         if reference.exists():
             text += "\n" + reference.read_text(encoding="utf-8")
