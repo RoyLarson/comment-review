@@ -59,6 +59,7 @@ from verdicts import (  # noqa: E402  -- path shim must run first
     OUT_OF_ROLE,
     QUERY_SHAPES,
     VERDICTS,
+    claim_keys,
     code_concerns,
     parse_report,
 )
@@ -154,18 +155,8 @@ def allowed() -> dict:
     """
     claims: dict[str, list[str]] = {}
     for name, spec in VERDICTS.items():
-        keys = [marker.rstrip(":") for marker in spec.claim_all]
-        # ! `query` is the one whose claim_any is a set of PHRASES rather than
-        # keys -- it names its SHAPE. The phrase is the value; the key is fixed.
-        if spec.claim_any:
-            keys.append("shape")
-        if spec.needs_attempted:
-            keys.append("attempted")
-        if spec.needs_settles:
-            keys.append("settles")
-        if spec.needs_anchor:
-            keys += ["anchor", "side"]
-        claims[name] = keys
+        markers, extras = claim_keys(spec)
+        claims[name] = markers + extras
     return {
         "verdict": sorted(VERDICTS),
         "claim": claims,

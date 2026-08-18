@@ -1061,6 +1061,32 @@ def tier_for(lang: Language) -> str:
     return "tokenized" if lang.name == "python" else "lexical"
 
 
+def address(block: dict) -> str:
+    """`path:start-end` -- how every part of this system NAMES a block.
+
+    !! ONE FORMAT, ONE OWNER. It is the contract between what `record.py
+    --seed` writes into a slot and what the stage-5 gate admits, and it was
+    written out at four sites that had already drifted: only
+    `verdicts.address_problem` normalised a backslash separator, and only it
+    accepted the one-line short form. The one measured divergence in this
+    format cost 268 refusals in a single run, every one of them a correct
+    address.
+
+    ! The READER may be more forgiving than the writer -- `address_problem`
+    still accepts `path:start` on a one-line block, because the brief tells a
+    reviewer to write `path:start-end` and the census prints the short form.
+    That tolerance is a rule about reading, and it stays with the reader.
+
+    Args:
+        block: one census entry, as a dict.
+
+    Returns:
+        The block's address.
+    """
+    path = str(block.get("path", "")).replace("\\", "/")
+    return f"{path}:{block.get('start')}-{block.get('end')}"
+
+
 def _repo_relative(path: Path, repo: Path) -> str:
     """`path` as `repo` sees it: posix, relative, no `..`.
 
@@ -1209,8 +1235,13 @@ def _report(args: argparse.Namespace) -> int:
         # ! A file outside the repo keeps its absolute path, because there is
         # no relative form of it. `galley.py` refuses to write such a block
         # rather than guessing where it belongs.
+        # ! HOISTED. `_repo_relative` calls `Path.resolve()`, a filesystem
+        # call, and both arguments are the same for every block of a file.
+        # Measured 2026-08-18: 120 us a call, so one 793-block file spent
+        # 95 ms resolving one path 793 times.
+        rel = _repo_relative(path, repo)
         for b in got:
-            b.path = _repo_relative(path, repo)
+            b.path = rel
         census.extend(got)
 
     for b in census:
@@ -1279,7 +1310,7 @@ def _report(args: argparse.Namespace) -> int:
     for i, b in enumerate(census, 1):
         notes = ",".join(sorted(b.annotations)) or "-"
         anchor = f"  ({b.anchor})" if b.anchor else ""
-        loc = f"{b.path}:{b.start}-{b.end}"
+        loc = address(vars(b))
         print(f"{i:4d}  {loc}  {b.kind}  {b.lines}L  {notes}{anchor}")
         if not args.census_only:
             for note in b.notes:

@@ -84,10 +84,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from census import block_text, language_for  # noqa: E402  -- path shim must run first
+from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 from vocabulary import Reviewer  # noqa: E402  -- path shim must run first
-
-READ_ERRORS = (OSError, UnicodeDecodeError)
-
 
 # !! The THREE shapes `reviewer-brief.md` says reach `query`, and a query must
 # NAME the one it is. A closed set beats guessing at free text: the shape decides
@@ -550,6 +548,41 @@ def _n(count: int, noun: str) -> str:
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
 
+def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
+    """The `claim` keys this verdict owes: `(markers, extras)`.
+
+    !! ONE ROW, which is the promise the `Verdict` table makes and which four
+    sites had taken back. `record.allowed` told a reviewer what to fill,
+    `record.claim_object` read the deprecated form, `claim_text` rendered it
+    and `payload_problem` checked it -- each deriving the same key list from
+    the same traits, and two of them hardcoding the names. A new trait had to
+    be added in four places and nothing failed if one was missed.
+
+    ! `markers` are the keys that render as `key: "value"`; `extras` are the
+    ones carried as prose beside them. The split is what `claim_text` needs and
+    it is the only reason this returns a pair.
+
+    Args:
+        spec: the verdict's row.
+
+    Returns:
+        `(markers, extras)`, each in the order a record states them.
+    """
+    markers = [marker.rstrip(":") for marker in spec.claim_all]
+    extras: list[str] = []
+    # ! `query`'s `claim_any` is a set of PHRASES, not keys -- it names its
+    # SHAPE, so the phrase is the value and the key is fixed.
+    if spec.claim_any:
+        extras.append("shape")
+    if spec.needs_attempted:
+        extras.append("attempted")
+    if spec.needs_settles:
+        extras.append("settles")
+    if spec.needs_anchor:
+        extras += ["anchor", "side"]
+    return (markers, extras)
+
+
 def claim_text(verdict: str, claim: dict) -> str:
     """A record's `claim` OBJECT as the marker string the checks still read.
 
@@ -572,15 +605,19 @@ def claim_text(verdict: str, claim: dict) -> str:
     spec = VERDICTS.get(verdict)
     if spec is None or not claim:
         return ""
-    markers = [m.rstrip(":") for m in spec.claim_all]
+    markers, extras = claim_keys(spec)
     parts = [f'{m}: "{claim[m]}"' for m in markers if m in claim]
     out = " / ".join(parts)
-    if "shape" in claim:
+    if "shape" in extras and claim.get("shape"):
         out = f"{claim['shape']} {out}".strip()
-    trailing = [str(claim[k]) for k in ("anchor", "side") if claim.get(k)]
-    for key in ("attempted", "settles"):
-        if claim.get(key) and str(claim[key]) not in out:
-            trailing.append(str(claim[key]))
+    # ! The SHAPE is a prefix and everything else trails. Anything already in
+    # `out` is not repeated -- a reviewer whose `settles` restates the claim
+    # would otherwise have it twice in the string the checks read.
+    trailing = [
+        str(claim[key])
+        for key in extras
+        if key != "shape" and claim.get(key) and str(claim[key]) not in out
+    ]
     if trailing:
         out = f"{out} {' '.join(trailing)}".strip()
     return out
