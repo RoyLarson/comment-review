@@ -456,17 +456,23 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     # same stamp. A list because `flush` is a closure and rebinds nothing.
     trailing_end = [_NO_TRAILING]
 
-    # ! Did the run's FIRST line get cut back to the opener, with real code
-    # before it? `trailing` does not answer that: a MULTI-LINE block comment
-    # opened after a statement cuts the same way and flushes with
-    # `trailing=False`, because by then the run spans several lines. A list
-    # because `flush` is a closure and rebinds nothing.
-    cut_first = [False]
+    # !! DOES CODE SHARE THE RUN'S FIRST LINE -- on EITHER side? `/* note */ x
+    # = 1` has it after the closer and `x = 1; /* note` has it before the
+    # opener, and both mean the same thing: a splice over that line deletes a
+    # statement. Deriving it from the CUT alone answered only the second, and
+    # the first was censused as prose holding `int b = 2;` with the galley
+    # willing to write over it. Measured 2026-08-18.
+    #
+    # ! `trailing` does not answer it either: a MULTI-LINE block comment opened
+    # after a statement cuts the same way and flushes with `trailing=False`,
+    # because by then the run spans several lines. A list because `flush` is a
+    # closure and rebinds nothing.
+    partial_first = [False]
 
     def flush(trailing: bool = False) -> None:
         pending.clear()
         if not run:
-            cut_first[0] = False
+            partial_first[0] = False
             return
         raw = [t for _, t in run]
         stripped = raw[0].strip()
@@ -486,9 +492,9 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             text=_join(raw, openers),
             raw_lines=raw,
             tier="lexical",
-            whole_lines=not cut_first[0],
+            whole_lines=not partial_first[0],
         )
-        cut_first[0] = False
+        partial_first[0] = False
         # !! Same split as the tokenized tier: a trailing comment closes its run,
         # so a sentence wrapped onto the next line becomes a SECOND block anchored
         # to the code below it. Stamped, not re-cut.
@@ -575,9 +581,15 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             # `int b = 2; /* opens ...`, the statement handed over as prose.
             cut = 0 if (closes_here and after.strip()) else opens_at
             # ! Only the run's FIRST line decides it. A continuation line of a
-            # block comment is entirely prose whatever precedes the run.
-            if not run and cut and code[:opens_at].strip():
-                cut_first[0] = True
+            # block comment is entirely prose whatever surrounds the run.
+            #
+            # !! BOTH SIDES. Code before the opener, and code after the closer
+            # on a comment that closes on this line -- the second is exactly
+            # the case `cut` is set to 0 for, so testing `cut` missed it.
+            if not run:
+                partial_first[0] = bool(code[:opens_at].strip()) or bool(
+                    closes_here and after.strip()
+                )
             run.append((n, raw_line[cut:].rstrip()))
             if closes_here:
                 # ! Code BEFORE the opener makes it a trailing comment, which is
@@ -594,9 +606,10 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         flush()  # ! CODE ends a block; a blank line does not
         at = line_at
         if at >= 0:
-            # ! `flush()` above emptied the run, so this line is the first one
-            # and the code before `at` is what makes it trailing.
-            cut_first[0] = bool(at and code[:at].strip())
+            # ! `flush()` above emptied the run, so this line is the first
+            # one and the code before `at` is what makes it trailing. A line
+            # comment runs to end of line, so there is no other side to test.
+            partial_first[0] = bool(at and code[:at].strip())
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own block, anchored to the code on that line
     flush()

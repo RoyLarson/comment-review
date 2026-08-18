@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
+import census
 import galley
 
 ORIGINAL = "def f():\n    # old note\n    # second line\n    return 1\n"
@@ -91,20 +92,28 @@ class TestCLI(unittest.TestCase):
         self.repo = self.root / "repo"
         (self.repo / "pkg").mkdir(parents=True)
         (self.repo / "pkg" / "m.py").write_text(ORIGINAL, encoding="utf-8")
+        # !! FROM `census.py`, not by hand. A hand-built census omits the
+        # fields the galley asks of it, and `galley.py` refuses such a census
+        # whole -- rightly, since the one per-field default that was tried put
+        # back a deleted statement. A fixture that hand-writes the shape also
+        # drifts from what the tool actually emits, which is how a trailing
+        # comment passed here while the shipped path deleted code.
         self.census = self.root / "census.json"
         self.census.write_text(
             json.dumps(
                 [
-                    {
-                        "path": "pkg/m.py",
-                        "start": 2,
-                        "end": 3,
-                        "kind": "comment",
-                        "raw_lines": ["    # old note", "    # second line"],
-                    }
-                ]
+                    vars(b)
+                    for b in census.census_for(
+                        Path("pkg/m.py"), ORIGINAL, census.language_for(Path("m.py"))
+                    )
+                ],
+                default=list,
             ),
             encoding="utf-8",
+        )
+        self.blocks = json.loads(self.census.read_text(encoding="utf-8"))
+        self.note = next(
+            i for i, b in enumerate(self.blocks, 1) if b["kind"] == "comment"
         )
         self.out = self.root / "galley"
 
@@ -134,7 +143,7 @@ class TestCLI(unittest.TestCase):
         )
 
     def test_it_writes_a_mirror_and_leaves_the_source_alone(self):
-        result = self._run({"1": "    # new note"})
+        result = self._run({str(self.note): "    # new note"})
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertEqual(
             (self.out / "pkg" / "m.py").read_text(encoding="utf-8"),
@@ -153,7 +162,7 @@ class TestCLI(unittest.TestCase):
         (self.repo / "pkg" / "m.py").write_text(
             "def f():\n    return 1\n", encoding="utf-8"
         )
-        result = self._run({"1": "    # new note"})
+        result = self._run({str(self.note): "    # new note"})
         self.assertEqual(result.returncode, 1)
         self.assertIn("no longer match the census", result.stdout)
         self.assertFalse((self.out / "pkg" / "m.py").exists())
@@ -194,8 +203,14 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         self.assertEqual(galley.splice_range(self._gap(self.FILE, 1, 2)), (2, 1))
 
     def test_a_prose_block_keeps_its_own_range(self):
-        block = {"start": 4, "end": 6, "kind": "comment", "raw_lines": ["# x"]}
-        self.assertEqual(galley.splice_range(block), (4, 6))
+        # ! A prose block is REPLACED, so its edit range is its own lines.
+        text = "a = 1\n# a note\nb = 2\n"
+        block = next(
+            b.__dict__
+            for b in census.blocks_stdlib(Path("m.py"), text)
+            if b.kind == "comment"
+        )
+        self.assertEqual(galley.splice_range(block), (2, 2))
 
     def test_the_insertion_lands_BETWEEN_the_two_code_lines(self):
         start, end = galley.splice_range(self._gap(self.FILE, 1, 2))
@@ -370,10 +385,21 @@ class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
         block = self._kind("docstring", text)
         self.assertFalse(galley.shares_a_line_with_code(text.splitlines(), block))
 
-    def test_a_census_without_the_field_answers_not_partial(self):
-        # ! A census taken before the field existed. Its whole-line blocks are
-        # spliceable and its partial ones were already refused as stale.
-        self.assertFalse(galley.shares_a_line_with_code([], {"start": 1, "end": 1}))
+    def test_a_census_without_the_field_is_REFUSED_not_defaulted(self):
+        """!! Defaulting it put the deleted statement back.
+
+        A trailing comment's stored text IS the file's whole line, so the
+        staleness check passes it and nothing else would have stopped the
+        write. The census is refused whole instead, before any block is read.
+        """
+        blocks = self._blocks()
+        self.assertIsNone(galley.unanswerable(blocks))
+        for field in ("whole_lines", "edit_start", "edit_end"):
+            with self.subTest(field=field):
+                stripped = [{k: v for k, v in b.items() if k != field} for b in blocks]
+                problem = galley.unanswerable(stripped)
+                self.assertIsNotNone(problem)
+                self.assertIn(field, problem)
 
 
 class TestTheGalleyRefusesAPartialBlockEndToEnd(unittest.TestCase):

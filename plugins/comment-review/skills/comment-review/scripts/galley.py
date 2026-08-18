@@ -162,9 +162,11 @@ def shares_a_line_with_code(lines: list[str], block: dict) -> bool:
     `block_matches` or passed it wrongly, and were reported as "no longer match
     the census" -- which sends a reader to diff a file nobody touched.
 
-    ! A census without the field answers True, because every block that
-    predates it was written by a producer that only emitted whole-line blocks
-    or was already refused by the staleness check.
+    !! A CENSUS WITHOUT THE FIELD CANNOT BE ASKED, and is refused by
+    `unanswerable` before any block is spliced -- not defaulted here. The
+    default was True, which reproduced the deleted statement exactly: a
+    trailing comment's stored text IS the file's whole line, so the staleness
+    check passes it and nothing else would have stopped the write.
 
     Args:
         lines: the file, split. Unused now, and kept because the caller pairs
@@ -172,10 +174,38 @@ def shares_a_line_with_code(lines: list[str], block: dict) -> bool:
         block: one census entry.
 
     Returns:
-        True if the block's text begins partway through its first line.
+        True if the block's text begins or ends partway through a line of code.
     """
     del lines
-    return not block.get("whole_lines", True)
+    return not block["whole_lines"]
+
+
+def unanswerable(blocks: list[dict]) -> str | None:
+    """Can this census answer what the galley has to ask of it?
+
+    !! A CENSUS IS REFUSED WHOLE, not defaulted per block. Every per-field
+    default is a guess about a file this tool is about to overwrite, and the
+    one guess that was made -- `whole_lines` absent means True -- put back the
+    defect the field was added to remove, because a trailing comment's stored
+    text is the file's whole line and the staleness check passes it.
+
+    ! It asks the BLOCKS rather than a version stamp, because `census.py
+    --json` emits a bare list and has nowhere to put one. The field's presence
+    is the version.
+
+    Args:
+        blocks: the census, as `census.py --json` emits it.
+
+    Returns:
+        One sentence naming what is missing, or None.
+    """
+    for field in ("whole_lines", "edit_start", "edit_end"):
+        if any(field not in b for b in blocks):
+            return (
+                f"this census carries no `{field}` -- it predates the field that"
+                " says which blocks can be spliced. Re-run census.py"
+            )
+    return None
 
 
 def splice_range(block: dict) -> tuple[int, int]:
@@ -203,13 +233,11 @@ def splice_range(block: dict) -> tuple[int, int]:
     Returns:
         `(start, end)` for `splice`.
     """
-    start = block.get("edit_start") or block["start"]
-    end = block.get("edit_end")
-    # ! `or` will not do for `end`: a legitimate edit range ends at 0, which is
-    # the gap above the first line of a file.
-    if end is None:
-        end = block["end"]
-    return (start, end)
+    # ! No fallback. `unanswerable` has already refused a census without the
+    # fields, so a missing one here is a bug and should raise rather than be
+    # guessed at -- and the guess had a trap: `or` reads a legitimate edit
+    # range ending at 0, the gap above the first line, as absent.
+    return (block["edit_start"], block["edit_end"])
 
 
 def main() -> int:
@@ -243,6 +271,10 @@ def main() -> int:
         return 2
 
     blocks = census["blocks"] if isinstance(census, dict) else census
+    stale_census = unanswerable(blocks)
+    if stale_census:
+        print(f"CANNOT USE {args.census}: {stale_census}")
+        return 2
     # Group by file, because a splice is a whole-file rewrite. The CENSUS BLOCK
     # travels with each edit: its `raw_lines` is the only record of what the
     # file said when the reviewers read it, and comparing the file to itself
