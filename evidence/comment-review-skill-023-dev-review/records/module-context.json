@@ -1,0 +1,3035 @@
+{
+ "record_version": "1",
+ "reviewer": "module-context",
+ "allowed": {
+  "verdict": [
+   "add",
+   "clean",
+   "correct",
+   "drop",
+   "move",
+   "patch",
+   "query"
+  ],
+  "claim": {
+   "clean": [],
+   "query": [
+    "shape",
+    "attempted",
+    "settles"
+   ],
+   "drop": [
+    "drop"
+   ],
+   "correct": [
+    "false",
+    "true"
+   ],
+   "patch": [
+    "from",
+    "to"
+   ],
+   "add": [
+    "missing",
+    "anchor",
+    "side"
+   ],
+   "move": [
+    "from",
+    "to"
+   ]
+  },
+  "values": {
+   "shape": [
+    "outside my role",
+    "outside the checkout",
+    "outside the code"
+   ],
+   "side": [
+    "above",
+    "below"
+   ]
+  },
+  "scope_shape": "outside my role",
+  "anchor_form": "the anchor NAMED in backticks, e.g. `compute_rates`"
+ },
+ "records": [
+  {
+   "block": 1,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:1-46",
+   "verdict": "patch",
+   "claim": {
+    "from": "python record.py --check DIR/ROLE.json --census census.json",
+    "to": "python record.py --check DIR/ROLE.json --census census.json\npython record.py --convert OLD.md --census census.json --reviewer ROLE --out NEW"
+   },
+   "reason": "The synopsis names two of the module's three modes. `--convert` is a documented argument with its own branch in `main`, it is the route SKILL.md sends a held 0.2.x report through, and `version_problem` calls it the supported route -- so the header a reader starts from omits the mode two other files point at.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:520",
+     "verbatim": "\"--convert\", metavar=\"PATH\", help=\"a 0.2.x text report, as record JSON\""
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:569",
+     "verbatim": "if args.convert:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:306",
+     "verbatim": "supported route and it writes the field."
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/SKILL.md:675",
+     "verbatim": "`record.py --convert` carries one forward."
+    }
+   ],
+   "change": [
+    "\"\"\"What a RECORD is: the shape a reviewer fills, and the file that carries them.",
+    "",
+    "    python record.py --seed  --census census.json --reviewer ROLE --out DIR/ROLE.json",
+    "    python record.py --check DIR/ROLE.json --census census.json",
+    "    python record.py --convert OLD.md --census census.json --reviewer ROLE --out NEW",
+    "",
+    "A record is one ruling on one sentence. It used to travel as prose that",
+    "`verdicts.py` reconstructed a table from by guessing where each field ended,",
+    "and every guess was a defect surface -- a malformed citation absorbed into the",
+    "valid one above it, a bare label absorbed into the field above it, a dropped",
+    "span absorbing the punctuation beside it. Each of those reported its error",
+    "against work that was CORRECT.",
+    "",
+    "!! A REVIEWER FILLS A TEMPLATE; IT DOES NOT COMPOSE A DOCUMENT. `--seed` writes",
+    "one slot per prose block with `block` and `address` already in it, so the",
+    "reviewer sets only what it decides: `verdict`, `claim`, `reason`, `sources`,",
+    "`change`. **Validation then asks whether the answer is COMPLETE rather than",
+    "whether the syntax can be parsed** -- a missing field is visibly empty, not",
+    "absent.",
+    "",
+    "!! THE REVIEWER NEVER TRANSCRIBES THE BLOCK, and that retires a whole class of",
+    "refusal rather than a bug in one. Measured 2026-08-17: **83 refusals in one run",
+    "were spent on transcription fidelity, and not one of them was about a finding.**",
+    "",
+    "!! IT IS NOT GIVEN THE TEXT EITHER -- only where to find it. A record carrying",
+    "the prose lets a reviewer rule without opening the file, which every role's",
+    "remit forbids and no check can detect. `slot()` carries the argument.",
+    "",
+    "! `change` is a LINE ARRAY, which is what the census stores and what a diff can",
+    "compare without aligning tokens. A token diff had to decide where a span BEGAN,",
+    "and got it wrong on a trailing full stop and on markdown emphasis; lines have",
+    "no such question.",
+    "",
+    "! COVERAGE IS STRUCTURAL. Every prose block gets a slot, so a block nobody",
+    "ruled on is a slot with a null verdict rather than an index missing from a",
+    "list, and nothing has to reconcile what was expected against what arrived.",
+    "",
+    "!! A SEEDED SLOT IS NOT THE ONLY LEGAL RECORD -- APPEND ONE FOR ANY CENSUS",
+    "INDEX. `--seed` lays down the PROSE blocks because those are what a reviewer is",
+    "ACCOUNTABLE for, and an empty `interval` gets none. But `add` exists to cite an",
+    "interval: its finding is that a constraint holds in code and appears in NO",
+    "prose, so its subject is the gap. **A reviewer filing an `add` writes a new",
+    "record carrying that interval's index and address**, and `--check` reads it",
+    "like any other. ! Measured 2026-08-17: converting a held report that filled only",
+    "seeded slots turned 228 findings into 226, losing both of its `add`s in",
+    "silence.",
+    "\"\"\""
+   ]
+  },
+  {
+   "block": 7,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:55-55",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "Module-level import shim comment. The marker it names is real: `sys.path.insert` sits at record.py:53, above both imports, so the suppression and the sentence beside it are true of the module's import order.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 9,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:56-56",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "Module-level import shim comment, same subject as the line above it: the shim at record.py:53 runs before this import, which is what the sentence asserts.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 19,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:67-68",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`SEEDED` is a module-level constant and its prose says what the tool fills and what a mismatch means. Both names it lists -- block and address -- are the two keys `slot` writes, and `main` prints the tuple, so the constant is read outside the function that defines the shape.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 20,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:70-80",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`RECORD_VERSION` is a module-level constant whose prose says who writes it, what depends on it, and why pinning the census alone is not enough. `version_problem` is its reader, and the module docstring leaves the subject to this comment rather than restating it.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 21,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:82-83",
+   "verdict": "correct",
+   "claim": {
+    "false": "Empty is a legitimate answer for every one of them except `verdict`, which is the ruling itself.",
+    "true": "`clean` may leave the other four empty; every other verdict owes a filled `claim` key here, and a REASON, SOURCES and a CHANGE at the join."
+   },
+   "reason": "Enumerated the five fields the constant names. `claim_problems` reports a claim key the verdict owes but left blank, so an empty `claim` is refused by this module itself; at the join every verdict but `clean` is refused for an empty REASON, for no SOURCES, and for an empty CHANGE unless the drop empties the block. Empty is a legitimate answer for all four only when the verdict is `clean`.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:256",
+     "verbatim": "blank = [k for k in spec if k in claim and not str(claim[k]).strip()]"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:907",
+     "verbatim": "if spec.owes_reason and not f.reason.strip():"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:987",
+     "verbatim": "if spec.owes_change and not f.change.strip() and not spec.may_empty:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1075",
+     "verbatim": "if not f.sources:"
+    }
+   ],
+   "change": [
+    "# The fields the REVIEWER fills. `verdict` is the ruling itself; `clean` may",
+    "# leave the other four empty, and every other verdict owes a filled `claim`",
+    "# key here, plus a REASON, SOURCES and a CHANGE at the join."
+   ]
+  },
+  {
+   "block": 23,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:88-94",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `prose_blocks`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `prose_blocks` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `prose_blocks`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:87",
+     "verbatim": "def prose_blocks(census: list[dict]) -> list[tuple[int, dict]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 25,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:99-107",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `slot`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `slot` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `slot`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:98",
+     "verbatim": "def slot(index: int, block: dict) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 27,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:110-127",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `slot`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `slot` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `slot`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:98",
+     "verbatim": "def slot(index: int, block: dict) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 28,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:129-130",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `slot`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `slot` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `slot`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:98",
+     "verbatim": "def slot(index: int, block: dict) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 35,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:140-155",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `allowed`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `allowed` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `allowed`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:139",
+     "verbatim": "def allowed() -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 46,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:167-168",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `allowed`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `allowed` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `allowed`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:139",
+     "verbatim": "def allowed() -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 47,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:170-175",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `allowed`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `allowed` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `allowed`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:139",
+     "verbatim": "def allowed() -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 49,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:180-187",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`ALLOWED` is a module-level constant and the prose says why it sits at module level -- built once, read by `claim_problems` and `value_problems` -- and why `seed` still calls `allowed()` for a fresh copy. Both readers are outside the function that builds it.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 51,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:192-192",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `seed`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `seed` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `seed`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:191",
+     "verbatim": "def seed(census: list[dict], reviewer: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 54,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:196-196",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `seed`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `seed` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `seed`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:191",
+     "verbatim": "def seed(census: list[dict], reviewer: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 56,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:199-201",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `seed`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `seed` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `seed`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:191",
+     "verbatim": "def seed(census: list[dict], reviewer: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 58,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:206-208",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`SHAPES` is a module-level constant and the prose states the split between this module and its sibling, which is a claim at module scope. Shape-only is what `record_problems` enforces with it.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 65,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:218-225",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `seeded_problems`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `seeded_problems` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `seeded_problems`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:217",
+     "verbatim": "def seeded_problems(where: str, rec: dict, block: dict | None) -> list[str]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 76,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:239-239",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_problems`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_problems` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_problems`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:238",
+     "verbatim": "def claim_problems(where: str, rec: dict) -> list[str]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 82,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:246-248",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_problems`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_problems` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_problems`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:238",
+     "verbatim": "def claim_problems(where: str, rec: dict) -> list[str]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 85,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:252-255",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_problems`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_problems` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_problems`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:238",
+     "verbatim": "def claim_problems(where: str, rec: dict) -> list[str]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 87,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:258-259",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_problems`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_problems` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_problems`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:238",
+     "verbatim": "def claim_problems(where: str, rec: dict) -> list[str]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 101,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:274-275",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_problems`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_problems` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_problems`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:238",
+     "verbatim": "def claim_problems(where: str, rec: dict) -> list[str]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 104,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:281-281",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `value_problems`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `value_problems` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `value_problems`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:280",
+     "verbatim": "def value_problems(where: str, rec: dict) -> list[str]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 116,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:296-313",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `version_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `version_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `version_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:295",
+     "verbatim": "def version_problem(report: dict) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 129,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:329-329",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `record_problems`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `record_problems` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `record_problems`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:328",
+     "verbatim": "def record_problems(where: str, rec: dict, block: dict | None) -> list[str]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 151,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:354-361",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `check`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `check` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `check`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:353",
+     "verbatim": "def check(report: dict, census: list[dict]) -> tuple[list[str], int]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 162,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:373-374",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `check`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `check` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `check`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:353",
+     "verbatim": "def check(report: dict, census: list[dict]) -> tuple[list[str], int]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 166,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:381-391",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_object`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_object` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_object`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:380",
+     "verbatim": "def claim_object(verdict: str, claim: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 171,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:397-397",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_object`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_object` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_object`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:380",
+     "verbatim": "def claim_object(verdict: str, claim: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 182,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:409-410",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_object`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_object` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_object`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:380",
+     "verbatim": "def claim_object(verdict: str, claim: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 188,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:417-425",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_object`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_object` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_object`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:380",
+     "verbatim": "def claim_object(verdict: str, claim: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 192,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:430-431",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_object`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_object` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_object`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:380",
+     "verbatim": "def claim_object(verdict: str, claim: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 195,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:435-437",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `claim_object`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_object` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_object`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:380",
+     "verbatim": "def claim_object(verdict: str, claim: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 202,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:447-466",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `convert`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `convert` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `convert`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:446",
+     "verbatim": "def convert(findings: list, census: list[dict], reviewer: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 206,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:472-478",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `convert`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `convert` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `convert`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:446",
+     "verbatim": "def convert(findings: list, census: list[dict], reviewer: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 217,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:491-493",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `convert`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `convert` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `convert`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:446",
+     "verbatim": "def convert(findings: list, census: list[dict], reviewer: str) -> dict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 231,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:510-510",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:509",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 232,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:511-511",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:509",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 264,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:547-548",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:509",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 267,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:552-553",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:509",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 277,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:564-565",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:509",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 288,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:578-579",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:509",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 290,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:582-585",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:509",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 295,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:591-592",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of record.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:509",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 315,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1-64",
+   "verdict": "correct",
+   "claim": {
+    "false": "and transcribed text match the census",
+    "true": "the address alone is compared, because the record carries no transcribed text"
+   },
+   "reason": "`address_problem` compares the address and returns None; the text comparison it once made was removed, and there is no transcribed text left to compare because `slot` seeds the address alone and the join fills `original` from the census. The checklist line still promises a check nothing performs.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1249",
+     "verbatim": "ok = {want} if start != end else {want, f\"{path}:{start}\"}"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1255",
+     "verbatim": "THE TEXT IS NO LONGER COMPARED, and it must not be."
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1822",
+     "verbatim": "f.original = \"\\n\".join(blocks[f.block - 1].get(\"raw_lines\") or [])"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:128",
+     "verbatim": "\"address\": f\"{block['path']}:{block['start']}-{block['end']}\","
+    }
+   ],
+   "change": [
+    "\"\"\"Stage 5's gate: join four reviewers' reports against the census.",
+    "",
+    "    python verdicts.py --census census.json --repo D <report>...",
+    "",
+    "Checks the task agent was asked to perform by hand, every one mechanical:",
+    "",
+    "  COVERAGE      every census index accounted for, by every reviewer that ran",
+    "  SOURCES       every citation resolves, and its verbatim half is really there",
+    "  ADDRESS       BLOCK's `path:start-end` matches the census",
+    "  BLOCK         the sentence a finding rules on is really in the block it cites",
+    "  EDIT          BLOCK-against-CHANGE edits the sentence CLAIM names, and no",
+    "                other. ! ONE ROUND ONLY -- it says nothing about whether N",
+    "                rounds converge on correct prose",
+    "  PAYLOAD       the verdict carries what its row of the table requires",
+    "  CONTRADICTION `drop` against `correct`/`patch` ON THE SAME SENTENCE -- a",
+    "                re-review. `move` composes with both and is not flagged.",
+    "                Counted apart from the fatal checks, and named in the closing",
+    "                line so the summary says which blocks are still out",
+    "  STANDS        blocks every reviewer that ran returned clean on",
+    "  SCOPED OUT    blocks nobody found anything in and nobody certified",
+    "  WORK LIST     each block needing a ruling, with the verdicts held on it",
+    "  CODE CONCERNS carried through, attributed, gated by nothing",
+    "  REVIEWER      every report is named for a PUBLISHED role, and (only with",
+    "                `--reviewers`) every expected reviewer actually reported",
+    "",
+    "! Exits nonzero on a coverage gap or an unverifiable citation.",
+    "",
+    "! It reports which findings are ADMISSIBLE. The ruling is stage 5's, in",
+    "SKILL.md's synthesis order.",
+    "",
+    "! Every block is accounted for by a RECORD, `clean` included. A `clean` record",
+    "carries a BLOCK and a VERDICT and nothing else, so covering N blocks costs N",
+    "records that each name a real index and assert nothing about it. A",
+    "`clean` record carries no SOURCES, so it stops short of proof the file was read:",
+    "grade a run from its DIFF, and not from this exit code.",
+    "",
+    "! `--reviewers` is OPTIONAL, and its absence is ANNOUNCED: without it, a",
+    "reviewer that never reported at all passes this tool unseen.",
+    "",
+    "!! WHEN THIS FILE CANNOT RECOGNISE A BOUNDARY, IT MUST NAME WHAT IT COULD NOT",
+    "RECOGNISE -- NEVER MERGE ACROSS IT. Merging blames the neighbour, and the",
+    "neighbour is always correct work. Three defects in one day, all this shape,",
+    "each reported against something that was right:",
+    "",
+    "  D7  a malformed citation absorbed into the valid one above it, so the error",
+    "      was reported against that valid citation",
+    "  D8  a bare field label absorbed into the field above it, so the error was",
+    "      reported against a correct SOURCES entry",
+    "  D9  a dropped span absorbing the punctuation beside it -- a trailing `.`,",
+    "      then markdown emphasis -- so a correct edit was refused for naming",
+    "      prose its CLAIM does not mention. ! The second shape had NO legal",
+    "      wording, and the reviewer reshaped a sound finding twice to route",
+    "      around it",
+    "",
+    "! **It is the most expensive kind of diagnostic there is**, because it sends",
+    "the reader to fix something that is not broken. D7 was fixed for citations",
+    "specifically and the class survived to produce D8 and D9. A fourth is a reason",
+    "to change the SHAPE of the boundary decision, not to add a fourth case.",
+    "",
+    "! What separated D9 from reviewer error was CORROBORATION: `block-context` had",
+    "implemented its own single-edit checker and passed the record this gate",
+    "refused. Two implementations of \"did the edit match the claim\" disagreeing is",
+    "worth running down.",
+    "\"\"\""
+   ]
+  },
+  {
+   "block": 315,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1-64",
+   "verdict": "patch",
+   "claim": {
+    "from": "Stage 5's gate: join four reviewers' reports against the census.",
+    "to": "Stage 5's gate: the verdict table, and four reviewers' reports joined to the census."
+   },
+   "reason": "The summary line names one half of what the file holds. This module also declares the seven verdicts and everything the system knows about each of them -- `VERDICTS`, `Verdict`, `QUERY_SHAPES`, `ANCHOR_NAME`, `ANCHOR_SIDE`, `claim_keys` -- and `record.py` imports that table to seed a record file and to validate it, so a reader looking for where a verdict is defined is told only that this file joins reports.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:179",
+     "verbatim": "VERDICTS: dict[str, Verdict] = {"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:103",
+     "verbatim": "ADDING OR CHANGING A VERDICT IS A ROW, NOT NEW CODE"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:56",
+     "verbatim": "from verdicts import ("
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:157",
+     "verbatim": "for name, spec in VERDICTS.items():"
+    }
+   ],
+   "change": [
+    "\"\"\"Stage 5's gate: the verdict table, and four reviewers' reports joined to the census.",
+    "",
+    "    python verdicts.py --census census.json --repo D <report>...",
+    "",
+    "Checks the task agent was asked to perform by hand, every one mechanical:",
+    "",
+    "  COVERAGE      every census index accounted for, by every reviewer that ran",
+    "  SOURCES       every citation resolves, and its verbatim half is really there",
+    "  ADDRESS       BLOCK's `path:start-end` and transcribed text match the census",
+    "  BLOCK         the sentence a finding rules on is really in the block it cites",
+    "  EDIT          BLOCK-against-CHANGE edits the sentence CLAIM names, and no",
+    "                other. ! ONE ROUND ONLY -- it says nothing about whether N",
+    "                rounds converge on correct prose",
+    "  PAYLOAD       the verdict carries what its row of the table requires",
+    "  CONTRADICTION `drop` against `correct`/`patch` ON THE SAME SENTENCE -- a",
+    "                re-review. `move` composes with both and is not flagged.",
+    "                Counted apart from the fatal checks, and named in the closing",
+    "                line so the summary says which blocks are still out",
+    "  STANDS        blocks every reviewer that ran returned clean on",
+    "  SCOPED OUT    blocks nobody found anything in and nobody certified",
+    "  WORK LIST     each block needing a ruling, with the verdicts held on it",
+    "  CODE CONCERNS carried through, attributed, gated by nothing",
+    "  REVIEWER      every report is named for a PUBLISHED role, and (only with",
+    "                `--reviewers`) every expected reviewer actually reported",
+    "",
+    "! Exits nonzero on a coverage gap or an unverifiable citation.",
+    "",
+    "! It reports which findings are ADMISSIBLE. The ruling is stage 5's, in",
+    "SKILL.md's synthesis order.",
+    "",
+    "! Every block is accounted for by a RECORD, `clean` included. A `clean` record",
+    "carries a BLOCK and a VERDICT and nothing else, so covering N blocks costs N",
+    "records that each name a real index and assert nothing about it. A",
+    "`clean` record carries no SOURCES, so it stops short of proof the file was read:",
+    "grade a run from its DIFF, and not from this exit code.",
+    "",
+    "! `--reviewers` is OPTIONAL, and its absence is ANNOUNCED: without it, a",
+    "reviewer that never reported at all passes this tool unseen.",
+    "",
+    "!! WHEN THIS FILE CANNOT RECOGNISE A BOUNDARY, IT MUST NAME WHAT IT COULD NOT",
+    "RECOGNISE -- NEVER MERGE ACROSS IT. Merging blames the neighbour, and the",
+    "neighbour is always correct work. Three defects in one day, all this shape,",
+    "each reported against something that was right:",
+    "",
+    "  D7  a malformed citation absorbed into the valid one above it, so the error",
+    "      was reported against that valid citation",
+    "  D8  a bare field label absorbed into the field above it, so the error was",
+    "      reported against a correct SOURCES entry",
+    "  D9  a dropped span absorbing the punctuation beside it -- a trailing `.`,",
+    "      then markdown emphasis -- so a correct edit was refused for naming",
+    "      prose its CLAIM does not mention. ! The second shape had NO legal",
+    "      wording, and the reviewer reshaped a sound finding twice to route",
+    "      around it",
+    "",
+    "! **It is the most expensive kind of diagnostic there is**, because it sends",
+    "the reader to fix something that is not broken. D7 was fixed for citations",
+    "specifically and the class survived to produce D8 and D9. A fourth is a reason",
+    "to change the SHAPE of the boundary decision, not to add a fourth case.",
+    "",
+    "! What separated D9 from reviewer error was CORROBORATION: `block-context` had",
+    "implemented its own single-edit checker and passed the record this gate",
+    "refused. Two implementations of \"did the edit match the claim\" disagreeing is",
+    "worth running down.",
+    "\"\"\""
+   ]
+  },
+  {
+   "block": 315,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1-64",
+   "verdict": "patch",
+   "claim": {
+    "from": "Exits nonzero on a coverage gap or an unverifiable citation.",
+    "to": "Exits nonzero on any problem it counts fatal -- a coverage gap, an unverifiable citation, a wrong address, a missing payload, an unknown reviewer."
+   },
+   "reason": "Two of the causes are named and the sentence reads as the whole list. The join increments the same counter for a duplicate report stem, an unknown reviewer, a report it cannot read, a malformed record, an out-of-range block, an unrecognised verdict, a wrong address, a sentence that is not in its block, an edit the claim does not name and a missing payload, and it returns 1 whenever that counter is nonzero.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1900",
+     "verbatim": "payload = payload_problem(f)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1887",
+     "verbatim": "misaddressed = address_problem(f, blocks)"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1793",
+     "verbatim": "f\"  UNKNOWN reviewer {name!r} -- not one of\""
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:2020",
+     "verbatim": "if fatal:"
+    }
+   ],
+   "change": [
+    "\"\"\"Stage 5's gate: join four reviewers' reports against the census.",
+    "",
+    "    python verdicts.py --census census.json --repo D <report>...",
+    "",
+    "Checks the task agent was asked to perform by hand, every one mechanical:",
+    "",
+    "  COVERAGE      every census index accounted for, by every reviewer that ran",
+    "  SOURCES       every citation resolves, and its verbatim half is really there",
+    "  ADDRESS       BLOCK's `path:start-end` and transcribed text match the census",
+    "  BLOCK         the sentence a finding rules on is really in the block it cites",
+    "  EDIT          BLOCK-against-CHANGE edits the sentence CLAIM names, and no",
+    "                other. ! ONE ROUND ONLY -- it says nothing about whether N",
+    "                rounds converge on correct prose",
+    "  PAYLOAD       the verdict carries what its row of the table requires",
+    "  CONTRADICTION `drop` against `correct`/`patch` ON THE SAME SENTENCE -- a",
+    "                re-review. `move` composes with both and is not flagged.",
+    "                Counted apart from the fatal checks, and named in the closing",
+    "                line so the summary says which blocks are still out",
+    "  STANDS        blocks every reviewer that ran returned clean on",
+    "  SCOPED OUT    blocks nobody found anything in and nobody certified",
+    "  WORK LIST     each block needing a ruling, with the verdicts held on it",
+    "  CODE CONCERNS carried through, attributed, gated by nothing",
+    "  REVIEWER      every report is named for a PUBLISHED role, and (only with",
+    "                `--reviewers`) every expected reviewer actually reported",
+    "",
+    "! Exits nonzero on any problem it counts fatal -- a coverage gap, an",
+    "unverifiable citation, a wrong address, a missing payload, an unknown reviewer.",
+    "",
+    "! It reports which findings are ADMISSIBLE. The ruling is stage 5's, in",
+    "SKILL.md's synthesis order.",
+    "",
+    "! Every block is accounted for by a RECORD, `clean` included. A `clean` record",
+    "carries a BLOCK and a VERDICT and nothing else, so covering N blocks costs N",
+    "records that each name a real index and assert nothing about it. A",
+    "`clean` record carries no SOURCES, so it stops short of proof the file was read:",
+    "grade a run from its DIFF, and not from this exit code.",
+    "",
+    "! `--reviewers` is OPTIONAL, and its absence is ANNOUNCED: without it, a",
+    "reviewer that never reported at all passes this tool unseen.",
+    "",
+    "!! WHEN THIS FILE CANNOT RECOGNISE A BOUNDARY, IT MUST NAME WHAT IT COULD NOT",
+    "RECOGNISE -- NEVER MERGE ACROSS IT. Merging blames the neighbour, and the",
+    "neighbour is always correct work. Three defects in one day, all this shape,",
+    "each reported against something that was right:",
+    "",
+    "  D7  a malformed citation absorbed into the valid one above it, so the error",
+    "      was reported against that valid citation",
+    "  D8  a bare field label absorbed into the field above it, so the error was",
+    "      reported against a correct SOURCES entry",
+    "  D9  a dropped span absorbing the punctuation beside it -- a trailing `.`,",
+    "      then markdown emphasis -- so a correct edit was refused for naming",
+    "      prose its CLAIM does not mention. ! The second shape had NO legal",
+    "      wording, and the reviewer reshaped a sound finding twice to route",
+    "      around it",
+    "",
+    "! **It is the most expensive kind of diagnostic there is**, because it sends",
+    "the reader to fix something that is not broken. D7 was fixed for citations",
+    "specifically and the class survived to produce D8 and D9. A fourth is a reason",
+    "to change the SHAPE of the boundary decision, not to add a fourth case.",
+    "",
+    "! What separated D9 from reviewer error was CORROBORATION: `block-context` had",
+    "implemented its own single-edit checker and passed the record this gate",
+    "refused. Two implementations of \"did the edit match the claim\" disagreeing is",
+    "worth running down.",
+    "\"\"\""
+   ]
+  },
+  {
+   "block": 326,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:78-83",
+   "verdict": "correct",
+   "claim": {
+    "false": "The shim its three sibling importers carry.",
+    "true": "five sibling importers carry it"
+   },
+   "reason": "Counted the population the sentence quantifies: five files in this directory insert the shim and then import a sibling -- census.py, galley.py, prove_unchanged.py, record.py and referrers.py -- so the count is two short.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:40",
+     "verbatim": "sys.path.insert(0, str(Path(__file__).resolve().parent))"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:42",
+     "verbatim": "from repo import READ_ERRORS, read_raw"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:53",
+     "verbatim": "sys.path.insert(0, str(Path(__file__).resolve().parent))"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/referrers.py:21",
+     "verbatim": "sys.path.insert(0, str(Path(__file__).resolve().parent))"
+    }
+   ],
+   "change": [
+    "# ! The shim its five sibling importers carry. Run as a program this file",
+    "# resolves without it -- Python puts the script's own directory on `sys.path`",
+    "# -- so the gap was invisible from the documented invocation and appeared only",
+    "# on IMPORT, where a test or another script reaches in. `census.py`,",
+    "# `referrers.py` and `prove_unchanged.py` all insert it; this was the one",
+    "# sibling importer that did not."
+   ]
+  },
+  {
+   "block": 326,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:78-83",
+   "verdict": "correct",
+   "claim": {
+    "false": "`census.py`, `referrers.py` and `prove_unchanged.py` all insert it",
+    "true": "`census.py`, `galley.py`, `prove_unchanged.py`, `record.py` and `referrers.py` all insert it"
+   },
+   "reason": "Listed every file in this directory that inserts the shim. galley.py and record.py do it too and both import a sibling module, so the enumeration names three of the five.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/galley.py:40",
+     "verbatim": "sys.path.insert(0, str(Path(__file__).resolve().parent))"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:53",
+     "verbatim": "sys.path.insert(0, str(Path(__file__).resolve().parent))"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:55",
+     "verbatim": "from repo import READ_ERRORS"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/census.py:47",
+     "verbatim": "sys.path.insert(0, str(Path(__file__).resolve().parent))"
+    }
+   ],
+   "change": [
+    "# ! The shim its three sibling importers carry. Run as a program this file",
+    "# resolves without it -- Python puts the script's own directory on `sys.path`",
+    "# -- so the gap was invisible from the documented invocation and appeared only",
+    "# on IMPORT, where a test or another script reaches in. `census.py`,",
+    "# `galley.py`, `prove_unchanged.py`, `record.py` and `referrers.py` all",
+    "# insert it; this was the one sibling importer that did not."
+   ]
+  },
+  {
+   "block": 328,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:86-86",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "Module-level import shim comment; `sys.path.insert` at verdicts.py:84 runs before this import, which is the claim.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 330,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:87-87",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "Module-level import shim comment, same subject as the two around it.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 332,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:88-88",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "Module-level import shim comment, same subject as the two above it.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 333,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:90-94",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`OUT_OF_ROLE` and `QUERY_SHAPES` are module-level constants. Enumerated the population the sentence quantifies: reviewer-brief.md lists exactly three shapes -- outside my role, outside the checkout, outside the code -- and the tuple holds those three.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 337,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:101-154",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `Verdict`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `Verdict` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `Verdict`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:100",
+     "verbatim": "class Verdict:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 420,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:242-247",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`RECORD` is a module-level constant, read by `parse_report`, and the prose says what it matches.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 421,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:249-250",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`OPENER` is a module-level constant and the prose says why it exists beside `RECORD` and who compares the two counts.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 422,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:252-266",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`CODE_CONCERNS` is a module-level constant; the prose names the section it matches and why it runs to the next heading or the end.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 423,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:268-294",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`FIELD` is a module-level constant and the prose states the properties the pattern encodes, each readable off the regex beside it.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 424,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:296-296",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`EDGE` is a module-level constant and the prose names both readers, `_words` and `removed_spans`, and why they must agree. Both are in this module.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 425,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:298-306",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`PATHISH` is a module-level constant. Resolved its worked example: the signature it quotes is on disk at prove_unchanged.py:219, so the line the prose calls real is real.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 426,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:309-311",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`SOURCE_WINDOW` is a module-level constant and the prose says why a window exists rather than a hard equality.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 427,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:314-316",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`MIN_NEEDLE` is a module-level constant; the prose states the value and the value it replaced, and the constant beside it is 1.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 428,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:319-323",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`ANCHOR_SIDE` and `ANCHOR_NAME` are module-level constants and the prose says what an add's payload must carry and why backticks are checkable here.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 430,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:327-347",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`QUERY_ATTEMPTED` and `QUERY_SETTLES` are module-level constants carrying a universal, so I enumerated it. Each of the eleven verbs the prose lists is in the pattern -- resolv, enumerat, verif, listed, trac, follow, compar, read, grep, count, open -- and every further alternative it carries (ran, check, search, look, inspect) appears in the brief or in an agent file as an instruction to the reviewer.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 442,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:362-426",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `Finding`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `Finding` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `Finding`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:361",
+     "verbatim": "class Finding:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 451,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:437-442",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `Finding`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `Finding` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `Finding`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:361",
+     "verbatim": "class Finding:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 453,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:447-454",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_substantive`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_substantive` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_substantive`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:446",
+     "verbatim": "def _substantive(f: Finding) -> bool:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 455,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:459-464",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_is`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_is` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_is`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:458",
+     "verbatim": "def _is(f: Finding, trait: str) -> bool:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 458,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:470-488",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_said`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_said` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_said`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:469",
+     "verbatim": "def _said(f: Finding, key: str) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 460,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:493-506",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_claim_values`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_claim_values` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_claim_values`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:492",
+     "verbatim": "def _claim_values(f: Finding) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 464,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:513-540",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_answered`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_answered` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_answered`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:512",
+     "verbatim": "def _answered(f: Finding, key: str, pattern: re.Pattern, probe: str) -> bool:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 468,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:547-547",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_n`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_n` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_n`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:546",
+     "verbatim": "def _n(count: int, noun: str) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 470,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:552-570",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `claim_keys`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_keys` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_keys`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:551",
+     "verbatim": "def claim_keys(spec: \"Verdict\") -> tuple[list[str], list[str]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 472,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:573-574",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `claim_keys`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_keys` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_keys`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:551",
+     "verbatim": "def claim_keys(spec: \"Verdict\") -> tuple[list[str], list[str]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 482,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:587-604",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `claim_text`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_text` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_text`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:586",
+     "verbatim": "def claim_text(verdict: str, claim: dict) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 490,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:613-615",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `claim_text`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `claim_text` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `claim_text`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:586",
+     "verbatim": "def claim_text(verdict: str, claim: dict) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 501,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:629-654",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `load_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `load_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `load_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:626",
+     "verbatim": "def load_report("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 507,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:661-661",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `load_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `load_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `load_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:626",
+     "verbatim": "def load_report("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 508,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:663-666",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `load_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `load_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `load_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:626",
+     "verbatim": "def load_report("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 514,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:673-676",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `load_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `load_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `load_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:626",
+     "verbatim": "def load_report("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 518,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:681-682",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `load_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `load_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `load_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:626",
+     "verbatim": "def load_report("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 524,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:689-693",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `load_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `load_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `load_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:626",
+     "verbatim": "def load_report("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 538,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:708-711",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `load_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `load_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `load_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:626",
+     "verbatim": "def load_report("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 540,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:714-716",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `load_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `load_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `load_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:626",
+     "verbatim": "def load_report("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 546,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:725-743",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `parse_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `parse_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `parse_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:724",
+     "verbatim": "def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 558,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:756-759",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `parse_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `parse_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `parse_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:724",
+     "verbatim": "def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 559,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:761-776",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `parse_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `parse_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `parse_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:724",
+     "verbatim": "def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 564,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:782-796",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `parse_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `parse_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `parse_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:724",
+     "verbatim": "def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 576,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:809-811",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `parse_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `parse_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `parse_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:724",
+     "verbatim": "def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 581,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:817-820",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `parse_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `parse_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `parse_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:724",
+     "verbatim": "def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 582,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:822-824",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `parse_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `parse_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `parse_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:724",
+     "verbatim": "def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 603,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:848-858",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `code_concerns`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `code_concerns` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `code_concerns`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:847",
+     "verbatim": "def code_concerns(text: str) -> list[str]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 617,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:875-880",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `coverage_gaps`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `coverage_gaps` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `coverage_gaps`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:872",
+     "verbatim": "def coverage_gaps("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 627,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:893-898",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `payload_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `payload_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `payload_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:892",
+     "verbatim": "def payload_problem(f: Finding) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 629,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:901-902",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `payload_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `payload_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `payload_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:892",
+     "verbatim": "def payload_problem(f: Finding) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 630,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:904-906",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `payload_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `payload_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `payload_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:892",
+     "verbatim": "def payload_problem(f: Finding) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 632,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:909-910",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `payload_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `payload_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `payload_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:892",
+     "verbatim": "def payload_problem(f: Finding) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 634,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:913-922",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `payload_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `payload_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `payload_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:892",
+     "verbatim": "def payload_problem(f: Finding) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 640,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:930-932",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `payload_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `payload_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `payload_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:892",
+     "verbatim": "def payload_problem(f: Finding) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 649,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:942-945",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `payload_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `payload_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `payload_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:892",
+     "verbatim": "def payload_problem(f: Finding) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 662,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:959-970",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `payload_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `payload_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `payload_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:892",
+     "verbatim": "def payload_problem(f: Finding) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 673,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:982-986",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `payload_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `payload_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `payload_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:892",
+     "verbatim": "def payload_problem(f: Finding) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 682,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:998-1017",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_resolve_lines`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_resolve_lines` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_resolve_lines`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:997",
+     "verbatim": "def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 703,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041-1071",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `source_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `source_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `source_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1040",
+     "verbatim": "def source_problem(f: Finding, repo: Path) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 721,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1090-1094",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `source_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `source_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `source_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1040",
+     "verbatim": "def source_problem(f: Finding, repo: Path) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 725,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1099-1104",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `source_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `source_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `source_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1040",
+     "verbatim": "def source_problem(f: Finding, repo: Path) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 729,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1111-1128",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `as_block`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `as_block` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `as_block`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1110",
+     "verbatim": "def as_block(text: str, entry: dict) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 733,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1133-1136",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `as_block`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `as_block` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `as_block`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1110",
+     "verbatim": "def as_block(text: str, entry: dict) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 736,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1142-1162",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_words`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_words` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_words`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1141",
+     "verbatim": "def _words(text: str) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 737,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1163-1177",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_words`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_words` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_words`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1141",
+     "verbatim": "def _words(text: str) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 739,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1182-1235",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `address_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `address_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `address_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1181",
+     "verbatim": "def address_problem(f: Finding, blocks: list[dict]) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 748,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1245-1248",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `address_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `address_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `address_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1181",
+     "verbatim": "def address_problem(f: Finding, blocks: list[dict]) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 754,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1255-1271",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `address_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `address_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `address_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1181",
+     "verbatim": "def address_problem(f: Finding, blocks: list[dict]) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 756,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1276-1303",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `block_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `block_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `block_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1275",
+     "verbatim": "def block_problem(f: Finding, blocks: list[dict]) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 757,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1304-1307",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `block_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `block_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `block_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1275",
+     "verbatim": "def block_problem(f: Finding, blocks: list[dict]) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 762,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1313-1316",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `block_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `block_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `block_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1275",
+     "verbatim": "def block_problem(f: Finding, blocks: list[dict]) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 763,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1318-1320",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `block_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `block_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `block_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1275",
+     "verbatim": "def block_problem(f: Finding, blocks: list[dict]) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 767,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1327-1332",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `declares_scope`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `declares_scope` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `declares_scope`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1326",
+     "verbatim": "def declares_scope(f: Finding) -> bool:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 769,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1335-1339",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `declares_scope`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `declares_scope` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `declares_scope`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1326",
+     "verbatim": "def declares_scope(f: Finding) -> bool:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 774,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1347-1356",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `by_block`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `by_block` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `by_block`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1346",
+     "verbatim": "def by_block(found: list[Finding]) -> dict[int, list[Finding]]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 779,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1364-1381",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `ruled_text`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `ruled_text` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `ruled_text`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1363",
+     "verbatim": "def ruled_text(f: Finding) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 782,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1385-1389",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `ruled_text`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `ruled_text` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `ruled_text`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1363",
+     "verbatim": "def ruled_text(f: Finding) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 792,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1400-1402",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `ruled_text`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `ruled_text` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `ruled_text`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1363",
+     "verbatim": "def ruled_text(f: Finding) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 794,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1407-1432",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `removed_spans`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `removed_spans` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `removed_spans`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1406",
+     "verbatim": "def removed_spans(f: Finding, entry: dict) -> list[str] | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 797,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1436-1440",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `removed_spans`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `removed_spans` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `removed_spans`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1406",
+     "verbatim": "def removed_spans(f: Finding, entry: dict) -> list[str] | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 799,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1443-1449",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `removed_spans`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `removed_spans` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `removed_spans`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1406",
+     "verbatim": "def removed_spans(f: Finding, entry: dict) -> list[str] | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 819,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1472-1524",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `edit_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `edit_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `edit_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1471",
+     "verbatim": "def edit_problem(f: Finding, entry: dict) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 822,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1528-1537",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `edit_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `edit_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `edit_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1471",
+     "verbatim": "def edit_problem(f: Finding, entry: dict) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 823,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1539-1543",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `edit_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `edit_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `edit_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1471",
+     "verbatim": "def edit_problem(f: Finding, entry: dict) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 835,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1556-1558",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `edit_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `edit_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `edit_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1471",
+     "verbatim": "def edit_problem(f: Finding, entry: dict) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 841,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1565-1569",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `edit_problem`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `edit_problem` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `edit_problem`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1471",
+     "verbatim": "def edit_problem(f: Finding, entry: dict) -> str | None:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 847,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1578-1588",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "`QUOTED` is a module-level constant and the prose says why the pattern takes double quotes only and who reads it.",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 851,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595-1623",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `unrecorded_findings`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `unrecorded_findings` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `unrecorded_findings`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1592",
+     "verbatim": "def unrecorded_findings("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 852,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1624-1626",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `unrecorded_findings`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `unrecorded_findings` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `unrecorded_findings`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1592",
+     "verbatim": "def unrecorded_findings("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 863,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1638-1639",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `unrecorded_findings`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `unrecorded_findings` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `unrecorded_findings`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1592",
+     "verbatim": "def unrecorded_findings("
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 870,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1649-1674",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `contradictions`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `contradictions` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `contradictions`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1648",
+     "verbatim": "def contradictions(grouped: dict[int, list[Finding]], blocks: list[dict]) -> list[int]:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 871,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1677-1680",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `touched`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `touched` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `touched`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1676",
+     "verbatim": "def touched(f: Finding) -> str:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 885,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1698-1698",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1697",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 892,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1706-1710",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1697",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 909,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1728-1733",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `main`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `main` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `main`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1697",
+     "verbatim": "def main() -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 915,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1742-1742",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 916,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1744-1745",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 932,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1762-1772",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 934,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1777-1779",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 939,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1786-1788",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 963,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1814-1819",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 977,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1836-1838",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 1040,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1906-1910",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 1056,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1928-1930",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 1061,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1937-1941",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 1065,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1946-1955",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 1073,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1964-1965",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 1085,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1979-1991",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 1103,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:2011-2014",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  },
+  {
+   "block": 1111,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:2024-2028",
+   "verdict": "query",
+   "claim": {
+    "shape": "outside my role",
+    "attempted": "Read the block against the module docstring of verdicts.py and against `_report`, the definition it sits inside; nothing in the block states what the module as a whole is, names a section of it, or describes a module-level binding or anything the module runs on import.",
+    "settles": "A reading of `_report` -- its signature, its body, and the code the block sits with -- would settle it."
+   },
+   "reason": "Its subject is fixed by `_report`: the block sits inside that definition and speaks about the code there. My remit is what the module as a whole announces -- its docstring, its banners, its module-level bindings and what it runs on import -- and that scope reaches nothing in this block.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1741",
+     "verbatim": "def _report(args: argparse.Namespace) -> int:"
+    }
+   ],
+   "change": []
+  }
+ ],
+ "code_concerns": []
+}

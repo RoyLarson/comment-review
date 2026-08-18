@@ -1,0 +1,1877 @@
+{
+ "record_version": "1",
+ "reviewer": "ownership-context",
+ "allowed": {
+  "verdict": [
+   "add",
+   "clean",
+   "correct",
+   "drop",
+   "move",
+   "patch",
+   "query"
+  ],
+  "claim": {
+   "clean": [],
+   "query": [
+    "shape",
+    "attempted",
+    "settles"
+   ],
+   "drop": [
+    "drop"
+   ],
+   "correct": [
+    "false",
+    "true"
+   ],
+   "patch": [
+    "from",
+    "to"
+   ],
+   "add": [
+    "missing",
+    "anchor",
+    "side"
+   ],
+   "move": [
+    "from",
+    "to"
+   ]
+  },
+  "values": {
+   "shape": [
+    "outside my role",
+    "outside the checkout",
+    "outside the code"
+   ],
+   "side": [
+    "above",
+    "below"
+   ]
+  },
+  "scope_shape": "outside my role",
+  "anchor_form": "the anchor NAMED in backticks, e.g. `compute_rates`"
+ },
+ "records": [
+  {
+   "block": 1,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:1-46",
+   "verdict": "drop",
+   "claim": {
+    "drop": "! Measured 2026-08-17: converting a held report that filled only seeded slots turned 228 findings into 226, losing both of its `add`s in silence."
+   },
+   "reason": "The same measurement is stated twice in this file. The site that ENFORCES it is the loop in `convert` that appends a slot for every cited index the seed did not lay down, and the comment above that loop already carries the 228-to-226 count. The module docstring keeps the contract a reviewer needs -- append a record for any census index -- and the count of what one conversion lost belongs at the code that lost it.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:477",
+     "verbatim": "# that only filled seeded slots dropped both of them silently. Measured"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:480",
+     "verbatim": "for index in sorted(set(by_block) - seeded):"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:43",
+     "verbatim": "like any other. ! Measured 2026-08-17: converting a held report that filled only"
+    }
+   ],
+   "change": [
+    "\"\"\"What a RECORD is: the shape a reviewer fills, and the file that carries them.",
+    "",
+    "    python record.py --seed  --census census.json --reviewer ROLE --out DIR/ROLE.json",
+    "    python record.py --check DIR/ROLE.json --census census.json",
+    "",
+    "A record is one ruling on one sentence. It used to travel as prose that",
+    "`verdicts.py` reconstructed a table from by guessing where each field ended,",
+    "and every guess was a defect surface -- a malformed citation absorbed into the",
+    "valid one above it, a bare label absorbed into the field above it, a dropped",
+    "span absorbing the punctuation beside it. Each of those reported its error",
+    "against work that was CORRECT.",
+    "",
+    "!! A REVIEWER FILLS A TEMPLATE; IT DOES NOT COMPOSE A DOCUMENT. `--seed` writes",
+    "one slot per prose block with `block` and `address` already in it, so the",
+    "reviewer sets only what it decides: `verdict`, `claim`, `reason`, `sources`,",
+    "`change`. **Validation then asks whether the answer is COMPLETE rather than",
+    "whether the syntax can be parsed** -- a missing field is visibly empty, not",
+    "absent.",
+    "",
+    "!! THE REVIEWER NEVER TRANSCRIBES THE BLOCK, and that retires a whole class of",
+    "refusal rather than a bug in one. Measured 2026-08-17: **83 refusals in one run",
+    "were spent on transcription fidelity, and not one of them was about a finding.**",
+    "",
+    "!! IT IS NOT GIVEN THE TEXT EITHER -- only where to find it. A record carrying",
+    "the prose lets a reviewer rule without opening the file, which every role's",
+    "remit forbids and no check can detect. `slot()` carries the argument.",
+    "",
+    "! `change` is a LINE ARRAY, which is what the census stores and what a diff can",
+    "compare without aligning tokens. A token diff had to decide where a span BEGAN,",
+    "and got it wrong on a trailing full stop and on markdown emphasis; lines have",
+    "no such question.",
+    "",
+    "! COVERAGE IS STRUCTURAL. Every prose block gets a slot, so a block nobody",
+    "ruled on is a slot with a null verdict rather than an index missing from a",
+    "list, and nothing has to reconcile what was expected against what arrived.",
+    "",
+    "!! A SEEDED SLOT IS NOT THE ONLY LEGAL RECORD -- APPEND ONE FOR ANY CENSUS",
+    "INDEX. `--seed` lays down the PROSE blocks because those are what a reviewer is",
+    "ACCOUNTABLE for, and an empty `interval` gets none. But `add` exists to cite an",
+    "interval: its finding is that a constraint holds in code and appears in NO",
+    "prose, so its subject is the gap. **A reviewer filing an `add` writes a new",
+    "record carrying that interval's index and address**, and `--check` reads it",
+    "like any other.",
+    "\"\"\""
+   ]
+  },
+  {
+   "block": 7,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:55-55",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 9,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:56-56",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 19,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:67-68",
+   "verdict": "drop",
+   "claim": {
+    "drop": "! A mismatch here means the file was CORRUPTED, never that the reviewer misquoted -- it never typed them."
+   },
+   "reason": "`SEEDED` is read in one place, the summary line `main` prints after seeding; nothing at this anchor detects a mismatch or writes a message about one. The site that ENFORCES the rule is `seeded_problems`, whose docstring states it and whose message tells the reader the field was written by the tool and must be restored -- so the anchor that holds the claim already carries it.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:610",
+     "verbatim": "print(f\"  {', '.join(SEEDED)} are already there\")"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:220",
+     "verbatim": "!! THE MESSAGE MUST NOT ACCUSE THE REVIEWER OF MISQUOTING. It never typed"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:232",
+     "verbatim": "f\" {want!r}. This field was WRITTEN BY THE TOOL, so it was edited\""
+    }
+   ],
+   "change": [
+    "# The fields the TOOL fills from the census."
+   ]
+  },
+  {
+   "block": 20,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:70-80",
+   "verdict": "move",
+   "claim": {
+    "from": "above the `RECORD_VERSION` assignment in record.py",
+    "to": "the `source_problem` docstring in verdicts.py, the site that resolves a citation against the working tree"
+   },
+   "reason": "The paragraph constrains a REPLAY, not the version constant: it says a pinned census is not enough because SOURCES is resolved against the tree, and the 78 failures it counts are the message `source_problem` prints when the needle is not near the cited line. `RECORD_VERSION` is a version string; nothing at that anchor reads a tree or resolves a citation, and the sentences above it -- that the shape is versioned so a held report stays a regression test -- stand on their own once this leaves. Its referent has to be restored at the destination, since the origin paragraph supplied it.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1106",
+     "verbatim": "return f\"SOURCES not found near {cite.strip()}: {needle[:40]!r}\""
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1026",
+     "verbatim": "target = repo / rel"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/record.py:81",
+     "verbatim": "RECORD_VERSION = \"1\""
+    }
+   ],
+   "change": [
+    "to:",
+    "    \"\"\"Why this finding's citation cannot be trusted, or None.",
+    "",
+    "    Reads each cited line out of the file and looks for that entry's verbatim",
+    "    half within a few lines of it. A finding whose text is absent from the file",
+    "    it cites is a finding the file did not supply -- a report is evidence of",
+    "    nothing on its own.",
+    "",
+    "    ! The only floor is `MIN_NEEDLE`, which is ONE. What binds is PRESENCE: a",
+    "    short needle absent from the file is refused like any other.",
+    "",
+    "    ! SOURCES is checked and `REASON` is not. `REASON` is the DERIVED statement --",
+    "    *\"31 callers, all under tests/\"* -- which is the reviewer's own sentence, so",
+    "    checking it against the tree made every counted claim structurally",
+    "    inadmissible. The forcing function lands on the field that is verbatim.",
+    "",
+    "    !! `query` is NOT exempt. `reviewer-brief.md` has always said a query",
+    "    \"requires `SOURCES`, by construction -- this is where you looked\", and",
+    "    this script waived it; Roy ruled the brief right on",
+    "    2026-08-16. Where you looked is a real line in the checkout on all three",
+    "    query shapes, so it resolves like any other citation. Only `clean` is",
+    "    exempt, because a `clean` reports no claim to cite.",
+    "",
+    "    !! SEVERAL CITATIONS, comma-separated, and EVERY one must resolve. The",
+    "    brief has always asked for \"`file(s):line(s)` you opened\", and this took one",
+    "    `file:line` for the whole field -- so a reviewer that cited two sites was",
+    "    refused for following the brief. Measured 2026-08-17 on a live run: 15 of 22",
+    "    refusals were the contract, not the reviewer. Roy ruled the gate widens.",
+    "    ! This makes the check STRICTER. Three citations that all resolve is more",
+    "    evidence than one, and a reviewer forced to pick one was being made to drop",
+    "    the other -- which is the cut-the-provenance failure stage 5 already names.",
+    "",
+    "    ! PINNING THE CENSUS IS NOT ENOUGH when a held run is replayed.",
+    "    `SOURCES` cites the WORKING TREE, so a replay needs the tree at the run's",
+    "    commit too. Measured 2026-08-17: the same four reports joined green",
+    "    against a worktree at their commit and produced 78 \"SOURCES not found\"",
+    "    against HEAD, 197 lines later in one file. Neither the reader nor the",
+    "    reports were wrong.",
+    "    \"\"\"",
+    "",
+    "from:",
+    "# !! THE SHAPE IS VERSIONED, so a held report stays a REGRESSION TEST rather than",
+    "# becoming an archive the day the format moves. Replaying stage-4 output is what",
+    "# made 0.2.1 and 0.2.2 cheap to validate -- five joins over one set of reports,",
+    "# ~1.6M tokens of review reused -- and that property dies silently when the",
+    "# shape changes and nothing says so."
+   ]
+  },
+  {
+   "block": 21,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:82-83",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 23,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:88-94",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 25,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:99-107",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 27,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:110-127",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 28,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:129-130",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 35,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:140-155",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 46,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:167-168",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 47,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:170-175",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 49,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:180-187",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 51,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:192-192",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 54,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:196-196",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 56,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:199-201",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 58,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:206-208",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 65,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:218-225",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 76,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:239-239",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 82,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:246-248",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 85,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:252-255",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 87,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:258-259",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 101,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:274-275",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 104,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:281-281",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 116,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:296-313",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 129,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:329-329",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 151,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:354-361",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 162,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:373-374",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 166,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:381-391",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 171,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:397-397",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 182,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:409-410",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 188,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:417-425",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 192,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:430-431",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 195,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:435-437",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 202,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:447-466",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 206,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:472-478",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 217,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:491-493",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 231,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:510-510",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 232,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:511-511",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 264,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:547-548",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 267,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:552-553",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 277,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:564-565",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 288,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:578-579",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 290,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:582-585",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 295,
+   "address": "plugins/comment-review/skills/comment-review/scripts/record.py:591-592",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 315,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1-64",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 326,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:78-83",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 328,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:86-86",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 330,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:87-87",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 332,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:88-88",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 333,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:90-94",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 337,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:101-154",
+   "verdict": "drop",
+   "claim": {
+    "drop": "! Without this a whole-block `drop` could not be expressed at all: the reviewer wrote the blank deliberately and said so in `REASON`, which nothing downstream reads. Measured 2026-08-17."
+   },
+   "reason": "The sentence is written again, nearly word for word, in the comment above the empty-CHANGE branch of `edit_problem` -- and this attribute's own text names `edit_problem` as the site that checks it, so the trait declaration has already pointed at the owner. What the row owes its reader is which verdict may empty a block and under what condition, which the sentences before it state; the account of what the rule was for belongs at the branch that applies it.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1531",
+     "verbatim": "# expressed at all. The reviewer wrote the blank deliberately and said so in"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1545",
+     "verbatim": "if ruled_text(f) != whole:"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:129",
+     "verbatim": "`CHANGE` is not a way to skip writing one. ! Without this a"
+    }
+   ],
+   "change": [
+    "    \"\"\"Everything this file knows about one verdict, in one place.",
+    "",
+    "    !! ADDING OR CHANGING A VERDICT IS A ROW, NOT NEW CODE -- the same promise",
+    "    `census.py` makes about a language. It is written this way because the",
+    "    alternative was measured: on 2026-08-17 the record's contract changed twice",
+    "    and this knowledge lived in eight functions, each with its own branch on",
+    "    `verdict`. Finding all eight is what nobody did, and five defects shipped in",
+    "    one morning. A contract change should touch one row.",
+    "",
+    "    Attributes:",
+    "        claim_all: markers `CLAIM` must ALL carry.",
+    "        claim_any: markers `CLAIM` must carry at least ONE of.",
+    "        claim_help: what to say when either is unmet -- per row, because",
+    "            \"correct needs a false/true pair\" reads and a generated list does",
+    "            not.",
+    "        quotes_original: the `CLAIM` marker the EXISTING sentence follows, or \"\"",
+    "            when the verdict quotes none. ! `move`'s from/to are PLACES, and",
+    "            `add` is about prose that is missing, so both quote nothing.",
+    "        quotes_until: what ends that sentence; \"\" runs to the end of `CLAIM`.",
+    "        change_all: markers `CHANGE` must carry. Only `move`, which changes two",
+    "            blocks and shows both.",
+    "        owes_claim: every verdict but `clean` states what must happen.",
+    "        owes_reason: likewise -- why.",
+    "        owes_change: `clean` rules on nothing and `query` proposes no text.",
+    "        may_empty: this verdict may leave the block with NOTHING in it, so an",
+    "            empty `CHANGE` is the edit rather than a missing one. Only `drop`,",
+    "            and only where `CLAIM` names the whole block -- `edit_problem`",
+    "            checks that rather than taking the reviewer's word, so a blank",
+    "            `CHANGE` is not a way to skip writing one.",
+    "        owes_address: `clean` is exempt because a role returns it on most of the",
+    "            census; transcribing each would be the bulk of a report.",
+    "        owes_sources: `clean` cites no claim, so it cites no place.",
+    "        diffable: `BLOCK`-against-`CHANGE` names the edited sentence. False",
+    "            where there is nothing to diff -- no text proposed, no original, or",
+    "            a `CHANGE` holding two blocks rather than one.",
+    "        needs_anchor: `CLAIM` names a site in backticks and a side.",
+    "        needs_attempted: `CLAIM` names a check that was tried.",
+    "        needs_settles: `CLAIM` names what would settle the claim.",
+    "        substantive: this verdict ASKS something of stage 5. Only `clean`",
+    "            does not, which is what makes it the null verdict rather than",
+    "            a pass.",
+    "        can_declare_scope: this verdict may be a BOUNDARY REPORT rather",
+    "            than work -- `query`, and only in its `outside my role` shape.",
+    "        removes: takes the sentence out of the block.",
+    "        rules_on_text: keeps the sentence and changes it. ! `removes` against",
+    "            `rules_on_text` on ONE sentence is the contradiction, and `move` is",
+    "            deliberately neither -- relocation and a truth fix COMPOSE, applied",
+    "            at synthesis steps 2 and 3. Ruled 2026-08-17; measured, 5 of 8",
+    "            blocks the old set flagged were this shape and each cost a",
+    "            re-review round to establish it was not a rivalry.",
+    "    \"\"\""
+   ]
+  },
+  {
+   "block": 420,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:242-247",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 421,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:249-250",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 422,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:252-266",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 423,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:268-294",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 424,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:296-296",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 425,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:298-306",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 426,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:309-311",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 427,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:314-316",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 428,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:319-323",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 430,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:327-347",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 442,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:362-426",
+   "verdict": "drop",
+   "claim": {
+    "drop": "| verdict   | claim                    | change                       | | --------- | ------------------------ | ---------------------------- | | `correct` | `false: ... / true: ...` | the result, with its block   | | `patch`   | `from: ... / to: ...`    | the result, with its block   | | `move`    | `from: ... / to: ...`    | BOTH blocks -- see below     | | `add`     | `missing: ...`           | the text added in            | | `drop`    | `drop: ...`              | the block with it removed    |"
+   },
+   "reason": "The table states, per verdict, which claim markers it carries and what its change holds -- which is what the `VERDICTS` rows encode and what `Verdict`'s own docstring says must live in exactly one row, having measured five defects the morning that knowledge sat in eight places. `Finding` is a different declaration: it holds one reviewer's ruling, and it restates a contract it neither declares nor enforces. The reviewer-facing wording of the same table is `reviewer-brief.md`'s. Two of the three copies have an owner and this one has neither.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:103",
+     "verbatim": "!! ADDING OR CHANGING A VERDICT IS A ROW, NOT NEW CODE -- the same promise"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:179",
+     "verbatim": "VERDICTS: dict[str, Verdict] = {"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:210",
+     "verbatim": "claim_all=(\"false:\", \"true:\"),"
+    }
+   ],
+   "change": [
+    "    \"\"\"One reviewer's ruling on one census block.",
+    "",
+    "    !! Field order follows the record in `reviewer-brief.md`, and the order is",
+    "    a CHAIN OF CUSTODY. Roy, 2026-08-17: *\"Verdict -> Claim -> REASON ->",
+    "    SOURCES -> CHANGE ... that is a clear chain of custody on the reasoning and",
+    "    the required actions.\"* The ruling, what must change, why, the evidence",
+    "    the why rests on, and the result. `SOURCES` sat between `VERDICT` and",
+    "    `CLAIM`, which put the evidence before the thing it was evidence FOR.",
+    "",
+    "    `sources` holds one entry per place examined, each `file:line | verbatim` --",
+    "    BOTH halves verbatim, which is why they are one field where `claim` and",
+    "    `reason` are two.",
+    "",
+    "    !! `claim` is the SURGICAL SPEC -- what must change, and from what to what.",
+    "    `change` is the RESULT: that edit already made, written out with the",
+    "    surrounding block. Roy, 2026-08-17: *\"The change is what allows the apply",
+    "    section to apply the claim appropriately.\"*",
+    "",
+    "    ! `clean` and `query` carry NEITHER. A `clean` rules on nothing; a `query`",
+    "    says the claim is unsettled, so there is no text for stage 5 to apply.",
+    "",
+    "    !! `move` changes TWO blocks, so its `change` shows both, `to:` and `from:`",
+    "    -- the destination once the prose arrives, and the origin once it has left.",
+    "    `from:` may be omitted, and omitting it ASSERTS the whole block moved.",
+    "    ! Those two labels are `claim`'s words reused: in `claim` they are PLACES,",
+    "    in `change` they are the resulting BLOCKS. The field decides which.",
+    "",
+    "    !! EVERY check that reads the ORIGINAL sentence reads it out of `claim`.",
+    "    `change` is a whole block, so no sentence can be parsed back out of it --",
+    "    which is the point: a reviewer that hands over a block has said what the",
+    "    result IS, not only what to swap, and stage 5 applies it rather than",
+    "    re-deriving it.",
+    "",
+    "    ! `reason` is the why: the evidence that verifies the claim. It is DERIVED",
+    "    and no checker can settle it, which is why it stays out of `sources`.",
+    "",
+    "    !! `block` is an INDEX and `address` is `path:start-end`. THE REVIEWER",
+    "    WRITES NEITHER: `record.py --seed` puts both in the slot and both are",
+    "    checked against the census, so a mismatch says the file was edited rather",
+    "    than that a reviewer misquoted.",
+    "",
+    "    ! `original` is that block's text, and it is filled from the CENSUS by",
+    "    `main` after the report is read. It was the reviewer's to transcribe under",
+    "    the first ruling of 2026-08-17 -- *\"BLOCK gets the address and the original",
+    "    text verbatim\"* -- and a second ruling the same day replaced it: handed the",
+    "    prose, a reviewer can produce a complete admissible ruling without opening",
+    "    the file, and no check can tell that from real work. 83 refusals in one",
+    "    measured run were spent on transcription fidelity and none was about a",
+    "    finding.",
+    "",
+    "    ! `claim_fields` is the claim as the record held it, and empty for a 0.2.x",
+    "    text record. A check that can read a FIELD must not search the string",
+    "    `claim_text` renders it into -- see `_said`.",
+    "",
+    "    ! `clean` owes no claim and no change. A role returns `clean` on most of",
+    "    the census -- 1159 blocks on one measured run.",
+    "    \"\"\""
+   ]
+  },
+  {
+   "block": 442,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:362-426",
+   "verdict": "drop",
+   "claim": {
+    "drop": "83 refusals in one measured run were spent on transcription fidelity and none was about a finding."
+   },
+   "reason": "The same count is written again where the tool fills `original` from the census, and that loop is what makes the class of refusal impossible -- the site that ENFORCES the rule this measurement justifies. What the `original` attribute owes its reader is that the field is tool-filled and why the second ruling replaced the first, which the sentences before it already say.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1817",
+     "verbatim": "# transcription-mismatch class -- 83 refusals in one measured run, none"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1822",
+     "verbatim": "f.original = \"\\n\".join(blocks[f.block - 1].get(\"raw_lines\") or [])"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:416",
+     "verbatim": "the file, and no check can tell that from real work. 83 refusals in one"
+    }
+   ],
+   "change": [
+    "    \"\"\"One reviewer's ruling on one census block.",
+    "",
+    "    !! Field order follows the record in `reviewer-brief.md`, and the order is",
+    "    a CHAIN OF CUSTODY. Roy, 2026-08-17: *\"Verdict -> Claim -> REASON ->",
+    "    SOURCES -> CHANGE ... that is a clear chain of custody on the reasoning and",
+    "    the required actions.\"* The ruling, what must change, why, the evidence",
+    "    the why rests on, and the result. `SOURCES` sat between `VERDICT` and",
+    "    `CLAIM`, which put the evidence before the thing it was evidence FOR.",
+    "",
+    "    `sources` holds one entry per place examined, each `file:line | verbatim` --",
+    "    BOTH halves verbatim, which is why they are one field where `claim` and",
+    "    `reason` are two.",
+    "",
+    "    !! `claim` is the SURGICAL SPEC -- what must change, and from what to what.",
+    "    `change` is the RESULT: that edit already made, written out with the",
+    "    surrounding block. Roy, 2026-08-17: *\"The change is what allows the apply",
+    "    section to apply the claim appropriately.\"*",
+    "",
+    "    | verdict   | claim                    | change                       |",
+    "    | --------- | ------------------------ | ---------------------------- |",
+    "    | `correct` | `false: ... / true: ...` | the result, with its block   |",
+    "    | `patch`   | `from: ... / to: ...`    | the result, with its block   |",
+    "    | `move`    | `from: ... / to: ...`    | BOTH blocks -- see below     |",
+    "    | `add`     | `missing: ...`           | the text added in            |",
+    "    | `drop`    | `drop: ...`              | the block with it removed    |",
+    "",
+    "    ! `clean` and `query` carry NEITHER. A `clean` rules on nothing; a `query`",
+    "    says the claim is unsettled, so there is no text for stage 5 to apply.",
+    "",
+    "    !! `move` changes TWO blocks, so its `change` shows both, `to:` and `from:`",
+    "    -- the destination once the prose arrives, and the origin once it has left.",
+    "    `from:` may be omitted, and omitting it ASSERTS the whole block moved.",
+    "    ! Those two labels are `claim`'s words reused: in `claim` they are PLACES,",
+    "    in `change` they are the resulting BLOCKS. The field decides which.",
+    "",
+    "    !! EVERY check that reads the ORIGINAL sentence reads it out of `claim`.",
+    "    `change` is a whole block, so no sentence can be parsed back out of it --",
+    "    which is the point: a reviewer that hands over a block has said what the",
+    "    result IS, not only what to swap, and stage 5 applies it rather than",
+    "    re-deriving it.",
+    "",
+    "    ! `reason` is the why: the evidence that verifies the claim. It is DERIVED",
+    "    and no checker can settle it, which is why it stays out of `sources`.",
+    "",
+    "    !! `block` is an INDEX and `address` is `path:start-end`. THE REVIEWER",
+    "    WRITES NEITHER: `record.py --seed` puts both in the slot and both are",
+    "    checked against the census, so a mismatch says the file was edited rather",
+    "    than that a reviewer misquoted.",
+    "",
+    "    ! `original` is that block's text, and it is filled from the CENSUS by",
+    "    `main` after the report is read. It was the reviewer's to transcribe under",
+    "    the first ruling of 2026-08-17 -- *\"BLOCK gets the address and the original",
+    "    text verbatim\"* -- and a second ruling the same day replaced it: handed the",
+    "    prose, a reviewer can produce a complete admissible ruling without opening",
+    "    the file, and no check can tell that from real work.",
+    "",
+    "    ! `claim_fields` is the claim as the record held it, and empty for a 0.2.x",
+    "    text record. A check that can read a FIELD must not search the string",
+    "    `claim_text` renders it into -- see `_said`.",
+    "",
+    "    ! `clean` owes no claim and no change. A role returns `clean` on most of",
+    "    the census -- 1159 blocks on one measured run.",
+    "    \"\"\""
+   ]
+  },
+  {
+   "block": 451,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:437-442",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 453,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:447-454",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 455,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:459-464",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 458,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:470-488",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 460,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:493-506",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 464,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:513-540",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 468,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:547-547",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 470,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:552-570",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 472,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:573-574",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 482,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:587-604",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 490,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:613-615",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 501,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:629-654",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 507,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:661-661",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 508,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:663-666",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 514,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:673-676",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 518,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:681-682",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 524,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:689-693",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 538,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:708-711",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 540,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:714-716",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 546,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:725-743",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 558,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:756-759",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 559,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:761-776",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 564,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:782-796",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 576,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:809-811",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 581,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:817-820",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 582,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:822-824",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 603,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:848-858",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 617,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:875-880",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 627,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:893-898",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 629,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:901-902",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 630,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:904-906",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 632,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:909-910",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 634,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:913-922",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 640,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:930-932",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 649,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:942-945",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 662,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:959-970",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 673,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:982-986",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 682,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:998-1017",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 703,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1041-1071",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 721,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1090-1094",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 725,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1099-1104",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 729,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1111-1128",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 733,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1133-1136",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 736,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1142-1162",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 737,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1163-1177",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 739,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1182-1235",
+   "verdict": "drop",
+   "claim": {
+    "drop": "!! The last one is DERIVED, not declared, and that is why it is reliable. Roy, 2026-08-17: *\"which sentence exactly is determined by the difference between BLOCK and CHANGE, since CHANGE is the whole block with the substitution.\"* Both hold the WHOLE block, before and after, so what differs between them is the sentence and nothing else has to say so."
+   },
+   "reason": "The paragraph and the quotation inside it are written a second time in `removed_spans`, which is the code that actually derives the difference -- it runs the sequence matcher over the block before and after and returns the spans. `address_problem` compares an address against the census and computes no difference at all. The table row above it already routes the reader to where the derivation lives, so the row survives the removal and the elaboration goes back to the anchor that performs it.",
+   "sources": [
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1411",
+     "verbatim": "prose the finding acts on. Roy, 2026-08-17: *\"which sentence exactly is"
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1464",
+     "verbatim": "for tag, i1, i2, _j1, _j2 in difflib.SequenceMatcher("
+    },
+    {
+     "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1203",
+     "verbatim": "| WHICH SENTENCE, exactly       | the census text against `change`       |"
+    }
+   ],
+   "change": [
+    "    \"\"\"Does the record's address name the block the census has at that index?",
+    "",
+    "    !! THE RECORD CARRIES THE ADDRESS AND NOT THE TEXT. Ruled 2026-08-17, after",
+    "    a first ruling the same day that it should carry both. Handed the prose, a",
+    "    reviewer can produce a complete admissible ruling without opening the file,",
+    "    and no check can tell that from real work; reading the WRONG lines is",
+    "    caught, because the sentence the claim quotes will not be in the block. The",
+    "    caller fills `original` from the census before this runs, so what is",
+    "    compared here is unchanged and where it comes from is not.",
+    "",
+    "    !! This is NOT `LOCATION` coming back. Roy, 2026-08-17: *\"Location was",
+    "    dropped because it was ambiguous ... It could also have meant where this",
+    "    should go in the case of move or add. Or on a granular level which sentence",
+    "    are we talking about specifically.\"* One `file:start-end` field carried FOUR",
+    "    possible subjects, and each has its own home now:",
+    "",
+    "    | LOCATION could have meant     | where it lives now                     |",
+    "    | ----------------------------- | -------------------------------------- |",
+    "    | where the prose SITS          | `block` and `address`                  |",
+    "    | where the reviewer LOOKED     | `sources`                              |",
+    "    | where the prose SHOULD GO     | `claim`'s `to`, or an `add`'s anchor   |",
+    "    | WHICH SENTENCE, exactly       | the census text against `change`       |",
+    "",
+    "    ! Each is checked against a DIFFERENT thing -- `BLOCK` against the census,",
+    "    `SOURCES` against the files, the sentence against the block's text. That is",
+    "    the gain: a field with four possible subjects can only be checked for",
+    "    RESOLVABILITY, because nothing says which subject to check it against.",
+    "",
+    "    ! The ADDRESS is checked and the TEXT is not, because only one of them is",
+    "    a reviewer's answer. An address nobody verifies costs a line and settles",
+    "    nothing; a text nobody wrote, compared against another copy the same tool",
+    "    made, only reports that the tool disagrees with itself.",
+    "",
+    "    ! `clean` is exempt, and stays exempt for a different reason than it had. It",
+    "    was exempt because a role returns `clean` on most of the census -- 1159",
+    "    blocks on one measured run -- and transcribing each would have made the bulk",
+    "    of every report text nobody reads. Nothing is transcribed now; a `clean`",
+    "    record's address is the tool's own, so there is nothing a reviewer could",
+    "    have got wrong.",
+    "",
+    "    Args:",
+    "        f: the finding.",
+    "        blocks: the census, as `census.py --json` emits it.",
+    "",
+    "    Returns:",
+    "        One sentence naming what disagrees, or None. Out-of-range indices are",
+    "        left to the range check, which reports them better.",
+    "    \"\"\""
+   ]
+  },
+  {
+   "block": 748,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1245-1248",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 754,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1255-1271",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 756,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1276-1303",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 757,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1304-1307",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 762,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1313-1316",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 763,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1318-1320",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 767,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1327-1332",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 769,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1335-1339",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 774,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1347-1356",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 779,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1364-1381",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 782,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1385-1389",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 792,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1400-1402",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 794,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1407-1432",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 797,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1436-1440",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 799,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1443-1449",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 819,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1472-1524",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 822,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1528-1537",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 823,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1539-1543",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 835,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1556-1558",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 841,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1565-1569",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 847,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1578-1588",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 851,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1595-1623",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 852,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1624-1626",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 863,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1638-1639",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 870,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1649-1674",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 871,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1677-1680",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 885,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1698-1698",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 892,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1706-1710",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 909,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1728-1733",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 915,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1742-1742",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 916,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1744-1745",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 932,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1762-1772",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 934,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1777-1779",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 939,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1786-1788",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 963,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1814-1819",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 977,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1836-1838",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 1040,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1906-1910",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 1056,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1928-1930",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 1061,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1937-1941",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 1065,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1946-1955",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 1073,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1964-1965",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 1085,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:1979-1991",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 1103,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:2011-2014",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  },
+  {
+   "block": 1111,
+   "address": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:2024-2028",
+   "verdict": "clean",
+   "claim": {},
+   "reason": "",
+   "sources": [],
+   "change": []
+  }
+ ],
+ "code_concerns": []
+}
