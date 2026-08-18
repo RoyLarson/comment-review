@@ -31,6 +31,29 @@ handed no width will take the free move every time.
 ! The compact agent FLAGGED it rather than deciding it, which is what its contract asks for.
 The defect is that it had to.
 
+## ! SECOND MEASUREMENT 2026-08-17: giving it the PUBLISHED width bounds the damage, not the move
+
+The end-to-end cycle run put the published width in the style sheet -- 88 columns, from
+`pyproject.toml`'s `line-length`, enforced by `ruff` in this repo's gate -- which the first
+run's input did not carry. One block was over a cap of 4.
+
+| | lines | longest line |
+| --- | --- | --- |
+| after stage 5 | 5 | 79 |
+| after COMPACT | 4 | **87** |
+
+**It stayed inside the published width and still took the free move**, spending the whole
+headroom between what the file writes and what the limit permits. Nothing was violated: 87 is
+legal, `ruff` passes, and the block is at the cap.
+
+! **So the published width is not the missing input** -- it was supplied and the behaviour is
+the same, one column short of the limit instead of twenty past it. That is the argument for the
+OBSERVED wrap above, measured from the tree the way 1.3 measures the templates, rather than for
+passing the published number.
+
+! The agent did not flag it this time, which is consistent: with a width in hand and its output
+inside it, there was nothing for its contract to report.
+
 ## ! The published width is not the observed one, and the style sheet is where that belongs
 
 The run's repo permitted 104 columns and wrote 76-80. `SKILL.md` 1.2 is right to refuse an
