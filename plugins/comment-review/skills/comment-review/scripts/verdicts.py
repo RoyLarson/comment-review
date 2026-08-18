@@ -1369,6 +1369,76 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
     return None
 
 
+# A phrase a reviewer QUOTED inside prose. ! DOUBLE QUOTES ONLY, because in
+# this system BACKTICKS MEAN CITATION -- the brief instructs a reviewer to
+# cite by symbol or path in them, so a backticked token in `REASON` is a
+# reference, not a quotation of the block's words.
+#
+# !! Measured 2026-08-17 before the narrowing: over 903 real findings the
+# check fired 46 times and most were symbol citations -- ``_walk``,
+# ``BY_EXT``, ``raw_lines`` -- which is the noise level at which a report
+# stops being read. Quoting is the signal: a `REASON` that MENTIONS a
+# subject is discussing context, which it is entitled to do; one that
+# QUOTES the block's own words is describing a defect in them.
+QUOTED = re.compile(r'"([^"\n]{4,})"')
+
+
+def unrecorded_findings(
+    grouped: dict[int, list[Finding]], blocks: list[dict]
+) -> list[tuple[int, str, str]]:
+    """Phrases a `REASON` quotes from its own block that no `CLAIM` names.
+
+    !! A FINDING CAN BE STATED IN `REASON` AND GO NOWHERE. `REASON` is
+    deliberately unverified -- a derived count is not a line any file contains,
+    which is why it is a separate field from `SOURCES` -- so nothing downstream
+    reads it as a claim. A reviewer whose reasoning wanders one sentence over
+    from what its `CLAIM` names has filed a second finding with no record.
+
+    ! Measured 2026-08-17. `module-context` wrote in `REASON` on block 1: *"the
+    module's own prose already contradicts the 'three places' framing -- the
+    fourth copy is named inside the file and nowhere in its docstring."* That
+    sentence IS the finding. The record carried `add` with a `CLAIM` naming a
+    different sentence, so the gate checked the claim it named and passed.
+    *"Three places"* reached no work list, was never in front of stage 5, and is
+    still wrong on disk.
+
+    !! REPORTED, NEVER FATAL. `REASON` legitimately discusses context, and a
+    fatal check here would refuse honest records -- which is the failure this
+    whole file has been paying for all week. The permission to file a second
+    record already exists (*"several of your findings may carry the same
+    BLOCK"*); nothing tells a reviewer to use it.
+
+    Args:
+        grouped: findings by census block index.
+        blocks: the census.
+
+    Returns:
+        `(block, reviewer, phrase)` per phrase, in block order.
+    """
+    # Every phrase any CLAIM in this run names, normalised once.
+    claimed = {
+        _words(ruled_text(f)) for fs in grouped.values() for f in fs if ruled_text(f)
+    }
+    out: list[tuple[int, str, str]] = []
+    for block, fs in sorted(grouped.items()):
+        if not 1 <= block <= len(blocks):
+            continue
+        prose = _words(blocks[block - 1].get("text") or "")
+        if not prose:
+            continue
+        for f in fs:
+            for match in QUOTED.finditer(f.reason or ""):
+                phrase = _words(match.group(1) or "")
+                # ! It must be the BLOCK'S OWN words. A phrase quoted from a
+                # source file is evidence, not an unrecorded finding.
+                if len(phrase) < 4 or phrase not in prose:
+                    continue
+                if any(phrase in c or c in phrase for c in claimed):
+                    continue
+                out.append((block, f.reviewer, match.group(1)))
+    return out
+
+
 def contradictions(grouped: dict[int, list[Finding]], blocks: list[dict]) -> list[int]:
     """Blocks where one role REMOVES the sentence another rules on.
 
@@ -1618,6 +1688,26 @@ def _report(args: argparse.Namespace) -> int:
             fatal += 1
 
     grouped = by_block(found)
+    # !! REPORTED, NOT GATED, and printed BEFORE the counts so it is not read as
+    # a summary line. A finding stated in `REASON` that no `CLAIM` names is a
+    # second finding with no record -- the gate checked the claim it was given
+    # and passed, and the defect reached no work list. It is not fatal because
+    # `REASON` is entitled to discuss context.
+    unrecorded = unrecorded_findings(grouped, blocks)
+    if unrecorded:
+        print(
+            f"\nA FINDING WITH NO RECORD -- {_n(len(unrecorded), 'phrase')} quoted in"
+            " REASON that no CLAIM names:"
+        )
+        for block, reviewer, phrase in unrecorded[:20]:
+            print(f"  BLOCK {block} {reviewer}: {phrase!r}")
+        if len(unrecorded) > 20:
+            print(f"  ... and {len(unrecorded) - 20} more")
+        print(
+            "  Each is the block's OWN words. File a second record on that block"
+            " rather than leaving the finding in prose nothing reads."
+        )
+
     clash = contradictions(grouped, blocks)
     if clash:
         # ! Names what the check DOES. It read "drop/move" after `move` left the

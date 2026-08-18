@@ -335,9 +335,19 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       ! CODE CONCERNS carry no verdict and are gated by nothing, so a conversion
       dropped all 14 with no count moving. Caught only by diffing the two joins.
 
-- [ ] **4. The `REASON`-carries-the-finding check.** `REASON` quoting block text that `claim`
-      does not name is a finding filed in the wrong field. ! Its own step because it is a new
-      CHECK, not a format change, and it is the one that catches the defect above.
+- [x] **4. DONE 2026-08-17 -- the `REASON`-carries-the-finding check.**
+      `unrecorded_findings` reports a phrase a `REASON` QUOTES from its own block that no
+      `CLAIM` in the run names. Reported, never fatal: `REASON` is entitled to discuss context.
+
+      !! **The signal is DOUBLE QUOTES, not backticks.** In this system a backtick means
+      CITATION -- the brief instructs citing by symbol or path in them. Measured over 903 real
+      findings: with backticks included it fired 46 times, mostly on symbol references, which is
+      the noise level at which a report stops being read. Narrowed, **8 on the same input**, and
+      each is a phrase from the block's own prose.
+
+      ! The sharpest true positive is a shape nobody predicted: a `move`'s `CLAIM` names
+      PLACES, never text, so a phrase its `REASON` calls wrong can be named by NO claim at all.
+      The block gets relocated and nothing records that the phrase still needs correcting.
 
 - [ ] **5. `reviewer-brief.md`'s record contract**, and re-run `scripts/check_vocabulary.py`.
       Verify: the brief's own worked example validates against the schema.

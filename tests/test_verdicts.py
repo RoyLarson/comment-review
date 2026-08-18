@@ -2364,6 +2364,101 @@ class TestAMalformedSourceIsItsOwnEntry(unittest.TestCase):
         self.assertEqual(len(findings[0].sources), 1)
 
 
+class TestAFindingStatedOnlyInReason(unittest.TestCase):
+    """A defect named in `REASON` that no `CLAIM` names reaches no work list.
+
+    !! `REASON` is deliberately unverified -- a derived count is not a line any
+    file contains -- so nothing downstream reads it as a claim. Measured
+    2026-08-17: `module-context` wrote the finding in `REASON`, the record
+    carried a `CLAIM` naming a different sentence, the gate checked the claim it
+    was given and passed, and the defect is still wrong on disk.
+    """
+
+    BLOCKS = [
+        {
+            "path": "a.py",
+            "start": 1,
+            "end": 2,
+            "kind": "comment",
+            "text": "the rule is stated in three places. callers round separately.",
+        }
+    ]
+
+    def _run(self, verdict, claim, reason):
+        f = _finding(block=1, verdict=verdict, claim=claim, reason=reason)
+        return verdicts.unrecorded_findings({1: [f]}, self.BLOCKS)
+
+    def test_a_phrase_quoted_in_reason_that_no_claim_names_is_reported(self):
+        got = self._run(
+            "correct",
+            'false: "callers round separately" / true: "31 callers"',
+            'the block also says "three places" and there are four',
+        )
+        self.assertEqual([p for _, _, p in got], ["three places"])
+
+    def test_a_phrase_the_claim_DOES_name_is_not_reported(self):
+        self.assertEqual(
+            self._run(
+                "correct",
+                'false: "three places" / true: "four places"',
+                'the docstring says "three places" and there are four',
+            ),
+            [],
+        )
+
+    def test_a_phrase_from_ANOTHER_file_is_evidence_not_a_finding(self):
+        # ! It must be the BLOCK'S OWN words. A quotation from a source is what
+        # `SOURCES` is for.
+        self.assertEqual(
+            self._run(
+                "correct",
+                'false: "callers round separately" / true: "31 callers"',
+                'the definition reads "def compute(plan, period)" so the count is stale',
+            ),
+            [],
+        )
+
+    def test_a_backticked_symbol_is_a_CITATION_not_a_quotation(self):
+        """!! The brief instructs citing by symbol in backticks, so they mean
+        reference here. Measured before narrowing: over 903 real findings the
+        check fired 46 times and most were symbol citations, which is the noise
+        level at which a report stops being read. Narrowed to double quotes it
+        fires 8 times on the same input.
+        """
+        self.assertEqual(
+            self._run(
+                "correct",
+                'false: "callers round separately" / true: "31 callers"',
+                "the rule lives in `three places` in this module",
+            ),
+            [],
+        )
+
+    def test_a_move_whose_reason_names_a_defective_phrase_is_reported(self):
+        # !! The real shape found on a live run: `move`'s CLAIM names PLACES,
+        # never text, so a phrase its REASON says is wrong can be named by no
+        # claim at all. The block gets relocated and nothing records that the
+        # phrase still needs correcting.
+        got = self._run(
+            "move",
+            "from: here / to: beside `f`",
+            'it says "three places" which is not true where it now sits',
+        )
+        self.assertEqual([p for _, _, p in got], ["three places"])
+
+    def test_it_is_reported_and_never_fatal(self):
+        # ! `REASON` is entitled to discuss context, so this must not refuse an
+        # honest record -- which is the failure this file has been paying for.
+        f = _finding(
+            block=1,
+            verdict="correct",
+            claim='false: "callers round separately" / true: "31 callers"',
+            reason='the block also says "three places"',
+        )
+        self.assertIsNone(verdicts.payload_problem(f))
+        self.assertIsNone(verdicts.block_problem(f, self.BLOCKS))
+
+
 class TestTheJoinReadsRecords(unittest.TestCase):
     """A JSON record file joins exactly as the text report it replaces.
 
