@@ -202,7 +202,7 @@ that changed a published name or rule:
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | session | yes | 0/4 | The join merges across a boundary it cannot read, and blames the neighbour |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | session * Roy (* 1 ruling wanted -- task 1) | yes | 0/6 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | session * Roy (* 1 ruling) | yes | 0/5 | The role with verdict precedence has the least mechanical support |
-| [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | session * Roy (* 3 rulings) | yes | 0/9 | Two live runs proposed fifteen changes |
+| [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | session * Roy (* 3 rulings) | yes | 5/15 | Two live runs proposed fifteen changes |
 
 ### in-progress  (2)
 

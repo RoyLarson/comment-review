@@ -2,8 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 15 proposals resolved (1 superseded, 9 open). ! PROPOSALS, not
-          boxes -- the two field reports number their own from P1
+Progress: 5 of 15 tasks done
 Owner:    session * Roy (* 3 rulings)
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
@@ -27,20 +26,36 @@ redacted-corpus states it flatly: *"every failure this run is downstream of MARK
 
 ## Resolved -- do not redo
 
-| # | from | what |
-| --- | --- | --- |
-| **P2** work list withheld | both | **DONE.** Printed on a refusal, labelled PROVISIONAL, exit unchanged |
-| **P2** N coordinated edits | todo-tool | **DONE.** `reviewer-brief.md` says N records each read oddly alone and that this is the format working |
-| **P1** altitude | todo-tool | **DONE.** A third question after checkable/necessary in the brief, and `compact.md` hands an over-specified block back rather than cutting it |
-| **P9** `verdicts.py --out` | redacted-corpus | **DONE.** The stage-5 gate was unrunnable in the session type the skill is written for |
-| **P3** a prose file has no blocks | todo-tool | already filed; the measurement is added -- **190 of 196 files** in one merge-base diff were `TODO/*.md` |
+!! **These carry CHECKED boxes because an unchecked one is a claim that work remains.** Roy,
+2026-08-18: *"a check box not-marked is left as something todo, even if it was superseded and no
+longer necessary."* Held as prose in a table, these five were invisible to any recount -- the
+README row read `0/9` while five were done.
+
+- [x] **P2, both reports -- the work list is withheld on a refusal.** Printed on a refusal now,
+      labelled PROVISIONAL, exit unchanged.
+
+- [x] **P2, todo-tool -- N coordinated edits.** `reviewer-brief.md` says N records each read
+      oddly alone, and that this is the format working rather than failing.
+
+- [x] **P1, todo-tool -- altitude.** A third question after checkable/necessary in the brief, and
+      `compact.md` hands an over-specified block back rather than cutting it.
+
+- [x] **P9, redacted-corpus -- `verdicts.py --out`.** The stage-5 gate was unrunnable in the
+      session type the skill is written for.
+
+- [x] **P3, todo-tool -- a prose file has no blocks.** Already filed as its own TODO; the
+      measurement is what this adds -- **190 of 196 files** in one merge-base diff were
+      `TODO/*.md`.
 
 ## SUPERSEDED -- three proposals overtaken by later measurement
 
 ! Kept with their measurements. Each was right when written; what moved is recorded beside it.
 
-**P1 (redacted-corpus) -- parse after every write. SUPERSEDED for the placeholder case, still
-wanted for the rest.** Measured 2026-08-17 on the pinned 3.11:
+- [ ] **P1, redacted-corpus -- parse after every write. SUPERSEDED for the placeholder case,
+      STILL WANTED for the rest**, so it is open rather than checked -- the box tracks the
+      remainder, which is the non-Python cases the kind guard cannot reach.
+
+Measured 2026-08-17 on the pinned 3.11:
 
 ```
 '"""<empty - the whole block is deleted>"""'
