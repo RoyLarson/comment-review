@@ -174,10 +174,25 @@ class Verdict:
     can_declare_scope: bool = False
     removes: bool = False
     rules_on_text: bool = False
+    # !! WHAT THE BRIEF SAYS THIS VERDICT'S `claim` CARRIES, and the row owns it
+    # so there is one source and one way to copy it. `scripts/render_brief.py`
+    # writes the table in `reviewer-brief.md` from these plus `claim_keys`, and
+    # a test refuses a brief that has drifted from them.
+    #
+    # ! It does NOT restate the key names -- those are generated. Measured
+    # 2026-08-18, which is why: the hand-written table taught the 0.2.x marker
+    # form (`false: "..." / true: "..."`) forty lines under a JSON worked
+    # example, and ten of the eleven keys a reviewer must type appeared nowhere
+    # in the brief as keys.
+    payload: str = ""
 
 
 VERDICTS: dict[str, Verdict] = {
     "clean": Verdict(
+        payload=(
+            "nothing. Name your role and stop -- `clean` proposes no text, so there"
+            " is nothing for the task agent to apply"
+        ),
         owes_claim=False,
         owes_reason=False,
         owes_change=False,
@@ -187,6 +202,12 @@ VERDICTS: dict[str, Verdict] = {
         substantive=False,
     ),
     "query": Verdict(
+        payload=(
+            "the SHAPE in the brief's own words, the check you ATTEMPTED, and what"
+            " WOULD settle it. All three are checked as SHAPE and none as truth; the"
+            " claim itself is checked by nothing, so the other three are all that"
+            " stands behind the ruling"
+        ),
         claim_any=QUERY_SHAPES,
         claim_help=(
             "query must NAME its shape -- one of "
@@ -200,6 +221,10 @@ VERDICTS: dict[str, Verdict] = {
         can_declare_scope=True,
     ),
     "drop": Verdict(
+        payload=(
+            "the sentence, verbatim, as it stands in the block. ! It is CHECKED"
+            " against the census text, so a paraphrase is refused"
+        ),
         claim_all=("drop:",),
         claim_help='drop needs the sentence in CLAIM, as `drop: "..."`',
         quotes_original="drop:",
@@ -207,6 +232,11 @@ VERDICTS: dict[str, Verdict] = {
         may_empty=True,
     ),
     "correct": Verdict(
+        payload=(
+            "the false clause and the true one, and a `sources` entry carrying the"
+            " line that settles it. ! The FALSE half is checked against the block --"
+            " if it is not there, the finding is on the wrong block"
+        ),
         claim_all=("false:", "true:"),
         claim_help="correct needs a false/true pair in CLAIM",
         quotes_original="false:",
@@ -214,6 +244,11 @@ VERDICTS: dict[str, Verdict] = {
         rules_on_text=True,
     ),
     "patch": Verdict(
+        payload=(
+            "the sentence as it stands and the rewrite. ! `from` is checked against"
+            " the block. A `patch` needs no source: the claim is already true, and"
+            " only its wording is at issue"
+        ),
         claim_all=("from:", "to:"),
         claim_help="patch needs a from/to pair in CLAIM",
         quotes_original="from:",
@@ -221,12 +256,21 @@ VERDICTS: dict[str, Verdict] = {
         rules_on_text=True,
     ),
     "add": Verdict(
+        payload=(
+            "the text that is missing, the anchor NAMED IN BACKTICKS, and which side"
+            ' of it. ! The word "anchor" is not an anchor -- name the declaration'
+        ),
         claim_all=("missing:",),
         claim_help='add needs the text in CLAIM, as `missing: "..."`',
         diffable=False,
         needs_anchor=True,
     ),
     "move": Verdict(
+        payload=(
+            "where the prose sits now and where it belongs -- another line, another"
+            " file, or out of the code entirely. ! These are PLACES, not text: the"
+            " same two key names in `change` mean the resulting BLOCKS"
+        ),
         claim_all=("from:", "to:"),
         claim_help="move needs a from/to pair in CLAIM",
         change_all=("to:",),

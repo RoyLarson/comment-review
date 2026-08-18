@@ -171,15 +171,25 @@ finding.
 its surrounding block, and it is required for all of these but `clean` and `query` -- those two
 propose no text, so there is nothing for the task agent to apply.
 
-| verdict   | `CLAIM` |
-| --------- | ------- |
-| `clean`   | nothing -- name your role, nothing else |
-| `query`   | which of the three SHAPES it is, in those words, then the claim, the check you ATTEMPTED, and what WOULD settle it -- the shape, the ATTEMPTED and the WOULD-settle halves are all CHECKED (as shape, not as truth); the claim itself is checked by nothing |
-| `drop`    | `drop: "<the sentence, verbatim>"` |
-| `correct` | `false: "<the false clause>" / true: "<the true one>"`, and a `SOURCES` entry carrying the line that settles it |
-| `patch`   | `from: "<the sentence now>" / to: "<the rewrite>"` |
-| `add`     | `missing: "<the text>"`, **the anchor NAMED in backticks**, and which side -- above or below it. The word "anchor" is not an anchor |
-| `move`    | `from: <where it sits> / to: <the destination>` |
+!! **THE TABLE BELOW IS GENERATED FROM `VERDICTS` IN `verdicts.py`** -- the keys from
+`claim_keys`, the prose from each row's `payload`. Edit the row, not this file; a test
+refuses a brief that has drifted from it. ! It had drifted: the hand-written table taught
+the 0.2.x marker form under a JSON worked example, and ten of the eleven keys a reviewer
+must type appeared nowhere here as keys.
+
+<!-- BEGIN GENERATED: verdict table -- scripts/render_brief.py -->
+
+| verdict | `claim` keys | what they carry |
+| --- | --- | --- |
+| `clean` | none | nothing. Name your role and stop -- `clean` proposes no text, so there is nothing for the task agent to apply |
+| `query` | `shape`, `attempted`, `settles` | the SHAPE in the brief's own words, the check you ATTEMPTED, and what WOULD settle it. All three are checked as SHAPE and none as truth; the claim itself is checked by nothing, so the other three are all that stands behind the ruling |
+| `drop` | `drop` | the sentence, verbatim, as it stands in the block. ! It is CHECKED against the census text, so a paraphrase is refused |
+| `correct` | `false`, `true` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the block -- if it is not there, the finding is on the wrong block |
+| `patch` | `from`, `to` | the sentence as it stands and the rewrite. ! `from` is checked against the block. A `patch` needs no source: the claim is already true, and only its wording is at issue |
+| `add` | `missing`, `anchor`, `side` | the text that is missing, the anchor NAMED IN BACKTICKS, and which side of it. ! The word "anchor" is not an anchor -- name the declaration |
+| `move` | `from`, `to` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting BLOCKS |
+
+<!-- END GENERATED -->
 
 !! **`correct` keeps `false:`/`true:` where `patch` and `move` take `from:`/`to:`, and the pair
 is not interchangeable.** `false:`/`true:` ASSERTS the sentence is wrong, and that assertion is
