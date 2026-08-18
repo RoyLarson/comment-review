@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 2 of 15 tasks done
-Owner:    session * Roy (* 3 rulings left -- the fixture source, the suite layout,
-          and whether `plugin eval` access is worth asking for. 2 ruled 2026-08-18)
+Progress: 2 of 17 tasks done
+Owner:    session * Roy (* 4 rulings left -- the anchoring scope, the fixture
+          source, the suite layout, and `plugin eval` access. 2 ruled 2026-08-18)
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
 ```
 
@@ -110,21 +110,45 @@ scrutiny, in the one stage whose own text says a single-role run ratifies falseh
       the legal sets are `{ownership-context}` plus any subset of `{block-context,
       function-context, module-context}`.
 
-      !! **It is the right role to pin, and for a reason the other three do not share: it rules
-      on no truth at all.** Its own file says so -- *"You do not rule on whether the claim is
-      TRUE -- that is outside your remit"* -- it decides which ANCHOR a claim belongs to. Every
-      other role then measures that claim against the code at its own scope. So dropping
-      `ownership-context` does not remove a check, it removes the ground the remaining checks
-      stand on; dropping any other removes a remit and nothing else.
+      !! **It is the right role to pin because the truth it rules on is PRIOR to the others',
+      not because it rules on none.** Roy, 2026-08-18: it settles *"is this statement
+      specifically about this piece of code"* and *"is this statement about any specific piece
+      of code or documentation in this project"*. Both are propositions that can be false and
+      are settled by evidence. What it does NOT rule on is the truth of what the sentence
+      ASSERTS -- the count, the bound, the worked example -- which is the other three's.
 
-      ! **`ownership-context` ALONE is therefore a coherent run, not a degenerate one**: it
-      answers *is this prose in the right place* and emits no truth findings to be
-      uncorroborated.
+      !! **Every other role's verdict PRESUPPOSES that ruling.** A claim attached to the wrong
+      scope is checked against the wrong code: a comment about `parse()` sitting above
+      `render()` is read against `render()`, found false, and CORRECTED into a falsehood. So
+      dropping `ownership-context` does not remove a check, it leaves the remaining checks
+      resting on an assumption nobody made. Dropping any other removes a remit and nothing
+      else.
+
+      ! **`ownership-context` ALONE is therefore a coherent run**: it answers whether the prose
+      is about this code, or about anything in the project, and emits no findings about what
+      the prose asserts.
 
       ! **The upper bound is left OPEN deliberately** -- `1..N`, not `1..4`. Roy, 2026-08-18: a
       fifth editorial role might be found, *"though the fact the editorial roles mimic
       real-world roles makes me think it is unlikely."* The four are a copy desk; `compact` and
       `review` are stages rather than members of the board.
+
+- [ ] **Correct `ownership-context`'s own sentence, which understates its remit.** It reads
+      *"You do not rule on whether the claim is TRUE -- that is outside your remit. You rule on
+      whether truth is assessable here at all."* Roy, 2026-08-18: the assessability ruling IS a
+      truth ruling -- it settles a proposition about the statement's relation to the code, and
+      that proposition can be false. The distinction the sentence wants is between the truth of
+      the ANCHORING and the truth of the ASSERTION, and it should say that. ! It matters beyond
+      wording: the role that is never dropped should state its remit at full width, or a reader
+      deciding a set will under-rate it.
+
+- [ ] * **Rule the SCOPE of the second question: the file, or the project?** The role file asks
+      whether a block would be truthy where it sits, and whether it would be truthy *"in the
+      right place"* -- with the surrounding text file-scoped (*"equally useful anywhere in the
+      FILE"*). Roy states it wider: *"about any specific piece of code or documentation in this
+      project"*. The difference decides a verdict -- prose about nothing in the project is a
+      `drop`, prose about something elsewhere in it is a `move` -- and the wider reading pulls
+      in the documentation tree stage 1.4 resolves.
 
 - [ ] **State the RESIDUAL cost, which this ruling does not remove.** Pinning
       `ownership-context` fixes SCOPE -- a claim measured against the code it belongs to. It
