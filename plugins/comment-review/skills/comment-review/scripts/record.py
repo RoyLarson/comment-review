@@ -50,6 +50,7 @@ import json
 import re
 import sys
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -298,6 +299,201 @@ def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
     if spec.needs_anchor:
         extras += ["anchor", "side"]
     return (markers, extras)
+
+
+# !! A `Finding` IS A RECORD IN MEMORY, which is why it sits with the table that
+# says what one owes. It was in `verdicts.py` with the reader that builds it and
+# the checks that read it, so both of those had to be one module or import a
+# type from each other.
+@dataclass
+class Finding:
+    """One reviewer's ruling on one census block.
+
+    !! Field order follows the record in `reviewer-brief.md`, and the order is
+    a CHAIN OF CUSTODY. Roy, 2026-08-17: *"Verdict -> Claim -> REASON ->
+    SOURCES -> CHANGE ... that is a clear chain of custody on the reasoning and
+    the required actions."* The ruling, what must change, why, the evidence
+    the why rests on, and the result. `SOURCES` sat between `VERDICT` and
+    `CLAIM`, which put the evidence before the thing it was evidence FOR.
+
+    `sources` holds one entry per place examined, each `file:line | verbatim` --
+    BOTH halves verbatim, which is why they are one field where `claim` and
+    `reason` are two.
+
+    !! `claim` is the SURGICAL SPEC -- what must change, and from what to what.
+    `change` is the RESULT: that edit already made, written out with the
+    surrounding block. Roy, 2026-08-17: *"The change is what allows the apply
+    section to apply the claim appropriately."*
+
+    | verdict   | claim                    | change                       |
+    | --------- | ------------------------ | ---------------------------- |
+    | `correct` | `false: ... / true: ...` | the result, with its block   |
+    | `patch`   | `from: ... / to: ...`    | the result, with its block   |
+    | `move`    | `from: ... / to: ...`    | BOTH blocks -- see below     |
+    | `add`     | `missing: ...`           | the text added in            |
+    | `drop`    | `drop: ...`              | the block with it removed    |
+
+    ! `clean` and `query` carry NEITHER. A `clean` rules on nothing; a `query`
+    says the claim is unsettled, so there is no text for stage 5 to apply.
+
+    !! `move` changes TWO blocks, so its `change` shows both, `to:` and `from:`
+    -- the destination once the prose arrives, and the origin once it has left.
+    `from:` may be omitted, and omitting it ASSERTS the whole block moved.
+    ! Those two labels are `claim`'s words reused: in `claim` they are PLACES,
+    in `change` they are the resulting BLOCKS. The field decides which.
+
+    !! EVERY check that reads the ORIGINAL sentence reads it out of `claim`.
+    `change` is a whole block, so no sentence can be parsed back out of it --
+    which is the point: a reviewer that hands over a block has said what the
+    result IS, not only what to swap, and stage 5 applies it rather than
+    re-deriving it.
+
+    ! `reason` is the why: the evidence that verifies the claim. It is DERIVED
+    and no checker can settle it, which is why it stays out of `sources`.
+
+    !! `block` is an INDEX and `address` is `path:start-end`. THE REVIEWER
+    WRITES NEITHER: `record.py --seed` puts both in the slot and both are
+    checked against the census, so a mismatch says the file was edited rather
+    than that a reviewer misquoted.
+
+    ! `original` is that block's text, and it is filled from the CENSUS by
+    `main` after the report is read. It was the reviewer's to transcribe under
+    the first ruling of 2026-08-17 -- *"BLOCK gets the address and the original
+    text verbatim"* -- and a second ruling the same day replaced it: handed the
+    prose, a reviewer can produce a complete admissible ruling without opening
+    the file, and no check can tell that from real work. 83 refusals in one
+    measured run were spent on transcription fidelity and none was about a
+    finding.
+
+    ! `claim_fields` is the claim as the record held it, and empty for a 0.2.x
+    text record. A check that can read a FIELD must not search the string
+    `claim_text` renders it into -- see `_said`.
+
+    ! `clean` owes no claim and no change. A role returns `clean` on most of
+    the census -- 1159 blocks on one measured run.
+    """
+
+    reviewer: str
+    block: int
+    verdict: str
+    claim: str
+    reason: str
+    sources: list[str]
+    change: str
+    address: str = ""
+    original: str = ""
+    # !! THE CLAIM AS THE RECORD CARRIED IT, empty for a 0.2.x text record. A
+    # check that can read the FIELD must not word-search the string the field
+    # rendered into: the reviewer answered, and searching its wording for five
+    # accepted verbs refuses correct answers written in other words. Measured
+    # 2026-08-17 on the first JSON run: nine well-formed `query` records
+    # refused, every one carrying a filled `settles`.
+    claim_fields: dict = dataclass_field(default_factory=dict)
+
+
+def _substantive(f: Finding) -> bool:
+    """Does this finding ASK something of stage 5?
+
+    ! An UNKNOWN verdict answers True. `_is` answers False to everything, so a
+    mistyped verdict fell out of the work list and was summarised as STANDS
+    UNCHANGED -- reported as clean from all reviewers on a block a role had
+    explicitly ruled on. The name check reports it fatal either way; the
+    summary must not also call it a pass.
+    """
+    return f.verdict not in VERDICTS or _is(f, "substantive")
+
+
+def _is(f: Finding, trait: str) -> bool:
+    """Does this finding's verdict carry `trait`? False for an unknown verdict.
+
+    ! An unknown verdict answers False to everything rather than raising. The
+    VERDICT check reports it by name, and a lookup that raised would take the
+    whole join down over one typo in one record.
+    """
+    spec = VERDICTS.get(f.verdict)
+    return bool(spec and getattr(spec, trait))
+
+
+def _said(f: Finding, key: str) -> str:
+    """What the record put in this `claim` key, or "" if it carries no fields.
+
+    !! THE FIELD IS THE ANSWER; the rendered string is a fallback. `claim_text`
+    builds one string out of every key, so a check that searches it for one
+    key's value can be satisfied by another key's prose. Measured 2026-08-17: a
+    `query` whose `settles` mentioned the phrase "outside my role" was
+    classified as a scope declaration and dropped out of the work list.
+
+    ! Empty for a 0.2.x text record, and every caller falls back to searching
+    the string for exactly that case. That is the only path the deprecated
+    format has.
+
+    Args:
+        f: the finding.
+        key: the `claim` key wanted.
+
+    Returns:
+        The value as a string, or "".
+    """
+    return str(f.claim_fields.get(key, "")) if f.claim_fields else ""
+
+
+def _claim_values(f: Finding) -> str:
+    """Everything the reviewer WROTE in `claim`, without the marker words.
+
+    !! `claim_text` prepends each key as a marker -- `drop: "..."` -- so a check
+    comparing prose against the rendered string is comparing against a string
+    that can never equal it. Measured 2026-08-17: the REASON-restates-CLAIM
+    gate could not fire on any JSON record, for any verdict. It was switched
+    off by the bridge that generated the string, silently.
+
+    Args:
+        f: the finding.
+
+    Returns:
+        The claim's values joined, or the rendered claim for a text record.
+    """
+    if not f.claim_fields:
+        return f.claim
+    return " ".join(str(v) for v in f.claim_fields.values())
+
+
+def _answered(f: Finding, key: str, pattern: re.Pattern, probe: str) -> bool:
+    """Did the reviewer answer `key` -- by its field, or failing that its words?
+
+    !! THE FIELD OUTRANKS THE WORD SEARCH, and that is the whole point of a
+    typed record. `record.py` gives a `query` a `settles` slot and refuses a
+    record that leaves it out, so a filled slot has already answered the
+    question this check asks. Searching the rendered prose for `settl`, `would`,
+    `requires`, `resolv` or `determined by` then refuses an answer written in
+    any other words -- and the reviewer's remedy is to pad the sentence with an
+    accepted verb, which is a finding reshaped to satisfy a parser.
+
+    ! Measured 2026-08-17, the first run over JSON records: nine `query` records
+    refused for want of a settles-word, every one carrying a filled `settles`.
+    One reads *"reading this docstring against the body of `line_endings` and
+    against `splice`"* -- a check, named, containing none of the five.
+
+    ! The word search STAYS for a 0.2.x text record, where there is no field to
+    read: `claim_fields` is empty and this falls through to `pattern`. That is
+    the only route by which the deprecated format keeps its guarantee.
+
+    Args:
+        f: the finding.
+        key: the `claim` key that answers this check.
+        pattern: the word search, for a record with no fields.
+        probe: the rendered claim with its shape removed.
+
+    Returns:
+        True if the question was answered.
+    """
+    if f.claim_fields:
+        return bool(str(f.claim_fields.get(key, "")).strip())
+    return bool(pattern.search(probe))
+
+
+def _n(count: int, noun: str) -> str:
+    """`"1 block"`, `"2 blocks"` -- this output decides whether an agent proceeds."""
+    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
 
 # The fields the TOOL fills from the census. ! A mismatch here means the file

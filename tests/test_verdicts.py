@@ -1510,18 +1510,23 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
         self.assertNotIn("reanchor", verdicts.VERDICTS)
 
     def test_no_check_branches_on_a_VERDICT_NAME(self):
-        # !! THE POINT OF THE TABLE. A comparison against a verdict name below
-        # the table is a fact about a verdict living somewhere other than its
-        # row -- which is exactly what cost five defects. Names may appear in
-        # PROSE and in the table itself; what may not appear is a comparison.
-        table_ends = self.SOURCE.index("def _n(")
-        logic = self.SOURCE[table_ends:]
-        offenders = [
-            line.strip()
-            for line in logic.splitlines()
-            if "f.verdict" in line
-            and re.search(r'f\.verdict\s*(==|!=|in)\s*[("\']', line)
-        ]
+        # !! THE POINT OF THE TABLE. A comparison against a verdict name is a
+        # fact about a verdict living somewhere other than its row -- which is
+        # exactly what cost five defects. Names may appear in PROSE and in the
+        # table itself; what may not appear is a comparison.
+        #
+        # ! EVERY shipped script, not a slice of one. This bounded the scan with
+        # `SOURCE.index("def _n(")`, a positional marker for where the table
+        # ended -- and `_n` moved to `record.py` with the table, taking the
+        # marker with it. The bound was never needed: the table holds
+        # `Verdict(...)` rows and no `f.verdict` at all. Scanning the directory
+        # also means a check cannot escape by moving to a new module.
+        picks_a_name = re.compile(r"""f\.verdict\s*(==|!=|in)\s*[("']""")
+        offenders = []
+        for script in sorted(SCRIPTS.glob("*.py")):
+            for line in script.read_text(encoding="utf-8").splitlines():
+                if "f.verdict" in line and picks_a_name.search(line):
+                    offenders.append(f"{script.name}: {line.strip()}")
         self.assertEqual(offenders, [], "a check branches on a verdict NAME")
 
     def test_every_row_is_reachable_by_payload_problem(self):
