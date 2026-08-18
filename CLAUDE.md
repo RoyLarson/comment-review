@@ -217,6 +217,16 @@ history) since it depends on `git blame`.
 
 ### Cutting a release, and the version number
 
+!! **PROPOSING A TAG IS THE MOMENT TO CHECK WHICH BRANCH YOU ARE ON.** A tag is a main-only act,
+so wanting one means the work has been accumulating somewhere -- and if that somewhere is main,
+it went there without the branch question ever being asked.
+
+! **It is a better checkpoint than the rule above it**, which fires when editing STARTS. The
+start is where this goes wrong: a one-line fix becomes a migration with no moment that announces
+itself. Roy, 2026-08-17, after 26 commits reached main: *"your repeated asking to tag the commits
+with a new version should have cued me in that you were on main."* ! Both of us had the signal
+and neither read it, which is why it is written down rather than remembered.
+
 !! **THE VERSION IS STATED THREE TIMES AND `tests/test_release.py` HOLDS THEM EQUAL.** Bump all
 three in one commit, or the gate fails:
 
