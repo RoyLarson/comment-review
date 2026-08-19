@@ -6,10 +6,10 @@ ends one interval and starts the next, and picking between them here would be a
 placement decision the reviewer owns.
 """
 
-import unittest
+import unittest  # noqa: I001  -- path shim below must import before locator
 
-import locator
 from _paths import SCRIPTS  # noqa: F401
+import locator
 
 CENSUS = [
     {"path": "a.py", "start": 1, "end": 10, "kind": "docstring"},
