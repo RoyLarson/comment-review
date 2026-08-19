@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 8 tasks done
+Progress: 3 of 7 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -67,23 +67,31 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
 - [ ] **`prove_unchanged._without_comments` reads the same field** rather than re-deriving the
       suffix rule. Verify: its CLI tests pass unchanged, and the two implementations of one
       rule become one.
-- [ ] !! **ONE ADDRESS NAMES TWO BLOCKS on a mid-line comment, and this is the
-      cause.** Measured 2026-08-19 on `let b = 2; /* opens` ... `and closes */`:
-      the comment and an empty interval are both `@b1`, and lines 2-3 each carry
-      two addresses. `record.entry_for` returns the interval, so every text check
-      reads `""`. ! **Two computations of one fact inside one module** --
-      `addresser.address()` reads `kind in SHARES_ITS_LINE`, `code_lines_of` reads
-      `whole_lines`. A mid-line `comment` is `whole_lines=False` and not in
-      `SHARES_ITS_LINE`. **One computation, and `SHARES_ITS_LINE` goes.**
-- [ ] !! **THE TWO TIERS STORE `raw_lines` DIFFERENTLY, and a FRESH census reads
-      as STALE because of it.** `blocks_lexical` cuts `raw_lines[0]` at the
-      comment opener (`census.py:541,561`) where `blocks_stdlib` stores the whole
-      line, so `block_matches` compares `// a trailing comment` against `\treturn
-      a + b // a trailing comment`. ! Reproduced on the repo's OWN committed
-      fixture: `addresser.py --check` on a seconds-old census of
-      `tests/fixtures/sample.go` exits 2. It kills `--check`, `--resolve` and
-      `--anchor` on every non-Python file with a trailing or indented comment, the
-      message is unactionable, and **it masks the collision above**.
+- [x] !! **DONE 2026-08-19 -- ONE ADDRESS NAMED TWO BLOCKS on a mid-line comment, and this was
+      the cause.** Measured on `let b = 2; /* opens` / `and closes */`: the comment and an empty
+      interval were both `@b1`, and lines 2-3 each carried two addresses. `record.entry_for`
+      returned the interval, so every text check on the comment read `""`.
+      ! **Two computations of one fact inside one module** -- `address()` read
+      `kind in SHARES_ITS_LINE`, `code_lines_of` read `whole_lines`. A mid-line `comment` is
+      `whole_lines=False` and in neither list. **`address()` now reads `whole_lines` and
+      `SHARES_ITS_LINE` is deleted.** Two further sites were asking a second way and now read the
+      same fact: `margins()` (a line already carrying prose that shares it has no room left) and
+      `blocks_in()` (a block OVERLAPS a gap; it does not have to START in one -- a start test
+      emitted an interval over the comment's own second line).
+      ! **Re-measured over 18 files in four languages: 7,436 lines, each with exactly one address,
+      0 shared.** The prior figure was Python-only.
+
+- [ ] !! **THE TWO TIERS STORE `raw_lines` DIFFERENTLY, so an INDENTED BLOCK COMMENT CANNOT BE
+      EDITED.** `blocks_lexical` cuts `raw_lines[0]` at the comment opener
+      (`census.py:541,561`) where `blocks_stdlib` stores the whole line, so
+      `galley.block_matches` compares `/* block` against `    /* block` and refuses the splice:
+      `REFUSED sample.rs: 1 range(s) no longer match the census: 6-7`.
+      ! **SCOPE CORRECTED 2026-08-19.** This was filed as *"a FRESH census reads as STALE"*, which
+      it no longer does: it reached `--check`, `--resolve` and `--anchor` only through a staleness
+      sweep the addresser had no business running, and that sweep is gone (task above). **What
+      remains is the galley**, where comparing stored text against the file is exactly right and
+      the stored text is wrong. ! It also masked the mid-line collision, which is why that one
+      survived the first measurement.
 - [x] !! **THE ADDRESSER NO LONGER SWEEPS FOR STALENESS -- done 2026-08-19, and it
       un-blocked the rest of this file.** Roy: *"not necessary for addresser to do
       the staleness sweep as long as the original census is still an available
@@ -92,18 +100,5 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       file and takes no `--repo`. **`--check` now reports the mid-line collision
       it was written to catch** -- `SHARED s.js@b1 <- 0-0 interval | 2-3 comment`
       -- which the sweep had masked on every non-Python file.
-- [x] !! **DONE 2026-08-19 -- ONE fact decides "shares its line", and the producer
-      states it.** `address()` read a list of KINDS while `code_lines_of` read
-      `whole_lines`; a `comment` opened after a statement is in neither list, so
-      it took a `b` folio for a line it sits ON and that folio named the comment
-      AND the gap. `SHARES_ITS_LINE` is deleted. ! Two more sites now read the
-      same fact: `margins()` (a line already carrying prose that shares it has no
-      room left) and `blocks_in()` (a block OVERLAPS a gap; it does not have to
-      START in one -- a start test emitted an interval over the comment's own
-      second line). **Re-measured over 18 files in four languages: 7,436 lines,
-      each with exactly one address, 0 shared.**
-
-## Related
-
 - [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)
   -- step 7's run is where the docstring half was found, by two roles independently.
