@@ -11,6 +11,7 @@ from pathlib import Path
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
 import addresser
 import census
+import page
 import held
 import record
 import verdicts
@@ -846,3 +847,78 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
             {r["address"] for r in ruled},
             {self.census[i - 1]["address"] for i in self.prose},
         )
+
+
+class TestFrontMatterIsNotSEEDED(unittest.TestCase):
+    """A slot nobody can fill reports INCOMPLETE forever.
+
+    !! FRONT MATTER HOLDS REAL PROSE AND THE REVIEWER NEVER SEES IT. A licence
+    header, a shebang or a coding line is filtered out of the census a role
+    reads, so a seeded slot for one stays `null` and joins as a COVERAGE GAP --
+    on every run, for as long as the file carries a licence.
+
+    ! `verdicts.py` already excluded it from the set it counts coverage
+    against. This is the other half: the two disagreed, so the gap was reported
+    by neither and the slot was answered by nobody.
+
+    ! It is the OPPOSITE case to an `interval`, which gets no slot because it
+    holds nothing. This one holds prose and is not the reviewer's to rule on.
+    """
+
+    SRC = (
+        "# Copyright 2026 Roy. All rights reserved.\n"
+        "# Licensed under the Apache Licence, Version 2.0.\n"
+        '"""What this module is for."""\n'
+        "\n"
+        "# what f is for\n"
+        "def f():\n"
+        '    """Do it."""\n'
+        "    return 1\n"
+    )
+
+    def setUp(self):
+        path = Path("m.py")
+        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
+        lines = sorted(census.code_lines(self.SRC, paragraphs))
+        for b in paragraphs:
+            b.address = addresser.address(vars(b), lines)
+        self.census = [vars(b) for b in paragraphs]
+        self.marked = [
+            b for b in self.census if page.FRONT_MATTER in (b["annotations"] or ())
+        ]
+
+    def test_the_fixture_really_has_front_matter(self):
+        # ! Guards the guard: a fixture whose header stopped being marked would
+        # make every assertion below pass without exercising anything.
+        self.assertTrue(self.marked, "the licence header is not marked front matter")
+
+    def test_no_seeded_slot_is_front_matter(self):
+        seeded = record.seed(self.census, "ownership-context")["records"]
+        at = {b["address"] for b in self.marked}
+        self.assertEqual([s for s in seeded if s["address"] in at], [])
+
+    def test_the_prose_a_reviewer_DOES_owe_still_gets_one(self):
+        # ! The filter must not take the ordinary prose with it.
+        seeded = record.seed(self.census, "ownership-context")["records"]
+        self.assertTrue(seeded)
+        for s in seeded:
+            held = record.entry_for(s["address"], self.census) or {}
+            with self.subTest(address=s["address"]):
+                self.assertNotIn(page.FRONT_MATTER, held.get("annotations") or ())
+
+    def test_the_JOIN_and_the_SEED_agree_on_what_is_accountable(self):
+        """!! They disagreed, which is how the gap reached nobody.
+
+        `verdicts.py` builds its coverage set with the same two exclusions --
+        `HOLDS_NO_PROSE` and `FRONT_MATTER` -- and `record.prose_paragraphs`
+        excluded only the first.
+        """
+        seeded = {s["address"] for s in record.seed(self.census, "x")["records"]}
+        accountable = {
+            str(b.get("address", ""))
+            for b in self.census
+            if b.get("kind") not in page.HOLDS_NO_PROSE
+            and b.get("address")
+            and page.FRONT_MATTER not in (b.get("annotations") or ())
+        }
+        self.assertEqual(seeded, accountable)

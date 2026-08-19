@@ -55,7 +55,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from page import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
+from page import (  # noqa: E402  -- path shim must run first
+    FRONT_MATTER,
+    HOLDS_NO_PROSE,
+)
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,
@@ -660,9 +663,20 @@ def prose_paragraphs(census: list[dict]) -> list[tuple[int, dict]]:
     ADDRESSABLE so an `add` can cite the gap it is about, which is why the
     census numbers every one -- but it is not accountable, and seeding a slot
     for each would bury 224 real questions under 1730 empty ones.
+
+    !! NEITHER IS FRONT MATTER, AND FOR THE OPPOSITE REASON: it holds real
+    prose, and the reviewer is never shown it. A licence header, a shebang or a
+    coding line is filtered out of the census a role reads, so a slot for one is
+    a question nobody can answer -- it stays `null` and reports as a COVERAGE
+    GAP, on every run, for as long as the file has a licence. `verdicts.py`
+    already excludes it from the set it counts coverage against; this is the
+    other half, and without it the report says INCOMPLETE forever.
     """
     return [
-        (i, b) for i, b in enumerate(census, 1) if b.get("kind") not in HOLDS_NO_PROSE
+        (i, b)
+        for i, b in enumerate(census, 1)
+        if b.get("kind") not in HOLDS_NO_PROSE
+        and FRONT_MATTER not in (b.get("annotations") or ())
     ]
 
 

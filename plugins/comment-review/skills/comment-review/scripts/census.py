@@ -70,6 +70,7 @@ from annotate import (  # noqa: E402  -- path shim must run first
 )
 from page import (  # noqa: E402  -- path shim must run first
     FRONT_MATTER,
+    HOLDS_NO_PROSE,
     OCCUPIES_NOTHING,
     Paragraph,
 )
@@ -1679,19 +1680,30 @@ def _report(args: argparse.Namespace) -> int:
         # so a run and a paragraph could not be told apart by anything mechanical.
         # ! The notes column names what it counts, in the hyphenated form the
         # annotations use, so the row is readable without the header.
-        counted = f"{len(run)}-interval" + ("" if len(run) == 1 else "s")
+        # ! It names WHAT it collapsed rather than assuming one kind. A run
+        # mixes `interval`, `margin` and `undocumented` -- the gap above a line
+        # of code, the room beside it, and a declaration with no docstring --
+        # and a reviewer citing into one needs to know which are in there.
+        kinds = Counter(census[n - 1].kind for n in run)
+        counted = ", ".join(
+            f"{n}-{kind}" + ("" if n == 1 else "s") for kind, n in sorted(kinds.items())
+        )
         print(f"{where}  @{seat}  {span}  no-prose  0L  {counted}")
         run.clear()
 
     for i, b in enumerate(census, 1):
-        # !! FILTERED, and the intervals become ONE LINE PER RUN rather than
-        # vanishing. Measured 2026-08-18 over 1,120 paragraphs: the full census is
-        # 131,353 bytes and every reviewer gets an identical copy, 966 of those
-        # paragraphs are intervals, and prose-only would be 38,446. Collapsing each
-        # run instead costs 52,383 -- 85% of the available saving -- and keeps
-        # what an `add` is actually about visible: a stretch of code carrying no
-        # commentary. A reviewer needing a spot outside its set asks
-        # `locator.py`, which answers from the FULL census.
+        # !! FILTERED, and every place that HOLDS NO PROSE becomes one line per
+        # run rather than vanishing. It collapsed `interval` alone until
+        # 2026-08-19, which was the whole set when it was written and is now a
+        # third of it: `margin` and `undocumented` arrived with the `c` and `a`
+        # series and were listed one row each. **Measured over this repo's own
+        # 15 shipped scripts: 3,282 bare `margin` rows against 484 rows of
+        # prose -- 87% of what a reviewer reads, four times over.**
+        #
+        # ! Collapsing rather than dropping keeps what an `add` is about
+        # visible: a stretch of code carrying no commentary. A reviewer needing
+        # a spot outside its set asks `locator.py`, which answers from the FULL
+        # census.
         # !! FRONT MATTER IS DROPPED FROM WHAT A REVIEWER READS, not collapsed
         # into a run. A licence header or a shebang is not a claim about the
         # code, so no role can settle it and every role would return `clean` on
@@ -1700,7 +1712,7 @@ def _report(args: argparse.Namespace) -> int:
         # what it loses is a reviewer's attention and a record it owes.
         if args.filtered and FRONT_MATTER in b.annotations:
             continue
-        if args.filtered and b.kind == "interval":
+        if args.filtered and b.kind in HOLDS_NO_PROSE:
             run.append(i)
             continue
         flush_run()

@@ -9,6 +9,7 @@ placement decision the reviewer owns.
 import unittest  # noqa: I001  -- path shim below must import before locator
 
 from _paths import SCRIPTS  # noqa: F401
+import page
 import locator
 
 CENSUS = [
@@ -88,7 +89,12 @@ class TestTheFilteredCensusIsAProjection(unittest.TestCase):
         out = {}
         for line in text.split("\n"):
             m = self.PARAGRAPH.match(line)
-            if m and m.group(4) not in ("interval", "no-prose"):
+            # ! The SAME set the census collapses on, read from `page` rather
+            # than listed here. A hand-written tuple said ("interval",
+            # "no-prose") and went stale the day `margin` and `undocumented`
+            # joined the collapse -- 3,282 margin rows appeared in the full
+            # listing and in no filtered one, so the two could not be compared.
+            if m and m.group(4) not in (*page.HOLDS_NO_PROSE, "no-prose"):
                 out[int(m.group(1))] = m.group(2)
         return out
 
