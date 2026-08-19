@@ -7,7 +7,8 @@ missed anywhere above a place RENAMES that place, silently and consistently.
 These tests hold the naming to the enumeration.
 """
 
-import tempfile  # noqa: I001  -- path shim below must import before addresser
+import collections  # noqa: I001  -- path shim below must import before addresser
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -31,9 +32,23 @@ BARE = (
 
 A = [
     {"path": "a.py", "start": 1, "end": 2, "kind": "interval", "edit_start": 1},
-    {"path": "a.py", "start": 2, "end": 2, "kind": "trailing-comment", "edit_start": 2},
+    {
+        "path": "a.py",
+        "start": 2,
+        "end": 2,
+        "kind": "trailing-comment",
+        "edit_start": 2,
+        "whole_lines": False,
+    },
     {"path": "a.py", "start": 3, "end": 5, "kind": "comment", "edit_start": 3},
-    {"path": "a.py", "start": 6, "end": 6, "kind": "trailing-comment", "edit_start": 6},
+    {
+        "path": "a.py",
+        "start": 6,
+        "end": 6,
+        "kind": "trailing-comment",
+        "edit_start": 6,
+        "whole_lines": False,
+    },
     {"path": "a.py", "start": 6, "end": 6, "kind": "interval", "edit_start": 7},
 ]
 B = [
@@ -461,6 +476,7 @@ class TestTheTwoSeriesNameTheSameCodeLine(unittest.TestCase):
             "end": 4,
             "kind": "trailing-comment",
             "edit_start": 4,
+            "whole_lines": False,
         },
     ]
 
@@ -472,7 +488,13 @@ class TestTheTwoSeriesNameTheSameCodeLine(unittest.TestCase):
 
     def test_the_first_code_line_is_c0(self):
         # ! 0-indexed, so the first code line is `c0` and not `c1`.
-        on_first = {"path": "m.py", "start": 1, "end": 1, "kind": "trailing-comment"}
+        on_first = {
+            "path": "m.py",
+            "start": 1,
+            "end": 1,
+            "kind": "trailing-comment",
+            "whole_lines": False,
+        }
         self.assertEqual(addresser.address(on_first, self.code), "m.py@c0")
 
     def test_a_comment_above_the_SECOND_code_line_is_b1(self):
@@ -485,7 +507,13 @@ class TestTheTwoSeriesNameTheSameCodeLine(unittest.TestCase):
         # !! THE POINT, and the reverse of what this class once held. `b1` is
         # the gap above the 2nd code line; `c1` is on the 2nd code line.
         above = self.BLOCKS[1]  # the comment run, in the gap above code line 3
-        beside = {"path": "m.py", "start": 3, "end": 3, "kind": "trailing-comment"}
+        beside = {
+            "path": "m.py",
+            "start": 3,
+            "end": 3,
+            "kind": "trailing-comment",
+            "whole_lines": False,
+        }
         self.assertEqual(addresser.address(above, self.code), "m.py@b1")
         self.assertEqual(addresser.address(beside, self.code), "m.py@c1")
 
@@ -542,7 +570,9 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
     def test_the_c_it_names_is_the_DECLARATIONS_own_line(self):
         found = addresser.for_anchor("go", "c", self.blocks)
         self.assertEqual([b["start"] for b in found], [6])
-        self.assertIn(found[0]["kind"], addresser.SHARES_ITS_LINE)
+        # ! The one fact that decides it -- not a list of kinds. `SHARES_ITS_LINE`
+        # was a second way to ask, and it disagreed with this one.
+        self.assertFalse(found[0]["whole_lines"])
 
 
 class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
@@ -606,3 +636,56 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
             out = self._run("--census", str(census_json), "--check")
             self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
             self.assertIn("blocks addressed", out.stdout)
+
+
+class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
+    """One fact decides "shares its line", and the producer states it.
+
+    !! IT WAS DECIDED TWICE AND THE TWO DISAGREED. `address()` read a list of
+    KINDS; `code_lines_of` read `whole_lines`. A `comment` opened after a
+    statement is in neither list and has `whole_lines` False, so it took a `b`
+    folio for a line it sits ON -- and that folio then named the comment AND the
+    gap. Measured 2026-08-19 on `let b = 2; /* opens` / `and closes */`: `@b1`
+    resolved to an empty interval, so every text check on the comment read "".
+    """
+
+    SRC = "let a = 1;\nlet b = 2; /* opens\nand closes */\nlet c = 3;\n"
+
+    def _census(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "s.js"
+            path.write_text(self.SRC, encoding="utf-8")
+            got = census.census_for(path, self.SRC, census.language_for(path))
+            lines = sorted(census.code_lines(self.SRC, got))
+            for b in got:
+                b.address = addresser.address(vars(b), lines).split("@")[-1]
+            return got
+
+    def test_the_comment_takes_a_c_because_code_precedes_it(self):
+        got = self._census()
+        mid = next(b for b in got if b.kind == "comment")
+        self.assertFalse(mid.whole_lines)
+        self.assertTrue(mid.address.startswith("c"), mid.address)
+
+    def test_no_address_names_two_blocks(self):
+        seen = collections.Counter(b.address for b in self._census())
+        self.assertEqual([a for a, n in seen.items() if n > 1], [])
+
+    def test_every_line_has_exactly_one_address(self):
+        hits = collections.Counter()
+        for b in self._census():
+            if b.start >= 1:
+                for n in range(b.start, b.end + 1):
+                    hits[n] += 1
+        self.assertEqual(
+            {n: hits.get(n, 0) for n in range(1, len(self.SRC.splitlines()) + 1)},
+            {1: 1, 2: 1, 3: 1, 4: 1},
+        )
+
+    def test_the_gap_is_not_reported_EMPTY_over_lines_the_comment_holds(self):
+        # ! `blocks_in` asks whether a block OVERLAPS the gap, not whether it
+        # STARTS in one. The comment begins on the bounding code line and runs
+        # into the gap below, so a start test read the gap as empty and emitted
+        # an interval over the comment's own second line.
+        got = self._census()
+        self.assertEqual([b for b in got if b.kind == "interval" and b.start == 3], [])

@@ -101,8 +101,16 @@ Measured on this repo's own shipped scripts, 2026-08-18 and 2026-08-19:
 | declarations with nowhere to cite a missing docstring | **730** |
 | a FRESH census reading as stale | 3 blocks, because a block that stored no text was compared against lines that held some |
 
-**After: 6,873 lines, each with exactly one address. 0 with none, 0 with more than one, 0 missing
-`b` places, 0 shared.** `addresser.py --check` re-reads that claim on every run.
+**After, re-measured 2026-08-19 over 18 files in four languages -- `.py`, `.go`, `.rs`, `.rb`:
+7,436 lines, each with exactly ONE address. 0 with none, 0 with more than one, 0 shared.**
+`addresser.py --check` re-reads that claim on every run.
+
+! **The first measurement was PYTHON-ONLY and overstated.** It read 6,873 lines, 0 shared -- true
+of Python, where a comment cannot open after a statement and run on. In every C-family language
+it could, and one address then named the comment AND the gap: `address()` decided "shares its
+line" from a list of KINDS while `code_lines_of` decided it from `whole_lines`, and a mid-line
+comment is in neither list. **Two computations of one fact, inside one module.** One fact now,
+and the producer states it.
 
 ! **None of these was a bug in one place.** They were one absent definition, showing up
 differently wherever a consumer had guessed.

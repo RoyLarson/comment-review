@@ -140,8 +140,6 @@ from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 ON = "c"
 GAP = "b"
 DECLARED = "a"
-# A block that shares its line with code, so it sits ON one rather than between.
-SHARES_ITS_LINE = ("trailing-comment", "margin")
 
 
 def line_address(block: dict) -> str:
@@ -274,7 +272,14 @@ def address(block: dict, code: list[int]) -> str:
     declares = block.get("declares", -1)
     if isinstance(declares, int) and declares >= 0:
         return f"{path}@{DECLARED}{declares}"
-    if block.get("kind") in SHARES_ITS_LINE and start in code:
+    # !! ONE FACT DECIDES THIS, AND THE PRODUCER STATES IT. `whole_lines` is
+    # False exactly when code precedes the prose on its first line -- a trailing
+    # comment, a bare `margin`, a block comment opened after a statement. It was
+    # decided here from the KIND and in `code_lines_of` from `whole_lines`, and
+    # the two disagreed on the one kind that is in neither list: a `comment`
+    # opened mid-line took a `b` folio for a line it sits ON, so that folio named
+    # the comment AND the gap. Measured 2026-08-19 on `let b = 2; /* opens`.
+    if not block.get("whole_lines", True) and start in code:
         return f"{path}@c{code.index(start)}"
     at = block.get("edit_start")
     if not isinstance(at, int):

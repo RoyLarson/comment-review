@@ -96,8 +96,13 @@ where a different consumer had guessed:
 | declarations with nowhere to cite a missing docstring | **730** |
 | a FRESH census reading as STALE | 3 blocks: a block storing no text was compared against lines that held some |
 
-**After: 6,873 lines, each with exactly one address -- 0 with none, 0 with more than one, 0
-missing `b` places, 0 shared.** `addresser.py --check` re-reads that claim on every run.
+**After, over 18 files in four languages: 7,436 lines, each with exactly ONE address -- 0 with
+none, 0 with more than one, 0 shared.** `addresser.py --check` re-reads that claim on every run.
+
+! The first pass measured PYTHON ONLY and read 6,873 / 0 shared. A comment that opens after a
+statement -- legal everywhere but Python -- still took a `b` folio for a line it sat on, because
+"shares its line" was computed from a list of KINDS in one place and from `whole_lines` in
+another. Two computations of one fact; the same shape as the defect this release is about.
 
 ### The rule
 

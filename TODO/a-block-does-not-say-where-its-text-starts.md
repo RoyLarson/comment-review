@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks done
+Progress: 3 of 8 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -92,6 +92,16 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       file and takes no `--repo`. **`--check` now reports the mid-line collision
       it was written to catch** -- `SHARED s.js@b1 <- 0-0 interval | 2-3 comment`
       -- which the sweep had masked on every non-Python file.
+- [x] !! **DONE 2026-08-19 -- ONE fact decides "shares its line", and the producer
+      states it.** `address()` read a list of KINDS while `code_lines_of` read
+      `whole_lines`; a `comment` opened after a statement is in neither list, so
+      it took a `b` folio for a line it sits ON and that folio named the comment
+      AND the gap. `SHARES_ITS_LINE` is deleted. ! Two more sites now read the
+      same fact: `margins()` (a line already carrying prose that shares it has no
+      room left) and `blocks_in()` (a block OVERLAPS a gap; it does not have to
+      START in one -- a start test emitted an interval over the comment's own
+      second line). **Re-measured over 18 files in four languages: 7,436 lines,
+      each with exactly one address, 0 shared.**
 
 ## Related
 

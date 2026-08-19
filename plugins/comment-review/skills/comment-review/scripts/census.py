@@ -945,8 +945,22 @@ def code_lines(text: str, prose: list[Block]) -> set[int]:
 
 
 def blocks_in(prose: list[Block], prev: int, nxt: int) -> list[Block]:
-    """The prose blocks sitting strictly between two code lines."""
-    return [b for b in prose if b.kind not in OCCUPIES_NOTHING and prev < b.start < nxt]
+    """The prose blocks OVERLAPPING the gap between two code lines.
+
+    !! OVERLAP, NOT START. A comment opened after a statement begins ON the
+    bounding code line and runs into the gap below it, so `prev < b.start` was
+    False for it: the gap read as EMPTY, an interval was emitted, and the
+    comment's own second line carried two addresses. Measured 2026-08-19 on
+    `let b = 2; /* opens` / `and closes */` -- line 3 answered to both.
+
+    ! A trailing comment still holds no gap: it starts and ends on the code
+    line, so `prev < b.end` is False.
+    """
+    return [
+        b
+        for b in prose
+        if b.kind not in OCCUPIES_NOTHING and prev < b.end and b.start < nxt
+    ]
 
 
 def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
@@ -1190,7 +1204,11 @@ def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
     the same way, against the line it names.
     """
     lines = text.splitlines()
-    taken = {b.start for b in prose if b.kind == "trailing-comment"}
+    # ! THE SAME FACT `address` reads. A line already carrying prose that SHARES
+    # it has no room left -- and that is any block with `whole_lines` False, not
+    # only a `trailing-comment`. Keyed on the kind, a block comment opened after
+    # a statement got a margin for room it already occupies.
+    taken = {b.start for b in prose if not b.whole_lines}
     return [
         Block(
             path=path.as_posix(),
