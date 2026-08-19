@@ -380,11 +380,51 @@ def _strip_strings(line: str, quotes: tuple[str, ...]) -> str:
     return "".join(out)
 
 
+def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
+    """The line of code a `c` block sits beside -- its ANCHOR, verbatim.
+
+    !! AN ANCHOR IS THE LINE OF CODE, NOT A SYMBOL. Roy, 2026-08-19: *"the
+    anchor isn't the technical symbols and their precise semantic meaning and
+    code use. It is 'the line of code' -- the exact characters in that line of
+    code."* So it needs no parser, no language server and no build tool: every
+    tier already found where the comment opens, which means it already had the
+    characters before it.
+
+    !! WITHOUT IT, STALENESS HAS NOTHING FROM THE CENSUS TO COMPARE THE CODE
+    AGAINST. `blocks_stdlib` kept the whole physical line in `raw_lines` and so
+    checked both halves by accident; `blocks_lexical` cuts at the opener and so
+    checked only the prose -- measured 2026-08-19, a lexical trailing comment
+    storing `['// note']` made `galley.block_matches` answer False on an
+    UNTOUCHED file. The fix is not to make both tiers store the whole line,
+    which conflates the anchor with the prose in one string -- the conflation
+    that produced the suffix-test defect twice. Roy: *"not marking or saving the
+    anchor is causing the problem."*
+
+    ! It is `""` for a block that owns its lines whole, which has no code on its
+    line to be anchored to.
+
+    Args:
+        lines: the file's lines, without endings.
+        line_no: 1-based line the block opens on.
+        column: that block's `edit_column`.
+
+    Returns:
+        The code preceding the block on its first line, right-stripped.
+    """
+    if not column or not 1 <= line_no <= len(lines):
+        return ""
+    return lines[line_no - 1][: column - 1]
+
+
 def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     """Comment runs for a language with no parser here -- the FLOOR tier.
 
-    Answers where every block is, its line range, its text and its annotations.
-    Every block comes back stamped `tier="lexical"` with an empty anchor.
+    Answers where every block is, its line range, its text and its
+    annotations. Every block comes back stamped `tier="lexical"`. ! A block
+    sitting BESIDE code carries an anchor at this tier too -- the line of code
+    itself, which needs no parser; see `_anchor_of`. Only a block that owns its
+    lines whole has none, because its anchor is a declaration and naming one
+    needs the structure this tier lacks.
 
     ! A block opener with no closer swallows every remaining line into one run,
     so code below it is censused as prose. That block is STAMPED
@@ -438,6 +478,12 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             raw_lines=raw,
             tier="lexical",
             edit_column=partial_first[0],
+            # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in
+            # order to cut there, so the characters before it were known one
+            # step earlier and were thrown away. Roy, 2026-08-19: *"the lexer
+            # either knows what is before the trailing comment and can snag the
+            # whole string or it is broken."*
+            anchor=_anchor_of(lines, run[0][0], partial_first[0]),
         )
         partial_first[0] = 0
         # !! Same split as the tokenized tier: a trailing comment closes its run,
@@ -655,6 +701,10 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
                     # and each one a splice that would have deleted the blank
                     # line it did not know about.
                     raw_lines=source_lines[run[0][0] - 1 : run[-1][0]],
+                    # !! Same string, same reason -- see `blocks_lexical`. The
+                    # tokenizer states the column, so the code before it is a
+                    # slice and not an inference.
+                    anchor=_anchor_of(source_lines, run[0][0], run[0][3]),
                 )
             )
             # !! A trailing comment CLOSES its run, so a sentence wrapped onto
@@ -1092,6 +1142,9 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
     if not any(b.kind == "unparsed" for b in got):
         got = got + intervals(path, text, got) + margins(path, text, got)
         fill_the_gaps(text, got)
+        # ! AFTER the gaps are filled, so every block's place in its gap is
+        # settled before it is told what it sits above.
+        anchor_the_gaps(text, got)
         mark_front_matter(got)
     for b in got:
         b.tier = tier_for(lang)
@@ -1151,6 +1204,58 @@ def mark_front_matter(blocks: list[Block]) -> None:
             b.annotations.add(FRONT_MATTER)
         elif doc is not None and b.end < doc.start:
             b.annotations.add(FRONT_MATTER)
+
+
+def anchor_the_gaps(text: str, blocks: list[Block]) -> None:
+    """Give every `b` place the line of code it sits above, VERBATIM.
+
+    !! EVERY ADDRESS HAS AN ANCHOR, AND AN ANCHOR HAS MANY ADDRESSES. Roy,
+    2026-08-19: *"a, b, c are the address -- each has an anchor. An anchor can
+    be tied to multiple addresses ... anchors have many, an address has one."*
+    One declaration therefore carries its own `a`, the `b` above it, the `c`
+    beside it, and every `b` and `c` in its body.
+
+    !! THE ANCHOR IS THE LINE OF CODE, NOT A SYMBOL -- Roy, the same day:
+    *"the anchor isn't the technical symbols and their precise semantic meaning
+    and code use. It is 'the line of code' -- the exact characters in that line
+    of code."* So this needs no parser and works at both tiers; `_anchor_of`
+    says the same for the `c` series.
+
+    ! A `b` sits ABOVE code, so its anchor is the code line BELOW it -- the
+    statement the prose introduces. ! THE GAP AT THE END OF THE FILE HAS NO
+    LINE BELOW IT and takes the one above instead, because a gap is bounded by
+    code and that is the bound it has. Roy, 2026-08-19: *"an anchor missing in
+    a Record is a broken anchor."* Left empty it was 14 blocks of this repo,
+    one per file.
+
+    !! IT IS COPIED FROM THAT LINE'S `c`, NEVER RE-CUT. Every code line has
+    exactly one `c` -- a `trailing-comment` or the `margin` standing in for one
+    -- and that block already states where the code stops. Cutting the line
+    again here answered `'    return os  # why'` where the `c` for the same
+    line answered `'    return os'`: two computations of one fact, inside one
+    module, which is the defect `whole_lines` was removed for.
+
+    ! A DOCSTRING IN THE GAP IS NOT TOUCHED. It is an `a`, it already carries
+    its declaration, and `declares` is what tells them apart.
+
+    Args:
+        text: the file's source.
+        blocks: this file's blocks, mutated in place. `margins` must have run.
+    """
+    last = len(text.splitlines())
+    code = sorted(code_lines(text, blocks))
+    # ! The `c` of each code line, which is the code on it.
+    beside = {b.start: b.anchor for b in blocks if b.edit_column}
+    for prev, nxt in pairwise([0, *code, last + 1]):
+        below = beside.get(nxt) or beside.get(prev, "")
+        for b in blocks:
+            # ! The `b` series is every block with no column and no
+            # declaration: a comment run holding the gap, or the empty
+            # `interval` where one holds nothing.
+            if b.edit_column or b.declares >= 0:
+                continue
+            if prev < b.edit_start <= nxt:
+                b.anchor = below
 
 
 def fill_the_gaps(text: str, blocks: list[Block]) -> None:
@@ -1228,6 +1333,10 @@ def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
             # an `add` here carries its own leading separator, exactly as an
             # `add` on an `interval` carries its own indentation.
             edit_column=len(lines[n - 1].rstrip()) + 1,
+            # ! The whole line, because the whole line is code. A `margin` and
+            # the trailing comment that would replace it are the same place, so
+            # they carry the same anchor as well as the same column.
+            anchor=lines[n - 1].rstrip(),
         )
         for n in sorted(code_lines(text, prose))
         if n not in taken
@@ -1428,8 +1537,9 @@ def _report(args: argparse.Namespace) -> int:
         if tiers.get(name):
             print(f"  tier {name}: {tiers[name]} blocks - {TIER_ANSWERS[name]}")
     print(
-        "  ! NO COMMENT carries an anchor at either tier. A comment's anchor\n"
-        "    comes from READING the file, so a placement finding is a CANDIDATE."
+        "  ! EVERY address carries an anchor -- the LINE OF CODE it attaches\n"
+        "    to, at both tiers. What still needs READING is whether the prose\n"
+        "    belongs to it, so a placement finding is a CANDIDATE."
     )
     if deferred:
         print(

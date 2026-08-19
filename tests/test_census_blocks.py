@@ -281,6 +281,183 @@ class TestTheLexicalTierStampsToo(unittest.TestCase):
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
 
+class TestACPlaceCarriesItsAnchor(unittest.TestCase):
+    """The line of code a trailing comment sits beside, VERBATIM.
+
+    !! AN ANCHOR IS THE LINE OF CODE, NOT A SYMBOL. Roy, 2026-08-19: *"the
+    anchor isn't the technical symbols and their precise semantic meaning and
+    code use. It is 'the line of code' -- the exact characters in that line of
+    code."*
+
+    !! SO IT NEEDS NO PARSER, NO LANGUAGE SERVER AND NO BUILD TOOL. Every tier
+    finds where the comment opens in order to cut there, which means it already
+    holds the characters before it. Roy: *"the lexer either knows what is before
+    the trailing comment and can snag the whole string or it is broken."*
+
+    ! It was EMPTY in both tiers until 2026-08-19, measured on the files below.
+    `blocks_stdlib` kept the whole physical line in `raw_lines` and so checked
+    both halves of a staleness comparison by accident; `blocks_lexical` cut at
+    the opener and checked only the prose, so a fresh census read as stale.
+    """
+
+    C = "int a = 1;\nint b = 2; // note\nvoid f(void) { } // on a decl\n"
+    PY = "a = 1\nb = 2  # note\ndef f():  # on a decl\n    pass\n"
+
+    def _lexical(self):
+        path = Path("x.c")
+        return census.blocks_lexical(path, self.C, census.language_for(path))
+
+    def _tokenized(self):
+        return census.blocks_stdlib(Path("x.py"), self.PY)
+
+    def test_the_lexical_tier_carries_it(self):
+        got = [b.anchor for b in self._lexical() if b.kind == "trailing-comment"]
+        self.assertEqual(got, ["int b = 2;", "void f(void) { }"])
+
+    def test_the_tokenized_tier_carries_it(self):
+        got = [b.anchor for b in self._tokenized() if b.kind == "trailing-comment"]
+        self.assertEqual(got, ["b = 2", "def f():"])
+
+    def test_it_is_EXACTLY_the_column_split(self):
+        # !! The anchor and the column say the same thing about one line, and
+        # they must not be able to disagree: the anchor IS `line[:column - 1]`.
+        for block in self._lexical() + self._tokenized():
+            if not block.edit_column:
+                continue
+            text = self.C if block.path == "x.c" else self.PY
+            line = text.splitlines()[block.start - 1]
+            with self.subTest(block=block.text):
+                self.assertEqual(line[: block.edit_column - 1], block.anchor)
+
+    def test_a_block_owning_its_lines_has_no_code_anchor(self):
+        # ! Its anchor is a DECLARATION, which naming needs structure the
+        # lexical tier does not have. Nothing here invents one.
+        text = "int a = 1;\n// a note\nint b = 2;\n"
+        path = Path("x.c")
+        blocks = census.blocks_lexical(path, text, census.language_for(path))
+        note = next(b for b in blocks if b.kind == "comment")
+        self.assertEqual(note.edit_column, 0)
+        self.assertEqual(note.anchor, "")
+
+    def test_a_margin_carries_the_WHOLE_line(self):
+        # ! Because the whole line is code. A `margin` and the trailing comment
+        # that would replace it are one place, so they agree on both facts.
+        path = Path("x.py")
+        blocks = census.census_for(path, self.PY, census.language_for(path))
+        margins = {b.start: b.anchor for b in blocks if b.kind == "margin"}
+        self.assertEqual(margins[1], "a = 1")
+        self.assertEqual(margins[4], "    pass")
+
+    def test_no_c_place_in_this_repos_own_scripts_lacks_one(self):
+        # !! The measurement that showed the hole, run as a gate. Every block
+        # with a column has the characters that precede it.
+        root = Path(__file__).resolve().parent.parent
+        scripts = root / "plugins/comment-review/skills/comment-review/scripts"
+        holes = 0
+        seen = 0
+        for src in sorted(scripts.glob("*.py")):
+            body = src.read_text(encoding="utf-8")
+            for b in census.blocks_stdlib(src, body):
+                if not b.edit_column:
+                    continue
+                seen += 1
+                if b.anchor != body.splitlines()[b.start - 1][: b.edit_column - 1]:
+                    holes += 1
+        self.assertGreater(seen, 0, "no c place in the shipped scripts to check")
+        self.assertEqual(holes, 0)
+
+
+class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
+    """`a`, `b` and `c` alike -- and one anchor serves several addresses.
+
+    !! ROY, 2026-08-19: *"a, b, c are the address -- each has an anchor. An
+    anchor can be tied to multiple addresses ... anchors have many, an address
+    has one."* So `import os` is the anchor of the `b` above it AND of the `c`
+    beside it, and the relationship is never symmetric.
+
+    ! A `b` sits ABOVE code, so its anchor is the code line BELOW it. The gap at
+    the END of a file has no line below and takes the one above, because a gap
+    is bounded by code and that is the bound it has.
+    """
+
+    SRC = (
+        "# a header note\n"
+        "import os\n"
+        "\n"
+        "\n"
+        "# what f is for\n"
+        "def f():\n"
+        '    """Doc."""\n'
+        "    return os  # why\n"
+    )
+
+    def setUp(self):
+        path = Path("x.py")
+        self.blocks = census.census_for(path, self.SRC, census.language_for(path))
+
+    def _one(self, kind, start=None):
+        got = [
+            b
+            for b in self.blocks
+            if b.kind == kind and (start is None or b.start == start)
+        ]
+        self.assertEqual(len(got), 1, f"{kind} at {start}: {len(got)} blocks")
+        return got[0]
+
+    def test_a_comment_run_is_anchored_to_the_code_BELOW_it(self):
+        self.assertEqual(self._one("comment", 1).anchor, "import os")
+        self.assertEqual(self._one("comment", 3).anchor, "def f():")
+
+    def test_a_trailing_comment_is_anchored_to_its_OWN_line(self):
+        self.assertEqual(self._one("trailing-comment").anchor, "    return os")
+
+    def test_one_anchor_serves_the_b_AND_the_c_of_one_line(self):
+        # !! The one-to-many relationship, measured on one line of code.
+        b = self._one("comment", 1)
+        c = self._one("margin", 2)
+        self.assertEqual(b.anchor, c.anchor)
+        # ! `census_for` does not stamp the address -- the run loop does, once
+        # the path is repo-relative -- so the two places are told apart here by
+        # the fact the addresser reads: a `c` has a column and a `b` has none.
+        self.assertTrue(c.edit_column)
+        self.assertFalse(b.edit_column)
+
+    def test_the_b_and_the_c_of_a_line_AGREE_on_the_code(self):
+        # !! They are two computations of one fact unless the `b` copies the
+        # `c`. Re-cutting the line here answered `'    return os  # why'` where
+        # the `c` for the same line answered `'    return os'`.
+        margins = {b.start: b.anchor for b in self.blocks if b.edit_column}
+        for block in self.blocks:
+            if block.edit_column or block.declares >= 0 or not block.anchor:
+                continue
+            with self.subTest(address=block.address):
+                self.assertIn(block.anchor, margins.values())
+
+    def test_NO_block_in_this_file_lacks_an_anchor(self):
+        # ! Roy, 2026-08-19: "an anchor missing in a Record is a broken Record."
+        self.assertEqual([b.kind for b in self.blocks if not b.anchor], [])
+
+    def test_the_gap_at_the_END_takes_the_line_ABOVE_it(self):
+        # ! It has no line below. Left empty this was 14 blocks of this repo,
+        # one per file, every one a broken record.
+        gaps = [b for b in self.blocks if b.kind == "interval"]
+        last = max(gaps, key=lambda b: b.edit_start)
+        self.assertEqual(last.anchor, "    return os")
+
+    def test_no_block_in_this_repos_own_scripts_lacks_one(self):
+        # !! The hole, run as a gate: 6,376 of 6,531 blocks carried an empty
+        # anchor before 2026-08-19 -- 98% of this repo's own census.
+        root = Path(__file__).resolve().parent.parent
+        scripts = root / "plugins/comment-review/skills/comment-review/scripts"
+        holes = []
+        for src in sorted(scripts.glob("*.py")):
+            body = src.read_text(encoding="utf-8")
+            for b in census.census_for(src, body, census.language_for(src)):
+                if not b.anchor:
+                    holes.append(f"{src.name} {b.address or b.start} {b.kind}")
+        self.assertEqual(holes, [])
+
+
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that
 # class exists, so `python tests/<file>.py` reported a green bar over a
 # SHORTER suite than `unittest discover` -- and the tests it skipped were

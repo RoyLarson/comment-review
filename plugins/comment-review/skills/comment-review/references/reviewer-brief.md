@@ -77,7 +77,7 @@ yours:
 ```json
 { "block": 17,
   "address": "redacted_pkg:billing:rates.py@b47",
-  "anchor":  "compute_rates",
+  "anchor":  "def compute_rates(plan, period, *, clamp=True):",
   "verdict": "correct",
   "claim":   { "false": "twenty call sites want this",
                "true":  "31 callers, all in tests/" },

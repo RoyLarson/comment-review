@@ -135,6 +135,33 @@ POSIX checkout can still hold `a:b.py` -- `census.py` reports it as a gap and ex
 the same channel a language with no record uses. The extension keeps its dot, so `b.py` and
 `b.rs` still differ.
 
+### Every address carries its ANCHOR, and 98% of them did not
+
+!! **AN ANCHOR HAS MANY ADDRESSES; AN ADDRESS HAS ONE ANCHOR**, and **the anchor is the LINE OF
+CODE -- the exact characters**. Roy, 2026-08-19: *"the anchor isn't the technical symbols and
+their precise semantic meaning and code use."*
+
+**Measured against the previous commit: 6,376 of 6,531 blocks in this repo's own shipped scripts
+carried an EMPTY anchor -- 98% of the census.** By kind: 3,144 `margin`, 2,923 `interval`, 272
+`comment`, 37 `trailing-comment`. Every seeded record repeated it. It is 0 now.
+
+! **It was invisible from both ends at once.** `census.py` printed *"NO COMMENT carries an anchor
+at either tier"* as a statement of intent, and `test_record.py` asserted which KEYS are seeded
+rather than that either held a value.
+
+! **And it needs no tooling.** Every tier already finds where a comment opens in order to cut
+there, so it holds the characters before it. Roy: *"the lexer either knows what is before the
+trailing comment and can snag the whole string or it is broken."* Both tiers, eleven languages,
+no language server and no build tool.
+
+- **`record.seeded_problems` refuses a record with no anchor**, and one whose anchor is not the
+  census's. Roy: *"an anchor missing in a Record is a broken Record."* Only `address` was checked
+  before, though both fields are `SEEDED`.
+- **A `b`'s anchor is COPIED from that line's `c`**, never re-cut. Re-cutting answered
+  `'    return os  # why'` where the `c` for the same line answered `'    return os'`.
+- **The gap at the end of a file takes the line ABOVE it**, because a gap is bounded by code and
+  that is the bound it has. Left empty it was 14 blocks, one per file.
+
 ### The `c` series is WRITABLE
 
 !! **A SPLICE REPLACES WHOLE LINES, so a `patch` on `z = 3  # trailing` wrote `# reworded` over

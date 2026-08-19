@@ -1118,6 +1118,30 @@ def seeded_problems(where: str, rec: dict, block: dict | None) -> list[str]:
             f" {want!r}. This field was WRITTEN BY THE TOOL, so it was edited"
             " after seeding -- restore it rather than re-deriving it."
         ]
+    # !! A RECORD WITH NO ANCHOR IS A BROKEN RECORD. Roy, 2026-08-19. Both
+    # fields are SEEDED and only `address` was checked, so a record could carry
+    # an anchor the census never gave it -- or none at all -- and pass. Measured
+    # 2026-08-19 against the commit before this: 6,376 of 6,531 blocks in this
+    # repo's own shipped scripts had an EMPTY anchor, 98% of the census, and
+    # every seeded record repeated it. `census.py` printed "NO COMMENT carries
+    # an anchor at either tier" as a statement of intent, and `test_record.py`
+    # asserted which KEYS are seeded rather than that either holds a value, so
+    # the two agreed with each other and agreed on nothing.
+    anchored = str(block.get("anchor", ""))
+    if not anchored:
+        return [
+            f"{where}: this record carries no anchor for {want!r}, so it"
+            " is not a usable record. EVERY address has one -- an `a`'s"
+            " declaration, the code line a `b` sits above, the code line a `c`"
+            " sits beside. Re-seed from a fresh census; if the anchor is still"
+            " absent the file holds no line of code to anchor to."
+        ]
+    if rec.get("anchor") != anchored:
+        return [
+            f"{where}: `anchor` reads {rec.get('anchor')!r} and the census says"
+            f" {anchored!r}. This field was WRITTEN BY THE TOOL, so it was"
+            " edited after seeding -- restore it rather than re-deriving it."
+        ]
     return []
 
 

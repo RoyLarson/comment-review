@@ -18,7 +18,9 @@ CENSUS = [
         "end": 3,
         "kind": "docstring",
         "raw_lines": ["Summary.", "", "Args:"],
-        "address": "pkg.m.py@a0",
+        "address": "pkg:m.py@a0",
+        # ! An `a`'s anchor is its declaration; `a0` is the module.
+        "anchor": "<module>",
     },
     {
         "path": "pkg/m.py",
@@ -26,7 +28,9 @@ CENSUS = [
         "end": 4,
         "kind": "interval",
         "raw_lines": [],
-        "address": "pkg.m.py@b1",
+        "address": "pkg:m.py@b1",
+        # ! A `b`'s anchor is the code line it sits ABOVE, verbatim.
+        "anchor": "import os",
     },
     {
         "path": "pkg/m.py",
@@ -34,7 +38,8 @@ CENSUS = [
         "end": 5,
         "kind": "comment",
         "raw_lines": ["# a note"],
-        "address": "pkg.m.py@b2",
+        "address": "pkg:m.py@b2",
+        "anchor": "def f():",
     },
 ]
 
@@ -60,7 +65,7 @@ class TestOnlyProseGetsASlot(unittest.TestCase):
         # once asserted was dropped 2026-08-19 -- it went stale the moment an
         # `add` or a `drop` shifted the list.
         self.assertEqual(
-            record.seed(CENSUS, "x")["records"][1]["address"], "pkg.m.py@b2"
+            record.seed(CENSUS, "x")["records"][1]["address"], "pkg:m.py@b2"
         )
 
 
@@ -69,7 +74,7 @@ class TestWhatTheToolFills(unittest.TestCase):
         self.records = record.seed(CENSUS, "block-context")["records"]
 
     def test_the_address_is_built_from_the_census(self):
-        self.assertEqual(self.records[0]["address"], "pkg.m.py@a0")
+        self.assertEqual(self.records[0]["address"], "pkg:m.py@a0")
 
     def test_the_record_does_NOT_carry_the_block_text(self):
         """!! The reviewer is told WHERE, not WHAT, and that is deliberate.
@@ -342,24 +347,24 @@ class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
 
     def test_a_finding_on_an_interval_is_not_dropped(self):
         report = record.convert(
-            [self._F("pkg.m.py@b1", "add")], CENSUS, "module-context"
+            [self._F("pkg:m.py@b1", "add")], CENSUS, "module-context"
         )
-        cited = [r for r in report["records"] if r["address"] == "pkg.m.py@b1"]
+        cited = [r for r in report["records"] if r["address"] == "pkg:m.py@b1"]
         self.assertEqual(len(cited), 1)
         self.assertEqual(cited[0]["verdict"], "add")
 
     def test_the_interval_slot_carries_the_censuss_address(self):
         report = record.convert(
-            [self._F("pkg.m.py@b1", "add")], CENSUS, "module-context"
+            [self._F("pkg:m.py@b1", "add")], CENSUS, "module-context"
         )
-        cited = next(r for r in report["records"] if r["address"] == "pkg.m.py@b1")
+        cited = next(r for r in report["records"] if r["address"] == "pkg:m.py@b1")
         # !! THE STABLE ADDRESS, not a line range. A line range is true of one
         # file state and this tool edits prose; deprecated 2026-08-18.
-        self.assertEqual(cited["address"], "pkg.m.py@b1")
+        self.assertEqual(cited["address"], "pkg:m.py@b1")
 
     def test_records_stay_in_census_order(self):
         report = record.convert(
-            [self._F("pkg.m.py@b1", "add")], CENSUS, "module-context"
+            [self._F("pkg:m.py@b1", "add")], CENSUS, "module-context"
         )
         # ! Census order, which the addresses no longer sort into by string --
         # the census position is what `convert` orders by.
@@ -369,9 +374,9 @@ class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
 
     def test_no_finding_is_lost(self):
         findings = [
-            self._F("pkg.m.py@a0", "add"),
-            self._F("pkg.m.py@b1", "add"),
-            self._F("pkg.m.py@b2", "add"),
+            self._F("pkg:m.py@a0", "add"),
+            self._F("pkg:m.py@b1", "add"),
+            self._F("pkg:m.py@b2", "add"),
         ]
         report = record.convert(findings, CENSUS, "module-context")
         ruled = [r for r in report["records"] if r["verdict"] is not None]
@@ -607,12 +612,15 @@ class TestTheAnchorFormIsCheckedHereToo(unittest.TestCase):
         "text": "x",
         "raw_lines": ["# x"],
         "address": "a.py@b0",
+        # ! Every address has one, and a record without it is a broken record.
+        "anchor": "x = 1",
     }
 
     def _rec(self, anchor):
         return {
             "block": 1,
             "address": "a.py@b0",
+            "anchor": "x = 1",
             "verdict": "add",
             "claim": {"missing": "a note", "anchor": anchor},
             "reason": "derived it",
@@ -657,6 +665,65 @@ class TestTheAnchorFormIsCheckedHereToo(unittest.TestCase):
         # everything would satisfy the test above and refuse nothing.
         bare = record.ANCHOR_EXAMPLE.strip("`")
         self.assertIsNone(record.ANCHOR_NAME.search(bare))
+
+
+class TestARecordWithNoAnchorIsBroken(unittest.TestCase):
+    """Both fields are SEEDED and only `address` was ever checked.
+
+    !! ROY, 2026-08-19: *"an anchor missing in a Record is a broken Record."*
+
+    ! Measured the same day against the commit before this rule: **6,376 of
+    6,531 blocks** in this repo's own shipped scripts carried an EMPTY anchor --
+    98% of the census -- and every seeded record repeated it. It was invisible
+    from both ends at once: `census.py` printed *"NO COMMENT carries an anchor
+    at either tier"* as a statement of intent, and the test above asserts which
+    KEYS are seeded rather than that either holds a value. The two agreed with
+    each other and agreed on nothing.
+    """
+
+    BLOCK = dict(CENSUS[2])
+
+    def _rec(self, **over):
+        rec = {
+            "address": self.BLOCK["address"],
+            "anchor": self.BLOCK["anchor"],
+            "verdict": "clean",
+            "claim": {},
+            "reason": "",
+            "sources": [],
+            "change": [],
+        }
+        return rec | over
+
+    def test_a_census_block_with_no_anchor_breaks_the_record(self):
+        blank = self.BLOCK | {"anchor": ""}
+        problems = record.seeded_problems("block 3", self._rec(anchor=""), blank)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("no anchor", problems[0])
+
+    def test_an_anchor_the_census_never_gave_is_REFUSED(self):
+        problems = record.seeded_problems(
+            "block 3", self._rec(anchor="def other():"), self.BLOCK
+        )
+        self.assertEqual(len(problems), 1)
+        self.assertIn("WRITTEN BY THE TOOL", problems[0])
+
+    def test_the_matching_anchor_passes(self):
+        self.assertEqual(record.seeded_problems("block 3", self._rec(), self.BLOCK), [])
+
+    def test_the_message_does_not_accuse_the_reviewer(self):
+        # ! Same rule the `address` message follows: the reviewer never typed
+        # this field, so a mismatch means the FILE was edited.
+        problems = record.seeded_problems(
+            "block 3", self._rec(anchor="nope"), self.BLOCK
+        )
+        self.assertNotIn("misquot", problems[0])
+        self.assertIn("restore it", problems[0])
+
+    def test_every_seeded_slot_carries_the_census_anchor(self):
+        for i, slot in enumerate(record.seed(CENSUS, "block-context")["records"]):
+            with self.subTest(slot=i):
+                self.assertTrue(slot["anchor"], "a seeded slot with no anchor")
 
 
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that class

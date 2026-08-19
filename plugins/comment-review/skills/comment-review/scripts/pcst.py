@@ -76,7 +76,18 @@ class Block:
     kind: str  # comment | docstring | trailing-comment | interval | undocumented
     lines: int
     text: str  # the run JOINED, so a wrapped claim matches as one string
-    anchor: str = ""  # the declaration it annotates, when structurally known
+    # !! WHAT THIS BLOCK IS ATTACHED TO, and it is ONE-TO-MANY THE OTHER WAY:
+    # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
+    # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
+    #
+    # ! It holds a DECLARATION'S NAME for a block that owns its lines, and THE
+    # LINE OF CODE, verbatim, for a block that sits beside code -- see
+    # `census._anchor_of`. Roy, 2026-08-19: *"the anchor isn't the technical
+    # symbols and their precise semantic meaning and code use. It is 'the line
+    # of code' -- the exact characters in that line of code."* The two are
+    # stated here rather than left to a reader because a field with an
+    # undeclared second meaning is the defect, not the second meaning.
+    anchor: str = ""
     # !! WHICH DECLARATION THIS DOCUMENTS, as an ordinal: 0 is the module and
     # 1..N its declarations in SOURCE order. -1 says this block documents no
     # declaration -- every comment and every interval.

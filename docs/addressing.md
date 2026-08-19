@@ -58,6 +58,43 @@ jump to there to see the as."*
 not matter that Python's sits after its `def` and Rust's `///` before its `fn`. Roy, 2026-08-18:
 *"a docstring is about the thing above not the thing below."*
 
+## Every address has an ANCHOR, and the relationship is one-way
+
+!! **AN ANCHOR HAS MANY ADDRESSES. AN ADDRESS HAS ONE ANCHOR.** Roy, 2026-08-19:
+*"a, b, c are the address -- each has an anchor. An anchor can be tied to multiple
+addresses ... anchors have many, an address has one."* One line of code carries the `b` above it
+and the `c` beside it; one declaration carries those plus its own `a` and every `b` and `c` in
+its body.
+
+!! **THE ANCHOR IS THE LINE OF CODE -- the exact characters.** Roy, the same day: *"the anchor
+isn't the technical symbols and their precise semantic meaning and code use. It is 'the line of
+code' -- the exact characters in that line of code."*
+
+**So it needs no parser, no language server and no build tool.** Every tier already finds where a
+comment opens in order to cut there, which means it already holds the characters before it. Roy:
+*"the lexer either knows what is before the trailing comment and can snag the whole string or it
+is broken."*
+
+| series | its anchor is |
+| --- | --- |
+| `a` | the declaration it documents |
+| `b` | the code line BELOW the gap -- the statement the prose introduces. At the end of a file, the line above, because that is the bound the gap has |
+| `c` | the code on its own line, which is `line[:edit_column - 1]` |
+
+!! **A RECORD WITH NO ANCHOR IS A BROKEN RECORD** -- Roy -- and `record.seeded_problems` says so.
+Measured 2026-08-19 against the commit before that rule: **6,376 of 6,531 blocks in this repo's
+own shipped scripts carried an EMPTY anchor, 98% of the census**, and every seeded record repeated
+it.
+
+! **It was invisible from both ends at once.** `census.py` printed *"NO COMMENT carries an anchor
+at either tier"* as a statement of intent, and `test_record.py` asserted which KEYS are seeded
+rather than that either held a value. The two agreed with each other and agreed on nothing.
+
+! **A `b` copies its anchor from that line's `c`, never re-cutting the line.** Every code line has
+exactly one `c` and it already states where the code stops. Cutting again answered
+`'    return os  # why'` where the `c` for the same line answered `'    return os'` -- two
+computations of one fact, which is what `whole_lines` was removed for.
+
 ## A `c` place starts where the CODE stops
 
 **Not at the `#`.** Roy ruled it 2026-08-19: *"c addresses start at the end of the code on the

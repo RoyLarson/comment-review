@@ -2308,6 +2308,10 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
             "end": 354,
             "kind": "comment",
             "address": "redacted_pkg:billing:rates.py@b47",
+            # ! A `b`'s anchor is the code line it sits ABOVE, verbatim -- the
+            # statement the prose introduces -- and the brief's example record
+            # must carry the same string the census gave it.
+            "anchor": "def compute_rates(plan, period, *, clamp=True):",
         }
         self.assertEqual(
             record.record_problems("the brief's example", self.record, block), []
