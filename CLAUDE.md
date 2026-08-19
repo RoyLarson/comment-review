@@ -271,6 +271,20 @@ tracking work which can get them out of sync."* The rule that keeps them honest 
 -- **a plan cites TODOs; a TODO never cites a plan** -- so a closed plan leaves the backlog intact
 and no TODO is left pointing at something that no longer exists.
 
+!! **A PLAN CARRIES CHECKBOXES, THE SAME AS A TODO.** Roy, 2026-08-19: *"Just because they are
+not todos doesn't mean they are freeform either."* **The release gate is every box on the plan
+ticked** -- *"we will get to the release readiness at the time when it is ready to be released"*,
+which sounds ontological and is not: it says readiness is COUNTABLE, not self-defining. Nobody
+judges whether a version is ready and nobody can decide it is; the boxes are an artifact anyone
+can check.
+
+! **Prose in a plan is EVIDENCE for a box, never a second list of work.** A section that restates
+what a box says is a place for the two to disagree.
+
+! **`scripts/todo_tool.py` manages `TODO/` and not `docs/plans/`**, so a plan carries no
+`Progress:` line -- a hand-maintained count is the arithmetic the tool exists to prevent. **The
+boxes are the state.**
+
 ! **`docs/plans/` is NOT `docs/superpowers/plans/`.** The second is written for an engineer with
 no context -- exact files, TDD steps, a commit per task. The first is a release scope. Roy:
 *"I don't want to conflate the rigorous one for the less rigorous one."*
