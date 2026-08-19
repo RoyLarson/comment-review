@@ -70,12 +70,27 @@ judges it would be MARK and APPLY in one actor, which is the thing the pipeline 
       the file, two `CHANGE`s overlapping. ! This is the case worth having: today it surfaces at
       7b as a write that did not go where anyone expected, and `prove_unchanged.py` catches only
       the executable-code half of it.
-- [ ] When the galley dry run lands, STAGE 8 NEEDS NO CENSUS OF ITS OWN. Roy,
-      2026-08-18: the census can be run once. 7b would copy a galley that has
-      already been censused, so that census describes the written file exactly and
-      addresser --resolve reads it. Today 7b edits in place and stage 8 must
-      census again. ! Verify: the galley census is kept past 7b and named in
-      review.md, and the third census run disappears.
+- [ ] **Derive the galley census from the edits instead of re-running it.**
+      MEASURED 2026-08-18 on a controlled cycle -- a docstring grown, a comment
+      shrunk, an empty interval filled: **88 of 89 blocks derive exactly** from
+      the original census plus the splice's own line deltas. `splice` already
+      applies edits in descending order, so it holds every number needed.
+
+      ! **The single miss is the `add`,** and it is the one edit that is not a
+      range replacement: an empty interval has no lines to replace, so the delta
+      is not `new - old`, and the block changes KIND from `interval` to
+      `comment`. Derived `(9, 11)`, real `(9, 9)`. The splice knows it inserted
+      one line of prose there; nothing carries that out.
+
+      !! **THE CASE IS CORRECTNESS, NOT COST, and the file should not pretend
+      otherwise.** A census run is a subprocess: 1,215 ms over 13 files, 224 ms
+      over one, so three extra runs cost seconds and three tool calls -- not
+      prompt budget. What they cost is a chance to read the WRONG one. Four
+      artifacts existed in the 0.2.3 cycle (`census`, `pinned-census`,
+      `galley-census`, `galley6-census`) and stage 8 would make five.
+
+      ! Verify: a derived census and a re-run one agree on every block including
+      an `add`, and the cycle keeps ONE census on disk.
 
 ## Related
 
