@@ -190,10 +190,19 @@ paragraphs too.
 implement them."* A markdown file has no interval between two lines of code, which is why
 `a-prose-file-has-no-blocks` is open; a page made of paragraphs is the model it already fits.
 
-! **And the register got there first.** `page` appears 19 times in the shipped text -- `review.md`
-opens *"Stage 8 -- REVIEW: the finished page"* -- and `docs/vocabulary.md` already defined `proof`
-as *"the finished page"*. `paragraph` appears 11 times, every one meaning the unit of prose, which
-is the test `place` failed: its 119 uses meant LOCATION against a term meaning ADDRESSABLE SLOT.
+! **And the register got there first.** `paragraph` appears 11 times in the shipped text, every
+one meaning the unit of prose -- which is the test `place` failed: its 119 uses meant LOCATION
+against a term meaning ADDRESSABLE SLOT, so it was polysemy where this is correct usage that had
+no definition.
+
+!! **GALLEY -> PAGE -> PROOF is a sequence, and the first draft of this entry collapsed two of
+them.** It defined a page as *"the file as a reader meets it"* -- which is the PROOF, already
+defined as *"the finished page"*. Two terms, one meaning, inside the entry ruling that the
+register is the point. The printing register fixes all three and `galley.py` already states the
+first: a galley is text set *"but not yet made into pages"*. So a **page** is the file itself,
+everything set on it in order, as against the CENSUS which is that same file as a numbered list;
+a **proof** is a finished page pulled for checking, which is what stage 8 reads. `galley` had no
+entry in `docs/vocabulary.md` at all and now has one.
 
 ! **The RENAME is ~1,935 sites and is its own scope** -- 721 in shipped code, 548 in tests, 368 in
 `docs/`, 298 in shipped prose. Filed as `a-block-is-a-paragraph-on-a-page`. It cannot go

@@ -80,7 +80,7 @@ series = "One of the three kinds of address, and which one says what the prose a
 "line of code" = "A line the census counts as CODE, and the exact characters on it that are code -- a statement, an expression, a declaration or an assignment. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two anchors spelled alike."
 
 # --- what the page is made of -----------------------------------------------
-page = "The file as a reader meets it, rather than as a list of paragraphs. Stage 8 is the only pass that sees one."
+page = "The file itself -- everything set on it, in order -- as against the CENSUS, which is the same file as a numbered list of its paragraphs. ! Not the PROOF, which is a finished page read for checking, and not the GALLEY, which is text set but not yet made into pages."
 paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` is the older word for it and means the same thing."
 
 # --- the empty places, which are what an `add` cites -------------------------
