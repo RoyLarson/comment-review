@@ -196,7 +196,7 @@ that changed a published name or rule:
 | [reference-only-misses-the-documentation](reference-only-misses-the-documentation.md) | session * Roy (1 ruling) | yes | 0/4 | REFERENCE ONLY misses the project's own documentation |
 | [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | session | yes | 0/5 | `referrers.py` matches on any public name, and surfaced the whole repo |
 | [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | Roy | yes | 1/9 | Stage 5 is the only stage whose writer is also its checker |
-| [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | session * Roy (* 1 ruling -- where the verdict table lives) | yes | 0/8 | The bridge landed and the rewrite did not |
+| [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | session * Roy (* 1 ruling -- where the verdict table lives) | yes | 0/9 | The bridge landed and the rewrite did not |
 | [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | session * Roy (* 1 ruling) | yes | 0/5 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
 | [the-emitted-vocabulary-can-collide-with-the-repo](the-emitted-vocabulary-can-collide-with-the-repo.md) | session * Roy (* 1 ruling) | yes | 0/4 | The emitted vocabulary can collide with the reviewed repo's own terms |
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | session | yes | 0/4 | The join merges across a boundary it cannot read, and blames the neighbour |

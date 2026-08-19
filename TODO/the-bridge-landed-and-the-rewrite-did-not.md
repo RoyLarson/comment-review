@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks done
+Progress: 0 of 9 tasks done
 Owner:    session * Roy (* 1 ruling -- where the verdict table lives)
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -92,6 +92,14 @@ this module generated, feeding `block_problem`, `edit_problem`, `contradictions`
       succeed and the third would take `len(dict)` as the block count. A `census.load_blocks`
       in the module that owns the format is the seam, and `galley.unanswerable` is already
       half of it.
+- [ ] **Make `Finding.sources` a typed pair instead of a flattened string.**
+      `load_report` renders `{cite, verbatim}` into `"cite | verbatim"` and
+      `source_problem` partitions it back. ! The TODO called this "not a live
+      defect" and it WAS one: a source carrying `"verbatim": null` rendered the
+      word "None" and PASSED, because the cited line contained it. Fixed
+      2026-08-18 by putting both halves through `filled`, so what remains is the
+      round-trip itself -- a cite containing `|` still splits wrong. ! Blast
+      radius is ~20 test call sites that use the string form as a literal.
 
 ## Related
 

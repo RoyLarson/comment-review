@@ -602,6 +602,15 @@ def claim_text(verdict: str, claim: dict) -> str:
     return out
 
 
+def _half(value: object) -> str:
+    """One side of a `SOURCES` entry, or "" if it is not prose.
+
+    ! `filled` decides; this only renders. Both halves are compared against the
+    file, so a non-string rendered into words becomes a needle that can match.
+    """
+    return value if filled(value) else ""
+
+
 def load_report(
     path: Path, text: str, reviewer: str
 ) -> tuple[list[Finding], list[str], list[str]]:
@@ -679,8 +688,17 @@ def load_report(
                 verdict=str(rec.get("verdict")),
                 claim=claim_text(str(rec.get("verdict")), claim),
                 reason=str(rec.get("reason") or ""),
+                # !! `filled` ON BOTH HALVES, because an f-string renders a
+                # non-string into prose and the result is SEARCHED FOR. Measured
+                # 2026-08-18: a source carrying `"verbatim": null` flattened to
+                # `a.py:1 | None`, and `source_problem` then looked for the word
+                # "None" near the cited line -- which a large share of Python
+                # lines contain, so the citation PASSED. A verbatim that was
+                # merely false was correctly refused; a null one was admitted.
+                # Blanking it here makes the entry carry no verbatim half, which
+                # `source_problem` already refuses by name.
                 sources=[
-                    f"{s.get('cite', '')} | {s.get('verbatim', '')}"
+                    f"{_half(s.get('cite'))} | {_half(s.get('verbatim'))}"
                     for s in rec.get("sources") or []
                     if isinstance(s, dict)
                 ],
