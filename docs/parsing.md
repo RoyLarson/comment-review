@@ -134,10 +134,20 @@ someone writes. tree-sitter does not solve it, and neither does
 `documentSymbol`. Any claim that a parser "gives us anchors" is really a
 claim about an attachment rule bolted on top, and should be judged as one.
 
-## The bar for building any of this
+## The bar for replacing AXIS 1
 
-`evidence/tier-measurement.md` set it: **adopt a source of structure only if it
-misses ZERO blocks.** Ownership is worth nothing if coverage is not total.
+!! **THIS BAR IS ABOUT FINDING PROSE, AND ONLY A PARSER CAN FAIL IT.** A
+candidate for axis 1 reads the file and returns the blocks; adopting one that
+returns fewer than today's loses prose nobody then reviews.
+`evidence/tier-measurement.md` set the number: **adopt a replacement only if it
+misses ZERO blocks** -- measured there, libcst missed **13** that the stdlib
+tier found. Ownership is worth nothing if coverage is not total.
+
+! **It says nothing about axis 2, which cannot fail it.** An LSP returns no
+comments, so it finds no blocks and can lose none. Its bar is the one stated
+above: additive, never required, and DECLARED PER FILE, so a run with a server
+and a run without are told apart rather than compared. Asking "how many blocks
+did the LSP miss" is asking a question it was never in a position to answer.
 
 ! **And nothing has been measured on a non-Python corpus yet**, so all of this
 would improve a tier whose value is unproven. The README's Contributing note
@@ -174,6 +184,11 @@ a pull request item like the C++ and other languages that I don't use."*
 
 ! That is a scope ruling, not a gap. The eleven language records were chosen for
 variety of prose convention, and the ones their author does not write are exactly
-the ones he cannot measure a change against. **The bar above still applies to
-anything a contributor adds: adopt a source of structure only if it misses ZERO
-blocks**, and bring the corpus that shows it.
+the ones he cannot measure a change against.
+
+! **Which bar a contribution meets depends on which axis it touches.** A new
+LANGUAGE RECORD is a data row on axis 1 and is measured the same way: it must
+find every block the file holds. A parser proposed to REPLACE the lexical
+scanner meets the zero-missed bar above. An LSP or a symbol index is axis 2 and
+meets neither -- it is additive, declared per file, and never required. In every
+case, bring the corpus that shows it.
