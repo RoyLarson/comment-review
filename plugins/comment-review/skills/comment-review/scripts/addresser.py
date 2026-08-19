@@ -415,6 +415,19 @@ def for_anchor(anchor: str, series: str, blocks: list[dict]) -> list[dict]:
         return [
             b for b in mine if isinstance(b.get("declares"), int) and b["declares"] >= 0
         ]
+    # !! AN ANCHOR IS SPELLED TWO WAYS AND BOTH MUST ANSWER. An `a` carries its
+    # declaration's NAME -- `f` -- while the `b` above that declaration and the
+    # `c` beside it carry the LINE OF CODE -- `def f():`. This matched the
+    # string and then routed `b`/`c` through `declared_at`, which only an `a`
+    # has, so asking by the LINE found nothing at all. Measured 2026-08-19:
+    # `--anchor 'def f():' --series c` answered "no `c` place" on a census
+    # holding exactly that one.
+    #
+    # ! The block's OWN series decides it: an `a` declares, a `c` has a column,
+    # a `b` has neither. No second field and no inference from kind.
+    direct = [b for b in mine if _series_of(b) == series]
+    if direct:
+        return direct
     at = next(
         (b.get("declared_at") for b in mine if isinstance(b.get("declared_at"), int)),
         0,
@@ -441,6 +454,20 @@ def for_anchor(anchor: str, series: str, blocks: list[dict]) -> list[dict]:
             and (b.get("end") == at - 1 or b.get("edit_end") == at - 1)
         ]
     return []
+
+
+def _series_of(block: dict) -> str:
+    """Which series this block's own address is in -- `a`, `b` or `c`.
+
+    ! Read from the two facts the census states and NOT from the kind, which
+    would need a case per kind and a new one for every kind added: a block
+    documenting a declaration is an `a`, a block with a column sits beside code
+    and is a `c`, and everything else holds a gap and is a `b`.
+    """
+    declares = block.get("declares", -1)
+    if isinstance(declares, int) and declares >= 0:
+        return DECLARED
+    return ON if block.get("edit_column") else GAP
 
 
 def code_lines_of(text: str, blocks: list[dict]) -> list[int]:
@@ -662,6 +689,20 @@ def _for_anchor(anchor: str, series: str, blocks: list[dict]) -> int:
         where = stable(b)
         span = f"{b.get('start')}-{b.get('end')}"
         print(f"{where}	{span}	{b.get('kind', '')}	{b.get('anchor', '')}")
+    # !! AN ANCHOR HAS MANY ADDRESSES, so this direction is not a lookup that
+    # returns one. Roy, 2026-08-19, on two identical statements in one file:
+    # *"for the addresses this is still exact -- for looking up the anchors to
+    # get the addresses, not so exact."* `X=2  # initial` and `X=2  # reseting
+    # X` are two anchors spelled the same, and the census carries five places
+    # under that spelling. Every match is printed and the CALLER picks by
+    # address; taking the first would silently rule on the wrong statement.
+    if len(found) > 1:
+        print(
+            f"\n{len(found)} places answer to anchor {anchor!r} in `{series}`."
+            " An anchor has many addresses and an address has one anchor, so"
+            " two identical lines of code are two anchors spelled alike."
+            " Choose by ADDRESS."
+        )
     return 0
 
 

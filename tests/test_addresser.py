@@ -729,3 +729,96 @@ class TestTheSeparatorIsAPathCannotHoldIt(unittest.TestCase):
         # in `review.md` and `reviewer-brief.md`. Every OTHER character Windows
         # forbids is a redirect, a pipe or a glob.
         self.assertNotIn(addresser.flatten("a/b.py")[1], '<>|?*"')
+
+
+class TestAnAnchorIsSPELLEDTwoWays(unittest.TestCase):
+    """`f` on the `a`, `def f():` on the `b` and the `c`, and both must answer.
+
+    !! ASKING BY THE LINE FOUND NOTHING. `for_anchor` matched the string and
+    then routed `b`/`c` through `declared_at`, which only an `a` carries, so
+    every lookup by the code line fell through to the module branch and
+    returned []. Measured 2026-08-19: `--anchor 'def f():' --series c` answered
+    *"no `c` place"* on a census holding exactly that one.
+
+    ! It could not arise before the same day, because until then a comment
+    carried no anchor at all -- see `TestACPlaceCarriesItsAnchor`.
+    """
+
+    SRC = '# what f is for\ndef f():\n    """Doc."""\n    return 1  # why\n'
+
+    def setUp(self):
+        path = Path("g.py")
+        blocks = census.census_for(path, self.SRC, census.language_for(path))
+        lines = sorted(census.code_lines(self.SRC, blocks))
+        self.blocks = [vars(b) for b in blocks]
+        for b in self.blocks:
+            b["address"] = addresser.address(b, lines)
+
+    def _folios(self, anchor, series):
+        found = addresser.for_anchor(anchor, series, self.blocks)
+        return sorted(addresser.folio_of(b["address"])[1] for b in found)
+
+    def test_by_NAME_reaches_all_three_series(self):
+        self.assertEqual(self._folios("f", "a"), ["a1"])
+        self.assertEqual(self._folios("f", "b"), ["b0"])
+        self.assertEqual(self._folios("f", "c"), ["c0"])
+
+    def test_by_LINE_reaches_the_b_and_the_c(self):
+        self.assertEqual(self._folios("def f():", "b"), ["b0"])
+        self.assertEqual(self._folios("def f():", "c"), ["c0"])
+
+    def test_the_two_spellings_name_the_SAME_place(self):
+        self.assertEqual(self._folios("f", "c"), self._folios("def f():", "c"))
+
+
+class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
+    """Roy's case, 2026-08-19, verbatim.
+
+    ```python
+    X=2   # initial
+
+    # stuff happens
+
+    X=2  # reseting X
+    ```
+
+    !! *"For the addresses this is still exact -- for looking up the anchors to
+    get the addresses, not so exact."* An address has ONE anchor, so every
+    address here is exact. An anchor has MANY addresses, and `X=2` is TWO
+    anchors that happen to be spelled the same -- so the reverse lookup answers
+    with several places and the caller chooses by address.
+
+    ! Returning the first would silently rule on the wrong statement, which is
+    the whole failure the address system replaced line numbers to end.
+    """
+
+    SRC = "X=2   # initial\n\n# stuff happens\n\nX=2  # reseting X\n"
+
+    def setUp(self):
+        path = Path("x.py")
+        blocks = census.census_for(path, self.SRC, census.language_for(path))
+        lines = sorted(census.code_lines(self.SRC, blocks))
+        self.blocks = [vars(b) for b in blocks]
+        for b in self.blocks:
+            b["address"] = addresser.address(b, lines)
+
+    def test_every_ADDRESS_is_still_unique(self):
+        # !! The direction that stays exact. This is what a record cites.
+        named = [b["address"] for b in self.blocks]
+        self.assertEqual(len(named), len(set(named)))
+
+    def test_the_anchor_answers_with_BOTH_trailing_comments(self):
+        found = addresser.for_anchor("X=2", "c", self.blocks)
+        folios = sorted(addresser.folio_of(b["address"])[1] for b in found)
+        self.assertEqual(folios, ["c0", "c1"])
+
+    def test_they_are_two_DIFFERENT_statements(self):
+        found = addresser.for_anchor("X=2", "c", self.blocks)
+        self.assertEqual(sorted(b["start"] for b in found), [1, 5])
+        self.assertEqual(sorted(b["text"] for b in found), ["initial", "reseting X"])
+
+    def test_the_anchor_is_the_code_WITHOUT_either_comment(self):
+        for b in self.blocks:
+            if b["edit_column"]:
+                with self.subTest(line=b["start"]):
+                    self.assertEqual(b["anchor"], "X=2")

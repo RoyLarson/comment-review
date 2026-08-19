@@ -21,7 +21,7 @@
 [definitions]
 
 # --- what a comment sits on -------------------------------------------------
-anchor = "The code position a comment is attached to: a statement, expression, declaration or assignment. Mechanical -- whatever is there."
+anchor = "The LINE OF CODE a comment is attached to -- the exact characters on it, not the symbols and not their meaning. An `a` names its declaration, a `b` the line of code below the gap, a `c` the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses; an address has ONE anchor."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
 block = "The interval between two lines of CODE. The lines above and below define it; what is written between them does not. Only code is a boundary -- not a blank line, not a work marker, not a change of subject."
 census = "The numbered tree of every block in the files under review, with the references each block makes already resolved."

@@ -164,6 +164,14 @@ it as being about that place, not about a neighbour.
 8-intervals` hides eight numbered gaps, and counting them is how a citation lands one place off.
 Two ways to ask:
 
+!! **AN ANCHOR ANSWERS WITH SEVERAL PLACES, AND THAT IS NOT AN ERROR.** An anchor has MANY
+addresses; an address has ONE anchor. Two identical statements in one file are two anchors spelled
+alike -- `X=2  # initial` and `X=2  # reseting X` -- so asking for *"the `c` of `X=2`"* answers
+with both and you **choose by ADDRESS**. Taking the first rules on the wrong statement.
+
+! **A declaration is spelled two ways and both answer**: `f` on its own `a`, and `def f():` on the
+`b` above it and the `c` beside it.
+
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
