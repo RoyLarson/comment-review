@@ -4,10 +4,15 @@
 Status:   open
 Progress: 3 of 10 tasks done
 Owner:    session (serialisation and 4b ruled 2026-08-17; the rest is build)
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-16 (Roy: "Does this require a 4a, b, c -- 4a the ownership run,
           b the resolution and update to the pieces made by the reviewer so the
           other contexts can have a correct run, c the other reviewers run?")
+Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads 'serialisation
+           and 4b ruled 2026-08-17; the rest is build', and Roy re-stated it 2026-08-19:
+           ownership-context is the 1 required role, the other 3 optional and only after
+           it has had its say. The flag means a DECISION is owed; work still remaining
+           is what the unchecked boxes already say.
 ```
 
 ## Objective

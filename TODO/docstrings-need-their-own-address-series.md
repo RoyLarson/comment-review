@@ -4,8 +4,12 @@
 Status:   open
 Progress: 5 of 7 tasks done
 Owner:    session * Roy (* 1 ruling -- the numbering)
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, on splitting the census by editorial role)
+Unblocked: 2026-08-19 — Requires-Roy cleared: the numbering was ruled 2026-08-19 -- 'a
+           is the module, class, function, method definitions in order' -- and the
+           a-series ships. The flag means a DECISION is owed; work still remaining is
+           what the unchecked boxes already say.
 ```
 
 ## Objective

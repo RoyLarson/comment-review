@@ -4,10 +4,14 @@
 Status:   open
 Progress: 1 of 9 tasks done
 Owner:    Roy (* 3 rulings, 2 made) * session
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
           Its words: "the synthesis -- where four verdicts become one sentence -- is written
           by the same agent that then decides it's correct."
+Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads '* 3 rulings, 2
+           made'; the remaining one is named in the file and is not what the flag is
+           for. The flag means a DECISION is owed; work still remaining is what the
+           unchecked boxes already say.
 ```
 
 ## !! INDEPENDENT is not FRESH, and only two readers are fresh

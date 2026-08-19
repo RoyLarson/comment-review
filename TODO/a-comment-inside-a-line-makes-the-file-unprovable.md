@@ -4,11 +4,15 @@
 Status:   DEFERRED -- the model change waits for a pull request
 Progress: 1 of 5 tasks done
 Owner:    session * Roy (* 1 ruling, MADE)
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (Roy, on the fixture for the fix that landed the same day:
           "Is this actually possible in code? int x = /* why */ 5; That is crazy
           - I have never seen someone put a comment in the middle of the
           expression")
+Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads '* 1 ruling,
+           MADE', and 2026-08-19 settled the rest: an intermediate comment is not
+           censused at all. The flag means a DECISION is owed; work still remaining is
+           what the unchecked boxes already say.
 ```
 
 ## * RULED 2026-08-17: build it when someone needs it

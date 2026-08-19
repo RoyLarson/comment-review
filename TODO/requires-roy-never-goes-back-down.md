@@ -2,21 +2,35 @@
 
 ```
 Status:   blocked
-Progress: 0 of 5 tasks done
+Progress: 2 of 5 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (asking what was waiting on Roy for 0.2.4, 2026-08-19)
 Updated:  2026-08-19 — deferred until 0.2.4 closes -- Roy, 2026-08-19: 'this is work
           waiting on this release of this project to finish'. Nothing in the 0.2.4 plan
           is blocked on it.
+Narrowed: 2026-08-19 — Six cleared from evidence in their own files, 32 -> 26.
+          SUPERSEDED: this file first said the flag has no way down; 'set-requires-roy
+          false' exists and is documented. The defect is that nothing recomputes it or
+          prompts the clearing -- check the upstream vendor at redacted_corpus todo-
+          requires-roy REDACTED_SHA_D before building one.
 ```
 
 ## Objective
 
-!! **32 TODOs CARRY `Requires-Roy: true`, AND THE FLAG HAS NO WAY DOWN.** Measured 2026-08-19.
-`complete` clears it and `reopen` resets it to false, so the only paths that lower it are closing
-a file and reopening one. **Nothing clears it when a ruling actually lands**, which is the case it
-was built for -- so it only ever accumulates.
+!! **32 TODOs CARRIED `Requires-Roy: true`, AND NOTHING EVER LOWERED ONE.** Measured
+2026-08-19.
+
+! **SUPERSEDED, same day: `set-requires-roy <file> false` EXISTS** and is documented in
+`.claude/skills/todo-tool/SKILL.md`. This file first said the flag "has no way down" and named
+only `complete` and `reopen` -- wrong, and the skill's own instruction is the opposite: *"set it
+as soon as you hit one ... and clear it when he answers."* Roy: *"the tool should have a method of
+clearing my name already."* It does.
+
+!! **SO THE DEFECT IS THE DISCIPLINE, NOT THE COMMAND.** The flag is set when a wall is hit and
+nobody runs the clearing command when the ruling arrives, because nothing prompts it and nothing
+recomputes it. **Six were cleared 2026-08-19 from evidence already inside their own files** --
+32 down to 26 -- and none of the six needed a ruling to clear.
 
 !! **THAT DEFEATS THE FIELD.** `.claude/skills/todo-tool/SKILL.md` says `list --requires-roy` is
 *"how Roy pulls his own queue: everything waiting on him."* At 32 entries it is a wall rather than
@@ -26,7 +40,7 @@ a queue, and Roy, 2026-08-19: *"pulling it tells you nothing you can act on."*
 fact, so the tool recomputes it on every write rather than trusting a hand edit. `Requires-Roy` is
 a derived fact too -- *is a decision still owed* -- and nothing recomputes it.
 
-**FIVE ARE PROVABLY STALE FROM THEIR OWN `Owner:` LINE:**
+**SIX WERE CLEARED 2026-08-19, EACH FROM EVIDENCE IN ITS OWN FILE:**
 
 | TODO | its Owner field says |
 | --- | --- |
@@ -35,12 +49,9 @@ a derived fact too -- *is a decision still owed* -- and nothing recomputes it.
 | `the-census-is-mostly-intervals-nobody-rules-on` | `Roy ruled the design 2026-08-18; the rest is build` |
 | `correct-against-patch-is-a-conflict-and-is-not-flagged` | `already ruled on once` |
 | `stage-5-is-the-only-stage-with-no-independent-reader` | `* 3 rulings, 2 made` |
+| `docstrings-need-their-own-address-series` | the `a0..aN` numbering, ruled 2026-08-19 |
 
-! **Two more went stale during 0.2.4 and their files do not say so**:
-`docstrings-need-their-own-address-series` (the `a0..aN` numbering was ruled 2026-08-19) and the
-interior-comment half of `a-comment-inside-a-line-makes-the-file-unprovable`.
-
-! The remaining ~25 cannot be classified from the file alone. Several say `* 1 ruling` in `Owner:`
+! The remaining **26** cannot be classified from the file alone. Several say `* 1 ruling` in `Owner:`
 without saying whether it arrived; settling each needs the commit or the transcript that carries
 it.
 
@@ -48,19 +59,24 @@ it.
 release of this project to finish."* Nothing in the 0.2.4 plan is blocked on it -- the plan's one
 `*` box is itself one of the stale five.
 
+! **Roy, 2026-08-19, on where this came from**: *"that was what the todo-tool session was
+working on when we copied this over and maybe lost some work in the process."* The tool is
+VENDORED from `redacted_corpus` at `todo-requires-roy` REDACTED_SHA_D and is re-grabbed rather than
+maintained here, so a recompute may exist upstream. **Check there before building one.**
+
 ! **This file is NOT flagged `Requires-Roy`.** Clearing a flag whose own file records the ruling
 is an audit, not a decision, and flagging it would add a thirty-third entry to the queue it exists
 to shorten.
 
 ## Tasks
 
-- [ ] Clear the flag on the FIVE whose own `Owner:` line records the ruling:
+- [x] Clear the flag on the FIVE whose own `Owner:` line records the ruling:
       `a-comment-inside-a-line-makes-the-file-unprovable`, `ownership-is-read-
       first-but-nothing-makes-it-so`, `the-census-is-mostly-intervals-nobody-
       rules-on`, `correct-against-patch-is-a-conflict-and-is-not-flagged`,
       `stage-5-is-the-only-stage-with-no-independent-reader`. No ruling needed --
       the files say it was made.
-- [ ] Clear the two that went stale during 0.2.4 and do not say so: `docstrings-
+- [x] Clear the two that went stale during 0.2.4 and do not say so: `docstrings-
       need-their-own-address-series` (the `a0..aN` numbering, ruled 2026-08-19)
       and the interior-comment half of `a-comment-inside-a-line-makes-the-file-
       unprovable`.

@@ -4,11 +4,14 @@
 Status:   open
 Progress: 2 of 13 tasks done
 Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
 Reopened: 2026-08-19 — --filtered stopped filtering when the margin kind arrived: only
           intervals collapse, so 1,627 bare margin rows now reach each reviewer. Its
           cost table is a rotted measurement
+Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads 'Roy ruled the
+           design 2026-08-18; the rest is build'. The flag means a DECISION is owed;
+           work still remaining is what the unchecked boxes already say.
 ```
 
 ## Objective

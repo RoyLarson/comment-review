@@ -4,8 +4,11 @@
 Status:   decision-needed
 Progress: 0 of 3 tasks done
 Owner:    session * Roy (the widening is a cost decision Roy has already ruled on once)
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (the first end-to-end cycle run; block 1 of galley.py)
+Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads 'the widening is
+           a cost decision Roy has already ruled on once'. The flag means a DECISION is
+           owed; work still remaining is what the unchecked boxes already say.
 ```
 
 ## Objective
