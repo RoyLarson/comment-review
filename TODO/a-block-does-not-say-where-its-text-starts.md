@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 7 tasks done
+Progress: 4 of 8 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -100,5 +100,13 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       file and takes no `--repo`. **`--check` now reports the mid-line collision
       it was written to catch** -- `SHARED s.js@b1 <- 0-0 interval | 2-3 comment`
       -- which the sweep had masked on every non-Python file.
+- [x] !! **SUPERSEDED 2026-08-19 by the task above, which carries the DONE
+      record.** This was filed as a SECOND task recording the same fix -- `ONE
+      fact decides "shares its life"` -- while the task that STATES the work sat
+      unchecked, so one file both claimed the work remained and recorded it
+      complete. ! **It was briefly DELETED, and that was wrong.** Roy, 2026-08-19:
+      *"todos don't get deleted they get SUPERSEDED and checked."* A deleted box
+      leaves no trace that it was ever there or why it went; a superseded one
+      keeps the error legible. Restored here rather than left out.
 - [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)
   -- step 7's run is where the docstring half was found, by two roles independently.

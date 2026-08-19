@@ -338,6 +338,17 @@ them.
 longer necessary."* Measured the same day: five RESOLVED proposals held in a prose table with no
 boxes made `resync` generate a README row reading `0/9` on a file a third finished.
 
+!! **A TODO IS NEVER DELETED. IT IS SUPERSEDED AND CHECKED.** Roy, 2026-08-19: *"todos don't get
+deleted they get SUPERSEDED and checked. That is going to be an addition to the tool soon."*
+
+! **A deleted box leaves no trace that it was ever there, or why it went.** A superseded one
+keeps the error legible -- which is the same reason a superseded RULING is kept beside the one
+that replaced it rather than rewritten away. ! The tool has no delete command and is not getting
+one; what it is getting is a way to mark this.
+
+! It applies to a task filed in error as much as to one overtaken by better work. Removing a
+mistake removes the record that it was made.
+
 | the task is | the box | the file's `Status:` |
 | --- | --- | --- |
 | **done** | `[x]` | -- |
