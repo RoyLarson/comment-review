@@ -165,6 +165,26 @@ not the line.
 !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A record naming a line as the
 place a thing belongs is refused. Ask with the line, cite what comes back.
 
+### And the other direction, at a RE-REVIEW
+
+**You are handed an ADDRESS and the file has moved.** At `5b` and `6b` you are asked to hold or
+revise a block after stage 5 or 6 has rewritten prose, so every line number you were given is
+already wrong -- the address is not:
+
+```bash
+python <skill>/scripts/addresser.py --census <a census of the file NOW> --repo <repo> \
+    --resolve <ADDRESS>
+```
+
+Out come the lines that cover that address today.
+
+!! **REACH FOR IT INSTEAD OF RE-READING THE FILE, which is the reflex.** Opening the file and
+counting to find where a block went is the obvious move and it is the slow one -- and on a file
+whose prose just changed it is the move that finds the wrong block. One command answers it.
+
+! If the census you have is older than the file, this REFUSES rather than answering. That is the
+same failure re-reading would have hidden.
+
 !! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two
 lines of CODE and the gap between them is whatever sits there -- nothing, or blank lines. The
 edit is applied to the GAP, so a two-blank-line separation you do not write out is a separation

@@ -96,12 +96,20 @@ orchestration -> here. Restating one across two files is
 the antipattern this skill exists to find, and the four agents are the place it will happen --
 they read alike and invite copy-paste.
 
-!! **THE TWO LARGEST FILES A RUN LOADS AS CONTEXT HAVE NO BUDGET.** Measured 2026-08-16:
-`reviewer-brief.md` is 11,579 bytes and `SKILL.md` 45,257. A reviewer loads its role file
-plus the brief -- about 18 KB, of which **63% is the brief, not its own role** -- and four
-reviewers dispatched in parallel load **four copies of it**, 45 KB of the run's 72 KB. The
-numbers above budget the four role files only: 27 KB of the 217 KB shipped, and the
-smallest part of what a run actually costs. ! Larger files ship -- `census.py` is 31 KB -- but
+!! **THE TWO LARGEST FILES A RUN LOADS AS CONTEXT HAVE NO BUDGET.** A reviewer loads its role
+file plus the brief, and four dispatched in parallel load **four copies of the brief**. The
+numbers above budget the four ROLE files only -- the smallest part of what a run actually costs.
+
+| | 2026-08-16 | 2026-08-18 | |
+| --- | ---: | ---: | --- |
+| `reviewer-brief.md` | 11,579 | 24,891 | paid FOUR times |
+| `SKILL.md` | 45,257 | 62,531 | paid once, by the task agent |
+
+!! **THE BRIEF HAS MORE THAN DOUBLED IN TWO DAYS, WHICH IS THIS WARNING COMING TRUE.** Every
+addition was argued on its own and none was weighed against the file, because nothing measures
+it -- the four role files are counted line by line while the thing costing four times as much
+is not. ! Re-measure it whenever it is edited and say what the growth bought, the same
+discipline the role table gets. ! Larger files ship -- `census.py` is 31 KB -- but
 are EXECUTED, never read into a prompt.
 
 **Any Python shipped here must be generic** -- no hardcoded paths, no assumed directory names,
