@@ -148,3 +148,32 @@ measurement tells you whether the upgrade is worth building before it is built.
 differs per machine, so a run with a server and one without produce different
 liveness results from identical input -- the same discipline the corpus manifest
 applies to refs.
+
+## What the pCST is FOR, and where it stops
+
+!! **IT IS AS GOOD A pCST AS THIS SYSTEM NEEDS, and the bar is not a real CST.**
+Roy, 2026-08-18: *"without a full cst system for every language - this is as good
+of a pCST for what we need."*
+
+What the tool asks of it is bounded, and every question fits inside a
+comment-syntax record plus a lexer:
+
+- **where prose sits** -- comment runs, docstrings, trailing comments
+- **where prose is MISSING** -- the intervals between two lines of code
+- **which lines are CODE**, which is what `addresser.py` numbers a place against
+
+! None of those needs a grammar. What a grammar would add is OWNERSHIP -- which
+declaration a comment belongs to -- and that is a REVIEWER's judgement in every
+language but Python today, or an `LSP documentSymbol` where stage 1.7's probe
+found a server.
+
+### Per-language structure is a PULL REQUEST, not a roadmap item
+
+Roy, 2026-08-18: subpackage files for the common patterns across languages *"is
+a pull request item like the C++ and other languages that I don't use."*
+
+! That is a scope ruling, not a gap. The eleven language records were chosen for
+variety of prose convention, and the ones their author does not write are exactly
+the ones he cannot measure a change against. **The bar above still applies to
+anything a contributor adds: adopt a source of structure only if it misses ZERO
+blocks**, and bring the corpus that shows it.

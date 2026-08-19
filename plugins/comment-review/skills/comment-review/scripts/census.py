@@ -1089,6 +1089,15 @@ def address(block: dict) -> str:
     why an interval is always `0L`. Read the KIND, or that count, to know which
     reading applies -- a block holding prose is never `0L`.
 
+    !! AND IT IS TRUE OF ONE FILE STATE ONLY. This tool EDITS PROSE, and every
+    prose edit moves the line numbers of the code below it, so an address is
+    valid for the file its census was built from and no other. Measured
+    2026-08-18 on a prose-only edit to a single docstring: 2 of 3 prose blocks
+    took a NEW line address, and 0 of 3 took a new one from `addresser.py`,
+    which names a place against the CODE rather than the lines. Use this to say
+    where a thing is in the file you just read; use the addresser to say which
+    PLACE it is across two states of that file.
+
     ! The consequence is not cosmetic: a range REPLACE over an interval's
     address deletes both bounding statements instead of inserting between them.
     `galley.py` avoids that by branching on `kind == "interval"`, which is a

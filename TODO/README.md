@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (31)
+### open  (30)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -203,7 +203,6 @@ that changed a published name or rule:
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | session * Roy (* 1 ruling wanted -- task 1) | yes | 0/6 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | session * Roy (* 1 ruling) | yes | 0/5 | The role with verdict precedence has the least mechanical support |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | session * Roy (* 3 rulings) | yes | 5/15 | Two live runs proposed fifteen changes |
-| [address-is-not-stable-under-prose-edits](address-is-not-stable-under-prose-edits.md) | session * Roy (* 1 ruling -- whether the anchor pair becomes THE address) | yes | 0/6 | A line-numbered address is not stable under the edits this tool makes |
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | session | — | 0/2 | doc_is_structural means two things and its docstring names one |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | yes | 1/7 | A docstring needs its own address series, and it names what it documents |
 
@@ -247,3 +246,4 @@ the reason is inside the file.
 | [re-review-is-ordered-everywhere-and-defined-nowhere](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md) | **What a re-review IS**, in the one file that says: `references/re-review.md`. Ten sites ordered a re-review and none defined one. It is the JOINED BLOCK that goes back, never the finding -- Roy, 2026-08-17: *"sending it right back doesn't help"* -- and it answers three questions about the role's own edit. Two slots, 5b after APPLY and 6b after COMPACT, which must not be collapsed: 6b is the only reader of stage 6's output before the author sees it. ! A contested block goes to its FILERS and no others, because all three questions presuppose an edit to answer for; a third role reading it is a FRESH REVIEW travelling 6 -> 4. ! `galley` stays defined inline -- deriving the file into the four reviewers' vocabulary adds exactly one term, `cap`, and those are the four roles the cap is never passed to |
 | [eight-terms-have-no-definition-and-angle-means-five-things](completed/eight-terms-have-no-definition-and-angle-means-five-things.md) | **The vocabulary itself.** A twelve-agent survey found nine terms used with a fixed sense and stated nowhere, and fifteen more carrying two or three senses each; every one is now defined, dropped, or declared as deliberate polysemy, and `scripts/check_vocabulary.py` says so as a command. ! Its last * dissolved rather than being ruled: *"5 of its 7 reviewer reports"* had lost two of its four sites already, and the two left sit in prose the shipped-Python cleanup rewrites on grounds that do not need the number |
 | [an-editorial-mark-is-not-an-action-and-reanchor-is-move](completed/an-editorial-mark-is-not-an-action-and-reanchor-is-move.md) | **A verdict is a MARK, not an action**, and the relocation verdicts collapsed twice: `reanchor` into `move` (2026-08-15), then `split` into `move` (2026-08-16). ! Both by the same argument -- a relocation is ONE judgment and the destination is payload -- and `split` was additionally the only verdict whose subject was the BLOCK rather than the sentence. Seven verdicts. `drop`, `patch` and `add` were ruled to STAY: Roy, *"everything else we have come up with has had a valid use case."* |
+| [address-is-not-stable-under-prose-edits](completed/address-is-not-stable-under-prose-edits.md) | A line-numbered address is valid for one file state only, and `addresser.py` names a place against the CODE instead: `a` a declaration, `b` a gap, `c` an on-line position. Measured: a prose-only edit moved 2 of 3 line addresses and 0 of 3 stable ones. |
