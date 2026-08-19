@@ -1352,6 +1352,35 @@ def claim_object(verdict: str, claim: str) -> dict:
     return out
 
 
+def address_of(finding, census: list[dict]) -> str:
+    """A finding's address, reading its INDEX when the record carries none.
+
+    !! ONLY SOUND WHEN THE CENSUS IS THE ONE THE RECORD WAS WRITTEN AGAINST.
+    An index is a position in one census, not a name for a place, so it survives
+    exactly as long as that census does. `verdicts.py` is where that holds: the
+    reviewers were handed that census in this run, and a `clean` record in the
+    deprecated shape writes its index alone. **It does NOT hold for a report
+    held from an earlier version, and `convert` must not use it** -- see there.
+
+    ! An index outside the census is left alone rather than clamped. It resolves
+    to nothing downstream and is reported there, where the message can say which
+    report and which block; guessing a neighbour here would put a reviewer's
+    verdict on prose it never read.
+
+    Args:
+        finding: one parsed record.
+        census: the census this record was written against.
+
+    Returns:
+        The finding's own address, or the address at its index, or "".
+    """
+    if finding.address:
+        return str(finding.address)
+    if isinstance(finding.block, int) and 1 <= finding.block <= len(census):
+        return str(census[finding.block - 1].get("address", ""))
+    return ""
+
+
 def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     """A 0.2.x report, already parsed, as a seeded-and-filled record file.
 
@@ -1373,10 +1402,45 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     Returns:
         The report in the current shape.
     """
+    # !! A RECORD WITH NO ADDRESS CANNOT BE CONVERTED AT ALL, AND THAT IS NOT A
+    # BUG TO BE FIXED HERE. Roy, 2026-08-19: *"is it possible to convert the old
+    # form to the new form at all without the code there next to it? I don't
+    # think it is. There is not enough definition in the old form to make the
+    # address."* Measured the same day, and both routes are closed:
+    #
+    #   BLOCK <index>   An index is a position in ONE census. The census it
+    #                   names carries no addresses -- 0 of 3,333 on a real held
+    #                   run, because the field postdates it -- and a census
+    #                   built TODAY is a different list: the held one holds
+    #                   `interval`, `docstring`, `comment`, `trailing-comment`
+    #                   and no `margin` or `undocumented`, which today's emits
+    #                   one of per code line and per undocumented declaration.
+    #                   Every index shifts, so `BLOCK 7` names unrelated prose.
+    #   LOCATION        `path:start-end` is line numbers, and turning a line
+    #                   into an ordinal needs the SOURCE to say which lines are
+    #                   code. `Finding` does not even retain it.
+    #
+    # ! So it REFUSES rather than guessing. Grouping the unaddressed under ""
+    # matched every block against every finding: 3,333 blocks and 173 findings
+    # produced 29,583 records, each with a verdict and no error raised.
+    #
+    # ! What replay needs is a report whose records carry addresses. A run held
+    # from 0.2.4 on does; one held before it cannot be recovered without the
+    # source at the pinned state AND a `LOCATION` this parser throws away.
+    unkeyed = sum(1 for f in findings if not str(f.address or ""))
+    if unkeyed:
+        raise ValueError(
+            f"{unkeyed} of {len(findings)} records carry no address. A 0.2.x"
+            " report keys by census POSITION, and an index is only meaningful"
+            " against the census it was written against -- which carries no"
+            " addresses, and which today's census.py does not reproduce."
+            " Nothing here can recover the place; replay a run held from 0.2.4"
+            " on, or re-review the source."
+        )
     report = seed(census, reviewer)
     by_block: dict[str, list] = {}
     for f in findings:
-        by_block.setdefault(f.address, []).append(f)
+        by_block.setdefault(str(f.address), []).append(f)
 
     # !! EVERY CITED BLOCK GETS A SLOT, PROSE OR NOT. `seed` lays down the prose
     # blocks because those are the ones a reviewer is ACCOUNTABLE for -- but an

@@ -169,6 +169,33 @@ no language server and no build tool.
 - **The gap at the end of a file takes the line ABOVE it**, because a gap is bounded by code and
   that is the bound it has. Left empty it was 14 blocks, one per file.
 
+### A held 0.2.x report cannot be replayed, and `convert` now says so
+
+**Replaying held stage-4 output is what made a change cheap to validate** -- 0.2.1 and 0.2.2 were
+checked by re-joining one set of reports, about 1.6M tokens of review reused. That stops here for
+reports written before 0.2.4, and the reason is structural rather than a bug.
+
+!! **THE OLD FORM DOES NOT CARRY ENOUGH TO NAME A PLACE.** Roy, 2026-08-19: *"is it possible to
+convert the old form to the new form at all without the code there next to it? I don't think it
+is. There is not enough definition in the old form to make the address."* Both routes are closed:
+
+| the old form offers | why it cannot become an address |
+| --- | --- |
+| `BLOCK <index>` | a position in ONE census. That census carries no addresses -- **0 of 3,333** on a real held run, because the field postdates it -- and today's census of the same source is a different list: the held one has no `margin` and no `undocumented`, which today's emits one of each per code line and per undocumented declaration. Every index shifts, so `BLOCK 7` names unrelated prose |
+| `LOCATION path:start-end` | line numbers, which need the SOURCE to become an ordinal -- and `Finding` does not retain the field at all |
+
+! **It used to fail silently in BOTH directions.** Against a fresh census every held finding
+grouped under `""` and matched nothing: 3 of 3 dropped, exit 0. Against the genuine held census
+every block keyed on `""` too, so every record matched every finding -- **3,333 blocks and 173
+findings produced 29,583 records**, each carrying a verdict, no error raised.
+
+! **The bridge is not dead.** It carries a run held from 0.2.4 on, where a record names a PLACE
+rather than a position. Only the pre-address reports are unreachable.
+
+! **The test class named for this property never called `convert`.**
+`TestConvertKeepsAHeldRunReplayable` tests `claim_object`, one field at a time -- which is how a
+bridge that carried nothing passed a green suite.
+
 ### Both tiers store `raw_lines` the same way, and four of six comment shapes were unwritable
 
 **`raw_lines` is the block's OWN characters** -- its lines whole where it owns them, and from

@@ -101,6 +101,7 @@ from record import (  # noqa: E402  -- path shim must run first
     _is,
     _n,
     _substantive,
+    address_of,
     claim_text,
     entry_for,
     load_report,
@@ -403,13 +404,20 @@ def _report(args: argparse.Namespace) -> int:
         # of them about a finding -- cannot arise, because nobody transcribed
         # anything.
         for f in records:
-            # !! THE DEPRECATED FORMAT'S INDEX IS TRANSLATED HERE, once. A 0.2.x
-            # report keys by census POSITION, and a `clean` record in it writes
-            # that index alone with no address at all -- so without this every
-            # old report joins as "names no block". Everything downstream is
-            # address-keyed; this is the only place the index is still read.
-            if not f.address and 1 <= f.block <= len(blocks):
-                f.address = str(blocks[f.block - 1].get("address", ""))
+            # !! THE DEPRECATED FORMAT'S INDEX IS TRANSLATED HERE. A 0.2.x report
+            # keys by census POSITION, and a `clean` record in it writes that
+            # index alone with no address at all -- so without this every old
+            # report joins as "names no block". Everything downstream is
+            # address-keyed.
+            #
+            # ! `record.address_of` OWNS THE RULE. It was written out here and
+            # NOT in `record.convert`, so a held report joined and did not
+            # convert: `convert` grouped on `f.address`, every held finding
+            # landed under "", and it returned a file of null verdicts and
+            # exited 0. Measured 2026-08-19, 3 of 3 dropped on a six-line file.
+            # One bridge across the format change, built twice and finished
+            # once.
+            f.address = address_of(f, blocks)
             held = entry_for(f.address, blocks) or {}
             # !! ANY EDIT PROPOSED ON FRONT MATTER BECOMES A `query`. Roy,
             # 2026-08-19: an agent looking to edit that area gets an automatic

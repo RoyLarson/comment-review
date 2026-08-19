@@ -5,9 +5,12 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from dataclasses import fields
 from pathlib import Path
 
-from _paths import SCRIPTS  # noqa: F401
+from _paths import FIXTURES, SCRIPTS  # noqa: F401
+import addresser
+import census
 import record
 import verdicts
 
@@ -731,3 +734,120 @@ class TestARecordWithNoAnchorIsBroken(unittest.TestCase):
 # than `unittest discover`.
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestA02xReportCANNOTBeConverted(unittest.TestCase):
+    """The old form does not carry enough to name a place, and says so.
+
+    !! ROY RULED IT, 2026-08-19: *"is it possible to convert the old form to the
+    new form at all without the code there next to it? I don't think it is.
+    There is not enough definition in the old form to make the address."*
+    Measured the same day, and both routes are closed.
+
+    **`BLOCK <index>`** is a position in ONE census. The census it names carries
+    no addresses -- 0 of 3,333 on a real held run, because the field postdates
+    it -- and a census built today is a different list: the held one holds
+    `interval`, `docstring`, `comment` and `trailing-comment` and has no
+    `margin` or `undocumented`, which today's census emits one of per code line
+    and per undocumented declaration. Every index shifts.
+
+    **`LOCATION path:start-end`** is line numbers, and turning a line into an
+    ordinal needs the SOURCE to say which lines are code. `Finding` does not
+    even retain it.
+
+    ! **The failure it replaces was silent in both directions.** Against a fresh
+    census every held finding grouped under `""` and matched nothing -- 3 of 3
+    dropped, exit 0. Against the genuine held census every block keyed on `""`
+    too, so every record matched every finding: **3,333 blocks and 173 findings
+    produced 29,583 records**, each with a verdict and no error raised.
+
+    ! `TestConvertKeepsAHeldRunReplayable` above is named for the property and
+    tests `claim_object` one field at a time, so `convert` was never called by a
+    test at all.
+    """
+
+    SRC = (
+        '"""Module doc."""\n\n# a note\ndef f():\n    """Doc."""\n    return 1  # why\n'
+    )
+
+    def setUp(self):
+        path = Path("m.py")
+        blocks = census.census_for(path, self.SRC, census.language_for(path))
+        lines = sorted(census.code_lines(self.SRC, blocks))
+        for b in blocks:
+            b.address = addresser.address(vars(b), lines)
+        self.census = [vars(b) for b in blocks]
+        self.prose = [
+            i
+            for i, b in enumerate(self.census, 1)
+            if b["kind"] in ("comment", "docstring", "trailing-comment")
+        ]
+
+    def _held(self, indices):
+        # ! The 0.2.x shape: `--- RECORD`, an INDEX, and no address anywhere.
+        text = "\n".join(
+            f"--- RECORD\nBLOCK       {i}\nVERDICT     clean\n"
+            f"FINDING     nothing to report from this role\n---"
+            for i in indices
+        )
+        found, problems = record.parse_report(text, "ownership-context")
+        self.assertEqual(problems, [])
+        return found
+
+    def test_a_held_record_carries_an_INDEX_and_no_address(self):
+        # ! Guards the guard: a fixture that grew an address would make the
+        # refusal below untestable.
+        for f in self._held(self.prose):
+            with self.subTest(block=f.block):
+                self.assertEqual(f.address, "")
+                self.assertIn(f.block, self.prose)
+
+    def test_the_LOCATION_line_is_not_even_retained(self):
+        # ! So the one route that COULD work with the source in hand is closed
+        # at the parser, before any converter sees it.
+        self.assertNotIn("location", {f.name for f in fields(record.Finding)})
+
+    def test_convert_REFUSES_and_names_what_is_missing(self):
+        with self.assertRaises(ValueError) as caught:
+            record.convert(self._held(self.prose), self.census, "ownership-context")
+        said = str(caught.exception)
+        self.assertIn("carry no address", said)
+        self.assertIn("census POSITION", said)
+
+    def test_it_refuses_rather_than_dropping_them_quietly(self):
+        # !! The failure being replaced: a file of null verdicts and exit 0.
+        held = self._held(self.prose)
+        self.assertGreater(len(held), 0)
+        with self.assertRaises(ValueError):
+            record.convert(held, self.census, "ownership-context")
+
+    def test_the_REAL_held_run_in_this_repo_is_refused(self):
+        """The regression fixture: a genuine 0.2.x census and its own report."""
+        run = FIXTURES.parent.parent / "evidence/todo-tool-full-run/run-2-complete"
+        if not (run / "census.json").exists():
+            self.skipTest("the held run is not in this checkout")
+        old = json.loads((run / "census.json").read_text(encoding="utf-8"))
+        text = (run / "ownership-context.md").read_text(encoding="utf-8")
+        held, problems = record.parse_report(text, "ownership-context")
+        self.assertEqual(problems, [])
+        self.assertGreater(len(held), 100, "the held report should carry its findings")
+        # !! The census it was written against carries no addresses at all.
+        self.assertFalse(any(b.get("address") for b in old))
+        # ! And its kinds are not today's, so the indices do not survive either.
+        self.assertNotIn("margin", {b["kind"] for b in old})
+        with self.assertRaises(ValueError):
+            record.convert(held, old, "ownership-context")
+
+    def test_an_ADDRESSED_report_still_converts(self):
+        # ! The bridge is not dead -- it carries a run held from 0.2.4 on, where
+        # a record names a PLACE rather than a position.
+        held = self._held(self.prose)
+        for f in held:
+            f.address = self.census[f.block - 1]["address"]
+        out = record.convert(held, self.census, "ownership-context")
+        ruled = [r for r in out["records"] if r["verdict"] is not None]
+        self.assertEqual(len(ruled), len(held))
+        self.assertEqual(
+            {r["address"] for r in ruled},
+            {self.census[i - 1]["address"] for i in self.prose},
+        )
