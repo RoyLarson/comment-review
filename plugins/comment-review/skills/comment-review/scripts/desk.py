@@ -425,7 +425,7 @@ def _words(text: str) -> str:
 # An ADDRESS as it appears inside prose: a dotted path, `@`, a series letter and
 # an ordinal. ! MATCHED, not split: a `move`'s `to:` is a sentence a reviewer
 # wrote and the address sits somewhere inside it.
-ADDRESS_IN = re.compile(r"[\w./\-]+@[abc]\d+")
+ADDRESS_IN = re.compile(r"[\w.:/\\-]+@[abc]\d+")
 # The RETIRED line form, as it appears inside prose. ! A destination naming one
 # is refused rather than taken for an out-of-code place: it is inside the code,
 # and this tool moves the line it names.

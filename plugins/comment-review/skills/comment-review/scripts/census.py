@@ -58,6 +58,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from addresser import (  # noqa: E402  -- path shim must run first
+    SEPARATOR,
     address,
     code_lines_of,
 )
@@ -1343,6 +1344,20 @@ def _report(args: argparse.Namespace) -> int:
         # Measured 2026-08-18: 120 us a call, so one 793-block file spent
         # 95 ms resolving one path 793 times.
         rel = _repo_relative(path, repo)
+        # !! A PATH HOLDING THE SEPARATOR CANNOT BE ADDRESSED, so it is a GAP
+        # and not a block with a broken name. `flatten` joins segments on `:`,
+        # which Windows forbids in a filename; POSIX forbids only `/` and NUL,
+        # so a POSIX checkout can hold `a:b.py`, whose address would be the
+        # address of `a/b.py`. That is the collision the separator was chosen to
+        # end -- it was `.` until 2026-08-19, and `a/b.py` and `a.b.py` shared
+        # every address they had.
+        #
+        # ! IT READS THE REPO-RELATIVE PATH, WHICH IS THE ONE ADDRESSED. The
+        # absolute path holds a colon on every Windows run -- the drive letter
+        # -- so checking `path` here refuses the whole tree.
+        if SEPARATOR in rel:
+            unreadable.append(f"{rel} (a path may not hold '{SEPARATOR}')")
+            continue
         for b in got:
             b.path = rel
         # !! THE PRODUCER STATES THE PLACE, and states it HERE -- after the path

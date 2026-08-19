@@ -178,7 +178,7 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
             "kind": "interval",
             "edit_start": 1,
         }
-        self.assertEqual(addresser.address(block, [1]), "pkg.sub.a.py@b0")
+        self.assertEqual(addresser.address(block, [1]), "pkg:sub:a.py@b0")
 
     def test_a_census_without_edit_start_is_REFUSED_not_guessed(self):
         # !! The range alone cannot separate the two gaps of a one-line file,
@@ -222,7 +222,7 @@ class TestAOneLineInitFile(unittest.TestCase):
     def test_the_stable_addresses_are_not(self):
         code = addresser.code_lines_of(self.SRC, self.BLOCKS)
         named = [addresser.address(b, code) for b in self.BLOCKS]
-        self.assertEqual(named, ["package.__init__.py@b0", "package.__init__.py@b1"])
+        self.assertEqual(named, ["package:__init__.py@b0", "package:__init__.py@b1"])
 
     def test_a_subpackage_of_the_same_name_is_a_different_place(self):
         code = [1]
@@ -243,27 +243,27 @@ class TestTheInverse(unittest.TestCase):
     `pkg.mod.py@b3` in a record has to get back to a line to read the code.
     """
 
-    def test_a_dotted_path_resolves_against_the_census(self):
+    def test_a_flattened_path_resolves_against_the_census(self):
         self.assertEqual(
-            addresser.undot("pkg.sub.a.py", ["pkg/sub/a.py", "other/a.py"]),
+            addresser.unflatten("pkg:sub:a.py", ["pkg/sub/a.py", "other/a.py"]),
             "pkg/sub/a.py",
         )
 
-    def test_two_paths_that_dot_alike_are_REFUSED(self):
+    def test_two_paths_that_FLATTEN_alike_are_REFUSED(self):
         # !! THE DOTTED FORM IS NOT SELF-INVERTIBLE. `a/b.py` and `a.b.py` both
         # read `a.b.py`, and a dot in a FILE name is ordinary in most of the
         # eleven languages this census reads -- `app.test.js`, `types.d.ts`.
         # Picking one would answer a question nobody asked.
-        self.assertEqual(addresser.undot("a.b.py", ["a/b.py", "a.b.py"]), "")
+        self.assertEqual(addresser.unflatten("a:b.py", ["a/b.py", "a:b.py"]), "")
 
     def test_a_path_the_census_never_carried_resolves_to_nothing(self):
-        self.assertEqual(addresser.undot("nope.py", ["a/b.py"]), "")
+        self.assertEqual(addresser.unflatten("nope.py", ["a/b.py"]), "")
 
     def test_an_address_splits_into_path_and_folio(self):
-        self.assertEqual(addresser.folio_of("pkg.mod.py@b3"), ("pkg.mod.py", "b3"))
+        self.assertEqual(addresser.folio_of("pkg:mod.py@b3"), ("pkg:mod.py", "b3"))
 
     def test_a_string_with_no_folio_is_not_an_address(self):
-        self.assertEqual(addresser.folio_of("pkg.mod.py"), ("", ""))
+        self.assertEqual(addresser.folio_of("pkg:mod.py"), ("", ""))
 
     def test_every_address_finds_its_own_entry_again(self):
         # ! STAMPED FIRST, because `resolve` READS the census's `place` rather
@@ -689,3 +689,43 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
         # an interval over the comment's own second line.
         got = self._census()
         self.assertEqual([b for b in got if b.kind == "interval" and b.start == 3], [])
+
+
+class TestTheSeparatorIsAPathCannotHoldIt(unittest.TestCase):
+    """`:` separates path segments, so a flattened path is INVERTIBLE.
+
+    !! IT WAS `.` UNTIL 2026-08-19, AND A DOT IS ORDINARY IN A FILENAME.
+    `a/b.py` and `a.b.py` both flattened to `a.b.py`, so every one of their
+    addresses collided -- `@a0`, `@b0`, `@b1`, `@c0`, all of them -- and
+    `--check` reported "8 of 8 blocks addressed" because it compares only within
+    one path. Roy: *"lets use an illegal symbol for the separator then."*
+
+    ! `:` is the one character Windows forbids that is NOT shell-special, so an
+    address stays safe as a bare command-line argument where `<`, `>`, `|`, `?`
+    and `*` would not. Measured over 2,472 source paths in seven corpora: zero
+    hold any of the seven.
+    """
+
+    def test_a_directory_and_a_dotted_filename_no_longer_collide(self):
+        self.assertNotEqual(addresser.flatten("a/b.py"), addresser.flatten("a.b.py"))
+        self.assertEqual(addresser.flatten("a/b.py"), "a:b.py")
+        self.assertEqual(addresser.flatten("a.b.py"), "a.b.py")
+
+    def test_it_is_invertible_where_the_dotted_form_was_not(self):
+        paths = ["a/b.py", "a.b.py"]
+        self.assertEqual(addresser.unflatten("a:b.py", paths), "a/b.py")
+        self.assertEqual(addresser.unflatten("a.b.py", paths), "a.b.py")
+
+    def test_a_windows_separator_flattens_the_same_way(self):
+        self.assertEqual(addresser.flatten(r"pkg\sub\a.py"), "pkg:sub:a.py")
+
+    def test_the_extension_keeps_its_dot(self):
+        # ! Dropping it reintroduces the collision `b.py` / `b.rs` in a repo
+        # this census supports by design -- eleven languages in one run.
+        self.assertTrue(addresser.flatten("pkg/mod.py").endswith(".py"))
+
+    def test_no_separator_is_shell_special(self):
+        # ! An address is passed as a bare CLI argument -- `--resolve <ADDRESS>`
+        # in `review.md` and `reviewer-brief.md`. Every OTHER character Windows
+        # forbids is a redirect, a pipe or a glob.
+        self.assertNotIn(addresser.flatten("a/b.py")[1], '<>|?*"')

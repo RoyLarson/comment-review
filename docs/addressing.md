@@ -11,10 +11,21 @@ is the code that owns it.
 lines that share one.** Ruled by Roy, 2026-08-19.
 
 ```
-pkg.mod.py@a5    the 5th DECLARATION's documentation
-pkg.mod.py@b3    the gap ABOVE code line 3
-pkg.mod.py@c3    BESIDE code line 3
+pkg:mod.py@a5    the 5th DECLARATION's documentation
+pkg:mod.py@b3    the gap ABOVE code line 3
+pkg:mod.py@c3    BESIDE code line 3
 ```
+
+!! **THE PATH IS FLATTENED ON `:`, WHICH NO PATH MAY HOLD.** It was `.` until 2026-08-19, and a
+dot is ordinary in a filename: `a/b.py` and `a.b.py` both flattened to `a.b.py`, so `a.b.py@a0`
+named two blocks in two files -- and every other address of those files collided the same way.
+`--check` reported "8 of 8 blocks addressed" with no SHARED, because it compares only within one
+path. Roy: *"lets use an illegal symbol for the separator then."*
+
+! **`:` is the one character Windows forbids that is not shell-special**, so an address stays
+safe as a bare command-line argument where `<`, `>`, `|`, `?`, `*` and `"` would not. Measured
+over 2,472 source paths in seven corpora: zero hold any of the seven. The extension keeps its
+dot, so `b.py` and `b.rs` still differ.
 
 ! **Read it as a range and the old system returns under a new name.** You start asking which
 lines a block "covers", whether two blocks overlap, and how wide to make an addressing range --

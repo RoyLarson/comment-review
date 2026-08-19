@@ -2,7 +2,7 @@
 
     python addresser.py --census census.json --repo D
 
-`address()` names a block against the CODE -- `pkg.core.py@a5`. The form it
+`address()` names a block against the CODE -- `pkg:core.py@a5`. The form it
 replaced named it by LINE, `a.py:33-34`, which answers "where is this in the file
 I just read" and cannot answer "which place is this": this tool EDITS PROSE, and
 every prose edit moves the line numbers of the code below it, so two files
@@ -64,9 +64,9 @@ while the enumeration underneath it is complete.
 
 Three series, because prose answers to one of exactly three subjects:
 
-    package.core.py@a5    the 5th DECLARATION's documentation
-    package.core.py@c3    ON code line 3 -- shares the line with the statement
-    package.core.py@b3    the GAP after code line 3, before code line 4
+    package:core.py@a5    the 5th DECLARATION's documentation
+    package:core.py@c3    ON code line 3 -- shares the line with the statement
+    package:core.py@b3    the GAP after code line 3, before code line 4
 
 ! `b0` is the gap before the first code line; `bN` after the last. A file with N
 code lines has N+1 gaps, and every comment run and empty interval sits in one.
@@ -207,14 +207,14 @@ def line_address(block: dict) -> str:
 
 
 def address(block: dict, code: list[int]) -> str:
-    """`pkg.mod.py@b3` -- WHICH PLACE this is, as against where it sits.
+    """`pkg:mod.py@b3` -- WHICH PLACE this is, as against where it sits.
 
     !! `address` NAMES A POSITION; THIS NAMES A PLACE, and only the second
     survives an edit. This tool rewrites prose, and every prose edit moves the
     line numbers of the code below it -- so `path:start-end` is true of one file
     state and no other. A place is counted against the CODE instead:
 
-        pkg.mod.py@a5   the 5th DECLARATION's documentation
+        pkg:mod.py@a5   the 5th DECLARATION's documentation
         pkg.mod.py@c3   ON code line 3 -- shares the line with the statement
         pkg.mod.py@b3   the GAP after code line 3, before code line 4
 
@@ -245,10 +245,10 @@ def address(block: dict, code: list[int]) -> str:
     intervals both spanning `1-1`, the gap before that line and the gap after
     it, and `address` cannot tell them apart. Their `edit_start` can: 1 and 2.
 
-    ! The path is dotted and KEEPS its extension, so `b.py` and `b.rs` cannot
+    ! The path is FLATTENED on `:` and KEEPS its extension, so `b.py` and `b.rs` cannot
     collide in a repo holding both -- which this census supports by design.
 
-    ! An ADDRESS is the whole citation, `pkg.mod.py@b3`; the FOLIO is the `b3`
+    ! An ADDRESS is the whole citation, `pkg:mod.py@b3`; the FOLIO is the `b3`
     half of it, which is what `folio_of` returns. ! It is not called a PLACE:
     measured 2026-08-18, `place` appears 119 times in the shipped tree and every
     one is ordinary English -- including `ownership-context`'s own instruction,
@@ -264,7 +264,7 @@ def address(block: dict, code: list[int]) -> str:
     Returns:
         The block's address, or "" when it carries no usable position.
     """
-    path = dotted(block.get("path", ""))
+    path = flatten(block.get("path", ""))
     start = block.get("start")
     if not isinstance(start, int):
         return ""
@@ -287,48 +287,68 @@ def address(block: dict, code: list[int]) -> str:
     return f"{path}@b{sum(1 for n in code if n < at)}"
 
 
-def dotted(path: str) -> str:
-    """`pkg/sub/mod.py` as `pkg.sub.mod.py` -- the whole path, extension kept.
+#: The character that joins path segments in an address. A path may not hold it
+#: -- Windows forbids it outright, and `census.py` refuses a POSIX path that
+#: does -- which is what makes `flatten` invertible. See `flatten`.
+SEPARATOR = ":"
+
+
+def flatten(path: str) -> str:
+    """`pkg/sub/mod.py` as `pkg:sub:mod.py` -- the whole path, extension kept.
 
     !! THE ADDRESS IS THE FULL PATH from the runner's root, not the file name.
     Roy, 2026-08-18: "the address is the full thing not just `__init__@b0`".
-    Files form a tree, so a complete path cannot collide, and the form is safe
-    if verbose.
+    Files form a tree, so two complete paths differ somewhere, and the
+    separator below carries that difference through into the address.
 
     !! THE EXTENSION STAYS. Dropping it reads better and reintroduces collisions
     the moment a repo holds `b.py` beside `b.rs` -- which this census supports by
     design, eleven languages in one run. Roy ruled it 2026-08-18: "we could have
     mixed languages in the system with the same names that without that we are
     back to collisions."
+
+    !! THE SEPARATOR IS A CHARACTER A PATH CANNOT HOLD, and that is what makes
+    this INVERTIBLE. It was `.` until 2026-08-19, and a dot is ordinary in a
+    filename -- `app.test.js`, `types.d.ts` -- so `a/b.py` and `a.b.py` both read
+    `a.b.py` and every one of their addresses collided. Roy: *"lets use an
+    illegal symbol for the separator then."*
+
+    ! `:` is the one Windows forbids that is NOT shell-special, so an address is
+    safe as a bare command-line argument where `<`, `>`, `|`, `?` and `*` are
+    not. Measured 2026-08-19 over 2,472 source paths in seven corpora: zero hold
+    any of the seven. ! POSIX forbids only `/` and NUL, so a POSIX path CAN
+    hold a colon and this would be ambiguous again -- `census.py` refuses such a
+    file rather than addressing it.
     """
-    return str(path).replace("\\", "/").replace("/", ".")
+    return str(path).replace("\\", "/").replace("/", SEPARATOR)
 
 
-def undot(name: str, paths: list[str]) -> str:
-    """The real path a dotted one names, or "" if the census cannot say.
+def unflatten(name: str, paths: list[str]) -> str:
+    """The real path a flattened one names, or "" if the census cannot say.
 
-    !! THE DOTTED FORM IS NOT SELF-INVERTIBLE, so this resolves against the
-    census rather than by string surgery. `a/b.py` and `a.b.py` both read
-    `a.b.py`, and a dot in a FILE name is ordinary in most of the eleven
-    languages this census reads -- `app.test.js`, `types.d.ts`.
+    ! It resolves against the CENSUS rather than by string surgery, because the
+    census is what knows which paths exist. With `:` as the separator the form
+    is invertible, so this now answers for exactly one path or none.
 
-    ! Ambiguity is REFUSED, not resolved by preferring one. Two real paths that
-    dot alike means the address names both, and picking either would answer a
-    question nobody asked. The caller reports it.
+    ! Ambiguity is still REFUSED rather than resolved by preferring one. It was
+    reachable while the separator was `.`; it is kept because `census.py`'s
+    refusal is what makes it unreachable, and a reader here should not have to
+    know that to trust the answer.
 
     Args:
-        name: the dotted path from an address, without the `@folio`.
+        name: the flattened path from an address, without the `@folio`.
         paths: the paths the census carries.
 
     Returns:
-        The one path whose dotted form is `name`, or "" when none or several do.
+        The one path whose flattened form is `name`, or "" when none or several
+        do.
     """
-    hits = {p for p in paths if dotted(p) == name}
+    hits = {p for p in paths if flatten(p) == name}
     return hits.pop() if len(hits) == 1 else ""
 
 
 def folio_of(address: str) -> tuple[str, str]:
-    """An address split into its dotted path and its place, or two blanks."""
+    """An address split into its flattened path and its folio, or two blanks."""
     path, sep, where = address.rpartition("@")
     return (path, where) if sep else ("", "")
 
@@ -347,7 +367,7 @@ def resolve(address: str, blocks: list[dict]) -> list[int]:
     are the same place seen twice by a census built before an edit.
 
     Args:
-        address: `pkg.mod.py@b3` or `pkg.mod.py@c3`.
+        address: `pkg:mod.py@b3` or `pkg:mod.py@c3`.
         blocks: the census entries FOR THAT FILE, in census order.
 
     Returns:
@@ -605,9 +625,9 @@ def _resolve_one(address: str, blocks: list[dict]) -> int:
     if not where:
         print(f"{address!r} is not an address -- it needs a `@place`")
         return 2
-    real = undot(path, sorted({str(b.get("path", "")) for b in blocks}))
+    real = unflatten(path, sorted({str(b.get("path", "")) for b in blocks}))
     if not real:
-        print(f"no file in this census dots to {path!r}")
+        print(f"no file in this census flattens to {path!r}")
         return 1
     mine = [b for b in blocks if str(b.get("path", "")) == real]
     hits = resolve(address, mine)

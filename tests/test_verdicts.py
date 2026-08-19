@@ -2307,7 +2307,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
             "start": 352,
             "end": 354,
             "kind": "comment",
-            "address": "redacted_pkg.billing.rates.py@b47",
+            "address": "redacted_pkg:billing:rates.py@b47",
         }
         self.assertEqual(
             record.record_problems("the brief's example", self.record, block), []
@@ -2316,7 +2316,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     def test_the_example_the_shape_check_reads_is_the_one_taught(self):
         # ! Guards the guard: a brief that stopped carrying an address would
         # make the test above pass vacuously.
-        self.assertEqual(self.record["address"], "redacted_pkg.billing.rates.py@b47")
+        self.assertEqual(self.record["address"], "redacted_pkg:billing:rates.py@b47")
 
 
 class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):

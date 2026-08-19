@@ -76,7 +76,7 @@ yours:
 
 ```json
 { "block": 17,
-  "address": "redacted_pkg.billing.rates.py@b47",
+  "address": "redacted_pkg:billing:rates.py@b47",
   "anchor":  "compute_rates",
   "verdict": "correct",
   "claim":   { "false": "twenty call sites want this",

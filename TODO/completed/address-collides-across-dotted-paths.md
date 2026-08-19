@@ -2,13 +2,17 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks done
+Progress: 3 of 3 tasks done
 Owner:    session
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 Flagged:  2026-08-19 — task 2 owes a ruling -- refuse the collision at census time, or
           report SHARED across paths at check time; task 3 corrects the docs with
           whatever is ruled
+Ruled:    2026-08-19 — Roy: 'lets use an illegal symbol for the separator then ... that
+          makes it trivial.' The separator is ':'. Tasks 1 and 2 are SUPERSEDED -- there
+          is no collision for --check to see and none to refuse, because two paths can
+          no longer flatten alike.
 ```
 
 ## Objective
@@ -33,13 +37,13 @@ compares only within one path, so a cross-file collision is never in scope. `add
 
 ## Tasks
 
-- [ ] !! **`_check` compares only WITHIN one path.** It iterates `for path in
+- [x] !! **`_check` compares only WITHIN one path.** It iterates `for path in
       sorted({paths})`, so a cross-file collision is never seen. Measured: `4 of 4
       blocks addressed`, rc=0, no SHARED -- then `--resolve a.b.py@a0` answers
       *"no file in this census dots to ..."*. **The gate certifies what the
       resolver then refuses.**
-- [ ] **`undot` refuses the ambiguity correctly**, so the address is admitted and
+- [x] **`undot` refuses the ambiguity correctly**, so the address is admitted and
       fails somewhere else later. Decide where the refusal belongs: at census time
       (name the collision and stop) or at check time (report SHARED across paths).
-- [ ] ! `addresser.py` claims *"a complete path cannot collide"* and
+- [x] ! `addresser.py` claims *"a complete path cannot collide"* and
       `docs/addressing.md` repeats it. Correct both with whatever is ruled.

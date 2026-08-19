@@ -503,3 +503,61 @@ class TestFrontMatterIsMarked(unittest.TestCase):
             self.assertEqual(out.returncode, 0, out.stderr[-300:])
             self.assertNotIn("Copyright", out.stdout)
             self.assertNotIn("front-matter", out.stdout)
+
+
+class TestAPathThatCannotBeAddressedIsAGap(unittest.TestCase):
+    """`:` joins an address's path segments, so a path may not hold one.
+
+    !! IT IS NOT UNIVERSALLY ILLEGAL. Windows forbids it in a filename and so
+    did classic Mac OS, which used it as the separator; POSIX forbids only `/`
+    and NUL. So a Linux checkout CAN hold `a:b.py`, whose address would be the
+    address of `a/b.py` -- the exact collision the separator was chosen to end.
+    The census refuses such a file rather than addressing it.
+
+    ! It is refused on the REPO-RELATIVE path. Every absolute Windows path holds
+    a colon in its drive letter, so reading the absolute one refuses the tree.
+    """
+
+    def test_a_colon_in_the_path_is_reported_and_fatal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            try:
+                (root / "a:b.py").write_text("x = 1\n", encoding="utf-8")
+            except OSError:
+                self.skipTest("this filesystem will not create the path")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "census.py"),
+                    "--repo",
+                    str(root),
+                    str(root / "a:b.py"),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("may not hold", result.stdout)
+
+    def test_a_windows_drive_letter_does_NOT_refuse_the_tree(self):
+        # ! The regression this check nearly shipped with: `path.as_posix()` is
+        # absolute, so on Windows EVERY file was refused for its `C:`.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "ok.py").write_text("# a note\nx = 1\n", encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "census.py"),
+                    "--repo",
+                    str(root),
+                    str(root / "ok.py"),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout)

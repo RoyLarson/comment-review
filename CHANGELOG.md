@@ -121,6 +121,20 @@ attached a comment one statement too high.
 
 ! A place with no lines of its own is at LINE 0. Its EDIT range still says where prose would go.
 
+!! **The path is flattened on `:`, which is what makes an address invertible.** It was `.` until
+2026-08-19, and a dot is ordinary in a filename: `a/b.py` and `a.b.py` both read `a.b.py`, so
+`a.b.py@a0` named two blocks in two files -- and so did every other address those files had.
+`--check` reported them addressed, because it compares only within one path, and `--resolve` then
+refused the ambiguity it had certified. Roy: *"lets use an illegal symbol for the separator
+then."*
+
+! `:` is the one character Windows forbids that is not shell-special, so an address is safe as a
+bare command-line argument where `<`, `>`, `|`, `?`, `*` and `"` are not. Measured over 2,472
+source paths in seven corpora: zero hold any of the seven. ! POSIX forbids only `/` and NUL, so a
+POSIX checkout can still hold `a:b.py` -- `census.py` reports it as a gap and exits nonzero,
+the same channel a language with no record uses. The extension keeps its dot, so `b.py` and
+`b.rs` still differ.
+
 ### Retired
 
 - **The LINE address.** `addresser.line_address` warns on every call and is read only to parse

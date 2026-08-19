@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (36)
+### open  (35)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -207,7 +207,6 @@ that changed a published name or rule:
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
 | [shipped-prose-lags-the-rulings](shipped-prose-lags-the-rulings.md) | session | — | 0/6 | **The address rulings landed in the code and in `docs/`; the files agents actually read were not brought along.** Four agents found the same shape independently: ~25 statements now false, several contradicting themselves inside one docstring. |
 | [deprecated-reader-cannot-replay](deprecated-reader-cannot-replay.md) | session | — | 0/3 | **`--convert` drops 100% of a held 0.2.x report and exits 0.** Replaying held reports is how 0.2.1 and 0.2.2 were validated cheaply -- five joins over one set of reports, ~1.6M tokens of review reused -- and that property is the stated reason the deprecated parser was kept. |
-| [address-collides-across-dotted-paths](address-collides-across-dotted-paths.md) | session | yes | 0/3 | **`a/b.py` and `a.b.py` both dot to `a.b.py`, so `a.b.py@a0` names two blocks in two files -- and `--check` passes it.** The dotted form was chosen so mixed languages could not collide; it collides on directory separators instead. |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 0/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 0/5 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 0/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
@@ -257,3 +256,4 @@ the reason is inside the file.
 | [eight-terms-have-no-definition-and-angle-means-five-things](completed/eight-terms-have-no-definition-and-angle-means-five-things.md) | **The vocabulary itself.** A twelve-agent survey found nine terms used with a fixed sense and stated nowhere, and fifteen more carrying two or three senses each; every one is now defined, dropped, or declared as deliberate polysemy, and `scripts/check_vocabulary.py` says so as a command. ! Its last * dissolved rather than being ruled: *"5 of its 7 reviewer reports"* had lost two of its four sites already, and the two left sit in prose the shipped-Python cleanup rewrites on grounds that do not need the number |
 | [an-editorial-mark-is-not-an-action-and-reanchor-is-move](completed/an-editorial-mark-is-not-an-action-and-reanchor-is-move.md) | **A verdict is a MARK, not an action**, and the relocation verdicts collapsed twice: `reanchor` into `move` (2026-08-15), then `split` into `move` (2026-08-16). ! Both by the same argument -- a relocation is ONE judgment and the destination is payload -- and `split` was additionally the only verdict whose subject was the BLOCK rather than the sentence. Seven verdicts. `drop`, `patch` and `add` were ruled to STAY: Roy, *"everything else we have come up with has had a valid use case."* |
 | [address-is-not-stable-under-prose-edits](completed/address-is-not-stable-under-prose-edits.md) | A line-numbered address is valid for one file state only, and `addresser.py` names a place against the CODE instead: `a` a declaration, `b` a gap, `c` an on-line position. Measured: a prose-only edit moved 2 of 3 line addresses and 0 of 3 stable ones. |
+| [address-collides-across-dotted-paths](completed/address-collides-across-dotted-paths.md) | Separator changed from '.' to ':', which no path may hold; census refuses a POSIX path that does |
