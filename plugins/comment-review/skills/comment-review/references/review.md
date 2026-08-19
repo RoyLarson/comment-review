@@ -52,16 +52,17 @@ not be folded into the first.
 
 ## Looking a place up, after the write
 
-!! **EVERY LINE NUMBER IN THE RECORDS IS STALE; THE ADDRESS IS NOT.** 7b has
-written. Census the file as it is NOW, then ask:
+!! **THE ADDRESS IS UNCHANGED AND 7b PROVED IT.** The CODE CHECK passed, so the
+code reads the same in the same ORDER -- the Nth code line is still the same
+statement, and an address counts those. The line numbers moved with the prose;
+the ordinal did not.
+
+To read at one, resolve against a census of the file as it now stands:
 
 ```bash
 python <skill>/scripts/census.py --json --repo . --out <run-dir>/after.json <paths...>
 python <skill>/scripts/addresser.py --census <run-dir>/after.json --repo . --resolve <ADDRESS>
 ```
-
-! Census it FIRST. Resolving against the census the run started from reports
-`STALE CENSUS`, not a line range.
 
 ! More than one range can come back -- a docstring and the comment run beneath
 it share a place. Both are real.

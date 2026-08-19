@@ -207,6 +207,7 @@ review = [
   "census",
   "proofreader",
   "record",
+  "statement",
   "style sheet",
   "template",
 ]

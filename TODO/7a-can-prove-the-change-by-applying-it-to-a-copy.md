@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks done
+Progress: 2 of 5 tasks done
 Owner:    session * Roy (raised it, 2026-08-17)
 Raised:   2026-08-17, while ruling on what CLAIM and CHANGE each carry
 ```
@@ -70,6 +70,12 @@ judges it would be MARK and APPLY in one actor, which is the thing the pipeline 
       the file, two `CHANGE`s overlapping. ! This is the case worth having: today it surfaces at
       7b as a write that did not go where anyone expected, and `prove_unchanged.py` catches only
       the executable-code half of it.
+- [ ] When the galley dry run lands, STAGE 8 NEEDS NO CENSUS OF ITS OWN. Roy,
+      2026-08-18: the census can be run once. 7b would copy a galley that has
+      already been censused, so that census describes the written file exactly and
+      addresser --resolve reads it. Today 7b edits in place and stage 8 must
+      census again. ! Verify: the galley census is kept past 7b and named in
+      review.md, and the third census run disappears.
 
 ## Related
 

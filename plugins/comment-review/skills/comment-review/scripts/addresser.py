@@ -21,10 +21,32 @@ those and the scheme collapses without saying so:
   exact             a heuristic that is usually right is a table that is
                     occasionally renumbered
 
-! And what MAKES it constant across this tool's own work is stage 7b: it proves
-the executable code BYTE-IDENTICAL, so every edit moves prose and nothing else.
-The code-line numbering is invariant by construction rather than by luck --
-but only while the enumeration underneath it is complete.
+! What MAKES it constant across this tool's own work is stage 7b's CODE CHECK.
+It does NOT prove the code byte-identical, and saying so overstates it: for
+Python it compares an `ast.dump`, so the bytes may differ while the statements
+and their ORDER do not; elsewhere it compares the stripped text. Either way what
+holds is that the Nth code line is still the same statement -- which is exactly
+what an ordinal counts. The line numbers move with the prose; the ordinal does
+not.
+
+! `ast.dump` would carry every DOCSTRING into that fingerprint, so rewriting one
+-- the commonest edit this system makes -- would read as a code change.
+`_blank_docstrings` empties each docstring's value before the dump: its CONTENT
+is out of the proof, its PRESENCE is not. ! So adding or deleting a docstring
+still changes the body's shape and still fails -- filed as
+`TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md`, and the reason an
+`add` on a declaration cannot be written today.
+
+!! AND IT PROVES NOTHING AT ALL ON AN UNPROVABLE FILE, which is the hard
+exception this scheme rests on and must name. `prove_unchanged` returns
+`unprovable` for a comment delimiter sharing a line with code, for an
+unterminated block comment, and for a census that disagrees with the file. Such
+a run is REPORTED and counted a failure rather than passed -- so there is no
+stage 8 to hand an address to, and the guarantee above is never claimed for a
+file it does not cover.
+
+! The numbering is invariant by construction rather than by luck -- but only
+while the enumeration underneath it is complete.
 
 Two forms, because a place is one of exactly two things:
 
