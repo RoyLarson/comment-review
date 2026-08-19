@@ -1327,7 +1327,23 @@ def _report(args: argparse.Namespace) -> int:
             return
         first, last = census[run[0] - 1], census[run[-1] - 1]
         span = f"{first.path}:{first.start}-{last.end}"
-        print(f"{run[0]:4d}-{run[-1]:<4d} {span}  no prose ({len(run)} intervals)")
+        # ! The index column matches the block lines above and below it, so the
+        # numbering reads as one sequence -- a run is the same census indices,
+        # not a different kind of row. `1 interval` and not `1 intervals`,
+        # because this is prose a reviewer reads.
+        # ! The FIRST index sits in the same column a block's does, so the
+        # numbering reads down the page as one sequence -- a run carries census
+        # indices, not a different kind of row.
+        where = f"{run[0]:4d}" if len(run) == 1 else f"{run[0]:4d}-{run[-1]}"
+        # !! THE SAME COLUMNS AS A BLOCK LINE -- index, address, KIND, lines,
+        # notes -- because this listing is pasted into a reviewer's prompt and
+        # is read down its columns. Written as prose (`no prose (5 intervals)`)
+        # the third column read `no`, which is where a block states its kind,
+        # so a run and a block could not be told apart by anything mechanical.
+        # ! The notes column names what it counts, in the hyphenated form the
+        # annotations use, so the row is readable without the header.
+        counted = f"{len(run)}-interval" + ("" if len(run) == 1 else "s")
+        print(f"{where}  {span}  no-prose  0L  {counted}")
         run.clear()
 
     for i, b in enumerate(census, 1):

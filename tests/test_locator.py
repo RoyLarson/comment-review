@@ -91,7 +91,7 @@ class TestTheFilteredCensusIsAProjection(unittest.TestCase):
         out = {}
         for line in text.split("\n"):
             m = self.BLOCK.match(line)
-            if m and m.group(3) != "interval":
+            if m and m.group(3) not in ("interval", "no-prose"):
                 out[int(m.group(1))] = m.group(2)
         return out
 
