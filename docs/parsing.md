@@ -139,9 +139,13 @@ claim about an attachment rule bolted on top, and should be judged as one.
 !! **THIS BAR IS ABOUT FINDING PROSE, AND ONLY A PARSER CAN FAIL IT.** A
 candidate for axis 1 reads the file and returns the blocks; adopting one that
 returns fewer than today's loses prose nobody then reviews.
-`evidence/tier-measurement.md` set the number: **adopt a replacement only if it
-misses ZERO blocks** -- measured there, libcst missed **13** that the stdlib
-tier found. Ownership is worth nothing if coverage is not total.
+`evidence/tier-measurement.md` set the requirement: **adopt a replacement only
+if it misses ZERO blocks** -- measured there, libcst missed **13** that the
+stdlib tier found. Ownership is worth nothing if coverage is not total.
+
+! A REQUIREMENT, not a number to beat. Blocks are counted in whole numbers and
+nothing lies below zero, so there is no margin to compete on -- a candidate
+meets it or does not.
 
 ! **It says nothing about axis 2, which cannot fail it.** An LSP returns no
 comments, so it finds no blocks and can lose none. Its bar is the one stated

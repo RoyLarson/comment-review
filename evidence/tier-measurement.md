@@ -73,5 +73,10 @@ removed it if the question is ever reopened.
 
 **Reopen it if** a structural tier lands that covers expression-level comments,
 or if tree-sitter arrives and makes the same ownership available across
-languages rather than for Python alone. The number to beat is **zero blocks
+languages rather than for Python alone. The requirement is **zero blocks
 missed** -- ownership is worth nothing if coverage is not total.
+
+! Stated as a REQUIREMENT and not as a number to beat, because blocks are
+counted in whole numbers and nothing lies below zero. A candidate either meets
+it or does not; there is no margin to compete on, and reading it as a target
+invites the answer "we only missed two".
