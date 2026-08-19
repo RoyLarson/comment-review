@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 1 of 7 tasks done
 Owner:    session * Roy (* 1 ruling -- the numbering)
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18, on splitting the census by editorial role)
@@ -11,21 +11,76 @@ Raised:   2026-08-18 (Roy, 2026-08-18, on splitting the census by editorial role
 ## Objective
 
 !! **A DOCSTRING IS ABOUT ITS DECLARATION; A COMMENT IS ABOUT WHAT SITS WITH IT.**
-Those are different questions, and the `b`/`c` forms cannot express the first.
+Those are different questions and the `b`/`c` forms cannot express the first.
 `b3` means "the gap after code line 3", which reads as prose about what FOLLOWS
 -- and a Python docstring sits after its `def` and is about the `def`. Roy,
 2026-08-18: *"a docstring is about the thing above not the thing below."*
 
-! The direction is LANGUAGE-DEPENDENT, which is why the position cannot carry
-it. Verified the same day:
+## The series enumerates DECLARATIONS, not docstrings
+
+Roy, 2026-08-18:
 
 ```
-p.py   docstring line 2   nearest code ABOVE = 1  (`def add`)    subject is ABOVE
-m.rs   docstring line 1   nearest code BELOW = 2  (`pub fn add`) subject is BELOW
+a0 - module docstring
+a1 - function/class/method_one docstring
+a2 - function/class/method_two docstring
 ```
 
-**Naming the code line it DOCUMENTS dissolves the direction.** Both of those are
-`a1`, because both name the declaration rather than a side of it.
+*"even if the docstrings are currently empty -- the same as any missing bs and
+cs are still assigned."*
+
+!! **THAT IS WHY IT CANNOT RENUMBER.** Adding a docstring does not add a
+declaration, so filling `a2` moves nothing. Only adding a DECLARATION shifts the
+series, and that is a CODE change -- which stage 7b proves byte-identical, so
+this tool never makes one.
+
+!! **AND IT IS WHY THE EMPTY ONES ARE THE POINT.** Measured 2026-08-18 on a
+four-declaration file, the census emitted TWO docstring blocks while the AST
+offered FIVE declarations:
+
+```
+a0  <module>       has one
+a1  documented     has one
+a2  undocumented   NONE  -- no citable place today
+a3  Thing          NONE  -- no citable place today
+a4  method         NONE  -- no citable place today
+```
+
+**Three of five have nowhere to cite a missing docstring.** That is exactly the
+hole `an-empty-interval-has-no-census-index` closed for gaps, still open for
+declarations: an `add` naming the docstring a function does not have cannot be
+written, because there is no block to name.
+
+! It also settles the direction question. The number names the DECLARATION, so
+it does not matter that Python's docstring sits after its `def` and Rust's `///`
+sits before its `fn` -- verified 2026-08-18, subject ABOVE in one and BELOW in
+the other, and neither reading is needed once the series counts declarations.
+
+## What the series buys, and what it does NOT
+
+!! **FOCUS, NOT A SMALLER JOB.** Roy: *"I don't want to make it too easy and they
+do have to review all bs and cs but the focus for them gets a lot easier."*
+`function-context` and `module-context` still read every `b` and every `c`. The
+`a` set is where they START, and it is the prose their remit is written around.
+
+! So this is an ORDERING of the dispatched census, never a filter of it.
+
+**Measured**, 13 shipped scripts, 400 prose blocks: 139 docstrings, 227 comment
+runs, 34 trailing comments. The 2,587 empty intervals under the same census are
+already collapsed by `census.py --filtered`.
+
+## Where the series can be built, and where it cannot
+
+**Python, today, from the AST** -- the tokenized tier already walks it for
+docstring anchors.
+
+! **Every other language needs a declaration list the lexical tier does not
+have.** Stage 1.7 probes for a language server, and `documentSymbol` is exactly
+this list -- which is what `SKILL.md` already says an LSP buys. Without one, a
+repo has no `a` series and a role must be TOLD so rather than handed nothing.
+Five of the eleven languages have no docstring notion at all; `go` and `ruby`
+attach by position and carry `doc-kind-unresolved`. See
+[`doc-is-structural-means-two-things`](doc-is-structural-means-two-things.md).
 
 ## What the series buys, and what it does NOT
 
@@ -61,30 +116,42 @@ rather than handed nothing. See
 
 ## Tasks
 
-- [ ] * **Rule the numbering: `aN` = the code line it DOCUMENTS, not the Nth
-      docstring.** Sequential `a1..an` renumbers when a docstring is added earlier
-      -- the ordering fragility already refused once for `b`. Numbering by the
-      documented code line is a pure function of the block, and direction-free:
-      Python's docstring sits after its `def` and Rust's `///` before its `fn`,
-      and both name the declaration. Verified 2026-08-18: both give `a1`.
-- [ ] !! **The census must STATE which code line a docstring documents.** The
-      direction is language-dependent -- Python's subject is the nearest code line
-      ABOVE, Rust's is BELOW -- and the addresser can only infer it from `tier`,
-      which is the consumer-infers-what-the-producer-knows defect this release has
-      been removing. Verify: a block carries the documented line, and a language
-      whose docs sit on the other side needs no addresser change.
-- [ ] **Add the `a` form to `addresser.stable`**, and make `--check` hold it to
-      the same rule as `b` and `c`: every address resolves back to the block that
-      carries it.
+- [x] * **RULED 2026-08-18 by Roy: the series counts DECLARATIONS, and an empty
+      one is still assigned.** `a0` is the module, `a1..an` its declarations in
+      source order, whether or not each holds a docstring. ! It cannot renumber
+      under this tool's edits, because only a code change adds a declaration and
+      stage 7b proves the code byte-identical.
+
+- [ ] **Enumerate the declarations, in SOURCE order.** `ast.walk` is breadth
+      first, so a nested `def` comes back out of position -- order by `lineno`.
+      Verify: a file with a method inside a class inside a function numbers the
+      same way a reader counts down the page.
+
+- [ ] !! **Emit an `a` entry for a declaration with NO docstring.** That is the
+      whole point of the series and the thing the census does not do today:
+      measured 2026-08-18, a four-declaration file produced two docstring blocks
+      and left three declarations with no citable place. Verify: an `add` naming
+      the docstring a function does not have resolves through the same path an
+      `add` on an empty interval does.
+
+- [ ] **The census STATES which declaration a docstring belongs to**, rather
+      than the addresser inferring it from position or tier. The direction is
+      language-dependent -- Python's subject is the code line ABOVE, Rust's is
+      BELOW -- and inference here is the defect this release has spent itself
+      removing.
+
+- [ ] **Add the `a` form to `addresser.stable`**, and hold it to the same rule
+      `--check` applies to `b` and `c`: every address resolves back to the block
+      that carries it.
+
 - [ ] **ORDER the dispatched census by series -- do NOT filter it.** Roy,
-      2026-08-18: *"I don't want to make it too easy and they do have to review all
-      bs and cs but the focus for them gets a lot easier."* Every role still reads
-      every prose block; the `a` set is where `function-context` and
+      2026-08-18: *"I don't want to make it too easy and they do have to review
+      all bs and cs but the focus for them gets a lot easier."* Every role still
+      reads every prose block; the `a` set is where `function-context` and
       `module-context` START. ! Verify the coverage gate still counts the whole
       prose population per role, so an ordering cannot quietly become a filter.
 
-- [ ] **Say what a language with NO docstring notion does.** Five of the eleven --
-      shell, sql, lua, toml-ini, yaml -- have no `a` series at all, and go and
-      ruby carry `doc-kind-unresolved` rather than a kind. Verify: a role given
-      the `a` set on such a repo is told the set is empty and why, not handed
-      nothing.
+- [ ] **Say what a repo with NO `a` series gets.** Python builds it from the
+      AST; every other language needs `documentSymbol` from stage 1.7's language
+      server, and five of the eleven have no docstring notion at all. Verify: a
+      role is TOLD the series is empty and why, rather than handed nothing.

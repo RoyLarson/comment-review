@@ -205,7 +205,7 @@ that changed a published name or rule:
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | session * Roy (* 3 rulings) | yes | 5/15 | Two live runs proposed fifteen changes |
 | [address-is-not-stable-under-prose-edits](address-is-not-stable-under-prose-edits.md) | session * Roy (* 1 ruling -- whether the anchor pair becomes THE address) | yes | 0/6 | A line-numbered address is not stable under the edits this tool makes |
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | session | — | 0/2 | doc_is_structural means two things and its docstring names one |
-| [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | yes | 0/5 | A docstring needs its own address series, and it names what it documents |
+| [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | yes | 1/7 | A docstring needs its own address series, and it names what it documents |
 
 ### in-progress  (2)
 
