@@ -287,6 +287,22 @@ work, and the work is in the tree -- so a ticked box is re-derivable by a strang
 same standard this repo applies to a comment: *if a sentence cannot be falsified by reading the
 code or re-running a command, it does not belong.*
 
+!! **AND THIS IS WHAT LETS AN AGENT STOP ASKING "IS IT READY".** Roy, 2026-08-19: *"even though
+I knew the scope of work I wanted and I thought you had the information on the scope of work, you
+didn't -- and so would ask, because you didn't have access to what done looked like."*
+
+! **That question is a SYMPTOM, not politeness.** *"Should we release it now?"* and *"are you
+ready to release it?"* are what an agent asks when DONE exists only in someone's head. It cannot
+be answered from the tree, so it gets asked of the person -- repeatedly, and usually at the worst
+moment, because the agent has no way to tell whether the answer has changed since last time.
+**The plan externalises DONE**, so the state is read rather than requested.
+
+!! **IT DOES NOT REMOVE THE RULINGS, AND MUST NOT.** A `*` box is a decision only Roy can make --
+whether the galley splices within a line, what `address:lines` does with a code range. Those are
+asked because they are genuinely his. **Asking for a ruling is work; asking whether the work is
+finished is a missing artifact.** An agent that cannot tell the two apart will either interrupt
+constantly or guess at a decision that was never its own.
+
 ! **Prose in a plan is EVIDENCE for a box, never a second list of work.** A section that restates
 what a box says is a place for the two to disagree.
 
