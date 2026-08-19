@@ -73,6 +73,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from census import address  # noqa: E402  -- path shim must run first
+from galley import block_matches  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
 ON = "c"
@@ -254,13 +255,37 @@ def main() -> int:
 
     repo = Path(args.repo).resolve()
     code: dict[str, list[int]] = {}
+    moved: list[str] = []
     for path in sorted({str(b.get("path", "")) for b in blocks}):
         try:
             text = (repo / path).read_text(encoding="utf-8")
         except READ_ERRORS as e:
             print(f"CANNOT READ {path} ({type(e).__name__})")
             return 2
-        code[path] = code_lines_of(text, [b for b in blocks if b.get("path") == path])
+        mine = [b for b in blocks if b.get("path") == path]
+        # !! REFUSE A CENSUS OLDER THAN THE FILE, rather than answering from it.
+        # Every line number here is read against the tree, so a file edited
+        # since the census was built produces confident nonsense -- a place
+        # named for code that has moved. `galley.block_matches` already asks
+        # exactly this before it splices, for exactly this reason.
+        #
+        # ! Written after doing it FOUR TIMES in one session: an oracle diff, a
+        # reachability call, a coverage figure of 51%, and a `SHARED` row that
+        # listed one block. Each time the artifact was three edits old and the
+        # answer looked like a defect in the code. A note to remember would have
+        # failed a fifth time; this cannot.
+        stale = [b for b in mine if not block_matches(text.splitlines(), b)]
+        if stale:
+            moved.append(f"{path}: {len(stale)} of {len(mine)} blocks no longer match")
+        code[path] = code_lines_of(text, mine)
+    if moved:
+        for line in moved:
+            print(f"STALE CENSUS  {line}")
+        print(
+            "\nThe tree has moved since this census was built, so no address it"
+            " names can be trusted. Re-run census.py."
+        )
+        return 2
 
     if args.check:
         return _check(blocks, code)

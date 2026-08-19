@@ -257,3 +257,50 @@ class TestTheInverse(unittest.TestCase):
     def test_an_address_nothing_carries_comes_back_empty(self):
         code = addresser.code_lines_of(BARE, B)
         self.assertEqual(addresser.resolve("b.py@b99", B, code), [])
+
+
+class TestAStaleCensusIsRefused(unittest.TestCase):
+    """A census older than the file names places the code has left.
+
+    !! THIS IS A MECHANISM, NOT A REMINDER. In one session the same mistake was
+    made four times -- an oracle diff, a git reachability call, a coverage
+    figure of 51%, and a `SHARED` row that listed one block -- each time by
+    reading an artifact built three edits earlier and treating the result as a
+    defect in the code. Naming the habit did not stop the fourth. `--check`
+    exits 2 instead.
+    """
+
+    SRC = "X = 1\n# a note\nY = 2\n"
+    BLOCKS = [
+        {
+            "path": "m.py",
+            "start": 2,
+            "end": 2,
+            "kind": "comment",
+            "edit_start": 2,
+            "raw_lines": ["# a note"],
+            "whole_lines": True,
+        }
+    ]
+
+    def test_the_census_matches_the_file_it_came_from(self):
+        from galley import block_matches
+
+        self.assertTrue(block_matches(self.SRC.splitlines(), self.BLOCKS[0]))
+
+    def test_it_does_not_match_a_file_that_has_moved(self):
+        # ! One line added ABOVE the block, which is what a prose edit does.
+        moved = "import os\n" + self.SRC
+        from galley import block_matches
+
+        self.assertFalse(block_matches(moved.splitlines(), self.BLOCKS[0]))
+
+    def test_the_addresses_differ_silently_and_neither_errors(self):
+        # !! THE POINT. Both answer, both look right, and they disagree. A blank
+        # line prepended -- which is what a prose edit does -- moves the code
+        # down, so the block's stated `edit_start` now has NO code line before
+        # it: `b1` becomes `b0`, naming a different place with no complaint.
+        here = addresser.code_lines_of(self.SRC, self.BLOCKS)
+        there = addresser.code_lines_of("\n" + self.SRC, self.BLOCKS)
+        self.assertEqual(addresser.stable(self.BLOCKS[0], here), "m.py@b1")
+        self.assertEqual(addresser.stable(self.BLOCKS[0], there), "m.py@b0")
