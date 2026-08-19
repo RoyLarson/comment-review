@@ -21,7 +21,7 @@
 [definitions]
 
 # --- what a comment sits on -------------------------------------------------
-anchor = "The LINE OF CODE a comment is attached to -- the exact characters on it, not the symbols and not their meaning. An `a` names its declaration, a `b` the line of code below the gap, a `c` the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses; an address has ONE anchor."
+anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. A line of code is a statement, an expression, a declaration or an assignment. An `a` is attached to its declaration, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
 block = "The interval between two lines of CODE. The lines above and below define it; what is written between them does not. Only code is a boundary -- not a blank line, not a work marker, not a change of subject."
 census = "The numbered tree of every block in the files under review, with the references each block makes already resolved."
@@ -30,9 +30,9 @@ census = "The numbered tree of every block in the files under review, with the r
 sentence = "The unit a verdict rules on. A container of six sentences can hold six verdicts."
 clause = "A part of a sentence. `correct` carries a false clause and a true one; `REASON` is one clause."
 statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a clause."
-expression = "A piece of CODE that evaluates to a value. One of the kinds an anchor can be."
-declaration = "A piece of CODE that introduces a name. One of the kinds an anchor can be."
-assignment = "A piece of CODE that binds a value to a name. One of the kinds an anchor can be."
+expression = "A piece of CODE that evaluates to a value. One of the kinds a LINE OF CODE can be, and so one of the kinds an anchor can be."
+declaration = "A piece of CODE that introduces a name. One of the kinds a LINE OF CODE can be, and so one of the kinds an anchor can be."
+assignment = "A piece of CODE that binds a value to a name. One of the kinds a LINE OF CODE can be, and so one of the kinds an anchor can be."
 
 # --- what a reviewer emits ---------------------------------------------------
 verdict = "One of the seven rulings a reviewer may emit: clean, query, drop, correct, patch, add, move."

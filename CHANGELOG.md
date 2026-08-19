@@ -154,6 +154,13 @@ there, so it holds the characters before it. Roy: *"the lexer either knows what 
 trailing comment and can snag the whole string or it is broken."* Both tiers, eleven languages,
 no language server and no build tool.
 
+- **`vocabulary.md` defines LINE OF CODE and ANCHOR.** A line of code is one of four kinds -- a
+  statement, an expression, a declaration or an assignment -- which is the enumeration
+  `vocabulary.toml` already shipped. ! SUPERSEDED, same day: an earlier commit message called that
+  enumeration "the symbol framing today's ruling replaced" and rewrote the shipped `anchor`
+  definition without it. Roy: *"I think these are the enumerated set of types for a line of code
+  ... so not incorrect, just not clear."* The enumeration is restored and the definition now says
+  which line, per series.
 - **`record.seeded_problems` refuses a record with no anchor**, and one whose anchor is not the
   census's. Roy: *"an anchor missing in a Record is a broken Record."* Only `address` was checked
   before, though both fields are `SEEDED`.
