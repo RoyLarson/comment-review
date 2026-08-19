@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (29)
+### open  (30)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -204,6 +204,7 @@ that changed a published name or rule:
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | session * Roy (* 1 ruling) | yes | 0/5 | The role with verdict precedence has the least mechanical support |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | session * Roy (* 3 rulings) | yes | 5/15 | Two live runs proposed fifteen changes |
 | [address-is-not-stable-under-prose-edits](address-is-not-stable-under-prose-edits.md) | session * Roy (* 1 ruling -- whether the anchor pair becomes THE address) | yes | 0/6 | A line-numbered address is not stable under the edits this tool makes |
+| [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | session | — | 0/2 | doc_is_structural means two things and its docstring names one |
 
 ### in-progress  (2)
 
