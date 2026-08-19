@@ -16,11 +16,11 @@ ORIGINAL = "def f():\n    # old note\n    # second line\n    return 1\n"
 
 class TestSplice(unittest.TestCase):
     def test_a_replacement_lands_on_the_named_range(self):
-        out = galley.splice(ORIGINAL, [(2, 3, "    # new note")])
+        out = galley.splice(ORIGINAL, [(2, 3, 0, "    # new note")])
         self.assertEqual(out, "def f():\n    # new note\n    return 1\n")
 
     def test_a_longer_replacement_does_not_eat_the_line_below(self):
-        out = galley.splice(ORIGINAL, [(2, 3, "    # a\n    # b\n    # c")])
+        out = galley.splice(ORIGINAL, [(2, 3, 0, "    # a\n    # b\n    # c")])
         self.assertIn("    return 1", out)
         self.assertNotIn("old note", out)
 
@@ -29,26 +29,26 @@ class TestSplice(unittest.TestCase):
         # changes the line count, so a top-down splice would put the second one
         # in the wrong place.
         text = "a\n# one\nb\n# two\nc\n"
-        out = galley.splice(text, [(2, 2, "# ONE\n# ONE MORE"), (4, 4, "# TWO")])
+        out = galley.splice(text, [(2, 2, 0, "# ONE\n# ONE MORE"), (4, 4, 0, "# TWO")])
         self.assertEqual(out, "a\n# ONE\n# ONE MORE\nb\n# TWO\nc\n")
 
     def test_crlf_survives(self):
-        out = galley.splice("a\r\n# old\r\nb\r\n", [(2, 2, "# new")])
+        out = galley.splice("a\r\n# old\r\nb\r\n", [(2, 2, 0, "# new")])
         self.assertEqual(out, "a\r\n# new\r\nb\r\n")
 
     def test_a_file_with_no_trailing_newline_keeps_none(self):
-        self.assertEqual(galley.splice("a\n# old", [(2, 2, "# new")]), "a\n# new")
+        self.assertEqual(galley.splice("a\n# old", [(2, 2, 0, "# new")]), "a\n# new")
 
 
 class TestOverlapsAreRefused(unittest.TestCase):
     def test_two_edits_sharing_a_line_are_found(self):
-        self.assertEqual(galley.overlaps([(1, 3, "x"), (3, 5, "y")]), (1, 3))
+        self.assertEqual(galley.overlaps([(1, 3, 0, "x"), (3, 5, 0, "y")]), (1, 3))
 
     def test_adjacent_edits_do_not_overlap(self):
-        self.assertIsNone(galley.overlaps([(1, 2, "x"), (3, 4, "y")]))
+        self.assertIsNone(galley.overlaps([(1, 2, 0, "x"), (3, 4, 0, "y")]))
 
     def test_order_of_the_list_does_not_matter(self):
-        self.assertEqual(galley.overlaps([(3, 5, "y"), (1, 3, "x")]), (1, 3))
+        self.assertEqual(galley.overlaps([(3, 5, 0, "y"), (1, 3, 0, "x")]), (1, 3))
 
 
 class TestBlockMatches(unittest.TestCase):
@@ -235,14 +235,14 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
 
     def test_the_insertion_lands_BETWEEN_the_two_code_lines(self):
         start, end = galley.splice_range(self._gap(self.FILE, 2, 1))
-        out = galley.splice(self.FILE, [(start, end, "# note")])
+        out = galley.splice(self.FILE, [(start, end, 0, "# note")])
         self.assertEqual(out, "a = 1\n# note\nb = 2\nc = 3\n")
 
     def test_it_deletes_no_code(self):
         # !! The failure this range exists to avoid: `(1, 2)` would have
         # replaced BOTH bounding lines with the new prose.
         start, end = galley.splice_range(self._gap(self.FILE, 2, 1))
-        out = galley.splice(self.FILE, [(start, end, "# note")])
+        out = galley.splice(self.FILE, [(start, end, 0, "# note")])
         for line in ("a = 1", "b = 2", "c = 3"):
             self.assertIn(line, out)
 
@@ -251,13 +251,15 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         # so the address cannot say which side of line 1 the gap is on --
         # measured 2026-08-17, an `add` on it landed BELOW the anchor.
         out = galley.splice(
-            self.FILE, [(*galley.splice_range(self._gap(self.FILE, 1, 0)), "# header")]
+            self.FILE,
+            [(*galley.splice_range(self._gap(self.FILE, 1, 0)), 0, "# header")],
         )
         self.assertEqual(out, "# header\na = 1\nb = 2\nc = 3\n")
 
     def test_the_gap_BELOW_the_last_code_line_appends(self):
         out = galley.splice(
-            self.FILE, [(*galley.splice_range(self._gap(self.FILE, 4, 3)), "# footer")]
+            self.FILE,
+            [(*galley.splice_range(self._gap(self.FILE, 4, 3)), 0, "# footer")],
         )
         self.assertEqual(out, "a = 1\nb = 2\nc = 3\n# footer\n")
 
@@ -344,28 +346,33 @@ class TestALineNobodyEditedKeepsItsEnding(unittest.TestCase):
     MIXED = "a\r\nb\nc\r\n"
 
     def test_editing_one_line_leaves_the_others_alone(self):
-        self.assertEqual(galley.splice(self.MIXED, [(1, 1, "A")]), "A\r\nb\nc\r\n")
+        self.assertEqual(galley.splice(self.MIXED, [(1, 1, 0, "A")]), "A\r\nb\nc\r\n")
 
     def test_the_edited_line_gets_the_files_ending(self):
         # ! A NEW line has no ending of its own, so `line_endings` decides it --
         # and deciding that is now the only thing it does.
-        self.assertEqual(galley.splice(self.MIXED, [(2, 2, "B")]), "a\r\nB\r\nc\r\n")
+        self.assertEqual(galley.splice(self.MIXED, [(2, 2, 0, "B")]), "a\r\nB\r\nc\r\n")
 
     def test_a_file_with_no_final_newline_still_has_none(self):
-        self.assertEqual(galley.splice("a\nb", [(1, 1, "A")]), "A\nb")
+        self.assertEqual(galley.splice("a\nb", [(1, 1, 0, "A")]), "A\nb")
 
     def test_an_insertion_at_the_top_keeps_every_ending(self):
-        self.assertEqual(galley.splice("a\r\nb\n", [(1, 0, "T")]), "T\r\na\r\nb\n")
+        self.assertEqual(galley.splice("a\r\nb\n", [(1, 0, 0, "T")]), "T\r\na\r\nb\n")
 
 
-class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
-    """A splice replaces WHOLE LINES, so such a block cannot be expressed.
+class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
+    """The `c` series is WRITABLE, and the column is what makes it so.
+
+    !! ROY RULED IT, 2026-08-19: *"c needs to be writeable. It is the reason c
+    is not an extension of b."* Until then a `c` block was admitted by the join
+    and refused by the galley, which discarded every other edit in that file
+    with it.
 
     !! THE BLOCKS COME FROM A REAL CENSUS. Hand-written ones passed while the
     shipped path failed: the fixture put the comment token alone in
     `raw_lines`, and `census.py` stores the whole physical line for a trailing
-    comment -- so the suffix test the check used answered False on every real
-    one, the galley spliced over the code, and the test said it would not.
+    comment -- so the suffix test that preceded this answered False on every
+    real one, the galley spliced over the code, and the test said it would not.
     Measured 2026-08-18: a galley read `# reworded trailing` where
     `z = 3  # trailing` had been.
     """
@@ -382,9 +389,99 @@ class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
         self.assertTrue(found, f"no {kind} in the census")
         return found[0]
 
-    def test_a_trailing_comment_is_partial(self):
+    def test_the_column_is_the_END_OF_THE_CODE_not_the_hash(self):
+        """!! Roy ruled it 2026-08-19: *"c addresses start at the end of the
+        code on the line."*
+
+        `    z = 3  # trailing` -- the statement ends at the 9th character, so
+        the `c` place starts at the 10th. The `#` is at the 12th, and the two
+        spaces between them belong to the `c` place, not to the code.
+
+        ! It is a little opinionated, and it is the SAME opinion every
+        formatter already holds: black and ruff normalise the gap before an
+        inline comment to two spaces, `gofmt` aligns it, `cargo fmt` the same.
+        Roy, 2026-08-19: *"it happens to be the same opinionatedness that also
+        sits in all of the code formatters."*
+        """
         block = self._kind("trailing-comment")
-        self.assertTrue(galley.shares_a_line_with_code(block))
+        line = self.SOURCE.splitlines()[1]
+        self.assertEqual(line[:9], "    z = 3")
+        self.assertEqual(block["edit_column"], 10)
+        self.assertEqual(line[11], "#")
+
+    def test_a_margin_and_a_trailing_comment_name_the_SAME_column(self):
+        # !! Which is the point of measuring from the code. The room beside a
+        # code line is one place whether or not prose is in it, so `add`ing a
+        # trailing comment and `patch`ing one write to the same column.
+        path = Path("m.py")
+        bare = "def f():\n    z = 3\n    return z\n"
+        margin = next(
+            b.__dict__
+            for b in census.census_for(path, bare, census.language_for(path))
+            if b.kind == "margin" and b.start == 2
+        )
+        self.assertEqual(
+            margin["edit_column"], self._kind("trailing-comment")["edit_column"]
+        )
+
+    def test_the_splice_keeps_the_code_and_replaces_the_prose(self):
+        block = self._kind("trailing-comment")
+        out = galley.splice(
+            self.SOURCE,
+            [(*galley.splice_range(block), block["edit_column"], "  # reworded")],
+        )
+        self.assertEqual(out, "def f():\n    z = 3  # reworded\n    return z\n")
+
+    def test_the_REPLACEMENT_CARRIES_ITS_OWN_SEPARATOR(self):
+        # !! The contract a writer works to, and it is the same one an `add` on
+        # an `interval` already follows: the text carries its own leading
+        # whitespace. Everything left of the `c` place -- the statement -- is
+        # kept, and nothing else.
+        block = self._kind("trailing-comment")
+        out = galley.splice(
+            self.SOURCE,
+            [(*galley.splice_range(block), block["edit_column"], "# no gap")],
+        )
+        self.assertIn("z = 3# no gap", out)
+
+    def test_dropping_it_needs_no_special_case(self):
+        # ! Because the kept head ends at the code, the separating whitespace
+        # is already on the far side of it. Pointing the column at the `#`
+        # instead left `    z = 3  ` behind and needed an rstrip to fix.
+        block = self._kind("trailing-comment")
+        out = galley.splice(
+            self.SOURCE, [(*galley.splice_range(block), block["edit_column"], "")]
+        )
+        self.assertEqual(out, "def f():\n    z = 3\n    return z\n")
+
+    def test_a_margin_appends_because_its_column_is_past_the_line(self):
+        # !! An `add` at a `c` place. The line is code to its end, so the
+        # column is one past it and the prose supplies its own separator --
+        # exactly as an `add` on an `interval` supplies its own indentation.
+        text = "a = 1\n"
+        path = Path("m.py")
+        margin = next(
+            b.__dict__
+            for b in census.census_for(path, text, census.language_for(path))
+            if b.kind == "margin"
+        )
+        self.assertEqual(margin["edit_column"], len("a = 1") + 1)
+        out = galley.splice(
+            text, [(*galley.splice_range(margin), margin["edit_column"], "  # why")]
+        )
+        self.assertEqual(out, "a = 1  # why\n")
+
+    def test_a_block_owning_its_lines_still_loses_them_on_a_drop(self):
+        # ! An empty head means the whole-line case, which is unchanged.
+        text = "a = 1\n# a note\nb = 2\n"
+        block = next(
+            b.__dict__
+            for b in census.blocks_stdlib(Path("m.py"), text)
+            if b.kind == "comment"
+        )
+        self.assertEqual(block["edit_column"], 0)
+        out = galley.splice(text, [(*galley.splice_range(block), 0, "")])
+        self.assertEqual(out, "a = 1\nb = 2\n")
 
     def test_a_trailing_comment_matches_its_file_ANYWAY(self):
         # !! Which is why the kind has to be asked. `block_matches` passes --
@@ -393,15 +490,15 @@ class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
         block = self._kind("trailing-comment")
         self.assertTrue(galley.block_matches(self.SOURCE.splitlines(), block))
 
-    def test_a_comment_on_its_own_line_is_not_partial(self):
+    def test_a_comment_on_its_own_line_owns_its_lines_whole(self):
         text = "def f():\n    # a note\n    return 1\n"
         block = self._kind("comment", text)
-        self.assertFalse(galley.shares_a_line_with_code(block))
+        self.assertEqual(block["edit_column"], 0)
 
-    def test_a_docstring_is_not_partial(self):
+    def test_a_docstring_owns_its_lines_whole(self):
         text = 'def f():\n    """A note."""\n    return 1\n'
         block = self._kind("docstring", text)
-        self.assertFalse(galley.shares_a_line_with_code(block))
+        self.assertEqual(block["edit_column"], 0)
 
     def test_a_census_without_the_field_is_REFUSED_not_defaulted(self):
         """!! Defaulting it put the deleted statement back.
@@ -412,7 +509,7 @@ class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
         """
         blocks = self._blocks()
         self.assertIsNone(galley.unanswerable(blocks))
-        for field in ("whole_lines", "edit_start", "edit_end"):
+        for field in ("edit_column", "edit_start", "edit_end"):
             with self.subTest(field=field):
                 stripped = [{k: v for k, v in b.items() if k != field} for b in blocks]
                 problem = galley.unanswerable(stripped)
@@ -420,12 +517,12 @@ class TestABlockSharingALineWithCodeIsRefused(unittest.TestCase):
                 self.assertIn(field, problem)
 
 
-class TestTheGalleyRefusesAPartialBlockEndToEnd(unittest.TestCase):
+class TestTheGalleyWritesATrailingCommentEndToEnd(unittest.TestCase):
     """The CLI, because the unit answered correctly while the CLI deleted code."""
 
     SOURCE = "def f():\n    z = 3  # trailing\n    return z\n"
 
-    def test_the_statement_survives_and_the_run_refuses(self):
+    def test_the_statement_survives_and_the_prose_is_replaced(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "m.py").write_text(self.SOURCE, encoding="utf-8")
@@ -441,7 +538,7 @@ class TestTheGalleyRefusesAPartialBlockEndToEnd(unittest.TestCase):
                 json.dumps(blocks, default=list), encoding="utf-8"
             )
             (root / "e.json").write_text(
-                json.dumps({str(index): "    # reworded trailing"}), encoding="utf-8"
+                json.dumps({str(index): "  # reworded trailing"}), encoding="utf-8"
             )
             code = subprocess.run(
                 [
@@ -459,10 +556,13 @@ class TestTheGalleyRefusesAPartialBlockEndToEnd(unittest.TestCase):
                 capture_output=True,
                 text=True,
             )
-            self.assertEqual(code.returncode, 1, code.stdout)
-            self.assertIn("share a line with code", code.stdout)
-            self.assertFalse((root / "out" / "m.py").exists())
-            self.assertIn("z = 3", (root / "m.py").read_text(encoding="utf-8"))
+            self.assertEqual(code.returncode, 0, code.stdout)
+            self.assertEqual(
+                (root / "out" / "m.py").read_text(encoding="utf-8"),
+                "def f():\n    z = 3  # reworded trailing\n    return z\n",
+            )
+            # ! Nothing under `--repo` is touched, whatever was written.
+            self.assertEqual((root / "m.py").read_text(encoding="utf-8"), self.SOURCE)
 
 
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that class

@@ -135,6 +135,47 @@ POSIX checkout can still hold `a:b.py` -- `census.py` reports it as a gap and ex
 the same channel a language with no record uses. The extension keeps its dot, so `b.py` and
 `b.rs` still differ.
 
+### The `c` series is WRITABLE
+
+!! **A SPLICE REPLACES WHOLE LINES, so a `patch` on `z = 3  # trailing` wrote `# reworded` over
+the statement** -- measured 2026-08-18, in the galley a human is asked to approve. The refusal
+that stopped it refused the whole `c` series, so the join admitted an edit at a `c` place and the
+galley then discarded every other edit in that file with it.
+
+Roy ruled it 2026-08-19: *"c needs to be writeable. It is the reason c is not an extension of
+b."* The census now states `edit_column` and `galley.splice` keeps `line[:edit_column - 1]`.
+
+!! **A `c` PLACE STARTS AT THE END OF THE CODE, not at the `#`.** Roy: *"c addresses start at the
+end of the code on the line."* So the whitespace separating a statement from its trailing comment
+belongs to the `c` place: a `margin` and the `trailing-comment` that would replace it carry the
+SAME column, an `add` and a `patch` write to the same point, and a `drop` needs no special case.
+A `change` carries its own separator, the same way an interval's carries its own indentation.
+
+! It is a little opinionated, and it is the opinion black, ruff, `gofmt` and `cargo fmt` already
+hold about that whitespace. Roy: *"it happens to be the same opinionatedness that also sits in
+all of the code formatters."*
+
+- **`whole_lines` is gone.** It was a boolean standing in for *where does the prose start*, which
+  was enough to REFUSE the write and not enough to make it. `edit_column` is the one fact:
+  1-based like every other position the census states, `0` where the block owns its lines whole.
+
+### An INTERMEDIATE comment is not censused
+
+**`int x = /* why */ 5;` -- code on BOTH sides -- is ignored, and its line is code.** Roy,
+2026-08-19: *"they are not comments that can be systemically and completely verified across code
+bases or written consistently on the same file because of line length rules ... all intermediate
+comments are ignored. They can be brought up by the agents as code change suggestions."* The same
+ruling that keeps a Python type annotation out of the census.
+
+! **It was censused, and it was worse than unwritable.** Measured 2026-08-19:
+`f.c@c1 comment text='int x = /* why */ 5;'` -- the statement handed to four reviewers as prose,
+with no annotation saying so.
+
+! **The proof got stronger.** `prove_unchanged` called such a file `unprovable` and refused to
+compare it; the line is now code and is compared character for character, so a literal beside the
+delimiter is caught where before it could not be. A multi-line run CLOSING beside code is still
+`unprovable` -- that line is censused and cannot be placed.
+
 ### Retired
 
 - **The LINE address.** `addresser.line_address` warns on every call and is read only to parse

@@ -60,12 +60,14 @@ def line_endings(text: str) -> str:
     return "\r\n" if "\r\n" in text else "\n"
 
 
-def splice(text: str, edits: list[tuple[int, int, str]]) -> str:
-    """`text` with each `(start, end, replacement)` put in place of those lines.
+def splice(text: str, edits: list[tuple[int, int, int, str]]) -> str:
+    """`text` with each `(start, end, column, replacement)` put in place.
 
     Args:
         text: the file as it reads now.
-        edits: one per block, 1-based and inclusive, in any order.
+        edits: one per block, 1-based and inclusive lines, in any order.
+            `column` is 1-based into the FIRST line and is 0 for a block
+            that occupies its lines whole.
 
     Returns:
         The file with every edit applied.
@@ -75,6 +77,18 @@ def splice(text: str, edits: list[tuple[int, int, str]]) -> str:
     replaces, so splicing top-down shifts every range below the one just
     written and each later edit lands further from where its census said. The
     caller has already refused overlaps, so descending order is exact.
+
+    !! THE COLUMN IS WHAT MAKES THE `c` SERIES WRITABLE. A splice replaces whole
+    lines, so a `patch` on `z = 3  # trailing` wrote `# reworded` over the
+    statement -- measured 2026-08-18, in the galley a human is asked to approve.
+    Keeping `line[: column - 1]` writes the prose and leaves the code. Roy,
+    2026-08-19: *"c needs to be writeable. It is the reason c is not an
+    extension of b."*
+
+    ! A `drop` needs no special case, because the column is the END OF THE CODE
+    and not the start of the prose: the kept head is the statement, with the
+    separating whitespace already on the far side of it. A whole-line block
+    still loses its lines entirely, which is what an empty head means.
     """
     end_of_line = line_endings(text)
     # !! KEEPENDS, so a line nobody edited is re-emitted with the ending it
@@ -84,12 +98,20 @@ def splice(text: str, edits: list[tuple[int, int, str]]) -> str:
     # as changed. Measured 2026-08-18.
     lines = text.splitlines(keepends=True)
     ended = text.endswith(("\n", "\r"))
-    for start, end, replacement in sorted(edits, reverse=True):
+    for start, end, column, replacement in sorted(edits, reverse=True):
+        # ! The kept head of the first line, WITHOUT its ending -- `lines` was
+        # split `keepends`, so a line that still carries its CR/LF would put
+        # that ending in the middle of the result whenever `column` reaches
+        # past the text, which a `margin`'s column does by definition.
+        head = lines[start - 1].rstrip("\r\n")[: column - 1] if column else ""
+        body = replacement.splitlines()
+        if body:
+            body[0] = head + body[0]
+        elif head:
+            body = [head]
         # ! NEW lines get the file's ending, because they have none of their
         # own. That is the only place `line_endings` is consulted now.
-        lines[start - 1 : end] = [
-            line + end_of_line for line in replacement.splitlines()
-        ]
+        lines[start - 1 : end] = [line + end_of_line for line in body]
     out = "".join(lines)
     # ! A file that did not end in a newline still does not. An edit landing on
     # the last line, or appended after it, would otherwise add one.
@@ -98,14 +120,16 @@ def splice(text: str, edits: list[tuple[int, int, str]]) -> str:
     return out
 
 
-def overlaps(edits: list[tuple[int, int, str]]) -> tuple[int, int] | None:
+def overlaps(edits: list[tuple[int, int, int, str]]) -> tuple[int, int] | None:
     """The first pair of edits sharing a line, or None.
 
     ! Two `CHANGE`s over one line have no defined result: each carries its
     surrounding block, so the second would overwrite context the first wrote.
     """
     ordered = sorted(edits)
-    for (a_start, a_end, _), (b_start, _, _) in zip(ordered, ordered[1:], strict=False):
+    for (a_start, a_end, _, _), (b_start, *_) in zip(
+        ordered, ordered[1:], strict=False
+    ):
         if b_start <= a_end:
             return (a_start, b_start)
     return None
@@ -156,49 +180,15 @@ def block_matches(lines: list[str], block: dict) -> bool:
     ]
 
 
-def shares_a_line_with_code(block: dict) -> bool:
-    """Does code come before this block's text on its first line?
-
-    !! A SPLICE REPLACES WHOLE LINES, so such a block cannot be spliced at all
-    -- writing over its first line would delete the code that shares it. Two
-    kinds reach here: a `trailing-comment`, and a block comment opened after a
-    statement.
-
-    !! IT READS THE CENSUS RATHER THAN INFERRING. This asked whether the stored
-    text was a proper SUFFIX of the physical line, and that answers False for a
-    trailing comment -- `blocks_stdlib` stores the whole line for one -- so the
-    galley spliced over the code and printed success. Measured 2026-08-18: a
-    galley read `# reworded trailing` where `z = 3  # trailing` had been.
-
-    ! It is asked so the REFUSAL CAN SAY WHY. These blocks failed
-    `block_matches` or passed it wrongly, and were reported as "no longer match
-    the census" -- which sends a reader to diff a file nobody touched.
-
-    !! A CENSUS WITHOUT THE FIELD CANNOT BE ASKED, and is refused by
-    `unanswerable` before any block is spliced -- not defaulted here. The
-    default was True, which reproduced the deleted statement exactly: a
-    trailing comment's stored text IS the file's whole line, so the staleness
-    check passes it and nothing else would have stopped the write.
-
-    Args:
-        block: one census entry. ! The FILE is not a parameter: the census is
-            the sole authority on this, and a signature taking `lines` said
-            the opposite of the paragraph above.
-
-    Returns:
-        True if the block's text begins or ends partway through a line of code.
-    """
-    return not block["whole_lines"]
-
-
 def unanswerable(blocks: list[dict]) -> str | None:
     """Can this census answer what the galley has to ask of it?
 
     !! A CENSUS IS REFUSED WHOLE, not defaulted per block. Every per-field
     default is a guess about a file this tool is about to overwrite, and the
-    one guess that was made -- `whole_lines` absent means True -- put back the
-    defect the field was added to remove, because a trailing comment's stored
-    text is the file's whole line and the staleness check passes it.
+    one guess that was made -- an absent column means "occupies whole lines" --
+    put back the defect the field was added to remove, because a trailing
+    comment's stored text is the file's whole line and the staleness check
+    passes it.
 
     ! It asks the BLOCKS rather than a version stamp, because `census.py
     --json` emits a bare list and has nowhere to put one. The field's presence
@@ -210,7 +200,7 @@ def unanswerable(blocks: list[dict]) -> str | None:
     Returns:
         One sentence naming what is missing, or None.
     """
-    for field in ("whole_lines", "edit_start", "edit_end"):
+    for field in ("edit_column", "edit_start", "edit_end"):
         if any(field not in b for b in blocks):
             return (
                 f"this census carries no `{field}` -- it predates the field that"
@@ -343,7 +333,9 @@ def main() -> int:
         lines = text.splitlines()
         # ! The range comes from the BLOCK, not from the census numbers the
         # edit was grouped by: an interval is inserted into, not replaced.
-        ranges = [(*splice_range(block), r) for r, block in file_edits]
+        ranges = [
+            (*splice_range(block), block["edit_column"], r) for r, block in file_edits
+        ]
 
         # ! The CHEAPER refusal first. A clash is decided from the ranges
         # alone; staleness reads every block's lines, and computing it for a
@@ -355,22 +347,6 @@ def main() -> int:
             continue
         # ! Every block is checked against the file BEFORE anything is written,
         # so one stale range refuses its file rather than half-splicing it.
-        # ! ASKED FIRST, because it is a different refusal with a different
-        # remedy: a stale range means re-census, and a partial-line block means
-        # this tool cannot express the edit at all.
-        partial = [
-            (block["start"], block["end"])
-            for _, block in file_edits
-            if shares_a_line_with_code(block)
-        ]
-        if partial:
-            where = ", ".join(f"{s}-{e}" for s, e in partial)
-            print(
-                f"REFUSED  {rel}: {len(partial)} block(s) share a line with code"
-                f" and a splice replaces whole lines: {where}"
-            )
-            refused += len(file_edits)
-            continue
         stale = [
             (block["start"], block["end"])
             for _, block in file_edits

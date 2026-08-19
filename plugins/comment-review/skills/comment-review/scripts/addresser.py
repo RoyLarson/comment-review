@@ -272,14 +272,15 @@ def address(block: dict, code: list[int]) -> str:
     declares = block.get("declares", -1)
     if isinstance(declares, int) and declares >= 0:
         return f"{path}@{DECLARED}{declares}"
-    # !! ONE FACT DECIDES THIS, AND THE PRODUCER STATES IT. `whole_lines` is
-    # False exactly when code precedes the prose on its first line -- a trailing
-    # comment, a bare `margin`, a block comment opened after a statement. It was
-    # decided here from the KIND and in `code_lines_of` from `whole_lines`, and
-    # the two disagreed on the one kind that is in neither list: a `comment`
-    # opened mid-line took a `b` folio for a line it sits ON, so that folio named
-    # the comment AND the gap. Measured 2026-08-19 on `let b = 2; /* opens`.
-    if not block.get("whole_lines", True) and start in code:
+    # !! ONE FACT DECIDES THIS, AND THE PRODUCER STATES IT. `edit_column` is
+    # non-zero exactly when code precedes the prose on its first line -- a
+    # trailing comment, a bare `margin`, a block comment opened after a
+    # statement. It was decided here from the KIND and in `code_lines_of` from
+    # the block, and the two disagreed on the one kind that is in neither list: a
+    # `comment` opened mid-line took a `b` folio for a line it sits ON, so that
+    # folio named the comment AND the gap. Measured 2026-08-19 on
+    # `let b = 2; /* opens`.
+    if block.get("edit_column", 0) and start in code:
         return f"{path}@c{code.index(start)}"
     at = block.get("edit_start")
     if not isinstance(at, int):
@@ -461,7 +462,7 @@ def code_lines_of(text: str, blocks: list[dict]) -> list[int]:
     dropped the statement from the code set, moving every interval boundary
     below it.
 
-    !! THE BLOCK SAYS SO, via `whole_lines`. This tested whether the stored
+    !! THE BLOCK SAYS SO, via `edit_column`. This tested whether the stored
     text was a proper SUFFIX of the physical line, which is an inference and
     was wrong in both directions: `blocks_stdlib` stores the WHOLE line for a
     trailing comment, so the test never fired for one -- and a block comment
@@ -481,7 +482,7 @@ def code_lines_of(text: str, blocks: list[dict]) -> list[int]:
         if not isinstance(start, int) or not isinstance(end, int):
             continue
         occupied.update(range(start, end + 1))
-        if not b.get("whole_lines", True):
+        if b.get("edit_column", 0):
             occupied.discard(start)
     return [
         n

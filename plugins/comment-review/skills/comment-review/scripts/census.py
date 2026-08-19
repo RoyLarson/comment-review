@@ -405,23 +405,19 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     # same stamp. A list because `flush` is a closure and rebinds nothing.
     trailing_end = [_NO_TRAILING]
 
-    # !! DOES CODE SHARE THE RUN'S FIRST LINE -- on EITHER side? `/* note */ x
-    # = 1` has it after the closer and `x = 1; /* note` has it before the
-    # opener, and both mean the same thing: a splice over that line deletes a
-    # statement. Deriving it from the CUT alone answered only the second, and
-    # the first was censused as prose holding `int b = 2;` with the galley
-    # willing to write over it. Measured 2026-08-18.
+    # !! WHERE THE RUN'S FIRST LINE STOPS BEING CODE -- the `edit_column` this
+    # tier states, one past the last character of code, or 0 when the run owns
+    # its lines whole.
     #
-    # ! `trailing` does not answer it either: a MULTI-LINE block comment opened
-    # after a statement cuts the same way and flushes with `trailing=False`,
-    # because by then the run spans several lines. A list because `flush` is a
-    # closure and rebinds nothing.
-    partial_first = [False]
+    # ! `trailing` does not answer it: a MULTI-LINE block comment opened after a
+    # statement flushes with `trailing=False`, because by then the run spans
+    # several lines. A list because `flush` is a closure and rebinds nothing.
+    partial_first = [0]
 
     def flush(trailing: bool = False) -> None:
         pending.clear()
         if not run:
-            partial_first[0] = False
+            partial_first[0] = 0
             return
         raw = [t for _, t in run]
         stripped = raw[0].strip()
@@ -441,9 +437,9 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             text=_join(raw, openers),
             raw_lines=raw,
             tier="lexical",
-            whole_lines=not partial_first[0],
+            edit_column=partial_first[0],
         )
-        partial_first[0] = False
+        partial_first[0] = 0
         # !! Same split as the tokenized tier: a trailing comment closes its run,
         # so a sentence wrapped onto the next line becomes a SECOND block anchored
         # to the code below it. Stamped, not re-cut.
@@ -512,38 +508,37 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             opens_at = code.index(opened[0])
             tail = code[opens_at + len(opened[0]) :]
             closes_here = opened[1] in tail
-            # !! CUT AT THE OPENER ONLY WHEN THE COMMENT RUNS TO END OF LINE.
-            # `int b = 2; /* note */` cuts, and the statement stays code. But
-            # `int x = /* why */ 5;` has code AFTER the closer, and cutting
-            # there loses the `5;` -- so `5` and `7` compare EQUAL and
-            # `prove_unchanged` reports PROVEN on a changed literal. Storing the
-            # whole line keeps `_delimiter_shares_the_line` able to refuse it,
-            # which is the safe answer for a proof. Measured 2026-08-17: the cut
-            # was written without this condition and the existing test caught it.
             after = (
                 tail[tail.index(opened[1]) + len(opened[1]) :] if closes_here else ""
             )
-            # ! The ONE shape that must not cut is code AFTER the closer on this
-            # same line. When the run continues to the next line, everything
-            # from the opener onward is comment, so a multi-line block opening
-            # after a statement cuts too -- without it the block's text read
-            # `int b = 2; /* opens ...`, the statement handed over as prose.
-            cut = 0 if (closes_here and after.strip()) else opens_at
-            # ! Only the run's FIRST line decides it. A continuation line of a
-            # block comment is entirely prose whatever surrounds the run.
+            # !! AN INTERMEDIATE COMMENT IS NOT CENSUSED -- one that CLOSES on
+            # this line with code after it, `int x = /* why */ 5;`. Roy ruled it
+            # 2026-08-19, on the same grounds as a Python type annotation: *"they
+            # are not comments that can be systemically and completely verified
+            # across code bases or written consistently on the same file because
+            # of line length rules ... all intermediate comments are ignored.
+            # They can be brought up by the agents as code change suggestions."*
             #
-            # !! BOTH SIDES. Code before the opener, and code after the closer
-            # on a comment that closes on this line -- the second is exactly
-            # the case `cut` is set to 0 for, so testing `cut` missed it.
-            if not run:
-                partial_first[0] = bool(code[:opens_at].strip()) or bool(
-                    closes_here and after.strip()
-                )
-            run.append((n, raw_line[cut:].rstrip()))
+            # ! It was censused, and the block's TEXT was the whole statement:
+            # measured 2026-08-19, `f.c@c1 comment text='int x = /* why */ 5;'`
+            # -- executable code handed to four reviewers as prose. Cutting at
+            # the opener instead loses the `5;`, so `5` and `7` would compare
+            # EQUAL and `prove_unchanged` report PROVEN on a changed literal.
+            # Neither is available; the line is simply code. It stays a code
+            # line, so it keeps its `b` and its `c` like any other.
+            if closes_here and after.strip():
+                continue
+            # ! Only the run's FIRST line decides it -- `flush()` above emptied
+            # the run, so this is that line. A continuation line of a block
+            # comment is entirely prose whatever surrounds the run.
+            partial_first[0] = (
+                len(code[:opens_at].rstrip()) + 1 if code[:opens_at].strip() else 0
+            )
+            run.append((n, raw_line[opens_at:].rstrip()))
             if closes_here:
                 # ! Code BEFORE the opener makes it a trailing comment, which is
                 # what it is: prose about the statement on its own line.
-                flush(trailing=bool(cut and code[:opens_at].strip()))
+                flush(trailing=bool(code[:opens_at].strip()))
             else:
                 in_block = opened
             continue
@@ -558,7 +553,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             # ! `flush()` above emptied the run, so this line is the first
             # one and the code before `at` is what makes it trailing. A line
             # comment runs to end of line, so there is no other side to test.
-            partial_first[0] = bool(at and code[:at].strip())
+            partial_first[0] = len(code[:at].rstrip()) + 1 if code[:at].strip() else 0
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own block, anchored to the code on that line
     flush()
@@ -642,9 +637,12 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
                     start=run[0][0],
                     end=run[-1][0],
                     kind="trailing-comment" if run[0][3] else "comment",
-                    # ! A TRAILING comment is by definition preceded by code on
-                    # its line, whatever `raw_lines` happens to hold.
-                    whole_lines=not run[0][3],
+                    # ! ONE PAST THE LAST CHARACTER OF CODE on the line, or
+                    # 0 for a leading comment. NOT the `#`: the whitespace
+                    # between a statement and its comment belongs to the `c`
+                    # place, so a `margin` and the trailing comment that would
+                    # replace it carry the same column.
+                    edit_column=run[0][3],
                     lines=counted_lines(prose),
                     text=_join(prose),
                     # !! THE LINES THE BLOCK SPANS, not the lines that carry a
@@ -680,7 +678,10 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
 
     for raw in tokenize.generate_tokens(io.StringIO(text).readline):
         if raw.type == tokenize.COMMENT:
-            trailing = bool(raw.line[: raw.start[1]].strip())
+            # ! The COLUMN when code precedes it, 0 otherwise -- one fact,
+            # and its truthiness is still "this is a trailing comment".
+            before = raw.line[: raw.start[1]]
+            trailing = len(before.rstrip()) + 1 if before.strip() else 0
             run.append((raw.start[0], raw.line.rstrip("\n"), raw.string, trailing))
             # ! A trailing comment CLOSES its run. Its code sits before it, so
             # the next token to arrive is the following leading comment, and the
@@ -1209,7 +1210,7 @@ def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
     # it has no room left -- and that is any block with `whole_lines` False, not
     # only a `trailing-comment`. Keyed on the kind, a block comment opened after
     # a statement got a margin for room it already occupies.
-    taken = {b.start for b in prose if not b.whole_lines}
+    taken = {b.start for b in prose if b.edit_column}
     return [
         Block(
             path=path.as_posix(),
@@ -1221,9 +1222,12 @@ def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
             raw_lines=[lines[n - 1]],
             edit_start=n,
             edit_end=n,
-            # ! Code precedes the prose on this line, as with any trailing
-            # comment, so a splice over it would delete the statement.
-            whole_lines=False,
+            # !! ONE PAST THE LAST CHARACTER OF CODE -- the same rule a
+            # trailing comment on this line would follow, so the two are the
+            # same place whether or not prose is in it. The prose supplied for
+            # an `add` here carries its own leading separator, exactly as an
+            # `add` on an `interval` carries its own indentation.
+            edit_column=len(lines[n - 1].rstrip()) + 1,
         )
         for n in sorted(code_lines(text, prose))
         if n not in taken

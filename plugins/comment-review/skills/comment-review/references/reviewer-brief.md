@@ -190,6 +190,22 @@ edit is applied to the GAP, so a two-blank-line separation you do not write out 
 the file loses. **Write the blank lines you want kept**, as empty strings in the array, the
 same way you would write them in the file.
 
+!! **A `c` PLACE STARTS AT THE END OF THE CODE, so your `change` carries its own separator.**
+A trailing comment is one array entry and it is written from the point the statement stops --
+`"  # why"`, with the two spaces you want between them. Write `"# why"` and it lands hard against
+the code. This is the same rule an interval follows: the text is file-ready, and whatever
+whitespace you want is whitespace you write.
+
+! **It is why a `margin` and the trailing comment that would replace it are ONE place.** Roy,
+2026-08-19: *"c addresses start at the end of the code on the line."* Adding a comment where
+there is none and rewording one that is there write to the same column, so the two verdicts do
+not need different rules.
+
+!! **AN INTERMEDIATE COMMENT IS NOT IN THE CENSUS AT ALL** -- one with code on BOTH sides, as in
+`int x = /* why */ 5;`. It is ignored for the same reason a Python type annotation is: it cannot
+be verified the same way across codebases, and a line-length rule moves it. It is not a block, it
+has no address, and no verdict reaches it. **If one is wrong, it is a `code_concerns` line.**
+
 ### Code problems
 
 `code_concerns` at the end of your file is a list of strings, one line each, no verdict. See

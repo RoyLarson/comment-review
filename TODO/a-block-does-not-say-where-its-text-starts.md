@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks done
+Progress: 4 of 9 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -111,5 +111,12 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       *"todos don't get deleted they get SUPERSEDED and checked."* A deleted box
       leaves no trace that it was ever there or why it went; a superseded one
       keeps the error legible. Restored here rather than left out.
+- [ ] !! BOTH TIERS STORE THE WHOLE PHYSICAL LINE in `raw_lines`. B2 made this the
+      obvious fix: `edit_column` now says where the prose starts, so `raw_lines`
+      no longer has to carry that fact by being cut. Measured 2026-08-19: a
+      lexical trailing comment stores `['// note']` against a file line of `int b
+      = 2; // note`, so `block_matches` answers False on an UNTOUCHED file -- the
+      `c` series is writable in the tokenized tier only, which is 1 of 11
+      languages.
 - [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)
   -- step 7's run is where the docstring half was found, by two roles independently.

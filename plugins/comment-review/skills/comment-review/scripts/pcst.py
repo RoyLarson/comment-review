@@ -127,20 +127,40 @@ class Block:
     # every construction site.
     edit_start: int = 0
     edit_end: int = 0
-    # !! DOES THIS BLOCK OCCUPY ITS LINES, or does code share the first one?
-    # False for a trailing comment and for a block comment opened after a
-    # statement -- both are prose beginning partway through a line of code.
+    # !! WHERE THE `c` PLACE BEGINS ON `edit_start`, 1-based like every other
+    # position this census states -- `start`, `end`, `edit_start`, `edit_end`.
+    # Two values:
     #
-    # !! IT IS STATED BY THE PRODUCER BECAUSE NO READER CAN INFER IT. Two tried
-    # -- `code_lines` and `galley.shares_a_line_with_code` -- both by testing
-    # whether the stored text is a proper SUFFIX of the physical line, and the
-    # test cannot work: `blocks_stdlib` stores the WHOLE line for a trailing
-    # comment, so the suffix test answers False and the galley spliced over the
-    # code. Measured 2026-08-18: censusing `z = 3  # trailing` and editing that
-    # block produced a galley reading `# reworded trailing` where the statement
-    # had been -- a deleted statement, in the one artefact a human is asked to
-    # approve.
-    whole_lines: bool = True
+    #    0      the block owns its lines WHOLE. Not a column: 0 is not one, and
+    #           that is what makes it a sentinel rather than an accident. Every
+    #           `comment`, `docstring` and `interval`.
+    #    1..N   ONE PAST THE LAST CHARACTER OF CODE on that line, which is where
+    #           the room beside the code starts. A `trailing-comment`, a
+    #           `margin`, a block comment opened after a statement. It is what
+    #           lets the galley write one without deleting the code: the splice
+    #           keeps `line[: edit_column - 1]`.
+    #
+    # !! IT IS THE END OF THE CODE, NOT THE START OF THE PROSE, and Roy ruled
+    # it 2026-08-19: *"c addresses start at the end of the code on the line."*
+    # So the whitespace separating a statement from its trailing comment belongs
+    # to the `c` place, and one rule covers both kinds -- a `margin` and the
+    # `trailing-comment` that would replace it carry the SAME column. Pointing
+    # at the `#` instead made them differ, and made a `drop` a special case: the
+    # kept head ended in the separator of a comment that was gone.
+    #
+    # !! IT IS STATED BY THE PRODUCER BECAUSE NO READER CAN INFER IT. Two tried,
+    # both by testing whether the stored text is a proper SUFFIX of the physical
+    # line, and the test cannot work: `blocks_stdlib` stores the WHOLE line for
+    # a trailing comment, so the suffix test answers False. Measured 2026-08-18:
+    # censusing `z = 3  # trailing` and editing that block produced a galley
+    # reading `# reworded trailing` where the statement had been -- a deleted
+    # statement, in the one artefact a human is asked to approve.
+    #
+    # ! IT REPLACED A BOOLEAN, `whole_lines`, which answered only WHETHER code
+    # came first. That was enough to REFUSE the write and not enough to make it,
+    # and the `c` series exists to be written. Roy, 2026-08-19: *"c needs to be
+    # writeable. It is the reason c is not an extension of b."*
+    edit_column: int = 0
 
     def __post_init__(self) -> None:
         """Default the edit range to the addressing range."""

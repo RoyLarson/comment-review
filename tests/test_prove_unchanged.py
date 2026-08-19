@@ -156,18 +156,46 @@ class TestTrailingCommentExactness(unittest.TestCase):
         )
 
 
-class TestBlockCommentMidlineIsUnprovable(unittest.TestCase):
-    """Code beside a block-comment delimiter is refused, never guessed at."""
+class TestAnIntermediateCommentIsProvedAsCODE(unittest.TestCase):
+    """`int x = /* why */ 5;` is not censused, so the whole line is code here.
 
-    def test_code_beside_a_block_comment_opener_is_unprovable(self):
+    !! IT USED TO READ `unprovable`, AND THE RULING MADE THE PROOF STRONGER.
+    Roy, 2026-08-19: an intermediate comment is *"not a comment that can be
+    systemically and completely verified across code bases"* and is ignored, on
+    the same grounds as a Python type annotation. Nothing censuses it, so
+    `_without_comments` never visits that line and keeps it verbatim -- and the
+    literal beside the delimiter is then INSIDE the compared text.
+
+    ! The old answer refused to compare at all, which is why the change to `7`
+    could not be caught. The line is now compared character for character.
+
+    ! A change to the intermediate comment's own PROSE reads as a code change
+    here, which is correct: nothing in this pipeline may edit it, so the only
+    thing that can have moved it is a hand edit to the code.
+    """
+
+    def test_the_file_is_compared_rather_than_refused(self):
         kind, _ = pu.code_fingerprint(C_MIDLINE_BEFORE, Path("x.c"))
-        self.assertEqual(kind, "unprovable")
+        self.assertEqual(kind, "stripped")
 
-    def test_it_stays_unprovable_even_though_only_a_literal_changed(self):
-        # The DANGEROUS shape: before/after differ only in the value beside
-        # the delimiter. A stripped text that dropped the whole line would compare
-        # them equal (the differing value was never in the stripped text at all).
-        kind, _ = pu.code_fingerprint(C_MIDLINE_CHANGED, Path("x.c"))
+    def test_a_literal_beside_the_delimiter_is_CAUGHT(self):
+        # !! The dangerous shape, and the one the old refusal could not answer:
+        # before/after differ only in the value beside the delimiter.
+        self.assertNotEqual(
+            pu.code_fingerprint(C_MIDLINE_BEFORE, Path("x.c")),
+            pu.code_fingerprint(C_MIDLINE_CHANGED, Path("x.c")),
+        )
+
+    def test_the_line_is_kept_VERBATIM_comment_and_all(self):
+        _, stripped = pu.code_fingerprint(C_MIDLINE_BEFORE, Path("x.c"))
+        self.assertIn("int x = /* why */ 5;", stripped)
+
+    def test_a_multiline_block_closing_beside_code_is_STILL_unprovable(self):
+        # ! Only the single-line shape is ignored. A run that CLOSES on a line
+        # carrying code is censused whole, so `_delimiter_shares_the_line`
+        # still refuses it -- the census stores that line and cannot place it.
+        text = "/* opens\n   runs on */ int y = 5;\n"
+        kind, _ = pu.code_fingerprint(text, Path("x.c"))
         self.assertEqual(kind, "unprovable")
 
 

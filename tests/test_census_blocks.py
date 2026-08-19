@@ -327,12 +327,26 @@ class TestABlockCommentBesideCode(unittest.TestCase):
         self.assertEqual(code, [1, 4])
         self.assertNotIn("int", prose[0].text)
 
-    def test_code_on_BOTH_sides_is_kept_whole_and_refused(self):
-        # !! Cutting at the opener here loses the trailing `5;`, so `5` and `7`
-        # compare EQUAL and the proof reports PROVEN on changed code. The line
-        # stays whole so `prove_unchanged` can refuse it instead.
-        prose, _ = self._read("int x = /* why */ 5;\nint y = 6;\n")
-        self.assertIn("int x", prose[0].text)
+    def test_an_intermediate_comment_is_NOT_CENSUSED(self):
+        """!! `int x = /* why */ 5;` is ignored, and the line stays code.
+
+        Roy ruled it 2026-08-19, on the same grounds as a Python type
+        annotation: *"they are not comments that can be systemically and
+        completely verified across code bases or written consistently on the
+        same file because of line length rules ... all intermediate comments
+        are ignored. They can be brought up by the agents as code change
+        suggestions."*
+
+        ! It WAS censused, and the block's text was the whole statement --
+        measured 2026-08-19, `f.c@c1 comment text='int x = /* why */ 5;'`,
+        executable code handed to four reviewers as prose. Cutting at the
+        opener was the alternative and loses the trailing `5;`, so `5` and `7`
+        would compare EQUAL and the proof report PROVEN on changed code.
+        """
+        prose, code = self._read("int x = /* why */ 5;\nint y = 6;\n")
+        self.assertEqual(prose, [])
+        # ! The line is code, so it keeps its `b` and its `c` like any other.
+        self.assertEqual(code, [1, 2])
 
 
 class TestTheProofFollowsTheBlocks(unittest.TestCase):

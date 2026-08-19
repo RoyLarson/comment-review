@@ -58,6 +58,43 @@ jump to there to see the as."*
 not matter that Python's sits after its `def` and Rust's `///` before its `fn`. Roy, 2026-08-18:
 *"a docstring is about the thing above not the thing below."*
 
+## A `c` place starts where the CODE stops
+
+**Not at the `#`.** Roy ruled it 2026-08-19: *"c addresses start at the end of the code on the
+line."* The whitespace separating a statement from its trailing comment belongs to the `c` place,
+so `margin` and `trailing-comment` on one line carry the SAME column and an `add` and a `patch`
+write to the same point. The census states it as `edit_column`, 1-based, `0` where the block owns
+its lines whole; `galley.splice` keeps `line[:edit_column - 1]` and replaces the rest.
+
+! **It is a little opinionated, and it is the opinion every formatter already holds.** black and
+ruff normalise the gap before an inline comment to two spaces, `gofmt` aligns it, `cargo fmt` the
+same. Roy: *"it happens to be the same opinionatedness that also sits in all of the code
+formatters."*
+
+!! **THE `c` SERIES IS WRITABLE, AND THAT IS WHY IT IS NOT AN EXTENSION OF `b`.** Roy: *"c needs
+to be writeable. It is the reason c is not an extension of b."* A `b` splice replaces whole
+lines; a `c` splice cannot, because the code shares the line. Until 2026-08-19 the join admitted
+an edit at a `c` place and the galley refused it, discarding every other edit in that file with
+it -- and before that, the splice deleted the statement: a galley read `# reworded trailing`
+where `z = 3  # trailing` had been.
+
+## An INTERMEDIATE comment is not censused
+
+**`int x = /* why */ 5;` -- code on both sides -- is ignored, and its line is code.** Roy,
+2026-08-19: *"they are not comments that can be systemically and completely verified across code
+bases or written consistently on the same file because of line length rules ... all intermediate
+comments are ignored. They can be brought up by the agents as code change suggestions."* The
+same ruling that keeps a Python type annotation out of the census.
+
+! **It was censused, and it was worse than unwritable.** Measured 2026-08-19:
+`f.c@c1 comment text='int x = /* why */ 5;'` -- the statement itself handed to four reviewers as
+prose, carrying no annotation to say so.
+
+! **The proof got STRONGER.** `prove_unchanged` used to call such a file `unprovable` and refuse
+to compare it; now the line is code and is compared character for character, so `int x = /* why
+*/ 5;` and `int x = /* why */ 7;` differ. A run that CLOSES a multi-line comment beside code is
+still `unprovable` -- that line IS censused and the census cannot place it.
+
 ## Every potential place has an address too
 
 **Prose that is missing needs somewhere to be cited.** Roy, 2026-08-19: without the empty `c`s

@@ -38,7 +38,7 @@ A = [
         "end": 2,
         "kind": "trailing-comment",
         "edit_start": 2,
-        "whole_lines": False,
+        "edit_column": 8,
     },
     {"path": "a.py", "start": 3, "end": 5, "kind": "comment", "edit_start": 3},
     {
@@ -47,7 +47,7 @@ A = [
         "end": 6,
         "kind": "trailing-comment",
         "edit_start": 6,
-        "whole_lines": False,
+        "edit_column": 8,
     },
     {"path": "a.py", "start": 6, "end": 6, "kind": "interval", "edit_start": 7},
 ]
@@ -301,7 +301,7 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
             "edit_start": 2,
             "edit_end": 2,
             "raw_lines": ["# a note"],
-            "whole_lines": True,
+            "edit_column": 0,
         }
     ]
 
@@ -476,7 +476,7 @@ class TestTheTwoSeriesNameTheSameCodeLine(unittest.TestCase):
             "end": 4,
             "kind": "trailing-comment",
             "edit_start": 4,
-            "whole_lines": False,
+            "edit_column": 8,
         },
     ]
 
@@ -493,7 +493,7 @@ class TestTheTwoSeriesNameTheSameCodeLine(unittest.TestCase):
             "start": 1,
             "end": 1,
             "kind": "trailing-comment",
-            "whole_lines": False,
+            "edit_column": 8,
         }
         self.assertEqual(addresser.address(on_first, self.code), "m.py@c0")
 
@@ -512,7 +512,7 @@ class TestTheTwoSeriesNameTheSameCodeLine(unittest.TestCase):
             "start": 3,
             "end": 3,
             "kind": "trailing-comment",
-            "whole_lines": False,
+            "edit_column": 8,
         }
         self.assertEqual(addresser.address(above, self.code), "m.py@b1")
         self.assertEqual(addresser.address(beside, self.code), "m.py@c1")
@@ -572,7 +572,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         self.assertEqual([b["start"] for b in found], [6])
         # ! The one fact that decides it -- not a list of kinds. `SHARES_ITS_LINE`
         # was a second way to ask, and it disagreed with this one.
-        self.assertFalse(found[0]["whole_lines"])
+        self.assertTrue(found[0]["edit_column"])
 
 
 class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
@@ -642,8 +642,8 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
     """One fact decides "shares its line", and the producer states it.
 
     !! IT WAS DECIDED TWICE AND THE TWO DISAGREED. `address()` read a list of
-    KINDS; `code_lines_of` read `whole_lines`. A `comment` opened after a
-    statement is in neither list and has `whole_lines` False, so it took a `b`
+    KINDS; `code_lines_of` read the block. A `comment` opened after a
+    statement is in neither list and has a non-zero `edit_column`, so it took a `b`
     folio for a line it sits ON -- and that folio then named the comment AND the
     gap. Measured 2026-08-19 on `let b = 2; /* opens` / `and closes */`: `@b1`
     resolved to an empty interval, so every text check on the comment read "".
@@ -664,7 +664,7 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
     def test_the_comment_takes_a_c_because_code_precedes_it(self):
         got = self._census()
         mid = next(b for b in got if b.kind == "comment")
-        self.assertFalse(mid.whole_lines)
+        self.assertTrue(mid.edit_column)
         self.assertTrue(mid.address.startswith("c"), mid.address)
 
     def test_no_address_names_two_blocks(self):
