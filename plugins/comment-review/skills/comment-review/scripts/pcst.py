@@ -10,9 +10,14 @@ lines are which -- which is what a reviewer of COMMENTS needs and no more.
 just a flat list because of the way we defined the address ... a CST has it but
 it is not actually one, which is why it is a pseudoCST."* An address is an
 ORDINAL over a linear sequence -- `b3` is "after the 3rd code line", `a5` is
-"the 5th declaration" -- and an ordinal cannot express containment. So the
-flatness is not an omission this module should fix; it is what the addressing
-forces, and it is the second reason the name says *pseudo*.
+"the 5th declaration" -- and an ordinal cannot express containment.
+
+!! AND IT IS NOT A COMPROMISE. THIS IS A PAGE. Roy, 2026-08-19: a pCST is a page
+and a block is a paragraph, *"because it is a flat list of paragraphs."*
+Paragraphs run down a leaf and do not nest, so flat is the shape the thing has,
+not the shape the addressing cost us. ! The sentences above were written as an
+apology -- *pseudo*, because a real CST has hierarchy and this does not. There is
+nothing to apologise for: hierarchy was never the right shape for a page.
 
 ! Nothing here asks a tree question either. Measured 2026-08-18 across the
 shipped scripts: ZERO containment tests, and every consumer is a flat scan by

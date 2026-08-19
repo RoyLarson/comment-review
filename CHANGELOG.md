@@ -195,13 +195,22 @@ one meaning the unit of prose -- which is the test `place` failed: its 119 uses 
 against a term meaning ADDRESSABLE SLOT, so it was polysemy where this is correct usage that had
 no definition.
 
+!! **A PAGE DOES NOT NEST, AND THAT IS WHY THE FLATNESS NEEDED NO APOLOGY.** Roy, 2026-08-19:
+*"because it is a flat list of paragraphs."* The pCST was ruled flat because an address is an
+ORDINAL and an ordinal cannot express containment -- and `pcst.py` wrote that as a concession,
+*pseudo* because a real CST has hierarchy and this does not. Paragraphs run down a leaf and do not
+nest, so flat is the shape the thing has rather than the shape the addressing cost. Nothing to
+apologise for.
+
 !! **GALLEY -> PAGE -> PROOF is a sequence, and the first draft of this entry collapsed two of
 them.** It defined a page as *"the file as a reader meets it"* -- which is the PROOF, already
 defined as *"the finished page"*. Two terms, one meaning, inside the entry ruling that the
 register is the point. The printing register fixes all three and `galley.py` already states the
-first: a galley is text set *"but not yet made into pages"*. So a **page** is the file itself,
-everything set on it in order, as against the CENSUS which is that same file as a numbered list;
-a **proof** is a finished page pulled for checking, which is what stage 8 reads. `galley` had no
+first: a galley is text set *"but not yet made into pages"*. So a **page** is ONE FILE, its
+paragraphs in order among the code they sit with; a **proof** is a finished page pulled for
+checking, which is what stage 8 reads. ! A SECOND draft then split page from census as *the
+thing* against *the list of it* -- no distinction at all once a page is itself a flat list. The
+axis is SCOPE: measured 2026-08-19, one census covers 14 files and 6,678 paragraphs. `galley` had no
 entry in `docs/vocabulary.md` at all and now has one.
 
 ! **The RENAME is ~1,935 sites and is its own scope** -- 721 in shipped code, 548 in tests, 368 in
