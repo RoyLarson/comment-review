@@ -61,6 +61,10 @@ m.rb   comment    doc-kind-unresolved     -- position, and the census says so
 FORMAT rather than a comment governed by LENGTH ... NOT counted against the
 cap"*. The defect is in what the FIELD claims, not in what the census emits.
 
+! **A rule proposed for a role file goes to**
+  [`role-rule-register`](role-rule-register.md) **and is decided with the others.**
+  Role prose is budget-fixed, so a candidate is judged against what it displaces.
+
 ## Tasks
 
 - [ ] **Split the field, or rename it and correct the docstring.** `block_text`

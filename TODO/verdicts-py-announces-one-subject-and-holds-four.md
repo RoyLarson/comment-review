@@ -1,12 +1,14 @@
 # verdicts.py announces one subject and holds four, and its own reviewer said so
 
 ```
-Status:   decision-needed
-Progress: 0 of 8 tasks done
+Status:   in-progress
+Progress: 7 of 8 tasks done
 Owner:    session * Roy (* 1 ruling -- the module names, which `docs/vocabulary.md`
           constrains)
 Requires-Roy: true
 Raised:   2026-08-18, from the dev review of the file by its own editorial board
+Updated:  2026-08-18 — the module names are ruled -- three modules, verdicts.py keeps
+          its name
 ```
 
 ## Objective
@@ -80,35 +82,24 @@ per-finding checker each need a name that states their one subject.
 
 ## Tasks
 
-- [ ] * **Rule the four module names.** A or B above, and the two unconstrained ones. ! This
-      comes first because every task below writes an import.
+- [x] * **RULED 2026-08-18: three modules, and `verdicts.py` KEEPS ITS NAME.** Neither A nor B: `record.py` already announced "what a RECORD is" and derived `allowed()` from the verdict table, so the table went there and needed no new name. The checks became `desk.py` -- the copy desk, where a submitted mark is checked before anyone acts on it, and free in the register where `checks.py` would collide with CODE CHECK and PROSE CHECK. `docs/vocabulary.md` needed no edit.
 
-- [ ] **Cut the verdict table out first.** It is the leaf -- the report reader, the checker and
-      the join all read it, and it reads none of them. Verify: the new module imports nothing
-      from the other three.
+- [x] **DONE `b4c8cef`.** 232 lines into `record.py` -- `Verdict`, `VERDICTS`, `OUT_OF_ROLE`, `QUERY_SHAPES`, the two claim regexes and `claim_keys`. ! It was a true leaf: 190 lines referencing nothing but `re.compile`, `@dataclass` and `str.join`, which is why it moved in one piece.
 
-- [ ] **Rewrite the bridge while the table is in hand**, rather than copying it.
-      `claim_text` renders a typed claim back into the 0.2.x marker string and its own docstring
-      calls it a bridge kept *"before anything is rewritten to read the object directly."*
-      Verify: no check reads a rendered string where the field is present.
+- [x] **DONE `7fab8c6`.** `parse_report` types a 0.2.x claim through `claim_object` at the seam, and `ruled_text` reads the field with the marker scan as fallback. ! It was a local call only because the cycle was gone.
 
-- [ ] **Cut the report reader out**, and fix the merge across boundaries it cannot read while
-      it is the only subject in view. Verify: an unrecognised boundary is REPORTED, and the
-      diagnostic names the side it could not read.
+- [x] **DONE `6fdcd59`.** 315 lines to `record.py` -- reading a record file is the third verb on the noun it already writes and checks. ! The boundary-merge fix did NOT ride along; it stays with `the-parser-merges-across-boundaries-it-cannot-read`.
 
-- [ ] **Cut the per-finding checker out.** Verify: it takes a `Finding` and the tree, and knows
-      nothing about reports or reviewers.
+- [x] **DONE `6fe323c`.** 754 lines to `desk.py`. Verified before cutting: the checks call no join function, the reader calls no check, and every mention of a moving name outside `verdicts.py` is PROSE.
 
-- [ ] **Leave the join as the CLI.** Verify: it is the only one of the four with a `main`.
+- [x] **DONE.** `verdicts.py` 2,084 -> 603 lines and is the only one of the three with a `main`. Dependencies run one way: verdicts -> desk -> record.
 
 - [ ] **Fix the two dev-review findings inside the split**: `claim_keys` reaching two of four
       sites, and `record.check()` raising `AttributeError` on a non-object report where
       `load_report` guards. Verify: a test reproduces each against the pre-split behaviour.
 
-- [ ] **Prove the split changed no verdict.** The four reports in
-      [`evidence/cycle-0.2.3/`](../evidence/cycle-0.2.3/) join to a known result; run them
-      before and after and diff the output byte for byte. ! That is the same technique the
-      `claim_keys` refactor was verified with 2026-08-18.
+- [x] **DONE, and the method had to be fixed first.** With `--repo .` the output moved by one line -- a report citing `verdicts.py:1320` in a file the cut shortened -- because SOURCES resolves against the working tree. Re-run with BOTH pinned, a worktree at `7850bbc` as subject and `cc596b1` as the pre-cut tool: BYTE-IDENTICAL, 24 problems. ! `evidence/redacted-corpus-full-v0_2/VERSIONS.md` already said "replay needs the TREE pinned as well as the census".
+
 
 ## Related
 

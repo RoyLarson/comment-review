@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (31)
+### open  (30)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -196,7 +196,6 @@ that changed a published name or rule:
 | [reference-only-misses-the-documentation](reference-only-misses-the-documentation.md) | session * Roy (1 ruling) | yes | 0/4 | REFERENCE ONLY misses the project's own documentation |
 | [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | session | yes | 0/5 | `referrers.py` matches on any public name, and surfaced the whole repo |
 | [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | Roy | yes | 1/9 | Stage 5 is the only stage whose writer is also its checker |
-| [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | session * Roy (* 1 ruling -- where the verdict table lives) | yes | 0/9 | The bridge landed and the rewrite did not |
 | [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | session * Roy (* 1 ruling) | yes | 0/5 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
 | [the-emitted-vocabulary-can-collide-with-the-repo](the-emitted-vocabulary-can-collide-with-the-repo.md) | session * Roy (* 1 ruling) | yes | 0/4 | The emitted vocabulary can collide with the reviewed repo's own terms |
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | session | yes | 0/4 | The join merges across a boundary it cannot read, and blames the neighbour |
@@ -207,19 +206,21 @@ that changed a published name or rule:
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | yes | 1/7 | A docstring needs its own address series, and it names what it documents |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
 
-### in-progress  (2)
+### in-progress  (4)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | session * Roy (* 1 ruling) | — | 1/6 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | session * Roy (* 2 rulings) | yes | 1/8 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
+| [verdicts-py-announces-one-subject-and-holds-four](verdicts-py-announces-one-subject-and-holds-four.md) | session * Roy (* 1 ruling -- the module names, which `docs/vocabulary.md` constrains) | yes | 7/8 | * **2,083 lines, four subjects, and a docstring announcing one.** The verdict table, a report reader, a per-finding checker and the join. !! `module-context` FOUND IT and then emitted a `patch` widening the docstring to announce TWO subjects -- the defect its own trigger is named for, applied as the remedy, and no `code_concerns` entry. Filed as the one miss in `evals/test-cases.jsonl`, pinned at `4fd8384`. ! Scheduled with the census filter because the lookup tool needs the verdict table to be a module, and because two open TODOs sit entirely inside one half each -- the bridge is COPIED into a new module if it is not rewritten during the cut. * Unruled: the four module names, which `docs/vocabulary.md` constrains by binding `the join` to `verdicts.py` |
+| [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | session * Roy (* 1 ruling -- where the verdict table lives) | yes | 5/9 | The bridge landed and the rewrite did not |
 
 ### decision-needed  (2)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
 | [correct-against-patch-is-a-conflict-and-is-not-flagged](correct-against-patch-is-a-conflict-and-is-not-flagged.md) | session * Roy (the widening is a cost decision Roy has already ruled on once) | yes | 0/3 | `correct` against `patch` is a conflict, and the gate does not flag it |
-| [verdicts-py-announces-one-subject-and-holds-four](verdicts-py-announces-one-subject-and-holds-four.md) | session * Roy (* 1 ruling -- the module names, which `docs/vocabulary.md` constrains) | yes | 0/8 | * **2,083 lines, four subjects, and a docstring announcing one.** The verdict table, a report reader, a per-finding checker and the join. !! `module-context` FOUND IT and then emitted a `patch` widening the docstring to announce TWO subjects -- the defect its own trigger is named for, applied as the remedy, and no `code_concerns` entry. Filed as the one miss in `evals/test-cases.jsonl`, pinned at `4fd8384`. ! Scheduled with the census filter because the lookup tool needs the verdict table to be a module, and because two open TODOs sit entirely inside one half each -- the bridge is COPIED into a new module if it is not rewritten during the cut. * Unruled: the four module names, which `docs/vocabulary.md` constrains by binding `the join` to `verdicts.py` |
+| [role-rule-register](role-rule-register.md) | Roy | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 
 ### blocked  (0)
 

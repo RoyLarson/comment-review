@@ -60,6 +60,10 @@ a line to compare against.
 budget is fixed, and a new rule should REPLACE one rather than accumulate. A rule
 that cannot be checked without opening another file does not earn its place.
 
+! **A rule proposed for a role file goes to**
+  [`role-rule-register`](role-rule-register.md) **and is decided with the others.**
+  Role prose is budget-fixed, so a candidate is judged against what it displaces.
+
 ## Tasks
 
 - [ ] * **Rule whose remit this is.** `block-context` is the closest --

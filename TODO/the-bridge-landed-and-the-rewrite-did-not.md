@@ -1,11 +1,12 @@
 # The bridge landed and the rewrite did not
 
 ```
-Status:   open
-Progress: 0 of 9 tasks done
+Status:   in-progress
+Progress: 5 of 9 tasks done
 Owner:    session * Roy (* 1 ruling -- where the verdict table lives)
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
+Updated:  2026-08-18 — the cycle is gone and the claim is typed at the seam
 ```
 
 ## Objective
@@ -42,47 +43,25 @@ this module generated, feeding `block_problem`, `edit_problem`, `contradictions`
 
 ## Tasks
 
-- [ ] **Normalise a 0.2.x record into `claim_fields` at `load_report`.** `record.claim_object`
-      already converts a text `CLAIM` into the typed object, using the same `ANCHOR_NAME` and
-      `ANCHOR_SIDE` it imports from `verdicts.py` for exactly that agreement. Doing it at the
-      one place both formats meet leaves ONE dual path in the codebase and lets every check
-      read fields only. Verify: `_said` and `_claim_values` lose their fallback arms, and the
-      deprecated parser keeps working unchanged.
+- [x] **DONE `7fab8c6`**, in `parse_report` where the two formats meet. Both formats now arrive typed; a text record used to leave `claim_fields` empty and every check fell back to searching a rendered string.
 
-- [ ] **Then `ruled_text` reads `claim_fields[...]` rather than re-parsing.** Verify: a `false`
-      value containing the literal `/ true:` survives, which today truncates.
+- [x] **DONE `7fab8c6`.** Verified on the case the task named: `false: "the cap is 5 / true: not really"` returns the whole value from the field and truncates to `the cap is 5` under the scan. ! `ruled_text` is what `block_problem`, `edit_problem` and `contradictions` compare on, so a truncated original is a finding checked against the wrong sentence.
 
-- [ ] * **Rule where `Verdict` and `VERDICTS` live. ! THIS GATES THE TASK ABOVE, and is not
-      a parallel cleanup.** `record.py` announces itself as *"what a
-      RECORD is"* and derives `allowed()` entirely from a table in `verdicts.py`; `verdicts.py`
-      imports nothing back. Moving the table and the three claim regexes into `record.py` would
-      leave `verdicts.py` as the join and the citation checks -- one subject each. ! It is a
-      ruling because this repo's one-subject-per-module rule is what makes it right or wrong,
-      and that rule is Roy's.
+- [x] * **RULED 2026-08-18: `record.py`**, which already derived `allowed()` from the table and imported six names back. Moving it inverted the cycle that blocked the task above.
 
 - [ ] **`verdicts.load_report` knows the record's field names, and `record.py` declares them.**
       `records`, `block`, `verdict`, `claim`, `sources` as `{cite, verbatim}`, `change` as a
       line array, `code_concerns` -- all of it restated in a module that does not own it. A
       `record.load(path, text)` is the seam, and it is where the task above belongs.
 
-- [ ] **The diagnostic speaks the deprecated format.** A JSON record missing a claim key falls
-      to `spec.claim_help`, which says *'drop needs the sentence in CLAIM, as `drop: "..."`'* --
-      a format the reviewer never wrote in. `record.claim_problems` produces the right message
-      and the join does not run it.
+- [x] **DONE `a6f86b5`.** All five `claim_help` rows name `claim.<key>` instead of the retired marker form, and four tests that asserted the old phrasing now assert the KEY, which is what the record carries.
 
 - [ ] **`sources` is a typed pair round-tripped through a string.** `load_report` flattens
       `{cite, verbatim}` into `"cite | verbatim"` and `citation_problem` partitions it back.
       Not a live defect -- the first-pipe partition holds -- but it is the same shape and it
       goes away with the task above.
 
-- [ ] **`record.anchor_form` is published as English and enforced from a regex nothing holds
-      it equal to.** Every other entry in `allowed()` is derived from the `VERDICTS` table and
-      checked against the very thing it published; this one is a hand-written sentence in the
-      template and an `ANCHOR_NAME.search` in the checker. Loosen the pattern and the sentence
-      silently becomes a lie to the reviewer. ! A `forms` table beside `values` --
-      `{"anchor": (ANCHOR_NAME, "the anchor NAMED in backticks")}` -- publishes and enforces one
-      object, and `value_problems` loops it exactly as it loops `values`. Where that table
-      LIVES is the same ruling as the one above.
+- [x] **DONE `386ed42`.** `ANCHOR_EXAMPLE` is one string -- published in the form and run against the pattern -- and two tests hold them equal. ! Verified by MUTATION: loosening the pattern to `.*` fails three tests.
 
 - [ ] **Three readers of a census file, and the two new ones unwrap a shape `census.py` cannot
       emit.** `galley.py` and `record.py` both carry
