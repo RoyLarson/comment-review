@@ -113,9 +113,33 @@ class Block:
 
     @property
     def widest(self) -> int:
-        """The longest raw line in this block, in characters."""
-        return max((len(ln) for ln in self.raw_lines), default=0)
+        """The longest PHYSICAL line this block sits on, in characters.
 
+        ! A width rule measures the line on disk, so the code a `c` block sits
+        beside counts: `raw_lines` holds only the block's own characters, and
+        `anchor` holds what precedes them on the first line.
+        """
+        if not self.raw_lines:
+            return 0
+        first = len(self.anchor) + len(self.raw_lines[0]) if self.edit_column else 0
+        return max(first, *(len(ln) for ln in self.raw_lines))
+
+    # !! THE BLOCK'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
+    # lines whole where it owns them, and from `edit_column` onward on the first
+    # line where code comes first. With `anchor` holding the code, the two
+    # RECONSTRUCT that line: `anchor + raw_lines[0]` is what is on disk.
+    #
+    # !! THE TWO TIERS DISAGREED, AND FOUR OF SIX SHAPES COULD NOT BE WRITTEN.
+    # `blocks_lexical` cut at the comment opener and `blocks_stdlib` kept the
+    # whole physical line, so `galley.block_matches` refused a FRESH census on
+    # every lexical trailing comment (`'// note'` against `int b = 2; // note`)
+    # and on every block comment not at column 0 (`'/* why */'` against
+    # `'    /* why */'` -- the indentation was the cut). Measured 2026-08-19.
+    #
+    # ! It also fed CODE to the annotators. `prose_numbers` reads this, so a
+    # Python `TIMEOUT = 30  # the note says nothing` reported the number 30 as a
+    # claim the prose makes. The lexical tier's own comment says that defect was
+    # fixed; it was fixed on one tier.
     raw_lines: list[str] = field(default_factory=list)
     # !! THE LINES AN EDIT TO THIS BLOCK OCCUPIES, which is NOT always the
     # range that ADDRESSES it. A prose block is replaced, so the two coincide.

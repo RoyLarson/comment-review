@@ -163,6 +163,22 @@ def block_matches(lines: list[str], block: dict) -> bool:
     # -- but `raw_lines` holds only the prose. Comparing the wider range against
     # the narrower text refused every prose block in the tree.
     start, end = splice_range(block)
+    # !! A `c` BLOCK IS CHECKED IN TWO HALVES, because the census stores both:
+    # `anchor` is the code before it and `raw_lines` is everything from its
+    # column on. Together they are the physical line, so this compares the file
+    # against what the census SAID rather than against a guess about which of
+    # them it stored -- the two tiers stored different halves, and no single
+    # comparison satisfied both.
+    column = block.get("edit_column", 0)
+    if column > 0:
+        if start < 1 or end > len(lines) or start > end:
+            return False
+        first = lines[start - 1]
+        if first[: column - 1] != block.get("anchor", ""):
+            return False
+        stored = block.get("raw_lines") or [""]
+        here = [first[column - 1 :], *lines[start:end]]
+        return [ln.rstrip() for ln in here] == [ln.rstrip() for ln in stored]
     # !! CHECKED BEFORE THE RANGE GUARD, because a block that holds no prose may
     # occupy NO LINE -- an absent docstring is at line 0 -- and the guard below
     # would refuse it for a range it is not entitled to have.

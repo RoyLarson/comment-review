@@ -2,13 +2,18 @@
 
 ```
 Status:   open
-Progress: 4 of 9 tasks done
+Progress: 7 of 9 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
 Narrowed: 2026-08-19 — the staleness symptom was the ADDRESSER's sweep, now removed --
           what remains is the galley's comparison, where checking the file is right and
           the stored text is wrong
+Narrowed: 2026-08-19 — B3 closed 2026-08-19: one raw_lines rule for both tiers, the
+          block's own characters cut at edit_column. Four of six comment shapes were
+          unwritable, not one. Two boxes ticked and one SUPERSEDED -- it prescribed
+          storing the whole physical line in both tiers, which would have put the code
+          in two fields.
 ```
 
 ## Objective
@@ -48,12 +53,13 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
 
 ## Tasks
 
-- [ ] **Give `Block` the column its text starts at -- and the column it ends at**, set by
-      every producer. ! The SPAN, not one edge: `whole_lines` was derived from the start alone
-      and missed `/* note */ x = 1`, where the code is after the closer, so the galley was
-      willing to write over the statement. Both edges are already in hand at the producer.
-      Verify: a `Doc()` block, a trailing comment and a `/* note */ x = 1` all report a partial
-      span; a comment run on its own line reports the whole line.
+- [x] **DONE 2026-08-19 -- `edit_column`, set by every producer, and `whole_lines` is gone.**
+      The START column is a field; the END column was RULED AWAY rather than built. Roy,
+      2026-08-19: an INTERMEDIATE comment -- `/* note */ x = 1`, code on both sides -- *"is not a
+      comment that can be systemically and completely verified across code bases"* and is not
+      censused at all, on the same grounds as a Python type annotation. So there is no second
+      edge to state: a block either owns its lines, or starts at a column and runs to the end of
+      the line. ! The shape that motivated the span is now handled by not being prose.
 
 - [x] **DONE 2026-08-18 -- `code_lines` tests a field instead of the suffix.** It reads
       `Block.whole_lines`. ! The field is a BOOLEAN and this file argues for a span; the
@@ -84,8 +90,15 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       ! **Re-measured over 18 files in four languages: 7,436 lines, each with exactly one address,
       0 shared.** The prior figure was Python-only.
 
-- [ ] !! **THE TWO TIERS STORE `raw_lines` DIFFERENTLY, so an INDENTED BLOCK COMMENT CANNOT BE
-      EDITED.** `blocks_lexical` cuts `raw_lines[0]` at the comment opener
+- [x] !! **DONE 2026-08-19 -- ONE RULE, BOTH TIERS: `raw_lines` is the block's OWN
+      CHARACTERS**, its lines whole where it owns them and cut at `edit_column` where code comes
+      first, so `anchor + raw_lines[0]` rebuilds the physical line. ! **It was FOUR of six comment
+      shapes, not the indented block alone** -- every block comment off column 0 and every
+      trailing comment in the ten lexical languages. Re-measured: 6 of 6 match a fresh census, 0
+      refused across the fixtures, and a `c` edit writes in Go end to end keeping the statement
+      and its tab. ! It also stopped feeding CODE to the annotators: `prose_numbers` reads this
+      field, so `TIMEOUT = 30  # the note says nothing` reported 30 as a claim the prose makes.
+      **The original text, for the record:** `blocks_lexical` cuts `raw_lines[0]` at the comment opener
       (`census.py:541,561`) where `blocks_stdlib` stores the whole line, so
       `galley.block_matches` compares `/* block` against `    /* block` and refuses the splice:
       `REFUSED sample.rs: 1 range(s) no longer match the census: 6-7`.
@@ -111,12 +124,12 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       *"todos don't get deleted they get SUPERSEDED and checked."* A deleted box
       leaves no trace that it was ever there or why it went; a superseded one
       keeps the error legible. Restored here rather than left out.
-- [ ] !! BOTH TIERS STORE THE WHOLE PHYSICAL LINE in `raw_lines`. B2 made this the
-      obvious fix: `edit_column` now says where the prose starts, so `raw_lines`
-      no longer has to carry that fact by being cut. Measured 2026-08-19: a
-      lexical trailing comment stores `['// note']` against a file line of `int b
-      = 2; // note`, so `block_matches` answers False on an UNTOUCHED file -- the
-      `c` series is writable in the tokenized tier only, which is 1 of 11
-      languages.
+- [x] !! **SUPERSEDED 2026-08-19 -- THIS PRESCRIBED THE WRONG FIX**, and is kept so the error
+      stays legible. It said BOTH TIERS STORE THE WHOLE PHYSICAL LINE. That satisfies the
+      staleness check and puts the code in TWO fields -- `anchor` and `raw_lines` -- which is the
+      conflation the anchor was added to end, and Roy named it the same day: *"won't this kill the
+      anchor?"* The rule shipped is the opposite: `raw_lines` holds the block's own characters
+      only, and the anchor holds the code. ! Its MEASUREMENT was right and is what found the
+      defect -- a lexical trailing comment storing `['// note']` against `int b = 2; // note`.
 - [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)
   -- step 7's run is where the docstring half was found, by two roles independently.

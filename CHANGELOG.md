@@ -169,6 +169,42 @@ no language server and no build tool.
 - **The gap at the end of a file takes the line ABOVE it**, because a gap is bounded by code and
   that is the bound it has. Left empty it was 14 blocks, one per file.
 
+### Both tiers store `raw_lines` the same way, and four of six comment shapes were unwritable
+
+**`raw_lines` is the block's OWN characters** -- its lines whole where it owns them, and from
+`edit_column` onward on the first line where code comes first. With `anchor` holding the code,
+`anchor + raw_lines[0]` reconstructs that line exactly.
+
+!! **THE TWO TIERS STORED DIFFERENT THINGS.** `blocks_lexical` cut at the comment OPENER;
+`blocks_stdlib` kept the whole physical line. So `galley.block_matches` could not be written to
+satisfy both, and refused a census seconds old on:
+
+| shape | before | after |
+| --- | --- | --- |
+| trailing `// note` | refused -- the code was cut away | matches |
+| trailing `/* note */` | refused | matches |
+| indented `    /* why */` | refused -- the INDENTATION was cut away | matches |
+| multiline indented `/* one` | refused | matches |
+| indented `    // why` | matches | matches |
+| column-0 `/* why */` | matches | matches |
+
+**Four of six.** Every block comment not at column 0, and every trailing comment in the ten
+lexical languages -- which is what made the `c` series writable in Python alone. Measured
+2026-08-19; a `c` edit now writes in Go end to end, keeping the statement and its tab.
+
+! **It also fed CODE to the annotators.** `prose_numbers` reads `raw_lines`, so a Python
+`TIMEOUT = 30  # the note says nothing` reported the number 30 as a claim the prose makes. The
+lexical tier's own comment says that defect was fixed -- it was fixed on one tier, and
+`repeated-literal` counts across the whole census.
+
+! **Storing the whole line in BOTH tiers was the other way out, and is worse**: it satisfies the
+staleness check and puts the code in two fields, which is the conflation the anchor was added to
+end.
+
+- **`Block.widest` measures the PHYSICAL line again.** It reads `anchor` plus the first stored
+  line, because a width rule measures what is on disk. ! It has no caller; corrected rather than
+  deleted, since nothing this change made unused.
+
 ### An `a` is attached to its declaration's LINE, and the name is dropped
 
 **`anchor` now holds a line of code in all three series.** Roy, 2026-08-19, settling the

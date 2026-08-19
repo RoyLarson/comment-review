@@ -7,7 +7,9 @@ import unittest
 from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS
+import annotate
 import census
+import galley
 import pcst
 import prove_unchanged as pu
 
@@ -754,3 +756,145 @@ class TestAPathThatCannotBeAddressedIsAGap(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, 0, result.stdout)
+
+
+class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
+    """`raw_lines` is the block's OWN characters, and `anchor` is the code.
+
+    !! THE TWO TIERS STORED DIFFERENT THINGS AND FOUR OF SIX SHAPES COULD NOT BE
+    WRITTEN. `blocks_lexical` cut at the comment OPENER; `blocks_stdlib` kept
+    the whole physical line. Measured 2026-08-19, on a FRESH census checked
+    against the file it was built from:
+
+    | shape                       | matched |
+    | --------------------------- | ------- |
+    | trailing `// note`          | NO -- the code was cut away |
+    | trailing `/* note */`       | NO |
+    | indented `    /* why */`    | NO -- the INDENTATION was cut away |
+    | multiline indented `/* one` | NO |
+    | indented `    // why`       | yes |
+    | column-0 `/* why */`        | yes |
+
+    ! So every block comment not at column 0, and every trailing comment in the
+    ten lexical languages, was refused by `galley.block_matches` on a census
+    seconds old -- which is what made the `c` series writable in Python only.
+    """
+
+    C = Path("x.c")
+    SHAPES = {
+        "trailing line": "int a = 1;\nint b = 2; // note\n",
+        "trailing block": "int a = 1;\nint b = 2; /* note */\n",
+        "indented block": "int a = 1;\nvoid f(void) {\n    /* why */\n}\n",
+        "indented line": "int a = 1;\nvoid f(void) {\n    // why\n}\n",
+        "column 0 block": "/* why */\nint a = 1;\n",
+        "multiline indented": "void f(void) {\n    /* one\n       two */\n}\n",
+    }
+
+    def _prose(self, text):
+        lang = census.language_for(self.C)
+        return [
+            b
+            for b in census.census_for(self.C, text, lang)
+            if b.kind in ("comment", "trailing-comment")
+        ]
+
+    def test_a_FRESH_census_matches_every_shape(self):
+        for label, text in self.SHAPES.items():
+            lines = text.splitlines()
+            for b in self._prose(text):
+                with self.subTest(shape=label):
+                    self.assertTrue(
+                        galley.block_matches(lines, vars(b)),
+                        f"{b.raw_lines!r} against {lines[b.start - 1]!r}",
+                    )
+
+    def test_a_c_BLOCK_rebuilds_its_line_from_the_anchor_and_the_first_raw_line(
+        self,
+    ):
+        # !! THE INVARIANT THE TWO FIELDS EXIST TO KEEP. Storing the whole line
+        # in `raw_lines` would satisfy the staleness check and put the code in
+        # two fields; cutting at the opener loses it from both.
+        #
+        # ! Only a `c` block. A `b`'s anchor is a DIFFERENT line -- the code
+        # BELOW the gap -- so it has nothing to rebuild its own line from, and
+        # its `raw_lines` is that line whole.
+        seen = 0
+        for label, text in self.SHAPES.items():
+            lines = text.splitlines()
+            for b in self._prose(text):
+                with self.subTest(shape=label):
+                    if b.edit_column:
+                        seen += 1
+                        self.assertEqual(b.anchor + b.raw_lines[0], lines[b.start - 1])
+                    else:
+                        self.assertEqual(b.raw_lines[0], lines[b.start - 1])
+        self.assertGreater(seen, 0, "no `c` block among the shapes")
+
+    def test_the_TOKENIZED_tier_keeps_the_same_invariant(self):
+        text = "TIMEOUT = 30  # a note\n# on its own\nx = 1\n"
+        path = Path("x.py")
+        lines = text.splitlines()
+        for b in census.census_for(path, text, census.language_for(path)):
+            if b.kind not in ("comment", "trailing-comment"):
+                continue
+            with self.subTest(kind=b.kind, start=b.start):
+                head = b.anchor if b.edit_column else ""
+                self.assertEqual(head + b.raw_lines[0], lines[b.start - 1])
+                self.assertTrue(galley.block_matches(lines, vars(b)))
+
+    def test_a_trailing_comments_CODE_no_longer_reaches_the_annotators(self):
+        """!! `prose_numbers` reads `raw_lines`, so the whole physical line put
+        a statement's own literals into the prose.
+
+        Measured 2026-08-19: `TIMEOUT = 30  # the note says nothing` reported
+        the number 30 as a claim the prose makes. It is the CODE. The lexical
+        tier's own comment says this defect was fixed -- it was fixed on one
+        tier, and `repeated-literal` counts across the whole census.
+        """
+        for path, text in (
+            (Path("x.py"), "TIMEOUT = 30  # the note says nothing\n"),
+            (Path("x.c"), "int timeout = 30; // the note says nothing\n"),
+        ):
+            lang = census.language_for(path)
+            for b in census.census_for(path, text, lang):
+                if b.kind != "trailing-comment":
+                    continue
+                with self.subTest(path=path.name):
+                    self.assertNotIn("30", b.raw_lines[0])
+                    self.assertEqual(annotate.prose_numbers(b.text, b.raw_lines), set())
+
+    def test_a_margin_stores_the_ROOM_and_not_the_code(self):
+        # ! The code is the ANCHOR. Storing it here too would put one fact in
+        # two fields, which is what the anchor was added to end.
+        text = "a = 1\n"
+        path = Path("x.py")
+        margin = next(
+            b
+            for b in census.census_for(path, text, census.language_for(path))
+            if b.kind == "margin"
+        )
+        self.assertEqual(margin.anchor, "a = 1")
+        self.assertEqual(margin.raw_lines, [""])
+        self.assertTrue(galley.block_matches(text.splitlines(), vars(margin)))
+
+    def test_no_prose_block_in_the_fixtures_is_refused_by_a_FRESH_census(self):
+        # !! The measurement, as a gate. It was 4 of 6 shapes and 1 of 8 fixture
+        # blocks before 2026-08-19.
+        refused = []
+        for src in sorted(FIXTURES.rglob("*")):
+            lang = census.language_for(src) if src.is_file() else None
+            if lang is None:
+                continue
+            body = src.read_text(encoding="utf-8")
+            try:
+                blocks = census.census_for(src, body, lang)
+            except Exception:
+                continue
+            lines = body.splitlines()
+            refused += [
+                f"{src.name}:{b.start} {b.kind}"
+                for b in blocks
+                if b.kind not in pcst.HOLDS_NO_PROSE
+                and not galley.block_matches(lines, vars(b))
+            ]
+        self.assertEqual(refused, [])

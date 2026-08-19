@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
+import addresser
 import census
 import galley
 
@@ -570,3 +571,44 @@ class TestTheGalleyWritesATrailingCommentEndToEnd(unittest.TestCase):
 # than `unittest discover`.
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTheCSeriesIsWritableInALexicalLanguage(unittest.TestCase):
+    """B3's point: Go, not just Python.
+
+    !! IT WAS PYTHON ONLY. `blocks_lexical` cut `raw_lines` at the comment
+    opener, so `block_matches` refused every lexical trailing comment on a
+    census seconds old -- one of eleven languages could have a `c` edit written.
+    """
+
+    SRC = "package math\n\nfunc Add(a, b int) int {\n\treturn a + b // adds them\n}\n"
+
+    def _blocks(self):
+        path = Path("m.go")
+        got = census.census_for(path, self.SRC, census.language_for(path))
+        lines = sorted(census.code_lines(self.SRC, got))
+        for b in got:
+            b.address = addresser.address(vars(b), lines)
+        return [vars(b) for b in got]
+
+    def _splice(self, kind, change):
+        block = next(b for b in self._blocks() if b["kind"] == kind)
+        self.assertTrue(galley.block_matches(self.SRC.splitlines(), block))
+        return galley.splice(
+            self.SRC,
+            [(*galley.splice_range(block), block["edit_column"], change)],
+        )
+
+    def test_a_patch_keeps_the_statement_AND_its_tab(self):
+        out = self._splice("trailing-comment", " // sums them")
+        self.assertIn("\treturn a + b // sums them", out)
+        self.assertNotIn("adds them", out)
+
+    def test_an_add_at_a_margin_lands_beside_the_code(self):
+        out = self._splice("margin", " // the package clause")
+        self.assertIn("package math // the package clause", out)
+
+    def test_a_drop_leaves_the_statement_alone(self):
+        out = self._splice("trailing-comment", "")
+        self.assertIn("\treturn a + b\n", out)
+        self.assertNotIn("adds them", out)

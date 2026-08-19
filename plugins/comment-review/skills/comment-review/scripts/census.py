@@ -380,6 +380,30 @@ def _strip_strings(line: str, quotes: tuple[str, ...]) -> str:
     return "".join(out)
 
 
+def _own_characters(span: list[str], column: int) -> list[str]:
+    """A block's own characters: its lines, cut at `column` on the first.
+
+    !! ONE RULE FOR BOTH TIERS, which is what B3 is. `blocks_lexical` cut at the
+    comment OPENER and `blocks_stdlib` kept the whole physical line, so the two
+    stored different things and `galley.block_matches` could not be written to
+    satisfy both -- it refused a FRESH census on four of six comment shapes.
+
+    ! With `anchor` holding the code, `anchor + raw_lines[0]` reconstructs the
+    first line exactly. Storing the whole line here instead would put the code
+    in two fields, which is the conflation the anchor was added to end.
+
+    Args:
+        span: the block's physical lines, without endings.
+        column: the block's `edit_column`; 0 when it owns its lines whole.
+
+    Returns:
+        The same lines, with the first cut at `column`.
+    """
+    if not span or column <= 0:
+        return span
+    return [span[0][column - 1 :], *span[1:]]
+
+
 def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     """The line of code a `c` block sits beside -- its ANCHOR, verbatim.
 
@@ -460,6 +484,15 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             partial_first[0] = 0
             return
         raw = [t for _, t in run]
+        # !! `raw_lines` IS THE SOURCE, `raw` IS THE PROSE. They were one list,
+        # so a block comment's own indentation and a trailing comment's code
+        # were cut out of the record of what is on disk -- and `block_matches`
+        # then refused a census built seconds earlier. The cut text still makes
+        # `text` and still counts against the cap; the file's own characters are
+        # what a splice is checked against.
+        span = lines[run[0][0] - 1 : run[-1][0]]
+        if partial_first[0] > 0:
+            span = [span[0][partial_first[0] - 1 :], *span[1:]]
         stripped = raw[0].strip()
         is_doc = stripped.startswith(lang.doc_line) if lang.doc_line else False
         if lang.doc_block and stripped.startswith(lang.doc_block):
@@ -475,7 +508,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             kind=kind,
             lines=counted_lines(raw),
             text=_join(raw, openers),
-            raw_lines=raw,
+            raw_lines=span,
             tier="lexical",
             edit_column=partial_first[0],
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in
@@ -700,7 +733,9 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
                     # repo, each refused by `galley.block_matches` as stale,
                     # and each one a splice that would have deleted the blank
                     # line it did not know about.
-                    raw_lines=source_lines[run[0][0] - 1 : run[-1][0]],
+                    raw_lines=_own_characters(
+                        source_lines[run[0][0] - 1 : run[-1][0]], run[0][3]
+                    ),
                     # !! Same string, same reason -- see `blocks_lexical`. The
                     # tokenizer states the column, so the code before it is a
                     # slice and not an inference.
@@ -1334,9 +1369,9 @@ def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
     ! It occupies no line of its OWN: the line is CODE and stays code. What it
     holds is the room after the statement.
 
-    ! `raw_lines` is the whole physical line, which is what `blocks_stdlib`
-    stores for a trailing comment too -- so a margin is checked for staleness
-    the same way, against the line it names.
+    ! `raw_lines` holds the room itself -- whatever follows the code, which is
+    nothing unless the line ends in whitespace. The code it sits beside is the
+    ANCHOR, and `galley.block_matches` checks that half against the file.
     """
     lines = text.splitlines()
     # ! THE SAME FACT `address` reads. A line already carrying prose that SHARES
@@ -1352,7 +1387,10 @@ def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
             kind="margin",
             lines=0,
             text="",
-            raw_lines=[lines[n - 1]],
+            # ! ITS OWN CHARACTERS, which is whatever follows the code --
+            # nothing, for a line with no trailing comment. The code is in
+            # `anchor`; storing it here too would put one fact in two fields.
+            raw_lines=[lines[n - 1][len(lines[n - 1].rstrip()) :]],
             edit_start=n,
             edit_end=n,
             # !! ONE PAST THE LAST CHARACTER OF CODE -- the same rule a
