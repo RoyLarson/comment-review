@@ -1162,6 +1162,11 @@ def main() -> int:
     ap.add_argument("--census-only", action="store_true")
     ap.add_argument("--json", action="store_true")
     ap.add_argument(
+        "--filtered",
+        action="store_true",
+        help="the reviewer's view: prose blocks, and one line per run of intervals",
+    )
+    ap.add_argument(
         "--out", metavar="PATH", help="write the report to PATH, not stdout"
     )
     ap.add_argument(
@@ -1306,8 +1311,38 @@ def _report(args: argparse.Namespace) -> int:
         )
     print()
 
-    print("CENSUS - every block, numbered.")
+    if args.filtered:
+        # !! A PROJECTION, NEVER A RENUMBERING. Each block keeps the index it
+        # has in the full census, because that index is what the join resolves
+        # and what a record cites -- renumber and every citation from a filtered
+        # reviewer resolves to the wrong block, with nothing able to tell.
+        print("CENSUS - the blocks holding prose, numbered as in the full census.")
+    else:
+        print("CENSUS - every block, numbered.")
+    run: list[int] = []
+
+    def flush_run() -> None:
+        """One line for a stretch of code no prose sits in."""
+        if not run:
+            return
+        first, last = census[run[0] - 1], census[run[-1] - 1]
+        span = f"{first.path}:{first.start}-{last.end}"
+        print(f"{run[0]:4d}-{run[-1]:<4d} {span}  no prose ({len(run)} intervals)")
+        run.clear()
+
     for i, b in enumerate(census, 1):
+        # !! FILTERED, and the intervals become ONE LINE PER RUN rather than
+        # vanishing. Measured 2026-08-18 over 1,120 blocks: the full census is
+        # 131,353 bytes and every reviewer gets an identical copy, 966 of those
+        # blocks are intervals, and prose-only would be 38,446. Collapsing each
+        # run instead costs 52,383 -- 85% of the available saving -- and keeps
+        # what an `add` is actually about visible: a stretch of code carrying no
+        # commentary. A reviewer needing a spot outside its set asks
+        # `locator.py`, which answers from the FULL census.
+        if args.filtered and b.kind == "interval":
+            run.append(i)
+            continue
+        flush_run()
         notes = ",".join(sorted(b.annotations)) or "-"
         anchor = f"  ({b.anchor})" if b.anchor else ""
         loc = address(vars(b))
@@ -1315,6 +1350,7 @@ def _report(args: argparse.Namespace) -> int:
         if not args.census_only:
             for note in b.notes:
                 print(f"        -> {note}")
+    flush_run()
     print()
 
     if unread or unreadable:

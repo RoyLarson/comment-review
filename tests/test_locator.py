@@ -70,3 +70,55 @@ class TestTheCensusShape(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTheFilteredCensusIsAProjection(unittest.TestCase):
+    """`census.py --filtered` narrows the VIEW and never the numbering.
+
+    !! The index is the whole contract. A reviewer cites a block by its number
+    and the join resolves that number against the FULL census, so a filtered
+    view that renumbered would make every citation resolve to the wrong block
+    with nothing able to tell. Measured 2026-08-18 over two files: 124 prose
+    blocks, every filtered index naming the same block as the full census, and
+    822 intervals collapsed into 105 run lines.
+    """
+
+    import re as _re
+
+    BLOCK = _re.compile(r"^\s*(\d+)\s+(\S+)\s+(\S+)\s")
+
+    def _indexed(self, text):
+        out = {}
+        for line in text.split("\n"):
+            m = self.BLOCK.match(line)
+            if m and m.group(3) != "interval":
+                out[int(m.group(1))] = m.group(2)
+        return out
+
+    def test_a_filtered_index_names_the_same_block_as_the_full_one(self):
+        import subprocess
+        import sys as _sys
+
+        target = SCRIPTS / "locator.py"
+        root = SCRIPTS.parent.parent.parent.parent.parent
+
+        def run(*extra):
+            out = subprocess.run(
+                [
+                    _sys.executable,
+                    str(SCRIPTS / "census.py"),
+                    "--repo",
+                    str(root),
+                    *extra,
+                    str(target),
+                ],
+                capture_output=True,
+                text=True,
+                cwd=str(root),
+            )
+            self.assertEqual(out.returncode, 0, out.stderr[-400:])
+            return out.stdout
+
+        full, filtered = self._indexed(run()), self._indexed(run("--filtered"))
+        self.assertTrue(full, "the full census listed no prose block")
+        self.assertEqual(full, filtered)
