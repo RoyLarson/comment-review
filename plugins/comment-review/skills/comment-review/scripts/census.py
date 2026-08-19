@@ -127,6 +127,10 @@ class Block:
     text: str  # the run JOINED, so a wrapped claim matches as one string
     anchor: str = ""  # the declaration it annotates, when structurally known
     tier: str = "lexical"  # which question set this file's census can answer
+    # !! WHICH PLACE THIS IS, as against where it sits -- see `place()`.
+    # Stamped by `census_for`, which is the only caller holding the file
+    # text and the finished block list at once.
+    place: str = ""
     annotations: set[str] = field(default_factory=set)
     notes: list[str] = field(default_factory=list)
 
@@ -1114,6 +1118,47 @@ def address(block: dict) -> str:
     return f"{path}:{block.get('start')}-{block.get('end')}"
 
 
+def place(block: dict, code: list[int]) -> str:
+    """`pkg.mod.py@b3` -- which PLACE this is, as against where it sits.
+
+    !! `address` NAMES A POSITION; THIS NAMES A PLACE, and only the second
+    survives an edit. This tool rewrites prose, and every prose edit moves the
+    line numbers of the code below it -- so `path:start-end` is true of one file
+    state and no other. A place is counted against the CODE instead:
+
+        pkg.mod.py@c3   ON code line 3 -- shares the line with the statement
+        pkg.mod.py@b3   the GAP after code line 3, before code line 4
+
+    `b0` is the gap before the first code line, `bN` after the last, and every
+    comment run, docstring and empty interval sits in one of them.
+
+    !! IT IS READ FROM `edit_start`, THE STATED INSERTION POINT. A file whose
+    only code line is line 1 -- every one-line `__init__.py` -- emits TWO
+    intervals both spanning `1-1`, the gap before that line and the gap after
+    it, and `address` cannot tell them apart. Their `edit_start` can: 1 and 2.
+
+    ! The path is dotted and KEEPS its extension, so `b.py` and `b.rs` cannot
+    collide in a repo holding both -- which this census supports by design.
+
+    Args:
+        block: one census entry, as a dict.
+        code: that file's code lines, in order, from `code_lines`.
+
+    Returns:
+        The block's place, or "" when it carries no usable position.
+    """
+    path = str(block.get("path", "")).replace("\\", "/").replace("/", ".")
+    start = block.get("start")
+    if not isinstance(start, int):
+        return ""
+    if block.get("kind") == "trailing-comment" and start in code:
+        return f"{path}@c{code.index(start) + 1}"
+    at = block.get("edit_start")
+    if not isinstance(at, int):
+        return ""
+    return f"{path}@b{sum(1 for n in code if n < at)}"
+
+
 def _repo_relative(path: Path, repo: Path) -> str:
     """`path` as `repo` sees it: posix, relative, no `..`.
 
@@ -1274,6 +1319,17 @@ def _report(args: argparse.Namespace) -> int:
         rel = _repo_relative(path, repo)
         for b in got:
             b.path = rel
+        # !! THE PRODUCER STATES THE PLACE, and states it HERE -- after the path
+        # is repo-relative, because the place carries that path. Stamping it in
+        # `census_for` named every block by its absolute path, which is not what
+        # any consumer resolves against.
+        #
+        # ! Four consumers would otherwise recompute this from the file, and
+        # each recomputation is a chance to read a file the census no longer
+        # describes.
+        lines = sorted(code_lines(text, got))
+        for b in got:
+            b.place = place(vars(b), lines)
         census.extend(got)
 
     for b in census:
