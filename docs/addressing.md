@@ -133,9 +133,15 @@ addresser.py --census <FULL CENSUS> --anchor NAME --series a|b|c
 # by LINE, when what you have is a line of the original document
 locator.py --census <FULL CENSUS> --at path:LINE
 
-# an address in, the lines it names now out
-addresser.py --census <CENSUS> --repo D --resolve <ADDRESS>
+# an address in, the lines THIS CENSUS says it names out
+addresser.py --census <CENSUS> --resolve <ADDRESS>
 ```
+
+!! **THE ADDRESSER READS THE CENSUS, NEVER THE TREE.** It takes no `--repo`: every question it
+answers is census-internal, and checking the file would assert that line numbers still matter --
+which is what an address exists to stop. The CALLER chooses which census, so a post-write lookup
+censuses the file first and the two agree by construction. ! Staleness belongs where a file is
+WRITTEN: `galley.block_matches` refuses a stale range before it splices.
 
 !! **Prefer the anchor.** Asking by position -- "the block above the `def`" -- is right in Python
 and wrong in Rust, whose `///` sits before its `fn` where Python's docstring sits after. The

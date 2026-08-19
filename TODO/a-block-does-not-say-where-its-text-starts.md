@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks done
+Progress: 2 of 7 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -84,6 +84,14 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       `tests/fixtures/sample.go` exits 2. It kills `--check`, `--resolve` and
       `--anchor` on every non-Python file with a trailing or indented comment, the
       message is unactionable, and **it masks the collision above**.
+- [x] !! **THE ADDRESSER NO LONGER SWEEPS FOR STALENESS -- done 2026-08-19, and it
+      un-blocked the rest of this file.** Roy: *"not necessary for addresser to do
+      the staleness sweep as long as the original census is still an available
+      document ... In a small way it is the addresser stating the line numbers
+      matter still."* ! Every question it takes is census-internal, so it reads no
+      file and takes no `--repo`. **`--check` now reports the mid-line collision
+      it was written to catch** -- `SHARED s.js@b1 <- 0-0 interval | 2-3 comment`
+      -- which the sweep had masked on every non-Python file.
 
 ## Related
 

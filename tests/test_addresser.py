@@ -543,3 +543,66 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         found = addresser.for_anchor("go", "c", self.blocks)
         self.assertEqual([b["start"] for b in found], [6])
         self.assertIn(found[0]["kind"], addresser.SHARES_ITS_LINE)
+
+
+class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
+    """It takes no `--repo`, and every question it answers is census-internal.
+
+    !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
+    what an address exists to stop. Roy, 2026-08-19: *"not necessary for
+    addresser to do the staleness sweep as long as the original census is still
+    an available document ... In a small way it is the addresser stating the
+    line numbers matter still."*
+
+    ! A sweep was here and it refused a census built SECONDS earlier on every
+    non-Python file carrying a trailing comment -- and masked a real collision
+    `--check` exists to report. Staleness belongs where a file is WRITTEN;
+    `galley.block_matches` refuses a stale range before it splices.
+    """
+
+    def _run(self, *args):
+        import subprocess
+        import sys as _sys
+
+        return subprocess.run(
+            [_sys.executable, str(SCRIPTS / "addresser.py"), *args],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+
+    def test_it_reads_no_file_but_the_census(self):
+        text = (SCRIPTS / "addresser.py").read_text(encoding="utf-8")
+        body = text.split('"""', 2)[-1]
+        self.assertEqual(body.count("read_text"), 1, "only the census is read")
+        self.assertNotIn("from galley import", body)
+
+    def test_it_takes_no_repo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            census = Path(tmp) / "c.json"
+            census.write_text("[]", encoding="utf-8")
+            out = self._run("--census", str(census), "--repo", tmp, "--check")
+            self.assertNotEqual(out.returncode, 0)
+            self.assertIn("unrecognized arguments: --repo", out.stderr)
+
+    def test_check_answers_on_a_census_of_a_file_that_has_since_CHANGED(self):
+        # !! THE POINT. The census is the document; the tree may have moved on.
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "m.py"
+            src.write_text("# a note\nx = 1\n", encoding="utf-8")
+            got = census.census_for(
+                src, src.read_text(encoding="utf-8"), census.language_for(src)
+            )
+            lines = sorted(census.code_lines(src.read_text(encoding="utf-8"), got))
+            for b in got:
+                b.address = addresser.address(vars(b), lines)
+            census_json = Path(tmp) / "c.json"
+            census_json.write_text(
+                __import__("json").dumps([vars(b) for b in got], default=str),
+                encoding="utf-8",
+            )
+            src.write_text("import os\n\n\n# a note\nx = 1\n", encoding="utf-8")
+            out = self._run("--census", str(census_json), "--check")
+            self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+            self.assertIn("blocks addressed", out.stdout)

@@ -134,7 +134,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from galley import block_matches  # noqa: E402  -- path shim must run first
 from pcst import OCCUPIES_NOTHING  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
@@ -493,7 +492,6 @@ def main() -> int:
         reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--census", required=True, help="the census JSON")
-    ap.add_argument("--repo", default=".", help="repo root the paths are under")
     ap.add_argument(
         "--check",
         action="store_true",
@@ -531,37 +529,29 @@ def main() -> int:
         print(f"{args.census} carries no blocks")
         return 2
 
-    repo = Path(args.repo).resolve()
-    moved: list[str] = []
-    for path in sorted({str(b.get("path", "")) for b in blocks}):
-        try:
-            text = (repo / path).read_text(encoding="utf-8")
-        except READ_ERRORS as e:
-            print(f"CANNOT READ {path} ({type(e).__name__})")
-            return 2
-        mine = [b for b in blocks if b.get("path") == path]
-        # !! REFUSE A CENSUS OLDER THAN THE FILE, rather than answering from it.
-        # Every line number here is read against the tree, so a file edited
-        # since the census was built produces confident nonsense -- a place
-        # named for code that has moved. `galley.block_matches` already asks
-        # exactly this before it splices, for exactly this reason.
-        #
-        # ! Written after doing it FOUR TIMES in one session: an oracle diff, a
-        # reachability call, a coverage figure of 51%, and a `SHARED` row that
-        # listed one block. Each time the artifact was three edits old and the
-        # answer looked like a defect in the code. A note to remember would have
-        # failed a fifth time; this cannot.
-        stale = [b for b in mine if not block_matches(text.splitlines(), b)]
-        if stale:
-            moved.append(f"{path}: {len(stale)} of {len(mine)} blocks no longer match")
-    if moved:
-        for line in moved:
-            print(f"STALE CENSUS  {line}")
-        print(
-            "\nThe tree has moved since this census was built, so no address it"
-            " names can be trusted. Re-run census.py."
-        )
-        return 2
+    # !! NO STALENESS SWEEP. This module answers about the CENSUS IT WAS GIVEN,
+    # and every question it takes is census-internal: does each address resolve
+    # to one block, what lines does this census say an address names, which
+    # place is this anchor's `c`. None of them reads the tree.
+    #
+    # !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
+    # the thing an address exists to stop mattering. Roy, 2026-08-19: *"not
+    # necessary for addresser to do the staleness sweep as long as the original
+    # census is still an available document ... it doesn't matter that the file
+    # changed lines underneath it. In a small way it is the addresser stating
+    # the line numbers matter still."*
+    #
+    # ! A sweep WAS here, added after four artifacts three edits old were each
+    # read as a defect in the code. That failure was real and the guard was in
+    # the wrong module: staleness matters where a file is WRITTEN, and
+    # `galley.block_matches` already refuses a stale range before it splices.
+    # Here it refused a census built seconds earlier on every non-Python file
+    # carrying a trailing comment, with a message that re-running never fixed --
+    # and it masked a genuine collision `--check` exists to report.
+    #
+    # ! THE CALLER CHOOSES THE CENSUS, which is what makes this safe. Stage 8
+    # censuses the file as it now stands and resolves against that, so the two
+    # agree by construction rather than by inspection.
 
     if args.anchor:
         if not args.series:
