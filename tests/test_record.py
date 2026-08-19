@@ -11,6 +11,7 @@ from pathlib import Path
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
 import addresser
 import census
+import held
 import record
 import verdicts
 
@@ -279,15 +280,13 @@ class TestConvertKeepsAHeldRunReplayable(unittest.TestCase):
 
     def test_a_two_marker_claim_becomes_its_two_keys(self):
         self.assertEqual(
-            record.claim_object(
-                "correct", 'false: "the budget is 3" / true: "it is 5"'
-            ),
+            held.claim_object("correct", 'false: "the budget is 3" / true: "it is 5"'),
             {"false": "the budget is 3", "true": "it is 5"},
         )
 
     def test_a_drop_carries_its_one_key(self):
         self.assertEqual(
-            record.claim_object("drop", 'drop: "callers round separately"'),
+            held.claim_object("drop", 'drop: "callers round separately"'),
             {"drop": "callers round separately"},
         )
 
@@ -295,7 +294,7 @@ class TestConvertKeepsAHeldRunReplayable(unittest.TestCase):
         # !! The old format carried these as prose inside CLAIM, checked by
         # regex rather than by marker. A conversion reading only markers turned
         # 179 of one report's 228 admissible records into malformed ones.
-        got = record.claim_object(
+        got = held.claim_object(
             "add", 'missing: "the units are seconds", above `COOLDOWN_HOLD_S`'
         )
         self.assertEqual(got["anchor"], "`COOLDOWN_HOLD_S`")
@@ -304,11 +303,11 @@ class TestConvertKeepsAHeldRunReplayable(unittest.TestCase):
         # !! THE ADDRESS SAYS WHICH SIDE. A 0.2.x claim stated it as prose;
         # carrying that word forward would put the field back that this
         # conversion exists to leave behind.
-        got = record.claim_object("add", 'missing: "x", before `F`')
+        got = held.claim_object("add", 'missing: "x", before `F`')
         self.assertNotIn("side", got)
 
     def test_a_query_recovers_its_shape_and_owes_the_rest(self):
-        got = record.claim_object(
+        got = held.claim_object(
             "query", "outside my role -- I grepped for it and found nothing"
         )
         self.assertEqual(got["shape"], "outside my role")
@@ -316,7 +315,7 @@ class TestConvertKeepsAHeldRunReplayable(unittest.TestCase):
         self.assertIn("settles", got)
 
     def test_an_unknown_verdict_converts_to_an_empty_claim(self):
-        self.assertEqual(record.claim_object("reject", 'drop: "x"'), {})
+        self.assertEqual(held.claim_object("reject", 'drop: "x"'), {})
 
 
 class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
@@ -349,26 +348,20 @@ class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
         )
 
     def test_a_finding_on_an_interval_is_not_dropped(self):
-        report = record.convert(
-            [self._F("pkg:m.py@b1", "add")], CENSUS, "module-context"
-        )
+        report = held.convert([self._F("pkg:m.py@b1", "add")], CENSUS, "module-context")
         cited = [r for r in report["records"] if r["address"] == "pkg:m.py@b1"]
         self.assertEqual(len(cited), 1)
         self.assertEqual(cited[0]["verdict"], "add")
 
     def test_the_interval_slot_carries_the_censuss_address(self):
-        report = record.convert(
-            [self._F("pkg:m.py@b1", "add")], CENSUS, "module-context"
-        )
+        report = held.convert([self._F("pkg:m.py@b1", "add")], CENSUS, "module-context")
         cited = next(r for r in report["records"] if r["address"] == "pkg:m.py@b1")
         # !! THE STABLE ADDRESS, not a line range. A line range is true of one
         # file state and this tool edits prose; deprecated 2026-08-18.
         self.assertEqual(cited["address"], "pkg:m.py@b1")
 
     def test_records_stay_in_census_order(self):
-        report = record.convert(
-            [self._F("pkg:m.py@b1", "add")], CENSUS, "module-context"
-        )
+        report = held.convert([self._F("pkg:m.py@b1", "add")], CENSUS, "module-context")
         # ! Census order, which the addresses no longer sort into by string --
         # the census position is what `convert` orders by.
         order = [b["address"] for b in CENSUS]
@@ -381,7 +374,7 @@ class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
             self._F("pkg:m.py@b1", "add"),
             self._F("pkg:m.py@b2", "add"),
         ]
-        report = record.convert(findings, CENSUS, "module-context")
+        report = held.convert(findings, CENSUS, "module-context")
         ruled = [r for r in report["records"] if r["verdict"] is not None]
         self.assertEqual(len(ruled), 3)
 
@@ -797,7 +790,7 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
             f"FINDING     nothing to report from this role\n---"
             for i in indices
         )
-        found, problems = record.parse_report(text, "ownership-context")
+        found, problems = held.parse_report(text, "ownership-context")
         self.assertEqual(problems, [])
         return found
 
@@ -816,17 +809,17 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
 
     def test_convert_REFUSES_and_names_what_is_missing(self):
         with self.assertRaises(ValueError) as caught:
-            record.convert(self._held(self.prose), self.census, "ownership-context")
+            held.convert(self._held(self.prose), self.census, "ownership-context")
         said = str(caught.exception)
         self.assertIn("carry no address", said)
         self.assertIn("census POSITION", said)
 
     def test_it_refuses_rather_than_dropping_them_quietly(self):
         # !! The failure being replaced: a file of null verdicts and exit 0.
-        held = self._held(self.prose)
-        self.assertGreater(len(held), 0)
+        records = self._held(self.prose)
+        self.assertGreater(len(records), 0)
         with self.assertRaises(ValueError):
-            record.convert(held, self.census, "ownership-context")
+            held.convert(records, self.census, "ownership-context")
 
     def test_the_REAL_held_run_in_this_repo_is_refused(self):
         """The regression fixture: a genuine 0.2.x census and its own report."""
@@ -835,25 +828,27 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
             self.skipTest("the held run is not in this checkout")
         old = json.loads((run / "census.json").read_text(encoding="utf-8"))
         text = (run / "ownership-context.md").read_text(encoding="utf-8")
-        held, problems = record.parse_report(text, "ownership-context")
+        records, problems = held.parse_report(text, "ownership-context")
         self.assertEqual(problems, [])
-        self.assertGreater(len(held), 100, "the held report should carry its findings")
+        self.assertGreater(
+            len(records), 100, "the held report should carry its findings"
+        )
         # !! The census it was written against carries no addresses at all.
         self.assertFalse(any(b.get("address") for b in old))
         # ! And its kinds are not today's, so the indices do not survive either.
         self.assertNotIn("margin", {b["kind"] for b in old})
         with self.assertRaises(ValueError):
-            record.convert(held, old, "ownership-context")
+            held.convert(records, old, "ownership-context")
 
     def test_an_ADDRESSED_report_still_converts(self):
         # ! The bridge is not dead -- it carries a run held from 0.2.4 on, where
         # a record names a PLACE rather than a position.
-        held = self._held(self.prose)
-        for f in held:
+        records = self._held(self.prose)
+        for f in records:
             f.address = self.census[f.block - 1]["address"]
-        out = record.convert(held, self.census, "ownership-context")
+        out = held.convert(records, self.census, "ownership-context")
         ruled = [r for r in out["records"] if r["verdict"] is not None]
-        self.assertEqual(len(ruled), len(held))
+        self.assertEqual(len(ruled), len(records))
         self.assertEqual(
             {r["address"] for r in ruled},
             {self.census[i - 1]["address"] for i in self.prose},

@@ -94,6 +94,7 @@ from desk import (  # noqa: E402  -- path shim must run first
     ruled_text,
     source_problem,
 )
+from held import address_of, load_report  # noqa: E402  -- path shim must run first
 from pcst import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     VERDICTS,
@@ -101,10 +102,8 @@ from record import (  # noqa: E402  -- path shim must run first
     _is,
     _n,
     _substantive,
-    address_of,
     claim_text,
     entry_for,
-    load_report,
 )
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 from vocabulary import Reviewer  # noqa: E402  -- path shim must run first
@@ -412,8 +411,8 @@ def _report(args: argparse.Namespace) -> int:
             # report joins as "names no paragraph". Everything downstream is
             # address-keyed.
             #
-            # ! `record.address_of` OWNS THE RULE. It was written out here and
-            # NOT in `record.convert`, so a held report joined and did not
+            # ! `held.address_of` OWNS THE RULE. It was written out here and
+            # NOT in `held.convert`, so a held report joined and did not
             # convert: `convert` grouped on `f.address`, every held finding
             # landed under "", and it returned a file of null verdicts and
             # exited 0. Measured 2026-08-19, 3 of 3 dropped on a six-line file.
@@ -568,12 +567,12 @@ def _report(args: argparse.Namespace) -> int:
             f"\nA FINDING WITH NO RECORD -- {_n(len(unrecorded), 'phrase')} quoted in"
             " REASON that no CLAIM names:"
         )
-        for paragraph, reviewer, phrase in unrecorded[:20]:
-            print(f"  BLOCK {block} {reviewer}: {phrase!r}")
+        for at, reviewer, phrase in unrecorded[:20]:
+            print(f"  {at} {reviewer}: {phrase!r}")
         if len(unrecorded) > 20:
             print(f"  ... and {len(unrecorded) - 20} more")
         print(
-            "  Each is the paragraph's OWN words. File a second record on that paragraph"
+            "  Each is the paragraph's OWN words. File a second record on it"
             " rather than leaving the finding in prose nothing reads."
         )
 

@@ -1656,7 +1656,7 @@ def _report(args: argparse.Namespace) -> int:
         # cited singly -- `locator.py` answers which one holds a given line.
         at = first.address.split("@")[-1]
         seat = at if len(run) == 1 else f"{at}..{last.address.split('@')[-1]}"
-        # !! THE SAME COLUMNS AS A BLOCK LINE -- index, address, KIND, lines,
+        # !! THE SAME COLUMNS AS A PARAGRAPH ROW -- index, address, KIND, lines,
         # notes -- because this listing is pasted into a reviewer's prompt and
         # is read down its columns. Written as prose (`no prose (5 intervals)`)
         # the third column read `no`, which is where a paragraph states its kind,

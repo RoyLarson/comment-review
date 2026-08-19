@@ -13,6 +13,10 @@ each exists because the thing it looks for had already gone wrong unnoticed:
             every term it reads is given. The rule is "give a role the terms its
             text uses", so the lists go stale whenever the prose is edited -- 26
             terms had drifted across all six roles before this check existed.
+  RETIRED   No shipped file uses a word the vocabulary retired. Nothing enforced
+            this, so `block` survived in 298 places after `paragraph` replaced
+            it, and the shipped definition of a block still read "the interval
+            between two lines of CODE" -- a shape a prose file does not have.
 
 ! The role -> files mapping is DERIVED, not listed here: an agent file names the
 document it is told to read, so this reads it out of the tree. A listed copy
@@ -38,6 +42,52 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 AGENTS = REPO / "plugins/comment-review/agents"
+
+# !! WHAT THE VOCABULARY RETIRED, and the word that replaced it. A shipped file
+# may not use the left-hand side.
+RETIRED = {
+    "block": "paragraph",
+    "blocks": "paragraphs",
+}
+
+# !! THE WAY OUT, AND IT IS PER FILE. Roy, 2026-08-19: *"let's give ourselves a
+# `# noqa: vocabulary` out on the files that are not about the prose or the
+# current representation. Let's make certain to move the code into separate
+# files to make it easy."*
+#
+# ! A file carrying this marker is EXEMPT WHOLE, which is why the code that
+# needs it was moved out first: `held.py` reads a format that no longer ships
+# and must say `BLOCK`, because that is the line marker in reports already on
+# disk. Renaming it there made 173 of 173 held records unreadable, measured
+# 2026-08-19. Exempting a line rather than a file would let the retired word
+# creep back into a file that is about the CURRENT representation, one
+# suppression at a time.
+NOQA = "# noqa: vocabulary"
+
+# !! A RETIRED WORD *NAMED* IS NOT A RETIRED WORD *USED*, and the difference is
+# the backticks. `paragraph`'s own definition says *"`block` is the older word
+# for it"*, and `pcst.py` explains what `block` meant before -- both are how this
+# repo keeps an error legible instead of erasing it, which is the same rule that
+# keeps a SUPERSEDED task checked rather than deleted. A sentence that USES the
+# word to mean the thing is what this catches.
+MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ")
+
+# ! And these are not the retired term at all, by exact form:
+#   block-context   a ROLE NAME -- an agent id, a filename, a `--reviewers`
+#                   value, and the stem every held report is filed under
+#   TEXT BLOCK      a Java language feature
+#   block: int      the DEPRECATED 0.2.x record index on `Finding`, which names
+#                   a field in reports already written. `.block` and `block=`
+#                   are the same field read and written.
+NOT_THE_TERM = (
+    "block-context",
+    "TEXT BLOCK",
+    "block_matches",
+    "block: int",
+    ".block",
+    "block=",
+    '"BLOCK"',
+)
 REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
 EMITTED = REFERENCES / "vocabulary.toml"
 
@@ -159,6 +209,33 @@ def check_drift(definitions: dict[str, str], roles: dict[str, list[str]]) -> int
     return drift
 
 
+def check_retired() -> int:
+    """No shipped file uses a retired word, unless it declares the exemption.
+
+    ! It reads the SHIPPED tree only. `docs/` records what was decided and when,
+    and `tests/` names fixtures after the format they exercise; neither is handed
+    to an agent, and rewriting the record is how a record stops being one.
+    """
+    bad = 0
+    for path in sorted((REPO / "plugins").rglob("*")):
+        if not path.is_file() or path.suffix not in (".md", ".py", ".toml"):
+            continue
+        text = path.read_text(encoding="utf-8")
+        if NOQA in text:
+            continue
+        for word, instead in RETIRED.items():
+            hay = text
+            for allowed in (*MENTION, *NOT_THE_TERM):
+                hay = hay.replace(allowed, "")
+            hits = len(re.findall(rf"(?<![\w-]){word}(?![\w-])", hay, re.I))
+            if hits:
+                rel = path.relative_to(REPO).as_posix()
+                print(f"{rel}  RETIRED  {hits}x {word!r} -- say {instead!r}")
+                bad += hits
+    print(f"\n{len(RETIRED)} retired words, {bad} uses in the shipped tree.")
+    return bad
+
+
 def main() -> int:
     """Run both checks; exit nonzero if either found something."""
     # ! A Windows console is cp1252; one non-ASCII glyph in this program's own
@@ -177,7 +254,8 @@ def main() -> int:
     definitions, roles = data["definitions"], data["roles"]
     holes = check_complete(definitions, roles)
     drift = check_drift(definitions, roles)
-    return 1 if (holes or drift) else 0
+    retired = check_retired()
+    return 1 if (holes or drift or retired) else 0
 
 
 if __name__ == "__main__":

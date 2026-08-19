@@ -3,8 +3,18 @@
 import unittest  # noqa: I001  -- path shim below must import before vocabulary
 from pathlib import Path
 
+import sys
+
 from _paths import SCRIPTS  # noqa: F401
 import vocabulary as vocab
+
+REPO = Path(__file__).resolve().parent.parent
+REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
+
+# ! `check_vocabulary.py` is a development script, not a shipped one, so it is
+# not on the path `_paths` sets up for the plugin's own modules.
+sys.path.insert(0, str(REPO / "scripts"))
+import check_vocabulary as cv  # noqa: E402
 
 
 class TestTheFile(unittest.TestCase):
@@ -117,3 +127,65 @@ class TestProseTreeRetired(unittest.TestCase):
 # test_vocabulary.py.
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTheRetiredWordsStayRetired(unittest.TestCase):
+    """A shipped file may not USE a word the vocabulary retired.
+
+    !! NOTHING ENFORCED THIS, so `block` survived in 298 shipped places after
+    `paragraph` replaced it, and three shipped DEFINITIONS still used it in
+    their own text -- `clean`, `record` and `load-bearing` -- while the entry
+    for `block` itself had already been rewritten. B7 renamed the term and not
+    the sentences that spend it.
+
+    ! `record`'s was also FALSE by then: it said the tool seeds *"the block
+    index and address"*, and a seeded slot carries an address and an anchor and
+    no index at all.
+    """
+
+    def test_the_shipped_tree_uses_no_retired_word(self):
+        self.assertEqual(cv.check_retired(), 0)
+
+    def test_a_retired_word_IS_caught(self):
+        # ! Guards the guard: a check that never fires is a green bar over
+        # nothing, which is the whole reason this file exists.
+        self.assertTrue(cv.RETIRED)
+        for word in cv.RETIRED:
+            with self.subTest(word=word):
+                self.assertNotIn(word, ("paragraph", "paragraphs"))
+
+    def test_a_MENTION_in_backticks_is_not_a_use(self):
+        # !! `paragraph`'s own definition says "`block` is the older word for
+        # it", and `pcst.py` explains what the word meant before. Both keep an
+        # error legible rather than erasing it -- the same rule that keeps a
+        # SUPERSEDED task checked instead of deleted.
+        self.assertIn("`block`", cv.MENTION)
+        toml = (REFERENCES / "vocabulary.toml").read_text(encoding="utf-8")
+        self.assertIn("`block` is the older word", toml)
+
+    def test_the_EXEMPTION_is_per_file_and_held_carries_it(self):
+        """!! `held.py` reads a format that no longer ships and must say
+        `BLOCK`, because that is the line MARKER in reports already on disk.
+
+        Renaming it there made 173 of 173 held records unreadable, measured
+        2026-08-19. It is exempt WHOLE, which is why the code that needs the
+        exemption was moved out of `record.py` first -- 473 lines, 30% of a file
+        that announces ONE subject. Roy, 2026-08-19: *"let's make certain to
+        move the code into separate files to make it easy."*
+        """
+        held = SCRIPTS / "held.py"
+        self.assertTrue(held.exists(), "held.py is where the retired format lives")
+        self.assertIn(cv.NOQA, held.read_text(encoding="utf-8"))
+
+    def test_NO_OTHER_shipped_file_claims_the_exemption(self):
+        # !! A per-FILE out is only safe while it stays rare. Exempting a file
+        # that IS about the current representation would let the retired word
+        # creep back one suppression at a time.
+        claimed = [
+            f.name
+            for f in sorted((REPO / "plugins").rglob("*"))
+            if f.is_file()
+            and f.suffix in (".md", ".py", ".toml")
+            and cv.NOQA in f.read_text(encoding="utf-8")
+        ]
+        self.assertEqual(claimed, ["held.py"])

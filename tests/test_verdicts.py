@@ -10,6 +10,7 @@ from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
 import census
+import held
 import record
 import desk
 import verdicts
@@ -96,26 +97,26 @@ def _finding(**kw):
 
 class TestParsing(unittest.TestCase):
     def test_a_record_is_parsed(self):
-        found, _ = record.parse_report(REPORT, "block-context")
+        found, _ = held.parse_report(REPORT, "block-context")
         self.assertEqual(len(found), 2)
         self.assertEqual(found[0].block, 1)
         self.assertEqual(found[0].verdict, "correct")
         self.assertEqual(found[0].sources, ["a.py:5 | the settling line"])
 
     def test_a_clean_record_parses_like_any_other(self):
-        found, _ = record.parse_report(REPORT, "block-context")
+        found, _ = held.parse_report(REPORT, "block-context")
         self.assertEqual(found[1].verdict, "clean")
         self.assertEqual(found[1].block, 2)
 
     def test_the_reviewer_is_attached(self):
-        found, _ = record.parse_report(REPORT, "block-context")
+        found, _ = held.parse_report(REPORT, "block-context")
         self.assertEqual(found[0].reviewer, "block-context")
 
     def test_a_bare_range_line_accounts_for_nothing(self):
         # A range list used to cover N paragraphs in one line and cite nothing. It is
         # not a record, so it parses to no findings and every paragraph it named is a
         # coverage gap.
-        found, malformed = record.parse_report("CLEAN 1-9\n", "module-context")
+        found, malformed = held.parse_report("CLEAN 1-9\n", "module-context")
         self.assertEqual(found, [])
         self.assertEqual(malformed, [])
 
@@ -139,7 +140,7 @@ REASON      second record, closed
 CHANGE      # y, in its paragraph
 ---
 """
-        found, malformed = record.parse_report(text, "block-context")
+        found, malformed = held.parse_report(text, "block-context")
         self.assertTrue(
             malformed, "an opener/closer mismatch must be reported as malformed"
         )
@@ -453,16 +454,16 @@ REASON      nothing to report from this role
 """
 
     def test_the_lines_are_carried(self):
-        self.assertEqual(len(record.code_concerns(self.REPORT)), 2)
-        self.assertIn("malformed row", record.code_concerns(self.REPORT)[0])
+        self.assertEqual(len(held.code_concerns(self.REPORT)), 2)
+        self.assertIn("malformed row", held.code_concerns(self.REPORT)[0])
 
     def test_a_report_without_the_section_carries_none(self):
-        self.assertEqual(record.code_concerns(_clean_records(1)), [])
+        self.assertEqual(held.code_concerns(_clean_records(1)), [])
 
     def test_they_are_not_findings(self):
         # They carry no verdict, so they must never reach the record parser --
         # a code concern counted as a finding would enter coverage arithmetic.
-        found, _ = record.parse_report(self.REPORT, "block-context")
+        found, _ = held.parse_report(self.REPORT, "block-context")
         self.assertEqual(len(found), 1)
         self.assertEqual(found[0].verdict, "clean")
 
@@ -495,7 +496,7 @@ class TestWorkList(unittest.TestCase):
         # sentinel first. `parse_report` returns it on the side instead, so
         # there is nothing for the work list to leave out.
         text = "--- RECORD\nVERDICT     drop\nLOCATION    a.py:1\n---\n"
-        found, malformed = record.parse_report(text, "block-context")
+        found, malformed = held.parse_report(text, "block-context")
         self.assertEqual(found, [])
         self.assertEqual(malformed, ["a record with no PARAGRAPH index"])
 
@@ -669,7 +670,7 @@ class TestContradiction(unittest.TestCase):
             "--- RECORD\nVERDICT     drop\nLOCATION    a.py:1\n---\n"
             "--- RECORD\nVERDICT     correct\nLOCATION    a.py:1\n---\n"
         )
-        found, malformed = record.parse_report(text, "ownership-context")
+        found, malformed = held.parse_report(text, "ownership-context")
         self.assertEqual(len(malformed), 2)
         self.assertEqual(
             verdicts.contradictions(verdicts.by_paragraph(found), self.PARAGRAPHS), []
@@ -771,7 +772,8 @@ class TestSource(unittest.TestCase):
 
     # ! The two LOCATION tests retired with the field. LOCATION was checked for
     # RESOLVABILITY and never against the paragraph it claimed to describe, so a
-    # finding attached to the wrong paragraph resolved cleanly. `TestClaimAgainstTheCensus`
+    # finding attached to the wrong paragraph resolved cleanly.
+    # `TestClaimAgainstTheCensus`
     # is what replaces it, and it is a stronger check than the one removed.
 
 
@@ -821,7 +823,7 @@ class TestSeveralSources(unittest.TestCase):
             'CLAIM       false: "x" / true: "y"\nREASON      y\n'
             "CHANGE      # b, in its paragraph\n---\n"
         )
-        found, _ = record.parse_report(text, "block-context")
+        found, _ = held.parse_report(text, "block-context")
         self.assertEqual(len(found[0].sources), 2)
 
 
@@ -966,7 +968,7 @@ class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
     """
 
     def _one(self, body):
-        found, malformed = record.parse_report(
+        found, malformed = held.parse_report(
             f"--- RECORD\n{body}---\n", "block-context"
         )
         self.assertEqual(malformed, [])
@@ -1239,7 +1241,7 @@ class TestTheBlockLineParses(unittest.TestCase):
     """`PARAGRAPH <index> | <address>` with the original on the lines below."""
 
     def _one(self, body):
-        found, malformed = record.parse_report(
+        found, malformed = held.parse_report(
             f"--- RECORD\n{body}---\n", "block-context"
         )
         self.assertEqual(malformed, [])
@@ -1273,7 +1275,7 @@ class TestSourcesTakeContinuationLines(unittest.TestCase):
     """SOURCES is plural because it repeats -- by label or by continuation."""
 
     def _sources(self, body):
-        found, _ = record.parse_report(f"--- RECORD\n{body}---\n", "block-context")
+        found, _ = held.parse_report(f"--- RECORD\n{body}---\n", "block-context")
         return found[0].sources
 
     def test_a_second_citation_below_the_label_is_its_own_entry(self):
@@ -1939,7 +1941,8 @@ class TestCLI(unittest.TestCase):
         self.census.write_text(
             json.dumps(
                 # ! `text` is not optional. `block_problem` matches the sentence
-                # a finding rules on against the paragraph it cites, so a fixture without
+                # a finding rules on against the paragraph it cites, so a fixture
+                # without
                 # it refuses every finding -- which is the check working, and
                 # the real census has carried `text` since it was written.
                 [
@@ -2395,11 +2398,11 @@ class TestAMalformedSourceIsItsOwnEntry(unittest.TestCase):
     )
 
     def test_the_malformed_citation_becomes_its_own_entry(self):
-        findings, _ = record.parse_report(self.REPORT, "block-context")
+        findings, _ = held.parse_report(self.REPORT, "block-context")
         self.assertEqual(len(findings[0].sources), 2)
 
     def test_the_good_citation_keeps_its_own_verbatim_half(self):
-        findings, _ = record.parse_report(self.REPORT, "block-context")
+        findings, _ = held.parse_report(self.REPORT, "block-context")
         self.assertEqual(findings[0].sources[0], "a.py:10 | def real_line():")
 
     def test_a_wrapped_verbatim_half_holding_a_pipe_still_continues(self):
@@ -2409,7 +2412,7 @@ class TestAMalformedSourceIsItsOwnEntry(unittest.TestCase):
             "            b.py | this citation has no line number\n",
             "            def _show(repo: Path, ref: str) -> str | None:\n",
         )
-        findings, _ = record.parse_report(report, "block-context")
+        findings, _ = held.parse_report(report, "block-context")
         self.assertEqual(len(findings[0].sources), 1)
 
 
@@ -2706,7 +2709,7 @@ class TestAMalformedEntryIsReportedNotRaised(unittest.TestCase):
     """
 
     def _load(self, doc):
-        return record.load_report(Path("block-context.json"), doc, "block-context")
+        return held.load_report(Path("block-context.json"), doc, "block-context")
 
     def test_a_report_that_is_a_JSON_list_is_reported(self):
         found, malformed, _ = self._load('[{"path": "a.py"}]')
@@ -2776,7 +2779,7 @@ class TestTheJoinReadsRecords(unittest.TestCase):
                 }
             ]
         )
-        found, malformed, _ = record.load_report(
+        found, malformed, _ = held.load_report(
             path, path.read_text(encoding="utf-8"), "block-context"
         )
         self.assertEqual(malformed, [])
@@ -2788,14 +2791,14 @@ class TestTheJoinReadsRecords(unittest.TestCase):
 
     def test_an_unfilled_slot_is_skipped_not_malformed(self):
         path = self._write([{"address": "a.py@b0", "verdict": None}])
-        found, malformed, _ = record.load_report(
+        found, malformed, _ = held.load_report(
             path, path.read_text(encoding="utf-8"), "block-context"
         )
         self.assertEqual((found, malformed), ([], []))
 
     def test_unparseable_json_names_its_own_position(self):
         self.path.write_text('{"records": [ ,, ]}', encoding="utf-8")
-        found, malformed, _ = record.load_report(
+        found, malformed, _ = held.load_report(
             self.path, self.path.read_text(encoding="utf-8"), "block-context"
         )
         self.assertEqual(found, [])
@@ -2812,7 +2815,7 @@ class TestTheJoinReadsRecords(unittest.TestCase):
             "VERDICT     clean\n---\n",
             encoding="utf-8",
         )
-        found, _, _ = record.load_report(
+        found, _, _ = held.load_report(
             path, path.read_text(encoding="utf-8"), "block-context"
         )
         self.assertEqual(len(found), 1)
@@ -2874,28 +2877,28 @@ class TestABareFieldLabelIsStillALabel(unittest.TestCase):
     )
 
     def test_a_bare_label_matches(self):
-        self.assertTrue(record.FIELD.match("CHANGE"))
+        self.assertTrue(held.FIELD.match("CHANGE"))
 
     def test_a_longer_word_starting_with_a_label_does_not(self):
         # After the label the pattern needs whitespace or the end of the line.
-        self.assertIsNone(record.FIELD.match("CHANGES  x"))
-        self.assertIsNone(record.FIELD.match("CHANGE: x"))
+        self.assertIsNone(held.FIELD.match("CHANGES  x"))
+        self.assertIsNone(held.FIELD.match("CHANGE: x"))
 
     def test_the_bare_label_does_not_pollute_the_source_above_it(self):
-        findings, _ = record.parse_report(self.REPORT, "block-context")
+        findings, _ = held.parse_report(self.REPORT, "block-context")
         self.assertEqual(
             findings[0].sources,
             ["a.py:10 | THE ONE PLACE ANY ASSERTION MAY LIVE."],
         )
 
     def test_the_empty_field_is_what_survives(self):
-        findings, _ = record.parse_report(self.REPORT, "block-context")
+        findings, _ = held.parse_report(self.REPORT, "block-context")
         self.assertEqual(findings[0].change, "")
 
     def test_the_record_is_refused_for_the_empty_change(self):
         # ! The point of the fix: the RIGHT refusal, not a citation error on a
         # correct citation.
-        findings, _ = record.parse_report(self.REPORT, "block-context")
+        findings, _ = held.parse_report(self.REPORT, "block-context")
         problem = desk.payload_problem(findings[0])
         self.assertIsNotNone(problem)
         self.assertIn("CHANGE", problem)

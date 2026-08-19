@@ -150,7 +150,8 @@ class TestEveryFileIsCensusedOrItErrors(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
 
     def test_an_argument_matching_nothing_is_fatal(self):
-        # "0 paragraphs" from a typo reads exactly like "0 paragraphs" from a clean file.
+        # "0 paragraphs" from a typo reads exactly like "0 paragraphs" from a clean
+        # file.
         result = self._run("ok.py", "no-such-directory")
         self.assertEqual(result.returncode, 1)
         self.assertIn("matched no files", result.stdout)

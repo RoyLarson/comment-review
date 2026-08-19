@@ -670,9 +670,8 @@ def _resolve_one(address: str, paragraphs: list[dict]) -> int:
         return 1
     for i in hits:
         paragraph = mine[i - 1]
-        print(
-            f"{real}:{paragraph.get('start')}-{paragraph.get('end')}\t{paragraph.get('kind', '')}"
-        )
+        span = f"{paragraph.get('start')}-{paragraph.get('end')}"
+        print(f"{real}:{span}\t{paragraph.get('kind', '')}")
     return 0
 
 
@@ -748,12 +747,14 @@ def _check(paragraphs: list[dict]) -> int:
             where = stable(paragraph)
             if not where:
                 unaddressed.append(
-                    f"{path} entry {i}: lines {paragraph.get('start')}-{paragraph.get('end')}"
+                    f"{path} entry {i}: lines"
+                    f" {paragraph.get('start')}-{paragraph.get('end')}"
                 )
                 continue
             if len(resolve(where, mine)) > 1:
                 shared.setdefault(where, []).append(
-                    f"{paragraph.get('start')}-{paragraph.get('end')} {paragraph.get('kind', '')}"
+                    f"{paragraph.get('start')}-{paragraph.get('end')}"
+                    f" {paragraph.get('kind', '')}"
                 )
     for line in unaddressed:
         print(f"UNADDRESSED  {line}")
