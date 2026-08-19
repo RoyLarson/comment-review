@@ -203,7 +203,7 @@ that changed a published name or rule:
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | session * Roy (* 1 ruling wanted -- task 1) | yes | 0/6 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | session * Roy (* 1 ruling) | yes | 0/5 | The role with verdict precedence has the least mechanical support |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | session * Roy (* 3 rulings) | yes | 5/15 | Two live runs proposed fifteen changes |
-| [address-is-not-stable-under-prose-edits](address-is-not-stable-under-prose-edits.md) | session * Roy (* 1 ruling -- whether the anchor pair becomes THE address) | yes | 0/5 | A line-numbered address is not stable under the edits this tool makes |
+| [address-is-not-stable-under-prose-edits](address-is-not-stable-under-prose-edits.md) | session * Roy (* 1 ruling -- whether the anchor pair becomes THE address) | yes | 0/6 | A line-numbered address is not stable under the edits this tool makes |
 
 ### in-progress  (2)
 

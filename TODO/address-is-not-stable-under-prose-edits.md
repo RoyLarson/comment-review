@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    session * Roy (* 1 ruling -- whether the anchor pair becomes THE address)
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18, from two files differing only in comments)
@@ -90,3 +90,13 @@ The census was never asked the second question, and now four callers ask it.
       by address. ! This is the blocker under `the-harness-cannot-run-the-system-
       it-grades`'s REGRESSION and KNOWN MISS cases, both of which compare two
       versions.
+- [ ] !! **HALF THE ADDRESS SPACE IS NOT ENUMERATED, which is the property the
+      whole scheme rests on.** Measured 2026-08-18 on the two files above: every
+      gap (`b0`, `b1`, `b2`) is a census entry in BOTH files, empty or not -- that
+      is what the 2026-08-17 interval enumeration bought. But an ON-LINE position
+      (`c1`, `c2`) is an entry only where a trailing comment already sits, so in
+      the bare file it does not exist. ! The consequence is the one intervals were
+      enumerated to fix: **an `add` of a trailing comment to a line that has none
+      cannot be cited**, exactly as an `add` to an empty gap could not be before.
+      Decide whether a code line without a trailing comment gets an entry, and
+      what it costs -- one per code line is a bigger table than one per gap.
