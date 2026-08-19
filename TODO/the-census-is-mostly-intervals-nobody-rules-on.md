@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 10 tasks done
+Progress: 2 of 10 tasks done
 Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
 Requires-Roy: true
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -116,7 +116,7 @@ not.** The change is to filter the census the same way and give the reviewer som
       of code* -- and that is the whole of what a reviewer needs to place prose it cannot
       already cite.
 
-- [ ] **Write the lookup. It answers ONE question: what is the ADDRESS of this line of
+- [x] **Write the lookup. It answers ONE question: what is the ADDRESS of this line of
       code.** Roy, 2026-08-18. In goes a line; out comes the census index and address of the
       spot there. ! Resist widening it -- every extra question is a second way to name a place,
       and one way to name a place is the property this whole design is buying.
