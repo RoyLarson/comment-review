@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 9 tasks done
+Progress: 5 of 10 tasks done
 Owner:    session * Roy (* 1 ruling -- where the verdict table lives)
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -79,6 +79,12 @@ this module generated, feeding `block_problem`, `edit_problem`, `contradictions`
       2026-08-18 by putting both halves through `filled`, so what remains is the
       round-trip itself -- a cite containing `|` still splits wrong. ! Blast
       radius is ~20 test call sites that use the string form as a literal.
+- [ ] !! **IT IS FIVE READERS, NOT THREE, AND ONE CRASHES.** Measured 2026-08-19:
+      `addresser` uses `.get("blocks", [])`, `galley` `census["blocks"]`,
+      `locator` an `entries()` helper, `record` `loaded["blocks"]`, and
+      **`verdicts.py` has no dict handling at all** -- a `{"blocks": [...]}`
+      census gives an `AttributeError` traceback. `census.py` emits a bare list
+      unconditionally, so nothing exercises the other branch.
 
 ## Related
 

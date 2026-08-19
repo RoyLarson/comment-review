@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 15 tasks done
+Progress: 5 of 16 tasks done
 Owner:    session * Roy (* 3 rulings)
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
@@ -43,7 +43,8 @@ README row read `0/9` while five were done.
 - [x] **P9, redacted-corpus -- `verdicts.py --out`.** The stage-5 gate was unrunnable in the
       session type the skill is written for.
 
-- [x] **P3, todo-tool -- a prose file has no blocks.** Already filed as its own TODO; the
+- [x] **P3, todo-tool -- a prose file has no blocks.** Filed as
+      [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md); the
       measurement is what this adds -- **190 of 196 files** in one merge-base diff were
       `TODO/*.md`.
 
@@ -105,7 +106,30 @@ contract alone.
 ! **P5, P3, P2 and P8 are group C and stage 6/7a work**, not this release. See
 [`docs/superpowers/specs/2026-08-17-review-process-coherence-design.md`](../docs/superpowers/specs/2026-08-17-review-process-coherence-design.md).
 
-## Open, in the order the evidence argues for
+### !! AND ONE KEY RELEASE REQUIREMENT THAT IS NOT A PROPOSAL FROM EITHER RUN
+
+**STAGE 4 SERIALISES. `ownership-context` runs ALONE; the other three run only after it has had
+its say.** Roy, 2026-08-19: *"1 required -- ownership-context has to run else verdicts are made
+on statements that are not in the 'right' place. The other 3 are optional and only run after
+ownership-context has had its say."* Filed in full at
+[`ownership-is-read-first-but-nothing-makes-it-so`](ownership-is-read-first-but-nothing-makes-it-so.md),
+3 of 10, `Requires-Roy`.
+
+! **It is listed here because 0.2.4 cannot ship without it and it belongs to no proposal.** The
+ruling was made twice -- the serialisation 2026-08-17, the never-dropped rule 2026-08-18 -- and
+`SKILL.md` still contradicts both halves: `:160` says *"all four roles run every time"* and
+`:510-512` dispatches all four in ONE message, in parallel. **The file the task agent reads was
+never brought along.**
+
+! **The ADDRESS system removes the objection this was blocked on.** The design rested on *"nothing
+renumbers, so there is ONE census for the whole run"* -- an argument about the census INDEX,
+which 0.2.4 dropped. It gets stronger, not weaker: 4b changes what a block BELONGS to and never
+where it sits, so every address 4a cites is still valid at 4c by construction, and the rejected
+"two censuses and an index map" cannot arise.
+
+## Tasks
+
+! In the order the evidence argues for.
 
 - [ ] * **P6 -- SHIP THE APPLIER.** *"The deepest finding here."* `census.py`, `verdicts.py`,
       `referrers.py` and `prove_unchanged.py` are shipped and hardened across three versions.
@@ -149,13 +173,18 @@ contract alone.
       `{"op": "insert", "anchor": ..., "side": "above"}` rather than leave an applier to infer it
       from a range that means something different for this one kind of block.
 
-- [ ] **P3 -- the indent contract.** A reviewer's `CHANGE` carried the RECORD's presentation
+- [ ] **P3 -- the indent contract.** Closes
+      [`a-block-does-not-say-where-its-text-starts`](a-block-does-not-say-where-its-text-starts.md),
+      which is the same fact stated from the producer's side: a block records which lines it
+      spans and never where on the first line its text begins. A reviewer's `CHANGE` carried the RECORD's presentation
       indent, not the file's, and a six-line block landed inside an `if ...: continue` body,
       annotating an unreachable position. `write.md`'s *"write the APPROVED text verbatim"* is
       wrong for any block not already file-framed, and the transformation is specified nowhere.
       ! Decide it against the record as it now is -- see the correction above.
 
-- [ ] **P2 -- give the WIDTH a stage, or fold it into stage 6.** Stage 1.2 measures two
+- [ ] **P2 -- give the WIDTH a stage, or fold it into stage 6.** Closes
+      [`compact-can-buy-lines-with-width`](compact-can-buy-lines-with-width.md) -- zero
+      occurrences of `width`, `column` or `character` in `compact.md`. Stage 1.2 measures two
       published numbers and only the cap gets a stage. !! **They INTERACT**: re-wrapping twelve
       over-width lines pushed a block from 33 to 34 against a cap of 33, and the repo's own guard
       caught what the pipeline had not. Proposal: rename stage 6 COMPACT to **FIT** and give it
@@ -171,6 +200,15 @@ contract alone.
       deliberately worked against. The tool has nowhere to put either, and both had to be raised
       in conversation.
 
+- [ ] * **RELEASE REQUIREMENT -- STAGE 4 SERIALISES.** `ownership-context` runs alone at 4a;
+      the other three run at 4c against its resolved placement. **One role is REQUIRED and
+      three are OPTIONAL** -- the legal sets are `{ownership-context}` plus any subset of the
+      others. Close
+      [`ownership-is-read-first-but-nothing-makes-it-so`](ownership-is-read-first-but-nothing-makes-it-so.md)
+      (3/10), whose seven open tasks are the build. ! The first is a design decision Roy already
+      named: the pCST must carry a PROPOSAL, and that is a second SUBJECT -- a second module,
+      not a flag on the census.
+
 ## ! What worked, and must not be broken while fixing the above
 
 - **Blind dispatch produced real corroboration and a real contradiction.** One defect was found
@@ -185,6 +223,27 @@ contract alone.
 - !! **The reviewers are not the weak stage.** *"Every failure this run is downstream of MARK."*
 
 ## Related
+
+!! **LINKAGE AUDITED 2026-08-19, and it was ABSENT.** None of the fifteen tasks named the TODO it
+closes; three were named in this section only, one of them already completed. A task that does
+not name its TODO is a task nobody can close from either end -- the backlog cannot see the work
+scheduled against it, and the plan cannot see the work already filed. **Four now carry a link;
+the rest have no TODO because none was ever filed**, which is the answer to "what closes this"
+rather than an omission to fix by inventing one.
+
+| task | closes |
+| --- | --- |
+| P3, todo-tool -- a prose file has no blocks | [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) |
+| P3 -- the indent contract | [`a-block-does-not-say-where-its-text-starts`](a-block-does-not-say-where-its-text-starts.md) |
+| P2 -- give the WIDTH a stage | [`compact-can-buy-lines-with-width`](compact-can-buy-lines-with-width.md) |
+| RELEASE REQUIREMENT -- stage 4 serialises | [`ownership-is-read-first-but-nothing-makes-it-so`](ownership-is-read-first-but-nothing-makes-it-so.md) |
+| P6, P10, P5, P4, P7, P1, P8 | **no TODO filed.** Each is tracked here and nowhere else |
+
+! **P5 has two candidates and neither is a clean fit** --
+[`the-author-approves-blocks-and-never-sees-the-page`](the-author-approves-blocks-and-never-sees-the-page.md)
+and [`7a-can-prove-the-change-by-applying-it-to-a-copy`](7a-can-prove-the-change-by-applying-it-to-a-copy.md).
+P5 asks for the proposition check to run BEFORE the write; the first is about what the author is
+shown, the second about rendering the proposal as a file. Left unlinked rather than guessed.
 
 - [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)
   -- P4, P7 and P10 are all record-shape changes and belong to that build.

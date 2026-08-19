@@ -118,27 +118,39 @@ def block_matches(lines: list[str], block: dict) -> bool:
     moved writes the replacement over whatever is there now, which is the one
     failure a galley must not produce quietly.
 
-    !! AN EMPTY INTERVAL IS CHECKED DIFFERENTLY, because it has no text to
-    compare. What must still hold is that it is still EMPTY: every line strictly
-    between its two code lines is blank. An `add` is the verdict that cites an
-    interval, and its whole finding is that the gap holds no prose -- so prose
-    appearing there since the census is exactly the staleness that matters.
+    !! A BLOCK THAT HOLDS NO PROSE IS CHECKED DIFFERENTLY, because it has no
+    text to compare. What must still hold is that it is still EMPTY: every line
+    of its EDIT range is blank. An `add` is the verdict that cites one, and its
+    whole finding is that the place holds no prose -- so prose appearing there
+    since the census is exactly the staleness that matters.
+
+    ! Both kinds go this way. An `undocumented` declaration ADDRESSES the lines
+    of the declaration it documents, so comparing its stored text -- it has
+    none -- against those lines refused it every time. Measured 2026-08-18: 3
+    such blocks in this repo's own tree made the addresser call a fresh census
+    stale.
 
     ! Before this, `raw_lines` being empty answered False, which refused every
     `add` in the run. It read as a stale range and was a block with nothing
     stored, and the message said the range no longer matched the census.
     """
-    start, end = block["start"], block["end"]
+    # !! THE EDIT RANGE, NOT THE ADDRESSING RANGE. A block is ADDRESSED by every
+    # line of its share of the gap, blanks included -- every line has an address
+    # -- but `raw_lines` holds only the prose. Comparing the wider range against
+    # the narrower text refused every prose block in the tree.
+    start, end = splice_range(block)
+    # !! CHECKED BEFORE THE RANGE GUARD, because a block that holds no prose may
+    # occupy NO LINE -- an absent docstring is at line 0 -- and the guard below
+    # would refuse it for a range it is not entitled to have.
+    if not block.get("raw_lines"):
+        # ! Nothing was stored, so what must still hold is that the place is
+        # still EMPTY -- every line of its edit range is blank.
+        if start < 1 or end > len(lines) or start - 1 > end:
+            return False
+        return all(not ln.strip() for ln in lines[start - 1 : end])
     if start < 1 or end > len(lines) or start > end:
         return False
-    if block.get("kind") == "interval":
-        # ! The same lines `splice_range` returns, read the same way, so the
-        # check and the write cannot disagree about which lines the gap is.
-        first, last = splice_range(block)
-        return all(not ln.strip() for ln in lines[first - 1 : last])
-    stored = block.get("raw_lines") or []
-    if not stored:
-        return False
+    stored = block["raw_lines"]
     return [ln.rstrip() for ln in lines[start - 1 : end]] == [
         ln.rstrip() for ln in stored
     ]
@@ -148,9 +160,9 @@ def shares_a_line_with_code(block: dict) -> bool:
     """Does code come before this block's text on its first line?
 
     !! A SPLICE REPLACES WHOLE LINES, so such a block cannot be spliced at all
-    -- writing over its first line would delete the code that shares it. Three
-    kinds reach here: a `trailing-comment`, a PEP 727 `Doc()` literal, and a
-    block comment opened after a statement.
+    -- writing over its first line would delete the code that shares it. Two
+    kinds reach here: a `trailing-comment`, and a block comment opened after a
+    statement.
 
     !! IT READS THE CENSUS RATHER THAN INFERRING. This asked whether the stored
     text was a proper SUFFIX of the physical line, and that answers False for a
@@ -212,9 +224,10 @@ def splice_range(block: dict) -> tuple[int, int]:
 
     !! THE CENSUS DECIDES THIS, NOT THIS MODULE. A prose block is replaced and
     an empty interval is inserted into, and there are more kinds than those two
-    -- a trailing comment shares its line with code, and a PEP 727 `Doc()` is a
-    literal inside one. Branching on kind here would have to grow a case for
-    each, and the census already knows which lines each block's text occupies.
+    -- a trailing comment shares its line with code, and an `undocumented`
+    declaration is a pure insertion. Branching on kind here would have to grow a
+    case for each, and the census already knows which lines each block's text
+    occupies.
 
     ! It reads `edit_start`/`edit_end`, falling back to `start`/`end` for a
     census taken before those existed. The fallback is why this function is

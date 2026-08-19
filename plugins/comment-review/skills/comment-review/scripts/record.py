@@ -55,6 +55,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from pcst import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,
@@ -110,7 +111,8 @@ class Verdict:
         diffable: `BLOCK`-against-`CHANGE` names the edited sentence. False
             where there is nothing to diff -- no text proposed, no original, or
             a `CHANGE` holding two blocks rather than one.
-        needs_anchor: `CLAIM` names a site in backticks and a side.
+        needs_anchor: `CLAIM` names a site in backticks. ! Not a SIDE -- the
+            address says that.
         needs_attempted: `CLAIM` names a check that was tried.
         needs_settles: `CLAIM` names what would settle the claim.
         substantive: this verdict ASKS something of stage 5. Only `clean`
@@ -148,6 +150,13 @@ class Verdict:
     can_declare_scope: bool = False
     removes: bool = False
     rules_on_text: bool = False
+    # !! THIS VERDICT'S `claim.to` NAMES A PLACE THE CENSUS MUST CARRY. Only
+    # `move` relocates, and its destination was checked for PRESENCE and never
+    # resolved -- so a block could be sent to a line number, a description, or
+    # a declaration outside the run, and the gate passed it. ! A destination
+    # OUTSIDE the code carries no address and is exempt; `destination_problem`
+    # tells them apart by the `@`.
+    owes_destination: bool = False
     # !! WHAT THE BRIEF SAYS THIS VERDICT'S `claim` CARRIES, and the row owns it
     # so there is one source and one way to copy it. `scripts/render_brief.py`
     # writes the table in `reviewer-brief.md` from these plus `claim_keys`, and
@@ -231,8 +240,9 @@ VERDICTS: dict[str, Verdict] = {
     ),
     "add": Verdict(
         payload=(
-            "the text that is missing, the anchor NAMED IN BACKTICKS, and which side"
-            ' of it. ! The word "anchor" is not an anchor -- name the declaration'
+            "the text that is missing and the anchor NAMED IN BACKTICKS."
+            ' ! The word "anchor" is not an anchor -- name the declaration.'
+            " Which SIDE is the address's to say, never the payload's"
         ),
         claim_all=("missing:",),
         claim_help="add needs the text in `claim.missing`",
@@ -247,6 +257,7 @@ VERDICTS: dict[str, Verdict] = {
         ),
         claim_all=("from:", "to:"),
         claim_help="move needs `claim.from` and `claim.to`, both filled",
+        owes_destination=True,
         change_all=("to:",),
         change_help=(
             "move needs the DESTINATION block in CHANGE, as `to: ...` -- plus"
@@ -257,7 +268,7 @@ VERDICTS: dict[str, Verdict] = {
 }
 
 
-# What an `add`'s PAYLOAD must carry: a SIDE, and the anchor NAMED.
+# What an `add`'s PAYLOAD must carry: the anchor, NAMED.
 #
 # ! Backticks are the repo's own citation form -- the brief says cite by symbol
 # or path, never by line number, and every record in it writes a symbol that way.
@@ -304,7 +315,12 @@ def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
     if spec.needs_settles:
         extras.append("settles")
     if spec.needs_anchor:
-        extras += ["anchor", "side"]
+        # !! NO `side`. The ADDRESS carries it: `@aN` is a declaration's
+        # documentation, `@bN` is above code line N, `@cN` is beside it. A
+        # second statement of one fact can disagree with the first, and this one
+        # did -- measured 2026-08-19, an `add` on a `c` address passed the gate
+        # carrying `side: above`, and there was no `beside` to write instead.
+        extras.append("anchor")
     return (markers, extras)
 
 
@@ -358,10 +374,11 @@ class Finding:
     ! `reason` is the why: the evidence that verifies the claim. It is DERIVED
     and no checker can settle it, which is why it stays out of `sources`.
 
-    !! `block` is an INDEX and `address` is `path:start-end`. THE REVIEWER
-    WRITES NEITHER: `record.py --seed` puts both in the slot and both are
-    checked against the census, so a mismatch says the file was edited rather
-    than that a reviewer misquoted.
+    !! `address` IS THE KEY and `anchor` is the declaration it sits on. THE
+    REVIEWER WRITES NEITHER: `record.py --seed` puts both in the slot and the
+    address is checked against the census, so a mismatch says the file was
+    edited rather than that a reviewer misquoted. ! The anchor is there to be
+    GREPPED -- it names what the census resolved, and no comment carries one.
 
     ! `original` is that block's text, and it is filled from the CENSUS by
     `main` after the report is read. It was the reviewer's to transcribe under
@@ -382,13 +399,18 @@ class Finding:
     """
 
     reviewer: str
-    block: int
     verdict: str
     claim: str
     reason: str
     sources: list[str]
     change: str
     address: str = ""
+    anchor: str = ""
+    # !! DEPRECATED, and 0 for a record written since 2026-08-19. The census
+    # INDEX keyed every join until then; it goes stale the moment an `add` or a
+    # `drop` shifts the list, where the address does not. Only the 0.2.x prose
+    # reader still fills it, because an old report on disk carries one.
+    block: int = 0
     original: str = ""
     # !! THE CLAIM AS THE RECORD CARRIED IT. Filled from the file for a JSON
     # record and by `claim_object` at load for a 0.2.x one, so it is empty only
@@ -577,9 +599,9 @@ def claim_text(verdict: str, claim: dict) -> str:
     wrote it and this file guessed where each half ended; built here from typed
     fields it is well-formed by construction.
 
-    ! Keys the table does not name -- `anchor`, `side`, `attempted`, `settles`
+    ! Keys the table does not name -- `anchor`, `attempted`, `settles`
     -- are appended as prose, because that is where the old format carried them
-    and where `ANCHOR_NAME`, `ANCHOR_SIDE` and the attempted check look.
+    and where `ANCHOR_NAME` and the attempted check look.
     """
     spec = VERDICTS.get(verdict)
     if spec is None or not claim:
@@ -669,9 +691,13 @@ def load_report(
             # ! An unfilled slot is a COVERAGE gap, counted by the caller from
             # the findings it does not see. It is not a malformed record.
             continue
-        block = rec.get("block")
-        if not isinstance(block, int):
-            malformed.append(f"a record carries block {block!r}, which is not an index")
+        # !! THE ADDRESS IS THE KEY. The census index was dropped 2026-08-19 --
+        # it went stale the moment an `add` or a `drop` shifted the list, while
+        # the address survives, and an address identifies exactly one block
+        # (measured: 0 shared over 6,180). A record with none cannot be joined.
+        where = rec.get("address")
+        if not isinstance(where, str) or not where.strip():
+            malformed.append(f"a record carries address {where!r}, which names nothing")
             continue
         claim = rec.get("claim")
         # ! NORMALISED HERE, not at the constructor. `claim_text` does
@@ -684,7 +710,6 @@ def load_report(
         findings.append(
             Finding(
                 reviewer=reviewer,
-                block=block,
                 verdict=str(rec.get("verdict")),
                 claim=claim_text(str(rec.get("verdict")), claim),
                 reason=str(rec.get("reason") or ""),
@@ -707,7 +732,8 @@ def load_report(
                 # `TypeError` from `join` -- a crash the documented pre-flight
                 # does not catch, on a file it calls well formed.
                 change="\n".join(str(line) for line in rec.get("change") or []),
-                address=str(rec.get("address") or ""),
+                address=where.strip(),
+                anchor=str(rec.get("anchor") or ""),
                 # ! The record no longer carries the block's text -- the census
                 # does. `address_problem` reads this, so it is filled from the
                 # census by the caller rather than by the reviewer.
@@ -894,7 +920,7 @@ PATHISH = re.compile(r"^[^\s]*[./][^\s]*$")
 
 # The fields the TOOL fills from the census. ! A mismatch here means the file
 # was CORRUPTED, never that the reviewer misquoted -- it never typed them.
-SEEDED = ("block", "address")
+SEEDED = ("address", "anchor")
 # !! THE SHAPE IS VERSIONED, so a held report stays a REGRESSION TEST rather than
 # becoming an archive the day the format moves. Replaying stage-4 output is what
 # made 0.2.1 and 0.2.2 cheap to validate -- five joins over one set of reports,
@@ -920,7 +946,9 @@ def prose_blocks(census: list[dict]) -> list[tuple[int, dict]]:
     census numbers every one -- but it is not accountable, and seeding a slot
     for each would bury 224 real questions under 1730 empty ones.
     """
-    return [(i, b) for i, b in enumerate(census, 1) if b.get("kind") != "interval"]
+    return [
+        (i, b) for i, b in enumerate(census, 1) if b.get("kind") not in HOLDS_NO_PROSE
+    ]
 
 
 def slot(index: int, block: dict) -> dict:
@@ -934,7 +962,12 @@ def slot(index: int, block: dict) -> dict:
         The record as the reviewer receives it.
     """
     return {
-        "block": index,
+        # !! THE ANCHOR, so an agent can GREP for it. Roy, 2026-08-19. It is the
+        # declaration the census structurally resolved -- `<module>`, a function
+        # or class name -- and empty where none was: no COMMENT carries one at
+        # either tier, in any language. A reviewer reads it as a starting point,
+        # never as a settled owner.
+        "anchor": str(block.get("anchor", "")),
         # !! THE ADDRESS AND NOTHING ELSE. The record does not carry the block's
         # text, so a reviewer cannot rule on it without OPENING THE FILE -- and
         # every role's remit requires that: block-context checks a claim against
@@ -953,7 +986,11 @@ def slot(index: int, block: dict) -> dict:
         #
         # ! Re-check that asymmetry before reversing this. It has flipped three
         # times, and it is the only argument here that does not rest on taste.
-        "address": f"{block['path']}:{block['start']}-{block['end']}",
+        # !! THE STABLE ADDRESS, never the line range. A line range is true of
+        # ONE file state and this tool edits prose, so every record written
+        # against one is stale the moment the run writes. `pkg.mod.py@a5` is
+        # counted against the CODE and survives. Deprecated 2026-08-18.
+        "address": str(block.get("address", "")),
         # ! `null`, not `""`. An unruled block must be distinguishable from one
         # ruled with an empty verdict, and only one of those is a coverage gap.
         "verdict": None,
@@ -962,6 +999,28 @@ def slot(index: int, block: dict) -> dict:
         "sources": [],
         "change": [],
     }
+
+
+def entry_for(address: str, blocks: list[dict]) -> dict | None:
+    """The census entry this address names, or None if the census has none.
+
+    !! THE JOIN RESOLVES BY ADDRESS, not by census position. The index it used
+    was correct only for the census it was written against: an `add` or a `drop`
+    shifts every index below it, so a record from round 1 read against round 2
+    resolved to a neighbour, silently. An address survives both.
+
+    ! One entry or none -- an address identifies exactly one block, held by
+    `addresser.py --check` on every run (0 shared over 6,180 blocks, measured
+    2026-08-19). This returns the first regardless, so a census that broke that
+    rule degrades to a wrong answer rather than a crash; `--check` is what
+    reports it.
+    """
+    if not address:
+        return None
+    for b in blocks:
+        if str(b.get("address", "")) == address:
+            return b
+    return None
 
 
 def allowed() -> dict:
@@ -990,7 +1049,6 @@ def allowed() -> dict:
         "claim": claims,
         "values": {
             "shape": list(QUERY_SHAPES),
-            "side": ["above", "below"],
         },
         # ! The one shape that is a BOUNDARY REPORT rather than work, named so a
         # reader of this file can tell the three apart without the brief.
@@ -1052,8 +1110,8 @@ def seeded_problems(where: str, rec: dict, block: dict | None) -> list[str]:
     format change exists to end.
     """
     if block is None:
-        return [f"{where}: block {rec.get('block')!r} is not in the census"]
-    want = f"{block['path']}:{block['start']}-{block['end']}"
+        return [f"{where}: address {rec.get('address')!r} is not in the census"]
+    want = str(block.get("address", ""))
     if rec.get("address") != want:
         return [
             f"{where}: `address` reads {rec.get('address')!r} and the census says"
@@ -1192,10 +1250,11 @@ def check(report: dict, census: list[dict]) -> tuple[list[str], int]:
         return (["no `records` list -- this is not a seeded report"], 0)
     unruled = 0
     for rec in report["records"]:
-        index = rec.get("block")
-        where = f"block {index}"
-        known = isinstance(index, int) and 1 <= index <= len(census)
-        block = census[index - 1] if known else None
+        # !! FOUND BY ADDRESS. The census index this used went stale the moment
+        # an `add` or a `drop` shifted the list; an address does not.
+        at = rec.get("address")
+        where = f"address {at!r}" if isinstance(at, str) else "a record with no address"
+        block = entry_for(at, census) if isinstance(at, str) else None
         if rec.get("verdict") is None:
             unruled += 1
             # ! A slot nobody filled is not MALFORMED, so it is counted rather
@@ -1253,12 +1312,10 @@ def claim_object(verdict: str, claim: str) -> dict:
     # conversion has to agree with what it is converting from.
     if spec.needs_anchor:
         named = ANCHOR_NAME.search(claim)
-        side = ANCHOR_SIDE.search(claim)
         out["anchor"] = named.group(0) if named else ""
-        # ! `before`/`after` were accepted as sides and mean the same two
-        # places; the new shape offers only two, so they map onto them.
-        word = side.group(1).lower() if side else ""
-        out["side"] = {"before": "above", "after": "below"}.get(word, word)
+        # ! The SIDE a 0.2.x claim stated is DROPPED, not carried across. The
+        # address says which side, so keeping the old word would reintroduce
+        # the field this conversion exists to leave behind.
     if spec.needs_attempted or spec.needs_settles:
         # ! The old field ran both together in one sentence, and nothing marked
         # where one ended. The whole remaining claim goes to each, which is
@@ -1293,9 +1350,9 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
         The report in the current shape.
     """
     report = seed(census, reviewer)
-    by_block: dict[int, list] = {}
+    by_block: dict[str, list] = {}
     for f in findings:
-        by_block.setdefault(f.block, []).append(f)
+        by_block.setdefault(f.address, []).append(f)
 
     # !! EVERY CITED BLOCK GETS A SLOT, PROSE OR NOT. `seed` lays down the prose
     # blocks because those are the ones a reviewer is ACCOUNTABLE for -- but an
@@ -1304,15 +1361,17 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     # cannot express the one verdict that needs an interval, and a conversion
     # that only filled seeded slots dropped both of them silently. Measured
     # 2026-08-17 on this repo's own smoke test: 228 findings became 226.
-    seeded = {rec["block"] for rec in report["records"]}
-    for index in sorted(set(by_block) - seeded):
-        if 1 <= index <= len(census):
-            report["records"].append(slot(index, census[index - 1]))
-    report["records"].sort(key=lambda r: r["block"])
+    seeded = {rec["address"] for rec in report["records"]}
+    order = {str(b.get("address", "")): i for i, b in enumerate(census)}
+    for at in sorted(set(by_block) - seeded, key=lambda a: order.get(a, len(census))):
+        held = entry_for(at, census)
+        if held is not None:
+            report["records"].append(slot(order.get(at, 0) + 1, held))
+    report["records"].sort(key=lambda r: order.get(r["address"], len(census)))
 
     filled = []
     for rec in report["records"]:
-        found = by_block.get(rec["block"], [])
+        found = by_block.get(rec["address"], [])
         if not found:
             filled.append(rec)
             continue

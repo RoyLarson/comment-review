@@ -141,7 +141,7 @@ read it before touching the skill. The pipeline:
 1. **PROJECT DETERMINATION** (task agent) -- scope from the merge base, find the repo's cap/width
    conventions, doc style, `move` destination, style sheet, verify reviewer agents resolve, probe
    for a language server, decide the name-corpus source.
-2. **COLLATE** (`census.py`) -- every interval between two lines of code gathered into one numbered tree, each comment run and docstring a node on it.
+2. **COLLATE** (`census.py`) -- the pCST: every line classified, in order -- code, part-code, comment, docstring. Each block is addressed by the subject its prose answers to: an interval between two lines of code, or a declaration.
 3. **FIND REFERENCES** (`census.py`) -- every reference each node makes, resolved (paths, symbols,
    counts).
 4. **MARK** (4 reviewer agents, dispatched in parallel, read-only) -- findings on the nodes.
@@ -174,9 +174,11 @@ deliberately separate stages/actors.
 ### `census.py` -- the only thing the reviewers depend on
 
 `plugins/comment-review/skills/comment-review/scripts/census.py` builds the pCST from the
-stdlib alone (no third-party dependency), at a per-language tier. It is one of three: `repo.py`
-answers what the checkout says (git, the filesystem, the exception tuples) and is imported by
-four scripts; `annotate.py` is stage 3, the resolution a reviewer would otherwise do by hand.
+stdlib alone (no third-party dependency), at a per-language tier. It is one of four: `pcst.py`
+says what a pCST NODE is -- the `Block` dataclass and the kind sets over it -- and is a LEAF so
+every module that reads a block can import the definition of one; `repo.py` answers what the
+checkout says (git, the filesystem, the exception tuples) and is imported by four scripts;
+`annotate.py` is stage 3, the resolution a reviewer would otherwise do by hand.
 Each announces ONE subject, which is what `module-context` asks of any module:
 
 | tier        | needs                                 | answers                         | cannot answer     |
@@ -200,7 +202,8 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | path                              | what                                                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `plugins/comment-review/`         | the shipped plugin -- `skills/`, `agents/`, manifests                                                                                                                       |
-| `docs/`                           | how this system behaves today, and the rules for changing it: `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using) |
+| `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using) |
+| `docs/plans/`                     | RELEASE SCOPES -- what one version ships, what it does not, and which TODOs it works. !! **NOT `docs/superpowers/plans/`**, and the split is deliberate: Roy, 2026-08-19, *"I don't want to conflate the rigorous one for the less rigorous one."* A superpowers plan is written for an engineer with no context -- exact files, TDD steps, a commit per task. ! **A PLAN IS NOT A TODO**: *"Todos can remain open an indefinite amount of time and make progress as we see fit. Plans are scopes of work to be complete in one run."* Anything in a plan that does not get done is filed in `TODO/` before the plan closes |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ! Nothing here describes this system's own behavior -- that is `docs/`                                                    |
 | `evals/`                          | the twelve planted hazards (`evals.json`, `discriminators.md`), `grade_hazards.py`, and `generator_split.py` (the authorship split)                                        |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |
@@ -242,6 +245,35 @@ history) since it depends on `git blame`.
   The git history on main contains work that should have been branch work because we decided
   to start implementing before realizing we were corrections to code that belongs on a branch
   first.
+
+### !! THE TODOs ARE THE JOB BOARD. PLANS ARE HOW WE MARK THEM OFF.
+
+Roy, 2026-08-19: *"the todos are the job board -- plans are how we mark them off."*
+
+| | `TODO/` | `docs/plans/` |
+| --- | --- | --- |
+| holds | every piece of work known to be wanted | one release's scope |
+| lifetime | **indefinite.** Progress as we see fit | **one run.** It closes |
+| answers | *what is there to do* | *what is this version doing about it* |
+
+!! **EVERY FINDING GETS A TODO -- an existing one it fits, or its own.** A finding recorded only
+in a plan dies when the plan closes, and one recorded only in a session transcript was never
+recorded at all. **The plan then NAMES the TODOs it works**, so the two can see each other.
+
+!! **A PLAN THAT NAMES NO TODO CANNOT BE CLOSED FROM EITHER END** -- the backlog cannot see the
+work scheduled against it, and the plan cannot see the work already filed. Audited 2026-08-19 on
+`two-live-runs-proposed-fifteen-changes.md`: **0 of 15 tasks named the TODO they close**, three
+were named in a `Related` section only, and one of those was already completed -- so the scope
+pointed at finished work as though it were pending.
+
+!! **AND THIS IS TWO TRACKERS THAT CAN DRIFT, KNOWINGLY.** Roy: *"I know this is two ways of
+tracking work which can get them out of sync."* The rule that keeps them honest is one-directional
+-- **a plan cites TODOs; a TODO never cites a plan** -- so a closed plan leaves the backlog intact
+and no TODO is left pointing at something that no longer exists.
+
+! **`docs/plans/` is NOT `docs/superpowers/plans/`.** The second is written for an engineer with
+no context -- exact files, TDD steps, a commit per task. The first is a release scope. Roy:
+*"I don't want to conflate the rigorous one for the less rigorous one."*
 
 ### The TODO backlog, and who writes it
 

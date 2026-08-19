@@ -8,6 +8,8 @@ Checks the task agent was asked to perform by hand, every one mechanical:
   SOURCES       every citation resolves, and its verbatim half is really there
   ADDRESS       BLOCK's `path:start-end` and transcribed text match the census
   BLOCK         the sentence a finding rules on is really in the block it cites
+  DESTINATION   a `move`'s `to:` names a place the census carries -- including
+                an EMPTY one, since a block may move where no prose sits yet
   EDIT          BLOCK-against-CHANGE edits the sentence CLAIM names, and no
                 other. ! ONE ROUND ONLY -- it says nothing about whether N
                 rounds converge on correct prose
@@ -79,23 +81,28 @@ from pathlib import Path
 # sibling importer that did not.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from census import FRONT_MATTER  # noqa: E402  -- path shim must run first
 from desk import (  # noqa: E402  -- path shim must run first
     _words,
     address_problem,
     block_problem,
     declares_scope,
+    destination_problem,
     edit_problem,
     payload_problem,
     removed_spans,
     ruled_text,
     source_problem,
 )
+from pcst import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     VERDICTS,
     Finding,
     _is,
     _n,
     _substantive,
+    claim_text,
+    entry_for,
     load_report,
 )
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
@@ -103,18 +110,18 @@ from vocabulary import Reviewer  # noqa: E402  -- path shim must run first
 
 
 def coverage_gaps(
-    all_blocks: set[int], reported: set[str], found: list[Finding]
-) -> dict[str, list[int]]:
+    all_blocks: set[str], reported: set[str], found: list[Finding]
+) -> dict[str, list[str]]:
     """Indices each reviewer left unaccounted for. A gap is a gap, not a pass.
 
     `reported` is who handed in a file, and the findings say who produced a
     record. A report that parsed to nothing is a reviewer that accounted for
     nothing, so taking the population from the findings alone would drop it.
     """
-    by_reviewer: dict[str, set[int]] = defaultdict(set)
+    by_reviewer: dict[str, set[str]] = defaultdict(set)
     for f in found:
-        by_reviewer[f.reviewer].add(f.block)
-    gaps: dict[str, list[int]] = {}
+        by_reviewer[f.reviewer].add(f.address)
+    gaps: dict[str, list[str]] = {}
     for reviewer in reported | set(by_reviewer):
         missing = sorted(all_blocks - by_reviewer[reviewer])
         if missing:
@@ -122,7 +129,7 @@ def coverage_gaps(
     return gaps
 
 
-def by_block(found: list[Finding]) -> dict[int, list[Finding]]:
+def by_block(found: list[Finding]) -> dict[str, list[Finding]]:
     """Every finding, grouped by the block it rules on.
 
     This is what stage 5 works from: several roles rule on one block and the
@@ -133,9 +140,9 @@ def by_block(found: list[Finding]) -> dict[int, list[Finding]]:
     Every finding here names a block, because a record that named none never
     became a `Finding` -- `parse_report` returns those separately.
     """
-    out: dict[int, list[Finding]] = defaultdict(list)
+    out: dict[str, list[Finding]] = defaultdict(list)
     for f in found:
-        out[f.block].append(f)
+        out[f.address].append(f)
     return out
 
 
@@ -154,8 +161,8 @@ QUOTED = re.compile(r'"([^"\n]{4,})"')
 
 
 def unrecorded_findings(
-    grouped: dict[int, list[Finding]], blocks: list[dict]
-) -> list[tuple[int, str, str]]:
+    grouped: dict[str, list[Finding]], blocks: list[dict]
+) -> list[tuple[str, str, str]]:
     """Phrases a `REASON` quotes from its own block that no `CLAIM` names.
 
     !! A FINDING CAN BE STATED IN `REASON` AND GO NOWHERE. `REASON` is
@@ -189,11 +196,12 @@ def unrecorded_findings(
     # ! One call per finding. `ruled_text` already returns `_words(...)`, so
     # the walrus keeps the text rather than computing it twice to test it.
     claimed = {text for fs in grouped.values() for f in fs if (text := ruled_text(f))}
-    out: list[tuple[int, str, str]] = []
+    out: list[tuple[str, str, str]] = []
     for block, fs in sorted(grouped.items()):
-        if not 1 <= block <= len(blocks):
+        held = entry_for(block, blocks)
+        if held is None:
             continue
-        prose = _words(blocks[block - 1].get("text") or "")
+        prose = _words(held.get("text") or "")
         if not prose:
             continue
         for f in fs:
@@ -209,7 +217,7 @@ def unrecorded_findings(
     return out
 
 
-def contradictions(grouped: dict[int, list[Finding]], blocks: list[dict]) -> list[int]:
+def contradictions(grouped: dict[str, list[Finding]], blocks: list[dict]) -> list[str]:
     """Blocks where one role REMOVES the sentence another rules on.
 
     `drop` against `correct`/`patch` is one role saying the sentence should not
@@ -242,12 +250,13 @@ def contradictions(grouped: dict[int, list[Finding]], blocks: list[dict]) -> lis
         # passing: silence would hide a real collision behind an unreadable
         # record. An out-of-range index reads the same way -- the range check
         # reports it, and this must not pass the block for lack of an entry.
-        if not 1 <= f.block <= len(blocks):
+        entry = entry_for(f.address, blocks)
+        if entry is None:
             return ""
-        spans = removed_spans(f, blocks[f.block - 1])
+        spans = removed_spans(f, entry)
         return " ".join(spans) if spans else ""
 
-    out: list[int] = []
+    out: list[str] = []
     for block, fs in grouped.items():
         removals = [touched(f) for f in fs if _is(f, "removes")]
         rulings = [touched(f) for f in fs if _is(f, "rules_on_text")]
@@ -324,8 +333,9 @@ def _report(args: argparse.Namespace) -> int:
         )
         return 1
     # !! ADDRESSABLE is not ACCOUNTABLE. Every interval between two lines of
-    # code is a block, so an `add` -- a finding about prose that is MISSING --
-    # has an index to cite instead of borrowing a neighbour's. Most of them hold
+    # code is a block, and so is every declaration, so an `add` -- a finding
+    # about prose that is MISSING -- has a place to cite instead of borrowing a
+    # neighbour's. Most of them hold
     # nothing, and a reviewer owes no record on an empty one: coverage is over
     # the blocks that HOLD PROSE. Measured 2026-08-17: `census.py` over itself
     # is 642 blocks, 76 of them prose. Owing a record on all 642 would make
@@ -334,7 +344,18 @@ def _report(args: argparse.Namespace) -> int:
     # ! The figure was 546/48 and had rotted; it was written in TWO places,
     # here and in `SKILL.md`, with nothing comparing them. Re-measure both or
     # neither.
-    all_blocks = {i for i, b in enumerate(blocks, 1) if b.get("kind") != "interval"}
+    # !! ADDRESSES, not indices. Coverage is over the blocks that HOLD PROSE --
+    # an empty place is addressable and nobody owes it a record.
+    # ! FRONT MATTER IS NOT COVERAGE. It is filtered out of what a reviewer
+    # reads -- a licence header settles no claim about the code -- so counting
+    # it here would report a gap on the one block nobody was shown.
+    all_blocks = {
+        str(b.get("address", ""))
+        for b in blocks
+        if b.get("kind") not in HOLDS_NO_PROSE
+        and b.get("address")
+        and FRONT_MATTER not in (b.get("annotations") or ())
+    }
 
     fatal = 0
 
@@ -382,8 +403,60 @@ def _report(args: argparse.Namespace) -> int:
         # of them about a finding -- cannot arise, because nobody transcribed
         # anything.
         for f in records:
-            if not f.original and 1 <= f.block <= len(blocks):
-                f.original = "\n".join(blocks[f.block - 1].get("raw_lines") or [])
+            # !! THE DEPRECATED FORMAT'S INDEX IS TRANSLATED HERE, once. A 0.2.x
+            # report keys by census POSITION, and a `clean` record in it writes
+            # that index alone with no address at all -- so without this every
+            # old report joins as "names no block". Everything downstream is
+            # address-keyed; this is the only place the index is still read.
+            if not f.address and 1 <= f.block <= len(blocks):
+                f.address = str(blocks[f.block - 1].get("address", ""))
+            held = entry_for(f.address, blocks) or {}
+            # !! ANY EDIT PROPOSED ON FRONT MATTER BECOMES A `query`. Roy,
+            # 2026-08-19: an agent looking to edit that area gets an automatic
+            # query -- ask the human -- instead of any of the other verdicts.
+            #
+            # ! Because the cost is asymmetric and sits OUTSIDE this system. A
+            # licence header is a legal instrument and a shebang is how the file
+            # runs; a wrong edit to either is not an editorial mistake, and no
+            # role here can settle whether it is right -- see
+            # `census.mark_front_matter`. The reviewer was not shown the block,
+            # `--filtered` drops it, so a verdict here came from reading the
+            # file directly: a reasonable thing to have done, and still not this
+            # system's call.
+            #
+            # ! CONVERTED, not refused. The reviewer saw something; dropping it
+            # silently would lose it. The human is asked instead.
+            #
+            # ! The trigger is `owes_change` -- the table's own word for "this
+            # verdict proposes an EDIT" -- not a verdict NAME. `clean` and
+            # `query` propose none and are left exactly as they were.
+            proposes = VERDICTS.get(f.verdict)
+            if FRONT_MATTER in (held.get("annotations") or ()) and (
+                proposes is not None and proposes.owes_change
+            ):
+                print(
+                    f"  {f.address} {f.reviewer}: {f.verdict!r} on FRONT MATTER"
+                    " (a licence header, shebang or coding line) -- turned into"
+                    " a `query`. That is the human's to rule on, not a role's."
+                )
+                # ! A COMPLETE query, not just the word. `query` owes a shape,
+                # what was attempted and what would settle it -- so converting
+                # the verdict alone leaves a record its own gate refuses. The
+                # shape is `outside the code`: settling a licence needs someone
+                # who knows how the project is owned and operated, which is
+                # exactly what that shape is for. What the reviewer proposed is
+                # kept as `attempted`, so nothing it saw is lost.
+                f.claim_fields = {
+                    "shape": "outside the code",
+                    "attempted": (f.claim or "").strip()
+                    or f"a {f.verdict} on this block",
+                    "settles": "the human -- front matter is theirs to rule on",
+                }
+                f.claim = claim_text("query", f.claim_fields)
+                f.change = ""
+                f.verdict = "query"
+            if not f.original:
+                f.original = "\n".join(held.get("raw_lines") or [])
         found.extend(records)
         malformed.extend((reviewer, why) for why in unattributable)
         for line in code_lines_flagged:
@@ -431,39 +504,46 @@ def _report(args: argparse.Namespace) -> int:
         fatal += 1
 
     for f in found:
-        if not 1 <= f.block <= len(blocks):
+        if entry_for(f.address, blocks) is None:
             print(
-                f"  BLOCK {f.block} {f.reviewer}: out of range for a"
+                f"  {f.address} {f.reviewer}: names no block in a"
                 f" {_n(len(blocks), 'block')} census"
             )
             fatal += 1
             continue
         if f.verdict not in VERDICTS:
             print(
-                f"  BLOCK {f.block} {f.reviewer}: {f.verdict!r} is not a verdict"
+                f"  {f.address} {f.reviewer}: {f.verdict!r} is not a verdict"
                 f" ({', '.join(VERDICTS)})"
             )
             fatal += 1
         problem = source_problem(f, repo)
         if problem:
-            print(f"  BLOCK {f.block} {f.reviewer}: {problem}")
+            print(f"  {f.address} {f.reviewer}: {problem}")
             fatal += 1
         misaddressed = address_problem(f, blocks)
         if misaddressed:
-            print(f"  BLOCK {f.block} {f.reviewer}: {misaddressed}")
+            print(f"  {f.address} {f.reviewer}: {misaddressed}")
+            fatal += 1
+        # !! A `move` IS ONLY AS GOOD AS ITS DESTINATION, and that half was
+        # checked for presence and never resolved.
+        nowhere = destination_problem(f, blocks)
+        if nowhere:
+            print(f"  {f.address} {f.reviewer}: {nowhere}")
             fatal += 1
         wrong_block = block_problem(f, blocks)
         if wrong_block:
-            print(f"  BLOCK {f.block} {f.reviewer}: {wrong_block}")
+            print(f"  {f.address} {f.reviewer}: {wrong_block}")
             fatal += 1
-        if 1 <= f.block <= len(blocks):
-            disagrees = edit_problem(f, blocks[f.block - 1])
+        held = entry_for(f.address, blocks)
+        if held is not None:
+            disagrees = edit_problem(f, held)
             if disagrees:
-                print(f"  BLOCK {f.block} {f.reviewer}: {disagrees}")
+                print(f"  {f.address} {f.reviewer}: {disagrees}")
                 fatal += 1
         payload = payload_problem(f)
         if payload:
-            print(f"  BLOCK {f.block} {f.reviewer}: {payload}")
+            print(f"  {f.address} {f.reviewer}: {payload}")
             fatal += 1
 
     grouped = by_block(found)
@@ -504,9 +584,9 @@ def _report(args: argparse.Namespace) -> int:
     # nothing is asked of stage 5 either. Counting those as work buried 76 real
     # verdicts inside 1159 on a measured run.
     ran = sorted(reported | {f.reviewer for f in found})
-    in_range = [f for f in found if 1 <= f.block <= len(blocks)]
-    ruled = {f.block for f in in_range if _substantive(f) and not declares_scope(f)}
-    scoped_out = {f.block for f in in_range if declares_scope(f)} - ruled
+    in_range = [f for f in found if entry_for(f.address, blocks) is not None]
+    ruled = {f.address for f in in_range if _substantive(f) and not declares_scope(f)}
+    scoped_out = {f.address for f in in_range if declares_scope(f)} - ruled
     # !! A BLOCK NOBODY ACCOUNTED FOR IS NOT A BLOCK EVERY ROLE PASSED. It fell
     # into `stands` and was printed as "clean from all N reviewers", which is a
     # claim no reviewer made -- on a report where every slot was still empty,
@@ -570,7 +650,7 @@ def _report(args: argparse.Namespace) -> int:
                 if _substantive(f) and not declares_scope(f)
             )
             flag = "   ! RE-REVIEW" if b in out_for_rereview else ""
-            print(f"  {b:4d}  {marks}{flag}")
+            print(f"  {b}  {marks}{flag}")
 
     # ! Printed whether or not the gate refuses, and counted toward nothing. A
     # code problem is not a verdict, so it is neither admissible nor

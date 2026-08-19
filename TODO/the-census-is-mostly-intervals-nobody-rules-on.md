@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 10 tasks done
+Progress: 2 of 13 tasks done
 Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
 Requires-Roy: true
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -162,6 +162,26 @@ not.** The change is to filter the census the same way and give the reviewer som
       producer knows**, which is the rule 0.2.3 settled when `whole_lines` became a stated fact.
       The record should carry `{"op": "insert", "anchor": ..., "side": "above"}`. Verify: the
       galley branches on the stated op, and an `add` with no op is refused rather than guessed.
+- [ ] !! **REOPENED 2026-08-19: `--filtered` stopped filtering when `margin`
+      arrived.** `census.py` collapses `kind == "interval"` only, so `margin` and
+      `undocumented` -- both in `HOLDS_NO_PROSE` -- print one row each. Measured
+      over three shipped scripts: 3,359 blocks, **1,627 of them bare `margin  0L
+      -`**, one per code line, zero information, four times per run. ! The file's
+      own cost table (1,120 blocks / 131,353 bytes) is a rotted measurement; re-
+      measure with it. **Collapse on `HOLDS_NO_PROSE`, not on one kind.**
+- [ ] **A reviewer is told to run `&lt;skill&gt;/scripts/addresser.py` and nothing
+      resolves `&lt;skill&gt;`.** The packet carries REPO ROOT, CENSUS, LOOKUP
+      CENSUS and REVIEWER FILES -- and REVIEWER FILES, the only section holding
+      plugin paths, is explicitly withheld from reviewers. SKILL.md insists *"An
+      agent is GIVEN what it needs, and is never sent looking."* ! Also `&lt;FULL
+      CENSUS&gt;` names no packet section; the field is `LOOKUP CENSUS`, and it is
+      the same file.
+- [ ] **Nothing tells a reviewer what the census `kind` column means.** The
+      listing prints `docstring`, `comment`, `trailing-comment`, `margin`, `no-
+      prose`; the brief names `interval` and `undocumented` -- words the listing
+      never prints -- and never names `margin`, which is most of the rows. ! The
+      listing also ships no column legend; the only one is in SKILL.md, which
+      reviewers never see, and it is stale.
 
 ## Related
 

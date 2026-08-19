@@ -25,7 +25,7 @@ first, then truth, then fit, then the page.
 | # | stage | who acts | what exists at the end of it |
 |---|---|---|---|
 | 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
-| 2 | **COLLATE** | `census.py` | every interval between two lines of code gathered into one numbered tree, each comment run and docstring a node on it |
+| 2 | **COLLATE** | `census.py` | every place prose can sit gathered into one numbered tree, each comment run and docstring a node on it |
 | 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved -- paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers | findings on the nodes -- read-only, nothing written |
 | 5 | **APPLY** | task agent | one verdict per block and the **full-length** replacement text |
@@ -85,11 +85,12 @@ enforce it at stage 5 by refusing a verdict that arrives without one.
 
 ## Why the stages are in this order
 
-**1-3 build the pCST** -- a *pseudo* Concrete Syntax Tree, pseudo because it comes from a
-comment-syntax record and a lexer rather than the language's own grammar. It is every interval
-between two lines of code in the files under review, numbered in order, each comment run and
-each docstring a NODE on it with every reference it makes already resolved. The intervals that
-hold nothing are on it too, because that is where prose is MISSING.
+**1-3 build the pCST** -- a *pseudo* Concrete Syntax Tree: every LINE of the files under
+review classified, numbered in order, with every reference it makes already resolved. This
+line is code, this PART of a line is code, this line is comment, this line is docstring.
+**Pseudo** because a real CST would carry the names and the symbols precisely; this carries
+only which lines are which, which is what a reviewer of COMMENTS needs. The places holding
+nothing are on it too, because that is where prose is MISSING.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding.

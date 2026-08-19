@@ -50,21 +50,34 @@ comment closes its run, so a sentence wrapped onto the next line becomes a SECON
 to the code BELOW it. Read the two together before ruling. **A mid-clause ending on a block
 carrying this annotation is the census's doing, not the author's, and is not a `correct`.**
 
-!! **An `interval` block holds nothing, and you owe it no record.** Every gap between two
-lines of code is numbered, so most of the census is empty intervals -- they are there to be
-CITED, not accounted for. An `add` says a constraint exists in code and NOWHERE in prose, which
-is a finding about an empty interval; without an index for it the finding had to borrow a
-neighbouring block's and read as being about that block's text.
+!! **FRONT MATTER IS NOT YOURS, and you will not be shown it.** A licence header, a shebang or
+a coding line -- the prose above a module's own docstring. It states no constraint the code
+could contradict, documents no function, and sits where law or convention puts it, so no role
+here can settle it. It is filtered out of your census. ! **An edit proposed on it anyway
+becomes a `query`** -- a licence is a legal instrument and a shebang is how the file runs, and
+both are the human's to change.
+
+!! **A block that holds nothing owes you no record.** Most of the census is empty -- a gap
+between two lines of code (`interval`), or a declaration with no docstring (`undocumented`).
+They are there to be CITED, not accounted for: an `add` says a constraint exists in code and
+NOWHERE in prose, which is a finding about one of them.
+
+!! **THE `@` NAMES A PLACE AGAINST THE CODE, and it is what you cite.** `@a5` is the 5th
+DECLARATION's documentation, `@c3` is prose BESIDE code line 3, `@b3` is the gap ABOVE code
+line 4. ! **The number means a different statement in `b` than in `c`** -- `c3` sits ON the 3rd
+code line and `b3` sits AFTER it -- so code line N carries `b(N-1)` above it and `cN` beside it,
+and a declaration carries those plus its own `a`.
 
 ## You FILL a record; you do not write one
 
 **You are handed a file with one slot per prose block.** Each already carries the two things
-the tool knows -- the census `block` index and the `address` -- and you set the five that are
+the tool knows -- the `address` and the `anchor` it sits on -- and you set the five that are
 yours:
 
 ```json
 { "block": 17,
-  "address": "redacted_pkg/billing/rates.py:352-354",
+  "address": "redacted_pkg.billing.rates.py@b47",
+  "anchor":  "compute_rates",
   "verdict": "correct",
   "claim":   { "false": "twenty call sites want this",
                "true":  "31 callers, all in tests/" },
@@ -83,8 +96,9 @@ ever reading the code, and nothing could tell that from real work. Your remit re
 read. ! If you read the wrong lines, the sentence your `claim` quotes will not be in the block
 and the join says so -- that error is caught, and the other one is invisible.
 
-!! **YOU NEVER TRANSCRIBE THE BLOCK.** `block` and `address` are the tool's. Leave them alone;
-a mismatch there means the file was edited, not that you misquoted.
+!! **YOU NEVER TRANSCRIBE THE BLOCK.** `address` and `anchor` are the tool's. Leave them alone;
+a mismatch there means the file was edited, not that you misquoted. ! The `anchor` is there to
+be GREPPED -- it names the declaration the census resolved, and is empty where none was.
 
 ! **The file states what each constrained field allows** -- the seven verdicts, the `claim` keys
 each one owes, `query`'s three shapes, `add`'s two sides. Read `allowed` at the top of your file
@@ -141,22 +155,33 @@ record instead.
 
 ### Filing an `add`
 
-**An `add` cites the EMPTY INTERVAL the prose belongs in**, because its finding is that a
-constraint holds in code and appears in NO prose. Intervals get no seeded slot -- they are
-addressable, not accountable -- so **append a new record carrying that interval's census index
-and address.** Read it as being about that gap, not about a neighbour.
+**An `add` cites the EMPTY PLACE the prose belongs in**, because its finding is that a
+constraint holds in code and appears in NO prose. Empty places get no seeded slot -- they are
+addressable, not accountable -- so **append a new record carrying that place's ADDRESS.** Read
+it as being about that place, not about a neighbour.
 
-!! **A ROW LIKE `2-9  record.py:48-58  no-prose  0L  8-intervals` HIDES EIGHT NUMBERED GAPS.**
-To cite one, ask -- do not count:
+!! **ASK FOR THE ADDRESS. DO NOT COUNT.** A row like `2-9  @b12..b19  48-58  no-prose  0L
+8-intervals` hides eight numbered gaps, and counting them is how a citation lands one place off.
+Two ways to ask:
 
 ```bash
-python <skill>/scripts/locator.py --census <LOOKUP CENSUS> --repo <REPO ROOT> --at path:LINE
+# by ANCHOR -- which place of this declaration: a its documentation,
+# b the gap above its opening line, c the room beside it
+python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor NAME --series a|b|c
+
+# by LINE, when what you have is a line of the original document
+python <skill>/scripts/locator.py --census <LOOKUP CENSUS> --at path:LINE
 ```
 
-A line in the ORIGINAL document goes in; the index and address come back.
+!! **PREFER THE ANCHOR.** Asking by position -- "the block above the `def`" -- is right in
+Python and wrong in Rust, whose `///` sits before its `fn` where Python's docstring sits after.
+The census parsed the file and knows which is which; a count does not.
 
 !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A record naming a line as the
 place a thing belongs is refused.
+
+! **The SIDE is the address's to say, never yours.** `@bN` is above code line N, `@cN` beside
+it, `@aN` a declaration's documentation. Your payload names WHAT is missing and WHICH anchor.
 
 
 !! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two
@@ -199,7 +224,7 @@ must type appeared nowhere here as keys.
 | `drop` | `drop` | the sentence, verbatim, as it stands in the block. ! It is CHECKED against the census text, so a paraphrase is refused |
 | `correct` | `false`, `true` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the block -- if it is not there, the finding is on the wrong block |
 | `patch` | `from`, `to` | the sentence as it stands and the rewrite. ! `from` is checked against the block. A `patch` needs no source: the claim is already true, and only its wording is at issue |
-| `add` | `missing`, `anchor`, `side` | the text that is missing, the anchor NAMED IN BACKTICKS, and which side of it. ! The word "anchor" is not an anchor -- name the declaration |
+| `add` | `missing`, `anchor` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the payload's |
 | `move` | `from`, `to` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting BLOCKS |
 
 <!-- END GENERATED -->
@@ -284,6 +309,14 @@ down, another file, or out of the code entirely -- all `move`, and which one goe
 payload. Say what is wrong in `REASON`. **Only a destination outside the code can be
 unavailable**, and your run context says whether it is; a relocation into tracked code is
 always available.
+
+!! **`to:` IS AN ADDRESS when the destination is in the code, and it is RESOLVED.** Ask for it
+the same way an `add` does -- `--anchor NAME --series a|b|c`, or the locator. A destination
+naming a LINE is refused, and so is an address the census does not carry.
+
+! **The destination may hold NO PROSE, and that is ordinary.** A block can move to a gap with
+no comment in it or a declaration with no docstring: those are places with addresses, not
+absences. A destination OUTSIDE the code carries no address and is written as the path.
 
 #### `clean` specific rules
 

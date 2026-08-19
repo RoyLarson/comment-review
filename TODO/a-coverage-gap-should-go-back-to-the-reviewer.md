@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    session * Roy (1 ruling)
 Requires-Roy: true
 Raised:   2026-08-16 (Roy, on the re-sweep's `gap`: "looks like a different form of the
@@ -48,3 +48,11 @@ came up, but what changes here is control flow.
 
 - [ ] Re-check `SKILL.md:82-84`'s *"coverage is a COMPLETE READ"* rule against the new flow. It
       states the principle correctly and should survive unchanged -- confirm rather than assume.
+- [ ] !! **FRONT MATTER IS SEEDED BUT NEVER SHOWN, so every file carrying a
+      licence header reports INCOMPLETE forever.** `record.prose_blocks` filters
+      on `HOLDS_NO_PROSE` only; `census.py` drops front matter from `--filtered`;
+      `verdicts.py` excludes it from coverage. So a slot is written for a block
+      the reviewer is never shown, stays `null`, and `record.py --check` calls the
+      file INCOMPLETE -- which SKILL.md tells the task agent means a reviewer
+      stopped part-way. **One line: `prose_blocks` excludes `FRONT_MATTER`, as
+      `verdicts.py` already does.**

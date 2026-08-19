@@ -18,14 +18,23 @@ CENSUS = [
         "end": 3,
         "kind": "docstring",
         "raw_lines": ["Summary.", "", "Args:"],
+        "address": "pkg.m.py@a0",
     },
-    {"path": "pkg/m.py", "start": 4, "end": 4, "kind": "interval", "raw_lines": []},
+    {
+        "path": "pkg/m.py",
+        "start": 4,
+        "end": 4,
+        "kind": "interval",
+        "raw_lines": [],
+        "address": "pkg.m.py@b1",
+    },
     {
         "path": "pkg/m.py",
         "start": 5,
         "end": 5,
         "kind": "comment",
         "raw_lines": ["# a note"],
+        "address": "pkg.m.py@b2",
     },
 ]
 
@@ -35,13 +44,24 @@ class TestOnlyProseGetsASlot(unittest.TestCase):
         self.assertEqual([i for i, _ in record.prose_blocks(CENSUS)], [1, 3])
 
     def test_a_census_of_only_intervals_seeds_nothing(self):
-        only = [{"path": "a.py", "start": 1, "end": 1, "kind": "interval"}]
+        only = [
+            {
+                "path": "a.py",
+                "start": 1,
+                "end": 1,
+                "kind": "interval",
+                "address": "a.py@b0",
+            }
+        ]
         self.assertEqual(record.seed(only, "block-context")["records"], [])
 
-    def test_the_index_is_the_CENSUS_index_not_the_slot_number(self):
-        # !! The second prose block is census index 3, not 2. The index IS the
-        # block's identity, and renumbering it would make every citation wrong.
-        self.assertEqual(record.seed(CENSUS, "x")["records"][1]["block"], 3)
+    def test_the_address_is_the_CENSUSS_not_a_slot_number(self):
+        # !! THE ADDRESS IS THE CENSUS'S, not a slot number. The index this
+        # once asserted was dropped 2026-08-19 -- it went stale the moment an
+        # `add` or a `drop` shifted the list.
+        self.assertEqual(
+            record.seed(CENSUS, "x")["records"][1]["address"], "pkg.m.py@b2"
+        )
 
 
 class TestWhatTheToolFills(unittest.TestCase):
@@ -49,7 +69,7 @@ class TestWhatTheToolFills(unittest.TestCase):
         self.records = record.seed(CENSUS, "block-context")["records"]
 
     def test_the_address_is_built_from_the_census(self):
-        self.assertEqual(self.records[0]["address"], "pkg/m.py:1-3")
+        self.assertEqual(self.records[0]["address"], "pkg.m.py@a0")
 
     def test_the_record_does_NOT_carry_the_block_text(self):
         """!! The reviewer is told WHERE, not WHAT, and that is deliberate.
@@ -71,8 +91,8 @@ class TestWhatTheToolFills(unittest.TestCase):
             with self.subTest(field=field):
                 self.assertIn(field, self.records[0])
 
-    def test_only_the_index_and_the_address_are_seeded(self):
-        self.assertEqual(record.SEEDED, ("block", "address"))
+    def test_only_the_address_and_the_anchor_are_seeded(self):
+        self.assertEqual(record.SEEDED, ("address", "anchor"))
 
 
 class TestWhatTheReviewerFills(unittest.TestCase):
@@ -134,10 +154,12 @@ class TestTheTemplateStatesWhatIsAllowed(unittest.TestCase):
         self.assertIn("attempted", self.allowed["claim"]["query"])
         self.assertIn("settles", self.allowed["claim"]["query"])
 
-    def test_add_is_told_it_owes_an_anchor_and_a_side(self):
+    def test_add_is_told_it_owes_an_anchor_and_NOT_a_side(self):
+        # !! THE ADDRESS SAYS WHICH SIDE -- `@bN` above code line N, `@cN`
+        # beside it -- so the payload does not, and cannot contradict it.
         self.assertIn("anchor", self.allowed["claim"]["add"])
-        self.assertIn("side", self.allowed["claim"]["add"])
-        self.assertEqual(self.allowed["values"]["side"], ["above", "below"])
+        self.assertNotIn("side", self.allowed["claim"]["add"])
+        self.assertNotIn("side", self.allowed["values"])
 
     def test_the_boundary_shape_is_named(self):
         # ! One of the three query shapes is a scope report rather than work,
@@ -261,7 +283,7 @@ class TestConvertKeepsAHeldRunReplayable(unittest.TestCase):
             {"drop": "callers round separately"},
         )
 
-    def test_an_add_recovers_its_ANCHOR_AND_SIDE_from_the_prose(self):
+    def test_an_add_recovers_its_ANCHOR_from_the_prose(self):
         # !! The old format carried these as prose inside CLAIM, checked by
         # regex rather than by marker. A conversion reading only markers turned
         # 179 of one report's 228 admissible records into malformed ones.
@@ -269,11 +291,13 @@ class TestConvertKeepsAHeldRunReplayable(unittest.TestCase):
             "add", 'missing: "the units are seconds", above `COOLDOWN_HOLD_S`'
         )
         self.assertEqual(got["anchor"], "`COOLDOWN_HOLD_S`")
-        self.assertEqual(got["side"], "above")
 
-    def test_before_and_after_map_onto_the_two_sides_offered(self):
+    def test_the_old_SIDE_word_is_dropped_not_carried_across(self):
+        # !! THE ADDRESS SAYS WHICH SIDE. A 0.2.x claim stated it as prose;
+        # carrying that word forward would put the field back that this
+        # conversion exists to leave behind.
         got = record.claim_object("add", 'missing: "x", before `F`')
-        self.assertEqual(got["side"], "above")
+        self.assertNotIn("side", got)
 
     def test_a_query_recovers_its_shape_and_owes_the_rest(self):
         got = record.claim_object(
@@ -298,7 +322,7 @@ class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
     """
 
     @staticmethod
-    def _F(block, verdict):
+    def _F(address, verdict):
         """A finding, as `parse_report` builds them -- `convert`'s real input.
 
         ! A hand-rolled stub stood here and re-declared six of `Finding`'s
@@ -308,7 +332,7 @@ class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
         """
         return record.Finding(
             reviewer="module-context",
-            block=block,
+            address=address,
             verdict=verdict,
             claim='missing: "x", above `F`',
             reason="r",
@@ -317,23 +341,38 @@ class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
         )
 
     def test_a_finding_on_an_interval_is_not_dropped(self):
-        report = record.convert([self._F(2, "add")], CENSUS, "module-context")
-        cited = [r for r in report["records"] if r["block"] == 2]
+        report = record.convert(
+            [self._F("pkg.m.py@b1", "add")], CENSUS, "module-context"
+        )
+        cited = [r for r in report["records"] if r["address"] == "pkg.m.py@b1"]
         self.assertEqual(len(cited), 1)
         self.assertEqual(cited[0]["verdict"], "add")
 
     def test_the_interval_slot_carries_the_censuss_address(self):
-        report = record.convert([self._F(2, "add")], CENSUS, "module-context")
-        cited = next(r for r in report["records"] if r["block"] == 2)
-        self.assertEqual(cited["address"], "pkg/m.py:4-4")
+        report = record.convert(
+            [self._F("pkg.m.py@b1", "add")], CENSUS, "module-context"
+        )
+        cited = next(r for r in report["records"] if r["address"] == "pkg.m.py@b1")
+        # !! THE STABLE ADDRESS, not a line range. A line range is true of one
+        # file state and this tool edits prose; deprecated 2026-08-18.
+        self.assertEqual(cited["address"], "pkg.m.py@b1")
 
     def test_records_stay_in_census_order(self):
-        report = record.convert([self._F(2, "add")], CENSUS, "module-context")
-        blocks = [r["block"] for r in report["records"]]
-        self.assertEqual(blocks, sorted(blocks))
+        report = record.convert(
+            [self._F("pkg.m.py@b1", "add")], CENSUS, "module-context"
+        )
+        # ! Census order, which the addresses no longer sort into by string --
+        # the census position is what `convert` orders by.
+        order = [b["address"] for b in CENSUS]
+        got = [order.index(r["address"]) for r in report["records"]]
+        self.assertEqual(got, sorted(got))
 
     def test_no_finding_is_lost(self):
-        findings = [self._F(1, "add"), self._F(2, "add"), self._F(3, "add")]
+        findings = [
+            self._F("pkg.m.py@a0", "add"),
+            self._F("pkg.m.py@b1", "add"),
+            self._F("pkg.m.py@b2", "add"),
+        ]
         report = record.convert(findings, CENSUS, "module-context")
         ruled = [r for r in report["records"] if r["verdict"] is not None]
         self.assertEqual(len(ruled), 3)
@@ -455,7 +494,7 @@ class TestABlankClaimKeyIsMissing(unittest.TestCase):
 
         return {
             "block": 1,
-            "address": "a.py:1-2",
+            "address": "a.py@b0",
             "verdict": "query",
             "claim": claim,
             "reason": "r",
@@ -567,14 +606,15 @@ class TestTheAnchorFormIsCheckedHereToo(unittest.TestCase):
         "kind": "comment",
         "text": "x",
         "raw_lines": ["# x"],
+        "address": "a.py@b0",
     }
 
     def _rec(self, anchor):
         return {
             "block": 1,
-            "address": "a.py:1-1",
+            "address": "a.py@b0",
             "verdict": "add",
-            "claim": {"missing": "a note", "anchor": anchor, "side": "below"},
+            "claim": {"missing": "a note", "anchor": anchor},
             "reason": "derived it",
             "sources": [{"cite": "a.py:1", "verbatim": "# x"}],
             "change": ["# x", "# a note"],

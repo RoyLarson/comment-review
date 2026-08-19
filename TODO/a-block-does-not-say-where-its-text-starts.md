@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks done
+Progress: 1 of 6 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -67,6 +67,23 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
 - [ ] **`prove_unchanged._without_comments` reads the same field** rather than re-deriving the
       suffix rule. Verify: its CLI tests pass unchanged, and the two implementations of one
       rule become one.
+- [ ] !! **ONE ADDRESS NAMES TWO BLOCKS on a mid-line comment, and this is the
+      cause.** Measured 2026-08-19 on `let b = 2; /* opens` ... `and closes */`:
+      the comment and an empty interval are both `@b1`, and lines 2-3 each carry
+      two addresses. `record.entry_for` returns the interval, so every text check
+      reads `""`. ! **Two computations of one fact inside one module** --
+      `addresser.address()` reads `kind in SHARES_ITS_LINE`, `code_lines_of` reads
+      `whole_lines`. A mid-line `comment` is `whole_lines=False` and not in
+      `SHARES_ITS_LINE`. **One computation, and `SHARES_ITS_LINE` goes.**
+- [ ] !! **THE TWO TIERS STORE `raw_lines` DIFFERENTLY, and a FRESH census reads
+      as STALE because of it.** `blocks_lexical` cuts `raw_lines[0]` at the
+      comment opener (`census.py:541,561`) where `blocks_stdlib` stores the whole
+      line, so `block_matches` compares `// a trailing comment` against `\treturn
+      a + b // a trailing comment`. ! Reproduced on the repo's OWN committed
+      fixture: `addresser.py --check` on a seconds-old census of
+      `tests/fixtures/sample.go` exits 2. It kills `--check`, `--resolve` and
+      `--anchor` on every non-Python file with a trailing or indented comment, the
+      message is unactionable, and **it masks the collision above**.
 
 ## Related
 

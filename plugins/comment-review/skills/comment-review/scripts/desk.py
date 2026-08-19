@@ -34,7 +34,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from census import block_text, language_for  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     ANCHOR_NAME,
-    ANCHOR_SIDE,
     CITE,
     OUT_OF_ROLE,
     VERDICTS,
@@ -45,6 +44,7 @@ from record import (  # noqa: E402  -- path shim must run first
     _n,
     _said,
     claim_keys,
+    entry_for,
     filled,
 )
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
@@ -213,12 +213,11 @@ def payload_problem(f: Finding) -> str | None:
         # !! `or` will not do: an EMPTY field would fall back to the rendered
         # string, which is exactly the case being fixed. A record that carries
         # fields is answered from them, filled or not.
-        if f.claim_fields:
-            side, anchor = _said(f, "side"), _said(f, "anchor")
-        else:
-            side, anchor = claim, f.claim
-        if not ANCHOR_SIDE.search(side):
-            return "add needs a side -- is the text above or below the anchor"
+        anchor = _said(f, "anchor") if f.claim_fields else f.claim
+        # !! NO SIDE IS ASKED FOR. The ADDRESS says which side -- `@bN` above
+        # code line N, `@cN` beside it, `@aN` a declaration's documentation --
+        # so a payload stating it again could disagree, and did: measured
+        # 2026-08-19, an `add` on a `c` address passed carrying `side: above`.
         if not ANCHOR_NAME.search(anchor):
             return (
                 "add needs the anchor NAMED in backticks -- which declaration,"
@@ -423,6 +422,62 @@ def _words(text: str) -> str:
     return " ".join(s for w in text.split() if (s := w.strip(EDGE))).lower()
 
 
+# An ADDRESS as it appears inside prose: a dotted path, `@`, a series letter and
+# an ordinal. ! MATCHED, not split: a `move`'s `to:` is a sentence a reviewer
+# wrote and the address sits somewhere inside it.
+ADDRESS_IN = re.compile(r"[\w./\-]+@[abc]\d+")
+# The RETIRED line form, as it appears inside prose. ! A destination naming one
+# is refused rather than taken for an out-of-code place: it is inside the code,
+# and this tool moves the line it names.
+LINE_FORM = re.compile(r"[\w./\-]+\.\w+:\d+(?:-\d+)?")
+
+
+def destination_problem(f: Finding, blocks: list[dict]) -> str | None:
+    """Does a `move`'s destination name a place that exists?
+
+    !! A DESTINATION WAS CHECKED FOR PRESENCE AND NEVER RESOLVED, so a `move`
+    could send a block anywhere -- a line number, a prose description, a
+    declaration that is not in this run -- and the gate passed it. `to:` is the
+    one half stage 5 has to act on.
+
+    !! AND THE PLACE IT NAMES MAY HOLD NO PROSE. Roy, 2026-08-19: something
+    could move a line to a new place that does not have a comment. Every such
+    place now has an address -- an empty `interval`, a bare `margin`, an
+    `undocumented` declaration -- so the destination is nameable where before
+    there was no block to point at.
+
+    ! A destination OUTSIDE the code carries no address and is left alone: the
+    tree that receives it is not in the census, and whether it exists at all is
+    stage 1's ruling, recorded in the run context. An address is recognised by
+    its `@`; anything else is taken as outside and passes here.
+    """
+    spec = VERDICTS.get(f.verdict)
+    if spec is None or not spec.owes_destination:
+        return None
+    where = (_said(f, "to") if f.claim_fields else f.claim).strip()
+    if not where:
+        return None  # ! Absence is the PAYLOAD check's to report, and it does.
+    # !! A LINE IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER. The retired form
+    # is refused by name rather than passed as an out-of-code destination --
+    # `m.py:3` is inside the code, and it is stale the moment this run edits
+    # anything above it.
+    stale = LINE_FORM.search(where)
+    if stale:
+        return (
+            f"move's destination names a LINE, {stale.group(0)!r} -- that form was"
+            " retired: ask `addresser.py --anchor NAME --series a|b|c` for the"
+            " address, or `locator.py --at path:LINE`"
+        )
+    if "@" not in where:
+        return None
+    named = ADDRESS_IN.search(where)
+    if named is None:
+        return f"move's destination {where!r} is not an address"
+    if entry_for(named.group(0), blocks) is None:
+        return f"move's destination {named.group(0)} is not a place in the census"
+    return None
+
+
 def address_problem(f: Finding, blocks: list[dict]) -> str | None:
     """Does the record's address name the block the census has at that index?
 
@@ -481,22 +536,20 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
     spec = VERDICTS.get(f.verdict)
     if spec is None or not spec.owes_address:
         return None
-    if not 1 <= f.block <= len(blocks):
-        return None
-    entry = blocks[f.block - 1]
-    start, end = entry.get("start"), entry.get("end")
-    path = str(entry.get("path", "")).replace("\\", "/")
-    want = f"{path}:{start}-{end}"
-    # !! BOTH forms are accepted on a one-line block. The brief says write
-    # `path:start-end`, so a reviewer following it writes `a.py:225-225` while
-    # the census prints `a.py:225`. Measured 2026-08-17: 268 refusals in one
-    # run, every single one this collision and not one a wrong address.
-    ok = {want} if start != end else {want, f"{path}:{start}"}
+    entry = entry_for(f.address, blocks)
+    if entry is None:
+        return f"ADDRESS {f.address!r} is not in the census"
+    # !! ONE FORM NOW. The line range this compared was deprecated 2026-08-18 --
+    # it is true of one file state, and this tool edits prose. The stable
+    # address has no short form, so the one-line tolerance that cost 268
+    # refusals in a single run has nothing left to forgive.
+    want = str(entry.get("address", ""))
+    ok = {want}
     got = f.address.replace("\\", "/").strip()
     if not got:
-        return f"BLOCK {f.block} carries no ADDRESS -- write `{f.block} | {want}`"
+        return f"a record carries no ADDRESS -- write `{want}`"
     if got not in ok:
-        return f"BLOCK {f.block} address is {got!r}, the census says {want!r}"
+        return f"address is {got!r}, the census says {want!r}"
     # !! THE TEXT IS NO LONGER COMPARED, and it must not be. `original` is
     # filled from the census's `raw_lines` by `_report`, and `text` is the
     # census's own normalised copy of the same block -- so the comparison put
@@ -550,7 +603,7 @@ def block_problem(f: Finding, blocks: list[dict]) -> str | None:
     # row quotes no original -- `clean`, `add`, `query`, `move` -- and for a
     # malformed spec, and the next line already treats "" as nothing to check.
     # A second list would be a second place to update.
-    if not 1 <= f.block <= len(blocks):
+    if entry_for(f.address, blocks) is None:
         return None
     needle = ruled_text(f)
     if not needle:
@@ -559,12 +612,13 @@ def block_problem(f: Finding, blocks: list[dict]) -> str | None:
     # which drops per-token quotes and trailing punctuation; a haystack that
     # was only whitespace-collapsed still holds them, so any comma, colon or
     # backtick inside a quoted sentence refused a correct finding.
-    haystack = _words(str(blocks[f.block - 1].get("text", "")))
+    entry = entry_for(f.address, blocks) or {}
+    haystack = _words(str(entry.get("text", "")))
     # ! Same rule as SOURCES: compare all of it, truncate only the message. A
     # fabricated tail here made `edit_problem` MORE permissive, because it
     # widened the string every removed span is checked against.
     if needle not in haystack:
-        return f"the sentence ruled on is not in block {f.block}: {needle[:40]!r}"
+        return f"the sentence ruled on is not in {f.address}: {needle[:40]!r}"
     return None
 
 

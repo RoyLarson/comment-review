@@ -76,6 +76,88 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+### A place is DEFINED now, and that was the weak link
+
+!! **THE PREVIOUS VERSION NEVER DEFINED WHAT A PLACE WAS.** It named one by LINE --
+`path:start-end` -- which is true of one file state, and this tool EDITS PROSE: every prose edit
+moves the line numbers of the code below it. Nothing owned the definition, so every consumer
+re-derived it and they drifted apart in different directions. `docs/addressing.md` is the settled
+definition; this is what was wrong before it.
+
+**None of the following was a bug in one place.** Each is the same absent definition surfacing
+where a different consumer had guessed:
+
+| symptom | measured on this repo's own shipped scripts |
+| --- | --- |
+| two blocks answering to ONE address | **28** places, all 28 a docstring sharing a gap with the comment run beneath it |
+| lines answering to TWO addresses | **2,303 of 6,775** -- each a code line ending one gap and starting the next |
+| lines answering to NONE | **131**, all blanks at the edges of gaps |
+| `b` places that did not exist at all | **129** -- `b0` missing in all 13 files, so no file could be given a comment above its module docstring |
+| declarations with nowhere to cite a missing docstring | **730** |
+| a FRESH census reading as STALE | 3 blocks: a block storing no text was compared against lines that held some |
+
+**After: 6,873 lines, each with exactly one address -- 0 with none, 0 with more than one, 0
+missing `b` places, 0 shared.** `addresser.py --check` re-reads that claim on every run.
+
+### The rule
+
+**An address is not a span of lines. Every LINE has exactly one address, and a BLOCK is just the
+lines that share one.** Ruled by Roy, 2026-08-19. Three series, and every POTENTIAL place has one
+too, so prose that is MISSING has somewhere to be cited:
+
+- `@aN` a declaration's documentation (`a0` the module, `a1..aN` in source order) -- empty kind
+  `undocumented`
+- `@bN` the gap ABOVE code line N -- empty kind `interval`
+- `@cN` BESIDE code line N -- empty kind `margin`
+
+! `b` and `c` both count from 0, so `bN` and `cN` name the SAME code line. They did not before:
+`c` counted from 1, so `b3` and `c3` named different statements and a reader pairing them
+attached a comment one statement too high.
+
+! A place with no lines of its own is at LINE 0. Its EDIT range still says where prose would go.
+
+### Retired
+
+- **The LINE address.** `addresser.line_address` warns on every call and is read only to parse
+  runs already recorded. Roy, 2026-08-18: *"any function method or otherwise that uses that form
+  gets a deprecated warning on it now. To make certain it comes out."*
+- **The census INDEX in a record.** It went stale the moment an `add` or a `drop` shifted the
+  list. Records key on the address; `record.entry_for` is the one lookup.
+- **`add`'s `side`.** The address says which side, so a payload stating it again could disagree
+  -- and did: an `add` on a `c` address passed the gate carrying `side: above`, and there was no
+  `beside` to write instead.
+- **Two implementations of one code-line rule.** `census.code_lines` defers to the addresser's.
+
+### Added
+
+- **`docs/addressing.md`** -- the settled definition, with the measurements above.
+- **`scripts/pcst.py`** -- a LEAF owning `Block` and the kind sets. `Block` lived in `census.py`
+  at the top of the import graph, so the three modules that READ blocks could not import the
+  definition of one: 21 untyped `block.get(...)` reads, and two kind sets that landed in
+  `galley.py` because it was the deepest module all three could reach.
+- **Ask for an address instead of counting it** -- `addresser.py --anchor NAME --series a|b|c`.
+  Asking by position is right in Python and wrong in Rust, whose `///` sits before its `fn` where
+  Python's docstring sits after.
+- **A record carries the `anchor`**, for grepping.
+- **A `move`'s destination is RESOLVED.** It was checked for presence and never resolved, so a
+  block could be sent to a line number, a description, or a declaration outside the run. The
+  destination may hold no prose -- that is what the empty places are for.
+- **Front matter is filtered, and an edit on it becomes a `query`.** A licence header, a shebang,
+  a coding line: no role can settle one, and a wrong edit is not an editorial mistake. Measured
+  over 1,500 files in five corpora -- 12 carried prose above the module docstring, 10 of them the
+  same Apache header in every file of the project.
+
+### Fixed while doing it
+
+- **`block_matches` compared a widened address range against the narrower stored text**, refusing
+  every prose block in the tree.
+- **The `b` place for a docstring-occupied gap had an edit range covering the docstring.** An
+  `add` on `b0` would have overwritten the module docstring with a comment. It is an insertion
+  above it now. The staleness check is what surfaced it -- a fresh census reading stale.
+- **The census listing repeated each file's path on every row** -- 80,912 of 205,753 bytes, and
+  the listing is pasted into all five prompts. The file is named once: **205,753 -> 108,553**.
+
+
 ## [0.2.3] -- 2026-08-18
 
 **The gate was the cycle, and the cycle ran.** Everything below is one branch,

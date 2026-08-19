@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 7 tasks done
+Progress: 5 of 7 tasks done
 Owner:    session * Roy (* 1 ruling -- the numbering)
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18, on splitting the census by editorial role)
@@ -122,25 +122,25 @@ rather than handed nothing. See
       under this tool's edits, because only a code change adds a declaration and
       stage 7b proves the code byte-identical.
 
-- [ ] **Enumerate the declarations, in SOURCE order.** `ast.walk` is breadth
+- [x] **Enumerate the declarations, in SOURCE order.** `ast.walk` is breadth
       first, so a nested `def` comes back out of position -- order by `lineno`.
       Verify: a file with a method inside a class inside a function numbers the
       same way a reader counts down the page.
 
-- [ ] !! **Emit an `a` entry for a declaration with NO docstring.** That is the
+- [x] !! **Emit an `a` entry for a declaration with NO docstring.** That is the
       whole point of the series and the thing the census does not do today:
       measured 2026-08-18, a four-declaration file produced two docstring blocks
       and left three declarations with no citable place. Verify: an `add` naming
       the docstring a function does not have resolves through the same path an
       `add` on an empty interval does.
 
-- [ ] **The census STATES which declaration a docstring belongs to**, rather
+- [x] **The census STATES which declaration a docstring belongs to**, rather
       than the addresser inferring it from position or tier. The direction is
       language-dependent -- Python's subject is the code line ABOVE, Rust's is
       BELOW -- and inference here is the defect this release has spent itself
       removing.
 
-- [ ] **Add the `a` form to `addresser.stable`**, and hold it to the same rule
+- [x] **Add the `a` form to `addresser.stable`**, and hold it to the same rule
       `--check` applies to `b` and `c`: every address resolves back to the block
       that carries it.
 

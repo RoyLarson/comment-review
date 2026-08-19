@@ -66,21 +66,39 @@ class TestBlockMatches(unittest.TestCase):
         block = {
             "start": 2,
             "end": 3,
+            "edit_start": 2,
+            "edit_end": 3,
             "raw_lines": ["    # old note", "    # second line"],
         }
         self.assertTrue(galley.block_matches(self.LINES, block))
 
     def test_a_block_whose_text_moved_is_caught(self):
-        block = {"start": 2, "end": 3, "raw_lines": ["    # SOMETHING ELSE", "    # x"]}
+        block = {
+            "start": 2,
+            "end": 3,
+            "edit_start": 2,
+            "edit_end": 3,
+            "raw_lines": ["    # SOMETHING ELSE", "    # x"],
+        }
         self.assertFalse(galley.block_matches(self.LINES, block))
 
     def test_a_range_past_the_end_of_the_file_is_caught(self):
-        block = {"start": 9, "end": 12, "raw_lines": ["    # x"]}
+        block = {
+            "start": 9,
+            "end": 12,
+            "edit_start": 9,
+            "edit_end": 12,
+            "raw_lines": ["    # x"],
+        }
         self.assertFalse(galley.block_matches(self.LINES, block))
 
     def test_a_block_carrying_no_raw_lines_is_refused(self):
         # An interval block stores none, and nothing can be verified against it.
-        self.assertFalse(galley.block_matches(self.LINES, {"start": 2, "end": 3}))
+        self.assertFalse(
+            galley.block_matches(
+                self.LINES, {"start": 2, "end": 3, "edit_start": 2, "edit_end": 3}
+            )
+        )
 
 
 class TestCLI(unittest.TestCase):
@@ -189,16 +207,21 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         prose = census.blocks_stdlib(Path("m.py"), text)
         return [b.__dict__ for b in census.intervals(Path("m.py"), text, prose)]
 
-    def _gap(self, text, start, end):
-        """The interval bounded by these two lines, as the census emits it."""
+    def _gap(self, text, edit_start, edit_end):
+        """The interval whose EDIT range is this, as the census emits it.
+
+        ! Found by the edit range, not the addressing one. A gap between two
+        adjacent code lines has no lines of its own, so it is addressed at line
+        0 -- every line has ONE address and those two belong to the `c` series.
+        """
         for b in self._census(text):
-            if (b["start"], b["end"]) == (start, end):
+            if (b["edit_start"], b["edit_end"]) == (edit_start, edit_end):
                 return b
-        raise AssertionError(f"no interval {start}-{end} in {self._census(text)}")
+        raise AssertionError(f"no gap editing {edit_start}-{edit_end}")
 
     def test_adjacent_code_lines_give_an_EMPTY_range(self):
         # ! `n+1 .. n` -- `splice` assigns into an empty slice, which inserts.
-        self.assertEqual(galley.splice_range(self._gap(self.FILE, 1, 2)), (2, 1))
+        self.assertEqual(galley.splice_range(self._gap(self.FILE, 2, 1)), (2, 1))
 
     def test_a_prose_block_keeps_its_own_range(self):
         # ! A prose block is REPLACED, so its edit range is its own lines.
@@ -211,14 +234,14 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         self.assertEqual(galley.splice_range(block), (2, 2))
 
     def test_the_insertion_lands_BETWEEN_the_two_code_lines(self):
-        start, end = galley.splice_range(self._gap(self.FILE, 1, 2))
+        start, end = galley.splice_range(self._gap(self.FILE, 2, 1))
         out = galley.splice(self.FILE, [(start, end, "# note")])
         self.assertEqual(out, "a = 1\n# note\nb = 2\nc = 3\n")
 
     def test_it_deletes_no_code(self):
         # !! The failure this range exists to avoid: `(1, 2)` would have
         # replaced BOTH bounding lines with the new prose.
-        start, end = galley.splice_range(self._gap(self.FILE, 1, 2))
+        start, end = galley.splice_range(self._gap(self.FILE, 2, 1))
         out = galley.splice(self.FILE, [(start, end, "# note")])
         for line in ("a = 1", "b = 2", "c = 3"):
             self.assertIn(line, out)
@@ -228,40 +251,41 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         # so the address cannot say which side of line 1 the gap is on --
         # measured 2026-08-17, an `add` on it landed BELOW the anchor.
         out = galley.splice(
-            self.FILE, [(*galley.splice_range(self._gap(self.FILE, 1, 1)), "# header")]
+            self.FILE, [(*galley.splice_range(self._gap(self.FILE, 1, 0)), "# header")]
         )
         self.assertEqual(out, "# header\na = 1\nb = 2\nc = 3\n")
 
     def test_the_gap_BELOW_the_last_code_line_appends(self):
         out = galley.splice(
-            self.FILE, [(*galley.splice_range(self._gap(self.FILE, 3, 3)), "# footer")]
+            self.FILE, [(*galley.splice_range(self._gap(self.FILE, 4, 3)), "# footer")]
         )
         self.assertEqual(out, "a = 1\nb = 2\nc = 3\n# footer\n")
 
     def test_the_two_boundary_gaps_of_a_ONE_LINE_file_differ(self):
-        # !! Both address `m.py:1-1`; only the edit range tells them apart.
-        gaps = [b for b in self._census("a = 1\n") if (b["start"], b["end"]) == (1, 1)]
+        # !! Both address the same place -- neither holds a line of its own --
+        # so only the edit range tells them apart.
+        gaps = [b for b in self._census("a = 1\n") if b["kind"] == "interval"]
         self.assertEqual(len(gaps), 2)
         self.assertNotEqual(galley.splice_range(gaps[0]), galley.splice_range(gaps[1]))
 
     def test_an_empty_interval_MATCHES(self):
         lines = self.FILE.splitlines()
-        self.assertTrue(galley.block_matches(lines, self._gap(self.FILE, 1, 2)))
+        self.assertTrue(galley.block_matches(lines, self._gap(self.FILE, 2, 1)))
 
     def test_an_interval_spanning_a_blank_line_matches(self):
         text = "a = 1\n\nb = 2\n"
-        self.assertTrue(galley.block_matches(text.splitlines(), self._gap(text, 1, 3)))
+        self.assertTrue(galley.block_matches(text.splitlines(), self._gap(text, 2, 2)))
 
     def test_an_interval_that_GAINED_prose_is_stale(self):
         # !! The staleness that matters for an `add`: the gap it says holds no
         # prose now holds some.
         text = "a = 1\n\nb = 2\n"
-        gap = self._gap(text, 1, 3)
+        gap = self._gap(text, 2, 2)
         grown = "a = 1\n# someone wrote this\nb = 2\n".splitlines()
         self.assertFalse(galley.block_matches(grown, gap))
 
     def test_an_interval_past_the_end_of_the_file_is_stale(self):
-        gap = dict(self._gap(self.FILE, 1, 2), start=3, end=9, edit_start=4, edit_end=8)
+        gap = dict(self._gap(self.FILE, 2, 1), start=3, end=9, edit_start=4, edit_end=8)
         self.assertFalse(galley.block_matches(self.FILE.splitlines(), gap))
 
 

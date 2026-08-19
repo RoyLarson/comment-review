@@ -8,6 +8,7 @@ from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS
 import census
+import pcst
 import prove_unchanged as pu
 
 
@@ -170,12 +171,20 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # between them censused as 0 blocks and could not be cited.
         got = self._census("a = 1\nb = 2\nc = 3\n")
         self.assertTrue(got, "three code lines must enumerate as intervals")
-        self.assertTrue(all(b.kind == "interval" for b in got), got)
+        # ! The module's own `a0` is here too -- a file with no module docstring
+        # still has the PLACE for one. Neither kind holds prose.
+        self.assertTrue(all(b.kind in pcst.HOLDS_NO_PROSE for b in got), got)
+        self.assertEqual(sum(1 for b in got if b.kind == "interval"), 4, got)
 
     def test_the_file_boundary_bounds_the_first_and_last_interval(self):
-        got = self._census("a = 1\nb = 2\nc = 3\n")
-        self.assertEqual((got[0].start, got[0].end), (1, 1))
-        self.assertEqual((got[-1].start, got[-1].end), (3, 3))
+        # !! THE EDIT RANGE CARRIES THE BOUNDARY, not the addressing one. These
+        # gaps sit between adjacent code lines, so none holds a line of its own
+        # and all are addressed at 0 -- the bounding lines belong to the `c`
+        # series. `1-0` is the gap ABOVE line 1 and `4-3` the gap below line 3,
+        # each an empty slice, so each is a pure insertion on its own side.
+        got = [b for b in self._census("a = 1\nb = 2\nc = 3\n") if b.kind == "interval"]
+        self.assertEqual((got[0].edit_start, got[0].edit_end), (1, 0))
+        self.assertEqual((got[-1].edit_start, got[-1].edit_end), (4, 3))
 
     def test_an_interval_holding_prose_is_not_enumerated_twice(self):
         got = self._census("a = 1\n# a note\nb = 2\n")
@@ -190,6 +199,16 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         text = "a = 1\n\n\nb = 2\nc = 3\n"
         last = len(text.splitlines())
         for b in self._census(text):
+            # ! An ABSENT docstring is at line 0 -- it occupies no line, because
+            # the prose is not written yet. Every block that DOES occupy lines
+            # must name real ones.
+            # ! A place with NO LINES OF ITS OWN is at line 0 -- an absent
+            # docstring, and a gap between two adjacent code lines. Its EDIT
+            # range still says where prose would go. Every block that does
+            # occupy lines must name real ones.
+            if (b.start, b.end) == (0, 0):
+                self.assertIn(b.kind, ("undocumented", "interval"), b)
+                continue
             self.assertLessEqual(b.start, b.end, b)
             self.assertGreaterEqual(b.start, 1, b)
             self.assertLessEqual(b.end, last, b)
@@ -211,14 +230,14 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # census says so rather than re-cutting -- merging would renumber every
         # census and invalidate every measurement taken against one.
         got = self._census("x = 1  # a claim that\n       # wraps onto it\ny = 2\n")
-        prose = [b for b in got if b.kind != "interval"]
+        prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
         self.assertEqual([b.kind for b in prose], ["trailing-comment", "comment"])
         self.assertIn("continues-a-trailing-comment", prose[1].annotations)
         self.assertIn("trailing comment", " ".join(prose[1].notes))
 
     def test_an_ordinary_comment_after_CODE_is_not_stamped(self):
         got = self._census("x = 1\n# a fresh note\ny = 2\n")
-        prose = [b for b in got if b.kind != "interval"]
+        prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
         self.assertEqual([b.kind for b in prose], ["comment"])
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
@@ -252,13 +271,13 @@ class TestTheLexicalTierStampsToo(unittest.TestCase):
         got = self._census(
             "a.go", "x := 1  // a claim that\n        // wraps onto it\ny := 2\n"
         )
-        prose = [b for b in got if b.kind != "interval"]
+        prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
         self.assertEqual([b.kind for b in prose], ["trailing-comment", "comment"])
         self.assertIn("continues-a-trailing-comment", prose[1].annotations)
 
     def test_go_does_not_stamp_an_ordinary_comment(self):
         got = self._census("a.go", "x := 1\n// a fresh note\ny := 2\n")
-        prose = [b for b in got if b.kind != "interval"]
+        prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
 
@@ -417,3 +436,70 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFrontMatterIsMarked(unittest.TestCase):
+    """Prose above a module's own docstring -- a licence, a shebang, a coding line.
+
+    !! IT IS FILTERED OUT OF WHAT A REVIEWER READS, and a verdict on it becomes
+    a `query`. No role can settle it: a copyright line states no constraint the
+    code could contradict, it documents no function, it is not the module
+    announcing its subject, and where it sits is fixed by law or convention
+    rather than by editorial judgement. Measured 2026-08-19 over 1,500 files in
+    five corpora: 12 carried prose there, 10 of them the same Apache header in
+    every file of the project.
+    """
+
+    def _census(self, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "a.py"
+            path.write_text(text, encoding="utf-8")
+            return census.census_for(path, text, census.language_for(path))
+
+    def _marked(self, text):
+        return [
+            b.start for b in self._census(text) if census.FRONT_MATTER in b.annotations
+        ]
+
+    LICENCE = '# Copyright 2024\n# Apache 2.0\n\n"""What this is."""\n\nimport os\n'
+    SHEBANG = '#!/usr/bin/env python3\n\n"""What this is."""\n\nimport os\n'
+    ORDINARY = '"""What this is."""\n\n# about the import\nimport os\n'
+    NO_DOCSTRING = "# about the import\nimport os\n"
+
+    def test_a_licence_above_the_module_docstring_is_front_matter(self):
+        self.assertEqual(self._marked(self.LICENCE), [1])
+
+    def test_a_shebang_is_front_matter(self):
+        self.assertEqual(self._marked(self.SHEBANG), [1])
+
+    def test_a_comment_BELOW_the_module_docstring_is_not(self):
+        # ! It sits with the code and is reviewed like any other comment.
+        self.assertEqual(self._marked(self.ORDINARY), [])
+
+    def test_a_leading_comment_with_NO_module_docstring_is_not(self):
+        # !! DELIBERATELY NARROW. With no docstring above it, a leading comment
+        # is about whatever follows -- claiming it as front matter would silence
+        # a real comment on the first declaration.
+        self.assertEqual(self._marked(self.NO_DOCSTRING), [])
+
+    def test_it_is_dropped_from_the_FILTERED_listing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "a.py"
+            path.write_text(self.LICENCE, encoding="utf-8")
+            out = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "census.py"),
+                    "--repo",
+                    tmp,
+                    "--filtered",
+                    str(path),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(out.returncode, 0, out.stderr[-300:])
+            self.assertNotIn("Copyright", out.stdout)
+            self.assertNotIn("front-matter", out.stdout)

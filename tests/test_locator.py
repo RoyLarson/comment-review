@@ -85,13 +85,14 @@ class TestTheFilteredCensusIsAProjection(unittest.TestCase):
 
     import re as _re
 
-    BLOCK = _re.compile(r"^\s*(\d+)\s+(\S+)\s+(\S+)\s")
+    # index, place, line range, kind -- the listing's first four columns.
+    BLOCK = _re.compile(r"^\s*(\d+)\s+(@\S+)\s+(\S+)\s+(\S+)\s")
 
     def _indexed(self, text):
         out = {}
         for line in text.split("\n"):
             m = self.BLOCK.match(line)
-            if m and m.group(3) not in ("interval", "no-prose"):
+            if m and m.group(4) not in ("interval", "no-prose"):
                 out[int(m.group(1))] = m.group(2)
         return out
 

@@ -38,6 +38,21 @@ REASON      nothing to report from this role
 """
 
 
+def stamped(blocks):
+    """Census blocks carrying the address the census stamps on each.
+
+    ! Fixtures are hand-built, and `address` is the tool's own field -- the
+    checks compare a record's copy against it, so a fixture without one tests
+    nothing. The folio here is arbitrary and only has to be DISTINCT: these
+    tests are about the record agreeing with the census, not about numbering.
+    """
+    out = []
+    for i, b in enumerate(blocks):
+        dotted = str(b["path"]).replace("\\", "/").replace("/", ".")
+        out.append({**b, "address": b.get("address") or f"{dotted}@b{i}"})
+    return out
+
+
 def _clean_records(*blocks: int) -> str:
     """One `clean` RECORD per block. There is no range list to write instead."""
     return "".join(
@@ -72,6 +87,10 @@ def _finding(**kw):
         "change": "# b, written out with its surrounding block",
     }
     fields.update(kw)
+    # ! The ADDRESS is the key now, and `stamped` numbers a fixture `@b{index}`
+    # from 0. A test that still says `block=N` means the Nth entry, so derive
+    # it rather than making every call site carry both.
+    fields.setdefault("address", f"a.py@b{fields['block'] - 1}")
     return record.Finding(**fields)
 
 
@@ -133,15 +152,15 @@ CHANGE      # y, in its block
 class TestCoverage(unittest.TestCase):
     def test_an_unaccounted_block_is_a_gap(self):
         gaps = verdicts.coverage_gaps(
-            {1, 2, 3, 4},
+            {f"a.py@b{n}" for n in range(4)},
             {"block-context"},
             [_finding(block=n) for n in (1, 2, 3)],
         )
-        self.assertEqual(gaps, {"block-context": [4]})
+        self.assertEqual(gaps, {"block-context": ["a.py@b3"]})
 
     def test_full_coverage_reports_no_gap(self):
         gaps = verdicts.coverage_gaps(
-            {1, 2},
+            {"a.py@b0", "a.py@b1"},
             {"block-context"},
             [_finding(block=1), _finding(block=2, verdict="clean")],
         )
@@ -150,8 +169,8 @@ class TestCoverage(unittest.TestCase):
     def test_a_report_that_parsed_to_nothing_is_every_block_missing(self):
         """A reviewer that handed in a file and recorded nothing must not vanish
         by having no findings for the population to be taken from."""
-        gaps = verdicts.coverage_gaps({1, 2}, {"module-context"}, [])
-        self.assertEqual(gaps, {"module-context": [1, 2]})
+        gaps = verdicts.coverage_gaps({"a.py@b0", "a.py@b1"}, {"module-context"}, [])
+        self.assertEqual(gaps, {"module-context": ["a.py@b0", "a.py@b1"]})
 
 
 class TestPayload(unittest.TestCase):
@@ -166,7 +185,7 @@ class TestPayload(unittest.TestCase):
         f = _finding(
             reviewer="ownership-context", verdict="add", claim='missing: "some text"'
         )
-        self.assertIn("side", desk.payload_problem(f))
+        self.assertIn("anchor", desk.payload_problem(f))
 
     def test_a_verdict_that_states_no_reason_is_rejected(self):
         # The field went unchecked while it doubled as the diagnostic slot
@@ -228,13 +247,10 @@ class TestAddAnchor(unittest.TestCase):
     def test_a_side_with_no_named_anchor_is_rejected(self):
         self.assertIn("backticks", self._add('missing: "x" / put it above the loop'))
 
-    def test_a_named_anchor_with_no_side_is_rejected(self):
-        self.assertIn("side", self._add('missing: "x" / goes with `retry_budget`'))
-
-    def test_a_named_anchor_and_a_side_passes(self):
-        self.assertIsNone(
-            self._add('missing: "the ceiling is 100" above `retry_budget`')
-        )
+    def test_a_named_anchor_alone_passes(self):
+        # !! NO SIDE IS OWED. The address says which side -- `@bN` above code
+        # line N, `@cN` beside it -- so asking again could contradict it.
+        self.assertIsNone(self._add('missing: "x" / goes with `retry_budget`'))
 
     def test_before_and_after_count_as_sides(self):
         for side in ("before", "after"):
@@ -471,8 +487,8 @@ class TestWorkList(unittest.TestCase):
             ),
         ]
         grouped = verdicts.by_block(found)
-        self.assertEqual(sorted(grouped), [7, 9])
-        self.assertEqual(len(grouped[7]), 2)
+        self.assertEqual(sorted(grouped), ["a.py@b6", "a.py@b8"])
+        self.assertEqual(len(grouped["a.py@b6"]), 2)
 
     def test_a_record_with_no_block_index_never_becomes_a_finding(self):
         # It used to arrive as `block=-1` and every consumer filtered on the
@@ -505,16 +521,18 @@ class TestContradiction(unittest.TestCase):
     # ! The collision is keyed on the DIFF, and a diff is read through the
     # census -- the block's KIND selects how, its PATH selects the markers. So
     # these tests need a census, and one entry per index they cite.
-    BLOCKS = [
-        {
-            "path": "a.py",
-            "start": n,
-            "end": n,
-            "kind": "comment",
-            "text": "the budget is 3. callers round separately.",
-        }
-        for n in range(1, 8)
-    ]
+    BLOCKS = stamped(
+        [
+            {
+                "path": "a.py",
+                "start": n,
+                "end": n,
+                "kind": "comment",
+                "text": "the budget is 3. callers round separately.",
+            }
+            for n in range(1, 8)
+        ]
+    )
 
     def _pair(self, drop_text, correct_text, verdict="correct"):
         """A `drop` of one sentence against a `correct`/`patch` of another.
@@ -548,7 +566,7 @@ class TestContradiction(unittest.TestCase):
         # Measured block 728: ownership dropped the sentence function-context
         # was correcting. Delete it, or fix its count -- nothing composes those.
         got = self._pair("the budget is 3.", "the budget is 3")
-        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), [1])
+        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), ["a.py@b0"])
 
     def test_drop_and_correct_on_DIFFERENT_sentences_do_not_collide(self):
         # Measured block 981: ownership dropped one clause, two roles corrected
@@ -560,11 +578,11 @@ class TestContradiction(unittest.TestCase):
     def test_a_containing_sentence_still_collides(self):
         # One role drops the whole block; another corrects a clause inside it.
         got = self._pair(self.ORIGINAL, "the budget is 3")
-        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), [1])
+        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), ["a.py@b0"])
 
     def test_drop_against_patch_on_one_sentence_collides(self):
         got = self._pair("the budget is 3.", "the budget is 3", "patch")
-        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), [1])
+        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), ["a.py@b0"])
 
     def test_move_against_correct_COMPOSES_and_is_not_flagged(self):
         # Ruled 2026-08-17: placement and truth are a sequence, not a rivalry.
@@ -640,7 +658,8 @@ class TestContradiction(unittest.TestCase):
             ),
         ]
         self.assertEqual(
-            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), [1]
+            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS),
+            ["a.py@b0"],
         )
 
     def test_a_record_that_names_no_block_cannot_reach_a_contradiction(self):
@@ -819,16 +838,18 @@ class TestBlockProblem(unittest.TestCase):
     checked for resolvability, never against the thing it described.
     """
 
-    BLOCKS = [
-        {
-            "path": "a.py",
-            "start": 1,
-            "end": 2,
-            "kind": "comment",
-            "text": "the retry budget is 3 and callers round separately",
-        },
-        {"path": "a.py", "start": 9, "end": 9, "kind": "interval", "text": ""},
-    ]
+    BLOCKS = stamped(
+        [
+            {
+                "path": "a.py",
+                "start": 1,
+                "end": 2,
+                "kind": "comment",
+                "text": "the retry budget is 3 and callers round separately",
+            },
+            {"path": "a.py", "start": 9, "end": 9, "kind": "interval", "text": ""},
+        ]
+    )
 
     def _at(self, verdict, claim):
         return desk.block_problem(
@@ -842,14 +863,14 @@ class TestBlockProblem(unittest.TestCase):
 
     def test_a_correct_whose_false_half_is_absent_is_refused(self):
         problem = self._at("correct", 'false: "the timeout is 30s" / true: "60s"')
-        self.assertIn("not in block 1", problem)
+        self.assertIn("is not in a.py@b0", problem)
 
     def test_a_drop_whose_sentence_is_in_the_block_passes(self):
         self.assertIsNone(self._at("drop", 'drop: "callers round separately"'))
 
     def test_a_drop_whose_sentence_is_absent_is_refused(self):
         problem = self._at("drop", 'drop: "a line from somewhere else"')
-        self.assertIn("not in block 1", problem)
+        self.assertIn("is not in a.py@b0", problem)
 
     def test_a_patch_is_checked_on_its_FROM_half(self):
         # ! The `from:` half is what makes a patch checkable at all. With only
@@ -860,7 +881,7 @@ class TestBlockProblem(unittest.TestCase):
 
     def test_a_patch_whose_from_half_is_absent_is_refused(self):
         problem = self._at("patch", 'from: "a line from elsewhere" / to: "x"')
-        self.assertIn("not in block 1", problem)
+        self.assertIn("is not in a.py@b0", problem)
 
     def test_quoting_and_whitespace_do_not_defeat_the_match(self):
         self.assertIsNone(
@@ -1077,36 +1098,38 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
     sets out which is which -- and each is checked against a different thing.
     """
 
-    BLOCKS = [
-        {
-            "path": "redacted_pkg/rates.py",
-            "start": 352,
-            "end": 354,
-            "kind": "comment",
-            "text": "the retry budget is 3 and callers round separately",
-        },
-        {
-            "path": "redacted_pkg/rates.py",
-            "start": 9,
-            "end": 9,
-            "kind": "interval",
-            "text": "",
-        },
-        {
-            "path": "redacted_pkg/rates.py",
-            "start": 20,
-            "end": 20,
-            "kind": "comment",
-            "text": "one line only",
-        },
-    ]
+    BLOCKS = stamped(
+        [
+            {
+                "path": "redacted_pkg/rates.py",
+                "start": 352,
+                "end": 354,
+                "kind": "comment",
+                "text": "the retry budget is 3 and callers round separately",
+            },
+            {
+                "path": "redacted_pkg/rates.py",
+                "start": 9,
+                "end": 9,
+                "kind": "interval",
+                "text": "",
+            },
+            {
+                "path": "redacted_pkg/rates.py",
+                "start": 20,
+                "end": 20,
+                "kind": "comment",
+                "text": "one line only",
+            },
+        ]
+    )
 
     ORIGINAL = "# the retry budget is 3 and callers\n# round separately"
 
     def _at(self, **kw):
         fields = {
             "block": 1,
-            "address": "redacted_pkg/rates.py:352-354",
+            "address": "redacted_pkg.rates.py@b0",
             "original": self.ORIGINAL,
         }
         fields.update(kw)
@@ -1117,23 +1140,37 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
 
     def test_a_missing_address_is_refused_and_the_message_shows_the_right_one(self):
         problem = self._at(address="")
-        self.assertIn("carries no ADDRESS", problem)
-        self.assertIn("1 | redacted_pkg/rates.py:352-354", problem)
+        # ! An empty address names nothing, and the message says so rather
+        # than naming a census index the record no longer carries.
+        self.assertIn("is not in the census", problem)
 
-    def test_an_address_naming_the_wrong_lines_is_refused(self):
-        self.assertIn("census says", self._at(address="redacted_pkg/rates.py:352-353"))
+    def test_an_address_naming_ANOTHER_block_is_not_this_checks_job(self):
+        # !! IT RESOLVES, so this check passes it. The address names a real
+        # entry -- just not the one the finding rules on -- and what catches
+        # that is `block_problem`, which asks whether the sentence is in the
+        # block the address names. Refusing here would need the index back.
+        self.assertIsNone(self._at(address="redacted_pkg.rates.py@b1"))
 
     def test_an_address_naming_the_wrong_file_is_refused(self):
-        self.assertIn("census says", self._at(address="redacted_pkg/other.py:352-354"))
+        self.assertIn("is not in the census", self._at(address="redacted_pkg.other.py@b0"))
 
-    def test_a_windows_separator_still_matches(self):
-        # ! The census writes `/`; a reviewer on Windows may copy `\`. That is
-        # the same address and refusing it would be a platform bug, not a check.
-        self.assertIsNone(self._at(address="redacted_pkg\\rates.py:352-354"))
-
-    def test_a_one_line_block_is_addressed_without_a_range(self):
-        self.assertIsNone(
-            self._at(block=3, address="redacted_pkg/rates.py:20", original="# one line only")
+    def test_the_retired_LINE_form_is_no_longer_accepted(self):
+        # !! BOTH TOLERANCES WENT WITH THE FORM THEY FORGAVE. A line address is
+        # true of ONE file state and this tool edits prose, so it was deprecated
+        # 2026-08-18. The windows-separator normalisation and the one-line short
+        # form existed to forgive a RANGE; the stable address carries none, so
+        # there is nothing left for either to forgive.
+        self.assertIn(
+            "is not in the census", self._at(address="redacted_pkg/rates.py:352-354")
+        )
+        self.assertIn(
+            "is not in the census", self._at(address="redacted_pkg\\rates.py:352-354")
+        )
+        self.assertIn(
+            "is not in the census",
+            self._at(
+                block=3, address="redacted_pkg/rates.py:20", original="# one line only"
+            ),
         )
 
     def test_the_ORIGINAL_is_NOT_compared(self):
@@ -1168,11 +1205,12 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
                 # The FILE shows the escape; the AST value shows a real newline.
                 "raw_lines": ['"""a source with \\r\\n in it.', '"""'],
                 "text": "a source with \r\n in it.",
+                "address": "m.py@b0",
             }
         ]
         f = _finding(
             block=1,
-            address="m.py:1-2",
+            address="m.py@b0",
             original='"""a source with \\r\\n in it.\n"""',
         )
         self.assertIsNone(desk.address_problem(f, blocks))
@@ -1184,7 +1222,7 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
                 block=2,
                 verdict="add",
                 claim='missing: "capped" above `send()`',
-                address="redacted_pkg/rates.py:9",
+                address="redacted_pkg.rates.py@b1",
                 original="",
             )
         )
@@ -1209,14 +1247,14 @@ class TestTheBlockLineParses(unittest.TestCase):
 
     def test_the_three_parts_come_apart(self):
         f = self._one(
-            "BLOCK       17 | redacted_pkg/rates.py:352-354\n"
+            "BLOCK       17 | redacted_pkg.rates.py@b47\n"
             "            # Kept because twenty call sites want this.\n"
             "            # Narrowing it re-derives the clamp bounds.\n"
             "VERDICT     clean\n"
             "REASON      nothing to report from this role\n"
         )
         self.assertEqual(f.block, 17)
-        self.assertEqual(f.address, "redacted_pkg/rates.py:352-354")
+        self.assertEqual(f.address, "redacted_pkg.rates.py@b47")
         self.assertIn("twenty call sites", f.original)
         self.assertIn("clamp bounds", f.original)
 
@@ -1783,15 +1821,17 @@ class TestMarkersAreFoundWhateverTheirCase(unittest.TestCase):
     finding admitted unchecked -- the loudest possible way to skip the gate.
     """
 
-    BLOCKS = [
-        {
-            "path": "a.py",
-            "start": 1,
-            "end": 2,
-            "kind": "comment",
-            "text": "the cap is 3",
-        }
-    ]
+    BLOCKS = stamped(
+        [
+            {
+                "path": "a.py",
+                "start": 1,
+                "end": 2,
+                "kind": "comment",
+                "text": "the cap is 3",
+            }
+        ]
+    )
 
     def test_a_shouted_marker_still_yields_the_sentence(self):
         f = _finding(claim='FALSE: "the cap is 3" / TRUE: "the cap is 6"')
@@ -1799,7 +1839,7 @@ class TestMarkersAreFoundWhateverTheirCase(unittest.TestCase):
 
     def test_a_shouted_marker_no_longer_skips_the_block_check(self):
         f = _finding(claim='FALSE: "the cap is 9" / TRUE: "x"')
-        self.assertIn("not in block 1", desk.block_problem(f, self.BLOCKS))
+        self.assertIn("is not in a.py@b0", desk.block_problem(f, self.BLOCKS))
 
     def test_mixed_case_markers_work_for_every_row_that_quotes(self):
         for verdict, claim, want in (
@@ -1903,9 +1943,27 @@ class TestCLI(unittest.TestCase):
                 # it refuses every finding -- which is the check working, and
                 # the real census has carried `text` since it was written.
                 [
-                    {"path": "a.py", "start": 1, "end": 2, "text": "x"},
-                    {"path": "a.py", "start": 3, "end": 4, "text": "x"},
-                    {"path": "a.py", "start": 5, "end": 6, "text": "x"},
+                    {
+                        "path": "a.py",
+                        "start": 1,
+                        "end": 2,
+                        "text": "x",
+                        "address": "a.py@b0",
+                    },
+                    {
+                        "path": "a.py",
+                        "start": 3,
+                        "end": 4,
+                        "text": "x",
+                        "address": "a.py@b1",
+                    },
+                    {
+                        "path": "a.py",
+                        "start": 5,
+                        "end": 6,
+                        "text": "x",
+                        "address": "a.py@b2",
+                    },
                 ]
             ),
             encoding="utf-8",
@@ -1982,7 +2040,7 @@ class TestCLI(unittest.TestCase):
         report = self._write(
             "block-context.txt",
             "--- RECORD\n"
-            "BLOCK       1 | a.py:1-2\n"
+            "BLOCK       1 | a.py@b0\n"
             "            x\n"
             "VERDICT     move\n"
             "SOURCES     a.py:5 | five callers, all in tests\n"
@@ -2034,7 +2092,7 @@ class TestCLI(unittest.TestCase):
         )
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("out of range", result.stdout)
+        self.assertIn("names no block", result.stdout)
 
     def test_a_bare_range_line_is_a_gap_not_a_pass(self):
         # A range list is not a record, so it accounts for nothing: every block
@@ -2137,7 +2195,7 @@ class TestCLI(unittest.TestCase):
         # exit 0. The two outputs contradicted each other.
         finding = (
             "--- RECORD\n"
-            "BLOCK       1 | a.py:1-2\n"
+            "BLOCK       1 | a.py@b0\n"
             "            x\n"
             "VERDICT     {verdict}\n"
             "SOURCES     a.py:5 | five callers, all in tests\n"
@@ -2249,6 +2307,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
             "start": 352,
             "end": 354,
             "kind": "comment",
+            "address": "redacted_pkg.billing.rates.py@b47",
         }
         self.assertEqual(
             record.record_problems("the brief's example", self.record, block), []
@@ -2257,7 +2316,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     def test_the_example_the_shape_check_reads_is_the_one_taught(self):
         # ! Guards the guard: a brief that stopped carrying an address would
         # make the test above pass vacuously.
-        self.assertEqual(self.record["address"], "redacted_pkg/billing/rates.py:352-354")
+        self.assertEqual(self.record["address"], "redacted_pkg.billing.rates.py@b47")
 
 
 class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
@@ -2320,7 +2379,7 @@ class TestAMalformedSourceIsItsOwnEntry(unittest.TestCase):
 
     REPORT = (
         "--- RECORD\n"
-        "BLOCK       1 | a.py:1-2\n"
+        "BLOCK       1 | a.py@b0\n"
         "            # first\n"
         "VERDICT     correct\n"
         'CLAIM       false: "x" / true: "y"\n'
@@ -2360,19 +2419,21 @@ class TestAFindingStatedOnlyInReason(unittest.TestCase):
     was given and passed, and the defect is still wrong on disk.
     """
 
-    BLOCKS = [
-        {
-            "path": "a.py",
-            "start": 1,
-            "end": 2,
-            "kind": "comment",
-            "text": "the rule is stated in three places. callers round separately.",
-        }
-    ]
+    BLOCKS = stamped(
+        [
+            {
+                "path": "a.py",
+                "start": 1,
+                "end": 2,
+                "kind": "comment",
+                "text": "the rule is stated in three places. callers round separately.",
+            }
+        ]
+    )
 
     def _run(self, verdict, claim, reason):
         f = _finding(block=1, verdict=verdict, claim=claim, reason=reason)
-        return verdicts.unrecorded_findings({1: [f]}, self.BLOCKS)
+        return verdicts.unrecorded_findings({f.address: [f]}, self.BLOCKS)
 
     def test_a_phrase_quoted_in_reason_that_no_claim_names_is_reported(self):
         got = self._run(
@@ -2535,7 +2596,7 @@ class TestAChecksOwnFieldOutranksTheRenderedString(unittest.TestCase):
             "claim": record.claim_text(verdict, claim),
             "claim_fields": claim,
             "reason": "what I derived from the source",
-            "address": "a.py:1-1",
+            "address": "a.py@b0",
         }
         fields.update(kw)
         return _finding(**fields)
@@ -2608,17 +2669,12 @@ class TestAChecksOwnFieldOutranksTheRenderedString(unittest.TestCase):
             {
                 "missing": "the guard on `retry_budget` is undocumented",
                 "anchor": "",
-                "side": "above",
             },
         )
         self.assertIn("anchor NAMED in backticks", desk.payload_problem(f))
 
-    def test_an_add_with_an_EMPTY_side_is_refused(self):
-        f = self._f("add", {"missing": "x", "anchor": "`f`", "side": ""})
-        self.assertIn("needs a side", desk.payload_problem(f))
-
     def test_a_filled_add_passes(self):
-        f = self._f("add", {"missing": "x", "anchor": "`f`", "side": "above"})
+        f = self._f("add", {"missing": "x", "anchor": "`f`"})
         self.assertIsNone(desk.payload_problem(f))
 
     def test_a_shape_named_only_in_the_prose_does_not_satisfy_the_shape_check(self):
@@ -2660,14 +2716,15 @@ class TestAMalformedEntryIsReportedNotRaised(unittest.TestCase):
 
     def test_one_bad_record_does_not_lose_the_good_ones(self):
         found, malformed, _ = self._load(
-            '{"records": ["bad", {"block": 2, "verdict": "clean"}]}'
+            '{"records": ["bad", {"address": "a.py@b1", "verdict": "clean"}]}'
         )
-        self.assertEqual([f.block for f in found], [2])
+        self.assertEqual([f.address for f in found], ["a.py@b1"])
         self.assertEqual(len(malformed), 1)
 
     def test_a_non_string_in_CHANGE_does_not_raise(self):
         found, _, _ = self._load(
-            '{"records": [{"block": 1, "verdict": "clean", "change": [1, 2]}]}'
+            '{"records": [{"address": "a.py@b0", "verdict": "clean",'
+            ' "change": [1, 2]}]}'
         )
         self.assertEqual(found[0].change, "1\n2")
 
@@ -2706,8 +2763,7 @@ class TestTheJoinReadsRecords(unittest.TestCase):
         path = self._write(
             [
                 {
-                    "block": 3,
-                    "address": "a.py:1-2",
+                    "address": "a.py@b2",
                     "verdict": "correct",
                     "claim": {"false": "x", "true": "y"},
                     "reason": "because",
@@ -2721,13 +2777,13 @@ class TestTheJoinReadsRecords(unittest.TestCase):
         )
         self.assertEqual(malformed, [])
         self.assertEqual(len(found), 1)
-        self.assertEqual(found[0].block, 3)
+        self.assertEqual(found[0].address, "a.py@b2")
         self.assertEqual(found[0].sources, ["a.py:1 | x"])
         # ! `change` is a line array in the record and a string downstream.
         self.assertEqual(found[0].change, "# y\n# z")
 
     def test_an_unfilled_slot_is_skipped_not_malformed(self):
-        path = self._write([{"block": 1, "address": "a.py:1-1", "verdict": None}])
+        path = self._write([{"address": "a.py@b0", "verdict": None}])
         found, malformed, _ = record.load_report(
             path, path.read_text(encoding="utf-8"), "block-context"
         )
@@ -2743,7 +2799,9 @@ class TestTheJoinReadsRecords(unittest.TestCase):
 
     def test_a_text_report_still_loads(self):
         # ! The deprecated reader is kept: runs in flight and every captured
-        # package on disk are written in it, and `--convert` needs it.
+        # package on disk are written in it, and `--convert` needs it. ! The
+        # LINE address below is deliberate and must stay -- an old run carries
+        # exactly that, and reading one is the only reason this path survives.
         path = Path(self.tmp.name) / "block-context.md"
         path.write_text(
             "--- RECORD\nBLOCK       1 | a.py:1-1\n            # x\n"
@@ -2779,13 +2837,10 @@ class TestClaimTextRendersTheObject(unittest.TestCase):
         self.assertTrue(got.startswith("outside my role"))
         self.assertIn("I grepped", got)
 
-    def test_an_add_carries_its_anchor_and_side_as_prose(self):
-        # ! Where `ANCHOR_NAME` and `ANCHOR_SIDE` look for them.
-        got = record.claim_text(
-            "add", {"missing": "x", "anchor": "`F`", "side": "above"}
-        )
+    def test_an_add_carries_its_anchor_as_prose(self):
+        # ! Where `ANCHOR_NAME` looks for it.
+        got = record.claim_text("add", {"missing": "x", "anchor": "`F`"})
         self.assertIn("`F`", got)
-        self.assertIn("above", got)
 
     def test_an_empty_claim_renders_empty(self):
         self.assertEqual(record.claim_text("clean", {}), "")
@@ -2804,7 +2859,7 @@ class TestABareFieldLabelIsStillALabel(unittest.TestCase):
 
     REPORT = (
         "--- RECORD\n"
-        "BLOCK       1 | a.py:1-2\n"
+        "BLOCK       1 | a.py@b0\n"
         "            # first\n"
         "VERDICT     correct\n"
         'CLAIM       false: "x" / true: "y"\n'
@@ -2888,3 +2943,88 @@ class TestWordsStripsEveryEdgePunctuation(unittest.TestCase):
 # test_vocabulary.py.
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAMovesDestinationIsResolved(unittest.TestCase):
+    """`move`'s `to:` names a place the census carries -- or is outside the code.
+
+    !! IT WAS CHECKED FOR PRESENCE AND NEVER RESOLVED, so a block could be sent
+    to a line number, a description, or a declaration outside the run and the
+    gate passed it. `to:` is the one half stage 5 has to act on.
+
+    !! AND THE DESTINATION MAY HOLD NO PROSE. Roy, 2026-08-19: something could
+    move a line to a new place that does not have a comment. Every empty place
+    now has an address, so there is a block to point at where before there was
+    none.
+    """
+
+    BLOCKS = stamped(
+        [
+            {"path": "a.py", "start": 1, "end": 2, "kind": "comment", "text": "x"},
+            {"path": "a.py", "start": 0, "end": 0, "kind": "margin", "text": ""},
+        ]
+    )
+
+    def _to(self, where):
+        f = _finding(
+            verdict="move",
+            claim=f"from: `a` / to: {where}",
+            claim_fields={"from": "`a`", "to": where},
+            change="to: # moved",
+        )
+        return desk.destination_problem(f, self.BLOCKS)
+
+    def test_a_place_that_HOLDS_NO_PROSE_is_a_legal_destination(self):
+        # !! THE POINT. `@b1` is the empty margin -- no comment sits there yet.
+        self.assertIsNone(self._to("a.py@b1"))
+
+    def test_a_place_the_census_does_not_carry_is_refused(self):
+        self.assertIn("not a place in the census", self._to("a.py@b99"))
+
+    def test_a_malformed_address_is_refused(self):
+        self.assertIn("is not an address", self._to("a.py@zz9"))
+
+    def test_the_RETIRED_line_form_is_refused_by_name(self):
+        # ! Not passed off as an out-of-code destination: `a.py:3` is INSIDE
+        # the code, and this tool moves the line it names.
+        problem = self._to("a.py:3")
+        self.assertIn("names a LINE", problem)
+        self.assertIn("--anchor", problem)
+
+    def test_a_destination_OUTSIDE_the_code_carries_no_address_and_passes(self):
+        # ! Whether that tree exists is stage 1's ruling, in the run context.
+        self.assertIsNone(self._to("docs/loads.md"))
+
+    def test_only_a_verdict_the_TABLE_says_relocates_is_checked(self):
+        # ! No branch on the verdict NAME -- the row carries the flag.
+        self.assertTrue(record.VERDICTS["move"].owes_destination)
+        self.assertFalse(record.VERDICTS["add"].owes_destination)
+        self.assertIsNone(desk.destination_problem(_finding(verdict="clean"), []))
+
+
+class TestAnEditOnFrontMatterBecomesAQuery(unittest.TestCase):
+    """A licence header, a shebang, a coding line -- the human's, not a role's.
+
+    !! THE COST IS ASYMMETRIC AND SITS OUTSIDE THIS SYSTEM. A licence header is
+    a legal instrument and a shebang is how the file runs; a wrong edit to
+    either is not an editorial mistake. No role can settle one either -- a
+    copyright line states no constraint the code could contradict. So the block
+    is filtered out of what a reviewer reads, and an edit proposed on it anyway
+    is turned into a `query` rather than admitted as work.
+
+    ! CONVERTED, not refused: the reviewer saw something, and dropping it
+    silently would lose it.
+    """
+
+    def test_the_trigger_is_owes_change_not_a_verdict_NAME(self):
+        # !! THE FIVE THAT PROPOSE AN EDIT, read off the table. Roy, 2026-08-19:
+        # "any suggested edits on that section get its verdict changed to
+        # query". `clean` and `query` suggest none and are left alone.
+        proposing = {n for n, s in record.VERDICTS.items() if s.owes_change}
+        self.assertEqual(proposing, {"add", "correct", "drop", "move", "patch"})
+        self.assertFalse(record.VERDICTS["clean"].owes_change)
+        self.assertFalse(record.VERDICTS["query"].owes_change)
+
+    def test_the_marked_block_is_the_one_above_the_module_docstring(self):
+        # ! The census decides which block; this file only acts on the mark.
+        self.assertEqual(census.FRONT_MATTER, "front-matter")

@@ -1,11 +1,22 @@
-"""Stage 2, COLLATE: every interval between two lines of code, numbered in order.
+"""Stage 2, COLLATE: the pCST -- every line of these files classified, in order.
 
     python census.py [--repo D] [--census-only] [--json] [--out PATH] <paths>
 
+A pCST is a *pseudo* Concrete Syntax Tree: this line is code, this PART of a
+line is code, this line is comment, this line is docstring. Pseudo because a real
+CST would carry the names and the symbols precisely, and this carries only which
+lines are which -- which is what a reviewer of COMMENTS needs and no more.
+
+Every such line belongs to a BLOCK, and a block is addressed by the subject its
+prose answers to: an INTERVAL between two lines of code, or a DECLARATION. A
+comment is about the code it sits with, so its address counts code lines; a
+docstring is about the thing it documents, so its address counts declarations.
+
 The reviewers are handed this list, so it bounds everything they may rule on.
-! Most of it is `interval` blocks, which hold no prose: they are ADDRESSABLE, so
-an `add` can cite the gap its missing sentence belongs in, and nobody owes them a
-record. Coverage is over the blocks that HOLD prose.
+! Most of it holds no prose -- an empty `interval`, an `undocumented`
+declaration -- and those are ADDRESSABLE, so an `add` can cite the place its
+missing sentence belongs in, and nobody owes them a record. Coverage is over the
+blocks that HOLD prose.
 
 **Every file handed in is censused, or this errors** -- a file it could not read
 or parse, or whose suffix has no language record, is named and the run exits
@@ -40,16 +51,24 @@ import sys
 import tokenize
 from collections import Counter, defaultdict
 from contextlib import redirect_stdout
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from addresser import (  # noqa: E402  -- path shim must run first
+    address,
+    code_lines_of,
+)
 from annotate import (  # noqa: E402  -- path shim must run first
     SYMBOLISH,
     annotate,
     prose_numbers,
+)
+from pcst import (  # noqa: E402  -- path shim must run first
+    OCCUPIES_NOTHING,
+    Block,
 )
 from repo import (  # noqa: E402  -- path shim must run first
     EXCLUDED_DIRS,
@@ -107,81 +126,6 @@ def counted_lines(raw: list[str]) -> int:
 # work; the resolution is what stops a reviewer treating a citation as a
 # verified claim. ! These are ANNOTATIONS, never marks -- a MARK is editorial,
 # and stage 4 emits those.
-
-
-@dataclass
-class Block:
-    """The interval between two lines of code -- the unit a reviewer rules on.
-
-    ! An interval holding no prose is a block too, `kind="interval"`. It is the
-    only thing an `add` can cite: the finding is that a constraint exists in
-    code and NOWHERE in prose, so it is about an empty interval, and the record
-    requires a `BLOCK` index. Without one an `add` had to borrow a neighbour's.
-    """
-
-    path: str
-    start: int
-    end: int
-    kind: str  # "comment" | "docstring" | "trailing-comment" | "interval"
-    lines: int
-    text: str  # the run JOINED, so a wrapped claim matches as one string
-    anchor: str = ""  # the declaration it annotates, when structurally known
-    tier: str = "lexical"  # which question set this file's census can answer
-    # !! WHICH PLACE THIS IS, as against where it sits -- see `place()`.
-    # Stamped by `census_for`, which is the only caller holding the file
-    # text and the finished block list at once.
-    place: str = ""
-    annotations: set[str] = field(default_factory=set)
-    notes: list[str] = field(default_factory=list)
-
-    @property
-    def widest(self) -> int:
-        """The longest raw line in this block, in characters."""
-        return max((len(ln) for ln in self.raw_lines), default=0)
-
-    raw_lines: list[str] = field(default_factory=list)
-    # !! THE LINES AN EDIT TO THIS BLOCK OCCUPIES, which is NOT always the
-    # range that ADDRESSES it. A prose block is replaced, so the two coincide.
-    # An empty INTERVAL is inserted into: `start` and `end` are the two lines
-    # of CODE that bound it, and writing over them would delete code, so its
-    # edit range is the gap between them -- `(n+1, n)` for adjacent lines,
-    # which is an empty slice and therefore a pure insertion.
-    #
-    # !! IT IS COMPUTED HERE BECAUSE ONLY HERE IS IT KNOWABLE. `intervals()`
-    # walks edges that carry SENTINELS -- 0 above the first code line, one past
-    # the last below it -- and then clamps them, because a citation has to
-    # resolve to a real line. The clamp is what says "this gap is at the file
-    # boundary", and it destroys which SIDE it is on. Measured 2026-08-17: an
-    # `add` citing the gap above the first line of a file landed BELOW that
-    # line, and on a one-line file the gap above and the gap below reduced to
-    # the same address, so a reviewer could not tell them apart either.
-    #
-    # ! Left 0/0 by a producer, they mirror `start`/`end` -- see
-    # `__post_init__`. That is what makes this safe to add without visiting
-    # every construction site.
-    edit_start: int = 0
-    edit_end: int = 0
-    # !! DOES THIS BLOCK OCCUPY ITS LINES, or does code share the first one?
-    # False for a trailing comment, for a PEP 727 `Doc()` literal, and for a
-    # block comment opened after a statement. Every one of those is prose
-    # beginning partway through a line of code.
-    #
-    # !! IT IS STATED BY THE PRODUCER BECAUSE NO READER CAN INFER IT. Two tried
-    # -- `code_lines` and `galley.shares_a_line_with_code` -- both by testing
-    # whether the stored text is a proper SUFFIX of the physical line, and the
-    # test cannot work: `blocks_stdlib` stores the WHOLE line for a trailing
-    # comment, so the suffix test answers False and the galley spliced over the
-    # code. Measured 2026-08-18: censusing `z = 3  # trailing` and editing that
-    # block produced a galley reading `# reworded trailing` where the statement
-    # had been -- a deleted statement, in the one artefact a human is asked to
-    # approve. A `Doc()` fails the same test for the opposite reason: its
-    # stored text is the AST value and is not a suffix of anything.
-    whole_lines: bool = True
-
-    def __post_init__(self) -> None:
-        """Default the edit range to the addressing range."""
-        if not self.edit_start and not self.edit_end:
-            self.edit_start, self.edit_end = self.start, self.end
 
 
 def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
@@ -769,6 +713,18 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
         )
         return out
 
+    # !! SOURCE ORDER, WHICH `ast.walk` DOES NOT GIVE. The walk is breadth
+    # first, so a method nested in a class comes back after every top-level
+    # declaration rather than where a reader meets it. `lineno` is the order
+    # down the page, and it is the only one a human can check.
+    declared = sorted(
+        (n for n in ast.walk(tree) if isinstance(n, NAMED_DEFS)),
+        key=lambda n: n.lineno,
+    )
+    # `id()`, because two declarations can be equal as AST nodes and are never
+    # the same declaration. Module is 0; its declarations count from 1.
+    ordinal = {id(n): i for i, n in enumerate(declared, 1)}
+
     for node in ast.walk(tree):
         if not isinstance(node, DOC_ANCHORS):
             continue
@@ -801,50 +757,67 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
                 lines=len(raw),
                 text=re.sub(r"\s+", " ", doc).strip(),
                 anchor=getattr(node, "name", "<module>"),
+                declares=ordinal.get(id(node), 0),
+                declared_at=getattr(node, "lineno", 0),
                 raw_lines=raw,
             )
         )
-    out.extend(_annotated_docs(path, tree))
+    out.extend(_undocumented(path, tree, declared, ordinal))
     return sorted(out, key=lambda b: b.start)
 
 
-def _annotated_docs(path: Path, tree: ast.AST) -> list[Block]:
-    """Prose carried by a PEP 727 `Doc()` inside an `Annotated[...]`.
+def _undocumented(
+    path: Path, tree: ast.AST, declared: list, ordinal: dict[int, int]
+) -> list[Block]:
+    """An `a` entry for every declaration that has NO docstring.
 
-    ! These are STRING LITERALS, so `ast.get_docstring` passes over them and so
-    does the tokenizer. On a file that documents its parameters this way they
-    are most of its prose.
+    !! THE EMPTY ONES ARE THE POINT OF THE SERIES. An `add` says a constraint
+    holds in code and appears in no prose, so it has to cite the place the prose
+    is missing from -- and until this ran, a function with no docstring had no
+    such place. Measured 2026-08-18 on a four-declaration file: the census
+    emitted two docstring blocks and left three declarations with nowhere to
+    cite. This is the same hole `intervals` closed for gaps.
+
+    ! It occupies NO LINES, exactly like an empty interval, and `OCCUPIES_NOTHING`
+    says so. Its `start`-`end` span the declaration and its first statement so a
+    citation resolves to real lines; its EDIT range is the empty slice before
+    that statement, which is a pure insertion.
+
+    ! The `a` address and the `b` gap at the same spot are both real and are not
+    a collision: `a4` is the declaration's documentation and `bN` is the gap
+    between two code lines. An `add` on the first writes a docstring, on the
+    second a comment run.
     """
     out: list[Block] = []
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Call):
+    for node in [tree, *declared]:
+        if not isinstance(node, DOC_ANCHORS) or ast.get_docstring(node, clean=False):
             continue
-        fn = node.func
-        if getattr(fn, "id", getattr(fn, "attr", "")) != "Doc":
+        body = getattr(node, "body", [])
+        if not body:
             continue
-        if not node.args or not isinstance(node.args[0], ast.Constant):
-            continue
-        val = node.args[0].value
-        if not isinstance(val, str):
-            continue
-        start = node.args[0].lineno
-        end = getattr(node.args[0], "end_lineno", start) or start
+        first = body[0].lineno
         out.append(
             Block(
                 path=path.as_posix(),
-                start=start,
-                end=end,
-                kind="docstring",
-                lines=len(val.splitlines()) or 1,
-                text=re.sub(r"\s+", " ", val).strip(),
-                raw_lines=val.splitlines() or [val],
-                # !! A `Doc()` IS A STRING INSIDE A LINE OF CODE. `raw_lines`
-                # stays the AST value here, deliberately: the file's slice
-                # would carry the `Annotated[...]` wrapper, which is code, and
-                # no consumer wants that as prose. Saying so is what lets a
-                # consumer refuse the block for what it is rather than call it
-                # stale.
-                whole_lines=False,
+                # !! LINE 0 -- IT OCCUPIES NO LINE, because the docstring is not
+                # written yet. Roy ruled the empty case 2026-08-19. Given the
+                # declaration's own range it swallowed whatever sat between the
+                # `def` and its first statement: a module with no docstring
+                # spanned lines 1-4 and the locator answered `a0` for the
+                # comment at 3 and the `def` at 4, both of which belong to other
+                # blocks. Its EDIT range still says where the prose would go.
+                start=0,
+                end=0,
+                kind="undocumented",
+                lines=0,
+                text="",
+                anchor=getattr(node, "name", "<module>"),
+                declares=ordinal.get(id(node), 0),
+                declared_at=getattr(node, "lineno", 0),
+                # The EDIT: `first..first-1` is empty, so writing it INSERTS
+                # above the first statement rather than overwriting it.
+                edit_start=first,
+                edit_end=first - 1,
             )
         )
     return out
@@ -961,42 +934,19 @@ def code_names(
 
 
 def code_lines(text: str, prose: list[Block]) -> set[int]:
-    """Which lines of this file are LINES OF CODE, at the tier the census ran.
+    """The code lines of this file, as a set -- `addresser.code_lines_of`.
 
-    A line is code when it holds something that is not blank and not prose. The
-    two tiers cannot answer that identically, and the difference is the
-    docstring: `tokenized` knows a string literal is a declaration's
-    documentation, `lexical` knows only what its comment-syntax record spells.
-    So a block's BOUNDS are tier-dependent while its CONTENT is not.
-
-    ! A `trailing-comment` sits ON a code line, so that line stays code. A
-    `comment` or `docstring` block occupies its lines entirely, so those lines
-    are not. An `interval` occupies nothing, which is what makes this safe to
-    run over a census that already holds intervals.
+    !! ONE IMPLEMENTATION, and it is the addresser's, because an address is
+    counted off this set and the two must not be able to disagree. This is the
+    same rule over `Block`s rather than dicts; the rule itself is written where
+    it runs.
     """
-    passes_through = ("trailing-comment", "interval")
-    lines = text.splitlines()
-    occupied: set[int] = set()
-    for b in prose:
-        if b.kind in passes_through:
-            continue
-        occupied.update(range(b.start, b.end + 1))
-        # !! A block's FIRST line is NOT occupied when code precedes its opener.
-        # !! A BLOCK'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
-        # `int b = 2; /* opens` spans from that line, and taking the whole span
-        # dropped the statement from the code set, moving every interval
-        # boundary below it.
-        #
-        # !! THE BLOCK SAYS SO. This tested whether the stored text was a
-        # proper SUFFIX of the physical line, which is an inference and was
-        # wrong in both directions: `blocks_stdlib` stores the WHOLE line for a
-        # trailing comment, so the test never fired for one, and a PEP 727
-        # `Doc()` stores the AST value, which is a suffix of nothing -- so its
-        # declaration line was dropped from the code set and every interval
-        # boundary in the file moved. Measured 2026-08-18.
-        if not b.whole_lines:
-            occupied.discard(b.start)
-    return {n for n, ln in enumerate(lines, 1) if ln.strip() and n not in occupied}
+    return set(code_lines_of(text, [vars(b) for b in prose]))
+
+
+def blocks_in(prose: list[Block], prev: int, nxt: int) -> list[Block]:
+    """The prose blocks sitting strictly between two code lines."""
+    return [b for b in prose if b.kind not in OCCUPIES_NOTHING and prev < b.start < nxt]
 
 
 def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
@@ -1025,18 +975,33 @@ def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
     if last == 0:
         return []
     code = sorted(code_lines(text, prose))
-    starts = {b.start for b in prose}
     edges = [0, *code, last + 1]
     out: list[Block] = []
     for prev, nxt in pairwise(edges):
-        if any(prev < s < nxt for s in starts):
-            continue  # a prose block already IS this interval
+        holders = blocks_in(prose, prev, nxt)
+        # !! A DOCSTRING DOES NOT HOLD A GAP'S `b`. It has its own `a`, so the
+        # gap still needs a `b` place -- otherwise there is nowhere to cite a
+        # comment ABOVE a docstring. Measured 2026-08-19 before this: 129 `b`
+        # places absent from 13 shipped files, `b0` among them in every one,
+        # so no file could be given a comment above its module docstring.
+        if any(b.declares < 0 for b in holders):
+            continue  # a comment IS this gap's `b`
+        # !! THE GAP ITSELF, NOT THE CODE LINES BOUNDING IT. Those are `c`
+        # addresses now and a line has ONE address, so including them made a
+        # third of this repo's lines answer to two -- 2,305 of 6,775, measured
+        # 2026-08-19, every one a code line ending one gap and starting the
+        # next. A gap with no lines of its own is at line 0, like an absent
+        # docstring: addressable, on no line.
+        lo, hi = prev + 1, min(nxt - 1, last)
+        # ! A docstring already occupies this gap's LINES, so its `b` is a place
+        # with none -- line 0, the same answer an absent docstring gives.
+        if holders or lo > hi:
+            lo = hi = 0
         out.append(
             Block(
                 path=path.as_posix(),
-                # The ADDRESS: clamped, because a citation has to resolve.
-                start=max(prev, 1),
-                end=min(nxt, last),
+                start=lo,
+                end=hi,
                 kind="interval",
                 lines=0,
                 text="",
@@ -1049,8 +1014,14 @@ def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
                 # ! The gap below the last code line is `last+1..last` only
                 # when that line ENDS the file. With trailing blanks it spans
                 # them, which is right: they are the gap.
+                # !! A DOCSTRING IN THIS GAP MAKES THE EDIT AN INSERTION ABOVE
+                # IT, never a replacement of it. The gap's lines are the
+                # docstring's, so writing the whole range would overwrite the
+                # docstring with a comment -- and `block_matches` reported the
+                # place stale on a FRESH census, because those lines are not
+                # blank. `prev+1 .. prev` is an empty slice: prose lands above.
                 edit_start=prev + 1,
-                edit_end=nxt - 1,
+                edit_end=prev if holders else nxt - 1,
             )
         )
     return out
@@ -1063,100 +1034,6 @@ def tier_for(lang: Language) -> str:
     and the run report the same tier.
     """
     return "tokenized" if lang.name == "python" else "lexical"
-
-
-def address(block: dict) -> str:
-    """`path:start-end` -- how every part of this system NAMES a block.
-
-    !! ONE FORMAT, ONE OWNER. It is the contract between what `record.py
-    --seed` writes into a slot and what the stage-5 gate admits, and it was
-    written out at four sites that had already drifted: only
-    `verdicts.address_problem` normalised a backslash separator, and only it
-    accepted the one-line short form. The one measured divergence in this
-    format cost 268 refusals in a single run, every one of them a correct
-    address.
-
-    ! The READER may be more forgiving than the writer -- `address_problem`
-    still accepts `path:start` on a one-line block, because the brief tells a
-    reviewer to write `path:start-end` and the census prints the short form.
-    That tolerance is a rule about reading, and it stays with the reader.
-
-    !! IT NAMES TWO DIFFERENT THINGS AND THE FORMAT CANNOT TELL YOU WHICH.
-    On a block that HOLDS prose, `start-end` is the lines that prose occupies,
-    inclusive. On an INTERVAL it is the two lines of CODE that BOUND a gap --
-    `a.py:33-34` there means "between 33 and 34", where the same string on a
-    comment means "lines 33 through 34".
-
-    ! The gap is not necessarily empty of LINES: it is whatever sits between
-    those two, nothing or blank lines, and `reviewer-brief.md` tells a reviewer
-    its `change` replaces all of it. What it holds no more of is PROSE, which is
-    why an interval is always `0L`. Read the KIND, or that count, to know which
-    reading applies -- a block holding prose is never `0L`.
-
-    !! AND IT IS TRUE OF ONE FILE STATE ONLY. This tool EDITS PROSE, and every
-    prose edit moves the line numbers of the code below it, so an address is
-    valid for the file its census was built from and no other. Measured
-    2026-08-18 on a prose-only edit to a single docstring: 2 of 3 prose blocks
-    took a NEW line address, and 0 of 3 took a new one from `addresser.py`,
-    which names a place against the CODE rather than the lines. Use this to say
-    where a thing is in the file you just read; use the addresser to say which
-    PLACE it is across two states of that file.
-
-    ! The consequence is not cosmetic: a range REPLACE over an interval's
-    address deletes both bounding statements instead of inserting between them.
-    `galley.py` avoids that by branching on `kind == "interval"`, which is a
-    consumer inferring what this producer knows -- the record should carry the
-    OPERATION instead. Raised by Roy 2026-08-18 reading a filtered census.
-
-    Args:
-        block: one census entry, as a dict.
-
-    Returns:
-        The block's address.
-    """
-    path = str(block.get("path", "")).replace("\\", "/")
-    return f"{path}:{block.get('start')}-{block.get('end')}"
-
-
-def place(block: dict, code: list[int]) -> str:
-    """`pkg.mod.py@b3` -- which PLACE this is, as against where it sits.
-
-    !! `address` NAMES A POSITION; THIS NAMES A PLACE, and only the second
-    survives an edit. This tool rewrites prose, and every prose edit moves the
-    line numbers of the code below it -- so `path:start-end` is true of one file
-    state and no other. A place is counted against the CODE instead:
-
-        pkg.mod.py@c3   ON code line 3 -- shares the line with the statement
-        pkg.mod.py@b3   the GAP after code line 3, before code line 4
-
-    `b0` is the gap before the first code line, `bN` after the last, and every
-    comment run, docstring and empty interval sits in one of them.
-
-    !! IT IS READ FROM `edit_start`, THE STATED INSERTION POINT. A file whose
-    only code line is line 1 -- every one-line `__init__.py` -- emits TWO
-    intervals both spanning `1-1`, the gap before that line and the gap after
-    it, and `address` cannot tell them apart. Their `edit_start` can: 1 and 2.
-
-    ! The path is dotted and KEEPS its extension, so `b.py` and `b.rs` cannot
-    collide in a repo holding both -- which this census supports by design.
-
-    Args:
-        block: one census entry, as a dict.
-        code: that file's code lines, in order, from `code_lines`.
-
-    Returns:
-        The block's place, or "" when it carries no usable position.
-    """
-    path = str(block.get("path", "")).replace("\\", "/").replace("/", ".")
-    start = block.get("start")
-    if not isinstance(start, int):
-        return ""
-    if block.get("kind") == "trailing-comment" and start in code:
-        return f"{path}@c{code.index(start) + 1}"
-    at = block.get("edit_start")
-    if not isinstance(at, int):
-        return ""
-    return f"{path}@b{sum(1 for n in code if n < at)}"
 
 
 def _repo_relative(path: Path, repo: Path) -> str:
@@ -1197,10 +1074,141 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
     # `unparsed` block reports the refusal, and the code lines below it were
     # never established, so any interval drawn there would be invented.
     if not any(b.kind == "unparsed" for b in got):
-        got = got + intervals(path, text, got)
+        got = got + intervals(path, text, got) + margins(path, text, got)
+        fill_the_gaps(text, got)
+        mark_front_matter(got)
     for b in got:
         b.tier = tier_for(lang)
     return sorted(got, key=lambda b: (b.start, b.end))
+
+
+# The annotation, and the two shapes that earn it.
+FRONT_MATTER = "front-matter"
+_SHEBANG = re.compile(r"^#!")
+_CODING = re.compile(r"coding[:=]\s*[-\w.]+")
+
+
+def mark_front_matter(blocks: list[Block]) -> None:
+    """Stamp the prose that sits ABOVE a module's own docstring.
+
+    !! WHAT IT IS. A licence header, a shebang, a coding declaration -- the
+    matter a file carries before it begins. Measured 2026-08-19 over 1,500 files
+    in five corpora: 12 carried prose above the module docstring, and 10 of the
+    12 were the Apache header repeated identically in every file of the project.
+    Inside a declaration it never happens -- 0 of 2,579 docstrings.
+
+    !! WHY IT IS FILTERED OUT OF WHAT A REVIEWER READS. It is not a claim about
+    the code, so no role can settle it:
+
+      block-context     has nothing to resolve the claim against -- a copyright
+                        line states no constraint the code could contradict
+      function-context  it documents no function
+      module-context    it is not the module announcing its subject
+      ownership-context it belongs where it is, by law or by convention, and
+                        that is not a placement this system may rule on
+
+    ! So every role would return `clean` on it, every run, on prose that is
+    identical in every file of the project -- a cost paid per file per role for
+    an answer that was settled before the run started.
+
+    !! AND IT IS THE ONE PLACE A WRONG EDIT IS EXPENSIVE OUTSIDE THIS SYSTEM.
+    A licence header is a legal instrument and a shebang is how the file runs;
+    both are the human's to change and neither is an editorial question. A
+    finding here is therefore turned into a `query` -- ask -- rather than
+    admitted as work. `verdicts.py` does that; this only says which block.
+
+    ! The rule is POSITIONAL and deliberately narrow: prose in the gap before
+    the first code line, sitting above a module docstring that EXISTS -- or
+    opening with a shebang or a coding declaration, which need no docstring to
+    be recognisable. A leading comment in a file with no module docstring is
+    about whatever follows it, and is reviewed like any other.
+    """
+    doc = next(
+        (b for b in blocks if b.kind == "docstring" and b.declares == 0),
+        None,
+    )
+    for b in blocks:
+        if b.kind not in ("comment", "trailing-comment") or b.start < 1:
+            continue
+        opens = (b.raw_lines or [""])[0].strip()
+        if _SHEBANG.match(opens) or _CODING.search(opens):
+            b.annotations.add(FRONT_MATTER)
+        elif doc is not None and b.end < doc.start:
+            b.annotations.add(FRONT_MATTER)
+
+
+def fill_the_gaps(text: str, blocks: list[Block]) -> None:
+    """Give every line of a gap to the block it belongs to, blanks included.
+
+    !! EVERY LINE HAS AN ADDRESS. Ruled 2026-08-19. A prose block was addressed
+    by the lines its prose occupied, so a blank line beside it belonged to
+    nothing -- 81 lines of this repo, every one at the edge of a gap, and a
+    reviewer asking the locator about one got "no entry holds this line".
+
+    ! A block runs to the next block, or to the end of its gap. Leading blanks
+    go to the first block in the gap and trailing blanks to the last, which is
+    the same rule read from either end.
+
+    ! It moves the ADDRESSING range only. `edit_start`/`edit_end` were fixed at
+    construction and still name the prose, so WRITE replaces what it replaced
+    before -- widening those would let a `change` swallow the blank line that
+    separates a comment run from the code beneath it.
+    """
+    code = sorted(code_lines(text, blocks))
+    last = len(text.splitlines())
+    edges = [0, *code, last + 1]
+    for prev, nxt in pairwise(edges):
+        lo, hi = prev + 1, min(nxt - 1, last)
+        if lo > hi:
+            continue
+        here = sorted(
+            (b for b in blocks if b.start >= 1 and lo <= b.start <= hi),
+            key=lambda b: b.start,
+        )
+        if not here:
+            continue
+        here[0].start = lo
+        for a, nxt_block in zip(here, here[1:], strict=False):
+            a.end = nxt_block.start - 1
+        here[-1].end = hi
+
+
+def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
+    """A `c` place for every code line that carries no trailing comment.
+
+    !! WITHOUT IT THERE IS NOWHERE TO PUT ONE. Roy, 2026-08-19: without the
+    empty `c`s "you can't specify that the comment belongs at the end of the
+    code line". An `add` cites the place its missing prose belongs, so a code
+    line with no trailing comment needs a place exactly as a gap with no prose
+    does -- which is what `intervals` already gives the `b` series.
+
+    ! It occupies no line of its OWN: the line is CODE and stays code. What it
+    holds is the room after the statement.
+
+    ! `raw_lines` is the whole physical line, which is what `blocks_stdlib`
+    stores for a trailing comment too -- so a margin is checked for staleness
+    the same way, against the line it names.
+    """
+    lines = text.splitlines()
+    taken = {b.start for b in prose if b.kind == "trailing-comment"}
+    return [
+        Block(
+            path=path.as_posix(),
+            start=n,
+            end=n,
+            kind="margin",
+            lines=0,
+            text="",
+            raw_lines=[lines[n - 1]],
+            edit_start=n,
+            edit_end=n,
+            # ! Code precedes the prose on this line, as with any trailing
+            # comment, so a splice over it would delete the statement.
+            whole_lines=False,
+        )
+        for n in sorted(code_lines(text, prose))
+        if n not in taken
+    ]
 
 
 def _not_censused(files: list[Path], unreadable: list[str]) -> str:
@@ -1329,7 +1337,7 @@ def _report(args: argparse.Namespace) -> int:
         # describes.
         lines = sorted(code_lines(text, got))
         for b in got:
-            b.place = place(vars(b), lines)
+            b.address = address(vars(b), lines)
         census.extend(got)
 
     for b in census:
@@ -1402,22 +1410,37 @@ def _report(args: argparse.Namespace) -> int:
         print("CENSUS - the blocks holding prose, numbered as in the full census.")
     else:
         print("CENSUS - every block, numbered.")
+    # !! THE FILE IS STATED ONCE, not on every row. Measured 2026-08-18 over
+    # the 13 shipped scripts: 778 rows repeated their path 1,556 times, 80,912
+    # of the listing's 205,753 bytes -- 39% -- and every reviewer gets an
+    # identical copy of it. A place and a line range mean nothing without a
+    # file, so the file heads its own rows instead.
+    seen_path = ""
     run: list[int] = []
+
+    def heading(path: str) -> None:
+        """Announce the file these rows belong to, once."""
+        nonlocal seen_path
+        if path != seen_path:
+            seen_path = path
+            print(f"\n== {path}")
 
     def flush_run() -> None:
         """One line for a stretch of code no prose sits in."""
         if not run:
             return
         first, last = census[run[0] - 1], census[run[-1] - 1]
-        span = f"{first.path}:{first.start}-{last.end}"
-        # ! The index column matches the block lines above and below it, so the
-        # numbering reads as one sequence -- a run is the same census indices,
-        # not a different kind of row. `1 interval` and not `1 intervals`,
-        # because this is prose a reviewer reads.
+        heading(first.path)
+        span = f"{first.start}-{last.end}"
         # ! The FIRST index sits in the same column a block's does, so the
         # numbering reads down the page as one sequence -- a run carries census
-        # indices, not a different kind of row.
+        # indices, not a different kind of row. `1-interval` and not
+        # `1-intervals`, because this is prose a reviewer reads.
         where = f"{run[0]:4d}" if len(run) == 1 else f"{run[0]:4d}-{run[-1]}"
+        # ! A run spans several PLACES, so it names its ends. Each is still
+        # cited singly -- `locator.py` answers which one holds a given line.
+        at = first.address.split("@")[-1]
+        seat = at if len(run) == 1 else f"{at}..{last.address.split('@')[-1]}"
         # !! THE SAME COLUMNS AS A BLOCK LINE -- index, address, KIND, lines,
         # notes -- because this listing is pasted into a reviewer's prompt and
         # is read down its columns. Written as prose (`no prose (5 intervals)`)
@@ -1426,7 +1449,7 @@ def _report(args: argparse.Namespace) -> int:
         # ! The notes column names what it counts, in the hyphenated form the
         # annotations use, so the row is readable without the header.
         counted = f"{len(run)}-interval" + ("" if len(run) == 1 else "s")
-        print(f"{where}  {span}  no-prose  0L  {counted}")
+        print(f"{where}  @{seat}  {span}  no-prose  0L  {counted}")
         run.clear()
 
     for i, b in enumerate(census, 1):
@@ -1438,14 +1461,27 @@ def _report(args: argparse.Namespace) -> int:
         # what an `add` is actually about visible: a stretch of code carrying no
         # commentary. A reviewer needing a spot outside its set asks
         # `locator.py`, which answers from the FULL census.
+        # !! FRONT MATTER IS DROPPED FROM WHAT A REVIEWER READS, not collapsed
+        # into a run. A licence header or a shebang is not a claim about the
+        # code, so no role can settle it and every role would return `clean` on
+        # it every run -- see `mark_front_matter`. It keeps its address and its
+        # index, so `locator.py` still finds it and a `move` may still cite it;
+        # what it loses is a reviewer's attention and a record it owes.
+        if args.filtered and FRONT_MATTER in b.annotations:
+            continue
         if args.filtered and b.kind == "interval":
             run.append(i)
             continue
         flush_run()
         notes = ",".join(sorted(b.annotations)) or "-"
         anchor = f"  ({b.anchor})" if b.anchor else ""
-        loc = address(vars(b))
-        print(f"{i:4d}  {loc}  {b.kind}  {b.lines}L  {notes}{anchor}")
+        heading(b.path)
+        # !! THE PLACE COMES FIRST because it is what a record CITES. The line
+        # range beside it is the reader's cursor into the file as it stands
+        # now, and it is stale the moment this run edits anything above it.
+        at = b.address.split("@")[-1]
+        span = f"{b.start}-{b.end}"
+        print(f"{i:4d}  @{at}  {span}  {b.kind}  {b.lines}L  {notes}{anchor}")
         if not args.census_only:
             for note in b.notes:
                 print(f"        -> {note}")
