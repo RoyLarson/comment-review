@@ -340,8 +340,8 @@ BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 # that happens to answer it. Only the top rung knows which declaration a block
 # belongs to.
 TIER_ANSWERS = {
-    "tokenized": "blocks, annotations, and DOCSTRING anchors",
-    "lexical": "blocks and annotations only",
+    "tokenized": "paragraphs, annotations, and DOCSTRING anchors",
+    "lexical": "paragraphs and annotations only",
 }
 
 
@@ -1597,11 +1597,11 @@ def _report(args: argparse.Namespace) -> int:
     langs = Counter(lang.name for f in files if (lang := language_for(f)) is not None)
     deferred = [b for b in census if "doc-kind-unresolved" in b.annotations]
 
-    print(f"comment-review stages 2-3 - {len(files)} files, {len(census)} blocks")
+    print(f"comment-review stages 2-3 - {len(files)} files, {len(census)} paragraphs")
     print(f"  languages: {', '.join(f'{k} {v}' for k, v in sorted(langs.items()))}")
     for name in ("tokenized", "lexical"):
         if tiers.get(name):
-            print(f"  tier {name}: {tiers[name]} blocks - {TIER_ANSWERS[name]}")
+            print(f"  tier {name}: {tiers[name]} paragraphs - {TIER_ANSWERS[name]}")
     print(
         "  ! EVERY address carries an anchor -- the LINE OF CODE it attaches\n"
         "    to, at both tiers. What still needs READING is whether the prose\n"

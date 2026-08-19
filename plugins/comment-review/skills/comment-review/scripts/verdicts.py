@@ -474,7 +474,7 @@ def _report(args: argparse.Namespace) -> int:
     print(
         f"{_n(len(found), 'finding')} from {_n(len(args.reports), 'reviewer')}"
         f" over {_n(len(all_blocks), 'prose block')}"
-        f" ({_n(len(blocks), 'block')} in the census, the rest empty intervals"
+        f" ({_n(len(blocks), 'paragraph')} in the census, the rest empty intervals"
         " an `add` may cite)\n"
     )
 
@@ -502,7 +502,7 @@ def _report(args: argparse.Namespace) -> int:
         for reviewer, missing in sorted(gaps.items()):
             shown = ", ".join(str(n) for n in missing[:20])
             more = f" (+{len(missing) - 20} more)" if len(missing) > 20 else ""
-            count = _n(len(missing), "block")
+            count = _n(len(missing), "paragraph")
             print(f"  {reviewer}: {count} unaccounted -- {shown}{more}")
             fatal += 1
         print()
@@ -515,7 +515,7 @@ def _report(args: argparse.Namespace) -> int:
         if entry_for(f.address, blocks) is None:
             print(
                 f"  {f.address} {f.reviewer}: names no block in a"
-                f" {_n(len(blocks), 'block')} census"
+                f" {_n(len(blocks), 'paragraph')} census"
             )
             fatal += 1
             continue
@@ -608,20 +608,20 @@ def _report(args: argparse.Namespace) -> int:
     unaccounted = {index for missing in gaps.values() for index in missing}
     stands = sorted(all_blocks - ruled - scoped_out - unaccounted)
     print(
-        f"\nSTANDS UNCHANGED: {_n(len(stands), 'block')} -- clean from all"
+        f"\nSTANDS UNCHANGED: {_n(len(stands), 'paragraph')} -- clean from all"
         f" {_n(len(ran), 'reviewer')} that ran"
     )
-    print(f"NEEDS A RULING:   {_n(len(ruled), 'block')}")
+    print(f"NEEDS A RULING:   {_n(len(ruled), 'paragraph')}")
     if unaccounted:
         # ! Counted here as well as listed above, because the three lines
         # around it are counts and a reader compares them.
         print(
-            f"NOT ACCOUNTED FOR: {_n(len(unaccounted), 'block')} -- at least one"
+            f"NOT ACCOUNTED FOR: {_n(len(unaccounted), 'paragraph')} -- at least one"
             " reviewer left them out. Neither ruled on nor certified."
         )
     if scoped_out:
         print(
-            f"NO FINDING, NOT CERTIFIED: {_n(len(scoped_out), 'block')} -- every"
+            f"NO FINDING, NOT CERTIFIED: {_n(len(scoped_out), 'paragraph')} -- every"
             " role that read it was `clean`, and at least one said it was outside"
             " its role. Nothing to rule; nothing certified either."
         )
@@ -679,7 +679,7 @@ def _report(args: argparse.Namespace) -> int:
         # and then "Stage 5 may rule" four lines later made the summary
         # contradict its own body at exit 0.
         print(
-            f"\nEvery finding is admissible. {_n(len(clash), 'block')} still OUT"
+            f"\nEvery finding is admissible. {_n(len(clash), 'paragraph')} still OUT"
             " for re-review -- stage 5 may rule on the rest."
         )
         return 0

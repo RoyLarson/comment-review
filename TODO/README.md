@@ -234,7 +234,7 @@ _None._
 
 | [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | session | — | 2/5 | nothing recomputes it or prompts the clearing; 6 cleared, 26 left to read |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | session | — | 0/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
-| [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 0/5 | the terms are settled and shipped; ~1,935 sites still say `block` |
+| [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 1/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 ---
 
 ## Completed

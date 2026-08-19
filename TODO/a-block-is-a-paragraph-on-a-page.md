@@ -2,63 +2,68 @@
 
 ```
 Status:   blocked
-Progress: 0 of 5 tasks done
+Progress: 1 of 5 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (Roy's ruling while shipping the address vocabulary, 2026-08-19)
 Updated:  2026-08-19 — DEFERRED past 0.2.4, whose scope is what a reviewer is HANDED.
           ~1,935 sites is a release of its own, and the vocabulary half is already done:
           the terms are settled, shipped, and correct. Nothing is blocked on the rename.
+Narrowed: 2026-08-19 — Prose done 2026-08-19 and un-deferred at Roy's word -- the
+          deferral was wrong, and check_vocabulary plus the generated verdict table both
+          refused the half-state within minutes. What remains is internal identifiers.
+          The four traps that break a bulk rename are now recorded in the objective,
+          which is the expensive half of the job.
 ```
 
 ## Objective
 
-!! **A pCST IS A PAGE AND A BLOCK IS A PARAGRAPH.** Roy, 2026-08-19. The register is EDITORIAL
-and `CLAUDE.md` makes it a rule; `block` is the last structural term still borrowed from
-compilers, and `pseudo Concrete Syntax Tree` is the whole name borrowed.
+!! **THE VOCABULARY AND EVERYTHING A HUMAN OR AN AGENT READS ALREADY SAY PARAGRAPH.** Done
+2026-08-19: 285 renames across 13 shipped prose files, `block` retired from `vocabulary.toml`, the
+eight count nouns in `verdicts.py`'s report, and the census listing's own header and tier table.
+**What remains is INTERNAL: identifiers in the shipped scripts and in the tests.**
 
-!! **AND IT IS NOT ONLY REGISTER.** Roy: *"this will make the text document formats read better
-when we implement them."* The shipped definition of a block was *"the interval between two lines
-of CODE"* -- which a markdown file does not have, and which is why
-[`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) is open. A PAGE made of PARAGRAPHS
-is the model a prose file already fits.
+| where | uses | what they are |
+| --- | ---: | --- |
+| shipped CODE | **706** | `Block`, `blocks_stdlib`, `blocks_lexical`, `block_matches`, `blocks_in`, `prose_blocks`, `by_block`, locals, and docstring prose |
+| tests | **539** | mirrors of the above; `test_census_blocks.py` is named for the word |
+| `docs/` | **379** | ! most are dated design records under `docs/superpowers/` -- correct the LIVE docs and leave those, or the record stops being one |
+| shipped prose | 11 | all `block-context`, the role name |
 
-! **The term is already in the shipped text, used correctly.** Measured 2026-08-19: `page` 19
-times -- `review.md` opens *"Stage 8 -- REVIEW: the finished page"* and asks *"does it still read
-as one page"* -- and `docs/vocabulary.md` already defines `proof` as *"the finished page"*.
-`paragraph` 11 times, every one meaning what the term of art would mean.
+!! **FOUR TRAPS, EACH FOUND BY BREAKING THE SUITE. THIS IS THE EXPENSIVE PART AND IT IS NOW
+KNOWN.** A bulk rename that does not guard all four leaves 60-152 tests red:
 
-! **It passes the test that rejected `place`.** `place` was refused because its 119 ordinary-
-English uses meant LOCATION while the term would have meant ADDRESSABLE SLOT -- two meanings in
-the file `ownership-context` reads. Every current use of `paragraph` (*"a paragraph naming the
-module's one job"*, *"keep a paragraph readable"*) already means the unit of prose. It is not
-polysemy; the register got there first.
+| trap | why it bites |
+| --- | --- |
+| `block=` | EVERY one is a kwarg on the deprecated `Finding.block`, never an assignment -- measured, `block = ` with spaces does not occur in the tree at all. Guarding only `block=int(` missed 33 call sites |
+| `.block` as a LITERAL guard | it also swallows `.block_matches`, so the definition renames and the call sites do not. Guard it as `\\.block(?![\\w])` |
+| uppercase `BLOCK` | the 0.2.x report's LINE MARKER, parsed by `FIELD = re.compile(r"^(BLOCK\|VERDICT\|...)")`. Renaming it makes every held report unreadable -- *"a record with no PARAGRAPH index"* on 173 of 173 |
+| quoted `'block'` | the OPPOSITE of a wire use: all eight are count nouns for `_n(...)`, so guarding them leaves the output saying "3 blocks unaccounted". They are already done |
 
-**DONE 2026-08-19, and it is the whole vocabulary half:** `docs/vocabulary.md` carries `page` and
-`paragraph` as settled terms, `vocabulary.toml` ships `paragraph` to the four editorial roles and
-`page` to the stage-8 reader, and `block`'s shipped definition now reads *"a PARAGRAPH -- the
-older word"* instead of the retired interval text.
+! **`block-context` is a ROLE NAME and is not part of this** -- a plugin agent id, a `--reviewers`
+value, a filename, and the key every held report is filed under. Roy approved renaming the roles
+to their editorial desks separately, `fact-check-editor` among them; that is its own scope.
 
-!! **WHAT REMAINS IS THE RENAME, AND IT IS RELEASE-SIZED.** Measured 2026-08-19, uses of
-`block`/`blocks`:
-
-| where | uses |
-| --- | ---: |
-| shipped CODE -- `Block`, `blocks_stdlib`, `block_matches`, `by_block`, 460 bare `block` | **721** |
-| tests | **548** |
-| `docs/` | **368** |
-| shipped PROSE -- `SKILL.md` 110, `reviewer-brief.md` 52, `compact.md` 43, `re-review.md` 33 | **298** |
-
-**~1,935 sites.** ! It cannot be done piecemeal: `check_vocabulary` refuses a role a term its own
-text never uses, so the moment `[roles] all` says `paragraph` the role FILES must say it too.
+! **Nothing is on the wire.** Measured 2026-08-19: the census JSON has no `block` key and neither
+does a record slot. The only load-bearing uses are `Finding.block` and the `BLOCK` marker, both
+the deprecated 0.2.x record index.
 
 ## Tasks
 
-- [ ] Shipped PROSE first -- 298 uses across `SKILL.md` (110), `reviewer-brief.md`
+- [x] **DONE 2026-08-19 -- shipped PROSE, 285 renames across 13 files**, plus `block` retired
+      from `vocabulary.toml` and the eight count nouns in `verdicts.py`'s report and the census
+      listing's header and tier table. Everything a human or an agent READS says paragraph.
+      ! Three stale references to the RETIRED index went with it: the brief's worked record
+      opened `{ "block": 17,` (a seeded slot has no such key), it told reviewers to file two
+      records *"with the same `block`"* where it is the same ADDRESS, and `SKILL.md` described a
+      slot as carrying *"the census `block` index and the `address`"*.
+      ! ORIGINAL: Shipped PROSE first -- 298 uses across `SKILL.md` (110), `reviewer-brief.md`
       (52), `compact.md` (43), `re-review.md` (33) and the agent files. This is
       the half that must move before `[roles] all` can say `paragraph`, because
       `check_vocabulary` refuses a role a term its own text never uses.
-- [ ] Shipped CODE -- 721 uses. `Block` -> `Paragraph`, `pcst.py` -> the page
+- [ ] Shipped CODE -- **706** uses, all internal identifiers and docstring prose. ! **READ THE
+      FOUR TRAPS IN THE OBJECTIVE FIRST.** Each was found by breaking the suite, and a bulk pass
+      that misses one leaves 60-152 tests red. Shipped CODE -- 721 uses. `Block` -> `Paragraph`, `pcst.py` -> the page
       module, `blocks_stdlib`/`blocks_lexical`, `block_matches`, `by_block`, and
       460 bare `block`. ! The JSON census key `block` is read by held reports and
       by `record.Finding.block`, which is already deprecated -- rename it with

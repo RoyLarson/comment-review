@@ -2011,8 +2011,8 @@ class TestCLI(unittest.TestCase):
         report = self._clean_report("block-context.txt")
         result = self._run(report)
         self.assertEqual(result.returncode, 0)
-        self.assertIn("STANDS UNCHANGED: 3 blocks", result.stdout)
-        self.assertIn("NEEDS A RULING:   0 blocks", result.stdout)
+        self.assertIn("STANDS UNCHANGED: 3 paragraphs", result.stdout)
+        self.assertIn("NEEDS A RULING:   0 paragraphs", result.stdout)
 
     def test_a_misspelt_report_stem_is_fatal(self):
         # The stem WAS taken as a role name on sight, so `ownershp-context.md`
@@ -2101,7 +2101,7 @@ class TestCLI(unittest.TestCase):
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("COVERAGE GAPS", result.stdout)
-        self.assertIn("block-context: 3 blocks unaccounted", result.stdout)
+        self.assertIn("block-context: 3 paragraphs unaccounted", result.stdout)
 
     def test_a_missing_reviewer_is_fatal_when_declared(self):
         report = self._clean_report("block-context.txt")
@@ -2217,7 +2217,7 @@ class TestCLI(unittest.TestCase):
         result = self._run(drop, correct)
         self.assertEqual(result.returncode, 0)
         self.assertIn("RE-REVIEW", result.stdout)
-        self.assertIn("1 block still OUT for re-review", result.stdout)
+        self.assertIn("1 paragraph still OUT for re-review", result.stdout)
         self.assertNotIn(
             "Every finding is admissible. Stage 5 may rule.", result.stdout
         )
