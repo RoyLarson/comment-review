@@ -79,7 +79,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
 
 # The four editorial roles: what the shared brief used to state in passing.
 "ownership-context" = [
-  "edit mark",
   "add",
   "anchor",
   "assignment",
@@ -88,10 +87,12 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "correct",
   "declaration",
   "drop",
+  "edit mark",
   "editorial role",
   "expression",
   "laundering",
   "load-bearing",
+  "original",
   "owner",
   "patch",
   "payload",
@@ -104,7 +105,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "verdict",
 ]
 "block-context" = [
-  "edit mark",
   "add",
   "anchor",
   "census",
@@ -112,10 +112,12 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "correct",
   "declaration",
   "drop",
+  "edit mark",
   "editorial role",
   "guard",
   "laundering",
   "obituary",
+  "original",
   "patch",
   "payload",
   "query",
@@ -128,7 +130,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "verdict",
 ]
 "function-context" = [
-  "edit mark",
   "add",
   "anchor",
   "argument",
@@ -137,10 +138,12 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "correct",
   "declaration",
   "drop",
+  "edit mark",
   "editorial role",
   "guard",
   "invariant",
   "laundering",
+  "original",
   "patch",
   "payload",
   "query",
@@ -153,7 +156,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "verdict",
 ]
 "module-context" = [
-  "edit mark",
   "add",
   "anchor",
   "argument",
@@ -163,11 +165,13 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "correct",
   "declaration",
   "drop",
+  "edit mark",
   "editorial role",
   "laundering",
   "load-bearing",
   "obituary",
   "omission",
+  "original",
   "owner",
   "patch",
   "payload",
@@ -200,7 +204,9 @@ compact = [
 ]
 review = [
   "add",
+  "census",
   "proofreader",
+  "record",
   "style sheet",
   "template",
 ]

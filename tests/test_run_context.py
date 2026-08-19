@@ -27,7 +27,10 @@ python answered; go had no server
 UNAVAILABLE -- no destination tree
 
 ## CENSUS
-/tmp/run-abc/census.txt
+/tmp/run-abc/dispatch.txt
+
+## LOOKUP CENSUS
+/tmp/run-abc/census.json
 
 ## REVIEWER FILES
 /abs/agents/comment-review-ownership-context.md
@@ -176,7 +179,13 @@ class TestCheckableAnswers(unittest.TestCase):
         root = self.root.as_posix() if root is None else root
         return (
             FULL.replace("## REPO ROOT\n/abs/repo", f"## REPO ROOT\n{root}")
-            .replace("## CENSUS\n/tmp/run-abc/census.txt", f"## CENSUS\n{census}")
+            .replace("## CENSUS\n/tmp/run-abc/dispatch.txt", f"## CENSUS\n{census}")
+            # ! BOTH census paths must point at a real file, or every packet in
+            # this suite fails the existence check on the second one alone.
+            .replace(
+                "## LOOKUP CENSUS\n/tmp/run-abc/census.json",
+                f"## LOOKUP CENSUS\n{census}",
+            )
             .replace(
                 "## REVIEWER FILES\n/abs/agents/comment-review-ownership-context.md",
                 "## REVIEWER FILES\n" + "\n".join(reviewers),
@@ -229,7 +238,15 @@ class TestCheckableAnswers(unittest.TestCase):
         packet = "\n".join(f"## {name}\nx\n" for name in run_context.REQUIRED)
         self.assertEqual(run_context.missing_sections(packet), [])
         problems = run_context.invalid_answers(packet)
-        self.assertEqual(len(problems), 3, problems)
+        # ! Asserted by NAME, never by count. This held a hardcoded 3 and broke
+        # the moment a fourth checkable section was added -- a number carried
+        # beside the thing it counts, which is the defect this repo keeps
+        # finding. The names also say WHICH sections a machine can settle.
+        self.assertEqual(
+            {p.split(":")[0] for p in problems},
+            {"REPO ROOT", "CENSUS", "LOOKUP CENSUS", "REVIEWER FILES"},
+            problems,
+        )
 
 
 class TestCLI(unittest.TestCase):

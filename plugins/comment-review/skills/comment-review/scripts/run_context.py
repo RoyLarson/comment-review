@@ -3,7 +3,7 @@
     python run_context.py --template > run-<id>/context.md
     python run_context.py --check run-<id>/context.md
 
-`REQUIRED` names 9 sections below, and stage 4 hands each reviewer all of them
+`REQUIRED` names 10 sections below, and stage 4 hands each reviewer all of them
 EXCEPT the ones in `TASK_AGENT_ONLY`. This gate runs before four agents fire in
 parallel: a section quietly absent degrades a reviewer with no error anywhere,
 and a run with no style sheet introduced en-GB spellings into a codebase whose
@@ -49,6 +49,7 @@ REQUIRED = (
     "LSP LANGUAGES",
     "MOVE DESTINATION",
     "CENSUS",
+    "LOOKUP CENSUS",
     "REVIEWER FILES",
     "FILES UNDER REVIEW",
     "REFERENCE ONLY",
@@ -76,7 +77,20 @@ HINTS = {
         " ! May be PER PATH: one line per scope where a repo built the tree"
         " for some packages and not others"
     ),
-    "CENSUS": "absolute path, unique to THIS run",
+    "CENSUS": (
+        "absolute path, unique to THIS run -- the FILTERED text census, which is"
+        " what a reviewer reads"
+    ),
+    # !! TWO CENSUS PATHS, because the reviewer READS one and QUERIES the other.
+    # `CENSUS` is filtered: it collapses each run of empty intervals to a single
+    # line, so the gaps inside a run are no longer numbered in front of the
+    # reviewer. `locator.py` answers for those, and it answers from the FULL
+    # census -- so a reviewer given only the filtered path can be told a lookup
+    # exists and have no file to run it against.
+    "LOOKUP CENSUS": (
+        "absolute path to the FULL census JSON -- what `locator.py` reads to name"
+        " a spot the filtered census collapsed"
+    ),
     "REVIEWER FILES": (
         "absolute path per reviewer, the brief, and the compact + review agents"
     ),
@@ -235,8 +249,8 @@ def _path_candidates(line: str) -> list[str]:
 def invalid_answers(text: str) -> list[str]:
     """Answers that are present but unusable, one line each.
 
-    Only the three sections a machine can settle: `REPO ROOT`, `CENSUS` and each
-    `REVIEWER FILES` entry, against the filesystem. The rest carry prose no
+    Only the sections a machine can settle: `REPO ROOT`, both census paths and
+    each `REVIEWER FILES` entry, against the filesystem. The rest carry prose no
     oracle checks, so this list stays silent about them.
 
     Args:
@@ -251,10 +265,14 @@ def invalid_answers(text: str) -> list[str]:
         for line in _answer_lines(body):
             if not any(_resolves(c) for c in _path_candidates(line)):
                 bad.append(f"REPO ROOT: {line!r} is not an absolute path that exists")
-    for body in bodies.get("CENSUS", []):
-        for line in _answer_lines(body):
-            if not any(_resolves(c) for c in _path_candidates(line)):
-                bad.append(f"CENSUS: {line!r} is not an absolute path that exists")
+    # ! Both census paths, checked the same way. `LOOKUP CENSUS` is the one a
+    # reviewer runs `locator.py` against, so an unchecked path there fails at
+    # the moment a reviewer needs a spot the filtered census collapsed.
+    for name in ("CENSUS", "LOOKUP CENSUS"):
+        for body in bodies.get(name, []):
+            for line in _answer_lines(body):
+                if not any(_resolves(c) for c in _path_candidates(line)):
+                    bad.append(f"{name}: {line!r} is not an absolute path that exists")
     for body in bodies.get("REVIEWER FILES", []):
         for line in _answer_lines(body):
             if not any(_resolves(c) for c in _path_candidates(line)):

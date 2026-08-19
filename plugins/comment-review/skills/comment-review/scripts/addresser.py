@@ -238,6 +238,12 @@ def main() -> int:
         action="store_true",
         help="verify every address resolves back to its own block, and stop",
     )
+    ap.add_argument(
+        "--resolve",
+        metavar="ADDRESS",
+        help="an address in, the LINES that cover it out -- read it against a "
+        "census of the file as it is NOW",
+    )
     args = ap.parse_args()
 
     try:
@@ -287,6 +293,8 @@ def main() -> int:
         )
         return 2
 
+    if args.resolve:
+        return _resolve_one(args.resolve, blocks, code)
     if args.check:
         return _check(blocks, code)
 
@@ -300,6 +308,48 @@ def main() -> int:
     if unplaced:
         print(f"\n{unplaced} entries could not be addressed.")
     return 1 if unplaced else 0
+
+
+def _resolve_one(address: str, blocks: list[dict], code: dict[str, list[int]]) -> int:
+    """An address in, the LINES that now cover it out.
+
+    !! THIS IS THE DIRECTION STAGE 8 NEEDS, and it needs it because 7b has
+    already written. Roy, 2026-08-18: *"in goes an address out comes the line
+    numbers that cover that address ... particularly important after 7b and
+    stage 8 wants to look something up to double check."* Every line number a
+    record carried is stale by then; the ADDRESS is not, so a census of the
+    file AS IT IS NOW turns it back into lines to read.
+
+    ! Census the CURRENT file, not the one the run started from. The address is
+    what survives an edit; the lines are what moved, and reading a pre-edit
+    census here would hand back exactly the numbers 7b invalidated.
+
+    ! Several entries can answer to one address -- a docstring and the comment
+    run beneath it sit in the same gap -- so every match is printed. Measured
+    2026-08-18: 12 such places in this repo's own 13 shipped scripts.
+
+    Returns:
+        0 when the address named something, 1 when nothing carries it.
+    """
+    path, where = place_of(address)
+    if not where:
+        print(f"{address!r} is not an address -- it needs a `@place`")
+        return 2
+    real = undot(path, sorted(code))
+    if not real:
+        print(f"no file in this census dots to {path!r}")
+        return 1
+    mine = [b for b in blocks if str(b.get("path", "")) == real]
+    hits = resolve(address, mine, code[real])
+    if not hits:
+        print(f"{address} names no entry in this census")
+        return 1
+    for i in hits:
+        block = mine[i - 1]
+        print(
+            f"{real}:{block.get('start')}-{block.get('end')}\t{block.get('kind', '')}"
+        )
+    return 0
 
 
 def _check(blocks: list[dict], code: dict[str, list[int]]) -> int:

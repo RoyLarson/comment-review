@@ -335,7 +335,23 @@ guaranteed to be the skill's.
 ```bash
 python <skill>/scripts/census.py --repo . --out <run-dir>/census.txt <paths...>
 python <skill>/scripts/census.py --json --repo . --out <run-dir>/census.json <paths...>
+python <skill>/scripts/census.py --repo . --filtered --out <run-dir>/dispatch.txt <paths...>
 ```
+
+!! **THREE FILES, AND THE THIRD IS THE ONE A REVIEWER IS HANDED.** `--filtered` prints the
+blocks holding prose and collapses each run of empty intervals to one line -- `2-9
+record.py:48-58  no-prose  0L  8-intervals`. **Measured 2026-08-18 over 1,120 blocks: 131,353
+bytes to 52,383, and every reviewer gets an identical copy, so a four-role run saves 268,172.**
+
+!! **IT IS A PROJECTION, NEVER A RENUMBERING.** Every block keeps the index it holds in the FULL
+census, because that index is what the join resolves and what a record cites. The full census
+stays on disk and is what stages 5 and 7b read; only the copy pasted into a reviewer's prompt is
+narrowed.
+
+!! **DO NOT SHIP THE FILTER WITHOUT STAGE 4's LOOKUP.** A reviewer handed the filtered census
+can still see every gap, but the intervals inside a run are no longer individually numbered in
+front of it -- so a reviewer needing to place prose at one of them has no index to cite unless
+the packet tells it `locator.py` exists. Filtering without that is worse than not filtering.
 
 !! **`--out`, never a shell redirect.** A worktree-isolated session REFUSES a command carrying
 one -- *"too complex to verify that it stays inside the worktree"* -- and the JSON census is what
@@ -530,6 +546,11 @@ the files on disk were then a version behind the script that had just been fixed
 them looked wrong. ! This is the opposite instruction from the CENSUS, which is a file BY
 DESIGN and needs a path unique to this run -- the census is too large to paste and is read once,
 where the vocabulary is small and is pasted four times.
+
+!! **`CENSUS` POINTS AT THE FILTERED FILE**, `dispatch.txt` from stage 2 -- not the full census
+and not the JSON. That is the copy a reviewer reads, and it is four copies of it per run. The
+full census stays on disk for stages 5 and 7b, which resolve every index a reviewer cites
+against it.
 
 **You also supply the run context as a PACKET, and the packet is checked before anyone is
 dispatched:**
