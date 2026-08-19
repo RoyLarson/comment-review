@@ -58,6 +58,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from addresser import (  # noqa: E402  -- path shim must run first
+    MODULE,
     SEPARATOR,
     address,
     code_lines_of,
@@ -68,6 +69,7 @@ from annotate import (  # noqa: E402  -- path shim must run first
     prose_numbers,
 )
 from pcst import (  # noqa: E402  -- path shim must run first
+    FRONT_MATTER,
     OCCUPIES_NOTHING,
     Paragraph,
 )
@@ -1181,15 +1183,20 @@ def census_for(path: Path, text: str, lang: Language) -> list[Paragraph]:
         fill_the_gaps(text, got)
         # ! AFTER the gaps are filled, so every paragraph's place in its gap is
         # settled before it is told what it sits above.
-        anchor_every_address(text, got)
+        # ! BEFORE the anchors, because a run that is FRONT MATTER is anchored
+        # to the module rather than to the code below it, and this is what says
+        # which runs those are.
         mark_front_matter(got)
+        anchor_every_address(text, got)
     for b in got:
         b.tier = tier_for(lang)
     return sorted(got, key=lambda b: (b.start, b.end))
 
 
 # The annotation, and the two shapes that earn it.
-FRONT_MATTER = "front-matter"
+# ! DEFINED IN `pcst.py`, the leaf, because `addresser` reads it too and
+# cannot import this module. Re-exported here so the many readers that
+# already say `census.FRONT_MATTER` keep working.
 _SHEBANG = re.compile(r"^#!")
 _CODING = re.compile(r"coding[:=]\s*[-\w.]+")
 
@@ -1319,7 +1326,16 @@ def anchor_every_address(text: str, paragraphs: list[Paragraph]) -> None:
             # `interval` where one holds nothing.
             if b.edit_column or b.declares >= 0:
                 continue
-            if prev < b.edit_start <= nxt:
+            # !! FRONT MATTER IS THE FILE'S, so it is anchored to the module and
+            # not to whatever follows it. It takes `b0` for the same reason: a
+            # licence header is about the file, and the run below the module
+            # docstring is about the first declaration. Anchoring both to the
+            # code below made ONE anchor answer with BOTH -- measured
+            # 2026-08-19, `--anchor '<module>' --series b` and
+            # `--anchor 'def f():' --series b` returned the same pair.
+            if FRONT_MATTER in b.annotations:
+                b.anchor = MODULE
+            elif prev < b.edit_start <= nxt:
                 b.anchor = below
 
 

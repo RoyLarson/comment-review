@@ -11,9 +11,9 @@ is the code that owns it.
 lines that share one.** Ruled by Roy, 2026-08-19.
 
 ```
-pkg:mod.py@a5    the 5th DECLARATION's documentation
-pkg:mod.py@b3    the gap ABOVE code line 3
-pkg:mod.py@c3    BESIDE code line 3
+pkg:mod.py@a5    a DECLARATION's documentation
+pkg:mod.py@b3    a GAP -- or, at `b0`, the file's own front matter
+pkg:mod.py@c3    the room BESIDE a line of code
 ```
 
 !! **THE PATH IS FLATTENED ON `:`, WHICH NO PATH MAY HOLD.** It was `.` until 2026-08-19, and a
@@ -40,13 +40,21 @@ anchor has many. A line has one.
 | | names | counts |
 | --- | --- | --- |
 | `a` | a DECLARATION's documentation | declarations, in SOURCE order. `a0` is the module |
-| `b` | the gap ABOVE a code line | code lines, from 0 |
-| `c` | the room BESIDE a code line | code lines, from 0 |
+| `b` | the gap ABOVE a line of code, and the FILE's own front matter | its own walk |
+| `c` | the room BESIDE a line of code | its own walk, skipping the module |
 
-!! **`bN` and `cN` name the SAME code line** -- `bN` above it, `cN` on it. Both count from 0,
-which is what makes them line up. They did not until 2026-08-19: `c` counted from 1 and `b` from
-0, so `b3` and `c3` named different statements and a reader pairing them attached a comment one
-line too high.
+!! **NO FOLIO CAN BE COMPUTED FROM ANOTHER, OR FROM A LINE'S ORDINAL.** Roy, 2026-08-19:
+*"remove any references that indicate anyone can expect that the next line of code is guaranteed
+to have the next foliation index. It is a happenstance and may change at any point if it is
+determined that another system will work better."*
+
+**Three FOLIATORS, three counters, one trigger list.** Each walks the MODULE and then every line
+of code, takes a number at every trigger, and emits or does not: `a` and `b` emit for the module,
+`c` steps past it. That any two series line up on a given file is an OUTCOME of that walk, not a
+rule -- and nothing in this system reads one folio to derive another.
+
+! **ASK. DO NOT COUNT.** `addresser.py --anchor NAME --series a|b|c`, or `locator.py --at
+path:LINE`. The only supported way to learn a folio is to be told it.
 
 !! **The `a` series counts DECLARATIONS, not code lines, and that is a ruling.** Numbering each
 declaration by the `c` of its own `def` would put all three series on one count, and was

@@ -316,8 +316,9 @@ def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
     if spec.needs_settles:
         extras.append("settles")
     if spec.needs_anchor:
-        # !! NO `side`. The ADDRESS carries it: `@aN` is a declaration's
-        # documentation, `@bN` is above code line N, `@cN` is beside it. A
+        # !! NO `side`. The ADDRESS carries it: an `a` is a declaration's
+        # documentation, a `b` is a gap, a `c` is the room beside a line of
+        # code -- and WHICH one a given number names is not derivable. A
         # second statement of one fact can disagree with the first, and this one
         # did -- measured 2026-08-19, an `add` on a `c` address passed the gate
         # carrying `side: above`, and there was no `beside` to write instead.

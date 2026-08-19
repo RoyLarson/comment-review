@@ -65,30 +65,17 @@ while the enumeration underneath it is complete.
 Three series, because prose answers to one of exactly three subjects:
 
     package:core.py@a5    the 5th DECLARATION's documentation
-    package:core.py@c3    BESIDE the code line at index 3 -- the 4th
-    package:core.py@b3    the GAP ABOVE that same code line
+    package:core.py@c3    BESIDE a line of code
+    package:core.py@b3    a GAP, or the file's own front matter at `b0`
 
-! `b0` is the gap before the first code line; `bN` after the last. A file with N
-code lines has N+1 gaps, and every comment run and empty interval sits in one.
-
-!! `b` AND `c` ARE SEPARATE ON PURPOSE. `c3` says this prose belongs BESIDE the
-code line at index 3; `b3` says it belongs ABOVE that same line. Roy,
-2026-08-18: the split "allows the editors to say this single line edit belongs
-next to the code not above the code" -- an editorial choice line numbers
-conflated, because both sit on adjacent lines.
-
-!! THE SAME NUMBER NAMES THE SAME CODE LINE IN BOTH SERIES. `b` and `c` BOTH
-COUNT FROM 0, so the code line at index N owns exactly two folios -- `bN` above
-it and `cN` beside it -- and a DECLARATION owns those plus its own `a`, which is
-why an anchor can carry paragraphs from all three series.
-
-! SUPERSEDED 2026-08-19, and it was an off-by-one in the file that costs 5x to
-get wrong. This said the same number names DIFFERENT statements: true while `c`
-counted from 1, and the ruling that aligned them made it false. A reviewer
-following it cited `c(N+1)` for the line it meant -- the error the paragraph
-warned about, inverted. ! Say "the code line at index N", not "code line N":
-"code line 3" reads as the 3rd to one reader and as index 3 to another, and that
-ambiguity is what let one half of the pair stay wrong while the other was right.
+!! NO FOLIO IS COMPUTABLE FROM ANOTHER, OR FROM A LINE'S ORDINAL. Roy,
+2026-08-19: *"remove any references that indicate anyone can expect that the
+next line of code is guaranteed to have the next foliation index ... it is a
+happenstance and may change at any point."* Three FOLIATORS walk one trigger
+list -- the MODULE, then every line of code -- each taking a number at every
+trigger and emitting or not. Two series lining up on a file is an OUTCOME of
+that walk. ! `b0` is the FILE'S OWN FRONT MATTER, not the gap above the first
+line of code; those were one address until the foliators split them.
 
 !! `a` IS SEPARATE FOR A DIFFERENT REASON: IT NAMES A SUBJECT, NOT A POSITION.
 A docstring is about its DECLARATION, and `a0` is the module with `a1..aN` its
@@ -140,7 +127,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from pcst import OCCUPIES_NOTHING  # noqa: E402  -- path shim must run first
+from pcst import (  # noqa: E402  -- path shim must run first
+    FRONT_MATTER,
+    OCCUPIES_NOTHING,
+)
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
 ON = "c"
@@ -221,11 +211,12 @@ def address(paragraph: dict, code: list[int]) -> str:
     state and no other. A place is counted against the CODE instead:
 
         pkg:mod.py@a5   the 5th DECLARATION's documentation
-        pkg:mod.py@c3   BESIDE the code line at index 3 -- the 4th
-        pkg:mod.py@b3   the GAP ABOVE that same code line
+        pkg:mod.py@c3   BESIDE a line of code
+        pkg:mod.py@b3   a GAP, or the file's own front matter at `b0`
 
-    `b0` is the gap before the first code line, `bN` after the last, and every
-    comment run and empty interval sits in one of them.
+    `b0` is the FILE'S OWN front matter; every other `b` is a gap, and every
+    comment run and empty interval sits in one of them. ! Which gap a given `b`
+    is cannot be worked out from its number -- ask.
 
     !! THE `a` SERIES COUNTS DECLARATIONS, WHICH IS WHY IT CANNOT RENUMBER
     UNDER THIS TOOL. `a0` is the module and `a1..aN` its declarations in source
@@ -271,27 +262,107 @@ def address(paragraph: dict, code: list[int]) -> str:
         The paragraph's address, or "" when it carries no usable position.
     """
     path = flatten(paragraph.get("path", ""))
-    start = paragraph.get("start")
-    if not isinstance(start, int):
+    if not isinstance(paragraph.get("start"), int):
         return ""
-    # The census STATES the ordinal; -1 says this paragraph documents no declaration.
+    # !! THE `a` FOLIATOR'S WALK IS THE CENSUS'S, because only a parser knows
+    # which lines DECLARE. `declares` is its output: 0 for the MODULE, then 1..N
+    # for the declarations in source order -- the same walk `triggers` makes,
+    # over a different trigger set. -1 says this paragraph documents none.
     declares = paragraph.get("declares", -1)
     if isinstance(declares, int) and declares >= 0:
-        return f"{path}@{DECLARED}{declares}"
-    # !! ONE FACT DECIDES THIS, AND THE PRODUCER STATES IT. `edit_column` is
-    # non-zero exactly when code precedes the prose on its first line -- a
-    # trailing comment, a bare `margin`, a paragraph comment opened after a
-    # statement. It was decided here from the KIND and in `code_lines_of` from
-    # the paragraph, and the two disagreed on the one kind that is in neither list: a
+        return f"{path}@{folio(DECLARED, declares)}"
+    # !! ONE FACT DECIDES WHICH SERIES, AND THE PRODUCER STATES IT.
+    # `edit_column` is non-zero exactly when code precedes the prose on its
+    # first line -- a trailing comment, a bare `margin`, a comment opened after
+    # a statement. It was decided here from the KIND and in `code_lines_of` from
+    # the paragraph, and the two disagreed on the one kind in neither list: a
     # `comment` opened mid-line took a `b` folio for a line it sits ON, so that
     # folio named the comment AND the gap. Measured 2026-08-19 on
     # `let b = 2; /* opens`.
-    if paragraph.get("edit_column", 0) and start in code:
-        return f"{path}@c{code.index(start)}"
+    step = (
+        on_step(paragraph, code)
+        if paragraph.get("edit_column", 0)
+        else gap_step(paragraph, code)
+    )
+    if step is None:
+        return ""
+    return f"{path}@{folio(ON if paragraph.get('edit_column', 0) else GAP, step)}"
+
+
+#: The FIRST TRIGGER every foliator steps past: the file itself, before any line
+#: of code. It is what `a0` and `b0` name, and the one trigger `c` does not emit
+#: for -- a module has front matter and a docstring, and no line to sit beside.
+MODULE = "<module>"
+
+
+def triggers(code: list[int]) -> list[object]:
+    """What a foliator walks: the MODULE, then every line of code in order.
+
+    !! ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART. Each folio used to be a
+    different expression computed where it was needed -- `declares` for `a`,
+    `code.index(start)` for `c`, `sum(1 for n in code if n < at)` for `b` --
+    three mechanisms for one question, *which step am I*. Roy, 2026-08-19:
+    *"every adjustment to the rules has to be edited thoroughly in each place ...
+    manually indexing clearly causes issues to remember."* Aligning `b` and `c`
+    earlier that day took both expressions plus prose in four places, and it was
+    still wrong: `b0` named the module's front matter AND the gap above the
+    first line of code, so a licence header and the comment introducing the
+    first declaration answered to one address.
+    """
+    return [MODULE, *code]
+
+
+def folio(series: str, step: int) -> str:
+    """The folio at one step of the walk -- ONE expression, all three series.
+
+    !! EVERY TRIGGER TAKES A NUMBER, INCLUDING ONE A FOLIATOR SKIPS. `c` does
+    not emit for the MODULE and still steps past it, which is why its first
+    line of code is `c1` and not `c0`. Roy, 2026-08-19: *"each gets its own
+    counter and each gets passed the lines of code and the module, and the `c`
+    knows it is supposed to skip it."*
+
+    !! NOTHING READS ONE FOLIO TO COMPUTE ANOTHER, and no folio follows from a
+    line's ordinal. Whether two series happen to line up on a given file is not
+    stated anywhere, deliberately: Roy, 2026-08-19, *"I don't want to make that
+    promise -- I don't know the edge cases where that might break yet,"* and
+    *"remove any references that indicate anyone can expect that the next line
+    of code is guaranteed to have the next foliation index."* A reader told the
+    numbers coincide will rely on it whatever the sentence around it says.
+    """
+    return f"{series}{step}"
+
+
+def gap_step(paragraph: dict, code: list[int]) -> int | None:
+    """Which trigger a `b` paragraph belongs to -- the MODULE, or a line of code.
+
+    !! THIS IS THE LOOK-AHEAD, AND THE CENSUS ALREADY DID IT. Prose above the
+    module's own docstring is the FILE's, and prose below it introduces whatever
+    follows; only what comes AFTER a run says which it is. `census.mark_front_
+    matter` asks exactly that question and stamps the answer, so this reads a
+    fact rather than re-deriving one.
+
+    Returns:
+        0 for the file's own front matter, `k + 1` for the gap above the `k`th
+        line of code, or None when the paragraph states no insertion point.
+    """
+    if FRONT_MATTER in (paragraph.get("annotations") or ()):
+        return 0
     at = paragraph.get("edit_start")
     if not isinstance(at, int):
-        return ""
-    return f"{path}@b{sum(1 for n in code if n < at)}"
+        return None
+    return sum(1 for n in code if n < at) + 1
+
+
+def on_step(paragraph: dict, code: list[int]) -> int | None:
+    """Which trigger a `c` paragraph sits on -- always a line of code.
+
+    ! `+ 1` because the walk starts at the MODULE, which `c` steps past without
+    emitting. It is the same walk `gap_step` reads.
+    """
+    start = paragraph.get("start")
+    if start not in code:
+        return None
+    return code.index(start) + 1
 
 
 #: The character that joins path segments in an address. A path may not hold it
@@ -728,11 +799,15 @@ def _check(paragraphs: list[dict]) -> int:
 
     ! Two reports, and only the first is a fault. UNADDRESSED means the census
     cannot name the place at all -- no `edit_start`, or no position -- and
-    nothing can cite it. SHARED means several paragraphs sit in one gap, which is
-    ordinary and true: a docstring and the comment run under it are both after
-    the same code line. It is reported because citing that address ALONE would
-    resolve to the wrong one of them; the record's `paragraph` index is what
-    separates them.
+    nothing can cite it.
+
+    !! SHARED IS NOW A FAULT TOO, AND ITS OLD REMEDY IS GONE. It meant several
+    paragraphs sat in one gap, and the advice was to cite the census INDEX
+    alongside the address -- a field retired 2026-08-19, so a record carries an
+    address and an anchor and nothing that tells two such paragraphs apart. The
+    one shape that produced it is fixed: a licence header and the run below the
+    module docstring both answered to `b0`, and `b0` is now the file's own front
+    matter alone.
 
     Returns:
         1 when anything is UNADDRESSED, 0 otherwise. ! A shared place does not

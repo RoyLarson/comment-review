@@ -62,16 +62,18 @@ between two lines of code (`interval`), or a declaration with no docstring (`und
 They are there to be CITED, not accounted for: an `add` says a constraint exists in code and
 NOWHERE in prose, which is a finding about one of them.
 
-!! **THE `@` NAMES A PLACE AGAINST THE CODE, and it is what you cite.** `@a5` is the 5th
-DECLARATION's documentation. `@c3` is prose BESIDE the LINE OF CODE at index 3 -- the 4th --
-and `@b3` is the gap ABOVE that same line.
+!! **THE `@` NAMES A PLACE AGAINST THE CODE, and it is what you cite.** `@a5` is a
+DECLARATION's documentation, `@c3` is prose BESIDE a line of code, and `@b3` is a GAP.
+**Which line each one names is not something you can work out -- ask.**
 
-!! **`bN` AND `cN` NAME THE SAME LINE OF CODE.** Both count from 0, which is what aligns them:
-one line of code owns exactly two folios, `bN` above it and `cN` beside it, and a declaration owns
-those plus its own `a`. ! **Count from 0 and say so.** "Code line 3" reads as the 3rd to one reader and
-as index 3 to another, and until 2026-08-19 this file used both in one paragraph -- teaching that
-the number meant a different statement in each series, which was true while `c` counted from 1 and
-became an off-by-one when the ruling aligned them.
+!! **YOU CANNOT WORK OUT A FOLIO. ASK FOR IT.** The three series are counted by three
+separate foliators, and no number in one tells you a number in another -- nor does a line's
+position tell you either. Two of them lining up on the file in front of you is a coincidence of
+that file, and it may change.
+
+! **`@b0` IS THE FILE'S OWN FRONT MATTER** -- a licence header, a shebang, a coding line -- and
+not the gap above the first line of code. It is filtered out of your census, and any edit proposed
+on it becomes a `query`.
 
 ## You FILL a record; you do not write one
 
@@ -198,8 +200,10 @@ The census parsed the file and knows which is which; a count does not.
 !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A record naming a line as the
 place a thing belongs is refused.
 
-! **The SIDE is the address's to say, never yours.** `@bN` is above code line N, `@cN` beside
-it, `@aN` a declaration's documentation. Your payload names WHAT is missing and WHICH anchor.
+! **The SIDE is the address's to say, never yours.** An `a` is a declaration's documentation, a
+`b` is a gap, a `c` is the room beside a line of code. **Which one a given number names is not
+something you can work out** -- ask, as above. Your payload names WHAT is missing and WHICH
+anchor.
 
 
 !! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two

@@ -9,8 +9,7 @@ lines are which -- which is what a reviewer of COMMENTS needs and no more.
 !! IT IS A FLAT LIST, AND THE ADDRESS IS WHY. Roy, 2026-08-18: *"it probably is
 just a flat list because of the way we defined the address ... a CST has it but
 it is not actually one, which is why it is a pseudoCST."* An address is an
-ORDINAL over a linear sequence -- `b3` is "after the 3rd code line", `a5` is
-"the 5th declaration" -- and an ordinal cannot express containment.
+ORDINAL over a linear sequence, and an ordinal cannot express containment.
 
 !! AND IT IS NOT A COMPROMISE. THIS IS A PAGE. Roy, 2026-08-19: a pCST is a page
 and a paragraph is a paragraph, *"because it is a flat list of paragraphs."*
@@ -63,6 +62,19 @@ OCCUPIES_NOTHING = ("trailing-comment", "margin", "interval", "undocumented")
 # not. This set is what "addressable, not accountable" means: they are cited by
 # an `add` and they get no seeded record.
 HOLDS_NO_PROSE = ("interval", "undocumented", "margin")
+
+# !! THE FILE'S OWN PROSE, ABOVE ITS DOCSTRING -- a licence header, a shebang, a
+# coding line. It is an ANNOTATION rather than a kind, because such a run is an
+# ordinary comment in every way but ownership: it belongs to the FILE and not to
+# whatever follows it.
+#
+# !! IT LIVES HERE BECAUSE TWO MODULES NEED IT AND ONE OF THEM CANNOT IMPORT THE
+# OTHER. `census.mark_front_matter` stamps it; `addresser.gap_step` reads it to
+# decide whether a run is the file's `b0` or the gap above the first line of
+# code. `census` imports `addresser`, so the constant cannot live in `census`
+# without making the pair circular -- and a second copy of the string is how the
+# two would come to disagree about a name neither of them owns.
+FRONT_MATTER = "front-matter"
 
 
 @dataclass

@@ -522,7 +522,7 @@ class TestABlockCommentBesideCode(unittest.TestCase):
         suggestions."*
 
         ! It WAS censused, and the paragraph's text was the whole statement --
-        measured 2026-08-19, `f.c@c1 comment text='int x = /* why */ 5;'`,
+        measured 2026-08-19, `f.c@c2 comment text='int x = /* why */ 5;'`,
         executable code handed to four reviewers as prose. Cutting at the
         opener was the alternative and loses the trailing `5;`, so `5` and `7`
         would compare EQUAL and the proof report PROVEN on changed code.
