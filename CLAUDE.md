@@ -10,6 +10,29 @@ read-only reviewer agents walk one pCST, a task agent (the `/comment-review` ski
 synthesizes verdicts, the human approves the exact replacement text, and WRITE puts it on disk and
 proves the executable code byte-identical.
 
+### !! WHY IT EXISTS: A GREEN GATE IS NOT EVIDENCE OF A GOOD RESULT
+
+Roy, 2026-08-18: *"Just because the code passes -- even if it has gone through multiple rounds of
+simplify and code-review -- doesn't mean that the code is good, that it has the right structure,
+the right documentation and the right reasons why things are the way they are."*
+
+!! **MEASURED, on a real run.** `evidence/redacted-corpus-full-v0_2/` records a tree carrying **31
+reader-visible defects** while every mechanical gate was green: `prove_unchanged` 23/23, the
+hygiene guard 19/19, **2,413 tests passing**, every citation resolving, the residue check clean.
+Stage 8 -- a reader, not a checker -- is what found them.
+
+! **The gates were not wrong; they were answering a different question.** Each says the code still
+parses, still runs, still says what it said. None can say whether the prose beside it is TRUE, or
+whether a reader would learn the reason a thing is the way it is. That gap is the whole remit of
+the four editorial roles, and it is why this is a reviewer rather than a linter.
+
+! **Corroborated on this repo, 2026-08-18**, with 519-534 tests green throughout: the join admitted
+a citation whose `verbatim` was `null`, because it rendered as the word "None" and the cited line
+happened to contain it; `payload_problem` admitted a claim key that was present and empty, and
+every check that would have caught it then skipped; the brief generator imported a table from a
+module that no longer defined it, passing only on an accidental re-export; and the backlog index
+listed eight finished TODOs as open. **Every one was found by reading, and none by a gate.**
+
 The repo root is **not** the plugin. Only `plugins/comment-review/` ships to a user's
 `.claude/`; everything else (`docs/`, `evidence/`, `evals/`, `corpora/`, `scripts/`) is
 development and measurement tooling that stays behind.

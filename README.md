@@ -64,6 +64,25 @@ This will find coding mistakes as well because of it.
 Little things that no test is looking for will popup in looking for a clarification on
 documentation.
 
+### A green gate is not evidence of a good result
+
+This is the argument the whole tool rests on. Code that compiles, passes its tests and survives
+several rounds of automated review can still be bad code -- wrong structure, wrong documentation,
+and no stated reason why anything is the way it is. None of the usual checks can tell you,
+because none of them is reading.
+
+**It is measured, not asserted.** One run over a real codebase left a tree carrying **31
+reader-visible defects** while every mechanical gate was green: the byte-identical proof passed
+23/23, the hygiene guard 19/19, **2,413 tests passed**, every citation resolved, and the residue
+check was clean. What found the 31 was stage 8 -- a pass that reads the finished page the way a
+person would.
+
+The gates were not wrong. They answer a different question: does this still parse, still run,
+still say what it said. Whether the sentence beside the code is *true of that code*, and whether
+a reader could learn why the code is the way it is, is a question only a reader can settle. That
+is what the four editorial roles are for, and it is why this is a reviewer rather than a linter.
+
+
 ## What
 
 The skill judges comments based upon four criteria. `ownership-context` resolves placement
