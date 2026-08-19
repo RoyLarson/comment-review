@@ -274,9 +274,18 @@ and no TODO is left pointing at something that no longer exists.
 !! **A PLAN CARRIES CHECKBOXES, THE SAME AS A TODO.** Roy, 2026-08-19: *"Just because they are
 not todos doesn't mean they are freeform either."* **The release gate is every box on the plan
 ticked** -- *"we will get to the release readiness at the time when it is ready to be released"*,
-which sounds ontological and is not: it says readiness is COUNTABLE, not self-defining. Nobody
-judges whether a version is ready and nobody can decide it is; the boxes are an artifact anyone
-can check.
+which sounds ontological and is not. It says readiness is **COUNTABLE** and **VERIFIABLE BY
+ANYONE**, not self-defining:
+
+- nobody has to JUDGE whether a version is ready
+- nobody can DECIDE that it is
+- and **anyone can check that it is** -- including someone who did none of the work
+
+! **The third is what makes the first two hold.** A box that only its author can verify is a
+judgement wearing a checkbox. Each box therefore NAMES the TODO it works, the TODO names the
+work, and the work is in the tree -- so a ticked box is re-derivable by a stranger, which is the
+same standard this repo applies to a comment: *if a sentence cannot be falsified by reading the
+code or re-running a command, it does not belong.*
 
 ! **Prose in a plan is EVIDENCE for a box, never a second list of work.** A section that restates
 what a box says is a place for the two to disagree.
