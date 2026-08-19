@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (30)
+### open  (31)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -205,6 +205,7 @@ that changed a published name or rule:
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | session * Roy (* 3 rulings) | yes | 5/15 | Two live runs proposed fifteen changes |
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | session | — | 0/2 | doc_is_structural means two things and its docstring names one |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | yes | 1/7 | A docstring needs its own address series, and it names what it documents |
+| [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
 
 ### in-progress  (2)
 
