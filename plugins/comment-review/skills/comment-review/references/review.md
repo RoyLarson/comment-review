@@ -52,25 +52,16 @@ not be folded into the first.
 
 ## Looking a place up, after the write
 
-!! **EVERY LINE NUMBER IN THE RECORDS IS STALE BY THE TIME YOU READ.** 7b has
-written, so each edit moved every line below it. What did NOT move is the
-ADDRESS a record carries -- `pkg.mod.py@b3` is the same place before and after,
-because it names a spot against the CODE and 7b proved the code byte-identical.
-
-Census the file as it is NOW, then ask:
+!! **EVERY LINE NUMBER IN THE RECORDS IS STALE; THE ADDRESS IS NOT.** 7b has
+written. Census the file as it is NOW, then ask:
 
 ```bash
 python <skill>/scripts/census.py --json --repo . --out <run-dir>/after.json <paths...>
 python <skill>/scripts/addresser.py --census <run-dir>/after.json --repo . --resolve <ADDRESS>
 ```
 
-Out come the lines that cover it today, so a claim you want to re-check against
-the source can be found without counting the run's own edits.
+! Census it FIRST. Resolving against the census the run started from reports
+`STALE CENSUS`, not a line range.
 
-! **Do not resolve against the census the run STARTED from.** It answers with
-the numbers 7b invalidated, confidently and wrongly -- and the addresser refuses
-a census older than the file rather than answering from it, so a stale one
-reports `STALE CENSUS` instead of a line range.
-
-! A place can hold more than one block -- a docstring and the comment run under
-it sit in the same gap -- so more than one range can come back. Both are real.
+! More than one range can come back -- a docstring and the comment run beneath
+it share a place. Both are real.

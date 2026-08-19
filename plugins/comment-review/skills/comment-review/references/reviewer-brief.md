@@ -146,24 +146,17 @@ constraint holds in code and appears in NO prose. Intervals get no seeded slot -
 addressable, not accountable -- so **append a new record carrying that interval's census index
 and address.** Read it as being about that gap, not about a neighbour.
 
-!! **YOUR CENSUS COLLAPSES RUNS OF EMPTY INTERVALS, so ask for the index rather than counting.**
-A line reading `2-9  record.py:48-58  no-prose  0L  8-intervals` says eight numbered gaps sit
-there and shows you none of them. When the gap you want is inside such a run:
+!! **A ROW LIKE `2-9  record.py:48-58  no-prose  0L  8-intervals` HIDES EIGHT NUMBERED GAPS.**
+To cite one, ask -- do not count:
 
 ```bash
-python <skill>/scripts/locator.py --census <the FULL census json> --repo <repo> --at path:LINE
+python <skill>/scripts/locator.py --census <LOOKUP CENSUS> --repo <REPO ROOT> --at path:LINE
 ```
 
-**In goes a line in the ORIGINAL document -- the file as you are reading it now -- and out comes
-the ADDRESS of the spot there**, with the census index that names it. ! *Original* is the whole
-of it: nothing has been edited yet, so the line you are looking at is the line the census read.
-Once stage 5 rewrites prose those numbers move, which is why a record carries the address and
-not the line.
-
-! It answers from the FULL census, so the index it returns is the one the join resolves.
+A line in the ORIGINAL document goes in; the index and address come back.
 
 !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A record naming a line as the
-place a thing belongs is refused. Ask with the line, cite what comes back.
+place a thing belongs is refused.
 
 
 !! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two

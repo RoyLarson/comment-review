@@ -97,12 +97,13 @@ the antipattern this skill exists to find, and the four agents are the place it 
 they read alike and invite copy-paste.
 
 !! **THE TWO LARGEST FILES A RUN LOADS AS CONTEXT HAVE NO BUDGET.** A reviewer loads its role
-file plus the brief, and four dispatched in parallel load **four copies of the brief**. The
-numbers above budget the four ROLE files only -- the smallest part of what a run actually costs.
+file plus the brief, and **the brief is read FIVE times** -- by the four reviewers and by the
+task agent. Roy, 2026-08-18. So a line there costs five times a line in a role file, and the
+numbers above budget the ROLE files only -- the smallest part of what a run actually costs.
 
 | | 2026-08-16 | 2026-08-18 | |
 | --- | ---: | ---: | --- |
-| `reviewer-brief.md` | 11,579 | 24,000 | paid FOUR times |
+| `reviewer-brief.md` | 11,579 | 23,397 | paid FIVE times |
 | `SKILL.md` | 45,257 | 62,531 | paid once, by the task agent |
 
 !! **THE BRIEF HAS MORE THAN DOUBLED IN TWO DAYS, WHICH IS THIS WARNING COMING TRUE.** Every
