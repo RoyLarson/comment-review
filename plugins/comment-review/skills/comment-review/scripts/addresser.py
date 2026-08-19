@@ -28,12 +28,18 @@ but only while the enumeration underneath it is complete.
 
 Two forms, because a place is one of exactly two things:
 
-    a.py@c3     ON code line 3 -- a trailing comment shares its line with code
-    a.py@b3     the gap AFTER code line 3, and before code line 4
+    package.core.py@c3    ON code line 3 -- shares the line with the statement
+    package.core.py@b3    the GAP after code line 3, before code line 4
 
 ! `b0` is the gap before the first code line; `bN` after the last. A file with N
 code lines has N+1 gaps, and every comment run, docstring and empty interval
 sits in one of them.
+
+!! THE TWO FORMS ARE SEPARATE ON PURPOSE. `c3` says this prose belongs BESIDE
+the statement; `b3` says it belongs ABOVE it. Roy, 2026-08-18: the split "allows
+the editors to say this single line edit belongs next to the code not above the
+code" -- an editorial choice line numbers conflated, because both sit on
+adjacent lines.
 
 !! THE SAME GAP IS THE SAME ADDRESS WHETHER PROSE FILLS IT OR NOT, which is the
 property line numbers cannot give. A comment block occupying three lines and an
@@ -61,6 +67,23 @@ ON = "c"
 GAP = "b"
 # A block that shares its line with code, so it sits ON one rather than between.
 SHARES_ITS_LINE = ("trailing-comment",)
+
+
+def dotted(path: str) -> str:
+    """`pkg/sub/mod.py` as `pkg.sub.mod.py` -- the whole path, extension kept.
+
+    !! THE ADDRESS IS THE FULL PATH from the runner's root, not the file name.
+    Roy, 2026-08-18: "the address is the full thing not just `__init__@b0`".
+    Files form a tree, so a complete path cannot collide, and the form is safe
+    if verbose.
+
+    !! THE EXTENSION STAYS. Dropping it reads better and reintroduces collisions
+    the moment a repo holds `b.py` beside `b.rs` -- which this census supports by
+    design, eleven languages in one run. Roy ruled it 2026-08-18: "we could have
+    mixed languages in the system with the same names that without that we are
+    back to collisions."
+    """
+    return str(path).replace("\\", "/").replace("/", ".")
 
 
 def code_lines_of(text: str, blocks: list[dict]) -> list[int]:
@@ -100,31 +123,34 @@ def stable(block: dict, code: list[int]) -> str:
         the gap after code line N. ! "" when the census entry carries no usable
         range -- reported by the caller, never guessed at.
     """
-    path = str(block.get("path", "")).replace("\\", "/")
+    path = dotted(str(block.get("path", "")))
     start = block.get("start")
     if not isinstance(start, int):
         return ""
     if block.get("kind") in SHARES_ITS_LINE and start in code:
         return f"{path}@{ON}{code.index(start) + 1}"
-    # !! THE LEADING GAP IS `b0` EVEN WHEN IT TOUCHES THE FIRST CODE LINE, and
-    # this is the case a Python file hides. `end <= code[0]` means the place
-    # sits at or above the first line of code, so nothing precedes it.
+    # !! READ FROM `edit_start`, THE STATED INSERTION POINT, and not from the
+    # addressing range. A file whose only code line is line 1 -- every one-line
+    # `__init__.py` in every package -- emits TWO intervals both spanning
+    # `1-1`, the gap BEFORE that line and the gap AFTER it, and
+    # `census.address` cannot tell them apart. Their `edit_start` can: 1 and 2.
+    # Counting the code lines before that point names them `b0` and `b1`.
     #
-    # ! Found on real Rust, 2026-08-18. `company.rs` opens `use std::fmt;` on
-    # line 1, so its leading interval is `1-1` -- start AND end on the first
-    # code line -- and the count below read that as "after code line 1". Every
-    # Python file this was written against began with a blank or a docstring,
-    # so the leading gap was `1-2` and the bug could not appear.
-    end = block.get("end")
-    if code and isinstance(end, int) and end <= code[0]:
-        return f"{path}@{GAP}0"
-    # !! `<=`, NOT `<`. An INTERVAL's `start` IS a bounding code line -- the
-    # census names a gap by the two code lines around it -- so the gap sits
-    # AFTER that line and the line must be counted. A comment or docstring
-    # occupies its lines, so its `start` is never code and the two tests agree
-    # there. `<` put the gap after the last statement at `b1` instead of `b2`.
-    before = sum(1 for n in code if n <= start)
-    return f"{path}@{GAP}{before}"
+    # ! NO COUNTER, deliberately. This is a pure function of one entry and its
+    # file's code lines, so nothing depends on traversal order. A draft that
+    # accumulated a running count while walking the census was refused -- Roy,
+    # 2026-08-18: a name that depends on the walk "is absolutely filled with
+    # edge cases and incrementing problems and ordering problems".
+    #
+    # ! A CENSUS WITHOUT THE FIELD IS REFUSED, not guessed at. Falling back to
+    # `start` answers confidently and wrongly -- it is the range that cannot
+    # separate the two gaps of a one-line file, which is the whole reason this
+    # reads `edit_start`. `galley.py` refuses an old census for the same reason,
+    # and the one default that was tried there put a deleted statement back.
+    at = block.get("edit_start")
+    if not isinstance(at, int):
+        return ""
+    return f"{path}@{GAP}{sum(1 for n in code if n < at)}"
 
 
 def main() -> int:

@@ -26,16 +26,16 @@ BARE = (
 )
 
 A = [
-    {"path": "a.py", "start": 1, "end": 2, "kind": "interval"},
-    {"path": "a.py", "start": 2, "end": 2, "kind": "trailing-comment"},
-    {"path": "a.py", "start": 3, "end": 5, "kind": "comment"},
-    {"path": "a.py", "start": 6, "end": 6, "kind": "trailing-comment"},
-    {"path": "a.py", "start": 6, "end": 6, "kind": "interval"},
+    {"path": "a.py", "start": 1, "end": 2, "kind": "interval", "edit_start": 1},
+    {"path": "a.py", "start": 2, "end": 2, "kind": "trailing-comment", "edit_start": 2},
+    {"path": "a.py", "start": 3, "end": 5, "kind": "comment", "edit_start": 3},
+    {"path": "a.py", "start": 6, "end": 6, "kind": "trailing-comment", "edit_start": 6},
+    {"path": "a.py", "start": 6, "end": 6, "kind": "interval", "edit_start": 7},
 ]
 B = [
-    {"path": "b.py", "start": 1, "end": 2, "kind": "interval"},
-    {"path": "b.py", "start": 2, "end": 3, "kind": "interval"},
-    {"path": "b.py", "start": 3, "end": 3, "kind": "interval"},
+    {"path": "b.py", "start": 1, "end": 2, "kind": "interval", "edit_start": 1},
+    {"path": "b.py", "start": 2, "end": 3, "kind": "interval", "edit_start": 3},
+    {"path": "b.py", "start": 3, "end": 3, "kind": "interval", "edit_start": 4},
 ]
 
 
@@ -75,35 +75,36 @@ class TestOnAndBetween(unittest.TestCase):
         self.assertEqual(named(WITH_PROSE, A)[1], "c1")
         self.assertEqual(named(WITH_PROSE, A)[3], "c2")
 
-    def test_an_interval_names_the_gap_AFTER_its_first_bounding_line(self):
-        # ! `<=` and not `<`. An interval's `start` IS a code line, so that
-        # line is counted -- `<` named the gap before it instead.
+    def test_an_interval_names_the_gap_AFTER_its_bounding_line(self):
+        # ! Read from `edit_start`, which the census states for the splice --
+        # the addressing range cannot say it, because an interval spans the two
+        # code lines around the gap rather than the gap itself.
         self.assertEqual(named(BARE, B)[1], "b1")
 
     def test_a_block_with_no_range_is_reported_not_guessed(self):
         self.assertEqual(addresser.stable({"path": "a.py"}, [2, 6]), "")
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestCodeOnTheFirstLine(unittest.TestCase):
     """The leading gap is `b0` even when it touches the first code line.
 
     !! FOUND ON REAL RUST, not on a fixture. `StarTraders/src/company.rs` opens
-    `use std::fmt;` on line 1, so its leading interval is `1-1` -- start AND end
-    on the first code line -- and counting `code <= start` read that as the gap
-    AFTER code line 1. Every Python file this was first written against began
-    with a blank line or a module docstring, so its leading gap was `1-2` and
-    the case could not arise.
+    `use std::fmt;` on line 1, so its leading interval spans `1-1` -- start AND
+    end on the first code line -- where an earlier rule counted from the range
+    and read that as the gap AFTER code line 1. Every Python file this was first
+    written against began with a blank line or a module docstring, so its
+    leading gap was `1-2` and the case could not arise.
+
+    ! The range is not what answers it now: `edit_start` is 1 for the leading
+    gap and 2 for the next, so the two are separated by what the census STATES
+    rather than by what a consumer infers from the bounds.
     """
 
     SRC = "use std::fmt;\n\n#[derive(Debug)]\npub enum X {}\n"
     BLOCKS = [
-        {"path": "c.rs", "start": 1, "end": 1, "kind": "interval"},
-        {"path": "c.rs", "start": 1, "end": 3, "kind": "interval"},
-        {"path": "c.rs", "start": 3, "end": 4, "kind": "interval"},
+        {"path": "c.rs", "start": 1, "end": 1, "kind": "interval", "edit_start": 1},
+        {"path": "c.rs", "start": 1, "end": 3, "kind": "interval", "edit_start": 2},
+        {"path": "c.rs", "start": 3, "end": 4, "kind": "interval", "edit_start": 4},
     ]
 
     def setUp(self):
@@ -133,11 +134,84 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
 
     def test_the_package_path_is_part_of_the_address(self):
         code = [1]
-        one = {"path": "pkg/a.py", "start": 1, "end": 1, "kind": "interval"}
-        two = {"path": "pkg/sub/a.py", "start": 1, "end": 1, "kind": "interval"}
+        one = {
+            "path": "pkg/a.py",
+            "start": 1,
+            "end": 1,
+            "kind": "interval",
+            "edit_start": 1,
+        }
+        two = {
+            "path": "pkg/sub/a.py",
+            "start": 1,
+            "end": 1,
+            "kind": "interval",
+            "edit_start": 1,
+        }
         self.assertNotEqual(addresser.stable(one, code), addresser.stable(two, code))
 
     def test_a_windows_separator_is_normalised(self):
         # ! So a census written on Windows and read anywhere names one place.
-        block = {"path": r"pkg\sub\a.py", "start": 1, "end": 1, "kind": "interval"}
-        self.assertEqual(addresser.stable(block, [1]), "pkg/sub/a.py@b0")
+        block = {
+            "path": r"pkg\sub\a.py",
+            "start": 1,
+            "end": 1,
+            "kind": "interval",
+            "edit_start": 1,
+        }
+        self.assertEqual(addresser.stable(block, [1]), "pkg.sub.a.py@b0")
+
+    def test_a_census_without_edit_start_is_REFUSED_not_guessed(self):
+        # !! The range alone cannot separate the two gaps of a one-line file,
+        # which is the whole reason this reads `edit_start`. Falling back to it
+        # would answer confidently and wrongly.
+        old = {"path": "a.py", "start": 1, "end": 1, "kind": "interval"}
+        self.assertEqual(addresser.stable(old, [1]), "")
+
+
+class TestAOneLineInitFile(unittest.TestCase):
+    """Every package has one, and both its gaps used to be `b0`.
+
+    !! Roy, 2026-08-18: "here it is everywhere -- package/__init__.py,
+    package/sub-package/__init__.py". A one-line `__init__.py` emits two
+    intervals both spanning `1-1` -- the gap before the import and the gap after
+    it -- and `census.address` names them identically. `edit_start` is 1 and 2,
+    which is what separates them.
+    """
+
+    SRC = "from .core import Engine\n"
+    BLOCKS = [
+        {
+            "path": "package/__init__.py",
+            "start": 1,
+            "end": 1,
+            "kind": "interval",
+            "edit_start": 1,
+        },
+        {
+            "path": "package/__init__.py",
+            "start": 1,
+            "end": 1,
+            "kind": "interval",
+            "edit_start": 2,
+        },
+    ]
+
+    def test_the_line_addresses_are_identical(self):
+        self.assertEqual({(b["start"], b["end"]) for b in self.BLOCKS}, {(1, 1)})
+
+    def test_the_stable_addresses_are_not(self):
+        code = addresser.code_lines_of(self.SRC, self.BLOCKS)
+        named = [addresser.stable(b, code) for b in self.BLOCKS]
+        self.assertEqual(named, ["package.__init__.py@b0", "package.__init__.py@b1"])
+
+    def test_a_subpackage_of_the_same_name_is_a_different_place(self):
+        code = [1]
+        sub = dict(self.BLOCKS[0], path="package/subpackage/__init__.py")
+        self.assertNotEqual(
+            addresser.stable(sub, code), addresser.stable(self.BLOCKS[0], code)
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
