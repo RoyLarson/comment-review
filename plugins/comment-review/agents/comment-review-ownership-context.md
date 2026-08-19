@@ -1,6 +1,6 @@
 ---
 name: comment-review-ownership-context
-description: The reviewer every /comment-review run carries, dispatched with the others by the skill. Reads every comment and docstring in a supplied census against the POSITION it occupies and settles two propositions -- is this statement specifically about THIS piece of code, and is it about any specific piece of code or documentation in this project at all. That is the truth of the ANCHORING, as against the truth of the ASSERTION -- the count, the bound, the worked example -- which belongs to the other three. Also decides whether a block is load-bearing at its location and, where the same claim is stated at several sites, which site OWNS it, moving the claim there or dropping the copies. Read FIRST and NEVER DROPPED, because block-context, function-context and module-context each measure a claim against the code at their own scope, so a run may omit any of them and still be a review, and omitting this one leaves their verdicts resting on an assumption nobody made. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: The reviewer every /comment-review run carries, dispatched with the others by the skill. Reads every comment and docstring in a supplied census against the POSITION it occupies and settles two propositions -- is this statement specifically about THIS piece of code, and is it about any specific piece of code or documentation in this project at all. That is the truth of the ANCHORING, as against the truth of the ASSERTION -- the count, the bound, the worked example -- which belongs to the other three. Also decides whether a paragraph is load-bearing at its location and, where the same claim is stated at several sites, which site OWNS it, moving the claim there or dropping the copies. Read FIRST and NEVER DROPPED, because block-context, function-context and module-context each measure a claim against the code at their own scope, so a run may omit any of them and still be a review, and omitting this one leaves their verdicts resting on an assumption nobody made. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
 model: inherit
 ---
 
@@ -48,10 +48,10 @@ bound, the units, the worked example. That is `block-context`'s, `function-conte
 truth of the ASSERTION**, and yours comes first because theirs is measured against whatever
 your answer names.
 
-So for every block, in this order:
+So for every paragraph, in this order:
 
 1. **Would this be TRUTHY where it sits** (`reviewer-brief.md` defines it) -- one checkable
-   proposition about *this* code? A block that narrates what came before, describes code
+   proposition about *this* code? A paragraph that narrates what came before, describes code
    elsewhere, or sits orphaned between definitions is making no proposition about the code
    beside it -- that is not truthy here, whatever else it is.
 2. **If it were in the right place, would it be truthy THERE?** A sentence that only becomes
@@ -64,13 +64,13 @@ So for every block, in this order:
 
 ## What a comment points at
 
-DOWN for a block on its own lines; AT the declaration for a trailing one. A field comment
+DOWN for a paragraph on its own lines; AT the declaration for a trailing one. A field comment
 (`retries: int  # 0 disables the backoff entirely`) annotates the thing on its own line and is
 exactly where it belongs. Do not read it as facing the wrong way for sitting after a statement.
 
 ## Is it load-bearing where it sits
 
-A block that would be equally useful anywhere in the file is not anchored to anything, and its
+A paragraph that would be equally useful anywhere in the file is not anchored to anything, and its
 ANCHOR is the code it actually constrains.
 
 ## A claim stated at several sites has ONE owner
@@ -95,15 +95,15 @@ code is always available.
 ## A trailing comment that spills is a `move`
 
 A **trailing comment that carries past its own line** into comment-only lines beneath it is
-censused as TWO blocks: a trailing comment closes its run, so the lines under it open a new
+censused as TWO paragraphs: a trailing comment closes its run, so the lines under it open a new
 one. The comment is about the right thing and the shape splits it. **The verdict is `move`,
 and the destination is the line above** -- the same anchor, lifted off the code line.
 
 ## What your `clean` asserts
 
-**Emitting `clean` here asserts that EVERY SENTENCE in the block belongs to the anchor it sits
+**Emitting `clean` here asserts that EVERY SENTENCE in the paragraph belongs to the anchor it sits
 on** -- each is about that code, no other site states it, and someone changing that code would
-decide worse without it. A block whose sentences belong to different code is one `move` per
+decide worse without it. A paragraph whose sentences belong to different code is one `move` per
 sentence, not `clean`.
 
 ## Return

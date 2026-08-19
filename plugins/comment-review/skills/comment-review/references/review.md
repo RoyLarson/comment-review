@@ -19,11 +19,11 @@ Read each file end to end, as a reader would, and ask of every comment and docst
 
 And of the file as a whole: does it still read as one page? Look for --
 
-- **a block that is no longer a proposition** -- a sentence ending mid-clause, a hanging clause
+- **a paragraph that is no longer a proposition** -- a sentence ending mid-clause, a hanging clause
   under a deleted line, a contrast marker whose contrast went. Measured repeatedly, and it
   passes every mechanical check there is: it is not stale, not misplaced, not false -- it is
   ungrammatical, and nothing else asks whether the prose still parses.
-- **runs that merged** -- an `add` landing next to an existing block across a blank line makes
+- **runs that merged** -- an `add` landing next to an existing paragraph across a blank line makes
   one longer run. A compliant edit producing a violation, visible only here.
 - **the same sentence now in two places**, because a `move` landed beside one that already said
   it.

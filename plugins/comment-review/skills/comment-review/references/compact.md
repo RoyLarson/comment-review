@@ -1,6 +1,6 @@
 # The COMPACT pass -- stage 6
 
-Loaded by the task agent **after every block is edited (stage 5) and BEFORE the author is
+Loaded by the task agent **after every paragraph is edited (stage 5) and BEFORE the author is
 asked to approve anything (stage 7)**. Never by a reviewer.
 
 !! **Nothing is on disk when this runs.** You are condensing PROPOSED text, not a file. That
@@ -9,29 +9,29 @@ compacting after their approval would hand them one comment and write another.
 
 ## Why this is a separate pass over the whole tree
 
-By the end of stage 5 every block is **true, in the right place, and stripped of history**.
+By the end of stage 5 every paragraph is **true, in the right place, and stripped of history**.
 Only then is it safe to ask how short it can be, and only then can the question be answered
 correctly -- because **compaction decisions depend on the final state of the tree, not of one
-block**:
+paragraph**:
 
-- a `move` relocates prose *between* blocks, so a block condensed before the move lands is
+- a `move` relocates prose *between* paragraphs, so a paragraph condensed before the move lands is
   condensed against a picture that is about to change;
 - naming an **owner** collapses N restatements into one plus N pointers -- the restatements only
   become compactable once the owner exists;
-- a block that looks over-length often shrinks to nothing once the duplicated claim it carries
+- a paragraph that looks over-length often shrinks to nothing once the duplicated claim it carries
   is corrected somewhere else.
 
-Condensing per-block during APPLY gets all three wrong, and each error looks like a
+Condensing per-paragraph during APPLY gets all three wrong, and each error looks like a
 successful edit.
 
-! **If any block is still marked incorrect or misplaced, stage 6 has not started yet.** Finish
+! **If any paragraph is still marked incorrect or misplaced, stage 6 has not started yet.** Finish
 stage 5.
 
-!! **An ESCALATED `query` does not block this pass, and must not.** Its destination is the
-author, who is first reached at 7a -- *after* this stage. Read as "unresolved blocks stage 6", a
+!! **An ESCALATED `query` does not paragraph this pass, and must not.** Its destination is the
+author, who is first reached at 7a -- *after* this stage. Read as "unresolved paragraphs stage 6", a
 capped run holding one externally-unsettleable query could never legally reach approval.
 Measured on a real run: two such queries, both settleable only inside a dependency outside the
-checkout. **Compact the blocks whose verdicts are closed; carry an escalated query's block at
+checkout. **Compact the paragraphs whose verdicts are closed; carry an escalated query's paragraph at
 its full length and say why.**
 
 ## ! This pass exists only to apply a CAP
@@ -42,41 +42,41 @@ Absent a cap, "long" is not a defect and there is nothing here to do -- go strai
 approval.
 
 **Only shorten prose that is already correct.** This pass may not change a claim, relocate a
-block, drop a constraint, or resolve anything stage 5 left open. If compacting makes you want
+paragraph, drop a constraint, or resolve anything stage 5 left open. If compacting makes you want
 to do any of those, APPLY was not finished -- go back, or file it for the next run.
 
-!! **ASK FIRST WHETHER THE BLOCK IS LONG BECAUSE IT IS SPECIFIC.** A block stating ONE INSTANCE
+!! **ASK FIRST WHETHER THE PARAGRAPH IS LONG BECAUSE IT IS SPECIFIC.** A paragraph stating ONE INSTANCE
 of a rule it could state generally is over-length for a reason cutting cannot reach.
-**Generalising costs nothing; cutting an over-specified block keeps the defect and loses
+**Generalising costs nothing; cutting an over-specified paragraph keeps the defect and loses
 evidence.**
 
 ! **Report it rather than cutting it.** Altitude is a claim about what the sentence SAYS, which
-is stage 5's and the reviewers', not this pass's -- so an over-specified block is one you hand
-back, the same as a block you cannot bring under the cap.
+is stage 5's and the reviewers', not this pass's -- so an over-specified paragraph is one you hand
+back, the same as a paragraph you cannot bring under the cap.
 
 ! Measured 2026-08-17: an instance-level sentence plus an imported argument ran to EIGHT lines
 where the rule-level version ran to six with **nothing cut** -- the rule, four named functions,
 both test files, the exception, its cause, its failure condition and a document pointer all
-survived. Handed the eight-line version, this pass would have been asked to cut from a block
+survived. Handed the eight-line version, this pass would have been asked to cut from a paragraph
 where every remaining sentence was true and evidenced, which is the trade this file forbids
-below. It would have reported the block at length, correctly, **and been reporting the wrong
+below. It would have reported the paragraph at length, correctly, **and been reporting the wrong
 problem.**
 
-## Per block
+## Per paragraph
 
 1. **Take the ORIGINAL prose from the PRE-EDIT REF** 1.1 recorded --
    `git show <pre-edit-ref>:<path>`. Nothing has been written yet at this stage, so it is also
    what is on disk; read the blob rather than your scratch copy.
-   You are checking against what the block has ever said, not against your own last edit.
+   You are checking against what the paragraph has ever said, not against your own last edit.
    ! The blob is authoritative and cannot be lost to an interruption; keep the scratch copy
    only as a convenience.
-2. **Cut, do not re-author.** For a block one or two lines over, remove the single
-   least-checkable line -- a hedge, an aside, a line restating the line below it. A block
+2. **Cut, do not re-author.** For a paragraph one or two lines over, remove the single
+   least-checkable line -- a hedge, an aside, a line restating the line below it. A paragraph
    that is one line over gets re-authored into prose that was already true, current and
    on-subject.
-   ! The four refusals still bind, and the least-checkable line is often a block's only
+   ! The four refusals still bind, and the least-checkable line is often a paragraph's only
    refusal or the evidence for its surviving claim. If so it is not the line to cut, and the
-   block reports at length.
+   paragraph reports at length.
 3. **Re-run the residue check** on the condensed text against that same original: is anything
    in it **true & necessary & checkable** that the condensed version does not contain -- and
    does the condensed version still pass the four refusals (not the only record of its fact;
@@ -88,8 +88,8 @@ problem.**
 edit already dropped things legitimately; checking against it lets a second, illegitimate drop
 through unnoticed. **The original is the baseline, twice.**
 
-!! **The block's KIND is part of the input, and it decides whether this pass may touch the
-block at all.** The census stamps every block `comment`, `trailing-comment`, `docstring` or
+!! **The paragraph's KIND is part of the input, and it decides whether this pass may touch the
+paragraph at all.** The census stamps every paragraph `comment`, `trailing-comment`, `docstring` or
 `unparsed`, and they are governed by different rules:
 
 | kind | governed by | what this pass may do |
@@ -97,7 +97,7 @@ block at all.** The census stamps every block `comment`, `trailing-comment`, `do
 | `comment` / `trailing-comment` | **LENGTH** -- the cap counts lines in one `#` run | cut it to the cap |
 | `docstring` | **FORMAT** -- the convention resolved at 1.3 | **nothing.** Long is not a violation |
 | `comment` with `doc-kind-unresolved` | **UNKNOWN** -- the census could not tell | **nothing.** Ask, or carry it at length |
-| `unparsed` | **NOT PROSE** -- the file did not parse, so nothing was censused | **nothing.** It is a diagnostic standing in for a file, not a block. Report it |
+| `unparsed` | **NOT PROSE** -- the file did not parse, so nothing was censused | **nothing.** It is a diagnostic standing in for a file, not a paragraph. Report it |
 
 ! **A work marker LINE is free of the cap** -- `TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or
 whatever the run context names. Its CONTINUATION lines are charged, so six lines plus a
@@ -109,30 +109,30 @@ nothing names it any more.
 docstring and a 7-line `#` run look like the same over-length problem, and cutting the first to
 six destroys documentation that was never in violation.
 
-! **A block whose kind is UNRESOLVED is not a block whose kind is `comment`.**
+! **A paragraph whose kind is UNRESOLVED is not a paragraph whose kind is `comment`.**
 The census stamps `doc-kind-unresolved` where a language attaches documentation
 by position (Go, Ruby) and this tier cannot separate a doc run from an ordinary
 one. Do not infer it from the text, and do not cut it: carry it at length and
 say why. Measured: a three-line Go export doc counted as over a cap of two.
 
-! **This is the input contract, and it is deliberately narrow:** the block's KIND, the original block, the
+! **This is the input contract, and it is deliberately narrow:** the paragraph's KIND, the original paragraph, the
 edited text, the cap, the style sheet. Not the reasoning that produced the edit. An agent that
 never saw the argument cannot keep a sentence because it remembers writing it -- which is what
 makes this pass safe. ! **It IS a separate subagent --
 `comment-review:comment-review-compact` -- not an optional handoff.** The
 contract only buys anything if the reader is not the writer.
 
-## When a block cannot come under the cap
+## When a paragraph cannot come under the cap
 
-**STOP and report it** -- the block, its true length, and what holds it there. Do not resolve
+**STOP and report it** -- the paragraph, its true length, and what holds it there. Do not resolve
 the conflict by cutting.
 
-! **A block that cannot be made both correct and short is a finding about the CODE** --
+! **A paragraph that cannot be made both correct and short is a finding about the CODE** --
 usually a rule with no owning function, so every site performing part of it re-explains the
 whole. Trimming the comment treats the symptom. Report it, name the owner if you can see one,
 and leave it.
 
-! **Never cut evidence to bring a block under the cap.** Between a comment that is over the cap and one
+! **Never cut evidence to bring a paragraph under the cap.** Between a comment that is over the cap and one
 that is in-cap and unfalsifiable, **the over-cap one is correct and the in-cap one is a defect
 wearing a passing grade.**
 
@@ -140,14 +140,14 @@ wearing a passing grade.**
 
 Every rail in `write.md` still applies. One is specific to this pass:
 
-**Do not condense a block into the shape of its neighbours.** Matching surrounding style is how
+**Do not condense a paragraph into the shape of its neighbours.** Matching surrounding style is how
 a sentence survives review by resembling what is around it rather than by being needed.
 Measured: a paraphrase reached for the word its sibling functions legitimately use, so the
 wrong word read as house style and the result was wrong on two independent axes.
 
 ## Report
 
-Blocks condensed, blocks left at length with the reason, and the final longest block. A block
+Paragraphs condensed, paragraphs left at length with the reason, and the final longest paragraph. A paragraph
 you could not condense is a finding, not a silence.
 
 ! **No CODE CHECK here** -- nothing has been written yet. That check belongs to

@@ -12,7 +12,7 @@ imagined one.
 
 !! **You write exactly ONE file: the RECORD FILE you were handed, and you edit it in place.**
 That is your report, and it is the only exception. Nothing you find licenses a second one --
-not a summary beside it, not a note to the task agent, not a corrected copy of a block. ! **If
+not a summary beside it, not a note to the task agent, not a corrected copy of a paragraph. ! **If
 your record file does not reach you, say so and stop.** Reporting in prose instead is the
 failure this shape exists to end: it goes to a parser that has to guess where each field ends,
 which is where every boundary defect this system has paid for came from.
@@ -43,11 +43,11 @@ not check rather than reporting it clean.
 ## Read the census end to end
 
 You are given a numbered census and the mechanical resolutions for it. **Read it start to
-finish and return at least one RECORD for EVERY block that HOLDS PROSE.**
+finish and return at least one RECORD for EVERY paragraph that HOLDS PROSE.**
 
 !! **`continues-a-trailing-comment` means the census may have split one sentence.** A trailing
-comment closes its run, so a sentence wrapped onto the next line becomes a SECOND block, anchored
-to the code BELOW it. Read the two together before ruling. **A mid-clause ending on a block
+comment closes its run, so a sentence wrapped onto the next line becomes a SECOND paragraph, anchored
+to the code BELOW it. Read the two together before ruling. **A mid-clause ending on a paragraph
 carrying this annotation is the census's doing, not the author's, and is not a `correct`.**
 
 !! **FRONT MATTER IS NOT YOURS, and you will not be shown it.** A licence header, a shebang or
@@ -57,7 +57,7 @@ here can settle it. It is filtered out of your census. ! **An edit proposed on i
 becomes a `query`** -- a licence is a legal instrument and a shebang is how the file runs, and
 both are the human's to change.
 
-!! **A block that holds nothing owes you no record.** Most of the census is empty -- a gap
+!! **A paragraph that holds nothing owes you no record.** Most of the census is empty -- a gap
 between two lines of code (`interval`), or a declaration with no docstring (`undocumented`).
 They are there to be CITED, not accounted for: an `add` says a constraint exists in code and
 NOWHERE in prose, which is a finding about one of them.
@@ -75,13 +75,12 @@ became an off-by-one when the ruling aligned them.
 
 ## You FILL a record; you do not write one
 
-**You are handed a file with one slot per prose block.** Each already carries the two things
+**You are handed a file with one slot per prose paragraph.** Each already carries the two things
 the tool knows -- the `address` and the `anchor` it sits on -- and you set the five that are
 yours:
 
 ```json
-{ "block": 17,
-  "address": "redacted_pkg:billing:rates.py@b47",
+{ "address": "redacted_pkg:billing:rates.py@b47",
   "anchor":  "def compute_rates(plan, period, *, clamp=True):",
   "verdict": "correct",
   "claim":   { "false": "twenty call sites want this",
@@ -95,13 +94,13 @@ yours:
                "# Narrowing it means re-deriving the clamp bounds." ] }
 ```
 
-!! **YOU ARE TOLD WHERE, NOT WHAT. Open the file.** The record carries no copy of the block's
+!! **YOU ARE TOLD WHERE, NOT WHAT. Open the file.** The record carries no copy of the paragraph's
 prose, deliberately: handed the text you could produce a complete, admissible ruling without
 ever reading the code, and nothing could tell that from real work. Your remit requires the
-read. ! If you read the wrong lines, the sentence your `claim` quotes will not be in the block
+read. ! If you read the wrong lines, the sentence your `claim` quotes will not be in the paragraph
 and the join says so -- that error is caught, and the other one is invisible.
 
-!! **YOU NEVER TRANSCRIBE THE BLOCK.** `address` and `anchor` are the tool's. Leave them alone;
+!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `address` and `anchor` are the tool's. Leave them alone;
 a mismatch there means the file was edited, not that you misquoted. ! The `anchor` is there to
 be GREPPED -- it names the declaration the census resolved, and is empty where none was.
 
@@ -113,28 +112,29 @@ rather than remembering them.
 
 | field | what it carries |
 | --- | --- |
-| `verdict` | one of the seven. ! `null` means you have not ruled yet, and a block left `null` is a coverage gap |
-| `claim` | an OBJECT whose keys are set by your verdict -- see the table below. It is the SPEC: what must change, and from what to what. ! **The key naming the EXISTING sentence is CHECKED against the census text for your block** -- if it is not in the block you are filling, the finding is on the wrong block |
+| `verdict` | one of the seven. ! `null` means you have not ruled yet, and a paragraph left `null` is a coverage gap |
+| `claim` | an OBJECT whose keys are set by your verdict -- see the table below. It is the SPEC: what must change, and from what to what. ! **The key naming the EXISTING sentence is CHECKED against the census text for your paragraph** -- if it is not in the paragraph you are filling, the finding is on the wrong paragraph |
 | `reason` | what you DERIVED from the source, and why the claim is wrong -- one statement |
 | `sources` | a list of `{ "cite": "file:line", "verbatim": "the text AT it" }`, **one entry per place examined.** Every one is resolved and every `verbatim` must really be there |
-| `change` | the RESULT: an array of **file-ready lines**, the whole block as it reads once your edit is made. Indentation and comment markers exactly as they will sit on disk |
+| `change` | the RESULT: an array of **file-ready lines**, the whole paragraph as it reads once your edit is made. Indentation and comment markers exactly as they will sit on disk |
 
 !! **`claim` and `change` say the same edit twice, and that is deliberate.** `claim` is surgical,
-so a checker can find the sentence you rule on and two roles ruling on one block can be told
+so a checker can find the sentence you rule on and two roles ruling on one paragraph can be told
 apart. `change` is the finished prose, so the task agent applies your text rather than
 re-deriving it from a diff.
 
-!! **THE TWO ARE CHECKED AGAINST EACH OTHER.** The difference between the block and your `change`
+!! **THE TWO ARE CHECKED AGAINST EACH OTHER.** The difference between the paragraph and your `change`
 is exactly what your edit does, and it must be the sentence your `claim` names. A record that
 reasons about one sentence and rewrites another is refused, whichever of the two is right.
 
-!! **ONE record's `change` makes ONE record's edit.** If you rule twice on one block, write TWO
-records with the same `block`, each showing that block with ITS OWN change and no other. Do not
-hand in the block fully fixed twice: composing is the task agent's job, and it cannot compose
+!! **ONE record's `change` makes ONE record's edit.** If you rule twice on one paragraph, write
+TWO records with the same `address`, each showing that paragraph with ITS OWN change and no
+other. Do not
+hand in the paragraph fully fixed twice: composing is the task agent's job, and it cannot compose
 records that have already been merged.
 
-!! **EXPECT YOUR OWN `change`S TO READ ODDLY ALONE, and hand them in anyway.** A block needing
-three coordinated edits gives three records, each showing the block with one edit applied and
+!! **EXPECT YOUR OWN `change`S TO READ ODDLY ALONE, and hand them in anyway.** A paragraph needing
+three coordinated edits gives three records, each showing the paragraph with one edit applied and
 the other two still wrong -- so none reads as finished prose. **That is the format working, not
 a demand for better writing.** Measured: a reviewer merged its three edits into one record
 twice, trying to keep a paragraph readable, and was correctly refused both times.
@@ -154,8 +154,8 @@ inadmissible.
 !! **A DEFECT YOU STATE IN `reason` REACHES NOBODY.** `reason` is read by no check, so a sentence
 there that your `claim` does not name is a second finding with no record -- the gate checks the
 claim it was given, passes, and the defect never reaches a work list. **If your reasoning names a
-defect in a sentence your `claim` does not name, write a SECOND RECORD on that block.** The join
-reports a phrase you quote from the block that no claim names, so you will see it; write the
+defect in a sentence your `claim` does not name, write a SECOND RECORD on that paragraph.** The join
+reports a phrase you quote from the paragraph that no claim names, so you will see it; write the
 record instead.
 
 ### Filing an `add`
@@ -191,7 +191,7 @@ python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor NAME --serie
 python <skill>/scripts/locator.py --census <LOOKUP CENSUS> --at path:LINE
 ```
 
-!! **PREFER THE ANCHOR.** Asking by position -- "the block above the `def`" -- is right in
+!! **PREFER THE ANCHOR.** Asking by position -- "the paragraph above the `def`" -- is right in
 Python and wrong in Rust, whose `///` sits before its `fn` where Python's docstring sits after.
 The census parsed the file and knows which is which; a count does not.
 
@@ -221,7 +221,7 @@ not need different rules.
 
 !! **AN INTERMEDIATE COMMENT IS NOT IN THE CENSUS AT ALL** -- one with code on BOTH sides, as in
 `int x = /* why */ 5;`. It is ignored for the same reason a Python type annotation is: it cannot
-be verified the same way across codebases, and a line-length rule moves it. It is not a block, it
+be verified the same way across codebases, and a line-length rule moves it. It is not a paragraph, it
 has no address, and no verdict reaches it. **If one is wrong, it is a `code_concerns` line.**
 
 ### Code problems
@@ -231,7 +231,7 @@ has no address, and no verdict reaches it. **If one is wrong, it is a `code_conc
 
 ### The verdicts, and what each one MUST carry
 
-**A verdict rules on a SENTENCE, not on a block.** A block of six sentences can carry six
+**A verdict rules on a SENTENCE, not on a paragraph.** A paragraph of six sentences can carry six
 verdicts, and one `clean` sentence must not launder the five around it.
 
 A verdict is a recommendation the task agent will combine with the other roles' and synthesise
@@ -240,7 +240,7 @@ not a finding** -- *"correct the count"* hands the judgement back; *"replace X w
 finding.
 
 **Every shape below is `CLAIM`'s.** `CHANGE` is the same edit already made, written out with
-its surrounding block, and it is required for all of these but `clean` and `query` -- those two
+its surrounding paragraph, and it is required for all of these but `clean` and `query` -- those two
 propose no text, so there is nothing for the task agent to apply.
 
 !! **THE TABLE BELOW IS GENERATED FROM `VERDICTS` IN `verdicts.py`** -- the keys from
@@ -255,9 +255,9 @@ must type appeared nowhere here as keys.
 | --- | --- | --- |
 | `clean` | none | nothing. Name your role and stop -- `clean` proposes no text, so there is nothing for the task agent to apply |
 | `query` | `shape`, `attempted`, `settles` | the SHAPE in the brief's own words, the check you ATTEMPTED, and what WOULD settle it. All three are checked as SHAPE and none as truth; the claim itself is checked by nothing, so the other three are all that stands behind the ruling |
-| `drop` | `drop` | the sentence, verbatim, as it stands in the block. ! It is CHECKED against the census text, so a paraphrase is refused |
-| `correct` | `false`, `true` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the block -- if it is not there, the finding is on the wrong block |
-| `patch` | `from`, `to` | the sentence as it stands and the rewrite. ! `from` is checked against the block. A `patch` needs no source: the claim is already true, and only its wording is at issue |
+| `drop` | `drop` | the sentence, verbatim, as it stands in the paragraph. ! It is CHECKED against the census text, so a paraphrase is refused |
+| `correct` | `false`, `true` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the paragraph -- if it is not there, the finding is on the wrong one |
+| `patch` | `from`, `to` | the sentence as it stands and the rewrite. ! `from` is checked against the paragraph. A `patch` needs no source: the claim is already true, and only its wording is at issue |
 | `add` | `missing`, `anchor` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the payload's |
 | `move` | `from`, `to` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting BLOCKS |
 
@@ -270,25 +270,25 @@ badly. A neutral from/to on a `correct` would erase the distinction the synthesi
 on, and it is refused.
 
 ! **A `move`'s halves are PLACES, not text** -- from where it sits, to where it belongs. It is
-the one edit whose `CLAIM` names no sentence, because the `BLOCK` is what identifies the prose.
+the one edit whose `CLAIM` names no sentence, because the `PARAGRAPH` is what identifies the prose.
 
-!! **A `move` changes TWO blocks, so its `CHANGE` carries BOTH -- and this is the only verdict
-where `CHANGE` is not a single block.** Write them labelled:
+!! **A `move` changes TWO paragraphs, so its `CHANGE` carries BOTH -- and this is the only verdict
+where `CHANGE` is not a single paragraph.** Write them labelled:
 
 ```text
-CHANGE      to:   # the destination block, as it reads once the prose arrives
+CHANGE      to:   # the destination paragraph, as it reads once the prose arrives
                   # ...including the lines already there.
-            from: # the origin block, as it reads once the prose has left.
+            from: # the origin paragraph, as it reads once the prose has left.
 ```
 
-! **`to:` is required. `from:` may be omitted, and omitting it ASSERTS the WHOLE block moved** --
-that nothing is left behind to show. Nothing can tell a whole-block move from a partial one by
+! **`to:` is required. `from:` may be omitted, and omitting it ASSERTS the WHOLE paragraph moved** --
+that nothing is left behind to show. Nothing can tell a whole-paragraph move from a partial one by
 inspection, so you say which by what you supply. ! If a sentence leaves and the rest stays,
-`from:` is how the task agent learns what the remainder reads like; without it, the block is
+`from:` is how the task agent learns what the remainder reads like; without it, the paragraph is
 applied as if it emptied.
 
 ! These are `CLAIM`'s two words used again, and they mean something different here: in `CLAIM`
-they are PLACES, in `CHANGE` they are the two resulting BLOCKS. The field you are writing
+they are PLACES, in `CHANGE` they are the two resulting PARAGRAPHS. The field you are writing
 decides which.
 
 #### Does a TRUE sentence earn its place?
@@ -348,20 +348,20 @@ always available.
 the same way an `add` does -- `--anchor NAME --series a|b|c`, or the locator. A destination
 naming a LINE is refused, and so is an address the census does not carry.
 
-! **The destination may hold NO PROSE, and that is ordinary.** A block can move to a gap with
+! **The destination may hold NO PROSE, and that is ordinary.** A paragraph can move to a gap with
 no comment in it or a declaration with no docstring: those are places with addresses, not
 absences. A destination OUTSIDE the code carries no address and is written as the path.
 
 #### `clean` specific rules
 
-**`clean` is scoped to YOU, and the other roles are looking at the same block.** The task
+**`clean` is scoped to YOU, and the other roles are looking at the same paragraph.** The task
 agent combines every role's records into one comment or docstring.
 
 **`clean` is a decision and is required -- it cannot be assumed or skipped past.**
 
 ! **Nothing is `clean` for being SHORT, TRUE, WELL WRITTEN, NEW, or under a `!`.** Each was
 measured as an exemption reviewers invented for themselves. Truth least of all: a true claim
-can be misplaced, unnecessary, or the surviving half of a block whose other half was the
+can be misplaced, unnecessary, or the surviving half of a paragraph whose other half was the
 constraint -- and none of those is your role's question unless your role file says it is.
 
 #### `query` specific rules
@@ -372,7 +372,7 @@ you did. `query` is what you emit when you did and it was still not enough.
 
 !! **Three shapes reach it, and your `CLAIM` must NAME which one -- in these exact words.**
 The three are findings rather than admissions, and they route differently: the first says which
-scope owns the block, the other two are work that reaches the author. Nothing downstream can
+scope owns the paragraph, the other two are work that reaches the author. Nothing downstream can
 tell them apart if you do not say which:
 
 - **outside my role** -- what settles it belongs to another scope.
@@ -386,13 +386,13 @@ tell them apart if you do not say which:
 ! **A `query` requires `SOURCES`, by construction** -- this is where you
 looked to try to find the answer. These are the statements in the code that make it
 ambiguous or the location not yours to determine. **All three shapes carry them**, including
-`outside my role`: the block is real and in the checkout on every one of them, so there is
+`outside my role`: the paragraph is real and in the checkout on every one of them, so there is
 always a line to quote.
 
 !! **`outside my role` is a FINDING, so you have to show it is not yours.** It is the shape a
 reviewer reaches for when it has nothing to say, and it is the one that costs the most when
-it is wrong -- the block leaves your report certified by nobody. So quote the line that fixes
-the block's SUBJECT, and say in `REASON` what about that subject your remit does not reach,
+it is wrong -- the paragraph leaves your report certified by nobody. So quote the line that fixes
+the paragraph's SUBJECT, and say in `REASON` what about that subject your remit does not reach,
 in the words your own role file uses for its remit. **Never name another role**; you do not
 know what the others were asked. *"Not mine"* is an admission. *"Its subject is the loop body,
 and my remit is what the module as a whole announces"* is a finding.
@@ -437,7 +437,7 @@ sites. Out of scope is ruling on what the code **should be**.
 agreeing reviewers once reported a file "cannot compile" over valid syntax. A code problem has
 a place: `CODE CONCERNS`, one line, no verdict.
 
-### One block, two placements -- report yours
+### One paragraph, two placements -- report yours
 
 REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two roles
 can reach the same or different decisions per sentence. Report what your role sees and say in

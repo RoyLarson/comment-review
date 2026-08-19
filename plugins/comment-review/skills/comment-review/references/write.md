@@ -3,7 +3,7 @@
 Loaded by the task agent **after approval**, never by a reviewer. If you are reading this
 before the human has approved a verdict list, stop.
 
-Apply only what was approved, and only what was marked. ! **An unmarked block is never written.**
+Apply only what was approved, and only what was marked. ! **An unmarked paragraph is never written.**
 If WRITE wants to touch something the mark did not reach, that is a finding for the next
 run, not an edit.
 
@@ -20,10 +20,10 @@ settled upstream -- stage 5 made it correct, stage 6 cut it to any cap, and stag
 exact text in front of the author. Re-wording, re-judging or shortening one clause here writes
 something the author never saw, which is the one failure this ordering exists to prevent.
 
-! **Do not compact during this pass**, even where it looks obvious. If a block still does not
+! **Do not compact during this pass**, even where it looks obvious. If a paragraph still does not
 fit, that is a finding to report -- and it may turn out to be the code's, not the comment's.
 
-**Keep every scratch copy**, and check against the ORIGINAL block, never against what you
+**Keep every scratch copy**, and check against the ORIGINAL paragraph, never against what you
 leave behind.
 
 ## Rails
@@ -59,7 +59,7 @@ this run actually has a signal for.
 
 **Edit through an exact-match tool, never raw text.** Measured, all caught only by the CODE
 CHECK: a path-rewrite regex reached inside a runtime `raise` message because it worked on raw
-text instead of the block list; `open(..., newline="")` stripped CRLF from every file it
+text instead of the paragraph list; `open(..., newline="")` stripped CRLF from every file it
 touched, in two separate runs, while the agent was reading this rail; a sweep regex without a
 leading boundary doubled a directory prefix.
 
@@ -72,7 +72,7 @@ the CODE CHECK cannot see it -- the damage is in prose, the AST is unchanged, an
 PROVEN. A formatter caught it once; nothing in this skill would have.
 
 ! **A non-unique match is a re-review, not a `replace_all`.** N identical matches means N
-blocks, and they may not deserve the same verdict. Reaching for `replace_all` once rewrote two
+paragraphs, and they may not deserve the same verdict. Reaching for `replace_all` once rewrote two
 string literals.
 
 **Extract before you cut, when the verdict is `move`.** Write the destination first, verbatim,
@@ -88,18 +88,18 @@ sentence in two files, both are in the same edit or neither is.
 
 !! **Every word you WRITE is bound by the STYLE SHEET; every word you did not touch is out of
 scope.** There is no copy-editing reviewer, so this pass is where consistency is kept -- but
-only inside blocks a verdict already opened. Write in the sheet's dialect, capitalisation,
+only inside paragraphs a verdict already opened. Write in the sheet's dialect, capitalisation,
 citation form and docstring convention; do NOT sweep the file for departures from it.
 
 **A change no verdict asked for is out of scope** -- a re-spelling, a dialect harmonisation, a
 de-personalisation, an alignment with the neighbours. The residue check cannot see any of it,
-because it only asks what was LOST. A departure in a block you are not editing is a
+because it only asks what was LOST. A departure in a paragraph you are not editing is a
 finding for the next run. Record any new decision on the sheet as you make it.
 
-!! **Touching a block obliges re-deriving its claim.** A mechanical repair -- a renamed symbol,
-a moved path -- removes the only VISIBLE symptom of a stale block and leaves the claim behind,
+!! **Touching a paragraph obliges re-deriving its claim.** A mechanical repair -- a renamed symbol,
+a moved path -- removes the only VISIBLE symptom of a stale paragraph and leaves the claim behind,
 strictly harder to find than before. Measured in three independent slices; in one, the same
-six-line block carried a false claim, a repairable ghost and a stale path, and the pass fixed
+six-line paragraph carried a false claim, a repairable ghost and a stale path, and the pass fixed
 only the ghost.
 
 !! **Run a FORWARD pass on anything you authored.** The residue check is inbound-only, so text
@@ -108,9 +108,9 @@ is outside it entirely. An authored docstring has been confirmed false, and a fa
 compaction has gained a clause with no antecedent anywhere. Ask of each addition: what
 line settles this? The name of the function does not count.
 
-! **Re-resolve every pointer that names the block you edited.** Grep the file for *"see X's
-docstring"*, *"the block above"*, *"for the reason Y gives"*. Measured twice: the defect lands
-in a block the diff never touched, created by editing a different one.
+! **Re-resolve every pointer that names the paragraph you edited.** Grep the file for *"see X's
+docstring"*, *"the paragraph above"*, *"for the reason Y gives"*. Measured twice: the defect lands
+in a paragraph the diff never touched, created by editing a different one.
 
 ! **A verdict instructing what these rails forbid is a defect in the VERDICT.** Report it; do
 not follow it. Measured: *"drop the comment and rewrite the user-facing string"* -- the rails
@@ -118,10 +118,10 @@ say never change a string literal.
 
 ## Report
 
-Edits applied, files touched, the CODE CHECK and how you ran it, and every block you
+Edits applied, files touched, the CODE CHECK and how you ran it, and every paragraph you
 could not write with the reason -- that is a finding, not a silence.
 
-**Say explicitly whether every approved block landed byte-for-byte as approved.** A divergence
+**Say explicitly whether every approved paragraph landed byte-for-byte as approved.** A divergence
 between what the author saw and what is on disk is invisible in a diff that shows only the new
 text, so this line is the one place it can surface.
 

@@ -205,7 +205,7 @@ VERDICTS: dict[str, Verdict] = {
     ),
     "drop": Verdict(
         payload=(
-            "the sentence, verbatim, as it stands in the block. ! It is CHECKED"
+            "the sentence, verbatim, as it stands in the paragraph. ! It is CHECKED"
             " against the census text, so a paraphrase is refused"
         ),
         claim_all=("drop:",),
@@ -217,8 +217,8 @@ VERDICTS: dict[str, Verdict] = {
     "correct": Verdict(
         payload=(
             "the false clause and the true one, and a `sources` entry carrying the"
-            " line that settles it. ! The FALSE half is checked against the block --"
-            " if it is not there, the finding is on the wrong block"
+            " line that settles it. ! The FALSE half is checked against the"
+            " paragraph -- if it is not there, the finding is on the wrong one"
         ),
         claim_all=("false:", "true:"),
         claim_help="correct needs `claim.false` and `claim.true`, both filled",
@@ -229,7 +229,7 @@ VERDICTS: dict[str, Verdict] = {
     "patch": Verdict(
         payload=(
             "the sentence as it stands and the rewrite. ! `from` is checked against"
-            " the block. A `patch` needs no source: the claim is already true, and"
+            " the paragraph. A `patch` needs no source: the claim is already true, and"
             " only its wording is at issue"
         ),
         claim_all=("from:", "to:"),

@@ -23,7 +23,6 @@
 # --- what a comment sits on -------------------------------------------------
 anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. A line of code is a statement, an expression, a declaration or an assignment. An `a` is attached to its declaration, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
-block = "A PARAGRAPH -- see that entry. The older word, still what most of the shipped text says. ! It used to be defined as \"the interval between two lines of CODE\", which is only the `b` series: a docstring, a trailing comment and an empty margin are paragraphs too, and each answers to its own address."
 census = "Every PARAGRAPH on every PAGE under review, in order, each carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a leaf and do not nest."
 
 # --- the units that get ruled on --------------------------------------------
@@ -94,7 +93,7 @@ undocumented = "A declaration with no docstring -- an `a` place with nothing in 
 
 [roles]
 # Every agent gets these.
-all = ["block", "sentence", "clause", "finding", "move"]
+all = ["paragraph", "sentence", "clause", "finding", "move"]
 
 # The four editorial roles: what the shared brief used to state in passing.
 "ownership-context" = [
@@ -104,7 +103,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "interval",
   "line of code",
   "margin",
-  "paragraph",
   "series",
   "trailing comment",
   "undocumented",
@@ -140,7 +138,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "interval",
   "line of code",
   "margin",
-  "paragraph",
   "series",
   "trailing comment",
   "undocumented",
@@ -175,7 +172,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "interval",
   "line of code",
   "margin",
-  "paragraph",
   "series",
   "trailing comment",
   "undocumented",
@@ -211,7 +207,6 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "interval",
   "line of code",
   "margin",
-  "paragraph",
   "series",
   "trailing comment",
   "undocumented",

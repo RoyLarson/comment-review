@@ -1,7 +1,7 @@
 # The RESIDUE CHECK -- loaded at stage 5, used at 5, 6 and 7b
 
 The one mechanism that catches an edit which kept a false sentence and dropped
-the evidence disproving it. It is **inbound and per-block**: *did this block
+the evidence disproving it. It is **inbound and per-paragraph**: *did this paragraph
 lose something?*
 
 Loaded at **stage 5**, where the first replacement text is written. Stage 6
@@ -13,15 +13,15 @@ version ever written. A file this run edits is the next run's original.
 
 ## The residue check
 
-For every block being changed, in this order:
+For every paragraph being changed, in this order:
 
-1. **Copy the ORIGINAL block whole into a scratch document** -- the full prose, verbatim, with
+1. **Copy the ORIGINAL paragraph whole into a scratch document** -- the full prose, verbatim, with
    its `file:start-end`. Not a summary, not the half you plan to cut: the whole thing.
 2. **Write the new comment.**
 3. **Read the new against the original and ask, of each ORIGINAL sentence:** is there anything
    here that is **true & necessary & checkable** that the new comment does not contain?
 4. **If yes, it is not finished.** Put it back and repeat from 3.
-5. Only when the answer is no has the block reached CORRECT. Keep the scratch copy until the
+5. Only when the answer is no has the paragraph reached CORRECT. Keep the scratch copy until the
    whole pass is done.
 
 ! **Write for correctness, not length.** At steps 2-4 the new comment may be **longer** than

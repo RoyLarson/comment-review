@@ -2342,22 +2342,22 @@ class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
         """
         return " ".join(self.SKILL.read_text(encoding="utf-8").split())
 
-    def test_the_brief_permits_several_verdicts_on_one_block(self):
+    def test_the_brief_permits_several_verdicts_on_one_paragraph(self):
         brief = " ".join(BRIEF.read_text(encoding="utf-8").split())
         self.assertTrue(
-            "A block of six sentences can carry six" in brief,
-            "the brief no longer says a block can carry several verdicts",
+            "A paragraph of six sentences can carry six" in brief,
+            "the brief no longer says a paragraph can carry several verdicts",
         )
 
-    def test_the_skill_does_not_say_one_per_role_per_block(self):
+    def test_the_skill_does_not_say_one_per_role_per_paragraph(self):
         self.assertFalse(
-            "one per role per block" in self._skill(),
-            "SKILL.md still says ONE verdict per role per block",
+            "one per role per paragraph" in self._skill(),
+            "SKILL.md still says ONE verdict per role per paragraph",
         )
 
     def test_the_skill_says_one_or_more(self):
         self.assertTrue(
-            "one or more per role per block" in self._skill(),
+            "one or more per role per paragraph" in self._skill(),
             "SKILL.md does not say a role may file several",
         )
 
