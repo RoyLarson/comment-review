@@ -169,6 +169,27 @@ no language server and no build tool.
 - **The gap at the end of a file takes the line ABOVE it**, because a gap is bounded by code and
   that is the bound it has. Left empty it was 14 blocks, one per file.
 
+### The shipped prose stops teaching the superseded numbering
+
+!! **`bN` AND `cN` NAME THE SAME CODE LINE**, because both count from 0. `reviewer-brief.md` --
+read by four agents every run -- taught the opposite: *"the number means a different statement in
+`b` than in `c`"*, with the rule *"code line N carries `b(N-1)` above it and `cN` beside it"*.
+That was true while `c` counted from 1 and became an off-by-one the moment the 0-indexing ruling
+aligned them. **A reviewer following it cited `c(N+1)` for the line it meant** -- the error the
+paragraph itself warned about, inverted.
+
+! **Four sites, not one.** The brief, and three passages in `addresser.py`: its module docstring's
+example, the rule paragraph, and `stable()`'s example -- which also still carried the retired
+dotted path form.
+
+! **The ambiguity that hid it is the phrase "code line 3"**, which reads as the 3rd to one reader
+and as index 3 to another. One half of the pair stayed wrong while the other stayed right, inside
+one paragraph, for exactly that reason. The prose now says *"the code line at index N"*.
+
+! **It is gated now.** `TestTheSHIPPEDPROSETeachesTheNumberingTheCodeUSES` measures what `bN` and
+`cN` name and then holds both files to that answer. Prose is not executed, so nothing else would
+notice it drifting back.
+
 ### A held 0.2.x report cannot be replayed, and `convert` now says so
 
 **Replaying held stage-4 output is what made a change cheap to validate** -- 0.2.1 and 0.2.2 were

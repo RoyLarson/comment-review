@@ -65,24 +65,30 @@ while the enumeration underneath it is complete.
 Three series, because prose answers to one of exactly three subjects:
 
     package:core.py@a5    the 5th DECLARATION's documentation
-    package:core.py@c3    ON code line 3 -- shares the line with the statement
-    package:core.py@b3    the GAP after code line 3, before code line 4
+    package:core.py@c3    BESIDE the code line at index 3 -- the 4th
+    package:core.py@b3    the GAP ABOVE that same code line
 
 ! `b0` is the gap before the first code line; `bN` after the last. A file with N
 code lines has N+1 gaps, and every comment run and empty interval sits in one.
 
-!! `b` AND `c` ARE SEPARATE ON PURPOSE. `c3` says this prose belongs BESIDE code
-line 3; `b3` says it belongs ABOVE code line 4. Roy, 2026-08-18: the split
-"allows the editors to say this single line edit belongs next to the code not
-above the code" -- an editorial choice line numbers conflated, because both sit
-on adjacent lines.
+!! `b` AND `c` ARE SEPARATE ON PURPOSE. `c3` says this prose belongs BESIDE the
+code line at index 3; `b3` says it belongs ABOVE that same line. Roy,
+2026-08-18: the split "allows the editors to say this single line edit belongs
+next to the code not above the code" -- an editorial choice line numbers
+conflated, because both sit on adjacent lines.
 
-!! THE SAME NUMBER NAMES DIFFERENT STATEMENTS IN THE TWO SERIES, and reading it
-otherwise attaches a comment one statement too high. `c3` is ON the 3rd code
-line; `b3` is the gap AFTER it, so the statement `b3` sits above is the 4th.
-Every code line N therefore owns two folios -- `b(N-1)` above it and `cN` beside
-it -- and a DECLARATION owns those plus its own `a`, which is why an anchor can
-carry blocks from all three series.
+!! THE SAME NUMBER NAMES THE SAME CODE LINE IN BOTH SERIES. `b` and `c` BOTH
+COUNT FROM 0, so the code line at index N owns exactly two folios -- `bN` above
+it and `cN` beside it -- and a DECLARATION owns those plus its own `a`, which is
+why an anchor can carry blocks from all three series.
+
+! SUPERSEDED 2026-08-19, and it was an off-by-one in the file that costs 5x to
+get wrong. This said the same number names DIFFERENT statements: true while `c`
+counted from 1, and the ruling that aligned them made it false. A reviewer
+following it cited `c(N+1)` for the line it meant -- the error the paragraph
+warned about, inverted. ! Say "the code line at index N", not "code line N":
+"code line 3" reads as the 3rd to one reader and as index 3 to another, and that
+ambiguity is what let one half of the pair stay wrong while the other was right.
 
 !! `a` IS SEPARATE FOR A DIFFERENT REASON: IT NAMES A SUBJECT, NOT A POSITION.
 A docstring is about its DECLARATION, and `a0` is the module with `a1..aN` its
@@ -215,8 +221,8 @@ def address(block: dict, code: list[int]) -> str:
     state and no other. A place is counted against the CODE instead:
 
         pkg:mod.py@a5   the 5th DECLARATION's documentation
-        pkg.mod.py@c3   ON code line 3 -- shares the line with the statement
-        pkg.mod.py@b3   the GAP after code line 3, before code line 4
+        pkg:mod.py@c3   BESIDE the code line at index 3 -- the 4th
+        pkg:mod.py@b3   the GAP ABOVE that same code line
 
     `b0` is the gap before the first code line, `bN` after the last, and every
     comment run and empty interval sits in one of them.

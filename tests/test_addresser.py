@@ -909,3 +909,76 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
                 said = out.getvalue()
                 self.assertIn(f"{count} places answer", said)
                 self.assertIn("Choose by ADDRESS", said)
+
+
+class TestTheSHIPPEDPROSETeachesTheNumberingTheCodeUSES(unittest.TestCase):
+    """The brief and the addresser's own docstrings, against the addresser.
+
+    !! IT COST 5x TO GET WRONG AND WAS WRONG FOR A DAY. `reviewer-brief.md` is
+    read by four agents every run, and it taught *"the number means a different
+    statement in `b` than in `c`"* -- true while `c` counted from 1, and an
+    off-by-one from the moment the 0-indexing ruling aligned them. A reviewer
+    following it cited `c(N+1)` for the line it meant: the error the paragraph
+    itself warned about, inverted.
+
+    ! **The ambiguity that hid it is the phrase "code line 3"**, which reads as
+    the 3rd to one reader and as index 3 to another. One half of the pair stayed
+    wrong while the other was right, in one paragraph, for that reason -- so the
+    prose now says "the code line at index N" and this holds it there.
+    """
+
+    SRC = "".join(f"x{i} = {i}\n" for i in range(6))
+    BRIEF = (
+        Path(__file__).resolve().parent.parent
+        / "plugins/comment-review/skills/comment-review/references/reviewer-brief.md"
+    )
+
+    def setUp(self):
+        path = Path("m.py")
+        blocks = census.census_for(path, self.SRC, census.language_for(path))
+        self.code = sorted(census.code_lines(self.SRC, blocks))
+        for b in blocks:
+            b.address = addresser.address(vars(b), self.code)
+        self.at = {
+            b.address.split("@")[1]: b for b in blocks if "@" in (b.address or "")
+        }
+
+    def test_bN_and_cN_name_THE_SAME_code_line(self):
+        # !! The property the shipped prose denied. Measured over every line.
+        for n in range(len(self.code)):
+            with self.subTest(n=n):
+                self.assertEqual(
+                    self.at[f"b{n}"].edit_start, self.at[f"c{n}"].start, f"b{n}/c{n}"
+                )
+
+    def test_both_series_count_from_ZERO(self):
+        # ! `c0` is beside the FIRST code line, not the second.
+        self.assertEqual(self.at["c0"].start, self.code[0])
+        self.assertEqual(self.at["b0"].edit_start, self.code[0])
+
+    def test_cN_is_beside_the_code_line_at_INDEX_N(self):
+        for n in range(len(self.code)):
+            with self.subTest(n=n):
+                self.assertEqual(self.at[f"c{n}"].start, self.code[n])
+
+    def test_a_file_with_N_code_lines_has_N_plus_1_gaps(self):
+        # ! `b0` before the first and `bN` after the last, which is the one `b`
+        # with no `c` to pair with.
+        gaps = [k for k in self.at if k.startswith("b")]
+        self.assertEqual(len(gaps), len(self.code) + 1)
+        self.assertNotIn(f"c{len(self.code)}", self.at)
+
+    def test_the_BRIEF_does_not_teach_the_superseded_rule(self):
+        # !! The file four agents read every run. A regression here is silent:
+        # the prose is not executed, so nothing else would notice.
+        said = self.BRIEF.read_text(encoding="utf-8")
+        self.assertIn("`bN` AND `cN` NAME THE SAME CODE LINE", said)
+        self.assertNotIn("The number means a different statement", said)
+        self.assertNotIn("b(N-1)", said)
+
+    def test_the_ADDRESSER_docstrings_agree_with_the_brief(self):
+        # ! Two files stating one rule, which is why they drifted apart.
+        src = (SCRIPTS / "addresser.py").read_text(encoding="utf-8")
+        self.assertIn("THE SAME NUMBER NAMES THE SAME CODE LINE", src)
+        self.assertNotIn("NAMES DIFFERENT STATEMENTS", src)
+        self.assertNotIn("`b(N-1)` above it", src)

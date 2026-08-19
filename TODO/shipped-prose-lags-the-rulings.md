@@ -2,10 +2,13 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 1 of 6 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
+Narrowed: 2026-08-19 — B6 closed 2026-08-19: the numbering. Four sites, not the two this
+          file named -- the brief plus three passages in addresser.py. Gated by a test
+          that measures what the addresser answers and holds the prose to it.
 ```
 
 ## Objective
@@ -32,13 +35,21 @@ and updated in one -- applied to prose rather than to code.
 
 ## Tasks
 
-- [ ] !! **`reviewer-brief.md` teaches the numbering the ruling SUPERSEDED.** It
-      still says *"The number means a different statement in `b` than in `c`"* --
-      written when `c` counted from 1. Since the 0-indexing ruling `bN` and `cN`
-      name the same code line, so **a reviewer following the brief cites
-      `c(N+1)`** -- the off-by-one the paragraph warns about, inverted, in the
-      file that costs 5x. `addresser.py` carries the same paragraph. ! The brief
-      contradicts itself 118 lines later, where the newer text is right.
+- [x] !! **DONE 2026-08-19 -- both files teach `bN` and `cN` name the SAME code line.**
+      It said *"The number means a different statement in `b` than in `c`"*, written
+      when `c` counted from 1, with the rule *"code line N carries `b(N-1)` above it
+      and `cN` beside it"* -- so a reviewer following the brief cited `c(N+1)`, the
+      off-by-one the paragraph warns about, inverted, in the file that costs 5x.
+      ! **FOUR sites, not two**: the brief, and THREE passages in `addresser.py` --
+      its module docstring's example, the rule paragraph, and `stable()`'s example,
+      which also still carried the retired dotted path form.
+      ! **The ambiguity that hid it is the phrase "code line 3"**, which reads as the
+      3rd to one reader and as index 3 to another. One half of the pair stayed wrong
+      while the other stayed right, inside one paragraph, for that reason. Both files
+      now say *"the code line at index N"*.
+      ! **Gated.** `TestTheSHIPPEDPROSETeachesTheNumberingTheCodeUSES` measures what
+      the addresser answers and holds both files to it -- prose is not executed, so
+      nothing else would notice it drifting back.
 - [ ] !! **`vocabulary.toml` ships the RETIRED definition of a block to all six
       roles** -- `block = "The interval between two lines of CODE"` -- and
       **`address` is not defined at all**, nor `margin`, which is 30-50% of the
