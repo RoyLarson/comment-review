@@ -1077,6 +1077,24 @@ def address(block: dict) -> str:
     reviewer to write `path:start-end` and the census prints the short form.
     That tolerance is a rule about reading, and it stays with the reader.
 
+    !! IT NAMES TWO DIFFERENT THINGS AND THE FORMAT CANNOT TELL YOU WHICH.
+    On a block that HOLDS prose, `start-end` is the lines that prose occupies,
+    inclusive. On an INTERVAL it is the two lines of CODE that BOUND a gap --
+    `a.py:33-34` there means "between 33 and 34", where the same string on a
+    comment means "lines 33 through 34".
+
+    ! The gap is not necessarily empty of LINES: it is whatever sits between
+    those two, nothing or blank lines, and `reviewer-brief.md` tells a reviewer
+    its `change` replaces all of it. What it holds no more of is PROSE, which is
+    why an interval is always `0L`. Read the KIND, or that count, to know which
+    reading applies -- a block holding prose is never `0L`.
+
+    ! The consequence is not cosmetic: a range REPLACE over an interval's
+    address deletes both bounding statements instead of inserting between them.
+    `galley.py` avoids that by branching on `kind == "interval"`, which is a
+    consumer inferring what this producer knows -- the record should carry the
+    OPERATION instead. Raised by Roy 2026-08-18 reading a filtered census.
+
     Args:
         block: one census entry, as a dict.
 
