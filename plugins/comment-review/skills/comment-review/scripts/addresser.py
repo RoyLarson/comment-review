@@ -47,6 +47,18 @@ empty interval in the same position are both `b1` -- so a finding can say where
 it belongs in a file that does not have the prose yet, and two versions of a
 file can be compared place by place.
 
+!! IT NAMES A PLACE, NOT A BLOCK, and those are not the same thing. One gap can
+hold SEVERAL prose blocks -- a docstring on one line and a comment run under it,
+with no code between them, are both "after code line 37". Measured 2026-08-18
+over this repo's own thirteen shipped scripts: 24 of 2,963 blocks share a place
+with a neighbour, 0.8%.
+
+! So an address is NOT a unique key on its own, and a record must not cite one
+alone. A record already carries the census `block` index beside it: the INDEX
+says which block, the ADDRESS says which place, and only the second survives an
+edit. `--check` reports every place that more than one block answers to, which
+is where citing the address alone would resolve to the wrong prose.
+
 ! It does NOT replace `census.address`. A reviewer reads a file and a line
 number is what it has in hand; this is what a record should CARRY. Which of the
 two a record cites is unruled -- see
@@ -220,6 +232,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--census", required=True, help="the census JSON")
     ap.add_argument("--repo", default=".", help="repo root the paths are under")
+    ap.add_argument(
+        "--check",
+        action="store_true",
+        help="verify every address resolves back to its own block, and stop",
+    )
     args = ap.parse_args()
 
     try:
@@ -245,6 +262,9 @@ def main() -> int:
             return 2
         code[path] = code_lines_of(text, [b for b in blocks if b.get("path") == path])
 
+    if args.check:
+        return _check(blocks, code)
+
     unplaced = 0
     for i, block in enumerate(blocks, 1):
         where = stable(block, code.get(str(block.get("path", "")), []))
@@ -255,6 +275,69 @@ def main() -> int:
     if unplaced:
         print(f"\n{unplaced} entries could not be addressed.")
     return 1 if unplaced else 0
+
+
+def _check(blocks: list[dict], code: dict[str, list[int]]) -> int:
+    """Does every address resolve back to the one block that carries it?
+
+    !! THE REFERENCE HAS TO MATCH THE ANCHOR, and that is the whole worth of an
+    address. Roy, 2026-08-18: an agent will grep and read the file anyway, so
+    the lookup is convenience -- what a citation buys is that it names the place
+    it claims. An address two blocks answer to resolves to the wrong prose, and
+    nothing downstream can tell.
+
+    ! THE SAME SHAPE `source_problem` ALREADY ENFORCES ON `SOURCES`. Roy: "same
+    on the sources". There a citation carries `file:line | verbatim` and the
+    check resolves the line and looks for the words; here an address carries a
+    place and the check resolves it back to the entry. Both say: the reference
+    is only worth what re-reading it proves.
+
+    ! Two reports, and only the first is a fault. UNADDRESSED means the census
+    cannot name the place at all -- no `edit_start`, or no position -- and
+    nothing can cite it. SHARED means several blocks sit in one gap, which is
+    ordinary and true: a docstring and the comment run under it are both after
+    the same code line. It is reported because citing that address ALONE would
+    resolve to the wrong one of them; the record's `block` index is what
+    separates them.
+
+    Returns:
+        1 when anything is UNADDRESSED, 0 otherwise. ! A shared place does not
+        fail the check -- it is a fact about the file, and refusing it would
+        refuse every docstring with a comment beneath it.
+    """
+    unaddressed: list[str] = []
+    shared: dict[str, list[str]] = {}
+    for path, lines in sorted(code.items()):
+        mine = [b for b in blocks if str(b.get("path", "")) == path]
+        for i, block in enumerate(mine, 1):
+            where = stable(block, lines)
+            if not where:
+                unaddressed.append(f"{path} entry {i}: {address(block)}")
+                continue
+            if len(resolve(where, mine, lines)) > 1:
+                shared.setdefault(where, []).append(
+                    f"{address(block)} {block.get('kind', '')}"
+                )
+    for line in unaddressed:
+        print(f"UNADDRESSED  {line}")
+    for where, rows in sorted(shared.items()):
+        print(f"SHARED       {where}  <- {' | '.join(rows)}")
+    named = len(blocks) - len(unaddressed)
+    print(f"\n{named} of {len(blocks)} blocks addressed over {len(code)} files.")
+    if shared:
+        # ! Advice only where it applies. Printing it against zero shared places
+        # tells a reader to guard something that did not happen.
+        print(
+            f"{len(shared)} places hold more than one block"
+            f" ({sum(len(v) for v in shared.values())} blocks) -- cite the census"
+            f" index alongside the address for those."
+        )
+    if unaddressed:
+        print(
+            f"{len(unaddressed)} blocks could not be addressed at all."
+            " A census with no `edit_start` cannot name a gap; re-run census.py."
+        )
+    return 1 if unaddressed else 0
 
 
 if __name__ == "__main__":
