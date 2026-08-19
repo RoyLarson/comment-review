@@ -95,7 +95,7 @@ from desk import (  # noqa: E402  -- path shim must run first
     source_problem,
 )
 from held import address_of, load_report  # noqa: E402  -- path shim must run first
-from pcst import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
+from page import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     VERDICTS,
     Finding,

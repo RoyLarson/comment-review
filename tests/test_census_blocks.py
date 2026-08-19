@@ -10,7 +10,7 @@ from _paths import FIXTURES, SCRIPTS
 import annotate
 import census
 import galley
-import pcst
+import page
 import prove_unchanged as pu
 
 
@@ -180,7 +180,7 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         self.assertTrue(got, "three code lines must enumerate as intervals")
         # ! The module's own `a0` is here too -- a file with no module docstring
         # still has the PLACE for one. Neither kind holds prose.
-        self.assertTrue(all(b.kind in pcst.HOLDS_NO_PROSE for b in got), got)
+        self.assertTrue(all(b.kind in page.HOLDS_NO_PROSE for b in got), got)
         self.assertEqual(sum(1 for b in got if b.kind == "interval"), 4, got)
 
     def test_the_file_boundary_bounds_the_first_and_last_interval(self):
@@ -237,14 +237,14 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # census says so rather than re-cutting -- merging would renumber every
         # census and invalidate every measurement taken against one.
         got = self._census("x = 1  # a claim that\n       # wraps onto it\ny = 2\n")
-        prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
+        prose = [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
         self.assertEqual([b.kind for b in prose], ["trailing-comment", "comment"])
         self.assertIn("continues-a-trailing-comment", prose[1].annotations)
         self.assertIn("trailing comment", " ".join(prose[1].notes))
 
     def test_an_ordinary_comment_after_CODE_is_not_stamped(self):
         got = self._census("x = 1\n# a fresh note\ny = 2\n")
-        prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
+        prose = [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
         self.assertEqual([b.kind for b in prose], ["comment"])
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
@@ -278,13 +278,13 @@ class TestTheLexicalTierStampsToo(unittest.TestCase):
         got = self._census(
             "a.go", "x := 1  // a claim that\n        // wraps onto it\ny := 2\n"
         )
-        prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
+        prose = [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
         self.assertEqual([b.kind for b in prose], ["trailing-comment", "comment"])
         self.assertIn("continues-a-trailing-comment", prose[1].annotations)
 
     def test_go_does_not_stamp_an_ordinary_comment(self):
         got = self._census("a.go", "x := 1\n// a fresh note\ny := 2\n")
-        prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
+        prose = [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
 
@@ -463,177 +463,6 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
                 if not b.anchor:
                     holes.append(f"{src.name} {b.address or b.start} {b.kind}")
         self.assertEqual(holes, [])
-
-
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
-# class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` -- and the tests it skipped were
-# the ones someone running a single file was iterating on. Measured
-# 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
-# test_vocabulary.py.
-class TestABlockCommentBesideCode(unittest.TestCase):
-    """Four shapes, and each one was wrong in a different way.
-
-    !! The rule: everything from the opener onward is comment, EXCEPT when the
-    comment closes on the same line with code after it. That one line cannot be
-    split into code and prose without losing half of it, so the census keeps it
-    whole and `prove_unchanged` refuses the file -- the safe answer for a proof.
-    """
-
-    def _read(self, body):
-        with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "x.c"
-            p.write_text(body, encoding="utf-8")
-            paragraphs = census.paragraphs_lexical(p, body, census.language_for(p))
-            prose = [b for b in paragraphs if b.text.strip()]
-            return prose, sorted(census.code_lines(body, paragraphs))
-
-    def test_a_comment_to_END_OF_LINE_leaves_its_statement_as_code(self):
-        prose, code = self._read("int a = 1;\nint b = 2; /* note */\nint c = 3;\n")
-        self.assertEqual(code, [1, 2, 3])
-        self.assertEqual(prose[0].kind, "trailing-comment")
-        self.assertNotIn("int b", prose[0].text)
-
-    def test_a_MULTILINE_comment_after_code_leaves_its_statement_as_code(self):
-        # ! The residual case. The paragraph spans from the line holding the
-        # statement, and taking that whole span dropped the statement from the
-        # code set -- moving every interval boundary below it -- while its text
-        # read `int b = 2; /* opens ...`, the statement handed over as prose.
-        prose, code = self._read(
-            "int a = 1;\nint b = 2; /* opens\n   and closes */\nint c = 3;\n"
-        )
-        self.assertEqual(code, [1, 2, 4])
-        self.assertEqual((prose[0].start, prose[0].end), (2, 3))
-        self.assertNotIn("int b", prose[0].text)
-
-    def test_a_comment_on_its_own_lines_occupies_them(self):
-        prose, code = self._read("int a = 1;\n/* opens\n   closes */\nint b = 2;\n")
-        self.assertEqual(code, [1, 4])
-        self.assertNotIn("int", prose[0].text)
-
-    def test_an_intermediate_comment_is_NOT_CENSUSED(self):
-        """!! `int x = /* why */ 5;` is ignored, and the line stays code.
-
-        Roy ruled it 2026-08-19, on the same grounds as a Python type
-        annotation: *"they are not comments that can be systemically and
-        completely verified across code bases or written consistently on the
-        same file because of line length rules ... all intermediate comments
-        are ignored. They can be brought up by the agents as code change
-        suggestions."*
-
-        ! It WAS censused, and the paragraph's text was the whole statement --
-        measured 2026-08-19, `f.c@c2 comment text='int x = /* why */ 5;'`,
-        executable code handed to four reviewers as prose. Cutting at the
-        opener was the alternative and loses the trailing `5;`, so `5` and `7`
-        would compare EQUAL and the proof report PROVEN on changed code.
-        """
-        prose, code = self._read("int x = /* why */ 5;\nint y = 6;\n")
-        self.assertEqual(prose, [])
-        # ! The line is code, so it keeps its `b` and its `c` like any other.
-        self.assertEqual(code, [1, 2])
-
-
-class TestTheProofFollowsTheBlocks(unittest.TestCase):
-    """`prove_unchanged` must agree with the census about what is code."""
-
-    C = "int a = 1;\nint b = 2; /* opens\n   and closes */\nint c = 3;\n"
-
-    def test_the_statement_survives_into_the_fingerprint(self):
-        _, code = pu.code_fingerprint(self.C, Path("x.c"))
-        self.assertIn("int b = 2;", code)
-
-    def test_a_code_change_on_that_line_is_caught(self):
-        changed = self.C.replace("int b = 2;", "int b = 9;")
-        self.assertNotEqual(
-            pu.code_fingerprint(self.C, Path("x.c")),
-            pu.code_fingerprint(changed, Path("x.c")),
-        )
-
-    def test_a_prose_only_edit_on_that_line_proves_identical(self):
-        reworded = self.C.replace("opens", "OPENS").replace("closes", "CLOSES")
-        self.assertEqual(
-            pu.code_fingerprint(self.C, Path("x.c")),
-            pu.code_fingerprint(reworded, Path("x.c")),
-        )
-
-
-class TestNoIntervalOverlapsProse(unittest.TestCase):
-    """An `interval` is a gap that holds NO prose. It may not overlap a paragraph.
-
-    !! `code_lines` discards a paragraph's first line when code precedes the
-    opener, and a structural docstring's `raw_lines` are the AST VALUE, not the
-    file's lines -- so one opening on its quote line looked exactly like a
-    suffix and its first line was classified as CODE. Measured on `repo.py`:
-    eight spurious intervals overlapping real docstrings, in the artefact four
-    reviewers are bound by and the one an `add` cites to place missing prose.
-    """
-
-    def _overlaps(self, path):
-        # ! `trailing-comment` is excluded, and that is not a loophole: it sits
-        # ON a code line by definition, so an interval bounded by that line
-        # touches it every time. `code_lines` documents the same pass-through.
-        # Only a paragraph that OCCUPIES its lines may not overlap a gap.
-        text = path.read_text(encoding="utf-8")
-        paragraphs = census.census_for(path, text, census.language_for(path))
-        occupying = [
-            b for b in paragraphs if b.text.strip() and b.kind != "trailing-comment"
-        ]
-        gaps = [b for b in paragraphs if b.kind == "interval"]
-        return [
-            (g.start, g.end, b.kind, b.start, b.end)
-            for g in gaps
-            for b in occupying
-            if not (g.end < b.start or g.start > b.end)
-        ]
-
-    def test_no_interval_overlaps_prose_anywhere_in_the_shipped_tree(self):
-        files = subprocess.run(
-            ["git", "ls-files", "plugins/**/*.py"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.split()
-        self.assertGreater(len(files), 5, "the sample must be real")
-        bad = [(f, o) for f in files if (o := self._overlaps(Path(f)))]
-        self.assertEqual(bad, [], "an interval overlaps a paragraph that holds prose")
-
-    def test_a_RAW_docstring_is_not_read_as_code(self):
-        # ! `r"""` survives quote-stripping as a bare `r`, which reads as code.
-        with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "r.py"
-            src = "\n".join(
-                [
-                    "def f():",
-                    '    r"""Doc opens here.',
-                    "",
-                    "    More.",
-                    '    """',
-                    "",
-                ]
-            )
-            p.write_text(src, encoding="utf-8")
-            self.assertEqual(self._overlaps(p), [])
-
-    def test_code_before_a_block_opener_IS_still_discarded(self):
-        # ! The case the discard exists for must keep working.
-        with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "x.c"
-            body = "\n".join(
-                [
-                    "int a = 1;",
-                    "int b = 2; /* opens",
-                    "   and closes */",
-                    "int c = 3;",
-                    "",
-                ]
-            )
-            p.write_text(body, encoding="utf-8")
-            paragraphs = census.paragraphs_lexical(p, body, census.language_for(p))
-            self.assertIn(2, census.code_lines(body, paragraphs))
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class TestFrontMatterIsMarked(unittest.TestCase):
@@ -897,7 +726,178 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             refused += [
                 f"{src.name}:{b.start} {b.kind}"
                 for b in paragraphs
-                if b.kind not in pcst.HOLDS_NO_PROSE
+                if b.kind not in page.HOLDS_NO_PROSE
                 and not galley.paragraph_matches(lines, vars(b))
             ]
         self.assertEqual(refused, [])
+
+
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
+# class exists, so `python tests/<file>.py` reported a green bar over a
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
+# the ones someone running a single file was iterating on. Measured
+# 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
+# test_vocabulary.py.
+class TestABlockCommentBesideCode(unittest.TestCase):
+    """Four shapes, and each one was wrong in a different way.
+
+    !! The rule: everything from the opener onward is comment, EXCEPT when the
+    comment closes on the same line with code after it. That one line cannot be
+    split into code and prose without losing half of it, so the census keeps it
+    whole and `prove_unchanged` refuses the file -- the safe answer for a proof.
+    """
+
+    def _read(self, body):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "x.c"
+            p.write_text(body, encoding="utf-8")
+            paragraphs = census.paragraphs_lexical(p, body, census.language_for(p))
+            prose = [b for b in paragraphs if b.text.strip()]
+            return prose, sorted(census.code_lines(body, paragraphs))
+
+    def test_a_comment_to_END_OF_LINE_leaves_its_statement_as_code(self):
+        prose, code = self._read("int a = 1;\nint b = 2; /* note */\nint c = 3;\n")
+        self.assertEqual(code, [1, 2, 3])
+        self.assertEqual(prose[0].kind, "trailing-comment")
+        self.assertNotIn("int b", prose[0].text)
+
+    def test_a_MULTILINE_comment_after_code_leaves_its_statement_as_code(self):
+        # ! The residual case. The paragraph spans from the line holding the
+        # statement, and taking that whole span dropped the statement from the
+        # code set -- moving every interval boundary below it -- while its text
+        # read `int b = 2; /* opens ...`, the statement handed over as prose.
+        prose, code = self._read(
+            "int a = 1;\nint b = 2; /* opens\n   and closes */\nint c = 3;\n"
+        )
+        self.assertEqual(code, [1, 2, 4])
+        self.assertEqual((prose[0].start, prose[0].end), (2, 3))
+        self.assertNotIn("int b", prose[0].text)
+
+    def test_a_comment_on_its_own_lines_occupies_them(self):
+        prose, code = self._read("int a = 1;\n/* opens\n   closes */\nint b = 2;\n")
+        self.assertEqual(code, [1, 4])
+        self.assertNotIn("int", prose[0].text)
+
+    def test_an_intermediate_comment_is_NOT_CENSUSED(self):
+        """!! `int x = /* why */ 5;` is ignored, and the line stays code.
+
+        Roy ruled it 2026-08-19, on the same grounds as a Python type
+        annotation: *"they are not comments that can be systemically and
+        completely verified across code bases or written consistently on the
+        same file because of line length rules ... all intermediate comments
+        are ignored. They can be brought up by the agents as code change
+        suggestions."*
+
+        ! It WAS censused, and the paragraph's text was the whole statement --
+        measured 2026-08-19, `f.c@c2 comment text='int x = /* why */ 5;'`,
+        executable code handed to four reviewers as prose. Cutting at the
+        opener was the alternative and loses the trailing `5;`, so `5` and `7`
+        would compare EQUAL and the proof report PROVEN on changed code.
+        """
+        prose, code = self._read("int x = /* why */ 5;\nint y = 6;\n")
+        self.assertEqual(prose, [])
+        # ! The line is code, so it keeps its `b` and its `c` like any other.
+        self.assertEqual(code, [1, 2])
+
+
+class TestTheProofFollowsTheBlocks(unittest.TestCase):
+    """`prove_unchanged` must agree with the census about what is code."""
+
+    C = "int a = 1;\nint b = 2; /* opens\n   and closes */\nint c = 3;\n"
+
+    def test_the_statement_survives_into_the_fingerprint(self):
+        _, code = pu.code_fingerprint(self.C, Path("x.c"))
+        self.assertIn("int b = 2;", code)
+
+    def test_a_code_change_on_that_line_is_caught(self):
+        changed = self.C.replace("int b = 2;", "int b = 9;")
+        self.assertNotEqual(
+            pu.code_fingerprint(self.C, Path("x.c")),
+            pu.code_fingerprint(changed, Path("x.c")),
+        )
+
+    def test_a_prose_only_edit_on_that_line_proves_identical(self):
+        reworded = self.C.replace("opens", "OPENS").replace("closes", "CLOSES")
+        self.assertEqual(
+            pu.code_fingerprint(self.C, Path("x.c")),
+            pu.code_fingerprint(reworded, Path("x.c")),
+        )
+
+
+class TestNoIntervalOverlapsProse(unittest.TestCase):
+    """An `interval` is a gap that holds NO prose. It may not overlap a paragraph.
+
+    !! `code_lines` discards a paragraph's first line when code precedes the
+    opener, and a structural docstring's `raw_lines` are the AST VALUE, not the
+    file's lines -- so one opening on its quote line looked exactly like a
+    suffix and its first line was classified as CODE. Measured on `repo.py`:
+    eight spurious intervals overlapping real docstrings, in the artefact four
+    reviewers are bound by and the one an `add` cites to place missing prose.
+    """
+
+    def _overlaps(self, path):
+        # ! `trailing-comment` is excluded, and that is not a loophole: it sits
+        # ON a code line by definition, so an interval bounded by that line
+        # touches it every time. `code_lines` documents the same pass-through.
+        # Only a paragraph that OCCUPIES its lines may not overlap a gap.
+        text = path.read_text(encoding="utf-8")
+        paragraphs = census.census_for(path, text, census.language_for(path))
+        occupying = [
+            b for b in paragraphs if b.text.strip() and b.kind != "trailing-comment"
+        ]
+        gaps = [b for b in paragraphs if b.kind == "interval"]
+        return [
+            (g.start, g.end, b.kind, b.start, b.end)
+            for g in gaps
+            for b in occupying
+            if not (g.end < b.start or g.start > b.end)
+        ]
+
+    def test_no_interval_overlaps_prose_anywhere_in_the_shipped_tree(self):
+        files = subprocess.run(
+            ["git", "ls-files", "plugins/**/*.py"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split()
+        self.assertGreater(len(files), 5, "the sample must be real")
+        bad = [(f, o) for f in files if (o := self._overlaps(Path(f)))]
+        self.assertEqual(bad, [], "an interval overlaps a paragraph that holds prose")
+
+    def test_a_RAW_docstring_is_not_read_as_code(self):
+        # ! `r"""` survives quote-stripping as a bare `r`, which reads as code.
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "r.py"
+            src = "\n".join(
+                [
+                    "def f():",
+                    '    r"""Doc opens here.',
+                    "",
+                    "    More.",
+                    '    """',
+                    "",
+                ]
+            )
+            p.write_text(src, encoding="utf-8")
+            self.assertEqual(self._overlaps(p), [])
+
+    def test_code_before_a_block_opener_IS_still_discarded(self):
+        # ! The case the discard exists for must keep working.
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "x.c"
+            body = "\n".join(
+                [
+                    "int a = 1;",
+                    "int b = 2; /* opens",
+                    "   and closes */",
+                    "int c = 3;",
+                    "",
+                ]
+            )
+            p.write_text(body, encoding="utf-8")
+            paragraphs = census.paragraphs_lexical(p, body, census.language_for(p))
+            self.assertIn(2, census.code_lines(body, paragraphs))
+
+
+if __name__ == "__main__":
+    unittest.main()

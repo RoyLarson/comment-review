@@ -65,7 +65,7 @@ DOCUMENTS the hole as intended behaviour. Everything below is what remains.
       anchor, and one whose anchor is not the census's -- with the same 'the tool
       wrote this, so the FILE was edited' message `address` uses.
 - [x] ! An `a`'s anchor is still a NAME (`f`, `<module>`) where a `b`'s and a
-      `c`'s are the LINE OF CODE. Both are declared in `pcst.Block`. RULING
+      `c`'s are the LINE OF CODE. Both are declared in `page.Paragraph`. RULING
       WANTED: does an `a` become its declaration LINE too? It would make the field
       one meaning, and it would change what `--anchor NAME --series a|b|c` is
       asked with -- the brief teaches asking by name.

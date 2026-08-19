@@ -68,7 +68,7 @@ from annotate import (  # noqa: E402  -- path shim must run first
     annotate,
     prose_numbers,
 )
-from pcst import (  # noqa: E402  -- path shim must run first
+from page import (  # noqa: E402  -- path shim must run first
     FRONT_MATTER,
     OCCUPIES_NOTHING,
     Paragraph,
@@ -1194,7 +1194,7 @@ def census_for(path: Path, text: str, lang: Language) -> list[Paragraph]:
 
 
 # The annotation, and the two shapes that earn it.
-# ! DEFINED IN `pcst.py`, the leaf, because `addresser` reads it too and
+# ! DEFINED IN `page.py`, the leaf, because `addresser` reads it too and
 # cannot import this module. Re-exported here so the many readers that
 # already say `census.FRONT_MATTER` keep working.
 _SHEBANG = re.compile(r"^#!")

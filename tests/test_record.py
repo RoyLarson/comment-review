@@ -729,13 +729,6 @@ class TestARecordWithNoAnchorIsBroken(unittest.TestCase):
                 self.assertTrue(slot["anchor"], "a seeded slot with no anchor")
 
 
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
-# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
-# than `unittest discover`.
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestA02xReportCANNOTBeConverted(unittest.TestCase):
     """The old form does not carry enough to name a place, and says so.
 
@@ -853,3 +846,10 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
             {r["address"] for r in ruled},
             {self.census[i - 1]["address"] for i in self.prose},
         )
+
+
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
+# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
+# than `unittest discover`.
+if __name__ == "__main__":
+    unittest.main()

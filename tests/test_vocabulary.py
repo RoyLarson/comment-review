@@ -119,16 +119,6 @@ class TestProseTreeRetired(unittest.TestCase):
         self.assertIn("pCST", text)
 
 
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
-# class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` -- and the tests it skipped were
-# the ones someone running a single file was iterating on. Measured
-# 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
-# test_vocabulary.py.
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestTheRetiredWordsStayRetired(unittest.TestCase):
     """A shipped file may not USE a word the vocabulary retired.
 
@@ -156,7 +146,7 @@ class TestTheRetiredWordsStayRetired(unittest.TestCase):
 
     def test_a_MENTION_in_backticks_is_not_a_use(self):
         # !! `paragraph`'s own definition says "`block` is the older word for
-        # it", and `pcst.py` explains what the word meant before. Both keep an
+        # it", and `page.py` explains what the word meant before. Both keep an
         # error legible rather than erasing it -- the same rule that keeps a
         # SUPERSEDED task checked instead of deleted.
         self.assertIn("`block`", cv.MENTION)
@@ -189,3 +179,13 @@ class TestTheRetiredWordsStayRetired(unittest.TestCase):
             and cv.NOQA in f.read_text(encoding="utf-8")
         ]
         self.assertEqual(claimed, ["held.py"])
+
+
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
+# class exists, so `python tests/<file>.py` reported a green bar over a
+# SHORTER suite than `unittest discover` -- and the tests it skipped were
+# the ones someone running a single file was iterating on. Measured
+# 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
+# test_vocabulary.py.
+if __name__ == "__main__":
+    unittest.main()

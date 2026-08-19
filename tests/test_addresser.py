@@ -17,7 +17,7 @@ from pathlib import Path
 from _paths import SCRIPTS  # noqa: F401
 import addresser
 import census
-import pcst
+import page
 
 # Roy's two files: the same two statements, one with comments and one without.
 WITH_PROSE = (
@@ -232,10 +232,6 @@ class TestAOneLineInitFile(unittest.TestCase):
         self.assertNotEqual(
             addresser.address(sub, code), addresser.address(self.PARAGRAPHS[0], code)
         )
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class TestTheInverse(unittest.TestCase):
@@ -470,7 +466,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
             '    """Widen."""\n'
             "    return str(width)\n"
         )
-        prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
+        prose = [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
         self.assertEqual(
             [b.anchor for b in prose],
             [
@@ -951,3 +947,13 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         walk = addresser.triggers(self.code)
         self.assertEqual(walk[0], addresser.MODULE)
         self.assertEqual(walk[1:], self.code)
+
+
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
+# exists, so `python tests/<file>.py` reports a green bar over a SHORTER suite
+# than `unittest discover` -- and the tests it skips are the ones someone
+# running a single file is iterating on. Measured 2026-08-19: this file ran 18
+# direct against 67 discovered, because a class removed above the runner took
+# the runner's position with it.
+if __name__ == "__main__":
+    unittest.main()

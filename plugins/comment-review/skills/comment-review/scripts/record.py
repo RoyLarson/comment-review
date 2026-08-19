@@ -55,7 +55,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from pcst import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
+from page import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,

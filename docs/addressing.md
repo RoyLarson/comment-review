@@ -254,7 +254,7 @@ differently wherever a consumer had guessed.
 
 | file | owns |
 | --- | --- |
-| `scripts/pcst.py` | what a pCST NODE is -- `Block`, and the kind sets over it. A LEAF, so every module that reads a block can import the definition of one |
+| `scripts/page.py` | what a pCST NODE is -- `Block`, and the kind sets over it. A LEAF, so every module that reads a block can import the definition of one |
 | `scripts/addresser.py` | BOTH namings -- `address()`, and the deprecated `line_address()` it replaced |
 | `scripts/census.py` | STAMPS the address on every block. It is the producer, and consumers read it |
 | `scripts/record.py` | `entry_for(address, blocks)` -- the one lookup from an address to a census entry |

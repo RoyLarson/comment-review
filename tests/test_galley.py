@@ -582,13 +582,6 @@ class TestTheGalleyWritesATrailingCommentEndToEnd(unittest.TestCase):
             self.assertEqual((root / "m.py").read_text(encoding="utf-8"), self.SOURCE)
 
 
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
-# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
-# than `unittest discover`.
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestTheCSeriesIsWritableInALexicalLanguage(unittest.TestCase):
     """B3's point: Go, not just Python.
 
@@ -628,3 +621,10 @@ class TestTheCSeriesIsWritableInALexicalLanguage(unittest.TestCase):
         out = self._splice("trailing-comment", "")
         self.assertIn("\treturn a + b\n", out)
         self.assertNotIn("adds them", out)
+
+
+# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
+# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
+# than `unittest discover`.
+if __name__ == "__main__":
+    unittest.main()

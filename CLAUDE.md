@@ -174,7 +174,7 @@ deliberately separate stages/actors.
 ### `census.py` -- the only thing the reviewers depend on
 
 `plugins/comment-review/skills/comment-review/scripts/census.py` builds the pCST from the
-stdlib alone (no third-party dependency), at a per-language tier. It is one of four: `pcst.py`
+stdlib alone (no third-party dependency), at a per-language tier. It is one of four: `page.py`
 says what a pCST NODE is -- the `Block` dataclass and the kind sets over it -- and is a LEAF so
 every module that reads a block can import the definition of one; `repo.py` answers what the
 checkout says (git, the filesystem, the exception tuples) and is imported by four scripts;

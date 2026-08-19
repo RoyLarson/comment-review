@@ -127,7 +127,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from pcst import (  # noqa: E402  -- path shim must run first
+from page import (  # noqa: E402  -- path shim must run first
     FRONT_MATTER,
     OCCUPIES_NOTHING,
 )
