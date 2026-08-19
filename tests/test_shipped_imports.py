@@ -163,10 +163,3 @@ class TestTheCheckItselfFires(unittest.TestCase):
         self.assertEqual(
             foreign_imports("import galley", self.SIBLINGS), [("galley", 1)]
         )
-
-
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
-# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
-# than `unittest discover`.
-if __name__ == "__main__":
-    unittest.main()

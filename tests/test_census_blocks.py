@@ -732,12 +732,6 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
         self.assertEqual(refused, [])
 
 
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
-# class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` -- and the tests it skipped were
-# the ones someone running a single file was iterating on. Measured
-# 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
-# test_vocabulary.py.
 class TestABlockCommentBesideCode(unittest.TestCase):
     """Four shapes, and each one was wrong in a different way.
 
@@ -897,7 +891,3 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
             p.write_text(body, encoding="utf-8")
             paragraphs = census.paragraphs_lexical(p, body, census.language_for(p))
             self.assertIn(2, census.code_lines(body, paragraphs))
-
-
-if __name__ == "__main__":
-    unittest.main()

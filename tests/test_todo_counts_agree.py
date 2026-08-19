@@ -88,7 +88,3 @@ class TestReadmeRowsAgree(unittest.TestCase):
                     f"README says {done}/{total} for {name}; the file's boxes say "
                     f"{boxes_done}/{boxes_total}",
                 )
-
-
-if __name__ == "__main__":
-    unittest.main()

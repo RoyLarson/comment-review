@@ -119,13 +119,3 @@ class TestTheFilteredCensusIsAProjection(unittest.TestCase):
         full, filtered = self._indexed(run()), self._indexed(run("--filtered"))
         self.assertTrue(full, "the full census listed no prose paragraph")
         self.assertEqual(full, filtered)
-
-
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
-# exists, so `python tests/<file>.py` reports a green bar over a SHORTER suite
-# than `unittest discover` -- and the tests it skips are the ones someone
-# running a single file is iterating on. Measured 2026-08-19: this file ran 18
-# direct against 67 discovered, because a class removed above the runner took
-# the runner's position with it.
-if __name__ == "__main__":
-    unittest.main()

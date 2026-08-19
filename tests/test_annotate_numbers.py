@@ -50,10 +50,3 @@ class TestAListOrdinalIsNotAValue(unittest.TestCase):
         # The joined text alone cannot separate the two, which is why the raw
         # lines are passed at both call sites in `census.py`.
         self.assertEqual(annotate.prose_numbers("# 1. collate"), {"1"})
-
-
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
-# class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover`.
-if __name__ == "__main__":
-    unittest.main()

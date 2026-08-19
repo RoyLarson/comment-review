@@ -46,13 +46,3 @@ class TestStructuralDocGap(unittest.TestCase):
     def test_python_never_reaches_this_pass(self):
         for paragraph in blocks_for("sample.py"):
             self.assertNotIn("doc-kind-unresolved", paragraph.annotations)
-
-
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that
-# class exists, so `python tests/<file>.py` reported a green bar over a
-# SHORTER suite than `unittest discover` -- and the tests it skipped were
-# the ones someone running a single file was iterating on. Measured
-# 2026-08-17: 26 direct against 28 discovered here, 9 against 11 in
-# test_vocabulary.py.
-if __name__ == "__main__":
-    unittest.main()

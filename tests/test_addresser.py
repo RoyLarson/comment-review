@@ -947,13 +947,3 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         walk = addresser.triggers(self.code)
         self.assertEqual(walk[0], addresser.MODULE)
         self.assertEqual(walk[1:], self.code)
-
-
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
-# exists, so `python tests/<file>.py` reports a green bar over a SHORTER suite
-# than `unittest discover` -- and the tests it skips are the ones someone
-# running a single file is iterating on. Measured 2026-08-19: this file ran 18
-# direct against 67 discovered, because a class removed above the runner took
-# the runner's position with it.
-if __name__ == "__main__":
-    unittest.main()

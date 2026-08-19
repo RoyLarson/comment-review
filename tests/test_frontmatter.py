@@ -56,10 +56,3 @@ class TestShippedFrontmatterParses(unittest.TestCase):
                         "to parse and every field is dropped at runtime. Use "
                         "` -- ` instead, or quote the value.",
                     )
-
-
-# !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
-# exists, so `python tests/<file>.py` reports a green bar over a shorter suite
-# than `unittest discover`.
-if __name__ == "__main__":
-    unittest.main()

@@ -50,7 +50,3 @@ class TestTheTwoKindSetsAreNotInterchangeable(unittest.TestCase):
             with self.subTest(kind=kind):
                 self.assertIn(kind, page.OCCUPIES_NOTHING)
                 self.assertIn(kind, page.HOLDS_NO_PROSE)
-
-
-if __name__ == "__main__":
-    unittest.main()

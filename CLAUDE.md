@@ -70,6 +70,16 @@ uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 # Run the test suite (stdlib unittest; there are no third-party test deps)
 uv run python -m unittest discover -s tests -v
 
+# ONE file, one class, one test -- `-k` matches any of the three, and NOTHING
+# else runs a subset. There is no `python tests/test_x.py`: a `__main__` runner
+# adds nothing discovery cannot do, and its POSITION is load-bearing in a way
+# nothing checks. Measured 2026-08-19, after a class was cut from above one:
+# `test_addresser.py` ran 18 tests directly and 67 under discovery, and five
+# more files had the same shape. 20 runners deleted, 184 lines with them.
+uv run python -m unittest discover -s tests -k test_addresser
+uv run python -m unittest discover -s tests -k TestEachFoliatorCountsItsOwnSteps
+uv run python -m unittest discover -s tests -k test_the_MODULE_has_an_a_and_NEVER_a_c
+
 # Stage 3 inbound: which tracked files NAME the files under review
 uv run python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo . <paths...>
 
