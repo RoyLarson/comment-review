@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 9 tasks done
+Progress: 7 of 10 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -131,5 +131,10 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       anchor?"* The rule shipped is the opposite: `raw_lines` holds the block's own characters
       only, and the anchor holds the code. ! Its MEASUREMENT was right and is what found the
       defect -- a lexical trailing comment storing `['// note']` against `int b = 2; // note`.
+- [ ] ! `Block.widest` HAS NO CALLER -- measured 2026-08-19 across `plugins/`,
+      `tests/` and `docs/`. It was corrected during B3 rather than deleted,
+      because nothing that change did made it unused, and this repo does not
+      delete pre-existing dead code without being asked. Decide: does a width rule
+      ever read it, or does it go?
 - [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)
   -- step 7's run is where the docstring half was found, by two roles independently.
