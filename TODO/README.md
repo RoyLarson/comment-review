@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (35)
+### open  (36)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -210,6 +210,7 @@ that changed a published name or rule:
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 0/5 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 0/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
+| [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | session | — | 0/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 
 ### in-progress  (4)
 

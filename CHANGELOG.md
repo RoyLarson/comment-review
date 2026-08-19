@@ -190,7 +190,13 @@ every block keyed on `""` too, so every record matched every finding -- **3,333 
 findings produced 29,583 records**, each carrying a verdict, no error raised.
 
 ! **The bridge is not dead.** It carries a run held from 0.2.4 on, where a record names a PLACE
-rather than a position. Only the pre-address reports are unreachable.
+rather than a position.
+
+! **And the pre-address reports are recoverable ONE-OFF, from the SOURCE.** Every held run records
+its subject hash, so the tree can be checked out, re-censused, and each record placed from the
+`LOCATION` line the shipped parser discards. Roy, 2026-08-19: *"that is definitely a one-off
+script thing and not worth doing 'right' now."* Filed as
+`TODO/held-runs-need-a-one-off-migration.md`.
 
 ! **The test class named for this property never called `convert`.**
 `TestConvertKeepsAHeldRunReplayable` tests `claim_object`, one field at a time -- which is how a
