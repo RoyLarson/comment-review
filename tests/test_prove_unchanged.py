@@ -56,13 +56,13 @@ GO_CODE_CHANGED = "// old doc\nfunc Add(a, b int) int {\n\treturn a - b\n}\n"
 
 # A code change hidden behind a TRAILING comment, on the same line. The
 # original fixtures above put every comment on its own line, which is why a
-# `_without_comments` that drops a trailing-comment block's whole LINE (rather than
+# `_without_comments` that drops a trailing-comment paragraph's whole LINE (rather than
 # just its comment tail) still passed them.
 GO_TRAILING_BEFORE = "func Add(a, b int) int {\n\treturn a + b // sum\n}\n"
 GO_TRAILING_CODE_CHANGED = "func Add(a, b int) int {\n\treturn a - b // sum\n}\n"
 
-# Code sharing a line with a block-comment DELIMITER. Census stores the
-# whole line for the opening/closing line of a block comment, so a line that
+# Code sharing a line with a paragraph-comment DELIMITER. Census stores the
+# whole line for the opening/closing line of a paragraph comment, so a line that
 # is genuinely all-comment and a line that merely OPENS a comment mid-code
 # are stored identically -- string equality alone cannot tell them apart.
 C_MIDLINE_BEFORE = "int x = /* why */ 5;\nint y = 6;\n"
@@ -71,7 +71,7 @@ C_MIDLINE_CHANGED = "int x = /* why */ 7;\nint y = 6;\n"
 # A file that is comment top to bottom: the stripped text is legitimately empty.
 GO_ALL_COMMENT = "// just a comment\n// and another\n"
 
-# An UNTERMINATED block comment. The lexer swallows every line below the opener
+# An UNTERMINATED paragraph comment. The lexer swallows every line below the opener
 # into one run, so `func B` never reaches the stripped text -- and the surviving
 # `func A() {}` makes the stripped text SHORT and plausible rather than empty, which
 # is why the stripped-to-nothing guard does not catch this shape.
@@ -141,7 +141,7 @@ class TestLineEndings(unittest.TestCase):
 
 
 class TestTrailingCommentExactness(unittest.TestCase):
-    """A trailing comment's block spans the CODE line it sits on.
+    """A trailing comment's paragraph spans the CODE line it sits on.
 
     Dropping the whole line erases the code, not just the comment, and two
     texts differing only in that code then stripped-compare EQUAL -- a false

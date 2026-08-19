@@ -41,7 +41,7 @@ class TestTheFile(unittest.TestCase):
 
 
 class TestWhatIsEmitted(unittest.TestCase):
-    """The block the task agent pastes into an agent's prompt."""
+    """The paragraph the task agent pastes into an agent's prompt."""
 
     def setUp(self):
         self.definitions, self.roles = vocab.load()
@@ -55,9 +55,9 @@ class TestWhatIsEmitted(unittest.TestCase):
 
     def test_the_shared_terms_reach_every_role(self):
         for role in vocab.Reviewer:
-            block = self._render(role.value)
+            paragraph = self._render(role.value)
             for term in self.roles[vocab.EVERY_AGENT]:
-                self.assertIn(f"**{term}**", block, f"{role.value} lost {term!r}")
+                self.assertIn(f"**{term}**", paragraph, f"{role.value} lost {term!r}")
 
     def test_a_role_gets_its_own_terms_and_not_another_role_s(self):
         # `guard` is block-context's and function-context's; `banner` is
@@ -69,8 +69,8 @@ class TestWhatIsEmitted(unittest.TestCase):
 
     def test_a_term_appears_once_per_block(self):
         for role in vocab.Reviewer:
-            block = self._render(role.value)
-            entries = [ln for ln in block.splitlines() if ln.startswith("- **")]
+            paragraph = self._render(role.value)
+            entries = [ln for ln in paragraph.splitlines() if ln.startswith("- **")]
             self.assertEqual(len(entries), len(set(entries)), role.value)
 
     def test_a_key_with_no_definition_is_refused_not_skipped(self):

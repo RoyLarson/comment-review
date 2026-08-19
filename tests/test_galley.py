@@ -64,39 +64,39 @@ class TestBlockMatches(unittest.TestCase):
     LINES = ORIGINAL.splitlines()
 
     def test_a_matching_block_passes(self):
-        block = {
+        paragraph = {
             "start": 2,
             "end": 3,
             "edit_start": 2,
             "edit_end": 3,
             "raw_lines": ["    # old note", "    # second line"],
         }
-        self.assertTrue(galley.block_matches(self.LINES, block))
+        self.assertTrue(galley.paragraph_matches(self.LINES, paragraph))
 
     def test_a_block_whose_text_moved_is_caught(self):
-        block = {
+        paragraph = {
             "start": 2,
             "end": 3,
             "edit_start": 2,
             "edit_end": 3,
             "raw_lines": ["    # SOMETHING ELSE", "    # x"],
         }
-        self.assertFalse(galley.block_matches(self.LINES, block))
+        self.assertFalse(galley.paragraph_matches(self.LINES, paragraph))
 
     def test_a_range_past_the_end_of_the_file_is_caught(self):
-        block = {
+        paragraph = {
             "start": 9,
             "end": 12,
             "edit_start": 9,
             "edit_end": 12,
             "raw_lines": ["    # x"],
         }
-        self.assertFalse(galley.block_matches(self.LINES, block))
+        self.assertFalse(galley.paragraph_matches(self.LINES, paragraph))
 
     def test_a_block_carrying_no_raw_lines_is_refused(self):
-        # An interval block stores none, and nothing can be verified against it.
+        # An interval paragraph stores none, and nothing can be verified against it.
         self.assertFalse(
-            galley.block_matches(
+            galley.paragraph_matches(
                 self.LINES, {"start": 2, "end": 3, "edit_start": 2, "edit_end": 3}
             )
         )
@@ -130,9 +130,9 @@ class TestCLI(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        self.blocks = json.loads(self.census.read_text(encoding="utf-8"))
+        self.paragraphs = json.loads(self.census.read_text(encoding="utf-8"))
         self.note = next(
-            i for i, b in enumerate(self.blocks, 1) if b["kind"] == "comment"
+            i for i, b in enumerate(self.paragraphs, 1) if b["kind"] == "comment"
         )
         self.out = self.root / "galley"
 
@@ -192,11 +192,11 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
 
     !! An interval's `start` and `end` are the two lines of CODE that bound it,
     so replacing `start..end` writes over both of them. Measured 2026-08-17 on
-    the first cycle run: `block_matches` answered False for all 99 intervals in
+    the first cycle run: `paragraph_matches` answered False for all 99 intervals in
     one census, so every `add` was refused before the range was ever used --
     and the refusal hid the fact that the range would have deleted code.
 
-    !! THE BLOCKS HERE COME FROM A REAL CENSUS. Built by hand they carried no
+    !! THE PARAGRAPHS HERE COME FROM A REAL CENSUS. Built by hand they carried no
     `edit_start`/`edit_end`, took the legacy fallback, and went on passing
     against a shape `census.py` no longer emits -- which is the whole failure
     being tested, one level up.
@@ -205,7 +205,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
     FILE = "a = 1\nb = 2\nc = 3\n"
 
     def _census(self, text):
-        prose = census.blocks_stdlib(Path("m.py"), text)
+        prose = census.paragraphs_stdlib(Path("m.py"), text)
         return [b.__dict__ for b in census.intervals(Path("m.py"), text, prose)]
 
     def _gap(self, text, edit_start, edit_end):
@@ -225,14 +225,14 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         self.assertEqual(galley.splice_range(self._gap(self.FILE, 2, 1)), (2, 1))
 
     def test_a_prose_block_keeps_its_own_range(self):
-        # ! A prose block is REPLACED, so its edit range is its own lines.
+        # ! A prose paragraph is REPLACED, so its edit range is its own lines.
         text = "a = 1\n# a note\nb = 2\n"
-        block = next(
+        paragraph = next(
             b.__dict__
-            for b in census.blocks_stdlib(Path("m.py"), text)
+            for b in census.paragraphs_stdlib(Path("m.py"), text)
             if b.kind == "comment"
         )
-        self.assertEqual(galley.splice_range(block), (2, 2))
+        self.assertEqual(galley.splice_range(paragraph), (2, 2))
 
     def test_the_insertion_lands_BETWEEN_the_two_code_lines(self):
         start, end = galley.splice_range(self._gap(self.FILE, 2, 1))
@@ -273,11 +273,13 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
 
     def test_an_empty_interval_MATCHES(self):
         lines = self.FILE.splitlines()
-        self.assertTrue(galley.block_matches(lines, self._gap(self.FILE, 2, 1)))
+        self.assertTrue(galley.paragraph_matches(lines, self._gap(self.FILE, 2, 1)))
 
     def test_an_interval_spanning_a_blank_line_matches(self):
         text = "a = 1\n\nb = 2\n"
-        self.assertTrue(galley.block_matches(text.splitlines(), self._gap(text, 2, 2)))
+        self.assertTrue(
+            galley.paragraph_matches(text.splitlines(), self._gap(text, 2, 2))
+        )
 
     def test_an_interval_that_GAINED_prose_is_stale(self):
         # !! The staleness that matters for an `add`: the gap it says holds no
@@ -285,20 +287,20 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         text = "a = 1\n\nb = 2\n"
         gap = self._gap(text, 2, 2)
         grown = "a = 1\n# someone wrote this\nb = 2\n".splitlines()
-        self.assertFalse(galley.block_matches(grown, gap))
+        self.assertFalse(galley.paragraph_matches(grown, gap))
 
     def test_an_interval_past_the_end_of_the_file_is_stale(self):
         gap = dict(self._gap(self.FILE, 2, 1), start=3, end=9, edit_start=4, edit_end=8)
-        self.assertFalse(galley.block_matches(self.FILE.splitlines(), gap))
+        self.assertFalse(galley.paragraph_matches(self.FILE.splitlines(), gap))
 
 
 class TestADocstringBlockMatchesItsFile(unittest.TestCase):
     """`raw_lines` is the file's slice, so a docstring compares to itself.
 
     !! Measured 2026-08-17 before the census fix: on `galley.py`'s own census,
-    all six docstring blocks answered False against an UNMODIFIED file and all
-    five comment blocks answered True. A docstring edit could not be spliced at
-    all, which blocked every re-review whose block was a docstring.
+    all six docstring paragraphs answered False against an UNMODIFIED file and all
+    five comment paragraphs answered True. A docstring edit could not be spliced at
+    all, which blocked every re-review whose paragraph was a docstring.
     """
 
     SOURCE = '''def f():
@@ -310,29 +312,31 @@ class TestADocstringBlockMatchesItsFile(unittest.TestCase):
 '''
 
     def _census(self):
-        return [b.__dict__ for b in census.blocks_stdlib(Path("m.py"), self.SOURCE)]
+        return [b.__dict__ for b in census.paragraphs_stdlib(Path("m.py"), self.SOURCE)]
 
     def test_the_docstring_block_matches_the_source_it_came_from(self):
-        blocks = [b for b in self._census() if b["kind"] == "docstring"]
-        self.assertEqual(len(blocks), 1)
-        self.assertTrue(galley.block_matches(self.SOURCE.splitlines(), blocks[0]))
+        paragraphs = [b for b in self._census() if b["kind"] == "docstring"]
+        self.assertEqual(len(paragraphs), 1)
+        self.assertTrue(
+            galley.paragraph_matches(self.SOURCE.splitlines(), paragraphs[0])
+        )
 
     def test_raw_lines_carries_the_delimiters(self):
         # ! The AST value has neither the opening `"""` nor its indent.
-        block = next(b for b in self._census() if b["kind"] == "docstring")
-        self.assertTrue(block["raw_lines"][0].lstrip().startswith('"""'))
-        self.assertTrue(block["raw_lines"][-1].strip().endswith('"""'))
+        paragraph = next(b for b in self._census() if b["kind"] == "docstring")
+        self.assertTrue(paragraph["raw_lines"][0].lstrip().startswith('"""'))
+        self.assertTrue(paragraph["raw_lines"][-1].strip().endswith('"""'))
 
     def test_lines_agrees_with_raw_lines(self):
         # ! They disagreed by one on every multi-line docstring: the AST value
         # has no closing-delimiter line.
-        block = next(b for b in self._census() if b["kind"] == "docstring")
-        self.assertEqual(block["lines"], len(block["raw_lines"]))
+        paragraph = next(b for b in self._census() if b["kind"] == "docstring")
+        self.assertEqual(paragraph["lines"], len(paragraph["raw_lines"]))
 
     def test_an_EDITED_docstring_is_stale(self):
-        block = next(b for b in self._census() if b["kind"] == "docstring")
+        paragraph = next(b for b in self._census() if b["kind"] == "docstring")
         edited = self.SOURCE.replace("More prose.", "Different prose.")
-        self.assertFalse(galley.block_matches(edited.splitlines(), block))
+        self.assertFalse(galley.paragraph_matches(edited.splitlines(), paragraph))
 
 
 class TestALineNobodyEditedKeepsItsEnding(unittest.TestCase):
@@ -365,11 +369,11 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
     """The `c` series is WRITABLE, and the column is what makes it so.
 
     !! ROY RULED IT, 2026-08-19: *"c needs to be writeable. It is the reason c
-    is not an extension of b."* Until then a `c` block was admitted by the join
+    is not an extension of b."* Until then a `c` paragraph was admitted by the join
     and refused by the galley, which discarded every other edit in that file
     with it.
 
-    !! THE BLOCKS COME FROM A REAL CENSUS. Hand-written ones passed while the
+    !! THE PARAGRAPHS COME FROM A REAL CENSUS. Hand-written ones passed while the
     shipped path failed: the fixture put the comment token alone in
     `raw_lines`, and `census.py` stores the whole physical line for a trailing
     comment -- so the suffix test that preceded this answered False on every
@@ -382,7 +386,8 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
 
     def _blocks(self, text=None):
         return [
-            b.__dict__ for b in census.blocks_stdlib(Path("m.py"), text or self.SOURCE)
+            b.__dict__
+            for b in census.paragraphs_stdlib(Path("m.py"), text or self.SOURCE)
         ]
 
     def _kind(self, kind, text=None):
@@ -404,10 +409,10 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         Roy, 2026-08-19: *"it happens to be the same opinionatedness that also
         sits in all of the code formatters."*
         """
-        block = self._kind("trailing-comment")
+        paragraph = self._kind("trailing-comment")
         line = self.SOURCE.splitlines()[1]
         self.assertEqual(line[:9], "    z = 3")
-        self.assertEqual(block["edit_column"], 10)
+        self.assertEqual(paragraph["edit_column"], 10)
         self.assertEqual(line[11], "#")
 
     def test_a_margin_and_a_trailing_comment_name_the_SAME_column(self):
@@ -426,10 +431,16 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         )
 
     def test_the_splice_keeps_the_code_and_replaces_the_prose(self):
-        block = self._kind("trailing-comment")
+        paragraph = self._kind("trailing-comment")
         out = galley.splice(
             self.SOURCE,
-            [(*galley.splice_range(block), block["edit_column"], "  # reworded")],
+            [
+                (
+                    *galley.splice_range(paragraph),
+                    paragraph["edit_column"],
+                    "  # reworded",
+                )
+            ],
         )
         self.assertEqual(out, "def f():\n    z = 3  # reworded\n    return z\n")
 
@@ -438,10 +449,10 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         # an `interval` already follows: the text carries its own leading
         # whitespace. Everything left of the `c` place -- the statement -- is
         # kept, and nothing else.
-        block = self._kind("trailing-comment")
+        paragraph = self._kind("trailing-comment")
         out = galley.splice(
             self.SOURCE,
-            [(*galley.splice_range(block), block["edit_column"], "# no gap")],
+            [(*galley.splice_range(paragraph), paragraph["edit_column"], "# no gap")],
         )
         self.assertIn("z = 3# no gap", out)
 
@@ -449,9 +460,10 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         # ! Because the kept head ends at the code, the separating whitespace
         # is already on the far side of it. Pointing the column at the `#`
         # instead left `    z = 3  ` behind and needed an rstrip to fix.
-        block = self._kind("trailing-comment")
+        paragraph = self._kind("trailing-comment")
         out = galley.splice(
-            self.SOURCE, [(*galley.splice_range(block), block["edit_column"], "")]
+            self.SOURCE,
+            [(*galley.splice_range(paragraph), paragraph["edit_column"], "")],
         )
         self.assertEqual(out, "def f():\n    z = 3\n    return z\n")
 
@@ -475,44 +487,46 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
     def test_a_block_owning_its_lines_still_loses_them_on_a_drop(self):
         # ! An empty head means the whole-line case, which is unchanged.
         text = "a = 1\n# a note\nb = 2\n"
-        block = next(
+        paragraph = next(
             b.__dict__
-            for b in census.blocks_stdlib(Path("m.py"), text)
+            for b in census.paragraphs_stdlib(Path("m.py"), text)
             if b.kind == "comment"
         )
-        self.assertEqual(block["edit_column"], 0)
-        out = galley.splice(text, [(*galley.splice_range(block), 0, "")])
+        self.assertEqual(paragraph["edit_column"], 0)
+        out = galley.splice(text, [(*galley.splice_range(paragraph), 0, "")])
         self.assertEqual(out, "a = 1\nb = 2\n")
 
     def test_a_trailing_comment_matches_its_file_ANYWAY(self):
-        # !! Which is why the kind has to be asked. `block_matches` passes --
+        # !! Which is why the kind has to be asked. `paragraph_matches` passes --
         # the census stores the whole line -- so nothing downstream would have
         # stopped the splice.
-        block = self._kind("trailing-comment")
-        self.assertTrue(galley.block_matches(self.SOURCE.splitlines(), block))
+        paragraph = self._kind("trailing-comment")
+        self.assertTrue(galley.paragraph_matches(self.SOURCE.splitlines(), paragraph))
 
     def test_a_comment_on_its_own_line_owns_its_lines_whole(self):
         text = "def f():\n    # a note\n    return 1\n"
-        block = self._kind("comment", text)
-        self.assertEqual(block["edit_column"], 0)
+        paragraph = self._kind("comment", text)
+        self.assertEqual(paragraph["edit_column"], 0)
 
     def test_a_docstring_owns_its_lines_whole(self):
         text = 'def f():\n    """A note."""\n    return 1\n'
-        block = self._kind("docstring", text)
-        self.assertEqual(block["edit_column"], 0)
+        paragraph = self._kind("docstring", text)
+        self.assertEqual(paragraph["edit_column"], 0)
 
     def test_a_census_without_the_field_is_REFUSED_not_defaulted(self):
         """!! Defaulting it put the deleted statement back.
 
         A trailing comment's stored text IS the file's whole line, so the
         staleness check passes it and nothing else would have stopped the
-        write. The census is refused whole instead, before any block is read.
+        write. The census is refused whole instead, before any paragraph is read.
         """
-        blocks = self._blocks()
-        self.assertIsNone(galley.unanswerable(blocks))
+        paragraphs = self._blocks()
+        self.assertIsNone(galley.unanswerable(paragraphs))
         for field in ("edit_column", "edit_start", "edit_end"):
             with self.subTest(field=field):
-                stripped = [{k: v for k, v in b.items() if k != field} for b in blocks]
+                stripped = [
+                    {k: v for k, v in b.items() if k != field} for b in paragraphs
+                ]
                 problem = galley.unanswerable(stripped)
                 self.assertIsNotNone(problem)
                 self.assertIn(field, problem)
@@ -527,16 +541,18 @@ class TestTheGalleyWritesATrailingCommentEndToEnd(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "m.py").write_text(self.SOURCE, encoding="utf-8")
-            blocks = [
-                b.__dict__ for b in census.blocks_stdlib(Path("m.py"), self.SOURCE)
+            paragraphs = [
+                b.__dict__ for b in census.paragraphs_stdlib(Path("m.py"), self.SOURCE)
             ]
             index = next(
-                i for i, b in enumerate(blocks, 1) if b["kind"] == "trailing-comment"
+                i
+                for i, b in enumerate(paragraphs, 1)
+                if b["kind"] == "trailing-comment"
             )
-            # ! `default=list` -- a Block holds a set field, and the shipped
+            # ! `default=list` -- a Paragraph holds a set field, and the shipped
             # writer converts it. The test only needs it readable back.
             (root / "c.json").write_text(
-                json.dumps(blocks, default=list), encoding="utf-8"
+                json.dumps(paragraphs, default=list), encoding="utf-8"
             )
             (root / "e.json").write_text(
                 json.dumps({str(index): "  # reworded trailing"}), encoding="utf-8"
@@ -576,8 +592,8 @@ if __name__ == "__main__":
 class TestTheCSeriesIsWritableInALexicalLanguage(unittest.TestCase):
     """B3's point: Go, not just Python.
 
-    !! IT WAS PYTHON ONLY. `blocks_lexical` cut `raw_lines` at the comment
-    opener, so `block_matches` refused every lexical trailing comment on a
+    !! IT WAS PYTHON ONLY. `paragraphs_lexical` cut `raw_lines` at the comment
+    opener, so `paragraph_matches` refused every lexical trailing comment on a
     census seconds old -- one of eleven languages could have a `c` edit written.
     """
 
@@ -592,11 +608,11 @@ class TestTheCSeriesIsWritableInALexicalLanguage(unittest.TestCase):
         return [vars(b) for b in got]
 
     def _splice(self, kind, change):
-        block = next(b for b in self._blocks() if b["kind"] == kind)
-        self.assertTrue(galley.block_matches(self.SRC.splitlines(), block))
+        paragraph = next(b for b in self._blocks() if b["kind"] == kind)
+        self.assertTrue(galley.paragraph_matches(self.SRC.splitlines(), paragraph))
         return galley.splice(
             self.SRC,
-            [(*galley.splice_range(block), block["edit_column"], change)],
+            [(*galley.splice_range(paragraph), paragraph["edit_column"], change)],
         )
 
     def test_a_patch_keeps_the_statement_AND_its_tab(self):

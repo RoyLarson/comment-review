@@ -2,7 +2,7 @@
 
     python addresser.py --census census.json --repo D
 
-`address()` names a block against the CODE -- `pkg:core.py@a5`. The form it
+`address()` names a paragraph against the CODE -- `pkg:core.py@a5`. The form it
 replaced named it by LINE, `a.py:33-34`, which answers "where is this in the file
 I just read" and cannot answer "which place is this": this tool EDITS PROSE, and
 every prose edit moves the line numbers of the code below it, so two files
@@ -11,9 +11,9 @@ differing only in comments disagree about where the same statement is.
 already recorded.
 
 !! AN ADDRESS IS NOT A SPAN OF LINES. EVERY LINE HAS EXACTLY ONE ADDRESS, AND A
-BLOCK IS JUST THE LINES THAT SHARE ONE. Ruled 2026-08-19. ! Read it as a range
+PARAGRAPH IS JUST THE LINES THAT SHARE ONE. Ruled 2026-08-19. ! Read it as a range
 and the old system is back under a new name: you start asking which lines a
-block "covers", whether two blocks overlap, and how wide to make an addressing
+paragraph "covers", whether two paragraphs overlap, and how wide to make an addressing
 range -- all questions a line-numbered address had and an address does not.
 Three sessions in one day reached for a range after this was settled; it is
 written here because the reflex is strong, not because it is subtle.
@@ -54,7 +54,7 @@ still changes the body's shape and still fails -- filed as
 !! AND IT PROVES NOTHING AT ALL ON AN UNPROVABLE FILE, which is the hard
 exception this scheme rests on and must name. `prove_unchanged` returns
 `unprovable` for a comment delimiter sharing a line with code, for an
-unterminated block comment, and for a census that disagrees with the file. Such
+unterminated paragraph comment, and for a census that disagrees with the file. Such
 a run is REPORTED and counted a failure rather than passed -- so there is no
 stage 8 to hand an address to, and the guarantee above is never claimed for a
 file it does not cover.
@@ -80,7 +80,7 @@ conflated, because both sit on adjacent lines.
 !! THE SAME NUMBER NAMES THE SAME CODE LINE IN BOTH SERIES. `b` and `c` BOTH
 COUNT FROM 0, so the code line at index N owns exactly two folios -- `bN` above
 it and `cN` beside it -- and a DECLARATION owns those plus its own `a`, which is
-why an anchor can carry blocks from all three series.
+why an anchor can carry paragraphs from all three series.
 
 ! SUPERSEDED 2026-08-19, and it was an off-by-one in the file that costs 5x to
 get wrong. This said the same number names DIFFERENT statements: true while `c`
@@ -110,18 +110,18 @@ lines it is a number that means nothing until it is resolved against another
 series.
 
 !! THE SAME PLACE IS THE SAME ADDRESS WHETHER PROSE FILLS IT OR NOT, which is
-the property line numbers cannot give. A comment block occupying three lines and
+the property line numbers cannot give. A comment paragraph occupying three lines and
 an empty interval in the same position are both `b1`; a documented and an
 undocumented declaration are both `a5`. So a finding can say where prose belongs
 in a file that does not have it yet, and two versions of a file compare place by
 place.
 
 !! AN ADDRESS IS A SINGLE FACT, and the `a` series is what makes it one.
-Measured 2026-08-18 over 9,975 blocks in this repo, 28 places were answered by
-two blocks -- and 28 of 28 were a docstring sharing a gap with the comment run
+Measured 2026-08-18 over 9,975 paragraphs in this repo, 28 places were answered by
+two paragraphs -- and 28 of 28 were a docstring sharing a gap with the comment run
 beneath it, because a docstring was being named for the gap it sat in rather
 than for the declaration it is about. With `a` the docstring leaves the `b`
-series: re-measured over 10,744 blocks, 0 shared places.
+series: re-measured over 10,744 paragraphs, 0 shared places.
 
 ! So an address alone identifies a place, and a record needs nothing beside it.
 `--check` re-reads that claim on every run rather than trusting this paragraph.
@@ -148,8 +148,8 @@ GAP = "b"
 DECLARED = "a"
 
 
-def line_address(block: dict) -> str:
-    """DEPRECATED. `path:start-end` -- how this system named a block until 0.2.4.
+def line_address(paragraph: dict) -> str:
+    """DEPRECATED. `path:start-end` -- how this system named a paragraph until 0.2.4.
 
     !! IT IS DEPRECATED BECAUSE IT IS TRUE OF ONE FILE STATE ONLY, and this
     tool edits prose: every prose edit moves the line numbers of the code below
@@ -168,7 +168,7 @@ def line_address(block: dict) -> str:
     cost 268 refusals in a single run, every one of them a correct address.
 
     !! IT NAMES TWO DIFFERENT THINGS AND THE FORMAT CANNOT TELL YOU WHICH.
-    On a block that HOLDS prose, `start-end` is the lines that prose occupies,
+    On a paragraph that HOLDS prose, `start-end` is the lines that prose occupies,
     inclusive. On an INTERVAL it is the two lines of CODE that BOUND a gap --
     `a.py:33-34` there means "between 33 and 34", where the same string on a
     comment means "lines 33 through 34".
@@ -177,12 +177,12 @@ def line_address(block: dict) -> str:
     those two, nothing or blank lines, and `reviewer-brief.md` tells a reviewer
     its `change` replaces all of it. What it holds no more of is PROSE, which is
     why an interval is always `0L`. Read the KIND, or that count, to know which
-    reading applies -- a block holding prose is never `0L`.
+    reading applies -- a paragraph holding prose is never `0L`.
 
     !! AND IT IS TRUE OF ONE FILE STATE ONLY. This tool EDITS PROSE, and every
     prose edit moves the line numbers of the code below it, so an address is
     valid for the file its census was built from and no other. Measured
-    2026-08-18 on a prose-only edit to a single docstring: 2 of 3 prose blocks
+    2026-08-18 on a prose-only edit to a single docstring: 2 of 3 prose paragraphs
     took a NEW line address, and 0 of 3 took a new one from `addresser.py`,
     which names a place against the CODE rather than the lines. Use this to say
     where a thing is in the file you just read; use the addresser to say which
@@ -195,10 +195,10 @@ def line_address(block: dict) -> str:
     OPERATION instead. Raised by Roy 2026-08-18 reading a filtered census.
 
     Args:
-        block: one census entry, as a dict.
+        paragraph: one census entry, as a dict.
 
     Returns:
-        The block's line address, in the format retired at 0.2.4.
+        The paragraph's line address, in the format retired at 0.2.4.
     """
     warnings.warn(
         "line_address() is deprecated: a line address is true of ONE file"
@@ -208,11 +208,11 @@ def line_address(block: dict) -> str:
         DeprecationWarning,
         stacklevel=2,
     )
-    path = str(block.get("path", "")).replace("\\", "/")
-    return f"{path}:{block.get('start')}-{block.get('end')}"
+    path = str(paragraph.get("path", "")).replace("\\", "/")
+    return f"{path}:{paragraph.get('start')}-{paragraph.get('end')}"
 
 
-def address(block: dict, code: list[int]) -> str:
+def address(paragraph: dict, code: list[int]) -> str:
     """`pkg:mod.py@b3` -- WHICH PLACE this is, as against where it sits.
 
     !! `address` NAMES A POSITION; THIS NAMES A PLACE, and only the second
@@ -234,7 +234,7 @@ def address(block: dict, code: list[int]) -> str:
     change shifts the series, and stage 7b proves this tool makes none.
 
     !! AND IT IS WHAT MAKES AN ADDRESS A SINGLE FACT. Measured 2026-08-18 over
-    9,975 blocks in this repo: 28 places were answered by two blocks, and 28 of
+    9,975 paragraphs in this repo: 28 places were answered by two paragraphs, and 28 of
     28 were a docstring sharing a gap with the comment run beneath it. A
     docstring is about its DECLARATION, not about the gap it happens to sit in,
     so naming it `bN` put two different subjects at one address. With the `a`
@@ -264,31 +264,31 @@ def address(block: dict, code: list[int]) -> str:
     what `b3` is, and it collides with nothing.
 
     Args:
-        block: one census entry, as a dict.
+        paragraph: one census entry, as a dict.
         code: that file's code lines, in order, from `code_lines`.
 
     Returns:
-        The block's address, or "" when it carries no usable position.
+        The paragraph's address, or "" when it carries no usable position.
     """
-    path = flatten(block.get("path", ""))
-    start = block.get("start")
+    path = flatten(paragraph.get("path", ""))
+    start = paragraph.get("start")
     if not isinstance(start, int):
         return ""
-    # The census STATES the ordinal; -1 says this block documents no declaration.
-    declares = block.get("declares", -1)
+    # The census STATES the ordinal; -1 says this paragraph documents no declaration.
+    declares = paragraph.get("declares", -1)
     if isinstance(declares, int) and declares >= 0:
         return f"{path}@{DECLARED}{declares}"
     # !! ONE FACT DECIDES THIS, AND THE PRODUCER STATES IT. `edit_column` is
     # non-zero exactly when code precedes the prose on its first line -- a
-    # trailing comment, a bare `margin`, a block comment opened after a
+    # trailing comment, a bare `margin`, a paragraph comment opened after a
     # statement. It was decided here from the KIND and in `code_lines_of` from
-    # the block, and the two disagreed on the one kind that is in neither list: a
+    # the paragraph, and the two disagreed on the one kind that is in neither list: a
     # `comment` opened mid-line took a `b` folio for a line it sits ON, so that
     # folio named the comment AND the gap. Measured 2026-08-19 on
     # `let b = 2; /* opens`.
-    if block.get("edit_column", 0) and start in code:
+    if paragraph.get("edit_column", 0) and start in code:
         return f"{path}@c{code.index(start)}"
-    at = block.get("edit_start")
+    at = paragraph.get("edit_start")
     if not isinstance(at, int):
         return ""
     return f"{path}@b{sum(1 for n in code if n < at)}"
@@ -360,7 +360,7 @@ def folio_of(address: str) -> tuple[str, str]:
     return (path, where) if sep else ("", "")
 
 
-def resolve(address: str, blocks: list[dict]) -> list[int]:
+def resolve(address: str, paragraphs: list[dict]) -> list[int]:
     """Which census entries carry this address, as 1-based census indices.
 
     !! THE INVERSE IS A LOOKUP, NOT ARITHMETIC. `bN` is "the gap after code line
@@ -375,21 +375,21 @@ def resolve(address: str, blocks: list[dict]) -> list[int]:
 
     Args:
         address: `pkg:mod.py@b3` or `pkg:mod.py@c3`.
-        blocks: the census entries FOR THAT FILE, in census order.
+        paragraphs: the census entries FOR THAT FILE, in census order.
 
     Returns:
-        The 1-based positions within `blocks`, in order. Empty when nothing
+        The 1-based positions within `paragraphs`, in order. Empty when nothing
         carries it -- which a caller reports rather than treating as "none".
     """
-    return [i for i, b in enumerate(blocks, 1) if stable(b) == address]
+    return [i for i, b in enumerate(paragraphs, 1) if stable(b) == address]
 
 
-def for_anchor(anchor: str, series: str, blocks: list[dict]) -> list[dict]:
-    """The blocks of one SERIES belonging to one anchor -- `go`'s `c`, say.
+def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
+    """The paragraphs of one SERIES belonging to one anchor -- `go`'s `c`, say.
 
     !! AN ANCHOR OWNS A PLACE IN EVERY SERIES, and asking for one by POSITION
     breaks the moment a language puts it elsewhere. Python's docstring sits
-    AFTER its `def` and Rust's `///` BEFORE its `fn`, so "the block above the
+    AFTER its `def` and Rust's `///` BEFORE its `fn`, so "the paragraph above the
     declaration" names the doc in one language and the comment above it in the
     other. This asks the CENSUS, which parsed the file, instead of counting.
 
@@ -410,13 +410,13 @@ def for_anchor(anchor: str, series: str, blocks: list[dict]) -> list[dict]:
     Args:
         anchor: the declaration's name, as the census stamped it.
         series: `a`, `b` or `c`.
-        blocks: the census entries. Pass the FULL census; a filtered one is
+        paragraphs: the census entries. Pass the FULL census; a filtered one is
             missing exactly the empty places this is most often asked for.
 
     Returns:
         The matching entries, in census order.
     """
-    mine = [b for b in blocks if str(b.get("anchor", "")) == anchor]
+    mine = [b for b in paragraphs if str(b.get("anchor", "")) == anchor]
     if series == DECLARED:
         return [
             b for b in mine if isinstance(b.get("declares"), int) and b["declares"] >= 0
@@ -429,7 +429,7 @@ def for_anchor(anchor: str, series: str, blocks: list[dict]) -> list[dict]:
     # `--anchor 'def f():' --series c` answered "no `c` place" on a census
     # holding exactly that one.
     #
-    # ! The block's OWN series decides it: an `a` declares, a `c` has a column,
+    # ! The paragraph's OWN series decides it: an `a` declares, a `c` has a column,
     # a `b` has neither. No second field and no inference from kind.
     direct = [b for b in mine if _series_of(b) == series]
     if direct:
@@ -439,7 +439,7 @@ def for_anchor(anchor: str, series: str, blocks: list[dict]) -> list[dict]:
         0,
     )
     path = {str(b.get("path", "")) for b in mine}
-    here = [b for b in blocks if str(b.get("path", "")) in path]
+    here = [b for b in paragraphs if str(b.get("path", "")) in path]
     if not at:
         # !! THE MODULE HAS NO OPENING LINE, so it has no `c` and its `b` is
         # `b0` by definition -- the gap before the first code line, which is
@@ -451,7 +451,7 @@ def for_anchor(anchor: str, series: str, blocks: list[dict]) -> list[dict]:
     if series == ON:
         return [b for b in here if b.get("start") == at and b.get("end") == at]
     if series == GAP:
-        # ! The gap ABOVE the declaration: the block whose lines end just before
+        # ! The gap ABOVE the declaration: the paragraph whose lines end just before
         # it. An empty gap holds no line, so it answers by its EDIT range.
         return [
             b
@@ -462,53 +462,53 @@ def for_anchor(anchor: str, series: str, blocks: list[dict]) -> list[dict]:
     return []
 
 
-def _series_of(block: dict) -> str:
-    """Which series this block's own address is in -- `a`, `b` or `c`.
+def _series_of(paragraph: dict) -> str:
+    """Which series this paragraph's own address is in -- `a`, `b` or `c`.
 
     ! Read from the two facts the census states and NOT from the kind, which
-    would need a case per kind and a new one for every kind added: a block
-    documenting a declaration is an `a`, a block with a column sits beside code
+    would need a case per kind and a new one for every kind added: a paragraph
+    documenting a declaration is an `a`, a paragraph with a column sits beside code
     and is a `c`, and everything else holds a gap and is a `b`.
     """
-    declares = block.get("declares", -1)
+    declares = paragraph.get("declares", -1)
     if isinstance(declares, int) and declares >= 0:
         return DECLARED
-    return ON if block.get("edit_column") else GAP
+    return ON if paragraph.get("edit_column") else GAP
 
 
-def code_lines_of(text: str, blocks: list[dict]) -> list[int]:
+def code_lines_of(text: str, paragraphs: list[dict]) -> list[int]:
     """Which lines of this file are LINES OF CODE, at the tier the census ran.
 
     A line is code when it holds something that is not blank and not prose. The
     two tiers cannot answer that identically, and the difference is the
     docstring: `tokenized` knows a string literal is a declaration's
     documentation, `lexical` knows only what its comment-syntax record spells.
-    So a block's BOUNDS are tier-dependent while its CONTENT is not.
+    So a paragraph's BOUNDS are tier-dependent while its CONTENT is not.
 
     ! A `trailing-comment` sits ON a code line, so that line stays code. A
-    `comment` or `docstring` block occupies its lines entirely, so those lines
+    `comment` or `docstring` paragraph occupies its lines entirely, so those lines
     are not. An `interval` occupies nothing, which is what makes this safe to
     run over a census that already holds intervals.
 
-    !! A BLOCK'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
+    !! A PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
     `int b = 2; /* opens` spans from that line, and taking the whole span
     dropped the statement from the code set, moving every interval boundary
     below it.
 
-    !! THE BLOCK SAYS SO, via `edit_column`. This tested whether the stored
+    !! THE PARAGRAPH SAYS SO, via `edit_column`. This tested whether the stored
     text was a proper SUFFIX of the physical line, which is an inference and
-    was wrong in both directions: `blocks_stdlib` stores the WHOLE line for a
-    trailing comment, so the test never fired for one -- and a block comment
+    was wrong in both directions: `paragraphs_stdlib` stores the WHOLE line for a
+    trailing comment, so the test never fired for one -- and a paragraph comment
     opened after a statement had its declaration line dropped from the code
     set, moving every interval boundary in the file. Measured 2026-08-18.
 
     ! It takes DICTS, so it reads a census off disk and a census still being
-    built alike -- `census.code_lines` is this function over its own `Block`s.
+    built alike -- `census.code_lines` is this function over its own `Paragraph`s.
     An address counts code lines, so the count has to be the same one the
     census used or the two disagree about what `@b3` means.
     """
     occupied: set[int] = set()
-    for b in blocks:
+    for b in paragraphs:
         if b.get("kind") in OCCUPIES_NOTHING:
             continue
         start, end = b.get("start"), b.get("end")
@@ -524,11 +524,11 @@ def code_lines_of(text: str, blocks: list[dict]) -> list[int]:
     ]
 
 
-def stable(block: dict) -> str:
-    """The place the census STAMPED on this block, or "" if it carries none.
+def stable(paragraph: dict) -> str:
+    """The place the census STAMPED on this paragraph, or "" if it carries none.
 
     !! IT READS; `place` COMPUTES. One implementation, one caller that runs it
-    -- `census_for`, which holds the file text and the finished block list at
+    -- `census_for`, which holds the file text and the finished paragraph list at
     once -- and everything downstream reads the result. Two computations that
     agree today is not the property wanted, because only one of them can be
     right tomorrow.
@@ -536,7 +536,7 @@ def stable(block: dict) -> str:
     ! "" means the census predates the field. A caller REPORTS that rather than
     deriving a place from a census that never had one.
     """
-    return str(block.get("address", ""))
+    return str(paragraph.get("address", ""))
 
 
 def main() -> int:
@@ -554,7 +554,7 @@ def main() -> int:
     ap.add_argument(
         "--check",
         action="store_true",
-        help="verify every address resolves back to its own block, and stop",
+        help="verify every address resolves back to its own paragraph, and stop",
     )
     ap.add_argument(
         "--anchor",
@@ -583,14 +583,14 @@ def main() -> int:
     except json.JSONDecodeError as e:
         print(f"{args.census} is not JSON ({e})")
         return 2
-    blocks = loaded.get("blocks", []) if isinstance(loaded, dict) else loaded
-    if not isinstance(blocks, list) or not blocks:
-        print(f"{args.census} carries no blocks")
+    paragraphs = loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded
+    if not isinstance(paragraphs, list) or not paragraphs:
+        print(f"{args.census} carries no paragraphs")
         return 2
 
     # !! NO STALENESS SWEEP. This module answers about the CENSUS IT WAS GIVEN,
     # and every question it takes is census-internal: does each address resolve
-    # to one block, what lines does this census say an address names, which
+    # to one paragraph, what lines does this census say an address names, which
     # place is this anchor's `c`. None of them reads the tree.
     #
     # !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
@@ -603,7 +603,7 @@ def main() -> int:
     # ! A sweep WAS here, added after four artifacts three edits old were each
     # read as a defect in the code. That failure was real and the guard was in
     # the wrong module: staleness matters where a file is WRITTEN, and
-    # `galley.block_matches` already refuses a stale range before it splices.
+    # `galley.paragraph_matches` already refuses a stale range before it splices.
     # Here it refused a census built seconds earlier on every non-Python file
     # carrying a trailing comment, with a message that re-running never fixed --
     # and it masked a genuine collision `--check` exists to report.
@@ -616,25 +616,25 @@ def main() -> int:
         if not args.series:
             print("--anchor needs --series: a, b or c")
             return 2
-        return _for_anchor(args.anchor, args.series, blocks)
+        return _for_anchor(args.anchor, args.series, paragraphs)
     if args.resolve:
-        return _resolve_one(args.resolve, blocks)
+        return _resolve_one(args.resolve, paragraphs)
     if args.check:
-        return _check(blocks)
+        return _check(paragraphs)
 
     unplaced = 0
-    for i, block in enumerate(blocks, 1):
-        where = stable(block)
+    for i, paragraph in enumerate(paragraphs, 1):
+        where = stable(paragraph)
         if not where:
             unplaced += 1
-        kind = block.get("kind", "")
-        print(f"{i:4d}  {stable(block) or 'UNPLACED':<34} {kind}")
+        kind = paragraph.get("kind", "")
+        print(f"{i:4d}  {stable(paragraph) or 'UNPLACED':<34} {kind}")
     if unplaced:
         print(f"\n{unplaced} entries could not be addressed.")
     return 1 if unplaced else 0
 
 
-def _resolve_one(address: str, blocks: list[dict]) -> int:
+def _resolve_one(address: str, paragraphs: list[dict]) -> int:
     """An address in, the LINES that now cover it out.
 
     !! THIS IS THE DIRECTION STAGE 8 NEEDS, and it needs it because 7b has
@@ -659,24 +659,24 @@ def _resolve_one(address: str, blocks: list[dict]) -> int:
     if not where:
         print(f"{address!r} is not an address -- it needs a `@place`")
         return 2
-    real = unflatten(path, sorted({str(b.get("path", "")) for b in blocks}))
+    real = unflatten(path, sorted({str(b.get("path", "")) for b in paragraphs}))
     if not real:
         print(f"no file in this census flattens to {path!r}")
         return 1
-    mine = [b for b in blocks if str(b.get("path", "")) == real]
+    mine = [b for b in paragraphs if str(b.get("path", "")) == real]
     hits = resolve(address, mine)
     if not hits:
         print(f"{address} names no entry in this census")
         return 1
     for i in hits:
-        block = mine[i - 1]
+        paragraph = mine[i - 1]
         print(
-            f"{real}:{block.get('start')}-{block.get('end')}\t{block.get('kind', '')}"
+            f"{real}:{paragraph.get('start')}-{paragraph.get('end')}\t{paragraph.get('kind', '')}"
         )
     return 0
 
 
-def _for_anchor(anchor: str, series: str, blocks: list[dict]) -> int:
+def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
     """Print the address of one anchor's place in one series.
 
     Returns:
@@ -684,9 +684,9 @@ def _for_anchor(anchor: str, series: str, blocks: list[dict]) -> int:
         anchor and series -- which is a fact about the run, not a fault: a
         language whose tier resolves no anchors has none to give.
     """
-    found = for_anchor(anchor, series, blocks)
+    found = for_anchor(anchor, series, paragraphs)
     if not found:
-        known = sorted({str(b.get("anchor")) for b in blocks if b.get("anchor")})
+        known = sorted({str(b.get("anchor")) for b in paragraphs if b.get("anchor")})
         print(f"no `{series}` place for anchor {anchor!r}")
         if known:
             print(f"  anchors this census carries: {', '.join(known[:12])}")
@@ -712,13 +712,13 @@ def _for_anchor(anchor: str, series: str, blocks: list[dict]) -> int:
     return 0
 
 
-def _check(blocks: list[dict]) -> int:
-    """Does every address resolve back to the one block that carries it?
+def _check(paragraphs: list[dict]) -> int:
+    """Does every address resolve back to the one paragraph that carries it?
 
     !! THE REFERENCE HAS TO MATCH THE ANCHOR, and that is the whole worth of an
     address. Roy, 2026-08-18: an agent will grep and read the file anyway, so
     the lookup is convenience -- what a citation buys is that it names the place
-    it claims. An address two blocks answer to resolves to the wrong prose, and
+    it claims. An address two paragraphs answer to resolves to the wrong prose, and
     nothing downstream can tell.
 
     ! THE SAME SHAPE `source_problem` ALREADY ENFORCES ON `SOURCES`. Roy: "same
@@ -729,10 +729,10 @@ def _check(blocks: list[dict]) -> int:
 
     ! Two reports, and only the first is a fault. UNADDRESSED means the census
     cannot name the place at all -- no `edit_start`, or no position -- and
-    nothing can cite it. SHARED means several blocks sit in one gap, which is
+    nothing can cite it. SHARED means several paragraphs sit in one gap, which is
     ordinary and true: a docstring and the comment run under it are both after
     the same code line. It is reported because citing that address ALONE would
-    resolve to the wrong one of them; the record's `block` index is what
+    resolve to the wrong one of them; the record's `paragraph` index is what
     separates them.
 
     Returns:
@@ -742,37 +742,37 @@ def _check(blocks: list[dict]) -> int:
     """
     unaddressed: list[str] = []
     shared: dict[str, list[str]] = {}
-    for path in sorted({str(b.get("path", "")) for b in blocks}):
-        mine = [b for b in blocks if str(b.get("path", "")) == path]
-        for i, block in enumerate(mine, 1):
-            where = stable(block)
+    for path in sorted({str(b.get("path", "")) for b in paragraphs}):
+        mine = [b for b in paragraphs if str(b.get("path", "")) == path]
+        for i, paragraph in enumerate(mine, 1):
+            where = stable(paragraph)
             if not where:
                 unaddressed.append(
-                    f"{path} entry {i}: lines {block.get('start')}-{block.get('end')}"
+                    f"{path} entry {i}: lines {paragraph.get('start')}-{paragraph.get('end')}"
                 )
                 continue
             if len(resolve(where, mine)) > 1:
                 shared.setdefault(where, []).append(
-                    f"{block.get('start')}-{block.get('end')} {block.get('kind', '')}"
+                    f"{paragraph.get('start')}-{paragraph.get('end')} {paragraph.get('kind', '')}"
                 )
     for line in unaddressed:
         print(f"UNADDRESSED  {line}")
     for where, rows in sorted(shared.items()):
         print(f"SHARED       {where}  <- {' | '.join(rows)}")
-    named = len(blocks) - len(unaddressed)
-    files = len({str(b.get("path", "")) for b in blocks})
-    print(f"\n{named} of {len(blocks)} blocks addressed over {files} files.")
+    named = len(paragraphs) - len(unaddressed)
+    files = len({str(b.get("path", "")) for b in paragraphs})
+    print(f"\n{named} of {len(paragraphs)} paragraphs addressed over {files} files.")
     if shared:
         # ! Advice only where it applies. Printing it against zero shared places
         # tells a reader to guard something that did not happen.
         print(
-            f"{len(shared)} places hold more than one block"
-            f" ({sum(len(v) for v in shared.values())} blocks) -- cite the census"
+            f"{len(shared)} places hold more than one paragraph"
+            f" ({sum(len(v) for v in shared.values())} paragraphs) -- cite the census"
             f" index alongside the address for those."
         )
     if unaddressed:
         print(
-            f"{len(unaddressed)} blocks could not be addressed at all."
+            f"{len(unaddressed)} paragraphs could not be addressed at all."
             " A census with no `edit_start` cannot name a gap; re-run census.py."
         )
     return 1 if unaddressed else 0

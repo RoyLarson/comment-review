@@ -259,7 +259,7 @@ must type appeared nowhere here as keys.
 | `correct` | `false`, `true` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the paragraph -- if it is not there, the finding is on the wrong one |
 | `patch` | `from`, `to` | the sentence as it stands and the rewrite. ! `from` is checked against the paragraph. A `patch` needs no source: the claim is already true, and only its wording is at issue |
 | `add` | `missing`, `anchor` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the payload's |
-| `move` | `from`, `to` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting BLOCKS |
+| `move` | `from`, `to` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting PARAGRAPHS |
 
 <!-- END GENERATED -->
 

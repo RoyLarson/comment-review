@@ -11,13 +11,13 @@ span absorbing the punctuation beside it. Each of those reported its error
 against work that was CORRECT.
 
 !! A REVIEWER FILLS A TEMPLATE; IT DOES NOT COMPOSE A DOCUMENT. `--seed` writes
-one slot per prose block with `block` and `address` already in it, so the
+one slot per prose paragraph with `paragraph` and `address` already in it, so the
 reviewer sets only what it decides: `verdict`, `claim`, `reason`, `sources`,
 `change`. **Validation then asks whether the answer is COMPLETE rather than
 whether the syntax can be parsed** -- a missing field is visibly empty, not
 absent.
 
-!! THE REVIEWER NEVER TRANSCRIBES THE BLOCK, and that retires a whole class of
+!! THE REVIEWER NEVER TRANSCRIBES THE PARAGRAPH, and that retires a whole class of
 refusal rather than a bug in one. Measured 2026-08-17: **83 refusals in one run
 were spent on transcription fidelity, and not one of them was about a finding.**
 
@@ -30,12 +30,12 @@ compare without aligning tokens. A token diff had to decide where a span BEGAN,
 and got it wrong on a trailing full stop and on markdown emphasis; lines have
 no such question.
 
-! COVERAGE IS STRUCTURAL. Every prose block gets a slot, so a block nobody
+! COVERAGE IS STRUCTURAL. Every prose paragraph gets a slot, so a paragraph nobody
 ruled on is a slot with a null verdict rather than an index missing from a
 list, and nothing has to reconcile what was expected against what arrived.
 
 !! A SEEDED SLOT IS NOT THE ONLY LEGAL RECORD -- APPEND ONE FOR ANY CENSUS
-INDEX. `--seed` lays down the PROSE blocks because those are what a reviewer is
+INDEX. `--seed` lays down the PROSE paragraphs because those are what a reviewer is
 ACCOUNTABLE for, and an empty `interval` gets none. But `add` exists to cite an
 interval: its finding is that a constraint holds in code and appears in NO
 prose, so its subject is the gap. **A reviewer filing an `add` writes a new
@@ -64,7 +64,7 @@ from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 # blocked `claim_object` from being read by the join that needs it.
 # !! The THREE shapes `reviewer-brief.md` says reach `query`, and a query must
 # NAME the one it is. A closed set beats guessing at free text: the shape decides
-# whether the block is work (the author must answer) or a boundary report (the
+# whether the paragraph is work (the author must answer) or a boundary report (the
 # role is saying which scope owns it), and that is not something to infer from
 # whether a sentence happens to contain the word "resolved".
 OUT_OF_ROLE = "outside my role"
@@ -93,16 +93,16 @@ class Verdict:
             `add` is about prose that is missing, so both quote nothing.
         quotes_until: what ends that sentence; "" runs to the end of `CLAIM`.
         change_all: markers `CHANGE` must carry. Only `move`, which changes two
-            blocks and shows both.
+            paragraphs and shows both.
         owes_claim: every verdict but `clean` states what must happen.
         owes_reason: likewise -- why.
         owes_change: `clean` rules on nothing and `query` proposes no text.
-        may_empty: this verdict may leave the block with NOTHING in it, so an
+        may_empty: this verdict may leave the paragraph with NOTHING in it, so an
             empty `CHANGE` is the edit rather than a missing one. Only `drop`,
-            and only where `CLAIM` names the whole block -- `edit_problem`
+            and only where `CLAIM` names the whole paragraph -- `edit_problem`
             checks that rather than taking the reviewer's word, so a blank
             `CHANGE` is not a way to skip writing one. ! Without this a
-            whole-block `drop` could not be expressed at all: the reviewer
+            whole-paragraph `drop` could not be expressed at all: the reviewer
             wrote the blank deliberately and said so in `REASON`, which nothing
             downstream reads. Measured 2026-08-17.
         owes_address: `clean` is exempt because a role returns it on most of the
@@ -110,7 +110,7 @@ class Verdict:
         owes_sources: `clean` cites no claim, so it cites no place.
         diffable: `BLOCK`-against-`CHANGE` names the edited sentence. False
             where there is nothing to diff -- no text proposed, no original, or
-            a `CHANGE` holding two blocks rather than one.
+            a `CHANGE` holding two paragraphs rather than one.
         needs_anchor: `CLAIM` names a site in backticks. ! Not a SIDE -- the
             address says that.
         needs_attempted: `CLAIM` names a check that was tried.
@@ -120,12 +120,12 @@ class Verdict:
             a pass.
         can_declare_scope: this verdict may be a BOUNDARY REPORT rather
             than work -- `query`, and only in its `outside my role` shape.
-        removes: takes the sentence out of the block.
+        removes: takes the sentence out of the paragraph.
         rules_on_text: keeps the sentence and changes it. ! `removes` against
             `rules_on_text` on ONE sentence is the contradiction, and `move` is
             deliberately neither -- relocation and a truth fix COMPOSE, applied
             at synthesis steps 2 and 3. Ruled 2026-08-17; measured, 5 of 8
-            blocks the old set flagged were this shape and each cost a
+            paragraphs the old set flagged were this shape and each cost a
             re-review round to establish it was not a rivalry.
     """
 
@@ -152,7 +152,7 @@ class Verdict:
     rules_on_text: bool = False
     # !! THIS VERDICT'S `claim.to` NAMES A PLACE THE CENSUS MUST CARRY. Only
     # `move` relocates, and its destination was checked for PRESENCE and never
-    # resolved -- so a block could be sent to a line number, a description, or
+    # resolved -- so a paragraph could be sent to a line number, a description, or
     # a declaration outside the run, and the gate passed it. ! A destination
     # OUTSIDE the code carries no address and is exempt; `destination_problem`
     # tells them apart by the `@`.
@@ -253,15 +253,15 @@ VERDICTS: dict[str, Verdict] = {
         payload=(
             "where the prose sits now and where it belongs -- another line, another"
             " file, or out of the code entirely. ! These are PLACES, not text: the"
-            " same two key names in `change` mean the resulting BLOCKS"
+            " same two key names in `change` mean the resulting PARAGRAPHS"
         ),
         claim_all=("from:", "to:"),
         claim_help="move needs `claim.from` and `claim.to`, both filled",
         owes_destination=True,
         change_all=("to:",),
         change_help=(
-            "move needs the DESTINATION block in CHANGE, as `to: ...` -- plus"
-            " `from: ...`, the origin as it reads after, unless the WHOLE block moves"
+            "move needs the DESTINATION paragraph in CHANGE, as `to: ...` -- plus"
+            " `from: ...`, the origin as it reads after, unless the WHOLE paragraph moves"
         ),
         diffable=False,
     ),
@@ -330,7 +330,7 @@ def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
 # type from each other.
 @dataclass
 class Finding:
-    """One reviewer's ruling on one census block.
+    """One reviewer's ruling on one census paragraph.
 
     !! Field order follows the record in `reviewer-brief.md`, and the order is
     a CHAIN OF CUSTODY. Roy, 2026-08-17: *"Verdict -> Claim -> REASON ->
@@ -345,29 +345,29 @@ class Finding:
 
     !! `claim` is the SURGICAL SPEC -- what must change, and from what to what.
     `change` is the RESULT: that edit already made, written out with the
-    surrounding block. Roy, 2026-08-17: *"The change is what allows the apply
+    surrounding paragraph. Roy, 2026-08-17: *"The change is what allows the apply
     section to apply the claim appropriately."*
 
     | verdict   | claim                    | change                       |
     | --------- | ------------------------ | ---------------------------- |
-    | `correct` | `false: ... / true: ...` | the result, with its block   |
-    | `patch`   | `from: ... / to: ...`    | the result, with its block   |
-    | `move`    | `from: ... / to: ...`    | BOTH blocks -- see below     |
+    | `correct` | `false: ... / true: ...` | the result, with its paragraph   |
+    | `patch`   | `from: ... / to: ...`    | the result, with its paragraph   |
+    | `move`    | `from: ... / to: ...`    | BOTH paragraphs -- see below     |
     | `add`     | `missing: ...`           | the text added in            |
-    | `drop`    | `drop: ...`              | the block with it removed    |
+    | `drop`    | `drop: ...`              | the paragraph with it removed    |
 
     ! `clean` and `query` carry NEITHER. A `clean` rules on nothing; a `query`
     says the claim is unsettled, so there is no text for stage 5 to apply.
 
-    !! `move` changes TWO blocks, so its `change` shows both, `to:` and `from:`
+    !! `move` changes TWO paragraphs, so its `change` shows both, `to:` and `from:`
     -- the destination once the prose arrives, and the origin once it has left.
-    `from:` may be omitted, and omitting it ASSERTS the whole block moved.
+    `from:` may be omitted, and omitting it ASSERTS the whole paragraph moved.
     ! Those two labels are `claim`'s words reused: in `claim` they are PLACES,
-    in `change` they are the resulting BLOCKS. The field decides which.
+    in `change` they are the resulting PARAGRAPHS. The field decides which.
 
     !! EVERY check that reads the ORIGINAL sentence reads it out of `claim`.
-    `change` is a whole block, so no sentence can be parsed back out of it --
-    which is the point: a reviewer that hands over a block has said what the
+    `change` is a whole paragraph, so no sentence can be parsed back out of it --
+    which is the point: a reviewer that hands over a paragraph has said what the
     result IS, not only what to swap, and stage 5 applies it rather than
     re-deriving it.
 
@@ -380,9 +380,9 @@ class Finding:
     edited rather than that a reviewer misquoted. ! The anchor is there to be
     GREPPED -- it names what the census resolved, and no comment carries one.
 
-    ! `original` is that block's text, and it is filled from the CENSUS by
+    ! `original` is that paragraph's text, and it is filled from the CENSUS by
     `main` after the report is read. It was the reviewer's to transcribe under
-    the first ruling of 2026-08-17 -- *"BLOCK gets the address and the original
+    the first ruling of 2026-08-17 -- *"PARAGRAPH gets the address and the original
     text verbatim"* -- and a second ruling the same day replaced it: handed the
     prose, a reviewer can produce a complete admissible ruling without opening
     the file, and no check can tell that from real work. 83 refusals in one
@@ -395,7 +395,7 @@ class Finding:
     string `claim_text` renders it into -- see `_said`.
 
     ! `clean` owes no claim and no change. A role returns `clean` on most of
-    the census -- 1159 blocks on one measured run.
+    the census -- 1159 paragraphs on one measured run.
     """
 
     reviewer: str
@@ -428,7 +428,7 @@ def _substantive(f: Finding) -> bool:
 
     ! An UNKNOWN verdict answers True. `_is` answers False to everything, so a
     mistyped verdict fell out of the work list and was summarised as STANDS
-    UNCHANGED -- reported as clean from all reviewers on a block a role had
+    UNCHANGED -- reported as clean from all reviewers on a paragraph a role had
     explicitly ruled on. The name check reports it fatal either way; the
     summary must not also call it a pass.
     """
@@ -454,7 +454,7 @@ def filled(value: object) -> bool:
     as `"None"`, `False` as `"False"` and `0` as `"0"`, all of them truthy.
     Measured 2026-08-18: a record carrying `"false": null` was admitted by the
     join AND by `--check`, and `_said` then handed `ruled_text` the literal
-    word "None" to compare against the block.
+    word "None" to compare against the paragraph.
 
     ! `""` and `"   "` were already caught. The three this adds are the ones a
     JSON record can carry and a text one cannot.
@@ -547,7 +547,7 @@ def _answered(f: Finding, key: str, pattern: re.Pattern, probe: str) -> bool:
 
 
 def _n(count: int, noun: str) -> str:
-    """`"1 block"`, `"2 blocks"` -- this output decides whether an agent proceeds."""
+    """`"1 paragraph"`, `"2 paragraphs"` -- this output decides whether an agent proceeds."""
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
 
@@ -569,7 +569,7 @@ CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S
 # !! ANCHORED AT COLUMN 0, which is what makes a continuation unambiguous. A
 # field's value runs until the next label, and a label is only a label at the
 # left margin -- so an indented line reading `CHANGE the budget` inside a
-# transcribed block is prose, not a new field.
+# transcribed paragraph is prose, not a new field.
 #
 # !! THE VALUE IS OPTIONAL, because a label with nothing after it is still a
 # LABEL. `\s+` required at least one space, so a bare `CHANGE` line failed to
@@ -693,7 +693,7 @@ def load_report(
             continue
         # !! THE ADDRESS IS THE KEY. The census index was dropped 2026-08-19 --
         # it went stale the moment an `add` or a `drop` shifted the list, while
-        # the address survives, and an address identifies exactly one block
+        # the address survives, and an address identifies exactly one paragraph
         # (measured: 0 shared over 6,180). A record with none cannot be joined.
         where = rec.get("address")
         if not isinstance(where, str) or not where.strip():
@@ -734,7 +734,7 @@ def load_report(
                 change="\n".join(str(line) for line in rec.get("change") or []),
                 address=where.strip(),
                 anchor=str(rec.get("anchor") or ""),
-                # ! The record no longer carries the block's text -- the census
+                # ! The record no longer carries the paragraph's text -- the census
                 # does. `address_problem` reads this, so it is filled from the
                 # census by the caller rather than by the reviewer.
                 original="",
@@ -754,8 +754,8 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
 
     Returns:
         `(findings, malformed)`. Coverage is computed from the findings alone --
-        a block a reviewer never recorded is a block it never accounted for.
-        `malformed` holds one sentence per record that names no block, which
+        a paragraph a reviewer never recorded is a paragraph it never accounted for.
+        `malformed` holds one sentence per record that names no paragraph, which
         `main()` reports and counts fatal.
 
     ! A malformed record used to be a `Finding` carrying `block=-1`, and its
@@ -782,16 +782,16 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
         # that reason.
         sources: list[str] = []
         # !! A line that names no field CONTINUES the one above it, BLANK LINES
-        # INCLUDED. `BLOCK` carries a transcribed block and `CHANGE` carries a
+        # INCLUDED. `BLOCK` carries a transcribed paragraph and `CHANGE` carries a
         # replacement one, and a docstring has blank lines between its summary
         # and its `Args:` -- so a blank line is content here, not a separator.
         #
         # !! A blank line USED to end the continuation, and that single line
         # was the worst defect 0.2.0 shipped. Measured 2026-08-17: it truncated
-        # both fields to their first paragraph on every block containing a
-        # blank line -- 33% of one census, ~450 blocks of another -- so
+        # both fields to their first paragraph on every paragraph containing a
+        # blank line -- 33% of one census, ~450 paragraphs of another -- so
         # `ORIGINAL` could never match and `CHANGE` compared its unedited first
-        # paragraph against itself and reported the block UNCHANGED. It fell
+        # paragraph against itself and reported the paragraph UNCHANGED. It fell
         # hardest on the role doing the most work: 113 of one reviewer's 134
         # findings were refused, every one of them correct.
         #
@@ -843,7 +843,7 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
         # with the newline that preceded the next label.
         fields = {k: v.rstrip() for k, v in fields.items()}
         # !! BLOCK is `<index> | <path>:<start>-<end>`, and the lines under it
-        # are that block's text as the file reads it NOW. Only the index is
+        # are that paragraph's text as the file reads it NOW. Only the index is
         # required to parse -- a `clean` writes it alone.
         raw = fields.get("BLOCK", "")
         head, _, addr = raw.partition("\n")[0].partition("|")
@@ -873,7 +873,7 @@ def parse_report(text: str, reviewer: str) -> tuple[list[Finding], list[str]]:
                 )
             )
         else:
-            malformed.append("a record with no BLOCK index")
+            malformed.append("a record with no PARAGRAPH index")
     return found, malformed
 
 
@@ -938,8 +938,8 @@ RECORD_VERSION = "1"
 ANSWERED = ("verdict", "claim", "reason", "sources", "change")
 
 
-def prose_blocks(census: list[dict]) -> list[tuple[int, dict]]:
-    """Every census block that HOLDS PROSE, with its 1-based index.
+def prose_paragraphs(census: list[dict]) -> list[tuple[int, dict]]:
+    """Every census paragraph that HOLDS PROSE, with its 1-based index.
 
     ! An `interval` holds nothing and no reviewer owes it a record. It stays
     ADDRESSABLE so an `add` can cite the gap it is about, which is why the
@@ -951,12 +951,12 @@ def prose_blocks(census: list[dict]) -> list[tuple[int, dict]]:
     ]
 
 
-def slot(index: int, block: dict) -> dict:
+def slot(index: int, paragraph: dict) -> dict:
     """One record, seeded from the census and otherwise empty.
 
     Args:
-        index: the block's 1-based census index, which is its identity.
-        block: the census entry.
+        index: the paragraph's 1-based census index, which is its identity.
+        paragraph: the census entry.
 
     Returns:
         The record as the reviewer receives it.
@@ -967,8 +967,8 @@ def slot(index: int, block: dict) -> dict:
         # or class name -- and empty where none was: no COMMENT carries one at
         # either tier, in any language. A reviewer reads it as a starting point,
         # never as a settled owner.
-        "anchor": str(block.get("anchor", "")),
-        # !! THE ADDRESS AND NOTHING ELSE. The record does not carry the block's
+        "anchor": str(paragraph.get("anchor", "")),
+        # !! THE ADDRESS AND NOTHING ELSE. The record does not carry the paragraph's
         # text, so a reviewer cannot rule on it without OPENING THE FILE -- and
         # every role's remit requires that: block-context checks a claim against
         # the code it sits with, ownership-context cannot resolve an anchor
@@ -979,7 +979,7 @@ def slot(index: int, block: dict) -> dict:
         # a reviewer the prose and it can produce a complete, admissible record
         # without opening anything, and NOTHING in the gate can tell that from
         # real work. Hand it only the address and it may read the wrong lines --
-        # but then its `CLAIM` quotes a sentence the census block does not
+        # but then its `CLAIM` quotes a sentence the census paragraph does not
         # contain, and `block_problem` already catches exactly that, using a
         # census the gate has already loaded. **One error is checked; the other
         # is invisible.**
@@ -990,8 +990,8 @@ def slot(index: int, block: dict) -> dict:
         # ONE file state and this tool edits prose, so every record written
         # against one is stale the moment the run writes. `pkg.mod.py@a5` is
         # counted against the CODE and survives. Deprecated 2026-08-18.
-        "address": str(block.get("address", "")),
-        # ! `null`, not `""`. An unruled block must be distinguishable from one
+        "address": str(paragraph.get("address", "")),
+        # ! `null`, not `""`. An unruled paragraph must be distinguishable from one
         # ruled with an empty verdict, and only one of those is a coverage gap.
         "verdict": None,
         "claim": {},
@@ -1001,7 +1001,7 @@ def slot(index: int, block: dict) -> dict:
     }
 
 
-def entry_for(address: str, blocks: list[dict]) -> dict | None:
+def entry_for(address: str, paragraphs: list[dict]) -> dict | None:
     """The census entry this address names, or None if the census has none.
 
     !! THE JOIN RESOLVES BY ADDRESS, not by census position. The index it used
@@ -1009,15 +1009,15 @@ def entry_for(address: str, blocks: list[dict]) -> dict | None:
     shifts every index below it, so a record from round 1 read against round 2
     resolved to a neighbour, silently. An address survives both.
 
-    ! One entry or none -- an address identifies exactly one block, held by
-    `addresser.py --check` on every run (0 shared over 6,180 blocks, measured
+    ! One entry or none -- an address identifies exactly one paragraph, held by
+    `addresser.py --check` on every run (0 shared over 6,180 paragraphs, measured
     2026-08-19). This returns the first regardless, so a census that broke that
     rule degrades to a wrong answer rather than a crash; `--check` is what
     reports it.
     """
     if not address:
         return None
-    for b in blocks:
+    for b in paragraphs:
         if str(b.get("address", "")) == address:
             return b
     return None
@@ -1033,7 +1033,7 @@ def allowed() -> dict:
 
     !! DERIVED FROM THE VERDICT TABLE, never restated. A JSON claim key is the
     table's marker minus its colon, so adding a verdict stays a ROW and this
-    block cannot drift from what the gate enforces. `tests/test_record.py` pins
+    paragraph cannot drift from what the gate enforces. `tests/test_record.py` pins
     that correspondence.
 
     Returns:
@@ -1081,7 +1081,7 @@ def seed(census: list[dict], reviewer: str) -> dict:
         "reviewer": reviewer,
         # ! FIRST, so it is read before the records it governs.
         "allowed": allowed(),
-        "records": [slot(i, b) for i, b in prose_blocks(census)],
+        "records": [slot(i, b) for i, b in prose_paragraphs(census)],
         # ! Code problems get one line each and carry no verdict. A list rather
         # than a section to find with a regex, which is one more boundary that
         # cannot be guessed wrong.
@@ -1100,7 +1100,7 @@ SHAPES: dict[str, type] = {
 }
 
 
-def seeded_problems(where: str, rec: dict, block: dict | None) -> list[str]:
+def seeded_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
     """Did the fields the TOOL wrote survive being filled in?
 
     !! THE MESSAGE MUST NOT ACCUSE THE REVIEWER OF MISQUOTING. It never typed
@@ -1109,9 +1109,9 @@ def seeded_problems(where: str, rec: dict, block: dict | None) -> list[str]:
     reader to fix work that was correct, which is the defect class this whole
     format change exists to end.
     """
-    if block is None:
+    if paragraph is None:
         return [f"{where}: address {rec.get('address')!r} is not in the census"]
-    want = str(block.get("address", ""))
+    want = str(paragraph.get("address", ""))
     if rec.get("address") != want:
         return [
             f"{where}: `address` reads {rec.get('address')!r} and the census says"
@@ -1121,13 +1121,13 @@ def seeded_problems(where: str, rec: dict, block: dict | None) -> list[str]:
     # !! A RECORD WITH NO ANCHOR IS A BROKEN RECORD. Roy, 2026-08-19. Both
     # fields are SEEDED and only `address` was checked, so a record could carry
     # an anchor the census never gave it -- or none at all -- and pass. Measured
-    # 2026-08-19 against the commit before this: 6,376 of 6,531 blocks in this
+    # 2026-08-19 against the commit before this: 6,376 of 6,531 paragraphs in this
     # repo's own shipped scripts had an EMPTY anchor, 98% of the census, and
     # every seeded record repeated it. `census.py` printed "NO COMMENT carries
     # an anchor at either tier" as a statement of intent, and `test_record.py`
     # asserted which KEYS are seeded rather than that either holds a value, so
     # the two agreed with each other and agreed on nothing.
-    anchored = str(block.get("anchor", ""))
+    anchored = str(paragraph.get("anchor", ""))
     if not anchored:
         return [
             f"{where}: this record carries no anchor for {want!r}, so it"
@@ -1235,9 +1235,9 @@ def version_problem(report: dict) -> str | None:
     )
 
 
-def record_problems(where: str, rec: dict, block: dict | None) -> list[str]:
+def record_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
     """Everything wrong with the SHAPE of one record."""
-    out = seeded_problems(where, rec, block)
+    out = seeded_problems(where, rec, paragraph)
     verdict = rec.get("verdict")
     if verdict is not None and verdict not in VERDICTS:
         out.append(f"{where}: verdict {verdict!r} is not one of {sorted(VERDICTS)}")
@@ -1278,13 +1278,13 @@ def check(report: dict, census: list[dict]) -> tuple[list[str], int]:
         # an `add` or a `drop` shifted the list; an address does not.
         at = rec.get("address")
         where = f"address {at!r}" if isinstance(at, str) else "a record with no address"
-        block = entry_for(at, census) if isinstance(at, str) else None
+        paragraph = entry_for(at, census) if isinstance(at, str) else None
         if rec.get("verdict") is None:
             unruled += 1
             # ! A slot nobody filled is not MALFORMED, so it is counted rather
             # than reported field by field.
             continue
-        problems += record_problems(where, rec, block)
+        problems += record_problems(where, rec, paragraph)
     return (problems, unruled)
 
 
@@ -1364,7 +1364,7 @@ def address_of(finding, census: list[dict]) -> str:
 
     ! An index outside the census is left alone rather than clamped. It resolves
     to nothing downstream and is reported there, where the message can say which
-    report and which block; guessing a neighbour here would put a reviewer's
+    report and which paragraph; guessing a neighbour here would put a reviewer's
     verdict on prose it never read.
 
     Args:
@@ -1390,8 +1390,8 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     reused -- and that property dies the day the shape moves unless something
     carries the old reports across.
 
-    ! It seeds first and FILLS, so every block still gets a slot and coverage
-    stays structural. A block the old report never mentioned keeps its null
+    ! It seeds first and FILLS, so every paragraph still gets a slot and coverage
+    stays structural. A paragraph the old report never mentioned keeps its null
     verdict rather than vanishing.
 
     Args:
@@ -1408,7 +1408,7 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     # think it is. There is not enough definition in the old form to make the
     # address."* Measured the same day, and both routes are closed:
     #
-    #   BLOCK <index>   An index is a position in ONE census. The census it
+    #   PARAGRAPH <index>   An index is a position in ONE census. The census it
     #                   names carries no addresses -- 0 of 3,333 on a real held
     #                   run, because the field postdates it -- and a census
     #                   built TODAY is a different list: the held one holds
@@ -1421,7 +1421,7 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     #                   code. `Finding` does not even retain it.
     #
     # ! So it REFUSES rather than guessing. Grouping the unaddressed under ""
-    # matched every block against every finding: 3,333 blocks and 173 findings
+    # matched every paragraph against every finding: 3,333 paragraphs and 173 findings
     # produced 29,583 records, each with a verdict and no error raised.
     #
     # ! What replay needs is a report whose records carry addresses. A run held
@@ -1438,12 +1438,12 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
             " on, or re-review the source."
         )
     report = seed(census, reviewer)
-    by_block: dict[str, list] = {}
+    by_paragraph: dict[str, list] = {}
     for f in findings:
-        by_block.setdefault(str(f.address), []).append(f)
+        by_paragraph.setdefault(str(f.address), []).append(f)
 
-    # !! EVERY CITED BLOCK GETS A SLOT, PROSE OR NOT. `seed` lays down the prose
-    # blocks because those are the ones a reviewer is ACCOUNTABLE for -- but an
+    # !! EVERY CITED PARAGRAPH GETS A SLOT, PROSE OR NOT. `seed` lays down the prose
+    # paragraphs because those are the ones a reviewer is ACCOUNTABLE for -- but an
     # `add` cites an empty INTERVAL by design, since its finding is that a
     # constraint exists in code and NOWHERE in prose. Seeding alone therefore
     # cannot express the one verdict that needs an interval, and a conversion
@@ -1451,7 +1451,9 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     # 2026-08-17 on this repo's own smoke test: 228 findings became 226.
     seeded = {rec["address"] for rec in report["records"]}
     order = {str(b.get("address", "")): i for i, b in enumerate(census)}
-    for at in sorted(set(by_block) - seeded, key=lambda a: order.get(a, len(census))):
+    for at in sorted(
+        set(by_paragraph) - seeded, key=lambda a: order.get(a, len(census))
+    ):
         held = entry_for(at, census)
         if held is not None:
             report["records"].append(slot(order.get(at, 0) + 1, held))
@@ -1459,11 +1461,11 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
 
     filled = []
     for rec in report["records"]:
-        found = by_block.get(rec["address"], [])
+        found = by_paragraph.get(rec["address"], [])
         if not found:
             filled.append(rec)
             continue
-        # ! One record per FINDING, not per block. A block ruled on twice by one
+        # ! One record per FINDING, not per paragraph. A paragraph ruled on twice by one
         # role is two records that share an index, which the format allows and
         # the old one did too.
         for f in found:
@@ -1510,7 +1512,7 @@ def main() -> int:
     except json.JSONDecodeError as e:
         print(f"CANNOT PARSE {args.census} as JSON ({e})")
         return 2
-    census = loaded["blocks"] if isinstance(loaded, dict) else loaded
+    census = loaded["paragraphs"] if isinstance(loaded, dict) else loaded
 
     if args.check:
         try:
@@ -1562,7 +1564,7 @@ def main() -> int:
         # ! CODE CONCERNS travel too. They carry no verdict and are gated by
         # nothing, which is exactly why a conversion drops them without any
         # count moving -- measured here, 14 lines that vanished while the
-        # finding totals matched to the block.
+        # finding totals matched to the paragraph.
         report["code_concerns"] = code_concerns(text)
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -1585,7 +1587,9 @@ def main() -> int:
     out.write_text(json.dumps(report, indent=1), encoding="utf-8")
 
     prose = len(report["records"])
-    print(f"{args.reviewer}: {prose} records seeded from {len(census)} blocks -> {out}")
+    print(
+        f"{args.reviewer}: {prose} records seeded from {len(census)} paragraphs -> {out}"
+    )
     print(f"  the reviewer fills {', '.join(ANSWERED)}")
     print(f"  {', '.join(SEEDED)} are already there")
     return 0

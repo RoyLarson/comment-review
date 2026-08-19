@@ -9,13 +9,13 @@ and each is mechanical:
   PAYLOAD   does the verdict carry what its row of the table requires
   SOURCE    does every citation resolve, and is its verbatim half really there
   ADDRESS   does `path:start-end` and the transcribed text match the census
-  BLOCK     is the sentence the finding rules on really in the block it cites
-  EDIT      does BLOCK-against-CHANGE edit the sentence CLAIM names, and no
+  PARAGRAPH     is the sentence the finding rules on really in the paragraph it cites
+  EDIT      does PARAGRAPH-against-CHANGE edit the sentence CLAIM names, and no
             other. ! ONE ROUND ONLY -- it says nothing about whether N rounds
             converge on correct prose
 
 !! NONE OF THESE COMPARES ONE REVIEWER AGAINST ANOTHER. A question that needs
-two findings -- who contradicts whom, which blocks nobody accounted for -- is
+two findings -- who contradicts whom, which paragraphs nobody accounted for -- is
 the join's, and lives in `verdicts.py`. The split is that line: one finding, or
 several.
 
@@ -223,15 +223,15 @@ def payload_problem(f: Finding) -> str | None:
                 "add needs the anchor NAMED in backticks -- which declaration,"
                 " not the word 'anchor'"
             )
-    # ! A verdict that MAY EMPTY its block is exempt here and checked in
+    # ! A verdict that MAY EMPTY its paragraph is exempt here and checked in
     # `edit_problem` instead, which holds the census entry an empty `CHANGE`
-    # has to be measured against. Refusing here made a whole-block `drop`
+    # has to be measured against. Refusing here made a whole-paragraph `drop`
     # inexpressible: there is no text to show, and the record was rejected for
     # not showing it.
     if spec.owes_change and not f.change.strip() and not spec.may_empty:
         return (
             f"{f.verdict} carries no CHANGE -- the edit already made, written out"
-            " with its surrounding block, which is what stage 5 applies"
+            " with its surrounding paragraph, which is what stage 5 applies"
         )
     if any(marker not in f.change.lower() for marker in spec.change_all):
         return spec.change_help
@@ -355,10 +355,10 @@ def as_block(text: str, entry: dict) -> str:
     """A reviewer's transcription, normalised the way the CENSUS normalises.
 
     !! This calls `census.block_text`, and that is the whole point. A second
-    implementation of lines-to-block is a second DEFINITION of what a block's
+    implementation of lines-to-paragraph is a second DEFINITION of what a paragraph's
     text is, and the two drift. Measured 2026-08-17: this file grew its own and
     disagreed with the census three ways at once -- a blank line, a raw-string
-    prefix, and a closing delimiter -- refusing 83 of 171 blocks in one run and
+    prefix, and a closing delimiter -- refusing 83 of 171 paragraphs in one run and
     roughly 450 in another. Every one of those transcriptions was correct.
 
     ! The KIND selects the reading and the PATH selects the comment markers,
@@ -368,7 +368,7 @@ def as_block(text: str, entry: dict) -> str:
 
     Args:
         text: the reviewer's `original`, as lines from the file.
-        entry: that block's census record.
+        entry: that paragraph's census record.
     """
     lang = language_for(Path(str(entry.get("path", ""))))
     markers = (
@@ -385,13 +385,13 @@ def as_block(text: str, entry: dict) -> str:
 def _words(text: str) -> str:
     """`text` reduced to its words, for comparing a CLAIM against a diff.
 
-    ! This is NOT the block normaliser -- `as_block` is, and it defers to the
+    ! This is NOT the paragraph normaliser -- `as_block` is, and it defers to the
     census. This one takes prose that never came from a file: a `CLAIM`'s
     quoted half, and the spans a word-diff reports. Neither has comment markers
     to strip, so all it owes is whitespace, case, and the punctuation a quoted
     sentence picks up.
 
-    ! Trailing sentence punctuation comes off each word. A block reads `the
+    ! Trailing sentence punctuation comes off each word. A paragraph reads `the
     budget is 3.` where the `CLAIM` quoting it reads `the budget is 3`, and a
     diff keyed on raw tokens would call `3.` and `3` different words -- so an
     honest correction would read as an edit to a sentence nobody claimed.
@@ -412,8 +412,8 @@ def _words(text: str) -> str:
     #     loses its backtick only on a second pass;
     #   - a token that is punctuation ALONE -- `...`, `--`, `*` -- reduces to
     #     the empty string, and joining on it leaves a double space that only a
-    #     second pass collapses. Measured 2026-08-17: a whole-block `drop` of
-    #     any block containing such a token was refused, telling the reviewer to
+    #     second pass collapses. Measured 2026-08-17: a whole-paragraph `drop` of
+    #     any paragraph containing such a token was refused, telling the reviewer to
     #     write a remainder that was already there.
     #
     # ! The property is what lets `ruled_text` return `_words(...)` and a caller
@@ -432,11 +432,11 @@ ADDRESS_IN = re.compile(r"[\w.:/\\-]+@[abc]\d+")
 LINE_FORM = re.compile(r"[\w./\-]+\.\w+:\d+(?:-\d+)?")
 
 
-def destination_problem(f: Finding, blocks: list[dict]) -> str | None:
+def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     """Does a `move`'s destination name a place that exists?
 
     !! A DESTINATION WAS CHECKED FOR PRESENCE AND NEVER RESOLVED, so a `move`
-    could send a block anywhere -- a line number, a prose description, a
+    could send a paragraph anywhere -- a line number, a prose description, a
     declaration that is not in this run -- and the gate passed it. `to:` is the
     one half stage 5 has to act on.
 
@@ -444,7 +444,7 @@ def destination_problem(f: Finding, blocks: list[dict]) -> str | None:
     could move a line to a new place that does not have a comment. Every such
     place now has an address -- an empty `interval`, a bare `margin`, an
     `undocumented` declaration -- so the destination is nameable where before
-    there was no block to point at.
+    there was no paragraph to point at.
 
     ! A destination OUTSIDE the code carries no address and is left alone: the
     tree that receives it is not in the census, and whether it exists at all is
@@ -473,19 +473,19 @@ def destination_problem(f: Finding, blocks: list[dict]) -> str | None:
     named = ADDRESS_IN.search(where)
     if named is None:
         return f"move's destination {where!r} is not an address"
-    if entry_for(named.group(0), blocks) is None:
+    if entry_for(named.group(0), paragraphs) is None:
         return f"move's destination {named.group(0)} is not a place in the census"
     return None
 
 
-def address_problem(f: Finding, blocks: list[dict]) -> str | None:
-    """Does the record's address name the block the census has at that index?
+def address_problem(f: Finding, paragraphs: list[dict]) -> str | None:
+    """Does the record's address name the paragraph the census has at that index?
 
     !! THE RECORD CARRIES THE ADDRESS AND NOT THE TEXT. Ruled 2026-08-17, after
     a first ruling the same day that it should carry both. Handed the prose, a
     reviewer can produce a complete admissible ruling without opening the file,
     and no check can tell that from real work; reading the WRONG lines is
-    caught, because the sentence the claim quotes will not be in the block. The
+    caught, because the sentence the claim quotes will not be in the paragraph. The
     caller fills `original` from the census before this runs, so what is
     compared here is unchanged and where it comes from is not.
 
@@ -497,19 +497,19 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
 
     | LOCATION could have meant     | where it lives now                     |
     | ----------------------------- | -------------------------------------- |
-    | where the prose SITS          | `block` and `address`                  |
+    | where the prose SITS          | `paragraph` and `address`                  |
     | where the reviewer LOOKED     | `sources`                              |
     | where the prose SHOULD GO     | `claim`'s `to`, or an `add`'s anchor   |
     | WHICH SENTENCE, exactly       | the census text against `change`       |
 
     !! The last one is DERIVED, not declared, and that is why it is reliable.
     Roy, 2026-08-17: *"which sentence exactly is determined by the difference
-    between BLOCK and CHANGE, since CHANGE is the whole block with the
-    substitution."* Both hold the WHOLE block, before and after, so what differs
+    between PARAGRAPH and CHANGE, since CHANGE is the whole paragraph with the
+    substitution."* Both hold the WHOLE paragraph, before and after, so what differs
     between them is the sentence and nothing else has to say so.
 
     ! Each is checked against a DIFFERENT thing -- `BLOCK` against the census,
-    `SOURCES` against the files, the sentence against the block's text. That is
+    `SOURCES` against the files, the sentence against the paragraph's text. That is
     the gain: a field with four possible subjects can only be checked for
     RESOLVABILITY, because nothing says which subject to check it against.
 
@@ -520,14 +520,14 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
 
     ! `clean` is exempt, and stays exempt for a different reason than it had. It
     was exempt because a role returns `clean` on most of the census -- 1159
-    blocks on one measured run -- and transcribing each would have made the bulk
+    paragraphs on one measured run -- and transcribing each would have made the bulk
     of every report text nobody reads. Nothing is transcribed now; a `clean`
     record's address is the tool's own, so there is nothing a reviewer could
     have got wrong.
 
     Args:
         f: the finding.
-        blocks: the census, as `census.py --json` emits it.
+        paragraphs: the census, as `census.py --json` emits it.
 
     Returns:
         One sentence naming what disagrees, or None. Out-of-range indices are
@@ -536,7 +536,7 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
     spec = VERDICTS.get(f.verdict)
     if spec is None or not spec.owes_address:
         return None
-    entry = entry_for(f.address, blocks)
+    entry = entry_for(f.address, paragraphs)
     if entry is None:
         return f"ADDRESS {f.address!r} is not in the census"
     # !! ONE FORM NOW. The line range this compared was deprecated 2026-08-18 --
@@ -552,15 +552,15 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
         return f"address is {got!r}, the census says {want!r}"
     # !! THE TEXT IS NO LONGER COMPARED, and it must not be. `original` is
     # filled from the census's `raw_lines` by `_report`, and `text` is the
-    # census's own normalised copy of the same block -- so the comparison put
+    # census's own normalised copy of the same paragraph -- so the comparison put
     # two TOOL-SUPPLIED strings against each other and refused the finding when
     # they disagreed, with a message that accused nobody.
     #
     # !! They do disagree. `raw_lines` is the file's literal slice and `text` is
     # the AST value for a Python docstring, so any escape sequence renders in
     # one and not the other. Measured 2026-08-18 over this repo: 3 of 663 prose
-    # blocks -- a `\r\n` in a source string, a `\\s+`, a unicode escape. Every
-    # finding on those blocks was fatally refused, and no reviewer could have
+    # paragraphs -- a `\r\n` in a source string, a `\\s+`, a unicode escape. Every
+    # finding on those paragraphs was fatally refused, and no reviewer could have
     # fixed it.
     #
     # ! What the check was FOR is gone with the transcription it guarded. The
@@ -570,20 +570,20 @@ def address_problem(f: Finding, blocks: list[dict]) -> str | None:
     return None
 
 
-def block_problem(f: Finding, blocks: list[dict]) -> str | None:
-    """Is the sentence this finding rules on actually IN the block it cites?
+def block_problem(f: Finding, paragraphs: list[dict]) -> str | None:
+    """Is the sentence this finding rules on actually IN the paragraph it cites?
 
     !! This is what `LOCATION` could never do -- it was AMBIGUOUS, and the four
     subjects it could have named are set out in `address_problem`. A field whose
     subject is unknown can only be checked for RESOLVABILITY, never against the
-    thing it describes. The census carries each block's joined text and the gate
+    thing it describes. The census carries each paragraph's joined text and the gate
     already loads it, so this costs nothing and catches a finding attached to
-    the wrong block.
+    the wrong paragraph.
 
     !! Keyed on the ORIGINAL SENTENCE, which `CLAIM` carries in its `drop:`,
-    `false:` or `from:` half -- never on `CHANGE`, which is the finished block
+    `false:` or `from:` half -- never on `CHANGE`, which is the finished paragraph
     and holds the REPLACEMENT. Matching the replacement against the original
-    block would refuse every correct finding and pass the ones that changed
+    paragraph would refuse every correct finding and pass the ones that changed
     nothing. `ruled_text` reads it, the same text the contradiction check keys
     on.
 
@@ -593,17 +593,17 @@ def block_problem(f: Finding, blocks: list[dict]) -> str | None:
 
     Args:
         f: the finding.
-        blocks: the census, as `census.py --json` emits it.
+        paragraphs: the census, as `census.py --json` emits it.
 
     Returns:
-        The problem, or None. ! An out-of-range block returns None: `main()`
+        The problem, or None. ! An out-of-range paragraph returns None: `main()`
         reports it already, and saying so twice reads as two defects.
     """
     # ! No verdict list here. `ruled_text` returns "" for every verdict whose
     # row quotes no original -- `clean`, `add`, `query`, `move` -- and for a
     # malformed spec, and the next line already treats "" as nothing to check.
     # A second list would be a second place to update.
-    if entry_for(f.address, blocks) is None:
+    if entry_for(f.address, paragraphs) is None:
         return None
     needle = ruled_text(f)
     if not needle:
@@ -612,7 +612,7 @@ def block_problem(f: Finding, blocks: list[dict]) -> str | None:
     # which drops per-token quotes and trailing punctuation; a haystack that
     # was only whitespace-collapsed still holds them, so any comma, colon or
     # backtick inside a quoted sentence refused a correct finding.
-    entry = entry_for(f.address, blocks) or {}
+    entry = entry_for(f.address, paragraphs) or {}
     haystack = _words(str(entry.get("text", "")))
     # ! Same rule as SOURCES: compare all of it, truncate only the message. A
     # fabricated tail here made `edit_problem` MORE permissive, because it
@@ -623,7 +623,7 @@ def block_problem(f: Finding, blocks: list[dict]) -> str | None:
 
 
 def declares_scope(f: Finding) -> bool:
-    """A `query` saying the block is not this role's to read.
+    """A `query` saying the paragraph is not this role's to read.
 
     Not a ruling: nothing is asked of the task agent, and the role is reporting
     the boundary it was told to report. Every other `query` IS work -- it names a
@@ -645,11 +645,11 @@ def declares_scope(f: Finding) -> bool:
 def ruled_text(f: Finding) -> str:
     """The verbatim sentence this finding rules on, normalised for comparison.
 
-    A verdict rules on a SENTENCE and the census numbers BLOCKS, so two findings
-    on one block need not share a subject.
+    A verdict rules on a SENTENCE and the census numbers PARAGRAPHS, so two findings
+    on one paragraph need not share a subject.
 
     !! Read out of CLAIM, the surgical spec. CHANGE is the whole resulting
-    block, so the original cannot be recovered from it -- the `drop:`,
+    paragraph, so the original cannot be recovered from it -- the `drop:`,
     `false:` and `from:` halves of CLAIM are the only verbatim originals a
     record carries.
 
@@ -692,18 +692,18 @@ def ruled_text(f: Finding) -> str:
         text = rest
     # ! `_words` strips the quotes PER TOKEN, so a reviewer that pads inside
     # them -- `false: "  the budget is 3 "` -- does not keep those spaces and
-    # leave a needle that matches nothing in a block plainly containing it.
+    # leave a needle that matches nothing in a paragraph plainly containing it.
     return _words(text)
 
 
 def removed_spans(f: Finding, entry: dict) -> list[str] | None:
-    """What this finding's edit takes OUT of the block, span by span.
+    """What this finding's edit takes OUT of the paragraph, span by span.
 
     !! DERIVED, never declared. `BLOCK`'s original and `CHANGE` both hold the
-    WHOLE block -- before and after -- so what differs between them IS the
+    WHOLE paragraph -- before and after -- so what differs between them IS the
     prose the finding acts on. Roy, 2026-08-17: *"which sentence exactly is
-    determined by the difference between BLOCK and CHANGE, since CHANGE is the
-    whole block with the substitution."*
+    determined by the difference between PARAGRAPH and CHANGE, since CHANGE is the
+    whole paragraph with the substitution."*
 
     ! This is the reliable answer where `CLAIM` is the reviewer's own account of
     it. They should agree; `edit_problem` is where they are made to.
@@ -715,20 +715,20 @@ def removed_spans(f: Finding, entry: dict) -> list[str] | None:
     reported the span `# callers round separately`, which no `CLAIM` names.
 
     ! Returns None where no diff is meaningful: `clean` and `query` propose no
-    text, `add` has no original, a `move`'s `CHANGE` is two blocks rather than
+    text, `add` has no original, a `move`'s `CHANGE` is two paragraphs rather than
     one, and a record missing either half cannot be diffed at all. A caller must
     treat None as "cannot compare", never as "nothing removed".
 
     Args:
         f: the finding.
-        entry: its census record, which selects how the block is read.
+        entry: its census record, which selects how the paragraph is read.
     """
     spec = VERDICTS.get(f.verdict)
     if spec is None or not spec.diffable:
         return None
     # !! AN EMPTY `CHANGE` IS A DIFF, not a missing half, when the verdict may
-    # empty its block. A `drop` whose `CLAIM` names the block's only sentence
-    # leaves nothing behind, so the whole block IS the removed span -- and
+    # empty its paragraph. A `drop` whose `CLAIM` names the paragraph's only sentence
+    # leaves nothing behind, so the whole paragraph IS the removed span -- and
     # returning None there made the one unambiguous removal in the system read
     # as "cannot compare". Every other verdict still owes text.
     if not f.change.strip() and not spec.may_empty:
@@ -766,7 +766,7 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
 
     !! A BACKSTOP, and it is the only check that reads the two accounts of one
     edit against each other. `block_problem` confirms the claimed sentence is in
-    the block; `payload_problem` confirms `CHANGE` exists. Neither notices a
+    the paragraph; `payload_problem` confirms `CHANGE` exists. Neither notices a
     reviewer that reasoned about one sentence and rewrote another, and stage 5
     is meant to catch that by reading both -- this is what holds when it does
     not.
@@ -782,20 +782,20 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
 
     !! THIS GOVERNS ONE REVIEWER FINDING, and it must never be turned on stage
     5's synthesis. Roy, 2026-08-17: *"at some point we are going to have to
-    trust the agents to synthesize a full block and that could mean inserting
+    trust the agents to synthesize a full paragraph and that could mean inserting
     and deleting multiple sentences with multiple rounds of review."* A
-    synthesised block composes several findings, so no single `CLAIM` names
+    synthesised paragraph composes several findings, so no single `CLAIM` names
     everything it changes and this test would refuse exactly that work.
     `verdicts.py` reads REVIEWER reports, where one verdict rules on one
     sentence, and that is the only place the test is sound.
 
     ! It follows that each finding's `CHANGE` carries ONLY THAT FINDING'S EDIT.
-    Two findings on one block each show the block with their own change and no
+    Two findings on one paragraph each show the paragraph with their own change and no
     other -- composing them is stage 5's job. A reviewer that folds both edits
     into both records trips this check, correctly: the record would be claiming
     one edit and showing two.
 
-    !! IT CHECKS ONE ROUND, and a green gate is not a correct block. Roy,
+    !! IT CHECKS ONE ROUND, and a green gate is not a correct paragraph. Roy,
     2026-08-17: *"This catches the 'first' round of edit reviews it will not
     catch the next N rounds required to make it correct."* Every round is
     measured against the text that round started from, and nothing here measures
@@ -803,7 +803,7 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
     right -- it says each reviewer edited the sentence it said it was editing.
 
     !! THIS GATE ASSUMES ROUND ONE, and a round-2 record does not fit it.
-    Roy, 2026-08-17: a re-review sends *"the joined resolved block back to the
+    Roy, 2026-08-17: a re-review sends *"the joined resolved paragraph back to the
     reviewers that had comments ... each can say yes my edits made it and are
     correct and the other edits do not negate that or cause mine to be wrong."*
     So round 2's subject is stage 5's SYNTHESIS -- text that is on no disk and
@@ -811,7 +811,7 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
     census and this function compares one claim against one edit. Neither holds.
 
     ! Do not paper over it by exempting round 2: that would leave the
-    synthesised block, the only text the author ever approves, as the one thing
+    synthesised paragraph, the only text the author ever approves, as the one thing
     nothing checks. `TODO/re-review-is-ordered-everywhere-and-defined-
     nowhere.md` owns the shape.
     """
@@ -819,31 +819,31 @@ def edit_problem(f: Finding, entry: dict) -> str | None:
     if spans is None:
         return None
     # !! AN EMPTY `CHANGE` IS CHECKED, NOT TRUSTED. A `drop` whose `CLAIM` names
-    # the block's only sentence empties it, and there is no text to show; the
-    # record was refused for not showing it, so a whole-block drop could not be
+    # the paragraph's only sentence empties it, and there is no text to show; the
+    # record was refused for not showing it, so a whole-paragraph drop could not be
     # expressed at all. The reviewer wrote the blank deliberately and said so in
     # `REASON`, which nothing downstream reads -- so this reads the two things
     # that ARE checkable instead. Measured 2026-08-17.
     #
-    # ! It admits the blank only where CLAIM accounts for the WHOLE block. A
+    # ! It admits the blank only where CLAIM accounts for the WHOLE paragraph. A
     # blank `CHANGE` on a partial drop is still refused, which is what stops
     # this becoming a way to skip writing one.
     if not f.change.strip():
         # ! No empty-original branch here. It was reachable while a REVIEWER
-        # wrote `original`; the tool fills it from the census now, and a block
+        # wrote `original`; the tool fills it from the census now, and a paragraph
         # with nothing to fill it from returns from `removed_spans` above
         # before this runs. A message for a refusal the tool cannot issue reads
         # like a rule.
         whole = _words(as_block(f.original, entry))
         if ruled_text(f) != whole:
             return (
-                f"{f.verdict}: CHANGE is empty, which says the block empties --"
+                f"{f.verdict}: CHANGE is empty, which says the paragraph empties --"
                 " but CLAIM names only part of it. Write the remainder."
             )
         return None
     if as_block(f.original, entry).lower() == as_block(f.change, entry).lower():
         return (
-            f"{f.verdict}: CHANGE is the block UNCHANGED -- the verdict proposes"
+            f"{f.verdict}: CHANGE is the paragraph UNCHANGED -- the verdict proposes"
             " an edit and the text does not make one"
         )
     # ! `CLAIM` is not file text -- it is a sentence the reviewer quoted -- so

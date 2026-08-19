@@ -1,7 +1,7 @@
 """`pcst.py` says what a pCST node is, and it must stay a LEAF.
 
-!! THAT IS THE WHOLE REASON IT EXISTS. `Block` lived in `census.py`, the top of
-the import graph, so `galley`, `addresser` and `record` -- which all read blocks
+!! THAT IS THE WHOLE REASON IT EXISTS. `Paragraph` lived in `census.py`, the top of
+the import graph, so `galley`, `addresser` and `record` -- which all read paragraphs
 -- could not import the definition of one. They read untyped dicts instead, and
 the two kind sets ended up in `galley` because it was the deepest module all
 three could reach. A sibling import here puts that back.
@@ -28,10 +28,10 @@ class TestItIsALeaf(unittest.TestCase):
         self.assertEqual(imported & SIBLINGS, set(), "pcst must import no sibling")
 
     def test_every_module_that_reads_a_block_can_import_one(self):
-        # ! The property the split bought. Each of these operates on blocks.
-        # ! `galley` is not here. It reads block DICTS and needs none of the
+        # ! The property the split bought. Each of these operates on paragraphs.
+        # ! `galley` is not here. It reads paragraph DICTS and needs none of the
         # kinds -- its staleness check keys on whether text was stored, not on
-        # what kind the block is. It joins this list when it takes the type.
+        # what kind the paragraph is. It joins this list when it takes the type.
         for name in ("addresser", "record", "census"):
             with self.subTest(module=name):
                 text = (SCRIPTS / f"{name}.py").read_text(encoding="utf-8")

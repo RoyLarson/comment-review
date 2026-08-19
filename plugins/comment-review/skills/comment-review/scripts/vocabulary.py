@@ -53,7 +53,7 @@ def terms_for(role: str, roles: dict[str, list[str]]) -> list[str]:
 
 
 def render(role: str, definitions: dict[str, str], roles: dict[str, list[str]]) -> str:
-    """The block that goes into the agent's prompt."""
+    """The paragraph that goes into the agent's prompt."""
     wanted = terms_for(role, roles)
     missing = [t for t in wanted if t not in definitions]
     if missing:

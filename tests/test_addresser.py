@@ -60,9 +60,9 @@ B = [
 ]
 
 
-def named(text, blocks):
-    code = addresser.code_lines_of(text, blocks)
-    return [addresser.address(b, code).split("@")[1] for b in blocks]
+def named(text, paragraphs):
+    code = addresser.code_lines_of(text, paragraphs)
+    return [addresser.address(b, code).split("@")[1] for b in paragraphs]
 
 
 class TestTwoFilesDifferingOnlyInComments(unittest.TestCase):
@@ -122,26 +122,26 @@ class TestCodeOnTheFirstLine(unittest.TestCase):
     """
 
     SRC = "use std::fmt;\n\n#[derive(Debug)]\npub enum X {}\n"
-    BLOCKS = [
+    PARAGRAPHS = [
         {"path": "c.rs", "start": 1, "end": 1, "kind": "interval", "edit_start": 1},
         {"path": "c.rs", "start": 1, "end": 3, "kind": "interval", "edit_start": 2},
         {"path": "c.rs", "start": 3, "end": 4, "kind": "interval", "edit_start": 4},
     ]
 
     def setUp(self):
-        self.code = addresser.code_lines_of(self.SRC, self.BLOCKS)
+        self.code = addresser.code_lines_of(self.SRC, self.PARAGRAPHS)
 
     def test_code_starts_on_line_one(self):
         self.assertEqual(self.code[0], 1)
 
     def test_the_gap_before_it_is_b0_not_b1(self):
-        self.assertEqual(addresser.address(self.BLOCKS[0], self.code), "c.rs@b0")
+        self.assertEqual(addresser.address(self.PARAGRAPHS[0], self.code), "c.rs@b0")
 
     def test_the_gap_after_it_is_b1(self):
-        self.assertEqual(addresser.address(self.BLOCKS[1], self.code), "c.rs@b1")
+        self.assertEqual(addresser.address(self.PARAGRAPHS[1], self.code), "c.rs@b1")
 
     def test_every_gap_gets_its_own_name(self):
-        named = [addresser.address(b, self.code) for b in self.BLOCKS]
+        named = [addresser.address(b, self.code) for b in self.PARAGRAPHS]
         self.assertEqual(len(set(named)), len(named))
 
 
@@ -173,14 +173,14 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
 
     def test_a_windows_separator_is_normalised(self):
         # ! So a census written on Windows and read anywhere names one place.
-        block = {
+        paragraph = {
             "path": r"pkg\sub\a.py",
             "start": 1,
             "end": 1,
             "kind": "interval",
             "edit_start": 1,
         }
-        self.assertEqual(addresser.address(block, [1]), "pkg:sub:a.py@b0")
+        self.assertEqual(addresser.address(paragraph, [1]), "pkg:sub:a.py@b0")
 
     def test_a_census_without_edit_start_is_REFUSED_not_guessed(self):
         # !! The range alone cannot separate the two gaps of a one-line file,
@@ -201,7 +201,7 @@ class TestAOneLineInitFile(unittest.TestCase):
     """
 
     SRC = "from .core import Engine\n"
-    BLOCKS = [
+    PARAGRAPHS = [
         {
             "path": "package/__init__.py",
             "start": 1,
@@ -219,18 +219,18 @@ class TestAOneLineInitFile(unittest.TestCase):
     ]
 
     def test_the_line_addresses_are_identical(self):
-        self.assertEqual({(b["start"], b["end"]) for b in self.BLOCKS}, {(1, 1)})
+        self.assertEqual({(b["start"], b["end"]) for b in self.PARAGRAPHS}, {(1, 1)})
 
     def test_the_stable_addresses_are_not(self):
-        code = addresser.code_lines_of(self.SRC, self.BLOCKS)
-        named = [addresser.address(b, code) for b in self.BLOCKS]
+        code = addresser.code_lines_of(self.SRC, self.PARAGRAPHS)
+        named = [addresser.address(b, code) for b in self.PARAGRAPHS]
         self.assertEqual(named, ["package:__init__.py@b0", "package:__init__.py@b1"])
 
     def test_a_subpackage_of_the_same_name_is_a_different_place(self):
         code = [1]
-        sub = dict(self.BLOCKS[0], path="package/subpackage/__init__.py")
+        sub = dict(self.PARAGRAPHS[0], path="package/subpackage/__init__.py")
         self.assertNotEqual(
-            addresser.address(sub, code), addresser.address(self.BLOCKS[0], code)
+            addresser.address(sub, code), addresser.address(self.PARAGRAPHS[0], code)
         )
 
 
@@ -273,9 +273,9 @@ class TestTheInverse(unittest.TestCase):
         # stating it. A fixture built without the stamp resolves to nothing.
         code = addresser.code_lines_of(WITH_PROSE, A)
         stamped = [{**b, "address": addresser.address(b, code)} for b in A]
-        for i, block in enumerate(stamped, 1):
+        for i, paragraph in enumerate(stamped, 1):
             with self.subTest(entry=i):
-                self.assertEqual(addresser.resolve(block["address"], stamped), [i])
+                self.assertEqual(addresser.resolve(paragraph["address"], stamped), [i])
 
     def test_an_address_nothing_carries_comes_back_empty(self):
 
@@ -287,14 +287,14 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
 
     !! THIS IS A MECHANISM, NOT A REMINDER. In one session the same mistake was
     made four times -- an oracle diff, a git reachability call, a coverage
-    figure of 51%, and a `SHARED` row that listed one block -- each time by
+    figure of 51%, and a `SHARED` row that listed one paragraph -- each time by
     reading an artifact built three edits earlier and treating the result as a
     defect in the code. Naming the habit did not stop the fourth. `--check`
     exits 2 instead.
     """
 
     SRC = "X = 1\n# a note\nY = 2\n"
-    BLOCKS = [
+    PARAGRAPHS = [
         {
             "path": "m.py",
             "start": 2,
@@ -308,33 +308,33 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
     ]
 
     def test_the_census_matches_the_file_it_came_from(self):
-        from galley import block_matches
+        from galley import paragraph_matches
 
-        self.assertTrue(block_matches(self.SRC.splitlines(), self.BLOCKS[0]))
+        self.assertTrue(paragraph_matches(self.SRC.splitlines(), self.PARAGRAPHS[0]))
 
     def test_it_does_not_match_a_file_that_has_moved(self):
-        # ! One line added ABOVE the block, which is what a prose edit does.
+        # ! One line added ABOVE the paragraph, which is what a prose edit does.
         moved = "import os\n" + self.SRC
-        from galley import block_matches
+        from galley import paragraph_matches
 
-        self.assertFalse(block_matches(moved.splitlines(), self.BLOCKS[0]))
+        self.assertFalse(paragraph_matches(moved.splitlines(), self.PARAGRAPHS[0]))
 
     def test_the_addresses_differ_silently_and_neither_errors(self):
         # !! THE POINT. Both answer, both look right, and they disagree. A blank
         # line prepended -- which is what a prose edit does -- moves the code
-        # down, so the block's stated `edit_start` now has NO code line before
+        # down, so the paragraph's stated `edit_start` now has NO code line before
         # it: `b1` becomes `b0`, naming a different place with no complaint.
-        here = addresser.code_lines_of(self.SRC, self.BLOCKS)
-        there = addresser.code_lines_of("\n" + self.SRC, self.BLOCKS)
-        self.assertEqual(addresser.address(self.BLOCKS[0], here), "m.py@b1")
-        self.assertEqual(addresser.address(self.BLOCKS[0], there), "m.py@b0")
+        here = addresser.code_lines_of(self.SRC, self.PARAGRAPHS)
+        there = addresser.code_lines_of("\n" + self.SRC, self.PARAGRAPHS)
+        self.assertEqual(addresser.address(self.PARAGRAPHS[0], here), "m.py@b1")
+        self.assertEqual(addresser.address(self.PARAGRAPHS[0], there), "m.py@b0")
 
 
 class TestTheDeclarationSeries(unittest.TestCase):
     """`a0..aN` names a DECLARATION, so a docstring leaves the gap series.
 
     !! IT IS WHAT MAKES AN ADDRESS A SINGLE FACT. Measured 2026-08-18 over
-    9,975 blocks in this repo, 28 places were answered by two blocks and 28 of
+    9,975 paragraphs in this repo, 28 places were answered by two paragraphs and 28 of
     28 were a docstring sharing a gap with the comment run beneath it. Naming a
     docstring for the gap it sits in put two different subjects at one address.
     """
@@ -346,7 +346,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
             got = census.census_for(path, text, census.language_for(path))
             lines = sorted(census.code_lines(text, got))
             for b in got:
-                # ! The SUFFIX only. `census_for` names a block by the path it
+                # ! The SUFFIX only. `census_for` names a paragraph by the path it
                 # was handed, and these are absolute temp paths -- the dotted
                 # prefix is `main`'s to make repo-relative.
                 b.address = addresser.address(vars(b), lines).split("@")[-1]
@@ -492,7 +492,7 @@ class TestTheTwoSeriesNameTheSameCodeLine(unittest.TestCase):
     """
 
     SRC = "a = 1\n# about b\nb = 2\nc = 3  # beside c\n"
-    BLOCKS = [
+    PARAGRAPHS = [
         {"path": "m.py", "start": 1, "end": 2, "kind": "interval", "edit_start": 1},
         {"path": "m.py", "start": 2, "end": 2, "kind": "comment", "edit_start": 2},
         {
@@ -506,7 +506,7 @@ class TestTheTwoSeriesNameTheSameCodeLine(unittest.TestCase):
     ]
 
     def setUp(self):
-        self.code = addresser.code_lines_of(self.SRC, self.BLOCKS)
+        self.code = addresser.code_lines_of(self.SRC, self.PARAGRAPHS)
 
     def test_the_code_lines_are_1_3_and_4(self):
         self.assertEqual(self.code, [1, 3, 4])
@@ -523,15 +523,15 @@ class TestTheTwoSeriesNameTheSameCodeLine(unittest.TestCase):
         self.assertEqual(addresser.address(on_first, self.code), "m.py@c0")
 
     def test_a_comment_above_the_SECOND_code_line_is_b1(self):
-        self.assertEqual(addresser.address(self.BLOCKS[1], self.code), "m.py@b1")
+        self.assertEqual(addresser.address(self.PARAGRAPHS[1], self.code), "m.py@b1")
 
     def test_a_trailing_comment_on_the_THIRD_code_line_is_c2(self):
-        self.assertEqual(addresser.address(self.BLOCKS[2], self.code), "m.py@c2")
+        self.assertEqual(addresser.address(self.PARAGRAPHS[2], self.code), "m.py@c2")
 
     def test_bN_and_cN_name_THE_SAME_code_line(self):
         # !! THE POINT, and the reverse of what this class once held. `b1` is
         # the gap above the 2nd code line; `c1` is on the 2nd code line.
-        above = self.BLOCKS[1]  # the comment run, in the gap above code line 3
+        above = self.PARAGRAPHS[1]  # the comment run, in the gap above code line 3
         beside = {
             "path": "m.py",
             "start": 3,
@@ -547,7 +547,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
     """`for_anchor` -- which address is this anchor's `a`, `b` or `c`.
 
     !! ASKING BY POSITION BREAKS ON THE NEXT LANGUAGE. Python's docstring sits
-    AFTER its `def` and Rust's `///` BEFORE its `fn`, so "the block above the
+    AFTER its `def` and Rust's `///` BEFORE its `fn`, so "the paragraph above the
     declaration" names the doc in one and the comment above it in the other. An
     agent that counted would be right until the census reached a language that
     lays its prose out the other way. This asks the census, which parsed it.
@@ -565,13 +565,13 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
             lines = sorted(census.code_lines(self.SRC, got))
             for b in got:
                 b.address = addresser.address(vars(b), lines)
-            self.blocks = [vars(b) for b in got]
+            self.paragraphs = [vars(b) for b in got]
 
     def _at(self, anchor, series):
         # ! The FOLIO only -- the temp path is noise here.
         return [
             b["address"].split("@")[-1]
-            for b in addresser.for_anchor(anchor, series, self.blocks)
+            for b in addresser.for_anchor(anchor, series, self.paragraphs)
         ]
 
     def test_a_declaration_has_a_place_in_every_series(self):
@@ -595,7 +595,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         self.assertEqual(self._at("nosuchname", "b"), [])
 
     def test_the_c_it_names_is_the_DECLARATIONS_own_line(self):
-        found = addresser.for_anchor("def go(n):", "c", self.blocks)
+        found = addresser.for_anchor("def go(n):", "c", self.paragraphs)
         self.assertEqual([b["start"] for b in found], [6])
         # ! The one fact that decides it -- not a list of kinds. `SHARES_ITS_LINE`
         # was a second way to ask, and it disagreed with this one.
@@ -614,7 +614,7 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
     ! A sweep was here and it refused a census built SECONDS earlier on every
     non-Python file carrying a trailing comment -- and masked a real collision
     `--check` exists to report. Staleness belongs where a file is WRITTEN;
-    `galley.block_matches` refuses a stale range before it splices.
+    `galley.paragraph_matches` refuses a stale range before it splices.
     """
 
     def _run(self, *args):
@@ -662,14 +662,14 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
             src.write_text("import os\n\n\n# a note\nx = 1\n", encoding="utf-8")
             out = self._run("--census", str(census_json), "--check")
             self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
-            self.assertIn("blocks addressed", out.stdout)
+            self.assertIn("paragraphs addressed", out.stdout)
 
 
 class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
     """One fact decides "shares its line", and the producer states it.
 
     !! IT WAS DECIDED TWICE AND THE TWO DISAGREED. `address()` read a list of
-    KINDS; `code_lines_of` read the block. A `comment` opened after a
+    KINDS; `code_lines_of` read the paragraph. A `comment` opened after a
     statement is in neither list and has a non-zero `edit_column`, so it took a `b`
     folio for a line it sits ON -- and that folio then named the comment AND the
     gap. Measured 2026-08-19 on `let b = 2; /* opens` / `and closes */`: `@b1`
@@ -710,7 +710,7 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
         )
 
     def test_the_gap_is_not_reported_EMPTY_over_lines_the_comment_holds(self):
-        # ! `blocks_in` asks whether a block OVERLAPS the gap, not whether it
+        # ! `paragraphs_in` asks whether a paragraph OVERLAPS the gap, not whether it
         # STARTS in one. The comment begins on the bounding code line and runs
         # into the gap below, so a start test read the gap as empty and emitted
         # an interval over the comment's own second line.
@@ -724,7 +724,7 @@ class TestTheSeparatorIsAPathCannotHoldIt(unittest.TestCase):
     !! IT WAS `.` UNTIL 2026-08-19, AND A DOT IS ORDINARY IN A FILENAME.
     `a/b.py` and `a.b.py` both flattened to `a.b.py`, so every one of their
     addresses collided -- `@a0`, `@b0`, `@b1`, `@c0`, all of them -- and
-    `--check` reported "8 of 8 blocks addressed" because it compares only within
+    `--check` reported "8 of 8 paragraphs addressed" because it compares only within
     one path. Roy: *"lets use an illegal symbol for the separator then."*
 
     ! `:` is the one character Windows forbids that is NOT shell-special, so an
@@ -775,14 +775,14 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
 
     def setUp(self):
         path = Path("g.py")
-        blocks = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, blocks))
-        self.blocks = [vars(b) for b in blocks]
-        for b in self.blocks:
+        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
+        lines = sorted(census.code_lines(self.SRC, paragraphs))
+        self.paragraphs = [vars(b) for b in paragraphs]
+        for b in self.paragraphs:
             b["address"] = addresser.address(b, lines)
 
     def _folios(self, anchor, series):
-        found = addresser.for_anchor(anchor, series, self.blocks)
+        found = addresser.for_anchor(anchor, series, self.paragraphs)
         return sorted(addresser.folio_of(b["address"])[1] for b in found)
 
     def test_the_LINE_reaches_all_three_series(self):
@@ -826,29 +826,29 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
 
     def setUp(self):
         path = Path("x.py")
-        blocks = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, blocks))
-        self.blocks = [vars(b) for b in blocks]
-        for b in self.blocks:
+        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
+        lines = sorted(census.code_lines(self.SRC, paragraphs))
+        self.paragraphs = [vars(b) for b in paragraphs]
+        for b in self.paragraphs:
             b["address"] = addresser.address(b, lines)
 
     def test_every_ADDRESS_is_still_unique(self):
         # !! The direction that stays exact. This is what a record cites.
-        named = [b["address"] for b in self.blocks]
+        named = [b["address"] for b in self.paragraphs]
         self.assertEqual(len(named), len(set(named)))
 
     def test_the_anchor_answers_with_BOTH_trailing_comments(self):
-        found = addresser.for_anchor("X=2", "c", self.blocks)
+        found = addresser.for_anchor("X=2", "c", self.paragraphs)
         folios = sorted(addresser.folio_of(b["address"])[1] for b in found)
         self.assertEqual(folios, ["c0", "c1"])
 
     def test_they_are_two_DIFFERENT_statements(self):
-        found = addresser.for_anchor("X=2", "c", self.blocks)
+        found = addresser.for_anchor("X=2", "c", self.paragraphs)
         self.assertEqual(sorted(b["start"] for b in found), [1, 5])
         self.assertEqual(sorted(b["text"] for b in found), ["initial", "reseting X"])
 
     def test_the_anchor_is_the_code_WITHOUT_either_comment(self):
-        for b in self.blocks:
+        for b in self.paragraphs:
             if b["edit_column"]:
                 with self.subTest(line=b["start"]):
                     self.assertEqual(b["anchor"], "X=2")
@@ -857,7 +857,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # !! The `b` half is WORSE, and this file is why: three gaps answer to
         # one spelling. `b0` is the gap above line 1, `b1` holds `# stuff
         # happens`, and `b2` is the gap at the end of the file.
-        found = addresser.for_anchor("X=2", "b", self.blocks)
+        found = addresser.for_anchor("X=2", "b", self.paragraphs)
         folios = sorted(addresser.folio_of(b["address"])[1] for b in found)
         self.assertEqual(folios, ["b0", "b1", "b2"])
 
@@ -871,22 +871,22 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         """
         by_folio = {
             addresser.folio_of(b["address"])[1]: b
-            for b in addresser.for_anchor("X=2", "b", self.blocks)
+            for b in addresser.for_anchor("X=2", "b", self.paragraphs)
         }
         # ! Read from the EDIT range, which is the gap itself: `b0` is a pure
         # insertion above line 1, `b1` replaces line 3, `b2` appends after 5.
         self.assertEqual(by_folio["b0"]["edit_start"], 1)
         self.assertEqual(by_folio["b1"]["edit_start"], 3)
         self.assertEqual(by_folio["b2"]["edit_start"], 6)
-        for folio, block in by_folio.items():
+        for folio, paragraph in by_folio.items():
             with self.subTest(folio=folio):
-                self.assertEqual(block["anchor"], "X=2")
+                self.assertEqual(paragraph["anchor"], "X=2")
 
     def test_the_comment_between_them_is_anchored_to_the_code_BELOW(self):
         # ! `# stuff happens` sits between the two statements and introduces the
         # second, so its anchor is line 5's code -- not line 1's, which it
         # follows. The gap's prose is about what comes next.
-        held = next(b for b in self.blocks if b["text"] == "stuff happens")
+        held = next(b for b in self.paragraphs if b["text"] == "stuff happens")
         self.assertEqual(addresser.folio_of(held["address"])[1], "b1")
         self.assertEqual(held["anchor"], "X=2")
 
@@ -895,7 +895,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # answers in `a`. ! The module's `a0` does not answer either: it keeps
         # `<module>`. Anchoring it to the FIRST LINE OF CODE was tried and made
         # a module's documentation answer to `X=2`.
-        self.assertEqual(addresser.for_anchor("X=2", "a", self.blocks), [])
+        self.assertEqual(addresser.for_anchor("X=2", "a", self.paragraphs), [])
 
     def test_the_CLI_says_the_answer_is_AMBIGUOUS_in_both_series(self):
         # !! What an agent actually sees. Without it a caller reads the first
@@ -904,7 +904,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
             with self.subTest(series=series):
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out):
-                    rc = addresser._for_anchor("X=2", series, self.blocks)
+                    rc = addresser._for_anchor("X=2", series, self.paragraphs)
                 self.assertEqual(rc, 0)
                 said = out.getvalue()
                 self.assertIn(f"{count} places answer", said)
@@ -935,12 +935,12 @@ class TestTheSHIPPEDPROSETeachesTheNumberingTheCodeUSES(unittest.TestCase):
 
     def setUp(self):
         path = Path("m.py")
-        blocks = census.census_for(path, self.SRC, census.language_for(path))
-        self.code = sorted(census.code_lines(self.SRC, blocks))
-        for b in blocks:
+        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
+        self.code = sorted(census.code_lines(self.SRC, paragraphs))
+        for b in paragraphs:
             b.address = addresser.address(vars(b), self.code)
         self.at = {
-            b.address.split("@")[1]: b for b in blocks if "@" in (b.address or "")
+            b.address.split("@")[1]: b for b in paragraphs if "@" in (b.address or "")
         }
 
     def test_bN_and_cN_name_THE_SAME_code_line(self):

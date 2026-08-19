@@ -7,7 +7,7 @@ line is code, this line is comment, this line is docstring. Pseudo because a rea
 CST would carry the names and the symbols precisely, and this carries only which
 lines are which -- which is what a reviewer of COMMENTS needs and no more.
 
-Every such line belongs to a BLOCK, and a block is addressed by the subject its
+Every such line belongs to a PARAGRAPH, and a paragraph is addressed by the subject its
 prose answers to: an INTERVAL between two lines of code, or a DECLARATION. A
 comment is about the code it sits with, so its address counts code lines; a
 docstring is about the thing it documents, so its address counts declarations.
@@ -16,20 +16,20 @@ The reviewers are handed this list, so it bounds everything they may rule on.
 ! Most of it holds no prose -- an empty `interval`, an `undocumented`
 declaration -- and those are ADDRESSABLE, so an `add` can cite the place its
 missing sentence belongs in, and nobody owes them a record. Coverage is over the
-blocks that HOLD prose.
+paragraphs that HOLD prose.
 
 **Every file handed in is censused, or this errors** -- a file it could not read
 or parse, or whose suffix has no language record, is named and the run exits
-nonzero, because a block missing from the census is a block nobody reviews.
+nonzero, because a paragraph missing from the census is a paragraph nobody reviews.
 
-Read-only. It calls `annotate.py` on each block for stage 3, and `repo.py` for
+Read-only. It calls `annotate.py` on each paragraph for stage 3, and `repo.py` for
 the facts about the checkout that both need.
 
-A block is built at the TIER available for its file's language. Both tiers find
-the same blocks, and the tier says what else the file can answer:
+A paragraph is built at the TIER available for its file's language. Both tiers find
+the same paragraphs, and the tier says what else the file can answer:
 
   tokenized  a lexer + AST (Python, from the stdlib)   + DOCSTRING anchors
-  lexical    a comment-syntax record                   blocks
+  lexical    a comment-syntax record                   paragraphs
 
 ! Only a STRUCTURAL doc carries an anchor, and only Python has one: the doc is a
 string inside a declaration's body, so the AST names the declaration. A MARKED
@@ -69,7 +69,7 @@ from annotate import (  # noqa: E402  -- path shim must run first
 )
 from pcst import (  # noqa: E402  -- path shim must run first
     OCCUPIES_NOTHING,
-    Block,
+    Paragraph,
 )
 from repo import (  # noqa: E402  -- path shim must run first
     EXCLUDED_DIRS,
@@ -86,10 +86,10 @@ DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
 
 
 # !! A sentinel that CANNOT be a line number. `0` is one less than line 1, so
-# `block.start == trailing_end[0] + 1` was true for every comment opening a
+# `paragraph.start == trailing_end[0] + 1` was true for every comment opening a
 # file -- stamping `continues-a-trailing-comment` with no trailing comment
 # anywhere, on 3 files in this repo's own tree. SKILL.md tells reviewers a
-# mid-clause ending on a stamped block "is not a `correct`", so the false stamp
+# mid-clause ending on a stamped paragraph "is not a `correct`", so the false stamp
 # SUPPRESSED real findings on file headers.
 _NO_TRAILING = -2
 
@@ -105,7 +105,7 @@ LEAD_PUNCT = re.compile(r"^[\s#/*\-!=;%<>]+")
 def counted_lines(raw: list[str]) -> int:
     """Lines a cap charges for: a marker LINE itself is free.
 
-    A marker points at filed work; the explanation is the rest of the block, and
+    A marker points at filed work; the explanation is the rest of the paragraph, and
     the cap measures the explanation. Charge the marker and the quickest route to
     green is deleting the pointer -- which is quick to do and expensive to have
     done: the work is still needed, and nothing names it any more.
@@ -113,9 +113,9 @@ def counted_lines(raw: list[str]) -> int:
     The exemption is one line wide. A run stays one run across a marker, and a
     marker's continuation lines are charged: six lines plus a `TODO:` is six.
     """
-    # ! A BLANK LINE IS FREE TOO. It sits inside the block by the interval
-    # definition -- only code bounds a block -- and SKILL.md says so directly:
-    # "The blank is inside the block and is charged nothing." It reaches here
+    # ! A BLANK LINE IS FREE TOO. It sits inside the paragraph by the interval
+    # definition -- only code bounds a paragraph -- and SKILL.md says so directly:
+    # "The blank is inside the paragraph and is charged nothing." It reaches here
     # now that a blank no longer ends a lexical run.
     return sum(
         1 for ln in raw if ln.strip() and not WORK_MARKER.match(LEAD_PUNCT.sub("", ln))
@@ -166,12 +166,12 @@ def docstring_text(lines: list[str]) -> str:
     AST, which arrives with no delimiters. Anyone comparing against that value
     starts from the file instead -- delimiters, prefix and all -- and this is
     what makes the two comparable. Measured 2026-08-17: without it a perfect
-    transcription kept its CLOSING delimiter, so a block ending `did it` ran
+    transcription kept its CLOSING delimiter, so a paragraph ending `did it` ran
     together with the quotes into one token and was refused against a census
     holding the same sentence.
 
     Args:
-        lines: the block's source lines, as the file reads them.
+        lines: the paragraph's source lines, as the file reads them.
     """
     text = "\n".join(lines).strip()
     for prefix in _PREFIXES:
@@ -212,21 +212,21 @@ def block_text(
     markers: tuple[str, ...] = ("#",),
     structural: bool = True,
 ) -> str:
-    """A block's prose as the census stores it, from the file's LINES.
+    """A paragraph's prose as the census stores it, from the file's LINES.
 
-    !! The lines-to-block half of the block protocol, and the ONLY one. It is
-    here rather than in a caller because the census defines what a block's text
+    !! The lines-to-paragraph half of the paragraph protocol, and the ONLY one. It is
+    here rather than in a caller because the census defines what a paragraph's text
     IS; a second implementation elsewhere is a second definition, and the two
     drift. Measured 2026-08-17: `verdicts.py` grew its own and disagreed with
     this file three ways at once -- a blank line, a raw-string prefix and a
-    closing delimiter -- refusing 83 of 171 blocks in one run, ~450 in another.
+    closing delimiter -- refusing 83 of 171 paragraphs in one run, ~450 in another.
 
-    ! The inverse, block-to-lines, is stage 7b's and does not exist yet: WRITE
+    ! The inverse, paragraph-to-lines, is stage 7b's and does not exist yet: WRITE
     is prose instructing an agent. When it is built it belongs beside this.
 
     Args:
-        kind: the block's `kind`, as the census records it.
-        lines: the block's source lines, as the file reads them.
+        kind: the paragraph's `kind`, as the census records it.
+        lines: the paragraph's source lines, as the file reads them.
         markers: the language's comment openers, longest first. ! The
             language's LINE comments only, because that is what the census
             passed -- a set that also stripped `/**` would produce prose the
@@ -259,13 +259,13 @@ class Language:
         doc_line: line-comment openers that mean DOC rather than ordinary
             comment (Rust `///`, `//!`). Empty when the language marks docs
             some other way.
-        doc_block: block openers that mean DOC (`/**`). Same idea.
+        doc_block: paragraph openers that mean DOC (`/**`). Same idea.
         doc_is_structural: the doc is a string in a declaration's body (Python)
             or the run above a declaration (Go). Both need structure to decide,
-            so this tier reports `comment` and annotates the block.
+            so this tier reports `comment` and annotates the paragraph.
         quotes: string delimiters, so a marker inside a literal is skipped.
         spanning_quotes: delimiters whose literal may cross LINES -- a JS
-            template literal, a Java text block. ! `_strip_strings` is per-line
+            template literal, a Java text paragraph. ! `_strip_strings` is per-line
             and carries no open-quote state, so a comment marker INSIDE one of
             these reads as a comment; `prove_unchanged` refuses such a file
             rather than proving it. Empty where a language has none.
@@ -337,7 +337,7 @@ LANGUAGES: tuple[Language, ...] = (
 BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 
 # The ladder is named by the QUESTION each rung answers, not by the library
-# that happens to answer it. Only the top rung knows which declaration a block
+# that happens to answer it. Only the top rung knows which declaration a paragraph
 # belongs to.
 TIER_ANSWERS = {
     "tokenized": "paragraphs, annotations, and DOCSTRING anchors",
@@ -381,11 +381,11 @@ def _strip_strings(line: str, quotes: tuple[str, ...]) -> str:
 
 
 def _own_characters(span: list[str], column: int) -> list[str]:
-    """A block's own characters: its lines, cut at `column` on the first.
+    """A paragraph's own characters: its lines, cut at `column` on the first.
 
-    !! ONE RULE FOR BOTH TIERS, which is what B3 is. `blocks_lexical` cut at the
-    comment OPENER and `blocks_stdlib` kept the whole physical line, so the two
-    stored different things and `galley.block_matches` could not be written to
+    !! ONE RULE FOR BOTH TIERS, which is what B3 is. `paragraphs_lexical` cut at the
+    comment OPENER and `paragraphs_stdlib` kept the whole physical line, so the two
+    stored different things and `galley.paragraph_matches` could not be written to
     satisfy both -- it refused a FRESH census on four of six comment shapes.
 
     ! With `anchor` holding the code, `anchor + raw_lines[0]` reconstructs the
@@ -393,8 +393,8 @@ def _own_characters(span: list[str], column: int) -> list[str]:
     in two fields, which is the conflation the anchor was added to end.
 
     Args:
-        span: the block's physical lines, without endings.
-        column: the block's `edit_column`; 0 when it owns its lines whole.
+        span: the paragraph's physical lines, without endings.
+        column: the paragraph's `edit_column`; 0 when it owns its lines whole.
 
     Returns:
         The same lines, with the first cut at `column`.
@@ -405,7 +405,7 @@ def _own_characters(span: list[str], column: int) -> list[str]:
 
 
 def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
-    """The line of code a `c` block sits beside -- its ANCHOR, verbatim.
+    """The line of code a `c` paragraph sits beside -- its ANCHOR, verbatim.
 
     !! AN ANCHOR IS THE LINE OF CODE, NOT A SYMBOL. Roy, 2026-08-19: *"the
     anchor isn't the technical symbols and their precise semantic meaning and
@@ -415,49 +415,49 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     characters before it.
 
     !! WITHOUT IT, STALENESS HAS NOTHING FROM THE CENSUS TO COMPARE THE CODE
-    AGAINST. `blocks_stdlib` kept the whole physical line in `raw_lines` and so
-    checked both halves by accident; `blocks_lexical` cuts at the opener and so
+    AGAINST. `paragraphs_stdlib` kept the whole physical line in `raw_lines` and so
+    checked both halves by accident; `paragraphs_lexical` cuts at the opener and so
     checked only the prose -- measured 2026-08-19, a lexical trailing comment
-    storing `['// note']` made `galley.block_matches` answer False on an
+    storing `['// note']` made `galley.paragraph_matches` answer False on an
     UNTOUCHED file. The fix is not to make both tiers store the whole line,
     which conflates the anchor with the prose in one string -- the conflation
     that produced the suffix-test defect twice. Roy: *"not marking or saving the
     anchor is causing the problem."*
 
-    ! It is `""` for a block that owns its lines whole, which has no code on its
+    ! It is `""` for a paragraph that owns its lines whole, which has no code on its
     line to be anchored to.
 
     Args:
         lines: the file's lines, without endings.
-        line_no: 1-based line the block opens on.
-        column: that block's `edit_column`.
+        line_no: 1-based line the paragraph opens on.
+        column: that paragraph's `edit_column`.
 
     Returns:
-        The code preceding the block on its first line, right-stripped.
+        The code preceding the paragraph on its first line, right-stripped.
     """
     if not column or not 1 <= line_no <= len(lines):
         return ""
     return lines[line_no - 1][: column - 1]
 
 
-def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
+def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]:
     """Comment runs for a language with no parser here -- the FLOOR tier.
 
-    Answers where every block is, its line range, its text and its
-    annotations. Every block comes back stamped `tier="lexical"`. ! A block
+    Answers where every paragraph is, its line range, its text and its
+    annotations. Every paragraph comes back stamped `tier="lexical"`. ! A paragraph
     sitting BESIDE code carries an anchor at this tier too -- the line of code
-    itself, which needs no parser; see `_anchor_of`. Only a block that owns its
+    itself, which needs no parser; see `_anchor_of`. Only a paragraph that owns its
     lines whole has none, because its anchor is a declaration and naming one
     needs the structure this tier lacks.
 
-    ! A block opener with no closer swallows every remaining line into one run,
-    so code below it is censused as prose. That block is STAMPED
-    `unterminated-block-comment`, which is how a consumer tells it from a long
+    ! A paragraph opener with no closer swallows every remaining line into one run,
+    so code below it is censused as prose. That paragraph is STAMPED
+    `unterminated-paragraph-comment`, which is how a consumer tells it from a long
     comment; `prove_unchanged.py` refuses the whole file on that annotation.
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     lines = text.splitlines()
-    out: list[Block] = []
+    out: list[Paragraph] = []
     run: list[tuple[int, str]] = []
     # ! Blank lines seen since the last comment line. They join the run only if
     # another comment follows; otherwise they are dropped, so a run ends on its
@@ -465,7 +465,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     pending: list[tuple[int, str]] = []
     in_block: tuple[str, str] | None = None
     # ! The line the last trailing comment ended on. Measured: this tier splits a
-    # wrapped trailing comment exactly as `blocks_stdlib` does, so it needs the
+    # wrapped trailing comment exactly as `paragraphs_stdlib` does, so it needs the
     # same stamp. A list because `flush` is a closure and rebinds nothing.
     trailing_end = [_NO_TRAILING]
 
@@ -473,7 +473,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     # tier states, one past the last character of code, or 0 when the run owns
     # its lines whole.
     #
-    # ! `trailing` does not answer it: a MULTI-LINE block comment opened after a
+    # ! `trailing` does not answer it: a MULTI-LINE paragraph comment opened after a
     # statement flushes with `trailing=False`, because by then the run spans
     # several lines. A list because `flush` is a closure and rebinds nothing.
     partial_first = [0]
@@ -485,8 +485,8 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             return
         raw = [t for _, t in run]
         # !! `raw_lines` IS THE SOURCE, `raw` IS THE PROSE. They were one list,
-        # so a block comment's own indentation and a trailing comment's code
-        # were cut out of the record of what is on disk -- and `block_matches`
+        # so a paragraph comment's own indentation and a trailing comment's code
+        # were cut out of the record of what is on disk -- and `paragraph_matches`
         # then refused a census built seconds earlier. The cut text still makes
         # `text` and still counts against the cap; the file's own characters are
         # what a splice is checked against.
@@ -501,7 +501,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             kind = "docstring"
         else:
             kind = "trailing-comment" if trailing else "comment"
-        block = Block(
+        paragraph = Paragraph(
             path=path.as_posix(),
             start=run[0][0],
             end=run[-1][0],
@@ -520,18 +520,18 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         )
         partial_first[0] = 0
         # !! Same split as the tokenized tier: a trailing comment closes its run,
-        # so a sentence wrapped onto the next line becomes a SECOND block anchored
+        # so a sentence wrapped onto the next line becomes a SECOND paragraph anchored
         # to the code below it. Stamped, not re-cut.
-        if kind == "comment" and block.start == trailing_end[0] + 1:
-            block.annotations.add("continues-a-trailing-comment")
-            block.notes.append(
+        if kind == "comment" and paragraph.start == trailing_end[0] + 1:
+            paragraph.annotations.add("continues-a-trailing-comment")
+            paragraph.notes.append(
                 "opens on the line after a trailing comment, so it may be the"
                 " tail of that sentence rather than a note about the code"
                 " below. A mid-clause ending here may be the split."
             )
         if kind == "trailing-comment":
-            trailing_end[0] = block.end
-        out.append(block)
+            trailing_end[0] = paragraph.end
+        out.append(paragraph)
         run.clear()
 
     for n, raw_line in enumerate(lines, 1):
@@ -541,12 +541,12 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
                 in_block = None
                 flush()
             continue
-        # !! ONLY CODE ENDS A BLOCK -- a blank line does not, and this reached
+        # !! ONLY CODE ENDS A PARAGRAPH -- a blank line does not, and this reached
         # `flush()` because `"".startswith(openers)` is False. SKILL.md names
-        # the consequence exactly: "Split on blanks and a 9-line block reads as
+        # the consequence exactly: "Split on blanks and a 9-line paragraph reads as
         # `6 + 3` and passes a cap of 6 -- the quickest way to fake compliance."
         # Measured 2026-08-17: a six-line run with one blank censused as 3L + 3L
-        # in every LEXICAL language, while `blocks_stdlib` skips NL tokens and
+        # in every LEXICAL language, while `paragraphs_stdlib` skips NL tokens and
         # kept it whole. Ten of the eleven languages could evade any cap.
         #
         # ! The blank JOINS the run rather than being skipped, so `raw_lines`
@@ -557,7 +557,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         # NOT extend it. They are held here and committed only when another
         # comment line arrives. A run's `end` must stay on its last comment
         # line, because `doc-kind-unresolved` asks whether the very next line
-        # is a declaration -- extend the block over the gap and an ORPHAN run,
+        # is a declaration -- extend the paragraph over the gap and an ORPHAN run,
         # held off its declaration by exactly that gap, reads as documenting it.
         if not raw_line.strip():
             if run:
@@ -566,12 +566,12 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
         code = _strip_strings(raw_line, lang.quotes)
         line_at = min((code.index(o) for o in openers if o in code), default=-1)
         opened = next((p for p in lang.block_comment if p[0] in code), None)
-        # !! WHICHEVER OPENER COMES FIRST on the line owns it. The block test
-        # ran first unconditionally, so `// see /* the note` opened a block run
+        # !! WHICHEVER OPENER COMES FIRST on the line owns it. The paragraph test
+        # ran first unconditionally, so `// see /* the note` opened a paragraph run
         # that swallowed every line up to the next `*/` -- executable code
         # handed to four reviewers as prose, carrying no annotation to say so,
         # and dropped from `code_lines`, which put every interval in that file
-        # at the wrong boundary. Measured on a five-line C file: one block
+        # at the wrong boundary. Measured on a five-line C file: one paragraph
         # spanning lines 2-4 whose text held `int b = 2;`.
         if opened is not None and -1 < line_at < code.index(opened[0]):
             opened = None
@@ -579,7 +579,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             flush()
             # !! CUT AT THE OPENER, like the line-comment path below does. The
             # whole raw line was appended, so `int b = 2; /* note */` was
-            # censused as one `comment` block whose TEXT held the statement --
+            # censused as one `comment` paragraph whose TEXT held the statement --
             # executable code handed to four reviewers as prose, run through the
             # annotation regexes, and dropped from `code_lines`, which moved
             # every interval boundary in the file. Measured 2026-08-17, the same
@@ -598,7 +598,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             # of line length rules ... all intermediate comments are ignored.
             # They can be brought up by the agents as code change suggestions."*
             #
-            # ! It was censused, and the block's TEXT was the whole statement:
+            # ! It was censused, and the paragraph's TEXT was the whole statement:
             # measured 2026-08-19, `f.c@c1 comment text='int x = /* why */ 5;'`
             # -- executable code handed to four reviewers as prose. Cutting at
             # the opener instead loses the `5;`, so `5` and `7` would compare
@@ -608,7 +608,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             if closes_here and after.strip():
                 continue
             # ! Only the run's FIRST line decides it -- `flush()` above emptied
-            # the run, so this is that line. A continuation line of a block
+            # the run, so this is that line. A continuation line of a paragraph
             # comment is entirely prose whatever surrounds the run.
             partial_first[0] = (
                 len(code[:opens_at].rstrip()) + 1 if code[:opens_at].strip() else 0
@@ -626,7 +626,7 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             pending.clear()
             run.append((n, raw_line.rstrip()))
             continue
-        flush()  # ! CODE ends a block; a blank line does not
+        flush()  # ! CODE ends a paragraph; a blank line does not
         at = line_at
         if at >= 0:
             # ! `flush()` above emptied the run, so this line is the first
@@ -634,13 +634,13 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
             # comment runs to end of line, so there is no other side to test.
             partial_first[0] = len(code[:at].rstrip()) + 1 if code[:at].strip() else 0
             run.append((n, raw_line[at:].rstrip()))
-            flush(trailing=True)  # its own block, anchored to the code on that line
+            flush(trailing=True)  # its own paragraph, anchored to the code on that line
     flush()
     if in_block is not None and out:
-        # The loop ended with a block comment still open, so the final flush
-        # emitted the run that ate the rest of the file. It is the ONE block
+        # The loop ended with a paragraph comment still open, so the final flush
+        # emitted the run that ate the rest of the file. It is the ONE paragraph
         # that may hold code.
-        out[-1].annotations.add("unterminated-block-comment")
+        out[-1].annotations.add("unterminated-paragraph-comment")
         out[-1].notes.append(
             f"UNTERMINATED {in_block[0]}: no closing {in_block[1]} before end of "
             "file, so every line below the opener was swallowed into this run. "
@@ -649,7 +649,9 @@ def blocks_lexical(path: Path, text: str, lang: Language) -> list[Block]:
     return out
 
 
-def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None:
+def flag_structural_docs(
+    paragraphs: list[Paragraph], text: str, lang: Language
+) -> None:
     """Mark each run whose KIND is still an open question at this tier.
 
     Go and Ruby attach documentation by POSITION -- an ordinary line comment
@@ -657,33 +659,33 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
     doc reads like any other run, and telling them apart needs the structure
     this tier lacks.
 
-    The block is annotated as an OPEN QUESTION instead. That matters because
+    The paragraph is annotated as an OPEN QUESTION instead. That matters because
     `compact.md` routes on KIND: a `comment` is governed by LENGTH and may be
     cut to the cap, a `docstring` by FORMAT and stands. Unmarked, a three-line
     Go export doc reads as over a cap of two and is cut by a rule that governs
     comments.
 
     Args:
-        blocks: this file's blocks, mutated in place.
+        paragraphs: this file's paragraphs, mutated in place.
         text: the file's source, for looking at what follows each run.
         lang: the language record, which decides whether this pass applies.
     """
     if not lang.doc_is_structural:
         return
     lines = text.splitlines()
-    for block in blocks:
+    for paragraph in paragraphs:
         # Only a leading `comment` run can be a positional doc: a trailing
         # comment annotates the code on its own line.
-        if block.kind != "comment":
+        if paragraph.kind != "comment":
             continue
         # ! The IMMEDIATELY next line. Both languages require a doc comment to
         # touch its declaration, so a run held off by a blank line is an ORPHAN
         # -- left unmarked here, and charged to the cap.
-        nxt = lines[block.end].strip() if block.end < len(lines) else ""
+        nxt = lines[paragraph.end].strip() if paragraph.end < len(lines) else ""
         if not nxt:
             continue
-        block.annotations.add("doc-kind-unresolved")
-        block.notes.append(
+        paragraph.annotations.add("doc-kind-unresolved")
+        paragraph.notes.append(
             "KIND UNRESOLVED: this run sits above code and "
             f"{lang.name} attaches docs by position, so it may be documentation "
             "governed by FORMAT rather than a comment governed by LENGTH. "
@@ -691,9 +693,9 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
         )
 
 
-def blocks_stdlib(path: Path, text: str) -> list[Block]:
-    """Comment blocks (bounded by CODE) and docstrings, via tokenize + ast."""
-    out: list[Block] = []
+def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
+    """Comment paragraphs (bounded by CODE) and docstrings, via tokenize + ast."""
+    out: list[Paragraph] = []
     source_lines = text.splitlines()
     # (line, physical source line, the comment token alone, is it trailing)
     run: list[tuple[int, str, str, bool]] = []
@@ -711,7 +713,7 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
             # `models.Index(fields=(...)),  # note` as the note's text.
             prose = [c for _, _, c, _ in run]
             out.append(
-                block := Block(
+                paragraph := Paragraph(
                     path=path.as_posix(),
                     start=run[0][0],
                     end=run[-1][0],
@@ -724,41 +726,41 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
                     edit_column=run[0][3],
                     lines=counted_lines(prose),
                     text=_join(prose),
-                    # !! THE LINES THE BLOCK SPANS, not the lines that carry a
+                    # !! THE LINES THE PARAGRAPH SPANS, not the lines that carry a
                     # comment token. A blank line inside a run has no token, so
                     # taking them from `run` skipped it while `start..end`
                     # still spanned it -- `raw_lines` was then SHORTER than the
-                    # block, and anything comparing the two disagreed on an
-                    # untouched file. Measured 2026-08-18: 4 blocks in this
-                    # repo, each refused by `galley.block_matches` as stale,
+                    # paragraph, and anything comparing the two disagreed on an
+                    # untouched file. Measured 2026-08-18: 4 paragraphs in this
+                    # repo, each refused by `galley.paragraph_matches` as stale,
                     # and each one a splice that would have deleted the blank
                     # line it did not know about.
                     raw_lines=_own_characters(
                         source_lines[run[0][0] - 1 : run[-1][0]], run[0][3]
                     ),
-                    # !! Same string, same reason -- see `blocks_lexical`. The
+                    # !! Same string, same reason -- see `paragraphs_lexical`. The
                     # tokenizer states the column, so the code before it is a
                     # slice and not an inference.
                     anchor=_anchor_of(source_lines, run[0][0], run[0][3]),
                 )
             )
             # !! A trailing comment CLOSES its run, so a sentence wrapped onto
-            # the next line becomes a SECOND block and re-anchors to the
-            # declaration below it. That is correct by the block definition --
+            # the next line becomes a SECOND paragraph and re-anchors to the
+            # declaration below it. That is correct by the paragraph definition --
             # the continuation sits between two lines of code -- and wrong about
             # the prose, which is one sentence. STAMPED rather than re-cut:
-            # merging would change block boundaries and renumber every census,
+            # merging would change paragraph boundaries and renumber every census,
             # and the harm is a reviewer filing `correct` against a mid-clause
             # ending the census manufactured.
-            if block.kind == "comment" and block.start == trailing_end[0] + 1:
-                block.annotations.add("continues-a-trailing-comment")
-                block.notes.append(
+            if paragraph.kind == "comment" and paragraph.start == trailing_end[0] + 1:
+                paragraph.annotations.add("continues-a-trailing-comment")
+                paragraph.notes.append(
                     "opens on the line after a trailing comment, so it may be"
                     " the tail of that sentence rather than a note about the"
                     " code below. A mid-clause ending here may be the split."
                 )
-            if block.kind == "trailing-comment":
-                trailing_end[0] = block.end
+            if paragraph.kind == "trailing-comment":
+                trailing_end[0] = paragraph.end
             run.clear()
 
     for raw in tokenize.generate_tokens(io.StringIO(text).readline):
@@ -772,7 +774,7 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
             # the next token to arrive is the following leading comment, and the
             # two merged across two blank lines -- gluing `raise original
             # DoesNotExist` to an unrelated `TODO` four lines down and handing a
-            # reviewer one block built from two comments.
+            # reviewer one paragraph built from two comments.
             if trailing:
                 flush()
         elif raw.type in (
@@ -789,7 +791,7 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
         tree = ast.parse(text)
     except SyntaxError as e:
         out.append(
-            Block(
+            Paragraph(
                 path=path.as_posix(),
                 start=getattr(e, "lineno", 1) or 1,
                 end=getattr(e, "lineno", 1) or 1,
@@ -824,15 +826,15 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
         # !! `raw_lines` IS THE FILE'S LINES, sliced, and never the AST value.
         # `ast.get_docstring` returns the string CONTENT: no quote delimiters,
         # and no indent on the first line. Stored, it made every consumer that
-        # compares a block to the file compare unlike things -- measured
-        # 2026-08-17 on `galley.py`'s own census, `block_matches` returned False
-        # for all six docstring blocks of an UNMODIFIED file and True for all
-        # five comment blocks, so a docstring edit was refused as stale and the
+        # compares a paragraph to the file compare unlike things -- measured
+        # 2026-08-17 on `galley.py`'s own census, `paragraph_matches` returned False
+        # for all six docstring paragraphs of an UNMODIFIED file and True for all
+        # five comment paragraphs, so a docstring edit was refused as stale and the
         # galley could not be set for it at all. `text` is the whole source and
         # the node carries 1-based inclusive lines, so the slice is exact.
         raw = source_lines[start - 1 : end]
         out.append(
-            Block(
+            Paragraph(
                 path=path.as_posix(),
                 start=start,
                 end=end,
@@ -855,14 +857,14 @@ def blocks_stdlib(path: Path, text: str) -> list[Block]:
 
 def _undocumented(
     path: Path, tree: ast.AST, declared: list, ordinal: dict[int, int]
-) -> list[Block]:
+) -> list[Paragraph]:
     """An `a` entry for every declaration that has NO docstring.
 
     !! THE EMPTY ONES ARE THE POINT OF THE SERIES. An `add` says a constraint
     holds in code and appears in no prose, so it has to cite the place the prose
     is missing from -- and until this ran, a function with no docstring had no
     such place. Measured 2026-08-18 on a four-declaration file: the census
-    emitted two docstring blocks and left three declarations with nowhere to
+    emitted two docstring paragraphs and left three declarations with nowhere to
     cite. This is the same hole `intervals` closed for gaps.
 
     ! It occupies NO LINES, exactly like an empty interval, and `OCCUPIES_NOTHING`
@@ -875,7 +877,7 @@ def _undocumented(
     between two code lines. An `add` on the first writes a docstring, on the
     second a comment run.
     """
-    out: list[Block] = []
+    out: list[Paragraph] = []
     for node in [tree, *declared]:
         if not isinstance(node, DOC_ANCHORS) or ast.get_docstring(node, clean=False):
             continue
@@ -884,7 +886,7 @@ def _undocumented(
             continue
         first = body[0].lineno
         out.append(
-            Block(
+            Paragraph(
                 path=path.as_posix(),
                 # !! LINE 0 -- IT OCCUPIES NO LINE, because the docstring is not
                 # written yet. Roy ruled the empty case 2026-08-19. Given the
@@ -892,7 +894,7 @@ def _undocumented(
                 # `def` and its first statement: a module with no docstring
                 # spanned lines 1-4 and the locator answered `a0` for the
                 # comment at 3 and the `def` at 4, both of which belong to other
-                # blocks. Its EDIT range still says where the prose would go.
+                # paragraphs. Its EDIT range still says where the prose would go.
                 start=0,
                 end=0,
                 kind="undocumented",
@@ -1020,19 +1022,19 @@ def code_names(
     return names, unread
 
 
-def code_lines(text: str, prose: list[Block]) -> set[int]:
+def code_lines(text: str, prose: list[Paragraph]) -> set[int]:
     """The code lines of this file, as a set -- `addresser.code_lines_of`.
 
     !! ONE IMPLEMENTATION, and it is the addresser's, because an address is
     counted off this set and the two must not be able to disagree. This is the
-    same rule over `Block`s rather than dicts; the rule itself is written where
+    same rule over `Paragraph`s rather than dicts; the rule itself is written where
     it runs.
     """
     return set(code_lines_of(text, [vars(b) for b in prose]))
 
 
-def blocks_in(prose: list[Block], prev: int, nxt: int) -> list[Block]:
-    """The prose blocks OVERLAPPING the gap between two code lines.
+def paragraphs_in(prose: list[Paragraph], prev: int, nxt: int) -> list[Paragraph]:
+    """The prose paragraphs OVERLAPPING the gap between two code lines.
 
     !! OVERLAP, NOT START. A comment opened after a statement begins ON the
     bounding code line and runs into the gap below it, so `prev < b.start` was
@@ -1050,11 +1052,11 @@ def blocks_in(prose: list[Block], prev: int, nxt: int) -> list[Block]:
     ]
 
 
-def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
+def intervals(path: Path, text: str, prose: list[Paragraph]) -> list[Paragraph]:
     """Every gap between two lines of code that holds no prose.
 
-    A gap holding a comment run IS that run's block, so only the empty ones are
-    emitted here and the census stays one block per interval either way.
+    A gap holding a comment run IS that run's paragraph, so only the empty ones are
+    emitted here and the census stays one paragraph per interval either way.
 
     ! **The file boundary counts as a bound.** There is no code line above a
     module docstring and none below a comment at EOF, so the first and last
@@ -1069,7 +1071,7 @@ def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
     !! `edit_start` and `edit_end` are the OTHER range -- the gap itself, which
     is what an edit to this interval occupies. They are set here and nowhere
     else, because the edges walked here carry the file-boundary sentinels that
-    `start` and `end` clamp away. See `Block`.
+    `start` and `end` clamp away. See `Paragraph`.
     """
     lines = text.splitlines()
     last = len(lines)
@@ -1077,9 +1079,9 @@ def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
         return []
     code = sorted(code_lines(text, prose))
     edges = [0, *code, last + 1]
-    out: list[Block] = []
+    out: list[Paragraph] = []
     for prev, nxt in pairwise(edges):
-        holders = blocks_in(prose, prev, nxt)
+        holders = paragraphs_in(prose, prev, nxt)
         # !! A DOCSTRING DOES NOT HOLD A GAP'S `b`. It has its own `a`, so the
         # gap still needs a `b` place -- otherwise there is nowhere to cite a
         # comment ABOVE a docstring. Measured 2026-08-19 before this: 129 `b`
@@ -1099,7 +1101,7 @@ def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
         if holders or lo > hi:
             lo = hi = 0
         out.append(
-            Block(
+            Paragraph(
                 path=path.as_posix(),
                 start=lo,
                 end=hi,
@@ -1118,7 +1120,7 @@ def intervals(path: Path, text: str, prose: list[Block]) -> list[Block]:
                 # !! A DOCSTRING IN THIS GAP MAKES THE EDIT AN INSERTION ABOVE
                 # IT, never a replacement of it. The gap's lines are the
                 # docstring's, so writing the whole range would overwrite the
-                # docstring with a comment -- and `block_matches` reported the
+                # docstring with a comment -- and `paragraph_matches` reported the
                 # place stale on a FRESH census, because those lines are not
                 # blank. `prev+1 .. prev` is an empty slice: prose lands above.
                 edit_start=prev + 1,
@@ -1159,7 +1161,7 @@ def _repo_relative(path: Path, repo: Path) -> str:
         return path.as_posix()
 
 
-def census_for(path: Path, text: str, lang: Language) -> list[Block]:
+def census_for(path: Path, text: str, lang: Language) -> list[Paragraph]:
     """The census for one file, at the highest tier available for its language.
 
     The ladder is by QUESTION ANSWERED. Python reaches TOKENIZED through the
@@ -1167,17 +1169,17 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
     floor.
     """
     if lang.name == "python":
-        got = blocks_stdlib(path, text)
+        got = paragraphs_stdlib(path, text)
     else:
-        got = blocks_lexical(path, text, lang)
+        got = paragraphs_lexical(path, text, lang)
         flag_structural_docs(got, text, lang)
     # ! A file the parser refused is NOT enumerated into intervals. Its one
-    # `unparsed` block reports the refusal, and the code lines below it were
+    # `unparsed` paragraph reports the refusal, and the code lines below it were
     # never established, so any interval drawn there would be invented.
     if not any(b.kind == "unparsed" for b in got):
         got = got + intervals(path, text, got) + margins(path, text, got)
         fill_the_gaps(text, got)
-        # ! AFTER the gaps are filled, so every block's place in its gap is
+        # ! AFTER the gaps are filled, so every paragraph's place in its gap is
         # settled before it is told what it sits above.
         anchor_every_address(text, got)
         mark_front_matter(got)
@@ -1192,7 +1194,7 @@ _SHEBANG = re.compile(r"^#!")
 _CODING = re.compile(r"coding[:=]\s*[-\w.]+")
 
 
-def mark_front_matter(blocks: list[Block]) -> None:
+def mark_front_matter(paragraphs: list[Paragraph]) -> None:
     """Stamp the prose that sits ABOVE a module's own docstring.
 
     !! WHAT IT IS. A licence header, a shebang, a coding declaration -- the
@@ -1219,7 +1221,7 @@ def mark_front_matter(blocks: list[Block]) -> None:
     A licence header is a legal instrument and a shebang is how the file runs;
     both are the human's to change and neither is an editorial question. A
     finding here is therefore turned into a `query` -- ask -- rather than
-    admitted as work. `verdicts.py` does that; this only says which block.
+    admitted as work. `verdicts.py` does that; this only says which paragraph.
 
     ! The rule is POSITIONAL and deliberately narrow: prose in the gap before
     the first code line, sitting above a module docstring that EXISTS -- or
@@ -1228,10 +1230,10 @@ def mark_front_matter(blocks: list[Block]) -> None:
     about whatever follows it, and is reviewed like any other.
     """
     doc = next(
-        (b for b in blocks if b.kind == "docstring" and b.declares == 0),
+        (b for b in paragraphs if b.kind == "docstring" and b.declares == 0),
         None,
     )
-    for b in blocks:
+    for b in paragraphs:
         if b.kind not in ("comment", "trailing-comment") or b.start < 1:
             continue
         opens = (b.raw_lines or [""])[0].strip()
@@ -1241,7 +1243,7 @@ def mark_front_matter(blocks: list[Block]) -> None:
             b.annotations.add(FRONT_MATTER)
 
 
-def anchor_every_address(text: str, blocks: list[Block]) -> None:
+def anchor_every_address(text: str, paragraphs: list[Paragraph]) -> None:
     """Give every `a` and `b` place the line of code it is attached to.
 
     !! EVERY ADDRESS HAS AN ANCHOR, AND AN ANCHOR HAS MANY ADDRESSES. Roy,
@@ -1260,7 +1262,7 @@ def anchor_every_address(text: str, blocks: list[Block]) -> None:
     statement the prose introduces. ! THE GAP AT THE END OF THE FILE HAS NO
     LINE BELOW IT and takes the one above instead, because a gap is bounded by
     code and that is the bound it has. Roy, 2026-08-19: *"an anchor missing in
-    a Record is a broken anchor."* Left empty it was 14 blocks of this repo,
+    a Record is a broken anchor."* Left empty it was 14 paragraphs of this repo,
     one per file.
 
     !! AN `a` IS ATTACHED TO ITS DECLARATION'S LINE, not to its NAME. Roy,
@@ -1277,7 +1279,7 @@ def anchor_every_address(text: str, blocks: list[Block]) -> None:
 
     !! IT IS COPIED FROM THAT LINE'S `c`, NEVER RE-CUT. Every code line has
     exactly one `c` -- a `trailing-comment` or the `margin` standing in for one
-    -- and that block already states where the code stops. Cutting the line
+    -- and that paragraph already states where the code stops. Cutting the line
     again here answered `'    return os  # why'` where the `c` for the same
     line answered `'    return os'`: two computations of one fact, inside one
     module, which is the defect `whole_lines` was removed for. ! It is why an
@@ -1287,13 +1289,13 @@ def anchor_every_address(text: str, blocks: list[Block]) -> None:
 
     Args:
         text: the file's source.
-        blocks: this file's blocks, mutated in place. `margins` must have run.
+        paragraphs: this file's paragraphs, mutated in place. `margins` must have run.
     """
     last = len(text.splitlines())
-    code = sorted(code_lines(text, blocks))
+    code = sorted(code_lines(text, paragraphs))
     # ! The `c` of each code line, which is the code on it.
-    beside = {b.start: b.anchor for b in blocks if b.edit_column}
-    for b in blocks:
+    beside = {b.start: b.anchor for b in paragraphs if b.edit_column}
+    for b in paragraphs:
         # !! THE MODULE IS LEFT ALONE. `declared_at` is 0 for it, because Python
         # declares a module with no line of code -- so it keeps the name the
         # LANGUAGE uses for module-level code, `<module>`, which is `co_name`
@@ -1311,8 +1313,8 @@ def anchor_every_address(text: str, blocks: list[Block]) -> None:
             b.anchor = beside.get(b.declared_at, "")
     for prev, nxt in pairwise([0, *code, last + 1]):
         below = beside.get(nxt) or beside.get(prev, "")
-        for b in blocks:
-            # ! The `b` series is every block with no column and no
+        for b in paragraphs:
+            # ! The `b` series is every paragraph with no column and no
             # declaration: a comment run holding the gap, or the empty
             # `interval` where one holds nothing.
             if b.edit_column or b.declares >= 0:
@@ -1321,16 +1323,16 @@ def anchor_every_address(text: str, blocks: list[Block]) -> None:
                 b.anchor = below
 
 
-def fill_the_gaps(text: str, blocks: list[Block]) -> None:
-    """Give every line of a gap to the block it belongs to, blanks included.
+def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
+    """Give every line of a gap to the paragraph it belongs to, blanks included.
 
-    !! EVERY LINE HAS AN ADDRESS. Ruled 2026-08-19. A prose block was addressed
+    !! EVERY LINE HAS AN ADDRESS. Ruled 2026-08-19. A prose paragraph was addressed
     by the lines its prose occupied, so a blank line beside it belonged to
     nothing -- 81 lines of this repo, every one at the edge of a gap, and a
     reviewer asking the locator about one got "no entry holds this line".
 
-    ! A block runs to the next block, or to the end of its gap. Leading blanks
-    go to the first block in the gap and trailing blanks to the last, which is
+    ! A paragraph runs to the next paragraph, or to the end of its gap. Leading blanks
+    go to the first paragraph in the gap and trailing blanks to the last, which is
     the same rule read from either end.
 
     ! It moves the ADDRESSING range only. `edit_start`/`edit_end` were fixed at
@@ -1338,7 +1340,7 @@ def fill_the_gaps(text: str, blocks: list[Block]) -> None:
     before -- widening those would let a `change` swallow the blank line that
     separates a comment run from the code beneath it.
     """
-    code = sorted(code_lines(text, blocks))
+    code = sorted(code_lines(text, paragraphs))
     last = len(text.splitlines())
     edges = [0, *code, last + 1]
     for prev, nxt in pairwise(edges):
@@ -1346,7 +1348,7 @@ def fill_the_gaps(text: str, blocks: list[Block]) -> None:
         if lo > hi:
             continue
         here = sorted(
-            (b for b in blocks if b.start >= 1 and lo <= b.start <= hi),
+            (b for b in paragraphs if b.start >= 1 and lo <= b.start <= hi),
             key=lambda b: b.start,
         )
         if not here:
@@ -1357,7 +1359,7 @@ def fill_the_gaps(text: str, blocks: list[Block]) -> None:
         here[-1].end = hi
 
 
-def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
+def margins(path: Path, text: str, prose: list[Paragraph]) -> list[Paragraph]:
     """A `c` place for every code line that carries no trailing comment.
 
     !! WITHOUT IT THERE IS NOWHERE TO PUT ONE. Roy, 2026-08-19: without the
@@ -1371,16 +1373,16 @@ def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
 
     ! `raw_lines` holds the room itself -- whatever follows the code, which is
     nothing unless the line ends in whitespace. The code it sits beside is the
-    ANCHOR, and `galley.block_matches` checks that half against the file.
+    ANCHOR, and `galley.paragraph_matches` checks that half against the file.
     """
     lines = text.splitlines()
     # ! THE SAME FACT `address` reads. A line already carrying prose that SHARES
-    # it has no room left -- and that is any block with `whole_lines` False, not
-    # only a `trailing-comment`. Keyed on the kind, a block comment opened after
+    # it has no room left -- and that is any paragraph with `whole_lines` False, not
+    # only a `trailing-comment`. Keyed on the kind, a paragraph comment opened after
     # a statement got a margin for room it already occupies.
     taken = {b.start for b in prose if b.edit_column}
     return [
-        Block(
+        Paragraph(
             path=path.as_posix(),
             start=n,
             end=n,
@@ -1412,12 +1414,12 @@ def margins(path: Path, text: str, prose: list[Block]) -> list[Block]:
 def _not_censused(files: list[Path], unreadable: list[str]) -> str:
     """The refusal, worded ONCE for both output modes.
 
-    !! The reviewers are handed the census, so a file missing from it is blocks
+    !! The reviewers are handed the census, so a file missing from it is paragraphs
     nobody reviews and nothing downstream notices. `--json` used to return 0
     with a SHORT array on exactly the input the text path refused -- and
     `--json --out` is the route `SKILL.md` mandates for the census stage 5
-    parses, so the coverage check then certified every block accounted for over
-    blocks that were never collected.
+    parses, so the coverage check then certified every paragraph accounted for over
+    paragraphs that were never collected.
     """
     listed = "\n".join(f"    {u}" for u in unreadable)
     return (
@@ -1442,7 +1444,7 @@ def main() -> int:
     ap.add_argument(
         "--filtered",
         action="store_true",
-        help="the reviewer's view: prose blocks, and one line per run of intervals",
+        help="the reviewer's view: prose paragraphs, and one line per run of intervals",
     )
     ap.add_argument(
         "--out", metavar="PATH", help="write the report to PATH, not stdout"
@@ -1481,7 +1483,7 @@ def _report(args: argparse.Namespace) -> int:
     known, unread = code_names([repo], tracked_paths(repo))
     paths = path_index(repo)
 
-    census: list[Block] = []
+    census: list[Paragraph] = []
     # A path argument that matched no file joins `unreadable`, so a typo errors
     # on the same rule every other gap does.
     unreadable: list[str] = [
@@ -1502,14 +1504,14 @@ def _report(args: argparse.Namespace) -> int:
         except Exception as e:  # a parse failure is REPORTED, as a gap
             unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
             continue
-        # !! EVERY BLOCK'S PATH IS REPO-RELATIVE. It is what `--repo` is for:
+        # !! EVERY PARAGRAPH'S PATH IS REPO-RELATIVE. It is what `--repo` is for:
         # the census, the file lists and every citation a reviewer writes all
-        # resolve against that root, so a block carrying an absolute path is a
-        # block no consumer can place. It happened whenever the run was handed
+        # resolve against that root, so a paragraph carrying an absolute path is a
+        # paragraph no consumer can place. It happened whenever the run was handed
         # absolute file arguments, which is how a task agent that resolved its
         # own paths would call this.
         #
-        # !! Measured 2026-08-17: `galley.py` joins `out / block["path"]`, and
+        # !! Measured 2026-08-17: `galley.py` joins `out / paragraph["path"]`, and
         # in Python an absolute right-hand side WINS a join -- so the galley
         # wrote over the source file, put nothing under `--out`, and printed
         # that it had succeeded. The module whose one promise is "nothing under
@@ -1517,14 +1519,14 @@ def _report(args: argparse.Namespace) -> int:
         #
         # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
         # `_repo_relative`, which says what that means. `galley.py` refuses to
-        # write such a block rather than guessing where it belongs.
+        # write such a paragraph rather than guessing where it belongs.
         # ! HOISTED. `_repo_relative` calls `Path.resolve()`, a filesystem
-        # call, and both arguments are the same for every block of a file.
-        # Measured 2026-08-18: 120 us a call, so one 793-block file spent
+        # call, and both arguments are the same for every paragraph of a file.
+        # Measured 2026-08-18: 120 us a call, so one 793-paragraph file spent
         # 95 ms resolving one path 793 times.
         rel = _repo_relative(path, repo)
         # !! A PATH HOLDING THE SEPARATOR CANNOT BE ADDRESSED, so it is a GAP
-        # and not a block with a broken name. `flatten` joins segments on `:`,
+        # and not a paragraph with a broken name. `flatten` joins segments on `:`,
         # which Windows forbids in a filename; POSIX forbids only `/` and NUL,
         # so a POSIX checkout can hold `a:b.py`, whose address would be the
         # address of `a/b.py`. That is the collision the separator was chosen to
@@ -1541,7 +1543,7 @@ def _report(args: argparse.Namespace) -> int:
             b.path = rel
         # !! THE PRODUCER STATES THE PLACE, and states it HERE -- after the path
         # is repo-relative, because the place carries that path. Stamping it in
-        # `census_for` named every block by its absolute path, which is not what
+        # `census_for` named every paragraph by its absolute path, which is not what
         # any consumer resolves against.
         #
         # ! Four consumers would otherwise recompute this from the file, and
@@ -1576,7 +1578,7 @@ def _report(args: argparse.Namespace) -> int:
         # the census stage 5 parses, and this returned 0 with a SHORT array for
         # a file that could not be read -- so a file with no language record,
         # or one that failed to parse, vanished, and the coverage check then
-        # certified "every block accounted for" over blocks never collected.
+        # certified "every paragraph accounted for" over paragraphs never collected.
         # The text path errored on exactly the same input.
         if unreadable:
             print(_not_censused(files, unreadable), file=sys.stderr)
@@ -1616,13 +1618,13 @@ def _report(args: argparse.Namespace) -> int:
     print()
 
     if args.filtered:
-        # !! A PROJECTION, NEVER A RENUMBERING. Each block keeps the index it
+        # !! A PROJECTION, NEVER A RENUMBERING. Each paragraph keeps the index it
         # has in the full census, because that index is what the join resolves
         # and what a record cites -- renumber and every citation from a filtered
-        # reviewer resolves to the wrong block, with nothing able to tell.
-        print("CENSUS - the blocks holding prose, numbered as in the full census.")
+        # reviewer resolves to the wrong paragraph, with nothing able to tell.
+        print("CENSUS - the paragraphs holding prose, numbered as in the full census.")
     else:
-        print("CENSUS - every block, numbered.")
+        print("CENSUS - every paragraph, numbered.")
     # !! THE FILE IS STATED ONCE, not on every row. Measured 2026-08-18 over
     # the 13 shipped scripts: 778 rows repeated their path 1,556 times, 80,912
     # of the listing's 205,753 bytes -- 39% -- and every reviewer gets an
@@ -1645,7 +1647,7 @@ def _report(args: argparse.Namespace) -> int:
         first, last = census[run[0] - 1], census[run[-1] - 1]
         heading(first.path)
         span = f"{first.start}-{last.end}"
-        # ! The FIRST index sits in the same column a block's does, so the
+        # ! The FIRST index sits in the same column a paragraph's does, so the
         # numbering reads down the page as one sequence -- a run carries census
         # indices, not a different kind of row. `1-interval` and not
         # `1-intervals`, because this is prose a reviewer reads.
@@ -1657,8 +1659,8 @@ def _report(args: argparse.Namespace) -> int:
         # !! THE SAME COLUMNS AS A BLOCK LINE -- index, address, KIND, lines,
         # notes -- because this listing is pasted into a reviewer's prompt and
         # is read down its columns. Written as prose (`no prose (5 intervals)`)
-        # the third column read `no`, which is where a block states its kind,
-        # so a run and a block could not be told apart by anything mechanical.
+        # the third column read `no`, which is where a paragraph states its kind,
+        # so a run and a paragraph could not be told apart by anything mechanical.
         # ! The notes column names what it counts, in the hyphenated form the
         # annotations use, so the row is readable without the header.
         counted = f"{len(run)}-interval" + ("" if len(run) == 1 else "s")
@@ -1667,9 +1669,9 @@ def _report(args: argparse.Namespace) -> int:
 
     for i, b in enumerate(census, 1):
         # !! FILTERED, and the intervals become ONE LINE PER RUN rather than
-        # vanishing. Measured 2026-08-18 over 1,120 blocks: the full census is
+        # vanishing. Measured 2026-08-18 over 1,120 paragraphs: the full census is
         # 131,353 bytes and every reviewer gets an identical copy, 966 of those
-        # blocks are intervals, and prose-only would be 38,446. Collapsing each
+        # paragraphs are intervals, and prose-only would be 38,446. Collapsing each
         # run instead costs 52,383 -- 85% of the available saving -- and keeps
         # what an `add` is actually about visible: a stretch of code carrying no
         # commentary. A reviewer needing a spot outside its set asks
@@ -1713,11 +1715,11 @@ def _report(args: argparse.Namespace) -> int:
         print()
 
     print(
-        f"{len(census)} blocks censused. `names-a-symbol` and `counted` are\n"
+        f"{len(census)} paragraphs censused. `names-a-symbol` and `counted` are\n"
         "CANDIDATES a reviewer confirms; a resolved path is a fact about the\n"
         "filesystem, already settled. The whole list is printed every run."
     )
-    # The reviewers are handed the CENSUS, so a file missing from it is blocks
+    # The reviewers are handed the CENSUS, so a file missing from it is paragraphs
     # nobody reviews and there is nothing downstream that notices. Exit on it.
     if unreadable:
         print("\n" + _not_censused(files, unreadable))

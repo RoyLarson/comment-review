@@ -1,4 +1,4 @@
-"""The census finds every block, at the tier its language reaches."""
+"""The census finds every paragraph, at the tier its language reaches."""
 
 import subprocess  # noqa: I001  -- path shim below must import before census
 import sys
@@ -33,8 +33,8 @@ class TestPythonTier(unittest.TestCase):
 
     def test_a_marker_line_is_free(self):
         # !! Two counts, and they measure different things. `raw_lines` is
-        # every line the block SPANS -- four here, the interior blank
-        # included, because the block runs from its first `#` to its last and
+        # every line the paragraph SPANS -- four here, the interior blank
+        # included, because the paragraph runs from its first `#` to its last and
         # only CODE ends a run. `lines` is what the CAP charges: three comment
         # lines, of which the TODO is free.
         #
@@ -78,8 +78,8 @@ class TestLexicalTier(unittest.TestCase):
         )
 
     def test_ruby_block_comment_is_one_block(self):
-        blocks = blocks_for("sample.rb")
-        begins = [b for b in blocks if "=begin" in "".join(b.raw_lines)]
+        paragraphs = blocks_for("sample.rb")
+        begins = [b for b in paragraphs if "=begin" in "".join(b.raw_lines)]
         self.assertEqual(len(begins), 1)
 
 
@@ -95,15 +95,17 @@ class TestUnterminatedBlockComment(unittest.TestCase):
 
     def _blocks(self):
         path = Path("x.go")
-        return census.blocks_lexical(path, self.RUNAWAY, census.language_for(path))
+        return census.paragraphs_lexical(path, self.RUNAWAY, census.language_for(path))
 
     def test_the_runaway_run_is_marked(self):
         found = set().union(*(b.annotations for b in self._blocks()))
-        self.assertIn("unterminated-block-comment", found)
+        self.assertIn("unterminated-paragraph-comment", found)
 
     def test_the_mark_carries_a_note_naming_the_delimiter(self):
         marked = [
-            b for b in self._blocks() if "unterminated-block-comment" in b.annotations
+            b
+            for b in self._blocks()
+            if "unterminated-paragraph-comment" in b.annotations
         ]
         self.assertEqual(len(marked), 1)
         self.assertIn("UNTERMINATED", " ".join(marked[0].notes))
@@ -111,13 +113,13 @@ class TestUnterminatedBlockComment(unittest.TestCase):
     def test_a_closed_block_comment_is_not_marked(self):
         path = Path("x.go")
         closed = "func A() {}\n/* note */\nfunc B() {}\n"
-        blocks = census.blocks_lexical(path, closed, census.language_for(path))
-        found = set().union(*(b.annotations for b in blocks))
-        self.assertNotIn("unterminated-block-comment", found)
+        paragraphs = census.paragraphs_lexical(path, closed, census.language_for(path))
+        found = set().union(*(b.annotations for b in paragraphs))
+        self.assertNotIn("unterminated-paragraph-comment", found)
 
 
 class TestEveryFileIsCensusedOrItErrors(unittest.TestCase):
-    """A file handed in and not censused is blocks nobody will review.
+    """A file handed in and not censused is paragraphs nobody will review.
 
     The reviewers are handed the CENSUS, not the file list, so a gap here is
     invisible downstream -- it reads as a smaller repo. The run stops instead.
@@ -148,14 +150,14 @@ class TestEveryFileIsCensusedOrItErrors(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
 
     def test_an_argument_matching_nothing_is_fatal(self):
-        # "0 blocks" from a typo reads exactly like "0 blocks" from a clean file.
+        # "0 paragraphs" from a typo reads exactly like "0 paragraphs" from a clean file.
         result = self._run("ok.py", "no-such-directory")
         self.assertEqual(result.returncode, 1)
         self.assertIn("matched no files", result.stdout)
 
 
 class TestEveryIntervalIsABlock(unittest.TestCase):
-    """A block is the interval between two lines of code, empty ones included.
+    """A paragraph is the interval between two lines of code, empty ones included.
 
     The census enumerated from PROSE, so an interval with nothing in it had no
     index -- and an `add` says a constraint exists in code and NOWHERE in
@@ -172,7 +174,7 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
 
     def test_three_adjacent_code_lines_are_no_longer_zero_blocks(self):
         # The measurement that raised this: three code lines with nothing
-        # between them censused as 0 blocks and could not be cited.
+        # between them censused as 0 paragraphs and could not be cited.
         got = self._census("a = 1\nb = 2\nc = 3\n")
         self.assertTrue(got, "three code lines must enumerate as intervals")
         # ! The module's own `a0` is here too -- a file with no module docstring
@@ -204,11 +206,11 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         last = len(text.splitlines())
         for b in self._census(text):
             # ! An ABSENT docstring is at line 0 -- it occupies no line, because
-            # the prose is not written yet. Every block that DOES occupy lines
+            # the prose is not written yet. Every paragraph that DOES occupy lines
             # must name real ones.
             # ! A place with NO LINES OF ITS OWN is at line 0 -- an absent
             # docstring, and a gap between two adjacent code lines. Its EDIT
-            # range still says where prose would go. Every block that does
+            # range still says where prose would go. Every paragraph that does
             # occupy lines must name real ones.
             if (b.start, b.end) == (0, 0):
                 self.assertIn(b.kind, ("undocumented", "interval"), b)
@@ -223,14 +225,14 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
 
     def test_a_file_the_parser_refused_is_not_enumerated(self):
         # An interval drawn over a file whose code lines were never established
-        # would be invented, so the `unparsed` block stands alone.
+        # would be invented, so the `unparsed` paragraph stands alone.
         got = self._census("a = = 1\n")
         self.assertEqual([b.kind for b in got], ["unparsed"])
 
     def test_a_wrapped_trailing_comment_stamps_its_continuation(self):
-        # One sentence, two blocks: a trailing comment closes its run, so the
+        # One sentence, two paragraphs: a trailing comment closes its run, so the
         # line beneath opens a new one and re-anchors to the NEXT declaration.
-        # Correct by the block definition and wrong about the prose, so the
+        # Correct by the paragraph definition and wrong about the prose, so the
         # census says so rather than re-cutting -- merging would renumber every
         # census and invalidate every measurement taken against one.
         got = self._census("x = 1  # a claim that\n       # wraps onto it\ny = 2\n")
@@ -259,9 +261,9 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
 class TestTheLexicalTierStampsToo(unittest.TestCase):
     """The wrapped trailing comment splits identically at BOTH tiers.
 
-    ! Measured before it was fixed: `blocks_lexical` flushes on a trailing
-    comment exactly as `blocks_stdlib` does, so the continuation became its own
-    block with no stamp. The stamp is what tells a reviewer that a mid-clause
+    ! Measured before it was fixed: `paragraphs_lexical` flushes on a trailing
+    comment exactly as `paragraphs_stdlib` does, so the continuation became its own
+    paragraph with no stamp. The stamp is what tells a reviewer that a mid-clause
     ending is the census's doing.
     """
 
@@ -299,8 +301,8 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
     the trailing comment and can snag the whole string or it is broken."*
 
     ! It was EMPTY in both tiers until 2026-08-19, measured on the files below.
-    `blocks_stdlib` kept the whole physical line in `raw_lines` and so checked
-    both halves of a staleness comparison by accident; `blocks_lexical` cut at
+    `paragraphs_stdlib` kept the whole physical line in `raw_lines` and so checked
+    both halves of a staleness comparison by accident; `paragraphs_lexical` cut at
     the opener and checked only the prose, so a fresh census read as stale.
     """
 
@@ -309,10 +311,10 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
 
     def _lexical(self):
         path = Path("x.c")
-        return census.blocks_lexical(path, self.C, census.language_for(path))
+        return census.paragraphs_lexical(path, self.C, census.language_for(path))
 
     def _tokenized(self):
-        return census.blocks_stdlib(Path("x.py"), self.PY)
+        return census.paragraphs_stdlib(Path("x.py"), self.PY)
 
     def test_the_lexical_tier_carries_it(self):
         got = [b.anchor for b in self._lexical() if b.kind == "trailing-comment"]
@@ -325,21 +327,21 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
     def test_it_is_EXACTLY_the_column_split(self):
         # !! The anchor and the column say the same thing about one line, and
         # they must not be able to disagree: the anchor IS `line[:column - 1]`.
-        for block in self._lexical() + self._tokenized():
-            if not block.edit_column:
+        for paragraph in self._lexical() + self._tokenized():
+            if not paragraph.edit_column:
                 continue
-            text = self.C if block.path == "x.c" else self.PY
-            line = text.splitlines()[block.start - 1]
-            with self.subTest(block=block.text):
-                self.assertEqual(line[: block.edit_column - 1], block.anchor)
+            text = self.C if paragraph.path == "x.c" else self.PY
+            line = text.splitlines()[paragraph.start - 1]
+            with self.subTest(block=paragraph.text):
+                self.assertEqual(line[: paragraph.edit_column - 1], paragraph.anchor)
 
     def test_a_block_owning_its_lines_has_no_code_anchor(self):
         # ! Its anchor is a DECLARATION, which naming needs structure the
         # lexical tier does not have. Nothing here invents one.
         text = "int a = 1;\n// a note\nint b = 2;\n"
         path = Path("x.c")
-        blocks = census.blocks_lexical(path, text, census.language_for(path))
-        note = next(b for b in blocks if b.kind == "comment")
+        paragraphs = census.paragraphs_lexical(path, text, census.language_for(path))
+        note = next(b for b in paragraphs if b.kind == "comment")
         self.assertEqual(note.edit_column, 0)
         self.assertEqual(note.anchor, "")
 
@@ -347,13 +349,13 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
         # ! Because the whole line is code. A `margin` and the trailing comment
         # that would replace it are one place, so they agree on both facts.
         path = Path("x.py")
-        blocks = census.census_for(path, self.PY, census.language_for(path))
-        margins = {b.start: b.anchor for b in blocks if b.kind == "margin"}
+        paragraphs = census.census_for(path, self.PY, census.language_for(path))
+        margins = {b.start: b.anchor for b in paragraphs if b.kind == "margin"}
         self.assertEqual(margins[1], "a = 1")
         self.assertEqual(margins[4], "    pass")
 
     def test_no_c_place_in_this_repos_own_scripts_lacks_one(self):
-        # !! The measurement that showed the hole, run as a gate. Every block
+        # !! The measurement that showed the hole, run as a gate. Every paragraph
         # with a column has the characters that precede it.
         root = Path(__file__).resolve().parent.parent
         scripts = root / "plugins/comment-review/skills/comment-review/scripts"
@@ -361,7 +363,7 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
         seen = 0
         for src in sorted(scripts.glob("*.py")):
             body = src.read_text(encoding="utf-8")
-            for b in census.blocks_stdlib(src, body):
+            for b in census.paragraphs_stdlib(src, body):
                 if not b.edit_column:
                     continue
                 seen += 1
@@ -397,15 +399,15 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
 
     def setUp(self):
         path = Path("x.py")
-        self.blocks = census.census_for(path, self.SRC, census.language_for(path))
+        self.paragraphs = census.census_for(path, self.SRC, census.language_for(path))
 
     def _one(self, kind, start=None):
         got = [
             b
-            for b in self.blocks
+            for b in self.paragraphs
             if b.kind == kind and (start is None or b.start == start)
         ]
-        self.assertEqual(len(got), 1, f"{kind} at {start}: {len(got)} blocks")
+        self.assertEqual(len(got), 1, f"{kind} at {start}: {len(got)} paragraphs")
         return got[0]
 
     def test_a_comment_run_is_anchored_to_the_code_BELOW_it(self):
@@ -430,26 +432,26 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         # !! They are two computations of one fact unless the `b` copies the
         # `c`. Re-cutting the line here answered `'    return os  # why'` where
         # the `c` for the same line answered `'    return os'`.
-        margins = {b.start: b.anchor for b in self.blocks if b.edit_column}
-        for block in self.blocks:
-            if block.edit_column or block.declares >= 0 or not block.anchor:
+        margins = {b.start: b.anchor for b in self.paragraphs if b.edit_column}
+        for paragraph in self.paragraphs:
+            if paragraph.edit_column or paragraph.declares >= 0 or not paragraph.anchor:
                 continue
-            with self.subTest(address=block.address):
-                self.assertIn(block.anchor, margins.values())
+            with self.subTest(address=paragraph.address):
+                self.assertIn(paragraph.anchor, margins.values())
 
     def test_NO_block_in_this_file_lacks_an_anchor(self):
         # ! Roy, 2026-08-19: "an anchor missing in a Record is a broken Record."
-        self.assertEqual([b.kind for b in self.blocks if not b.anchor], [])
+        self.assertEqual([b.kind for b in self.paragraphs if not b.anchor], [])
 
     def test_the_gap_at_the_END_takes_the_line_ABOVE_it(self):
-        # ! It has no line below. Left empty this was 14 blocks of this repo,
+        # ! It has no line below. Left empty this was 14 paragraphs of this repo,
         # one per file, every one a broken record.
-        gaps = [b for b in self.blocks if b.kind == "interval"]
+        gaps = [b for b in self.paragraphs if b.kind == "interval"]
         last = max(gaps, key=lambda b: b.edit_start)
         self.assertEqual(last.anchor, "    return os")
 
     def test_no_block_in_this_repos_own_scripts_lacks_one(self):
-        # !! The hole, run as a gate: 6,376 of 6,531 blocks carried an empty
+        # !! The hole, run as a gate: 6,376 of 6,531 paragraphs carried an empty
         # anchor before 2026-08-19 -- 98% of this repo's own census.
         root = Path(__file__).resolve().parent.parent
         scripts = root / "plugins/comment-review/skills/comment-review/scripts"
@@ -481,9 +483,9 @@ class TestABlockCommentBesideCode(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "x.c"
             p.write_text(body, encoding="utf-8")
-            blocks = census.blocks_lexical(p, body, census.language_for(p))
-            prose = [b for b in blocks if b.text.strip()]
-            return prose, sorted(census.code_lines(body, blocks))
+            paragraphs = census.paragraphs_lexical(p, body, census.language_for(p))
+            prose = [b for b in paragraphs if b.text.strip()]
+            return prose, sorted(census.code_lines(body, paragraphs))
 
     def test_a_comment_to_END_OF_LINE_leaves_its_statement_as_code(self):
         prose, code = self._read("int a = 1;\nint b = 2; /* note */\nint c = 3;\n")
@@ -492,7 +494,7 @@ class TestABlockCommentBesideCode(unittest.TestCase):
         self.assertNotIn("int b", prose[0].text)
 
     def test_a_MULTILINE_comment_after_code_leaves_its_statement_as_code(self):
-        # ! The residual case. The block spans from the line holding the
+        # ! The residual case. The paragraph spans from the line holding the
         # statement, and taking that whole span dropped the statement from the
         # code set -- moving every interval boundary below it -- while its text
         # read `int b = 2; /* opens ...`, the statement handed over as prose.
@@ -518,7 +520,7 @@ class TestABlockCommentBesideCode(unittest.TestCase):
         are ignored. They can be brought up by the agents as code change
         suggestions."*
 
-        ! It WAS censused, and the block's text was the whole statement --
+        ! It WAS censused, and the paragraph's text was the whole statement --
         measured 2026-08-19, `f.c@c1 comment text='int x = /* why */ 5;'`,
         executable code handed to four reviewers as prose. Cutting at the
         opener was the alternative and loses the trailing `5;`, so `5` and `7`
@@ -555,9 +557,9 @@ class TestTheProofFollowsTheBlocks(unittest.TestCase):
 
 
 class TestNoIntervalOverlapsProse(unittest.TestCase):
-    """An `interval` is a gap that holds NO prose. It may not overlap a block.
+    """An `interval` is a gap that holds NO prose. It may not overlap a paragraph.
 
-    !! `code_lines` discards a block's first line when code precedes the
+    !! `code_lines` discards a paragraph's first line when code precedes the
     opener, and a structural docstring's `raw_lines` are the AST VALUE, not the
     file's lines -- so one opening on its quote line looked exactly like a
     suffix and its first line was classified as CODE. Measured on `repo.py`:
@@ -569,13 +571,13 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
         # ! `trailing-comment` is excluded, and that is not a loophole: it sits
         # ON a code line by definition, so an interval bounded by that line
         # touches it every time. `code_lines` documents the same pass-through.
-        # Only a block that OCCUPIES its lines may not overlap a gap.
+        # Only a paragraph that OCCUPIES its lines may not overlap a gap.
         text = path.read_text(encoding="utf-8")
-        blocks = census.census_for(path, text, census.language_for(path))
+        paragraphs = census.census_for(path, text, census.language_for(path))
         occupying = [
-            b for b in blocks if b.text.strip() and b.kind != "trailing-comment"
+            b for b in paragraphs if b.text.strip() and b.kind != "trailing-comment"
         ]
-        gaps = [b for b in blocks if b.kind == "interval"]
+        gaps = [b for b in paragraphs if b.kind == "interval"]
         return [
             (g.start, g.end, b.kind, b.start, b.end)
             for g in gaps
@@ -592,7 +594,7 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
         ).stdout.split()
         self.assertGreater(len(files), 5, "the sample must be real")
         bad = [(f, o) for f in files if (o := self._overlaps(Path(f)))]
-        self.assertEqual(bad, [], "an interval overlaps a block that holds prose")
+        self.assertEqual(bad, [], "an interval overlaps a paragraph that holds prose")
 
     def test_a_RAW_docstring_is_not_read_as_code(self):
         # ! `r"""` survives quote-stripping as a bare `r`, which reads as code.
@@ -625,8 +627,8 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
                 ]
             )
             p.write_text(body, encoding="utf-8")
-            blocks = census.blocks_lexical(p, body, census.language_for(p))
-            self.assertIn(2, census.code_lines(body, blocks))
+            paragraphs = census.paragraphs_lexical(p, body, census.language_for(p))
+            self.assertIn(2, census.code_lines(body, paragraphs))
 
 
 if __name__ == "__main__":
@@ -759,10 +761,10 @@ class TestAPathThatCannotBeAddressedIsAGap(unittest.TestCase):
 
 
 class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
-    """`raw_lines` is the block's OWN characters, and `anchor` is the code.
+    """`raw_lines` is the paragraph's OWN characters, and `anchor` is the code.
 
     !! THE TWO TIERS STORED DIFFERENT THINGS AND FOUR OF SIX SHAPES COULD NOT BE
-    WRITTEN. `blocks_lexical` cut at the comment OPENER; `blocks_stdlib` kept
+    WRITTEN. `paragraphs_lexical` cut at the comment OPENER; `paragraphs_stdlib` kept
     the whole physical line. Measured 2026-08-19, on a FRESH census checked
     against the file it was built from:
 
@@ -775,18 +777,18 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
     | indented `    // why`       | yes |
     | column-0 `/* why */`        | yes |
 
-    ! So every block comment not at column 0, and every trailing comment in the
-    ten lexical languages, was refused by `galley.block_matches` on a census
+    ! So every paragraph comment not at column 0, and every trailing comment in the
+    ten lexical languages, was refused by `galley.paragraph_matches` on a census
     seconds old -- which is what made the `c` series writable in Python only.
     """
 
     C = Path("x.c")
     SHAPES = {
         "trailing line": "int a = 1;\nint b = 2; // note\n",
-        "trailing block": "int a = 1;\nint b = 2; /* note */\n",
-        "indented block": "int a = 1;\nvoid f(void) {\n    /* why */\n}\n",
+        "trailing paragraph": "int a = 1;\nint b = 2; /* note */\n",
+        "indented paragraph": "int a = 1;\nvoid f(void) {\n    /* why */\n}\n",
         "indented line": "int a = 1;\nvoid f(void) {\n    // why\n}\n",
-        "column 0 block": "/* why */\nint a = 1;\n",
+        "column 0 paragraph": "/* why */\nint a = 1;\n",
         "multiline indented": "void f(void) {\n    /* one\n       two */\n}\n",
     }
 
@@ -804,7 +806,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             for b in self._prose(text):
                 with self.subTest(shape=label):
                     self.assertTrue(
-                        galley.block_matches(lines, vars(b)),
+                        galley.paragraph_matches(lines, vars(b)),
                         f"{b.raw_lines!r} against {lines[b.start - 1]!r}",
                     )
 
@@ -815,7 +817,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
         # in `raw_lines` would satisfy the staleness check and put the code in
         # two fields; cutting at the opener loses it from both.
         #
-        # ! Only a `c` block. A `b`'s anchor is a DIFFERENT line -- the code
+        # ! Only a `c` paragraph. A `b`'s anchor is a DIFFERENT line -- the code
         # BELOW the gap -- so it has nothing to rebuild its own line from, and
         # its `raw_lines` is that line whole.
         seen = 0
@@ -828,7 +830,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
                         self.assertEqual(b.anchor + b.raw_lines[0], lines[b.start - 1])
                     else:
                         self.assertEqual(b.raw_lines[0], lines[b.start - 1])
-        self.assertGreater(seen, 0, "no `c` block among the shapes")
+        self.assertGreater(seen, 0, "no `c` paragraph among the shapes")
 
     def test_the_TOKENIZED_tier_keeps_the_same_invariant(self):
         text = "TIMEOUT = 30  # a note\n# on its own\nx = 1\n"
@@ -840,7 +842,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             with self.subTest(kind=b.kind, start=b.start):
                 head = b.anchor if b.edit_column else ""
                 self.assertEqual(head + b.raw_lines[0], lines[b.start - 1])
-                self.assertTrue(galley.block_matches(lines, vars(b)))
+                self.assertTrue(galley.paragraph_matches(lines, vars(b)))
 
     def test_a_trailing_comments_CODE_no_longer_reaches_the_annotators(self):
         """!! `prose_numbers` reads `raw_lines`, so the whole physical line put
@@ -875,11 +877,11 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
         )
         self.assertEqual(margin.anchor, "a = 1")
         self.assertEqual(margin.raw_lines, [""])
-        self.assertTrue(galley.block_matches(text.splitlines(), vars(margin)))
+        self.assertTrue(galley.paragraph_matches(text.splitlines(), vars(margin)))
 
     def test_no_prose_block_in_the_fixtures_is_refused_by_a_FRESH_census(self):
         # !! The measurement, as a gate. It was 4 of 6 shapes and 1 of 8 fixture
-        # blocks before 2026-08-19.
+        # paragraphs before 2026-08-19.
         refused = []
         for src in sorted(FIXTURES.rglob("*")):
             lang = census.language_for(src) if src.is_file() else None
@@ -887,14 +889,14 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
                 continue
             body = src.read_text(encoding="utf-8")
             try:
-                blocks = census.census_for(src, body, lang)
+                paragraphs = census.census_for(src, body, lang)
             except Exception:
                 continue
             lines = body.splitlines()
             refused += [
                 f"{src.name}:{b.start} {b.kind}"
-                for b in blocks
+                for b in paragraphs
                 if b.kind not in pcst.HOLDS_NO_PROSE
-                and not galley.block_matches(lines, vars(b))
+                and not galley.paragraph_matches(lines, vars(b))
             ]
         self.assertEqual(refused, [])

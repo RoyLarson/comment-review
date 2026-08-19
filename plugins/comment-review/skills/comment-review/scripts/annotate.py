@@ -2,14 +2,14 @@
 
 A reviewer reads prose against code. Everything a machine can resolve first --
 does this path exist, is this name defined anywhere, what number does this claim
--- is resolved here and handed over as an ANNOTATION on the block, so the
+-- is resolved here and handed over as an ANNOTATION on the paragraph, so the
 reviewer spends its reading on the claim instead of on the lookup.
 
 ! Every annotation is a CANDIDATE. `names-a-symbol` most of all: a backticked
 token can name a config key, a record field or an API payload, and the resolver
 holds the namespaces it was handed.
 
-`census.py` builds the blocks and calls `annotate()` on each one.
+`census.py` builds the paragraphs and calls `annotate()` on each one.
 """
 
 import re
@@ -17,15 +17,15 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-# !! `Block` exists for TYPING ONLY -- `census.py` imports this module, so a
+# !! `Paragraph` exists for TYPING ONLY -- `census.py` imports this module, so a
 # real import would be circular -- and it is therefore NOT BOUND AT RUNTIME.
 # Every annotation naming it is QUOTED for that reason. Measured 2026-08-17:
 # unquoted and without `from __future__ import annotations`, this module and
-# the three that import it raised `NameError: name 'Block' is not defined`
+# the three that import it raised `NameError: name 'Paragraph' is not defined`
 # at import on Python 3.13 and on the 3.11 floor, while passing on the 3.14
 # dev machine where PEP 649 makes annotations lazy.
 if TYPE_CHECKING:
-    from census import Block
+    from census import Paragraph
 
 PATH_CITE = re.compile(r"`?([\w./-]+\.(?:py|md|toml|txt|json|ya?ml))(?:::(\w+))?`?")
 TICKED = re.compile(r"`([^`\s]+)`")
@@ -91,8 +91,8 @@ def prose_numbers(text: str, raw_lines: Sequence[str] = ()) -> set[str]:
     returned nothing at all for `the cap is 3` and `retry 5 times`.
 
     Args:
-        text: the block's prose, already joined.
-        raw_lines: the block's lines as they sit in the file. Supplied, a list
+        text: the paragraph's prose, already joined.
+        raw_lines: the paragraph's lines as they sit in the file. Supplied, a list
             ordinal can be told from a sentence-final number -- the two are the
             same characters once the run is joined, and only the line start
             separates them. Re-joined here rather than reusing `text`, and the
@@ -131,9 +131,11 @@ NARRATIVE = {
 COMMAND_LINE = re.compile(r"^\s*(\$ |uv run |python |pytest |npm |cargo |go )")
 
 
-def annotate(block: "Block", known: set[str], paths: set[str], repo: Path) -> None:
-    """Attach every annotation this block carries, and resolve it where possible."""
-    t = block.text
+def annotate(
+    paragraph: "Paragraph", known: set[str], paths: set[str], repo: Path
+) -> None:
+    """Attach every annotation this paragraph carries, and resolve it where possible."""
+    t = paragraph.text
     if not t:
         return
 
@@ -141,43 +143,47 @@ def annotate(block: "Block", known: set[str], paths: set[str], repo: Path) -> No
         tok = CALLFORM.sub("", tok)
         if not SYMBOLISH.match(tok) or tok.lower() in NOT_A_SYMBOL:
             continue
-        block.annotations.add("names-a-symbol")
+        paragraph.annotations.add("names-a-symbol")
         # The HEAD segment must resolve, not ANY segment: matching any part lets
         # `Thing.meta` pass on `meta`, an obituary hiding behind a common
         # attribute name.
         if tok not in known and tok.split(".")[0] not in known:
-            block.notes.append(f"UNRESOLVED symbol `{tok}` (CANDIDATE)")
+            paragraph.notes.append(f"UNRESOLVED symbol `{tok}` (CANDIDATE)")
 
     for cited, member in PATH_CITE.findall(t):
-        block.annotations.add("cites-a-path")
+        paragraph.annotations.add("cites-a-path")
         if cited not in paths and (repo / cited).exists():
             # Present on disk, absent from the index: derived or gitignored. A
             # fresh checkout holds no such file, so a claim resting on it is
             # UNVERIFIABLE -- a different note from one that resolves nowhere.
-            block.notes.append(f"UNVERIFIABLE path {cited} (untracked/derived)")
+            paragraph.notes.append(f"UNVERIFIABLE path {cited} (untracked/derived)")
         elif cited not in paths:
-            block.notes.append(f"UNRESOLVED path {cited}")
+            paragraph.notes.append(f"UNRESOLVED path {cited}")
         elif member and member.startswith("test_"):
-            block.notes.append(f"cites {cited}::{member} -- confirm the test exists")
+            paragraph.notes.append(
+                f"cites {cited}::{member} -- confirm the test exists"
+            )
 
     if m := COUNTED.search(t):
-        block.annotations.add("counted")
-        block.notes.append(f"RE-COUNT, and name the population: {m.group(0)!r}")
+        paragraph.annotations.add("counted")
+        paragraph.notes.append(f"RE-COUNT, and name the population: {m.group(0)!r}")
     if m := COVERAGE.search(t):
-        block.annotations.add("coverage-claim")
-        block.notes.append(
+        paragraph.annotations.add("coverage-claim")
+        paragraph.notes.append(
             f"CHECK the guard exists AND can fail, exemptions OFF: {m.group(0)!r}"
         )
     if m := FORBIDS.search(t):
-        block.annotations.add("forbids-a-literal")
-        block.notes.append(f"GREP this file for what it forbids: {m.group(0)[:60]!r}")
+        paragraph.annotations.add("forbids-a-literal")
+        paragraph.notes.append(
+            f"GREP this file for what it forbids: {m.group(0)[:60]!r}"
+        )
 
-    if block.kind == "docstring":
+    if paragraph.kind == "docstring":
         for label, pat in NARRATIVE.items():
-            for raw in block.raw_lines:
+            for raw in paragraph.raw_lines:
                 if COMMAND_LINE.match(raw):
                     continue
                 if pat.search(raw):
-                    block.annotations.add("narrative-in-docstring")
-                    block.notes.append(f"{label}: {raw.strip()[:60]}")
+                    paragraph.annotations.add("narrative-in-docstring")
+                    paragraph.notes.append(f"{label}: {raw.strip()[:60]}")
                     break

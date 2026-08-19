@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SHIPPED = ROOT / "plugins" / "comment-review"
-# A frontmatter block is the first `---` fenced region of the file.
+# A frontmatter paragraph is the first `---` fenced region of the file.
 FENCE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.S)
 
 
@@ -43,7 +43,7 @@ class TestShippedFrontmatterParses(unittest.TestCase):
                 key, sep, value = line.partition(": ")
                 if not sep:
                     continue
-                # A quoted or block scalar may hold anything; a plain one may not.
+                # A quoted or paragraph scalar may hold anything; a plain one may not.
                 if value[:1] in {'"', "'", ">", "|"}:
                     continue
                 with self.subTest(file=path.name, key=key.strip()):

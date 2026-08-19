@@ -19,8 +19,10 @@ class TestStructuralDocGap(unittest.TestCase):
         self.assertIn("doc-kind-unresolved", above_func[0].annotations)
 
     def test_the_mark_carries_a_note_naming_the_consequence(self):
-        block = [b for b in blocks_for("sample.go") if "Add returns" in b.text][0]
-        self.assertTrue(any("cap" in n.lower() for n in block.notes), block.notes)
+        paragraph = [b for b in blocks_for("sample.go") if "Add returns" in b.text][0]
+        self.assertTrue(
+            any("cap" in n.lower() for n in paragraph.notes), paragraph.notes
+        )
 
     def test_an_orphan_run_followed_by_blank_lines_is_not_marked(self):
         orphan = [b for b in blocks_for("sample.go") if "orphan run" in b.text]
@@ -38,12 +40,12 @@ class TestStructuralDocGap(unittest.TestCase):
         self.assertNotIn("doc-kind-unresolved", trailing[0].annotations)
 
     def test_rust_is_untouched_because_it_marks_docs_lexically(self):
-        for block in blocks_for("sample.rs"):
-            self.assertNotIn("doc-kind-unresolved", block.annotations)
+        for paragraph in blocks_for("sample.rs"):
+            self.assertNotIn("doc-kind-unresolved", paragraph.annotations)
 
     def test_python_never_reaches_this_pass(self):
-        for block in blocks_for("sample.py"):
-            self.assertNotIn("doc-kind-unresolved", block.annotations)
+        for paragraph in blocks_for("sample.py"):
+            self.assertNotIn("doc-kind-unresolved", paragraph.annotations)
 
 
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that

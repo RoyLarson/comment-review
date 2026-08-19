@@ -13,7 +13,7 @@ ORDINAL over a linear sequence -- `b3` is "after the 3rd code line", `a5` is
 "the 5th declaration" -- and an ordinal cannot express containment.
 
 !! AND IT IS NOT A COMPROMISE. THIS IS A PAGE. Roy, 2026-08-19: a pCST is a page
-and a block is a paragraph, *"because it is a flat list of paragraphs."*
+and a paragraph is a paragraph, *"because it is a flat list of paragraphs."*
 Paragraphs run down a leaf and do not nest, so flat is the shape the thing has,
 not the shape the addressing cost us. ! The sentences above were written as an
 apology -- *pseudo*, because a real CST has hierarchy and this does not. There is
@@ -25,14 +25,14 @@ path, a lookup by line, an ordered walk or a range splice. A tree would be
 flattened again at each of them.
 
 ! Where hierarchy IS wanted it arrives as a stamped FACT, not a structure: a
-block's enclosing declaration, which the Python AST already knows and which 191
-of this repo's 266 anchorless prose blocks sit inside. Depth is 1 for 182 of
+paragraph's enclosing declaration, which the Python AST already knows and which 191
+of this repo's 266 anchorless prose paragraphs sit inside. Depth is 1 for 182 of
 those 191, so a parent link is the shape that fits and a tree is not.
 
-!! IT IS A LEAF, and that is the whole reason it exists. `Block` lived in
+!! IT IS A LEAF, and that is the whole reason it exists. `Paragraph` lived in
 `census.py`, which sits at the top of the import graph -- `census` imports
-`addresser` imports `galley` -- so the three modules that READ blocks could not
-import the definition of one. Measured 2026-08-18: 21 untyped `block.get(...)`
+`addresser` imports `galley` -- so the three modules that READ paragraphs could not
+import the definition of one. Measured 2026-08-18: 21 untyped `paragraph.get(...)`
 reads across `galley`, `addresser` and `record`, and two kind sets that ended up
 in `galley` because it was the deepest module all three could reach. Letting the
 import graph choose a module's subject is how `galley` came to announce the
@@ -66,10 +66,10 @@ HOLDS_NO_PROSE = ("interval", "undocumented", "margin")
 
 
 @dataclass
-class Block:
+class Paragraph:
     """The interval between two lines of code -- the unit a reviewer rules on.
 
-    ! An interval holding no prose is a block too, `kind="interval"`. It is the
+    ! An interval holding no prose is a paragraph too, `kind="interval"`. It is the
     only thing an `add` can cite: the finding is that a constraint exists in
     code and NOWHERE in prose, so it is about an empty interval, and the record
     requires a `BLOCK` index. Without one an `add` had to borrow a neighbour's.
@@ -81,12 +81,12 @@ class Block:
     kind: str  # comment | docstring | trailing-comment | interval | undocumented
     lines: int
     text: str  # the run JOINED, so a wrapped claim matches as one string
-    # !! WHAT THIS BLOCK IS ATTACHED TO, and it is ONE-TO-MANY THE OTHER WAY:
+    # !! WHAT THIS PARAGRAPH IS ATTACHED TO, and it is ONE-TO-MANY THE OTHER WAY:
     # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
     # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
     #
-    # ! It holds a DECLARATION'S NAME for a block that owns its lines, and THE
-    # LINE OF CODE, verbatim, for a block that sits beside code -- see
+    # ! It holds a DECLARATION'S NAME for a paragraph that owns its lines, and THE
+    # LINE OF CODE, verbatim, for a paragraph that sits beside code -- see
     # `census._anchor_of`. Roy, 2026-08-19: *"the anchor isn't the technical
     # symbols and their precise semantic meaning and code use. It is 'the line
     # of code' -- the exact characters in that line of code."* The two are
@@ -94,7 +94,7 @@ class Block:
     # undeclared second meaning is the defect, not the second meaning.
     anchor: str = ""
     # !! WHICH DECLARATION THIS DOCUMENTS, as an ordinal: 0 is the module and
-    # 1..N its declarations in SOURCE order. -1 says this block documents no
+    # 1..N its declarations in SOURCE order. -1 says this paragraph documents no
     # declaration -- every comment and every interval.
     #
     # !! STATED HERE BECAUSE ONLY A PARSER KNOWS IT. Python's docstring sits
@@ -111,17 +111,17 @@ class Block:
     tier: str = "lexical"  # which question set this file's census can answer
     # !! WHICH PLACE THIS IS, as against where it sits -- see `addresser.address`.
     # Stamped in the path-normalising loop, the only place holding the file
-    # text, the finished block list and the repo-relative path at once.
+    # text, the finished paragraph list and the repo-relative path at once.
     address: str = ""
     annotations: set[str] = field(default_factory=set)
     notes: list[str] = field(default_factory=list)
 
     @property
     def widest(self) -> int:
-        """The longest PHYSICAL line this block sits on, in characters.
+        """The longest PHYSICAL line this paragraph sits on, in characters.
 
-        ! A width rule measures the line on disk, so the code a `c` block sits
-        beside counts: `raw_lines` holds only the block's own characters, and
+        ! A width rule measures the line on disk, so the code a `c` paragraph sits
+        beside counts: `raw_lines` holds only the paragraph's own characters, and
         `anchor` holds what precedes them on the first line.
         """
         if not self.raw_lines:
@@ -129,16 +129,16 @@ class Block:
         first = len(self.anchor) + len(self.raw_lines[0]) if self.edit_column else 0
         return max(first, *(len(ln) for ln in self.raw_lines))
 
-    # !! THE BLOCK'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
+    # !! THE PARAGRAPH'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
     # lines whole where it owns them, and from `edit_column` onward on the first
     # line where code comes first. With `anchor` holding the code, the two
     # RECONSTRUCT that line: `anchor + raw_lines[0]` is what is on disk.
     #
     # !! THE TWO TIERS DISAGREED, AND FOUR OF SIX SHAPES COULD NOT BE WRITTEN.
-    # `blocks_lexical` cut at the comment opener and `blocks_stdlib` kept the
-    # whole physical line, so `galley.block_matches` refused a FRESH census on
+    # `paragraphs_lexical` cut at the comment opener and `paragraphs_stdlib` kept the
+    # whole physical line, so `galley.paragraph_matches` refused a FRESH census on
     # every lexical trailing comment (`'// note'` against `int b = 2; // note`)
-    # and on every block comment not at column 0 (`'/* why */'` against
+    # and on every paragraph comment not at column 0 (`'/* why */'` against
     # `'    /* why */'` -- the indentation was the cut). Measured 2026-08-19.
     #
     # ! It also fed CODE to the annotators. `prose_numbers` reads this, so a
@@ -146,8 +146,8 @@ class Block:
     # claim the prose makes. The lexical tier's own comment says that defect was
     # fixed; it was fixed on one tier.
     raw_lines: list[str] = field(default_factory=list)
-    # !! THE LINES AN EDIT TO THIS BLOCK OCCUPIES, which is NOT always the
-    # range that ADDRESSES it. A prose block is replaced, so the two coincide.
+    # !! THE LINES AN EDIT TO THIS PARAGRAPH OCCUPIES, which is NOT always the
+    # range that ADDRESSES it. A prose paragraph is replaced, so the two coincide.
     # An empty INTERVAL is inserted into: `start` and `end` are the two lines
     # of CODE that bound it, and writing over them would delete code, so its
     # edit range is the gap between them -- `(n+1, n)` for adjacent lines,
@@ -171,12 +171,12 @@ class Block:
     # position this census states -- `start`, `end`, `edit_start`, `edit_end`.
     # Two values:
     #
-    #    0      the block owns its lines WHOLE. Not a column: 0 is not one, and
+    #    0      the paragraph owns its lines WHOLE. Not a column: 0 is not one, and
     #           that is what makes it a sentinel rather than an accident. Every
     #           `comment`, `docstring` and `interval`.
     #    1..N   ONE PAST THE LAST CHARACTER OF CODE on that line, which is where
     #           the room beside the code starts. A `trailing-comment`, a
-    #           `margin`, a block comment opened after a statement. It is what
+    #           `margin`, a paragraph comment opened after a statement. It is what
     #           lets the galley write one without deleting the code: the splice
     #           keeps `line[: edit_column - 1]`.
     #
@@ -190,9 +190,9 @@ class Block:
     #
     # !! IT IS STATED BY THE PRODUCER BECAUSE NO READER CAN INFER IT. Two tried,
     # both by testing whether the stored text is a proper SUFFIX of the physical
-    # line, and the test cannot work: `blocks_stdlib` stores the WHOLE line for
+    # line, and the test cannot work: `paragraphs_stdlib` stores the WHOLE line for
     # a trailing comment, so the suffix test answers False. Measured 2026-08-18:
-    # censusing `z = 3  # trailing` and editing that block produced a galley
+    # censusing `z = 3  # trailing` and editing that paragraph produced a galley
     # reading `# reworded trailing` where the statement had been -- a deleted
     # statement, in the one artefact a human is asked to approve.
     #

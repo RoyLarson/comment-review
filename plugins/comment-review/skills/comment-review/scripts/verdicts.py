@@ -6,21 +6,21 @@ Checks the task agent was asked to perform by hand, every one mechanical:
 
   COVERAGE      every census index accounted for, by every reviewer that ran
   SOURCES       every citation resolves, and its verbatim half is really there
-  ADDRESS       BLOCK's `path:start-end` and transcribed text match the census
-  BLOCK         the sentence a finding rules on is really in the block it cites
+  ADDRESS       PARAGRAPH's `path:start-end` and transcribed text match the census
+  PARAGRAPH         the sentence a finding rules on is really in the paragraph it cites
   DESTINATION   a `move`'s `to:` names a place the census carries -- including
-                an EMPTY one, since a block may move where no prose sits yet
-  EDIT          BLOCK-against-CHANGE edits the sentence CLAIM names, and no
+                an EMPTY one, since a paragraph may move where no prose sits yet
+  EDIT          PARAGRAPH-against-CHANGE edits the sentence CLAIM names, and no
                 other. ! ONE ROUND ONLY -- it says nothing about whether N
                 rounds converge on correct prose
   PAYLOAD       the verdict carries what its row of the table requires
   CONTRADICTION `drop` against `correct`/`patch` ON THE SAME SENTENCE -- a
                 re-review. `move` composes with both and is not flagged.
                 Counted apart from the fatal checks, and named in the closing
-                line so the summary says which blocks are still out
-  STANDS        blocks every reviewer that ran returned clean on
-  SCOPED OUT    blocks nobody found anything in and nobody certified
-  WORK LIST     each block needing a ruling, with the verdicts held on it
+                line so the summary says which paragraphs are still out
+  STANDS        paragraphs every reviewer that ran returned clean on
+  SCOPED OUT    paragraphs nobody found anything in and nobody certified
+  WORK LIST     each paragraph needing a ruling, with the verdicts held on it
   CODE CONCERNS carried through, attributed, gated by nothing
   REVIEWER      every report is named for a PUBLISHED role, and (only with
                 `--reviewers`) every expected reviewer actually reported
@@ -30,8 +30,8 @@ Checks the task agent was asked to perform by hand, every one mechanical:
 ! It reports which findings are ADMISSIBLE. The ruling is stage 5's, in
 SKILL.md's synthesis order.
 
-! Every block is accounted for by a RECORD, `clean` included. A `clean` record
-carries a BLOCK and a VERDICT and nothing else, so covering N blocks costs N
+! Every paragraph is accounted for by a RECORD, `clean` included. A `clean` record
+carries a PARAGRAPH and a VERDICT and nothing else, so covering N paragraphs costs N
 records that each name a real index and assert nothing about it. A
 `clean` record carries no SOURCES, so it stops short of proof the file was read:
 grade a run from its DIFF, and not from this exit code.
@@ -130,15 +130,15 @@ def coverage_gaps(
     return gaps
 
 
-def by_block(found: list[Finding]) -> dict[str, list[Finding]]:
-    """Every finding, grouped by the block it rules on.
+def by_paragraph(found: list[Finding]) -> dict[str, list[Finding]]:
+    """Every finding, grouped by the paragraph it rules on.
 
-    This is what stage 5 works from: several roles rule on one block and the
+    This is what stage 5 works from: several roles rule on one paragraph and the
     task agent emits ONE replacement, so the grouping IS the work list. It was
     computed inside `contradictions`, used for one boolean and dropped, leaving
     the agent to rebuild it from the report files by hand.
 
-    Every finding here names a block, because a record that named none never
+    Every finding here names a paragraph, because a record that named none never
     became a `Finding` -- `parse_report` returns those separately.
     """
     out: dict[str, list[Finding]] = defaultdict(list)
@@ -150,21 +150,21 @@ def by_block(found: list[Finding]) -> dict[str, list[Finding]]:
 # A phrase a reviewer QUOTED inside prose. ! DOUBLE QUOTES ONLY, because in
 # this system BACKTICKS MEAN CITATION -- the brief instructs a reviewer to
 # cite by symbol or path in them, so a backticked token in `REASON` is a
-# reference, not a quotation of the block's words.
+# reference, not a quotation of the paragraph's words.
 #
 # !! Measured 2026-08-17 before the narrowing: over 903 real findings the
 # check fired 46 times and most were symbol citations -- ``_walk``,
 # ``BY_EXT``, ``raw_lines`` -- which is the noise level at which a report
 # stops being read. Quoting is the signal: a `REASON` that MENTIONS a
 # subject is discussing context, which it is entitled to do; one that
-# QUOTES the block's own words is describing a defect in them.
+# QUOTES the paragraph's own words is describing a defect in them.
 QUOTED = re.compile(r'"([^"\n]{4,})"')
 
 
 def unrecorded_findings(
-    grouped: dict[str, list[Finding]], blocks: list[dict]
+    grouped: dict[str, list[Finding]], paragraphs: list[dict]
 ) -> list[tuple[str, str, str]]:
-    """Phrases a `REASON` quotes from its own block that no `CLAIM` names.
+    """Phrases a `REASON` quotes from its own paragraph that no `CLAIM` names.
 
     !! A FINDING CAN BE STATED IN `REASON` AND GO NOWHERE. `REASON` is
     deliberately unverified -- a derived count is not a line any file contains,
@@ -172,7 +172,7 @@ def unrecorded_findings(
     reads it as a claim. A reviewer whose reasoning wanders one sentence over
     from what its `CLAIM` names has filed a second finding with no record.
 
-    ! Measured 2026-08-17. `module-context` wrote in `REASON` on block 1: *"the
+    ! Measured 2026-08-17. `module-context` wrote in `REASON` on paragraph 1: *"the
     module's own prose already contradicts the 'three places' framing -- the
     fourth copy is named inside the file and nowhere in its docstring."* That
     sentence IS the finding. The record carried `add` with a `CLAIM` naming a
@@ -184,22 +184,22 @@ def unrecorded_findings(
     fatal check here would refuse honest records -- which is the failure this
     whole file has been paying for all week. The permission to file a second
     record already exists (*"several of your findings may carry the same
-    BLOCK"*); nothing tells a reviewer to use it.
+    PARAGRAPH"*); nothing tells a reviewer to use it.
 
     Args:
-        grouped: findings by census block index.
-        blocks: the census.
+        grouped: findings by census paragraph index.
+        paragraphs: the census.
 
     Returns:
-        `(block, reviewer, phrase)` per phrase, in block order.
+        `(paragraph, reviewer, phrase)` per phrase, in paragraph order.
     """
     # Every phrase any CLAIM in this run names, normalised once.
     # ! One call per finding. `ruled_text` already returns `_words(...)`, so
     # the walrus keeps the text rather than computing it twice to test it.
     claimed = {text for fs in grouped.values() for f in fs if (text := ruled_text(f))}
     out: list[tuple[str, str, str]] = []
-    for block, fs in sorted(grouped.items()):
-        held = entry_for(block, blocks)
+    for paragraph, fs in sorted(grouped.items()):
+        held = entry_for(paragraph, paragraphs)
         if held is None:
             continue
         prose = _words(held.get("text") or "")
@@ -208,24 +208,26 @@ def unrecorded_findings(
         for f in fs:
             for match in QUOTED.finditer(f.reason or ""):
                 phrase = _words(match.group(1) or "")
-                # ! It must be the BLOCK'S OWN words. A phrase quoted from a
+                # ! It must be the PARAGRAPH'S OWN words. A phrase quoted from a
                 # source file is evidence, not an unrecorded finding.
                 if len(phrase) < 4 or phrase not in prose:
                     continue
                 if any(phrase in c or c in phrase for c in claimed):
                     continue
-                out.append((block, f.reviewer, match.group(1)))
+                out.append((paragraph, f.reviewer, match.group(1)))
     return out
 
 
-def contradictions(grouped: dict[str, list[Finding]], blocks: list[dict]) -> list[str]:
-    """Blocks where one role REMOVES the sentence another rules on.
+def contradictions(
+    grouped: dict[str, list[Finding]], paragraphs: list[dict]
+) -> list[str]:
+    """Paragraphs where one role REMOVES the sentence another rules on.
 
     `drop` against `correct`/`patch` is one role saying the sentence should not
     exist and another saying it should exist and be fixed. Nothing composes
     those.
 
-    !! Keyed on the TEXT, not the block index. A block of six sentences can
+    !! Keyed on the TEXT, not the paragraph index. A paragraph of six sentences can
     carry six verdicts, so sharing an index is not sharing a subject -- measured
     on a live run, one of eight flagged collisions was two roles ruling on two
     different clauses of one docstring, and a re-review round was spent
@@ -250,21 +252,21 @@ def contradictions(grouped: dict[str, list[Finding]], blocks: list[dict]) -> lis
         # ! "" means CANNOT COMPARE, and the caller flags it rather than
         # passing: silence would hide a real collision behind an unreadable
         # record. An out-of-range index reads the same way -- the range check
-        # reports it, and this must not pass the block for lack of an entry.
-        entry = entry_for(f.address, blocks)
+        # reports it, and this must not pass the paragraph for lack of an entry.
+        entry = entry_for(f.address, paragraphs)
         if entry is None:
             return ""
         spans = removed_spans(f, entry)
         return " ".join(spans) if spans else ""
 
     out: list[str] = []
-    for block, fs in grouped.items():
+    for paragraph, fs in grouped.items():
         removals = [touched(f) for f in fs if _is(f, "removes")]
         rulings = [touched(f) for f in fs if _is(f, "rules_on_text")]
         if not removals or not rulings:
             continue
         if any(not a or not b or a in b or b in a for a in removals for b in rulings):
-            out.append(block)
+            out.append(paragraph)
     return sorted(out)
 
 
@@ -326,7 +328,7 @@ def _report(args: argparse.Namespace) -> int:
         )
         return 1
     try:
-        blocks = json.loads(census_text)
+        paragraphs = json.loads(census_text)
     except json.JSONDecodeError as e:
         print(
             f"CANNOT PARSE {args.census} as JSON ({e})"
@@ -334,25 +336,25 @@ def _report(args: argparse.Namespace) -> int:
         )
         return 1
     # !! ADDRESSABLE is not ACCOUNTABLE. Every interval between two lines of
-    # code is a block, and so is every declaration, so an `add` -- a finding
+    # code is a paragraph, and so is every declaration, so an `add` -- a finding
     # about prose that is MISSING -- has a place to cite instead of borrowing a
     # neighbour's. Most of them hold
     # nothing, and a reviewer owes no record on an empty one: coverage is over
-    # the blocks that HOLD PROSE. Measured 2026-08-17: `census.py` over itself
-    # is 642 blocks, 76 of them prose. Owing a record on all 642 would make
+    # the paragraphs that HOLD PROSE. Measured 2026-08-17: `census.py` over itself
+    # is 642 paragraphs, 76 of them prose. Owing a record on all 642 would make
     # `CLEAN 1-N` -- the cheapest fabrication there is -- eight parts out of
     # nine true.
     # ! The figure was 546/48 and had rotted; it was written in TWO places,
     # here and in `SKILL.md`, with nothing comparing them. Re-measure both or
     # neither.
-    # !! ADDRESSES, not indices. Coverage is over the blocks that HOLD PROSE --
+    # !! ADDRESSES, not indices. Coverage is over the paragraphs that HOLD PROSE --
     # an empty place is addressable and nobody owes it a record.
     # ! FRONT MATTER IS NOT COVERAGE. It is filtered out of what a reviewer
     # reads -- a licence header settles no claim about the code -- so counting
-    # it here would report a gap on the one block nobody was shown.
+    # it here would report a gap on the one paragraph nobody was shown.
     all_blocks = {
         str(b.get("address", ""))
-        for b in blocks
+        for b in paragraphs
         if b.get("kind") not in HOLDS_NO_PROSE
         and b.get("address")
         and FRONT_MATTER not in (b.get("annotations") or ())
@@ -407,7 +409,7 @@ def _report(args: argparse.Namespace) -> int:
             # !! THE DEPRECATED FORMAT'S INDEX IS TRANSLATED HERE. A 0.2.x report
             # keys by census POSITION, and a `clean` record in it writes that
             # index alone with no address at all -- so without this every old
-            # report joins as "names no block". Everything downstream is
+            # report joins as "names no paragraph". Everything downstream is
             # address-keyed.
             #
             # ! `record.address_of` OWNS THE RULE. It was written out here and
@@ -417,8 +419,8 @@ def _report(args: argparse.Namespace) -> int:
             # exited 0. Measured 2026-08-19, 3 of 3 dropped on a six-line file.
             # One bridge across the format change, built twice and finished
             # once.
-            f.address = address_of(f, blocks)
-            held = entry_for(f.address, blocks) or {}
+            f.address = address_of(f, paragraphs)
+            held = entry_for(f.address, paragraphs) or {}
             # !! ANY EDIT PROPOSED ON FRONT MATTER BECOMES A `query`. Roy,
             # 2026-08-19: an agent looking to edit that area gets an automatic
             # query -- ask the human -- instead of any of the other verdicts.
@@ -427,7 +429,7 @@ def _report(args: argparse.Namespace) -> int:
             # licence header is a legal instrument and a shebang is how the file
             # runs; a wrong edit to either is not an editorial mistake, and no
             # role here can settle whether it is right -- see
-            # `census.mark_front_matter`. The reviewer was not shown the block,
+            # `census.mark_front_matter`. The reviewer was not shown the paragraph,
             # `--filtered` drops it, so a verdict here came from reading the
             # file directly: a reasonable thing to have done, and still not this
             # system's call.
@@ -457,7 +459,7 @@ def _report(args: argparse.Namespace) -> int:
                 f.claim_fields = {
                     "shape": "outside the code",
                     "attempted": (f.claim or "").strip()
-                    or f"a {f.verdict} on this block",
+                    or f"a {f.verdict} on this paragraph",
                     "settles": "the human -- front matter is theirs to rule on",
                 }
                 f.claim = claim_text("query", f.claim_fields)
@@ -473,8 +475,8 @@ def _report(args: argparse.Namespace) -> int:
 
     print(
         f"{_n(len(found), 'finding')} from {_n(len(args.reports), 'reviewer')}"
-        f" over {_n(len(all_blocks), 'prose block')}"
-        f" ({_n(len(blocks), 'paragraph')} in the census, the rest empty intervals"
+        f" over {_n(len(all_blocks), 'prose paragraph')}"
+        f" ({_n(len(paragraphs), 'paragraph')} in the census, the rest empty intervals"
         " an `add` may cite)\n"
     )
 
@@ -512,10 +514,10 @@ def _report(args: argparse.Namespace) -> int:
         fatal += 1
 
     for f in found:
-        if entry_for(f.address, blocks) is None:
+        if entry_for(f.address, paragraphs) is None:
             print(
-                f"  {f.address} {f.reviewer}: names no block in a"
-                f" {_n(len(blocks), 'paragraph')} census"
+                f"  {f.address} {f.reviewer}: names no paragraph in a"
+                f" {_n(len(paragraphs), 'paragraph')} census"
             )
             fatal += 1
             continue
@@ -529,21 +531,21 @@ def _report(args: argparse.Namespace) -> int:
         if problem:
             print(f"  {f.address} {f.reviewer}: {problem}")
             fatal += 1
-        misaddressed = address_problem(f, blocks)
+        misaddressed = address_problem(f, paragraphs)
         if misaddressed:
             print(f"  {f.address} {f.reviewer}: {misaddressed}")
             fatal += 1
         # !! A `move` IS ONLY AS GOOD AS ITS DESTINATION, and that half was
         # checked for presence and never resolved.
-        nowhere = destination_problem(f, blocks)
+        nowhere = destination_problem(f, paragraphs)
         if nowhere:
             print(f"  {f.address} {f.reviewer}: {nowhere}")
             fatal += 1
-        wrong_block = block_problem(f, blocks)
+        wrong_block = block_problem(f, paragraphs)
         if wrong_block:
             print(f"  {f.address} {f.reviewer}: {wrong_block}")
             fatal += 1
-        held = entry_for(f.address, blocks)
+        held = entry_for(f.address, paragraphs)
         if held is not None:
             disagrees = edit_problem(f, held)
             if disagrees:
@@ -554,56 +556,56 @@ def _report(args: argparse.Namespace) -> int:
             print(f"  {f.address} {f.reviewer}: {payload}")
             fatal += 1
 
-    grouped = by_block(found)
+    grouped = by_paragraph(found)
     # !! REPORTED, NOT GATED, and printed BEFORE the counts so it is not read as
     # a summary line. A finding stated in `REASON` that no `CLAIM` names is a
     # second finding with no record -- the gate checked the claim it was given
     # and passed, and the defect reached no work list. It is not fatal because
     # `REASON` is entitled to discuss context.
-    unrecorded = unrecorded_findings(grouped, blocks)
+    unrecorded = unrecorded_findings(grouped, paragraphs)
     if unrecorded:
         print(
             f"\nA FINDING WITH NO RECORD -- {_n(len(unrecorded), 'phrase')} quoted in"
             " REASON that no CLAIM names:"
         )
-        for block, reviewer, phrase in unrecorded[:20]:
+        for paragraph, reviewer, phrase in unrecorded[:20]:
             print(f"  BLOCK {block} {reviewer}: {phrase!r}")
         if len(unrecorded) > 20:
             print(f"  ... and {len(unrecorded) - 20} more")
         print(
-            "  Each is the block's OWN words. File a second record on that block"
+            "  Each is the paragraph's OWN words. File a second record on that paragraph"
             " rather than leaving the finding in prose nothing reads."
         )
 
-    clash = contradictions(grouped, blocks)
+    clash = contradictions(grouped, paragraphs)
     if clash:
         # ! Names what the check DOES. It read "drop/move" after `move` left the
         # set by ruling, so the one line a user reads named a pairing the join
         # had stopped making.
         print(f"\nRE-REVIEW -- drop against correct/patch on: {clash}")
         print(
-            "  Not a tie-break. Send the block back; the synthesis order"
+            "  Not a tie-break. Send the paragraph back; the synthesis order"
             " must not decide it."
         )
 
-    # !! THREE STATES, NOT TWO. A block covered only by `clean` and out-of-role
+    # !! THREE STATES, NOT TWO. A paragraph covered only by `clean` and out-of-role
     # queries is neither: no role certified it -- module-context returns `query`
     # rather than `clean` so it does not certify what it never read -- and
     # nothing is asked of stage 5 either. Counting those as work buried 76 real
     # verdicts inside 1159 on a measured run.
     ran = sorted(reported | {f.reviewer for f in found})
-    in_range = [f for f in found if entry_for(f.address, blocks) is not None]
+    in_range = [f for f in found if entry_for(f.address, paragraphs) is not None]
     ruled = {f.address for f in in_range if _substantive(f) and not declares_scope(f)}
     scoped_out = {f.address for f in in_range if declares_scope(f)} - ruled
-    # !! A BLOCK NOBODY ACCOUNTED FOR IS NOT A BLOCK EVERY ROLE PASSED. It fell
+    # !! A PARAGRAPH NOBODY ACCOUNTED FOR IS NOT A PARAGRAPH EVERY ROLE PASSED. It fell
     # into `stands` and was printed as "clean from all N reviewers", which is a
     # claim no reviewer made -- on a report where every slot was still empty,
-    # every prose block in the file was summarised that way, one line under the
-    # COVERAGE GAPS list naming the same blocks. Measured 2026-08-18.
+    # every prose paragraph in the file was summarised that way, one line under the
+    # COVERAGE GAPS list naming the same paragraphs. Measured 2026-08-18.
     #
     # ! It is the same shape `_substantive` already guards at the other end: an
     # unknown verdict answered False to everything, dropped out of the work
-    # list, and was reported as clean on a block a role HAD ruled on. Both
+    # list, and was reported as clean on a paragraph a role HAD ruled on. Both
     # directions end in the summary asserting a pass nobody gave.
     unaccounted = {index for missing in gaps.values() for index in missing}
     stands = sorted(all_blocks - ruled - scoped_out - unaccounted)
@@ -628,7 +630,7 @@ def _report(args: argparse.Namespace) -> int:
     if gaps:
         print("  ! counts above are provisional: coverage is incomplete.")
 
-    # ! The WORK LIST. Stage 5 holds several rulings per block and must emit ONE
+    # ! The WORK LIST. Stage 5 holds several rulings per paragraph and must emit ONE
     # replacement, so this grouping is what it works from -- and rebuilding it
     # from the report files by hand is the step this tool can do exactly and a
     # reader cannot.
@@ -645,12 +647,12 @@ def _report(args: argparse.Namespace) -> int:
     if ruled:
         if fatal:
             print(
-                "\nPER BLOCK -- PROVISIONAL, the gate refused this report."
+                "\nPER PARAGRAPH -- PROVISIONAL, the gate refused this report."
                 "\n  Read it to see what the roles found; do not rule from it"
                 " until the problems above are resolved."
             )
         else:
-            print("\nPER BLOCK -- what you hold, in census order:")
+            print("\nPER PARAGRAPH -- what you hold, in census order:")
         for b in sorted(ruled):
             marks = "  ".join(
                 f"{f.verdict}({f.reviewer})"
@@ -675,7 +677,7 @@ def _report(args: argparse.Namespace) -> int:
     if clash:
         # ! A contradiction is counted apart from the fatal checks: it is a
         # re-review, and both records are well formed.
-        # The closing line still has to say so -- printing "send the block back"
+        # The closing line still has to say so -- printing "send the paragraph back"
         # and then "Stage 5 may rule" four lines later made the summary
         # contradict its own body at exit 0.
         print(

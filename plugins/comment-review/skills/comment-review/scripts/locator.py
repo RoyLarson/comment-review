@@ -2,7 +2,7 @@
 
     python locator.py --census census.json --at path:line
 
-A reviewer is handed a FILTERED census -- the prose blocks its role rules on,
+A reviewer is handed a FILTERED census -- the prose paragraphs its role rules on,
 not the hundreds of empty intervals between them. When it needs to place prose
 somewhere outside that set, it has a line of code in hand and needs the name of
 the spot there. This answers that, and nothing else.
@@ -51,12 +51,12 @@ def parse_at(at: str) -> tuple[str, int] | str:
 def entries(census: object) -> list[dict]:
     """The census as a list, whichever shape the file carries."""
     if isinstance(census, dict):
-        blocks = census.get("blocks")
-        return blocks if isinstance(blocks, list) else []
+        paragraphs = census.get("paragraphs")
+        return paragraphs if isinstance(paragraphs, list) else []
     return census if isinstance(census, list) else []
 
 
-def at(blocks: list[dict], path: str, line: int) -> list[tuple[int, dict]]:
+def at(paragraphs: list[dict], path: str, line: int) -> list[tuple[int, dict]]:
     """Every entry whose range holds this line, as `(census index, entry)`.
 
     ! The index is 1-based and counts EVERY entry, intervals included, because
@@ -64,12 +64,12 @@ def at(blocks: list[dict], path: str, line: int) -> list[tuple[int, dict]]:
     """
     want = path.replace("\\", "/")
     found = []
-    for i, block in enumerate(blocks, 1):
-        if str(block.get("path", "")).replace("\\", "/") != want:
+    for i, paragraph in enumerate(paragraphs, 1):
+        if str(paragraph.get("path", "")).replace("\\", "/") != want:
             continue
-        start, end = block.get("start"), block.get("end")
+        start, end = paragraph.get("start"), paragraph.get("end")
         if isinstance(start, int) and isinstance(end, int) and start <= line <= end:
-            found.append((i, block))
+            found.append((i, paragraph))
     return found
 
 
@@ -109,12 +109,12 @@ def main() -> int:
         print(f"{args.census} is not JSON ({e})")
         return 2
 
-    blocks = entries(census)
-    if not blocks:
-        print(f"{args.census} carries no blocks")
+    paragraphs = entries(census)
+    if not paragraphs:
+        print(f"{args.census} carries no paragraphs")
         return 2
 
-    found = at(blocks, path, line)
+    found = at(paragraphs, path, line)
     if not found:
         # ! A path the census never covered and a line past its end are the
         # same answer here -- neither names a spot -- and saying which would be
@@ -130,16 +130,16 @@ def main() -> int:
     # open; recomputing it here needed the tree, which made this tool answer
     # differently depending on where it was run from.
     stale = False
-    for index, block in found:
-        where = stable(block)
+    for index, paragraph in found:
+        where = stable(paragraph)
         if not where:
             # ! NAMED, not blank. An empty column reads as "this place has no
             # address"; the truth is that this CENSUS cannot say, because it
             # predates the `edit_start` the gap number is read from.
             where = "NO-ADDRESS"
-            stale = block.get("edit_start") is None
-        span = f"{block.get('start')}-{block.get('end')}"
-        print(f"{index}\t{where}\t{span}\t{block.get('kind', '')}")
+            stale = paragraph.get("edit_start") is None
+        span = f"{paragraph.get('start')}-{paragraph.get('end')}"
+        print(f"{index}\t{where}\t{span}\t{paragraph.get('kind', '')}")
     if stale:
         print(
             "\n! This census carries no `edit_start`, so no address can be"

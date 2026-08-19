@@ -20,7 +20,7 @@ Two proofs, because two tiers:
 
 ! For Python the proof is CPython parsing its own language. Elsewhere it rests
 on a lexer built from a data row, so where that lexer is unsure this refuses: a
-delimiter sharing a line with code, an unterminated block comment, or a census
+delimiter sharing a line with code, an unterminated paragraph comment, or a census
 that disagrees with the file all return `unprovable`.
 
 ! A file this cannot prove is REPORTED as unprovable and counted a failure. A
@@ -43,8 +43,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 # holds a tuple literal; `repo.py` carries that reason once.
 from census import (  # noqa: E402  -- path shim must run first
     Language,
-    blocks_lexical,
     language_for,
+    paragraphs_lexical,
 )
 from repo import (  # noqa: E402  -- path shim must run first
     GIT_ERRORS,
@@ -77,9 +77,9 @@ def _blank_docstrings(tree: ast.AST) -> ast.AST:
 
 
 def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
-    """A block-comment delimiter with real code beside it, on this ONE line.
+    """A paragraph-comment delimiter with real code beside it, on this ONE line.
 
-    `blocks_lexical` stores the WHOLE line for a block comment's opening,
+    `paragraphs_lexical` stores the WHOLE line for a paragraph comment's opening,
     closing or single-line form -- including any code that sits before the
     opener or after the closer -- so that line is stored identically to a line
     that is comment start to end. Re-scanning the line for the delimiters
@@ -99,17 +99,17 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
 
 
 def _without_comments(text: str, path: Path) -> str | None:
-    """The file with every comment block removed, or None if unprovable here.
+    """The file with every comment paragraph removed, or None if unprovable here.
 
-    Exact where the data allows it: a block's `raw_lines` is a literal slice of
+    Exact where the data allows it: a paragraph's `raw_lines` is a literal slice of
     the source, so a line whose stored text matches it exactly is dropped whole,
     and a line whose stored text is only a SUFFIX (the trailing-comment case)
     keeps its code prefix. A line this cannot place -- code sharing a line with
-    a block-comment delimiter, see `_delimiter_shares_the_line` -- makes the
+    a paragraph-comment delimiter, see `_delimiter_shares_the_line` -- makes the
     whole file unprovable.
 
-    An UNTERMINATED block comment is refused the same way, on the census's own
-    `unterminated-block-comment` annotation. The lexer swallows every line below
+    An UNTERMINATED paragraph comment is refused the same way, on the census's own
+    `unterminated-paragraph-comment` annotation. The lexer swallows every line below
     the opener into that run, so code below it never reaches the comparison and
     the stripped text is merely SHORT -- short, plausible, and equal on two
     files whose executable code differs.
@@ -118,14 +118,14 @@ def _without_comments(text: str, path: Path) -> str | None:
     if lang is None:
         return None
     try:
-        blocks = blocks_lexical(path, text, lang)
+        paragraphs = paragraphs_lexical(path, text, lang)
     except Exception:  # noqa: BLE001  -- an unprovable file is reported, not passed
         return None
-    if any("unterminated-block-comment" in b.annotations for b in blocks):
+    if any("unterminated-paragraph-comment" in b.annotations for b in paragraphs):
         return None
     # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
     # is per-line and carries no open-quote state, so a line INSIDE a JS
-    # template literal or a Java text block that begins with the language's
+    # template literal or a Java text paragraph that begins with the language's
     # comment marker is censused as a comment and deleted from BOTH
     # fingerprints. Measured 2026-08-17: a template literal whose body changed
     # from `// alpha` to `// omega` produced identical fingerprints and the file
@@ -140,15 +140,15 @@ def _without_comments(text: str, path: Path) -> str | None:
         return None
 
     lines = text.splitlines()
-    # Pre-seed every line as itself; a block below either drops its entry
+    # Pre-seed every line as itself; a paragraph below either drops its entry
     # (None) or replaces it with the code prefix it proved survives.
     kept: dict[int, str | None] = {i + 1: ln.rstrip() for i, ln in enumerate(lines)}
-    for block in blocks:
-        for offset, n in enumerate(range(block.start, block.end + 1)):
-            if n not in kept or offset >= len(block.raw_lines):
-                return None  # a block naming a line this text does not have
+    for paragraph in paragraphs:
+        for offset, n in enumerate(range(paragraph.start, paragraph.end + 1)):
+            if n not in kept or offset >= len(paragraph.raw_lines):
+                return None  # a paragraph naming a line this text does not have
             actual = lines[n - 1].rstrip()
-            stored = block.raw_lines[offset]
+            stored = paragraph.raw_lines[offset]
             if actual == stored:
                 if _delimiter_shares_the_line(actual, lang):
                     return None

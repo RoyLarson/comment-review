@@ -25,7 +25,7 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 # passed `READ_ERRORS` cleanly. `code_names` walks the whole repo, so one such
 # file would crash the entire census rather than degrade one file's harvest.
 # !! `tokenize.TokenError` is included and is NOT a SyntaxError -- it derives
-# straight from Exception. `blocks_stdlib` calls `tokenize.generate_tokens`,
+# straight from Exception. `paragraphs_stdlib` calls `tokenize.generate_tokens`,
 # which raises it on an unterminated triple-quote or bracket, so one such file
 # anywhere in a corpus aborted a whole run with a traceback. Every caller here
 # already treats a parse failure as ONE file degrading, never as the run ending.

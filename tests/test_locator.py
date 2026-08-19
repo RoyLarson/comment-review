@@ -62,7 +62,7 @@ class TestTheCensusShape(unittest.TestCase):
         self.assertEqual(len(locator.entries(CENSUS)), 4)
 
     def test_a_wrapped_census_is_read(self):
-        self.assertEqual(len(locator.entries({"blocks": CENSUS})), 4)
+        self.assertEqual(len(locator.entries({"paragraphs": CENSUS})), 4)
 
     def test_anything_else_reads_as_no_blocks(self):
         self.assertEqual(locator.entries({"nope": 1}), [])
@@ -75,23 +75,23 @@ if __name__ == "__main__":
 class TestTheFilteredCensusIsAProjection(unittest.TestCase):
     """`census.py --filtered` narrows the VIEW and never the numbering.
 
-    !! The index is the whole contract. A reviewer cites a block by its number
+    !! The index is the whole contract. A reviewer cites a paragraph by its number
     and the join resolves that number against the FULL census, so a filtered
-    view that renumbered would make every citation resolve to the wrong block
+    view that renumbered would make every citation resolve to the wrong paragraph
     with nothing able to tell. Measured 2026-08-18 over two files: 124 prose
-    blocks, every filtered index naming the same block as the full census, and
+    paragraphs, every filtered index naming the same paragraph as the full census, and
     822 intervals collapsed into 105 run lines.
     """
 
     import re as _re
 
     # index, place, line range, kind -- the listing's first four columns.
-    BLOCK = _re.compile(r"^\s*(\d+)\s+(@\S+)\s+(\S+)\s+(\S+)\s")
+    PARAGRAPH = _re.compile(r"^\s*(\d+)\s+(@\S+)\s+(\S+)\s+(\S+)\s")
 
     def _indexed(self, text):
         out = {}
         for line in text.split("\n"):
-            m = self.BLOCK.match(line)
+            m = self.PARAGRAPH.match(line)
             if m and m.group(4) not in ("interval", "no-prose"):
                 out[int(m.group(1))] = m.group(2)
         return out
@@ -121,5 +121,5 @@ class TestTheFilteredCensusIsAProjection(unittest.TestCase):
             return out.stdout
 
         full, filtered = self._indexed(run()), self._indexed(run("--filtered"))
-        self.assertTrue(full, "the full census listed no prose block")
+        self.assertTrue(full, "the full census listed no prose paragraph")
         self.assertEqual(full, filtered)

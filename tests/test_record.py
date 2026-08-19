@@ -49,7 +49,7 @@ CENSUS = [
 
 class TestOnlyProseGetsASlot(unittest.TestCase):
     def test_intervals_are_skipped(self):
-        self.assertEqual([i for i, _ in record.prose_blocks(CENSUS)], [1, 3])
+        self.assertEqual([i for i, _ in record.prose_paragraphs(CENSUS)], [1, 3])
 
     def test_a_census_of_only_intervals_seeds_nothing(self):
         only = [
@@ -87,7 +87,7 @@ class TestWhatTheToolFills(unittest.TestCase):
         tell that from real work. Every role's remit requires the read.
 
         !! The two errors are not symmetric, which is what decided it. Reading
-        the wrong lines makes `CLAIM` quote a sentence the census block does not
+        the wrong lines makes `CLAIM` quote a sentence the census paragraph does not
         contain, and `block_problem` already catches that. Ruling from the
         record instead of the code is invisible. ! Re-check that asymmetry
         before reversing this; it has flipped three times.
@@ -108,7 +108,7 @@ class TestWhatTheReviewerFills(unittest.TestCase):
         self.records = record.seed(CENSUS, "block-context")["records"]
 
     def test_the_verdict_is_NULL_not_empty(self):
-        # ! An unruled block must be distinguishable from one ruled with an
+        # ! An unruled paragraph must be distinguishable from one ruled with an
         # empty verdict. Only the first is a coverage gap.
         self.assertIsNone(self.records[0]["verdict"])
 
@@ -133,7 +133,7 @@ class TestTheTemplateStatesWhatIsAllowed(unittest.TestCase):
     """A constrained field that does not say its values has only moved the guessing.
 
     !! Every value here is DERIVED from the `Verdict` table, so adding a verdict
-    stays a ROW and this block cannot drift from what the gate enforces. These
+    stays a ROW and this paragraph cannot drift from what the gate enforces. These
     tests pin the correspondence, not the current contents.
     """
 
@@ -196,7 +196,7 @@ class TestCheckNamesTheRightThing(unittest.TestCase):
         return rec
 
     def _at(self, **fields):
-        return record.record_problems("block 1", self._filled(**fields), CENSUS[0])
+        return record.record_problems("paragraph 1", self._filled(**fields), CENSUS[0])
 
     def test_a_well_formed_record_has_no_problems(self):
         self.assertEqual(
@@ -220,7 +220,7 @@ class TestCheckNamesTheRightThing(unittest.TestCase):
         # !! The whole point. The reviewer never typed this field, so a message
         # accusing it of misquoting would send it to fix correct work.
         rec = self._filled(verdict="clean", address="WRONG:1-2")
-        problem = " ".join(record.seeded_problems("block 1", rec, CENSUS[0]))
+        problem = " ".join(record.seeded_problems("paragraph 1", rec, CENSUS[0]))
         self.assertIn("WRITTEN BY THE TOOL", problem)
         self.assertIn("edited after seeding", problem)
         self.assertNotIn("misquot", problem.lower())
@@ -322,7 +322,7 @@ class TestConvertKeepsAHeldRunReplayable(unittest.TestCase):
 class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
     """!! `add` cites an EMPTY INTERVAL, which `--seed` gives no slot.
 
-    Seeding lays down the PROSE blocks because those are what a reviewer is
+    Seeding lays down the PROSE paragraphs because those are what a reviewer is
     accountable for. But an `add`'s finding is that a constraint holds in code
     and appears in no prose, so its subject is the GAP -- and a conversion that
     filled only seeded slots dropped both of one report's `add`s in silence.
@@ -607,7 +607,7 @@ class TestTheAnchorFormIsCheckedHereToo(unittest.TestCase):
     a BARE one passed `--check`.
     """
 
-    BLOCK = {
+    PARAGRAPH = {
         "path": "a.py",
         "start": 1,
         "end": 1,
@@ -632,18 +632,23 @@ class TestTheAnchorFormIsCheckedHereToo(unittest.TestCase):
         }
 
     def test_a_bare_anchor_is_refused(self):
-        problems = record.record_problems("block 1", self._rec("compute"), self.BLOCK)
+        problems = record.record_problems(
+            "paragraph 1", self._rec("compute"), self.PARAGRAPH
+        )
         self.assertEqual(len(problems), 1)
         self.assertIn("backticks", problems[0])
 
     def test_a_backticked_anchor_passes(self):
         self.assertEqual(
-            record.record_problems("block 1", self._rec("`compute`"), self.BLOCK), []
+            record.record_problems(
+                "paragraph 1", self._rec("`compute`"), self.PARAGRAPH
+            ),
+            [],
         )
 
     def test_an_empty_anchor_is_reported_as_EMPTY_not_as_unbackticked(self):
         # ! Two messages for two mistakes. A reviewer fixes them differently.
-        problems = record.record_problems("block 1", self._rec(""), self.BLOCK)
+        problems = record.record_problems("paragraph 1", self._rec(""), self.PARAGRAPH)
         self.assertEqual(len(problems), 1)
         self.assertIn("empty", problems[0])
 
@@ -676,7 +681,7 @@ class TestARecordWithNoAnchorIsBroken(unittest.TestCase):
     !! ROY, 2026-08-19: *"an anchor missing in a Record is a broken Record."*
 
     ! Measured the same day against the commit before this rule: **6,376 of
-    6,531 blocks** in this repo's own shipped scripts carried an EMPTY anchor --
+    6,531 paragraphs** in this repo's own shipped scripts carried an EMPTY anchor --
     98% of the census -- and every seeded record repeated it. It was invisible
     from both ends at once: `census.py` printed *"NO COMMENT carries an anchor
     at either tier"* as a statement of intent, and the test above asserts which
@@ -684,12 +689,12 @@ class TestARecordWithNoAnchorIsBroken(unittest.TestCase):
     each other and agreed on nothing.
     """
 
-    BLOCK = dict(CENSUS[2])
+    PARAGRAPH = dict(CENSUS[2])
 
     def _rec(self, **over):
         rec = {
-            "address": self.BLOCK["address"],
-            "anchor": self.BLOCK["anchor"],
+            "address": self.PARAGRAPH["address"],
+            "anchor": self.PARAGRAPH["anchor"],
             "verdict": "clean",
             "claim": {},
             "reason": "",
@@ -699,26 +704,28 @@ class TestARecordWithNoAnchorIsBroken(unittest.TestCase):
         return rec | over
 
     def test_a_census_block_with_no_anchor_breaks_the_record(self):
-        blank = self.BLOCK | {"anchor": ""}
-        problems = record.seeded_problems("block 3", self._rec(anchor=""), blank)
+        blank = self.PARAGRAPH | {"anchor": ""}
+        problems = record.seeded_problems("paragraph 3", self._rec(anchor=""), blank)
         self.assertEqual(len(problems), 1)
         self.assertIn("no anchor", problems[0])
 
     def test_an_anchor_the_census_never_gave_is_REFUSED(self):
         problems = record.seeded_problems(
-            "block 3", self._rec(anchor="def other():"), self.BLOCK
+            "paragraph 3", self._rec(anchor="def other():"), self.PARAGRAPH
         )
         self.assertEqual(len(problems), 1)
         self.assertIn("WRITTEN BY THE TOOL", problems[0])
 
     def test_the_matching_anchor_passes(self):
-        self.assertEqual(record.seeded_problems("block 3", self._rec(), self.BLOCK), [])
+        self.assertEqual(
+            record.seeded_problems("paragraph 3", self._rec(), self.PARAGRAPH), []
+        )
 
     def test_the_message_does_not_accuse_the_reviewer(self):
         # ! Same rule the `address` message follows: the reviewer never typed
         # this field, so a mismatch means the FILE was edited.
         problems = record.seeded_problems(
-            "block 3", self._rec(anchor="nope"), self.BLOCK
+            "paragraph 3", self._rec(anchor="nope"), self.PARAGRAPH
         )
         self.assertNotIn("misquot", problems[0])
         self.assertIn("restore it", problems[0])
@@ -744,7 +751,7 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
     There is not enough definition in the old form to make the address."*
     Measured the same day, and both routes are closed.
 
-    **`BLOCK <index>`** is a position in ONE census. The census it names carries
+    **`PARAGRAPH <index>`** is a position in ONE census. The census it names carries
     no addresses -- 0 of 3,333 on a real held run, because the field postdates
     it -- and a census built today is a different list: the held one holds
     `interval`, `docstring`, `comment` and `trailing-comment` and has no
@@ -757,8 +764,8 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
 
     ! **The failure it replaces was silent in both directions.** Against a fresh
     census every held finding grouped under `""` and matched nothing -- 3 of 3
-    dropped, exit 0. Against the genuine held census every block keyed on `""`
-    too, so every record matched every finding: **3,333 blocks and 173 findings
+    dropped, exit 0. Against the genuine held census every paragraph keyed on `""`
+    too, so every record matched every finding: **3,333 paragraphs and 173 findings
     produced 29,583 records**, each with a verdict and no error raised.
 
     ! `TestConvertKeepsAHeldRunReplayable` above is named for the property and
@@ -772,11 +779,11 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
 
     def setUp(self):
         path = Path("m.py")
-        blocks = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, blocks))
-        for b in blocks:
+        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
+        lines = sorted(census.code_lines(self.SRC, paragraphs))
+        for b in paragraphs:
             b.address = addresser.address(vars(b), lines)
-        self.census = [vars(b) for b in blocks]
+        self.census = [vars(b) for b in paragraphs]
         self.prose = [
             i
             for i, b in enumerate(self.census, 1)

@@ -38,8 +38,8 @@ REASON      nothing to report from this role
 """
 
 
-def stamped(blocks):
-    """Census blocks carrying the address the census stamps on each.
+def stamped(paragraphs):
+    """Census paragraphs carrying the address the census stamps on each.
 
     ! Fixtures are hand-built, and `address` is the tool's own field -- the
     checks compare a record's copy against it, so a fixture without one tests
@@ -47,21 +47,21 @@ def stamped(blocks):
     tests are about the record agreeing with the census, not about numbering.
     """
     out = []
-    for i, b in enumerate(blocks):
+    for i, b in enumerate(paragraphs):
         dotted = str(b["path"]).replace("\\", "/").replace("/", ".")
         out.append({**b, "address": b.get("address") or f"{dotted}@b{i}"})
     return out
 
 
-def _clean_records(*blocks: int) -> str:
-    """One `clean` RECORD per block. There is no range list to write instead."""
+def _clean_records(*paragraphs: int) -> str:
+    """One `clean` RECORD per paragraph. There is no range list to write instead."""
     return "".join(
         "--- RECORD\n"
         f"BLOCK       {n}\n"
         "VERDICT     clean\n"
         "REASON      nothing to report from this role\n"
         "---\n"
-        for n in blocks
+        for n in paragraphs
     )
 
 
@@ -84,7 +84,7 @@ def _finding(**kw):
         "sources": ["a.py:5 | the settling line"],
         "claim": 'false: "a" / true: "b"',
         "reason": "three callers, all under tests/, so the count is stale",
-        "change": "# b, written out with its surrounding block",
+        "change": "# b, written out with its surrounding paragraph",
     }
     fields.update(kw)
     # ! The ADDRESS is the key now, and `stamped` numbers a fixture `@b{index}`
@@ -112,8 +112,8 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(found[0].reviewer, "block-context")
 
     def test_a_bare_range_line_accounts_for_nothing(self):
-        # A range list used to cover N blocks in one line and cite nothing. It is
-        # not a record, so it parses to no findings and every block it named is a
+        # A range list used to cover N paragraphs in one line and cite nothing. It is
+        # not a record, so it parses to no findings and every paragraph it named is a
         # coverage gap.
         found, malformed = record.parse_report("CLEAN 1-9\n", "module-context")
         self.assertEqual(found, [])
@@ -136,7 +136,7 @@ VERDICT     correct
 SOURCES     a.py:1 | one
 CLAIM       false: "x" / true: "y"
 REASON      second record, closed
-CHANGE      # y, in its block
+CHANGE      # y, in its paragraph
 ---
 """
         found, malformed = record.parse_report(text, "block-context")
@@ -260,8 +260,8 @@ class TestAddAnchor(unittest.TestCase):
 
     def test_an_add_that_does_not_carry_its_text_is_rejected(self):
         # ! The anchor alone says WHERE and not WHAT. CLAIM is the spec, so the
-        # text belongs in it -- CHANGE shows it already placed in the block, and
-        # no checker can pick the new sentence back out of a block.
+        # text belongs in it -- CHANGE shows it already placed in the paragraph, and
+        # no checker can pick the new sentence back out of a paragraph.
         self.assertIn("claim.missing", self._add("above `send()`: retries are capped"))
 
 
@@ -367,7 +367,7 @@ class TestQueryWordBoundary(unittest.TestCase):
         self.assertIsNone(desk.payload_problem(f))
 
     def test_looked_at_the_file_counts_as_an_attempted_check(self):
-        # A one-character typo (\block\w* for \blook\w*) shipped in the same
+        # A one-character typo (\paragraph\w* for \blook\w*) shipped in the same
         # commit that fixed the substring bug, and made this exact wording
         # reject: 'look'/'looked'/'looking' never matched, and 'locked' -- a
         # word that names no check at all -- matched by accident instead.
@@ -393,7 +393,7 @@ class TestQueryWordBoundary(unittest.TestCase):
         self.assertIsNone(desk.payload_problem(f))
 
     def test_locked_names_no_check_and_is_rejected(self):
-        # The typo's failure mode in the OTHER direction: \block\w* matched
+        # The typo's failure mode in the OTHER direction: \paragraph\w* matched
         # "locked", a word that names no attempted check at all -- the exact
         # shape this whole check exists to refuse.
         f = _finding(
@@ -409,9 +409,9 @@ class TestQueryWordBoundary(unittest.TestCase):
 class TestScopeDeclaration(unittest.TestCase):
     """`query -- outside my role` is a boundary report, not work.
 
-    Measured: a run reported 1159 blocks needing a ruling when 76 carried a
+    Measured: a run reported 1159 paragraphs needing a ruling when 76 carried a
     substantive verdict. The other 1083 were out-of-role queries, which
-    module-context is instructed to return on every block it does not own.
+    module-context is instructed to return on every paragraph it does not own.
     """
 
     def _q(self, change):
@@ -486,7 +486,7 @@ class TestWorkList(unittest.TestCase):
                 claim='drop: "the sentence"',
             ),
         ]
-        grouped = verdicts.by_block(found)
+        grouped = verdicts.by_paragraph(found)
         self.assertEqual(sorted(grouped), ["a.py@b6", "a.py@b8"])
         self.assertEqual(len(grouped["a.py@b6"]), 2)
 
@@ -497,15 +497,15 @@ class TestWorkList(unittest.TestCase):
         text = "--- RECORD\nVERDICT     drop\nLOCATION    a.py:1\n---\n"
         found, malformed = record.parse_report(text, "block-context")
         self.assertEqual(found, [])
-        self.assertEqual(malformed, ["a record with no BLOCK index"])
+        self.assertEqual(malformed, ["a record with no PARAGRAPH index"])
 
 
 class TestContradiction(unittest.TestCase):
     """A contradiction is two verdicts on ONE SENTENCE.
 
-    ! The check keyed on the census BLOCK index while a verdict rules on a
-    sentence, so any `drop` in a block collided with any `correct` in it.
-    Measured on a live run: 8 blocks flagged, 2 genuine, and a re-review round
+    ! The check keyed on the census PARAGRAPH index while a verdict rules on a
+    sentence, so any `drop` in a paragraph collided with any `correct` in it.
+    Measured on a live run: 8 paragraphs flagged, 2 genuine, and a re-review round
     was spent on each of the other six.
 
     !! `move` is not in the set at all. A relocation and a truth fix COMPOSE --
@@ -519,9 +519,9 @@ class TestContradiction(unittest.TestCase):
     # exercise nothing.
     ORIGINAL = "the budget is 3. callers round separately."
     # ! The collision is keyed on the DIFF, and a diff is read through the
-    # census -- the block's KIND selects how, its PATH selects the markers. So
+    # census -- the paragraph's KIND selects how, its PATH selects the markers. So
     # these tests need a census, and one entry per index they cite.
-    BLOCKS = stamped(
+    PARAGRAPHS = stamped(
         [
             {
                 "path": "a.py",
@@ -543,7 +543,7 @@ class TestContradiction(unittest.TestCase):
         """
         dropped = self.ORIGINAL.replace(drop_text, "").strip()
         corrected = self.ORIGINAL.replace(correct_text, "something else")
-        return verdicts.by_block(
+        return verdicts.by_paragraph(
             [
                 _finding(
                     reviewer="ownership-context",
@@ -563,26 +563,26 @@ class TestContradiction(unittest.TestCase):
         )
 
     def test_drop_and_correct_on_the_SAME_sentence_collide(self):
-        # Measured block 728: ownership dropped the sentence function-context
+        # Measured paragraph 728: ownership dropped the sentence function-context
         # was correcting. Delete it, or fix its count -- nothing composes those.
         got = self._pair("the budget is 3.", "the budget is 3")
-        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), ["a.py@b0"])
+        self.assertEqual(verdicts.contradictions(got, self.PARAGRAPHS), ["a.py@b0"])
 
     def test_drop_and_correct_on_DIFFERENT_sentences_do_not_collide(self):
-        # Measured block 981: ownership dropped one clause, two roles corrected
+        # Measured paragraph 981: ownership dropped one clause, two roles corrected
         # another in the same docstring. The join called it a contradiction and
         # a re-review round established that it was not.
         got = self._pair("callers round separately.", "the budget is 3")
-        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), [])
+        self.assertEqual(verdicts.contradictions(got, self.PARAGRAPHS), [])
 
     def test_a_containing_sentence_still_collides(self):
-        # One role drops the whole block; another corrects a clause inside it.
+        # One role drops the whole paragraph; another corrects a clause inside it.
         got = self._pair(self.ORIGINAL, "the budget is 3")
-        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), ["a.py@b0"])
+        self.assertEqual(verdicts.contradictions(got, self.PARAGRAPHS), ["a.py@b0"])
 
     def test_drop_against_patch_on_one_sentence_collides(self):
         got = self._pair("the budget is 3.", "the budget is 3", "patch")
-        self.assertEqual(verdicts.contradictions(got, self.BLOCKS), ["a.py@b0"])
+        self.assertEqual(verdicts.contradictions(got, self.PARAGRAPHS), ["a.py@b0"])
 
     def test_move_against_correct_COMPOSES_and_is_not_flagged(self):
         # Ruled 2026-08-17: placement and truth are a sequence, not a rivalry.
@@ -601,7 +601,7 @@ class TestContradiction(unittest.TestCase):
             ),
         ]
         self.assertEqual(
-            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+            verdicts.contradictions(verdicts.by_paragraph(found), self.PARAGRAPHS), []
         )
 
     def test_move_against_patch_is_not_flagged(self):
@@ -618,7 +618,7 @@ class TestContradiction(unittest.TestCase):
             ),
         ]
         self.assertEqual(
-            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+            verdicts.contradictions(verdicts.by_paragraph(found), self.PARAGRAPHS), []
         )
 
     def test_drop_alone_is_not_a_contradiction(self):
@@ -631,7 +631,7 @@ class TestContradiction(unittest.TestCase):
             )
         ]
         self.assertEqual(
-            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+            verdicts.contradictions(verdicts.by_paragraph(found), self.PARAGRAPHS), []
         )
 
     def test_drop_with_clean_is_not_a_contradiction(self):
@@ -646,7 +646,7 @@ class TestContradiction(unittest.TestCase):
             _finding(reviewer="block-context", block=7, verdict="clean"),
         ]
         self.assertEqual(
-            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+            verdicts.contradictions(verdicts.by_paragraph(found), self.PARAGRAPHS), []
         )
 
     def test_an_unreadable_payload_is_flagged_rather_than_passed(self):
@@ -658,7 +658,7 @@ class TestContradiction(unittest.TestCase):
             ),
         ]
         self.assertEqual(
-            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS),
+            verdicts.contradictions(verdicts.by_paragraph(found), self.PARAGRAPHS),
             ["a.py@b0"],
         )
 
@@ -672,7 +672,7 @@ class TestContradiction(unittest.TestCase):
         found, malformed = record.parse_report(text, "ownership-context")
         self.assertEqual(len(malformed), 2)
         self.assertEqual(
-            verdicts.contradictions(verdicts.by_block(found), self.BLOCKS), []
+            verdicts.contradictions(verdicts.by_paragraph(found), self.PARAGRAPHS), []
         )
 
 
@@ -770,8 +770,8 @@ class TestSource(unittest.TestCase):
     # `payload_problem` enforces and `TestPayload` covers. The coverage moved.
 
     # ! The two LOCATION tests retired with the field. LOCATION was checked for
-    # RESOLVABILITY and never against the block it claimed to describe, so a
-    # finding attached to the wrong block resolved cleanly. `TestClaimAgainstTheCensus`
+    # RESOLVABILITY and never against the paragraph it claimed to describe, so a
+    # finding attached to the wrong paragraph resolved cleanly. `TestClaimAgainstTheCensus`
     # is what replaces it, and it is a stronger check than the one removed.
 
 
@@ -819,18 +819,18 @@ class TestSeveralSources(unittest.TestCase):
             "SOURCES     a.py:5 | the settling line\n"
             "SOURCES     b.py:2 | beta\n"
             'CLAIM       false: "x" / true: "y"\nREASON      y\n'
-            "CHANGE      # b, in its block\n---\n"
+            "CHANGE      # b, in its paragraph\n---\n"
         )
         found, _ = record.parse_report(text, "block-context")
         self.assertEqual(len(found[0].sources), 2)
 
 
 class TestBlockProblem(unittest.TestCase):
-    """Is the sentence this finding rules on actually IN the block it cites?
+    """Is the sentence this finding rules on actually IN the paragraph it cites?
 
     !! Keyed on the ORIGINAL, which `CLAIM` carries in its `drop:`, `false:` or
     `from:` half -- never on `CHANGE`, which holds the REPLACEMENT. Matching the
-    replacement against the original block would refuse every correct finding
+    replacement against the original paragraph would refuse every correct finding
     and pass the ones that changed nothing.
 
     ! This is what `LOCATION` could never do. It was AMBIGUOUS -- four
@@ -838,7 +838,7 @@ class TestBlockProblem(unittest.TestCase):
     checked for resolvability, never against the thing it described.
     """
 
-    BLOCKS = stamped(
+    PARAGRAPHS = stamped(
         [
             {
                 "path": "a.py",
@@ -853,7 +853,7 @@ class TestBlockProblem(unittest.TestCase):
 
     def _at(self, verdict, claim):
         return desk.block_problem(
-            _finding(block=1, verdict=verdict, claim=claim), self.BLOCKS
+            _finding(block=1, verdict=verdict, claim=claim), self.PARAGRAPHS
         )
 
     def test_a_correct_whose_false_half_is_in_the_block_passes(self):
@@ -890,18 +890,18 @@ class TestBlockProblem(unittest.TestCase):
 
     def test_a_move_names_PLACES_and_so_is_exempt(self):
         # ! A `move`'s from/to are locations, not text, so there is no sentence
-        # to look for. The BLOCK it cites is what identifies the prose.
+        # to look for. The PARAGRAPH it cites is what identifies the prose.
         self.assertIsNone(self._at("move", "from: `a.py` line 1 / to: `send()`"))
 
     def test_an_add_owes_nothing_here(self):
         # `add` is about prose that is MISSING, so there is no sentence in the
-        # block to find.
+        # paragraph to find.
         f = _finding(block=2, verdict="add", claim='missing: "capped" above `send()`')
-        self.assertIsNone(desk.block_problem(f, self.BLOCKS))
+        self.assertIsNone(desk.block_problem(f, self.PARAGRAPHS))
 
     def test_clean_owes_nothing_here(self):
         f = _finding(block=1, verdict="clean", claim="", reason="", change="")
-        self.assertIsNone(desk.block_problem(f, self.BLOCKS))
+        self.assertIsNone(desk.block_problem(f, self.PARAGRAPHS))
 
     def test_a_spec_carrying_no_original_sentence_is_left_alone(self):
         # ! `payload_problem` refuses a malformed CLAIM. Reporting it here too
@@ -910,11 +910,11 @@ class TestBlockProblem(unittest.TestCase):
 
     def test_an_out_of_range_block_is_left_to_the_range_check(self):
         f = _finding(block=99, claim='false: "x" / true: "y"')
-        self.assertIsNone(desk.block_problem(f, self.BLOCKS))
+        self.assertIsNone(desk.block_problem(f, self.PARAGRAPHS))
 
 
 class TestChangeIsRequired(unittest.TestCase):
-    """CHANGE is the RESULT -- the edit already made, with its surrounding block.
+    """CHANGE is the RESULT -- the edit already made, with its surrounding paragraph.
 
     Roy, 2026-08-17: *"The change is what allows the apply section to apply the
     claim appropriately."* CLAIM says what must change; CHANGE is the finished
@@ -958,11 +958,11 @@ class TestChangeIsRequired(unittest.TestCase):
 
 
 class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
-    """`CHANGE` is a whole block, so it is several lines by construction.
+    """`CHANGE` is a whole paragraph, so it is several lines by construction.
 
     ! Lines naming no field were SKIPPED, so a multi-line CHANGE arrived holding
     only its first line and nothing said so. The task agent then applied one
-    line of a block it was told was the whole block.
+    line of a paragraph it was told was the whole paragraph.
     """
 
     def _one(self, body):
@@ -989,7 +989,7 @@ class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
         # !! The worst defect 0.2.0 shipped was the opposite of this. A blank
         # line ended the continuation, so every docstring -- which has one
         # between its summary and its `Args:` -- was truncated to its first
-        # paragraph. Measured: 33% of one census, ~450 blocks of another, and
+        # paragraph. Measured: 33% of one census, ~450 paragraphs of another, and
         # every refused transcription was correct.
         f = self._one(
             "BLOCK       1\n"
@@ -1048,11 +1048,11 @@ class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
 
 
 class TestMoveShowsBothBlocks(unittest.TestCase):
-    """A `move` changes TWO blocks, so its CHANGE shows both.
+    """A `move` changes TWO paragraphs, so its CHANGE shows both.
 
     Roy, 2026-08-17: *"Move kind of needs both sides to be correct. What the
-    block where it comes from looks like and what the block the sentence looks
-    like after. The upstream side can be omitted if the full block moves not
+    paragraph where it comes from looks like and what the paragraph the sentence looks
+    like after. The upstream side can be omitted if the full paragraph moves not
     just a sentence."*
     """
 
@@ -1071,7 +1071,7 @@ class TestMoveShowsBothBlocks(unittest.TestCase):
         )
 
     def test_the_destination_alone_passes_as_a_WHOLE_block_move(self):
-        # ! Omitting `from:` ASSERTS the whole block moved -- nothing is left at
+        # ! Omitting `from:` ASSERTS the whole paragraph moved -- nothing is left at
         # the origin to show. No checker can tell that from a partial move, so
         # the reviewer says which by what it supplies.
         self.assertIsNone(self._move("to: # the destination, with it"))
@@ -1084,9 +1084,9 @@ class TestMoveShowsBothBlocks(unittest.TestCase):
 
 
 class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
-    """`BLOCK` is `<index> | <path>:<start>-<end>` plus the block's text.
+    """`BLOCK` is `<index> | <path>:<start>-<end>` plus the paragraph's text.
 
-    Roy, 2026-08-17: *"BLOCK gets the address and the original text verbatim.
+    Roy, 2026-08-17: *"PARAGRAPH gets the address and the original text verbatim.
     This allows the reviewer to have most the context and most of the time all
     of the context it needs to understand."*
 
@@ -1098,7 +1098,7 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
     sets out which is which -- and each is checked against a different thing.
     """
 
-    BLOCKS = stamped(
+    PARAGRAPHS = stamped(
         [
             {
                 "path": "redacted_pkg/rates.py",
@@ -1133,7 +1133,7 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
             "original": self.ORIGINAL,
         }
         fields.update(kw)
-        return desk.address_problem(_finding(**fields), self.BLOCKS)
+        return desk.address_problem(_finding(**fields), self.PARAGRAPHS)
 
     def test_a_matching_address_and_original_passes(self):
         self.assertIsNone(self._at())
@@ -1148,7 +1148,7 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
         # !! IT RESOLVES, so this check passes it. The address names a real
         # entry -- just not the one the finding rules on -- and what catches
         # that is `block_problem`, which asks whether the sentence is in the
-        # block the address names. Refusing here would need the index back.
+        # paragraph the address names. Refusing here would need the index back.
         self.assertIsNone(self._at(address="redacted_pkg.rates.py@b1"))
 
     def test_an_address_naming_the_wrong_file_is_refused(self):
@@ -1177,26 +1177,26 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
         """!! Both sides of that comparison were the tool's own.
 
         `original` is filled from the census's `raw_lines` by `_report`, and
-        the census's `text` is its own normalised copy of the same block. The
+        the census's `text` is its own normalised copy of the same paragraph. The
         check put one against the other and refused the finding when they
         disagreed -- accusing nobody, and unfixable by anyone.
         """
         self.assertIsNone(self._at(original="# something else entirely"))
 
     def test_an_empty_original_is_not_refused_either(self):
-        # ! It means the census carried no `raw_lines` for the block, which is
+        # ! It means the census carried no `raw_lines` for the paragraph, which is
         # not a fact about the finding. `edit_problem` reports it where it
         # matters, holding the census entry an empty CHANGE is measured against.
         self.assertIsNone(self._at(original="  "))
 
     def test_a_block_whose_two_census_copies_DISAGREE_still_passes(self):
-        """!! The shape measured on this repo: 3 of 663 prose blocks.
+        """!! The shape measured on this repo: 3 of 663 prose paragraphs.
 
         `raw_lines` is the file's literal slice; `text` is the AST value for a
         Python docstring. Any escape sequence renders in one and not the other,
-        so every finding on such a block was fatally refused.
+        so every finding on such a paragraph was fatally refused.
         """
-        blocks = [
+        paragraphs = [
             {
                 "path": "m.py",
                 "start": 1,
@@ -1213,7 +1213,7 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
             address="m.py@b0",
             original='"""a source with \\r\\n in it.\n"""',
         )
-        self.assertIsNone(desk.address_problem(f, blocks))
+        self.assertIsNone(desk.address_problem(f, paragraphs))
 
     def test_an_empty_INTERVAL_owes_no_original(self):
         # ! This is what an `add` cites: prose that is MISSING has no original.
@@ -1229,14 +1229,14 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
 
     def test_clean_owes_neither(self):
         f = _finding(verdict="clean", claim="", reason="", change="", address="")
-        self.assertIsNone(desk.address_problem(f, self.BLOCKS))
+        self.assertIsNone(desk.address_problem(f, self.PARAGRAPHS))
 
     def test_an_out_of_range_block_is_left_to_the_range_check(self):
         self.assertIsNone(self._at(block=99))
 
 
 class TestTheBlockLineParses(unittest.TestCase):
-    """`BLOCK <index> | <address>` with the original on the lines below."""
+    """`PARAGRAPH <index> | <address>` with the original on the lines below."""
 
     def _one(self, body):
         found, malformed = record.parse_report(
@@ -1305,7 +1305,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
     """A BACKSTOP: does CHANGE edit the sentence CLAIM says it edits?
 
     !! Nothing else reads the two accounts of one edit against each other.
-    `block_problem` confirms the claimed sentence is IN the block;
+    `block_problem` confirms the claimed sentence is IN the paragraph;
     `payload_problem` confirms CHANGE exists. Neither notices a reviewer that
     reasoned about one sentence and rewrote another. Roy authorised this
     2026-08-17 "as a backstop to the Apply agent not doing its due diligence".
@@ -1313,9 +1313,9 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
 
     ORIGINAL = "# the budget is 3.\n# callers round separately."
 
-    # ! The diff is read through the CENSUS: `kind` selects how the block is
+    # ! The diff is read through the CENSUS: `kind` selects how the paragraph is
     # read, `path` selects the comment markers. A hand-rolled normaliser here
-    # would be the third definition of a block's text, which is the defect
+    # would be the third definition of a paragraph's text, which is the defect
     # this whole class exists to pin.
     ENTRY = {
         "path": "a.py",
@@ -1356,7 +1356,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         self.assertIn("UNCHANGED", problem)
 
     def test_rewrapping_alone_is_not_an_edit(self):
-        # ! Compared on WORDS, so a reviewer that reflows the block while
+        # ! Compared on WORDS, so a reviewer that reflows the paragraph while
         # correcting one sentence is not accused of editing the rest.
         self.assertIsNone(
             self._at(
@@ -1405,7 +1405,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         )
 
     def test_a_drop_that_empties_the_block_may_leave_CHANGE_blank(self):
-        """!! A WHOLE-BLOCK `drop` has no text to show, and had no way to say so.
+        """!! A WHOLE-PARAGRAPH `drop` has no text to show, and had no way to say so.
 
         `payload_problem` refused any empty `CHANGE`, so the one edit that
         legitimately produces none could not be expressed. Measured 2026-08-17:
@@ -1413,7 +1413,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
         which nothing downstream reads -- so the record was refused for not
         showing text that does not exist.
         """
-        # ! The CLAIM quotes the PROSE, as a reviewer writes it -- the block's
+        # ! The CLAIM quotes the PROSE, as a reviewer writes it -- the paragraph's
         # markers and line breaks are the census's, not the sentence's.
         self.assertIsNone(
             self._at(
@@ -1425,7 +1425,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
 
     def test_a_blank_CHANGE_whose_CLAIM_names_only_part_is_refused(self):
         # ! This is what stops a blank CHANGE becoming a way to skip writing
-        # one: an empty block is CHECKED against the CLAIM, not taken on trust.
+        # one: an empty paragraph is CHECKED against the CLAIM, not taken on trust.
         problem = self._at(
             verdict="drop",
             claim='drop: "callers round separately"',
@@ -1472,7 +1472,7 @@ class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
 
     def test_two_findings_folded_into_one_CHANGE_are_refused(self):
         # !! The brief rules that ONE finding's CHANGE makes ONE finding's
-        # edit. A reviewer handing in the block fully fixed on both records is
+        # edit. A reviewer handing in the paragraph fully fixed on both records is
         # claiming one edit and showing two, and stage 5 cannot compose records
         # that have already been merged.
         problem = self._at(
@@ -1525,7 +1525,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
     contract changed twice in a morning while per-verdict knowledge lived in
     eight functions, each branching on the verdict name. Nobody found all
     eight, and five defects shipped -- two of which refused 73% of one run's
-    substantive findings and 83 of 171 blocks in another, every refusal
+    substantive findings and 83 of 171 paragraphs in another, every refusal
     correct.
     """
 
@@ -1613,7 +1613,7 @@ class TestOneNormaliserOnBothSides(unittest.TestCase):
         # per token. A haystack that was only whitespace-collapsed still held
         # it, so any comma or colon inside a quoted sentence refused a correct
         # finding.
-        blocks = [
+        paragraphs = [
             {
                 "path": "a.py",
                 "start": 1,
@@ -1628,10 +1628,10 @@ class TestOneNormaliserOnBothSides(unittest.TestCase):
                 ' / true: "x"'
             )
         )
-        self.assertIsNone(desk.block_problem(f, blocks))
+        self.assertIsNone(desk.block_problem(f, paragraphs))
 
     def test_a_backtick_inside_the_sentence_does_not_refuse_it(self):
-        blocks = [
+        paragraphs = [
             {
                 "path": "a.py",
                 "start": 1,
@@ -1641,7 +1641,7 @@ class TestOneNormaliserOnBothSides(unittest.TestCase):
             }
         ]
         f = _finding(claim='false: "the `cap`, set at 88" / true: "it is 104"')
-        self.assertIsNone(desk.block_problem(f, blocks))
+        self.assertIsNone(desk.block_problem(f, paragraphs))
 
     def test_words_is_IDEMPOTENT(self):
         # !! It was not. Stripping quotes and THEN punctuation left a backtick
@@ -1676,9 +1676,9 @@ class TestOneNormaliserOnBothSides(unittest.TestCase):
 class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
     """`block_text` must reproduce the census for every kind and every language.
 
-    !! It is the lines-to-block half of the block protocol and it claims to be
+    !! It is the lines-to-paragraph half of the paragraph protocol and it claims to be
     the ONLY one, so a kind it cannot reproduce is a claim the file does not
-    keep -- and a fatal on every block of that kind.
+    keep -- and a fatal on every paragraph of that kind.
     """
 
     def test_a_MARKED_doc_is_a_comment_not_a_string_literal(self):
@@ -1712,9 +1712,9 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
 
     def test_every_prose_block_in_the_shipped_TREE_round_trips(self):
         # !! THE REAL CHECK, and the one that found the trailing-comment gap.
-        # Each block's own `raw_lines` fed back through the normaliser must
+        # Each paragraph's own `raw_lines` fed back through the normaliser must
         # reproduce the text the census stored. Anything that does not is a
-        # block a correct transcription cannot match.
+        # paragraph a correct transcription cannot match.
         import json
         import subprocess
         import tempfile
@@ -1741,8 +1741,8 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
                 capture_output=True,
                 check=True,
             )
-            blocks = json.loads(out.read_text(encoding="utf-8"))
-        prose = [b for b in blocks if b.get("text", "").strip()]
+            paragraphs = json.loads(out.read_text(encoding="utf-8"))
+        prose = [b for b in paragraphs if b.get("text", "").strip()]
         self.assertGreater(len(prose), 100, "the sample must be real")
         self.assertGreaterEqual(
             len({b["kind"] for b in prose}), 3, "comment, docstring and trailing"
@@ -1753,7 +1753,7 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
             if desk.as_block("\n".join(b["raw_lines"]), b).lower() != b["text"].lower()
         ]
         self.assertEqual(
-            bad, [], f"{len(bad)} of {len(prose)} blocks cannot round-trip"
+            bad, [], f"{len(bad)} of {len(prose)} paragraphs cannot round-trip"
         )
 
 
@@ -1764,7 +1764,7 @@ class TestAMistypedVerdictIsNeverSummarisedAsCLEAN(unittest.TestCase):
         # ! `_is` answers False to every trait for an unknown verdict, so a
         # record reading `VERDICT corect` fell out of the work list and was
         # reported under STANDS UNCHANGED -- "clean from all reviewers" on a
-        # block a role had explicitly ruled on.
+        # paragraph a role had explicitly ruled on.
         self.assertTrue(record._substantive(_finding(verdict="corect")))
 
     def test_a_known_null_verdict_is_not(self):
@@ -1777,7 +1777,7 @@ class TestTheJSONCensusGatesLikeTheTextOne(unittest.TestCase):
     !! `SKILL.md` requires `--json --out` for the census stage 5 parses. This
     returned 0 with a SHORT array on exactly the input the text mode refused,
     so a file with no language record vanished and the coverage check then
-    certified "every block accounted for" over blocks never collected.
+    certified "every paragraph accounted for" over paragraphs never collected.
     """
 
     def _run(self, *args):
@@ -1821,7 +1821,7 @@ class TestMarkersAreFoundWhateverTheirCase(unittest.TestCase):
     finding admitted unchecked -- the loudest possible way to skip the gate.
     """
 
-    BLOCKS = stamped(
+    PARAGRAPHS = stamped(
         [
             {
                 "path": "a.py",
@@ -1839,7 +1839,7 @@ class TestMarkersAreFoundWhateverTheirCase(unittest.TestCase):
 
     def test_a_shouted_marker_no_longer_skips_the_block_check(self):
         f = _finding(claim='FALSE: "the cap is 9" / TRUE: "x"')
-        self.assertIn("is not in a.py@b0", desk.block_problem(f, self.BLOCKS))
+        self.assertIn("is not in a.py@b0", desk.block_problem(f, self.PARAGRAPHS))
 
     def test_mixed_case_markers_work_for_every_row_that_quotes(self):
         for verdict, claim, want in (
@@ -1886,7 +1886,7 @@ class TestASourceWindowSpansTheWholeCitation(unittest.TestCase):
 class TestALineCommentContainingABlockOpener(unittest.TestCase):
     """Whichever opener comes FIRST on the line owns it.
 
-    !! The block test ran first unconditionally, so `// see /* the note` opened
+    !! The paragraph test ran first unconditionally, so `// see /* the note` opened
     a run that swallowed every line to the next `*/` -- executable code handed
     to four reviewers as prose, carrying no annotation, and dropped from
     `code_lines` so every interval in that file sat at the wrong boundary.
@@ -1898,7 +1898,7 @@ class TestALineCommentContainingABlockOpener(unittest.TestCase):
             p.write_text(body, encoding="utf-8")
             return [
                 b
-                for b in census.blocks_lexical(p, body, census.language_for(p))
+                for b in census.paragraphs_lexical(p, body, census.language_for(p))
                 if b.text.strip()
             ]
 
@@ -1913,7 +1913,7 @@ class TestALineCommentContainingABlockOpener(unittest.TestCase):
 
     def test_a_real_block_comment_still_spans_its_lines(self):
         got = self._blocks(
-            "int a = 1;\n/* a real block\n   spanning lines */\nint b = 2;\n"
+            "int a = 1;\n/* a real paragraph\n   spanning lines */\nint b = 2;\n"
         )
         self.assertEqual(len(got), 1)
         self.assertEqual((got[0].start, got[0].end), (2, 3))
@@ -1939,7 +1939,7 @@ class TestCLI(unittest.TestCase):
         self.census.write_text(
             json.dumps(
                 # ! `text` is not optional. `block_problem` matches the sentence
-                # a finding rules on against the block it cites, so a fixture without
+                # a finding rules on against the paragraph it cites, so a fixture without
                 # it refuses every finding -- which is the check working, and
                 # the real census has carried `text` since it was written.
                 [
@@ -1993,8 +1993,8 @@ class TestCLI(unittest.TestCase):
             cmd, capture_output=True, text=True, encoding="utf-8", check=False
         )
 
-    def _clean_report(self, name, blocks=(1, 2, 3)):
-        """One `clean` RECORD per block -- there is no range list."""
+    def _clean_report(self, name, paragraphs=(1, 2, 3)):
+        """One `clean` RECORD per paragraph -- there is no range list."""
         return self._write(
             name,
             "".join(
@@ -2003,7 +2003,7 @@ class TestCLI(unittest.TestCase):
                 "VERDICT     clean\n"
                 "REASON      nothing to report from this role\n"
                 "---\n"
-                for n in blocks
+                for n in paragraphs
             ),
         )
 
@@ -2072,7 +2072,7 @@ class TestCLI(unittest.TestCase):
             "VERDICT     query\n"
             'CLAIM       false: "x" / true: "y"\n'
             "REASON      could not be settled from the checkout\n"
-            "CHANGE      # the settled line, in its block\n"
+            "CHANGE      # the settled line, in its paragraph\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       1\n"
@@ -2092,10 +2092,10 @@ class TestCLI(unittest.TestCase):
         )
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("names no block", result.stdout)
+        self.assertIn("names no paragraph", result.stdout)
 
     def test_a_bare_range_line_is_a_gap_not_a_pass(self):
-        # A range list is not a record, so it accounts for nothing: every block
+        # A range list is not a record, so it accounts for nothing: every paragraph
         # it names is a loud coverage gap, never a silent "everything is clean".
         report = self._write("block-context.txt", "CLEAN 1-3\n")
         result = self._run(report)
@@ -2139,7 +2139,7 @@ class TestCLI(unittest.TestCase):
             "VERDICT     query\n"
             'CLAIM       false: "x" / true: "y"\n'
             "REASON      could not be settled from the checkout\n"
-            "CHANGE      # the settled line, in its block\n"
+            "CHANGE      # the settled line, in its paragraph\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       2\n"
@@ -2154,7 +2154,7 @@ class TestCLI(unittest.TestCase):
         )
         result = self._run(report)
         self.assertNotIn("1 reviewers", result.stdout)
-        self.assertNotIn("1 blocks", result.stdout)
+        self.assertNotIn("1 paragraphs", result.stdout)
 
     def test_an_unterminated_record_is_fatal(self):
         # I8: a parser-level test only proves the mismatch is DETECTED. Only a
@@ -2175,7 +2175,7 @@ class TestCLI(unittest.TestCase):
             "SOURCES     a.py:5 | five callers, all in tests\n"
             'CLAIM       false: "x" / true: "y"\n'
             "REASON      the count is stale, and this record closed\n"
-            "CHANGE      # y, in its block\n"
+            "CHANGE      # y, in its paragraph\n"
             "---\n"
             "--- RECORD\n"
             "BLOCK       3\n"
@@ -2191,7 +2191,7 @@ class TestCLI(unittest.TestCase):
     def test_a_contradiction_is_named_in_the_closing_line_not_contradicted(self):
         # I3: `contradictions()` never increments `fatal` -- correctly, a
         # re-review is not an inadmissible finding -- but the run printed
-        # "send the block back" and four lines later "Stage 5 may rule" at
+        # "send the paragraph back" and four lines later "Stage 5 may rule" at
         # exit 0. The two outputs contradicted each other.
         finding = (
             "--- RECORD\n"
@@ -2201,13 +2201,13 @@ class TestCLI(unittest.TestCase):
             "SOURCES     a.py:5 | five callers, all in tests\n"
             "CLAIM       {claim}\n"
             "REASON      the count is stale\n"
-            "CHANGE      # the block, as it reads after this edit\n"
+            "CHANGE      # the paragraph, as it reads after this edit\n"
             "---\n" + _CLEAN_RECORDS_23
         )
         drop = self._write(
             "ownership-context.txt",
             # ! The two must name the SAME sentence, or there is no collision:
-            # a contradiction is keyed on the text, not on the block index.
+            # a contradiction is keyed on the text, not on the paragraph index.
             finding.format(verdict="drop", claim='drop: "x"'),
         )
         correct = self._write(
@@ -2302,7 +2302,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
     def test_it_passes_the_shape_check_that_ships(self):
         # !! The point of the class: the brief's own example, through
         # `record.py`, on the census entry its address names.
-        block = {
+        paragraph = {
             "path": "redacted_pkg/billing/rates.py",
             "start": 352,
             "end": 354,
@@ -2314,7 +2314,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
             "anchor": "def compute_rates(plan, period, *, clamp=True):",
         }
         self.assertEqual(
-            record.record_problems("the brief's example", self.record, block), []
+            record.record_problems("the brief's example", self.record, paragraph), []
         )
 
     def test_the_example_the_shape_check_reads_is_the_one_taught(self):
@@ -2324,7 +2324,7 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
 
 
 class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
-    """The brief says a block can carry six verdicts; SKILL.md said one per role.
+    """The brief says a paragraph can carry six verdicts; SKILL.md said one per role.
 
     Six summaries have been found disagreeing with the detailed site they
     summarise, every one drifting in the summary while the detail stayed
@@ -2423,7 +2423,7 @@ class TestAFindingStatedOnlyInReason(unittest.TestCase):
     was given and passed, and the defect is still wrong on disk.
     """
 
-    BLOCKS = stamped(
+    PARAGRAPHS = stamped(
         [
             {
                 "path": "a.py",
@@ -2437,13 +2437,13 @@ class TestAFindingStatedOnlyInReason(unittest.TestCase):
 
     def _run(self, verdict, claim, reason):
         f = _finding(block=1, verdict=verdict, claim=claim, reason=reason)
-        return verdicts.unrecorded_findings({f.address: [f]}, self.BLOCKS)
+        return verdicts.unrecorded_findings({f.address: [f]}, self.PARAGRAPHS)
 
     def test_a_phrase_quoted_in_reason_that_no_claim_names_is_reported(self):
         got = self._run(
             "correct",
             'false: "callers round separately" / true: "31 callers"',
-            'the block also says "three places" and there are four',
+            'the paragraph also says "three places" and there are four',
         )
         self.assertEqual([p for _, _, p in got], ["three places"])
 
@@ -2458,7 +2458,7 @@ class TestAFindingStatedOnlyInReason(unittest.TestCase):
         )
 
     def test_a_phrase_from_ANOTHER_file_is_evidence_not_a_finding(self):
-        # ! It must be the BLOCK'S OWN words. A quotation from a source is what
+        # ! It must be the PARAGRAPH'S OWN words. A quotation from a source is what
         # `SOURCES` is for.
         self.assertEqual(
             self._run(
@@ -2488,7 +2488,7 @@ class TestAFindingStatedOnlyInReason(unittest.TestCase):
     def test_a_move_whose_reason_names_a_defective_phrase_is_reported(self):
         # !! The real shape found on a live run: `move`'s CLAIM names PLACES,
         # never text, so a phrase its REASON says is wrong can be named by no
-        # claim at all. The block gets relocated and nothing records that the
+        # claim at all. The paragraph gets relocated and nothing records that the
         # phrase still needs correcting.
         got = self._run(
             "move",
@@ -2504,10 +2504,10 @@ class TestAFindingStatedOnlyInReason(unittest.TestCase):
             block=1,
             verdict="correct",
             claim='false: "callers round separately" / true: "31 callers"',
-            reason='the block also says "three places"',
+            reason='the paragraph also says "three places"',
         )
         self.assertIsNone(desk.payload_problem(f))
-        self.assertIsNone(desk.block_problem(f, self.BLOCKS))
+        self.assertIsNone(desk.block_problem(f, self.PARAGRAPHS))
 
 
 class TestAFilledFieldOutranksTheWordSearch(unittest.TestCase):
@@ -2952,17 +2952,17 @@ if __name__ == "__main__":
 class TestAMovesDestinationIsResolved(unittest.TestCase):
     """`move`'s `to:` names a place the census carries -- or is outside the code.
 
-    !! IT WAS CHECKED FOR PRESENCE AND NEVER RESOLVED, so a block could be sent
+    !! IT WAS CHECKED FOR PRESENCE AND NEVER RESOLVED, so a paragraph could be sent
     to a line number, a description, or a declaration outside the run and the
     gate passed it. `to:` is the one half stage 5 has to act on.
 
     !! AND THE DESTINATION MAY HOLD NO PROSE. Roy, 2026-08-19: something could
     move a line to a new place that does not have a comment. Every empty place
-    now has an address, so there is a block to point at where before there was
+    now has an address, so there is a paragraph to point at where before there was
     none.
     """
 
-    BLOCKS = stamped(
+    PARAGRAPHS = stamped(
         [
             {"path": "a.py", "start": 1, "end": 2, "kind": "comment", "text": "x"},
             {"path": "a.py", "start": 0, "end": 0, "kind": "margin", "text": ""},
@@ -2976,7 +2976,7 @@ class TestAMovesDestinationIsResolved(unittest.TestCase):
             claim_fields={"from": "`a`", "to": where},
             change="to: # moved",
         )
-        return desk.destination_problem(f, self.BLOCKS)
+        return desk.destination_problem(f, self.PARAGRAPHS)
 
     def test_a_place_that_HOLDS_NO_PROSE_is_a_legal_destination(self):
         # !! THE POINT. `@b1` is the empty margin -- no comment sits there yet.
@@ -3012,7 +3012,7 @@ class TestAnEditOnFrontMatterBecomesAQuery(unittest.TestCase):
     !! THE COST IS ASYMMETRIC AND SITS OUTSIDE THIS SYSTEM. A licence header is
     a legal instrument and a shebang is how the file runs; a wrong edit to
     either is not an editorial mistake. No role can settle one either -- a
-    copyright line states no constraint the code could contradict. So the block
+    copyright line states no constraint the code could contradict. So the paragraph
     is filtered out of what a reviewer reads, and an edit proposed on it anyway
     is turned into a `query` rather than admitted as work.
 
@@ -3030,5 +3030,5 @@ class TestAnEditOnFrontMatterBecomesAQuery(unittest.TestCase):
         self.assertFalse(record.VERDICTS["query"].owes_change)
 
     def test_the_marked_block_is_the_one_above_the_module_docstring(self):
-        # ! The census decides which block; this file only acts on the mark.
+        # ! The census decides which paragraph; this file only acts on the mark.
         self.assertEqual(census.FRONT_MATTER, "front-matter")
