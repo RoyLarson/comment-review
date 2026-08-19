@@ -86,3 +86,58 @@ class TestOnAndBetween(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCodeOnTheFirstLine(unittest.TestCase):
+    """The leading gap is `b0` even when it touches the first code line.
+
+    !! FOUND ON REAL RUST, not on a fixture. `StarTraders/src/company.rs` opens
+    `use std::fmt;` on line 1, so its leading interval is `1-1` -- start AND end
+    on the first code line -- and counting `code <= start` read that as the gap
+    AFTER code line 1. Every Python file this was first written against began
+    with a blank line or a module docstring, so its leading gap was `1-2` and
+    the case could not arise.
+    """
+
+    SRC = "use std::fmt;\n\n#[derive(Debug)]\npub enum X {}\n"
+    BLOCKS = [
+        {"path": "c.rs", "start": 1, "end": 1, "kind": "interval"},
+        {"path": "c.rs", "start": 1, "end": 3, "kind": "interval"},
+        {"path": "c.rs", "start": 3, "end": 4, "kind": "interval"},
+    ]
+
+    def setUp(self):
+        self.code = addresser.code_lines_of(self.SRC, self.BLOCKS)
+
+    def test_code_starts_on_line_one(self):
+        self.assertEqual(self.code[0], 1)
+
+    def test_the_gap_before_it_is_b0_not_b1(self):
+        self.assertEqual(addresser.stable(self.BLOCKS[0], self.code), "c.rs@b0")
+
+    def test_the_gap_after_it_is_b1(self):
+        self.assertEqual(addresser.stable(self.BLOCKS[1], self.code), "c.rs@b1")
+
+    def test_every_gap_gets_its_own_name(self):
+        named = [addresser.stable(b, self.code) for b in self.BLOCKS]
+        self.assertEqual(len(set(named)), len(named))
+
+
+class TestTwoFilesOfTheSameName(unittest.TestCase):
+    """A path is repo-relative, so same-named files in different packages differ.
+
+    ! Checked because Python lets `pkg/a.py` and `pkg/sub/a.py` coexist and the
+    address carries only the path. Verified 2026-08-18 over three such files:
+    every address distinct.
+    """
+
+    def test_the_package_path_is_part_of_the_address(self):
+        code = [1]
+        one = {"path": "pkg/a.py", "start": 1, "end": 1, "kind": "interval"}
+        two = {"path": "pkg/sub/a.py", "start": 1, "end": 1, "kind": "interval"}
+        self.assertNotEqual(addresser.stable(one, code), addresser.stable(two, code))
+
+    def test_a_windows_separator_is_normalised(self):
+        # ! So a census written on Windows and read anywhere names one place.
+        block = {"path": r"pkg\sub\a.py", "start": 1, "end": 1, "kind": "interval"}
+        self.assertEqual(addresser.stable(block, [1]), "pkg/sub/a.py@b0")

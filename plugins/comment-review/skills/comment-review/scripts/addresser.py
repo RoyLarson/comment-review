@@ -106,13 +106,23 @@ def stable(block: dict, code: list[int]) -> str:
         return ""
     if block.get("kind") in SHARES_ITS_LINE and start in code:
         return f"{path}@{ON}{code.index(start) + 1}"
+    # !! THE LEADING GAP IS `b0` EVEN WHEN IT TOUCHES THE FIRST CODE LINE, and
+    # this is the case a Python file hides. `end <= code[0]` means the place
+    # sits at or above the first line of code, so nothing precedes it.
+    #
+    # ! Found on real Rust, 2026-08-18. `company.rs` opens `use std::fmt;` on
+    # line 1, so its leading interval is `1-1` -- start AND end on the first
+    # code line -- and the count below read that as "after code line 1". Every
+    # Python file this was written against began with a blank or a docstring,
+    # so the leading gap was `1-2` and the bug could not appear.
+    end = block.get("end")
+    if code and isinstance(end, int) and end <= code[0]:
+        return f"{path}@{GAP}0"
     # !! `<=`, NOT `<`. An INTERVAL's `start` IS a bounding code line -- the
     # census names a gap by the two code lines around it -- so the gap sits
     # AFTER that line and the line must be counted. A comment or docstring
     # occupies its lines, so its `start` is never code and the two tests agree
-    # there. Measured on the two files this module was written for: `<` put the
-    # gap after the last statement at `b1` instead of `b2`, and made the gap
-    # BETWEEN the two statements `b0`, which is the gap before the first.
+    # there. `<` put the gap after the last statement at `b1` instead of `b2`.
     before = sum(1 for n in code if n <= start)
     return f"{path}@{GAP}{before}"
 
