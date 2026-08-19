@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (36)
+### open  (35)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -210,7 +210,6 @@ that changed a published name or rule:
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 0/5 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 0/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
-| [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | session | — | 0/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 
 ### in-progress  (4)
 
@@ -229,11 +228,12 @@ other tasks can proceed without them._
 | [role-rule-register](role-rule-register.md) | Roy | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | session | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 
-### blocked  (1)
+### blocked  (2)
 
 _None._
 
 | [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | session | — | 2/5 | nothing recomputes it or prompts the clearing; 6 cleared, 26 left to read |
+| [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | session | — | 0/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 ---
 
 ## Completed

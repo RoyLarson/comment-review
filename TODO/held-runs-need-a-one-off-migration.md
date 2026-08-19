@@ -1,7 +1,7 @@
 # The held runs can be migrated one-off from the source at the recorded hash
 
 ```
-Status:   open
+Status:   blocked
 Progress: 0 of 5 tasks done
 Owner:    session
 Requires-Roy: false
@@ -10,6 +10,11 @@ Deferred: 2026-08-19 — Not worth doing now -- Roy, 2026-08-19: 'a one-off scri
           and not worth doing right now.' Nothing depends on it: 0.2.4 onward holds
           addressed reports, so replay is cheap again without this. It buys back only
           the runs already in evidence/.
+Updated:  2026-08-19 — DEFERRED, not dependency-blocked: nothing must land first, and
+          nothing depends on it -- 0.2.4 onward holds addressed reports, so replay is
+          cheap again without this. It waits on someone needing one of the runs already
+          in evidence/ replayed. Filed blocked because that is the only status whose
+          Status line is required to name what it waits on.
 ```
 
 ## Objective
