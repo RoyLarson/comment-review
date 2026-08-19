@@ -10,7 +10,25 @@ Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 
 ## Objective
 
-The shipped prose lags the rulings, and it is what agents read.
+!! **THE RULINGS LANDED IN THE CODE AND IN `docs/`; THE FILES AGENTS ACTUALLY READ WERE NOT
+BROUGHT ALONG.** Four of seven review agents found this independently on 2026-08-19, each
+arriving from a different question.
+
+**The worst of it teaches an off-by-one to four reviewers.** `reviewer-brief.md` still carries
+*"The number means a different statement in `b` than in `c`"* -- written while `c` counted from 1.
+Since the 0-indexing ruling `bN` and `cN` name the SAME code line, so a reviewer following the
+brief cites `c(N+1)` for the line it means. **In the file that costs 5x**, and the brief
+contradicts itself 118 lines later where the newer text is right.
+
+**And every role is handed a retired definition.** `vocabulary.toml` ships
+`block = "The interval between two lines of CODE"` to all six -- the definition
+`docs/vocabulary.md` replaced on 2026-08-19 -- while `address`, the record's primary key, is not
+defined at all, and neither is `margin`, which is 30-50% of the rows a reviewer reads.
+! `check_vocabulary.py` reports 0 holes because it checks that LISTED terms are defined; it cannot
+notice a term of art the brief uses that nobody declared.
+
+! **This is the same shape as the defect the release is named for** -- a fact stated in two places
+and updated in one -- applied to prose rather than to code.
 
 ## Tasks
 

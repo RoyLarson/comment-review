@@ -7,6 +7,9 @@ Owner:    session * Roy (* 3 rulings)
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
           `evidence/redacted-corpus-full-v0_2/PROPOSALS.md` (10)
+Narrowed: 2026-08-19 — the 0.2.4 scope moved to docs/plans/; this file is the job board
+          for the fifteen proposals again. Linkage audited -- 0 of 15 tasks had named
+          the TODO they close
 ```
 
 ## Objective

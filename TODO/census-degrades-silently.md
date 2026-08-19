@@ -10,7 +10,31 @@ Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 
 ## Objective
 
-The census degrades silently on four inputs.
+!! **FOUR INPUTS PRODUCE A CENSUS THAT IS WRONG RATHER THAN REFUSED, EACH EXITING 0.** The run
+reads as complete, the addresses are nonsense, and nothing says so. `census.py` already holds the
+opposite rule -- *"Every file handed in is censused, or this errors"* -- and these are the cases
+that slip past it by parsing far enough to produce blocks.
+
+**A Python file that fails `ast.parse` collapses every comment onto `@b0`.** Three blocks at one
+address, in the REVIEWER'S filtered view, with a code line in no block at all. `census_for` skips
+`intervals`, `margins` and `fill_the_gaps` for an unparsed file, so no code lines are established
+and `address()` counts 0 for everything. ! Two failure modes for one condition: a `TokenError`
+(`def f(:`) is a hard NOT CENSUSED at rc 1, a `SyntaxError` (`x = = 1`) is a soft `unparsed` block
+at rc 0.
+
+**A UTF-8 BOM makes any Python file unparseable** -- `census.py` reads with `encoding="utf-8"`
+rather than `utf-8-sig`, and the BOM survives into `ast.parse`. Routine on Windows, which is where
+this repo is developed.
+
+**A one-line `def f(): pass` has an `a` place that inserts ABOVE the `def`**, because
+`_undocumented` uses `body[0].lineno` and for a one-liner that is the `def` line itself. Measured
+end to end: the galley wrote a docstring above the declaration and the file raised
+`IndentationError`; un-indented it silently becomes the MODULE docstring. Also hits `@overload`
+and `class C: pass`.
+
+**An empty file yields zero blocks and has no `a0`**, so an empty `__init__.py` is uncitable --
+there is nowhere to say a module docstring is missing. ! It contradicts `intervals`' own
+docstring: *"A file with no code at all is therefore one interval."*
 
 ## Tasks
 

@@ -10,7 +10,24 @@ Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 
 ## Objective
 
-The c series is admitted by the gate and cannot be written.
+!! **THE JOIN SAYS `Every finding is admissible. Stage 5 may rule.` ON AN `add` AT `@c0`, AND THE
+GALLEY THEN REFUSES THE SPLICE -- discarding every other edit in that file with it.** The pipeline
+says yes at stage 5 and no at 5b, which `verdicts.py` itself calls the most expensive kind of
+diagnostic there is: it sends the reader to fix something that is not broken.
+
+**The `c` series exists for exactly this and nothing else.** Roy, 2026-08-19: *"without the cs
+being there you can't specify that the comment belongs at the end of the code line."* A `margin`
+carries `whole_lines=False`; `galley.shares_a_line_with_code` is exactly `not whole_lines` and
+refuses -- correctly, because a splice replaces WHOLE LINES and writing over that line would
+delete the statement sharing it.
+
+! **It is not only the empty case.** Any `correct`, `patch` or `drop` on an existing
+`trailing-comment` is refused the same way, and a trailing comment is a real prose block owed a
+seeded record -- it is not in `HOLDS_NO_PROSE`.
+
+!! **The refusal message names the CENSUS, not the series**, so a task agent reads it as staleness
+and re-runs the census, which never helps. And no test in `tests/test_galley.py` covers a margin
+or trailing-comment edit, which is how it shipped.
 
 ## Tasks
 

@@ -6,6 +6,9 @@ Progress: 4 of 8 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
+Narrowed: 2026-08-19 — the staleness symptom was the ADDRESSER's sweep, now removed --
+          what remains is the galley's comparison, where checking the file is right and
+          the stored text is wrong
 ```
 
 ## Objective

@@ -7,6 +7,9 @@ Owner:    session * Roy (* 1 ruling -- where the verdict table lives)
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
 Updated:  2026-08-18 — the cycle is gone and the claim is typed at the seam
+Corrected: 2026-08-19 — the census-shape split is FIVE readers and four idioms, not
+           three -- and verdicts.py has no dict handling at all, so a {blocks: [...]}
+           census gives a traceback
 ```
 
 ## Objective
