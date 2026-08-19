@@ -30,6 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from addresser import code_lines_of, stable  # noqa: E402  -- path shim first
 from census import address  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
@@ -92,6 +93,9 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--census", required=True, help="the census JSON")
     ap.add_argument("--at", required=True, help=AT_HELP)
+    # ! Needed for the STABLE address only, which is read off the file's code
+    # lines. The line address comes from the census alone.
+    ap.add_argument("--repo", default=".", help="repo root the paths are under")
     args = ap.parse_args()
 
     spot = parse_at(args.at)
@@ -121,8 +125,40 @@ def main() -> int:
         # a second question.
         print(f"no entry in the census holds {path}:{line}")
         return 1
+
+    # !! BOTH ADDRESSES, because they answer different halves of one question.
+    # The LINE address says where this is in the file the reviewer just read;
+    # the STABLE one says which place it is, and survives the prose edits this
+    # run is about to make. A reviewer citing the first alone cites something
+    # that has moved by the time stage 7b writes.
+    #
+    # ! The stable form needs the file, and a census can name a path the tree no
+    # longer has. That is REPORTED per row rather than failing the lookup: the
+    # line address still answers, and saying which half is missing is more use
+    # than refusing both.
+    code: list[int] = []
+    try:
+        text = (Path(args.repo) / path).read_text(encoding="utf-8")
+    except READ_ERRORS:
+        text = ""
+    if text:
+        code = code_lines_of(text, [b for b in blocks if b.get("path") == path])
+
+    stale = False
     for index, block in found:
-        print(f"{index}\t{address(block)}\t{block.get('kind', '')}")
+        where = stable(block, code) if code else "UNREADABLE"
+        if not where:
+            # ! NAMED, not blank. An empty column reads as "this place has no
+            # stable address"; the truth is that this CENSUS cannot say, because
+            # it predates the `edit_start` the gap number is read from.
+            where = "NO-STABLE-ADDRESS"
+            stale = block.get("edit_start") is None
+        print(f"{index}\t{address(block)}\t{where}\t{block.get('kind', '')}")
+    if stale:
+        print(
+            "\n! This census carries no `edit_start`, so no stable address can be"
+            " derived from it. Re-run census.py; the line addresses above stand."
+        )
     return 0
 
 

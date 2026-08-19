@@ -86,6 +86,60 @@ def dotted(path: str) -> str:
     return str(path).replace("\\", "/").replace("/", ".")
 
 
+def undot(name: str, paths: list[str]) -> str:
+    """The real path a dotted one names, or "" if the census cannot say.
+
+    !! THE DOTTED FORM IS NOT SELF-INVERTIBLE, so this resolves against the
+    census rather than by string surgery. `a/b.py` and `a.b.py` both read
+    `a.b.py`, and a dot in a FILE name is ordinary in most of the eleven
+    languages this census reads -- `app.test.js`, `types.d.ts`.
+
+    ! Ambiguity is REFUSED, not resolved by preferring one. Two real paths that
+    dot alike means the address names both, and picking either would answer a
+    question nobody asked. The caller reports it.
+
+    Args:
+        name: the dotted path from an address, without the `@place`.
+        paths: the paths the census carries.
+
+    Returns:
+        The one path whose dotted form is `name`, or "" when none or several do.
+    """
+    hits = {p for p in paths if dotted(p) == name}
+    return hits.pop() if len(hits) == 1 else ""
+
+
+def place_of(address: str) -> tuple[str, str]:
+    """An address split into its dotted path and its place, or two blanks."""
+    path, sep, where = address.rpartition("@")
+    return (path, where) if sep else ("", "")
+
+
+def resolve(address: str, blocks: list[dict], code: list[int]) -> list[int]:
+    """Which census entries carry this address, as 1-based census indices.
+
+    !! THE INVERSE IS A LOOKUP, NOT ARITHMETIC. `bN` is "the gap after code line
+    N", and which entries sit there is a fact the census holds -- an empty
+    interval, or a comment run filling the same gap, or both. Recomputing a line
+    range from N would answer where the gap IS while the question asked which
+    entries are THERE.
+
+    ! Several entries can share one address and that is not an error: `c1` and
+    `b1` are different places, but a comment run and the interval it occupies
+    are the same place seen twice by a census built before an edit.
+
+    Args:
+        address: `pkg.mod.py@b3` or `pkg.mod.py@c3`.
+        blocks: the census entries FOR THAT FILE, in census order.
+        code: that file's code lines, from `code_lines_of`.
+
+    Returns:
+        The 1-based positions within `blocks`, in order. Empty when nothing
+        carries it -- which a caller reports rather than treating as "none".
+    """
+    return [i for i, b in enumerate(blocks, 1) if stable(b, code) == address]
+
+
 def code_lines_of(text: str, blocks: list[dict]) -> list[int]:
     """The 1-based line numbers holding code, in order.
 

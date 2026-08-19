@@ -215,3 +215,45 @@ class TestAOneLineInitFile(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTheInverse(unittest.TestCase):
+    """An address goes back to the file and the entries that carry it.
+
+    ! The forward direction alone is half a tool: an agent that is handed
+    `pkg.mod.py@b3` in a record has to get back to a line to read the code.
+    """
+
+    def test_a_dotted_path_resolves_against_the_census(self):
+        self.assertEqual(
+            addresser.undot("pkg.sub.a.py", ["pkg/sub/a.py", "other/a.py"]),
+            "pkg/sub/a.py",
+        )
+
+    def test_two_paths_that_dot_alike_are_REFUSED(self):
+        # !! THE DOTTED FORM IS NOT SELF-INVERTIBLE. `a/b.py` and `a.b.py` both
+        # read `a.b.py`, and a dot in a FILE name is ordinary in most of the
+        # eleven languages this census reads -- `app.test.js`, `types.d.ts`.
+        # Picking one would answer a question nobody asked.
+        self.assertEqual(addresser.undot("a.b.py", ["a/b.py", "a.b.py"]), "")
+
+    def test_a_path_the_census_never_carried_resolves_to_nothing(self):
+        self.assertEqual(addresser.undot("nope.py", ["a/b.py"]), "")
+
+    def test_an_address_splits_into_path_and_place(self):
+        self.assertEqual(addresser.place_of("pkg.mod.py@b3"), ("pkg.mod.py", "b3"))
+
+    def test_a_string_with_no_place_is_not_an_address(self):
+        self.assertEqual(addresser.place_of("pkg.mod.py"), ("", ""))
+
+    def test_every_address_finds_its_own_entry_again(self):
+        code = addresser.code_lines_of(WITH_PROSE, A)
+        for i, block in enumerate(A, 1):
+            with self.subTest(entry=i):
+                self.assertEqual(
+                    addresser.resolve(addresser.stable(block, code), A, code), [i]
+                )
+
+    def test_an_address_nothing_carries_comes_back_empty(self):
+        code = addresser.code_lines_of(BARE, B)
+        self.assertEqual(addresser.resolve("b.py@b99", B, code), [])
