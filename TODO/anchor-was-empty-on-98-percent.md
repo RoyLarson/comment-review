@@ -1,13 +1,19 @@
 # Every address carries an anchor, and 98 percent of the census did not
 
 ```
-Status:   decision-needed
-Progress: 2 of 4 tasks done
+Status:   open
+Progress: 3 of 4 tasks done
 Owner:    session
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-19 (Roy's anchor ruling, 2026-08-19)
 Updated:  2026-08-19 — task 3 owes a ruling: does an 'a' anchor become the declaration
           LINE, or stay the NAME
+Ruled:    2026-08-19 — Roy, 2026-08-19: 'anchor -- the line of code that an address is
+          attached to' and 'drop it -- the line is the anchor.' An a is attached to its
+          declaration's LINE; the name is not carried. A module is the one address with
+          no line of code and keeps <module>, the language's own name for module-level
+          code; every other language gets its declared module name wherever that line
+          sits.
 ```
 
 ## Objective
@@ -58,7 +64,7 @@ DOCUMENTS the hole as intended behaviour. Everything below is what remains.
 - [x] DONE 2026-08-19. `record.seeded_problems` refuses a record with no
       anchor, and one whose anchor is not the census's -- with the same 'the tool
       wrote this, so the FILE was edited' message `address` uses.
-- [ ] ! An `a`'s anchor is still a NAME (`f`, `<module>`) where a `b`'s and a
+- [x] ! An `a`'s anchor is still a NAME (`f`, `<module>`) where a `b`'s and a
       `c`'s are the LINE OF CODE. Both are declared in `pcst.Block`. RULING
       WANTED: does an `a` become its declaration LINE too? It would make the field
       one meaning, and it would change what `--anchor NAME --series a|b|c` is

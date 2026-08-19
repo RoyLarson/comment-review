@@ -1144,7 +1144,7 @@ def census_for(path: Path, text: str, lang: Language) -> list[Block]:
         fill_the_gaps(text, got)
         # ! AFTER the gaps are filled, so every block's place in its gap is
         # settled before it is told what it sits above.
-        anchor_the_gaps(text, got)
+        anchor_every_address(text, got)
         mark_front_matter(got)
     for b in got:
         b.tier = tier_for(lang)
@@ -1206,8 +1206,8 @@ def mark_front_matter(blocks: list[Block]) -> None:
             b.annotations.add(FRONT_MATTER)
 
 
-def anchor_the_gaps(text: str, blocks: list[Block]) -> None:
-    """Give every `b` place the line of code it sits above, VERBATIM.
+def anchor_every_address(text: str, blocks: list[Block]) -> None:
+    """Give every `a` and `b` place the line of code it is attached to.
 
     !! EVERY ADDRESS HAS AN ANCHOR, AND AN ANCHOR HAS MANY ADDRESSES. Roy,
     2026-08-19: *"a, b, c are the address -- each has an anchor. An anchor can
@@ -1228,15 +1228,27 @@ def anchor_the_gaps(text: str, blocks: list[Block]) -> None:
     a Record is a broken anchor."* Left empty it was 14 blocks of this repo,
     one per file.
 
+    !! AN `a` IS ATTACHED TO ITS DECLARATION'S LINE, not to its NAME. Roy,
+    2026-08-19, settling it: *"anchor -- the line of code that an address is
+    attached to."* The name is DROPPED rather than moved: *"drop it -- the line
+    is the anchor."* So `--anchor` is asked with `def f():` and not with `f`.
+
+    !! A MODULE IS THE ONE ADDRESS WITH NO LINE OF CODE, and it keeps
+    `<module>` -- the name the LANGUAGE uses for module-level code, not a
+    placeholder this system invented. Measured 2026-08-19: Go (`package math`),
+    Ruby (`module Foo`) and Java (`package com.example;`) all DO declare a
+    module on a line and keep it, once a language server gives those tiers an
+    `a` series at all.
+
     !! IT IS COPIED FROM THAT LINE'S `c`, NEVER RE-CUT. Every code line has
     exactly one `c` -- a `trailing-comment` or the `margin` standing in for one
     -- and that block already states where the code stops. Cutting the line
     again here answered `'    return os  # why'` where the `c` for the same
     line answered `'    return os'`: two computations of one fact, inside one
-    module, which is the defect `whole_lines` was removed for.
-
-    ! A DOCSTRING IN THE GAP IS NOT TOUCHED. It is an `a`, it already carries
-    its declaration, and `declares` is what tells them apart.
+    module, which is the defect `whole_lines` was removed for. ! It is why an
+    `a` is stamped here and not where the AST is walked: a `def` carrying a
+    trailing comment would otherwise take the whole line where its own `c`
+    takes the code.
 
     Args:
         text: the file's source.
@@ -1246,6 +1258,22 @@ def anchor_the_gaps(text: str, blocks: list[Block]) -> None:
     code = sorted(code_lines(text, blocks))
     # ! The `c` of each code line, which is the code on it.
     beside = {b.start: b.anchor for b in blocks if b.edit_column}
+    for b in blocks:
+        # !! THE MODULE IS LEFT ALONE. `declared_at` is 0 for it, because Python
+        # declares a module with no line of code -- so it keeps the name the
+        # LANGUAGE uses for module-level code, `<module>`, which is `co_name`
+        # on the module's code object and the word in every traceback. Roy,
+        # 2026-08-19: *"that is why in python it should be `<module>`."*
+        #
+        # ! Two alternatives were tried and are worse. The FIRST LINE OF CODE
+        # reads true only where a language puts its module declaration first by
+        # rule: in Python the first statement is arbitrary, so a module
+        # docstring came out anchored to `def f():`, and a file OPENING with a
+        # declaration gave `a0` and `a1` one anchor between them. The FILE PATH
+        # is true but puts a second kind of thing in the field. ! The remaining
+        # option Roy named is `__module__`, the dotted import name.
+        if b.declares > 0 and b.declared_at:
+            b.anchor = beside.get(b.declared_at, "")
     for prev, nxt in pairwise([0, *code, last + 1]):
         below = beside.get(nxt) or beside.get(prev, "")
         for b in blocks:

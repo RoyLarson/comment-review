@@ -50,8 +50,10 @@ class TestPythonTier(unittest.TestCase):
         self.assertNotIn("result", trailing[0].text)
 
     def test_docstrings_carry_an_anchor(self):
+        # ! The LINE that declares it, not the name -- ruled 2026-08-19. The
+        # module is the one address with no line of code and keeps `<module>`.
         docs = {b.anchor for b in blocks_for("sample.py") if b.kind == "docstring"}
-        self.assertEqual(docs, {"<module>", "add"})
+        self.assertEqual(docs, {"<module>", "def add(a, b):"})
 
 
 class TestLexicalTier(unittest.TestCase):

@@ -77,7 +77,7 @@ is broken."*
 
 | series | its anchor is |
 | --- | --- |
-| `a` | the declaration it documents |
+| `a` | the LINE that declares it -- `def f():`, not `f`. The name is not carried: Roy, 2026-08-19, *"drop it -- the line is the anchor"* |
 | `b` | the code line BELOW the gap -- the statement the prose introduces. At the end of a file, the line above, because that is the bound the gap has |
 | `c` | the code on its own line, which is `line[:edit_column - 1]` |
 
@@ -116,6 +116,26 @@ Taking the first rules on the wrong statement.
 ! **An anchor is also SPELLED two ways.** A declaration's `a` carries its NAME (`f`) while the
 `b` above it and the `c` beside it carry the LINE (`def f():`). Both answer, and where both exist
 they name the same place.
+
+
+!! **A MODULE IS THE ONE ADDRESS WITH NO LINE OF CODE.** In Python it keeps `<module>` -- the name
+the LANGUAGE uses for module-level code: it is `co_name` on the module's code object and the word
+in every traceback, so it is a convention rather than something this system invented. Roy,
+2026-08-19: *"that is why in python it should be `<module>`."*
+
+! **Every other language gets its declared module name, wherever that line sits** -- Roy:
+*"the rest get their declared module name that sits wherever."* Measured the same day: Go
+(`package math`), Ruby (`module Foo`) and Java (`package com.example;`) all declare a module on a
+real line, and the census already anchors their module documentation to it. They emit no `a`
+series yet, so the rule waits on one -- which is Python plus any setup where a language server or
+CodeGraph answers.
+
+! **Two alternatives were tried and are worse.** The FIRST LINE OF CODE reads true only where a
+language puts its module declaration first by rule; in Python the first statement is arbitrary, so
+a module docstring came out anchored to `def f():`, and a file OPENING with a declaration gave
+`a0` and `a1` one anchor between them. The FILE PATH is true and never collides, but puts a
+second kind of thing in the field. ! The remaining option Roy named is `__module__`, the dotted
+import name.
 
 ## A `c` place starts where the CODE stops
 

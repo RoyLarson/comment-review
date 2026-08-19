@@ -236,6 +236,26 @@ history) since it depends on `git blame`.
 
 ## Working on this repo
 
+!! **NO HEREDOCS. NOT FOR ANYTHING.** Ruled by Roy, 2026-08-19. A heredoc (`<<'EOF'`, `<<EOF`,
+`@'...'@`) puts the text through the shell before the program that needs it, and this repo's work
+is almost entirely text that the shell eats: an f-string's `{}`, a regex's `\s` or `\|`, a
+Windows path's `\U`, an escape sequence, a `!`. It has broken every one of those in a single
+session -- including a `sed` that silently produced `[\w./\-]+` from `[\w.:/\\-]+`, which is the
+worst kind, because the command SUCCEEDED.
+
+**What to do instead:**
+
+| the job | the tool |
+| --- | --- |
+| change a file | `Edit` / `Write` |
+| a multi-step or repeated edit | `Write` a `.py` script under the job's tmp dir, then `uv run python` it |
+| a commit message | `Write` it to a file, then `git commit -F <file>` |
+| file content in a test fixture | `Write` |
+
+! **The rule is about the SHELL, not about scripting.** A Python script that does the same edits
+is fine and is usually better -- it fails loudly on a bad assumption (`assert old in t`) where a
+`sed` writes something plausible and moves on.
+
 - Grade a comment-review run from its **diff**, never from its own report -- self-reported
   confidence has been measured to not discriminate real from fabricated findings.
 - `docs/limitations.md` governs changes to the skill's prose/rules themselves: every example

@@ -374,16 +374,20 @@ class TestTheDeclarationSeries(unittest.TestCase):
         # first. Ordering by `lineno` is the order down the page, and it is the
         # only one a human can check against the file.
         got = {
-            b.anchor: b.address for b in self._census(self.NESTED) if b.declares >= 0
+            b.address: b.anchor for b in self._census(self.NESTED) if b.declares >= 0
         }
+        # !! KEYED BY ADDRESS NOW, because an anchor is a LINE OF CODE and two
+        # declarations can be spelled alike. The address is the unique half.
+        # ! The module keeps `<module>`: it is the one address with no line of
+        # code, and that is the name the LANGUAGE gives module-level code.
         self.assertEqual(
             got,
             {
-                "<module>": "a0",
-                "outer": "a1",
-                "Inner": "a2",
-                "method": "a3",
-                "after": "a4",
+                "a0": "<module>",
+                "a1": "def outer():",
+                "a2": "    class Inner:",
+                "a3": "        def method(self):",
+                "a4": "def after():",
             },
         )
 
@@ -395,28 +399,34 @@ class TestTheDeclarationSeries(unittest.TestCase):
         empty = [b for b in got if b.kind == "undocumented"]
         self.assertEqual(
             [(b.anchor, b.address) for b in empty],
-            [("<module>", "a0"), ("bare", "a1")],
+            [("<module>", "a0"), ("def bare():", "a1")],
         )
 
     def test_an_empty_declaration_is_a_pure_INSERTION(self):
         # Its edit range is empty, so writing it inserts above the first
         # statement instead of overwriting it -- the interval convention.
         got = self._census("def bare():\n    return 1\n")
-        bare = next(b for b in got if b.anchor == "bare")
+        bare = next(b for b in got if b.anchor == "def bare():")
         self.assertEqual((bare.edit_start, bare.edit_end), (2, 1))
 
     def test_filling_a_docstring_does_not_RENUMBER_the_series(self):
         # !! ONLY A CODE CHANGE SHIFTS IT, and stage 7b proves this tool makes
         # none. Adding a docstring does not add a declaration.
+        # ! Only the `a` series -- the `b` above the `def` and the `c` beside
+        # it carry the SAME anchor, because one anchor has many addresses, so a
+        # dict keyed on the anchor alone would keep whichever came last.
         without = {
-            b.anchor: b.address for b in self._census("def f():\n    return 1\n")
+            b.anchor: b.address
+            for b in self._census("def f():\n    return 1\n")
+            if b.declares >= 0
         }
         with_doc = {
             b.anchor: b.address
             for b in self._census('def f():\n    """Doc."""\n    return 1\n')
+            if b.declares >= 0
         }
-        self.assertEqual(without["f"], "a1")
-        self.assertEqual(with_doc["f"], "a1")
+        self.assertEqual(without["def f():"], "a1")
+        self.assertEqual(with_doc["def f():"], "a1")
 
     def test_an_empty_declaration_occupies_NO_code_lines(self):
         # ! Counting it as occupied would drop a real code line and renumber
@@ -438,7 +448,14 @@ class TestTheDeclarationSeries(unittest.TestCase):
             "    def run(self):\n"
             '        """B."""\n'
         )
-        runs = [b.address for b in got if b.anchor == "run"]
+        # !! AND THE ANCHOR IS NOW THE LINE, which is spelled alike too --
+        # `    def run(self):` twice. The address is still what separates them,
+        # which is the same rule read one level down.
+        runs = [
+            b.address
+            for b in got
+            if b.anchor == "    def run(self):" and b.declares >= 0
+        ]
         self.assertEqual(len(runs), 2)
         self.assertEqual(len(set(runs)), 2, runs)
 
@@ -454,7 +471,13 @@ class TestTheDeclarationSeries(unittest.TestCase):
             "    return str(width)\n"
         )
         prose = [b for b in got if b.kind not in pcst.HOLDS_NO_PROSE]
-        self.assertEqual([b.anchor for b in prose], ["<module>", "widen"])
+        self.assertEqual(
+            [b.anchor for b in prose],
+            [
+                "<module>",
+                "def widen(width: Annotated[int, Doc('How wide.')]) -> str:",
+            ],
+        )
         self.assertNotIn("How wide.", " ".join(b.text for b in prose))
 
 
@@ -552,9 +575,11 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         ]
 
     def test_a_declaration_has_a_place_in_every_series(self):
-        self.assertEqual(self._at("go", "a"), ["a1"])
-        self.assertEqual(self._at("go", "c"), ["c1"])
-        self.assertEqual(self._at("go", "b"), ["b1"])
+        # !! ONE ANCHOR, THREE ADDRESSES. The declaration's line is the anchor
+        # of its own `a`, of the `b` above it and of the `c` beside it.
+        self.assertEqual(self._at("def go(n):", "a"), ["a1"])
+        self.assertEqual(self._at("def go(n):", "c"), ["c1"])
+        self.assertEqual(self._at("def go(n):", "b"), ["b1"])
 
     def test_the_MODULE_has_an_a_and_a_b_but_no_c(self):
         # !! It has no line to open on, so nothing can sit beside it. Its `b` is
@@ -570,7 +595,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         self.assertEqual(self._at("nosuchname", "b"), [])
 
     def test_the_c_it_names_is_the_DECLARATIONS_own_line(self):
-        found = addresser.for_anchor("go", "c", self.blocks)
+        found = addresser.for_anchor("def go(n):", "c", self.blocks)
         self.assertEqual([b["start"] for b in found], [6])
         # ! The one fact that decides it -- not a list of kinds. `SHARES_ITS_LINE`
         # was a second way to ask, and it disagreed with this one.
@@ -733,8 +758,8 @@ class TestTheSeparatorIsAPathCannotHoldIt(unittest.TestCase):
         self.assertNotIn(addresser.flatten("a/b.py")[1], '<>|?*"')
 
 
-class TestAnAnchorIsSPELLEDTwoWays(unittest.TestCase):
-    """`f` on the `a`, `def f():` on the `b` and the `c`, and both must answer.
+class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
+    """One anchor, three addresses -- and the lookup reaches all of them.
 
     !! ASKING BY THE LINE FOUND NOTHING. `for_anchor` matched the string and
     then routed `b`/`c` through `declared_at`, which only an `a` carries, so
@@ -760,17 +785,20 @@ class TestAnAnchorIsSPELLEDTwoWays(unittest.TestCase):
         found = addresser.for_anchor(anchor, series, self.blocks)
         return sorted(addresser.folio_of(b["address"])[1] for b in found)
 
-    def test_by_NAME_reaches_all_three_series(self):
-        self.assertEqual(self._folios("f", "a"), ["a1"])
-        self.assertEqual(self._folios("f", "b"), ["b0"])
-        self.assertEqual(self._folios("f", "c"), ["c0"])
-
-    def test_by_LINE_reaches_the_b_and_the_c(self):
+    def test_the_LINE_reaches_all_three_series(self):
+        # !! ONE ANCHOR, THREE ADDRESSES -- the declaration's own `a`, the `b`
+        # above it and the `c` beside it. This is the one-to-many relationship
+        # measured on one line of code.
+        self.assertEqual(self._folios("def f():", "a"), ["a1"])
         self.assertEqual(self._folios("def f():", "b"), ["b0"])
         self.assertEqual(self._folios("def f():", "c"), ["c0"])
 
-    def test_the_two_spellings_name_the_SAME_place(self):
-        self.assertEqual(self._folios("f", "c"), self._folios("def f():", "c"))
+    def test_the_NAME_no_longer_answers(self):
+        # !! Roy ruled it 2026-08-19: *"drop it -- the line is the anchor."*
+        # The census stopped carrying declaration names, so `f` names nothing.
+        for series in "abc":
+            with self.subTest(series=series):
+                self.assertEqual(self._folios("f", series), [])
 
 
 class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
@@ -864,7 +892,9 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
 
     def test_X_2_is_no_declaration_so_the_a_series_is_EMPTY(self):
         # ! An assignment is not a declaration the census names, so nothing
-        # answers in `a`. The empty answer is correct, not a miss.
+        # answers in `a`. ! The module's `a0` does not answer either: it keeps
+        # `<module>`. Anchoring it to the FIRST LINE OF CODE was tried and made
+        # a module's documentation answer to `X=2`.
         self.assertEqual(addresser.for_anchor("X=2", "a", self.blocks), [])
 
     def test_the_CLI_says_the_answer_is_AMBIGUOUS_in_both_series(self):

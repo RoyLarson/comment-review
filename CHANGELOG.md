@@ -169,6 +169,25 @@ no language server and no build tool.
 - **The gap at the end of a file takes the line ABOVE it**, because a gap is bounded by code and
   that is the bound it has. Left empty it was 14 blocks, one per file.
 
+### An `a` is attached to its declaration's LINE, and the name is dropped
+
+**`anchor` now holds a line of code in all three series.** Roy, 2026-08-19, settling the
+definition -- *"anchor -- the line of code that an address is attached to"* -- and then the
+consequence: *"drop it -- the line is the anchor."* So `def f():` where it read `f`, and the
+census stops carrying declaration names. `--anchor` is asked with the line.
+
+! **One anchor, three addresses**, which is the one-to-many relationship made visible: `def f():`
+is the anchor of its own `a`, of the `b` above it and of the `c` beside it.
+
+! **It is copied from that line's `c`, not re-cut**, so a declaration carrying a trailing comment
+takes `def f():` and not `def f():  # on a decl`.
+
+!! **A MODULE IS THE ONE ADDRESS WITH NO LINE OF CODE**, and keeps `<module>` -- `co_name` on the
+module's code object and the word in every traceback, so it is the language's own name rather than
+a placeholder. Every other language gets its declared module name wherever that line sits, once a
+language server or CodeGraph gives its tier an `a` series. Anchoring it to the FIRST LINE OF CODE
+was tried and made a module's documentation answer to `def f():` -- and to `X=2`.
+
 ### The `c` series is WRITABLE
 
 !! **A SPLICE REPLACES WHOLE LINES, so a `patch` on `z = 3  # trailing` wrote `# reworded` over
