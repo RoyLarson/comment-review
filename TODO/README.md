@@ -229,10 +229,11 @@ other tasks can proceed without them._
 | [role-rule-register](role-rule-register.md) | Roy | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | session | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 
-### blocked  (0)
+### blocked  (1)
 
 _None._
 
+| [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | session | — | 0/5 | the flag only accumulates; 5 are provably stale from their own Owner line |
 ---
 
 ## Completed
