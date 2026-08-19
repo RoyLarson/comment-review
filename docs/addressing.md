@@ -95,6 +95,28 @@ exactly one `c` and it already states where the code stops. Cutting again answer
 `'    return os  # why'` where the `c` for the same line answered `'    return os'` -- two
 computations of one fact, which is what `whole_lines` was removed for.
 
+! **THE REVERSE DIRECTION IS NOT A LOOKUP THAT RETURNS ONE.** Roy, 2026-08-19, on two identical
+statements in one file: *"for the addresses this is still exact -- for looking up the anchors to
+get the addresses, not so exact."* Measured on his example:
+
+```python
+X=2   # initial
+
+# stuff happens
+
+X=2  # reseting X
+```
+
+Every ADDRESS is unique -- `a0 b0 b1 b2 c0 c1` -- and that is the direction a record cites. But
+`X=2` is TWO anchors spelled alike, so it answers with **two `c` places and three `b` places**,
+drawn from two different statements: `b0` is anchored to line 1, `b1` and `b2` to line 5.
+`addresser.py --anchor` prints every match and says how many; the CALLER chooses by address.
+Taking the first rules on the wrong statement.
+
+! **An anchor is also SPELLED two ways.** A declaration's `a` carries its NAME (`f`) while the
+`b` above it and the `c` beside it carry the LINE (`def f():`). Both answer, and where both exist
+they name the same place.
+
 ## A `c` place starts where the CODE stops
 
 **Not at the `#`.** Roy ruled it 2026-08-19: *"c addresses start at the end of the code on the

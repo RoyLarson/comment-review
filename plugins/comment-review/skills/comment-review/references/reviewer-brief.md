@@ -169,6 +169,11 @@ addresses; an address has ONE anchor. Two identical statements in one file are t
 alike -- `X=2  # initial` and `X=2  # reseting X` -- so asking for *"the `c` of `X=2`"* answers
 with both and you **choose by ADDRESS**. Taking the first rules on the wrong statement.
 
+! **The `b` series is worse on the same file: THREE gaps answer**, and they are drawn from two
+different statements -- the gap above the first, the gap holding the comment between them (which
+is anchored to the code BELOW it, the second statement), and the gap at the end of the file. The
+tool prints how many answered; read that line.
+
 ! **A declaration is spelled two ways and both answer**: `f` on its own `a`, and `def f():` on the
 `b` above it and the `c` beside it.
 

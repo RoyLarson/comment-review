@@ -8,6 +8,8 @@ These tests hold the naming to the enumeration.
 """
 
 import collections  # noqa: I001  -- path shim below must import before addresser
+import contextlib
+import io
 import tempfile
 import unittest
 from pathlib import Path
@@ -822,3 +824,58 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
             if b["edit_column"]:
                 with self.subTest(line=b["start"]):
                     self.assertEqual(b["anchor"], "X=2")
+
+    def test_the_b_series_answers_with_ALL_THREE_gaps(self):
+        # !! The `b` half is WORSE, and this file is why: three gaps answer to
+        # one spelling. `b0` is the gap above line 1, `b1` holds `# stuff
+        # happens`, and `b2` is the gap at the end of the file.
+        found = addresser.for_anchor("X=2", "b", self.blocks)
+        folios = sorted(addresser.folio_of(b["address"])[1] for b in found)
+        self.assertEqual(folios, ["b0", "b1", "b2"])
+
+    def test_the_three_gaps_are_drawn_from_TWO_statements(self):
+        """!! And the anchor STRING cannot tell you which.
+
+        `b0` sits above line 1, so its anchor is line 1's code. `b1` holds a
+        comment and is anchored to the code BELOW it, which is line 5. `b2` is
+        the gap at the end of the file and takes the line ABOVE, which is line 5
+        again. Two statements, three gaps, one spelling.
+        """
+        by_folio = {
+            addresser.folio_of(b["address"])[1]: b
+            for b in addresser.for_anchor("X=2", "b", self.blocks)
+        }
+        # ! Read from the EDIT range, which is the gap itself: `b0` is a pure
+        # insertion above line 1, `b1` replaces line 3, `b2` appends after 5.
+        self.assertEqual(by_folio["b0"]["edit_start"], 1)
+        self.assertEqual(by_folio["b1"]["edit_start"], 3)
+        self.assertEqual(by_folio["b2"]["edit_start"], 6)
+        for folio, block in by_folio.items():
+            with self.subTest(folio=folio):
+                self.assertEqual(block["anchor"], "X=2")
+
+    def test_the_comment_between_them_is_anchored_to_the_code_BELOW(self):
+        # ! `# stuff happens` sits between the two statements and introduces the
+        # second, so its anchor is line 5's code -- not line 1's, which it
+        # follows. The gap's prose is about what comes next.
+        held = next(b for b in self.blocks if b["text"] == "stuff happens")
+        self.assertEqual(addresser.folio_of(held["address"])[1], "b1")
+        self.assertEqual(held["anchor"], "X=2")
+
+    def test_X_2_is_no_declaration_so_the_a_series_is_EMPTY(self):
+        # ! An assignment is not a declaration the census names, so nothing
+        # answers in `a`. The empty answer is correct, not a miss.
+        self.assertEqual(addresser.for_anchor("X=2", "a", self.blocks), [])
+
+    def test_the_CLI_says_the_answer_is_AMBIGUOUS_in_both_series(self):
+        # !! What an agent actually sees. Without it a caller reads the first
+        # line of output as "the" answer and rules on the wrong statement.
+        for series, count in (("b", 3), ("c", 2)):
+            with self.subTest(series=series):
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    rc = addresser._for_anchor("X=2", series, self.blocks)
+                self.assertEqual(rc, 0)
+                said = out.getvalue()
+                self.assertIn(f"{count} places answer", said)
+                self.assertIn("Choose by ADDRESS", said)
