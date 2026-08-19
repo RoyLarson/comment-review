@@ -80,7 +80,8 @@ that cannot be checked without opening another file does not earn its place.
       Sibling shapes to name: a percentage over 100, a bound stated in the wrong
       direction for its own units, an interval whose lower bound exceeds its
       upper.
-- [ ] **Say what it costs the reviewer to look.** `docs/limitations.md` governs a
-      rule added to a role file: it is budget-constrained and a new rule should
-      REPLACE one at budget rather than accumulate. Verify: the addition names a
-      check a reviewer can run without opening another file, or it does not go in.
+- [ ] **Say which CURRENCY it pays in.** `docs/limitations.md` rules that a rule
+      pays for its own lines by what it CATCHES or by the search it SAVES.
+      This one is currency 2: a claim false by arithmetic needs no file opened
+      to settle, so the rule replaces a search rather than adding one. Verify:
+      the addition names a check a reviewer runs without opening another file.
