@@ -102,7 +102,7 @@ numbers above budget the four ROLE files only -- the smallest part of what a run
 
 | | 2026-08-16 | 2026-08-18 | |
 | --- | ---: | ---: | --- |
-| `reviewer-brief.md` | 11,579 | 24,891 | paid FOUR times |
+| `reviewer-brief.md` | 11,579 | 24,000 | paid FOUR times |
 | `SKILL.md` | 45,257 | 62,531 | paid once, by the task agent |
 
 !! **THE BRIEF HAS MORE THAN DOUBLED IN TWO DAYS, WHICH IS THIS WARNING COMING TRUE.** Every

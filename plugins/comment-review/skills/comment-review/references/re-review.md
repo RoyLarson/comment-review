@@ -84,9 +84,29 @@ splices the proposed text into a copy of its file; censusing that copy gives the
 address and a real transcription, so **a round-2 record is an ORDINARY record** and every check
 in `verdicts.py` applies to it unchanged.
 
-! **Cite the galley census, and do not carry a round-1 index into round 2.** A replacement whose
+! **Cite the galley census, and do not carry a round-1 INDEX into round 2.** A replacement whose
 line count differs shifts every block below it, so the same prose holds different indices in the
-two censuses. They relate by PATH and CONTENT; only the task agent holds both.
+two censuses.
+
+!! **THE ADDRESS IS THE EXCEPTION, AND IT IS THE ONE THING THAT DOES CARRY.** Roy, 2026-08-18:
+*"adding and subtracting comments from the address doesn't change the address. It used to and
+that was BAD but now doesn't matter."* `addresser.py` names a place against the CODE -- `b3` is
+the gap after the third code line -- and a galley changes PROSE, so no code line is added or
+removed and no name moves. Measured on a galley splice that grew one docstring by three lines
+and deleted a comment run outright:
+
+```
+              ORIGINAL      GALLEY       address
+docstring     lines 1-1  -> 1-1          b0 -> b0
+docstring     lines 6-6  -> 6-9          b2 -> b2
+comment       lines 10-10 -> (dropped)   b3, still the name of that place
+```
+
+! **Even the DELETED block keeps its address**, because the place is still there -- an empty gap
+where prose used to be. That is what makes a round-2 ruling on a `drop` sayable at all.
+
+! So the two censuses relate by ADDRESS, not only by path and content, and the round-1 address a
+role filed is the one to quote back at it.
 
 ## What comes back
 
