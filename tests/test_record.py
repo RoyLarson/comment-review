@@ -603,6 +603,21 @@ class TestTheAnchorFormIsCheckedHereToo(unittest.TestCase):
         # `values` holds the closed sets a field may be one of.
         self.assertIn("backticks", record.allowed()["anchor_form"])
 
+    def test_the_published_example_is_what_the_pattern_accepts(self):
+        # !! THE SENTENCE AND THE PATTERN ARE HELD EQUAL HERE, and nothing else
+        # holds them. `allowed()` PUBLISHES a form and the join ENFORCES a
+        # regex; the assertion above only checks the word "backticks" is in the
+        # sentence, so loosening the pattern left the published rule promising
+        # something no longer true.
+        self.assertIn(record.ANCHOR_EXAMPLE, record.allowed()["anchor_form"])
+        self.assertTrue(record.ANCHOR_NAME.search(record.ANCHOR_EXAMPLE))
+
+    def test_a_bare_name_is_not_the_published_form(self):
+        # ! The counter-example matters as much: a pattern that accepts
+        # everything would satisfy the test above and refuse nothing.
+        bare = record.ANCHOR_EXAMPLE.strip("`")
+        self.assertIsNone(record.ANCHOR_NAME.search(bare))
+
 
 # !! LAST LINE, ALWAYS. A runner placed above a class runs before that class
 # exists, so `python tests/<file>.py` reports a green bar over a shorter suite

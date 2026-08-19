@@ -264,6 +264,13 @@ VERDICTS: dict[str, Verdict] = {
 # So "named" is checkable without guessing which token is an identifier.
 ANCHOR_SIDE = re.compile(r"\b(above|below|before|after)\b", re.I)
 ANCHOR_NAME = re.compile(r"`[^`\s][^`]*`")
+# !! THE FORM IS PUBLISHED WITH THIS EXAMPLE AND ENFORCED BY THE PATTERN ABOVE,
+# so they are one string rather than two that agree today. `allowed()` used to
+# hand-write "e.g. `compute_rates`" beside a pattern nothing held it equal to:
+# loosen the pattern and the sentence goes on promising the old rule, which is
+# the shape every other entry in `allowed()` was rewritten to avoid.
+# `tests/test_record.py` runs the pattern against this and against a bare name.
+ANCHOR_EXAMPLE = "`compute_rates`"
 
 
 def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
@@ -976,7 +983,7 @@ def allowed() -> dict:
         # anchor is not backticked, and this file passed one -- two tools, one
         # record, different answers, which is the defect the typed record was
         # adopted to end.
-        "anchor_form": "the anchor NAMED in backticks, e.g. `compute_rates`",
+        "anchor_form": f"the anchor NAMED in backticks, e.g. {ANCHOR_EXAMPLE}",
     }
 
 
