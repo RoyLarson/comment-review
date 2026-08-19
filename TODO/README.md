@@ -205,7 +205,7 @@ that changed a published name or rule:
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | session | — | 0/2 | doc_is_structural means two things and its docstring names one |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | — | 5/7 | A docstring needs its own address series, and it names what it documents |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
-| [shipped-prose-lags-the-rulings](shipped-prose-lags-the-rulings.md) | session | — | 1/6 | **The address rulings landed in the code and in `docs/`; the files agents actually read were not brought along.** Four agents found the same shape independently: ~25 statements now false, several contradicting themselves inside one docstring. |
+| [shipped-prose-lags-the-rulings](shipped-prose-lags-the-rulings.md) | session | — | 2/6 | **The address rulings landed in the code and in `docs/`; the files agents actually read were not brought along.** Four agents found the same shape independently: ~25 statements now false, several contradicting themselves inside one docstring. |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 0/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 0/5 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 0/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
@@ -228,12 +228,13 @@ other tasks can proceed without them._
 | [role-rule-register](role-rule-register.md) | Roy | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | session | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 
-### blocked  (2)
+### blocked  (3)
 
 _None._
 
 | [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | session | — | 2/5 | nothing recomputes it or prompts the clearing; 6 cleared, 26 left to read |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | session | — | 0/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
+| [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 0/5 | the terms are settled and shipped; ~1,935 sites still say `block` |
 ---
 
 ## Completed

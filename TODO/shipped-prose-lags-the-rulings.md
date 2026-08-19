@@ -2,13 +2,19 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks done
+Progress: 2 of 6 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 Narrowed: 2026-08-19 — B6 closed 2026-08-19: the numbering. Four sites, not the two this
           file named -- the brief plus three passages in addresser.py. Gated by a test
           that measures what the addresser answers and holds the prose to it.
+Narrowed: 2026-08-19 — B7 closed 2026-08-19. Nine terms reviewers read had no
+          definition, not the one this file named: address (262 uses), margin, interval,
+          undocumented, trailing comment, intermediate comment, series, paragraph and
+          page. `census` was stale twice over. `block` now reads 'a PARAGRAPH -- the
+          older word', per the page/paragraph ruling; the ~1,935-site rename is filed
+          separately as a-block-is-a-paragraph-on-a-page.
 ```
 
 ## Objective
@@ -50,7 +56,7 @@ and updated in one -- applied to prose rather than to code.
       ! **Gated.** `TestTheSHIPPEDPROSETeachesTheNumberingTheCodeUSES` measures what
       the addresser answers and holds both files to it -- prose is not executed, so
       nothing else would notice it drifting back.
-- [ ] !! **`vocabulary.toml` ships the RETIRED definition of a block to all six
+- [x] !! **DONE 2026-08-19 -- and it was NINE terms, not one.** `vocabulary.toml` ships the RETIRED definition of a block to all six
       roles** -- `block = "The interval between two lines of CODE"` -- and
       **`address` is not defined at all**, nor `margin`, which is 30-50% of the
       rows a reviewer reads. ! `check_vocabulary.py` reports 0 holes because it

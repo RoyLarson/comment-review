@@ -169,6 +169,37 @@ no language server and no build tool.
 - **The gap at the end of a file takes the line ABOVE it**, because a gap is bounded by code and
   that is the bound it has. Left empty it was 14 blocks, one per file.
 
+### The vocabulary ships the terms reviewers were already reading
+
+**Nine terms a reviewer reads had no definition**, measured against the text each role actually
+opens: `address` -- 262 uses, the central term of the release -- `margin`, `interval`,
+`undocumented`, `trailing comment`, `intermediate comment`, `series`, and `paragraph` and `page`,
+which the shipped text was already using before anything shipped them. All now ship, with `folio`
+and `line of code`. 43 definitions to 54.
+
+! **`census` was stale twice over**, defined as *"the numbered tree of every block"*. An address
+is an ordinal and an ordinal cannot express containment, so the pCST is a FLAT list -- ruled
+2026-08-18 and never carried into the file agents read.
+
+!! **A pCST IS A PAGE AND A BLOCK IS A PARAGRAPH.** Roy, 2026-08-19. `block`'s shipped definition
+now reads *"a PARAGRAPH -- the older word"* in place of *"the interval between two lines of
+CODE"*, which was only the `b` series: a docstring, a trailing comment and an empty margin are
+paragraphs too.
+
+! **It is not only register.** Roy: *"this will make the text document formats read better when we
+implement them."* A markdown file has no interval between two lines of code, which is why
+`a-prose-file-has-no-blocks` is open; a page made of paragraphs is the model it already fits.
+
+! **And the register got there first.** `page` appears 19 times in the shipped text -- `review.md`
+opens *"Stage 8 -- REVIEW: the finished page"* -- and `docs/vocabulary.md` already defined `proof`
+as *"the finished page"*. `paragraph` appears 11 times, every one meaning the unit of prose, which
+is the test `place` failed: its 119 uses meant LOCATION against a term meaning ADDRESSABLE SLOT.
+
+! **The RENAME is ~1,935 sites and is its own scope** -- 721 in shipped code, 548 in tests, 368 in
+`docs/`, 298 in shipped prose. Filed as `a-block-is-a-paragraph-on-a-page`. It cannot go
+piecemeal: `check_vocabulary` refuses a role a term its own text never uses, so `[roles] all`
+cannot say `paragraph` until the role files do.
+
 ### The shipped prose stops teaching the superseded numbering
 
 !! **`bN` AND `cN` NAME THE SAME CODE LINE**, because both count from 0. `reviewer-brief.md` --

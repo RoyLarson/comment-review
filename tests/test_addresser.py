@@ -968,17 +968,24 @@ class TestTheSHIPPEDPROSETeachesTheNumberingTheCodeUSES(unittest.TestCase):
         self.assertEqual(len(gaps), len(self.code) + 1)
         self.assertNotIn(f"c{len(self.code)}", self.at)
 
+    def _says(self, text, phrase, present=True):
+        # ! `assertIn` prints the whole CONTAINER on failure, and these are
+        # thousand-line files. The phrase is what a reader needs.
+        self.assertEqual(
+            phrase in text, present, f"{phrase!r} present={phrase in text}"
+        )
+
     def test_the_BRIEF_does_not_teach_the_superseded_rule(self):
         # !! The file four agents read every run. A regression here is silent:
         # the prose is not executed, so nothing else would notice.
         said = self.BRIEF.read_text(encoding="utf-8")
-        self.assertIn("`bN` AND `cN` NAME THE SAME CODE LINE", said)
-        self.assertNotIn("The number means a different statement", said)
-        self.assertNotIn("b(N-1)", said)
+        self._says(said, "NAME THE SAME LINE OF CODE")
+        self._says(said, "The number means a different statement", present=False)
+        self._says(said, "b(N-1)", present=False)
 
     def test_the_ADDRESSER_docstrings_agree_with_the_brief(self):
         # ! Two files stating one rule, which is why they drifted apart.
         src = (SCRIPTS / "addresser.py").read_text(encoding="utf-8")
-        self.assertIn("THE SAME NUMBER NAMES THE SAME CODE LINE", src)
-        self.assertNotIn("NAMES DIFFERENT STATEMENTS", src)
-        self.assertNotIn("`b(N-1)` above it", src)
+        self._says(src, "THE SAME NUMBER NAMES THE SAME CODE LINE")
+        self._says(src, "NAMES DIFFERENT STATEMENTS", present=False)
+        self._says(src, "`b(N-1)` above it", present=False)

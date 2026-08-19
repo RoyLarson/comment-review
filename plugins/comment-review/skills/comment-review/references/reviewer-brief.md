@@ -63,12 +63,12 @@ They are there to be CITED, not accounted for: an `add` says a constraint exists
 NOWHERE in prose, which is a finding about one of them.
 
 !! **THE `@` NAMES A PLACE AGAINST THE CODE, and it is what you cite.** `@a5` is the 5th
-DECLARATION's documentation. `@c3` is prose BESIDE the code line at index 3 -- the 4th -- and
-`@b3` is the gap ABOVE that same line.
+DECLARATION's documentation. `@c3` is prose BESIDE the LINE OF CODE at index 3 -- the 4th --
+and `@b3` is the gap ABOVE that same line.
 
-!! **`bN` AND `cN` NAME THE SAME CODE LINE.** Both count from 0, which is what aligns them: one
-code line owns exactly two folios, `bN` above it and `cN` beside it, and a declaration owns those
-plus its own `a`. ! **Count from 0 and say so.** "Code line 3" reads as the 3rd to one reader and
+!! **`bN` AND `cN` NAME THE SAME LINE OF CODE.** Both count from 0, which is what aligns them:
+one line of code owns exactly two folios, `bN` above it and `cN` beside it, and a declaration owns
+those plus its own `a`. ! **Count from 0 and say so.** "Code line 3" reads as the 3rd to one reader and
 as index 3 to another, and until 2026-08-19 this file used both in one paragraph -- teaching that
 the number meant a different statement in each series, which was true while `c` counted from 1 and
 became an off-by-one when the ruling aligned them.

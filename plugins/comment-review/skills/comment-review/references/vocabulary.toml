@@ -23,8 +23,8 @@
 # --- what a comment sits on -------------------------------------------------
 anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. A line of code is a statement, an expression, a declaration or an assignment. An `a` is attached to its declaration, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
-block = "The interval between two lines of CODE. The lines above and below define it; what is written between them does not. Only code is a boundary -- not a blank line, not a work marker, not a change of subject."
-census = "The numbered tree of every block in the files under review, with the references each block makes already resolved."
+block = "A PARAGRAPH -- see that entry. The older word, still what most of the shipped text says. ! It used to be defined as \"the interval between two lines of CODE\", which is only the `b` series: a docstring, a trailing comment and an empty margin are paragraphs too, and each answers to its own address."
+census = "Every PARAGRAPH in the files under review, in order, with the references each one makes already resolved and an ADDRESS on each. ! Not a tree: an address is an ordinal, and an ordinal cannot express containment, so it is a flat list."
 
 # --- the units that get ruled on --------------------------------------------
 sentence = "The unit a verdict rules on. A container of six sentences can hold six verdicts."
@@ -73,12 +73,41 @@ original = "The text as it stood when THIS RUN began -- not the first version ev
 residue = "The check asking, of each ORIGINAL sentence, whether anything true, necessary and checkable is missing from the new text."
 proofreader = "Who reads the finished PROOF and decides whether the document deserves more marks."
 
+# --- how a place is NAMED ---------------------------------------------------
+address = "The name of a place: `pkg:mod.py@b3` -- a path, an `@`, and a folio. Counted against the CODE and not against the lines, which is what makes it survive this tool's own edits: every prose edit moves the line numbers below it, and an ordinal counts statements instead. It is what a record cites."
+folio = "The `b3` half of an address, after the `@`. A leaf's number in publishing, which is what it is here."
+series = "One of the three kinds of address, and which one says what the prose answers to: `a` a declaration's documentation, `b` the gap above a line of code, `c` the room beside one."
+"line of code" = "A line the census counts as CODE, and the exact characters on it that are code -- a statement, an expression, a declaration or an assignment. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two anchors spelled alike."
+
+# --- what the page is made of -----------------------------------------------
+page = "The file as a reader meets it, rather than as a list of paragraphs. Stage 8 is the only pass that sees one."
+paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` is the older word for it and means the same thing."
+
+# --- the empty places, which are what an `add` cites -------------------------
+interval = "A gap between two lines of code that holds no prose -- a `b` place with nothing in it."
+margin = "The room BESIDE a line of code -- a `c` place with nothing in it, which is any code line carrying no trailing comment."
+undocumented = "A declaration with no docstring -- an `a` place with nothing in it."
+
+# --- comments that share a line with code ------------------------------------
+"trailing comment" = "Prose after the statement on its own line, about that statement. Its address is a `c`, and its anchor is the code before it."
+"intermediate comment" = "A comment with code on BOTH sides of it -- `int x = /* why */ 5;`. It is NOT censused and has no address, because it is part of the line of code rather than prose about it. Raise one as a code concern."
+
 [roles]
 # Every agent gets these.
 all = ["block", "sentence", "clause", "finding", "move"]
 
 # The four editorial roles: what the shared brief used to state in passing.
 "ownership-context" = [
+  "address",
+  "folio",
+  "intermediate comment",
+  "interval",
+  "line of code",
+  "margin",
+  "paragraph",
+  "series",
+  "trailing comment",
+  "undocumented",
   "add",
   "anchor",
   "assignment",
@@ -105,6 +134,16 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "verdict",
 ]
 "block-context" = [
+  "address",
+  "folio",
+  "intermediate comment",
+  "interval",
+  "line of code",
+  "margin",
+  "paragraph",
+  "series",
+  "trailing comment",
+  "undocumented",
   "add",
   "anchor",
   "census",
@@ -130,6 +169,16 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "verdict",
 ]
 "function-context" = [
+  "address",
+  "folio",
+  "intermediate comment",
+  "interval",
+  "line of code",
+  "margin",
+  "paragraph",
+  "series",
+  "trailing comment",
+  "undocumented",
   "add",
   "anchor",
   "argument",
@@ -156,6 +205,16 @@ all = ["block", "sentence", "clause", "finding", "move"]
   "verdict",
 ]
 "module-context" = [
+  "address",
+  "folio",
+  "intermediate comment",
+  "interval",
+  "line of code",
+  "margin",
+  "paragraph",
+  "series",
+  "trailing comment",
+  "undocumented",
   "add",
   "anchor",
   "argument",
@@ -203,6 +262,8 @@ compact = [
   "verdict",
 ]
 review = [
+  "address",
+  "page",
   "add",
   "census",
   "proofreader",
