@@ -5,17 +5,18 @@
 this repo's own history is a fixture source, because the commit that fixes a prose defect says
 what the defect was and what the correct prose is.
 
-!! **THREE OF THE FOUR ROLES HAVE FINDINGS HERE**, which is what makes the range worth keeping.
+!! **ALL FOUR ROLES HAVE FINDINGS HERE**, which is what makes the range worth keeping.
 Roy, 2026-08-20: *"they are also function context findings I bet -- every rename of the function
 like `census_for` -> `page_for` is a function doing something different than what its name
 suggests,"* and *"probably who knows how many block-context comments have and should be
-corrected on this."* Both were checked and both hold.
+corrected on this."* Both were checked and both hold, and asking the same of `ownership-context` found more.
 
 | role | what it asks | what it finds here |
 | --- | --- | --- |
 | `module-context` | does the documentation say this module is ONE set of ideas? | a docstring announcing one subject over a module holding three |
 | `function-context` | do name, signature, docstring and body agree? | `census_for` building a page; `gap_step` describing a walk it was not part of |
 | `block-context` | is every claim true of the code it sits with? | comments naming symbols that were moved or deleted out from under them |
+| `ownership-context` | is this prose about THIS piece of code? | a comment that travelled with the wrong constant, and a module named for what it used to be |
 
 ! Every one is readable from the file alone, with no knowledge of this session. That is the bar:
 a reviewer that needs the transcript cannot be graded.
@@ -112,6 +113,72 @@ and each is an OBITUARY: prose naming a symbol that exists nowhere.
 ! **Both were found by asking for obituaries mechanically** -- for each symbol a comment names,
 does anything define it -- and both were introduced by this session's own moves, within hours.
 That is the rate this class arrives at, and it is why a reviewer reads rather than a gate checks.
+
+## The cases -- `ownership-context`
+
+**Is this prose about THIS piece of code?** The moves in this range carried comments along with the
+code they were near, not the code they were ABOUT. Each of these is on disk at the commit that
+records them and fixed by the one after, so the diff is the answer key.
+
+### The strongest specimen: a comment about the wrong constant
+
+`page.py`, sitting above `_SHEBANG` and `_CODING`:
+
+```
+# The annotation, and the two shapes that earn it.
+# ! DEFINED IN `page.py`, the leaf, because `foliation` reads it too and
+# cannot import this module. Re-exported here so the many readers that
+# already say `census.FRONT_MATTER` keep working.
+```
+
+**Every clause is about `FRONT_MATTER`, which is 390 lines above it.** It is a leftover from when
+that constant lived in `census.py` and was re-exported; the comment travelled with the two regexes
+instead. And each clause is separately false:
+
+| clause | why |
+| --- | --- |
+| *"DEFINED IN `page.py`"* | the comment IS in `page.py` -- it tells a reader where they already are |
+| *"the leaf"* | the page is not the leaf. `foliator` and `lexer` are, and the page imports both |
+| *"`foliation` reads it too and cannot import this module"* | the foliator does not read these regexes, and it is spelled `foliator` |
+| *"Re-exported here"* | nothing is re-exported; the constant is defined 390 lines up |
+
+! **`ownership-context` finds this without knowing any of that history.** Its question is whether
+the prose is about the code it sits on, and `_SHEBANG = re.compile(r"^#!")` is not a constant that
+anything re-exports.
+
+### A module named for what it used to be
+
+| where | the prose | why it is wrong |
+| --- | --- | --- |
+| `page.py`, module docstring | *"THE ADDRESSER IS THE LEAF BENEATH THIS ONE ... the ADDRESSER KNOWS NOTHING ABOUT A PARAGRAPH"* | the module is `foliator.py`. The claim is still TRUE and names a module that does not exist |
+| `page.py` ×3, `lexer.py` ×1 | ``  `foliation` `` naming the module | it is `foliator`; `foliation` is the RESULT, and is a variable name throughout both files |
+
+! **This is the shape a rename always leaves**, and it is why `check_vocabulary.RETIRED` exists for
+`block` and `pCST`. `addresser` was not added to it, so nothing caught these.
+
+### Prose in the module that does not own the code
+
+`lexer.py` names `code_lines` and `OCCUPIES_NOTHING` -- both defined in `page.py` -- while
+explaining its own cutting rules. A cross-reference is legitimate; what makes these a candidate is
+that the lexer's own docstring says it *"imports no sibling"* and knows nothing of places.
+
+!! **AND ONE IS A REAL SPLIT IN THE WRONG PLACE, not just prose.** `lexer.py` emits
+`kind="undocumented"` at line 990 -- a PAGE kind -- twenty-two lines after its own docstring says:
+
+> *"A reader emits `comment`, `docstring`, `trailing-comment` and `unparsed` -- prose it found.
+> `interval`, `margin` and `undocumented` are the page's, because only a page knows where prose is
+> MISSING."*
+
+! This is BOTH an `ownership-context` finding (`_undocumented` belongs to the page) and a
+`block-context` one (the docstring's claim is false of the code beneath it). ! It is NOT fixed by
+the commit after this: moving it needs the lexer to report its declarations and the page to emit
+the places, which is filed as [`lexer-owns-a-page-kind`](../TODO/lexer-owns-a-page-kind.md).
+
+## How the before/after works
+
+! **The commit that records these leaves them ON DISK.** The commit after fixes them. So
+`git diff <record>^{} <fix>^{}` over `plugins/` is exactly the set of changes a correct run should
+propose, and nothing in the record had to be reconstructed from memory.
 
 ## What is NOT a test case for this system
 
