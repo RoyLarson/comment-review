@@ -213,7 +213,7 @@ that changed a published name or rule:
 | [front-matter-restamps](front-matter-restamps.md) | session | — | 0/6 | Adding a module docstring restamps the comment run above it as front matter |
 | [census-owns-addressing](census-owns-addressing.md) | session | — | 0/5 | The census owns addressing, and four modules share one subject between them |
 | [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
-| [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session * Roy (the runs are his) | yes | 0/5 | The filtered-census measurement exists only in run history |
+| [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
 
 ### in-progress  (4)
 
