@@ -180,6 +180,54 @@ the places, which is filed as [`lexer-owns-a-page-kind`](../TODO/lexer-owns-a-pa
 `git diff <record>^{} <fix>^{}` over `plugins/` is exactly the set of changes a correct run should
 propose, and nothing in the record had to be reconstructed from memory.
 
+## More `block-context` -- a comment naming the wrong module
+
+**Six comments say `module.symbol` where the symbol lives somewhere else.** Four were made by
+this session's moves; two predate it and had gone unnoticed. Each is on disk at the commit that
+records them and fixed by the one after.
+
+| where | the comment says | it lives in |
+| --- | --- | --- |
+| `desk.py:357` | *"This calls `census.block_text`"* | `lexer.py` |
+| `lexer.py:57` | *"see `census._anchor_of`"* | **`lexer.py` -- the file the comment is in** |
+| `page.py:194` | *"`census.code_lines` is this function over its own `Paragraph`s"* | **`page.py` -- the file the comment is in** |
+| `verdicts.py:434` | *"see `census.mark_front_matter`"* | `page.py` |
+| `held.py:455` | *"`verdicts.parse_report`'s output"* | **`held.py` -- the file the comment is in** |
+| `record.py:296` | *"`record.claim_object` read the deprecated form"* | `held.py` |
+
+!! **THREE OF THE SIX POINT AT ANOTHER MODULE FOR CODE IN THE SAME FILE.** That is the shape
+worth noticing: the prose was true when written, the code moved, and the sentence kept its old
+address. Nothing executes a comment, so nothing noticed.
+
+! **Two of them -- `held.py:455` and `record.py:296` -- predate this session entirely.** They are
+the same class from an earlier split, which is what makes them the better fixtures: no knowledge
+of today is needed to find either.
+
+! **The check is mechanical and cheap**: for every `` `module.symbol` `` a comment names, ask
+which module defines that symbol. A run that misses these is missing something a regex found.
+
+## More `function-context` -- a wrapper that every caller undoes
+
+`page.py` carries three functions built from the same two words:
+
+| | returns | callers |
+| --- | --- | --- |
+| `code_lines_of(text, paragraphs)` | `list[int]`, **ascending by construction** | the other two |
+| `code_lines(text, prose)` | `set[int]` -- the same question | 1 in the shipped tree, ~15 in tests |
+| `lines_of_code(text, prose)` | `list[tuple[int, str]]` -- a different question | the walk |
+
+!! **NEARLY EVERY CALLER WRITES `sorted(code_lines(...))`**, which converts the set back into the
+list `code_lines_of` already returns. The wrapper's whole contribution is a round trip: the
+function exists to change the type, and the caller changes it back on the same line.
+
+! `code_lines` is TWO LINES over `code_lines_of`, and its only remaining reason -- it took
+`Paragraph` objects where the other took dicts -- went when the page was made to speak dicts
+throughout. Filed as [`three-names-two-words`](../TODO/three-names-two-words.md).
+
+! **`function-context` asks whether name, signature and body agree.** Here the names do not
+distinguish the functions, the return types differ for one question and match for two different
+ones, and the body of one is the other with a `set()` around it.
+
 ## What is NOT a test case for this system
 
 ! **Process defects are not prose defects.** A plan checkbox ticked on work that was not done, a

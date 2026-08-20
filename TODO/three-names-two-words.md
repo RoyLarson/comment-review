@@ -6,6 +6,11 @@ Progress: 0 of 3 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: every rename is a function-context finding)
+Measured: 2026-08-20 — the wrapper is undone by its own callers: nearly every one writes
+          `sorted(code_lines(...))`, converting the set back into the ascending list
+          `code_lines_of` already returns. One production caller, ~15 in tests. Its only
+          reason -- taking Paragraph objects where the other took dicts -- went when the
+          page was made to speak dicts throughout.
 ```
 
 ## Objective
