@@ -235,7 +235,7 @@ other tasks can proceed without them._
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | session | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [the-path-is-repeated-in-every-address](the-path-is-repeated-in-every-address.md) | session | yes | 0/4 | a page stating its path once saves 30,055 bytes per reviewer, 120KB per run |
 
-### blocked  (4)
+### blocked  (5)
 
 _None._
 
@@ -243,6 +243,7 @@ _None._
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | session | — | 0/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 | [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 1/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | session | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
+| [drop-the-column](drop-the-column.md) | session | — | 0/6 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 ---
 
 ## Completed
