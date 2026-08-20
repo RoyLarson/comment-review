@@ -89,34 +89,46 @@ class TestWhatIsEmitted(unittest.TestCase):
             vocab.render("review", self.definitions, roles)
 
 
-class TestProseTreeRetired(unittest.TestCase):
-    """Ruled 2026-08-17: the census builds a pCST, and one name had to go.
+class TestTheThingIsAPage(unittest.TestCase):
+    """It was a `prose tree`, then a `pCST`, and it is a PAGE.
 
-    Roy: *"pCST not prose tree"*. While the pCST was an aspiration and the prose
-    tree was what the census actually built, the two were distinguishable. The
-    census enumerates intervals now, so they name one thing.
+    !! THE SECOND NAME WAS BORROWED AND NEVER FIT. Roy, 2026-08-20: *"using
+    libcst in python made it easy to move and edit comments and so I thought
+    that was what this was. It isn't."* Naming it for a syntax tree invited an
+    apology for not being one -- every file that mentioned it explained at
+    length why it was only *pseudo*, and everything those apologies defended is
+    simply correct for a page.
+
+    ! `check_vocabulary.RETIRED` is what holds this; these tests are the record
+    of why, and that the retired table still says so.
     """
 
     ROOT = Path(__file__).resolve().parent.parent
 
-    def test_no_shipped_file_says_prose_tree(self):
+    def test_no_shipped_file_says_either_older_name(self):
         shipped = sorted((self.ROOT / "plugins").rglob("*.md"))
         shipped += sorted((self.ROOT / "plugins").rglob("*.py"))
         self.assertTrue(shipped, "no shipped files found -- the glob is wrong")
         for path in shipped:
-            with self.subTest(path=path.name):
-                # ! `assertFalse` with a short message, not `assertNotIn`: these
-                # files are tens of kilobytes and `assertNotIn` prints the whole
-                # haystack, burying the name of the file that failed.
-                self.assertFalse(
-                    "prose tree" in path.read_text(encoding="utf-8").lower(),
-                    f"{path.name} still says 'prose tree'",
-                )
+            body = path.read_text(encoding="utf-8").lower()
+            for word in ("prose tree", "pcst"):
+                with self.subTest(path=path.name, word=word):
+                    # ! `assertFalse` with a short message, not `assertNotIn`:
+                    # these files are tens of kilobytes and `assertNotIn` prints
+                    # the whole haystack, burying the name of the file that
+                    # failed.
+                    self.assertFalse(word in body, f"{path.name} still says {word!r}")
 
-    def test_the_retired_table_records_it_with_a_reason(self):
+    def test_the_retired_table_records_both_with_a_reason(self):
         text = (self.ROOT / "docs" / "vocabulary.md").read_text(encoding="utf-8")
         self.assertIn("`prose tree`", text)
-        self.assertIn("pCST", text)
+        self.assertIn("`pCST`", text)
+
+    def test_the_gate_holds_it_rather_than_this_test(self):
+        # ! Naming a word here and not there is how `block` survived in 298
+        # places: a test that greps is one file's opinion, and the gate runs on
+        # every shipped file at once.
+        self.assertIn("pcst", cv.RETIRED)
 
 
 class TestADefinitionIsNotWrittenTwice(unittest.TestCase):

@@ -20,7 +20,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `block` | -> **paragraph**. The register is EDITORIAL, and `block` was the last structural term borrowed from compilers. Its definition -- the interval between two lines of CODE -- is also untrue of a prose file |
 | the four KINDS of a line of code | **deleted** -- *statement, expression, declaration, assignment*, shipped to every role and read by nothing. Neither exhaustive nor disjoint, and meaningless in the three data languages |
 | **census index** | -> **address**. A position is correct only for the census it was written against; an `add` or a `drop` shifts every index below it |
-| `prose tree` | -> **pCST**. Both named one thing, and the precise word won |
+| `prose tree`, `pCST` | -> **page**. Both named one file's classified lines. `pCST` -- *pseudo Concrete Syntax Tree* -- was borrowed because libcst made moving comments easy in Python, and this is not that. Roy, 2026-08-20: *"it never really fit."* Naming it for a syntax tree invited an apology for not being one |
 | `angle` | -> **editorial role** in prose, **reviewer** in identifiers. Six senses, defined nowhere |
 | `--angles`, `ANGLE FILES` | -> `--reviewers`, `REVIEWER FILES` |
 | `sweep` | not a term. Stage 7b is **WRITE** |
@@ -71,6 +71,6 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
   charged for; this table is where a superseded term stays legible.
 - **Polysemy is allowed when it is DECLARED and the contexts do not overlap** -- `opener` (a
   comment delimiter, and a record's `--- RECORD`), `annotations` (the census's, and
-  `from __future__`), `node` (a pCST node, and an AST node).
+  `from __future__`), `node` (a page's node, and an AST node).
 - **`clean` is reserved.** It is one of the seven verdicts and is never a loose adjective for
   code, prose, a grep result or a run.

@@ -50,6 +50,11 @@ AGENTS = REPO / "plugins/comment-review/agents"
 RETIRED = {
     "block": "paragraph",
     "blocks": "paragraphs",
+    # ! Roy, 2026-08-20: *"it never really fit -- using libcst in python made it
+    # easy to move and edit comments and so I thought that was what this was. It
+    # isn't."* Naming the thing for a syntax tree invited an apology for not
+    # being one, in every file that mentioned it.
+    "pcst": "page",
 }
 
 # !! THE WAY OUT, AND IT IS PER FILE. Roy, 2026-08-19: *"let's give ourselves a

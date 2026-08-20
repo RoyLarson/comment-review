@@ -17,17 +17,15 @@ file, so building one was never its work -- Roy, 2026-08-20: *"the census's job
 should be to take the output of all of the pages and reformat it into the (most)
 usable format for the agents."*
 
-!! IT IS A FLAT LIST, AND THE ADDRESS IS WHY. Roy, 2026-08-18: *"it probably is
-just a flat list because of the way we defined the address ... a CST has it but
-it is not actually one, which is why it is a pseudoCST."* An address is an
-ORDINAL over a linear sequence, and an ordinal cannot express containment.
+!! IT IS A FLAT LIST, AND THAT IS THE SHAPE OF THE THING. Paragraphs run down a
+leaf and do not nest. An address is an ORDINAL over a linear sequence and cannot
+express containment, so the two agree by construction rather than by compromise.
 
-!! AND IT IS NOT A COMPROMISE. THIS IS A PAGE. Roy, 2026-08-19: a pCST is a page
-and a paragraph is a paragraph, *"because it is a flat list of paragraphs."*
-Paragraphs run down a leaf and do not nest, so flat is the shape the thing has,
-not the shape the addressing cost us. ! The sentences above were written as an
-apology -- *pseudo*, because a real CST has hierarchy and this does not. There is
-nothing to apologise for: hierarchy was never the right shape for a page.
+! It was called a *pseudo* Concrete Syntax Tree, and the word is retired. Roy,
+2026-08-20: *"it never really fit -- using libcst in python made it easy to move
+and edit comments and so I thought that was what this was. It isn't."* Naming it
+for a syntax tree invited an apology for not being one, and everything the
+apology defended is correct for a page.
 
 ! Nothing here asks a tree question either. Measured 2026-08-18 across the
 shipped scripts: ZERO containment tests, and every consumer is a flat scan by

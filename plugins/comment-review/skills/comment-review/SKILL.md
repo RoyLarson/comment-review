@@ -85,12 +85,11 @@ enforce it at stage 5 by refusing a verdict that arrives without one.
 
 ## Why the stages are in this order
 
-**1-3 build the pCST** -- a *pseudo* Concrete Syntax Tree: every LINE of the files under
-review classified, numbered in order, with every reference it makes already resolved. This
-line is code, this PART of a line is code, this line is comment, this line is docstring.
-**Pseudo** because a real CST would carry the names and the symbols precisely; this carries
-only which lines are which, which is what a reviewer of COMMENTS needs. The places holding
-nothing are on it too, because that is where prose is MISSING.
+**1-3 build the PAGES** -- one per file: every LINE classified, numbered in order, with every
+reference it makes already resolved. This line is code, this PART of a line is code, this
+line is comment, this line is docstring. It carries only which lines are which, which is
+what a reviewer of COMMENTS needs. The places holding nothing are on it too, because that
+is where prose is MISSING.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding.

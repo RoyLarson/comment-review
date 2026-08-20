@@ -151,7 +151,7 @@ read it before touching the skill. The pipeline:
 1. **PROJECT DETERMINATION** (task agent) -- scope from the merge base, find the repo's cap/width
    conventions, doc style, `move` destination, style sheet, verify reviewer agents resolve, probe
    for a language server, decide the name-corpus source.
-2. **COLLATE** (`census.py`) -- the pCST: every line classified, in order -- code, part-code, comment, docstring. Each block is addressed by the subject its prose answers to: an interval between two lines of code, or a declaration.
+2. **COLLATE** (`page.py` builds each page, `census.py` stacks them) -- every line classified, in order -- code, part-code, comment, docstring. Each paragraph is addressed by the subject its prose answers to: a gap between two lines of code, a declaration's documentation, or the room beside a line.
 3. **FIND REFERENCES** (`census.py`) -- every reference each node makes, resolved (paths, symbols,
    counts).
 4. **MARK** (4 reviewer agents, read-only) -- findings on the nodes. **SERIAL in two rounds:
@@ -185,13 +185,18 @@ Reviewers are read-only and never see SKILL.md directly; they read the shared
 `references/reviewer-brief.md`. Fixing what you find destroys the finding -- MARK and APPLY are
 deliberately separate stages/actors.
 
-### `census.py` -- the only thing the reviewers depend on
+### The census -- the only thing the reviewers depend on
 
-`plugins/comment-review/skills/comment-review/scripts/census.py` builds the pCST from the
-stdlib alone (no third-party dependency), at a per-language tier. It is one of four: `page.py`
-says what a pCST NODE is -- the `Block` dataclass and the kind sets over it -- and is a LEAF so
-every module that reads a block can import the definition of one; `repo.py` answers what the
-checkout says (git, the filesystem, the exception tuples) and is imported by four scripts;
+It is built from the stdlib alone (no third-party dependency), at a per-language tier,
+across four modules that each announce ONE subject:
+
+| module | owns |
+| --- | --- |
+| `addresser.py` | names places -- the foliators walk out, `Foliation` reads back. The LEAF: it knows nothing about a paragraph |
+| `page.py` | ONE FILE -- its paragraphs tied to the places on it. `page_for()` builds one; a page names its own places |
+| `census.py` | every page in scope, formatted for the agents |
+| `repo.py` | what the checkout says: git, the filesystem, the exception tuples |
+
 `annotate.py` is stage 3, the resolution a reviewer would otherwise do by hand.
 Each announces ONE subject, which is what `module-context` asks of any module:
 

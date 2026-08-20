@@ -1,4 +1,4 @@
-"""`page.py` says what a pCST node is, and `addresser.py` is the LEAF beneath it.
+"""`page.py` says what a PAGE is, and `addresser.py` is the LEAF beneath it.
 
 !! THE DIRECTION INVERTED 2026-08-20, and the reason is that a page BUILDS
 ITSELF. It has to name the places on it, so it needs the foliator -- while the

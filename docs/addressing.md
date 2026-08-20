@@ -261,7 +261,7 @@ differently wherever a consumer had guessed.
 
 | file | owns |
 | --- | --- |
-| `scripts/page.py` | what a pCST NODE is -- `Block`, and the kind sets over it. A LEAF, so every module that reads a block can import the definition of one |
+| `scripts/page.py` | what a PAGE is -- `Paragraph`, the kind sets over it, and `page_for()`, which builds one |
 | `scripts/addresser.py` | BOTH namings -- `address()`, and the deprecated `line_address()` it replaced |
 | `scripts/census.py` | STAMPS the address on every block. It is the producer, and consumers read it |
 | `scripts/record.py` | `entry_for(address, blocks)` -- the one lookup from an address to a census entry |
@@ -309,11 +309,11 @@ Measured 2026-08-19 over 1,500 files in five corpora: **12 carried prose above t
 docstring, 10 of them the same Apache header repeated in every file of the project.** Inside a
 declaration it never happens -- 0 of 2,579 docstrings.
 
-## The pCST is FLAT, and the address is why
+## A PAGE is FLAT, and the address is why
 
-A pCST is a *pseudo* Concrete Syntax Tree: this line is code, this PART of a line is code, this
-line is comment, this line is docstring. **Pseudo for two reasons** -- a real CST would carry the
-names and the symbols precisely, and a real CST has HIERARCHY.
+A page classifies every line of one file: this line is code, this PART of a line is code, this
+line is comment, this line is docstring. It carries only which lines are which, which is what a
+reviewer of COMMENTS needs.
 
 !! **An address is an ORDINAL over a linear sequence, and an ordinal cannot express
 containment.** Roy, 2026-08-18: *"it probably is just a flat list because of the way we defined
