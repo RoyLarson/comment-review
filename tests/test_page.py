@@ -138,9 +138,23 @@ class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
 class TestTheTwoKindSetsAreNotInterchangeable(unittest.TestCase):
     """A trailing comment occupies no lines of its own AND is prose."""
 
-    def test_a_trailing_comment_occupies_nothing_but_holds_prose(self):
-        self.assertIn("trailing-comment", page.OCCUPIES_NOTHING)
+    def test_a_trailing_comment_shares_its_FIRST_line_and_owns_the_rest(self):
+        # It is in NEITHER set: it holds prose, and a WRAPPED one owns every
+        # line after the first outright. `code_lines` occupies its whole span
+        # and discards the first line, which reduces to "occupies nothing" when
+        # there is only one.
+        self.assertNotIn("trailing-comment", page.OCCUPIES_NOTHING)
         self.assertNotIn("trailing-comment", page.HOLDS_NO_PROSE)
+
+    def test_a_wrapped_trailing_comment_takes_its_continuation_lines(self):
+        path = Path("a.c")
+        text = "int a = 1;\nint b = 2; /* opens\n   runs on */\nint c = 3;\n"
+        got = page.code_lines(
+            text, [vars(b) for b in page.page_for(path, text, lexer.language_for(path))]
+        )
+        # Line 2 still holds `int b = 2;`; line 3 is comment and is NOT code.
+        self.assertEqual(list(got), [1, 2, 4])
+        self.assertEqual(got[2], "int b = 2;")
 
     def test_the_empty_kinds_are_in_both(self):
         for kind in ("interval", "undocumented"):

@@ -275,7 +275,7 @@ bridge that carried nothing passed a green suite.
 ### Both tiers store `raw_lines` the same way, and four of six comment shapes were unwritable
 
 **`raw_lines` is the block's OWN characters** -- its lines whole where it owns them, and from
-`edit_column` onward on the first line where code comes first. With `anchor` holding the code,
+`original_column` onward on the first line where code comes first. With `anchor` holding the code,
 `anchor + raw_lines[0]` reconstructs that line exactly.
 
 !! **THE TWO TIERS STORED DIFFERENT THINGS.** `blocks_lexical` cut at the comment OPENER;
@@ -335,7 +335,7 @@ that stopped it refused the whole `c` series, so the join admitted an edit at a 
 galley then discarded every other edit in that file with it.
 
 Roy ruled it 2026-08-19: *"c needs to be writeable. It is the reason c is not an extension of
-b."* The census now states `edit_column` and `galley.splice` keeps `line[:edit_column - 1]`.
+b."* The census now states `original_column` and `galley.splice` keeps `line[:original_column - 1]`.
 
 !! **A `c` PLACE STARTS AT THE END OF THE CODE, not at the `#`.** Roy: *"c addresses start at the
 end of the code on the line."* So the whitespace separating a statement from its trailing comment
@@ -348,7 +348,7 @@ hold about that whitespace. Roy: *"it happens to be the same opinionatedness tha
 all of the code formatters."*
 
 - **`whole_lines` is gone.** It was a boolean standing in for *where does the prose start*, which
-  was enough to REFUSE the write and not enough to make it. `edit_column` is the one fact:
+  was enough to REFUSE the write and not enough to make it. `original_column` is the one fact:
   1-based like every other position the census states, `0` where the block owns its lines whole.
 
 ### An INTERMEDIATE comment is not censused

@@ -67,8 +67,8 @@ class TestBlockMatches(unittest.TestCase):
         paragraph = {
             "start": 2,
             "end": 3,
-            "edit_start": 2,
-            "edit_end": 3,
+            "original_start": 2,
+            "original_end": 3,
             "raw_lines": ["    # old note", "    # second line"],
         }
         self.assertTrue(galley.paragraph_matches(self.LINES, paragraph))
@@ -77,8 +77,8 @@ class TestBlockMatches(unittest.TestCase):
         paragraph = {
             "start": 2,
             "end": 3,
-            "edit_start": 2,
-            "edit_end": 3,
+            "original_start": 2,
+            "original_end": 3,
             "raw_lines": ["    # SOMETHING ELSE", "    # x"],
         }
         self.assertFalse(galley.paragraph_matches(self.LINES, paragraph))
@@ -87,8 +87,8 @@ class TestBlockMatches(unittest.TestCase):
         paragraph = {
             "start": 9,
             "end": 12,
-            "edit_start": 9,
-            "edit_end": 12,
+            "original_start": 9,
+            "original_end": 12,
             "raw_lines": ["    # x"],
         }
         self.assertFalse(galley.paragraph_matches(self.LINES, paragraph))
@@ -97,7 +97,8 @@ class TestBlockMatches(unittest.TestCase):
         # An interval paragraph stores none, and nothing can be verified against it.
         self.assertFalse(
             galley.paragraph_matches(
-                self.LINES, {"start": 2, "end": 3, "edit_start": 2, "edit_end": 3}
+                self.LINES,
+                {"start": 2, "end": 3, "original_start": 2, "original_end": 3},
             )
         )
 
@@ -200,7 +201,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
     and the refusal hid the fact that the range would have deleted code.
 
     !! THE PARAGRAPHS HERE COME FROM A REAL CENSUS. Built by hand they carried no
-    `edit_start`/`edit_end`, took the legacy fallback, and went on passing
+    `original_start`/`original_end`, took the legacy fallback, and went on passing
     against a shape `census.py` no longer emits -- which is the whole failure
     being tested, one level up.
     """
@@ -217,7 +218,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         empty = page.empty_places(text, prose, foliation, occupied)
         return [b.__dict__ for b in empty if b.kind == "interval"]
 
-    def _gap(self, text, edit_start, edit_end):
+    def _gap(self, text, original_start, original_end):
         """The interval whose EDIT range is this, as the census emits it.
 
         ! Found by the edit range, not the addressing one. A gap between two
@@ -225,9 +226,12 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         0 -- every line has ONE address and those two belong to the `c` series.
         """
         for b in self._census(text):
-            if (b["edit_start"], b["edit_end"]) == (edit_start, edit_end):
+            if (b["original_start"], b["original_end"]) == (
+                original_start,
+                original_end,
+            ):
                 return b
-        raise AssertionError(f"no gap editing {edit_start}-{edit_end}")
+        raise AssertionError(f"no gap editing {original_start}-{original_end}")
 
     def test_adjacent_code_lines_give_an_EMPTY_range(self):
         # ! `n+1 .. n` -- `splice` assigns into an empty slice, which inserts.
@@ -306,7 +310,9 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         self.assertFalse(galley.paragraph_matches(grown, gap))
 
     def test_an_interval_past_the_end_of_the_file_is_stale(self):
-        gap = dict(self._gap(self.FILE, 2, 1), start=3, end=9, edit_start=4, edit_end=8)
+        gap = dict(
+            self._gap(self.FILE, 2, 1), start=3, end=9, original_start=4, original_end=8
+        )
         self.assertFalse(galley.paragraph_matches(self.FILE.splitlines(), gap))
 
 
@@ -435,7 +441,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         paragraph = self._kind("trailing-comment")
         line = self.SOURCE.splitlines()[1]
         self.assertEqual(line[:9], "    z = 3")
-        self.assertEqual(paragraph["edit_column"], 10)
+        self.assertEqual(paragraph["original_column"], 10)
         self.assertEqual(line[11], "#")
 
     def test_a_margin_and_a_trailing_comment_name_the_SAME_column(self):
@@ -450,7 +456,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
             if b.kind == "margin" and b.start == 2
         )
         self.assertEqual(
-            margin["edit_column"], self._kind("trailing-comment")["edit_column"]
+            margin["original_column"], self._kind("trailing-comment")["original_column"]
         )
 
     def test_the_splice_keeps_the_code_and_replaces_the_prose(self):
@@ -460,7 +466,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
             [
                 (
                     *galley.splice_range(paragraph),
-                    paragraph["edit_column"],
+                    paragraph["original_column"],
                     "  # reworded",
                 )
             ],
@@ -475,7 +481,13 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         paragraph = self._kind("trailing-comment")
         out = galley.splice(
             self.SOURCE,
-            [(*galley.splice_range(paragraph), paragraph["edit_column"], "# no gap")],
+            [
+                (
+                    *galley.splice_range(paragraph),
+                    paragraph["original_column"],
+                    "# no gap",
+                )
+            ],
         )
         self.assertIn("z = 3# no gap", out)
 
@@ -486,7 +498,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         paragraph = self._kind("trailing-comment")
         out = galley.splice(
             self.SOURCE,
-            [(*galley.splice_range(paragraph), paragraph["edit_column"], "")],
+            [(*galley.splice_range(paragraph), paragraph["original_column"], "")],
         )
         self.assertEqual(out, "def f():\n    z = 3\n    return z\n")
 
@@ -501,9 +513,9 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
             for b in page.page_for(path, text, lexer.language_for(path))
             if b.kind == "margin"
         )
-        self.assertEqual(margin["edit_column"], len("a = 1") + 1)
+        self.assertEqual(margin["original_column"], len("a = 1") + 1)
         out = galley.splice(
-            text, [(*galley.splice_range(margin), margin["edit_column"], "  # why")]
+            text, [(*galley.splice_range(margin), margin["original_column"], "  # why")]
         )
         self.assertEqual(out, "a = 1  # why\n")
 
@@ -515,7 +527,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
             for b in lexer.paragraphs_stdlib(Path("m.py"), text)
             if b.kind == "comment"
         )
-        self.assertEqual(paragraph["edit_column"], 0)
+        self.assertEqual(paragraph["original_column"], 0)
         out = galley.splice(text, [(*galley.splice_range(paragraph), 0, "")])
         self.assertEqual(out, "a = 1\nb = 2\n")
 
@@ -529,12 +541,12 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
     def test_a_comment_on_its_own_line_owns_its_lines_whole(self):
         text = "def f():\n    # a note\n    return 1\n"
         paragraph = self._kind("comment", text)
-        self.assertEqual(paragraph["edit_column"], 0)
+        self.assertEqual(paragraph["original_column"], 0)
 
     def test_a_docstring_owns_its_lines_whole(self):
         text = 'def f():\n    """A note."""\n    return 1\n'
         paragraph = self._kind("docstring", text)
-        self.assertEqual(paragraph["edit_column"], 0)
+        self.assertEqual(paragraph["original_column"], 0)
 
     def test_a_census_without_the_field_is_REFUSED_not_defaulted(self):
         """!! Defaulting it put the deleted statement back.
@@ -545,7 +557,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         """
         paragraphs = self._blocks()
         self.assertIsNone(galley.unanswerable(paragraphs))
-        for field in ("edit_column", "edit_start", "edit_end"):
+        for field in ("original_column", "original_start", "original_end"):
             with self.subTest(field=field):
                 stripped = [
                     {k: v for k, v in b.items() if k != field} for b in paragraphs
@@ -628,7 +640,7 @@ class TestTheCSeriesIsWritableInALexicalLanguage(unittest.TestCase):
         self.assertTrue(galley.paragraph_matches(self.SRC.splitlines(), paragraph))
         return galley.splice(
             self.SRC,
-            [(*galley.splice_range(paragraph), paragraph["edit_column"], change)],
+            [(*galley.splice_range(paragraph), paragraph["original_column"], change)],
         )
 
     def test_a_patch_keeps_the_statement_AND_its_tab(self):

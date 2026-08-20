@@ -55,7 +55,7 @@ expensive diagnostic there is.
 ```python
 if FRONT_MATTER in (paragraph.get("annotations") or ()):
     return 0                                    # a BRANCH, not a step
-at = paragraph.get("edit_start")
+at = paragraph.get("original_start")
 return sum(1 for n in code if n < at) + 1       # LINE NUMBERS
 ```
 

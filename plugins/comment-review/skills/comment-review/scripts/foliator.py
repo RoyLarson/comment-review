@@ -602,7 +602,7 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
             b
             for b in here
             if str(b.get("address", "")).split("@")[-1].startswith(GAP)
-            and (b.get("end") == at - 1 or b.get("edit_end") == at - 1)
+            and (b.get("end") == at - 1 or b.get("original_end") == at - 1)
         ]
     return []
 
@@ -618,7 +618,7 @@ def _series_of(paragraph: dict) -> str:
     declares = paragraph.get("declares", -1)
     if isinstance(declares, int) and declares >= 0:
         return DECLARED
-    return ON if paragraph.get("edit_column") else GAP
+    return ON if paragraph.get("original_column") else GAP
 
 
 def stable(paragraph: dict) -> str:
@@ -824,7 +824,7 @@ def _check(paragraphs: list[dict]) -> int:
     is only worth what re-reading it proves.
 
     ! Two reports, and only the first is a fault. UNADDRESSED means the census
-    cannot name the place at all -- no `edit_start`, or no position -- and
+    cannot name the place at all -- no `original_start`, or no position -- and
     nothing can cite it.
 
     !! SHARED IS NOW A FAULT TOO, AND ITS OLD REMEDY IS GONE. It meant several
@@ -875,7 +875,7 @@ def _check(paragraphs: list[dict]) -> int:
     if unaddressed:
         print(
             f"{len(unaddressed)} paragraphs could not be addressed at all."
-            " A census with no `edit_start` cannot name a gap; re-run census.py."
+            " A census with no `original_start` cannot name a gap; re-run census.py."
         )
     return 1 if unaddressed else 0
 

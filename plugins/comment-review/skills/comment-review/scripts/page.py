@@ -86,12 +86,19 @@ from lexer import (  # noqa: E402  -- path shim must run first
 #   b   `interval`      a gap with no prose
 #   c   `margin`        a code line with no trailing comment
 #
-# !! KINDS THAT OCCUPY NO LINES OF THEIR OWN. A `trailing-comment` sits on a
-# code line, and an `interval` and an `undocumented` declaration are both
-# EMPTY -- a place where prose could go and does not. Counting any of them as
-# occupied would drop a real code line from the count and renumber every `b`
-# below it.
-OCCUPIES_NOTHING = ("trailing-comment", "margin", "interval", "undocumented")
+# !! KINDS THAT OCCUPY NO LINES AT ALL. A `margin` is the empty room beside a
+# code line; an `interval` and an `undocumented` declaration are both EMPTY --
+# a place where prose could go and does not. Counting any of them as occupied
+# would drop a real code line from the count and renumber every `b` below it.
+#
+# !! A `trailing-comment` IS NOT ONE OF THEM, and was until 2026-08-20. It
+# shares only its FIRST line with code: a WRAPPED one -- `int b = 2; /* opens`
+# running on to a second line -- owns every line after that outright. Listing
+# it here left those continuation lines counted as code, so `   and runs on */`
+# was given a `margin` of its own. The loop below occupies its whole span and
+# then discards the first line, which is right for a wrapped one and reduces to
+# "occupies nothing" for a single-line one.
+OCCUPIES_NOTHING = ("margin", "interval", "undocumented")
 # !! HOLDS NO PROSE -- a DIFFERENT set, and the two are not interchangeable. A
 # `trailing-comment` occupies no lines of its own but is prose; an `interval`
 # and an `undocumented` declaration are places where prose could go and does
@@ -201,7 +208,7 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
     dropped the statement from the code set, moving every interval boundary
     below it.
 
-    !! THE PARAGRAPH SAYS SO, via `edit_column`. This tested whether the stored
+    !! THE PARAGRAPH SAYS SO, via `original_column`. This tested whether the stored
     text was a proper SUFFIX of the physical line, which is an inference and
     was wrong in both directions: `paragraphs_stdlib` stores the WHOLE line for a
     trailing comment, so the test never fired for one -- and a paragraph comment
@@ -224,14 +231,14 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
         start, end = b.get("start"), b.get("end")
         # ! The `c` is read BEFORE the occupancy test, because the paragraph
         # standing in for one is a `margin`, which occupies nothing.
-        if b.get("edit_column") and isinstance(start, int):
+        if b.get("original_column") and isinstance(start, int):
             beside[start] = b.get("anchor", "")
         if b.get("kind") in OCCUPIES_NOTHING:
             continue
         if not isinstance(start, int) or not isinstance(end, int):
             continue
         occupied.update(range(start, end + 1))
-        if b.get("edit_column", 0):
+        if b.get("original_column", 0):
             occupied.discard(start)
     return {
         n: beside.get(n) or line.rstrip()
@@ -268,10 +275,10 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     # that introduces the first statement and belongs to that statement.
     if FRONT_MATTER in (paragraph.get("annotations") or ()):
         return foliation.front_matter()
-    if paragraph.get("edit_column", 0):
+    if paragraph.get("original_column", 0):
         start = paragraph.get("start")
         return foliation.beside(start) if isinstance(start, int) else ""
-    at = paragraph.get("edit_start")
+    at = paragraph.get("original_start")
     return foliation.above(at) if isinstance(at, int) else ""
 
 
@@ -380,8 +387,8 @@ def empty_places(
                     anchor=anchor,
                     declares=int(folio[1:]),
                     declared_at=foliation.lines.get(folio, 0),
-                    edit_start=insert,
-                    edit_end=insert - 1,
+                    original_start=insert,
+                    original_end=insert - 1,
                     address=folio,
                 )
             )
@@ -401,9 +408,9 @@ def empty_places(
                     lines=0,
                     text="",
                     raw_lines=[lines[n - 1][len(code) :]],
-                    edit_start=n,
-                    edit_end=n,
-                    edit_column=len(code) + 1,
+                    original_start=n,
+                    original_end=n,
+                    original_column=len(code) + 1,
                     anchor=anchor,
                     address=folio,
                 )
@@ -431,8 +438,8 @@ def empty_places(
                     kind="interval",
                     lines=0,
                     text="",
-                    edit_start=low,
-                    edit_end=high,
+                    original_start=low,
+                    original_end=high,
                     anchor=anchor,
                     address=folio,
                 )
@@ -589,7 +596,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     go to the first paragraph in the gap and trailing blanks to the last, which is
     the same rule read from either end.
 
-    ! It moves the ADDRESSING range only. `edit_start`/`edit_end` were fixed at
+    ! It moves the ADDRESSING range only. `original_start`/`original_end` were fixed at
     construction and still name the prose, so WRITE replaces what it replaced
     before -- widening those would let a `change` swallow the blank line that
     separates a comment run from the code beneath it.

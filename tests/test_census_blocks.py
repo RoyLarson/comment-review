@@ -194,8 +194,8 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # series. `1-0` is the gap ABOVE line 1 and `4-3` the gap below line 3,
         # each an empty slice, so each is a pure insertion on its own side.
         got = [b for b in self._census("a = 1\nb = 2\nc = 3\n") if b.kind == "interval"]
-        self.assertEqual((got[0].edit_start, got[0].edit_end), (1, 0))
-        self.assertEqual((got[-1].edit_start, got[-1].edit_end), (4, 3))
+        self.assertEqual((got[0].original_start, got[0].original_end), (1, 0))
+        self.assertEqual((got[-1].original_start, got[-1].original_end), (4, 3))
 
     def test_an_interval_holding_prose_is_not_enumerated_twice(self):
         got = self._census("a = 1\n# a note\nb = 2\n")
@@ -348,12 +348,14 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
         # !! The anchor and the column say the same thing about one line, and
         # they must not be able to disagree: the anchor IS `line[:column - 1]`.
         for paragraph in self._lexical() + self._tokenized():
-            if not paragraph.edit_column:
+            if not paragraph.original_column:
                 continue
             text = self.C if paragraph.path == "x.c" else self.PY
             line = text.splitlines()[paragraph.start - 1]
             with self.subTest(block=paragraph.text):
-                self.assertEqual(line[: paragraph.edit_column - 1], paragraph.anchor)
+                self.assertEqual(
+                    line[: paragraph.original_column - 1], paragraph.anchor
+                )
 
     def test_a_block_owning_its_lines_has_no_code_anchor(self):
         # ! Its anchor is a DECLARATION, which naming needs structure the
@@ -362,7 +364,7 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
         path = Path("x.c")
         paragraphs = lexer.paragraphs_lexical(path, text, lexer.language_for(path))
         note = next(b for b in paragraphs if b.kind == "comment")
-        self.assertEqual(note.edit_column, 0)
+        self.assertEqual(note.original_column, 0)
         self.assertEqual(note.anchor, "")
 
     def test_a_margin_carries_the_WHOLE_line(self):
@@ -384,10 +386,10 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
         for src in sorted(scripts.glob("*.py")):
             body = src.read_text(encoding="utf-8")
             for b in lexer.paragraphs_stdlib(src, body):
-                if not b.edit_column:
+                if not b.original_column:
                     continue
                 seen += 1
-                if b.anchor != body.splitlines()[b.start - 1][: b.edit_column - 1]:
+                if b.anchor != body.splitlines()[b.start - 1][: b.original_column - 1]:
                     holes += 1
         self.assertGreater(seen, 0, "no c place in the shipped scripts to check")
         self.assertEqual(holes, 0)
@@ -445,16 +447,20 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         # ! `page_for` does not stamp the address -- the run loop does, once
         # the path is repo-relative -- so the two places are told apart here by
         # the fact the foliation reads: a `c` has a column and a `b` has none.
-        self.assertTrue(c.edit_column)
-        self.assertFalse(b.edit_column)
+        self.assertTrue(c.original_column)
+        self.assertFalse(b.original_column)
 
     def test_the_b_and_the_c_of_a_line_AGREE_on_the_code(self):
         # !! They are two computations of one fact unless the `b` copies the
         # `c`. Re-cutting the line here answered `'    return os  # why'` where
         # the `c` for the same line answered `'    return os'`.
-        margins = {b.start: b.anchor for b in self.paragraphs if b.edit_column}
+        margins = {b.start: b.anchor for b in self.paragraphs if b.original_column}
         for paragraph in self.paragraphs:
-            if paragraph.edit_column or paragraph.declares >= 0 or not paragraph.anchor:
+            if (
+                paragraph.original_column
+                or paragraph.declares >= 0
+                or not paragraph.anchor
+            ):
                 continue
             with self.subTest(address=paragraph.address):
                 # ! `b0` is the FILE'S place. Its anchor is the module,
@@ -471,7 +477,7 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         # ! It has no line below. Left empty this was 14 paragraphs of this repo,
         # one per file, every one a broken record.
         gaps = [b for b in self.paragraphs if b.kind == "interval"]
-        last = max(gaps, key=lambda b: b.edit_start)
+        last = max(gaps, key=lambda b: b.original_start)
         self.assertEqual(last.anchor, "    return os")
 
     def test_no_block_in_this_repos_own_scripts_lacks_one(self):
@@ -678,7 +684,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             lines = text.splitlines()
             for b in self._prose(text):
                 with self.subTest(shape=label):
-                    if b.edit_column:
+                    if b.original_column:
                         seen += 1
                         self.assertEqual(b.anchor + b.raw_lines[0], lines[b.start - 1])
                     else:
@@ -693,7 +699,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             if b.kind not in ("comment", "trailing-comment"):
                 continue
             with self.subTest(kind=b.kind, start=b.start):
-                head = b.anchor if b.edit_column else ""
+                head = b.anchor if b.original_column else ""
                 self.assertEqual(head + b.raw_lines[0], lines[b.start - 1])
                 self.assertTrue(galley.paragraph_matches(lines, vars(b)))
 

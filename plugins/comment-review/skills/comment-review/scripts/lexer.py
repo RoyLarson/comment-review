@@ -92,11 +92,11 @@ class Paragraph:
         """
         if not self.raw_lines:
             return 0
-        first = len(self.anchor) + len(self.raw_lines[0]) if self.edit_column else 0
+        first = len(self.anchor) + len(self.raw_lines[0]) if self.original_column else 0
         return max(first, *(len(ln) for ln in self.raw_lines))
 
     # !! THE PARAGRAPH'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
-    # lines whole where it owns them, and from `edit_column` onward on the first
+    # lines whole where it owns them, and from `original_column` onward on the first
     # line where code comes first. With `anchor` holding the code, the two
     # RECONSTRUCT that line: `anchor + raw_lines[0]` is what is on disk.
     #
@@ -112,12 +112,27 @@ class Paragraph:
     # claim the prose makes. The lexical tier's own comment says that defect was
     # fixed; it was fixed on one tier.
     raw_lines: list[str] = field(default_factory=list)
-    # !! THE LINES AN EDIT TO THIS PARAGRAPH OCCUPIES, which is NOT always the
-    # range that ADDRESSES it. A prose paragraph is replaced, so the two coincide.
-    # An empty INTERVAL is inserted into: `start` and `end` are the two lines
-    # of CODE that bound it, and writing over them would delete code, so its
-    # edit range is the gap between them -- `(n+1, n)` for adjacent lines,
-    # which is an empty slice and therefore a pure insertion.
+    # !! THE LINES THIS PARAGRAPH COVERS IN THE FILE AS IT READS NOW. That is
+    # the whole definition, and it is NOT always the range that ADDRESSES the
+    # paragraph. A prose paragraph is replaced, so the two coincide. An empty
+    # INTERVAL covers NOTHING: `start` and `end` are the two lines of CODE that
+    # bound it, and it holds none of them, so it reports `(n+1, n)` -- a range
+    # whose end precedes its start, which is how "covers nothing" is spelled.
+    #
+    # !! IT IS NOT WHERE AN EDIT GOES, AND READING IT THAT WAY IS THE DEFECT
+    # THIS SYSTEM EXISTS TO REMOVE. Roy, 2026-08-20: *"that is the defect of
+    # reading line numbers as the address. They are not. You see edit-lines
+    # somewhere and you are assuming that means that is where the edit goes."*
+    # The fields were called `edit_start`/`edit_end` until that day, and the
+    # name taught the wrong reading -- a session read `(1, 0)` on a `b1` as
+    # "inserts at line 1", concluded a shebang would be displaced, and filed a
+    # bug against behaviour that was correct.
+    #
+    # ! WHERE PROSE LANDS IS SETTLED BY THE ADDRESS and the order the galley
+    # applies a page's edits in -- `a` before `b` before `c`, so a `b` lands
+    # outside the `a` it followed. These numbers say what is there now; the
+    # address says which place is being written. ! The galley still derives its
+    # splice position from this range, which is what `docs/plans/` A4 changes.
     #
     # !! IT IS COMPUTED HERE BECAUSE ONLY HERE IS IT KNOWABLE. `intervals()`
     # walks edges that carry SENTINELS -- 0 above the first code line, one past
@@ -131,10 +146,10 @@ class Paragraph:
     # ! Left 0/0 by a producer, they mirror `start`/`end` -- see
     # `__post_init__`. That is what makes this safe to add without visiting
     # every construction site.
-    edit_start: int = 0
-    edit_end: int = 0
-    # !! WHERE THE `c` PLACE BEGINS ON `edit_start`, 1-based like every other
-    # position this census states -- `start`, `end`, `edit_start`, `edit_end`.
+    original_start: int = 0
+    original_end: int = 0
+    # !! WHERE THE `c` PLACE BEGINS ON `original_start`, 1-based like every other
+    # position this census states -- `start`, `end`, `original_start`, `original_end`.
     # Two values:
     #
     #    0      the paragraph owns its lines WHOLE. Not a column: 0 is not one, and
@@ -144,7 +159,7 @@ class Paragraph:
     #           the room beside the code starts. A `trailing-comment`, a
     #           `margin`, a paragraph comment opened after a statement. It is what
     #           lets the galley write one without deleting the code: the splice
-    #           keeps `line[: edit_column - 1]`.
+    #           keeps `line[: original_column - 1]`.
     #
     # !! IT IS THE END OF THE CODE, NOT THE START OF THE PROSE, and Roy ruled
     # it 2026-08-19: *"c addresses start at the end of the code on the line."*
@@ -166,12 +181,12 @@ class Paragraph:
     # came first. That was enough to REFUSE the write and not enough to make it,
     # and the `c` series exists to be written. Roy, 2026-08-19: *"c needs to be
     # writeable. It is the reason c is not an extension of b."*
-    edit_column: int = 0
+    original_column: int = 0
 
     def __post_init__(self) -> None:
-        """Default the edit range to the addressing range."""
-        if not self.edit_start and not self.edit_end:
-            self.edit_start, self.edit_end = self.start, self.end
+        """Default the covered lines to the addressing range."""
+        if not self.original_start and not self.original_end:
+            self.original_start, self.original_end = self.start, self.end
 
 
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
@@ -487,7 +502,7 @@ def _own_characters(span: list[str], column: int) -> list[str]:
 
     Args:
         span: the paragraph's physical lines, without endings.
-        column: the paragraph's `edit_column`; 0 when it owns its lines whole.
+        column: the paragraph's `original_column`; 0 when it owns its lines whole.
 
     Returns:
         The same lines, with the first cut at `column`.
@@ -523,7 +538,7 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     Args:
         lines: the file's lines, without endings.
         line_no: 1-based line the paragraph opens on.
-        column: that paragraph's `edit_column`.
+        column: that paragraph's `original_column`.
 
     Returns:
         The code preceding the paragraph on its first line, right-stripped.
@@ -562,7 +577,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     # same stamp. A list because `flush` is a closure and rebinds nothing.
     trailing_end = [_NO_TRAILING]
 
-    # !! WHERE THE RUN'S FIRST LINE STOPS BEING CODE -- the `edit_column` this
+    # !! WHERE THE RUN'S FIRST LINE STOPS BEING CODE -- the `original_column` this
     # tier states, one past the last character of code, or 0 when the run owns
     # its lines whole.
     #
@@ -593,7 +608,16 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         if is_doc:
             kind = "docstring"
         else:
-            kind = "trailing-comment" if trailing else "comment"
+            # !! CODE ON THE FIRST LINE MAKES IT TRAILING, however many lines it
+            # then runs for. Roy, 2026-08-20: *"`c`s are trailing comments by
+            # definition of how they are placed."* A `c` is the room beside a
+            # line of code, so prose occupying that room IS a trailing comment
+            # and the kind must say so. ! `trailing` alone answers only the
+            # single-line case: a paragraph comment opened after a statement
+            # flushes with `trailing=False`, because by then the run spans
+            # several lines -- so `int b = 2; /* opens` was censused as a plain
+            # `comment` sitting at a `c` place, and kind and series disagreed.
+            kind = "trailing-comment" if trailing or partial_first[0] else "comment"
         paragraph = Paragraph(
             path=path.as_posix(),
             start=run[0][0],
@@ -603,7 +627,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             text=_join(raw, openers),
             raw_lines=span,
             tier="lexical",
-            edit_column=partial_first[0],
+            original_column=partial_first[0],
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in
             # order to cut there, so the characters before it were known one
             # step earlier and were thrown away. Roy, 2026-08-19: *"the lexer
@@ -858,7 +882,7 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
                     # between a statement and its comment belongs to the `c`
                     # place, so a `margin` and the trailing comment that would
                     # replace it carry the same column.
-                    edit_column=run[0][3],
+                    original_column=run[0][3],
                     lines=counted_lines(prose),
                     text=_join(prose),
                     # !! THE LINES THE PARAGRAPH SPANS, not the lines that carry a

@@ -93,7 +93,7 @@ is broken."*
 | --- | --- |
 | `a` | the LINE that declares it -- `def f():`, not `f`. The name is not carried: Roy, 2026-08-19, *"drop it -- the line is the anchor"* |
 | `b` | the code line BELOW the gap -- the statement the prose introduces. At the end of a file, the line above, because that is the bound the gap has |
-| `c` | the code on its own line, which is `line[:edit_column - 1]` |
+| `c` | the code on its own line, which is `line[:original_column - 1]` |
 
 !! **A RECORD WITH NO ANCHOR IS A BROKEN RECORD** -- Roy -- and `record.seeded_problems` says so.
 Measured 2026-08-19 against the commit before that rule: **6,376 of 6,531 blocks in this repo's
@@ -157,8 +157,8 @@ import name.
 **Not at the `#`.** Roy ruled it 2026-08-19: *"c addresses start at the end of the code on the
 line."* The whitespace separating a statement from its trailing comment belongs to the `c` place,
 so `margin` and `trailing-comment` on one line carry the SAME column and an `add` and a `patch`
-write to the same point. The census states it as `edit_column`, 1-based, `0` where the block owns
-its lines whole; `galley.splice` keeps `line[:edit_column - 1]` and replaces the rest.
+write to the same point. The census states it as `original_column`, 1-based, `0` where the block owns
+its lines whole; `galley.splice` keeps `line[:original_column - 1]` and replaces the rest.
 
 ! **It is a little opinionated, and it is the opinion every formatter already holds.** black and
 ruff normalise the gap before an inline comment to two spaces, `gofmt` aligns it, `cargo fmt` the

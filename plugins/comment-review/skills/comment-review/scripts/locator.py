@@ -68,7 +68,7 @@ def at(paragraphs: list[dict], path: str, line: int) -> list[tuple[int, dict]]:
     an ordinary statement had no sanctioned route at all: the brief says ask the
     locator, and the locator could not answer.
 
-    ! It reads `edit_start`, which is where prose WOULD go -- the same field the
+    ! It reads `original_start`, which is where prose WOULD go -- the same field the
     galley splices at, so the place this names is the place a write lands in.
 
     ! A line legitimately has SEVERAL places: the gap above it, the room beside
@@ -90,7 +90,7 @@ def at(paragraphs: list[dict], path: str, line: int) -> list[tuple[int, dict]]:
         # ! Only for a place that occupies NOTHING. A place with lines is found
         # by them; matching its edit range too would return it twice for one
         # line, and return a prose paragraph for a line it does not sit on.
-        if start == 0 and paragraph.get("edit_start") == line:
+        if start == 0 and paragraph.get("original_start") == line:
             found.append((i, paragraph))
     return found
 
@@ -157,14 +157,14 @@ def main() -> int:
         if not where:
             # ! NAMED, not blank. An empty column reads as "this place has no
             # address"; the truth is that this CENSUS cannot say, because it
-            # predates the `edit_start` the gap number is read from.
+            # predates the `original_start` the gap number is read from.
             where = "NO-ADDRESS"
-            stale = paragraph.get("edit_start") is None
+            stale = paragraph.get("original_start") is None
         span = f"{paragraph.get('start')}-{paragraph.get('end')}"
         print(f"{index}\t{where}\t{span}\t{paragraph.get('kind', '')}")
     if stale:
         print(
-            "\n! This census carries no `edit_start`, so no address can be"
+            "\n! This census carries no `original_start`, so no address can be"
             " derived from it. Re-run census.py; the line ranges above stand."
         )
     return 0

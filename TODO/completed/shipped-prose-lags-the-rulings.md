@@ -70,7 +70,7 @@ and updated in one -- applied to prose rather than to code.
 - [x] **DONE 2026-08-19.** `reviewer-brief.md`'s worked record opened `{ "block": 17,` -- a field
       `--seed` no longer writes.
 - [x] **DONE 2026-08-19.** ~25 producer docstrings described removed behaviour. `intervals()`
-      contradicts itself inside one docstring; `census.py` says `edit_start` is
+      contradicts itself inside one docstring; `census.py` says `original_start` is
       set "nowhere else" and it is set in three places; `splice_range` states a
       fallback its body removed; `stable()` names a function that does not exist
       and the one site `census.py` forbids.

@@ -140,7 +140,7 @@ class TestAPlaceAtLineZeroIsReachable(unittest.TestCase):
     every one an `interval` or an `undocumented`.** An `add` above an ordinary
     statement had no sanctioned route at all.
 
-    ! The fix reads `edit_start` -- where prose WOULD go, and the same field the
+    ! The fix reads `original_start` -- where prose WOULD go, and the same field the
     galley splices at -- so the place a lookup names is the place a write lands
     in.
     """
@@ -178,7 +178,7 @@ class TestAPlaceAtLineZeroIsReachable(unittest.TestCase):
         gap = next(
             b for b in self.paragraphs if b["kind"] == "interval" and b["start"] == 0
         )
-        got = locator.at(self.paragraphs, "m.py", gap["edit_start"])
+        got = locator.at(self.paragraphs, "m.py", gap["original_start"])
         self.assertIn(gap["address"], [b["address"] for _, b in got])
 
     def test_ONE_line_answers_with_several_places(self):

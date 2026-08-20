@@ -173,7 +173,7 @@ def paragraph_matches(lines: list[str], paragraph: dict) -> bool:
     # against what the census SAID rather than against a guess about which of
     # them it stored -- the two tiers stored different halves, and no single
     # comparison satisfied both.
-    column = paragraph.get("edit_column", 0)
+    column = paragraph.get("original_column", 0)
     if column > 0:
         if start < 1 or end > len(lines) or start > end:
             return False
@@ -220,7 +220,7 @@ def unanswerable(paragraphs: list[dict]) -> str | None:
     Returns:
         One sentence naming what is missing, or None.
     """
-    for field in ("edit_column", "edit_start", "edit_end"):
+    for field in ("original_column", "original_start", "original_end"):
         if any(field not in b for b in paragraphs):
             return (
                 f"this census carries no `{field}` -- it predates the field that"
@@ -250,7 +250,7 @@ def splice_range(paragraph: dict) -> tuple[int, int]:
     case for each, and the census already knows which lines each paragraph's text
     occupies.
 
-    ! It reads `edit_start`/`edit_end`, falling back to `start`/`end` for a
+    ! It reads `original_start`/`original_end`, falling back to `start`/`end` for a
     census taken before those existed. The fallback is why this function is
     still here rather than inlined.
 
@@ -270,7 +270,7 @@ def splice_range(paragraph: dict) -> tuple[int, int]:
     # fields, so a missing one here is a bug and should raise rather than be
     # guessed at -- and the guess had a trap: `or` reads a legitimate edit
     # range ending at 0, the gap above the first line, as absent.
-    return (paragraph["edit_start"], paragraph["edit_end"])
+    return (paragraph["original_start"], paragraph["original_end"])
 
 
 def main() -> int:
@@ -369,7 +369,7 @@ def main() -> int:
         # ! The range comes from the PARAGRAPH, not from the census numbers the
         # edit was grouped by: an interval is inserted into, not replaced.
         ranges = [
-            (*splice_range(paragraph), paragraph["edit_column"], r)
+            (*splice_range(paragraph), paragraph["original_column"], r)
             for r, paragraph in file_edits
         ]
 

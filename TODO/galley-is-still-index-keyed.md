@@ -28,6 +28,25 @@ Corrected: 2026-08-20 — 2026-08-20 -- the note above claimed `overlaps` must s
            1, both return no clash, because an insert's range is `(n, n-1)` and the test
            is `b_start <= a_end`. Two genuinely overlapping paragraph ranges still
            clash. ! So the work here is the SORT KEY alone -- `overlaps` needs nothing.
+Measured: 2026-08-20 — 2026-08-20, the ORDER, measured rather than reasoned. ! A REPLACE
+          must be applied before an INSERT at the same line, or the insert's own text is
+          what gets replaced. Measured on `int b = 2;  /* old */`: applying the `b`
+          first then the `c` produced `/* the b:   /* the c */` -- the b's prose
+          truncated at the column with an opener welded on -- while `/* old */`, the
+          text the c was meant to replace, survived untouched on the next line. An `a`
+          fails identically: `\"\"\"wrapper's d  # counts the calls`. !! IT IS NOT ABOUT
+          WRAPPED COMMENTS. A single-line `c` corrupts the same way; wrapping only made
+          it visible. !! AND HALF THE RULE IS ALREADY STRUCTURAL: `splice` sorts
+          `(start, end, ...)` descending, an insert has `end < start` and a replace has
+          `end == start`, so a replace already sorts above an insert at one line and is
+          applied first. So `c` before `a` and `b` holds today by construction. ! THE
+          ONLY UNDECIDED STEP IS `a` vs `b` -- identical tuples, tie falls to the
+          replacement text's ASCII. Roy, 2026-08-20: *"the decision on ordering is all
+          galley work coming up on how it resets the paragraphs. The decision can be
+          made when we have these other pieces setup correctly."* DEFERRED to that work;
+          the measurements are here so it does not have to be re-derived.
+Updated:  2026-08-20 — ordering deferred to the galley rewrite; the measurements that
+          decide it are recorded above
 ```
 
 ## Objective

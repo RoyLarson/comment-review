@@ -33,30 +33,30 @@ BARE = (
 )
 
 A = [
-    {"path": "a.py", "start": 1, "end": 2, "kind": "interval", "edit_start": 1},
+    {"path": "a.py", "start": 1, "end": 2, "kind": "interval", "original_start": 1},
     {
         "path": "a.py",
         "start": 2,
         "end": 2,
         "kind": "trailing-comment",
-        "edit_start": 2,
-        "edit_column": 8,
+        "original_start": 2,
+        "original_column": 8,
     },
-    {"path": "a.py", "start": 3, "end": 5, "kind": "comment", "edit_start": 3},
+    {"path": "a.py", "start": 3, "end": 5, "kind": "comment", "original_start": 3},
     {
         "path": "a.py",
         "start": 6,
         "end": 6,
         "kind": "trailing-comment",
-        "edit_start": 6,
-        "edit_column": 8,
+        "original_start": 6,
+        "original_column": 8,
     },
-    {"path": "a.py", "start": 6, "end": 6, "kind": "interval", "edit_start": 7},
+    {"path": "a.py", "start": 6, "end": 6, "kind": "interval", "original_start": 7},
 ]
 B = [
-    {"path": "b.py", "start": 1, "end": 2, "kind": "interval", "edit_start": 1},
-    {"path": "b.py", "start": 2, "end": 3, "kind": "interval", "edit_start": 3},
-    {"path": "b.py", "start": 3, "end": 3, "kind": "interval", "edit_start": 4},
+    {"path": "b.py", "start": 1, "end": 2, "kind": "interval", "original_start": 1},
+    {"path": "b.py", "start": 2, "end": 3, "kind": "interval", "original_start": 3},
+    {"path": "b.py", "start": 3, "end": 3, "kind": "interval", "original_start": 4},
 ]
 
 
@@ -110,7 +110,7 @@ class TestOnAndBetween(unittest.TestCase):
         self.assertEqual(named(WITH_PROSE, A)[3], "c2")
 
     def test_an_interval_names_the_gap_AFTER_its_bounding_line(self):
-        # ! Read from `edit_start`, which the census states for the splice --
+        # ! Read from `original_start`, which the census states for the splice --
         # the addressing range cannot say it, because an interval spans the two
         # code lines around the gap rather than the gap itself.
         self.assertEqual(named(BARE, B)[1], "b2")
@@ -131,16 +131,16 @@ class TestCodeOnTheFirstLine(unittest.TestCase):
     written against began with a blank line or a module docstring, so its
     leading gap was `1-2` and the case could not arise.
 
-    ! The range is not what answers it now: `edit_start` is 1 for the leading
+    ! The range is not what answers it now: `original_start` is 1 for the leading
     gap and 2 for the next, so the two are separated by what the census STATES
     rather than by what a consumer infers from the bounds.
     """
 
     SRC = "use std::fmt;\n\n#[derive(Debug)]\npub enum X {}\n"
     PARAGRAPHS = [
-        {"path": "c.rs", "start": 1, "end": 1, "kind": "interval", "edit_start": 1},
-        {"path": "c.rs", "start": 1, "end": 3, "kind": "interval", "edit_start": 2},
-        {"path": "c.rs", "start": 3, "end": 4, "kind": "interval", "edit_start": 4},
+        {"path": "c.rs", "start": 1, "end": 1, "kind": "interval", "original_start": 1},
+        {"path": "c.rs", "start": 1, "end": 3, "kind": "interval", "original_start": 2},
+        {"path": "c.rs", "start": 3, "end": 4, "kind": "interval", "original_start": 4},
     ]
 
     def setUp(self):
@@ -174,14 +174,14 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
             "start": 1,
             "end": 1,
             "kind": "interval",
-            "edit_start": 1,
+            "original_start": 1,
         }
         two = {
             "path": "pkg/sub/a.py",
             "start": 1,
             "end": 1,
             "kind": "interval",
-            "edit_start": 1,
+            "original_start": 1,
         }
         self.assertNotEqual(
             foliator.flatten(one["path"]), foliator.flatten(two["path"])
@@ -194,13 +194,13 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
             "start": 1,
             "end": 1,
             "kind": "interval",
-            "edit_start": 1,
+            "original_start": 1,
         }
         self.assertEqual(foliator.flatten(paragraph["path"]), "pkg:sub:a.py")
 
-    def test_a_census_without_edit_start_is_REFUSED_not_guessed(self):
+    def test_a_census_without_original_start_is_REFUSED_not_guessed(self):
         # !! The range alone cannot separate the two gaps of a one-line file,
-        # which is the whole reason this reads `edit_start`. Falling back to it
+        # which is the whole reason this reads `original_start`. Falling back to it
         # would answer confidently and wrongly.
         old = {"path": "a.py", "start": 1, "end": 1, "kind": "interval"}
         self.assertEqual(page.attach(old, page.places_on("x = 1\n", [old])), "")
@@ -212,7 +212,7 @@ class TestAOneLineInitFile(unittest.TestCase):
     !! Roy, 2026-08-18: "here it is everywhere -- package/__init__.py,
     package/sub-package/__init__.py". A one-line `__init__.py` emits two
     intervals both spanning `1-1` -- the gap before the import and the gap after
-    it -- and `census.address` names them identically. `edit_start` is 1 and 2,
+    it -- and `census.address` names them identically. `original_start` is 1 and 2,
     which is what separates them.
     """
 
@@ -223,14 +223,14 @@ class TestAOneLineInitFile(unittest.TestCase):
             "start": 1,
             "end": 1,
             "kind": "interval",
-            "edit_start": 1,
+            "original_start": 1,
         },
         {
             "path": "package/__init__.py",
             "start": 1,
             "end": 1,
             "kind": "interval",
-            "edit_start": 2,
+            "original_start": 2,
         },
     ]
 
@@ -314,10 +314,10 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
             "start": 2,
             "end": 2,
             "kind": "comment",
-            "edit_start": 2,
-            "edit_end": 2,
+            "original_start": 2,
+            "original_end": 2,
             "raw_lines": ["# a note"],
-            "edit_column": 0,
+            "original_column": 0,
         }
     ]
 
@@ -336,7 +336,7 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
     def test_the_addresses_differ_silently_and_neither_errors(self):
         # !! THE POINT. Both answer, both look right, and they disagree. A blank
         # line prepended -- which is what a prose edit does -- moves the code
-        # down, so the paragraph's stated `edit_start` now has NO code line before
+        # down, so the paragraph's stated `original_start` now has NO code line before
         # it: `b2` becomes `b1`, naming a different place with no complaint.
         list(page.code_lines(self.SRC, self.PARAGRAPHS))
         list(page.code_lines("\n" + self.SRC, self.PARAGRAPHS))
@@ -421,7 +421,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
         # statement instead of overwriting it -- the interval convention.
         got = self._census("def bare():\n    return 1\n")
         bare = next(b for b in got if b.anchor == "def bare():")
-        self.assertEqual((bare.edit_start, bare.edit_end), (2, 1))
+        self.assertEqual((bare.original_start, bare.original_end), (2, 1))
 
     def test_filling_a_docstring_does_not_RENUMBER_the_series(self):
         # !! ONLY A CODE CHANGE SHIFTS IT, and stage 7b proves this tool makes
@@ -581,7 +581,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         self.assertEqual([b["start"] for b in found], [6])
         # ! The one fact that decides it -- not a list of kinds. `SHARES_ITS_LINE`
         # was a second way to ask, and it disagreed with this one.
-        self.assertTrue(found[0]["edit_column"])
+        self.assertTrue(found[0]["original_column"])
 
 
 class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
@@ -652,10 +652,17 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
 
     !! IT WAS DECIDED TWICE AND THE TWO DISAGREED. `address()` read a list of
     KINDS; `code_lines_of` read the paragraph. A `comment` opened after a
-    statement is in neither list and has a non-zero `edit_column`, so it took a `b`
+    statement is in neither list and has a non-zero `original_column`, so it took a `b`
     folio for a line it sits ON -- and that folio then named the comment AND the
     gap. Measured 2026-08-19 on `let b = 2; /* opens` / `and closes */`: `@b2`
     resolved to an empty interval, so every text check on the comment read "".
+
+    !! AND THE KIND WAS THE HALF STILL WRONG until 2026-08-20. Roy: *"`c`s are
+    trailing comments by definition of how they are placed."* This paragraph
+    took its `c` correctly and was still reported as a plain `comment`, because
+    the lexical tier asks `trailing`, which is false by the time a run spans
+    more than one line. Kind and series disagreed on the one paragraph this
+    class exists to pin.
     """
 
     SRC = "let a = 1;\nlet b = 2; /* opens\nand closes */\nlet c = 3;\n"
@@ -668,8 +675,13 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
 
     def test_the_comment_takes_a_c_because_code_precedes_it(self):
         got = self._census()
-        mid = next(b for b in got if b.kind == "comment")
-        self.assertTrue(mid.edit_column)
+        # ! Selected by its PROSE, so the assertion below is about neither the
+        # kind nor the series the paragraph was picked by.
+        mid = next(b for b in got if "opens" in b.text)
+        # ! A `c` IS a trailing comment. The kind says so now; it said `comment`
+        # until 2026-08-20 while sitting at a `c` place.
+        self.assertEqual(mid.kind, "trailing-comment")
+        self.assertTrue(mid.original_column)
         # ! The FOLIO, not the address -- the census composes `path@folio` now,
         # and the path is a temp directory here.
         self.assertTrue(mid.address.split("@")[-1].startswith("c"), mid.address)
@@ -825,7 +837,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
 
     def test_the_anchor_is_the_code_WITHOUT_either_comment(self):
         for b in self.paragraphs:
-            if b["edit_column"]:
+            if b["original_column"]:
                 with self.subTest(line=b["start"]):
                     self.assertEqual(b["anchor"], "X=2")
 
@@ -854,9 +866,9 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # ! Read from the EDIT range, which is the gap itself: the first is a
         # pure insertion above line 1, the second replaces line 3, the third
         # appends after 5.
-        self.assertEqual(by_folio["b1"]["edit_start"], 1)
-        self.assertEqual(by_folio["b2"]["edit_start"], 3)
-        self.assertEqual(by_folio["b3"]["edit_start"], 6)
+        self.assertEqual(by_folio["b1"]["original_start"], 1)
+        self.assertEqual(by_folio["b2"]["original_start"], 3)
+        self.assertEqual(by_folio["b3"]["original_start"], 6)
         for folio, paragraph in by_folio.items():
             with self.subTest(folio=folio):
                 self.assertEqual(paragraph["anchor"], "X=2")

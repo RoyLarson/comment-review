@@ -7,7 +7,7 @@ Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 Measured: 2026-08-19 — tasks 1-4 verified done 2026-08-19: locator.py:96 matches
-          start==0 and edit_start==line, and for_anchor's direct path answers one place
+          start==0 and original_start==line, and for_anchor's direct path answers one place
           per series for a line-1 declaration and BOTH of two same-named ones. Task 5
           stands and is worse than filed -- 63 of 164 places on locator.py's own census
           float to the head of the file as one fabricated run '@b1..b80' spanning 0-0.
