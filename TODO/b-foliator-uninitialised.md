@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 13 tasks done
+Progress: 0 of 14 tasks done
 Owner:    session * Roy (* 1 ruling -- the closing trigger)
 Requires-Roy: true
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
@@ -164,3 +164,9 @@ run restamps that run as a licence header -- is the same run's second defect and
       already exists, so it can contend with nothing. Measured on 'def
       my_func(the_var):' / '    print(the_var)': a0 shares a point with b1, a1
       with b2, and c1/c2 share with nothing.
+- [ ] `galley.overlaps()` CANNOT SEE two edits at one insertion point -- for two
+      empty ranges the test is `b_start <= a_end`, i.e. `4 <= 3`, False -- so it
+      reports no clash and applies both. ! The a -> b -> c ruling should make that
+      unreachable rather than caught: only `a` and `b` contend, and the order
+      settles them. Verify that when write-by-series lands, and either delete the
+      check or state what it still guards.

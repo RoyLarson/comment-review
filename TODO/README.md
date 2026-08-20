@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (35)
+### open  (36)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -205,11 +205,12 @@ that changed a published name or rule:
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | session | — | 0/2 | doc_is_structural means two things and its docstring names one |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | — | 5/7 | A docstring needs its own address series, and it names what it documents |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
-| [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 0/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
+| [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 4/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 0/6 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
-| [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 0/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
+| [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 2/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
-| [b-foliator-uninitialised](b-foliator-uninitialised.md) | session * Roy (* 1 ruling -- the closing trigger) | yes | 0/13 | The b foliator is never initialised at the module trigger, and computes its folio from line numbers |
+| [b-foliator-uninitialised](b-foliator-uninitialised.md) | session * Roy (* 1 ruling -- the closing trigger) | yes | 0/14 | The b foliator is never initialised at the module trigger, and computes its folio from line numbers |
+| [front-matter-restamps](front-matter-restamps.md) | session | — | 0/6 | Adding a module docstring restamps the comment run above it as front matter |
 
 ### in-progress  (4)
 
