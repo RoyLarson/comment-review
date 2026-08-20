@@ -2,10 +2,17 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 1 of 6 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
+Closed:   2026-08-20 — 2026-08-20 -- ONE OF THE SIX IS CLOSED. The front-matter ->
+          `query` conversion is now gated by two end-to-end tests that run the join and
+          read its output: one on a FILLED front-matter run and one on the EMPTY place.
+          VERIFIED as a gate by disabling the guard -- both fail, and the suite is green
+          with it restored. ! The old class asserted a `VERDICTS` flag and
+          `census.FRONT_MATTER == "front-matter"`; the import it needed is now gone,
+          which is how the vacuity surfaced.
 ```
 
 ## Objective
@@ -14,7 +21,7 @@ Six mutations to shipped code survive the whole suite.
 
 ## Tasks
 
-- [ ] !! DELETING `verdicts.py:445-469` ENTIRELY -- the 25 lines that convert a
+- [x] !! DELETING `verdicts.py:445-469` ENTIRELY -- the 25 lines that convert a
       reviewer's edit on front matter to a `query`, the one path stopping an edit
       landing on a licence header -- leaves 720 tests OK. The phrase occurs in
       tests only in a class DOCSTRING; no assertion anywhere that a verdict

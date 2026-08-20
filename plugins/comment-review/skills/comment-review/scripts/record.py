@@ -55,8 +55,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from foliator import FRONT, series_of  # noqa: E402  -- path shim first
 from page import (  # noqa: E402  -- path shim must run first
-    FRONT_MATTER,
     HOLDS_NO_PROSE,
 )
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
@@ -675,8 +675,7 @@ def prose_paragraphs(census: list[dict]) -> list[tuple[int, dict]]:
     return [
         (i, b)
         for i, b in enumerate(census, 1)
-        if b.get("kind") not in HOLDS_NO_PROSE
-        and FRONT_MATTER not in (b.get("annotations") or ())
+        if b.get("kind") not in HOLDS_NO_PROSE and series_of(b) != FRONT
     ]
 
 

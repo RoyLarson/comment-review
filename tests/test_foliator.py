@@ -230,4 +230,4 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
         # ! Inferred from `declares`/`original_column`, a series that is neither
         # comes back `b`. Read off the address, a new one answers as itself.
         made_up = {"address": "m.py@z7", "declares": -1, "original_column": 0}
-        self.assertEqual(foliator._series_of(made_up), "z")
+        self.assertEqual(foliator.series_of(made_up), "z")

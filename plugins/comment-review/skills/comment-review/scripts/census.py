@@ -48,7 +48,9 @@ from annotate import (  # noqa: E402  -- path shim must run first
     prose_numbers,
 )
 from foliator import (  # noqa: E402  -- path shim must run first
+    FRONT,
     SEPARATOR,
+    series_of,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
     BY_EXT,
@@ -60,7 +62,6 @@ from lexer import (  # noqa: E402  -- path shim must run first
     tier_for,
 )
 from page import (  # noqa: E402  -- path shim must run first
-    FRONT_MATTER,
     HOLDS_NO_PROSE,
     page_for,
 )
@@ -491,7 +492,7 @@ def _report(args: argparse.Namespace) -> int:
         # explicit flag a reader comparing the two listings cannot tell a file
         # with a licence header from one without.
         if args.filtered and not args.include_front_matter:
-            if FRONT_MATTER in b.annotations:
+            if series_of(vars(b)) == FRONT:
                 continue
         if args.filtered and b.kind in HOLDS_NO_PROSE:
             run.append(i)

@@ -9,8 +9,8 @@ import unittest
 from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
-import census
 import lexer
+import page
 import held
 import record
 import desk
@@ -3021,6 +3021,75 @@ class TestAnEditOnFrontMatterBecomesAQuery(unittest.TestCase):
         self.assertFalse(record.VERDICTS["clean"].owes_change)
         self.assertFalse(record.VERDICTS["query"].owes_change)
 
-    def test_the_marked_block_is_the_one_above_the_module_docstring(self):
-        # ! The census decides which paragraph; this file only acts on the mark.
-        self.assertEqual(census.FRONT_MATTER, "front-matter")
+    def _conversion(self, source: str) -> str:
+        """Run the join over an `add` on this file's `f` place, and return stdout.
+
+        !! THE PLACE COMES FROM A REAL PAGE, so the census carries whatever the
+        walk actually emits -- a `comment` annotated `front-matter` when the file
+        has some, a `dark-matter` when it has none. Hand-building the entry is
+        how the old test came to assert a constant's spelling.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "m.py").write_text(source, encoding="utf-8")
+            path = Path("m.py")
+            got = page.page_for(path, source, lexer.language_for(path), "m.py")
+            entries = [vars(b) for b in got]
+            for e in entries:
+                e["annotations"] = sorted(e["annotations"])
+            census_path = root / "c.json"
+            census_path.write_text(json.dumps(entries), encoding="utf-8")
+            place = next(
+                i
+                for i, e in enumerate(entries, 1)
+                if str(e["address"]).split("@")[-1].startswith("f")
+            )
+            address = entries[place - 1]["address"]
+            report = root / "ownership-context.md"
+            report.write_text(
+                "--- RECORD\n"
+                f"BLOCK       {place} | {address}\n"
+                "VERDICT     add\n"
+                "REASON      this file should carry the project licence\n"
+                "CLAIM       anchor: the module\n"
+                "CHANGE      # Copyright 2026 Roy.\n"
+                "---\n",
+                encoding="utf-8",
+            )
+            return subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "verdicts.py"),
+                    "--census",
+                    str(census_path),
+                    "--repo",
+                    str(root),
+                    str(report),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            ).stdout
+
+    def test_an_add_on_FILLED_front_matter_becomes_a_query(self):
+        # !! THE CONVERSION ITSELF, RUN. Deleting the whole 25-line block in
+        # `verdicts.py` left the entire suite green until 2026-08-20: the only
+        # mention of it in the tests was a class docstring, and the two tests
+        # under it asserted a `VERDICTS` flag and a constant's spelling.
+        out = self._conversion('#!/usr/bin/env python\n"""Doc."""\nX = 1\n')
+        self.assertIn("FRONT MATTER", out)
+        self.assertIn("turned into", out)
+        self.assertIn("query", out)
+
+    def test_an_add_on_the_EMPTY_front_matter_place_becomes_a_query_TOO(self):
+        # !! THE CASE THE ANNOTATION MISSED. Only a FILLED run carries the
+        # `front-matter` annotation, so a file with NO licence header had an
+        # `f0` of kind `dark-matter` and no annotations -- and an `add` there,
+        # proposing the licence header that place exists for, went through
+        # without the human ever being asked. Measured 2026-08-20; closed by
+        # keying the guard on the SERIES, which both cases share.
+        out = self._conversion('"""Doc."""\nX = 1\n')
+        self.assertIn("FRONT MATTER", out)
+        self.assertIn("turned into", out)
+        self.assertIn("query", out)

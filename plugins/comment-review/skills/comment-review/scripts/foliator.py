@@ -663,7 +663,7 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
     # ! The paragraph's OWN series decides which places answer: an `a` declares,
     # a `c` has a column, a `b` has neither. No second field, no inference from
     # kind.
-    direct = [b for b in mine if _series_of(b) == series]
+    direct = [b for b in mine if series_of(b) == series]
     if direct:
         return direct
     at = next(
@@ -694,7 +694,7 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
     return []
 
 
-def _series_of(paragraph: dict) -> str:
+def series_of(paragraph: dict) -> str:
     """Which series this paragraph's own address is in -- `a`, `b` or `c`.
 
     !! READ OFF THE ADDRESS, which is the one place the series is STATED. It was

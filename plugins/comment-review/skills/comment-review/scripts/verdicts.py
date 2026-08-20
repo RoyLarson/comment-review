@@ -93,9 +93,9 @@ from desk import (  # noqa: E402  -- path shim must run first
     ruled_text,
     source_problem,
 )
+from foliator import FRONT, series_of  # noqa: E402  -- path shim first
 from held import address_of, load_report  # noqa: E402  -- path shim must run first
 from page import (
-    FRONT_MATTER,  # noqa: E402  -- path shim must run first
     HOLDS_NO_PROSE,  # noqa: E402  -- path shim must run first
 )
 from record import (  # noqa: E402  -- path shim must run first
@@ -359,7 +359,7 @@ def _report(args: argparse.Namespace) -> int:
         for b in paragraphs
         if b.get("kind") not in HOLDS_NO_PROSE
         and b.get("address")
-        and FRONT_MATTER not in (b.get("annotations") or ())
+        and series_of(b) != FRONT
     }
 
     fatal = 0
@@ -443,7 +443,13 @@ def _report(args: argparse.Namespace) -> int:
             # verdict proposes an EDIT" -- not a verdict NAME. `clean` and
             # `query` propose none and are left exactly as they were.
             proposes = VERDICTS.get(f.verdict)
-            if FRONT_MATTER in (held.get("annotations") or ()) and (
+            # !! THE SERIES, NOT THE ANNOTATION. Only a FILLED front-matter
+            # run carries the annotation, so an `add` on the EMPTY place --
+            # proposing the licence header that place exists for -- reached
+            # the galley without the human ever being asked. Measured
+            # 2026-08-20 on a file with no front matter: `f0` is
+            # `dark-matter`, annotations `[]`, and the guard did not fire.
+            if series_of(held) == FRONT and (
                 proposes is not None and proposes.owes_change
             ):
                 print(

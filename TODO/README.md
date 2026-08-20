@@ -224,7 +224,7 @@ that changed a published name or rule:
 | [convert-drops-every-record](convert-drops-every-record.md) | session | — | 0/3 | 91 findings -> 0 filled records, exit 0, on a real 0.2.x report |
 | [stage-5-certifies-an-unaddressed-census](stage-5-certifies-an-unaddressed-census.md) | session | — | 0/2 | all_blocks drops falsy addresses, so an unaddressed census passes at exit 0 |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | session | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
-| [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | session | — | 0/6 | 720 tests green against six deliberate defects in shipped code |
+| [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | session | — | 1/6 | 720 tests green against six deliberate defects in shipped code |
 | [the-xfails-never-reach-the-galley](the-xfails-never-reach-the-galley.md) | session | — | 0/3 | they fail in the test helper on a retired lookup, not in splice_range |
 | [the-rename-corrupted-live-prose](the-rename-corrupted-live-prose.md) | session | — | 0/5 | a blanket word swap turned verbs and a role name into nonsense |
 | [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | session | — | 0/2 | shipped prose says an anchor is often empty; it is never empty |

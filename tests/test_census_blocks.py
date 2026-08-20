@@ -8,7 +8,6 @@ from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS
 import annotate
-import census
 import galley
 import lexer
 import page
@@ -522,7 +521,7 @@ class TestFrontMatterIsMarked(unittest.TestCase):
 
     def _marked(self, text):
         return [
-            b.start for b in self._census(text) if census.FRONT_MATTER in b.annotations
+            b.start for b in self._census(text) if page.FRONT_MATTER in b.annotations
         ]
 
     LICENCE = '# Copyright 2024\n# Apache 2.0\n\n"""What this is."""\n\nimport os\n'

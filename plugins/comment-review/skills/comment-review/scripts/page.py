@@ -66,6 +66,7 @@ from foliator import (  # noqa: E402  -- path shim must run first
     Foliation,
     flatten,
     foliate,
+    series_of,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
     Language,
@@ -117,9 +118,13 @@ HOLDS_NO_PROSE = ("interval", "undocumented", "margin", "dark-matter")
 # says which runs are the file's own; `attach` gives them the `f` place wherever
 # they sit, rather than the gap they happen to occupy.
 #
-# ! THE ANNOTATION SURVIVED THE SERIES. A run stamped here is `kind="comment"`
-# annotated `front-matter`; the EMPTY place is `kind="matter"`. Two facts, and
-# the annotation is what `--filtered` and the record rules read.
+# !! THE ANNOTATION IS THE PRODUCER, NOT THE QUESTION. `mark_front_matter`
+# stamps it and `attach` reads it to give the paragraph its `f` place -- and
+# after that, EVERY consumer asks the SERIES: the census filter, the
+# accountability set, the `query` guard, the record seeding, and `Page.prose`.
+# ! Asking the annotation downstream missed the EMPTY place, which carries none:
+# an `add` proposing a licence header on a file that has none was never turned
+# into a query. Measured 2026-08-20.
 FRONT_MATTER = "front-matter"
 
 
@@ -171,11 +176,18 @@ class Page:
         ! The empty places are ADDRESSABLE and not accountable: an `add` cites
         one, and nobody owes it a ruling. Front matter is prose and is not
         accountable either -- no role can settle a licence header.
+
+        ! ASKED BY SERIES, not by the annotation. Since 2026-08-20 the file's
+        own matter is the `f` series, and every consumer that has to know reads
+        that -- `census.py`'s filter, `verdicts.py`'s accountability set and its
+        `query` guard, `record.py`'s seeding, and this. The annotation is what
+        `mark_front_matter` STAMPS and `attach` reads to give the paragraph its
+        place; asking it again downstream is a second way to ask one question.
         """
         return [
             b
             for b in self.paragraphs
-            if b.kind not in HOLDS_NO_PROSE and FRONT_MATTER not in b.annotations
+            if b.kind not in HOLDS_NO_PROSE and series_of(vars(b)) != FRONT
         ]
 
 
