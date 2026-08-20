@@ -47,6 +47,15 @@ Measured: 2026-08-20 — 2026-08-20, the ORDER, measured rather than reasoned. !
           the measurements are here so it does not have to be re-derived.
 Updated:  2026-08-20 — ordering deferred to the galley rewrite; the measurements that
           decide it are recorded above
+Blocked:  2026-08-20 — 2026-08-20 -- THE GALLEY NOW CANNOT SPLICE AN EMPTY PLACE AT ALL,
+          by design. `splice_range` reads `original_start`/`original_end`, which are
+          None wherever no line carries that foliation, so there is no range to hand
+          `splice`. That is correct: where prose LANDS is the galley's to decide from
+          the ADDRESS, and Roy dropped `locator.py` for offering the same answer --
+          *"which lines to edit is no longer helpful."* ! 8 tests in
+          `test_galley.TestAnIntervalIsInsertedInto` are marked `expectedFailure` and
+          report an UNEXPECTED SUCCESS the moment this is rebuilt. ! They are gated OUT
+          by box R7 of docs/plans/0.2.5: no expectedFailure survives the plan.
 ```
 
 ## Objective

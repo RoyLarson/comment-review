@@ -217,7 +217,7 @@ that changed a published name or rule:
 | [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
 | [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | foliator.triggers() has no production caller and takes a shape the walk no longer uses |
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
-| [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | yes | 0/7 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
+| [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | yes | 6/7 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
 
 ### in-progress  (4)
 
