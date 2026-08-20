@@ -368,7 +368,7 @@ edits -- a prose edit moves the line numbers below it, and an address counts aga
 ```
 pkg:core.py@a5    a DECLARATION's documentation
 pkg:core.py@b3    a GAP between two lines of code
-pkg:core.py@f0    the FILE'S OWN front matter -- a licence, a shebang
+pkg:core.py@f0    the FILE'S OWN matter -- a licence, a shebang, an index
 pkg:core.py@c3    the room BESIDE a line of code
 ```
 

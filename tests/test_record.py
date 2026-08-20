@@ -879,7 +879,7 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
         list(page.code_lines(self.SRC, [vars(b) for b in paragraphs]))
         self.census = [vars(b) for b in paragraphs]
         self.marked = [
-            b for b in self.census if page.FRONT_MATTER in (b["annotations"] or ())
+            b for b in self.census if page.MATTER in (b["annotations"] or ())
         ]
 
     def test_the_fixture_really_has_front_matter(self):
@@ -899,13 +899,13 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
         for s in seeded:
             held = record.entry_for(s["address"], self.census) or {}
             with self.subTest(address=s["address"]):
-                self.assertNotIn(page.FRONT_MATTER, held.get("annotations") or ())
+                self.assertNotIn(page.MATTER, held.get("annotations") or ())
 
     def test_the_JOIN_and_the_SEED_agree_on_what_is_accountable(self):
         """!! They disagreed, which is how the gap reached nobody.
 
         `verdicts.py` builds its coverage set with the same two exclusions --
-        `HOLDS_NO_PROSE` and `FRONT_MATTER` -- and `record.prose_paragraphs`
+        `HOLDS_NO_PROSE` and `MATTER` -- and `record.prose_paragraphs`
         excluded only the first.
         """
         seeded = {s["address"] for s in record.seed(self.census, "x")["records"]}
@@ -914,6 +914,6 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
             for b in self.census
             if b.get("kind") not in page.HOLDS_NO_PROSE
             and b.get("address")
-            and page.FRONT_MATTER not in (b.get("annotations") or ())
+            and page.MATTER not in (b.get("annotations") or ())
         }
         self.assertEqual(seeded, accountable)

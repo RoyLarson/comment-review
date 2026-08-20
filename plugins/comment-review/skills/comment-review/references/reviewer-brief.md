@@ -71,7 +71,7 @@ separate foliators, and no number in one tells you a number in another -- nor do
 position tell you either. Two of them lining up on the file in front of you is a coincidence of
 that file, and it may change.
 
-! **`@f0` IS THE FILE'S OWN FRONT MATTER** -- a licence header, a shebang, a coding line -- and
+! **`@f0` IS THE FILE'S OWN MATTER** -- a licence header, a shebang, a coding line -- and
 not the gap above the first line of code. It is filtered out of your census, and any edit proposed
 on it becomes a `query`.
 

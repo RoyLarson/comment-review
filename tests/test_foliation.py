@@ -548,7 +548,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         !! AND IT EXISTS WHETHER OR NOT ANYTHING SITS IN IT. This test asserted
         the opposite until 2026-08-20 -- that the module had a `b` ONLY where the
         file had front matter -- which was the defect stated as a rule: `b0` was
-        emitted by a branch that fired when `mark_front_matter` had already
+        emitted by a branch that fired when `mark_matter` had already
         stamped prose, so `b0` and `b1` were mutually exclusive and Roy's `b1`
         mark was unresolvable on a file that gained a licence.
 

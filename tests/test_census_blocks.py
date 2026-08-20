@@ -520,9 +520,7 @@ class TestFrontMatterIsMarked(unittest.TestCase):
             return page.page_for(path, text, lexer.language_for(path))
 
     def _marked(self, text):
-        return [
-            b.start for b in self._census(text) if page.FRONT_MATTER in b.annotations
-        ]
+        return [b.start for b in self._census(text) if page.MATTER in b.annotations]
 
     LICENCE = '# Copyright 2024\n# Apache 2.0\n\n"""What this is."""\n\nimport os\n'
     SHEBANG = '#!/usr/bin/env python3\n\n"""What this is."""\n\nimport os\n'
@@ -565,7 +563,7 @@ class TestFrontMatterIsMarked(unittest.TestCase):
             )
             self.assertEqual(out.returncode, 0, out.stderr[-300:])
             self.assertNotIn("Copyright", out.stdout)
-            self.assertNotIn("front-matter", out.stdout)
+            self.assertNotIn("matter", out.stdout)
 
 
 class TestAPathThatCannotBeAddressedIsAGap(unittest.TestCase):

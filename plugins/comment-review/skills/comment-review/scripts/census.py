@@ -242,10 +242,11 @@ def main() -> int:
         help="the reviewer's view: prose paragraphs, and one line per run of intervals",
     )
     ap.add_argument(
-        "--include-front-matter",
+        "--include-matter",
         action="store_true",
-        help="keep front matter in a --filtered listing (it is dropped by default);"
-        " no effect on an unfiltered run or on --json, which never drop it",
+        help="keep the file's OWN matter -- a licence, a shebang, an index --"
+        " in a --filtered listing (it is dropped by default); no effect on an"
+        " unfiltered run or on --json, which never drop it",
     )
     ap.add_argument(
         "--out", metavar="PATH", help="write the report to PATH, not stdout"
@@ -480,18 +481,18 @@ def _report(args: argparse.Namespace) -> int:
         # ! Collapsing rather than dropping keeps what an `add` is about
         # visible: a stretch of code carrying no commentary. The run NAMES ITS
         # ENDS, so every place inside it is still citable by address.
-        # !! FRONT MATTER IS DROPPED FROM WHAT A REVIEWER READS, not collapsed
+        # !! THE FILE'S OWN MATTER IS DROPPED FROM WHAT A REVIEWER READS, not
         # into a run. A licence header or a shebang is not a claim about the
         # code, so no role can settle it and every role would return `clean` on
-        # it every run -- see `mark_front_matter`. It keeps its address and its
+        # it every run -- see `mark_matter`. It keeps its address and its
         # index, so a `move` may still cite it; what it loses is a reviewer's
         # attention and a record it owes.
-        # ! `--include-front-matter` OVERRIDES that, and is the only way to see
-        # it in a filtered listing. Front matter is the one prose a filtered run
+        # ! `--include-matter` OVERRIDES that, and is the only way to see it in
+        # a filtered listing. The `f` series is the one prose a filtered run
         # drops entirely rather than collapsing into a run, so without an
         # explicit flag a reader comparing the two listings cannot tell a file
         # with a licence header from one without.
-        if args.filtered and not args.include_front_matter:
+        if args.filtered and not args.include_matter:
             if series_of(vars(b)) == FRONT:
                 continue
         if args.filtered and b.kind in HOLDS_NO_PROSE:

@@ -91,7 +91,7 @@ class TestEveryMarkedAddressExists(unittest.TestCase):
     def test_f0_exists_on_a_file_with_no_front_matter(self):
         """!! FIXED 2026-08-20, and this was the pin that reported it.
 
-        `b0` used to be emitted only where `mark_front_matter` had already
+        `b0` used to be emitted only where `mark_matter` had already
         stamped prose that existed, so a file with no licence header had nowhere
         to put one -- measured over five file shapes, `b0` and `b1` never
         coexisted. The walk emits both now, and the page gives every place the

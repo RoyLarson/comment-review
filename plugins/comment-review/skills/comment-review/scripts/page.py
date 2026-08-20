@@ -114,18 +114,18 @@ HOLDS_NO_PROSE = ("interval", "undocumented", "margin", "dark-matter")
 # ordinary comment in every way but ownership: it belongs to the FILE and not to
 # whatever follows it.
 #
-# ! IT LIVES HERE BECAUSE THE PAGE BOTH STAMPS AND READS IT. `mark_front_matter`
+# ! IT LIVES HERE BECAUSE THE PAGE BOTH STAMPS AND READS IT. `mark_matter`
 # says which runs are the file's own; `attach` gives them the `f` place wherever
 # they sit, rather than the gap they happen to occupy.
 #
-# !! THE ANNOTATION IS THE PRODUCER, NOT THE QUESTION. `mark_front_matter`
+# !! THE ANNOTATION IS THE PRODUCER, NOT THE QUESTION. `mark_matter`
 # stamps it and `attach` reads it to give the paragraph its `f` place -- and
 # after that, EVERY consumer asks the SERIES: the census filter, the
 # accountability set, the `query` guard, the record seeding, and `Page.prose`.
 # ! Asking the annotation downstream missed the EMPTY place, which carries none:
 # an `add` proposing a licence header on a file that has none was never turned
 # into a query. Measured 2026-08-20.
-FRONT_MATTER = "front-matter"
+MATTER = "matter"
 
 
 @dataclass
@@ -181,7 +181,7 @@ class Page:
         own matter is the `f` series, and every consumer that has to know reads
         that -- `census.py`'s filter, `verdicts.py`'s accountability set and its
         `query` guard, `record.py`'s seeding, and this. The annotation is what
-        `mark_front_matter` STAMPS and `attach` reads to give the paragraph its
+        `mark_matter` STAMPS and `attach` reads to give the paragraph its
         place; asking it again downstream is a second way to ask one question.
         """
         return [
@@ -291,8 +291,8 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     # ! FRONT MATTER IS THE FILE'S, so it takes `f0` wherever it sits. Asking
     # `above()` would give it the gap it happens to occupy, which is the gap
     # that introduces the first statement and belongs to that statement.
-    if FRONT_MATTER in (paragraph.get("annotations") or ()):
-        return foliation.front_matter()
+    if MATTER in (paragraph.get("annotations") or ()):
+        return foliation.matter()
     if paragraph.get("original_column", 0):
         start = paragraph.get("start")
         return foliation.beside(start) if isinstance(start, int) else ""
@@ -540,7 +540,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     if not any(b.kind == "unparsed" for b in got):
         # ! BEFORE the walk, because a run that is FRONT MATTER takes `f0` and
         # this is what says which runs those are.
-        mark_front_matter(got)
+        mark_matter(got)
         # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
         # Reversed -- each paragraph computing its own folio -- a place existed
         # only when prose happened to fill it, which is how `b0` and `b1` came
@@ -596,7 +596,7 @@ _SHEBANG = re.compile(r"^#!")
 _CODING = re.compile(r"coding[:=]\s*[-\w.]+")
 
 
-def mark_front_matter(paragraphs: list[Paragraph]) -> None:
+def mark_matter(paragraphs: list[Paragraph]) -> None:
     """Stamp the prose that sits ABOVE a module's own docstring.
 
     !! WHAT IT IS. A licence header, a shebang, a coding declaration -- the
@@ -640,9 +640,9 @@ def mark_front_matter(paragraphs: list[Paragraph]) -> None:
             continue
         opens = (b.raw_lines or [""])[0].strip()
         if _SHEBANG.match(opens) or _CODING.search(opens):
-            b.annotations.add(FRONT_MATTER)
+            b.annotations.add(MATTER)
         elif doc is not None and b.end < doc.start:
-            b.annotations.add(FRONT_MATTER)
+            b.annotations.add(MATTER)
 
 
 def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:

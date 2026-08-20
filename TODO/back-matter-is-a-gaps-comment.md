@@ -19,6 +19,16 @@ Ruled:    2026-08-20 — 2026-08-20 -- ONE SERIES FOR THIS LABEL TYPE. Roy: fron
           and `page.empty_places` RAISES on a series it has no branch for rather than
           dropping the place silently. Five tests guard it. ! What is still open here is
           the RECOGNITION half -- nothing looks for matter at the bottom of a file.
+Narrowed: 2026-08-20 — 2026-08-20 -- the NAMING half is done and back matter is no
+          longer hypothetical. Roy named the cases: *"like an index or a glossary or
+          footnotes"* -- which is the publishing definition of back matter, and lands
+          hardest on DOCUMENTATION files. Renamed so nothing encodes an end:
+          `mark_front_matter` -> `mark_matter`, `FRONT_MATTER` -> `MATTER`, the
+          annotation value `front-matter` -> `matter`, `Foliation.front_matter()` ->
+          `Foliation.matter()`, and the CLI flag `--include-front-matter` -> `--include-
+          matter`. ! What remains is the RECOGNITION half only: `mark_matter` still asks
+          one positional question about the TOP of the file. ! It meets `a-prose-file-
+          has-no-blocks`, since an index or a glossary is a documentation-file shape.
 ```
 
 ## Objective

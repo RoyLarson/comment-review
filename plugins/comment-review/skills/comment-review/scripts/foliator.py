@@ -81,7 +81,7 @@ Four series, because prose answers to one of exactly four subjects:
     package:core.py@a5    the 5th DECLARATION's documentation
     package:core.py@c3    BESIDE a line of code
     package:core.py@b3    a GAP between two lines of code
-    package:core.py@f0    the FILE'S OWN front matter
+    package:core.py@f0    the FILE'S OWN matter, at either end
 
 !! NO FOLIO IS COMPUTABLE FROM ANOTHER, OR FROM A LINE'S ORDINAL. Roy,
 2026-08-19: *"remove any references that indicate anyone can expect that the
@@ -356,7 +356,7 @@ class Foliation:
     _declared: dict[int, str] = field(default_factory=dict)
     _closing: str = ""
     _code: list[int] = field(default_factory=list)
-    # ! The file's own place, as the walk emitted it -- see `front_matter`.
+    # ! The file's own place, as the walk emitted it -- see `matter`.
     _front: str = ""
 
     def above(self, line: int) -> str:
@@ -378,7 +378,7 @@ class Foliation:
         """The `a` for the nth documentable declaration; 0 is the module."""
         return self._declared.get(ordinal, "")
 
-    def front_matter(self) -> str:
+    def matter(self) -> str:
         """`f0` -- the file's own prose, above anything it declares.
 
         ! It is not the gap above the first line of code. That is `b1`, and the
