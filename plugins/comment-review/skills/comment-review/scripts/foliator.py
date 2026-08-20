@@ -1,14 +1,28 @@
-"""An address that survives the edits this tool makes.
+"""THE FOLIATION: numbering the places on a page, and reading the number back.
 
-    python addresser.py --census census.json --repo D
+    python foliator.py --census census.json --repo D
 
-`address()` names a paragraph against the CODE -- `pkg:core.py@a5`. The form it
-replaced named it by LINE, `a.py:33-34`, which answers "where is this in the file
-I just read" and cannot answer "which place is this": this tool EDITS PROSE, and
-every prose edit moves the line numbers of the code below it, so two files
-differing only in comments disagree about where the same statement is.
-`line_address()` still reads the old form, warns, and is kept only to parse runs
-already recorded.
+Three FOLIATORS walk one trigger list -- the MODULE, then every line of code --
+each holding its own counter and the places it emitted. `foliate()` runs the
+walk; `Foliation` answers back, which address does this line belong to right
+now.
+
+!! IT WAS CALLED `addresser.py`, and the name was wrong the way `pCST` was.
+Roy, 2026-08-20: *"we have been using that word instead of address all session
+... it doesn't cause the system to crash but it also doesn't make the system
+work correctly either."* An ADDRESS is `path@folio`, and it is composed on the
+PAGE -- this module supplies the folio and flattens the path, and addresses
+nothing. Anyone reading the old name looked here for the wrong half.
+
+! FOLIATION, not pagination: the numbering of LEAVES, which is what a place is.
+A page is one file and its places are counted against the code, so nothing here
+numbers a page.
+
+! The form this replaced named a paragraph by LINE, `a.py:33-34`, which answers
+"where is this in the file I just read" and cannot answer "which place is this":
+this tool EDITS PROSE, and every prose edit moves the line numbers of the code
+below it. `line_address()` still reads the old form, warns, and is kept only to
+parse runs already recorded.
 
 !! AN ADDRESS IS NOT A SPAN OF LINES. EVERY LINE HAS EXACTLY ONE ADDRESS, AND A
 PARAGRAPH IS JUST THE LINES THAT SHARE ONE. Ruled 2026-08-19. ! Read it as a range
@@ -147,7 +161,7 @@ def line_address(paragraph: dict) -> str:
     !! IT WARNS ON EVERY CALL, deliberately. Roy: "any function method or
     otherwise that uses that form gets a deprecated warning on it now. To make
     certain it comes out." A note would have to be found; this arrives at
-    whoever runs the code. `tests/test_addresser.py` holds the shipped tree to
+    whoever runs the code. `tests/test_foliation.py` holds the shipped tree to
     zero callers outside the legacy reader.
 
     ! It was one format with one owner, and that is why it is still readable:
@@ -170,9 +184,9 @@ def line_address(paragraph: dict) -> str:
     prose edit moves the line numbers of the code below it, so an address is
     valid for the file its census was built from and no other. Measured
     2026-08-18 on a prose-only edit to a single docstring: 2 of 3 prose paragraphs
-    took a NEW line address, and 0 of 3 took a new one from `addresser.py`,
+    took a NEW line address, and 0 of 3 took a new one from `foliator.py`,
     which names a place against the CODE rather than the lines. Use this to say
-    where a thing is in the file you just read; use the addresser to say which
+    where a thing is in the file you just read; use the foliation to say which
     PLACE it is across two states of that file.
 
     ! The consequence is not cosmetic: a range REPLACE over an interval's
@@ -665,9 +679,9 @@ def main() -> int:
     #
     # !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
     # the thing an address exists to stop mattering. Roy, 2026-08-19: *"not
-    # necessary for addresser to do the staleness sweep as long as the original
+    # necessary for foliation to do the staleness sweep as long as the original
     # census is still an available document ... it doesn't matter that the file
-    # changed lines underneath it. In a small way it is the addresser stating
+    # changed lines underneath it. In a small way it is the foliation stating
     # the line numbers matter still."*
     #
     # ! A sweep WAS here, added after four artifacts three edits old were each

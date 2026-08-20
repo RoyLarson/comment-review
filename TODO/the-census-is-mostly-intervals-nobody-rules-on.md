@@ -175,7 +175,7 @@ not.** The change is to filter the census the same way and give the reviewer som
       -`**, one per code line, zero information, four times per run. ! The file's
       own cost table (1,120 blocks / 131,353 bytes) is a rotted measurement; re-
       measure with it. **Collapse on `HOLDS_NO_PROSE`, not on one kind.**
-- [ ] **A reviewer is told to run `&lt;skill&gt;/scripts/addresser.py` and nothing
+- [ ] **A reviewer is told to run `&lt;skill&gt;/scripts/foliator.py` and nothing
       resolves `&lt;skill&gt;`.** The packet carries REPO ROOT, CENSUS, LOOKUP
       CENSUS and REVIEWER FILES -- and REVIEWER FILES, the only section holding
       plugin paths, is explicitly withheld from reviewers. SKILL.md insists *"An

@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from addresser import stable  # noqa: E402  -- path shim must run first
+from foliator import stable  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
 # `path:line`, where the path may itself hold colons on Windows.

@@ -7,7 +7,7 @@ missed anywhere above a place RENAMES that place, silently and consistently.
 These tests hold the naming to the enumeration.
 """
 
-import collections  # noqa: I001  -- path shim below must import before addresser
+import collections  # noqa: I001  -- path shim below must import before foliation
 import contextlib
 import io
 import tempfile
@@ -15,7 +15,7 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
-import addresser
+import foliator
 import lexer
 import page
 
@@ -74,8 +74,7 @@ def addressed(text, paragraphs):
     """`path@folio` for each, composed the way `page_for` composes it."""
     foliation = page.places_on(text, paragraphs)
     return [
-        f"{addresser.flatten(b['path'])}@{page.attach(b, foliation)}"
-        for b in paragraphs
+        f"{foliator.flatten(b['path'])}@{page.attach(b, foliation)}" for b in paragraphs
     ]
 
 
@@ -185,7 +184,7 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
             "edit_start": 1,
         }
         self.assertNotEqual(
-            addresser.flatten(one["path"]), addresser.flatten(two["path"])
+            foliator.flatten(one["path"]), foliator.flatten(two["path"])
         )
 
     def test_a_windows_separator_is_normalised(self):
@@ -197,7 +196,7 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
             "kind": "interval",
             "edit_start": 1,
         }
-        self.assertEqual(addresser.flatten(paragraph["path"]), "pkg:sub:a.py")
+        self.assertEqual(foliator.flatten(paragraph["path"]), "pkg:sub:a.py")
 
     def test_a_census_without_edit_start_is_REFUSED_not_guessed(self):
         # !! The range alone cannot separate the two gaps of a one-line file,
@@ -246,8 +245,8 @@ class TestAOneLineInitFile(unittest.TestCase):
     def test_a_subpackage_of_the_same_name_is_a_different_place(self):
         sub = dict(self.PARAGRAPHS[0], path="package/subpackage/__init__.py")
         self.assertNotEqual(
-            addresser.flatten(sub["path"]),
-            addresser.flatten(self.PARAGRAPHS[0]["path"]),
+            foliator.flatten(sub["path"]),
+            foliator.flatten(self.PARAGRAPHS[0]["path"]),
         )
 
 
@@ -260,7 +259,7 @@ class TestTheInverse(unittest.TestCase):
 
     def test_a_flattened_path_resolves_against_the_census(self):
         self.assertEqual(
-            addresser.unflatten("pkg:sub:a.py", ["pkg/sub/a.py", "other/a.py"]),
+            foliator.unflatten("pkg:sub:a.py", ["pkg/sub/a.py", "other/a.py"]),
             "pkg/sub/a.py",
         )
 
@@ -269,16 +268,16 @@ class TestTheInverse(unittest.TestCase):
         # read `a.b.py`, and a dot in a FILE name is ordinary in most of the
         # eleven languages this census reads -- `app.test.js`, `types.d.ts`.
         # Picking one would answer a question nobody asked.
-        self.assertEqual(addresser.unflatten("a:b.py", ["a/b.py", "a:b.py"]), "")
+        self.assertEqual(foliator.unflatten("a:b.py", ["a/b.py", "a:b.py"]), "")
 
     def test_a_path_the_census_never_carried_resolves_to_nothing(self):
-        self.assertEqual(addresser.unflatten("nope.py", ["a/b.py"]), "")
+        self.assertEqual(foliator.unflatten("nope.py", ["a/b.py"]), "")
 
     def test_an_address_splits_into_path_and_folio(self):
-        self.assertEqual(addresser.folio_of("pkg:mod.py@b4"), ("pkg:mod.py", "b4"))
+        self.assertEqual(foliator.folio_of("pkg:mod.py@b4"), ("pkg:mod.py", "b4"))
 
     def test_a_string_with_no_folio_is_not_an_address(self):
-        self.assertEqual(addresser.folio_of("pkg:mod.py"), ("", ""))
+        self.assertEqual(foliator.folio_of("pkg:mod.py"), ("", ""))
 
     def test_every_address_finds_its_own_entry_again(self):
         # ! STAMPED FIRST, because `resolve` READS the census's `place` rather
@@ -290,11 +289,11 @@ class TestTheInverse(unittest.TestCase):
         ]
         for i, paragraph in enumerate(stamped, 1):
             with self.subTest(entry=i):
-                self.assertEqual(addresser.resolve(paragraph["address"], stamped), [i])
+                self.assertEqual(foliator.resolve(paragraph["address"], stamped), [i])
 
     def test_an_address_nothing_carries_comes_back_empty(self):
 
-        self.assertEqual(addresser.resolve("b.py@b100", B), [])
+        self.assertEqual(foliator.resolve("b.py@b100", B), [])
 
 
 class TestAStaleCensusIsRefused(unittest.TestCase):
@@ -522,7 +521,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         # ! The FOLIO only -- the temp path is noise here.
         return [
             b["address"].split("@")[-1]
-            for b in addresser.for_anchor(anchor, series, self.paragraphs)
+            for b in foliator.for_anchor(anchor, series, self.paragraphs)
         ]
 
     def test_a_declaration_has_a_place_in_every_series(self):
@@ -566,9 +565,9 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         path = Path("m.py")
         got = page.page_for(path, with_header, lexer.language_for(path))
         sorted(page.code_lines(with_header, got))
-        found = addresser.for_anchor("<module>", "b", [vars(b) for b in got])
+        found = foliator.for_anchor("<module>", "b", [vars(b) for b in got])
         self.assertEqual(
-            sorted(addresser.folio_of(b["address"])[1] for b in found), ["b0"]
+            sorted(foliator.folio_of(b["address"])[1] for b in found), ["b0"]
         )
 
     def test_an_anchor_the_census_never_stamped_answers_nothing(self):
@@ -578,7 +577,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         self.assertEqual(self._at("nosuchname", "b"), [])
 
     def test_the_c_it_names_is_the_DECLARATIONS_own_line(self):
-        found = addresser.for_anchor("def go(n):", "c", self.paragraphs)
+        found = foliator.for_anchor("def go(n):", "c", self.paragraphs)
         self.assertEqual([b["start"] for b in found], [6])
         # ! The one fact that decides it -- not a list of kinds. `SHARES_ITS_LINE`
         # was a second way to ask, and it disagreed with this one.
@@ -590,8 +589,8 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
 
     !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
     what an address exists to stop. Roy, 2026-08-19: *"not necessary for
-    addresser to do the staleness sweep as long as the original census is still
-    an available document ... In a small way it is the addresser stating the
+    foliation to do the staleness sweep as long as the original census is still
+    an available document ... In a small way it is the foliation stating the
     line numbers matter still."*
 
     ! A sweep was here and it refused a census built SECONDS earlier on every
@@ -605,7 +604,7 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
         import sys as _sys
 
         return subprocess.run(
-            [_sys.executable, str(SCRIPTS / "addresser.py"), *args],
+            [_sys.executable, str(SCRIPTS / "foliator.py"), *args],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -613,7 +612,7 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
         )
 
     def test_it_reads_no_file_but_the_census(self):
-        text = (SCRIPTS / "addresser.py").read_text(encoding="utf-8")
+        text = (SCRIPTS / "foliator.py").read_text(encoding="utf-8")
         body = text.split('"""', 2)[-1]
         self.assertEqual(body.count("read_text"), 1, "only the census is read")
         self.assertNotIn("from galley import", body)
@@ -713,28 +712,28 @@ class TestTheSeparatorIsAPathCannotHoldIt(unittest.TestCase):
     """
 
     def test_a_directory_and_a_dotted_filename_no_longer_collide(self):
-        self.assertNotEqual(addresser.flatten("a/b.py"), addresser.flatten("a.b.py"))
-        self.assertEqual(addresser.flatten("a/b.py"), "a:b.py")
-        self.assertEqual(addresser.flatten("a.b.py"), "a.b.py")
+        self.assertNotEqual(foliator.flatten("a/b.py"), foliator.flatten("a.b.py"))
+        self.assertEqual(foliator.flatten("a/b.py"), "a:b.py")
+        self.assertEqual(foliator.flatten("a.b.py"), "a.b.py")
 
     def test_it_is_invertible_where_the_dotted_form_was_not(self):
         paths = ["a/b.py", "a.b.py"]
-        self.assertEqual(addresser.unflatten("a:b.py", paths), "a/b.py")
-        self.assertEqual(addresser.unflatten("a.b.py", paths), "a.b.py")
+        self.assertEqual(foliator.unflatten("a:b.py", paths), "a/b.py")
+        self.assertEqual(foliator.unflatten("a.b.py", paths), "a.b.py")
 
     def test_a_windows_separator_flattens_the_same_way(self):
-        self.assertEqual(addresser.flatten(r"pkg\sub\a.py"), "pkg:sub:a.py")
+        self.assertEqual(foliator.flatten(r"pkg\sub\a.py"), "pkg:sub:a.py")
 
     def test_the_extension_keeps_its_dot(self):
         # ! Dropping it reintroduces the collision `b.py` / `b.rs` in a repo
         # this census supports by design -- eleven languages in one run.
-        self.assertTrue(addresser.flatten("pkg/mod.py").endswith(".py"))
+        self.assertTrue(foliator.flatten("pkg/mod.py").endswith(".py"))
 
     def test_no_separator_is_shell_special(self):
         # ! An address is passed as a bare CLI argument -- `--resolve <ADDRESS>`
         # in `review.md` and `reviewer-brief.md`. Every OTHER character Windows
         # forbids is a redirect, a pipe or a glob.
-        self.assertNotIn(addresser.flatten("a/b.py")[1], '<>|?*"')
+        self.assertNotIn(foliator.flatten("a/b.py")[1], '<>|?*"')
 
 
 class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
@@ -759,8 +758,8 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
         self.paragraphs = [vars(b) for b in paragraphs]
 
     def _folios(self, anchor, series):
-        found = addresser.for_anchor(anchor, series, self.paragraphs)
-        return sorted(addresser.folio_of(b["address"])[1] for b in found)
+        found = foliator.for_anchor(anchor, series, self.paragraphs)
+        return sorted(foliator.folio_of(b["address"])[1] for b in found)
 
     def test_the_LINE_reaches_all_three_series(self):
         # !! ONE ANCHOR, THREE ADDRESSES -- the declaration's own `a`, the `b`
@@ -813,12 +812,12 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         self.assertEqual(len(named), len(set(named)))
 
     def test_the_anchor_answers_with_BOTH_trailing_comments(self):
-        found = addresser.for_anchor("X=2", "c", self.paragraphs)
-        folios = sorted(addresser.folio_of(b["address"])[1] for b in found)
+        found = foliator.for_anchor("X=2", "c", self.paragraphs)
+        folios = sorted(foliator.folio_of(b["address"])[1] for b in found)
         self.assertEqual(folios, ["c1", "c2"])
 
     def test_they_are_two_DIFFERENT_statements(self):
-        found = addresser.for_anchor("X=2", "c", self.paragraphs)
+        found = foliator.for_anchor("X=2", "c", self.paragraphs)
         self.assertEqual(sorted(b["start"] for b in found), [1, 5])
         self.assertEqual(sorted(b["text"] for b in found), ["initial", "reseting X"])
 
@@ -833,8 +832,8 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # one spelling -- the gap above the opening statement, the gap holding
         # `# stuff happens`, and the gap at the end of the file. ! The folios
         # below are what THIS walk emits, not a rule anything may count out.
-        found = addresser.for_anchor("X=2", "b", self.paragraphs)
-        folios = sorted(addresser.folio_of(b["address"])[1] for b in found)
+        found = foliator.for_anchor("X=2", "b", self.paragraphs)
+        folios = sorted(foliator.folio_of(b["address"])[1] for b in found)
         self.assertEqual(folios, ["b1", "b2", "b3"])
 
     def test_the_three_gaps_are_drawn_from_TWO_statements(self):
@@ -847,8 +846,8 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         gaps, one spelling.
         """
         by_folio = {
-            addresser.folio_of(b["address"])[1]: b
-            for b in addresser.for_anchor("X=2", "b", self.paragraphs)
+            foliator.folio_of(b["address"])[1]: b
+            for b in foliator.for_anchor("X=2", "b", self.paragraphs)
         }
         # ! Read from the EDIT range, which is the gap itself: the first is a
         # pure insertion above line 1, the second replaces line 3, the third
@@ -865,7 +864,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # second, so its anchor is line 5's code -- not line 1's, which it
         # follows. The gap's prose is about what comes next.
         held = next(b for b in self.paragraphs if b["text"] == "stuff happens")
-        self.assertEqual(addresser.folio_of(held["address"])[1], "b2")
+        self.assertEqual(foliator.folio_of(held["address"])[1], "b2")
         self.assertEqual(held["anchor"], "X=2")
 
     def test_X_2_is_no_declaration_so_the_a_series_is_EMPTY(self):
@@ -873,7 +872,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # answers in `a`. ! The module's `a0` does not answer either: it keeps
         # `<module>`. Anchoring it to the FIRST LINE OF CODE was tried and made
         # a module's documentation answer to `X=2`.
-        self.assertEqual(addresser.for_anchor("X=2", "a", self.paragraphs), [])
+        self.assertEqual(foliator.for_anchor("X=2", "a", self.paragraphs), [])
 
     def test_the_CLI_says_the_answer_is_AMBIGUOUS_in_both_series(self):
         # !! What an agent actually sees. Without it a caller reads the first
@@ -882,7 +881,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
             with self.subTest(series=series):
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out):
-                    rc = addresser._for_anchor("X=2", series, self.paragraphs)
+                    rc = foliator._for_anchor("X=2", series, self.paragraphs)
                 self.assertEqual(rc, 0)
                 said = out.getvalue()
                 self.assertIn(f"{count} places answer", said)
@@ -947,7 +946,7 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         """
         # ! The CODE, not the prose: the docstrings quote the three retired
         # expressions on purpose, to keep the error legible.
-        text = Path(addresser.__file__).read_text(encoding="utf-8")
+        text = Path(foliator.__file__).read_text(encoding="utf-8")
         code = [
             ln
             for ln in text.splitlines()
@@ -961,6 +960,6 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
     def test_the_walk_is_one_list_for_b_and_c(self):
         # ! `triggers` is the module then every line of code. Both read it, so
         # neither can drift from the other by being edited alone.
-        walk = addresser.triggers(self.code)
-        self.assertEqual(walk[0], addresser.MODULE)
+        walk = foliator.triggers(self.code)
+        self.assertEqual(walk[0], foliator.MODULE)
         self.assertEqual(walk[1:], self.code)

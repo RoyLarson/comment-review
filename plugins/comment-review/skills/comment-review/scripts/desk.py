@@ -465,7 +465,7 @@ def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     if stale:
         return (
             f"move's destination names a LINE, {stale.group(0)!r} -- that form was"
-            " retired: ask `addresser.py --anchor LINE --series a|b|c` for the"
+            " retired: ask `foliator.py --anchor LINE --series a|b|c` for the"
             " address, or `locator.py --at path:LINE`"
         )
     if "@" not in where:

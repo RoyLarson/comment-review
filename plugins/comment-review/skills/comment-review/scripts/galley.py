@@ -155,7 +155,7 @@ def paragraph_matches(lines: list[str], paragraph: dict) -> bool:
     ! Both kinds go this way. An `undocumented` declaration ADDRESSES the lines
     of the declaration it documents, so comparing its stored text -- it has
     none -- against those lines refused it every time. Measured 2026-08-18: 3
-    such paragraphs in this repo's own tree made the addresser call a fresh census
+    such paragraphs in this repo's own tree made the foliation call a fresh census
     stale.
 
     ! Before this, `raw_lines` being empty answered False, which refused every

@@ -7,8 +7,8 @@ Owner:    session * Roy (* 1 ruling -- the closing trigger)
 Requires-Roy: true
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
           finished file)
-Ruled:    2026-08-19 — the addresser -- not the census -- makes the full address. Roy:
-          'this is because the census is doing the addresser's job.'
+Ruled:    2026-08-19 — the foliation -- not the census -- makes the full address. Roy:
+          'this is because the census is doing the foliation's job.'
 Framing:  2026-08-19 — an ADDRESS is not an EDIT RANGE. Two places sharing an insertion
           point is not a collision -- edit ranges expand and contract, the address does
           not. Roy: 'by the way you read it those have overlapping edit ranges - and
@@ -39,7 +39,7 @@ through `census.py` and `galley.py`, eleven of twelve land correctly and the res
 twelfth is `b0`, which does not exist on the original file. Then, on the FINISHED file:
 
 ```
-$ addresser.py --census done.json --resolve 'done.py@b1'
+$ foliator.py --census done.json --resolve 'done.py@b1'
 done.py@b1 names no entry in this census        (rc=1)
 ```
 
@@ -89,7 +89,7 @@ address:
 | census / page | which prose occupies which address | how addresses are numbered |
 | record | one per accountable address | line positions |
 
-! Today it runs the other way -- `census.py` builds a paragraph, calls `addresser.address()` on
+! Today it runs the other way -- `census.py` builds a paragraph, calls `foliation.address()` on
 it, then runs `anchor_every_address()` to decorate it. **The paragraph produces the address**,
 and two passes compute what should be one fact, so they can disagree.
 

@@ -1,16 +1,16 @@
-"""`page.py` says what a PAGE is, and `addresser.py` is the LEAF beneath it.
+"""`page.py` says what a PAGE is, and `foliator.py` is the LEAF beneath it.
 
 !! THE DIRECTION INVERTED 2026-08-20, and the reason is that a page BUILDS
 ITSELF. It has to name the places on it, so it needs the foliator -- while the
-addresser had been importing `page` for two constants. That is a cycle, and the
-cut is that **the addresser knows nothing about a paragraph**: `code_lines_of`
+foliation had been importing `page` for two constants. That is a cycle, and the
+cut is that **the foliation knows nothing about a paragraph**: `code_lines_of`
 and `attach` were the only two functions of it that did, and both are page
 questions wearing an addressing name.
 
 ! The property the original split bought still holds and is what these tests
 guard: every module that READS a paragraph can import the definition of one.
 `Paragraph` lived in `census.py`, the top of the import graph, so `galley`,
-`addresser` and `record` read untyped dicts instead, and the two kind sets ended
+`foliation` and `record` read untyped dicts instead, and the two kind sets ended
 up in `galley` because it was the deepest module all three could reach.
 """
 
@@ -38,7 +38,7 @@ def _imports(name: str) -> set[str]:
 
 
 class TestTheTwoLeaves(unittest.TestCase):
-    """`addresser` names places; `lexer` finds prose. Neither knows the other.
+    """`foliator` names places; `lexer` finds prose. Neither knows the other.
 
     !! THAT IS THE SHAPE, and it is why the page can be one subject. A place has
     no prose in it, and prose has no place until a page puts the two together --
@@ -46,11 +46,11 @@ class TestTheTwoLeaves(unittest.TestCase):
     both.
     """
 
-    def test_the_addresser_knows_nothing_about_prose(self):
+    def test_the_foliator_knows_nothing_about_prose(self):
         # ! `repo` is the exception and is not one: it answers what the CHECKOUT
         # says -- git, the filesystem, the exception tuples -- and carries no
         # notion of prose at all.
-        self.assertEqual(_imports("addresser") - {"repo"}, set())
+        self.assertEqual(_imports("foliator") - {"repo"}, set())
 
     def test_the_lexer_knows_nothing_about_places(self):
         # !! IT DEFINES WHAT IT PRODUCES -- `Paragraph` -- and stops there. Where
@@ -60,8 +60,8 @@ class TestTheTwoLeaves(unittest.TestCase):
 
     def test_the_page_imports_BOTH_and_nothing_else(self):
         # !! THE PAGE BUILDS ITSELF: it asks the lexer where the prose is and the
-        # addresser what to call each place. That is the whole inversion.
-        self.assertEqual(_imports("page"), {"addresser", "lexer"})
+        # foliation what to call each place. That is the whole inversion.
+        self.assertEqual(_imports("page"), {"foliator", "lexer"})
 
     def test_every_module_that_reads_a_paragraph_can_import_one(self):
         # ! `galley` is not here. It reads paragraph DICTS and needs none of the

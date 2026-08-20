@@ -77,7 +77,7 @@ NOQA = "# noqa: vocabulary"
 # repo keeps an error legible instead of erasing it, which is the same rule that
 # keeps a SUPERSEDED task checked rather than deleted. A sentence that USES the
 # word to mean the thing is what this catches.
-MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ")
+MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ", "`pCST`")
 
 # ! And these are not the retired term at all, by exact form:
 #   block-context   a ROLE NAME -- an agent id, a filename, a `--reviewers`

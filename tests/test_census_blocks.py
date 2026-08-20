@@ -431,7 +431,7 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         self.assertEqual(b.anchor, c.anchor)
         # ! `page_for` does not stamp the address -- the run loop does, once
         # the path is repo-relative -- so the two places are told apart here by
-        # the fact the addresser reads: a `c` has a column and a `b` has none.
+        # the fact the foliation reads: a `c` has a column and a `b` has none.
         self.assertTrue(c.edit_column)
         self.assertFalse(b.edit_column)
 

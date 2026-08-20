@@ -42,13 +42,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from addresser import (  # noqa: E402  -- path shim must run first
-    SEPARATOR,
-)
 from annotate import (  # noqa: E402  -- path shim must run first
     SYMBOLISH,
     annotate,
     prose_numbers,
+)
+from foliator import (  # noqa: E402  -- path shim must run first
+    SEPARATOR,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
     BY_EXT,

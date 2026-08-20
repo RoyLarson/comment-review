@@ -106,11 +106,23 @@ class TestTheThingIsAPage(unittest.TestCase):
     ROOT = Path(__file__).resolve().parent.parent
 
     def test_no_shipped_file_says_either_older_name(self):
+        """! A retired word NAMED is not a retired word USED.
+
+        This grepped raw and so contradicted the gate it defers to: a docstring
+        saying *"the name was wrong the way `pCST` was"* is a mention, which
+        `MENTION` exempts and this refused. The exemption is stripped here the
+        same way `check_retired` strips it, so the two cannot disagree.
+        """
         shipped = sorted((self.ROOT / "plugins").rglob("*.md"))
         shipped += sorted((self.ROOT / "plugins").rglob("*.py"))
         self.assertTrue(shipped, "no shipped files found -- the glob is wrong")
         for path in shipped:
-            body = path.read_text(encoding="utf-8").lower()
+            body = path.read_text(encoding="utf-8")
+            if cv.NOQA in body:
+                continue
+            for allowed in (*cv.MENTION, *cv.NOT_THE_TERM):
+                body = body.replace(allowed, "")
+            body = body.lower()
             for word in ("prose tree", "pcst"):
                 with self.subTest(path=path.name, word=word):
                     # ! `assertFalse` with a short message, not `assertNotIn`:

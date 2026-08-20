@@ -104,14 +104,14 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       `REFUSED sample.rs: 1 range(s) no longer match the census: 6-7`.
       ! **SCOPE CORRECTED 2026-08-19.** This was filed as *"a FRESH census reads as STALE"*, which
       it no longer does: it reached `--check`, `--resolve` and `--anchor` only through a staleness
-      sweep the addresser had no business running, and that sweep is gone (task above). **What
+      sweep the foliation had no business running, and that sweep is gone (task above). **What
       remains is the galley**, where comparing stored text against the file is exactly right and
       the stored text is wrong. ! It also masked the mid-line collision, which is why that one
       survived the first measurement.
 - [x] !! **THE ADDRESSER NO LONGER SWEEPS FOR STALENESS -- done 2026-08-19, and it
-      un-blocked the rest of this file.** Roy: *"not necessary for addresser to do
+      un-blocked the rest of this file.** Roy: *"not necessary for foliation to do
       the staleness sweep as long as the original census is still an available
-      document ... In a small way it is the addresser stating the line numbers
+      document ... In a small way it is the foliation stating the line numbers
       matter still."* ! Every question it takes is census-internal, so it reads no
       file and takes no `--repo`. **`--check` now reports the mid-line collision
       it was written to catch** -- `SHARED s.js@b1 <- 0-0 interval | 2-3 comment`

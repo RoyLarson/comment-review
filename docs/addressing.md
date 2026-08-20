@@ -6,7 +6,7 @@ superseded rulings into your context beside the live ones, where nothing tells t
 
 !! **THE OFFICIAL DEFINITIONS ARE IN
 `plugins/comment-review/skills/comment-review/references/vocabulary.toml`**, emitted by
-`scripts/vocabulary.py`; `addresser.py` is the code that owns the naming.
+`scripts/vocabulary.py`; `foliator.py` is the code that owns the naming.
 
 **A place is where prose sits, or where prose could sit.** Every finding, every record, every
 edit and every re-review names one.
@@ -59,7 +59,7 @@ of code, takes a number at every trigger, and emits or does not: `a` and `b` emi
 `c` steps past it. That any two series line up on a given file is an OUTCOME of that walk, not a
 rule -- and nothing in this system reads one folio to derive another.
 
-! **ASK. DO NOT COUNT.** `addresser.py --anchor LINE --series a|b|c`, or `locator.py --at
+! **ASK. DO NOT COUNT.** `foliator.py --anchor LINE --series a|b|c`, or `locator.py --at
 path:LINE`. The only supported way to learn a folio is to be told it.
 
 !! **The `a` series counts DECLARATIONS, not code lines, and that is a ruling.** Numbering each
@@ -126,7 +126,7 @@ cites. But `X=2` is TWO anchors spelled alike, so it answers with **two `c` plac
 places**, drawn from two different statements: the first gap is anchored to line 1, the other two
 to line 5. ! Those folios are what THIS walk emits on THIS file. Nothing may count them out from
 the lines -- see the ruling above.
-`addresser.py --anchor` prints every match and says how many; the CALLER chooses by address.
+`foliator.py --anchor` prints every match and says how many; the CALLER chooses by address.
 Taking the first rules on the wrong statement.
 
 ! **An anchor has ONE spelling: the line of code.** A declaration's `a`, the `b` above it and the
@@ -245,7 +245,7 @@ Measured on this repo's own shipped scripts, 2026-08-18 and 2026-08-19:
 
 **After, re-measured 2026-08-19 over 18 files in four languages -- `.py`, `.go`, `.rs`, `.rb`:
 7,436 lines, each with exactly ONE address. 0 with none, 0 with more than one, 0 shared.**
-`addresser.py --check` re-reads that claim on every run.
+`foliator.py --check` re-reads that claim on every run.
 
 ! **The first measurement was PYTHON-ONLY and overstated.** It read 6,873 lines, 0 shared -- true
 of Python, where a comment cannot open after a statement and run on. In every C-family language
@@ -262,7 +262,7 @@ differently wherever a consumer had guessed.
 | file | owns |
 | --- | --- |
 | `scripts/page.py` | what a PAGE is -- `Paragraph`, the kind sets over it, and `page_for()`, which builds one |
-| `scripts/addresser.py` | BOTH namings -- `address()`, and the deprecated `line_address()` it replaced |
+| `scripts/foliator.py` | BOTH namings -- `address()`, and the deprecated `line_address()` it replaced |
 | `scripts/census.py` | STAMPS the address on every block. It is the producer, and consumers read it |
 | `scripts/record.py` | `entry_for(address, blocks)` -- the one lookup from an address to a census entry |
 
@@ -278,13 +278,13 @@ inside one is how a citation lands a place off.
 
 ```bash
 # by ANCHOR -- which place of this declaration
-addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 
 # by LINE, when what you have is a line of the original document
 locator.py --census <FULL CENSUS> --at path:LINE
 
 # an address in, the lines THIS CENSUS says it names out
-addresser.py --census <CENSUS> --resolve <ADDRESS>
+foliator.py --census <CENSUS> --resolve <ADDRESS>
 ```
 
 !! **THE ADDRESSER READS THE CENSUS, NEVER THE TREE.** It takes no `--repo`: every question it

@@ -187,7 +187,7 @@ tool prints how many answered; read that line.
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 
 # by LINE, when what you have is a line of the original document
 python <skill>/scripts/locator.py --census <LOOKUP CENSUS> --at path:LINE

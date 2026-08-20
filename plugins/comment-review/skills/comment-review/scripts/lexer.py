@@ -17,7 +17,7 @@ empty places where prose could go and does not.
 `trailing-comment` and `unparsed` -- prose it found. `interval`, `margin` and
 `undocumented` are the page's, because only a page knows where prose is MISSING.
 
-! A LEAF: it imports no sibling. `addresser` is the other one, and neither knows
+! A LEAF: it imports no sibling. `foliation` is the other one, and neither knows
 anything of the other -- a place has no prose in it and prose has no place until
 a page puts the two together.
 """
@@ -62,7 +62,7 @@ class Paragraph:
     #
     # !! STATED HERE BECAUSE ONLY A PARSER KNOWS IT. Python's docstring sits
     # AFTER its `def` and Rust's `///` sits BEFORE its `fn`, so position cannot
-    # answer which declaration a doc belongs to and the addresser must not
+    # answer which declaration a doc belongs to and the foliation must not
     # guess. It reads this and names it `@aN`.
     declares: int = -1
     # !! THE LINE THE DECLARATION ITSELF OPENS ON, so an anchor's OTHER places
@@ -72,7 +72,7 @@ class Paragraph:
     # doc sits BEFORE its `fn`, Python's after. 0 where none applies.
     declared_at: int = 0
     tier: str = "lexical"  # which question set this file's census can answer
-    # !! WHICH PLACE THIS IS, as against where it sits -- see `addresser.address`.
+    # !! WHICH PLACE THIS IS, as against where it sits -- see `foliation.address`.
     # Stamped in the path-normalising loop, the only place holding the file
     # text, the finished paragraph list and the repo-relative path at once.
     address: str = ""

@@ -192,7 +192,7 @@ across four modules that each announce ONE subject:
 
 | module | owns |
 | --- | --- |
-| `addresser.py` | names places -- the foliators walk out, `Foliation` reads back. The LEAF: it knows nothing about a paragraph |
+| `foliator.py` | names places -- the foliators walk out, `Foliation` reads back. The LEAF: it knows nothing about a paragraph |
 | `page.py` | ONE FILE -- its paragraphs tied to the places on it. `page_for()` builds one; a page names its own places |
 | `census.py` | every page in scope, formatted for the agents |
 | `repo.py` | what the checkout says: git, the filesystem, the exception tuples |

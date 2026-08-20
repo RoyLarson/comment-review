@@ -378,8 +378,8 @@ foliators, and no number in one tells you a number in another -- nor does a line
 you either.
 
 ```bash
-python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
-python <skill>/scripts/addresser.py --census <CENSUS> --resolve <ADDRESS>
+python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+python <skill>/scripts/foliator.py --census <CENSUS> --resolve <ADDRESS>
 python <skill>/scripts/locator.py --census <FULL CENSUS> --at path:LINE
 ```
 

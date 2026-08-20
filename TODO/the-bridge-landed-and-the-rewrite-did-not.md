@@ -83,7 +83,7 @@ this module generated, feeding `block_problem`, `edit_problem`, `contradictions`
       round-trip itself -- a cite containing `|` still splits wrong. ! Blast
       radius is ~20 test call sites that use the string form as a literal.
 - [ ] !! **IT IS FIVE READERS, NOT THREE, AND ONE CRASHES.** Measured 2026-08-19:
-      `addresser` uses `.get("blocks", [])`, `galley` `census["blocks"]`,
+      `foliation` uses `.get("blocks", [])`, `galley` `census["blocks"]`,
       `locator` an `entries()` helper, `record` `loaded["blocks"]`, and
       **`verdicts.py` has no dict handling at all** -- a `{"blocks": [...]}`
       census gives an `AttributeError` traceback. `census.py` emits a bare list

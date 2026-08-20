@@ -7,7 +7,7 @@ place where prose could go.
 
 !! A PAGE NAMES ITS OWN PLACES, which is what makes it a page and not a list.
 `places_on` hands the walk its lines of code and which of them declare something
-documentable; `addresser` emits every place, filled or not, and `attach` says
+documentable; `foliation` emits every place, filled or not, and `attach` says
 which one a given paragraph sits in. A paragraph does not compute its own folio
 -- reversed, a place existed only when prose happened to fill it, and `b0` and
 `b1` were mutually exclusive.
@@ -38,7 +38,7 @@ of this repo's 266 anchorless prose paragraphs sit inside. Depth is 1 for 182 of
 those 191, so a parent link is the shape that fits and a tree is not.
 
 !! THE ADDRESSER IS THE LEAF BENEATH THIS ONE, and the direction inverted
-2026-08-20. A page builds itself, so it needs the foliator -- while the addresser
+2026-08-20. A page builds itself, so it needs the foliator -- while the foliation
 had been importing this module for two constants, which is a cycle. The cut is
 that the ADDRESSER KNOWS NOTHING ABOUT A PARAGRAPH: `code_lines_of` and `attach`
 were the only two functions of it that did, and both are page questions wearing
@@ -59,7 +59,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from addresser import (  # noqa: E402  -- path shim must run first
+from foliator import (  # noqa: E402  -- path shim must run first
     GAP,
     ON,
     Foliation,
@@ -104,9 +104,9 @@ HOLDS_NO_PROSE = ("interval", "undocumented", "margin")
 # whatever follows it.
 #
 # !! IT LIVES HERE BECAUSE TWO MODULES NEED IT AND ONE OF THEM CANNOT IMPORT THE
-# OTHER. `census.mark_front_matter` stamps it; `addresser.gap_step` reads it to
+# OTHER. `census.mark_front_matter` stamps it; `foliation.gap_step` reads it to
 # decide whether a run is the file's `b0` or the gap above the first line of
-# code. `census` imports `addresser`, so the constant cannot live in `census`
+# code. `census` imports `foliation`, so the constant cannot live in `census`
 # without making the pair circular -- and a second copy of the string is how the
 # two would come to disagree about a name neither of them owns.
 FRONT_MATTER = "front-matter"
@@ -131,7 +131,7 @@ class Page:
         text: the file, exactly as it reads. What a splice is checked against.
         paragraphs: in order down the page, prose and empty places alike.
         foliation: EVERY place on the page, filled or not -- see
-            `addresser.foliate`. It is what makes an `add` citable.
+            `foliator.foliate`. It is what makes an `add` citable.
         tier: which questions this file's reader could answer.
     """
 
@@ -255,7 +255,7 @@ def lines_of_code(text: str, prose: list[dict]) -> list[tuple[int, str]]:
     """The file's lines of code, in order, each with the line it sits on.
 
     ! What the WALK is given. The line positions the trigger and never numbers
-    it -- see `addresser.foliate`.
+    it -- see `foliator.foliate`.
 
     !! THE CHARACTERS COME FROM THAT LINE'S `c`, NEVER RE-CUT HERE. Every code
     line has exactly one `c` -- a `trailing-comment`, or the `margin` standing
@@ -316,9 +316,9 @@ def places_on(text: str, prose: list[dict]) -> "Foliation":
 
 
 def code_lines(text: str, prose: list[Paragraph]) -> set[int]:
-    """The code lines of this file, as a set -- `addresser.code_lines_of`.
+    """The code lines of this file, as a set -- `foliation.code_lines_of`.
 
-    !! ONE IMPLEMENTATION, and it is the addresser's, because an address is
+    !! ONE IMPLEMENTATION, and it is the foliation's, because an address is
     counted off this set and the two must not be able to disagree. This is the
     same rule over `Paragraph`s rather than dicts; the rule itself is written where
     it runs.
@@ -457,7 +457,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
         # Reversed -- each paragraph computing its own folio -- a place existed
         # only when prose happened to fill it, which is how `b0` and `b1` came
-        # to be mutually exclusive. `addresser` owns both halves: the foliation
+        # to be mutually exclusive. `foliation` owns both halves: the foliation
         # assigns the numbering, `attach` reads which place this prose sits in,
         # and the anchor comes from the walk that emitted it rather than from a
         # second pass that could disagree with the first.
@@ -503,7 +503,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
 
 
 # The annotation, and the two shapes that earn it.
-# ! DEFINED IN `page.py`, the leaf, because `addresser` reads it too and
+# ! DEFINED IN `page.py`, the leaf, because `foliation` reads it too and
 # cannot import this module. Re-exported here so the many readers that
 # already say `census.FRONT_MATTER` keep working.
 _SHEBANG = re.compile(r"^#!")

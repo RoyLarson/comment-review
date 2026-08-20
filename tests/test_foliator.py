@@ -14,10 +14,10 @@ foliator doesn't fire ever on things that can't get a doc string"* -- so its
 numbers count documentable declarations and nothing else.
 """
 
-import unittest  # noqa: I001  -- path shim below must import before addresser
+import unittest  # noqa: I001  -- path shim below must import before foliation
 
 from _paths import SCRIPTS  # noqa: F401
-import addresser
+import foliator
 
 # Roy's `python_edge_cases.md`, as the walk sees it: each line of code with the
 # line it sits on, and which of them declare something documentable. ! The line
@@ -38,24 +38,24 @@ class TestAFoliatorHoldsItsOwnSteps(unittest.TestCase):
     """It is a thing with a counter, not an expression evaluated where needed."""
 
     def test_it_emits_from_its_own_counter(self):
-        f = addresser.Foliator("b")
+        f = foliator.Foliator("b")
         self.assertEqual(f.emit("<module>"), "b0")
         self.assertEqual(f.emit("N = 0"), "b1")
 
     def test_a_skipped_trigger_still_takes_a_number(self):
         # ! This is what makes `c`'s first line of code `c1` and not `c0`.
-        f = addresser.Foliator("c")
+        f = foliator.Foliator("c")
         f.skip()
         self.assertEqual(f.emit("N = 0"), "c1")
 
     def test_it_records_the_anchor_it_emitted_against(self):
-        f = addresser.Foliator("a")
+        f = foliator.Foliator("a")
         f.emit("<module>")
         f.emit("def wrapper(fn):")
         self.assertEqual(f.places, {"a0": "<module>", "a1": "def wrapper(fn):"})
 
     def test_two_foliators_do_not_share_a_counter(self):
-        a, b = addresser.Foliator("a"), addresser.Foliator("b")
+        a, b = foliator.Foliator("a"), foliator.Foliator("b")
         b.emit("<module>")
         b.emit("N = 0")
         self.assertEqual(a.emit("<module>"), "a0")
@@ -65,7 +65,7 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
     """The measurement this was built from -- `tests/fixtures/python_edge_cases.md`."""
 
     def setUp(self):
-        self.foliation = addresser.foliate(EDGE_CODE, EDGE_DOCUMENTABLE)
+        self.foliation = foliator.foliate(EDGE_CODE, EDGE_DOCUMENTABLE)
         self.places = self.foliation.places
 
     def _series(self, letter):
@@ -101,8 +101,8 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
         self.assertEqual(self._series("c"), ["c1", "c2", "c3", "c4", "c5", "c6", "c7"])
 
     def test_every_place_carries_the_line_of_code_it_is_attached_to(self):
-        self.assertEqual(self.places["a0"], addresser.MODULE)
-        self.assertEqual(self.places["b0"], addresser.MODULE)
+        self.assertEqual(self.places["a0"], foliator.MODULE)
+        self.assertEqual(self.places["b0"], foliator.MODULE)
         self.assertEqual(self.places["a1"], "def wrapper(fn):")
         # ! A `b` is anchored to the line BELOW the gap -- the statement its
         # prose introduces.
@@ -120,7 +120,7 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
 class TestReadingTheFoliationBack(unittest.TestCase):
     """!! WHICH ADDRESS DOES THIS LINE BELONG TO RIGHT NOW.
 
-    Roy, 2026-08-19, on why the addresser owns both directions: it *"helps the
+    Roy, 2026-08-19, on why the foliation owns both directions: it *"helps the
     agents understand what they are looking at right now in the code -- they
     need to search it anyways."*
 
@@ -130,7 +130,7 @@ class TestReadingTheFoliationBack(unittest.TestCase):
     """
 
     def setUp(self):
-        self.foliation = addresser.foliate(EDGE_CODE, EDGE_DOCUMENTABLE)
+        self.foliation = foliator.foliate(EDGE_CODE, EDGE_DOCUMENTABLE)
 
     def test_a_gap_answers_with_the_b_the_walk_emitted_there(self):
         # Line 4 is `def counter`, so a paragraph inserting there is in the gap
@@ -164,17 +164,17 @@ class TestTheWalkOnDegenerateFiles(unittest.TestCase):
     """A file with no code, and one with no documentable declaration."""
 
     def test_a_file_with_no_code_still_has_a_module(self):
-        places = addresser.foliate([], set()).places
+        places = foliator.foliate([], set()).places
         # ! `b0` is the file's own front matter and `b1` the gap that is the
         # whole file. Both exist before any line of code does.
-        self.assertEqual(places["a0"], addresser.MODULE)
-        self.assertEqual(places["b0"], addresser.MODULE)
+        self.assertEqual(places["a0"], foliator.MODULE)
+        self.assertEqual(places["b0"], foliator.MODULE)
         self.assertNotIn("c1", places)
 
     def test_a_file_with_no_declaration_has_only_a0(self):
-        places = addresser.foliate([(1, "N = 0")], set()).places
+        places = foliator.foliate([(1, "N = 0")], set()).places
         self.assertEqual([f for f in places if f.startswith("a")], ["a0"])
 
     def test_the_module_never_takes_a_c(self):
-        places = addresser.foliate([(1, "N = 0")], set()).places
+        places = foliator.foliate([(1, "N = 0")], set()).places
         self.assertNotIn("c0", places)

@@ -16,7 +16,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | word | what happened |
 | --- | --- |
 | `ANNOTATE` (stage 2) | -> **COLLATE**. Stage 2 adds no notes; it gathers every position in the file into one ordered tree. It also pointed at two stages -- `annotate.py` performs stage 3 |
-| **line address** (`mod.py:1-24`) | -> **address**. True of ONE file state, and this tool edits prose. `addresser.line_address` still reads it and WARNS on every call; it survives only to parse runs already recorded |
+| **line address** (`mod.py:1-24`) | -> **address**. True of ONE file state, and this tool edits prose. `foliator.line_address` still reads it and WARNS on every call; it survives only to parse runs already recorded |
 | `block` | -> **paragraph**. The register is EDITORIAL, and `block` was the last structural term borrowed from compilers. Its definition -- the interval between two lines of CODE -- is also untrue of a prose file |
 | the four KINDS of a line of code | **deleted** -- *statement, expression, declaration, assignment*, shipped to every role and read by nothing. Neither exhaustive nor disjoint, and meaningless in the three data languages |
 | **census index** | -> **address**. A position is correct only for the census it was written against; an `add` or a `drop` shifts every index below it |

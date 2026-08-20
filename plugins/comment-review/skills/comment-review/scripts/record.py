@@ -745,7 +745,7 @@ def entry_for(address: str, paragraphs: list[dict]) -> dict | None:
     resolved to a neighbour, silently. An address survives both.
 
     ! One entry or none -- an address identifies exactly one paragraph, held by
-    `addresser.py --check` on every run (0 shared over 6,180 paragraphs, measured
+    `foliator.py --check` on every run (0 shared over 6,180 paragraphs, measured
     2026-08-19). This returns the first regardless, so a census that broke that
     rule degrades to a wrong answer rather than a crash; `--check` is what
     reports it.
