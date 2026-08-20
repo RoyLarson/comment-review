@@ -214,7 +214,7 @@ that changed a published name or rule:
 | [census-owns-addressing](census-owns-addressing.md) | session | — | 0/5 | The census owns addressing, and four modules share one subject between them |
 | [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
-| [three-names-two-words](three-names-two-words.md) | session | — | 0/3 | Three functions in page.py are permutations of the same two words |
+| [three-names-two-words](three-names-two-words.md) | session | — | 0/5 | Three functions in page.py are permutations of the same two words |
 | [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 0/5 | The lexer emits a page kind, and its own docstring says it does not |
 
 ### in-progress  (4)
