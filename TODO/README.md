@@ -234,7 +234,7 @@ that changed a published name or rule:
 | [plugin-version-not-bumped](plugin-version-not-bumped.md) | session | yes | 0/3 | installing this tree overwrites the measured v0.2.3 cache directory |
 | [anchor-side-is-dead](anchor-side-is-dead.md) | session | — | 0/2 | the concept was deliberately removed and the constant stayed |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
-| [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 0/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
+| [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 1/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
 
 ### in-progress  (4)
 

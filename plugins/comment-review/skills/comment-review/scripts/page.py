@@ -456,7 +456,19 @@ def empty_places(
                     address=folio,
                 )
             )
-        elif folio.startswith(GAP):
+        elif not folio.startswith(GAP):
+            # !! A SERIES THIS FUNCTION DOES NOT KNOW IS AN ERROR, NOT A SKIP.
+            # Every place the walk emitted must get a paragraph; one that
+            # falls off the end of these branches gets none, and a place with
+            # no paragraph is uncitable and invisible. That is exactly how
+            # `f0` behaved for its first hour. ! `census.py` turns a raise
+            # here into a REPORTED per-file gap, which is loud; falling
+            # through is silent.
+            raise ValueError(
+                f"no rule for the series of {folio!r} -- every series in"
+                " `foliator.SERIES` needs a branch here"
+            )
+        else:
             previous, following = foliation.bounds[folio]
             low = previous + 1
             high = following - 1 if following else last

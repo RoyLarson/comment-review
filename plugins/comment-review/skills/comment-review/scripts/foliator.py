@@ -173,6 +173,22 @@ DECLARED = "a"
 # a second front-matter place is emitted.
 FRONT = "f"
 
+# !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row here
+# -- the same rule `lexer.LANGUAGES` follows. Roy, 2026-08-20: *"we may find
+# another specific type that doesn't match these four's purposes, so keep the
+# code generic in how it picks it up even if we don't know the shape."*
+#
+# !! THE FOURTH COST FOUR EDITS AND TWO BUGS, which is the argument for this
+# list. `foliate` merged three foliators' places and not the fourth, so `f0` had
+# no anchor and no paragraph; `_series_of` inferred the series from two fields
+# that a fourth fits neither of, so front matter answered as a `b`; and the CLI's
+# `--series` refused `f` outright -- the one route a reviewer has to ask for the
+# file's own place.
+#
+# ! ORDER IS THE ORDER A READER MEETS THEM: the file's own matter, then a
+# declaration's documentation, the gap above a line, the room beside it.
+SERIES = (FRONT, DECLARED, GAP, ON)
+
 
 def line_address(paragraph: dict) -> str:
     """DEPRECATED. `path:start-end` -- how this system named a paragraph until 0.2.4.
@@ -423,8 +439,11 @@ def foliate(
     Returns:
         The `Foliation`: every place, and both directions between them.
     """
-    a, b, c = Foliator(DECLARED), Foliator(GAP), Foliator(ON)
-    f = Foliator(FRONT)
+    # ! ONE PER SERIES, BUILT FROM THE LIST. The names below are for the
+    # walk, which is genuinely per-series -- each emits at different
+    # triggers -- but nothing downstream has to know how many there are.
+    walkers = {name: Foliator(name) for name in SERIES}
+    a, b, c, f = (walkers[s] for s in (DECLARED, GAP, ON, FRONT))
     out = Foliation(_code=list(code))
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. Roy, 2026-08-20: *"we need to be able to distinguish `a`
@@ -475,11 +494,15 @@ def foliate(
     # On a file with no code at all this is the gap that IS the file.
     out._closing = b.emit(next(reversed(code.values())) if code else MODULE)
     out.bounds[out._closing] = (previous, 0)
-    # ! EVERY FOLIATOR'S PLACES, `f` included. Left out, `f0` sat in `bounds`
-    # and nowhere else: it carried no anchor, and `page.empty_places` -- which
-    # walks `places` -- gave it no paragraph, so a file whose front matter is
-    # absent had a line belonging to nothing.
-    out.places = {**a.places, **b.places, **c.places, **f.places}
+    # !! EVERY FOLIATOR'S PLACES, COUNTED RATHER THAN LISTED. Naming them was
+    # how `f0` came to sit in `bounds` and nowhere else: no anchor, and
+    # `page.empty_places` -- which walks `places` -- gave it no paragraph, so a
+    # file whose front matter is absent had a line belonging to nothing.
+    out.places = {
+        folio: anchor
+        for name in SERIES
+        for folio, anchor in walkers[name].places.items()
+    }
     return out
 
 
@@ -727,9 +750,9 @@ def main() -> int:
     )
     ap.add_argument(
         "--series",
-        choices=(DECLARED, GAP, ON),
+        choices=SERIES,
         help="which place OF that anchor: a its documentation, b the gap above"
-        " its opening line, c the room beside it",
+        " its opening line, c the room beside it, f the file's own matter",
     )
     ap.add_argument(
         "--resolve",

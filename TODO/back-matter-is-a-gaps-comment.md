@@ -2,11 +2,23 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 1 of 4 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-20 (Roy, 2026-08-20: 'the problem with head is what happens if there
           is a tail. Many text documents have both')
+Ruled:    2026-08-20 — 2026-08-20 -- ONE SERIES FOR THIS LABEL TYPE. Roy: front matter
+          and back matter are both `f`; the address says the file's own matter, not
+          which end of the file it sits at. ! AND THE GENERAL RULE THAT COMES WITH IT:
+          *"we may find another specific type that doesn't match these four's purposes,
+          so keep the code generic in how it picks it up even if we don't know the
+          shape. That is how we got into the bind of trying to pick up the matter -- we
+          kept trying to push it in instead of considering it was its own thing."* Acted
+          on: `foliator.SERIES` is now the only list of them, `foliate` counts the
+          foliators rather than naming them, `--series` offers whatever is in the list,
+          and `page.empty_places` RAISES on a series it has no branch for rather than
+          dropping the place silently. Five tests guard it. ! What is still open here is
+          the RECOGNITION half -- nothing looks for matter at the bottom of a file.
 ```
 
 ## Objective
@@ -30,7 +42,7 @@ Back matter has the same problem front matter had, and lands in the closing gap.
       positional question about the top of the file. There is no equivalent for
       the bottom, and the signals are the same bespoke-rule problem Roy named for
       front matter without a docstring.
-- [ ] * RULING WANTED: whether back matter is the SAME series as front matter --
+- [x] * RULING WANTED: whether back matter is the SAME series as front matter --
       one `f` series holding the file's own matter wherever it sits -- or its own.
       One series keeps the rule 'each series owns its lines exactly' with no
       addition; two make the address say which end.

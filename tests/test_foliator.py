@@ -181,3 +181,53 @@ class TestTheWalkOnDegenerateFiles(unittest.TestCase):
     def test_the_module_never_takes_a_c(self):
         places = foliator.foliate({1: "N = 0"}, {}).places
         self.assertNotIn("c0", places)
+
+
+class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
+    """`SERIES` is the only list of them, and everything counts rather than names.
+
+    !! THE FOURTH COST TWO BUGS AND A DEAD CLI FLAG. `foliate` merged three
+    foliators' places and not the fourth, so `f0` had no anchor and no
+    paragraph; `_series_of` inferred the series from two fields a fourth fits
+    neither of, so front matter answered as a `b`; and `--series` refused `f`
+    outright -- the one route a reviewer has to ask for the file's own place.
+
+    ! Roy, 2026-08-20: *"we may find another specific type that doesn't match
+    these four's purposes, so keep the code generic in how it picks it up even
+    if we don't know the shape. That is how we got into the bind of trying to
+    pick up the matter -- we kept trying to push it in instead of considering it
+    was its own thing."*
+    """
+
+    def test_every_series_constant_is_in_the_list(self):
+        for name in ("DECLARED", "GAP", "ON", "FRONT"):
+            with self.subTest(series=name):
+                self.assertIn(getattr(foliator, name), foliator.SERIES)
+
+    def test_no_two_series_share_a_letter(self):
+        self.assertEqual(len(set(foliator.SERIES)), len(foliator.SERIES))
+
+    def test_the_CLI_offers_every_series_the_walk_can_emit(self):
+        # ! The gap this closes: `--series` listed three of four, so the only
+        # sanctioned way to ask for the file's own place was an argparse error.
+        source = (SCRIPTS / "foliator.py").read_text(encoding="utf-8")
+        self.assertIn("choices=SERIES,", source)
+
+    def test_every_place_the_walk_emits_carries_an_anchor(self):
+        # !! THE PROPERTY THAT BROKE. A place absent from `places` has no anchor
+        # and gets no paragraph, so it is uncitable and invisible -- which is
+        # what `f0` was for its first hour, while sitting in `bounds` all along.
+        got = foliator.foliate({1: "N = 0", 2: "def f():"}, {1: 2})
+        self.assertTrue(got.places)
+        for folio, anchor in got.places.items():
+            with self.subTest(folio=folio):
+                self.assertTrue(anchor, f"{folio} carries no anchor")
+        for folio in got.bounds:
+            with self.subTest(folio=folio):
+                self.assertIn(folio, got.places, f"{folio} is bounded and unplaced")
+
+    def test_the_series_of_a_place_is_READ_and_not_inferred(self):
+        # ! Inferred from `declares`/`original_column`, a series that is neither
+        # comes back `b`. Read off the address, a new one answers as itself.
+        made_up = {"address": "m.py@z7", "declares": -1, "original_column": 0}
+        self.assertEqual(foliator._series_of(made_up), "z")
