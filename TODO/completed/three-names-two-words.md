@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 5 of 5 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: every rename is a function-context finding)
@@ -11,6 +11,12 @@ Measured: 2026-08-20 — the wrapper is undone by its own callers: nearly every 
           `code_lines_of` already returns. One production caller, ~15 in tests. Its only
           reason -- taking Paragraph objects where the other took dicts -- went when the
           page was made to speak dicts throughout.
+Done:     2026-08-20 — `page.code_lines(text, prose) -> dict[int, str]` is the one
+          structure. `code_lines_of` and `lines_of_code` are deleted; `foliate` takes
+          the mapping and walks `.items()`. Measured: NO `sorted()` over code lines
+          survives anywhere in the tree, 3 functions became 1, the shipped scripts are
+          10 lines shorter, and Roy's edge case yields the same 19 places it did before.
+          713 tests green.
 ```
 
 ## Objective
@@ -73,24 +79,24 @@ reverting was the diagnostic**, not the mechanics being hard.
 
 ## Tasks
 
-- [ ] !! `code_lines_of` returns `list[int]`, `code_lines` returns `set[int]` --
+- [x] !! `code_lines_of` returns `list[int]`, `code_lines` returns `set[int]` --
       THE SAME QUESTION, a different type -- and `lines_of_code` returns
       `list[tuple[int, str]]`, a different question entirely. Three names built
       from the same two words, in one module.
-- [ ] `code_lines` is a wrapper over `code_lines_of` that exists only to take
+- [x] `code_lines` is a wrapper over `code_lines_of` that exists only to take
       `Paragraph` objects where the other takes dicts. Since the page speaks dicts
       throughout now, decide whether it earns a name at all.
-- [ ] ! A caller cannot tell them apart without opening all three. That is the
+- [x] ! A caller cannot tell them apart without opening all three. That is the
       `function-context` question -- do name, signature and body agree -- asked of
       a whole module rather than one function.
-- [ ] !! THE STRUCTURE, ruled 2026-08-20: an ORDERED MAPPING from line number to
+- [x] !! THE STRUCTURE, ruled 2026-08-20: an ORDERED MAPPING from line number to
       the code on that line -- a plain dict built ascending. Roy: 'we have a
       sorted-dictionary or it should always be a list.' It answers every consumer
       at once: iterate it for the walk, `n in code` for occupancy,
       `enumerate(code)` for `documentable`, `list(code)` for the numbers,
       `code[n]` for a line's anchor. ! The three functions exist because the
       structure could not answer both order and membership.
-- [ ] ! DO NOT REPEAT THE 2026-08-20 ATTEMPT, which was reverted twice. It deleted
+- [x] ! DO NOT REPEAT THE 2026-08-20 ATTEMPT, which was reverted twice. It deleted
       `code_lines` and put an `isinstance` branch in `code_lines_of` so one
       function took two shapes -- hiding the adapter rather than removing it --
       treated the `sorted()` calls as usage rather than residue, and was about to

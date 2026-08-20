@@ -80,8 +80,8 @@ def addressed(text, paragraphs):
 
 class TestTwoFilesDifferingOnlyInComments(unittest.TestCase):
     def test_the_code_lines_are_the_same_two_in_both(self):
-        self.assertEqual(page.code_lines_of(WITH_PROSE, A), [2, 6])
-        self.assertEqual(page.code_lines_of(BARE, B), [2, 3])
+        self.assertEqual(list(page.code_lines(WITH_PROSE, A)), [2, 6])
+        self.assertEqual(list(page.code_lines(BARE, B)), [2, 3])
 
     def test_the_same_gap_gets_the_same_name_prose_or_not(self):
         # !! THE WHOLE POINT. In one file the gap between the two statements
@@ -144,7 +144,7 @@ class TestCodeOnTheFirstLine(unittest.TestCase):
     ]
 
     def setUp(self):
-        self.code = page.code_lines_of(self.SRC, self.PARAGRAPHS)
+        self.code = list(page.code_lines(self.SRC, self.PARAGRAPHS))
 
     def test_code_starts_on_line_one(self):
         self.assertEqual(self.code[0], 1)
@@ -238,7 +238,7 @@ class TestAOneLineInitFile(unittest.TestCase):
         self.assertEqual({(b["start"], b["end"]) for b in self.PARAGRAPHS}, {(1, 1)})
 
     def test_the_stable_addresses_are_not(self):
-        page.code_lines_of(self.SRC, self.PARAGRAPHS)
+        list(page.code_lines(self.SRC, self.PARAGRAPHS))
         named = addressed(self.SRC, self.PARAGRAPHS)
         self.assertEqual(named, ["package:__init__.py@b1", "package:__init__.py@b2"])
 
@@ -338,8 +338,8 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
         # line prepended -- which is what a prose edit does -- moves the code
         # down, so the paragraph's stated `edit_start` now has NO code line before
         # it: `b2` becomes `b1`, naming a different place with no complaint.
-        page.code_lines_of(self.SRC, self.PARAGRAPHS)
-        page.code_lines_of("\n" + self.SRC, self.PARAGRAPHS)
+        list(page.code_lines(self.SRC, self.PARAGRAPHS))
+        list(page.code_lines("\n" + self.SRC, self.PARAGRAPHS))
         self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[0], "m.py@b2")
         self.assertEqual(addressed("\n" + self.SRC, self.PARAGRAPHS)[0], "m.py@b1")
 
@@ -358,7 +358,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
             path = Path(tmp) / "m.py"
             path.write_text(text, encoding="utf-8")
             got = page.page_for(path, text, lexer.language_for(path))
-            sorted(page.code_lines(text, got))
+            list(page.code_lines(text, [vars(b) for b in got]))
             for b in got:
                 # ! The SUFFIX only. `page_for` names a paragraph by the path it
                 # was handed, and these are absolute temp paths -- the dotted
@@ -447,7 +447,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
         # every `b` below it.
         text = "def f():\n    return 1\n"
         got = self._census(text)
-        self.assertEqual(page.code_lines(text, got), {1, 2})
+        self.assertEqual(list(page.code_lines(text, [vars(b) for b in got])), [1, 2])
 
     def test_two_declarations_of_the_SAME_NAME_get_different_addresses(self):
         # !! THE ANCHOR NAME WAS NEVER UNIQUE AND NEVER PROMISED TO BE. Roy,
@@ -514,7 +514,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
             path = Path(tmp) / "m.py"
             path.write_text(self.SRC, encoding="utf-8")
             got = page.page_for(path, self.SRC, lexer.language_for(path))
-            sorted(page.code_lines(self.SRC, got))
+            list(page.code_lines(self.SRC, [vars(b) for b in got]))
             self.paragraphs = [vars(b) for b in got]
 
     def _at(self, anchor, series):
@@ -564,7 +564,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")
         got = page.page_for(path, with_header, lexer.language_for(path))
-        sorted(page.code_lines(with_header, got))
+        list(page.code_lines(with_header, [vars(b) for b in got]))
         found = foliator.for_anchor("<module>", "b", [vars(b) for b in got])
         self.assertEqual(
             sorted(foliator.folio_of(b["address"])[1] for b in found), ["b0"]
@@ -633,7 +633,9 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
             got = page.page_for(
                 src, src.read_text(encoding="utf-8"), lexer.language_for(src)
             )
-            sorted(page.code_lines(src.read_text(encoding="utf-8"), got))
+            list(
+                page.code_lines(src.read_text(encoding="utf-8"), [vars(b) for b in got])
+            )
             census_json = Path(tmp) / "c.json"
             census_json.write_text(
                 __import__("json").dumps([vars(b) for b in got], default=str),
@@ -754,7 +756,7 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
     def setUp(self):
         path = Path("g.py")
         paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
-        sorted(page.code_lines(self.SRC, paragraphs))
+        list(page.code_lines(self.SRC, [vars(b) for b in paragraphs]))
         self.paragraphs = [vars(b) for b in paragraphs]
 
     def _folios(self, anchor, series):
@@ -803,7 +805,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
     def setUp(self):
         path = Path("x.py")
         paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
-        sorted(page.code_lines(self.SRC, paragraphs))
+        list(page.code_lines(self.SRC, [vars(b) for b in paragraphs]))
         self.paragraphs = [vars(b) for b in paragraphs]
 
     def test_every_ADDRESS_is_still_unique(self):
@@ -916,7 +918,7 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
     def setUp(self):
         path = Path("m.py")
         paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
-        self.code = sorted(page.code_lines(self.SRC, paragraphs))
+        self.code = list(page.code_lines(self.SRC, [vars(b) for b in paragraphs]))
         self.at = {
             b.address.split("@")[1]: b for b in paragraphs if "@" in (b.address or "")
         }

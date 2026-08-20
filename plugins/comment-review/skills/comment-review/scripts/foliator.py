@@ -345,7 +345,7 @@ class Foliation:
 
 
 def foliate(
-    code: list[tuple[int, str]],
+    code: dict[int, str],
     documentable: dict[int, int],
     module_insert: int = 1,
 ) -> Foliation:
@@ -374,8 +374,9 @@ def foliate(
     ordinal -- see `folio`.
 
     Args:
-        code: the file's lines of code in order, each `(line number, the exact
-            characters)`. The number positions the trigger; it never numbers it.
+        code: `line number -> the exact characters on it`, ascending -- what
+            `page.code_lines` returns. The number POSITIONS the trigger; it
+            never numbers it, so the walk reads this in order and counts.
         documentable: index into `code` -> the line that declaration's doc
             would go on. The LEXER states both, because only a parser knows
             which lines declare and where a doc belongs.
@@ -385,7 +386,7 @@ def foliate(
         The `Foliation`: every place, and both directions between them.
     """
     a, b, c = Foliator(DECLARED), Foliator(GAP), Foliator(ON)
-    out = Foliation(_code=[n for n, _ in code])
+    out = Foliation(_code=list(code))
     out._declared[0] = a.emit(MODULE)
     out.inserts[out._declared[0]] = module_insert
     # ! `b0` is the FILE'S OWN front matter, so it is bounded by nothing: the
@@ -394,7 +395,7 @@ def foliate(
     out.bounds[b.emit(MODULE)] = (0, 0)
     c.skip()
     previous = 0
-    for i, (n, line) in enumerate(code):
+    for i, (n, line) in enumerate(code.items()):
         if i in documentable:
             # ! 0 is the module, so a declaration's ordinal is its position
             # among the documentable ones, counting from 1.
@@ -412,7 +413,7 @@ def foliate(
     # ! The gap AFTER the last line of code has no line below it, so it takes
     # the one above -- a gap is bounded by code, and that is the bound it has.
     # On a file with no code at all this is the gap that IS the file.
-    out._closing = b.emit(code[-1][1] if code else MODULE)
+    out._closing = b.emit(next(reversed(code.values())) if code else MODULE)
     out.bounds[out._closing] = (previous, 0)
     out.places = {**a.places, **b.places, **c.places}
     return out

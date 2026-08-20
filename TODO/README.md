@@ -214,8 +214,8 @@ that changed a published name or rule:
 | [census-owns-addressing](census-owns-addressing.md) | session | — | 0/5 | The census owns addressing, and four modules share one subject between them |
 | [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
-| [three-names-two-words](three-names-two-words.md) | session | — | 0/5 | Three functions in page.py are permutations of the same two words |
 | [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
+| [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | foliator.triggers() has no production caller and takes a shape the walk no longer uses |
 
 ### in-progress  (4)
 
@@ -271,3 +271,4 @@ the reason is inside the file.
 | [prose-fenced-by-code-on-both-sides](completed/prose-fenced-by-code-on-both-sides.md) | Ruled the same day it was raised: an intermediate comment is not censused, and its line is code |
 | [deprecated-reader-cannot-replay](completed/deprecated-reader-cannot-replay.md) | the old form cannot name a place -- an index is not portable and `LOCATION` is not retained -- so `convert` refuses instead of dropping or fanning out |
 | [shipped-prose-lags-the-rulings](completed/shipped-prose-lags-the-rulings.md) | SKILL.md converted, the brief's worked record fixed, ~25 docstrings corrected, and a measurement that had rotted twice re-taken |
+| [three-names-two-words](completed/three-names-two-words.md) | One ordered mapping replaces all three; no sorted() survives and the edge case is byte-identical |

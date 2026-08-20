@@ -226,7 +226,10 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
 
     def test_a_trailing_comments_line_is_still_a_line_of_code(self):
         got = self._census("a = 1  # note\nb = 2\n")
-        self.assertEqual(page.code_lines("a = 1  # note\nb = 2\n", got), {1, 2})
+        self.assertEqual(
+            page.code_lines("a = 1  # note\nb = 2\n", [vars(b) for b in got]),
+            {1: "a = 1", 2: "b = 2"},
+        )
 
     def test_a_file_the_parser_refused_is_not_enumerated(self):
         # An interval drawn over a file whose code lines were never established
@@ -767,7 +770,7 @@ class TestABlockCommentBesideCode(unittest.TestCase):
             p.write_text(body, encoding="utf-8")
             paragraphs = lexer.paragraphs_lexical(p, body, lexer.language_for(p))
             prose = [b for b in paragraphs if b.text.strip()]
-            return prose, sorted(page.code_lines(body, paragraphs))
+            return prose, list(page.code_lines(body, [vars(b) for b in paragraphs]))
 
     def test_a_comment_to_END_OF_LINE_leaves_its_statement_as_code(self):
         prose, code = self._read("int a = 1;\nint b = 2; /* note */\nint c = 3;\n")
@@ -910,4 +913,4 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
             )
             p.write_text(body, encoding="utf-8")
             paragraphs = lexer.paragraphs_lexical(p, body, lexer.language_for(p))
-            self.assertIn(2, page.code_lines(body, paragraphs))
+            self.assertIn(2, page.code_lines(body, [vars(b) for b in paragraphs]))

@@ -125,7 +125,7 @@ class TestCLI(unittest.TestCase):
         built = page.page_for(
             Path("pkg/m.py"), ORIGINAL, lexer.language_for(Path("m.py"))
         )
-        sorted(page.code_lines(ORIGINAL, built))
+        list(page.code_lines(ORIGINAL, [vars(b) for b in built]))
         self.census.write_text(
             json.dumps([vars(b) for b in built], default=list), encoding="utf-8"
         )
@@ -620,7 +620,7 @@ class TestTheCSeriesIsWritableInALexicalLanguage(unittest.TestCase):
     def _blocks(self):
         path = Path("m.go")
         got = page.page_for(path, self.SRC, lexer.language_for(path))
-        sorted(page.code_lines(self.SRC, got))
+        list(page.code_lines(self.SRC, [vars(b) for b in got]))
         return [vars(b) for b in got]
 
     def _splice(self, kind, change):

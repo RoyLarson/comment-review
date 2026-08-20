@@ -19,18 +19,18 @@ import unittest  # noqa: I001  -- path shim below must import before foliation
 from _paths import SCRIPTS  # noqa: F401
 import foliator
 
-# Roy's `python_edge_cases.md`, as the walk sees it: each line of code with the
-# line it sits on, and which of them declare something documentable. ! The line
-# POSITIONS the trigger; it never numbers it.
-EDGE_CODE = [
-    (2, "N = 0"),
-    (3, "def wrapper(fn):"),
-    (4, "    def counter(*args, **kwargs):"),
-    (5, "        global N"),
-    (6, "        N+=1"),
-    (7, "        return fn(*args, **kwargs)"),
-    (8, "    return counter"),
-]
+# Roy's `python_edge_cases.md`, as the walk sees it: the ordered mapping from
+# each line to the code on it, and which of them declare something
+# documentable. ! The line POSITIONS the trigger; it never numbers it.
+EDGE_CODE = {
+    2: "N = 0",
+    3: "def wrapper(fn):",
+    4: "    def counter(*args, **kwargs):",
+    5: "        global N",
+    6: "        N+=1",
+    7: "        return fn(*args, **kwargs)",
+    8: "    return counter",
+}
 # wrapper and counter, by index into EDGE_CODE -> the line their doc would go
 # on. ! NOT `declaring line + 1`: it is the first statement of the body, which
 # `lexer.declarations` states because only a parser knows it.
@@ -167,7 +167,7 @@ class TestTheWalkOnDegenerateFiles(unittest.TestCase):
     """A file with no code, and one with no documentable declaration."""
 
     def test_a_file_with_no_code_still_has_a_module(self):
-        places = foliator.foliate([], {}).places
+        places = foliator.foliate({}, {}).places
         # ! `b0` is the file's own front matter and `b1` the gap that is the
         # whole file. Both exist before any line of code does.
         self.assertEqual(places["a0"], foliator.MODULE)
@@ -175,9 +175,9 @@ class TestTheWalkOnDegenerateFiles(unittest.TestCase):
         self.assertNotIn("c1", places)
 
     def test_a_file_with_no_declaration_has_only_a0(self):
-        places = foliator.foliate([(1, "N = 0")], {}).places
+        places = foliator.foliate({1: "N = 0"}, {}).places
         self.assertEqual([f for f in places if f.startswith("a")], ["a0"])
 
     def test_the_module_never_takes_a_c(self):
-        places = foliator.foliate([(1, "N = 0")], {}).places
+        places = foliator.foliate({1: "N = 0"}, {}).places
         self.assertNotIn("c0", places)

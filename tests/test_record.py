@@ -766,7 +766,7 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
     def setUp(self):
         path = Path("m.py")
         paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
-        sorted(page.code_lines(self.SRC, paragraphs))
+        list(page.code_lines(self.SRC, [vars(b) for b in paragraphs]))
         self.census = [vars(b) for b in paragraphs]
         self.prose = [
             i
@@ -876,7 +876,7 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
     def setUp(self):
         path = Path("m.py")
         paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
-        sorted(page.code_lines(self.SRC, paragraphs))
+        list(page.code_lines(self.SRC, [vars(b) for b in paragraphs]))
         self.census = [vars(b) for b in paragraphs]
         self.marked = [
             b for b in self.census if page.FRONT_MATTER in (b["annotations"] or ())

@@ -40,8 +40,8 @@ those 191, so a parent link is the shape that fits and a tree is not.
 !! TWO LEAVES BENEATH THIS ONE, and the direction inverted 2026-08-20. A page
 builds itself, so it needs the foliator -- which had been importing this module
 for two constants, a cycle. The cut is that THE FOLIATOR KNOWS NOTHING ABOUT A
-PARAGRAPH: `code_lines_of` and `attach` were the only two functions of it that
-did, and both are page questions wearing an addressing name.
+PARAGRAPH: `code_lines` and `attach` were the only two functions of it that did,
+and both are page questions wearing an addressing name.
 
 ! Letting the import graph choose a module's subject is what this keeps undoing.
 `Paragraph` first lived in `census.py`, at the top of the graph, so the modules
@@ -166,8 +166,24 @@ class Page:
         ]
 
 
-def code_lines_of(text: str, paragraphs: list[dict]) -> list[int]:
-    """Which lines of this file are LINES OF CODE, at the tier the census ran.
+def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
+    """Every LINE OF CODE on this page, in order, with the code on it.
+
+    ```python
+    {2: "N = 0", 3: "def f():", 5: "    return 1"}
+    ```
+
+    !! ONE STRUCTURE, WHERE THERE WERE THREE FUNCTIONS. `code_lines_of` returned
+    the numbers, `code_lines` returned them again as a `set` for membership, and
+    `lines_of_code` returned them paired with their characters -- two names for
+    one question, and a `sorted()` bridging the types that nearly every caller
+    wrote to convert the set back into the ascending list the first already
+    returned. Roy, 2026-08-20: *"the fact that you said 'sets' leaves me
+    thinking we have a sorted-dictionary or it should always be a list."*
+
+    ! A `dict` is insertion-ordered, so ASCENDING BY CONSTRUCTION answers all
+    four consumers: iterate it for the walk, `n in code` for occupancy,
+    `enumerate` for the ordinals, `code[n]` for one line's anchor.
 
     A line is code when it holds something that is not blank and not prose. The
     two tiers cannot answer that identically, and the difference is the
@@ -192,26 +208,36 @@ def code_lines_of(text: str, paragraphs: list[dict]) -> list[int]:
     opened after a statement had its declaration line dropped from the code
     set, moving every interval boundary in the file. Measured 2026-08-18.
 
+    !! THE CHARACTERS COME FROM THAT LINE'S `c`, NEVER RE-CUT HERE. Every code
+    line has exactly one `c` -- a `trailing-comment`, or the `margin` standing
+    in for one -- and it already states where the code stops. Cutting the line
+    again answers `'    return os  # why'` where the `c` for the same line
+    answers `'    return os'`: two computations of one fact.
+
     ! It takes DICTS, so it reads a census off disk and a census still being
-    built alike -- `code_lines` is this function over its own `Paragraph`s.
-    An address counts code lines, so the count has to be the same one the
-    census used or the two disagree about what `@b3` means.
+    built alike. An address counts code lines, so the count has to be the same
+    one the census used or the two disagree about what `@b3` means.
     """
     occupied: set[int] = set()
-    for b in paragraphs:
+    beside: dict[int, str] = {}
+    for b in prose:
+        start, end = b.get("start"), b.get("end")
+        # ! The `c` is read BEFORE the occupancy test, because the paragraph
+        # standing in for one is a `margin`, which occupies nothing.
+        if b.get("edit_column") and isinstance(start, int):
+            beside[start] = b.get("anchor", "")
         if b.get("kind") in OCCUPIES_NOTHING:
             continue
-        start, end = b.get("start"), b.get("end")
         if not isinstance(start, int) or not isinstance(end, int):
             continue
         occupied.update(range(start, end + 1))
         if b.get("edit_column", 0):
             occupied.discard(start)
-    return [
-        n
+    return {
+        n: beside.get(n) or line.rstrip()
         for n, line in enumerate(text.splitlines(), 1)
         if line.strip() and n not in occupied
-    ]
+    }
 
 
 def attach(paragraph: dict, foliation: "Foliation") -> str:
@@ -249,33 +275,7 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     return foliation.above(at) if isinstance(at, int) else ""
 
 
-def lines_of_code(text: str, prose: list[dict]) -> list[tuple[int, str]]:
-    """The file's lines of code, in order, each with the line it sits on.
-
-    ! What the WALK is given. The line positions the trigger and never numbers
-    it -- see `foliator.foliate`.
-
-    !! THE CHARACTERS COME FROM THAT LINE'S `c`, NEVER RE-CUT HERE. Every code
-    line has exactly one `c` -- a `trailing-comment`, or the `margin` standing
-    in for one -- and it already states where the code stops. Cutting the line
-    again answers `'    return os  # why'` where the `c` for the same line
-    answers `'    return os'`: two computations of one fact, which is what
-    `whole_lines` was removed for.
-    """
-    lines = text.splitlines()
-    beside = {
-        b.get("start"): b.get("anchor", "") for b in prose if b.get("edit_column")
-    }
-    return [
-        (n, beside.get(n) or lines[n - 1].rstrip())
-        for n in code_lines_of(text, prose)
-        if 1 <= n <= len(lines)
-    ]
-
-
-def documentable(
-    decls: list[tuple[int, int]], code: list[tuple[int, str]]
-) -> dict[int, int]:
+def documentable(decls: list[tuple[int, int]], code: dict[int, str]) -> dict[int, int]:
     """Which code lines DECLARE something documentable, and where its doc goes.
 
     ! The lexer states both facts -- see `lexer.declarations`. This only turns a
@@ -291,7 +291,7 @@ def documentable(
         for a tier that resolves no declarations, and the file then has an `a0`
         and no more.
     """
-    at = {n: i for i, (n, _) in enumerate(code)}
+    at = {n: i for i, n in enumerate(code)}
     return {at[line]: insert for line, insert in decls[1:] if line in at}
 
 
@@ -316,21 +316,10 @@ def places_on(
         The `Foliation` for this page.
     """
     decls = decls or []
-    code = lines_of_code(text, prose)
+    code = code_lines(text, prose)
     # ! The MODULE's own doc place. A tier that resolves no declarations
     # still has an `a0`, and its prose would open the file.
     return foliate(code, documentable(decls, code), decls[0][1] if decls else 1)
-
-
-def code_lines(text: str, prose: list[Paragraph]) -> set[int]:
-    """The code lines of this file, as a set -- `foliation.code_lines_of`.
-
-    !! ONE IMPLEMENTATION, and it is the foliation's, because an address is
-    counted off this set and the two must not be able to disagree. This is the
-    same rule over `Paragraph`s rather than dicts; the rule itself is written where
-    it runs.
-    """
-    return set(code_lines_of(text, [vars(b) for b in prose]))
 
 
 def empty_places(
@@ -605,7 +594,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     before -- widening those would let a `change` swallow the blank line that
     separates a comment run from the code beneath it.
     """
-    code = sorted(code_lines(text, paragraphs))
+    code = list(code_lines(text, [vars(b) for b in paragraphs]))
     last = len(text.splitlines())
     edges = [0, *code, last + 1]
     for prev, nxt in pairwise(edges):
