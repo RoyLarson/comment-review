@@ -59,6 +59,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from foliator import (  # noqa: E402  -- path shim must run first
+    DECLARED,
     GAP,
     ON,
     Foliation,
@@ -68,6 +69,7 @@ from foliator import (  # noqa: E402  -- path shim must run first
 from lexer import (  # noqa: E402  -- path shim must run first
     Language,
     Paragraph,
+    declarations,
     flag_structural_docs,
     paragraphs_lexical,
     paragraphs_stdlib,
@@ -271,29 +273,31 @@ def lines_of_code(text: str, prose: list[dict]) -> list[tuple[int, str]]:
     ]
 
 
-def documentable(prose: list[dict], text: str) -> set[int]:
-    """Which lines of code DECLARE something able to carry documentation.
+def documentable(
+    decls: list[tuple[int, int]], code: list[tuple[int, str]]
+) -> dict[int, int]:
+    """Which code lines DECLARE something documentable, and where its doc goes.
 
-    !! ONLY A PARSER KNOWS, so the census states it and the walk consumes it.
-    `declares` is that answer: 0 for the module and 1..N for its declarations
-    in source order, which the AST walk established. A tier that resolves no
-    declarations returns an empty set, and the file has an `a0` and no more.
+    ! The lexer states both facts -- see `lexer.declarations`. This only turns a
+    LINE into an index into the walk's own trigger list, because that is what
+    the walk counts by.
+
+    Args:
+        decls: `(line, insert)` per declaration, module first.
+        code: the walk's triggers, `(line, anchor)` in order.
 
     Returns:
-        Indices into `lines_of_code`, so the walk can ask "does this trigger
-        emit an `a`" without knowing what a declaration is.
+        `index into code -> the line that declaration's doc would go on`. Empty
+        for a tier that resolves no declarations, and the file then has an `a0`
+        and no more.
     """
-    declaring = {
-        b.get("declared_at")
-        for b in prose
-        if isinstance(b.get("declares"), int)
-        and b["declares"] >= 1
-        and b.get("declared_at")
-    }
-    return {i for i, (n, _) in enumerate(lines_of_code(text, prose)) if n in declaring}
+    at = {n: i for i, (n, _) in enumerate(code)}
+    return {at[line]: insert for line, insert in decls[1:] if line in at}
 
 
-def places_on(text: str, prose: list[dict]) -> "Foliation":
+def places_on(
+    text: str, prose: list[dict], decls: list[tuple[int, int]] | None = None
+) -> "Foliation":
     """Every place on this page, walked.
 
     !! THE PAGE NAMES ITS OWN PLACES, which is what makes it a page rather than
@@ -304,11 +308,18 @@ def places_on(text: str, prose: list[dict]) -> "Foliation":
     Args:
         text: the file's source.
         prose: its paragraphs, as dicts.
+        decls: `(line, insert)` per documentable declaration, module first --
+            `lexer.declarations`. Empty for a tier that resolves none, and the
+            page then has an `a0` and no more.
 
     Returns:
         The `Foliation` for this page.
     """
-    return foliate(lines_of_code(text, prose), documentable(prose, text))
+    decls = decls or []
+    code = lines_of_code(text, prose)
+    # ! The MODULE's own doc place. A tier that resolves no declarations
+    # still has an `a0`, and its prose would open the file.
+    return foliate(code, documentable(decls, code), decls[0][1] if decls else 1)
 
 
 def code_lines(text: str, prose: list[Paragraph]) -> set[int]:
@@ -362,7 +373,30 @@ def empty_places(
     for folio, anchor in foliation.places.items():
         if folio in occupied:
             continue
-        if folio.startswith(ON):
+        if folio.startswith(DECLARED):
+            # ! A DECLARATION WITH NO DOCSTRING. It occupies no line, because
+            # the prose is not written yet -- given the declaration's own range
+            # it swallowed whatever sat between the `def` and its first
+            # statement. Its EDIT range still says where the prose would go, and
+            # `insert..insert-1` is an empty slice, so writing it INSERTS.
+            insert = foliation.inserts.get(folio, 1)
+            out.append(
+                Paragraph(
+                    path="",
+                    start=0,
+                    end=0,
+                    kind="undocumented",
+                    lines=0,
+                    text="",
+                    anchor=anchor,
+                    declares=int(folio[1:]),
+                    declared_at=foliation.lines.get(folio, 0),
+                    edit_start=insert,
+                    edit_end=insert - 1,
+                    address=folio,
+                )
+            )
+        elif folio.startswith(ON):
             # ! The room BESIDE a line of code: whatever follows the statement,
             # which is nothing unless the line ends in whitespace. The code is
             # the ANCHOR, so storing it here too would put one fact in two
@@ -457,7 +491,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # assigns the numbering, `attach` reads which place this prose sits in,
         # and the anchor comes from the walk that emitted it rather than from a
         # second pass that could disagree with the first.
-        foliation = places_on(text, [vars(b) for b in got])
+        foliation = places_on(text, [vars(b) for b in got], declarations(text, lang))
         flat = flatten(rel if rel is not None else path.as_posix())
         for b in got:
             place = attach(vars(b), foliation)

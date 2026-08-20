@@ -260,9 +260,19 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
 
     def test_a_file_of_only_prose_is_one_interval(self):
         got = self._census("# just a note\n")
-        # ! `b0` is the file's own place and exists whether or not front
-        # matter sits in it, so a file of one comment carries that too.
-        self.assertEqual(sorted(b.kind for b in got), ["comment", "interval"])
+        # ! `b0` is the file's own place and exists whether or not front matter
+        # sits in it, so a file of one comment carries that too -- and so is
+        # `a0`, where a module docstring would go. Neither depends on prose
+        # already being there.
+        #
+        # !! THE `undocumented` WAS ABSENT UNTIL 2026-08-20, because the old
+        # generator skipped a node with an empty body: an empty `__init__.py`
+        # had nowhere to cite a missing module docstring. Filed as task 4 of
+        # `census-degrades-silently`, and closed by moving the emission to the
+        # page, which asks the walk rather than the AST.
+        self.assertEqual(
+            sorted(b.kind for b in got), ["comment", "interval", "undocumented"]
+        )
 
 
 class TestTheLexicalTierStampsToo(unittest.TestCase):

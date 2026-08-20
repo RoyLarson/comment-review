@@ -304,6 +304,10 @@ class Foliation:
     # the file's own last line, which is the page's to know and not the walk's.
     bounds: dict[str, tuple[int, int]] = field(default_factory=dict)
     lines: dict[str, int] = field(default_factory=dict)
+    # ! WHERE AN `a`'s PROSE WOULD GO, which is not its declaration's line:
+    # a wrapped signature puts the first statement several lines down. Only
+    # a parser knows it, so the lexer states it and the walk carries it.
+    inserts: dict[str, int] = field(default_factory=dict)
     # Each keyed by the 1-based LINE the trigger sat on, so a reader with a
     # position can find the place without knowing how the walk numbered it.
     _above: dict[int, str] = field(default_factory=dict)
@@ -340,7 +344,11 @@ class Foliation:
         return folio(GAP, 0)
 
 
-def foliate(code: list[tuple[int, str]], documentable: set[int]) -> Foliation:
+def foliate(
+    code: list[tuple[int, str]],
+    documentable: dict[int, int],
+    module_insert: int = 1,
+) -> Foliation:
     """Walk the anchors of one file; return every folio and its line of code.
 
     !! THE WALK IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because the
@@ -368,8 +376,10 @@ def foliate(code: list[tuple[int, str]], documentable: set[int]) -> Foliation:
     Args:
         code: the file's lines of code in order, each `(line number, the exact
             characters)`. The number positions the trigger; it never numbers it.
-        documentable: indices into `code` that declare something able to carry
-            documentation. The CENSUS states it, because only a parser knows.
+        documentable: index into `code` -> the line that declaration's doc
+            would go on. The LEXER states both, because only a parser knows
+            which lines declare and where a doc belongs.
+        module_insert: where the MODULE's own doc would go.
 
     Returns:
         The `Foliation`: every place, and both directions between them.
@@ -377,6 +387,7 @@ def foliate(code: list[tuple[int, str]], documentable: set[int]) -> Foliation:
     a, b, c = Foliator(DECLARED), Foliator(GAP), Foliator(ON)
     out = Foliation(_code=[n for n, _ in code])
     out._declared[0] = a.emit(MODULE)
+    out.inserts[out._declared[0]] = module_insert
     # ! `b0` is the FILE'S OWN front matter, so it is bounded by nothing: the
     # head of the file on both sides. It is not the gap above the first line of
     # code -- that is `b1`, and conflating them made the two exclusive.
@@ -390,6 +401,7 @@ def foliate(code: list[tuple[int, str]], documentable: set[int]) -> Foliation:
             declared = a.emit(line)
             out._declared[len(out._declared)] = declared
             out.lines[declared] = n
+            out.inserts[declared] = documentable[i]
         gap = b.emit(line)
         out._above[n] = gap
         out.bounds[gap] = (previous, n)

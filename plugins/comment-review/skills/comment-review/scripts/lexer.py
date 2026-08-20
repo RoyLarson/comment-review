@@ -13,9 +13,12 @@ where the prose starts and ends, what kind it is, the code beside it. Where that
 paragraph SITS is the page's: the path it is on, the place it occupies, and the
 empty places where prose could go and does not.
 
-! So the kinds split too. A reader emits `comment`, `docstring`,
-`trailing-comment` and `unparsed` -- prose it found. `interval`, `margin` and
-`undocumented` are the page's, because only a page knows where prose is MISSING.
+! So the kinds split too, and NOTHING HERE EMITS A PAGE KIND. A reader emits
+`comment`, `docstring`, `trailing-comment` and `unparsed` -- prose it found.
+`interval`, `margin` and `undocumented` are the page's, because only a page
+knows where prose is MISSING. ! What this reports instead is
+`declarations()`: which lines declare something documentable, and where its
+doc would go. The page turns that into `a` places.
 
 ! A LEAF: it imports no sibling. `foliator` is the other one, and neither knows
 anything of the other -- a place has no prose in it and prose has no place until
@@ -783,6 +786,48 @@ def flag_structural_docs(
         )
 
 
+def declarations(text: str, lang: Language) -> list[tuple[int, int]]:
+    """Every DOCUMENTABLE declaration in source order: its line, and where its doc goes.
+
+    !! ENTRY 0 IS THE MODULE, whose line is 0 -- a module has no line of code
+    declaring it. Entries 1..N are its declarations in the order a reader meets
+    them down the page, which is the order the `a` series counts.
+
+    !! ONLY A PARSER KNOWS EITHER FACT, which is why this is the lexer's and the
+    place it names is the page's. Which lines declare something able to carry
+    documentation is language-dependent -- and WHERE that documentation goes is
+    not `line + 1`: a wrapped signature puts the first statement several lines
+    down, and `def f(): pass` puts it on the `def` line itself.
+
+    ! It REPORTS; it does not emit a paragraph. `undocumented` is a PAGE kind,
+    because only a page knows where prose is missing. This module said so in its
+    own docstring while emitting one 22 lines later.
+
+    Returns:
+        `(line, insert)` per declaration, module first. Empty for a tier that
+        resolves none, which is every language but Python today.
+    """
+    if lang.name != "python":
+        return []
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        # ! A file the parser refused declares nothing this can state. Its one
+        # `unparsed` paragraph reports the refusal.
+        return []
+    # ! SOURCE ORDER, which `ast.walk` does not give -- the same sort
+    # `paragraphs_stdlib` makes, so the ordinals line up by construction.
+    declared = sorted(
+        (n for n in ast.walk(tree) if isinstance(n, NAMED_DEFS)), key=lambda n: n.lineno
+    )
+    out: list[tuple[int, int]] = []
+    for node in [tree, *declared]:
+        body = getattr(node, "body", [])
+        # ! An empty module has no first statement; its doc would open the file.
+        out.append((getattr(node, "lineno", 0), body[0].lineno if body else 1))
+    return out
+
+
 def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
     """Comment paragraphs (bounded by CODE) and docstrings, via tokenize + ast."""
     out: list[Paragraph] = []
@@ -941,65 +986,7 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
                 raw_lines=raw,
             )
         )
-    out.extend(_undocumented(path, tree, declared, ordinal))
     return sorted(out, key=lambda b: b.start)
-
-
-def _undocumented(
-    path: Path, tree: ast.AST, declared: list, ordinal: dict[int, int]
-) -> list[Paragraph]:
-    """An `a` entry for every declaration that has NO docstring.
-
-    !! THE EMPTY ONES ARE THE POINT OF THE SERIES. An `add` says a constraint
-    holds in code and appears in no prose, so it has to cite the place the prose
-    is missing from -- and until this ran, a function with no docstring had no
-    such place. Measured 2026-08-18 on a four-declaration file: the census
-    emitted two docstring paragraphs and left three declarations with nowhere to
-    cite. This is the same hole `intervals` closed for gaps.
-
-    ! It occupies NO LINES, exactly like an empty interval, and `OCCUPIES_NOTHING`
-    says so. Its `start`-`end` span the declaration and its first statement so a
-    citation resolves to real lines; its EDIT range is the empty slice before
-    that statement, which is a pure insertion.
-
-    ! The `a` address and the `b` gap at the same spot are both real and are not
-    a collision: `a4` is the declaration's documentation and `bN` is the gap
-    between two code lines. An `add` on the first writes a docstring, on the
-    second a comment run.
-    """
-    out: list[Paragraph] = []
-    for node in [tree, *declared]:
-        if not isinstance(node, DOC_ANCHORS) or ast.get_docstring(node, clean=False):
-            continue
-        body = getattr(node, "body", [])
-        if not body:
-            continue
-        first = body[0].lineno
-        out.append(
-            Paragraph(
-                path=path.as_posix(),
-                # !! LINE 0 -- IT OCCUPIES NO LINE, because the docstring is not
-                # written yet. Roy ruled the empty case 2026-08-19. Given the
-                # declaration's own range it swallowed whatever sat between the
-                # `def` and its first statement: a module with no docstring
-                # spanned lines 1-4 and the locator answered `a0` for the
-                # comment at 3 and the `def` at 4, both of which belong to other
-                # paragraphs. Its EDIT range still says where the prose would go.
-                start=0,
-                end=0,
-                kind="undocumented",
-                lines=0,
-                text="",
-                anchor=getattr(node, "name", "<module>"),
-                declares=ordinal.get(id(node), 0),
-                declared_at=getattr(node, "lineno", 0),
-                # The EDIT: `first..first-1` is empty, so writing it INSERTS
-                # above the first statement rather than overwriting it.
-                edit_start=first,
-                edit_end=first - 1,
-            )
-        )
-    return out
 
 
 def tier_for(lang: Language) -> str:

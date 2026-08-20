@@ -2,13 +2,18 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 1 of 6 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 Measured: 2026-08-19 — the BOM case is worse than filed: the comment came back with
           address '' -- genuinely unaddressed, not merely misparsed -- with anchor set
           to the BOM character itself.
+Closed:   2026-08-20 — task 4 -- 'an empty file yields zero blocks and has no a0, so an
+          empty __init__.py is uncitable' -- is closed by the lexer/page split of
+          2026-08-20. The old generator skipped a node with an EMPTY BODY; the page now
+          emits an `a` place for every declaration the lexer reports, module included.
+          Measured: an empty file carries a0, b0 and b1, where it had nothing.
 ```
 
 ## Objective
@@ -56,7 +61,7 @@ docstring: *"A file with no code at all is therefore one interval."*
       `def` line. Measured end to end: the galley wrote a docstring above the
       declaration and the file raised `IndentationError`; un-indented it silently
       becomes the MODULE docstring. Also hits `@overload` and `class C: pass`.
-- [ ] **An empty file yields zero blocks and has no `a0`**, so an empty
+- [x] **An empty file yields zero blocks and has no `a0`**, so an empty
       `__init__.py` is uncitable -- there is nowhere to say a module docstring is
       missing. ! Contradicts `intervals`' own docstring: *"A file with no code at
       all is therefore one interval."* The weaker form hits any file with no

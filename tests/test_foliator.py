@@ -31,7 +31,10 @@ EDGE_CODE = [
     (7, "        return fn(*args, **kwargs)"),
     (8, "    return counter"),
 ]
-EDGE_DOCUMENTABLE = {1, 2}  # wrapper and counter, by index into EDGE_CODE
+# wrapper and counter, by index into EDGE_CODE -> the line their doc would go
+# on. ! NOT `declaring line + 1`: it is the first statement of the body, which
+# `lexer.declarations` states because only a parser knows it.
+EDGE_DOCUMENTABLE = {1: 4, 2: 5}
 
 
 class TestAFoliatorHoldsItsOwnSteps(unittest.TestCase):
@@ -164,7 +167,7 @@ class TestTheWalkOnDegenerateFiles(unittest.TestCase):
     """A file with no code, and one with no documentable declaration."""
 
     def test_a_file_with_no_code_still_has_a_module(self):
-        places = foliator.foliate([], set()).places
+        places = foliator.foliate([], {}).places
         # ! `b0` is the file's own front matter and `b1` the gap that is the
         # whole file. Both exist before any line of code does.
         self.assertEqual(places["a0"], foliator.MODULE)
@@ -172,9 +175,9 @@ class TestTheWalkOnDegenerateFiles(unittest.TestCase):
         self.assertNotIn("c1", places)
 
     def test_a_file_with_no_declaration_has_only_a0(self):
-        places = foliator.foliate([(1, "N = 0")], set()).places
+        places = foliator.foliate([(1, "N = 0")], {}).places
         self.assertEqual([f for f in places if f.startswith("a")], ["a0"])
 
     def test_the_module_never_takes_a_c(self):
-        places = foliator.foliate([(1, "N = 0")], set()).places
+        places = foliator.foliate([(1, "N = 0")], {}).places
         self.assertNotIn("c0", places)
