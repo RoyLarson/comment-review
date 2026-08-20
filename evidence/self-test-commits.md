@@ -206,6 +206,34 @@ of today is needed to find either.
 ! **The check is mechanical and cheap**: for every `` `module.symbol` `` a comment names, ask
 which module defines that symbol. A run that misses these is missing something a regex found.
 
+## More `block-context` -- a consolidation that miscounts what it consolidated
+
+`page.py:341`, in `empty_places`'s own docstring, written at `9293806`:
+
+> *"ONE LOOP, WHERE THERE WERE THREE GENERATORS. `intervals`, `margins` and `_undocumented` each
+> walked the file again to decide which places of their own series deserved a paragraph -- 206
+> lines answering one question three ways."*
+
+**Three checkable claims, three answers, none of them 206:**
+
+| the claim | measured at `9293806^` |
+| --- | --- |
+| `_undocumented` was one of the three | it was **still alive in `lexer.py`**, still emitting, for two more commits. The third consolidated there was `paragraphs_in` |
+| 206 lines | the three NAMED held **181** (76 + 50 + 55). The three actually consolidated held **143** |
+| three generators | **four**, once `_undocumented` went at `0c67b7f` -- 198 lines |
+
+!! **THE PROSE DESCRIBED THE CHANGE THE AUTHOR MEANT TO MAKE, not the one on disk.** The
+`_undocumented` half was real work, correctly reasoned, and landed two commits later -- the
+sentence simply ran ahead of it. That is the failure mode a green gate cannot see: every test
+passed at `9293806` precisely because the function the docstring buried was still there doing
+its job.
+
+! **`block-context` owns this twice over** -- a state claim (a named function that was not in
+the state the prose puts it in) and a constraint claim (a count with no arithmetic behind it).
+! **The count is the sharper fixture**, because no history is needed: `206` matches no sum of
+the functions named, at any commit, and a reader who adds them up finds that without leaving the
+file's own diff.
+
 ## More `function-context` -- a wrapper that every caller undoes
 
 `page.py` carries three functions built from the same two words:
