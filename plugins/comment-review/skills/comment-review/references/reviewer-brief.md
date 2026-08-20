@@ -71,9 +71,18 @@ separate foliators, and no number in one tells you a number in another -- nor do
 position tell you either. Two of them lining up on the file in front of you is a coincidence of
 that file, and it may change.
 
-! **`@f0` IS THE FILE'S OWN MATTER** -- a licence header, a shebang, a coding line -- and
-not the gap above the first line of code. It is filtered out of your census, and any edit proposed
-on it becomes a `query`.
+! **`@f0` IS THE FILE'S OWN MATTER** -- a licence header, a shebang, a coding line, and at the
+other end an index, a glossary or a run of footnotes -- and not the gap above the first line of
+code. It is filtered out of your census, and any edit proposed on it becomes a `query`.
+
+!! **YOUR CENSUS CARRIES `a`, `b` AND `c`. THAT IS THE WHOLE SET YOU RULE ON.** The `f` series
+is not a place you were asked about, so there is no verdict to reach on one.
+
+! **YOU WILL STILL READ IT, AND THAT IS FINE.** Opening the file puts a licence header in front
+of you, and you should use it the way you use any other context -- to understand what the file
+is and who owns it. Roy, 2026-08-20: *"they will obviously read the matter ends when they look at
+the file ... anytime you start to do something you load the whole document and then slice the
+pieces that matter."* ! **What is ruled out is RULING on it**, not seeing it.
 
 ## You FILL a record; you do not write one
 
@@ -187,7 +196,7 @@ tool prints how many answered; read that line.
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c|f
+python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 ```
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
@@ -351,7 +360,7 @@ unavailable**, and your run context says whether it is; a relocation into tracke
 always available.
 
 !! **`to:` IS AN ADDRESS when the destination is in the code, and it is RESOLVED.** Ask for it
-the same way an `add` does -- `--anchor LINE --series a|b|c|f`. A destination naming a LINE is
+the same way an `add` does -- `--anchor LINE --series a|b|c`. A destination naming a LINE is
 refused, and so is an address the census does not carry.
 
 ! **The destination may hold NO PROSE, and that is ordinary.** A paragraph can move to a gap with
