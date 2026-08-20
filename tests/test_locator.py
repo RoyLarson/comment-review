@@ -7,8 +7,11 @@ placement decision the reviewer owns.
 """
 
 import unittest  # noqa: I001  -- path shim below must import before locator
+from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
+import addresser
+import census
 import page
 import locator
 
@@ -125,3 +128,74 @@ class TestTheFilteredCensusIsAProjection(unittest.TestCase):
         full, filtered = self._indexed(run()), self._indexed(run("--filtered"))
         self.assertTrue(full, "the full census listed no prose paragraph")
         self.assertEqual(full, filtered)
+
+
+class TestAPlaceAtLineZeroIsReachable(unittest.TestCase):
+    """The empty places are exactly the ones a range test cannot find.
+
+    !! AN `add` CITES AN EMPTY PLACE, and an empty place occupies NO LINE. An
+    `interval` with nothing in it and a declaration with no docstring are both
+    at line 0, so `start <= line <= end` can never match one -- and the brief
+    tells a reviewer to ask the locator for precisely those. **Measured
+    2026-08-19 on a seven-line file: 4 of 9 places unreachable by any line,
+    every one an `interval` or an `undocumented`.** An `add` above an ordinary
+    statement had no sanctioned route at all.
+
+    ! The fix reads `edit_start` -- where prose WOULD go, and the same field the
+    galley splices at -- so the place a lookup names is the place a write lands
+    in.
+    """
+
+    SRC = '"""Module doc."""\n\nimport os\n\n\ndef f():\n    return os\n'
+
+    def setUp(self):
+        path = Path("m.py")
+        built = census.census_for(path, self.SRC, census.language_for(path))
+        lines = sorted(census.code_lines(self.SRC, built))
+        for b in built:
+            b.path = "m.py"
+            b.address = addresser.address(vars(b), lines)
+        self.paragraphs = [vars(b) for b in built]
+        self.last = len(self.SRC.splitlines())
+
+    def _reachable(self):
+        seen = set()
+        # ! `last + 1` because the gap AFTER the last line inserts one past the
+        # end, which is where an append goes.
+        for n in range(1, self.last + 2):
+            for _, b in locator.at(self.paragraphs, "m.py", n):
+                seen.add(b["address"])
+        return seen
+
+    def test_the_fixture_really_holds_places_at_line_zero(self):
+        # ! Guards the guard: a fixture with no empty places would pass every
+        # assertion below without exercising anything.
+        empty = [b for b in self.paragraphs if b["start"] == 0]
+        self.assertTrue(empty, "no place at line 0 in the fixture")
+
+    def test_every_place_is_reachable_by_some_line(self):
+        named = {b["address"] for b in self.paragraphs}
+        self.assertEqual(sorted(named - self._reachable()), [])
+
+    def test_an_empty_place_is_found_where_it_would_INSERT(self):
+        gap = next(
+            b for b in self.paragraphs if b["kind"] == "interval" and b["start"] == 0
+        )
+        got = locator.at(self.paragraphs, "m.py", gap["edit_start"])
+        self.assertIn(gap["address"], [b["address"] for _, b in got])
+
+    def test_ONE_line_answers_with_several_places(self):
+        # !! Which is correct and is why the caller reads the KIND. A line can
+        # carry the gap above it, the room beside it, and a declaration's
+        # absent docstring at once.
+        got = locator.at(self.paragraphs, "m.py", self.last)
+        self.assertGreater(len(got), 1)
+        self.assertEqual(len({b["address"] for _, b in got}), len(got))
+
+    def test_a_place_WITH_lines_is_not_returned_twice(self):
+        # ! Matching the edit range for every place would return a prose
+        # paragraph once for its lines and again for its insertion point.
+        for n in range(1, self.last + 2):
+            got = locator.at(self.paragraphs, "m.py", n)
+            with self.subTest(line=n):
+                self.assertEqual(len(got), len({b["address"] for _, b in got}))

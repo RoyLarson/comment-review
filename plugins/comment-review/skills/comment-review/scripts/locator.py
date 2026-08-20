@@ -57,7 +57,23 @@ def entries(census: object) -> list[dict]:
 
 
 def at(paragraphs: list[dict], path: str, line: int) -> list[tuple[int, dict]]:
-    """Every entry whose range holds this line, as `(census index, entry)`.
+    """Every place at this line, as `(census index, entry)`.
+
+    !! A PLACE WITH NO LINES OF ITS OWN IS FOUND BY WHERE IT WOULD INSERT, and
+    that is the only way to find one. An empty `interval` and an `undocumented`
+    declaration are at LINE 0 -- they occupy nothing -- so a range test can
+    never match them, and those are exactly the places an `add` exists to cite.
+    **Measured 2026-08-19 on a seven-line file: 4 of 9 places unreachable by any
+    line, every one of them an `interval` or an `undocumented`.** An `add` above
+    an ordinary statement had no sanctioned route at all: the brief says ask the
+    locator, and the locator could not answer.
+
+    ! It reads `edit_start`, which is where prose WOULD go -- the same field the
+    galley splices at, so the place this names is the place a write lands in.
+
+    ! A line legitimately has SEVERAL places: the gap above it, the room beside
+    it, and a declaration's absent docstring can all insert at one line. All of
+    them come back, and the caller reads the KIND to tell them apart.
 
     ! The index is 1-based and counts EVERY entry, intervals included, because
     that is the numbering the join and the record file already use.
@@ -69,6 +85,12 @@ def at(paragraphs: list[dict], path: str, line: int) -> list[tuple[int, dict]]:
             continue
         start, end = paragraph.get("start"), paragraph.get("end")
         if isinstance(start, int) and isinstance(end, int) and start <= line <= end:
+            found.append((i, paragraph))
+            continue
+        # ! Only for a place that occupies NOTHING. A place with lines is found
+        # by them; matching its edit range too would return it twice for one
+        # line, and return a prose paragraph for a line it does not sit on.
+        if start == 0 and paragraph.get("edit_start") == line:
             found.append((i, paragraph))
     return found
 
