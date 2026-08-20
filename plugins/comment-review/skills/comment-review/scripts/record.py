@@ -680,22 +680,28 @@ def prose_paragraphs(census: list[dict]) -> list[tuple[int, dict]]:
     ]
 
 
-def slot(index: int, paragraph: dict) -> dict:
+def slot(paragraph: dict) -> dict:
     """One record, seeded from the census and otherwise empty.
 
+    ! IT TOOK A CENSUS INDEX AND NEVER READ IT. The parameter outlived the field
+    it filled: a slot has carried an ADDRESS and no index since 2026-08-18, and
+    the docstring still called the index "its identity". An argument nothing
+    reads is a claim nothing checks.
+
     Args:
-        index: the paragraph's 1-based census index, which is its identity.
         paragraph: the census entry.
 
     Returns:
         The record as the reviewer receives it.
     """
     return {
-        # !! THE ANCHOR, so an agent can GREP for it. Roy, 2026-08-19. It is the
-        # declaration the census structurally resolved -- `<module>`, a function
-        # or class name -- and empty where none was: no COMMENT carries one at
-        # either tier, in any language. A reviewer reads it as a starting point,
-        # never as a settled owner.
+        # !! THE ANCHOR, so an agent can GREP for it. Roy, 2026-08-19. It is
+        # the LINE OF CODE the address is attached to -- the exact characters --
+        # and every address carries one. ! It said "empty where none was: no
+        # COMMENT carries one at either tier", which was true of the same
+        # morning and false by the afternoon: 6,376 of 6,531 paragraphs had an
+        # empty anchor, and none do now. A reviewer reads it as a starting
+        # point, never as a settled owner.
         "anchor": str(paragraph.get("anchor", "")),
         # !! THE ADDRESS AND NOTHING ELSE. The record does not carry the paragraph's
         # text, so a reviewer cannot rule on it without OPENING THE FILE -- and
@@ -810,7 +816,7 @@ def seed(census: list[dict], reviewer: str) -> dict:
         "reviewer": reviewer,
         # ! FIRST, so it is read before the records it governs.
         "allowed": allowed(),
-        "records": [slot(i, b) for i, b in prose_paragraphs(census)],
+        "records": [slot(b) for _, b in prose_paragraphs(census)],
         # ! Code problems get one line each and carry no verdict. A list rather
         # than a section to find with a regex, which is one more boundary that
         # cannot be guessed wrong.

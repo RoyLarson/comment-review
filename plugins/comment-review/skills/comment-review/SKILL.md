@@ -340,19 +340,50 @@ python <skill>/scripts/census.py --repo . --filtered --out <run-dir>/dispatch.tx
 ```
 
 !! **THREE FILES, AND THE THIRD IS THE ONE A REVIEWER IS HANDED.** `--filtered` prints the
-paragraphs holding prose and collapses each run of empty intervals to one line -- `2-9
-record.py:48-58  no-prose  0L  8-intervals`. **Measured 2026-08-18 over 1,120 paragraphs: 131,353
-bytes to 52,383, and every reviewer gets an identical copy, so a four-role run saves 268,172.**
+paragraphs holding prose and collapses each run of places holding none into one line --
+`227-234  @c1..b7  122-129  no-prose  0L  2-intervals, 6-margins`. **Re-measured 2026-08-19 over
+6,828 paragraphs: 397,685 bytes to 159,316, and every reviewer gets an identical copy, so a
+four-role run saves 953,476.**
 
-!! **IT IS A PROJECTION, NEVER A RENUMBERING.** Every paragraph keeps the index it holds in the FULL
-census, because that index is what the join resolves and what a record cites. The full census
+!! **IT IS A PROJECTION, NEVER A RENUMBERING.** Every paragraph keeps the ADDRESS it holds in the
+FULL census, because that address is what the join resolves and what a record cites. ! The index
+in the first column is a READING AID for a human scanning the listing, and nothing cites it: it
+is a position in one census, and the galley is censused again for round 2. The full census
 stays on disk and is what stages 5 and 7b read; only the copy pasted into a reviewer's prompt is
 narrowed.
 
 !! **DO NOT SHIP THE FILTER WITHOUT STAGE 4's LOOKUP.** A reviewer handed the filtered census
 can still see every gap, but the intervals inside a run are no longer individually numbered in
-front of it -- so a reviewer needing to place prose at one of them has no index to cite unless
+front of it -- so a reviewer needing to place prose at one of them has no address to cite unless
 the packet tells it `locator.py` exists. Filtering without that is worse than not filtering.
+
+### What a place is CALLED
+
+!! **AN ADDRESS IS WHAT EVERY RECORD CITES**, and it is the only name that survives this run's own
+edits -- a prose edit moves the line numbers below it, and an address counts against the CODE.
+
+```
+pkg:core.py@a5    a DECLARATION's documentation
+pkg:core.py@b3    a GAP -- or, at `b0`, the file's own front matter
+pkg:core.py@c3    the room BESIDE a line of code
+```
+
+The path is flattened on `:`, a character no path may hold, so `a/b.py` and `a.b.py` cannot
+collide. `docs/addressing.md` is the settled definition.
+
+!! **YOU CANNOT WORK A FOLIO OUT. ASK.** The three series are counted by three separate
+foliators, and no number in one tells you a number in another -- nor does a line's position tell
+you either.
+
+```bash
+python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor NAME --series a|b|c
+python <skill>/scripts/addresser.py --census <CENSUS> --resolve <ADDRESS>
+python <skill>/scripts/locator.py --census <FULL CENSUS> --at path:LINE
+```
+
+! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many
+addresses and an address has one anchor, so two identical lines of code are two anchors spelled
+alike. Choose by ADDRESS.
 
 !! **`--out`, never a shell redirect.** A worktree-isolated session REFUSES a command carrying
 one -- *"too complex to verify that it stays inside the worktree"* -- and the JSON census is what
@@ -371,9 +402,9 @@ node's references already resolved, and it prints the tier counts for the run.
 
 !! **Most of that tree is `interval` paragraphs, and nobody owes them a record.** Every gap
 between two lines of code is numbered, empty ones included, because an `add` is a finding about
-prose that is MISSING and the record needs a `PARAGRAPH` index to carry it. They are ADDRESSABLE,
+prose that is MISSING and the record needs an ADDRESS to carry it. They are ADDRESSABLE,
 not ACCOUNTABLE: `verdicts.py` computes coverage over the paragraphs that hold prose and says both
-counts on its first line. Measured 2026-08-17: `census.py` over itself is 642 paragraphs, 76 of them prose.
+counts on its first line. Re-measured 2026-08-19: `census.py` over itself is 1,607 paragraphs, 118 of them prose.
 
 ! Those tier counts are
 AGGREGATED across files, not per file -- on a polyglot run you cannot tell which file reached
@@ -550,7 +581,7 @@ where the vocabulary is small and is pasted four times.
 
 !! **`CENSUS` POINTS AT THE FILTERED FILE**, `dispatch.txt` from stage 2 -- not the full census
 and not the JSON. That is the copy a reviewer reads, and it is four copies of it per run. The
-full census stays on disk for stages 5 and 7b, which resolve every index a reviewer cites
+full census stays on disk for stages 5 and 7b, which resolve every address a reviewer cites
 against it.
 
 **You also supply the run context as a PACKET, and the packet is checked before anyone is
@@ -615,10 +646,10 @@ file in place. It is the one path a reviewer is given, and the exception to *giv
 looking* above: it is being given a form, not a tree.
 
 ! **The seeded file is why coverage is structural.** A paragraph nobody ruled on is a slot with a
-null verdict, not an index missing from a list, so nothing downstream reconciles what was
+null verdict, not an address missing from a list, so nothing downstream reconciles what was
 expected against what arrived.
 
-! **A reviewer may APPEND a record for any census index, and must for an `add`** -- an `add`
+! **A reviewer may APPEND a record for any census ADDRESS, and must for an `add`** -- an `add`
 cites the empty INTERVAL prose is missing from, and intervals get no seeded slot. The brief
 tells the reviewer this; you need it to read the count `--check` prints, which counts slots
 and not findings.
@@ -655,7 +686,7 @@ read the tool's list rather than deriving your own.
 
 !! **A CONFLICT IS ON ONE SENTENCE. Two marks on two different sentences COMPOSE and are not a
 conflict**, however much they share a paragraph. Ruled 2026-08-17. `contradictions()` already keys
-on the edited SPAN rather than the paragraph index for exactly this reason -- and it was paid for:
+on the edited SPAN rather than the address for exactly this reason -- and it was paid for:
 measured on a live run, one of eight flagged collisions was two roles ruling on two different
 clauses of one docstring, and a whole re-review round went on establishing that. A paragraph of six
 sentences can carry six verdicts and still hold no conflict at all.
@@ -728,7 +759,7 @@ finding from a fabricated one.
 
 !! **It catches a fabricated FINDING, never a fabricated CLEAN -- and the clean
 is the easier fabrication.** A report reading only `CLEAN 1-N` accounts for
-every index, cites nothing, and exits 0 having read no file at all. Nothing
+every address, cites nothing, and exits 0 having read no file at all. Nothing
 mechanical can separate that from a real pass, because a negative leaves no
 artifact. **A green exit here is not evidence that anything was read.**
 
@@ -743,7 +774,7 @@ of repairing it. Restore the sentence.
 ! **Two findings quoting the same sentence in different files are ONE finding.** A pass edits
 where it is reading, fixes the copy in front of it, and manufactures a disagreement with the one
 it never opened. Contradicting verdicts trigger a **re-review**, never a tie-break. The join
-cannot see this for you -- `contradictions()` keys on the census PARAGRAPH index, and the same
+cannot see this for you -- `contradictions()` keys on the ADDRESS, and the same
 sentence copied into two files is two different paragraphs it can never relate.
 
 !! **Whether a TRUE sentence earns its place is a VERDICT, and verdicts are theirs.** The
@@ -864,7 +895,8 @@ python <skill>/scripts/census.py --json --repo <run-dir>/galley \
   --out <run-dir>/galley-census.json <the same paths, under the galley>
 ```
 
-`--edits` is `{"<census index>": "<your replacement paragraph>"}`. **Nothing under the repo is
+`--edits` is `{"<address>": "<your replacement paragraph>"}` -- the same address the record
+carries, so nothing between stage 5 and the galley converts. **Nothing under the repo is
 touched**; a galley is a copy and it is discarded with the run.
 
 ! **A round-2 record is an ORDINARY record** citing the galley census, so it joins exactly as a

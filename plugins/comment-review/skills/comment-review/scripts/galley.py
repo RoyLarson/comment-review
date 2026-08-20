@@ -286,7 +286,7 @@ def main() -> int:
     ap.add_argument(
         "--edits",
         required=True,
-        help='JSON: {"<census index>": "<replacement paragraph>"}',
+        help='JSON: {"<address>": "<replacement paragraph>"}',
     )
     ap.add_argument("--out", required=True, help="directory the galley is written to")
     args = ap.parse_args()

@@ -513,7 +513,7 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     ):
         held = entry_for(at, census)
         if held is not None:
-            report["records"].append(slot(order.get(at, 0) + 1, held))
+            report["records"].append(slot(held))
     report["records"].sort(key=lambda r: order.get(r["address"], len(census)))
 
     filled = []

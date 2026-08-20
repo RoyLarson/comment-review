@@ -4,7 +4,7 @@
 
 Checks the task agent was asked to perform by hand, every one mechanical:
 
-  COVERAGE      every census index accounted for, by every reviewer that ran
+  COVERAGE      every prose ADDRESS accounted for, by every reviewer that ran
   SOURCES       every citation resolves, and its verbatim half is really there
   ADDRESS       PARAGRAPH's `path:start-end` and transcribed text match the census
   PARAGRAPH         the sentence a finding rules on is really in the paragraph it cites
@@ -339,13 +339,14 @@ def _report(args: argparse.Namespace) -> int:
     # about prose that is MISSING -- has a place to cite instead of borrowing a
     # neighbour's. Most of them hold
     # nothing, and a reviewer owes no record on an empty one: coverage is over
-    # the paragraphs that HOLD PROSE. Measured 2026-08-17: `census.py` over itself
-    # is 642 paragraphs, 76 of them prose. Owing a record on all 642 would make
-    # `CLEAN 1-N` -- the cheapest fabrication there is -- eight parts out of
-    # nine true.
-    # ! The figure was 546/48 and had rotted; it was written in TWO places,
-    # here and in `SKILL.md`, with nothing comparing them. Re-measure both or
-    # neither.
+    # the paragraphs that HOLD PROSE. Re-measured 2026-08-19: `census.py` over
+    # itself is 1,607 paragraphs, 118 of them prose. Owing a record on all 1,607
+    # would make `CLEAN 1-N` -- the cheapest fabrication there is -- 92% true.
+    # !! THE FIGURE HAS NOW ROTTED TWICE, IN BOTH PLACES THAT RECORD IT ROTS. It
+    # was 546/48, then 642/76, and the comment saying "re-measure both or
+    # neither" did not make anyone do so: the ratio moved from 8-in-9 to 92%
+    # while both copies said 8-in-9. A number written in two files with nothing
+    # comparing them is a number that will be wrong in both.
     # !! ADDRESSES, not indices. Coverage is over the paragraphs that HOLD PROSE --
     # an empty place is addressable and nobody owes it a record.
     # ! FRONT MATTER IS NOT COVERAGE. It is filtered out of what a reviewer

@@ -193,7 +193,7 @@ class TestCheckNamesTheRightThing(unittest.TestCase):
     """
 
     def _filled(self, **fields):
-        rec = record.slot(1, CENSUS[0])
+        rec = record.slot(CENSUS[0])
         rec.update(fields)
         return rec
 
