@@ -2,6 +2,9 @@
 
     python galley.py --repo D --census census.json --edits edits.json --out DIR
 
+`--edits` is `{"<address>": "<the replacement text>"}` -- the same address the
+record carries, so nothing between stage 5 and the galley has to convert.
+
 A galley is the trial impression: the text set, but not yet made into pages, so
 that it can be corrected before anything is committed. That is exactly what
 this writes -- every paragraph a stage proposes to change, spliced into a copy of
@@ -39,6 +42,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from record import entry_for  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS, read_raw  # noqa: E402  -- path shim must run first
 
 
@@ -222,6 +226,17 @@ def unanswerable(paragraphs: list[dict]) -> str | None:
                 f"this census carries no `{field}` -- it predates the field that"
                 " says which paragraphs can be spliced. Re-run census.py"
             )
+    # !! AND NO ADDRESS MEANS NOTHING CAN BE KEYED. `--edits` is keyed by
+    # address, so an unaddressed census matches nothing and every edit is
+    # refused one at a time with a message about the EDIT rather than about the
+    # census. ! `census_for` does not stamp addresses -- the run loop does, once
+    # the path is repo-relative -- so a census built by calling that function
+    # directly reaches here looking complete and answering nothing.
+    if paragraphs and not any(str(b.get("address", "")) for b in paragraphs):
+        return (
+            "this census carries no addresses, so no edit can be keyed against"
+            " it. Write it with `census.py --json`, which stamps them"
+        )
     return None
 
 
@@ -303,18 +318,22 @@ def main() -> int:
     by_path: dict[str, list[tuple[str, dict]]] = {}
     refused = 0
     for key, replacement in edits.items():
-        try:
-            index = int(key)
-        except (TypeError, ValueError):
-            print(f"REFUSED  paragraph {key!r}: not a census index")
+        # !! KEYED BY ADDRESS, because that is what a record carries. `--edits`
+        # took a census INDEX until 2026-08-19 and no record has held one since
+        # the day before, so the step that builds what the author approves at 7a
+        # ran through a HAND CONVERSION -- a human reading an address off one
+        # file and counting a position in another, at the one point in the
+        # pipeline where a mistake is written to disk.
+        #
+        # ! An index would also be the wrong key now even if something still
+        # emitted one: it is a position in ONE census, and the galley is
+        # censused again for round 2.
+        found = entry_for(str(key), paragraphs)
+        if found is None:
+            print(f"REFUSED  {key!r}: no paragraph in this census carries that address")
             refused += 1
             continue
-        if not 1 <= index <= len(paragraphs):
-            print(f"REFUSED  paragraph {index}: outside the census")
-            refused += 1
-            continue
-        paragraph = paragraphs[index - 1]
-        by_path.setdefault(paragraph["path"], []).append((replacement, paragraph))
+        by_path.setdefault(found["path"], []).append((replacement, found))
 
     written = 0
     for rel, file_edits in sorted(by_path.items()):

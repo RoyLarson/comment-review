@@ -118,21 +118,22 @@ class TestCLI(unittest.TestCase):
         # drifts from what the tool actually emits, which is how a trailing
         # comment passed here while the shipped path deleted code.
         self.census = self.root / "census.json"
+        # ! STAMPED, as `census.py`'s own run loop does once the path is
+        # repo-relative. `census_for` alone leaves every address empty, and a
+        # census like that can key nothing -- `unanswerable` refuses it now
+        # rather than letting each edit fail separately.
+        built = census.census_for(
+            Path("pkg/m.py"), ORIGINAL, census.language_for(Path("m.py"))
+        )
+        lines = sorted(census.code_lines(ORIGINAL, built))
+        for b in built:
+            b.address = addresser.address(vars(b), lines)
         self.census.write_text(
-            json.dumps(
-                [
-                    vars(b)
-                    for b in census.census_for(
-                        Path("pkg/m.py"), ORIGINAL, census.language_for(Path("m.py"))
-                    )
-                ],
-                default=list,
-            ),
-            encoding="utf-8",
+            json.dumps([vars(b) for b in built], default=list), encoding="utf-8"
         )
         self.paragraphs = json.loads(self.census.read_text(encoding="utf-8"))
         self.note = next(
-            i for i, b in enumerate(self.paragraphs, 1) if b["kind"] == "comment"
+            b["address"] for b in self.paragraphs if b["kind"] == "comment"
         )
         self.out = self.root / "galley"
 
@@ -172,10 +173,14 @@ class TestCLI(unittest.TestCase):
             (self.repo / "pkg" / "m.py").read_text(encoding="utf-8"), ORIGINAL
         )
 
-    def test_an_index_outside_the_census_is_refused(self):
-        result = self._run({"99": "    # x"})
+    def test_an_ADDRESS_the_census_does_not_carry_is_refused(self):
+        # ! `--edits` keys by ADDRESS now, so a key nothing carries is refused
+        # by name rather than by range. An index would be the wrong key even if
+        # something still emitted one: it is a position in ONE census, and the
+        # galley is censused again for round 2.
+        result = self._run({"pkg:m.py@b99": "    # x"})
         self.assertEqual(result.returncode, 1)
-        self.assertIn("outside the census", result.stdout)
+        self.assertIn("no paragraph in this census carries that address", result.stdout)
 
     def test_a_stale_range_refuses_the_file_and_writes_nothing(self):
         (self.repo / "pkg" / "m.py").write_text(
@@ -385,10 +390,15 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
     SOURCE = "def f():\n    z = 3  # trailing\n    return z\n"
 
     def _blocks(self, text=None):
-        return [
-            b.__dict__
-            for b in census.paragraphs_stdlib(Path("m.py"), text or self.SOURCE)
-        ]
+        # ! ADDRESSED, because `unanswerable` refuses a census that carries no
+        # address at all -- `--edits` keys by one, so such a census can key
+        # nothing. `paragraphs_stdlib` alone leaves them empty.
+        src = text or self.SOURCE
+        built = census.paragraphs_stdlib(Path("m.py"), src)
+        lines = sorted(census.code_lines(src, built))
+        for b in built:
+            b.address = addresser.address(vars(b), lines)
+        return [b.__dict__ for b in built]
 
     def _kind(self, kind, text=None):
         found = [b for b in self._blocks(text) if b["kind"] == kind]
@@ -541,13 +551,15 @@ class TestTheGalleyWritesATrailingCommentEndToEnd(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "m.py").write_text(self.SOURCE, encoding="utf-8")
-            paragraphs = [
-                b.__dict__ for b in census.paragraphs_stdlib(Path("m.py"), self.SOURCE)
-            ]
-            index = next(
-                i
-                for i, b in enumerate(paragraphs, 1)
-                if b["kind"] == "trailing-comment"
+            # ! ADDRESSED, as `census.py`'s own run loop does. A census from
+            # `paragraphs_stdlib` alone carries no address and can key nothing.
+            built = census.paragraphs_stdlib(Path("m.py"), self.SOURCE)
+            lines = sorted(census.code_lines(self.SOURCE, built))
+            for b in built:
+                b.address = addresser.address(vars(b), lines)
+            paragraphs = [b.__dict__ for b in built]
+            at = next(
+                b["address"] for b in paragraphs if b["kind"] == "trailing-comment"
             )
             # ! `default=list` -- a Paragraph holds a set field, and the shipped
             # writer converts it. The test only needs it readable back.
@@ -555,7 +567,7 @@ class TestTheGalleyWritesATrailingCommentEndToEnd(unittest.TestCase):
                 json.dumps(paragraphs, default=list), encoding="utf-8"
             )
             (root / "e.json").write_text(
-                json.dumps({str(index): "  # reworded trailing"}), encoding="utf-8"
+                json.dumps({at: "  # reworded trailing"}), encoding="utf-8"
             )
             code = subprocess.run(
                 [
