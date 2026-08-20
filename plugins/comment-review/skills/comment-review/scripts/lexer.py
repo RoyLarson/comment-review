@@ -512,7 +512,10 @@ LANGUAGES: tuple[Language, ...] = (
     Language(
         "csharp",
         (".cs",),
-        ("//",),
+        # ! `///` FIRST -- see the note above the table. Listing only `//` cut
+        # two of the three slashes and left the third in the prose:
+        # `/ <summary>The one doc.</summary>`.
+        ("///", "//"),
         (("/*", "*/"),),
         doc_line=("///",),
         doc_block=("/**",),
@@ -542,7 +545,8 @@ LANGUAGES: tuple[Language, ...] = (
     Language(
         "swift",
         (".swift",),
-        ("//",),
+        # ! `///` FIRST, for the reason C#'s is.
+        ("///", "//"),
         (("/*", "*/"),),
         doc_line=("///",),
         doc_block=("/**",),

@@ -157,6 +157,39 @@ class TestEachLanguageCarriesItsOwnList(unittest.TestCase):
                 self.assertNotIn(ext, seen, f"{ext}: {seen.get(ext)} and {lang.name}")
                 seen[ext] = lang.name
 
+    def test_every_doc_opener_is_listed_as_a_comment_opener_LONGEST_FIRST(self):
+        # !! THE TABLE'S OWN RULE, and nothing checked it until 2026-08-20: a
+        # doc opener that is not in `line_comment` is cut by the SHORTER
+        # opener, and the remainder lands in the prose. Measured when C# and
+        # Swift were split out with `("//",)` alone: `/// <summary>x</summary>`
+        # was censused as `/ <summary>x</summary>`, one slash into the text.
+        for lang in lexer.LANGUAGES:
+            with self.subTest(lang=lang.name):
+                for opener in lang.doc_line:
+                    self.assertIn(opener, lang.line_comment)
+                self.assertEqual(
+                    list(lang.line_comment),
+                    sorted(lang.line_comment, key=len, reverse=True),
+                    f"{lang.name}: openers must be longest-first",
+                )
+
+    def test_a_doc_marked_run_keeps_none_of_its_marker(self):
+        # ! The text a reviewer reads is the PROSE, not the syntax that marked
+        # it. One case per line-comment doc marker in the table.
+        for name, text in (
+            ("a.rs", "/// The one doc.\nfn one() {}\n"),
+            ("a.cs", "/// The one doc.\npublic void One() {}\n"),
+            ("a.swift", "/// The one doc.\nfunc one() {}\n"),
+        ):
+            with self.subTest(name=name):
+                p = Path(name)
+                doc = next(
+                    b
+                    for b in page.page_for(p, text, lexer.language_for(p))
+                    if b.kind == "docstring"
+                )
+                self.assertEqual(doc.text.strip(), "The one doc.")
+
     def test_only_python_puts_its_doc_INSIDE_the_declaration(self):
         inside = [lang.name for lang in lexer.LANGUAGES if lang.doc_inside]
         self.assertEqual(inside, ["python"])
