@@ -212,7 +212,7 @@ that changed a published name or rule:
 | [b-foliator-uninitialised](b-foliator-uninitialised.md) | session * Roy (* 1 ruling -- the closing trigger) | yes | 0/14 | The b foliator is never initialised at the module trigger, and computes its folio from line numbers |
 | [front-matter-restamps](front-matter-restamps.md) | session | — | 0/6 | Adding a module docstring restamps the comment run above it as front matter |
 | [census-owns-addressing](census-owns-addressing.md) | session | — | 0/5 | The census owns addressing, and four modules share one subject between them |
-| [census-emits-no-page](census-emits-no-page.md) | session | — | 0/5 | The census emits rows, not pages, and page.py defines no Page |
+| [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
 
 ### in-progress  (4)
 
