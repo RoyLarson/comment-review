@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks done
+Progress: 1 of 8 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -79,3 +79,17 @@ docstring: *"A file with no code at all is therefore one interval."*
       a code change 7b forbids. ! So decide whether the place is UNWRITABLE and an
       `add` on it is refused with a reason, rather than landing above the `def`.
       Same shape for `@overload` and `class C: pass`.
+- [ ] !! A UTF-8 BOM MAKES A FILE UNCENSUSED AND UNREFUSED, EXIT 0.
+      `census.py:294` reads with `encoding="utf-8"`, not `utf-8-sig`, so the BOM
+      survives into the text as code and `ast.parse` refuses the file. VERIFIED
+      2026-08-20 on a BOM'd `.py` holding a module docstring: one `unparsed`
+      paragraph, EMPTY address, no places, exit 0. The docstring is in the file
+      and absent from the census. That is the fifth input of this kind and it
+      breaks the contract CLAUDE.md calls absolute -- every file handed in is
+      censused or the run stops.
+- [ ] `--filtered` DROPS A WHOLE FILE FROM THE LISTING A REVIEWER IS HANDED.
+      `census.py:496`: the no-prose run is never flushed at a file boundary, and
+      `flush_run` prints under `heading(first.path)`. Reported 2026-08-20:
+      censusing `a.py` then `b.py` printed the run `5-12 @c1..c2` under `== a.py`
+      -- `c1` is a.py's and `c2` is b.py's -- and b.py never appeared at all.
+      SKILL.md calls the filtered census the one a reviewer is handed.

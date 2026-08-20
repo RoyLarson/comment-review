@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (43)
+### open  (59)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -206,11 +206,11 @@ that changed a published name or rule:
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | — | 5/7 | A docstring needs its own address series, and it names what it documents |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 4/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
-| [census-degrades-silently](census-degrades-silently.md) | session | — | 1/6 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
+| [census-degrades-silently](census-degrades-silently.md) | session | — | 1/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 2/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
 | [b-foliator-uninitialised](b-foliator-uninitialised.md) | session * Roy (* 1 ruling -- the closing trigger) | yes | 0/14 | The b foliator is never initialised at the module trigger, and computes its folio from line numbers |
-| [front-matter-restamps](front-matter-restamps.md) | session | — | 0/6 | Adding a module docstring restamps the comment run above it as front matter |
+| [front-matter-restamps](front-matter-restamps.md) | session | — | 0/7 | Adding a module docstring restamps the comment run above it as front matter |
 | [census-owns-addressing](census-owns-addressing.md) | session | — | 0/5 | The census owns addressing, and four modules share one subject between them |
 | [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
@@ -218,6 +218,22 @@ that changed a published name or rule:
 | [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | foliator.triggers() has no production caller and takes a shape the walk no longer uses |
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 | [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | yes | 6/7 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
+| [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 0/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
+| [lexer-misreads-ordinary-code](lexer-misreads-ordinary-code.md) | session | — | 0/4 | a Rust lifetime, a JS string-prefixed line, and code after a block closer |
+| [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | session | — | 0/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
+| [convert-drops-every-record](convert-drops-every-record.md) | session | — | 0/3 | 91 findings -> 0 filled records, exit 0, on a real 0.2.x report |
+| [stage-5-certifies-an-unaddressed-census](stage-5-certifies-an-unaddressed-census.md) | session | — | 0/2 | all_blocks drops falsy addresses, so an unaddressed census passes at exit 0 |
+| [stage-4b-is-undefined](stage-4b-is-undefined.md) | session | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
+| [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | session | — | 0/6 | 720 tests green against six deliberate defects in shipped code |
+| [the-xfails-never-reach-the-galley](the-xfails-never-reach-the-galley.md) | session | — | 0/3 | they fail in the test helper on a retired lookup, not in splice_range |
+| [the-rename-corrupted-live-prose](the-rename-corrupted-live-prose.md) | session | — | 0/5 | a blanket word swap turned verbs and a role name into nonsense |
+| [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | session | — | 0/2 | shipped prose says an anchor is often empty; it is never empty |
+| [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | session | — | 0/6 | each states a rule and then denies it, in the same file |
+| [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | session | — | 0/6 | every one re-derivable by a command, and every one wrong |
+| [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | session | — | 0/10 | each passes in the buggy state its own comment forbids |
+| [plugin-version-not-bumped](plugin-version-not-bumped.md) | session | yes | 0/3 | installing this tree overwrites the measured v0.2.3 cache directory |
+| [anchor-side-is-dead](anchor-side-is-dead.md) | session | — | 0/2 | the concept was deliberately removed and the constant stayed |
+| [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
 
 ### in-progress  (4)
 

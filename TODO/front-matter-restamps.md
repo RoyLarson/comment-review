@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 7 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19)
@@ -64,3 +64,10 @@ filtered view.
 - [ ] ! Round 2 re-censuses the galley, so a role re-reviews prose whose KIND and
       ANNOTATIONS changed under it, and stage 8 reads a page whose first comment
       run is invisible in the filtered view.
+- [ ] !! AND THE SHEBANG/CODING BRANCH HAS NO POSITION GUARD AT ALL. `page.py:589`
+      promises a rule that is *"POSITIONAL and deliberately narrow"*, but the
+      `_SHEBANG`/`_CODING` test runs over EVERY comment in the file. Reported
+      2026-08-20: `# the wire format is coding: utf-8 here` on line 5 is stamped
+      FRONT_MATTER, addressed `@b0`, and dropped from `Page.prose` -- so no
+      reviewer ever sees it. With a real coding line present too, two paragraphs
+      answer to `b0`. Same for a trailing comment.
