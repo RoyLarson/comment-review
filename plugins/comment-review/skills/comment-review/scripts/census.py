@@ -241,6 +241,12 @@ def main() -> int:
         help="the reviewer's view: prose paragraphs, and one line per run of intervals",
     )
     ap.add_argument(
+        "--include-front-matter",
+        action="store_true",
+        help="keep front matter in a --filtered listing (it is dropped by default);"
+        " no effect on an unfiltered run or on --json, which never drop it",
+    )
+    ap.add_argument(
         "--out", metavar="PATH", help="write the report to PATH, not stdout"
     )
     ap.add_argument(
@@ -480,8 +486,14 @@ def _report(args: argparse.Namespace) -> int:
         # it every run -- see `mark_front_matter`. It keeps its address and its
         # index, so `locator.py` still finds it and a `move` may still cite it;
         # what it loses is a reviewer's attention and a record it owes.
-        if args.filtered and FRONT_MATTER in b.annotations:
-            continue
+        # ! `--include-front-matter` OVERRIDES that, and is the only way to see
+        # it in a filtered listing. Front matter is the one prose a filtered run
+        # drops entirely rather than collapsing into a run, so without an
+        # explicit flag a reader comparing the two listings cannot tell a file
+        # with a licence header from one without.
+        if args.filtered and not args.include_front_matter:
+            if FRONT_MATTER in b.annotations:
+                continue
         if args.filtered and b.kind in HOLDS_NO_PROSE:
             run.append(i)
             continue
