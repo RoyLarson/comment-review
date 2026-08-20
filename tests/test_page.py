@@ -16,8 +16,10 @@ up in `galley` because it was the deepest module all three could reach.
 
 import ast  # noqa: I001  -- path shim below must import before page
 import unittest
+from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
+import lexer
 import page
 
 SIBLINGS = {p.stem for p in SCRIPTS.glob("*.py")}
@@ -69,6 +71,65 @@ class TestTheTwoLeaves(unittest.TestCase):
             with self.subTest(module=name):
                 text = (SCRIPTS / f"{name}.py").read_text(encoding="utf-8")
                 self.assertIn("from page import", text)
+
+
+class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
+    """!! THE REASON IT IS A TYPE and not a list.
+
+    `page_for` returned a bare list and dropped the text, the foliation, the
+    tier and the path. Every consumer that needed one of them either re-derived
+    it from the file -- a chance to read a file the page no longer describes --
+    or made the caller carry it alongside.
+    """
+
+    SRC = '"""Doc."""\n\n# introduces N\nN = 0\n\n\ndef f():\n    return N\n'
+
+    def setUp(self):
+        path = Path("pkg/m.py")
+        self.page = page.page_for(path, self.SRC, lexer.language_for(path), "pkg/m.py")
+
+    def test_it_knows_its_own_path_as_the_repo_sees_it(self):
+        self.assertEqual(self.page.path, "pkg/m.py")
+
+    def test_it_carries_the_text_a_splice_is_checked_against(self):
+        self.assertEqual(self.page.text, self.SRC)
+
+    def test_it_knows_which_questions_its_reader_could_answer(self):
+        self.assertEqual(self.page.tier, "tokenized")
+
+    def test_a_page_IS_its_paragraphs_in_order(self):
+        # ! A reviewer reads a page top to bottom, so it iterates and indexes as
+        # one. A consumer that wants the list is asking for the page.
+        self.assertEqual(list(self.page), self.page.paragraphs)
+        self.assertEqual(len(self.page), len(self.page.paragraphs))
+        self.assertIs(self.page[0], self.page.paragraphs[0])
+
+    def test_it_carries_EVERY_place_filled_or_not(self):
+        # !! What makes an `add` citable. The walk emitted these before any
+        # prose was looked at, so a place exists whether or not anything sits
+        # in it -- including `b0`, which no paragraph occupies here.
+        folios = set(self.page.foliation.places)
+        self.assertIn("b0", folios)
+        self.assertIn("a0", folios)
+        occupied = {b.address.split("@")[-1] for b in self.page if "@" in b.address}
+        self.assertTrue(folios - occupied, "every place is occupied -- no empty ones?")
+
+    def test_prose_is_what_a_reviewer_owes_a_record_on(self):
+        # ! The empty places are ADDRESSABLE and not accountable.
+        kinds = {b.kind for b in self.page.prose}
+        self.assertNotIn("interval", kinds)
+        self.assertNotIn("margin", kinds)
+        self.assertNotIn("undocumented", kinds)
+        self.assertLess(len(self.page.prose), len(self.page))
+
+    def test_an_unparsed_file_carries_an_EMPTY_foliation(self):
+        # !! HONEST RATHER THAN INVENTED. The walk never ran, because the code
+        # lines were never established -- so a consumer that asks gets nothing
+        # instead of a table built over lines nobody found.
+        path = Path("bad.py")
+        broken = page.page_for(path, "x = = 1\n", lexer.language_for(path))
+        self.assertEqual(broken.foliation.places, {})
+        self.assertTrue(any(b.kind == "unparsed" for b in broken))
 
 
 class TestTheTwoKindSetsAreNotInterchangeable(unittest.TestCase):

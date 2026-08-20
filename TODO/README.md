@@ -184,7 +184,7 @@ that changed a published name or rule:
 | [7a-can-prove-the-change-by-applying-it-to-a-copy](7a-can-prove-the-change-by-applying-it-to-a-copy.md) | session * Roy (raised it, 2026-08-17) | — | 2/5 | 7a can PROVE the change by applying it to a copy and diffing |
 | [a-block-does-not-say-where-its-text-starts](a-block-does-not-say-where-its-text-starts.md) | session | yes | 7/10 | A block does not say where its text starts, so two things infer it |
 | [a-comment-inside-a-line-makes-the-file-unprovable](a-comment-inside-a-line-makes-the-file-unprovable.md) | session * Roy (* 1 ruling, MADE) | — | 1/5 | A comment INSIDE a line makes the whole file unprovable |
-| [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | Roy | yes | 0/7 | A prose file has no blocks, so the system cannot review documentation |
+| [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | Roy | yes | 0/9 | A prose file has no blocks, so the system cannot review documentation |
 | [a-role-can-reverse-itself-between-runs](a-role-can-reverse-itself-between-runs.md) | session * Roy (* 1 ruling) | yes | 0/6 | A role can reverse itself between runs, and nothing measures it |
 | [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | session * Roy (* 1 ruling) | yes | 0/4 | A scope declaration costs as much as a finding |
 | [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | session | yes | 0/6 | Block-comment markers survive into the prose the reviewers read |

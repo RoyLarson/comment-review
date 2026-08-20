@@ -53,6 +53,7 @@ it was the deepest module all three could reach.
 
 import re
 import sys
+from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
 
@@ -107,6 +108,62 @@ HOLDS_NO_PROSE = ("interval", "undocumented", "margin")
 # without making the pair circular -- and a second copy of the string is how the
 # two would come to disagree about a name neither of them owns.
 FRONT_MATTER = "front-matter"
+
+
+@dataclass
+class Page:
+    """ONE FILE: its paragraphs in order, among the code they sit with.
+
+    !! IT CARRIES WHAT IT WAS BUILT FROM, and that is the whole reason it is a
+    type. `page_for` returned a bare list and dropped the text, the foliation,
+    the tier and the path -- so every consumer that needed one of them either
+    re-derived it from the file, which is a chance to read a file the page no
+    longer describes, or asked the caller to carry it alongside.
+
+    ! A page IS its paragraphs in order, so it iterates and indexes as one. That
+    is not a convenience: a reviewer reads a page top to bottom, and a consumer
+    that wants the list is asking for the page.
+
+    Attributes:
+        path: as the REPO sees it. Every citation resolves against that root.
+        text: the file, exactly as it reads. What a splice is checked against.
+        paragraphs: in order down the page, prose and empty places alike.
+        foliation: EVERY place on the page, filled or not -- see
+            `addresser.foliate`. It is what makes an `add` citable.
+        tier: which questions this file's reader could answer.
+    """
+
+    path: str
+    text: str
+    paragraphs: list[Paragraph]
+    foliation: Foliation
+    tier: str
+
+    def __iter__(self):
+        """Down the page, in order."""
+        return iter(self.paragraphs)
+
+    def __len__(self) -> int:
+        """How many paragraphs, prose and empty places alike."""
+        return len(self.paragraphs)
+
+    def __getitem__(self, i):
+        """The nth paragraph down the page."""
+        return self.paragraphs[i]
+
+    @property
+    def prose(self) -> list[Paragraph]:
+        """The paragraphs a reviewer owes a record on.
+
+        ! The empty places are ADDRESSABLE and not accountable: an `add` cites
+        one, and nobody owes it a ruling. Front matter is prose and is not
+        accountable either -- no role can settle a licence header.
+        """
+        return [
+            b
+            for b in self.paragraphs
+            if b.kind not in HOLDS_NO_PROSE and FRONT_MATTER not in b.annotations
+        ]
 
 
 def code_lines_of(text: str, paragraphs: list[dict]) -> list[int]:
@@ -364,9 +421,7 @@ def intervals(path: Path, text: str, prose: list[Paragraph]) -> list[Paragraph]:
     return out
 
 
-def page_for(
-    path: Path, text: str, lang: Language, rel: str | None = None
-) -> list[Paragraph]:
+def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> Page:
     """The census for one file, at the highest tier available for its language.
 
     The ladder is by QUESTION ANSWERED. Python reaches TOKENIZED through the
@@ -394,6 +449,7 @@ def page_for(
     # ! A file the parser refused is NOT enumerated into intervals. Its one
     # `unparsed` paragraph reports the refusal, and the code lines below it were
     # never established, so any interval drawn there would be invented.
+    foliation = Foliation()
     if not any(b.kind == "unparsed" for b in got):
         got = got + intervals(path, text, got) + margins(path, text, got)
         fill_the_gaps(text, got)
@@ -418,7 +474,17 @@ def page_for(
             b.anchor = foliation.places.get(place, b.anchor)
     for b in got:
         b.tier = tier_for(lang)
-    return sorted(got, key=lambda b: (b.start, b.end))
+    # ! An UNPARSED file never reached the walk, so it has no foliation. An empty
+    # one is the honest answer: the page carries no places, and a consumer that
+    # asks gets nothing rather than a table built over code lines that were
+    # never established.
+    return Page(
+        path=rel if rel is not None else path.as_posix(),
+        text=text,
+        paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
+        foliation=foliation,
+        tier=tier_for(lang),
+    )
 
 
 # The annotation, and the two shapes that earn it.
