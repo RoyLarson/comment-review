@@ -303,7 +303,7 @@ def documentable(decls: list[tuple[int, int]], code: dict[int, str]) -> dict[int
 
 
 def places_on(
-    text: str, prose: list[dict], decls: list[tuple[int, int]] | None = None
+    text: str, prose: list[dict], lang: "Language | None" = None
 ) -> "Foliation":
     """Every place on this page, walked.
 
@@ -315,18 +315,20 @@ def places_on(
     Args:
         text: the file's source.
         prose: its paragraphs, as dicts.
-        decls: `(line, insert)` per documentable declaration, module first --
-            `lexer.declarations`. Empty for a tier that resolves none, and the
-            page then has an `a0` and no more.
+        lang: its record, so the declarations can be resolved HERE -- the
+            keyword path scans the code lines, and this is where they are
+            computed. None gives a page with no `a` series.
 
     Returns:
         The `Foliation` for this page.
     """
-    decls = decls or []
     code = code_lines(text, prose)
-    # ! The MODULE's own doc place. A tier that resolves no declarations
-    # still has an `a0`, and its prose would open the file.
-    return foliate(code, documentable(decls, code), decls[0][1] if decls else 1)
+    decls = declarations(text, lang, code) if lang else []
+    # !! `None`, NOT `1`, WHEN THERE ARE NO DECLARATIONS. A language with no
+    # documentable declaration has no `a` series at all -- see `foliate`. It is
+    # not a series that happens to be empty, and a YAML file carried an `a0`
+    # until 2026-08-20 because the two were conflated.
+    return foliate(code, documentable(decls, code), decls[0][1] if decls else None)
 
 
 def empty_places(
@@ -487,7 +489,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # assigns the numbering, `attach` reads which place this prose sits in,
         # and the anchor comes from the walk that emitted it rather than from a
         # second pass that could disagree with the first.
-        foliation = places_on(text, [vars(b) for b in got], declarations(text, lang))
+        foliation = places_on(text, [vars(b) for b in got], lang)
         flat = flatten(rel if rel is not None else path.as_posix())
         for b in got:
             place = attach(vars(b), foliation)

@@ -206,10 +206,28 @@ Each announces ONE subject, which is what `module-context` asks of any module:
 | `lexical`   | a comment-syntax record, nothing else | blocks, marks                   | any owner         |
 
 A language with no record is named and the census EXITS NONZERO: every file handed in is
-censused or the run stops. Adding a language is a data row, not new code. Only a STRUCTURAL doc
-carries an anchor, and only Python has one; every other anchor comes from a reviewer reading
-the file, or from an LSP `documentSymbol` enrichment when a language server answered stage 1.7's
-probe. Every ownership-context verdict therefore rests on a reviewer reading the file.
+censused or the run stops. Adding a language is a data row, not new code.
+
+!! **WHICH LINES DECLARE SOMETHING DOCUMENTABLE IS A KEYWORD LIST ON THE LANGUAGE ROW**, per
+language, since 2026-08-20. Roy: *"the easy way is to supply the lexer with the list of keywords
+that a language/practice uses to say this can get a docstring. Then the lexer matches on that
+instead of having to have independent tooling."* So an `a` place resolves for Rust, Go, Java,
+C#, Swift, Kotlin, JS, TS, Ruby, Lua and shell -- not Python alone.
+
+! **THE LIST IS PER LANGUAGE AND DUPLICATED ON PURPOSE.** Roy: *"don't try to make the list
+generic -- that is a failure of the single responsibility principle. Each language could change
+on a new version invalidating the list for all of them."* The `c-family` and `js-family` rows
+were split for this reason.
+
+! **AN EMPTY LIST MEANS THE LANGUAGE HAS NO `a` SERIES AT ALL** -- not an empty one. `yaml`,
+`toml-ini` and `sql` have no docstring practice, and carried an `a0` no verdict could fill until
+this landed. **C and C++ are deliberately in that group**: a C function opens with its RETURN
+TYPE, so the list could never be complete, and a spurious `a` renumbers every `a` below it.
+
+! Only Python's doc sits INSIDE the declaration, so Python alone needs a parser to say WHERE the
+prose goes; everywhere else it goes on the declaring line's own line. An LSP `documentSymbol`
+enrichment still refines this when a language server answered stage 1.7's probe, and a reviewer
+reading the file is what supplies an anchor no keyword names.
 
 `references/` under the skill directory (`write.md`, `compact.md`, `residue-check.md`,
 `review.md`, `reviewer-brief.md`) are each single-sourced for one stage -- nothing pastes their

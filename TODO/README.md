@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (41)
+### open  (42)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -216,6 +216,7 @@ that changed a published name or rule:
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
 | [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
 | [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | foliator.triggers() has no production caller and takes a shape the walk no longer uses |
+| [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 
 ### in-progress  (4)
 

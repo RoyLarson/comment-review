@@ -347,7 +347,7 @@ class Foliation:
 def foliate(
     code: dict[int, str],
     documentable: dict[int, int],
-    module_insert: int = 1,
+    module_insert: int | None = 1,
 ) -> Foliation:
     """Walk the anchors of one file; return every folio and its line of code.
 
@@ -380,15 +380,25 @@ def foliate(
         documentable: index into `code` -> the line that declaration's doc
             would go on. The LEXER states both, because only a parser knows
             which lines declare and where a doc belongs.
-        module_insert: where the MODULE's own doc would go.
+        module_insert: where the MODULE's own doc would go, or None when the
+            language has no documentable declaration at all -- then there is no
+            `a` series, not an empty one.
 
     Returns:
         The `Foliation`: every place, and both directions between them.
     """
     a, b, c = Foliator(DECLARED), Foliator(GAP), Foliator(ON)
     out = Foliation(_code=list(code))
-    out._declared[0] = a.emit(MODULE)
-    out.inserts[out._declared[0]] = module_insert
+    # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
+    # DECLARATION. Roy, 2026-08-20: *"we need to be able to distinguish `a`
+    # foliations for as many languages as there are `a` possible foliations.
+    # yaml, toml are not ones."* A YAML file was given an `a0` -- a place for a
+    # module docstring in a language that has none -- and no verdict could ever
+    # fill it. `None` says the series does not exist; `1` says it does and the
+    # module's own doc would open the file.
+    if module_insert is not None:
+        out._declared[0] = a.emit(MODULE)
+        out.inserts[out._declared[0]] = module_insert
     # ! `b0` is the FILE'S OWN front matter, so it is bounded by nothing: the
     # head of the file on both sides. It is not the gap above the first line of
     # code -- that is `b1`, and conflating them made the two exclusive.

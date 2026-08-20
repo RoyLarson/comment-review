@@ -377,6 +377,17 @@ class Language:
             and carries no open-quote state, so a comment marker INSIDE one of
             these reads as a comment; `prove_unchanged` refuses such a file
             rather than proving it. Empty where a language has none.
+        declares: the KEYWORDS this language uses to introduce something that
+            can carry documentation. !! EMPTY MEANS THE LANGUAGE HAS NO `a`
+            SERIES AT ALL -- not "none found in this file". Roy, 2026-08-20:
+            *"we need to be able to distinguish `a` foliations for as many
+            languages as there are `a` possible foliations. yaml, toml are not
+            ones."* A YAML file was given an `a0` it can never fill.
+        doc_inside: the documentation is the first thing INSIDE the body, not
+            the run ABOVE the declaration. Python alone, and it is why Python
+            needs a parser where a keyword match is enough elsewhere: `///`
+            goes on the declaring line's own line, a docstring goes wherever
+            the body starts, which a wrapped signature moves.
     """
 
     name: str
@@ -388,6 +399,8 @@ class Language:
     doc_is_structural: bool = False
     quotes: tuple[str, ...] = ('"', "'")
     spanning_quotes: tuple[str, ...] = ()
+    declares: tuple[str, ...] = ()
+    doc_inside: bool = False
 
 
 # ! Ordering inside a field is significant: openers are matched longest-first,
@@ -398,6 +411,12 @@ LANGUAGES: tuple[Language, ...] = (
         "python",
         (".py", ".pyi"),
         ("#",),
+        declares=("def", "class", "async def"),
+        # !! THE DOC IS INSIDE THE BODY, which is why Python is the one
+        # language here that needs a parser: `a1`'s prose goes wherever
+        # the body starts, and a wrapped signature moves that. Every
+        # other language puts the doc on the declaring line's own line.
+        doc_inside=True,
         doc_is_structural=True,
         # !! A triple quote spans lines, and Python reaches the LEXICAL
         # path whenever `ast.parse` fails -- syntax newer than the floor,
@@ -413,31 +432,230 @@ LANGUAGES: tuple[Language, ...] = (
         ("///", "//!", "//"),
         (("/*", "*/"),),
         doc_line=("///", "//!"),
+        # ! `pub` opens an item and `let` opens a binding, so one is in and
+        # the other is not.
+        declares=(
+            "pub",
+            "fn",
+            "struct",
+            "enum",
+            "trait",
+            "impl",
+            "mod",
+            "type",
+            "union",
+            "const",
+            "static",
+            "macro_rules!",
+        ),
     ),
-    Language("go", (".go",), ("//",), (("/*", "*/"),), doc_is_structural=True),
     Language(
-        "c-family",
-        (".c", ".h", ".cpp", ".hpp", ".cc", ".java", ".cs", ".swift", ".kt"),
+        "go",
+        (".go",),
+        ("//",),
+        (("/*", "*/"),),
+        doc_is_structural=True,
+        # ! `package` is NOT here: Go's package comment IS the file's own
+        # documentation, which is `a0`. Listing it gave the same prose two
+        # places, `a0` and `a1`.
+        declares=("func", "type", "var", "const"),
+    ),
+    # !! C AND C++ GET NO `a`, AND THAT IS A RULING. Roy, 2026-08-20: *"leave
+    # it out because it is ambiguous in every way. Let the agents figure out how
+    # to put the b and c paragraphs together correctly."* A C function is
+    # introduced by its RETURN TYPE -- `size_t f(void)`, `MyRec f(void)` -- and
+    # completing that list would mean knowing every type the program defines.
+    # ! A wrong `a` is worse than no `a`: a spurious match renumbers every `a`
+    # below it, and a verdict is then invited on something that cannot hold one.
+    Language(
+        "c",
+        (".c", ".h"),
         ("//",),
         (("/*", "*/"),),
         doc_block=("/**",),
+    ),
+    Language(
+        "cpp",
+        (".cpp", ".hpp", ".cc", ".cxx"),
+        ("//",),
+        (("/*", "*/"),),
+        doc_block=("/**",),
+    ),
+    Language(
+        "java",
+        (".java",),
+        ("//",),
+        (("/*", "*/"),),
+        doc_block=("/**",),
+        # ! A member declaration opens with a MODIFIER or a type. `final` is
+        # left out because it also opens a local; `static` never does in Java.
+        # A package-private member opening with its type is missed, and a
+        # reviewer reading the file is what supplies it.
+        declares=(
+            "public",
+            "protected",
+            "private",
+            "static",
+            "abstract",
+            "synchronized",
+            "native",
+            "strictfp",
+            "class",
+            "interface",
+            "enum",
+            "record",
+        ),
         # ! A Java TEXT BLOCK spans lines the same way, and a `//` inside one is
         # not a comment.
         spanning_quotes=('"""',),
     ),
     Language(
-        "js-family",
-        (".js", ".jsx", ".ts", ".tsx", ".mjs"),
+        "csharp",
+        (".cs",),
+        ("//",),
+        (("/*", "*/"),),
+        doc_line=("///",),
+        doc_block=("/**",),
+        # ! `var` is left out: it opens a local and nothing else.
+        declares=(
+            "public",
+            "protected",
+            "private",
+            "internal",
+            "static",
+            "abstract",
+            "virtual",
+            "override",
+            "sealed",
+            "partial",
+            "unsafe",
+            "class",
+            "interface",
+            "enum",
+            "struct",
+            "record",
+            "delegate",
+            "namespace",
+        ),
+        spanning_quotes=('"""',),
+    ),
+    Language(
+        "swift",
+        (".swift",),
+        ("//",),
+        (("/*", "*/"),),
+        doc_line=("///",),
+        doc_block=("/**",),
+        # ! `let` and `var` are left out: they open a local as readily as a
+        # property, so including them would declare every local binding.
+        declares=(
+            "func",
+            "class",
+            "struct",
+            "enum",
+            "protocol",
+            "extension",
+            "actor",
+            "typealias",
+            "init",
+            "deinit",
+            "subscript",
+            "public",
+            "private",
+            "fileprivate",
+            "internal",
+            "open",
+            "static",
+            "override",
+            "convenience",
+            "required",
+        ),
+        spanning_quotes=('"""',),
+    ),
+    Language(
+        "kotlin",
+        (".kt", ".kts"),
         ("//",),
         (("/*", "*/"),),
         doc_block=("/**",),
+        # ! `val` and `var` are left out, for the reason Swift's are.
+        declares=(
+            "fun",
+            "class",
+            "interface",
+            "object",
+            "enum",
+            "data",
+            "sealed",
+            "annotation",
+            "typealias",
+            "companion",
+            "abstract",
+            "open",
+            "internal",
+            "public",
+            "protected",
+            "private",
+            "override",
+            "suspend",
+        ),
+        spanning_quotes=('"""',),
+    ),
+    Language(
+        "javascript",
+        (".js", ".jsx", ".mjs", ".cjs"),
+        ("//",),
+        (("/*", "*/"),),
+        doc_block=("/**",),
+        # ! `const`, `let` and `var` are left out: at module scope one may hold
+        # a documented function, and inside a body every one of them is a local.
+        declares=("function", "class", "export", "async"),
         quotes=('"', "'", "`"),
         spanning_quotes=("`",),
     ),
-    Language("ruby", (".rb",), ("#",), (("=begin", "=end"),), doc_is_structural=True),
-    Language("shell", (".sh", ".bash", ".zsh"), ("#",)),
+    Language(
+        "typescript",
+        (".ts", ".tsx", ".mts", ".cts"),
+        ("//",),
+        (("/*", "*/"),),
+        doc_block=("/**",),
+        # ! JavaScript's list plus what TypeScript adds. DUPLICATED ON PURPOSE:
+        # one shared list would make a TypeScript release change JavaScript's
+        # answer.
+        declares=(
+            "function",
+            "class",
+            "export",
+            "async",
+            "interface",
+            "type",
+            "enum",
+            "namespace",
+            "declare",
+            "abstract",
+        ),
+        quotes=('"', "'", "`"),
+        spanning_quotes=("`",),
+    ),
+    Language(
+        "ruby",
+        (".rb",),
+        ("#",),
+        (("=begin", "=end"),),
+        doc_is_structural=True,
+        declares=("def", "class", "module"),
+    ),
+    Language("shell", (".sh", ".bash", ".zsh"), ("#",), declares=("function",)),
     Language("sql", (".sql",), ("--",), (("/*", "*/"),)),
-    Language("lua", (".lua",), ("--",), (("--[[", "]]"),)),
+    # ! `local function` is TWO WORDS on purpose: bare `local` opens a
+    # variable, so matching it alone would declare every one of them.
+    Language(
+        "lua",
+        (".lua",),
+        ("--",),
+        (("--[[", "]]"),),
+        declares=("function", "local function"),
+    ),
     Language("toml-ini", (".toml", ".ini", ".cfg"), ("#",)),
     Language("yaml", (".yaml", ".yml"), ("#",)),
 )
@@ -810,45 +1028,109 @@ def flag_structural_docs(
         )
 
 
-def declarations(text: str, lang: Language) -> list[tuple[int, int]]:
+#: A declaring line's first word, ignoring indentation. Stops at anything that
+#: cannot be part of a keyword, so `macro_rules!` and `async def` both reach the
+#: match while `func(x)` yields `func` and `x=1` yields `x`.
+_FIRST_WORD = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*!?)")
+
+
+def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
+    """Does this line of code introduce something documentable?
+
+    !! IT MATCHES THE FIRST WORD, NEVER A SUBSTRING. `deffered = 1` opens with
+    `deffered`, and a substring test would call it a `def`; `x = my_func()`
+    holds `func` and declares nothing.
+
+    ! TWO WORDS ARE TRIED, so a modifier does not hide the keyword: Python's
+    `async def`, and a c-family `public static void f()` whose own keyword is
+    `public`. Either word matching is enough, because the list already says
+    which words this language uses for the purpose.
+    """
+    m = _FIRST_WORD.match(line)
+    if not m:
+        return False
+    first = m.group(1)
+    if first in declares:
+        return True
+    rest = line[m.end() :].lstrip()
+    second = _FIRST_WORD.match(rest)
+    return bool(second and f"{first} {second.group(1)}" in declares)
+
+
+def declarations(
+    text: str, lang: Language, code: dict[int, str] | None = None
+) -> list[tuple[int, int]]:
     """Every DOCUMENTABLE declaration in source order: its line, and where its doc goes.
 
     !! ENTRY 0 IS THE MODULE, whose line is 0 -- a module has no line of code
     declaring it. Entries 1..N are its declarations in the order a reader meets
     them down the page, which is the order the `a` series counts.
 
-    !! ONLY A PARSER KNOWS EITHER FACT, which is why this is the lexer's and the
-    place it names is the page's. Which lines declare something able to carry
-    documentation is language-dependent -- and WHERE that documentation goes is
-    not `line + 1`: a wrapped signature puts the first statement several lines
-    down, and `def f(): pass` puts it on the `def` line itself.
+    !! AN EMPTY LIST MEANS THIS LANGUAGE HAS NO `a` SERIES, not "none found
+    here". Roy, 2026-08-20: *"we need to be able to distinguish `a` foliations
+    for as many languages as there are `a` possible foliations. yaml, toml are
+    not ones."* A YAML file carried an `a0` -- a place for a module docstring in
+    a language with no such thing -- which no verdict could ever fill.
+
+    !! THE KEYWORDS ARE DATA, AND THAT IS THE WHOLE POINT. Roy: *"the easy way
+    is to supply the lexer with the list of keywords that a language/practice
+    uses to say this can get a docstring. Then the lexer matches on that instead
+    of having to have independent tooling."* Before this, `a` resolved for
+    Python alone, because Python is the one language the stdlib parses. An LSP
+    or the build tooling can VERIFY the result; neither is needed to get one.
+
+    ! PYTHON STILL USES ITS PARSER, because its doc goes INSIDE the body --
+    `lang.doc_inside`. Where the body starts is not the declaring line and is
+    not `line + 1`: a wrapped signature moves it several lines down. Every other
+    language puts the doc on the declaring line's own line, so the line the
+    keyword is on is the whole answer.
 
     ! It REPORTS; it does not emit a paragraph. `undocumented` is a PAGE kind,
-    because only a page knows where prose is missing. This module said so in its
-    own docstring while emitting one 22 lines later.
+    because only a page knows where prose is missing.
+
+    Args:
+        text: the file's source.
+        lang: its record. `declares` decides whether there is an `a` series.
+        code: `line -> the code on it`, from `page.code_lines`. The keyword path
+            scans ONLY these, so a keyword inside a comment or a string cannot
+            declare anything. Required for a language that is not Python.
 
     Returns:
-        `(line, insert)` per declaration, module first. Empty for a tier that
-        resolves none, which is every language but Python today.
+        `(line, insert)` per declaration, module first, or `[]` when the
+        language has no `a` series.
     """
-    if lang.name != "python":
+    if not lang.declares:
         return []
-    try:
-        tree = ast.parse(text)
-    except SyntaxError:
-        # ! A file the parser refused declares nothing this can state. Its one
-        # `unparsed` paragraph reports the refusal.
-        return []
-    # ! SOURCE ORDER, which `ast.walk` does not give -- the same sort
-    # `paragraphs_stdlib` makes, so the ordinals line up by construction.
-    declared = sorted(
-        (n for n in ast.walk(tree) if isinstance(n, NAMED_DEFS)), key=lambda n: n.lineno
-    )
-    out: list[tuple[int, int]] = []
-    for node in [tree, *declared]:
-        body = getattr(node, "body", [])
-        # ! An empty module has no first statement; its doc would open the file.
-        out.append((getattr(node, "lineno", 0), body[0].lineno if body else 1))
+    if lang.doc_inside:
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            # ! A file the parser refused declares nothing this can state. Its
+            # one `unparsed` paragraph reports the refusal.
+            return []
+        # ! SOURCE ORDER, which `ast.walk` does not give -- the same sort
+        # `paragraphs_stdlib` makes, so the ordinals line up by construction.
+        declared = sorted(
+            (n for n in ast.walk(tree) if isinstance(n, NAMED_DEFS)),
+            key=lambda n: n.lineno,
+        )
+        out: list[tuple[int, int]] = []
+        for node in [tree, *declared]:
+            body = getattr(node, "body", [])
+            # ! An empty module has no first statement; its doc would open the file.
+            out.append((getattr(node, "lineno", 0), body[0].lineno if body else 1))
+        return out
+    # !! THE MODULE FIRST, AND ITS DOC OPENS THE FILE. `a0` is the file's own
+    # documentation, which in an above-doc language is the run at the top --
+    # Rust's `//!`, Go's package comment.
+    out = [(0, 1)]
+    # ! The doc goes ON the declaring line, pushing it down, so `insert` IS that
+    # line. Ordered because `code` is.
+    out += [
+        (n, n)
+        for n, line in (code or {}).items()
+        if _declares_here(line, lang.declares)
+    ]
     return out
 
 
