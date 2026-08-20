@@ -7,6 +7,20 @@ Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
           2026-08-20)
+Measured: 2026-08-20 — 2026-08-20 -- WHAT THE LEXER ALREADY SETTLES, per language. Roy
+          asked whether the lexer states that the paragraph is a docstring and not a
+          comment. It does, for 7 of 10: rust, java, csharp, swift, kotlin, javascript
+          and typescript all carry a doc MARKER (`///`, `/**`), so syntax alone decides
+          the kind. go, ruby and lua have no marker -- a doc comment there IS an
+          ordinary comment in the right POSITION, which is exactly what
+          `doc_is_structural` means. Python is already `a1` via the AST. !! AND
+          `declares` IS -1 IN EVERY NON-PYTHON CASE. The lexer answers 'is this a doc?'
+          and never 'a doc for what?'. ! SO THE JOIN IS THE PAGE'S -- Roy: *"this is
+          something the page needs to resolve probably."* The page is the only thing
+          holding the paragraphs AND the places. ! It follows that the join needs TWO
+          rules, not one: where a marker exists, a `docstring` run ending immediately
+          above a declaring line fills that `a`; where none exists (go, ruby), the same
+          must be read off a `comment` run, and position is the only evidence there is.
 ```
 
 ## Objective
