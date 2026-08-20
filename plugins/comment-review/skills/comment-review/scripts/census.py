@@ -60,7 +60,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from addresser import (  # noqa: E402  -- path shim must run first
     SEPARATOR,
     flatten,
-    foliate,
 )
 from annotate import (  # noqa: E402  -- path shim must run first
     SYMBOLISH,
@@ -68,12 +67,13 @@ from annotate import (  # noqa: E402  -- path shim must run first
     prose_numbers,
 )
 from page import (  # noqa: E402  -- path shim must run first
-    attach,
-    code_lines_of,
     FRONT_MATTER,
     HOLDS_NO_PROSE,
     OCCUPIES_NOTHING,
     Paragraph,
+    attach,
+    code_lines_of,
+    places_on,
 )
 from repo import (  # noqa: E402  -- path shim must run first
     EXCLUDED_DIRS,
@@ -1037,48 +1037,6 @@ def code_lines(text: str, prose: list[Paragraph]) -> set[int]:
     return set(code_lines_of(text, [vars(b) for b in prose]))
 
 
-def lines_of_code(text: str, prose: list[Paragraph]) -> list[tuple[int, str]]:
-    """The file's lines of code, in order, each with the line it sits on.
-
-    ! What the WALK is given. The line positions the trigger and never numbers
-    it -- see `addresser.foliate`.
-
-    !! THE CHARACTERS COME FROM THAT LINE'S `c`, NEVER RE-CUT HERE. Every code
-    line has exactly one `c` -- a `trailing-comment`, or the `margin` standing
-    in for one -- and it already states where the code stops. Cutting the line
-    again answers `'    return os  # why'` where the `c` for the same line
-    answers `'    return os'`: two computations of one fact, which is what
-    `whole_lines` was removed for.
-    """
-    lines = text.splitlines()
-    beside = {b.start: b.anchor for b in prose if b.edit_column}
-    return [
-        (n, beside.get(n) or lines[n - 1].rstrip())
-        for n in sorted(code_lines(text, prose))
-        if 1 <= n <= len(lines)
-    ]
-
-
-def documentable(prose: list[Paragraph], text: str) -> set[int]:
-    """Which lines of code DECLARE something able to carry documentation.
-
-    !! ONLY A PARSER KNOWS, so the census states it and the walk consumes it.
-    `declares` is that answer: 0 for the module and 1..N for its declarations
-    in source order, which the AST walk established. A tier that resolves no
-    declarations returns an empty set, and the file has an `a0` and no more.
-
-    Returns:
-        Indices into `lines_of_code`, so the walk can ask "does this trigger
-        emit an `a`" without knowing what a declaration is.
-    """
-    declaring = {
-        b.declared_at
-        for b in prose
-        if isinstance(b.declares, int) and b.declares >= 1 and b.declared_at
-    }
-    return {i for i, (n, _) in enumerate(lines_of_code(text, prose)) if n in declaring}
-
-
 def paragraphs_in(prose: list[Paragraph], prev: int, nxt: int) -> list[Paragraph]:
     """The prose paragraphs OVERLAPPING the gap between two code lines.
 
@@ -1253,7 +1211,7 @@ def census_for(
         # assigns the numbering, `attach` reads which place this prose sits in,
         # and the anchor comes from the walk that emitted it rather than from a
         # second pass that could disagree with the first.
-        foliation = foliate(lines_of_code(text, got), documentable(got, text))
+        foliation = places_on(text, [vars(b) for b in got])
         flat = flatten(rel if rel is not None else path.as_posix())
         for b in got:
             place = attach(vars(b), foliation)

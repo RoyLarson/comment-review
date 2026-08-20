@@ -61,8 +61,22 @@ B = [
 
 
 def named(text, paragraphs):
-    code = page.code_lines_of(text, paragraphs)
-    return [addresser.address(b, code).split("@")[1] for b in paragraphs]
+    """The folio each paragraph takes, through the page's own walk.
+
+    ! `attach` returns the folio alone; the path is the page's and is added
+    where the address is composed.
+    """
+    foliation = page.places_on(text, paragraphs)
+    return [page.attach(b, foliation) for b in paragraphs]
+
+
+def addressed(text, paragraphs):
+    """`path@folio` for each, composed the way `census_for` composes it."""
+    foliation = page.places_on(text, paragraphs)
+    return [
+        f"{addresser.flatten(b['path'])}@{page.attach(b, foliation)}"
+        for b in paragraphs
+    ]
 
 
 class TestTwoFilesDifferingOnlyInComments(unittest.TestCase):
@@ -103,7 +117,9 @@ class TestOnAndBetween(unittest.TestCase):
         self.assertEqual(named(BARE, B)[1], "b2")
 
     def test_a_block_with_no_range_is_reported_not_guessed(self):
-        self.assertEqual(addresser.address({"path": "a.py"}, [2, 6]), "")
+        self.assertEqual(
+            page.attach({"path": "a.py"}, page.places_on(WITH_PROSE, A)), ""
+        )
 
 
 class TestCodeOnTheFirstLine(unittest.TestCase):
@@ -135,13 +151,13 @@ class TestCodeOnTheFirstLine(unittest.TestCase):
         self.assertEqual(self.code[0], 1)
 
     def test_the_gap_before_it_is_b0_not_b1(self):
-        self.assertEqual(addresser.address(self.PARAGRAPHS[0], self.code), "c.rs@b1")
+        self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[0], "c.rs@b1")
 
     def test_the_gap_after_it_is_b1(self):
-        self.assertEqual(addresser.address(self.PARAGRAPHS[1], self.code), "c.rs@b2")
+        self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[1], "c.rs@b2")
 
     def test_every_gap_gets_its_own_name(self):
-        named = [addresser.address(b, self.code) for b in self.PARAGRAPHS]
+        named = addressed(self.SRC, self.PARAGRAPHS)
         self.assertEqual(len(set(named)), len(named))
 
 
@@ -154,7 +170,6 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
     """
 
     def test_the_package_path_is_part_of_the_address(self):
-        code = [1]
         one = {
             "path": "pkg/a.py",
             "start": 1,
@@ -169,7 +184,9 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
             "kind": "interval",
             "edit_start": 1,
         }
-        self.assertNotEqual(addresser.address(one, code), addresser.address(two, code))
+        self.assertNotEqual(
+            addresser.flatten(one["path"]), addresser.flatten(two["path"])
+        )
 
     def test_a_windows_separator_is_normalised(self):
         # ! So a census written on Windows and read anywhere names one place.
@@ -180,14 +197,14 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
             "kind": "interval",
             "edit_start": 1,
         }
-        self.assertEqual(addresser.address(paragraph, [1]), "pkg:sub:a.py@b1")
+        self.assertEqual(addresser.flatten(paragraph["path"]), "pkg:sub:a.py")
 
     def test_a_census_without_edit_start_is_REFUSED_not_guessed(self):
         # !! The range alone cannot separate the two gaps of a one-line file,
         # which is the whole reason this reads `edit_start`. Falling back to it
         # would answer confidently and wrongly.
         old = {"path": "a.py", "start": 1, "end": 1, "kind": "interval"}
-        self.assertEqual(addresser.address(old, [1]), "")
+        self.assertEqual(page.attach(old, page.places_on("x = 1\n", [old])), "")
 
 
 class TestAOneLineInitFile(unittest.TestCase):
@@ -222,15 +239,15 @@ class TestAOneLineInitFile(unittest.TestCase):
         self.assertEqual({(b["start"], b["end"]) for b in self.PARAGRAPHS}, {(1, 1)})
 
     def test_the_stable_addresses_are_not(self):
-        code = page.code_lines_of(self.SRC, self.PARAGRAPHS)
-        named = [addresser.address(b, code) for b in self.PARAGRAPHS]
+        page.code_lines_of(self.SRC, self.PARAGRAPHS)
+        named = addressed(self.SRC, self.PARAGRAPHS)
         self.assertEqual(named, ["package:__init__.py@b1", "package:__init__.py@b2"])
 
     def test_a_subpackage_of_the_same_name_is_a_different_place(self):
-        code = [1]
         sub = dict(self.PARAGRAPHS[0], path="package/subpackage/__init__.py")
         self.assertNotEqual(
-            addresser.address(sub, code), addresser.address(self.PARAGRAPHS[0], code)
+            addresser.flatten(sub["path"]),
+            addresser.flatten(self.PARAGRAPHS[0]["path"]),
         )
 
 
@@ -267,8 +284,10 @@ class TestTheInverse(unittest.TestCase):
         # ! STAMPED FIRST, because `resolve` READS the census's `place` rather
         # than recomputing one -- which is the whole point of the producer
         # stating it. A fixture built without the stamp resolves to nothing.
-        code = page.code_lines_of(WITH_PROSE, A)
-        stamped = [{**b, "address": addresser.address(b, code)} for b in A]
+        stamped = [
+            {**b, "address": a}
+            for b, a in zip(A, addressed(WITH_PROSE, A), strict=True)
+        ]
         for i, paragraph in enumerate(stamped, 1):
             with self.subTest(entry=i):
                 self.assertEqual(addresser.resolve(paragraph["address"], stamped), [i])
@@ -320,10 +339,10 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
         # line prepended -- which is what a prose edit does -- moves the code
         # down, so the paragraph's stated `edit_start` now has NO code line before
         # it: `b2` becomes `b1`, naming a different place with no complaint.
-        here = page.code_lines_of(self.SRC, self.PARAGRAPHS)
-        there = page.code_lines_of("\n" + self.SRC, self.PARAGRAPHS)
-        self.assertEqual(addresser.address(self.PARAGRAPHS[0], here), "m.py@b2")
-        self.assertEqual(addresser.address(self.PARAGRAPHS[0], there), "m.py@b1")
+        page.code_lines_of(self.SRC, self.PARAGRAPHS)
+        page.code_lines_of("\n" + self.SRC, self.PARAGRAPHS)
+        self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[0], "m.py@b2")
+        self.assertEqual(addressed("\n" + self.SRC, self.PARAGRAPHS)[0], "m.py@b1")
 
 
 class TestTheDeclarationSeries(unittest.TestCase):
@@ -340,12 +359,12 @@ class TestTheDeclarationSeries(unittest.TestCase):
             path = Path(tmp) / "m.py"
             path.write_text(text, encoding="utf-8")
             got = census.census_for(path, text, census.language_for(path))
-            lines = sorted(census.code_lines(text, got))
+            sorted(census.code_lines(text, got))
             for b in got:
                 # ! The SUFFIX only. `census_for` names a paragraph by the path it
                 # was handed, and these are absolute temp paths -- the dotted
                 # prefix is `main`'s to make repo-relative.
-                b.address = addresser.address(vars(b), lines).split("@")[-1]
+                b.address = b.address.split("@")[-1]
             return got
 
     NESTED = (
@@ -496,9 +515,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
             path = Path(tmp) / "m.py"
             path.write_text(self.SRC, encoding="utf-8")
             got = census.census_for(path, self.SRC, census.language_for(path))
-            lines = sorted(census.code_lines(self.SRC, got))
-            for b in got:
-                b.address = addresser.address(vars(b), lines)
+            sorted(census.code_lines(self.SRC, got))
             self.paragraphs = [vars(b) for b in got]
 
     def _at(self, anchor, series):
@@ -539,9 +556,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")
         got = census.census_for(path, with_header, census.language_for(path))
-        code = sorted(census.code_lines(with_header, got))
-        for b in got:
-            b.address = addresser.address(vars(b), code)
+        sorted(census.code_lines(with_header, got))
         found = addresser.for_anchor("<module>", "b", [vars(b) for b in got])
         self.assertEqual(
             sorted(addresser.folio_of(b["address"])[1] for b in found), ["b0"]
@@ -610,9 +625,7 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
             got = census.census_for(
                 src, src.read_text(encoding="utf-8"), census.language_for(src)
             )
-            lines = sorted(census.code_lines(src.read_text(encoding="utf-8"), got))
-            for b in got:
-                b.address = addresser.address(vars(b), lines)
+            sorted(census.code_lines(src.read_text(encoding="utf-8"), got))
             census_json = Path(tmp) / "c.json"
             census_json.write_text(
                 __import__("json").dumps([vars(b) for b in got], default=str),
@@ -641,17 +654,15 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "s.js"
             path.write_text(self.SRC, encoding="utf-8")
-            got = census.census_for(path, self.SRC, census.language_for(path))
-            lines = sorted(census.code_lines(self.SRC, got))
-            for b in got:
-                b.address = addresser.address(vars(b), lines).split("@")[-1]
-            return got
+            return census.census_for(path, self.SRC, census.language_for(path))
 
     def test_the_comment_takes_a_c_because_code_precedes_it(self):
         got = self._census()
         mid = next(b for b in got if b.kind == "comment")
         self.assertTrue(mid.edit_column)
-        self.assertTrue(mid.address.startswith("c"), mid.address)
+        # ! The FOLIO, not the address -- the census composes `path@folio` now,
+        # and the path is a temp directory here.
+        self.assertTrue(mid.address.split("@")[-1].startswith("c"), mid.address)
 
     def test_no_address_names_two_blocks(self):
         seen = collections.Counter(b.address for b in self._census())
@@ -735,10 +746,8 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
     def setUp(self):
         path = Path("g.py")
         paragraphs = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, paragraphs))
+        sorted(census.code_lines(self.SRC, paragraphs))
         self.paragraphs = [vars(b) for b in paragraphs]
-        for b in self.paragraphs:
-            b["address"] = addresser.address(b, lines)
 
     def _folios(self, anchor, series):
         found = addresser.for_anchor(anchor, series, self.paragraphs)
@@ -786,10 +795,8 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
     def setUp(self):
         path = Path("x.py")
         paragraphs = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, paragraphs))
+        sorted(census.code_lines(self.SRC, paragraphs))
         self.paragraphs = [vars(b) for b in paragraphs]
-        for b in self.paragraphs:
-            b["address"] = addresser.address(b, lines)
 
     def test_every_ADDRESS_is_still_unique(self):
         # !! The direction that stays exact. This is what a record cites.
@@ -902,8 +909,6 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         path = Path("m.py")
         paragraphs = census.census_for(path, self.SRC, census.language_for(path))
         self.code = sorted(census.code_lines(self.SRC, paragraphs))
-        for b in paragraphs:
-            b.address = addresser.address(vars(b), self.code)
         self.at = {
             b.address.split("@")[1]: b for b in paragraphs if "@" in (b.address or "")
         }

@@ -46,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from addresser import (  # noqa: E402  -- path shim must run first
     Foliation,
+    foliate,
 )
 
 # !! EVERY LINE HAS AN ADDRESS, AND SO DOES EVERY POTENTIAL LINE. Roy,
@@ -307,3 +308,67 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
         return foliation.beside(start) if isinstance(start, int) else ""
     at = paragraph.get("edit_start")
     return foliation.above(at) if isinstance(at, int) else ""
+
+
+def lines_of_code(text: str, prose: list[dict]) -> list[tuple[int, str]]:
+    """The file's lines of code, in order, each with the line it sits on.
+
+    ! What the WALK is given. The line positions the trigger and never numbers
+    it -- see `addresser.foliate`.
+
+    !! THE CHARACTERS COME FROM THAT LINE'S `c`, NEVER RE-CUT HERE. Every code
+    line has exactly one `c` -- a `trailing-comment`, or the `margin` standing
+    in for one -- and it already states where the code stops. Cutting the line
+    again answers `'    return os  # why'` where the `c` for the same line
+    answers `'    return os'`: two computations of one fact, which is what
+    `whole_lines` was removed for.
+    """
+    lines = text.splitlines()
+    beside = {
+        b.get("start"): b.get("anchor", "") for b in prose if b.get("edit_column")
+    }
+    return [
+        (n, beside.get(n) or lines[n - 1].rstrip())
+        for n in code_lines_of(text, prose)
+        if 1 <= n <= len(lines)
+    ]
+
+
+def documentable(prose: list[dict], text: str) -> set[int]:
+    """Which lines of code DECLARE something able to carry documentation.
+
+    !! ONLY A PARSER KNOWS, so the census states it and the walk consumes it.
+    `declares` is that answer: 0 for the module and 1..N for its declarations
+    in source order, which the AST walk established. A tier that resolves no
+    declarations returns an empty set, and the file has an `a0` and no more.
+
+    Returns:
+        Indices into `lines_of_code`, so the walk can ask "does this trigger
+        emit an `a`" without knowing what a declaration is.
+    """
+    declaring = {
+        b.get("declared_at")
+        for b in prose
+        if isinstance(b.get("declares"), int)
+        and b["declares"] >= 1
+        and b.get("declared_at")
+    }
+    return {i for i, (n, _) in enumerate(lines_of_code(text, prose)) if n in declaring}
+
+
+def places_on(text: str, prose: list[dict]) -> "Foliation":
+    """Every place on this page, walked.
+
+    !! THE PAGE NAMES ITS OWN PLACES, which is what makes it a page rather than
+    a list. It hands the walk its lines of code and which of them declare
+    something documentable; the walk emits every place, filled or not, and
+    `attach` says which one a given paragraph sits in.
+
+    Args:
+        text: the file's source.
+        prose: its paragraphs, as dicts.
+
+    Returns:
+        The `Foliation` for this page.
+    """
+    return foliate(lines_of_code(text, prose), documentable(prose, text))

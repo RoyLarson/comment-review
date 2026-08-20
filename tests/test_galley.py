@@ -8,9 +8,9 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
-import addresser
 import census
 import galley
+import page
 
 ORIGINAL = "def f():\n    # old note\n    # second line\n    return 1\n"
 
@@ -125,9 +125,7 @@ class TestCLI(unittest.TestCase):
         built = census.census_for(
             Path("pkg/m.py"), ORIGINAL, census.language_for(Path("m.py"))
         )
-        lines = sorted(census.code_lines(ORIGINAL, built))
-        for b in built:
-            b.address = addresser.address(vars(b), lines)
+        sorted(census.code_lines(ORIGINAL, built))
         self.census.write_text(
             json.dumps([vars(b) for b in built], default=list), encoding="utf-8"
         )
@@ -392,13 +390,15 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
     def _blocks(self, text=None):
         # ! ADDRESSED, because `unanswerable` refuses a census that carries no
         # address at all -- `--edits` keys by one, so such a census can key
-        # nothing. `paragraphs_stdlib` alone leaves them empty.
+        # nothing. `paragraphs_stdlib` alone leaves them empty, so the page's
+        # own walk names them here.
         src = text or self.SOURCE
         built = census.paragraphs_stdlib(Path("m.py"), src)
-        lines = sorted(census.code_lines(src, built))
-        for b in built:
-            b.address = addresser.address(vars(b), lines)
-        return [b.__dict__ for b in built]
+        prose = [b.__dict__ for b in built]
+        foliation = page.places_on(src, prose)
+        for b in prose:
+            b["address"] = f"m.py@{page.attach(b, foliation)}"
+        return prose
 
     def _kind(self, kind, text=None):
         found = [b for b in self._blocks(text) if b["kind"] == kind]
@@ -554,10 +554,10 @@ class TestTheGalleyWritesATrailingCommentEndToEnd(unittest.TestCase):
             # ! ADDRESSED, as `census.py`'s own run loop does. A census from
             # `paragraphs_stdlib` alone carries no address and can key nothing.
             built = census.paragraphs_stdlib(Path("m.py"), self.SOURCE)
-            lines = sorted(census.code_lines(self.SOURCE, built))
-            for b in built:
-                b.address = addresser.address(vars(b), lines)
             paragraphs = [b.__dict__ for b in built]
+            foliation = page.places_on(self.SOURCE, paragraphs)
+            for b in paragraphs:
+                b["address"] = f"m.py@{page.attach(b, foliation)}"
             at = next(
                 b["address"] for b in paragraphs if b["kind"] == "trailing-comment"
             )
@@ -607,9 +607,7 @@ class TestTheCSeriesIsWritableInALexicalLanguage(unittest.TestCase):
     def _blocks(self):
         path = Path("m.go")
         got = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, got))
-        for b in got:
-            b.address = addresser.address(vars(b), lines)
+        sorted(census.code_lines(self.SRC, got))
         return [vars(b) for b in got]
 
     def _splice(self, kind, change):

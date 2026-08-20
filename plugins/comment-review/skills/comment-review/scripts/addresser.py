@@ -199,93 +199,6 @@ def line_address(paragraph: dict) -> str:
     return f"{path}:{paragraph.get('start')}-{paragraph.get('end')}"
 
 
-def address(paragraph: dict, code: list[int]) -> str:
-    """`pkg:mod.py@b3` -- WHICH PLACE this is, as against where it sits.
-
-    !! `address` NAMES A POSITION; THIS NAMES A PLACE, and only the second
-    survives an edit. This tool rewrites prose, and every prose edit moves the
-    line numbers of the code below it -- so `path:start-end` is true of one file
-    state and no other. A place is counted against the CODE instead:
-
-        pkg:mod.py@a5   the 5th DECLARATION's documentation
-        pkg:mod.py@c3   BESIDE a line of code
-        pkg:mod.py@b3   a GAP, or the file's own front matter at `b0`
-
-    `b0` is the FILE'S OWN front matter; every other `b` is a gap, and every
-    comment run and empty interval sits in one of them. ! Which gap a given `b`
-    is cannot be worked out from its number -- ask.
-
-    !! THE `a` SERIES COUNTS DECLARATIONS, WHICH IS WHY IT CANNOT RENUMBER
-    UNDER THIS TOOL. `a0` is the module and `a1..aN` its declarations in source
-    order, assigned whether or not each holds a docstring. Adding a docstring
-    does not add a declaration, so filling `a2` moves nothing; only a CODE
-    change shifts the series, and stage 7b proves this tool makes none.
-
-    !! AND IT IS WHAT MAKES AN ADDRESS A SINGLE FACT. Measured 2026-08-18 over
-    9,975 paragraphs in this repo: 28 places were answered by two paragraphs, and 28 of
-    28 were a docstring sharing a gap with the comment run beneath it. A
-    docstring is about its DECLARATION, not about the gap it happens to sit in,
-    so naming it `bN` put two different subjects at one address. With the `a`
-    series the docstring leaves the `b` series and the collision is gone by
-    construction rather than by tolerance.
-
-    ! The ordinal is the CENSUS's to state, never this function's to infer.
-    Which declaration a docstring documents is language-dependent -- Python's
-    subject is the code ABOVE it, Rust's is BELOW -- and a parser knows it while
-    a position does not.
-
-    !! IT IS READ FROM `edit_start`, THE STATED INSERTION POINT. A file whose
-    only code line is line 1 -- every one-line `__init__.py` -- emits TWO
-    intervals both spanning `1-1`, the gap before that line and the gap after
-    it, and `address` cannot tell them apart. Their `edit_start` can: 1 and 2.
-
-    ! The path is FLATTENED on `:` and KEEPS its extension, so `b.py` and `b.rs` cannot
-    collide in a repo holding both -- which this census supports by design.
-
-    ! An ADDRESS is the whole citation, `pkg:mod.py@b3`; the FOLIO is the `b3`
-    half of it, which is what `folio_of` returns. ! It is not called a PLACE:
-    measured 2026-08-18, `place` appears 119 times in the shipped tree and every
-    one is ordinary English -- including `ownership-context`'s own instruction,
-    *"still be in the wrong place"*, read by the role whose whole remit is
-    placement. A term of art there would put a second meaning on the sentence
-    that role works from. `folio` is a leaf's number in publishing, which is
-    what `b3` is, and it collides with nothing.
-
-    Args:
-        paragraph: one census entry, as a dict.
-        code: that file's code lines, in order, from `code_lines`.
-
-    Returns:
-        The paragraph's address, or "" when it carries no usable position.
-    """
-    path = flatten(paragraph.get("path", ""))
-    if not isinstance(paragraph.get("start"), int):
-        return ""
-    # !! THE `a` FOLIATOR'S WALK IS THE CENSUS'S, because only a parser knows
-    # which lines DECLARE. `declares` is its output: 0 for the MODULE, then 1..N
-    # for the declarations in source order -- the same walk `triggers` makes,
-    # over a different trigger set. -1 says this paragraph documents none.
-    declares = paragraph.get("declares", -1)
-    if isinstance(declares, int) and declares >= 0:
-        return f"{path}@{folio(DECLARED, declares)}"
-    # !! ONE FACT DECIDES WHICH SERIES, AND THE PRODUCER STATES IT.
-    # `edit_column` is non-zero exactly when code precedes the prose on its
-    # first line -- a trailing comment, a bare `margin`, a comment opened after
-    # a statement. It was decided here from the KIND and in `code_lines_of` from
-    # the paragraph, and the two disagreed on the one kind in neither list: a
-    # `comment` opened mid-line took a `b` folio for a line it sits ON, so that
-    # folio named the comment AND the gap. Measured 2026-08-19 on
-    # `let b = 2; /* opens`.
-    step = (
-        on_step(paragraph, code)
-        if paragraph.get("edit_column", 0)
-        else gap_step(paragraph, code)
-    )
-    if step is None:
-        return ""
-    return f"{path}@{folio(ON if paragraph.get('edit_column', 0) else GAP, step)}"
-
-
 #: The FIRST TRIGGER every foliator steps past: the file itself, before any line
 #: of code. It is what `a0` and `b0` name, and the one trigger `c` does not emit
 #: for -- a module has front matter and a docstring, and no line to sit beside.
@@ -475,41 +388,6 @@ def folio(series: str, step: int) -> str:
     numbers coincide will rely on it whatever the sentence around it says.
     """
     return f"{series}{step}"
-
-
-def gap_step(paragraph: dict, code: list[int]) -> int | None:
-    """Which trigger a `b` paragraph belongs to -- the MODULE, or a line of code.
-
-    !! THIS IS THE LOOK-AHEAD, AND THE CENSUS ALREADY DID IT. Prose above the
-    module's own docstring is the FILE's, and prose below it introduces whatever
-    follows; only what comes AFTER a run says which it is. `census.mark_front_
-    matter` asks exactly that question and stamps the answer, so this reads a
-    fact rather than re-deriving one.
-
-    Returns:
-        0 for the file's own front matter, this gap's step in the `b` foliator's
-        own walk otherwise, or None when the paragraph states no insertion
-        point. ! The step is NOT a line's ordinal and nothing may read it as
-        one -- see `folio`.
-    """
-    if FRONT_MATTER in (paragraph.get("annotations") or ()):
-        return 0
-    at = paragraph.get("edit_start")
-    if not isinstance(at, int):
-        return None
-    return sum(1 for n in code if n < at) + 1
-
-
-def on_step(paragraph: dict, code: list[int]) -> int | None:
-    """Which trigger a `c` paragraph sits on -- always a line of code.
-
-    ! `+ 1` because the walk starts at the MODULE, which `c` steps past without
-    emitting. It is the same walk `gap_step` reads.
-    """
-    start = paragraph.get("start")
-    if start not in code:
-        return None
-    return code.index(start) + 1
 
 
 #: The character that joins path segments in an address. A path may not hold it

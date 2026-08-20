@@ -17,7 +17,6 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
-import addresser
 import census
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "python_edge_cases.md"
@@ -68,12 +67,11 @@ class TestEveryMarkedAddressExists(unittest.TestCase):
         path = Path("m.py")
         text = _original()
         paragraphs = census.census_for(path, text, census.language_for(path))
-        lines = sorted(census.code_lines(text, paragraphs))
-        self.folios = set()
-        for b in paragraphs:
-            where = addresser.address(vars(b), lines)
-            if "@" in where:
-                self.folios.add(where.split("@")[1])
+        # ! The census addresses itself now, so this reads what it stamped
+        # rather than re-deriving it -- which is the property under test.
+        self.folios = {
+            b.address.split("@")[1] for b in paragraphs if "@" in (b.address or "")
+        }
 
     def test_every_a_and_c_the_marks_name_exists(self):
         for folio in sorted(f for f in _marked() if not f.startswith("b")):

@@ -9,7 +9,6 @@ from dataclasses import fields
 from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
-import addresser
 import census
 import page
 import held
@@ -767,9 +766,7 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
     def setUp(self):
         path = Path("m.py")
         paragraphs = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, paragraphs))
-        for b in paragraphs:
-            b.address = addresser.address(vars(b), lines)
+        sorted(census.code_lines(self.SRC, paragraphs))
         self.census = [vars(b) for b in paragraphs]
         self.prose = [
             i
@@ -879,9 +876,7 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
     def setUp(self):
         path = Path("m.py")
         paragraphs = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, paragraphs))
-        for b in paragraphs:
-            b.address = addresser.address(vars(b), lines)
+        sorted(census.code_lines(self.SRC, paragraphs))
         self.census = [vars(b) for b in paragraphs]
         self.marked = [
             b for b in self.census if page.FRONT_MATTER in (b["annotations"] or ())
