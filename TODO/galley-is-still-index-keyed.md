@@ -22,6 +22,12 @@ Measured: 2026-08-20 — 2026-08-20 -- THE CALLER CANNOT EXPRESS THE ORDER AT AL
           outside-beyond it."* Two edits inserting at ONE point are not a conflict; the
           second lands above the first. So the fix is a sort key carrying the SERIES,
           and `overlaps` must stop reading two empty ranges at one line as a clash.
+Corrected: 2026-08-20 — 2026-08-20 -- the note above claimed `overlaps` must stop
+           reading two empty ranges at one line as a clash. IT ALREADY DOES NOT.
+           Measured: `a1 + b3` both inserting at 4, and `a0 + b0 + b1` all inserting at
+           1, both return no clash, because an insert's range is `(n, n-1)` and the test
+           is `b_start <= a_end`. Two genuinely overlapping paragraph ranges still
+           clash. ! So the work here is the SORT KEY alone -- `overlaps` needs nothing.
 ```
 
 ## Objective
