@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Claude Code **plugin** (`comment-review`) plus the machinery used to develop and measure it.
 The plugin is an editorial board for the comments and docstrings a change touched: four
-read-only reviewer agents walk one pCST, a task agent (the `/comment-review` skill)
+read-only reviewer agents walk one page, a task agent (the `/comment-review` skill)
 synthesizes verdicts, the human approves the exact replacement text, and WRITE puts it on disk and
 proves the executable code byte-identical.
 
@@ -154,7 +154,10 @@ read it before touching the skill. The pipeline:
 2. **COLLATE** (`census.py`) -- the pCST: every line classified, in order -- code, part-code, comment, docstring. Each block is addressed by the subject its prose answers to: an interval between two lines of code, or a declaration.
 3. **FIND REFERENCES** (`census.py`) -- every reference each node makes, resolved (paths, symbols,
    counts).
-4. **MARK** (4 reviewer agents, dispatched in parallel, read-only) -- findings on the nodes.
+4. **MARK** (4 reviewer agents, read-only) -- findings on the nodes. **SERIAL in two rounds:
+   `ownership-context` alone at 4a, the other three in one message at 4c against its
+   resolved placement.** One role REQUIRED, three OPTIONAL -- a claim attached to the wrong
+   scope is measured against the wrong code, and the other three cannot notice.
 5. **APPLY** (task agent) -- one verdict per block, full-length replacement text.
 6. **COMPACT** (task agent) -- cut to the cap; skipped entirely if there is no cap.
 7. **APPROVAL** -- present the final text and stop (7a); on approval, apply verbatim (7b).
@@ -168,7 +171,8 @@ restate it.
 ### The four editorial roles
 
 Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) under
-`plugins/comment-review/agents/`, dispatched in one message so they run concurrently:
+`plugins/comment-review/agents/`. **`ownership-context` runs ALONE and FIRST**; the other
+three go in one message so they run concurrently and see nothing of each other:
 
 - **ownership-context** -- does this comment belong to the ANCHOR it sits on?
 - **block-context** -- is every claim in this block true of the code it sits with -- its state

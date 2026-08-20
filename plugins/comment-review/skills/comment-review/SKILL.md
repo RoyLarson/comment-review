@@ -27,7 +27,7 @@ first, then truth, then fit, then the page.
 | 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
 | 2 | **COLLATE** | `census.py` | every place prose can sit gathered into one numbered tree, each comment run and docstring a node on it |
 | 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved -- paths, symbols, counts |
-| 4 | **MARK** | 4 reviewers | findings on the nodes -- read-only, nothing written |
+| 4 | **MARK** | 4 reviewers, SERIAL | `ownership-context` alone at 4a; the other three at 4c against its resolved placement. Read-only, nothing written |
 | 5 | **APPLY** | task agent | one verdict per paragraph and the **full-length** replacement text |
 | 5b | **RE-REVIEW** | the roles that ruled | *is this what you meant?* -- answered on the JOINED paragraph |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
@@ -157,11 +157,14 @@ write. *"Compact + correct"* is an instruction to somebody else, not the text.
 - **`target`** -- a path; **replaces** the diff scope, never intersects it.
 - **`style`** -- a path to a style sheet from a previous run. Optional; see 1.5.
 
-!! **Every verdict is available on every run, and all four roles run every time.**
+!! **Every verdict is available on every run.**
 
-!! **`ownership-context` is read FIRST.** The other three check a claim against the code at
-their scope; a claim attached to the wrong scope is measured against the wrong code and
-`correct`ed into a falsehood.
+!! **ONE ROLE IS REQUIRED AND THREE ARE OPTIONAL.** `ownership-context` runs at 4a, alone and
+first, and is never dropped; `block-context`, `function-context` and `module-context` run at 4c
+against its resolved placement. Each of the three checks a claim against the code at its own
+scope, so a run may omit any of them and still be a review -- but a claim attached to the WRONG
+scope is measured against the wrong code and `correct`ed into a falsehood, which none of the
+three can notice. **Say in the proposal which roles ran.**
 
 !! **THE CAP IS APPLIED IN STAGE 6 AND NOWHERE ELSE** -- never while text is being written,
 and **never passed to a reviewer** -- it is not a section of the stage-4 packet, and neither is
@@ -538,9 +541,24 @@ discovery at all.
 Report what the tool prints: `N files, N paragraphs`, the per-tier counts, and any paragraph whose
 KIND it could not resolve.
 
-## Stage 4 -- MARK: four reviewers, in parallel
+## Stage 4 -- MARK: ownership first, then the other three
 
-**Dispatch all four in ONE message**, by agent name:
+!! **IT IS SERIAL, IN TWO ROUNDS, AND THE ORDER IS THE POINT.**
+
+| | who | why |
+|---|---|---|
+| **4a** | `comment-review:comment-review-ownership-context`, ALONE | it settles WHERE each paragraph belongs |
+| **4c** | the other three, in ONE message | they measure a claim against the code at their own scope |
+
+**One role REQUIRED, three OPTIONAL.** Roy, 2026-08-19: *"ownership-context has to run, else
+verdicts are made on statements that are not in the 'right' place. The other three are optional
+and only run after ownership-context has had its say."*
+
+! **A claim attached to the wrong scope is measured against the wrong code**, and the other three
+have no way to notice: `block-context` checks a claim against the code it sits with, so a
+misfiled note is verified against the passage it was misfiled into and stamped TRUE. The trade
+reached this long before this system measured it -- a house places the notes before the checker
+works the copy.
 
 | agent | asks |
 |---|---|
@@ -549,12 +567,20 @@ KIND it could not resolve.
 | `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
 | `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
 
-!! **They must read INDEPENDENTLY, and that is what one message protects -- not speed.**
+!! **THE THREE AT 4c GO IN ONE MESSAGE, AND THAT IS WHAT PROTECTS INDEPENDENCE -- not speed.**
 Overlap between roles is signal ONLY if no role saw another's findings: two roles agreeing is
 corroboration when they read alone and nothing when the second read the first. A second
 dispatch runs concurrently too; what it risks is a prompt carrying what the first pair
-returned. **If you dispatch in more than one message, say so in the proposal** -- the run is
-still usable, and a reader has to know the overlap was not blind.
+returned. **If you dispatch those three in more than one message, say so in the proposal** --
+the run is still usable, and a reader has to know the overlap was not blind.
+
+! **4a is NOT an exception to that.** `ownership-context` reads before any of the three exist,
+so nothing it saw can have come from them; what the three receive is its resolved PLACEMENT, not
+its findings.
+
+!! **RUNNING THE THREE WITHOUT 4a IS NOT A REDUCED RUN, IT IS AN UNSOUND ONE**, and the report
+must say which roles ran either way. Dropping any of the three narrows what was asked; dropping
+`ownership-context` leaves the rest resting on an assumption nobody made.
 
 Each already carries its own editorial role.
 

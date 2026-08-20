@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (35)
+### open  (34)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -205,7 +205,6 @@ that changed a published name or rule:
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | session | — | 0/2 | doc_is_structural means two things and its docstring names one |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | — | 5/7 | A docstring needs its own address series, and it names what it documents |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
-| [shipped-prose-lags-the-rulings](shipped-prose-lags-the-rulings.md) | session | — | 6/6 | **The address rulings landed in the code and in `docs/`; the files agents actually read were not brought along.** Four agents found the same shape independently: ~25 statements now false, several contradicting themselves inside one docstring. |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 0/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 0/5 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 0/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
@@ -264,3 +263,4 @@ the reason is inside the file.
 | [c-series-admitted-not-writable](completed/c-series-admitted-not-writable.md) | The galley splices within a line: edit_column replaces whole_lines, and an intermediate comment is no longer censused |
 | [prose-fenced-by-code-on-both-sides](completed/prose-fenced-by-code-on-both-sides.md) | Ruled the same day it was raised: an intermediate comment is not censused, and its line is code |
 | [deprecated-reader-cannot-replay](completed/deprecated-reader-cannot-replay.md) | the old form cannot name a place -- an index is not portable and `LOCATION` is not retained -- so `convert` refuses instead of dropping or fanning out |
+| [shipped-prose-lags-the-rulings](completed/shipped-prose-lags-the-rulings.md) | SKILL.md converted, the brief's worked record fixed, ~25 docstrings corrected, and a measurement that had rotted twice re-taken |
