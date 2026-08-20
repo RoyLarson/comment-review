@@ -2,10 +2,13 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
+Measured: 2026-08-19 — the BOM case is worse than filed: the comment came back with
+          address '' -- genuinely unaddressed, not merely misparsed -- with anchor set
+          to the BOM character itself.
 ```
 
 ## Objective
@@ -61,3 +64,13 @@ docstring: *"A file with no code at all is therefore one interval."*
 - [ ] **`references/compact.md` says of `unparsed` "the file did not parse, so
       nothing was censused"** -- false. The comment blocks ARE censused and handed
       to reviewers.
+- [ ] !! A ONE-LINE DECLARATION'S `a` PLACE POINTS OUTSIDE THE DECLARATION, AND NO
+      APPLICATION ORDER FIXES IT. `_undocumented` takes `body[0].lineno`, which
+      for `def f(): pass` is the `def` line itself -- so the insertion point is
+      ABOVE the declaration the docstring documents. ! It is not a collision with
+      a0: an address is not an edit range, and the a -> b -> c order settles two
+      places that share an insertion point. This is different -- there is no line
+      INSIDE the body to insert on, and writing one needs the line SPLIT, which is
+      a code change 7b forbids. ! So decide whether the place is UNWRITABLE and an
+      `add` on it is refused with a reason, rather than landing above the `def`.
+      Same shape for `@overload` and `class C: pass`.
