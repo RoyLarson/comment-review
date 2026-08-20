@@ -7,6 +7,13 @@ Owner:    session * Roy (* 1 ruling left -- the suite layout. `plugin eval`
           access is open and this file already says it is not a blocker)
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
+Corrected: 2026-08-20 — the fixtures in evidence/self-test-commits.md are FIVE module-
+           context cases, not the twenty-one commits first recorded. Roy, 2026-08-20: a
+           false plan tick, an expectedFailure firing and a hand-written fixture are
+           'specifically not useful test cases for comment-review' -- they are process
+           defects, and this system reads comments and docstrings against the code they
+           sit with. The useful ones are the modules whose docstring announced one
+           subject while the module held several.
 ```
 
 ## Objective
