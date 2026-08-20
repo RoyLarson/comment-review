@@ -361,23 +361,27 @@ def empty_places(
     """
     lines = text.splitlines()
     last = len(lines)
-    # !! EVERY LINE PROSE OCCUPIES, not just the line it starts on. A comment
-    # opened after a statement SPANS from that line -- `let b = 2; /* opens` and
-    # `and closes */` is one paragraph over two lines -- so a start-only test
-    # left the gap below it looking empty and gave line 3 a second address.
-    # `paragraphs_in` tested OVERLAP for exactly this reason.
-    filled = {n for b in prose if b.start for n in range(b.start, b.end + 1)}
+    # ! WHICH LINES ARE ALREADY SPOKEN FOR IS NOT ASKED HERE ANY MORE.
+    # `fill_the_gaps` runs after every paragraph exists and settles it once, for
+    # every gap, against the neighbours each place actually has -- see the
+    # `a`/`c`-exact rule there. Asking it twice is how the two answers came to
+    # disagree.
     out: list[Paragraph] = []
     for folio, anchor in foliation.places.items():
         if folio in occupied:
             continue
         if folio.startswith(DECLARED):
-            # ! A DECLARATION WITH NO DOCSTRING. It occupies no line, because
+            # ! A DECLARATION WITH NO DOCSTRING. It occupies NO LINE, because
             # the prose is not written yet -- given the declaration's own range
             # it swallowed whatever sat between the `def` and its first
-            # statement. Its EDIT range still says where the prose would go, and
-            # `insert..insert-1` is an empty slice, so writing it INSERTS.
-            insert = foliation.inserts.get(folio, 1)
+            # statement.
+            #
+            # !! SO ITS ORIGINAL LINES ARE None, NOT `insert..insert-1`. Roy,
+            # 2026-08-20: a closed list of lines, *"or it is None, meaning there
+            # are currently no lines that have that foliation."* WHERE the prose
+            # would go is `foliation.inserts[folio]` and was never this field's
+            # to say -- an empty slice standing in for a position is what taught
+            # a reader to take these numbers for one.
             out.append(
                 Paragraph(
                     path="",
@@ -389,8 +393,8 @@ def empty_places(
                     anchor=anchor,
                     declares=int(folio[1:]),
                     declared_at=foliation.lines.get(folio, 0),
-                    original_start=insert,
-                    original_end=insert - 1,
+                    original_start=None,
+                    original_end=None,
                     address=folio,
                 )
             )
@@ -427,11 +431,10 @@ def empty_places(
             else:
                 low = previous + 1
                 high = following - 1 if following else last
-            # !! A DOCSTRING IN THIS GAP MAKES THE EDIT AN INSERTION ABOVE IT.
-            # The gap's lines are the docstring's, so writing the whole range
-            # would overwrite a docstring with a comment.
-            if any(low <= n <= high for n in filled):
-                high = low - 1
+            # ! THE WHOLE GAP, PROVISIONALLY. `fill_the_gaps` runs after every
+            # paragraph exists and is what divides a gap between the places in
+            # it; deciding a share here would decide it against neighbours that
+            # are still being built.
             out.append(
                 Paragraph(
                     path="",
@@ -440,8 +443,11 @@ def empty_places(
                     kind="interval",
                     lines=0,
                     text="",
-                    original_start=low,
-                    original_end=high,
+                    # ! A CLOSED LIST OR None -- see `Paragraph`. `low > high`
+                    # here says the gap holds no line of its own, which is not
+                    # a range and is not written as one.
+                    original_start=low if low <= high else None,
+                    original_end=high if low <= high else None,
                     anchor=anchor,
                     address=folio,
                 )
@@ -592,31 +598,91 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     !! EVERY LINE HAS AN ADDRESS. Ruled 2026-08-19. A prose paragraph was addressed
     by the lines its prose occupied, so a blank line beside it belonged to
     nothing -- 81 lines of this repo, every one at the edge of a gap, and a
-    reviewer asking the locator about one got "no entry holds this line".
+    a reviewer asking which place held one got no answer at all.
 
     ! A paragraph runs to the next paragraph, or to the end of its gap. Leading blanks
     go to the first paragraph in the gap and trailing blanks to the last, which is
     the same rule read from either end.
 
-    ! It moves the ADDRESSING range only. `original_start`/`original_end` were fixed at
-    construction and still name the prose, so WRITE replaces what it replaced
-    before -- widening those would let a `change` swallow the blank line that
-    separates a comment run from the code beneath it.
+    !! IT MOVES THE ORIGINAL RANGE WITH IT, since 2026-08-20, and `raw_lines`
+    with that. Roy: *"the original lines need to be marked as `b`s because it
+    has this flexibility that the others do not."* The two ranges disagreeing
+    left 105 blank lines -- 16 of 16 shipped scripts -- addressed by a paragraph
+    and covered by none, so the invariant held on one range and not the other.
+
+    ! THE OBJECTION IT OVERRIDES, kept because it is real: widening the original
+    range lets a `change` swallow the blank line that separates a comment run
+    from the code beneath it. Roy's answer is a galley rule -- *"strips empty
+    lines at the ends of `b`s and then puts one back in to make the spacing
+    nice"* -- which is why the lines must be MARKED even though writing them
+    verbatim would be wrong.
+
+    !! AN `a` IS NOT WIDENED. A declaration's documentation has none of that
+    flexibility: its lines are the docstring's and a blank beside it belongs to
+    the gap. 25 of the 105 were going to an `a` because this extended whichever
+    paragraph opened the gap.
     """
+    source = text.splitlines()
     code = list(code_lines(text, [vars(b) for b in paragraphs]))
-    last = len(text.splitlines())
+    last = len(source)
     edges = [0, *code, last + 1]
+
+    # !! WHAT AN `a` OR A `c` HOLDS IS NOT THE GAP'S TO GIVE. Roy, 2026-08-20:
+    # *"a's and c's own their lines exactly, b's own all the other lines."*
+    exact: set[int] = set()
+    for b in paragraphs:
+        if b.address.split("@")[-1][:1] in (DECLARED, ON) and b.original_start:
+            exact.update(range(b.original_start, b.original_end + 1))
+
+    def recut(b: Paragraph) -> None:
+        """Give this paragraph its share of the gap, on both ranges."""
+        if b.end >= b.start >= 1:
+            b.original_start, b.original_end = b.start, b.end
+            # ! `raw_lines` is what `galley.paragraph_matches` compares against
+            # the file, over exactly this range. Leaving it as the prose alone
+            # made a FRESH census read as stale on every widened paragraph.
+            b.raw_lines = source[b.start - 1 : b.end]
+        else:
+            # ! NO LINE CARRIES THIS FOLIATION, and that is the whole
+            # answer. Where prose would GO is not recorded: Roy,
+            # 2026-08-20, on dropping the tool that asked -- *"which
+            # lines to edit is no longer helpful"*. A record names the
+            # PLACE and says what changes in it.
+            b.original_start = b.original_end = None
+            b.raw_lines = []
+
     for prev, nxt in pairwise(edges):
         lo, hi = prev + 1, min(nxt - 1, last)
         if lo > hi:
             continue
+        free = [n for n in range(lo, hi + 1) if n not in exact]
+        # ! ONLY THE `b`s SHARE IT. An `a` in this gap keeps the lines it has --
+        # it has none of the flexibility a `b` has, and extending whichever
+        # paragraph opened the gap handed 25 blank lines in this repo to a
+        # module docstring.
         here = sorted(
-            (b for b in paragraphs if b.start >= 1 and lo <= b.start <= hi),
+            (
+                b
+                for b in paragraphs
+                if b.start >= 1
+                and lo <= b.start <= hi
+                and b.address.split("@")[-1][:1] == GAP
+            ),
             key=lambda b: b.start,
         )
         if not here:
             continue
-        here[0].start = lo
+        if not free:
+            # ! Every line here is spoken for, so each `b` holds NONE. `0/0` is
+            # how the addressing range spells "occupies nothing" and `None` is
+            # how the original lines do -- there is no line with this foliation.
+            for b in here:
+                b.start, b.end = 0, 0
+                recut(b)
+            continue
+        here[0].start = free[0]
         for a, nxt_block in zip(here, here[1:], strict=False):
             a.end = nxt_block.start - 1
-        here[-1].end = hi
+        here[-1].end = free[-1]
+        for b in here:
+            recut(b)

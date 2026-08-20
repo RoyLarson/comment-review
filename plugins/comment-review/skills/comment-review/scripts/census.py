@@ -446,7 +446,7 @@ def _report(args: argparse.Namespace) -> int:
         # `1-intervals`, because this is prose a reviewer reads.
         where = f"{run[0]:4d}" if len(run) == 1 else f"{run[0]:4d}-{run[-1]}"
         # ! A run spans several PLACES, so it names its ends. Each is still
-        # cited singly -- `locator.py` answers which one holds a given line.
+        # cited singly, by its own address.
         at = first.address.split("@")[-1]
         seat = at if len(run) == 1 else f"{at}..{last.address.split('@')[-1]}"
         # !! THE SAME COLUMNS AS A PARAGRAPH ROW -- index, address, KIND, lines,
@@ -477,15 +477,14 @@ def _report(args: argparse.Namespace) -> int:
         # prose -- 87% of what a reviewer reads, four times over.**
         #
         # ! Collapsing rather than dropping keeps what an `add` is about
-        # visible: a stretch of code carrying no commentary. A reviewer needing
-        # a spot outside its set asks `locator.py`, which answers from the FULL
-        # census.
+        # visible: a stretch of code carrying no commentary. The run NAMES ITS
+        # ENDS, so every place inside it is still citable by address.
         # !! FRONT MATTER IS DROPPED FROM WHAT A REVIEWER READS, not collapsed
         # into a run. A licence header or a shebang is not a claim about the
         # code, so no role can settle it and every role would return `clean` on
         # it every run -- see `mark_front_matter`. It keeps its address and its
-        # index, so `locator.py` still finds it and a `move` may still cite it;
-        # what it loses is a reviewer's attention and a record it owes.
+        # index, so a `move` may still cite it; what it loses is a reviewer's
+        # attention and a record it owes.
         # ! `--include-front-matter` OVERRIDES that, and is the only way to see
         # it in a filtered listing. Front matter is the one prose a filtered run
         # drops entirely rather than collapsing into a run, so without an

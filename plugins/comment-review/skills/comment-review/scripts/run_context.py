@@ -84,12 +84,12 @@ HINTS = {
     # !! TWO CENSUS PATHS, because the reviewer READS one and QUERIES the other.
     # `CENSUS` is filtered: it collapses each run of empty intervals to a single
     # line, so the gaps inside a run are no longer numbered in front of the
-    # reviewer. `locator.py` answers for those, and it answers from the FULL
+    # reviewer. `foliator.py --anchor` names those, and it answers from the FULL
     # census -- so a reviewer given only the filtered path can be told a lookup
     # exists and have no file to run it against.
     "LOOKUP CENSUS": (
-        "absolute path to the FULL census JSON -- what `locator.py` reads to name"
-        " a spot the filtered census collapsed"
+        "absolute path to the FULL census JSON -- what `foliator.py --anchor`"
+        " reads to name a spot the filtered census collapsed"
     ),
     "REVIEWER FILES": (
         "absolute path per reviewer, the brief, and the compact + review agents"
@@ -266,8 +266,8 @@ def invalid_answers(text: str) -> list[str]:
             if not any(_resolves(c) for c in _path_candidates(line)):
                 bad.append(f"REPO ROOT: {line!r} is not an absolute path that exists")
     # ! Both census paths, checked the same way. `LOOKUP CENSUS` is the one a
-    # reviewer runs `locator.py` against, so an unchecked path there fails at
-    # the moment a reviewer needs a spot the filtered census collapsed.
+    # reviewer runs `foliator.py --anchor` against, so an unchecked path there
+    # fails at the moment a reviewer needs a spot the filtered census collapsed.
     for name in ("CENSUS", "LOOKUP CENSUS"):
         for body in bodies.get(name, []):
             for line in _answer_lines(body):

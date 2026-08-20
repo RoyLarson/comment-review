@@ -187,15 +187,19 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # depending on front matter already being there.
         self.assertEqual(sum(1 for b in got if b.kind == "interval"), 5, got)
 
-    def test_the_file_boundary_bounds_the_first_and_last_interval(self):
-        # !! THE EDIT RANGE CARRIES THE BOUNDARY, not the addressing one. These
-        # gaps sit between adjacent code lines, so none holds a line of its own
-        # and all are addressed at 0 -- the bounding lines belong to the `c`
-        # series. `1-0` is the gap ABOVE line 1 and `4-3` the gap below line 3,
-        # each an empty slice, so each is a pure insertion on its own side.
+    def test_a_gap_between_adjacent_code_lines_holds_NO_line(self):
+        # !! None, NOT AN EMPTY RANGE. Roy, 2026-08-20: the original lines are
+        # a closed list `[1..7]`, *"or it is None, meaning there are currently
+        # no lines that have that foliation."* These gaps sit between adjacent
+        # code lines, so none holds a line of its own -- the bounding lines
+        # belong to the `c` series. `(1, 0)` and `(4, 3)` said the same thing
+        # in a form that reads as a range and invites arithmetic on it.
         got = [b for b in self._census("a = 1\nb = 2\nc = 3\n") if b.kind == "interval"]
-        self.assertEqual((got[0].original_start, got[0].original_end), (1, 0))
-        self.assertEqual((got[-1].original_start, got[-1].original_end), (4, 3))
+        self.assertTrue(got)
+        for b in got:
+            with self.subTest(address=b.address):
+                self.assertIsNone(b.original_start)
+                self.assertIsNone(b.original_end)
 
     def test_an_interval_holding_prose_is_not_enumerated_twice(self):
         got = self._census("a = 1\n# a note\nb = 2\n")
@@ -477,7 +481,9 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         # ! It has no line below. Left empty this was 14 paragraphs of this repo,
         # one per file, every one a broken record.
         gaps = [b for b in self.paragraphs if b.kind == "interval"]
-        last = max(gaps, key=lambda b: b.original_start)
+        # ! By ADDRESS, not by line: a gap holding no line has None for both
+        # ends, and the `b` series counts down the page in order anyway.
+        last = max(gaps, key=lambda b: int(b.address.split("@")[-1][1:]))
         self.assertEqual(last.anchor, "    return os")
 
     def test_no_block_in_this_repos_own_scripts_lacks_one(self):

@@ -188,14 +188,16 @@ tool prints how many answered; read that line.
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
 python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
-
-# by LINE, when what you have is a line of the original document
-python <skill>/scripts/locator.py --census <LOOKUP CENSUS> --at path:LINE
 ```
 
-!! **PREFER THE ANCHOR.** Asking by position -- "the paragraph above the `def`" -- is right in
-Python and wrong in Rust, whose `///` sits before its `fn` where Python's docstring sits after.
-The census parsed the file and knows which is which; a count does not.
+!! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
+`def`" -- is right in Python and wrong in Rust, whose `///` sits before its `fn` where Python's
+docstring sits after. The census parsed the file and knows which is which; a count does not.
+
+! **There is no by-LINE lookup, and that is deliberate.** One existed until 2026-08-20 and was
+dropped: the anchor IS the line of code, verbatim, so asking by anchor already asks by line --
+and its other use, *where do I insert text*, is not a question a reviewer answers. You name the
+PLACE; the galley decides what that means on disk.
 
 !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A record naming a line as the
 place a thing belongs is refused.
@@ -349,8 +351,8 @@ unavailable**, and your run context says whether it is; a relocation into tracke
 always available.
 
 !! **`to:` IS AN ADDRESS when the destination is in the code, and it is RESOLVED.** Ask for it
-the same way an `add` does -- `--anchor LINE --series a|b|c`, or the locator. A destination
-naming a LINE is refused, and so is an address the census does not carry.
+the same way an `add` does -- `--anchor LINE --series a|b|c`. A destination naming a LINE is
+refused, and so is an address the census does not carry.
 
 ! **The destination may hold NO PROSE, and that is ordinary.** A paragraph can move to a gap with
 no comment in it or a declaration with no docstring: those are places with addresses, not

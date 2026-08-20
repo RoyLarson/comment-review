@@ -143,11 +143,21 @@ class Paragraph:
     # line, and on a one-line file the gap above and the gap below reduced to
     # the same address, so a reviewer could not tell them apart either.
     #
-    # ! Left 0/0 by a producer, they mirror `start`/`end` -- see
+    # !! A CLOSED LIST OF LINES, OR None. Roy, 2026-08-20: *"the original lines
+    # for `b`s are specifically the closed list of lines, `[1..7]` -- not
+    # `(1..7)` or `[1..7)` -- or it is None, meaning there are currently no
+    # lines that have that foliation."* Both ends are INCLUSIVE and both are
+    # real lines of the file.
+    #
+    # ! SO THERE IS NO EMPTY-SLICE SENTINEL. `(n, n - 1)` used to say "holds
+    # nothing", which reads as a range, invites arithmetic, and was read once
+    # this day as an insertion point. `None` cannot be mistaken for a position.
+    #
+    # ! Left None by a producer, they mirror `start`/`end` -- see
     # `__post_init__`. That is what makes this safe to add without visiting
     # every construction site.
-    original_start: int = 0
-    original_end: int = 0
+    original_start: int | None = None
+    original_end: int | None = None
     # !! WHERE THE `c` PLACE BEGINS ON `original_start`, 1-based like every other
     # position this census states -- `start`, `end`, `original_start`, `original_end`.
     # Two values:
@@ -184,9 +194,15 @@ class Paragraph:
     original_column: int = 0
 
     def __post_init__(self) -> None:
-        """Default the covered lines to the addressing range."""
-        if not self.original_start and not self.original_end:
-            self.original_start, self.original_end = self.start, self.end
+        """Default the covered lines to the addressing range, or to None.
+
+        ! A producer that states neither gets the addressing range when that
+        names real lines, and None when it does not -- `start`/`end` of 0 mean
+        this paragraph occupies nothing, and None is how that is spelled here.
+        """
+        if self.original_start is None and self.original_end is None:
+            if self.start >= 1 and self.end >= self.start:
+                self.original_start, self.original_end = self.start, self.end
 
 
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)

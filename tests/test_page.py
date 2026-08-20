@@ -15,6 +15,7 @@ up in `galley` because it was the deepest module all three could reach.
 """
 
 import ast  # noqa: I001  -- path shim below must import before page
+import collections
 import unittest
 from pathlib import Path
 
@@ -133,6 +134,136 @@ class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
         broken = page.page_for(path, "x = = 1\n", lexer.language_for(path))
         self.assertEqual(broken.foliation.places, {})
         self.assertTrue(any(b.kind == "unparsed" for b in broken))
+
+
+def covers(paragraph, which="original") -> list[int]:
+    """The lines this paragraph covers -- a CLOSED list, or empty.
+
+    !! `original_start`/`original_end` are `[lo..hi]` INCLUSIVE, or None when no
+    line carries that foliation. Roy, 2026-08-20. There is no `(n, n - 1)`
+    empty-slice form to decode, which is why this reads as a membership question
+    and not as arithmetic.
+    """
+    if which == "original":
+        lo, hi = paragraph.original_start, paragraph.original_end
+    else:
+        # ! The ADDRESSING range still spells "occupies nothing" as `0/0`.
+        lo, hi = paragraph.start, paragraph.end
+        lo = lo if lo >= 1 else None
+    if lo is None or hi is None or hi < lo:
+        return []
+    return list(range(lo, hi + 1))
+
+
+class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
+    """Roy, 2026-08-20: *"on the original every line belongs to 1 paragraph and
+    every paragraph belongs to 1 anchor."*
+
+    !! EXACTLY one, so a line in NONE breaks it as surely as a line in two. It
+    held on the ADDRESSING range and not on the original: measured over the 16
+    shipped scripts, 105 lines in 16 of 16 files were addressed by a paragraph
+    and covered by none, every one blank and every one at the edge of a gap.
+    """
+
+    SHAPES = {
+        "a wholly empty gap": "x = 1\n\n\n\ny = 2\n",
+        "one comment in a gap": "x = 1\n\n# a note\n\ny = 2\n",
+        "two runs in one gap": "x = 1\n\n# one\n\n# two\n\ny = 2\n",
+        "docstring then blank": '"""Doc."""\n\nimport os\n',
+        "front matter and docstring": (
+            '#!/usr/bin/env python\n\n"""Doc."""\n\nimport os\n'
+        ),
+        "a trailing comment": "x = 1  # beside\n\ny = 2\n",
+        "no trailing newline": "x = 1\n\n# a note",
+    }
+
+    def owners(self, text, attr):
+        """Line -> how many paragraphs own it, BY PRECEDENCE.
+
+        !! `a` AND `c` ARE EXACT AND `b` TAKES THE REST, so a `b`'s SPAN may
+        cross an `a` without owning its lines. Roy, 2026-08-20: *"a's and c's
+        own their lines exactly, b's own all the other lines. a's and c's get
+        set first because of this, b's get set after."* Counting a raw range
+        overlap asks a question the rule does not answer.
+        """
+        path = Path("m.py")
+        pg = page.page_for(path, text, lexer.language_for(path))
+        counts = collections.Counter()
+        exact = set()
+        for b in pg:
+            if b.address.split("@")[-1][:1] in ("a", "c"):
+                counts.update(covers(b, attr))
+                exact.update(covers(b, attr))
+        for b in pg:
+            if b.address.split("@")[-1][:1] == "b":
+                counts.update(n for n in covers(b, attr) if n not in exact)
+        return {n: counts.get(n, 0) for n in range(1, len(text.splitlines()) + 1)}
+
+    def test_on_both_ranges_every_line_has_exactly_one_owner(self):
+        for attr in ("address", "original"):
+            for name, text in self.SHAPES.items():
+                with self.subTest(range=attr, shape=name):
+                    got = self.owners(text, attr)
+                    self.assertEqual(
+                        {n: c for n, c in got.items() if c != 1},
+                        {},
+                        f"{name}: line -> owner count",
+                    )
+
+    def test_the_blank_at_a_gaps_edge_belongs_to_the_b(self):
+        # ! Not to the `a` above it. Roy: an `a` has none of the flexibility
+        # that lets a `b` absorb a blank and give it back on write. 25 of the
+        # 105 were going to a module docstring.
+        text = '"""Doc."""\n\nimport os\n'
+        path = Path("m.py")
+        pg = page.page_for(path, text, lexer.language_for(path))
+        owner = next(b for b in pg if 2 in covers(b))
+        self.assertTrue(owner.address.split("@")[-1].startswith("b"), owner.address)
+
+    def test_every_paragraph_names_one_anchor(self):
+        for name, text in self.SHAPES.items():
+            with self.subTest(shape=name):
+                path = Path("m.py")
+                for b in page.page_for(path, text, lexer.language_for(path)):
+                    self.assertTrue(b.anchor, f"{name}: {b.address} has no anchor")
+
+    def test_raw_lines_still_matches_the_range_it_covers(self):
+        # !! THE GALLEY COMPARES THEM. `paragraph_matches` reads `raw_lines`
+        # over the ORIGINAL range, so widening one without the other makes a
+        # census refuse the file it was just built from.
+        for name, text in self.SHAPES.items():
+            with self.subTest(shape=name):
+                path = Path("m.py")
+                lines = text.splitlines()
+                for b in page.page_for(path, text, lexer.language_for(path)):
+                    held = covers(b)
+                    # ! A `c` stores only the half of its first line that is
+                    # prose, so `raw_lines` is not that line whole.
+                    if b.original_column or not held:
+                        continue
+                    want = [lines[n - 1] for n in held]
+                    self.assertEqual(
+                        [ln.rstrip() for ln in b.raw_lines],
+                        [ln.rstrip() for ln in want],
+                        f"{name}: {b.address}",
+                    )
+
+    def test_a_place_with_no_lines_says_None_and_not_an_empty_range(self):
+        # !! ROY'S RULE, 2026-08-20: a closed list `[1..7]`, *"or it is None,
+        # meaning there are currently no lines that have that foliation."* The
+        # `(n, n - 1)` form it replaced reads as a range and invites arithmetic.
+        path = Path("m.py")
+        text = "x = 1\ny = 2\n"  # adjacent code: the gap between them holds nothing
+        empty = [
+            b
+            for b in page.page_for(path, text, lexer.language_for(path))
+            if b.kind in ("interval", "undocumented")
+        ]
+        self.assertTrue(empty)
+        for b in empty:
+            with self.subTest(address=b.address):
+                self.assertIsNone(b.original_start)
+                self.assertIsNone(b.original_end)
 
 
 class TestTheTwoKindSetsAreNotInterchangeable(unittest.TestCase):

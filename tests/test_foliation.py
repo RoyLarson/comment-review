@@ -416,12 +416,14 @@ class TestTheDeclarationSeries(unittest.TestCase):
             [("<module>", "a0"), ("def bare():", "a1")],
         )
 
-    def test_an_empty_declaration_is_a_pure_INSERTION(self):
-        # Its edit range is empty, so writing it inserts above the first
-        # statement instead of overwriting it -- the interval convention.
+    def test_an_empty_declaration_HOLDS_NO_LINE(self):
+        # !! None on both ends. The docstring is not written yet, so no line
+        # of the file carries this foliation -- which is different from a
+        # range that happens to be empty. `(2, 1)` said it as arithmetic.
         got = self._census("def bare():\n    return 1\n")
         bare = next(b for b in got if b.anchor == "def bare():")
-        self.assertEqual((bare.original_start, bare.original_end), (2, 1))
+        self.assertIsNone(bare.original_start)
+        self.assertIsNone(bare.original_end)
 
     def test_filling_a_docstring_does_not_RENUMBER_the_series(self):
         # !! ONLY A CODE CHANGE SHIFTS IT, and stage 7b proves this tool makes
@@ -863,12 +865,23 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
             foliator.folio_of(b["address"])[1]: b
             for b in foliator.for_anchor("X=2", "b", self.paragraphs)
         }
-        # ! Read from the EDIT range, which is the gap itself: the first is a
-        # pure insertion above line 1, the second replaces line 3, the third
-        # appends after 5.
-        self.assertEqual(by_folio["b1"]["original_start"], 1)
-        self.assertEqual(by_folio["b2"]["original_start"], 3)
-        self.assertEqual(by_folio["b3"]["original_start"], 6)
+        # ! Read from the ORIGINAL range, which is the gap's OWN LINES: the
+        # first covers nothing above line 1, the second covers 2-4, and the
+        # third covers nothing after 5.
+        #
+        # !! `b2` STARTS AT 2, NOT 3, since 2026-08-20. The gap between the two
+        # statements is lines 2-4 and `# stuff happens` is only line 3, so the
+        # blanks either side of it used to belong to no paragraph at all. Roy:
+        # *"`b` owns it, else a literal two paragraph comment is held by nothing
+        # and cannot have its internal paragraphs merged or dropped
+        # appropriately in the edit process."*
+        # ! `b1` is the gap ABOVE line 1 on a file whose line 1 is code, so it
+        # holds no line and says None.
+        self.assertIsNone(by_folio["b1"]["original_start"])
+        self.assertEqual(
+            (by_folio["b2"]["original_start"], by_folio["b2"]["original_end"]), (2, 4)
+        )
+        self.assertIsNone(by_folio["b3"]["original_start"])
         for folio, paragraph in by_folio.items():
             with self.subTest(folio=folio):
                 self.assertEqual(paragraph["anchor"], "X=2")

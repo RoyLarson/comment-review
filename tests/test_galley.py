@@ -204,6 +204,26 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
     `original_start`/`original_end`, took the legacy fallback, and went on passing
     against a shape `census.py` no longer emits -- which is the whole failure
     being tested, one level up.
+
+    !! THE INTERVAL CASES ARE EXPECTED FAILURES, DEFERRED 2026-08-20. An empty
+    place now reports `original_start`/`original_end` as None -- Roy: a closed
+    list of lines *"or it is None, meaning there are currently no lines that
+    have that foliation"* -- so `splice_range` has no range to hand `splice`,
+    and it should not: where prose LANDS is the galley's to decide from the
+    ADDRESS. Roy, on the rebuild: *"galley is broken, has always been broken,
+    can stay broken for a couple more commits."*
+
+    ! Marked rather than deleted or skipped: each reports an UNEXPECTED SUCCESS
+    the moment the galley works from addresses, which is how this suite is meant
+    to announce that work landing. Roy: *"it doesn't help to keep them alive when
+    the implementation is going to slip out from under them."*
+
+    !! THEY PASS OR THEY GO, BEFORE THE PLAN CLOSES. Roy, 2026-08-20: *"they need
+    to pass or be removed when done with this plan, and that gate should be added
+    to the end of the plan."* That is box R7 of
+    `docs/plans/0.2.5-the-foliator-owns-the-address.md`. An xfail still standing
+    at a release is a test nobody has to answer for. Tracked in
+    `TODO/galley-is-still-index-keyed`.
     """
 
     FILE = "a = 1\nb = 2\nc = 3\n"
@@ -233,6 +253,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
                 return b
         raise AssertionError(f"no gap editing {original_start}-{original_end}")
 
+    @unittest.expectedFailure
     def test_adjacent_code_lines_give_an_EMPTY_range(self):
         # ! `n+1 .. n` -- `splice` assigns into an empty slice, which inserts.
         self.assertEqual(galley.splice_range(self._gap(self.FILE, 2, 1)), (2, 1))
@@ -247,11 +268,13 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         )
         self.assertEqual(galley.splice_range(paragraph), (2, 2))
 
+    @unittest.expectedFailure
     def test_the_insertion_lands_BETWEEN_the_two_code_lines(self):
         start, end = galley.splice_range(self._gap(self.FILE, 2, 1))
         out = galley.splice(self.FILE, [(start, end, 0, "# note")])
         self.assertEqual(out, "a = 1\n# note\nb = 2\nc = 3\n")
 
+    @unittest.expectedFailure
     def test_it_deletes_no_code(self):
         # !! The failure this range exists to avoid: `(1, 2)` would have
         # replaced BOTH bounding lines with the new prose.
@@ -260,6 +283,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         for line in ("a = 1", "b = 2", "c = 3"):
             self.assertIn(line, out)
 
+    @unittest.expectedFailure
     def test_the_gap_ABOVE_the_first_code_line_inserts_above_it(self):
         # !! The file boundary. `start` and `end` are both clamped to 1 here,
         # so the address cannot say which side of line 1 the gap is on --
@@ -270,6 +294,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         )
         self.assertEqual(out, "# header\na = 1\nb = 2\nc = 3\n")
 
+    @unittest.expectedFailure
     def test_the_gap_BELOW_the_last_code_line_appends(self):
         out = galley.splice(
             self.FILE,
@@ -277,6 +302,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         )
         self.assertEqual(out, "a = 1\nb = 2\nc = 3\n# footer\n")
 
+    @unittest.expectedFailure
     def test_the_two_boundary_gaps_of_a_ONE_LINE_file_differ(self):
         # !! No boundary gap holds a line of its own, so only the edit range
         # tells them apart.
@@ -291,6 +317,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         self.assertEqual(sorted(folios), ["b0", "b1", "b2"])
         self.assertNotEqual(galley.splice_range(gaps[1]), galley.splice_range(gaps[2]))
 
+    @unittest.expectedFailure
     def test_an_empty_interval_MATCHES(self):
         lines = self.FILE.splitlines()
         self.assertTrue(galley.paragraph_matches(lines, self._gap(self.FILE, 2, 1)))
@@ -309,6 +336,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         grown = "a = 1\n# someone wrote this\nb = 2\n".splitlines()
         self.assertFalse(galley.paragraph_matches(grown, gap))
 
+    @unittest.expectedFailure
     def test_an_interval_past_the_end_of_the_file_is_stale(self):
         gap = dict(
             self._gap(self.FILE, 2, 1), start=3, end=9, original_start=4, original_end=8

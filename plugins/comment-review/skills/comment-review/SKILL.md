@@ -354,10 +354,11 @@ is a position in one census, and the galley is censused again for round 2. The f
 stays on disk and is what stages 5 and 7b read; only the copy pasted into a reviewer's prompt is
 narrowed.
 
-!! **DO NOT SHIP THE FILTER WITHOUT STAGE 4's LOOKUP.** A reviewer handed the filtered census
-can still see every gap, but the intervals inside a run are no longer individually numbered in
-front of it -- so a reviewer needing to place prose at one of them has no address to cite unless
-the packet tells it `locator.py` exists. Filtering without that is worse than not filtering.
+!! **DO NOT SHIP THE FILTER WITHOUT A WAY TO NAME WHAT IT COLLAPSED.** A reviewer handed the
+filtered census can still see every gap, but the intervals inside a run are no longer numbered
+individually in front of it. A run NAMES ITS ENDS -- `@b7..b12` -- and `foliator.py --anchor`
+resolves any place in between, so every collapsed interval is still citable. Filtering without
+that is worse than not filtering.
 
 ### What a place is CALLED
 
@@ -380,7 +381,6 @@ you either.
 ```bash
 python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 python <skill>/scripts/foliator.py --census <CENSUS> --resolve <ADDRESS>
-python <skill>/scripts/locator.py --census <FULL CENSUS> --at path:LINE
 ```
 
 ! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many
