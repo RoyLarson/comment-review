@@ -280,6 +280,16 @@ class Foliation:
     """
 
     places: dict[str, str] = field(default_factory=dict)
+    # !! WHERE EACH PLACE SITS, recorded by the walk that emitted it. A `b` is
+    # bounded by the two lines of CODE around its gap -- 0 for the file's own
+    # edge -- and a `c` sits ON one line. Nothing else may work these out: three
+    # generators each re-derived them from the file, and that is how a gap held
+    # by a comment came to have no place at all.
+    #
+    # ! They are BOUNDS and not an edit range. Turning one into the other needs
+    # the file's own last line, which is the page's to know and not the walk's.
+    bounds: dict[str, tuple[int, int]] = field(default_factory=dict)
+    lines: dict[str, int] = field(default_factory=dict)
     # Each keyed by the 1-based LINE the trigger sat on, so a reader with a
     # position can find the place without knowing how the walk numbered it.
     _above: dict[int, str] = field(default_factory=dict)
@@ -353,19 +363,31 @@ def foliate(code: list[tuple[int, str]], documentable: set[int]) -> Foliation:
     a, b, c = Foliator(DECLARED), Foliator(GAP), Foliator(ON)
     out = Foliation(_code=[n for n, _ in code])
     out._declared[0] = a.emit(MODULE)
-    b.emit(MODULE)
+    # ! `b0` is the FILE'S OWN front matter, so it is bounded by nothing: the
+    # head of the file on both sides. It is not the gap above the first line of
+    # code -- that is `b1`, and conflating them made the two exclusive.
+    out.bounds[b.emit(MODULE)] = (0, 0)
     c.skip()
+    previous = 0
     for i, (n, line) in enumerate(code):
         if i in documentable:
             # ! 0 is the module, so a declaration's ordinal is its position
             # among the documentable ones, counting from 1.
-            out._declared[len(out._declared)] = a.emit(line)
-        out._above[n] = b.emit(line)
-        out._beside[n] = c.emit(line)
+            declared = a.emit(line)
+            out._declared[len(out._declared)] = declared
+            out.lines[declared] = n
+        gap = b.emit(line)
+        out._above[n] = gap
+        out.bounds[gap] = (previous, n)
+        beside = c.emit(line)
+        out._beside[n] = beside
+        out.lines[beside] = n
+        previous = n
     # ! The gap AFTER the last line of code has no line below it, so it takes
     # the one above -- a gap is bounded by code, and that is the bound it has.
     # On a file with no code at all this is the gap that IS the file.
     out._closing = b.emit(code[-1][1] if code else MODULE)
+    out.bounds[out._closing] = (previous, 0)
     out.places = {**a.places, **b.places, **c.places}
     return out
 

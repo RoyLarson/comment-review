@@ -208,8 +208,14 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
     FILE = "a = 1\nb = 2\nc = 3\n"
 
     def _census(self, text):
+        # ! The EMPTY places, through the page's own walk. `intervals` asked
+        # this a series at a time and is gone -- one loop over what the walk
+        # emitted answers it for all three.
         prose = lexer.paragraphs_stdlib(Path("m.py"), text)
-        return [b.__dict__ for b in page.intervals(Path("m.py"), text, prose)]
+        foliation = page.places_on(text, [vars(b) for b in prose])
+        occupied = {page.attach(vars(b), foliation) for b in prose}
+        empty = page.empty_places(text, prose, foliation, occupied)
+        return [b.__dict__ for b in empty if b.kind == "interval"]
 
     def _gap(self, text, edit_start, edit_end):
         """The interval whose EDIT range is this, as the census emits it.
@@ -268,11 +274,18 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         self.assertEqual(out, "a = 1\nb = 2\nc = 3\n# footer\n")
 
     def test_the_two_boundary_gaps_of_a_ONE_LINE_file_differ(self):
-        # !! Both address the same place -- neither holds a line of its own --
-        # so only the edit range tells them apart.
+        # !! No boundary gap holds a line of its own, so only the edit range
+        # tells them apart.
         gaps = [b for b in self._census("a = 1\n") if b["kind"] == "interval"]
-        self.assertEqual(len(gaps), 2)
-        self.assertNotEqual(galley.splice_range(gaps[0]), galley.splice_range(gaps[1]))
+        # ! THREE on a one-line file: `b0` the file's own place, `b1` above the
+        # line, `b2` after it. It was two until `b0` stopped depending on front
+        # matter already being there -- and `b0` and `b1` share an edit range,
+        # which is why the ORDER they are written in is a ruling and not an
+        # inference: `b0`, then `a0`, then the rest.
+        self.assertEqual(len(gaps), 3)
+        folios = [b["address"].split("@")[-1] for b in gaps]
+        self.assertEqual(sorted(folios), ["b0", "b1", "b2"])
+        self.assertNotEqual(galley.splice_range(gaps[1]), galley.splice_range(gaps[2]))
 
     def test_an_empty_interval_MATCHES(self):
         lines = self.FILE.splitlines()

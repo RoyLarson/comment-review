@@ -84,16 +84,24 @@ class TestEveryMarkedAddressExists(unittest.TestCase):
         # statement, and it must not depend on whether front matter exists.
         self.assertIn("b1", self.folios)
 
-    @unittest.expectedFailure
     def test_b0_exists_on_a_file_with_no_front_matter(self):
-        """!! KNOWN DEFECT -- `TODO/b-foliator-uninitialised.md`.
+        """!! FIXED 2026-08-20, and this was the pin that reported it.
 
-        `b0` is emitted only when `mark_front_matter` has already stamped prose
-        that exists, so a file with no licence header has nowhere to put one.
-        Measured over five file shapes: `b0` and `b1` never coexist.
+        `b0` used to be emitted only where `mark_front_matter` had already
+        stamped prose that existed, so a file with no licence header had nowhere
+        to put one -- measured over five file shapes, `b0` and `b1` never
+        coexisted. The walk emits both now, and the page gives every place the
+        walk emitted a paragraph.
 
-        ! `expectedFailure` rather than a skip, so unittest reports an
-        UNEXPECTED SUCCESS the moment the foliator is fixed -- which is what
-        makes the box on that TODO impossible to leave unticked.
+        ! It was an `expectedFailure` rather than a skip, so unittest reported
+        an UNEXPECTED SUCCESS the moment the collapse landed. That is what made
+        the box impossible to leave ticked-or-not by anyone's judgement.
         """
         self.assertIn("b0", self.folios)
+
+    def test_every_b_the_marks_name_exists(self):
+        # ! The other half of the same defect: Roy's `b1` mark was unresolvable
+        # on the finished file, because front matter had consumed the place.
+        for folio in sorted(f for f in _marked() if f.startswith("b")):
+            with self.subTest(folio=folio):
+                self.assertIn(folio, self.folios)

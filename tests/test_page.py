@@ -111,8 +111,11 @@ class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
         folios = set(self.page.foliation.places)
         self.assertIn("b0", folios)
         self.assertIn("a0", folios)
+        # !! EVERY PLACE HAS A PARAGRAPH -- that is what the collapse bought.
+        # A place the walk emitted and nothing filled gets an empty paragraph,
+        # so the two sets are equal rather than the folios being a superset.
         occupied = {b.address.split("@")[-1] for b in self.page if "@" in b.address}
-        self.assertTrue(folios - occupied, "every place is occupied -- no empty ones?")
+        self.assertEqual(folios, occupied)
 
     def test_prose_is_what_a_reviewer_owes_a_record_on(self):
         # ! The empty places are ADDRESSABLE and not accountable.

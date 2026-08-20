@@ -182,7 +182,10 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # ! The module's own `a0` is here too -- a file with no module docstring
         # still has the PLACE for one. Neither kind holds prose.
         self.assertTrue(all(b.kind in page.HOLDS_NO_PROSE for b in got), got)
-        self.assertEqual(sum(1 for b in got if b.kind == "interval"), 4, got)
+        # ! FIVE: `b0` the file's own place, one gap above each of the three
+        # code lines, and the gap after the last. It was four until `b0` stopped
+        # depending on front matter already being there.
+        self.assertEqual(sum(1 for b in got if b.kind == "interval"), 5, got)
 
     def test_the_file_boundary_bounds_the_first_and_last_interval(self):
         # !! THE EDIT RANGE CARRIES THE BOUNDARY, not the addressing one. These
@@ -257,7 +260,9 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
 
     def test_a_file_of_only_prose_is_one_interval(self):
         got = self._census("# just a note\n")
-        self.assertEqual([b.kind for b in got], ["comment"])
+        # ! `b0` is the file's own place and exists whether or not front
+        # matter sits in it, so a file of one comment carries that too.
+        self.assertEqual(sorted(b.kind for b in got), ["comment", "interval"])
 
 
 class TestTheLexicalTierStampsToo(unittest.TestCase):
@@ -439,6 +444,10 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
             if paragraph.edit_column or paragraph.declares >= 0 or not paragraph.anchor:
                 continue
             with self.subTest(address=paragraph.address):
+                # ! `b0` is the FILE'S place. Its anchor is the module,
+                # which has no line to sit beside and so no `c` to copy.
+                if paragraph.address.endswith("@b0"):
+                    continue
                 self.assertIn(paragraph.anchor, margins.values())
 
     def test_NO_block_in_this_file_lacks_an_anchor(self):

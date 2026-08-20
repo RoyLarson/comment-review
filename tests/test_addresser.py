@@ -538,20 +538,29 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         self.assertEqual(self._at("<module>", "a"), ["a0"])
         self.assertEqual(self._at("<module>", "c"), [])
 
-    def test_the_MODULE_has_a_b_ONLY_WHERE_IT_HAS_FRONT_MATTER(self):
+    def test_the_MODULE_ALWAYS_HAS_A_b(self):
         """!! `b0` IS THE FILE'S OWN PROSE, not the gap above the first line of
         code -- those were one address until 2026-08-19, so a licence header and
         the comment introducing the first declaration answered to the same name.
 
-        ! Nothing is lost by its absence here. `b0` is where a licence header,
-        a shebang or a coding line sits, and any verdict proposing an edit there
-        is promoted to a `query` -- Roy, 2026-08-19: *"it is supposed to promote
-        any verdict that modifies that section to a query with an ask-the-human.
-        Never resolved by the agents."* So there is nothing an `add` could put
-        in an empty one.
+        !! AND IT EXISTS WHETHER OR NOT ANYTHING SITS IN IT. This test asserted
+        the opposite until 2026-08-20 -- that the module had a `b` ONLY where the
+        file had front matter -- which was the defect stated as a rule: `b0` was
+        emitted by a branch that fired when `mark_front_matter` had already
+        stamped prose, so `b0` and `b1` were mutually exclusive and Roy's `b1`
+        mark was unresolvable on a file that gained a licence.
+
+        ! A place exists because the walk reached its trigger. Roy, 2026-08-19:
+        *"all of the addresses exist by definition"*, and *"b1 isn't able to be
+        swallowed by b0."*
+
+        ! An edit proposed at `b0` is still promoted to a `query` -- Roy: *"it is
+        supposed to promote any verdict that modifies that section to a query
+        with an ask-the-human. Never resolved by the agents."* That is what the
+        place is FOR; it is not a reason for it to be absent.
         """
         # This fixture opens with a docstring and has no front matter at all.
-        self.assertEqual(self._at("<module>", "b"), [])
+        self.assertEqual(self._at("<module>", "b"), ["b0"])
 
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")

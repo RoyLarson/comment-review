@@ -60,6 +60,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from addresser import (  # noqa: E402  -- path shim must run first
+    GAP,
+    ON,
     Foliation,
     flatten,
     foliate,
@@ -324,100 +326,98 @@ def code_lines(text: str, prose: list[Paragraph]) -> set[int]:
     return set(code_lines_of(text, [vars(b) for b in prose]))
 
 
-def paragraphs_in(prose: list[Paragraph], prev: int, nxt: int) -> list[Paragraph]:
-    """The prose paragraphs OVERLAPPING the gap between two code lines.
+def empty_places(
+    text: str, prose: list[Paragraph], foliation: Foliation, occupied: set[str]
+) -> list[Paragraph]:
+    """A paragraph for every place the walk emitted that no prose fills.
 
-    !! OVERLAP, NOT START. A comment opened after a statement begins ON the
-    bounding code line and runs into the gap below it, so `prev < b.start` was
-    False for it: the gap read as EMPTY, an interval was emitted, and the
-    comment's own second line carried two addresses. Measured 2026-08-19 on
-    `let b = 2; /* opens` / `and closes */` -- line 3 answered to both.
+    !! ONE LOOP, WHERE THERE WERE THREE GENERATORS. `intervals`, `margins` and
+    `_undocumented` each walked the file again to decide which places of their
+    own series deserved a paragraph -- 206 lines answering one question three
+    ways, and disagreeing. `intervals` skipped a gap a comment held, so once
+    front matter took `b0` nothing occupied `b1` and the place an `add` exists
+    to cite was unreachable.
 
-    ! A trailing comment still holds no gap: it starts and ends on the code
-    line, so `prev < b.end` is False.
-    """
-    return [
-        b
-        for b in prose
-        if b.kind not in OCCUPIES_NOTHING and prev < b.end and b.start < nxt
-    ]
+    ! The walk already emitted every place and said where each sits. This asks
+    only which of them prose is sitting in, and gives the rest a paragraph.
 
+    ! An empty place OCCUPIES NOTHING -- that is what `OCCUPIES_NOTHING` means,
+    and it is why emitting one cannot move a code line or renumber anything
+    below it.
 
-def intervals(path: Path, text: str, prose: list[Paragraph]) -> list[Paragraph]:
-    """Every gap between two lines of code that holds no prose.
+    Args:
+        text: the page's source.
+        prose: the paragraphs a reader found.
+        foliation: every place on the page.
+        occupied: the folios that prose already sits in.
 
-    A gap holding a comment run IS that run's paragraph, so only the empty ones are
-    emitted here and the census stays one paragraph per interval either way.
-
-    ! **The file boundary counts as a bound.** There is no code line above a
-    module docstring and none below a comment at EOF, so the first and last
-    intervals are bounded by the file itself rather than special-cased away. A
-    file with no code at all is therefore one interval.
-
-    ! `start` and `end` are the BOUNDING CODE LINES, not the blank lines
-    between them, because a zero-width gap has no lines of its own and every
-    citation in this system has to resolve. Two adjacent code lines give an
-    interval whose range is those two lines.
-
-    !! `edit_start` and `edit_end` are the OTHER range -- the gap itself, which
-    is what an edit to this interval occupies. They are set here and nowhere
-    else, because the edges walked here carry the file-boundary sentinels that
-    `start` and `end` clamp away. See `Paragraph`.
+    Returns:
+        The empty paragraphs, in no particular order -- the caller sorts.
     """
     lines = text.splitlines()
     last = len(lines)
-    if last == 0:
-        return []
-    code = sorted(code_lines(text, prose))
-    edges = [0, *code, last + 1]
+    # !! EVERY LINE PROSE OCCUPIES, not just the line it starts on. A comment
+    # opened after a statement SPANS from that line -- `let b = 2; /* opens` and
+    # `and closes */` is one paragraph over two lines -- so a start-only test
+    # left the gap below it looking empty and gave line 3 a second address.
+    # `paragraphs_in` tested OVERLAP for exactly this reason.
+    filled = {n for b in prose if b.start for n in range(b.start, b.end + 1)}
     out: list[Paragraph] = []
-    for prev, nxt in pairwise(edges):
-        holders = paragraphs_in(prose, prev, nxt)
-        # !! A DOCSTRING DOES NOT HOLD A GAP'S `b`. It has its own `a`, so the
-        # gap still needs a `b` place -- otherwise there is nowhere to cite a
-        # comment ABOVE a docstring. Measured 2026-08-19 before this: 129 `b`
-        # places absent from 13 shipped files, `b0` among them in every one,
-        # so no file could be given a comment above its module docstring.
-        if any(b.declares < 0 for b in holders):
-            continue  # a comment IS this gap's `b`
-        # !! THE GAP ITSELF, NOT THE CODE LINES BOUNDING IT. Those are `c`
-        # addresses now and a line has ONE address, so including them made a
-        # third of this repo's lines answer to two -- 2,305 of 6,775, measured
-        # 2026-08-19, every one a code line ending one gap and starting the
-        # next. A gap with no lines of its own is at line 0, like an absent
-        # docstring: addressable, on no line.
-        lo, hi = prev + 1, min(nxt - 1, last)
-        # ! A docstring already occupies this gap's LINES, so its `b` is a place
-        # with none -- line 0, the same answer an absent docstring gives.
-        if holders or lo > hi:
-            lo = hi = 0
-        out.append(
-            Paragraph(
-                path=path.as_posix(),
-                start=lo,
-                end=hi,
-                kind="interval",
-                lines=0,
-                text="",
-                # The EDIT: unclamped, so the file boundary keeps its side.
-                # `prev + 1 .. nxt - 1` is THE GAP ITSELF -- its own blank
-                # lines, not the code lines that bound it. Empty for adjacent
-                # code lines, and `1..0` above the first line of a file, which
-                # is an empty range and so a pure insertion.
-                #
-                # ! The gap below the last code line is `last+1..last` only
-                # when that line ENDS the file. With trailing blanks it spans
-                # them, which is right: they are the gap.
-                # !! A DOCSTRING IN THIS GAP MAKES THE EDIT AN INSERTION ABOVE
-                # IT, never a replacement of it. The gap's lines are the
-                # docstring's, so writing the whole range would overwrite the
-                # docstring with a comment -- and `paragraph_matches` reported the
-                # place stale on a FRESH census, because those lines are not
-                # blank. `prev+1 .. prev` is an empty slice: prose lands above.
-                edit_start=prev + 1,
-                edit_end=prev if holders else nxt - 1,
+    for folio, anchor in foliation.places.items():
+        if folio in occupied:
+            continue
+        if folio.startswith(ON):
+            # ! The room BESIDE a line of code: whatever follows the statement,
+            # which is nothing unless the line ends in whitespace. The code is
+            # the ANCHOR, so storing it here too would put one fact in two
+            # fields.
+            n = foliation.lines[folio]
+            code = lines[n - 1].rstrip()
+            out.append(
+                Paragraph(
+                    path="",
+                    start=n,
+                    end=n,
+                    kind="margin",
+                    lines=0,
+                    text="",
+                    raw_lines=[lines[n - 1][len(code) :]],
+                    edit_start=n,
+                    edit_end=n,
+                    edit_column=len(code) + 1,
+                    anchor=anchor,
+                    address=folio,
+                )
             )
-        )
+        elif folio.startswith(GAP):
+            previous, following = foliation.bounds[folio]
+            if (previous, following) == (0, 0):
+                # !! THE FILE'S OWN FRONT MATTER, and it is bounded by nothing:
+                # a licence header or a shebang goes at the very top. `1..0` is
+                # an empty slice, so writing it INSERTS rather than replaces.
+                low, high = 1, 0
+            else:
+                low = previous + 1
+                high = following - 1 if following else last
+            # !! A DOCSTRING IN THIS GAP MAKES THE EDIT AN INSERTION ABOVE IT.
+            # The gap's lines are the docstring's, so writing the whole range
+            # would overwrite a docstring with a comment.
+            if any(low <= n <= high for n in filled):
+                high = low - 1
+            out.append(
+                Paragraph(
+                    path="",
+                    start=low if low <= high else 0,
+                    end=high if low <= high else 0,
+                    kind="interval",
+                    lines=0,
+                    text="",
+                    edit_start=low,
+                    edit_end=high,
+                    anchor=anchor,
+                    address=folio,
+                )
+            )
     return out
 
 
@@ -451,13 +451,8 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     # never established, so any interval drawn there would be invented.
     foliation = Foliation()
     if not any(b.kind == "unparsed" for b in got):
-        got = got + intervals(path, text, got) + margins(path, text, got)
-        fill_the_gaps(text, got)
-        # ! AFTER the gaps are filled, so every paragraph's place in its gap is
-        # settled before it is told what it sits above.
-        # ! BEFORE the anchors, because a run that is FRONT MATTER is anchored
-        # to the module rather than to the code below it, and this is what says
-        # which runs those are.
+        # ! BEFORE the walk, because a run that is FRONT MATTER takes `b0` and
+        # this is what says which runs those are.
         mark_front_matter(got)
         # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
         # Reversed -- each paragraph computing its own folio -- a place existed
@@ -472,7 +467,27 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
             place = attach(vars(b), foliation)
             b.address = f"{flat}@{place}" if place else ""
             b.anchor = foliation.places.get(place, b.anchor)
+        # !! EVERY PLACE PROSE DOES NOT FILL GETS A PARAGRAPH, in one loop over
+        # what the walk emitted. Three generators used to answer this one
+        # question a series at a time, each walking the file again.
+        occupied = {b.address.split("@")[-1] for b in got if "@" in b.address}
+        for empty in empty_places(text, got, foliation, occupied):
+            # ! IT ALREADY KNOWS ITS PLACE -- the emitter filled that folio and
+            # said so. Asking `attach` again re-derives it from position, which
+            # answered `b1` for the `b0` paragraph: the front-matter place is
+            # not the gap above the first line of code, and position cannot
+            # tell them apart. That is the whole defect, one layer up.
+            empty.address = f"{flat}@{empty.address}"
+            got.append(empty)
+        # ! AFTER every paragraph exists, so each one's share of its gap is
+        # settled against the neighbours it actually has.
+        fill_the_gaps(text, got)
+    # ! THE PAGE STATES ITS OWN PATH on every paragraph, empty places included.
+    # `empty_places` builds them without one -- it is handed the text, not the
+    # file -- and a paragraph with no path is one no consumer can place.
+    where = rel if rel is not None else path.as_posix()
     for b in got:
+        b.path = where
         b.tier = tier_for(lang)
     # ! An UNPARSED file never reached the walk, so it has no foliation. An empty
     # one is the honest answer: the page carries no places, and a consumer that
@@ -578,55 +593,3 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
         for a, nxt_block in zip(here, here[1:], strict=False):
             a.end = nxt_block.start - 1
         here[-1].end = hi
-
-
-def margins(path: Path, text: str, prose: list[Paragraph]) -> list[Paragraph]:
-    """A `c` place for every code line that carries no trailing comment.
-
-    !! WITHOUT IT THERE IS NOWHERE TO PUT ONE. Roy, 2026-08-19: without the
-    empty `c`s "you can't specify that the comment belongs at the end of the
-    code line". An `add` cites the place its missing prose belongs, so a code
-    line with no trailing comment needs a place exactly as a gap with no prose
-    does -- which is what `intervals` already gives the `b` series.
-
-    ! It occupies no line of its OWN: the line is CODE and stays code. What it
-    holds is the room after the statement.
-
-    ! `raw_lines` holds the room itself -- whatever follows the code, which is
-    nothing unless the line ends in whitespace. The code it sits beside is the
-    ANCHOR, and `galley.paragraph_matches` checks that half against the file.
-    """
-    lines = text.splitlines()
-    # ! THE SAME FACT `address` reads. A line already carrying prose that SHARES
-    # it has no room left -- and that is any paragraph with `whole_lines` False, not
-    # only a `trailing-comment`. Keyed on the kind, a paragraph comment opened after
-    # a statement got a margin for room it already occupies.
-    taken = {b.start for b in prose if b.edit_column}
-    return [
-        Paragraph(
-            path=path.as_posix(),
-            start=n,
-            end=n,
-            kind="margin",
-            lines=0,
-            text="",
-            # ! ITS OWN CHARACTERS, which is whatever follows the code --
-            # nothing, for a line with no trailing comment. The code is in
-            # `anchor`; storing it here too would put one fact in two fields.
-            raw_lines=[lines[n - 1][len(lines[n - 1].rstrip()) :]],
-            edit_start=n,
-            edit_end=n,
-            # !! ONE PAST THE LAST CHARACTER OF CODE -- the same rule a
-            # trailing comment on this line would follow, so the two are the
-            # same place whether or not prose is in it. The prose supplied for
-            # an `add` here carries its own leading separator, exactly as an
-            # `add` on an `interval` carries its own indentation.
-            edit_column=len(lines[n - 1].rstrip()) + 1,
-            # ! The whole line, because the whole line is code. A `margin` and
-            # the trailing comment that would replace it are the same place, so
-            # they carry the same anchor as well as the same column.
-            anchor=lines[n - 1].rstrip(),
-        )
-        for n in sorted(code_lines(text, prose))
-        if n not in taken
-    ]
