@@ -123,6 +123,7 @@ import argparse
 import json
 import sys
 import warnings
+from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -310,6 +311,92 @@ def triggers(code: list[int]) -> list[object]:
     first declaration answered to one address.
     """
     return [MODULE, *code]
+
+
+@dataclass
+class Foliator:
+    """One series' counter, and every place it emitted.
+
+    !! IT HOLDS BOTH HALVES. Roy, 2026-08-19: *"the foliator gets an anchor and
+    emits an address and should add the address and the anchor to an internal
+    list or dict."* A folio and the line of code it is attached to are one fact,
+    so they are stated by one step of one walk -- not computed here and
+    decorated on later, which is what let an anchor disagree with its address.
+
+    ! `skip` exists so a trigger a series does not emit for still TAKES its
+    number. `c` steps past the MODULE without emitting, which is why its first
+    line of code is `c1`. Roy: *"each gets its own counter and each gets passed
+    the lines of code and the module, and the `c` knows it is supposed to skip
+    it."*
+
+    Attributes:
+        series: `a`, `b` or `c`.
+        places: folio -> the LINE OF CODE it is attached to, in emission order.
+    """
+
+    series: str
+    places: dict[str, str] = field(default_factory=dict)
+    _step: int = 0
+
+    def skip(self) -> None:
+        """Step past a trigger without emitting a place for it."""
+        self._step += 1
+
+    def emit(self, anchor: str) -> str:
+        """Take this trigger's number, record the anchor, and return the folio."""
+        got = folio(self.series, self._step)
+        self.places[got] = anchor
+        self._step += 1
+        return got
+
+
+def foliate(code: list[str], documentable: set[int]) -> dict[str, str]:
+    """Walk the anchors of one file; return every folio and its line of code.
+
+    !! THE WALK IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because the
+    walk reached its trigger, not because prose was found sitting there -- which
+    is why `b0` and `b1` can now both exist. Before this, `b0` came from a
+    BRANCH that fired only when front-matter prose had already been stamped, so
+    the two were mutually exclusive: measured over five file shapes, the gap
+    above the first line of code was `b1` on a file with no licence header and
+    `b0` on a file with one, and adding a module docstring renamed it mid-run.
+
+    ! The three rules differ, and each is measured rather than chosen:
+
+        a   the MODULE, then every documentable declaration. It does not step
+            past a line it cannot emit for, so `a1` is the first declaration
+            however much code precedes it.
+        b   the MODULE, then the gap above every line of code, then the gap
+            after the last one.
+        c   every line of code. It steps past the module without emitting,
+            because a module has no line to sit beside.
+
+    ! Line ORDER drives the walk; no line NUMBER is arithmetic here. Nothing
+    reads one folio to compute another, and no folio follows from a line's
+    ordinal -- see `folio`.
+
+    Args:
+        code: the file's lines of code, in order, each the exact characters.
+        documentable: indices into `code` that declare something able to carry
+            documentation. The CENSUS states it, because only a parser knows.
+
+    Returns:
+        `{folio: anchor}` for every place in the file.
+    """
+    a, b, c = Foliator(DECLARED), Foliator(GAP), Foliator(ON)
+    a.emit(MODULE)
+    b.emit(MODULE)
+    c.skip()
+    for i, line in enumerate(code):
+        if i in documentable:
+            a.emit(line)
+        b.emit(line)
+        c.emit(line)
+    # ! The gap AFTER the last line of code has no line below it, so it takes
+    # the one above -- a gap is bounded by code, and that is the bound it has.
+    # On a file with no code at all this is the gap that IS the file.
+    b.emit(code[-1] if code else MODULE)
+    return {**a.places, **b.places, **c.places}
 
 
 def folio(series: str, step: int) -> str:
