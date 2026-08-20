@@ -1,9 +1,15 @@
 # Addressing -- how this system names a place
 
+!! **STOP. IF YOU ARE CLAUDE, DO NOT READ ON -- ask whether you should.** This file records how
+the addressing was ARRIVED AT, including forms that were tried and dropped. Reading it puts
+superseded rulings into your context beside the live ones, where nothing tells them apart.
+
+!! **THE OFFICIAL DEFINITIONS ARE IN
+`plugins/comment-review/skills/comment-review/references/vocabulary.toml`**, emitted by
+`scripts/vocabulary.py`; `addresser.py` is the code that owns the naming.
+
 **A place is where prose sits, or where prose could sit.** Every finding, every record, every
-edit and every re-review names one. This file is the settled definition; `docs/vocabulary.md`
-carries the one-line term and `plugins/comment-review/skills/comment-review/scripts/addresser.py`
-is the code that owns it.
+edit and every re-review names one.
 
 ## The rule
 
@@ -53,7 +59,7 @@ of code, takes a number at every trigger, and emits or does not: `a` and `b` emi
 `c` steps past it. That any two series line up on a given file is an OUTCOME of that walk, not a
 rule -- and nothing in this system reads one folio to derive another.
 
-! **ASK. DO NOT COUNT.** `addresser.py --anchor NAME --series a|b|c`, or `locator.py --at
+! **ASK. DO NOT COUNT.** `addresser.py --anchor LINE --series a|b|c`, or `locator.py --at
 path:LINE`. The only supported way to learn a folio is to be told it.
 
 !! **The `a` series counts DECLARATIONS, not code lines, and that is a ruling.** Numbering each
@@ -115,15 +121,16 @@ X=2   # initial
 X=2  # reseting X
 ```
 
-Every ADDRESS is unique -- `a0 b0 b1 b2 c0 c1` -- and that is the direction a record cites. But
-`X=2` is TWO anchors spelled alike, so it answers with **two `c` places and three `b` places**,
-drawn from two different statements: `b0` is anchored to line 1, `b1` and `b2` to line 5.
+Every ADDRESS is unique -- measured `a0 b1 b2 b3 c1 c2` -- and that is the direction a record
+cites. But `X=2` is TWO anchors spelled alike, so it answers with **two `c` places and three `b`
+places**, drawn from two different statements: the first gap is anchored to line 1, the other two
+to line 5. ! Those folios are what THIS walk emits on THIS file. Nothing may count them out from
+the lines -- see the ruling above.
 `addresser.py --anchor` prints every match and says how many; the CALLER chooses by address.
 Taking the first rules on the wrong statement.
 
-! **An anchor is also SPELLED two ways.** A declaration's `a` carries its NAME (`f`) while the
-`b` above it and the `c` beside it carry the LINE (`def f():`). Both answer, and where both exist
-they name the same place.
+! **An anchor has ONE spelling: the line of code.** A declaration's `a`, the `b` above it and the
+`c` beside it all carry `def f():`. The NAME is not carried at all.
 
 
 !! **A MODULE IS THE ONE ADDRESS WITH NO LINE OF CODE.** In Python it keeps `<module>` -- the name
@@ -271,7 +278,7 @@ inside one is how a citation lands a place off.
 
 ```bash
 # by ANCHOR -- which place of this declaration
-addresser.py --census <FULL CENSUS> --anchor NAME --series a|b|c
+addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 
 # by LINE, when what you have is a line of the original document
 locator.py --census <FULL CENSUS> --at path:LINE

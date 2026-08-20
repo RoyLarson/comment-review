@@ -119,6 +119,42 @@ class TestProseTreeRetired(unittest.TestCase):
         self.assertIn("pCST", text)
 
 
+class TestADefinitionIsNotWrittenTwice(unittest.TestCase):
+    """A live term is defined where it is EMITTED from, and nowhere else.
+
+    !! TWO COPIES OF ONE DEFINITION DRIFT SILENTLY. Six terms carried one in
+    both `vocabulary.toml` and `docs/vocabulary.md`, and the two copies of
+    `anchor` had already disagreed -- the shipped one said an `a` is attached to
+    "its declaration", the doc said "the LINE that declares it ... and the name
+    is not carried at all". Every role was handed the first and every human read
+    the second.
+    """
+
+    def setUp(self):
+        self.definitions, _ = vocab.load()
+
+    def test_the_doc_defines_nothing_the_shipped_file_defines(self):
+        self.assertEqual(cv.check_duplicate(self.definitions), 0)
+
+    def test_a_definition_row_IS_found(self):
+        # ! Guards the guard: a pattern that matches nothing is a green bar over
+        # every duplicate there is.
+        self.assertEqual(cv.doc_defines("| **anchor** | a line of code |"), ["anchor"])
+
+    def test_the_RETIRED_table_is_a_record_and_not_a_definition(self):
+        # !! The record NAMES a shipped term on purpose -- `block` -> `paragraph`
+        # only means something if it may say `paragraph`. Counting those rows
+        # would make the gate refuse the file for doing its job.
+        doc = "| **live** | x |\n## Retired\n| **paragraph** | the newer word |\n"
+        self.assertEqual(cv.doc_defines(doc), ["live"])
+
+    def test_the_real_doc_carries_the_retired_heading(self):
+        # ! Without it the split is a no-op and the record would be scanned as
+        # definitions -- the failure would look like a broken document.
+        text = (REPO / "docs" / "vocabulary.md").read_text(encoding="utf-8")
+        self.assertIn(cv.RETIRED_HEADING, text)
+
+
 class TestTheRetiredWordsStayRetired(unittest.TestCase):
     """A shipped file may not USE a word the vocabulary retired.
 

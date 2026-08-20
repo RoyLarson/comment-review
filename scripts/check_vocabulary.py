@@ -3,12 +3,14 @@
     python scripts/check_vocabulary.py
 
 `references/vocabulary.toml` is the single source for the terms agents receive,
-and `scripts/vocabulary.py` emits each role's set into its prompt. Two checks, and
-each exists because the thing it looks for had already gone wrong unnoticed:
+and `scripts/vocabulary.py` emits each role's set into its prompt. Four checks,
+and each exists because the thing it looks for had already gone wrong unnoticed:
 
   COMPLETE  Every key a role is given has a definition, and no definition is
             written for nobody. That file is what agents are HANDED, so a term
             with no recipient belongs in `docs/vocabulary.md` instead.
+  DUPLICATE No term defined here is defined AGAIN in `docs/vocabulary.md`. One
+            source, one copy: a second copy drifts, and the drift is silent.
   DRIFT     Every term a role is given appears in the text that role reads, and
             every term it reads is given. The rule is "give a role the terms its
             text uses", so the lists go stale whenever the prose is edited -- 26
@@ -32,7 +34,7 @@ the terms are settled -- so the check went with them.
 below names it and says why. It is stated there rather than here because
 the exclusion used to happen by accident.
 
-Exits nonzero if either check finds something.
+Exits nonzero if any check finds something.
 """
 
 import re
@@ -90,6 +92,13 @@ NOT_THE_TERM = (
 )
 REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
 EMITTED = REFERENCES / "vocabulary.toml"
+
+# The record of what CHANGED -- never a second place to look a live term up.
+DOC = REPO / "docs/vocabulary.md"
+# One row of a definition table there: `| **term** | ...`
+DOC_TERM = re.compile(r"^\| \*\*(.+?)\*\* \|", re.M)
+# Everything below this heading is the RECORD of a rename, not a definition.
+RETIRED_HEADING = "## Retired"
 
 # How an agent file names the document it is told to read. ! It names the
 # DOCUMENT and never its location: a shipped file that spells out a path sends
@@ -209,6 +218,57 @@ def check_drift(definitions: dict[str, str], roles: dict[str, list[str]]) -> int
     return drift
 
 
+def doc_defines(text: str) -> list[str]:
+    """The terms `docs/vocabulary.md` DEFINES, in order.
+
+    ! The RETIRED table names shipped terms on purpose -- a record of a rename
+    has to say what the word became -- so only the rows above that heading are
+    definitions. Splitting there is what lets the record keep naming `paragraph`
+    while the gate still refuses a second definition of it.
+
+    Args:
+        text: the document.
+
+    Returns:
+        Every term the live tables define.
+    """
+    return DOC_TERM.findall(text.split(RETIRED_HEADING)[0])
+
+
+def check_duplicate(definitions: dict[str, str]) -> int:
+    """No term defined in the shipped file is defined AGAIN in `docs/vocabulary.md`.
+
+    !! TWO COPIES OF ONE DEFINITION DRIFT, AND THE DRIFT IS SILENT. Measured
+    2026-08-19: six terms carried a definition in both files, and the two copies
+    of `anchor` had already disagreed -- the shipped one said an `a` is attached
+    to "its declaration", the doc said "the LINE that declares it ... and the
+    name is not carried at all". Every role was handed the first and every human
+    read the second, and the gap survived a session that was about the anchor.
+
+    ! The doc is the record of what CHANGED. A term still in use is defined
+    where it is EMITTED from and nowhere else, which is the rule
+    `scripts/vocabulary.py` already states and nothing enforced.
+
+    Returns:
+        How many shipped terms the doc defines a second time.
+    """
+    try:
+        text = DOC.read_text(encoding="utf-8")
+    except READ_ERRORS as e:
+        print(f"docs/vocabulary.md  UNREADABLE  {type(e).__name__}: {e}")
+        return 1
+    dupes = 0
+    for term in doc_defines(text):
+        if term in definitions:
+            print(
+                f"docs/vocabulary.md  DUPLICATE  {term!r} is defined here and"
+                " emitted from vocabulary.toml -- delete this copy"
+            )
+            dupes += 1
+    print(f"\n{len(definitions)} shipped terms, {dupes} defined twice.")
+    return dupes
+
+
 def check_retired() -> int:
     """No shipped file uses a retired word, unless it declares the exemption.
 
@@ -253,9 +313,10 @@ def main() -> int:
         return 1
     definitions, roles = data["definitions"], data["roles"]
     holes = check_complete(definitions, roles)
+    dupes = check_duplicate(definitions)
     drift = check_drift(definitions, roles)
     retired = check_retired()
-    return 1 if (holes or drift or retired) else 0
+    return 1 if (holes or dupes or drift or retired) else 0
 
 
 if __name__ == "__main__":
