@@ -19,16 +19,17 @@ import unittest  # noqa: I001  -- path shim below must import before addresser
 from _paths import SCRIPTS  # noqa: F401
 import addresser
 
-# Roy's `python_edge_cases.md`, as the walk sees it: the lines of code, and
-# which of them declare something that can carry documentation.
+# Roy's `python_edge_cases.md`, as the walk sees it: each line of code with the
+# line it sits on, and which of them declare something documentable. ! The line
+# POSITIONS the trigger; it never numbers it.
 EDGE_CODE = [
-    "N = 0",
-    "def wrapper(fn):",
-    "    def counter(*args, **kwargs):",
-    "        global N",
-    "        N+=1",
-    "        return fn(*args, **kwargs)",
-    "    return counter",
+    (2, "N = 0"),
+    (3, "def wrapper(fn):"),
+    (4, "    def counter(*args, **kwargs):"),
+    (5, "        global N"),
+    (6, "        N+=1"),
+    (7, "        return fn(*args, **kwargs)"),
+    (8, "    return counter"),
 ]
 EDGE_DOCUMENTABLE = {1, 2}  # wrapper and counter, by index into EDGE_CODE
 
@@ -64,7 +65,8 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
     """The measurement this was built from -- `tests/fixtures/python_edge_cases.md`."""
 
     def setUp(self):
-        self.places = addresser.foliate(EDGE_CODE, EDGE_DOCUMENTABLE)
+        self.foliation = addresser.foliate(EDGE_CODE, EDGE_DOCUMENTABLE)
+        self.places = self.foliation.places
 
     def _series(self, letter):
         return sorted(
@@ -115,11 +117,54 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
         self.assertEqual(len(self.places), len(set(self.places)))
 
 
+class TestReadingTheFoliationBack(unittest.TestCase):
+    """!! WHICH ADDRESS DOES THIS LINE BELONG TO RIGHT NOW.
+
+    Roy, 2026-08-19, on why the addresser owns both directions: it *"helps the
+    agents understand what they are looking at right now in the code -- they
+    need to search it anyways."*
+
+    ! Every answer is a LOOKUP into what the walk emitted, never a recount. A
+    recount is what `gap_step` did, and it is how the number came to depend on
+    whether a licence header happened to exist.
+    """
+
+    def setUp(self):
+        self.foliation = addresser.foliate(EDGE_CODE, EDGE_DOCUMENTABLE)
+
+    def test_a_gap_answers_with_the_b_the_walk_emitted_there(self):
+        # Line 4 is `def counter`, so a paragraph inserting there is in the gap
+        # ABOVE it -- the third gap, `b3`.
+        self.assertEqual(self.foliation.above(4), "b3")
+
+    def test_above_the_first_line_of_code_is_b1_not_b0(self):
+        # !! `b0` is the file's own front matter and is not a gap between two
+        # lines of code. Conflating them is what made the two exclusive.
+        self.assertEqual(self.foliation.above(1), "b1")
+
+    def test_past_the_last_line_is_the_closing_gap(self):
+        self.assertEqual(self.foliation.above(99), "b8")
+
+    def test_a_line_of_code_answers_with_its_own_c(self):
+        self.assertEqual(self.foliation.beside(3), "c2")
+
+    def test_a_line_holding_no_code_has_no_c(self):
+        self.assertEqual(self.foliation.beside(1), "")
+
+    def test_a_declaration_answers_by_its_ORDINAL_not_its_line(self):
+        self.assertEqual(self.foliation.documents(0), "a0")
+        self.assertEqual(self.foliation.documents(1), "a1")
+        self.assertEqual(self.foliation.documents(2), "a2")
+
+    def test_a_declaration_the_file_does_not_have_answers_nothing(self):
+        self.assertEqual(self.foliation.documents(9), "")
+
+
 class TestTheWalkOnDegenerateFiles(unittest.TestCase):
     """A file with no code, and one with no documentable declaration."""
 
     def test_a_file_with_no_code_still_has_a_module(self):
-        places = addresser.foliate([], set())
+        places = addresser.foliate([], set()).places
         # ! `b0` is the file's own front matter and `b1` the gap that is the
         # whole file. Both exist before any line of code does.
         self.assertEqual(places["a0"], addresser.MODULE)
@@ -127,9 +172,9 @@ class TestTheWalkOnDegenerateFiles(unittest.TestCase):
         self.assertNotIn("c1", places)
 
     def test_a_file_with_no_declaration_has_only_a0(self):
-        places = addresser.foliate(["N = 0"], set())
+        places = addresser.foliate([(1, "N = 0")], set()).places
         self.assertEqual([f for f in places if f.startswith("a")], ["a0"])
 
     def test_the_module_never_takes_a_c(self):
-        places = addresser.foliate(["N = 0"], set())
+        places = addresser.foliate([(1, "N = 0")], set()).places
         self.assertNotIn("c0", places)

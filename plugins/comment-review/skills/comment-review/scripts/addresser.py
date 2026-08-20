@@ -350,7 +350,56 @@ class Foliator:
         return got
 
 
-def foliate(code: list[str], documentable: set[int]) -> dict[str, str]:
+@dataclass
+class Foliation:
+    """Every place in one file, and the line of code each is attached to.
+
+    !! IT ANSWERS BOTH DIRECTIONS, which is why it is one object. The walk
+    assigns the foliation; these read it back -- *which address does this line
+    belong to right now*. Roy, 2026-08-19: that second half *"helps the agents
+    understand what they are looking at right now in the code -- they need to
+    search it anyways."*
+
+    ! Reading back is a LOOKUP, never arithmetic. `above` scans the code lines
+    the walk stepped and returns the folio it EMITTED there; it does not count
+    anything. That is the difference between line order driving the walk and a
+    line number computing a number.
+
+    Attributes:
+        places: folio -> the line of code it is attached to. Every place in the
+            file, whether or not prose sits in it.
+    """
+
+    places: dict[str, str] = field(default_factory=dict)
+    # Each keyed by the 1-based LINE the trigger sat on, so a reader with a
+    # position can find the place without knowing how the walk numbered it.
+    _above: dict[int, str] = field(default_factory=dict)
+    _beside: dict[int, str] = field(default_factory=dict)
+    _declared: dict[int, str] = field(default_factory=dict)
+    _closing: str = ""
+    _code: list[int] = field(default_factory=list)
+
+    def above(self, line: int) -> str:
+        """The `b` whose gap a paragraph inserting at `line` falls into.
+
+        ! The gap above the FIRST code line at or after `line`. Past the last
+        one it is the closing gap, which is the place with no line below it.
+        """
+        for n in self._code:
+            if line <= n:
+                return self._above[n]
+        return self._closing
+
+    def beside(self, line: int) -> str:
+        """The `c` on this line of code, or "" if the line holds no code."""
+        return self._beside.get(line, "")
+
+    def documents(self, ordinal: int) -> str:
+        """The `a` for the nth documentable declaration; 0 is the module."""
+        return self._declared.get(ordinal, "")
+
+
+def foliate(code: list[tuple[int, str]], documentable: set[int]) -> Foliation:
     """Walk the anchors of one file; return every folio and its line of code.
 
     !! THE WALK IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because the
@@ -376,27 +425,32 @@ def foliate(code: list[str], documentable: set[int]) -> dict[str, str]:
     ordinal -- see `folio`.
 
     Args:
-        code: the file's lines of code, in order, each the exact characters.
+        code: the file's lines of code in order, each `(line number, the exact
+            characters)`. The number positions the trigger; it never numbers it.
         documentable: indices into `code` that declare something able to carry
             documentation. The CENSUS states it, because only a parser knows.
 
     Returns:
-        `{folio: anchor}` for every place in the file.
+        The `Foliation`: every place, and both directions between them.
     """
     a, b, c = Foliator(DECLARED), Foliator(GAP), Foliator(ON)
-    a.emit(MODULE)
+    out = Foliation(_code=[n for n, _ in code])
+    out._declared[0] = a.emit(MODULE)
     b.emit(MODULE)
     c.skip()
-    for i, line in enumerate(code):
+    for i, (n, line) in enumerate(code):
         if i in documentable:
-            a.emit(line)
-        b.emit(line)
-        c.emit(line)
+            # ! 0 is the module, so a declaration's ordinal is its position
+            # among the documentable ones, counting from 1.
+            out._declared[len(out._declared)] = a.emit(line)
+        out._above[n] = b.emit(line)
+        out._beside[n] = c.emit(line)
     # ! The gap AFTER the last line of code has no line below it, so it takes
     # the one above -- a gap is bounded by code, and that is the bound it has.
     # On a file with no code at all this is the gap that IS the file.
-    b.emit(code[-1] if code else MODULE)
-    return {**a.places, **b.places, **c.places}
+    out._closing = b.emit(code[-1][1] if code else MODULE)
+    out.places = {**a.places, **b.places, **c.places}
+    return out
 
 
 def folio(series: str, step: int) -> str:
