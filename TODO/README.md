@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (42)
+### open  (41)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -216,7 +216,6 @@ that changed a published name or rule:
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
 | [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
 | [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | foliator.triggers() has no production caller and takes a shape the walk no longer uses |
-| [a-hugs-its-declaration](a-hugs-its-declaration.md) | session | yes | 0/4 | The a-then-b tie order is Python's placement, not a universal rule |
 
 ### in-progress  (4)
 
@@ -273,3 +272,4 @@ the reason is inside the file.
 | [deprecated-reader-cannot-replay](completed/deprecated-reader-cannot-replay.md) | the old form cannot name a place -- an index is not portable and `LOCATION` is not retained -- so `convert` refuses instead of dropping or fanning out |
 | [shipped-prose-lags-the-rulings](completed/shipped-prose-lags-the-rulings.md) | SKILL.md converted, the brief's worked record fixed, ~25 docstrings corrected, and a measurement that had rotted twice re-taken |
 | [three-names-two-words](completed/three-names-two-words.md) | One ordered mapping replaces all three; no sorted() survives and the edge case is byte-identical |
+| [a-hugs-its-declaration-SUPERSEDED](completed/a-hugs-its-declaration-SUPERSEDED.md) | The a -> b -> c order is universal; the error was reading final position as application order |

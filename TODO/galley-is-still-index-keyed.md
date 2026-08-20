@@ -11,6 +11,17 @@ Superseded: 2026-08-19 — tasks 1-2 done (galley.py:331 resolves by entry_for(a
             observation, not work. ! The MECHANISM is superseded by write-by-series in
             b-foliator-uninitialised: splice sorts on (start, end, column, replacement)
             and applies descending BY LINE, which is what the a->b->c ruling replaces.
+Measured: 2026-08-20 — 2026-08-20 -- THE CALLER CANNOT EXPRESS THE ORDER AT ALL.
+          `splice` re-sorts its own `edits` argument, so `[a, b]` and `[b, a]` produce
+          byte-identical output. The tie then falls to the ASCII of the replacement
+          text: `//` < `///` puts Rust's gap prose outside the doc comment and satisfies
+          the a -> b -> c ruling BY ACCIDENT, while `\"\"\"` < `#` applies Python's
+          comment first and leaves the docstring ABOVE it, which does not. ! Roy,
+          2026-08-20, on why the order is universal: *"a has to be put in first because
+          it is the 'inner most' documentation -- the b gets applied in the rows
+          outside-beyond it."* Two edits inserting at ONE point are not a conflict; the
+          second lands above the first. So the fix is a sort key carrying the SERIES,
+          and `overlaps` must stop reading two empty ranges at one line as a clash.
 ```
 
 ## Objective
