@@ -17,7 +17,7 @@ empty places where prose could go and does not.
 `trailing-comment` and `unparsed` -- prose it found. `interval`, `margin` and
 `undocumented` are the page's, because only a page knows where prose is MISSING.
 
-! A LEAF: it imports no sibling. `foliation` is the other one, and neither knows
+! A LEAF: it imports no sibling. `foliator` is the other one, and neither knows
 anything of the other -- a place has no prose in it and prose has no place until
 a page puts the two together.
 """

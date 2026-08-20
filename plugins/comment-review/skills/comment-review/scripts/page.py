@@ -7,7 +7,7 @@ place where prose could go.
 
 !! A PAGE NAMES ITS OWN PLACES, which is what makes it a page and not a list.
 `places_on` hands the walk its lines of code and which of them declare something
-documentable; `foliation` emits every place, filled or not, and `attach` says
+documentable; `foliator` emits every place, filled or not, and `attach` says
 which one a given paragraph sits in. A paragraph does not compute its own folio
 -- reversed, a place existed only when prose happened to fill it, and `b0` and
 `b1` were mutually exclusive.
@@ -37,12 +37,11 @@ paragraph's enclosing declaration, which the Python AST already knows and which 
 of this repo's 266 anchorless prose paragraphs sit inside. Depth is 1 for 182 of
 those 191, so a parent link is the shape that fits and a tree is not.
 
-!! THE ADDRESSER IS THE LEAF BENEATH THIS ONE, and the direction inverted
-2026-08-20. A page builds itself, so it needs the foliator -- while the foliation
-had been importing this module for two constants, which is a cycle. The cut is
-that the ADDRESSER KNOWS NOTHING ABOUT A PARAGRAPH: `code_lines_of` and `attach`
-were the only two functions of it that did, and both are page questions wearing
-an addressing name.
+!! TWO LEAVES BENEATH THIS ONE, and the direction inverted 2026-08-20. A page
+builds itself, so it needs the foliator -- which had been importing this module
+for two constants, a cycle. The cut is that THE FOLIATOR KNOWS NOTHING ABOUT A
+PARAGRAPH: `code_lines_of` and `attach` were the only two functions of it that
+did, and both are page questions wearing an addressing name.
 
 ! Letting the import graph choose a module's subject is what this keeps undoing.
 `Paragraph` first lived in `census.py`, at the top of the graph, so the modules
@@ -454,7 +453,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
         # Reversed -- each paragraph computing its own folio -- a place existed
         # only when prose happened to fill it, which is how `b0` and `b1` came
-        # to be mutually exclusive. `foliation` owns both halves: the foliation
+        # to be mutually exclusive. `foliator` owns both halves: the foliation
         # assigns the numbering, `attach` reads which place this prose sits in,
         # and the anchor comes from the walk that emitted it rather than from a
         # second pass that could disagree with the first.
@@ -499,10 +498,9 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     )
 
 
-# The annotation, and the two shapes that earn it.
-# ! DEFINED IN `page.py`, the leaf, because `foliation` reads it too and
-# cannot import this module. Re-exported here so the many readers that
-# already say `census.FRONT_MATTER` keep working.
+# The two shapes that earn FRONT MATTER without a module docstring to sit above:
+# a shebang says how the file RUNS and a coding line how it is READ, and both are
+# the file's own whatever follows them.
 _SHEBANG = re.compile(r"^#!")
 _CODING = re.compile(r"coding[:=]\s*[-\w.]+")
 
