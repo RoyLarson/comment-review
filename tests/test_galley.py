@@ -9,6 +9,7 @@ from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
 import galley
+import lexer
 import page
 
 ORIGINAL = "def f():\n    # old note\n    # second line\n    return 1\n"
@@ -122,7 +123,7 @@ class TestCLI(unittest.TestCase):
         # census like that can key nothing -- `unanswerable` refuses it now
         # rather than letting each edit fail separately.
         built = page.page_for(
-            Path("pkg/m.py"), ORIGINAL, page.language_for(Path("m.py"))
+            Path("pkg/m.py"), ORIGINAL, lexer.language_for(Path("m.py"))
         )
         sorted(page.code_lines(ORIGINAL, built))
         self.census.write_text(
@@ -207,7 +208,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
     FILE = "a = 1\nb = 2\nc = 3\n"
 
     def _census(self, text):
-        prose = page.paragraphs_stdlib(Path("m.py"), text)
+        prose = lexer.paragraphs_stdlib(Path("m.py"), text)
         return [b.__dict__ for b in page.intervals(Path("m.py"), text, prose)]
 
     def _gap(self, text, edit_start, edit_end):
@@ -231,7 +232,7 @@ class TestAnIntervalIsInsertedInto(unittest.TestCase):
         text = "a = 1\n# a note\nb = 2\n"
         paragraph = next(
             b.__dict__
-            for b in page.paragraphs_stdlib(Path("m.py"), text)
+            for b in lexer.paragraphs_stdlib(Path("m.py"), text)
             if b.kind == "comment"
         )
         self.assertEqual(galley.splice_range(paragraph), (2, 2))
@@ -314,7 +315,7 @@ class TestADocstringBlockMatchesItsFile(unittest.TestCase):
 '''
 
     def _census(self):
-        return [b.__dict__ for b in page.paragraphs_stdlib(Path("m.py"), self.SOURCE)]
+        return [b.__dict__ for b in lexer.paragraphs_stdlib(Path("m.py"), self.SOURCE)]
 
     def test_the_docstring_block_matches_the_source_it_came_from(self):
         paragraphs = [b for b in self._census() if b["kind"] == "docstring"]
@@ -392,7 +393,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         # nothing. `paragraphs_stdlib` alone leaves them empty, so the page's
         # own walk names them here.
         src = text or self.SOURCE
-        built = page.paragraphs_stdlib(Path("m.py"), src)
+        built = lexer.paragraphs_stdlib(Path("m.py"), src)
         prose = [b.__dict__ for b in built]
         foliation = page.places_on(src, prose)
         for b in prose:
@@ -432,7 +433,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         bare = "def f():\n    z = 3\n    return z\n"
         margin = next(
             b.__dict__
-            for b in page.page_for(path, bare, page.language_for(path))
+            for b in page.page_for(path, bare, lexer.language_for(path))
             if b.kind == "margin" and b.start == 2
         )
         self.assertEqual(
@@ -484,7 +485,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         path = Path("m.py")
         margin = next(
             b.__dict__
-            for b in page.page_for(path, text, page.language_for(path))
+            for b in page.page_for(path, text, lexer.language_for(path))
             if b.kind == "margin"
         )
         self.assertEqual(margin["edit_column"], len("a = 1") + 1)
@@ -498,7 +499,7 @@ class TestTheColumnSaysWhereTheProseStarts(unittest.TestCase):
         text = "a = 1\n# a note\nb = 2\n"
         paragraph = next(
             b.__dict__
-            for b in page.paragraphs_stdlib(Path("m.py"), text)
+            for b in lexer.paragraphs_stdlib(Path("m.py"), text)
             if b.kind == "comment"
         )
         self.assertEqual(paragraph["edit_column"], 0)
@@ -552,7 +553,7 @@ class TestTheGalleyWritesATrailingCommentEndToEnd(unittest.TestCase):
             (root / "m.py").write_text(self.SOURCE, encoding="utf-8")
             # ! ADDRESSED, as `census.py`'s own run loop does. A census from
             # `paragraphs_stdlib` alone carries no address and can key nothing.
-            built = page.paragraphs_stdlib(Path("m.py"), self.SOURCE)
+            built = lexer.paragraphs_stdlib(Path("m.py"), self.SOURCE)
             paragraphs = [b.__dict__ for b in built]
             foliation = page.places_on(self.SOURCE, paragraphs)
             for b in paragraphs:
@@ -605,7 +606,7 @@ class TestTheCSeriesIsWritableInALexicalLanguage(unittest.TestCase):
 
     def _blocks(self):
         path = Path("m.go")
-        got = page.page_for(path, self.SRC, page.language_for(path))
+        got = page.page_for(path, self.SRC, lexer.language_for(path))
         sorted(page.code_lines(self.SRC, got))
         return [vars(b) for b in got]
 

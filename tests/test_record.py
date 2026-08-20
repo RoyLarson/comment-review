@@ -9,6 +9,7 @@ from dataclasses import fields
 from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
+import lexer
 import page
 import held
 import record
@@ -764,7 +765,7 @@ class TestA02xReportCANNOTBeConverted(unittest.TestCase):
 
     def setUp(self):
         path = Path("m.py")
-        paragraphs = page.page_for(path, self.SRC, page.language_for(path))
+        paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
         sorted(page.code_lines(self.SRC, paragraphs))
         self.census = [vars(b) for b in paragraphs]
         self.prose = [
@@ -874,7 +875,7 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
 
     def setUp(self):
         path = Path("m.py")
-        paragraphs = page.page_for(path, self.SRC, page.language_for(path))
+        paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
         sorted(page.code_lines(self.SRC, paragraphs))
         self.census = [vars(b) for b in paragraphs]
         self.marked = [

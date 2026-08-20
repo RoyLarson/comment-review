@@ -50,17 +50,19 @@ from annotate import (  # noqa: E402  -- path shim must run first
     annotate,
     prose_numbers,
 )
-from page import (  # noqa: E402  -- path shim must run first
+from lexer import (  # noqa: E402  -- path shim must run first
     BY_EXT,
-    FRONT_MATTER,
-    HOLDS_NO_PROSE,
     LANGUAGES,
     NAMED_DEFS,
     TIER_ANSWERS,
     Paragraph,
     language_for,
-    page_for,
     tier_for,
+)
+from page import (  # noqa: E402  -- path shim must run first
+    FRONT_MATTER,
+    HOLDS_NO_PROSE,
+    page_for,
 )
 from repo import (  # noqa: E402  -- path shim must run first
     EXCLUDED_DIRS,

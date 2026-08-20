@@ -3,13 +3,14 @@
 import unittest  # noqa: I001  -- path shim must import first
 
 from _paths import FIXTURES
+import lexer
 import page
 
 
 def blocks_for(name):
     path = FIXTURES / name
     text = path.read_text(encoding="utf-8")
-    return page.page_for(path, text, page.language_for(path))
+    return page.page_for(path, text, lexer.language_for(path))
 
 
 class TestStructuralDocGap(unittest.TestCase):

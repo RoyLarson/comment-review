@@ -31,7 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from page import block_text, language_for  # noqa: E402  -- path shim must run first
+from lexer import block_text, language_for  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     ANCHOR_NAME,
     CITE,

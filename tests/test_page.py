@@ -35,19 +35,31 @@ def _imports(name: str) -> set[str]:
     return got & (SIBLINGS - {name})
 
 
-class TestTheAddresserIsTheLeaf(unittest.TestCase):
-    """It names places. It does not know what a paragraph is."""
+class TestTheTwoLeaves(unittest.TestCase):
+    """`addresser` names places; `lexer` finds prose. Neither knows the other.
 
-    def test_the_addresser_imports_no_sibling_that_knows_a_paragraph(self):
+    !! THAT IS THE SHAPE, and it is why the page can be one subject. A place has
+    no prose in it, and prose has no place until a page puts the two together --
+    so the two halves are independent and the page is the only thing that needs
+    both.
+    """
+
+    def test_the_addresser_knows_nothing_about_prose(self):
         # ! `repo` is the exception and is not one: it answers what the CHECKOUT
         # says -- git, the filesystem, the exception tuples -- and carries no
         # notion of prose at all.
         self.assertEqual(_imports("addresser") - {"repo"}, set())
 
-    def test_the_page_imports_the_addresser_and_nothing_else(self):
-        # !! THE PAGE BUILDS ITSELF, so it needs the foliator to name the places
-        # on it. That is the whole inversion.
-        self.assertEqual(_imports("page"), {"addresser"})
+    def test_the_lexer_knows_nothing_about_places(self):
+        # !! IT DEFINES WHAT IT PRODUCES -- `Paragraph` -- and stops there. Where
+        # that paragraph SITS is the page's, which is why the lexer needs no
+        # address and no foliation.
+        self.assertEqual(_imports("lexer"), set())
+
+    def test_the_page_imports_BOTH_and_nothing_else(self):
+        # !! THE PAGE BUILDS ITSELF: it asks the lexer where the prose is and the
+        # addresser what to call each place. That is the whole inversion.
+        self.assertEqual(_imports("page"), {"addresser", "lexer"})
 
     def test_every_module_that_reads_a_paragraph_can_import_one(self):
         # ! `galley` is not here. It reads paragraph DICTS and needs none of the

@@ -10,6 +10,7 @@ from _paths import FIXTURES, SCRIPTS
 import annotate
 import census
 import galley
+import lexer
 import page
 import prove_unchanged as pu
 
@@ -18,14 +19,14 @@ def blocks_for(name):
     """Census one fixture file by name."""
     path = FIXTURES / name
     text = path.read_text(encoding="utf-8")
-    lang = page.language_for(path)
+    lang = lexer.language_for(path)
     return page.page_for(path, text, lang)
 
 
 class TestPythonTier(unittest.TestCase):
     def test_reaches_the_tokenized_tier(self):
-        lang = page.language_for(FIXTURES / "sample.py")
-        self.assertEqual(page.tier_for(lang), "tokenized")
+        lang = lexer.language_for(FIXTURES / "sample.py")
+        self.assertEqual(lexer.tier_for(lang), "tokenized")
 
     def test_a_blank_line_does_not_end_a_run(self):
         runs = [b for b in blocks_for("sample.py") if b.kind == "comment"]
@@ -60,8 +61,8 @@ class TestPythonTier(unittest.TestCase):
 
 class TestLexicalTier(unittest.TestCase):
     def test_go_reaches_the_lexical_tier(self):
-        lang = page.language_for(FIXTURES / "sample.go")
-        self.assertEqual(page.tier_for(lang), "lexical")
+        lang = lexer.language_for(FIXTURES / "sample.go")
+        self.assertEqual(lexer.tier_for(lang), "lexical")
 
     def test_a_string_holding_a_marker_is_not_prose(self):
         texts = " ".join(b.text for b in blocks_for("sample.go"))
@@ -95,7 +96,7 @@ class TestUnterminatedBlockComment(unittest.TestCase):
 
     def _blocks(self):
         path = Path("x.go")
-        return page.paragraphs_lexical(path, self.RUNAWAY, page.language_for(path))
+        return lexer.paragraphs_lexical(path, self.RUNAWAY, lexer.language_for(path))
 
     def test_the_runaway_run_is_marked(self):
         found = set().union(*(b.annotations for b in self._blocks()))
@@ -113,7 +114,7 @@ class TestUnterminatedBlockComment(unittest.TestCase):
     def test_a_closed_block_comment_is_not_marked(self):
         path = Path("x.go")
         closed = "func A() {}\n/* note */\nfunc B() {}\n"
-        paragraphs = page.paragraphs_lexical(path, closed, page.language_for(path))
+        paragraphs = lexer.paragraphs_lexical(path, closed, lexer.language_for(path))
         found = set().union(*(b.annotations for b in paragraphs))
         self.assertNotIn("unterminated-paragraph-comment", found)
 
@@ -170,7 +171,7 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "a.py"
             path.write_text(text, encoding="utf-8")
-            lang = page.language_for(path)
+            lang = lexer.language_for(path)
             return page.page_for(path, text, lang)
 
     def test_three_adjacent_code_lines_are_no_longer_zero_blocks(self):
@@ -272,7 +273,7 @@ class TestTheLexicalTierStampsToo(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / name
             path.write_text(text, encoding="utf-8")
-            return page.page_for(path, text, page.language_for(path))
+            return page.page_for(path, text, lexer.language_for(path))
 
     def test_go_stamps_a_wrapped_trailing_comment(self):
         got = self._census(
@@ -312,10 +313,10 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
 
     def _lexical(self):
         path = Path("x.c")
-        return page.paragraphs_lexical(path, self.C, page.language_for(path))
+        return lexer.paragraphs_lexical(path, self.C, lexer.language_for(path))
 
     def _tokenized(self):
-        return page.paragraphs_stdlib(Path("x.py"), self.PY)
+        return lexer.paragraphs_stdlib(Path("x.py"), self.PY)
 
     def test_the_lexical_tier_carries_it(self):
         got = [b.anchor for b in self._lexical() if b.kind == "trailing-comment"]
@@ -341,7 +342,7 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
         # lexical tier does not have. Nothing here invents one.
         text = "int a = 1;\n// a note\nint b = 2;\n"
         path = Path("x.c")
-        paragraphs = page.paragraphs_lexical(path, text, page.language_for(path))
+        paragraphs = lexer.paragraphs_lexical(path, text, lexer.language_for(path))
         note = next(b for b in paragraphs if b.kind == "comment")
         self.assertEqual(note.edit_column, 0)
         self.assertEqual(note.anchor, "")
@@ -350,7 +351,7 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
         # ! Because the whole line is code. A `margin` and the trailing comment
         # that would replace it are one place, so they agree on both facts.
         path = Path("x.py")
-        paragraphs = page.page_for(path, self.PY, page.language_for(path))
+        paragraphs = page.page_for(path, self.PY, lexer.language_for(path))
         margins = {b.start: b.anchor for b in paragraphs if b.kind == "margin"}
         self.assertEqual(margins[1], "a = 1")
         self.assertEqual(margins[4], "    pass")
@@ -364,7 +365,7 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
         seen = 0
         for src in sorted(scripts.glob("*.py")):
             body = src.read_text(encoding="utf-8")
-            for b in page.paragraphs_stdlib(src, body):
+            for b in lexer.paragraphs_stdlib(src, body):
                 if not b.edit_column:
                     continue
                 seen += 1
@@ -400,7 +401,7 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
 
     def setUp(self):
         path = Path("x.py")
-        self.paragraphs = page.page_for(path, self.SRC, page.language_for(path))
+        self.paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
 
     def _one(self, kind, start=None):
         got = [
@@ -459,7 +460,7 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         holes = []
         for src in sorted(scripts.glob("*.py")):
             body = src.read_text(encoding="utf-8")
-            for b in page.page_for(src, body, page.language_for(src)):
+            for b in page.page_for(src, body, lexer.language_for(src)):
                 if not b.anchor:
                     holes.append(f"{src.name} {b.address or b.start} {b.kind}")
         self.assertEqual(holes, [])
@@ -481,7 +482,7 @@ class TestFrontMatterIsMarked(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "a.py"
             path.write_text(text, encoding="utf-8")
-            return page.page_for(path, text, page.language_for(path))
+            return page.page_for(path, text, lexer.language_for(path))
 
     def _marked(self, text):
         return [
@@ -623,7 +624,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
     }
 
     def _prose(self, text):
-        lang = page.language_for(self.C)
+        lang = lexer.language_for(self.C)
         return [
             b
             for b in page.page_for(self.C, text, lang)
@@ -666,7 +667,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
         text = "TIMEOUT = 30  # a note\n# on its own\nx = 1\n"
         path = Path("x.py")
         lines = text.splitlines()
-        for b in page.page_for(path, text, page.language_for(path)):
+        for b in page.page_for(path, text, lexer.language_for(path)):
             if b.kind not in ("comment", "trailing-comment"):
                 continue
             with self.subTest(kind=b.kind, start=b.start):
@@ -687,7 +688,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             (Path("x.py"), "TIMEOUT = 30  # the note says nothing\n"),
             (Path("x.c"), "int timeout = 30; // the note says nothing\n"),
         ):
-            lang = page.language_for(path)
+            lang = lexer.language_for(path)
             for b in page.page_for(path, text, lang):
                 if b.kind != "trailing-comment":
                     continue
@@ -702,7 +703,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
         path = Path("x.py")
         margin = next(
             b
-            for b in page.page_for(path, text, page.language_for(path))
+            for b in page.page_for(path, text, lexer.language_for(path))
             if b.kind == "margin"
         )
         self.assertEqual(margin.anchor, "a = 1")
@@ -714,7 +715,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
         # paragraphs before 2026-08-19.
         refused = []
         for src in sorted(FIXTURES.rglob("*")):
-            lang = page.language_for(src) if src.is_file() else None
+            lang = lexer.language_for(src) if src.is_file() else None
             if lang is None:
                 continue
             body = src.read_text(encoding="utf-8")
@@ -745,7 +746,7 @@ class TestABlockCommentBesideCode(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "x.c"
             p.write_text(body, encoding="utf-8")
-            paragraphs = page.paragraphs_lexical(p, body, page.language_for(p))
+            paragraphs = lexer.paragraphs_lexical(p, body, lexer.language_for(p))
             prose = [b for b in paragraphs if b.text.strip()]
             return prose, sorted(page.code_lines(body, paragraphs))
 
@@ -835,7 +836,7 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
         # touches it every time. `code_lines` documents the same pass-through.
         # Only a paragraph that OCCUPIES its lines may not overlap a gap.
         text = path.read_text(encoding="utf-8")
-        paragraphs = page.page_for(path, text, page.language_for(path))
+        paragraphs = page.page_for(path, text, lexer.language_for(path))
         occupying = [
             b for b in paragraphs if b.text.strip() and b.kind != "trailing-comment"
         ]
@@ -889,5 +890,5 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
                 ]
             )
             p.write_text(body, encoding="utf-8")
-            paragraphs = page.paragraphs_lexical(p, body, page.language_for(p))
+            paragraphs = lexer.paragraphs_lexical(p, body, lexer.language_for(p))
             self.assertIn(2, page.code_lines(body, paragraphs))

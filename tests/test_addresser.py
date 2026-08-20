@@ -16,6 +16,7 @@ from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
 import addresser
+import lexer
 import page
 
 # Roy's two files: the same two statements, one with comments and one without.
@@ -357,7 +358,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "m.py"
             path.write_text(text, encoding="utf-8")
-            got = page.page_for(path, text, page.language_for(path))
+            got = page.page_for(path, text, lexer.language_for(path))
             sorted(page.code_lines(text, got))
             for b in got:
                 # ! The SUFFIX only. `page_for` names a paragraph by the path it
@@ -513,7 +514,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "m.py"
             path.write_text(self.SRC, encoding="utf-8")
-            got = page.page_for(path, self.SRC, page.language_for(path))
+            got = page.page_for(path, self.SRC, lexer.language_for(path))
             sorted(page.code_lines(self.SRC, got))
             self.paragraphs = [vars(b) for b in got]
 
@@ -554,7 +555,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
 
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")
-        got = page.page_for(path, with_header, page.language_for(path))
+        got = page.page_for(path, with_header, lexer.language_for(path))
         sorted(page.code_lines(with_header, got))
         found = addresser.for_anchor("<module>", "b", [vars(b) for b in got])
         self.assertEqual(
@@ -622,7 +623,7 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
             src = Path(tmp) / "m.py"
             src.write_text("# a note\nx = 1\n", encoding="utf-8")
             got = page.page_for(
-                src, src.read_text(encoding="utf-8"), page.language_for(src)
+                src, src.read_text(encoding="utf-8"), lexer.language_for(src)
             )
             sorted(page.code_lines(src.read_text(encoding="utf-8"), got))
             census_json = Path(tmp) / "c.json"
@@ -653,7 +654,7 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "s.js"
             path.write_text(self.SRC, encoding="utf-8")
-            return page.page_for(path, self.SRC, page.language_for(path))
+            return page.page_for(path, self.SRC, lexer.language_for(path))
 
     def test_the_comment_takes_a_c_because_code_precedes_it(self):
         got = self._census()
@@ -744,7 +745,7 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
 
     def setUp(self):
         path = Path("g.py")
-        paragraphs = page.page_for(path, self.SRC, page.language_for(path))
+        paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
         sorted(page.code_lines(self.SRC, paragraphs))
         self.paragraphs = [vars(b) for b in paragraphs]
 
@@ -793,7 +794,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
 
     def setUp(self):
         path = Path("x.py")
-        paragraphs = page.page_for(path, self.SRC, page.language_for(path))
+        paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
         sorted(page.code_lines(self.SRC, paragraphs))
         self.paragraphs = [vars(b) for b in paragraphs]
 
@@ -906,7 +907,7 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
 
     def setUp(self):
         path = Path("m.py")
-        paragraphs = page.page_for(path, self.SRC, page.language_for(path))
+        paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
         self.code = sorted(page.code_lines(self.SRC, paragraphs))
         self.at = {
             b.address.split("@")[1]: b for b in paragraphs if "@" in (b.address or "")
