@@ -19,7 +19,7 @@ def wrapper(fn):
 
 verdict address a0 add "This is the module doc string"
 
-verdict address b0 add "The No-License"
+verdict address f0 add "The No-License"
 
 verdict address b1 add
 "The counter total for all function calls

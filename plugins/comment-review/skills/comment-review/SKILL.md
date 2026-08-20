@@ -367,7 +367,8 @@ edits -- a prose edit moves the line numbers below it, and an address counts aga
 
 ```
 pkg:core.py@a5    a DECLARATION's documentation
-pkg:core.py@b3    a GAP -- or, at `b0`, the file's own front matter
+pkg:core.py@b3    a GAP between two lines of code
+pkg:core.py@f0    the FILE'S OWN front matter -- a licence, a shebang
 pkg:core.py@c3    the room BESIDE a line of code
 ```
 
@@ -379,7 +380,7 @@ foliators, and no number in one tells you a number in another -- nor does a line
 you either.
 
 ```bash
-python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c|f
 python <skill>/scripts/foliator.py --census <CENSUS> --resolve <ADDRESS>
 ```
 

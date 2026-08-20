@@ -26,7 +26,7 @@ FIXTURE = Path(__file__).resolve().parent / "fixtures" / "python_edge_cases.md"
 BLOCK = re.compile(r"```python\n(.*?)```", re.S)
 # `verdict address b1 add "..."` -- only the address is read; the prose is the
 # author's and this test does not rule on wording.
-MARK = re.compile(r"^verdict\s+address\s+([abc]\d+)\b", re.M)
+MARK = re.compile(r"^verdict\s+address\s+([abcf]\d+)\b", re.M)
 
 
 def _original() -> str:
@@ -49,7 +49,11 @@ class TestTheFixtureIsReadable(unittest.TestCase):
 
     def test_every_series_is_exercised(self):
         series = {f[0] for f in _marked()}
-        self.assertEqual(series, {"a", "b", "c"}, "the case must cover all three")
+        # ! FOUR since 2026-08-20: front matter left the `b` series for its
+        # own, so a case that covers every series has to reach `f` too.
+        self.assertEqual(
+            series, {"a", "b", "c", "f"}, "the case must cover every series"
+        )
 
     def test_the_marks_are_all_read(self):
         # ! Guards the parser: a regex that matches nothing would make every
@@ -84,7 +88,7 @@ class TestEveryMarkedAddressExists(unittest.TestCase):
         # statement, and it must not depend on whether front matter exists.
         self.assertIn("b1", self.folios)
 
-    def test_b0_exists_on_a_file_with_no_front_matter(self):
+    def test_f0_exists_on_a_file_with_no_front_matter(self):
         """!! FIXED 2026-08-20, and this was the pin that reported it.
 
         `b0` used to be emitted only where `mark_front_matter` had already
@@ -97,7 +101,7 @@ class TestEveryMarkedAddressExists(unittest.TestCase):
         an UNEXPECTED SUCCESS the moment the collapse landed. That is what made
         the box impossible to leave ticked-or-not by anyone's judgement.
         """
-        self.assertIn("b0", self.folios)
+        self.assertIn("f0", self.folios)
 
     def test_every_b_the_marks_name_exists(self):
         # ! The other half of the same defect: Roy's `b1` mark was unresolvable

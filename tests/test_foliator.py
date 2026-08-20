@@ -83,13 +83,13 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
         self.assertEqual(self._series("a"), ["a0", "a1", "a2"])
 
     def test_b_emits_at_the_module_and_above_every_line_of_code(self):
-        # ! Nine places for seven lines: `b0` at the module, one above each
+        # ! Eight places for seven lines: one above each line of code, and
         # line, and one for the gap after the last.
         self.assertEqual(
-            self._series("b"), ["b0", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"]
+            self._series("b"), ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"]
         )
 
-    def test_b0_AND_b1_BOTH_EXIST(self):
+    def test_f0_AND_b1_BOTH_EXIST(self):
         """!! The defect this walk was written for.
 
         Measured over five file shapes before it: `b0` and `b1` never coexisted
@@ -97,7 +97,7 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
         licence header and `b0` on a file with one, so adding a module docstring
         renamed it mid-run. Roy: *"b1 isn't able to be swallowed by b0."*
         """
-        self.assertIn("b0", self.places)
+        self.assertIn("f0", self.places)
         self.assertIn("b1", self.places)
 
     def test_c_skips_the_module_and_emits_for_every_line_of_code(self):
@@ -105,7 +105,7 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
 
     def test_every_place_carries_the_line_of_code_it_is_attached_to(self):
         self.assertEqual(self.places["a0"], foliator.MODULE)
-        self.assertEqual(self.places["b0"], foliator.MODULE)
+        self.assertEqual(self.places["f0"], foliator.MODULE)
         self.assertEqual(self.places["a1"], "def wrapper(fn):")
         # ! A `b` is anchored to the line BELOW the gap -- the statement its
         # prose introduces.
@@ -141,7 +141,7 @@ class TestReadingTheFoliationBack(unittest.TestCase):
         self.assertEqual(self.foliation.above(4), "b3")
 
     def test_above_the_first_line_of_code_is_b1_not_b0(self):
-        # !! `b0` is the file's own front matter and is not a gap between two
+        # !! `f0` is the file's own front matter and is not a gap between two
         # lines of code. Conflating them is what made the two exclusive.
         self.assertEqual(self.foliation.above(1), "b1")
 
@@ -168,10 +168,10 @@ class TestTheWalkOnDegenerateFiles(unittest.TestCase):
 
     def test_a_file_with_no_code_still_has_a_module(self):
         places = foliator.foliate({}, {}).places
-        # ! `b0` is the file's own front matter and `b1` the gap that is the
+        # ! `f0` is the file's own front matter and `b1` the gap that is the
         # whole file. Both exist before any line of code does.
         self.assertEqual(places["a0"], foliator.MODULE)
-        self.assertEqual(places["b0"], foliator.MODULE)
+        self.assertEqual(places["f0"], foliator.MODULE)
         self.assertNotIn("c1", places)
 
     def test_a_file_with_no_declaration_has_only_a0(self):

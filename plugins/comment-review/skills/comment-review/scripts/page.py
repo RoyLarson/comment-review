@@ -60,6 +60,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from foliator import (  # noqa: E402  -- path shim must run first
     DECLARED,
+    FRONT,
     GAP,
     ON,
     Foliation,
@@ -85,6 +86,7 @@ from lexer import (  # noqa: E402  -- path shim must run first
 #   a   `undocumented`  a declaration with no docstring
 #   b   `interval`      a gap with no prose
 #   c   `margin`        a code line with no trailing comment
+#   f   `dark-matter`   a file with none of its own prose
 #
 # !! KINDS THAT OCCUPY NO LINES AT ALL. A `margin` is the empty room beside a
 # code line; an `interval` and an `undocumented` declaration are both EMPTY --
@@ -98,13 +100,13 @@ from lexer import (  # noqa: E402  -- path shim must run first
 # was given a `margin` of its own. The loop below occupies its whole span and
 # then discards the first line, which is right for a wrapped one and reduces to
 # "occupies nothing" for a single-line one.
-OCCUPIES_NOTHING = ("margin", "interval", "undocumented")
+OCCUPIES_NOTHING = ("margin", "interval", "undocumented", "dark-matter")
 # !! HOLDS NO PROSE -- a DIFFERENT set, and the two are not interchangeable. A
 # `trailing-comment` occupies no lines of its own but is prose; an `interval`
 # and an `undocumented` declaration are places where prose could go and does
 # not. This set is what "addressable, not accountable" means: they are cited by
 # an `add` and they get no seeded record.
-HOLDS_NO_PROSE = ("interval", "undocumented", "margin")
+HOLDS_NO_PROSE = ("interval", "undocumented", "margin", "dark-matter")
 
 # !! THE FILE'S OWN PROSE, ABOVE ITS DOCSTRING -- a licence header, a shebang, a
 # coding line. It is an ANNOTATION rather than a kind, because such a run is an
@@ -112,8 +114,12 @@ HOLDS_NO_PROSE = ("interval", "undocumented", "margin")
 # whatever follows it.
 #
 # ! IT LIVES HERE BECAUSE THE PAGE BOTH STAMPS AND READS IT. `mark_front_matter`
-# says which runs are the file's own; `attach` gives them `b0` wherever they sit,
-# rather than the gap they happen to occupy.
+# says which runs are the file's own; `attach` gives them the `f` place wherever
+# they sit, rather than the gap they happen to occupy.
+#
+# ! THE ANNOTATION SURVIVED THE SERIES. A run stamped here is `kind="comment"`
+# annotated `front-matter`; the EMPTY place is `kind="matter"`. Two facts, and
+# the annotation is what `--filtered` and the record rules read.
 FRONT_MATTER = "front-matter"
 
 
@@ -270,7 +276,7 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     declares = paragraph.get("declares", -1)
     if isinstance(declares, int) and declares >= 0:
         return foliation.documents(declares)
-    # ! FRONT MATTER IS THE FILE'S, so it takes `b0` wherever it sits. Asking
+    # ! FRONT MATTER IS THE FILE'S, so it takes `f0` wherever it sits. Asking
     # `above()` would give it the gap it happens to occupy, which is the gap
     # that introduces the first statement and belongs to that statement.
     if FRONT_MATTER in (paragraph.get("annotations") or ()):
@@ -421,16 +427,39 @@ def empty_places(
                     address=folio,
                 )
             )
+        elif folio.startswith(FRONT):
+            # !! THE FILE'S OWN PROSE, AND IT HOLDS NO LINE WHEN IT IS EMPTY.
+            # A licence header or a shebang goes at the very top, bounded by
+            # nothing on either side -- so there is no gap to measure and
+            # nothing to divide. ! Its own series since 2026-08-20; as a `b` it
+            # took the `(0, 0)` branch of the gap arithmetic below, which is the
+            # shape that let a gap re-cut it.
+            #
+            # !! `matter` NAMES THE SPACE AND NOT A POSITION, which is what the
+            # `f` series needs: Roy, 2026-08-20, rejecting `head` -- *"what
+            # happens if there is a tail? Many text documents have both."* A
+            # licence at the BOTTOM of a file belongs to the file by the same
+            # argument that moved front matter out of the `b` series, so the
+            # kind must survive one. ! It borrows nothing: `matter` is already
+            # the word in `front-matter`.
+            out.append(
+                Paragraph(
+                    path="",
+                    start=0,
+                    end=0,
+                    kind="dark-matter",
+                    lines=0,
+                    text="",
+                    original_start=None,
+                    original_end=None,
+                    anchor=anchor,
+                    address=folio,
+                )
+            )
         elif folio.startswith(GAP):
             previous, following = foliation.bounds[folio]
-            if (previous, following) == (0, 0):
-                # !! THE FILE'S OWN FRONT MATTER, and it is bounded by nothing:
-                # a licence header or a shebang goes at the very top. `1..0` is
-                # an empty slice, so writing it INSERTS rather than replaces.
-                low, high = 1, 0
-            else:
-                low = previous + 1
-                high = following - 1 if following else last
+            low = previous + 1
+            high = following - 1 if following else last
             # ! THE WHOLE GAP, PROVISIONALLY. `fill_the_gaps` runs after every
             # paragraph exists and is what divides a gap between the places in
             # it; deciding a share here would decide it against neighbours that
@@ -485,7 +514,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     # never established, so any interval drawn there would be invented.
     foliation = Foliation()
     if not any(b.kind == "unparsed" for b in got):
-        # ! BEFORE the walk, because a run that is FRONT MATTER takes `b0` and
+        # ! BEFORE the walk, because a run that is FRONT MATTER takes `f0` and
         # this is what says which runs those are.
         mark_front_matter(got)
         # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
@@ -627,11 +656,22 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     last = len(source)
     edges = [0, *code, last + 1]
 
-    # !! WHAT AN `a` OR A `c` HOLDS IS NOT THE GAP'S TO GIVE. Roy, 2026-08-20:
-    # *"a's and c's own their lines exactly, b's own all the other lines."*
+    # !! EVERY OTHER SERIES OWNS ITS LINES EXACTLY, AND `b` TAKES WHAT IS LEFT.
+    # Roy, 2026-08-20: *"a's and c's own their lines exactly, b's own all the
+    # other lines."*
+    #
+    # ! `f` IS IN THAT LIST BECAUSE IT IS A SERIES, not because it is front
+    # matter. While front matter was `b0` this needed a clause naming it -- the
+    # one paragraph whose folio disagreed with the gap it sat in -- and the
+    # clause was missing. Measured over 662 corpus files: 51 paragraphs where a
+    # licence header was reported as an `interval`. Roy: *"we should have just
+    # made the front matter its own foliation; then the rule that `b` owns all
+    # the lines that are not another foliation's lines would explicitly stay
+    # true."*
     exact: set[int] = set()
     for b in paragraphs:
-        if b.address.split("@")[-1][:1] in (DECLARED, ON) and b.original_start:
+        series = b.address.split("@")[-1][:1]
+        if series and series != GAP and b.original_start:
             exact.update(range(b.original_start, b.original_end + 1))
 
     def recut(b: Paragraph) -> None:

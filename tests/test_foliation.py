@@ -16,6 +16,7 @@ from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
 import foliator
+from foliator import FRONT
 import lexer
 import page
 
@@ -539,7 +540,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         self.assertEqual(self._at("<module>", "a"), ["a0"])
         self.assertEqual(self._at("<module>", "c"), [])
 
-    def test_the_MODULE_ALWAYS_HAS_A_b(self):
+    def test_the_MODULE_ALWAYS_HAS_ITS_OWN_PLACE(self):
         """!! `b0` IS THE FILE'S OWN PROSE, not the gap above the first line of
         code -- those were one address until 2026-08-19, so a licence header and
         the comment introducing the first declaration answered to the same name.
@@ -561,15 +562,15 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         place is FOR; it is not a reason for it to be absent.
         """
         # This fixture opens with a docstring and has no front matter at all.
-        self.assertEqual(self._at("<module>", "b"), ["b0"])
+        self.assertEqual(self._at("<module>", FRONT), ["f0"])
 
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")
         got = page.page_for(path, with_header, lexer.language_for(path))
         list(page.code_lines(with_header, [vars(b) for b in got]))
-        found = foliator.for_anchor("<module>", "b", [vars(b) for b in got])
+        found = foliator.for_anchor("<module>", FRONT, [vars(b) for b in got])
         self.assertEqual(
-            sorted(foliator.folio_of(b["address"])[1] for b in found), ["b0"]
+            sorted(foliator.folio_of(b["address"])[1] for b in found), ["f0"]
         )
 
     def test_an_anchor_the_census_never_stamped_answers_nothing(self):

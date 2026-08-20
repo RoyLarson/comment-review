@@ -182,10 +182,11 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # ! The module's own `a0` is here too -- a file with no module docstring
         # still has the PLACE for one. Neither kind holds prose.
         self.assertTrue(all(b.kind in page.HOLDS_NO_PROSE for b in got), got)
-        # ! FIVE: `b0` the file's own place, one gap above each of the three
-        # code lines, and the gap after the last. It was four until `b0` stopped
-        # depending on front matter already being there.
-        self.assertEqual(sum(1 for b in got if b.kind == "interval"), 5, got)
+        # ! FOUR INTERVALS: one gap above each of the three code lines, and the
+        # gap after the last. ! The file's own place is NOT among them since
+        # 2026-08-20 -- it is `f0`, kind `dark-matter`, in its own series.
+        self.assertEqual(sum(1 for b in got if b.kind == "interval"), 4, got)
+        self.assertEqual(sum(1 for b in got if b.kind == "dark-matter"), 1, got)
 
     def test_a_gap_between_adjacent_code_lines_holds_NO_line(self):
         # !! None, NOT AN EMPTY RANGE. Roy, 2026-08-20: the original lines are
@@ -222,7 +223,7 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
             # range still says where prose would go. Every paragraph that does
             # occupy lines must name real ones.
             if (b.start, b.end) == (0, 0):
-                self.assertIn(b.kind, ("undocumented", "interval"), b)
+                self.assertIn(b.kind, ("undocumented", "interval", "dark-matter"), b)
                 continue
             self.assertLessEqual(b.start, b.end, b)
             self.assertGreaterEqual(b.start, 1, b)
@@ -265,9 +266,9 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         prose = [b for b in got if b.kind == "comment"]
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
-    def test_a_file_of_only_prose_is_one_interval(self):
+    def test_a_file_of_only_prose_carries_every_empty_place(self):
         got = self._census("# just a note\n")
-        # ! `b0` is the file's own place and exists whether or not front matter
+        # ! `f0` is the file's own place and exists whether or not front matter
         # sits in it, so a file of one comment carries that too -- and so is
         # `a0`, where a module docstring would go. Neither depends on prose
         # already being there.
@@ -278,7 +279,8 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # `census-degrades-silently`, and closed by moving the emission to the
         # page, which asks the walk rather than the AST.
         self.assertEqual(
-            sorted(b.kind for b in got), ["comment", "interval", "undocumented"]
+            sorted(b.kind for b in got),
+            ["comment", "dark-matter", "undocumented"],
         )
 
 
@@ -467,9 +469,9 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
             ):
                 continue
             with self.subTest(address=paragraph.address):
-                # ! `b0` is the FILE'S place. Its anchor is the module,
+                # ! `f0` is the FILE'S place. Its anchor is the module,
                 # which has no line to sit beside and so no `c` to copy.
-                if paragraph.address.endswith("@b0"):
+                if paragraph.address.endswith("@f0"):
                     continue
                 self.assertIn(paragraph.anchor, margins.values())
 

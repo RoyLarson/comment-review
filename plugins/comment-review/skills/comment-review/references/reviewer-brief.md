@@ -71,7 +71,7 @@ separate foliators, and no number in one tells you a number in another -- nor do
 position tell you either. Two of them lining up on the file in front of you is a coincidence of
 that file, and it may change.
 
-! **`@b0` IS THE FILE'S OWN FRONT MATTER** -- a licence header, a shebang, a coding line -- and
+! **`@f0` IS THE FILE'S OWN FRONT MATTER** -- a licence header, a shebang, a coding line -- and
 not the gap above the first line of code. It is filtered out of your census, and any edit proposed
 on it becomes a `query`.
 
@@ -187,7 +187,7 @@ tool prints how many answered; read that line.
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c|f
 ```
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
@@ -351,7 +351,7 @@ unavailable**, and your run context says whether it is; a relocation into tracke
 always available.
 
 !! **`to:` IS AN ADDRESS when the destination is in the code, and it is RESOLVED.** Ask for it
-the same way an `add` does -- `--anchor LINE --series a|b|c`. A destination naming a LINE is
+the same way an `add` does -- `--anchor LINE --series a|b|c|f`. A destination naming a LINE is
 refused, and so is an address the census does not carry.
 
 ! **The destination may hold NO PROSE, and that is ordinary.** A paragraph can move to a gap with

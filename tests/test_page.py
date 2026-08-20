@@ -108,9 +108,9 @@ class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
     def test_it_carries_EVERY_place_filled_or_not(self):
         # !! What makes an `add` citable. The walk emitted these before any
         # prose was looked at, so a place exists whether or not anything sits
-        # in it -- including `b0`, which no paragraph occupies here.
+        # in it -- including `f0`, which no paragraph occupies here.
         folios = set(self.page.foliation.places)
-        self.assertIn("b0", folios)
+        self.assertIn("f0", folios)
         self.assertIn("a0", folios)
         # !! EVERY PLACE HAS A PARAGRAPH -- that is what the collapse bought.
         # A place the walk emitted and nothing filled gets an empty paragraph,
@@ -190,8 +190,11 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
         pg = page.page_for(path, text, lexer.language_for(path))
         counts = collections.Counter()
         exact = set()
+        # ! EVERY SERIES BUT `b` IS EXACT -- `a`, `c`, and `f` since front
+        # matter got its own. Naming the exact ones is how this drifted: `f0`
+        # was in neither branch and its line came out owned by nobody.
         for b in pg:
-            if b.address.split("@")[-1][:1] in ("a", "c"):
+            if b.address.split("@")[-1][:1] not in ("b", ""):
                 counts.update(covers(b, attr))
                 exact.update(covers(b, attr))
         for b in pg:
@@ -264,6 +267,77 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
             with self.subTest(address=b.address):
                 self.assertIsNone(b.original_start)
                 self.assertIsNone(b.original_end)
+
+
+class TestAnEmptyPlaceHoldsNoProse(unittest.TestCase):
+    """The kind says a place holds no prose; the lines must agree.
+
+    !! IT IS THE KIND'S WHOLE MEANING. `census.py` tells four reviewers that an
+    `interval` is a place where prose could go and does NOT, and an `add` is the
+    verdict that cites one. A paragraph that says `interval` while owning a line
+    with text on it is a false statement to every reader of the census, before
+    any galley runs.
+
+    ! MEASURED 2026-08-20 on a shebang + licence + module docstring: `@b0` was a
+    `comment` reported as `2L` and owning NO lines, while `@b1`, an `interval`
+    reported as `0L`, owned both lines of the licence header. The row was
+    self-contradicting on its face.
+
+    ! The cause was `fill_the_gaps` sharing a gap out to front matter, whose
+    `b0` is the FILE'S own place and not that gap's. This states the property
+    without naming front matter, so it holds for whatever else reaches the same
+    shape.
+    """
+
+    SHAPES = {
+        "shebang, licence, docstring": (
+            '#!/usr/bin/env python\n# Copyright 2024\n"""Doc."""\nX = 1\n'
+        ),
+        "shebang and licence, NO docstring": (
+            "#!/usr/bin/env python\n# Copyright 2024\nX = 1\n"
+        ),
+        "a licence, a blank, then code": "# Copyright 2024\n\nX = 1\n",
+        "an ordinary comment": "# just a note about X\nX = 1\n",
+        "a coding line": "# -*- coding: utf-8 -*-\nX = 1\n",
+        "front matter and nothing else": "#!/usr/bin/env python\n",
+    }
+
+    def test_an_interval_owns_only_blank_lines(self):
+        for name, text in self.SHAPES.items():
+            with self.subTest(shape=name):
+                path = Path("m.py")
+                lines = text.splitlines()
+                for b in page.page_for(path, text, lexer.language_for(path)):
+                    if b.kind != "interval":
+                        continue
+                    held = covers(b)
+                    self.assertEqual(
+                        [n for n in held if lines[n - 1].strip()],
+                        [],
+                        f"{name}: {b.address} is an interval holding text",
+                    )
+
+    def test_an_undocumented_declaration_owns_nothing(self):
+        for name, text in self.SHAPES.items():
+            with self.subTest(shape=name):
+                path = Path("m.py")
+                for b in page.page_for(path, text, lexer.language_for(path)):
+                    if b.kind == "undocumented":
+                        self.assertEqual(covers(b), [], f"{name}: {b.address}")
+
+    def test_prose_owns_the_lines_it_was_read_from(self):
+        # ! The other half: a paragraph reported as `NL` of prose must hold
+        # lines. `@b0` reported 2L and held none.
+        for name, text in self.SHAPES.items():
+            with self.subTest(shape=name):
+                path = Path("m.py")
+                for b in page.page_for(path, text, lexer.language_for(path)):
+                    if b.kind in page.HOLDS_NO_PROSE or not b.text.strip():
+                        continue
+                    self.assertTrue(
+                        covers(b),
+                        f"{name}: {b.address} is {b.lines}L and holds no line",
+                    )
 
 
 class TestTheTwoKindSetsAreNotInterchangeable(unittest.TestCase):

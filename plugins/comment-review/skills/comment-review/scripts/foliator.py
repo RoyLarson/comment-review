@@ -2,7 +2,7 @@
 
     python foliator.py --census census.json --repo D
 
-Three FOLIATORS walk one trigger list -- the MODULE, then every line of code --
+FOUR FOLIATORS walk one trigger list -- the MODULE, then every line of code --
 each holding its own counter and the places it emitted. `foliate()` runs the
 walk; `Foliation` answers back, which address does this line belong to right
 now.
@@ -76,20 +76,22 @@ file it does not cover.
 ! The numbering is invariant by construction rather than by luck -- but only
 while the enumeration underneath it is complete.
 
-Three series, because prose answers to one of exactly three subjects:
+Four series, because prose answers to one of exactly four subjects:
 
     package:core.py@a5    the 5th DECLARATION's documentation
     package:core.py@c3    BESIDE a line of code
-    package:core.py@b3    a GAP, or the file's own front matter at `b0`
+    package:core.py@b3    a GAP between two lines of code
+    package:core.py@f0    the FILE'S OWN front matter
 
 !! NO FOLIO IS COMPUTABLE FROM ANOTHER, OR FROM A LINE'S ORDINAL. Roy,
 2026-08-19: *"remove any references that indicate anyone can expect that the
 next line of code is guaranteed to have the next foliation index ... it is a
-happenstance and may change at any point."* Three FOLIATORS walk one trigger
+happenstance and may change at any point."* FOUR FOLIATORS walk one trigger
 list -- the MODULE, then every line of code -- each taking a number at every
 trigger and emitting or not. Two series lining up on a file is an OUTCOME of
-that walk. ! `b0` is the FILE'S OWN FRONT MATTER, not the gap above the first
-line of code; those were one address until the foliators split them.
+that walk. ! `f0` is the FILE'S OWN FRONT MATTER, in its own series -- not the
+gap above the first line of code, which is `b1`. The two were one address until
+the foliators split them, and one SERIES until 2026-08-20.
 
 !! `a` IS SEPARATE FOR A DIFFERENT REASON: IT NAMES A SUBJECT, NOT A POSITION.
 A docstring is about its DECLARATION, and `a0` is the module with `a1..aN` its
@@ -147,6 +149,29 @@ from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 ON = "c"
 GAP = "b"
 DECLARED = "a"
+# !! THE FILE'S OWN PROSE, IN ITS OWN SERIES. Roy, 2026-08-20: *"we should have
+# just made the front matter its own foliation -- then the rule that `b` owns
+# all the lines that are not another foliation's lines would explicitly stay
+# true. Treating the front matter as regular comments, even though they are
+# not, is the mistake."*
+#
+# ! IT WAS `b0` UNTIL THEN, and that cost an EXCEPTION in every sweep that
+# shares a gap out: `attach` gives front matter `b0` wherever it sits, so it is
+# the one paragraph whose folio disagrees with the gap it occupies. Measured
+# 2026-08-20 over 662 corpus files -- 51 paragraphs where a licence header was
+# reported as an `interval`, a place holding no prose, because the gap it sat
+# in re-cut it.
+#
+# ! A SINGLETON SERIES IS STILL A SERIES. Roy: *"I know it is likely a
+# singleton foliation but it fits."* The rule then needs no clause about which
+# `b` is not really a `b`.
+#
+# ! AND IT MAY NOT STAY A SINGLETON. Roy, 2026-08-20: *"maybe it will show up in
+# more places for copyright or other pieces in the docs files."* So it is
+# COUNTED like any other series rather than hardcoded to one place -- `f0` today
+# because the walk emits it at the module and nowhere else, and `f1..fN` the day
+# a second front-matter place is emitted.
+FRONT = "f"
 
 
 def line_address(paragraph: dict) -> str:
@@ -214,7 +239,7 @@ def line_address(paragraph: dict) -> str:
 
 
 #: The FIRST TRIGGER every foliator steps past: the file itself, before any line
-#: of code. It is what `a0` and `b0` name, and the one trigger `c` does not emit
+#: of code. It is what `a0` and `f0` name, and the one trigger `c` does not emit
 #: for -- a module has front matter and a docstring, and no line to sit beside.
 MODULE = "<module>"
 
@@ -315,6 +340,8 @@ class Foliation:
     _declared: dict[int, str] = field(default_factory=dict)
     _closing: str = ""
     _code: list[int] = field(default_factory=list)
+    # ! The file's own place, as the walk emitted it -- see `front_matter`.
+    _front: str = ""
 
     def above(self, line: int) -> str:
         """The `b` whose gap a paragraph inserting at `line` falls into.
@@ -336,12 +363,21 @@ class Foliation:
         return self._declared.get(ordinal, "")
 
     def front_matter(self) -> str:
-        """`b0` -- the file's own prose, above anything it declares.
+        """`f0` -- the file's own prose, above anything it declares.
 
         ! It is not the gap above the first line of code. That is `b1`, and the
         two were one address until the walk emitted both.
+
+        !! ITS OWN SERIES SINCE 2026-08-20, and it was `b0` before. As a `b` it
+        was the one paragraph whose folio disagreed with the gap it sat in --
+        `attach` gives it this place WHEREVER IT SITS -- so every sweep that
+        shares a gap out needed a clause naming it. Roy: *"treating the front
+        matter as regular comments, even though they are not, is the mistake."*
+
+        ! Read from the walk rather than named here, so a second front-matter
+        place would answer correctly the day one is emitted.
         """
-        return folio(GAP, 0)
+        return self._front
 
 
 def foliate(
@@ -388,6 +424,7 @@ def foliate(
         The `Foliation`: every place, and both directions between them.
     """
     a, b, c = Foliator(DECLARED), Foliator(GAP), Foliator(ON)
+    f = Foliator(FRONT)
     out = Foliation(_code=list(code))
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. Roy, 2026-08-20: *"we need to be able to distinguish `a`
@@ -399,10 +436,23 @@ def foliate(
     if module_insert is not None:
         out._declared[0] = a.emit(MODULE)
         out.inserts[out._declared[0]] = module_insert
-    # ! `b0` is the FILE'S OWN front matter, so it is bounded by nothing: the
-    # head of the file on both sides. It is not the gap above the first line of
-    # code -- that is `b1`, and conflating them made the two exclusive.
-    out.bounds[b.emit(MODULE)] = (0, 0)
+    # ! `f0` is the FILE'S OWN front matter, bounded by nothing: the head of the
+    # file on both sides. It is not the gap above the first line of code -- that
+    # is `b1`, and conflating them made the two exclusive.
+    out._front = f.emit(MODULE)
+    out.bounds[out._front] = (0, 0)
+    # !! `b` AND `c` STEP HERE AND EMIT NOTHING. Every foliator takes a number
+    # at every trigger and emits or not -- that is what keeps one walk behind
+    # four series. The module has no gap above it and no line to sit beside, so
+    # neither emits, and the first of each is `b1`/`c1`.
+    #
+    # ! WHAT THIS IS NOT: a promise that the numbers stay put. Roy, 2026-08-20:
+    # *"there was no promise that any foliation numbering scheme would stay
+    # consistent -- there is in fact a very explicit statement against this."*
+    # See the module docstring: a folio is a happenstance of the walk and may
+    # change at any point. `b` steps here because the walk steps here, not to
+    # keep any address it had.
+    b.skip()
     c.skip()
     previous = 0
     for i, (n, line) in enumerate(code.items()):
@@ -425,7 +475,11 @@ def foliate(
     # On a file with no code at all this is the gap that IS the file.
     out._closing = b.emit(next(reversed(code.values())) if code else MODULE)
     out.bounds[out._closing] = (previous, 0)
-    out.places = {**a.places, **b.places, **c.places}
+    # ! EVERY FOLIATOR'S PLACES, `f` included. Left out, `f0` sat in `bounds`
+    # and nowhere else: it carried no anchor, and `page.empty_places` -- which
+    # walks `places` -- gave it no paragraph, so a file whose front matter is
+    # absent had a line belonging to nothing.
+    out.places = {**a.places, **b.places, **c.places, **f.places}
     return out
 
 
@@ -620,15 +674,18 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
 def _series_of(paragraph: dict) -> str:
     """Which series this paragraph's own address is in -- `a`, `b` or `c`.
 
-    ! Read from the two facts the census states and NOT from the kind, which
-    would need a case per kind and a new one for every kind added: a paragraph
-    documenting a declaration is an `a`, a paragraph with a column sits beside code
-    and is a `c`, and everything else holds a gap and is a `b`.
+    !! READ OFF THE ADDRESS, which is the one place the series is STATED. It was
+    INFERRED from two other fields until 2026-08-20 -- a paragraph that declares
+    is an `a`, one with a column is a `c`, everything else a `b` -- and the
+    inference had no room for a fourth series. Front matter declares nothing and
+    has no column, so it came back `b`, and `--anchor <module> --series b`
+    answered with the file's own place.
+
+    ! Inferring was meant to avoid a case per KIND, and reading the address
+    avoids that too. It costs nothing: `for_anchor` is given a census, and an
+    entry carrying no address is one no caller could cite anyway.
     """
-    declares = paragraph.get("declares", -1)
-    if isinstance(declares, int) and declares >= 0:
-        return DECLARED
-    return ON if paragraph.get("original_column") else GAP
+    return folio_of(str(paragraph.get("address", "")))[1][:1]
 
 
 def stable(paragraph: dict) -> str:
@@ -721,7 +778,7 @@ def main() -> int:
 
     if args.anchor:
         if not args.series:
-            print("--anchor needs --series: a, b or c")
+            print("--anchor needs --series: a, b, c or f")
             return 2
         return _for_anchor(args.anchor, args.series, paragraphs)
     if args.resolve:

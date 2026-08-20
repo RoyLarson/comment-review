@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (59)
+### open  (60)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -218,7 +218,7 @@ that changed a published name or rule:
 | [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | foliator.triggers() has no production caller and takes a shape the walk no longer uses |
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 | [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | yes | 6/7 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
-| [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 0/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
+| [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
 | [lexer-misreads-ordinary-code](lexer-misreads-ordinary-code.md) | session | — | 0/4 | a Rust lifetime, a JS string-prefixed line, and code after a block closer |
 | [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | session | — | 0/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
 | [convert-drops-every-record](convert-drops-every-record.md) | session | — | 0/3 | 91 findings -> 0 filled records, exit 0, on a real 0.2.x report |
@@ -234,6 +234,7 @@ that changed a published name or rule:
 | [plugin-version-not-bumped](plugin-version-not-bumped.md) | session | yes | 0/3 | installing this tree overwrites the measured v0.2.3 cache directory |
 | [anchor-side-is-dead](anchor-side-is-dead.md) | session | — | 0/2 | the concept was deliberately removed and the constant stayed |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
+| [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 0/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
 
 ### in-progress  (4)
 
