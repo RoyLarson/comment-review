@@ -165,7 +165,7 @@ def main() -> int:
             text = f.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        # !! Through `census_for`, which DISPATCHES ON THE LANGUAGE. This called
+        # !! Through `page_for`, which DISPATCHES ON THE LANGUAGE. This called
         # `blocks_stdlib` -- Python's `tokenize` plus `ast` -- on every file
         # `_walk` yields, and `_walk` filters on `BY_EXT`, i.e. all eleven
         # languages. A three-line `.yaml` raised `IndentationError` uncaught and
@@ -180,7 +180,7 @@ def main() -> int:
         per_file[rel] = line_authors(repo, rel)
         all_shas.update(per_file[rel].values())
         try:
-            blocks = census.census_for(f, text, lang)
+            blocks = census.page_for(f, text, lang)
         except census.PARSE_ERRORS:
             # ! A file this repo's own census would REFUSE is a gap in the
             # split, not a crash in it. Named, so the count is readable.

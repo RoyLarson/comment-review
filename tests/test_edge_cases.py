@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
-import census
+import page
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "python_edge_cases.md"
 
@@ -66,7 +66,7 @@ class TestEveryMarkedAddressExists(unittest.TestCase):
     def setUp(self):
         path = Path("m.py")
         text = _original()
-        paragraphs = census.census_for(path, text, census.language_for(path))
+        paragraphs = page.page_for(path, text, page.language_for(path))
         # ! The census addresses itself now, so this reads what it stamped
         # rather than re-deriving it -- which is the property under test.
         self.folios = {

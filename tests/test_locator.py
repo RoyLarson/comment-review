@@ -10,7 +10,6 @@ import unittest  # noqa: I001  -- path shim below must import before locator
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
-import census
 import page
 import locator
 
@@ -149,7 +148,7 @@ class TestAPlaceAtLineZeroIsReachable(unittest.TestCase):
 
     def setUp(self):
         path = Path("m.py")
-        built = census.census_for(path, self.SRC, census.language_for(path))
+        built = page.page_for(path, self.SRC, page.language_for(path))
         for b in built:
             b.path = "m.py"
         self.paragraphs = [vars(b) for b in built]

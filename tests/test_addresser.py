@@ -16,7 +16,6 @@ from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
 import addresser
-import census
 import page
 
 # Roy's two files: the same two statements, one with comments and one without.
@@ -71,7 +70,7 @@ def named(text, paragraphs):
 
 
 def addressed(text, paragraphs):
-    """`path@folio` for each, composed the way `census_for` composes it."""
+    """`path@folio` for each, composed the way `page_for` composes it."""
     foliation = page.places_on(text, paragraphs)
     return [
         f"{addresser.flatten(b['path'])}@{page.attach(b, foliation)}"
@@ -358,10 +357,10 @@ class TestTheDeclarationSeries(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "m.py"
             path.write_text(text, encoding="utf-8")
-            got = census.census_for(path, text, census.language_for(path))
-            sorted(census.code_lines(text, got))
+            got = page.page_for(path, text, page.language_for(path))
+            sorted(page.code_lines(text, got))
             for b in got:
-                # ! The SUFFIX only. `census_for` names a paragraph by the path it
+                # ! The SUFFIX only. `page_for` names a paragraph by the path it
                 # was handed, and these are absolute temp paths -- the dotted
                 # prefix is `main`'s to make repo-relative.
                 b.address = b.address.split("@")[-1]
@@ -448,7 +447,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
         # every `b` below it.
         text = "def f():\n    return 1\n"
         got = self._census(text)
-        self.assertEqual(census.code_lines(text, got), {1, 2})
+        self.assertEqual(page.code_lines(text, got), {1, 2})
 
     def test_two_declarations_of_the_SAME_NAME_get_different_addresses(self):
         # !! THE ANCHOR NAME WAS NEVER UNIQUE AND NEVER PROMISED TO BE. Roy,
@@ -514,8 +513,8 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "m.py"
             path.write_text(self.SRC, encoding="utf-8")
-            got = census.census_for(path, self.SRC, census.language_for(path))
-            sorted(census.code_lines(self.SRC, got))
+            got = page.page_for(path, self.SRC, page.language_for(path))
+            sorted(page.code_lines(self.SRC, got))
             self.paragraphs = [vars(b) for b in got]
 
     def _at(self, anchor, series):
@@ -555,8 +554,8 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
 
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")
-        got = census.census_for(path, with_header, census.language_for(path))
-        sorted(census.code_lines(with_header, got))
+        got = page.page_for(path, with_header, page.language_for(path))
+        sorted(page.code_lines(with_header, got))
         found = addresser.for_anchor("<module>", "b", [vars(b) for b in got])
         self.assertEqual(
             sorted(addresser.folio_of(b["address"])[1] for b in found), ["b0"]
@@ -622,10 +621,10 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             src = Path(tmp) / "m.py"
             src.write_text("# a note\nx = 1\n", encoding="utf-8")
-            got = census.census_for(
-                src, src.read_text(encoding="utf-8"), census.language_for(src)
+            got = page.page_for(
+                src, src.read_text(encoding="utf-8"), page.language_for(src)
             )
-            sorted(census.code_lines(src.read_text(encoding="utf-8"), got))
+            sorted(page.code_lines(src.read_text(encoding="utf-8"), got))
             census_json = Path(tmp) / "c.json"
             census_json.write_text(
                 __import__("json").dumps([vars(b) for b in got], default=str),
@@ -654,7 +653,7 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "s.js"
             path.write_text(self.SRC, encoding="utf-8")
-            return census.census_for(path, self.SRC, census.language_for(path))
+            return page.page_for(path, self.SRC, page.language_for(path))
 
     def test_the_comment_takes_a_c_because_code_precedes_it(self):
         got = self._census()
@@ -745,8 +744,8 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
 
     def setUp(self):
         path = Path("g.py")
-        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
-        sorted(census.code_lines(self.SRC, paragraphs))
+        paragraphs = page.page_for(path, self.SRC, page.language_for(path))
+        sorted(page.code_lines(self.SRC, paragraphs))
         self.paragraphs = [vars(b) for b in paragraphs]
 
     def _folios(self, anchor, series):
@@ -794,8 +793,8 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
 
     def setUp(self):
         path = Path("x.py")
-        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
-        sorted(census.code_lines(self.SRC, paragraphs))
+        paragraphs = page.page_for(path, self.SRC, page.language_for(path))
+        sorted(page.code_lines(self.SRC, paragraphs))
         self.paragraphs = [vars(b) for b in paragraphs]
 
     def test_every_ADDRESS_is_still_unique(self):
@@ -907,8 +906,8 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
 
     def setUp(self):
         path = Path("m.py")
-        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
-        self.code = sorted(census.code_lines(self.SRC, paragraphs))
+        paragraphs = page.page_for(path, self.SRC, page.language_for(path))
+        self.code = sorted(page.code_lines(self.SRC, paragraphs))
         self.at = {
             b.address.split("@")[1]: b for b in paragraphs if "@" in (b.address or "")
         }

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
 import census
+import page
 import held
 import record
 import desk
@@ -1690,15 +1691,13 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
         # eleven languages -- everything but Python.
         rust = ["/// Returns the budget.", "/// Callers round separately."]
         self.assertEqual(
-            census.block_text(
-                "docstring", rust, ("///", "//!", "//"), structural=False
-            ),
+            page.block_text("docstring", rust, ("///", "//!", "//"), structural=False),
             "Returns the budget. Callers round separately.",
         )
 
     def test_a_STRUCTURAL_doc_is_read_past_its_delimiters(self):
         self.assertEqual(
-            census.block_text("docstring", ['    """Returns the budget."""'], ("#",)),
+            page.block_text("docstring", ['    """Returns the budget."""'], ("#",)),
             "Returns the budget.",
         )
 
@@ -1708,7 +1707,7 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
         # so the code on it has to come off or every trailing comment is a
         # fatal.
         self.assertEqual(
-            census.block_text("trailing-comment", ["    x: int  # the cap"], ("#",)),
+            page.block_text("trailing-comment", ["    x: int  # the cap"], ("#",)),
             "the cap",
         )
 
@@ -1900,7 +1899,7 @@ class TestALineCommentContainingABlockOpener(unittest.TestCase):
             p.write_text(body, encoding="utf-8")
             return [
                 b
-                for b in census.paragraphs_lexical(p, body, census.language_for(p))
+                for b in page.paragraphs_lexical(p, body, page.language_for(p))
                 if b.text.strip()
             ]
 

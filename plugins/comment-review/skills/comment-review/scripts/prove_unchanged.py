@@ -41,7 +41,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 # ! `READ_ERRORS` is IMPORTED. It is bound to a NAME so no `except` clause here
 # holds a tuple literal; `repo.py` carries that reason once.
-from census import (  # noqa: E402  -- path shim must run first
+from page import (  # noqa: E402  -- path shim must run first
     Language,
     language_for,
     paragraphs_lexical,

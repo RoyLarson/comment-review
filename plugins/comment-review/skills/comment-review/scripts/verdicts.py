@@ -81,7 +81,6 @@ from pathlib import Path
 # sibling importer that did not.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from census import FRONT_MATTER  # noqa: E402  -- path shim must run first
 from desk import (  # noqa: E402  -- path shim must run first
     _words,
     address_problem,
@@ -95,7 +94,10 @@ from desk import (  # noqa: E402  -- path shim must run first
     source_problem,
 )
 from held import address_of, load_report  # noqa: E402  -- path shim must run first
-from page import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
+from page import (
+    FRONT_MATTER,  # noqa: E402  -- path shim must run first
+    HOLDS_NO_PROSE,  # noqa: E402  -- path shim must run first
+)
 from record import (  # noqa: E402  -- path shim must run first
     VERDICTS,
     Finding,

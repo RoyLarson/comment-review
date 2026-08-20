@@ -229,7 +229,7 @@ def unanswerable(paragraphs: list[dict]) -> str | None:
     # !! AND NO ADDRESS MEANS NOTHING CAN BE KEYED. `--edits` is keyed by
     # address, so an unaddressed census matches nothing and every edit is
     # refused one at a time with a message about the EDIT rather than about the
-    # census. ! `census_for` does not stamp addresses -- the run loop does, once
+    # census. ! `page_for` does not stamp addresses -- the run loop does, once
     # the path is repo-relative -- so a census built by calling that function
     # directly reaches here looking complete and answering nothing.
     if paragraphs and not any(str(b.get("address", "")) for b in paragraphs):

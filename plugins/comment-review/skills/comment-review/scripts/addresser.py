@@ -576,7 +576,7 @@ def stable(paragraph: dict) -> str:
     """The place the census STAMPED on this paragraph, or "" if it carries none.
 
     !! IT READS; `place` COMPUTES. One implementation, one caller that runs it
-    -- `census_for`, which holds the file text and the finished paragraph list at
+    -- `page_for`, which holds the file text and the finished paragraph list at
     once -- and everything downstream reads the result. Two computations that
     agree today is not the property wanted, because only one of them can be
     right tomorrow.
