@@ -61,14 +61,14 @@ B = [
 
 
 def named(text, paragraphs):
-    code = addresser.code_lines_of(text, paragraphs)
+    code = page.code_lines_of(text, paragraphs)
     return [addresser.address(b, code).split("@")[1] for b in paragraphs]
 
 
 class TestTwoFilesDifferingOnlyInComments(unittest.TestCase):
     def test_the_code_lines_are_the_same_two_in_both(self):
-        self.assertEqual(addresser.code_lines_of(WITH_PROSE, A), [2, 6])
-        self.assertEqual(addresser.code_lines_of(BARE, B), [2, 3])
+        self.assertEqual(page.code_lines_of(WITH_PROSE, A), [2, 6])
+        self.assertEqual(page.code_lines_of(BARE, B), [2, 3])
 
     def test_the_same_gap_gets_the_same_name_prose_or_not(self):
         # !! THE WHOLE POINT. In one file the gap between the two statements
@@ -129,7 +129,7 @@ class TestCodeOnTheFirstLine(unittest.TestCase):
     ]
 
     def setUp(self):
-        self.code = addresser.code_lines_of(self.SRC, self.PARAGRAPHS)
+        self.code = page.code_lines_of(self.SRC, self.PARAGRAPHS)
 
     def test_code_starts_on_line_one(self):
         self.assertEqual(self.code[0], 1)
@@ -222,7 +222,7 @@ class TestAOneLineInitFile(unittest.TestCase):
         self.assertEqual({(b["start"], b["end"]) for b in self.PARAGRAPHS}, {(1, 1)})
 
     def test_the_stable_addresses_are_not(self):
-        code = addresser.code_lines_of(self.SRC, self.PARAGRAPHS)
+        code = page.code_lines_of(self.SRC, self.PARAGRAPHS)
         named = [addresser.address(b, code) for b in self.PARAGRAPHS]
         self.assertEqual(named, ["package:__init__.py@b1", "package:__init__.py@b2"])
 
@@ -267,7 +267,7 @@ class TestTheInverse(unittest.TestCase):
         # ! STAMPED FIRST, because `resolve` READS the census's `place` rather
         # than recomputing one -- which is the whole point of the producer
         # stating it. A fixture built without the stamp resolves to nothing.
-        code = addresser.code_lines_of(WITH_PROSE, A)
+        code = page.code_lines_of(WITH_PROSE, A)
         stamped = [{**b, "address": addresser.address(b, code)} for b in A]
         for i, paragraph in enumerate(stamped, 1):
             with self.subTest(entry=i):
@@ -320,8 +320,8 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
         # line prepended -- which is what a prose edit does -- moves the code
         # down, so the paragraph's stated `edit_start` now has NO code line before
         # it: `b2` becomes `b1`, naming a different place with no complaint.
-        here = addresser.code_lines_of(self.SRC, self.PARAGRAPHS)
-        there = addresser.code_lines_of("\n" + self.SRC, self.PARAGRAPHS)
+        here = page.code_lines_of(self.SRC, self.PARAGRAPHS)
+        there = page.code_lines_of("\n" + self.SRC, self.PARAGRAPHS)
         self.assertEqual(addresser.address(self.PARAGRAPHS[0], here), "m.py@b2")
         self.assertEqual(addresser.address(self.PARAGRAPHS[0], there), "m.py@b1")
 

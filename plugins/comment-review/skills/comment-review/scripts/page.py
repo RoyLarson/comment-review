@@ -38,7 +38,15 @@ import graph choose a module's subject is how `galley` came to announce the
 proposed text AND the vocabulary of a syntax tree.
 """
 
+import sys
 from dataclasses import dataclass, field
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from addresser import (  # noqa: E402  -- path shim must run first
+    Foliation,
+)
 
 # !! EVERY LINE HAS AN ADDRESS, AND SO DOES EVERY POTENTIAL LINE. Roy,
 # 2026-08-19: without an empty `c` "you can't specify that the comment belongs
@@ -216,3 +224,86 @@ class Paragraph:
         """Default the edit range to the addressing range."""
         if not self.edit_start and not self.edit_end:
             self.edit_start, self.edit_end = self.start, self.end
+
+
+def code_lines_of(text: str, paragraphs: list[dict]) -> list[int]:
+    """Which lines of this file are LINES OF CODE, at the tier the census ran.
+
+    A line is code when it holds something that is not blank and not prose. The
+    two tiers cannot answer that identically, and the difference is the
+    docstring: `tokenized` knows a string literal is a declaration's
+    documentation, `lexical` knows only what its comment-syntax record spells.
+    So a paragraph's BOUNDS are tier-dependent while its CONTENT is not.
+
+    ! A `trailing-comment` sits ON a code line, so that line stays code. A
+    `comment` or `docstring` paragraph occupies its lines entirely, so those lines
+    are not. An `interval` occupies nothing, which is what makes this safe to
+    run over a census that already holds intervals.
+
+    !! A PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
+    `int b = 2; /* opens` spans from that line, and taking the whole span
+    dropped the statement from the code set, moving every interval boundary
+    below it.
+
+    !! THE PARAGRAPH SAYS SO, via `edit_column`. This tested whether the stored
+    text was a proper SUFFIX of the physical line, which is an inference and
+    was wrong in both directions: `paragraphs_stdlib` stores the WHOLE line for a
+    trailing comment, so the test never fired for one -- and a paragraph comment
+    opened after a statement had its declaration line dropped from the code
+    set, moving every interval boundary in the file. Measured 2026-08-18.
+
+    ! It takes DICTS, so it reads a census off disk and a census still being
+    built alike -- `census.code_lines` is this function over its own `Paragraph`s.
+    An address counts code lines, so the count has to be the same one the
+    census used or the two disagree about what `@b3` means.
+    """
+    occupied: set[int] = set()
+    for b in paragraphs:
+        if b.get("kind") in OCCUPIES_NOTHING:
+            continue
+        start, end = b.get("start"), b.get("end")
+        if not isinstance(start, int) or not isinstance(end, int):
+            continue
+        occupied.update(range(start, end + 1))
+        if b.get("edit_column", 0):
+            occupied.discard(start)
+    return [
+        n
+        for n, line in enumerate(text.splitlines(), 1)
+        if line.strip() and n not in occupied
+    ]
+
+
+def attach(paragraph: dict, foliation: "Foliation") -> str:
+    """Which place this paragraph occupies -- the folio, without the path.
+
+    !! THE PARAGRAPH DOES NOT PRODUCE THE ADDRESS; IT IS TIED TO ONE. The walk
+    emitted every place before any prose was looked at, so this only asks which
+    of them this prose is sitting in. Reversed -- a paragraph computing its own
+    folio -- is how a place could exist only when prose happened to fill it.
+
+    ! Three facts decide it, each stated by a producer and none inferred from
+    the kind: a paragraph that DOCUMENTS a declaration takes that declaration's
+    `a`, one with a COLUMN sits beside code and takes that line's `c`, and
+    everything else holds a gap and takes the `b` for it.
+
+    Args:
+        paragraph: one census entry, as a dict.
+        foliation: the walk over that paragraph's file.
+
+    Returns:
+        The folio, or "" when the paragraph states no position to tie it to.
+    """
+    declares = paragraph.get("declares", -1)
+    if isinstance(declares, int) and declares >= 0:
+        return foliation.documents(declares)
+    # ! FRONT MATTER IS THE FILE'S, so it takes `b0` wherever it sits. Asking
+    # `above()` would give it the gap it happens to occupy, which is the gap
+    # that introduces the first statement and belongs to that statement.
+    if FRONT_MATTER in (paragraph.get("annotations") or ()):
+        return foliation.front_matter()
+    if paragraph.get("edit_column", 0):
+        start = paragraph.get("start")
+        return foliation.beside(start) if isinstance(start, int) else ""
+    at = paragraph.get("edit_start")
+    return foliation.above(at) if isinstance(at, int) else ""

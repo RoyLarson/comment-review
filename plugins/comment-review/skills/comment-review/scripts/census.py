@@ -59,8 +59,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from addresser import (  # noqa: E402  -- path shim must run first
     SEPARATOR,
-    attach,
-    code_lines_of,
     flatten,
     foliate,
 )
@@ -70,6 +68,8 @@ from annotate import (  # noqa: E402  -- path shim must run first
     prose_numbers,
 )
 from page import (  # noqa: E402  -- path shim must run first
+    attach,
+    code_lines_of,
     FRONT_MATTER,
     HOLDS_NO_PROSE,
     OCCUPIES_NOTHING,
