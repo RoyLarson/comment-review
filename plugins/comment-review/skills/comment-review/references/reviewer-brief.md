@@ -181,13 +181,13 @@ different statements -- the gap above the first, the gap holding the comment bet
 is anchored to the code BELOW it, the second statement), and the gap at the end of the file. The
 tool prints how many answered; read that line.
 
-! **A declaration is spelled two ways and both answer**: `f` on its own `a`, and `def f():` on the
-`b` above it and the `c` beside it.
+! **An anchor is a LINE OF CODE, never a name**: ask with `def f():`, not with `f`. Its `a`, the
+`b` above it and the `c` beside it all answer to that one spelling.
 
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor NAME --series a|b|c
+python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 
 # by LINE, when what you have is a line of the original document
 python <skill>/scripts/locator.py --census <LOOKUP CENSUS> --at path:LINE
@@ -349,7 +349,7 @@ unavailable**, and your run context says whether it is; a relocation into tracke
 always available.
 
 !! **`to:` IS AN ADDRESS when the destination is in the code, and it is RESOLVED.** Ask for it
-the same way an `add` does -- `--anchor NAME --series a|b|c`, or the locator. A destination
+the same way an `add` does -- `--anchor LINE --series a|b|c`, or the locator. A destination
 naming a LINE is refused, and so is an address the census does not carry.
 
 ! **The destination may hold NO PROSE, and that is ordinary.** A paragraph can move to a gap with

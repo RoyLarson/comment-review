@@ -27,7 +27,7 @@ HASHED STATIC TABLE -- exact, constant, FULLY ENUMERATED. Take away any one of
 those and the scheme collapses without saying so:
 
   fully enumerated  a code line missed anywhere above a place SHIFTS ITS NAME.
-                    `b7` is "after the seventh code line", so a partial
+                    Every foliator steps past every line of code, so a partial
                     enumeration does not fail -- it renames every place below
                     the hole, silently and consistently
   constant          the same file must count the same way twice, or two runs
@@ -342,8 +342,10 @@ def gap_step(paragraph: dict, code: list[int]) -> int | None:
     fact rather than re-deriving one.
 
     Returns:
-        0 for the file's own front matter, `k + 1` for the gap above the `k`th
-        line of code, or None when the paragraph states no insertion point.
+        0 for the file's own front matter, this gap's step in the `b` foliator's
+        own walk otherwise, or None when the paragraph states no insertion
+        point. ! The step is NOT a line's ordinal and nothing may read it as
+        one -- see `folio`.
     """
     if FRONT_MATTER in (paragraph.get("annotations") or ()):
         return 0
@@ -479,7 +481,7 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
     receiving a guess. More than one is a census defect `--check` reports.
 
     Args:
-        anchor: the declaration's name, as the census stamped it.
+        anchor: the LINE OF CODE, as the census stamped it -- `def f():`, not `f`.
         series: `a`, `b` or `c`.
         paragraphs: the census entries. Pass the FULL census; a filtered one is
             missing exactly the empty places this is most often asked for.
@@ -492,16 +494,16 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
         return [
             b for b in mine if isinstance(b.get("declares"), int) and b["declares"] >= 0
         ]
-    # !! AN ANCHOR IS SPELLED TWO WAYS AND BOTH MUST ANSWER. An `a` carries its
-    # declaration's NAME -- `f` -- while the `b` above that declaration and the
-    # `c` beside it carry the LINE OF CODE -- `def f():`. This matched the
-    # string and then routed `b`/`c` through `declared_at`, which only an `a`
-    # has, so asking by the LINE found nothing at all. Measured 2026-08-19:
-    # `--anchor 'def f():' --series c` answered "no `c` place" on a census
-    # holding exactly that one.
+    # !! EVERY SERIES CARRIES THE SAME SPELLING: THE LINE OF CODE. An `a`, the
+    # `b` above it and the `c` beside it all answer to `def f():`, never to `f`
+    # -- the name is not carried at all. It was two spellings until 2026-08-19,
+    # which routed `b`/`c` through `declared_at` that only an `a` has, so asking
+    # by the LINE found nothing: `--anchor 'def f():' --series c` answered "no
+    # `c` place" on a census holding exactly that one.
     #
-    # ! The paragraph's OWN series decides it: an `a` declares, a `c` has a column,
-    # a `b` has neither. No second field and no inference from kind.
+    # ! The paragraph's OWN series decides which places answer: an `a` declares,
+    # a `c` has a column, a `b` has neither. No second field, no inference from
+    # kind.
     direct = [b for b in mine if _series_of(b) == series]
     if direct:
         return direct
@@ -629,8 +631,8 @@ def main() -> int:
     )
     ap.add_argument(
         "--anchor",
-        metavar="NAME",
-        help="a declaration's name -- with --series, the address of that place",
+        metavar="LINE",
+        help="a LINE OF CODE, verbatim -- with --series, the address of that place",
     )
     ap.add_argument(
         "--series",

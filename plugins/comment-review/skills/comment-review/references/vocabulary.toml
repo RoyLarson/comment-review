@@ -14,14 +14,15 @@
 # Which terms a role gets was MEASURED from the text that role actually reads --
 # its own agent file, plus the reference it is told to open -- not judged.
 #
-# This file holds what AGENTS are given. A term only the task agent uses is not
-# here; SKILL.md carries those. The full record is `docs/vocabulary-inventory.md`
-# and `docs/vocabulary-usage.md`, which do not ship.
+# This file holds what AGENTS are given, and it is the OFFICIAL definition of
+# every term in it. A word this system stopped using is recorded in
+# `docs/vocabulary.md`, which does not ship and is never a second place to look
+# a live term up -- `scripts/check_vocabulary.py` refuses one defined in both.
 
 [definitions]
 
 # --- what a comment sits on -------------------------------------------------
-anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. A line of code is a statement, an expression, a declaration or an assignment. An `a` is attached to its declaration, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
+anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. An `a` is attached to the line that OPENS the thing it documents, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
 census = "Every PARAGRAPH on every PAGE under review, in order, each carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a leaf and do not nest."
 
@@ -29,9 +30,12 @@ census = "Every PARAGRAPH on every PAGE under review, in order, each carrying it
 sentence = "The unit a verdict rules on. A container of six sentences can hold six verdicts."
 clause = "A part of a sentence. `correct` carries a false clause and a true one; `REASON` is one clause."
 statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a clause."
-expression = "A piece of CODE that evaluates to a value. One of the kinds a LINE OF CODE can be, and so one of the kinds an anchor can be."
-declaration = "A piece of CODE that introduces a name. One of the kinds a LINE OF CODE can be, and so one of the kinds an anchor can be."
-assignment = "A piece of CODE that binds a value to a name. One of the kinds a LINE OF CODE can be, and so one of the kinds an anchor can be."
+expression = "A piece of CODE that evaluates to a value."
+declaration = "Something that can carry DOCUMENTATION -- a module, class, function, method, struct -- and so what an `a` place is about. ! NOT every line that introduces a name: `x = 1` and `let x = 1;` get no `a`. Which kinds a language offers is whatever its tier can resolve, and five of the eleven offer none."
+assignment = "A piece of CODE that binds a value to a name."
+mark = "What stage 4 emits: one role's ruling on one paragraph. Editorial. The census's own observations are ANNOTATIONS, not marks."
+annotation = "A mechanical observation the census attaches to a paragraph -- `names-a-symbol`, `cites-a-path`, `counted`. A CANDIDATE you confirm by reading, never a settled fact."
+"comment run" = "The contiguous comment lines between the two lines of code that bound them. The prose INSIDE a paragraph, which may instead hold a docstring or nothing at all."
 
 # --- what a reviewer emits ---------------------------------------------------
 verdict = "One of the seven rulings a reviewer may emit: clean, query, drop, correct, patch, add, move."
@@ -76,7 +80,7 @@ proofreader = "Who reads the finished PROOF and decides whether the document des
 address = "The name of a place: `pkg:mod.py@b3` -- a path, an `@`, and a folio. Counted against the CODE and not against the lines, which is what makes it survive this tool's own edits: every prose edit moves the line numbers below it, and an ordinal counts statements instead. It is what a record cites."
 folio = "The `b3` half of an address, after the `@`. A leaf's number in publishing, which is what it is here."
 series = "One of the three kinds of address, and which one says what the prose answers to: `a` a declaration's documentation, `b` the gap above a line of code, `c` the room beside one."
-"line of code" = "A line the census counts as CODE, and the exact characters on it that are code -- a statement, an expression, a declaration or an assignment. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two anchors spelled alike."
+"line of code" = "A line the census counts as CODE, and the exact characters on it that are code -- anything that is neither blank nor prose. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two anchors spelled alike."
 
 # --- what the page is made of -----------------------------------------------
 page = "ONE FILE: its paragraphs in order, among the code they sit with. A page does not nest, which is why the census is a flat list and needs no other shape. ! The CENSUS is the enumeration across EVERY page in scope, not this one; the PROOF is a finished page pulled for checking; the GALLEY is text set but not yet made into pages."
@@ -98,11 +102,13 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 # The four editorial roles: what the shared brief used to state in passing.
 "ownership-context" = [
   "address",
+  "annotation",
   "folio",
   "intermediate comment",
   "interval",
   "line of code",
   "margin",
+  "mark",
   "series",
   "trailing comment",
   "undocumented",
@@ -133,11 +139,13 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 "block-context" = [
   "address",
+  "annotation",
   "folio",
   "intermediate comment",
   "interval",
   "line of code",
   "margin",
+  "mark",
   "series",
   "trailing comment",
   "undocumented",
@@ -167,11 +175,13 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 "function-context" = [
   "address",
+  "annotation",
   "folio",
   "intermediate comment",
   "interval",
   "line of code",
   "margin",
+  "mark",
   "series",
   "trailing comment",
   "undocumented",
@@ -202,11 +212,13 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 "module-context" = [
   "address",
+  "annotation",
   "folio",
   "intermediate comment",
   "interval",
   "line of code",
   "margin",
+  "mark",
   "series",
   "trailing comment",
   "undocumented",
@@ -258,6 +270,7 @@ compact = [
 ]
 review = [
   "address",
+  "comment run",
   "page",
   "add",
   "census",

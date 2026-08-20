@@ -97,13 +97,11 @@ class Paragraph:
     # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
     # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
     #
-    # ! It holds a DECLARATION'S NAME for a paragraph that owns its lines, and THE
-    # LINE OF CODE, verbatim, for a paragraph that sits beside code -- see
-    # `census._anchor_of`. Roy, 2026-08-19: *"the anchor isn't the technical
-    # symbols and their precise semantic meaning and code use. It is 'the line
-    # of code' -- the exact characters in that line of code."* The two are
-    # stated here rather than left to a reader because a field with an
-    # undeclared second meaning is the defect, not the second meaning.
+    # !! IT IS ALWAYS THE LINE OF CODE, VERBATIM -- never a name, and never a
+    # symbol. Roy: *"the anchor isn't the technical symbols and their precise
+    # semantic meaning and code use. It is 'the line of code' -- the exact
+    # characters in that line of code."* An `a` carries the line that DECLARES
+    # it, `def f():` and not `f`; see `census._anchor_of`.
     anchor: str = ""
     # !! WHICH DECLARATION THIS DOCUMENTS, as an ordinal: 0 is the module and
     # 1..N its declarations in SOURCE order. -1 says this paragraph documents no

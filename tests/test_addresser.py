@@ -2,7 +2,7 @@
 
 !! THE PROPERTY, in Roy's words 2026-08-18: the census is a HASHED STATIC TABLE
 -- exact, constant, fully enumerated -- and without that this scheme falls apart
-rather than fails. `b8` means "after the seventh code line", so a code line
+rather than fails. Every foliator steps past every line of code, so a code line
 missed anywhere above a place RENAMES that place, silently and consistently.
 These tests hold the naming to the enumeration.
 """
@@ -814,8 +814,9 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
 
     def test_the_b_series_answers_with_ALL_THREE_gaps(self):
         # !! The `b` half is WORSE, and this file is why: three gaps answer to
-        # one spelling. `b1` is the gap above line 1, `b2` holds `# stuff
-        # happens`, and `b3` is the gap at the end of the file.
+        # one spelling -- the gap above the opening statement, the gap holding
+        # `# stuff happens`, and the gap at the end of the file. ! The folios
+        # below are what THIS walk emits, not a rule anything may count out.
         found = addresser.for_anchor("X=2", "b", self.paragraphs)
         folios = sorted(addresser.folio_of(b["address"])[1] for b in found)
         self.assertEqual(folios, ["b1", "b2", "b3"])
@@ -823,17 +824,19 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
     def test_the_three_gaps_are_drawn_from_TWO_statements(self):
         """!! And the anchor STRING cannot tell you which.
 
-        `b1` sits above line 1, so its anchor is line 1's code. `b2` holds a
-        comment and is anchored to the code BELOW it, which is line 5. `b3` is
-        the gap at the end of the file and takes the line ABOVE, which is line 5
-        again. Two statements, three gaps, one spelling.
+        The first gap sits above the opening statement, so its anchor is that
+        line's code. The second holds a comment and is anchored to the code
+        BELOW it, which is line 5. The third is the gap at the end of the file
+        and takes the line ABOVE, which is line 5 again. Two statements, three
+        gaps, one spelling.
         """
         by_folio = {
             addresser.folio_of(b["address"])[1]: b
             for b in addresser.for_anchor("X=2", "b", self.paragraphs)
         }
-        # ! Read from the EDIT range, which is the gap itself: `b1` is a pure
-        # insertion above line 1, `b2` replaces line 3, `b3` appends after 5.
+        # ! Read from the EDIT range, which is the gap itself: the first is a
+        # pure insertion above line 1, the second replaces line 3, the third
+        # appends after 5.
         self.assertEqual(by_folio["b1"]["edit_start"], 1)
         self.assertEqual(by_folio["b2"]["edit_start"], 3)
         self.assertEqual(by_folio["b3"]["edit_start"], 6)
