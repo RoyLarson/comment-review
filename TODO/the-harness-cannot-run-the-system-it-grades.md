@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 20 tasks done
+Progress: 6 of 21 tasks done
 Owner:    session * Roy (* 1 ruling left -- the suite layout. `plugin eval`
           access is open and this file already says it is not a blocker)
 Requires-Roy: true
@@ -389,6 +389,14 @@ only which side of the network each commit is on.
       had fetched -- and it had fetched neither branch. `git push` reported
       *"Everything up-to-date"* and `git ls-remote` confirmed both. ! What the task
       leaves behind is the RULE above: ask the remote, not the clone.
+- [ ] !! TWENTY-ONE COMMITS ARE RECORDED AS FIXTURES -- `evidence/self-test-
+      commits.md`, range `3af9752..93cc4b0`. Each is a PROSE defect a person found
+      by reading, with the fix commit as its answer key, and NOT ONE broke a test:
+      the suite was green through all of them, 672 to 713 passing. ! Roy,
+      2026-08-20: 'put the commit range in the evidence files or wherever we can
+      remember that these specific commits are good test cases for the system to
+      test itself against.' ! Running `/comment-review` over them is the
+      measurement this file exists to make possible, and it has not been done.
 
 ## What this costs today
 
