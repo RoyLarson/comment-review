@@ -5,10 +5,20 @@
 this repo's own history is a fixture source, because the commit that fixes a prose defect says
 what the defect was and what the correct prose is.
 
-!! **EVERY CASE HERE IS A `module-context` FINDING**, and that is what makes them gradeable. That
-role asks *do the comments say this module is ONE set of ideas, and does the documentation
-account for what the module exposes?* Each case below is a docstring announcing one subject over
-a module that holds several -- readable from the file alone, with no knowledge of this session.
+!! **THREE OF THE FOUR ROLES HAVE FINDINGS HERE**, which is what makes the range worth keeping.
+Roy, 2026-08-20: *"they are also function context findings I bet -- every rename of the function
+like `census_for` -> `page_for` is a function doing something different than what its name
+suggests,"* and *"probably who knows how many block-context comments have and should be
+corrected on this."* Both were checked and both hold.
+
+| role | what it asks | what it finds here |
+| --- | --- | --- |
+| `module-context` | does the documentation say this module is ONE set of ideas? | a docstring announcing one subject over a module holding three |
+| `function-context` | do name, signature, docstring and body agree? | `census_for` building a page; `gap_step` describing a walk it was not part of |
+| `block-context` | is every claim true of the code it sits with? | comments naming symbols that were moved or deleted out from under them |
+
+! Every one is readable from the file alone, with no knowledge of this session. That is the bar:
+a reviewer that needs the transcript cannot be graded.
 
 ! **They are all from `3af9752..7026646`**, branch `fix/folio-placement-is-not-where-the-anchor-is`,
 2026-08-19 to 2026-08-20.
@@ -25,7 +35,7 @@ git diff <commit>^{}~1 <commit>^{}         # the answer key
 never from the run's own report -- self-reported confidence has been measured not to
 discriminate real findings from fabricated ones.
 
-## The cases
+## The cases -- `module-context`
 
 | # | the file, before | what its docstring said | what the module actually held | fixed by |
 | --- | --- | --- | --- | --- |
@@ -61,6 +71,48 @@ built in `page.py`. Roy, 2026-08-20: *"we have been using that word instead of a
 session ... it doesn't cause the system to crash but it also doesn't make the system work
 correctly either."*
 
+## The cases -- `function-context`
+
+**Name, signature, docstring and body read together.** These are gradeable the same way, and the
+file answers each on its own.
+
+| the function, before | its name and docstring said | its body did | fixed by |
+| --- | --- | --- | --- |
+| `census_for(path, text, lang)` | a CENSUS -- *"the census for one file"* | built one PAGE. The census is every page in scope; this was one of them | `07d40b8` |
+| `gap_step(paragraph, code)` | *"which TRIGGER a `b` paragraph belongs to"*, and *"THIS IS THE LOOK-AHEAD"* | `sum(1 for n in code if n < at) + 1` -- line arithmetic. **It described a walk it was not part of** | `93cc4b0` |
+| `anchor_every_address(text, paragraphs)` | *"give every `a` and `b` place the line of code it is attached to"* | a SECOND pass restating what the walk had already emitted, from a `beside` map keyed on lines | `b342cd1` |
+| `address(paragraph, code)` | one thing | composed a folio AND flattened a path AND joined them. The docstring needed an "and" to be accurate | `93cc4b0` |
+
+! **`gap_step` is the sharpest of these.** Its own docstring uses the walk's vocabulary --
+*trigger*, *look-ahead* -- while the body counts line numbers. A reader who trusts the docstring
+believes a walk exists; a reader who reads the body finds arithmetic. Nothing but reading both
+together catches it, which is exactly the remit.
+
+!! **AND ONE IS LIVE RIGHT NOW**, in `page.py`, unfixed:
+
+| function | returns |
+| --- | --- |
+| `code_lines_of(text, paragraphs)` | `list[int]` |
+| `code_lines(text, prose)` | `set[int]` -- the SAME question, a different type |
+| `lines_of_code(text, prose)` | `list[tuple[int, str]]` -- a DIFFERENT question |
+
+Three names built from the same two words, in one module, returning three types. Filed as
+[`three-names-two-words`](../TODO/three-names-two-words.md).
+
+## The cases -- `block-context`
+
+**Is every claim true of the code it sits with?** The moves in this range left comments behind,
+and each is an OBITUARY: prose naming a symbol that exists nowhere.
+
+| where | the claim | why it was false |
+| --- | --- | --- |
+| `page.py`, the `FRONT_MATTER` comment | *"`census.mark_front_matter` stamps it; `gap_step` reads it ... `census` imports it, so the constant cannot live in `census` without making the pair circular"* | `mark_front_matter` moved to the page, `gap_step` was deleted, and the circularity it argues about is a module layout that no longer exists. **Three false clauses in one comment** |
+| `census.py`, above `_walk` | *"Tuples, so `DOC_ANCHORS` is built by concatenation and both go straight to `isinstance`"* | `NAMED_DEFS` and `DOC_ANCHORS` moved to `lexer.py`. The comment stayed and now sits above a function that walks the filesystem -- also an `ownership-context` finding |
+
+! **Both were found by asking for obituaries mechanically** -- for each symbol a comment names,
+does anything define it -- and both were introduced by this session's own moves, within hours.
+That is the rate this class arrives at, and it is why a reviewer reads rather than a gate checks.
+
 ## What is NOT a test case for this system
 
 ! **Process defects are not prose defects.** A plan checkbox ticked on work that was not done, a
@@ -78,4 +130,4 @@ Running the system over them is the point of recording the range, and
 is what blocks it.
 
 ! **The suite was green throughout** -- 672 to 713 passing across all five, and every gate green
-too. `module-context` is the only thing in this repo that could have caught any of them.
+too. **The four editorial roles are the only thing in this repo that could have caught any of them.**

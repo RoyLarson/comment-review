@@ -103,12 +103,9 @@ HOLDS_NO_PROSE = ("interval", "undocumented", "margin")
 # ordinary comment in every way but ownership: it belongs to the FILE and not to
 # whatever follows it.
 #
-# !! IT LIVES HERE BECAUSE TWO MODULES NEED IT AND ONE OF THEM CANNOT IMPORT THE
-# OTHER. `census.mark_front_matter` stamps it; `foliation.gap_step` reads it to
-# decide whether a run is the file's `b0` or the gap above the first line of
-# code. `census` imports `foliation`, so the constant cannot live in `census`
-# without making the pair circular -- and a second copy of the string is how the
-# two would come to disagree about a name neither of them owns.
+# ! IT LIVES HERE BECAUSE THE PAGE BOTH STAMPS AND READS IT. `mark_front_matter`
+# says which runs are the file's own; `attach` gives them `b0` wherever they sit,
+# rather than the gap they happen to occupy.
 FRONT_MATTER = "front-matter"
 
 

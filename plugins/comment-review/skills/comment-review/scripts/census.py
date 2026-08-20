@@ -73,8 +73,6 @@ from repo import (  # noqa: E402  -- path shim must run first
 )
 
 
-# Tuples, so `DOC_ANCHORS` is built by concatenation and both go straight to
-# `isinstance`.
 def _walk(root: Path):
     """Every file under `root` this script has a language record for.
 
