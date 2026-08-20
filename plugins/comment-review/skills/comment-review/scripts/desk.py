@@ -354,7 +354,7 @@ def source_problem(f: Finding, repo: Path) -> str | None:
 def as_block(text: str, entry: dict) -> str:
     """A reviewer's transcription, normalised the way the CENSUS normalises.
 
-    !! This calls `census.block_text`, and that is the whole point. A second
+    !! This calls `lexer.block_text`, and that is the whole point. A second
     implementation of lines-to-paragraph is a second DEFINITION of what a paragraph's
     text is, and the two drift. Measured 2026-08-17: this file grew its own and
     disagreed with the census three ways at once -- a blank line, a raw-string

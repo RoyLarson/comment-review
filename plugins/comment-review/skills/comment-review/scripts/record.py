@@ -293,7 +293,7 @@ def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
 
     !! ONE ROW, which is the promise the `Verdict` table makes and which four
     sites had taken back. `record.allowed` told a reviewer what to fill,
-    `record.claim_object` read the deprecated form, `claim_text` rendered it
+    `held.claim_object` read the deprecated form, `claim_text` rendered it
     and `payload_problem` checked it -- each deriving the same key list from
     the same traits, and two of them hardcoding the names. A new trait had to
     be added in four places and nothing failed if one was missed.

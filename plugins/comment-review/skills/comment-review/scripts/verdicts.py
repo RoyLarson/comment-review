@@ -431,7 +431,7 @@ def _report(args: argparse.Namespace) -> int:
             # licence header is a legal instrument and a shebang is how the file
             # runs; a wrong edit to either is not an editorial mistake, and no
             # role here can settle whether it is right -- see
-            # `census.mark_front_matter`. The reviewer was not shown the paragraph,
+            # `page.mark_front_matter`. The reviewer was not shown the paragraph,
             # `--filtered` drops it, so a verdict here came from reading the
             # file directly: a reasonable thing to have done, and still not this
             # system's call.

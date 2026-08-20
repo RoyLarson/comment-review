@@ -54,7 +54,7 @@ class Paragraph:
     # symbol. Roy: *"the anchor isn't the technical symbols and their precise
     # semantic meaning and code use. It is 'the line of code' -- the exact
     # characters in that line of code."* An `a` carries the line that DECLARES
-    # it, `def f():` and not `f`; see `census._anchor_of`.
+    # it, `def f():` and not `f`; see `_anchor_of`.
     anchor: str = ""
     # !! WHICH DECLARATION THIS DOCUMENTS, as an ordinal: 0 is the module and
     # 1..N its declarations in SOURCE order. -1 says this paragraph documents no

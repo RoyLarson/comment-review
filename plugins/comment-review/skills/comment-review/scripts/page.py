@@ -191,7 +191,7 @@ def code_lines_of(text: str, paragraphs: list[dict]) -> list[int]:
     set, moving every interval boundary in the file. Measured 2026-08-18.
 
     ! It takes DICTS, so it reads a census off disk and a census still being
-    built alike -- `census.code_lines` is this function over its own `Paragraph`s.
+    built alike -- `code_lines` is this function over its own `Paragraph`s.
     An address counts code lines, so the count has to be the same one the
     census used or the two disagree about what `@b3` means.
     """

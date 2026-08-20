@@ -452,7 +452,7 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     verdict rather than vanishing.
 
     Args:
-        findings: `verdicts.parse_report`'s output for one reviewer.
+        findings: `parse_report`'s output for one reviewer.
         census: the census that report was written against.
         reviewer: the editorial role's name.
 
