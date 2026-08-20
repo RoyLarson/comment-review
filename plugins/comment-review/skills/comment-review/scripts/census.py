@@ -58,10 +58,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from addresser import (  # noqa: E402  -- path shim must run first
-    MODULE,
     SEPARATOR,
-    address,
+    attach,
     code_lines_of,
+    flatten,
+    foliate,
 )
 from annotate import (  # noqa: E402  -- path shim must run first
     SYMBOLISH,
@@ -1036,6 +1037,48 @@ def code_lines(text: str, prose: list[Paragraph]) -> set[int]:
     return set(code_lines_of(text, [vars(b) for b in prose]))
 
 
+def lines_of_code(text: str, prose: list[Paragraph]) -> list[tuple[int, str]]:
+    """The file's lines of code, in order, each with the line it sits on.
+
+    ! What the WALK is given. The line positions the trigger and never numbers
+    it -- see `addresser.foliate`.
+
+    !! THE CHARACTERS COME FROM THAT LINE'S `c`, NEVER RE-CUT HERE. Every code
+    line has exactly one `c` -- a `trailing-comment`, or the `margin` standing
+    in for one -- and it already states where the code stops. Cutting the line
+    again answers `'    return os  # why'` where the `c` for the same line
+    answers `'    return os'`: two computations of one fact, which is what
+    `whole_lines` was removed for.
+    """
+    lines = text.splitlines()
+    beside = {b.start: b.anchor for b in prose if b.edit_column}
+    return [
+        (n, beside.get(n) or lines[n - 1].rstrip())
+        for n in sorted(code_lines(text, prose))
+        if 1 <= n <= len(lines)
+    ]
+
+
+def documentable(prose: list[Paragraph], text: str) -> set[int]:
+    """Which lines of code DECLARE something able to carry documentation.
+
+    !! ONLY A PARSER KNOWS, so the census states it and the walk consumes it.
+    `declares` is that answer: 0 for the module and 1..N for its declarations
+    in source order, which the AST walk established. A tier that resolves no
+    declarations returns an empty set, and the file has an `a0` and no more.
+
+    Returns:
+        Indices into `lines_of_code`, so the walk can ask "does this trigger
+        emit an `a`" without knowing what a declaration is.
+    """
+    declaring = {
+        b.declared_at
+        for b in prose
+        if isinstance(b.declares, int) and b.declares >= 1 and b.declared_at
+    }
+    return {i for i, (n, _) in enumerate(lines_of_code(text, prose)) if n in declaring}
+
+
 def paragraphs_in(prose: list[Paragraph], prev: int, nxt: int) -> list[Paragraph]:
     """The prose paragraphs OVERLAPPING the gap between two code lines.
 
@@ -1164,12 +1207,27 @@ def _repo_relative(path: Path, repo: Path) -> str:
         return path.as_posix()
 
 
-def census_for(path: Path, text: str, lang: Language) -> list[Paragraph]:
+def census_for(
+    path: Path, text: str, lang: Language, rel: str | None = None
+) -> list[Paragraph]:
     """The census for one file, at the highest tier available for its language.
 
     The ladder is by QUESTION ANSWERED. Python reaches TOKENIZED through the
     stdlib, which buys docstring anchors; every other language has the LEXICAL
     floor.
+
+    !! IT RETURNS A COMPLETE CENSUS -- addressed and anchored. Both used to be
+    stamped in two different places: anchors here, addresses in the run loop,
+    so a caller that used this function directly got half a census and no
+    error. Every test of the census does exactly that.
+
+    Args:
+        path: the file, used for its suffix and as the address's path.
+        text: its contents.
+        lang: the language record for its suffix.
+        rel: the path as the REPO sees it, when a caller has one. It is what
+            every citation resolves against; `path` stands in when a caller has
+            no repo, which is what the tests are.
     """
     if lang.name == "python":
         got = paragraphs_stdlib(path, text)
@@ -1188,7 +1246,19 @@ def census_for(path: Path, text: str, lang: Language) -> list[Paragraph]:
         # to the module rather than to the code below it, and this is what says
         # which runs those are.
         mark_front_matter(got)
-        anchor_every_address(text, got)
+        # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
+        # Reversed -- each paragraph computing its own folio -- a place existed
+        # only when prose happened to fill it, which is how `b0` and `b1` came
+        # to be mutually exclusive. `addresser` owns both halves: the foliation
+        # assigns the numbering, `attach` reads which place this prose sits in,
+        # and the anchor comes from the walk that emitted it rather than from a
+        # second pass that could disagree with the first.
+        foliation = foliate(lines_of_code(text, got), documentable(got, text))
+        flat = flatten(rel if rel is not None else path.as_posix())
+        for b in got:
+            place = attach(vars(b), foliation)
+            b.address = f"{flat}@{place}" if place else ""
+            b.anchor = foliation.places.get(place, b.anchor)
     for b in got:
         b.tier = tier_for(lang)
     return sorted(got, key=lambda b: (b.start, b.end))
@@ -1249,95 +1319,6 @@ def mark_front_matter(paragraphs: list[Paragraph]) -> None:
             b.annotations.add(FRONT_MATTER)
         elif doc is not None and b.end < doc.start:
             b.annotations.add(FRONT_MATTER)
-
-
-def anchor_every_address(text: str, paragraphs: list[Paragraph]) -> None:
-    """Give every `a` and `b` place the line of code it is attached to.
-
-    !! EVERY ADDRESS HAS AN ANCHOR, AND AN ANCHOR HAS MANY ADDRESSES. Roy,
-    2026-08-19: *"a, b, c are the address -- each has an anchor. An anchor can
-    be tied to multiple addresses ... anchors have many, an address has one."*
-    One declaration therefore carries its own `a`, the `b` above it, the `c`
-    beside it, and every `b` and `c` in its body.
-
-    !! THE ANCHOR IS THE LINE OF CODE, NOT A SYMBOL -- Roy, the same day:
-    *"the anchor isn't the technical symbols and their precise semantic meaning
-    and code use. It is 'the line of code' -- the exact characters in that line
-    of code."* So this needs no parser and works at both tiers; `_anchor_of`
-    says the same for the `c` series.
-
-    ! A `b` sits ABOVE code, so its anchor is the code line BELOW it -- the
-    statement the prose introduces. ! THE GAP AT THE END OF THE FILE HAS NO
-    LINE BELOW IT and takes the one above instead, because a gap is bounded by
-    code and that is the bound it has. Roy, 2026-08-19: *"an anchor missing in
-    a Record is a broken anchor."* Left empty it was 14 paragraphs of this repo,
-    one per file.
-
-    !! AN `a` IS ATTACHED TO ITS DECLARATION'S LINE, not to its NAME. Roy,
-    2026-08-19, settling it: *"anchor -- the line of code that an address is
-    attached to."* The name is DROPPED rather than moved: *"drop it -- the line
-    is the anchor."* So `--anchor` is asked with `def f():` and not with `f`.
-
-    !! A MODULE IS THE ONE ADDRESS WITH NO LINE OF CODE, and it keeps
-    `<module>` -- the name the LANGUAGE uses for module-level code, not a
-    placeholder this system invented. Measured 2026-08-19: Go (`package math`),
-    Ruby (`module Foo`) and Java (`package com.example;`) all DO declare a
-    module on a line and keep it, once a language server gives those tiers an
-    `a` series at all.
-
-    !! IT IS COPIED FROM THAT LINE'S `c`, NEVER RE-CUT. Every code line has
-    exactly one `c` -- a `trailing-comment` or the `margin` standing in for one
-    -- and that paragraph already states where the code stops. Cutting the line
-    again here answered `'    return os  # why'` where the `c` for the same
-    line answered `'    return os'`: two computations of one fact, inside one
-    module, which is the defect `whole_lines` was removed for. ! It is why an
-    `a` is stamped here and not where the AST is walked: a `def` carrying a
-    trailing comment would otherwise take the whole line where its own `c`
-    takes the code.
-
-    Args:
-        text: the file's source.
-        paragraphs: this file's paragraphs, mutated in place. `margins` must have run.
-    """
-    last = len(text.splitlines())
-    code = sorted(code_lines(text, paragraphs))
-    # ! The `c` of each code line, which is the code on it.
-    beside = {b.start: b.anchor for b in paragraphs if b.edit_column}
-    for b in paragraphs:
-        # !! THE MODULE IS LEFT ALONE. `declared_at` is 0 for it, because Python
-        # declares a module with no line of code -- so it keeps the name the
-        # LANGUAGE uses for module-level code, `<module>`, which is `co_name`
-        # on the module's code object and the word in every traceback. Roy,
-        # 2026-08-19: *"that is why in python it should be `<module>`."*
-        #
-        # ! Two alternatives were tried and are worse. The FIRST LINE OF CODE
-        # reads true only where a language puts its module declaration first by
-        # rule: in Python the first statement is arbitrary, so a module
-        # docstring came out anchored to `def f():`, and a file OPENING with a
-        # declaration gave `a0` and `a1` one anchor between them. The FILE PATH
-        # is true but puts a second kind of thing in the field. ! The remaining
-        # option Roy named is `__module__`, the dotted import name.
-        if b.declares > 0 and b.declared_at:
-            b.anchor = beside.get(b.declared_at, "")
-    for prev, nxt in pairwise([0, *code, last + 1]):
-        below = beside.get(nxt) or beside.get(prev, "")
-        for b in paragraphs:
-            # ! The `b` series is every paragraph with no column and no
-            # declaration: a comment run holding the gap, or the empty
-            # `interval` where one holds nothing.
-            if b.edit_column or b.declares >= 0:
-                continue
-            # !! FRONT MATTER IS THE FILE'S, so it is anchored to the module and
-            # not to whatever follows it. It takes `b0` for the same reason: a
-            # licence header is about the file, and the run below the module
-            # docstring is about the first declaration. Anchoring both to the
-            # code below made ONE anchor answer with BOTH -- measured
-            # 2026-08-19, `--anchor '<module>' --series b` and
-            # `--anchor 'def f():' --series b` returned the same pair.
-            if FRONT_MATTER in b.annotations:
-                b.anchor = MODULE
-            elif prev < b.edit_start <= nxt:
-                b.anchor = below
 
 
 def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
@@ -1516,11 +1497,6 @@ def _report(args: argparse.Namespace) -> int:
         if lang is None:
             unreadable.append(f"{path.as_posix()} (no language record for its suffix)")
             continue
-        try:
-            got = census_for(path, text, lang)
-        except Exception as e:  # a parse failure is REPORTED, as a gap
-            unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
-            continue
         # !! EVERY PARAGRAPH'S PATH IS REPO-RELATIVE. It is what `--repo` is for:
         # the census, the file lists and every citation a reviewer writes all
         # resolve against that root, so a paragraph carrying an absolute path is a
@@ -1556,19 +1532,17 @@ def _report(args: argparse.Namespace) -> int:
         if SEPARATOR in rel:
             unreadable.append(f"{rel} (a path may not hold '{SEPARATOR}')")
             continue
+        # ! THE REPO-RELATIVE PATH GOES IN, so the census comes back addressed
+        # against the root every citation resolves to. It was stamped afterwards
+        # for as long as `census_for` returned an unaddressed census, which is
+        # the split that let a direct caller receive half a census.
+        try:
+            got = census_for(path, text, lang, rel)
+        except Exception as e:  # a parse failure is REPORTED, as a gap
+            unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
+            continue
         for b in got:
             b.path = rel
-        # !! THE PRODUCER STATES THE PLACE, and states it HERE -- after the path
-        # is repo-relative, because the place carries that path. Stamping it in
-        # `census_for` named every paragraph by its absolute path, which is not what
-        # any consumer resolves against.
-        #
-        # ! Four consumers would otherwise recompute this from the file, and
-        # each recomputation is a chance to read a file the census no longer
-        # describes.
-        lines = sorted(code_lines(text, got))
-        for b in got:
-            b.address = address(vars(b), lines)
         census.extend(got)
 
     for b in census:

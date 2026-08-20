@@ -398,6 +398,49 @@ class Foliation:
         """The `a` for the nth documentable declaration; 0 is the module."""
         return self._declared.get(ordinal, "")
 
+    def front_matter(self) -> str:
+        """`b0` -- the file's own prose, above anything it declares.
+
+        ! It is not the gap above the first line of code. That is `b1`, and the
+        two were one address until the walk emitted both.
+        """
+        return folio(GAP, 0)
+
+
+def attach(paragraph: dict, foliation: Foliation) -> str:
+    """Which place this paragraph occupies -- the folio, without the path.
+
+    !! THE PARAGRAPH DOES NOT PRODUCE THE ADDRESS; IT IS TIED TO ONE. The walk
+    emitted every place before any prose was looked at, so this only asks which
+    of them this prose is sitting in. Reversed -- a paragraph computing its own
+    folio -- is how a place could exist only when prose happened to fill it.
+
+    ! Three facts decide it, each stated by a producer and none inferred from
+    the kind: a paragraph that DOCUMENTS a declaration takes that declaration's
+    `a`, one with a COLUMN sits beside code and takes that line's `c`, and
+    everything else holds a gap and takes the `b` for it.
+
+    Args:
+        paragraph: one census entry, as a dict.
+        foliation: the walk over that paragraph's file.
+
+    Returns:
+        The folio, or "" when the paragraph states no position to tie it to.
+    """
+    declares = paragraph.get("declares", -1)
+    if isinstance(declares, int) and declares >= 0:
+        return foliation.documents(declares)
+    # ! FRONT MATTER IS THE FILE'S, so it takes `b0` wherever it sits. Asking
+    # `above()` would give it the gap it happens to occupy, which is the gap
+    # that introduces the first statement and belongs to that statement.
+    if FRONT_MATTER in (paragraph.get("annotations") or ()):
+        return foliation.front_matter()
+    if paragraph.get("edit_column", 0):
+        start = paragraph.get("start")
+        return foliation.beside(start) if isinstance(start, int) else ""
+    at = paragraph.get("edit_start")
+    return foliation.above(at) if isinstance(at, int) else ""
+
 
 def foliate(code: list[tuple[int, str]], documentable: set[int]) -> Foliation:
     """Walk the anchors of one file; return every folio and its line of code.
