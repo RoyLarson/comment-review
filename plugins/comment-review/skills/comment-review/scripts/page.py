@@ -338,12 +338,12 @@ def empty_places(
 ) -> list[Paragraph]:
     """A paragraph for every place the walk emitted that no prose fills.
 
-    !! ONE LOOP, WHERE THERE WERE THREE GENERATORS. `intervals`, `margins` and
-    `_undocumented` each walked the file again to decide which places of their
-    own series deserved a paragraph -- 206 lines answering one question three
-    ways, and disagreeing. `intervals` skipped a gap a comment held, so once
-    front matter took `b0` nothing occupied `b1` and the place an `add` exists
-    to cite was unreachable.
+    !! ONE LOOP, WHERE THERE WERE FOUR GENERATORS -- `intervals`, `margins` and
+    `paragraphs_in` here, and `lexer._undocumented` for the `a` series. Each
+    walked the file again to decide which places of its own series deserved a
+    paragraph: 198 lines answering one question four ways, and disagreeing.
+    `intervals` skipped a gap a comment held, so once front matter took `b0`
+    nothing occupied `b1` and the place an `add` exists to cite was unreachable.
 
     ! The walk already emitted every place and said where each sits. This asks
     only which of them prose is sitting in, and gives the rest a paragraph.
