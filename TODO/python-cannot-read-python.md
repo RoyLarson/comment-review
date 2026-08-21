@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 22 tasks done
+Progress: 0 of 23 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -144,8 +144,16 @@ The AST reader gets older every release while the files get newer.
       makes an address constant. Moving the check to the compositor leaves the
       foliator free to say what it does, and the explanation lands where a reader
       can check it.
-- [ ] ! IT CARRIES `a-closing-quote-with-a-comment` WITH IT, but not for free --
-      see that TODO. The lexical reader has no `"""` delimiters and
-      `_strip_strings` blanks the spanning quote first, so *a spanning string in a
-      particular POSITION is a docstring* has to be built before the numpy defect
-      can close.
+- [ ] ! IT CARRIES `a-closing-quote-with-a-comment` WITH IT, FOR FREE. CHECKED
+      2026-08-21: read through `paragraphs_lexical` with `"""` as a delimiter, the
+      numpy shape yields ONE paragraph and line 5 is owned ONCE -- the `# NOQA`
+      rides along on the closing line as part of the run. A reader that cuts at
+      the delimiter has no second half to reconcile, so that defect is gone by
+      construction rather than fixed.
+- [ ] !! WHAT THIS BRANCH ACTUALLY OWES IS THE POSITION RULE, and it is the third
+      of the three things listed above. `"""` is BOTH Python's string quote and
+      its doc delimiter: the row lists it under `spanning_quotes`, and
+      `_strip_strings` blanks a spanning quote BEFORE the comment-opener test --
+      by design, so a `//` inside a string cannot open a comment. So a docstring
+      is a STRING IN A PARTICULAR POSITION, and stating that position is what
+      replaces the parser.

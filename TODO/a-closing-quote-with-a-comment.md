@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks done
+Progress: 0 of 11 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-21 (the compositor round trip over `corpora/`, 2026-08-21 -- one of 7
@@ -48,18 +48,28 @@ A docstring whose closing `"""` carries a trailing comment is owned twice.
       numpy one will fall out automatically with the python one because that is an
       artifact of using the ast to get docstrings instead of the lexer which would
       ignore that."*
-- [ ] !! CHECKED THE SAME DAY AT ROY'S REQUEST, AND IT DOES NOT FALL OUT ON ITS
-      OWN. MEASURED: Python's language row has NO delimiters for `"""` --
-      `block_comment` and `doc_block` are both empty -- so `paragraphs_lexical`
-      produces ZERO paragraphs for a Python file. The lexical reader cannot see a
-      docstring at all today.
-- [ ] !! AND ADDING THEM COLLIDES WITH `spanning_quotes`. Python's row already
-      lists `('"""', "'''")` there, and `_strip_strings` BLANKS a spanning quote
-      before the comment-opener test runs -- so giving `"""` a comment delimiter
-      still yielded zero paragraphs in the check. A docstring is a STRING in a
-      particular position, and the position is what the AST supplies.
-- [ ] ! SO IT CLOSES DOWNSTREAM OF A RULE THAT DOES NOT EXIST YET: a spanning
-      string immediately after a `declares` line, or at the head of a file, is a
-      docstring. That is lexable and is one of the three things `python-cannot-
-      read-python` lists the AST as buying. The trailing-comment cut then fixes
-      this defect -- but only after it.
+- [ ] !! CHECKED AT ROY'S REQUEST, AND IT DOES FALL OUT -- the first check was
+      mine and was wrong. MEASURED 2026-08-21 by reading the numpy shape through
+      `paragraphs_lexical` with `"""` as a delimiter: ONE paragraph, `docstring`
+      2-5, `raw_lines[-1] == '    """  # NOQA'`, and line 5 owned ONCE. The
+      trailing comment RIDES ALONG on the closing line as part of the run, and no
+      `c` place claims it. Roy: *"it also automatically eats the # NOQA at the end
+      of the line instead of having to figure out how to attach those back."*
+- [ ] ! WHAT THE FIRST CHECK ACTUALLY FOUND was an obstacle to the lexical reader
+      EXISTING, not a reason this defect survives it: Python's row has no `"""`
+      delimiter, and `_strip_strings` blanks the spanning quote before the
+      comment-opener test. Both must be answered for a lexical Python reader --
+      and once one works, this defect is gone by construction rather than fixed.
+- [ ] !! `"""` IS BOTH PYTHON'S STRING QUOTE AND ITS DOC DELIMITER, which is the
+      real work in `python-cannot-read-python` and not in this TODO. Its row lists
+      `('"""', "'''")` under `spanning_quotes`, and `_strip_strings` blanks a
+      spanning quote BEFORE the comment-opener test -- by design, so a `//` inside
+      a string cannot open a comment. A docstring is a STRING in a particular
+      POSITION, and stating that position is what replaces the parser.
+- [ ] ! SO IT CLOSES WHEN THE LEXICAL READER LANDS, and needs nothing of its
+      own. The rule that reader needs -- a spanning string immediately after a
+      `declares` line, or at the head of a file, is a docstring -- is one of the
+      three things `python-cannot-read-python` lists the AST as buying. This
+      defect is a consequence of the AST giving a docstring its whole closing
+      line while the tokenizer reports a comment on the same line; a reader that
+      cuts at the delimiter has neither half to reconcile.
