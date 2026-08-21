@@ -132,6 +132,11 @@ uv run python scripts/vocabulary_sweep.py
 # is invisible to it, and four went dead in one day with no gate noticing.
 uv run python scripts/dead_sweep.py [--names] [--links]
 
+# What a page could LOOK like, and what each rendering costs -- the row list that ships,
+# the file with its address in the margin, and the same annotating only what holds prose.
+# An INPUT to the P3 ruling in `docs/plans/0.2.5`, never a gate; always exits 0.
+uv run python scripts/render_page.py <paths...> [--show margin|prose|rows]
+
 # Release gate no test replaces: the parser the RUNTIME uses on every frontmatter.
 # Run it before tagging -- see "Cutting a release" below.
 claude plugin validate plugins/comment-review

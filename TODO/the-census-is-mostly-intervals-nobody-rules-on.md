@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 19 tasks done
+Progress: 2 of 20 tasks done
 Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
 Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -226,6 +226,18 @@ not.** The change is to filter the census the same way and give the reviewer som
       cites it) or is listed under the page; whether the page is text or
       structured; and the margin's own format, which was invented for the mock-up
       and matches nothing in the tree.
+- [ ] !! THE ONE-FILE NUMBER IS SUPERSEDED, and the renderer now lives in the tree
+      as `scripts/render_page.py` so nobody re-derives it. MEASURED 2026-08-21
+      over 26 files -- every shipped script, this repo's `scripts/`, plus
+      `corpora/cpython/Objects/listobject.c` and
+      `corpora/sentry/eslint.config.ts`: rows 1,635,544 bytes, margin 1,088,304
+      (-33%, smaller on 23 of 26), prose-only 1,029,443 (-37%). ! THE TWO FORMATS
+      COST DIFFERENT THINGS and that predicts where each wins: ROWS pays per
+      PLACE, MARGIN pays per LINE. Code-heavy files have an empty place between
+      every pair of statements, each a row with its anchor repeated --
+      listobject.c -50%, eslint.config.ts -51%. The three files the margin LOSES
+      on are prose-dense with little code: foliator.py +7%, desk.py +9%, page.py
+      level.
 
 ## Related
 
