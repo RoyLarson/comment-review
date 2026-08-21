@@ -312,6 +312,65 @@ class TestTheLexicalTierStampsToo(unittest.TestCase):
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
 
+class TestAQuoteThatHoldsONECHARACTER(unittest.TestCase):
+    """`'` is a CHAR literal in some languages and a STRING in others.
+
+    !! A RUST LIFETIME BLANKED THE REST OF ITS LINE. `_strip_strings` blanks a
+    literal so a comment marker inside one stays out of the census, and it read
+    `'` as a paired quote in every language. In Rust `&'static str` opens a
+    quote that never closes, so everything after it -- the whole comment -- was
+    blanked and the paragraph vanished. VERIFIED 2026-08-20: the line censused
+    ZERO prose paragraphs, while the identical line with `&str` yielded one.
+
+    !! IT IS A DATA ROW, PER LANGUAGE, and that is why it cannot be one rule.
+    `'x'` is one character in Rust, C, Go, Java, C# and Kotlin; `'a string'` is
+    prose in Python, JS, Ruby, Lua, shell and SQL. Reading either as the other
+    loses a comment.
+    """
+
+    def _prose(self, name, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / name
+            path.write_text(text, encoding="utf-8")
+            got = page.page_for(path, text, lexer.language_for(path))
+        return [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
+
+    def test_a_rust_lifetime_does_not_eat_the_comment(self):
+        prose = self._prose(
+            "a.rs", "pub fn name(&self) -> &'static str { 1 } // the display name\n"
+        )
+        self.assertEqual([b.kind for b in prose], ["trailing-comment"])
+        self.assertEqual(prose[0].text, "the display name")
+
+    def test_the_SAME_line_without_the_lifetime_is_unchanged(self):
+        # ! The control the finding was measured against.
+        prose = self._prose(
+            "a.rs", "pub fn name(&self) -> &str { 1 } // the display name\n"
+        )
+        self.assertEqual([b.text for b in prose], ["the display name"])
+
+    def test_a_rust_char_literal_is_STILL_blanked(self):
+        # !! THE HALF THAT MUST NOT REGRESS. A marker inside a one-character
+        # literal is not a comment, and blanking is what keeps it out.
+        prose = self._prose("a.rs", "let slash = '/'; // not a comment above\n")
+        self.assertEqual([b.text for b in prose], ["not a comment above"])
+
+    def test_an_ESCAPED_char_literal_is_blanked_too(self):
+        prose = self._prose("a.rs", "let nl = '\\n'; // still one comment\n")
+        self.assertEqual([b.text for b in prose], ["still one comment"])
+
+    def test_a_lifetime_INSIDE_a_string_is_not_reached(self):
+        # ! The `"` opens first, so the `'` never gets its own reading.
+        prose = self._prose("a.rs", 'let s = "it\'s //here"; // the real one\n')
+        self.assertEqual([b.text for b in prose], ["the real one"])
+
+    def test_a_SINGLE_QUOTED_STRING_language_is_untouched(self):
+        # !! THE REASON IT IS PER LANGUAGE. In JS `'...'` is a string, so the
+        # `//` inside it must still be blanked -- the opposite of Rust.
+        prose = self._prose("a.js", "const u = 'http://x'; // the only comment\n")
+        self.assertEqual([b.text for b in prose], ["the only comment"])
+
+
 class TestACPlaceCarriesItsAnchor(unittest.TestCase):
     """The line of code a trailing comment sits beside, VERBATIM.
 

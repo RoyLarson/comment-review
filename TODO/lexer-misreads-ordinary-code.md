@@ -2,11 +2,18 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 1 of 4 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20; the Rust case verified in-
           session)
+Fixed:    2026-08-20 — 2026-08-20 task 1 -- the Language row gains char_quotes: the
+          delimiters that hold exactly ONE character. A quote in that set is believed
+          only where it CLOSES within a character's width, so Rust's 'static and 'a are
+          ordinary text and 'x' and an escaped literal are still blanked. Set on rust,
+          go, c, cpp, java, csharp, kotlin; Python, JS, Ruby, Lua, shell and SQL keep '
+          as a string and are untouched. Six tests, and the original repro now censuses
+          one trailing-comment.
 ```
 
 ## Objective
@@ -15,7 +22,7 @@ The lexer misreads three shapes of ordinary code.
 
 ## Tasks
 
-- [ ] !! A RUST LIFETIME BLANKS THE REST OF THE LINE. `lexer.py:699`
+- [x] !! A RUST LIFETIME BLANKS THE REST OF THE LINE. `lexer.py:699`
       `_strip_strings` treats `'` as a paired quote, but in Rust it is a lifetime
       sigil. VERIFIED: `pub fn name(&self) -> &'static str { 1 } // the display
       name` censuses ZERO prose paragraphs -- the comment vanishes entirely --

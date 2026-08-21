@@ -396,6 +396,16 @@ class Language:
             or the run above a declaration (Go). Both need structure to decide,
             so this tier reports `comment` and annotates the paragraph.
         quotes: string delimiters, so a marker inside a literal is skipped.
+        char_quotes: delimiters that hold exactly ONE character in this
+            language -- `'a'`, or one escape. !! IT IS PER LANGUAGE AND CANNOT BE ONE
+            RULE: `'x'` is a character in Rust, C, C++, Go, Java, C# and
+            Kotlin, and `'a string'` is prose in Python, JS, Ruby, Lua, shell
+            and SQL. ! What it buys is that a `'` which does NOT close within a
+            character's width is ORDINARY TEXT rather than an open quote --
+            which is what a Rust lifetime is. Measured 2026-08-20: `pub fn
+            name(&self) -> &'static str { 1 } // the display name` censused
+            zero prose paragraphs, because `'static` opened a literal that
+            never closed and blanked the comment with the rest of the line.
         spanning_quotes: delimiters whose literal may cross LINES -- a JS
             template literal, a Java text paragraph. ! `_strip_strings` is per-line
             and carries no open-quote state, so a comment marker INSIDE one of
@@ -422,6 +432,7 @@ class Language:
     doc_block: tuple[str, ...] = ()
     doc_is_structural: bool = False
     quotes: tuple[str, ...] = ('"', "'")
+    char_quotes: tuple[str, ...] = ()
     spanning_quotes: tuple[str, ...] = ()
     declares: tuple[str, ...] = ()
     doc_inside: bool = False
@@ -456,6 +467,10 @@ LANGUAGES: tuple[Language, ...] = (
         ("///", "//!", "//"),
         (("/*", "*/"),),
         doc_line=("///", "//!"),
+        # !! AND A LIFETIME IS NOT A LITERAL. `&'static str` opens a `'` that
+        # never closes, so reading it as a quote blanked the rest of the line --
+        # comment included. `char_quotes` is what tells the two apart.
+        char_quotes=("'",),
         # ! `pub` opens an item and `let` opens a binding, so one is in and
         # the other is not.
         declares=(
@@ -479,6 +494,8 @@ LANGUAGES: tuple[Language, ...] = (
         ("//",),
         (("/*", "*/"),),
         doc_is_structural=True,
+        # ! A rune literal is one character.
+        char_quotes=("'",),
         # ! `package` is NOT here: Go's package comment IS the file's own
         # documentation, which is `a0`. Listing it gave the same prose two
         # places, `a0` and `a1`.
@@ -497,6 +514,7 @@ LANGUAGES: tuple[Language, ...] = (
         ("//",),
         (("/*", "*/"),),
         doc_block=("/**",),
+        char_quotes=("'",),
     ),
     Language(
         "cpp",
@@ -504,6 +522,7 @@ LANGUAGES: tuple[Language, ...] = (
         ("//",),
         (("/*", "*/"),),
         doc_block=("/**",),
+        char_quotes=("'",),
     ),
     Language(
         "java",
@@ -511,6 +530,7 @@ LANGUAGES: tuple[Language, ...] = (
         ("//",),
         (("/*", "*/"),),
         doc_block=("/**",),
+        char_quotes=("'",),
         # ! A member declaration opens with a MODIFIER or a type. `final` is
         # left out because it also opens a local; `static` never does in Java.
         # A package-private member opening with its type is missed, and a
@@ -543,6 +563,7 @@ LANGUAGES: tuple[Language, ...] = (
         (("/*", "*/"),),
         doc_line=("///",),
         doc_block=("/**",),
+        char_quotes=("'",),
         # ! `var` is left out: it opens a local and nothing else.
         declares=(
             "public",
@@ -606,6 +627,7 @@ LANGUAGES: tuple[Language, ...] = (
         ("//",),
         (("/*", "*/"),),
         doc_block=("/**",),
+        char_quotes=("'",),
         # ! `val` and `var` are left out, for the reason Swift's are.
         declares=(
             "fun",
@@ -704,15 +726,65 @@ def language_for(path: Path) -> Language | None:
     return BY_EXT.get(path.suffix.lower())
 
 
-def _strip_strings(line: str, quotes: tuple[str, ...]) -> str:
+# !! A CHARACTER'S WIDTH, IN CHARACTERS AFTER THE OPENING QUOTE. `'a'` closes at
+# 1 and `'\n'` at 2; Rust's longest is `'\u{10FFFF}'`, which closes at 10. A `'`
+# with no closer inside that window is not a literal at all.
+CHAR_WIDTH = 10
+
+
+def _closes_a_character(line: str, at: int, quote: str) -> bool:
+    """Does the quote at `at` close within ONE character's width?
+
+    !! THIS IS WHAT TELLS A CHARACTER FROM A LIFETIME. Rust writes both with
+    `'`: `'a'` is a character and `&'a mut T` is a lifetime, and the second
+    never closes. Read as a quote it blanks everything after it -- measured
+    2026-08-20, a whole trailing comment lost with no refusal and exit 0.
+
+    ! ASKED OF THE LINE, NOT OF THE LANGUAGE'S GRAMMAR. A closer inside the
+    window is taken as a character; anything else is ordinary text. That is
+    wrong only for a literal wider than `CHAR_WIDTH`, which no language here
+    has.
+
+    Args:
+        line: the physical line.
+        at: the index of the opening quote.
+        quote: the quote character.
+
+    Returns:
+        True where this opens a character literal.
+    """
+    i = at + 1
+    if i < len(line) and line[i] == "\\":
+        i += 1  # ! The escape's own character is never the closer.
+    while i < len(line) and i <= at + CHAR_WIDTH:
+        if line[i] == quote:
+            return True
+        i += 1
+    return False
+
+
+def _strip_strings(
+    line: str, quotes: tuple[str, ...], char_quotes: tuple[str, ...] = ()
+) -> str:
     """Blank out string literals so a marker inside one stays out of the census.
 
     `url = "http://x"` holds `//` in most C-family languages. It handles
     single-line literals with backslash escapes; raw strings, heredocs and
     template nesting are where this tier stops and the lexer starts.
+
+    Args:
+        line: the physical line.
+        quotes: this language's string delimiters.
+        char_quotes: the subset holding exactly ONE character, which is checked
+            for a closer before it is believed. Empty where the language has
+            none, and then this behaves exactly as it did.
+
+    Returns:
+        The line, its literals blanked, THE SAME LENGTH -- callers cut it at a
+        column.
     """
     out, quote, esc = [], "", False
-    for ch in line:
+    for i, ch in enumerate(line):
         if esc:
             out.append(" " if quote else ch)
             esc = False
@@ -725,6 +797,11 @@ def _strip_strings(line: str, quotes: tuple[str, ...]) -> str:
             out.append(" ")
             if ch == quote:
                 quote = ""
+            continue
+        # ! A character's quote is believed only where it CLOSES. Anywhere else
+        # it is a sigil the language spells the same way, and the line goes on.
+        if ch in char_quotes and not _closes_a_character(line, i, ch):
+            out.append(ch)
             continue
         if ch in quotes:
             quote = ch
@@ -926,7 +1003,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             if run:
                 pending.append((n, ""))
             continue
-        code = _strip_strings(raw_line, lang.quotes)
+        code = _strip_strings(raw_line, lang.quotes, lang.char_quotes)
         line_at = min((code.index(o) for o in openers if o in code), default=-1)
         opened = next((p for p in lang.block_comment if p[0] in code), None)
         # !! WHICHEVER OPENER COMES FIRST on the line owns it. The paragraph test
