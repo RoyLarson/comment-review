@@ -2,12 +2,29 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 1 of 5 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-20 (Roy, 2026-08-20: 'we have an addresser back, but that is because
           we need a way to state any file in the project -- except we currently do not
           foliate every file')
+Ruled:    2026-08-20 — 2026-08-20 -- RULED. Roy: *"on the move and add piece we should
+          allow the address to be either foliation or line number for files OUTSIDE of
+          the censused range. It was a complication in the previous runs when there was
+          an obvious out-of-bounds solution that the agents couldn't take."* !! THE BAN
+          ON LINE NUMBERS HAS A REASON, AND THE REASON DOES NOT REACH OUTSIDE THE RUN. A
+          line number is refused INSIDE the census because THIS RUN edits prose and
+          every edit shifts the lines below it -- so a record written against one is
+          stale the moment the galley writes. A file outside the run is not edited by
+          it, so its line numbers do not move, and a line number is both stable enough
+          and the only thing the agent can know. ! So the rule is not 'never a line
+          number'; it is 'never a line number for a place this run can name properly'. !
+          MEASURED CONSEQUENCE OF NOT HAVING THIS: a real finding with an obvious
+          destination was unstateable, and the agent had no route to file it. Roy saw it
+          happen in live runs. ! Applies to `move` destinations and to `add`.
+          `desk.py:462` currently refuses ANY line-numbered destination, and
+          `desk.py:476` refuses any address the census does not carry -- both need the
+          out-of-range case.
 ```
 
 ## Objective
@@ -30,7 +47,7 @@ A move to a file the run never foliated is refused as though it were malformed.
       looking for an error that is not there. ! The plausible case is ordinary
       ownership-context work: *this comment belongs in the module docstring of
       `other.py`*.
-- [ ] * RULING WANTED: what a `move` to an unfoliated file MEANS. Three shapes --
+- [x] * RULING WANTED: what a `move` to an unfoliated file MEANS. Three shapes --
       (a) refuse, but say WHY, so the reviewer knows the citation was right and
       the scope was short; (b) widen the run's scope to foliate any file a
       destination names, which makes scope depend on findings; (c) treat it as

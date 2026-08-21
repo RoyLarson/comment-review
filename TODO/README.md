@@ -235,7 +235,7 @@ that changed a published name or rule:
 | [anchor-side-is-dead](anchor-side-is-dead.md) | session | — | 0/2 | the concept was deliberately removed and the constant stayed |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
 | [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 1/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
-| [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | yes | 0/5 | the address form spans files; the census does not |
+| [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | yes | 1/5 | the address form spans files; the census does not |
 
 ### in-progress  (4)
 
