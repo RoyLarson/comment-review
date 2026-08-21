@@ -46,7 +46,7 @@ separate name for the half that does not fit.
 
 ## What it touches
 
-`clean` is stated in eleven files. An eighth verdict is bounded but is not a one-line
+`clean` is stated in twelve files. An eighth verdict is bounded but is not a one-line
 edit, and **`record.py:792` carries a comment that counts them** (*"walks all seven
 verdicts"*), as does `SKILL.md`'s heading and `CLAUDE.md` twice.
 
@@ -58,6 +58,7 @@ verdicts"*), as does `SKILL.md`'s heading and `CLAUDE.md` twice.
 | the four `agents/*.md` | each role's own `clean`, which asserts something specific |
 | `references/reviewer-brief.md`, `references/re-review.md` | the shipped field list |
 | `CLAUDE.md` | the count at :179 and the reserved-word rule at :545 |
+| `docs/vocabulary.md` | the reserved-word rule under "Rules about the words themselves" |
 
 ! **Not this branch.** `fix/folio-placement-is-not-where-the-anchor-is` is the
 compositor and the five series; this is the verdict vocabulary. It wants 0.2.4 or its
@@ -77,9 +78,10 @@ own branch, after `python-cannot-read-python`.
       identical proposals return
 - [ ] Check whether stage 8 REVIEW re-raises what 7a declined -- it reads the
       finished page and cannot know a mark was refused
-- [ ] Update the eleven files that state clean -- including the count comment at
+- [ ] Update the twelve files that state clean -- including the count comment at
       record.py:792 ('walks all seven verdicts'), SKILL.md's '## The seven
-      verdicts' heading, and CLAUDE.md at :179 and :545
+      verdicts' heading, CLAUDE.md at :179 and :545, and the reserved-word rule
+      in docs/vocabulary.md
 - [ ] Say what each ROLE's own stet asserts, in that role's own agent file -- each
       role's clean already asserts something specific, and a stet from ownership-
       context is not a stet from block-context

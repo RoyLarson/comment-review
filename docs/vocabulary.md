@@ -47,6 +47,29 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `CAP` in the packet | removed -- reviewers are not given a cap |
 | `EDIT` (stage 5) | -> **APPLY**. Stage 7b is **WRITE**; `references/apply.md` is `write.md` |
 
+## Held in reserve -- publishing's word for something we already have
+
+!! **RECORDED SO IT CAN BE FOUND LATER, NOT AS WORK.** Roy, 2026-08-21: *"just in case we start
+having trouble then I can tell you to find the word when I remember that this was a problem."*
+Each row is a real term of the trade that names something this system already does under another
+name. **None is adopted, and none is a defect today.**
+
+| publishing's word | what it names there | ours, and why it stands |
+| --- | --- | --- |
+| **cast off**, **copyfitting** | estimating how much space copy will take, and cutting it to fit the measure | **compact** (stage 6), a computing word. The stage does ONE job and nothing strains, so the swap buys register and no structure |
+| **revise** | the second proof, pulled after the marked corrections have been set | a **re-review round** (`references/re-review.md`). One word, no missing part |
+| **dead copy** | the original manuscript kept beside the proof, so the setting can be checked against it | **unnamed.** It is `page.text`, which `compositor.identity` compares its output against -- we have the object and use it; only the name is absent |
+
+!! **THE TEST FOR TAKING ONE IS A CATEGORY DOING TWO JOBS -- NOT REGISTER.** That is what
+separates these from `matter`/`f`, `leading`/`d` and `stet`, where a part of the page had nowhere
+to live and the missing word arrived with the rule attached. ! **A rename is not free**: `clean`
+is stated in twelve files, so correcting one word there is a scoped piece of work rather than an
+edit. Renaming something that already covers its job spends that for nothing.
+
+! **So the row to act on is the one you reach while stuck** -- when a thing has to belong to
+something and the fit is bad. `CLAUDE.md` carries the method under *"it supplies categories, not
+only names"*.
+
 ## ownership -- settled, and deliberately not emitted
 
 **The relation: which anchor best justifies holding a comment.** `anchor` is the code position,
