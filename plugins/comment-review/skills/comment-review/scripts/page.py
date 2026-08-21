@@ -313,24 +313,58 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     return foliation.above(at) if isinstance(at, int) else ""
 
 
-def documentable(decls: list[tuple[int, int]], code: dict[int, str]) -> dict[int, int]:
-    """Which code lines DECLARE something documentable, and where its doc goes.
+def documentable(
+    decls: list[tuple[int, int]], code: dict[int, str]
+) -> dict[int, tuple[int, int, str]]:
+    """Which code lines DECLARE something documentable, and WHERE the doc sits.
 
-    ! The lexer states both facts -- see `lexer.declarations`. This only turns a
-    LINE into an index into the walk's own trigger list, because that is what
-    the walk counts by.
+    !! BOTH HALVES ARE ORDINALS, NOT LINES, and that is the point of this
+    function. The lexer states the language's rule as a LINE -- above-doc
+    languages give the declaring line itself, Python gives a line inside the body
+    -- and the walk counts in code lines. Handing the walk a raw line number made
+    it compare `insert <= n` to decide where a docstring falls, which is line
+    arithmetic in the one module that must not do any. Roy, 2026-08-21: *"how do
+    I get you to stop thinking in line numbers?"*
+
+    ! SO THE LANGUAGE'S CALL IS RESOLVED HERE, ONCE, and the walk is left with a
+    position in its own sequence. Rust answers "beside the declaring line";
+    Python answers "after the last line of the signature", which a wrapped
+    signature moves several code lines down.
 
     Args:
-        decls: `(line, insert)` per declaration, module first.
+        decls: `(line, insert)` per declaration, module first -- see
+            `lexer.declarations`.
         code: the walk's triggers, `(line, anchor)` in order.
 
     Returns:
-        `index into code -> the line that declaration's doc would go on`. Empty
-        for a tier that resolves no declarations, and the file then has an `a0`
-        and no more.
+        `index into code -> (the LINE the doc occupies, the code index it is set
+        at, WHICH SIDE of that index's gap)`. Three facts, and they were one
+        field until 2026-08-21. The line is what `documented_by` walks up from to
+        find prose already sitting there. The index and the side are what the
+        walk places by, and the side is the per-language half: `ON` sets the
+        doc between the gap and the code, `GAP` sets it before the gap -- which
+        is where a doc that sits BELOW its declaration lands, because the gap
+        beneath it belongs to whatever comes next. Empty for a tier that
+        resolves no declarations, and the file then has an `a0` and no more.
     """
     at = {n: i for i, n in enumerate(code)}
-    return {at[line]: insert for line, insert in decls[1:] if line in at}
+    ordered = sorted(at)
+    out: dict[int, tuple[int, int, str]] = {}
+    for line, insert in decls[1:]:
+        if line not in at:
+            continue
+        if insert <= line:
+            # ! ABOVE ITS OWN DECLARING LINE -- every above-doc language, where
+            # `lexer.declarations` names that line as the doc's own.
+            out[at[line]] = (insert, at[line], ON)
+            continue
+        # ! BELOW IT -- Python, whose docstring sits inside the body and after a
+        # signature that may span several code lines. It is set before the gap
+        # that introduces the next code there is, and that gap owns the blank
+        # lines under the docstring rather than the docstring owning them.
+        follows = [n for n in ordered if n >= insert]
+        out[at[line]] = (insert, at[follows[0]] if follows else len(code), GAP)
+    return out
 
 
 def documented_by(text: str, prose: list["Paragraph"], foliation: "Foliation") -> None:

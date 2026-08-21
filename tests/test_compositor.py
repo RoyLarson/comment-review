@@ -93,17 +93,28 @@ class TestTheLineEndingComesFromTheFile(unittest.TestCase):
 class TestItReadsTheParagraphsAndNotTheText(unittest.TestCase):
     """A round trip that consulted `page.text` would prove a string equals itself."""
 
-    def test_a_page_whose_paragraphs_are_emptied_sets_an_empty_file(self):
-        # !! THE TEST THAT MAKES THE IDENTITY MEAN SOMETHING. If `set_page` read
-        # `page.text`, this would return the original file and pass every other
-        # test in this module unchanged.
+    def test_a_page_with_every_PROSE_paragraph_emptied_sets_the_code_alone(self):
+        # !! ROY'S SECOND ROUND TRIP, 2026-08-21: *"page in page out, page in,
+        # comments removed, page out no comments."* Emptying every paragraph
+        # leaves the code, because a `c` place holds the LINE and its prose is
+        # only the room beside it.
+        #
+        # !! AND IT IS WHAT MAKES THE IDENTITY MEAN SOMETHING. If `set_page` read
+        # `page.text`, this would return the original file with its comment
+        # still in it and every other test in this module would pass unchanged.
         p = Path("m.py")
-        text = "# a note\nx = 1\n"
+        text = "# a note\nx = 1  # beside\ny = 2\n"
         page = page_mod.page_for(p, text, lexer.language_for(p), rel="m.py")
         for b in page.paragraphs:
             b.raw_lines = []
-            b.original_start = None
-            b.original_end = None
+        self.assertEqual(compositor.set_page(page), "x = 1\ny = 2\n")
+
+    def test_a_page_with_NO_places_at_all_sets_empty_text(self):
+        # ! Not `page.text`. A model that had lost every place would set the
+        # original file back and the identity would pass over the top of it.
+        p = Path("m.py")
+        page = page_mod.page_for(p, "# a note\n", lexer.language_for(p), rel="m.py")
+        page.foliation.reading.clear()
         self.assertEqual(compositor.set_page(page), "")
 
     def test_changing_a_paragraphs_raw_lines_changes_the_output(self):

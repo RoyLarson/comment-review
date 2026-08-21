@@ -31,10 +31,21 @@ EDGE_CODE = {
     7: "        return fn(*args, **kwargs)",
     8: "    return counter",
 }
-# wrapper and counter, by index into EDGE_CODE -> the line their doc would go
-# on. ! NOT `declaring line + 1`: it is the first statement of the body, which
-# `lexer.declarations` states because only a parser knows it.
-EDGE_DOCUMENTABLE = {1: 4, 2: 5}
+# wrapper and counter, by index into EDGE_CODE -> `(the line their doc would go
+# on, the code index it is SET BEFORE)`. ! NOT `declaring line + 1`: the line is
+# the first statement of the body, which `lexer.declarations` states because only
+# a parser knows it.
+#
+# !! THE SECOND HALF ARRIVED 2026-08-21 and is what the WALK reads. Roy: *"how do
+# I get you to stop thinking in line numbers?"* Handing the walk a line made it
+# compare `insert <= n` to decide where a docstring falls -- arithmetic in the
+# one module that must not do any. `page.documentable` resolves the language's
+# rule into an ordinal AND A SIDE, and the walk only places it. Here both docs
+# sit BELOW their declaring line -- Python -- so each is set before the GAP of
+# the next code there is: `wrapper`'s before index 2 (`def counter`) and
+# `counter`'s before index 3. An above-doc language files against the `c`
+# instead, which puts the doc between the gap and the code.
+EDGE_DOCUMENTABLE = {1: (4, 2, "b"), 2: (5, 3, "b")}
 
 
 class TestAFoliatorHoldsItsOwnSteps(unittest.TestCase):
@@ -237,7 +248,7 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
         # !! THE PROPERTY THAT BROKE. A place absent from `places` has no anchor
         # and gets no paragraph, so it is uncitable and invisible -- which is
         # what `f0` was for its first hour, while sitting in `bounds` all along.
-        got = foliator.foliate({1: "N = 0", 2: "def f():"}, {1: 2})
+        got = foliator.foliate({1: "N = 0", 2: "def f():"}, {1: (2, 1, "c")})
         self.assertTrue(got.places)
         for folio, anchor in got.places.items():
             with self.subTest(folio=folio):
@@ -251,7 +262,7 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
         # about declaring -- it is the anchor's line, and every series has one.
         # Left per-series, a `b` and a `c` read 0, and an order built on it put
         # every one of them at the top.
-        got = foliator.foliate({2: "N = 0", 3: "def f():"}, {1: 4})
+        got = foliator.foliate({2: "N = 0", 3: "def f():"}, {1: (4, 2, "b")})
         self.assertEqual(got.anchor_line("c0"), 2)
         self.assertEqual(got.anchor_line("c1"), 3)
         # ! A `b` is anchored to the line BELOW its gap -- the statement its

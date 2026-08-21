@@ -307,6 +307,18 @@ class Foliation:
     """
 
     places: dict[str, str] = field(default_factory=dict)
+    # !! EVERY PLACE IN READING ORDER, TOP TO BOTTOM, recorded by the walk that
+    # emitted them. It is what a compositor sets from: a page IS its places in
+    # sequence, and the sequence is a fact the walk knows rather than an
+    # arithmetic over line numbers -- which shift the moment one paragraph grows.
+    #
+    # !! WHERE AN `a` FALLS IS THE LANGUAGE'S CALL AND IS SETTLED HERE, ONCE.
+    # Rust puts a declaration's documentation ABOVE the declaring line; Python
+    # puts it INSIDE the body, which a wrapped signature moves several lines
+    # down. `lexer.declarations` states that as the line the doc occupies, and
+    # the walk turns it into a position in this list -- so nothing downstream
+    # asks the question again, and no two readers can answer it differently.
+    reading: list[str] = field(default_factory=list)
     # !! WHERE EACH PLACE SITS, recorded by the walk that emitted it. A `b` is
     # bounded by the two lines of CODE around its gap -- 0 for the file's own
     # edge -- and a `c` sits ON one line. Nothing else may work these out: three
@@ -495,6 +507,10 @@ def foliate(
     # there is no step a place comes from except one of these.
     previous = 0
     seen = 0
+    # ! Which `a` places are set at which step, filed by `page.documentable` and
+    # released in the loop below. For an above-doc language every entry is filed
+    # against the declaration's own step; Python's are filed later.
+    release: dict[tuple[int, str], list[str]] = {}
     for trigger in triggers(list(code)):
         # ! A SENTINEL IS A STRING AND A LINE IS AN INT. Neither sentinel is a
         # line, which is what makes them sentinels.
@@ -509,6 +525,11 @@ def foliate(
                 # exclusive.
                 out._front = f.emit(MODULE)
                 out.bounds[out._front] = (0, 0)
+                # ! THE HEAD OF THE PAGE, in the order a reader meets it: the
+                # file's own matter, then the module's own documentation.
+                out.reading.append(out._front)
+                if 0 in out._declared:
+                    out.reading.append(out._declared[0])
                 # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
                 # number. It has no gap above it and no line to sit beside. Roy,
                 # 2026-08-20: *"let's initiate all of them at 0 ... bs and cs
@@ -532,6 +553,13 @@ def foliate(
                 # it landed while this place did not exist.
                 out._back = f.emit(MODULE)
                 out.bounds[out._back] = (0, 0)
+                # ! THE FOOT OF THE PAGE: the gap after the last statement, then
+                # the file's own matter, which is bounded by nothing.
+                # ! A doc with no code after it is filed against the step past
+                # the last one, which is this gap.
+                out.reading.extend(release.pop((len(code), GAP), ()))
+                out.reading.append(out._closing)
+                out.reading.append(out._back)
             continue
         n = trigger
         line = code[n]
@@ -541,13 +569,35 @@ def foliate(
             declared = a.emit(line)
             out._declared[len(out._declared)] = declared
             out.lines[declared] = n
-            out.inserts[declared] = documentable[seen]
+            # !! TWO FACTS, AND THE WALK USES ONLY THE SECOND. `page.documentable`
+            # states the LINE the doc occupies -- which `page.documented_by` walks
+            # up from to find prose already there -- and the code ordinal it is
+            # SET BEFORE, which is the language's rule already resolved. The walk
+            # holds the place until that step and compares nothing.
+            out.inserts[declared], at_step, side = documentable[seen]
+            release.setdefault((at_step, side), []).append(declared)
         gap = b.emit(line)
         out._above[n] = gap
         out.bounds[gap] = (previous, n)
         beside = c.emit(line)
         out._beside[n] = beside
         out.lines[beside] = n
+        # !! THE ORDER A READER MEETS THEM: the gap above this line, then any
+        # declaration whose documentation belongs at or before it, then the line
+        # itself with the room beside it.
+        #
+        # !! THE MIDDLE STEP IS THE PER-LANGUAGE QUESTION, AND IT IS NOT ASKED
+        # HERE. `page.documentable` already resolved it into a code ordinal, so
+        # this releases whatever was filed against this step. An above-doc
+        # language files a declaration against its own step and its `a` sits
+        # above the code; Python files it against the body's first statement, so
+        # the docstring lands after the signature -- however many code lines a
+        # wrapped one spans. ! No line is compared, which is what keeps the walk
+        # free of arithmetic it would otherwise have to keep right.
+        out.reading.extend(release.pop((seen, GAP), ()))
+        out.reading.append(gap)
+        out.reading.extend(release.pop((seen, ON), ()))
+        out.reading.append(beside)
         previous = n
         seen += 1
     # !! EVERY FOLIATOR'S PLACES, COUNTED RATHER THAN LISTED. Naming them was

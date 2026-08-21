@@ -1,4 +1,4 @@
-"""Sets a page as TEXT. It decides nothing.
+"""Sets a page as TEXT, in memory, top to bottom. It decides nothing.
 
     python compositor.py --repo D <paths...>      # prove the identity, file by file
 
@@ -6,38 +6,48 @@
 the old page - updates the old page with the verdict/record/marks and then a
 page-setter sets the page to rewrite the output text."* Two roles, two sets of
 rules: the galley rules on what a paragraph should say, and this puts the page
-on the disk. A module that did both is what `galley.py` was, and its own
-vocabulary said so -- `references/vocabulary.toml`: *"the GALLEY is text set but
-not yet made into pages."*
+together. A module that did both is what `galley.py` was, and its own vocabulary
+said so -- `references/vocabulary.toml`: *"the GALLEY is text set but not yet
+made into pages."*
 
-!! IT IS THE ONLY THING THAT WRITES, WHICH IS WHAT MAKES THE ROUND TRIP A TEST.
+!! IT SETS FROM THE FOLIATION'S READING ORDER AND KNOWS NO LINE NUMBERS. Roy,
+2026-08-21: *"the compositor forms the whole file top to bottom in the order
+defined by the language requirements IN MEMORY."* A page is its places in
+sequence; `Foliation.reading` is that sequence, recorded by the walk that
+emitted them. ! An earlier draft built the file from each paragraph's
+`original_start`, which passed the identity by REPLAYING positions -- and would
+have set a reset page wrong, because a paragraph that grows moves every line
+below it and those stored numbers are the ones the agents read, not a position
+this step may trust.
+
+!! NOTHING IS WRITTEN OVER THE REAL FILE HERE. `draft()` emits the whole page
+into a file of its own so a reviewer or the author can compare it against the
+original; `approve()` copies that over the real file wholesale, once. Roy: *"No
+editing on the 'real' file until the draft is fully approved."*
+
+!! AND THE ROUND TRIP IS A TEST BECAUSE THIS IS THE ONLY WRITER.
 `set_page(page_for(path, text, lang)) == text`, byte for byte, in any language.
-Roy: *"we can compare the round trip directly page in page out, page in,
-comments removed, page out no comments ... No ambiguity about how the page gets
-written."* ! `prove_unchanged.py` is strictly weaker and answers a different
-question: it proves the EXECUTABLE CODE survived an edit, not that the model of
-a page is lossless.
+! `prove_unchanged.py` is strictly weaker and answers a different question: it
+proves the EXECUTABLE CODE survived an edit, not that the model of a page is
+lossless.
 
-THE PAGE TILES ITS OWN FILE, which is what makes this total rather than a
-best effort. Every line belongs to exactly one paragraph that states its own
-lines -- `fill_the_gaps` is what gives a gap its blank lines, so there is no
-line left for a fallback to guess at. Measured on an 8-line file: `a0` 1, `b0`
-2, `c0` 3, `b1` 4-5, `c1` 6, `b2` 7, `c2` 8.
+Two shapes, and only the second needs assembling:
 
-Two shapes, and the second is the only one that needs assembling:
-
-    a FULL-LINE run    its `raw_lines` ARE those lines, verbatim
-    a TRAILING run     `anchor` holds the code and `raw_lines[0]` the room
-                       beside it, so the line is the two concatenated
+    a `c` place    holds the LINE OF CODE. Its anchor is that code and its prose
+                   is the room beside it, so the line is the two concatenated --
+                   and a comment opened there can close on a later line, which
+                   is verbatim because no code sits on it.
+    everything     `a`, `b` and `f` hold prose and nothing else. An empty one
+                   contributes no line at all, which is what an empty place IS.
 
 ! THE LINE ENDING IS A FACT ABOUT THE FILE, NOT ABOUT ITS PARAGRAPHS, and it is
-the one thing here that comes from `page.text` rather than from the model. A
-paragraph states what it says; nothing in it can state whether the file that
-held it used CRLF, and a compositor that guessed would rewrite every line of a
-Windows checkout.
+the one thing here taken from `page.text`. Nothing a paragraph says can state
+whether the file that held it used CRLF, and a compositor that guessed would
+rewrite every line of a Windows checkout.
 """
 
 import argparse
+import shutil
 import sys
 from pathlib import Path
 
@@ -45,6 +55,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from foliator import ON, series_of  # noqa: E402
 from lexer import language_for  # noqa: E402
 from page import Page, page_for  # noqa: E402
 
@@ -58,73 +69,89 @@ def line_endings(text: str) -> str:
 
     ! THE FIRST ENDING WINS AND MIXED FILES ARE NORMALISED. A file holding both
     is already inconsistent, and picking per line would preserve a defect the
-    author cannot see. `galley.py` has answered it this way since it was
-    written.
+    author cannot see. `galley.py` has answered it this way since it was written.
     """
     return CRLF if CRLF in text else LF
 
 
-def _line_of(paragraph) -> tuple[int, list[str]]:
-    """The first line this paragraph occupies, and the lines it puts there.
-
-    ! A TRAILING RUN IS ASSEMBLED FROM TWO HALVES ON ITS FIRST LINE ONLY. Its
-    `anchor` is the code with the room beside it removed and `raw_lines[0]` is
-    that room, INCLUDING the whitespace that separates them -- so the line is a
-    plain concatenation and never a join with a guessed gap.
-
-    !! AND IT CAN RUN PAST THAT LINE, which is where this dropped ten C files
-    before the identity was run over a corpus. A delimited comment opened beside
-    code closes where it closes: `PyAsyncMethods *tp_as_async; /* formerly
-    known as tp_compare (Python 2)` continues `or tp_reserved (Python 3) */` on
-    the next line, which holds no code and is therefore verbatim. Only the
-    FIRST line has an anchor to sit beside.
-    """
-    if paragraph.original_column:
-        room = list(paragraph.raw_lines) or [""]
-        return paragraph.original_start, [f"{paragraph.anchor}{room[0]}", *room[1:]]
-    return paragraph.original_start, list(paragraph.raw_lines)
+def _held(page: Page) -> dict[str, list[str]]:
+    """The prose each place holds, by folio. Empty places hold none."""
+    out: dict[str, list[str]] = {}
+    for paragraph in page.paragraphs:
+        folio = (paragraph.address or "").split("@")[-1]
+        if folio:
+            out[folio] = list(paragraph.raw_lines)
+    return out
 
 
 def set_page(page: Page, newline: str | None = None) -> str:
     """This page, set as the text of a file.
 
-    !! IT READS THE PARAGRAPHS AND NOT `page.text`. Reading the text would make
-    the round trip vacuous -- it would prove that a string equals itself, which
-    is true of a page whose model has lost half the file.
+    !! IT WALKS THE READING ORDER AND ASKS EACH PLACE WHAT IT HOLDS. That is the
+    whole algorithm, and it is why an edit needs no arithmetic: a paragraph that
+    grows from one line to four just hands back four lines, and every place after
+    it is set where it always was -- next.
 
     Args:
-        page: the page to set. Every paragraph that states a line contributes
-            it; a place holding no prose states none and contributes nothing.
+        page: the page to set. Its foliation states the order.
         newline: the ending to join with. `None` takes it from the page's own
             text, which is the one fact a paragraph cannot state.
 
     Returns:
-        The file's text. A page built from a file that ended in a newline is
-        set with one, because the final paragraph's lines end where the file's
-        lines end.
+        The file's text.
     """
     ending = newline if newline is not None else line_endings(page.text)
-    lines: dict[int, str] = {}
-    for paragraph in page.paragraphs:
-        if not paragraph.original_start:
-            # ! A place nothing fills states no line. It is still a place a
-            # verdict can cite, which is why it is on the page at all.
+    held = _held(page)
+    out: list[str] = []
+    for folio in page.foliation.reading:
+        prose = held.get(folio, [])
+        if series_of({"address": f"@{folio}"}) == ON:
+            # ! A `c` IS THE LINE OF CODE, so it is set whether or not anything
+            # sits beside it. Its first line is the code and the room together;
+            # a comment opened in that room and closed on a later line owns
+            # those lines outright, because no code is on them.
+            code = page.foliation.places.get(folio, "")
+            out.append(f"{code}{prose[0] if prose else ''}")
+            out.extend(prose[1:])
             continue
-        first, held = _line_of(paragraph)
-        for offset, line in enumerate(held):
-            lines[first + offset] = line
-    if not lines:
-        # !! NO PARAGRAPH STATED A LINE, SO THE PAGE IS EMPTY -- and returning
-        # `page.text` here instead is how this whole instrument would come to
-        # lie. A model that had lost every line would set the original file back
-        # and the identity would pass over the top of it.
+        out.extend(prose)
+    if not out:
+        # !! AN EMPTY PAGE IS EMPTY TEXT -- and returning `page.text` here is how
+        # this whole instrument would come to lie. A model that had lost every
+        # line would set the original file back and the identity would pass over
+        # the top of it.
         return ""
-    out = [lines.get(n, "") for n in range(1, max(lines) + 1)]
-    # ! THE TRAILING NEWLINE IS THE FILE'S, and `splitlines` drops it, so the
-    # page cannot state whether it was there. A file that ended in one is set
+    # ! THE TRAILING NEWLINE IS THE FILE'S, and `splitlines` drops it, so no
+    # paragraph can state whether it was there. A file that ended in one is set
     # with one; a file that did not is not.
     tail = ending if page.text.endswith(("\n", "\r")) else ""
     return ending.join(out) + tail
+
+
+def draft(page: Page, into: Path) -> Path:
+    """Write this page to `into` -- a file of its own, never the original.
+
+    !! THE REAL FILE IS NOT TOUCHED HERE. Roy, 2026-08-21: *"it gets emitted into
+    a temporary file to be compared to the original by either the reviewing agent
+    or the human ... No editing on the 'real' file until the draft is fully
+    approved."* So a run that is abandoned, refused or wrong leaves the tree
+    exactly as it found it, and `git diff --no-index` against the original is the
+    whole review.
+    """
+    into.parent.mkdir(parents=True, exist_ok=True)
+    into.write_text(set_page(page), encoding="utf-8", newline="")
+    return into
+
+
+def approve(drafted: Path, real: Path) -> Path:
+    """Put an approved draft over the real file, wholesale.
+
+    ! A COPY, NOT A SPLICE. The draft IS the finished page -- it was set from the
+    whole of it -- so there is nothing to merge and no range to get wrong. That
+    is the difference this module exists to make.
+    """
+    shutil.copyfile(drafted, real)
+    return real
 
 
 def identity(path: Path, rel: str | None = None) -> str | None:
