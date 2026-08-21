@@ -9,7 +9,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 # The newest release heading. `[Unreleased]` is skipped: it carries no number,
 # which is what makes it unreleased.
-RELEASE = re.compile(r"^## \[(\d+\.\d+\.\d+)\]", re.M)
+#
+# !! A PRE-RELEASE SUFFIX IS PART OF THE NUMBER. Three numeric components only
+# would skip `## [0.2.4-alpha]` and match the release BELOW it, so the check that
+# holds the three files equal would compare the wrong one and pass -- or fail
+# against a version nobody wrote. ! Ruled 2026-08-21: a pre-release is cut so an
+# unreleased tree cannot land in the cache directory a measured release owns.
+RELEASE = re.compile(r"^## \[(\d+\.\d+\.\d+(?:[-.]?[A-Za-z][\w.]*)?)\]", re.M)
 
 
 class TestTheVersionIsStatedOnce(unittest.TestCase):

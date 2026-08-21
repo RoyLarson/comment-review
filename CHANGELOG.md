@@ -74,7 +74,16 @@ gate is that list, verified, not a general claim about languages. As of `0.2.0` 
 families, 1 `tokenized` and 10 `lexical`**, of which **2 have been run** -- python (this repo)
 and rust (`startraders`, 2026-08-17).
 
-## [Unreleased]
+## [0.2.4-alpha] -- 2026-08-21
+
+!! **A PRE-RELEASE, AND THE NUMBER IS THE POINT.** Roy, 2026-08-21: *"I do not plan to run the
+update until I release the full version, but that would keep it from colliding with 0.2.3 and
+seems like a good practice."* The plugin cache keys its directory on `plugin.json`'s `version`,
+so a tree installed while that field still read `0.2.3` would land in the directory the MEASURED
+0.2.3 owns and overwrite it -- which happened once already, three commits after v0.2.1 was
+tagged. ! `-alpha` is the one spelling both semver and PEP 440 read as a pre-release, and it
+sorts before `0.2.4` in both.
+
 
 ### The retired report format is DELETED, not shimmed
 

@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (59)
+### open  (58)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -228,7 +228,6 @@ that changed a published name or rule:
 | [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | session | — | 0/6 | each states a rule and then denies it, in the same file |
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | session | — | 0/6 | every one re-derivable by a command, and every one wrong |
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | session | — | 0/10 | each passes in the buggy state its own comment forbids |
-| [plugin-version-not-bumped](plugin-version-not-bumped.md) | session | yes | 0/3 | installing this tree overwrites the measured v0.2.3 cache directory |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
 | [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 1/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
 | [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
@@ -299,3 +298,4 @@ the reason is inside the file.
 | [lexer-misreads-ordinary-code](completed/lexer-misreads-ordinary-code.md) | Three misreads fixed and nesting added; the closing-line residue measured at 0 occurrences and accepted, with a test |
 | [dead-names-ungated](completed/dead-names-ungated.md) | scripts/dead_sweep.py, an input rather than a gate; 0 dead names in the tree as of 2026-08-21 |
 | [complete-breaks-links-SUPERSEDED](completed/complete-breaks-links-SUPERSEDED.md) | Accepted: the orphans are inside completed/, and repairing one means rewriting an archived file |
+| [plugin-version-not-bumped](completed/plugin-version-not-bumped.md) | 0.2.4-alpha in all three files; the cache directory can no longer collide with the measured 0.2.3 |
