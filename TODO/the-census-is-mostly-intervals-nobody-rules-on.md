@@ -13,9 +13,12 @@ Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads 'Roy r
            design 2026-08-18; the rest is build'. The flag means a DECISION is owed;
            work still remaining is what the unchecked boxes already say.
 Proposed: 2026-08-21 — 2026-08-21 -- a page rendering with the address in the margin is
-          proposed here and measured on one file. It is a candidate for what the
-          retrieval tool RETURNS. Roy deferred the ruling; `docs/plans/0.2.5`'s P3 asks
-          the same question and is still open.
+          proposed here and measured across 26 files by `scripts/render_page.py`. It is
+          a candidate for what the retrieval tool RETURNS, so it is one decision with
+          the 2026-08-18 ruling above rather than a second one. Roy deferred it. ! This
+          note cited a plan box until the same day, which is the thing the
+          one-directional rule forbids -- the box changed state within the hour and the
+          citation was stale on arrival.
 ```
 
 ## Objective

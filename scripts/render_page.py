@@ -4,10 +4,13 @@
     uv run python scripts/render_page.py --show margin <path>
 
 An INPUT to a ruling, not a gate: it always exits 0 and nothing consumes its
-output. `docs/plans/0.2.5`'s P3 asks what a page renders as, and
-`TODO/the-census-is-mostly-intervals-nobody-rules-on.md` holds the proposal.
-This exists so that question is answered against renderings of a real file
-rather than against descriptions of them.
+output. `TODO/the-census-is-mostly-intervals-nobody-rules-on.md` holds the
+proposal and is where the decision lies. This exists so the question is answered
+against renderings of a real file rather than against descriptions of them.
+
+! IT NAMES THE TODO AND NOT A PLAN BOX. It cited one for the first hour of its
+life; the box was superseded the same day and the citation rotted immediately.
+A plan is a scope that closes -- the backlog is what outlives it.
 
 Three renderings, and the file itself as the floor:
 
