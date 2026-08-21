@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 21 tasks done
+Progress: 0 of 22 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -144,3 +144,8 @@ The AST reader gets older every release while the files get newer.
       makes an address constant. Moving the check to the compositor leaves the
       foliator free to say what it does, and the explanation lands where a reader
       can check it.
+- [ ] ! IT CARRIES `a-closing-quote-with-a-comment` WITH IT, but not for free --
+      see that TODO. The lexical reader has no `"""` delimiters and
+      `_strip_strings` blanks the spanning quote first, so *a spanning string in a
+      particular POSITION is a docstring* has to be built before the numpy defect
+      can close.

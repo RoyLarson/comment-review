@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks done
+Progress: 0 of 11 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, reading a census entry: 'in a system that is a
@@ -115,3 +115,8 @@ became `anchor_line`.
       brief.md` tells a role to read `declares`. If a role is given the term, this
       is a vocabulary change as well as a field rename, and
       `scripts/check_vocabulary.py` gates it.
+- [ ] * SEQUENCED AFTER THE PYTHON BRANCH, ruled by Roy 2026-08-21: *"one-stem-
+      four-jobs can be its own branch after the python branch."* ! The order is
+      not arbitrary -- `Paragraph.declares` is the field the python work either
+      keeps or replaces, so renaming it first would rename something that may not
+      survive.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 10 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-21 (the compositor round trip over `corpora/`, 2026-08-21 -- one of 7
@@ -44,3 +44,22 @@ A docstring whose closing `"""` carries a trailing comment is owned twice.
       `prove_unchanged._delimiter_shares_the_line` already refuses a PARAGRAPH-
       comment delimiter sharing a line with code; this is the same shape at a
       docstring's closing quote and has no such guard.
+- [ ] * EXPECTED TO CLOSE WITH THE PYTHON BRANCH, ruled by Roy 2026-08-21: *"the
+      numpy one will fall out automatically with the python one because that is an
+      artifact of using the ast to get docstrings instead of the lexer which would
+      ignore that."*
+- [ ] !! CHECKED THE SAME DAY AT ROY'S REQUEST, AND IT DOES NOT FALL OUT ON ITS
+      OWN. MEASURED: Python's language row has NO delimiters for `"""` --
+      `block_comment` and `doc_block` are both empty -- so `paragraphs_lexical`
+      produces ZERO paragraphs for a Python file. The lexical reader cannot see a
+      docstring at all today.
+- [ ] !! AND ADDING THEM COLLIDES WITH `spanning_quotes`. Python's row already
+      lists `('"""', "'''")` there, and `_strip_strings` BLANKS a spanning quote
+      before the comment-opener test runs -- so giving `"""` a comment delimiter
+      still yielded zero paragraphs in the check. A docstring is a STRING in a
+      particular position, and the position is what the AST supplies.
+- [ ] ! SO IT CLOSES DOWNSTREAM OF A RULE THAT DOES NOT EXIST YET: a spanning
+      string immediately after a `declares` line, or at the head of a file, is a
+      docstring. That is lexable and is one of the three things `python-cannot-
+      read-python` lists the AST as buying. The trailing-comment cut then fixes
+      this defect -- but only after it.
