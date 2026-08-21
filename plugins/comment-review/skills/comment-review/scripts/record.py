@@ -416,11 +416,6 @@ class Finding:
     change: str
     address: str = ""
     anchor: str = ""
-    # !! DEPRECATED, and 0 for a record written since 2026-08-19. The census
-    # INDEX keyed every join until then; it goes stale the moment an `add` or a
-    # `drop` shifts the list, where the address does not. Only the 0.2.x prose
-    # reader still fills it, because an old report on disk carries one.
-    block: int = 0
     original: str = ""
     # !! THE CLAIM AS THE RECORD CARRIED IT. Filled from the file for a JSON
     # record and by `claim_object` at load for a 0.2.x one, so it is empty only
@@ -562,18 +557,6 @@ def _n(count: int, noun: str) -> str:
     ! This output decides whether an agent proceeds.
     """
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
-
-
-# Counts "--- RECORD" OPENERS on their own, independent of whether a closing
-# "---" was ever found. A first record missing its close makes RECORD's
-# non-greedy search skip straight past the second record's opener (it is not a
-# bare "---" line) and swallow both into one match -- the second record's
-# fields silently overwrite the first's and a finding vanishes with no output.
-# Comparing this count against RECORD's match count is how that is caught.
-OPENER = re.compile(r"^---\s*RECORD\s*$", re.M)
-# The section `reviewer-brief.md` sends code problems to. Matched to the next
-# heading or the end, because it is the LAST section of a report by contract.
-CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S | re.I)
 
 
 def claim_text(verdict: str, claim: dict) -> str:
@@ -1022,8 +1005,8 @@ def version_problem(report: dict) -> str | None:
     A file from a future version was read as if it were this one, and the first
     sign of it would have been a field silently absent.
 
-    ! A MISSING version is the 0.2.x text format converted by hand, or a file
-    written before the field existed. Reported, not refused: `--convert` is the
+    ! A MISSING version is a file written before the field existed, or one
+    converted by hand. Reported, not refused: `scripts/replay_held.py` is the
     supported route and it writes the field.
 
     Args:
@@ -1114,16 +1097,13 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--seed", action="store_true", help="write an empty record file")
     ap.add_argument("--check", metavar="PATH", help="check a filled record file")
-    ap.add_argument(
-        "--convert", metavar="PATH", help="a 0.2.x text report, as record JSON"
-    )
     ap.add_argument("--census", required=True, help="census.py --json output")
     ap.add_argument("--reviewer", help="the editorial role's name (--seed only)")
     ap.add_argument("--out", help="the file to write (--seed only)")
     args = ap.parse_args()
 
-    if not args.seed and not args.check and not args.convert:
-        print("nothing to do: pass --seed, --check or --convert")
+    if not args.seed and not args.check:
+        print("nothing to do: pass --seed or --check")
         return 2
     try:
         loaded = json.loads(Path(args.census).read_text(encoding="utf-8"))
@@ -1167,42 +1147,6 @@ def main() -> int:
         # ! An unfilled report is INCOMPLETE, not malformed, and the two exit
         # differently: a reviewer part-way through is not in error.
         print("Every filled record is well formed." if total else "No records.")
-        return 0
-
-    if args.convert:
-        if not args.reviewer or not args.out:
-            print("--convert needs --reviewer and --out")
-            return 2
-        try:
-            text = Path(args.convert).read_text(encoding="utf-8")
-        except READ_ERRORS as e:
-            print(f"CANNOT READ {args.convert} ({type(e).__name__})")
-            return 2
-        # !! IMPORTED HERE, NOT AT THE TOP, and the direction is the point.
-        # `held.py` reads the retired 0.2.x TEXT shape and imports THIS module
-        # to build the current one; importing it back at module scope would
-        # make the pair circular and would say that the current representation
-        # knows the retired one exists. It does not: this is the one entry
-        # point that does.
-        import held  # noqa: PLC0415  -- see above
-
-        findings, malformed = held.parse_report(text, args.reviewer)
-        report = held.convert(findings, census, args.reviewer)
-        # ! CODE CONCERNS travel too. They carry no verdict and are gated by
-        # nothing, which is exactly why a conversion drops them without any
-        # count moving -- measured here, 14 lines that vanished while the
-        # finding totals matched to the paragraph.
-        report["code_concerns"] = held.code_concerns(text)
-        out = Path(args.out)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(report, indent=1), encoding="utf-8")
-        ruled = sum(1 for _, r in every_record(report) if r["verdict"] is not None)
-        # ! The two counts are printed together so a LOSS is visible. A
-        # conversion that quietly dropped findings read as a clean run.
-        print(f"{args.reviewer}: {len(findings)} findings -> {ruled} filled records")
-        print(f"  -> {out}")
-        for line in malformed:
-            print(f"  MALFORMED IN THE SOURCE: {line}")
         return 0
 
     if not args.reviewer or not args.out:

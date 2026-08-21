@@ -213,24 +213,21 @@ class TestTheRetiredWordsStayRetired(unittest.TestCase):
         toml = (REFERENCES / "vocabulary.toml").read_text(encoding="utf-8")
         self.assertIn("`block` is the older word", toml)
 
-    def test_the_EXEMPTION_is_per_file_and_held_carries_it(self):
-        """!! `held.py` reads a format that no longer ships and must say
-        `BLOCK`, because that is the line MARKER in reports already on disk.
+    def test_the_EXEMPTION_is_CLAIMED_BY_NOTHING_that_ships(self):
+        """!! IT WAS `held.py`, AND THE NEED LEFT WITH THE FORMAT. That file read
+        the 0.2.x TEXT report and had to say `BLOCK`, because that is the line
+        MARKER in reports already on disk -- renaming it there made 173 of 173
+        held records unreadable, measured 2026-08-19.
 
-        Renaming it there made 173 of 173 held records unreadable, measured
-        2026-08-19. It is exempt WHOLE, which is why the code that needs the
-        exemption was moved out of `record.py` first -- 473 lines, 30% of a file
-        that announces ONE subject. Roy, 2026-08-19: *"let's make certain to
-        move the code into separate files to make it easy."*
+        The reader moved to `scripts/replay_held.py` on 2026-08-20, which does
+        not ship. Roy: *"we are not carrying a backwards compatible shim right
+        now, particularly on a format that was a proof-of-concept format."* So
+        the exemption still exists and the shipped tree no longer spends it.
+
+        ! A per-FILE out is only safe while it stays rare, and rarest is none.
+        Exempting a file that IS about the current representation would let the
+        retired word creep back one suppression at a time.
         """
-        held = SCRIPTS / "held.py"
-        self.assertTrue(held.exists(), "held.py is where the retired format lives")
-        self.assertIn(cv.NOQA, held.read_text(encoding="utf-8"))
-
-    def test_NO_OTHER_shipped_file_claims_the_exemption(self):
-        # !! A per-FILE out is only safe while it stays rare. Exempting a file
-        # that IS about the current representation would let the retired word
-        # creep back one suppression at a time.
         claimed = [
             f.name
             for f in sorted((REPO / "plugins").rglob("*"))
@@ -238,4 +235,4 @@ class TestTheRetiredWordsStayRetired(unittest.TestCase):
             and f.suffix in (".md", ".py", ".toml")
             and cv.NOQA in f.read_text(encoding="utf-8")
         ]
-        self.assertEqual(claimed, ["held.py"])
+        self.assertEqual(claimed, [])

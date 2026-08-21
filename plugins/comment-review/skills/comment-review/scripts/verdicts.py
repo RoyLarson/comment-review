@@ -94,7 +94,7 @@ from desk import (  # noqa: E402  -- path shim must run first
     source_problem,
 )
 from foliator import FRONT, series_of  # noqa: E402  -- path shim first
-from held import address_of, load_report  # noqa: E402  -- path shim must run first
+from held import load_report  # noqa: E402  -- path shim must run first
 from page import (
     HOLDS_NO_PROSE,  # noqa: E402  -- path shim must run first
 )
@@ -408,20 +408,10 @@ def _report(args: argparse.Namespace) -> int:
         # of them about a finding -- cannot arise, because nobody transcribed
         # anything.
         for f in records:
-            # !! THE DEPRECATED FORMAT'S INDEX IS TRANSLATED HERE. A 0.2.x report
-            # keys by census POSITION, and a `clean` record in it writes that
-            # index alone with no address at all -- so without this every old
-            # report joins as "names no paragraph". Everything downstream is
-            # address-keyed.
-            #
-            # ! `held.address_of` OWNS THE RULE. It was written out here and
-            # NOT in `held.convert`, so a held report joined and did not
-            # convert: `convert` grouped on `f.address`, every held finding
-            # landed under "", and it returned a file of null verdicts and
-            # exited 0. Measured 2026-08-19, 3 of 3 dropped on a six-line file.
-            # One bridge across the format change, built twice and finished
-            # once.
-            f.address = address_of(f, paragraphs)
+            # ! THE RECORD CARRIES ITS OWN ADDRESS. A census INDEX was
+            # translated here until 2026-08-20 -- the 0.2.x report keyed by
+            # POSITION -- and that reader now lives in `scripts/replay_held.py`,
+            # which converts before anything reaches this gate.
             held = entry_for(f.address, paragraphs) or {}
             # !! ANY EDIT PROPOSED ON FRONT MATTER BECOMES A `query`. Roy,
             # 2026-08-19: an agent looking to edit that area gets an automatic
