@@ -76,6 +76,40 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+### The retired report format is DELETED, not shimmed
+
+!! **`verdicts.py` READ THREE SHAPES AND NOW READS ONE.** Roy, 2026-08-20: *"we are not carrying a
+backwards compatible shim right now, particularly on a format that was a proof-of-concept
+format ... git can recover them if we ever need to figure out how that was done."* A shim under
+`plugins/` is copied into someone else's `.claude/`, where an agent reads it as current.
+
+| gone | what it was |
+| --- | --- |
+| the 0.2.x TEXT report | `--- RECORD` / `BLOCK n \| path:start-end`, keyed by census POSITION |
+| the flat JSON `records` list | every record carrying its whole address, superseded by the page envelope |
+
+A report that is not `.json` is now refused BY NAME rather than parsed. `held.py` walks the page
+envelope alone -- **612 lines to 186**.
+
+! **WHAT WENT WITH IT, because nothing else ever filled or read it**: `Finding.block` (the census
+index -- only the text reader set it), `held.address_of` (whose one job was translating that
+index), `record.OPENER` and `record.CODE_CONCERNS`. The shipped tree also stopped needing the
+`# noqa: vocabulary` exemption at all -- `held.py` said `BLOCK` because it had to read reports
+that spell it that way, and **no shipped file says it now**.
+
+! **THE EVIDENCE PACKAGES WERE CHECKED BEFORE DELETING.** All 8 record files under `evidence/`
+are in the flat shape, and none is read by any script, eval or gate. They are records of what
+happened, not inputs. `docs/history.md` says what each shape looked like and where the reader is
+in the history.
+
+**Tests: 755 to 707.** 41 deleted whose SUBJECT was the retired parser, and `TestCLI`'s fixtures
+rewritten as record files -- the gate reads JSON, so its tests feed JSON.
+
+! **A DEAD-NAME SWEEP came with it.** Ruff flags an unused import and an unused local; a
+module-level constant nobody reads is invisible to it. That is how `record.ANCHOR_SIDE` survived
+(filed, [`anchor-side-is-dead`](../TODO/anchor-side-is-dead.md)) and how two constants went dead
+in one session with no gate noticing.
+
 ### A place is DEFINED now, and that was the weak link
 
 !! **THE PREVIOUS VERSION NEVER DEFINED WHAT A PLACE WAS.** It named one by LINE --
