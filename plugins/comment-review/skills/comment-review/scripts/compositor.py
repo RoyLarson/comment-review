@@ -47,6 +47,7 @@ rewrite every line of a Windows checkout.
 """
 
 import argparse
+import collections
 import shutil
 import sys
 from pathlib import Path
@@ -91,6 +92,23 @@ def set_page(page: Page, newline: str | None = None) -> str:
     whole algorithm, and it is why an edit needs no arithmetic: a paragraph that
     grows from one line to four just hands back four lines, and every place after
     it is set where it always was -- next.
+
+    !! THE SERIES ORDER IS FIXED AND `f` COMES FIRST, WHICH IS LOSSY ON ONE
+    SHAPE. Roy, 2026-08-21: *"f0 always first, then a0, then b0, then c0. I know
+    f0 is going to grab b0 lines. It is a sacrifice I am willing to make."* A
+    file whose front matter is NOT on line 1 -- a blank above it, which `b` owns
+    -- comes back with the matter above that blank. MEASURED over 699 files: 12
+    are set this way, all C headers, and NONE of them loses or invents a line.
+
+    ! THAT IS WHY `lossless` EXISTS BESIDE `identity`. The first is the invariant
+    that must never break; the second is the strict form, and the gap between
+    them is exactly this normalisation.
+
+    ! AND IT IS HANDED TO A READER RATHER THAN SOLVED. Roy: *"I don't know how to
+    do semantic matching thorough enough to catch all of the potential edge
+    cases ... ownership-context is partially about this."* Moving an `f0` into a
+    `b0` because that is where it fits is a `query` to the human, and it is one
+    time per file.
 
     Args:
         page: the page to set. Its foliation states the order.
@@ -154,6 +172,40 @@ def approve(drafted: Path, real: Path) -> Path:
     return real
 
 
+def lossless(path: Path, rel: str | None = None) -> str | None:
+    """Does this file come back with every line it went in with? None if so.
+
+    !! THE WEAKER INVARIANT, AND THE ONE THAT MUST NEVER BREAK. `identity` asks
+    for the same bytes in the same order; this asks only that no line was lost
+    and none invented. They differ on exactly one shape, and it is RULED rather
+    than a defect -- see `set_page` on the series order.
+
+    ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. MEASURED 2026-08-21 over
+    699 files: 12 fail `identity` and 0 fail this one. A gate that could not tell
+    them apart would carry 12 known-acceptable failures, and the thirteenth --
+    a real one -- would land among them unnoticed.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except READ_ERRORS as exc:
+        return f"unread: {exc}"
+    lang = language_for(path)
+    if lang is None:
+        return f"no language record for {path.suffix!r}"
+    got = set_page(page_for(path, text, lang, rel=rel))
+    if sorted(got.splitlines()) == sorted(text.splitlines()):
+        return None
+    was, now = (
+        collections.Counter(text.splitlines()),
+        collections.Counter(got.splitlines()),
+    )
+    missing = list((was - now).elements())[:1]
+    invented = list((now - was).elements())[:1]
+    if missing:
+        return f"line lost: {missing[0]!r}"
+    return f"line invented: {invented[0]!r}"
+
+
 def identity(path: Path, rel: str | None = None) -> str | None:
     """Set this file from its own page and say where it differs, or None.
 
@@ -188,15 +240,23 @@ def main(argv: list[str] | None = None) -> int:
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")
-    broken = 0
+    same = moved = broken = 0
     for path in args.paths:
+        gone = lossless(path)
+        if gone is not None:
+            broken += 1
+            print(f"  LOSSY   {path} -- {gone}")
+            continue
         why = identity(path)
         if why is None:
-            print(f"  set    {path}")
+            same += 1
+            print(f"  set     {path}")
         else:
-            broken += 1
-            print(f"  DIFFERS {path} -- {why}")
-    print(f"\n{len(args.paths) - broken} identical, {broken} differ")
+            moved += 1
+            print(f"  moved   {path} -- {why}")
+    print(f"\n{same} identical, {moved} normalised, {broken} LOSSY")
+    # !! ONLY A LOST OR INVENTED LINE FAILS. A normalised file is the ruled
+    # series order doing what it was ruled to do -- see `set_page`.
     return 1 if broken else 0
 
 

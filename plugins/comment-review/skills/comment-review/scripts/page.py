@@ -891,14 +891,25 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
         if series and series != GAP and b.original_start:
             exact.update(range(b.original_start, b.original_end + 1))
 
-    def recut(b: Paragraph) -> None:
-        """Give this paragraph its share of the gap, on both ranges."""
+    def recut(b: Paragraph, mine: set[int] | None = None) -> None:
+        """Give this paragraph its share of the gap, on both ranges.
+
+        !! A `b` TAKES THE FREE LINES AND ONLY THOSE. Roy, 2026-08-21, ruling on
+        a blank line above front matter: *"b owns the blank line -- same answer
+        as the blanks around a's and c's for the same reason. it is the flex in
+        the system. it makes the covering precise and full."* ! The span was
+        sliced whole, so a `b` whose free lines are not contiguous took the
+        paragraph sitting inside it as well: `cpython/Include/floatobject.h`
+        opens with a BLANK, `f0` holds line 2, and `b0` held 1-7 -- the comment
+        set twice.
+        """
         if b.end >= b.start >= 1:
             b.original_start, b.original_end = b.start, b.end
             # ! `raw_lines` is what `galley.paragraph_matches` compares against
             # the file, over exactly this range. Leaving it as the prose alone
             # made a FRESH census read as stale on every widened paragraph.
-            b.raw_lines = source[b.start - 1 : b.end]
+            own = [n for n in range(b.start, b.end + 1) if mine is None or n in mine]
+            b.raw_lines = [source[n - 1] for n in own]
         else:
             # ! NO LINE CARRIES THIS FOLIATION, and that is the whole
             # answer. Where prose would GO is not recorded: Roy,
@@ -941,5 +952,6 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
         for a, nxt_block in zip(here, here[1:], strict=False):
             a.end = nxt_block.start - 1
         here[-1].end = free[-1]
+        owned = set(free)
         for b in here:
-            recut(b)
+            recut(b, owned)

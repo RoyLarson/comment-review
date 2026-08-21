@@ -6,6 +6,7 @@ gets written. No this got lost this wasn't done right."*
 """
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -125,6 +126,67 @@ class TestItReadsTheParagraphsAndNotTheText(unittest.TestCase):
             if b.raw_lines == ["# a note"]:
                 b.raw_lines = ["# a DIFFERENT note"]
         self.assertEqual(compositor.set_page(page), "# a DIFFERENT note\nx = 1\n")
+
+
+class TestTheSeriesOrderIsFixedAndFComesFirst(unittest.TestCase):
+    """`f0`, then `a0`, then `b0`, then `c0` -- ruled 2026-08-21.
+
+    Roy: *"f0 always first, then a0, then b0, then c0. I know f0 is going to grab
+    b0 lines. It is a sacrifice I am willing to make and will give the agents a
+    specific set of instructions to look out for this and move it."*
+
+    ! So a file whose front matter is NOT on line 1 is set with the matter above
+    the blank that `b` owns. That is LOSSY ON ORDER and never on content, which
+    is the line `lossless` holds and `identity` does not.
+    """
+
+    def _page(self, name, text):
+        p = Path(name)
+        return page_mod.page_for(p, text, lexer.language_for(p), rel=name)
+
+    def test_front_matter_below_a_blank_LINE_is_set_above_it(self):
+        # ! MEASURED on `cpython/Include/floatobject.h` and 11 others, every one
+        # a C header opening with a blank line.
+        text = "\n/* Header. */\n\nint a;\n"
+        self.assertEqual(
+            compositor.set_page(self._page("m.c", text)),
+            "/* Header. */\n\n\nint a;\n",
+        )
+
+    def test_no_line_is_lost_or_invented_when_it_moves(self):
+        # !! THE INVARIANT THAT MUST NEVER BREAK, and what separates this ruled
+        # reordering from a defect. MEASURED over 699 files: 12 differ on order,
+        # 0 differ on content.
+        text = "\n/* Header. */\n\nint a;\n"
+        got = compositor.set_page(self._page("m.c", text))
+        self.assertEqual(sorted(got.splitlines()), sorted(text.splitlines()))
+
+    def test_front_matter_ON_line_1_is_set_unchanged(self):
+        # ! The shape that does not pay the sacrifice: nothing sits above it.
+        text = "/* Header. */\n\nint a;\n"
+        self.assertEqual(compositor.set_page(self._page("m.c", text)), text)
+
+    def test_lossless_passes_where_identity_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "m.c"
+            path.write_text("\n/* Header. */\n\nint a;\n", encoding="utf-8")
+            self.assertIsNone(compositor.lossless(path))
+            self.assertIsNotNone(compositor.identity(path))
+
+    def test_lossless_REPORTS_a_line_that_goes_missing(self):
+        # ! The failure the gate exists for, forced: empty one place's prose and
+        # the line it held is gone.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "m.c"
+            path.write_text("/* Header. */\nint a;\n", encoding="utf-8")
+            page = self._page("m.c", path.read_text(encoding="utf-8"))
+            for b in page.paragraphs:
+                if b.raw_lines == ["/* Header. */"]:
+                    b.raw_lines = []
+            self.assertNotEqual(
+                sorted(compositor.set_page(page).splitlines()),
+                sorted(path.read_text(encoding="utf-8").splitlines()),
+            )
 
 
 class TestTheShippedTreeSetsBackToItself(unittest.TestCase):

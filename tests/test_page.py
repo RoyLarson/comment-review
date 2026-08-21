@@ -230,21 +230,40 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
                 for b in page.page_for(path, text, lexer.language_for(path)):
                     self.assertTrue(b.anchor, f"{name}: {b.address} has no anchor")
 
-    def test_raw_lines_still_matches_the_range_it_covers(self):
-        # !! THE GALLEY COMPARES THEM. `paragraph_matches` reads `raw_lines`
-        # over the ORIGINAL range, so widening one without the other makes a
-        # census refuse the file it was just built from.
+    def test_raw_lines_are_the_lines_this_paragraph_OWNS(self):
+        # !! THEY ARE NOT THE WHOLE RANGE, since 2026-08-21. A `b` takes the
+        # lines of its gap that no other series owns exactly -- Roy: *"b owns the
+        # blank line -- same answer as the blanks around a's and c's for the same
+        # reason. it is the flex in the system. it makes the covering precise and
+        # full."* So a gap holding an `f0` runs THROUGH it: the range spans it,
+        # `raw_lines` does not, and the two together are what makes the covering
+        # precise.
+        #
+        # ! It read `raw_lines == the range's lines` before, because the SPLICING
+        # galley compared them that way. That galley is what the compositor
+        # replaces, and its successor checks an anchor rather than a range.
         for name, text in self.SHAPES.items():
             with self.subTest(shape=name):
                 path = Path("m.py")
                 lines = text.splitlines()
-                for b in page.page_for(path, text, lexer.language_for(path)):
+                built = page.page_for(path, text, lexer.language_for(path))
+                exact = {
+                    n
+                    for other in built
+                    if other.address.split("@")[-1][:1] != "b"
+                    for n in covers(other)
+                }
+                for b in built:
                     held = covers(b)
                     # ! A `c` stores only the half of its first line that is
                     # prose, so `raw_lines` is not that line whole.
                     if b.original_column or not held:
                         continue
-                    want = [lines[n - 1] for n in held]
+                    # ! Every other series owns its range exactly; only a `b`
+                    # gives way to what sits inside it.
+                    is_gap = b.address.split("@")[-1][:1] == "b"
+                    mine = [n for n in held if not (is_gap and n in exact)]
+                    want = [lines[n - 1] for n in mine]
                     self.assertEqual(
                         [ln.rstrip() for ln in b.raw_lines],
                         [ln.rstrip() for ln in want],
