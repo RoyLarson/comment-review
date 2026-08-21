@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 8 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -52,3 +52,16 @@ Two prose paragraphs in one gap answer to the SAME address.
       an 'Import Linting Strategy' note; under the 2026-08-21 ruling the first run
       becomes `f0` and only the second holds `b0`. ! What remains here is the case
       where BOTH paragraphs are mid-file and neither is matter.
+- [ ] !! IT NOW BLOCKS THE COMPOSITOR, WHICH IS A HARDER CONSEQUENCE THAN THE ONE
+      FILED. MEASURED 2026-08-21 over 699 files: 626 set back to themselves and
+      ALL 626 have ZERO shared addresses; 64 differ and ALL 64 have shared
+      addresses. A compositor sets from the FOLIO, so two paragraphs at one
+      address overwrite each other and the page cannot be reconstructed at all.
+- [ ] ! SO THE IDENTITY IS NOW A MECHANICAL DETECTOR FOR THIS.
+      `compositor.identity(path)` is None exactly when a file's addressing is
+      unique. ! And it is why the FIRST compositor's 699/699 meant less than it
+      looked: it keyed on `original_start`, which is unique per paragraph, so it
+      was green over 157 collisions.
+- [ ] ! `--edits` HAS THE SAME DEPENDENCY. `galley.py` is keyed by address, so a
+      shared one means `reset` cannot know which paragraph an edit means -- the
+      same reason `record.entry_for` returns the first and refuses correct work.

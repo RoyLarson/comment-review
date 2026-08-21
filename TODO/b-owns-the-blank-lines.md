@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 7 tasks done
+Progress: 6 of 12 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-20 (Roy, 2026-08-20: 'on the original every line belongs to 1
@@ -54,3 +54,25 @@ The original range leaves 105 blank lines owned by nothing, and 25 blanks go to 
 - [ ] * THE GALLEY HALF, which Roy named and which is not this TODO: strip empty
       lines at the ends of a `b` on write, then put one back for spacing. Deferred
       with the rest of the galley work.
+- [ ] !! MINE, 2026-08-21, AND IT SETS PROSE TWICE. `fill_the_gaps` computes a
+      `b`'s FREE lines -- excluding every line an `a`, `c` or `f` owns exactly --
+      and then `recut` slices `source[start - 1 : end]` over the WHOLE span
+      anyway. A `b` whose free lines are not CONTIGUOUS therefore swallows the
+      paragraph sitting inside it.
+- [ ] MEASURED on `corpora/cpython/Include/floatobject.h`, which opens with a
+      BLANK line: `f0` holds line 2 (`/* Float object interface */`) and `b0`
+      holds 1-7, so the comment appears in both and the compositor sets it twice.
+      9 files of 699, all the same shape -- a file whose front matter is not on
+      line 1.
+- [ ] ! IT WAS UNREACHABLE BEFORE THE MATTER RULE. Front matter resolved only in
+      Python and only above a module docstring, so an `f` place never sat inside a
+      gap with a blank above it. The rule going positional is what made the shape
+      common.
+- [ ] * RULING WANTED: WHO OWNS A BLANK LINE ABOVE FRONT MATTER. Giving it to `f0`
+      keeps the tiling total and reads as the file's own head. Leaving it to the
+      `b` cannot work -- a `b` is contiguous, and the compositor sets places in
+      order, so a `b` owning lines 1 and 3-7 around an `f0` at 2 would set line 1
+      AFTER line 2.
+- [ ] ! THE INVARIANT AT STAKE is that the page TILES its file: every line belongs
+      to exactly one place. That is what makes the compositor total, and this is
+      the only measured shape that breaks it.
