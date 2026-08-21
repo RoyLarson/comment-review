@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 5 tasks done
+Progress: 3 of 6 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-20 (the /code-review high of 2026-08-20; the Rust case verified in-
@@ -53,3 +53,8 @@ The lexer misreads three shapes of ordinary code.
       cuts against Roy's 2026-08-20 ruling that dropped `edit_column` because the
       address system resolved what it was for. ! The other route is a kind for
       comment-then-code, symmetric to `trailing-comment`.
+- [x] [DONE 2026-08-20] A NESTED paragraph comment closes only when every layer
+      does. `/* a /* b */ c */` censused ZERO prose on Rust -- the scan closed at
+      the first `*/`, saw more comment after it, and applied the intermediate-
+      comment rule. `run_ends` carries the depth across lines and `nests_comments`
+      is a data row on rust, swift, kotlin.

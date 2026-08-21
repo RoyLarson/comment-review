@@ -417,6 +417,11 @@ class Language:
             *"we need to be able to distinguish `a` foliations for as many
             languages as there are `a` possible foliations. yaml, toml are not
             ones."* A YAML file was given an `a0` it can never fill.
+        nests_comments: an opener INSIDE a paragraph comment adds a LAYER, so the
+            run closes only when every one of them does. Rust, Swift and Kotlin;
+            C, C++, Java, C#, JS, TS, Go and SQL do NOT, and there the first
+            closer wins. ! Lua nests only through its `--[==[` long-bracket
+            form, which is a different opener, so it is False.
         doc_inside: the documentation is the first thing INSIDE the body, not
             the run ABOVE the declaration. Python alone, and it is why Python
             needs a parser where a keyword match is enough elsewhere: `///`
@@ -433,6 +438,7 @@ class Language:
     doc_is_structural: bool = False
     quotes: tuple[str, ...] = ('"', "'")
     char_quotes: tuple[str, ...] = ()
+    nests_comments: bool = False
     spanning_quotes: tuple[str, ...] = ()
     declares: tuple[str, ...] = ()
     doc_inside: bool = False
@@ -467,6 +473,8 @@ LANGUAGES: tuple[Language, ...] = (
         ("///", "//!", "//"),
         (("/*", "*/"),),
         doc_line=("///", "//!"),
+        # ! Rust nests its paragraph comments.
+        nests_comments=True,
         # !! AND A LIFETIME IS NOT A LITERAL. `&'static str` opens a `'` that
         # never closes, so reading it as a quote blanked the rest of the line --
         # comment included. `char_quotes` is what tells the two apart.
@@ -595,6 +603,8 @@ LANGUAGES: tuple[Language, ...] = (
         (("/*", "*/"),),
         doc_line=("///",),
         doc_block=("/**",),
+        # ! Swift nests its paragraph comments.
+        nests_comments=True,
         # ! `let` and `var` are left out: they open a local as readily as a
         # property, so including them would declare every local binding.
         declares=(
@@ -628,6 +638,8 @@ LANGUAGES: tuple[Language, ...] = (
         (("/*", "*/"),),
         doc_block=("/**",),
         char_quotes=("'",),
+        # ! Kotlin nests its paragraph comments.
+        nests_comments=True,
         # ! `val` and `var` are left out, for the reason Swift's are.
         declares=(
             "fun",
@@ -811,6 +823,54 @@ def _strip_strings(
     return "".join(out)
 
 
+def run_ends(
+    text: str, pair: tuple[str, str], nests: bool, depth: int = 1
+) -> tuple[int, int]:
+    """Where a paragraph comment run ENDS in this text, and the depth left open.
+
+    !! IT DOES NOT CLOSE UNTIL EVERY LAYER DOES, where the language nests.
+    `/* a /* b */ c */` is ONE comment in Rust and the `c` is inside it; in C the
+    first `*/` closes and ` c */` is code. Reading the nesting one as the flat one
+    lost the WHOLE comment: the scan closed early, saw more comment after it, and
+    applied the intermediate-comment rule -- which is about code after a mid-line
+    close. Measured 2026-08-20, a Rust trailing comment censused as zero prose.
+
+    ! WHERE IT MATTERS IS THE TRAILING COMMENT. Roy, 2026-08-20: *"the only place
+    we need to care is if it is a trailing comment."* A `b` needs no depth -- a
+    gap cannot hold a line of code, so the code either side bounds it -- and no
+    language here marks documentation with a bare paragraph opener -- every one
+    of them uses a distinguished `/**` or `///` -- so depth cannot
+    change what counts as a doc.
+
+    Args:
+        text: what to scan -- the tail after an opener, or a continuation line.
+        pair: this language's `(opener, closer)`.
+        nests: whether an opener INSIDE the run adds a layer.
+        depth: layers already open, 1 on the line that opened the run.
+
+    Returns:
+        `(index just past the closer that ended it, 0)` where the run closes in
+        this text, or `(-1, depth)` where it does not.
+    """
+    opener, closer = pair
+    i = 0
+    while i < len(text):
+        # ! The CLOSER is tested first, because `--[[` and `]]` share no prefix
+        # but a language whose pair overlapped would otherwise never close.
+        if text.startswith(closer, i):
+            i += len(closer)
+            depth -= 1
+            if depth == 0:
+                return i, 0
+            continue
+        if nests and text.startswith(opener, i):
+            i += len(opener)
+            depth += 1
+            continue
+        i += 1
+    return -1, depth
+
+
 def _own_characters(span: list[str], column: int) -> list[str]:
     """A paragraph's own characters: its lines, cut at `column` on the first.
 
@@ -895,6 +955,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     # last comment line.
     pending: list[tuple[int, str]] = []
     in_block: tuple[str, str] | None = None
+    # ! LAYERS STILL OPEN on a run that crossed a line -- see `run_ends`. Always
+    # 1 where the language does not nest.
+    layers = 1
     # ! The line the last trailing comment ended on. Measured: this tier splits a
     # wrapped trailing comment exactly as `paragraphs_stdlib` does, so it needs the
     # same stamp. A list because `flush` is a closure and rebinds nothing.
@@ -982,9 +1045,10 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # four reviewers as prose and run through the annotation regexes.
             # ! The file recorded this as fixed for the OPENING line; the closing
             # line was never covered. Measured 2026-08-20 on C.
-            closes_at = raw_line.find(in_block[1])
-            if closes_at >= 0:
-                ends = closes_at + len(in_block[1])
+            # ! CARRIES THE DEPTH, so a nested opener on an earlier line keeps
+            # the run open past the closer that matches it.
+            ends, layers = run_ends(raw_line, in_block, lang.nests_comments, layers)
+            if ends >= 0:
                 run.append((n, raw_line[:ends].rstrip()))
                 in_block = None
                 flush()
@@ -1036,10 +1100,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # shape as the `//`-before-`/*` case fixed directly above.
             opens_at = code.index(opened[0])
             tail = code[opens_at + len(opened[0]) :]
-            closes_here = opened[1] in tail
-            after = (
-                tail[tail.index(opened[1]) + len(opened[1]) :] if closes_here else ""
-            )
+            ends_at, layers = run_ends(tail, opened, lang.nests_comments)
+            closes_here = ends_at >= 0
+            after = tail[ends_at:] if closes_here else ""
             # !! AN INTERMEDIATE COMMENT IS NOT CENSUSED -- one that CLOSES on
             # this line with code after it, `int x = /* why */ 5;`. Roy ruled it
             # 2026-08-19, on the same grounds as a Python type annotation: *"they

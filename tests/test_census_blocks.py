@@ -476,6 +476,66 @@ class TestARunsCLOSINGLineIsCutAtTheCloser(unittest.TestCase):
         self.assertEqual((prose[0].start, prose[0].end), (1, 3))
 
 
+class TestANESTEDBlockCommentClosesWhenEVERYLayerDoes(unittest.TestCase):
+    """`/* a /* b */ c */` is ONE comment where the language nests.
+
+    !! IT COST THE WHOLE COMMENT. Measured 2026-08-20 on Rust: `let a = 1; /*
+    outer /* inner */ still comment */` censused ZERO prose paragraphs. The scan
+    closed at the FIRST `*/`, saw ` still comment */` after it, and applied the
+    intermediate-comment rule -- which says a comment closing mid-line with code
+    after it is not censused. There was no code after it; there was more comment.
+
+    !! NESTING IS A DATA ROW, PER LANGUAGE. Rust, Swift and Kotlin nest their
+    block comments; C, C++, Java, C#, JS, TS, Go and SQL do not, and there the
+    first closer still wins. Lua nests only through its `--[==[` long-bracket
+    form, which is a different opener, so it does not.
+
+    ! WHERE IT MATTERS IS THE TRAILING COMMENT. Roy, 2026-08-20: *"the only
+    place we need to care is if it is a trailing comment."* A `b` needs no depth
+    -- a gap cannot hold a line of code, so its bounds are the code either side
+    -- and no language here marks documentation with a bare `/*`, so depth
+    cannot change what counts as a doc either.
+    """
+
+    def _prose(self, name, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / name
+            path.write_text(text, encoding="utf-8")
+            got = page.page_for(path, text, lexer.language_for(path))
+        return [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
+
+    NESTED = "let a = 1; /* outer /* inner */ still comment */\nlet b = 2;\n"
+
+    def test_the_whole_nested_run_is_ONE_trailing_comment(self):
+        prose = self._prose("a.rs", self.NESTED)
+        self.assertEqual([b.kind for b in prose], ["trailing-comment"])
+        self.assertEqual(prose[0].text, "/* outer /* inner */ still comment */")
+
+    def test_it_spans_lines_the_same_way(self):
+        prose = self._prose(
+            "a.rs", "let a = 1; /* outer\n   /* inner */\n   still */\nlet b = 2;\n"
+        )
+        self.assertEqual([b.kind for b in prose], ["trailing-comment"])
+        self.assertEqual((prose[0].start, prose[0].end), (1, 3))
+
+    def test_a_language_that_does_NOT_nest_still_closes_at_the_first(self):
+        # !! THE GUARD. In C the first `*/` closes it and ` still comment */` is
+        # code after a mid-line close -- which the intermediate-comment ruling
+        # says is not censused. Unchanged by this.
+        self.assertEqual(self._prose("a.c", self.NESTED.replace("let", "int a")), [])
+
+    def test_an_ORDINARY_block_comment_is_unaffected_where_it_nests(self):
+        prose = self._prose("a.rs", "let a = 1; /* just the one */\n")
+        self.assertEqual([b.text for b in prose], ["/* just the one */"])
+
+    def test_LUA_long_brackets_do_not_nest(self):
+        # ! `--[[ ]]` nests only via `--[==[`, a different opener, so the first
+        # `]]` closes this. ! The leading `--` is off because Lua's LINE comment
+        # marker is `--` and `_join` strips it -- nothing to do with nesting.
+        prose = self._prose("a.lua", "local a = 1 --[[ outer --[[ inner ]]\n")
+        self.assertEqual([b.text for b in prose], ["[[ outer --[[ inner ]]"])
+
+
 class TestACPlaceCarriesItsAnchor(unittest.TestCase):
     """The line of code a trailing comment sits beside, VERBATIM.
 
