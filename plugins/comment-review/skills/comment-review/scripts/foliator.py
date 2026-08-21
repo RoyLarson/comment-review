@@ -21,8 +21,9 @@ numbers a page.
 ! The form this replaced named a paragraph by LINE, `a.py:33-34`, which answers
 "where is this in the file I just read" and cannot answer "which place is this":
 this tool EDITS PROSE, and every prose edit moves the line numbers of the code
-below it. `line_address()` still reads the old form, warns, and is kept only to
-parse runs already recorded.
+below it. ! That form was READ here until 2026-08-20, warning on every call, so
+a run already recorded could be parsed. It is DELETED: nothing called it, and
+`docs/history.md` says where the reader is in the history.
 
 !! AN ADDRESS IS NOT A SPAN OF LINES. EVERY LINE HAS EXACTLY ONE ADDRESS, AND A
 PARAGRAPH IS JUST THE LINES THAT SHARE ONE. Ruled 2026-08-19. ! Read it as a range
@@ -132,16 +133,16 @@ series: re-measured over 10,744 paragraphs, 0 shared places.
 ! So an address alone identifies a place, and a record needs nothing beside it.
 `--check` re-reads that claim on every run rather than trusting this paragraph.
 
-!! BOTH NAMINGS LIVE HERE, which is what the module is named for -- `address`,
-and the `line_address` it replaced. One owner is what stops them drifting: they
-were computed in two modules for an hour and agreed, which is exactly the
-property that cannot be relied on.
+!! ONE NAMING LIVES HERE, and the module is named for owning it. The LINE form
+it replaced was kept beside it for a while, because one owner is what stops two
+namings drifting -- they were computed in two modules for an hour and agreed,
+which is exactly the property that cannot be relied on. There is nothing left to
+drift from.
 """
 
 import argparse
 import json
 import sys
-import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -191,70 +192,6 @@ FRONT = "f"
 # ! ORDER IS THE ORDER A READER MEETS THEM: the file's own matter, then a
 # declaration's documentation, the gap above a line, the room beside it.
 SERIES = (FRONT, DECLARED, GAP, ON)
-
-
-def line_address(paragraph: dict) -> str:
-    """DEPRECATED. `path:start-end` -- how this system named a paragraph until 0.2.4.
-
-    !! IT IS DEPRECATED BECAUSE IT IS TRUE OF ONE FILE STATE ONLY, and this
-    tool edits prose: every prose edit moves the line numbers of the code below
-    it. Roy ruled it out 2026-08-18 -- the one reason to keep reading it is to
-    parse RUNS ALREADY RECORDED, so `evidence/` can be compared against the
-    format that replaced it. `address()` is that format.
-
-    !! IT WARNS ON EVERY CALL, deliberately. Roy: "any function method or
-    otherwise that uses that form gets a deprecated warning on it now. To make
-    certain it comes out." A note would have to be found; this arrives at
-    whoever runs the code. `tests/test_foliation.py` holds the shipped tree to
-    zero callers outside the legacy reader.
-
-    ! It was one format with one owner, and that is why it is still readable:
-    the four sites that wrote it had drifted, and the one measured divergence
-    cost 268 refusals in a single run, every one of them a correct address.
-
-    !! IT NAMES TWO DIFFERENT THINGS AND THE FORMAT CANNOT TELL YOU WHICH.
-    On a paragraph that HOLDS prose, `start-end` is the lines that prose occupies,
-    inclusive. On an INTERVAL it is the two lines of CODE that BOUND a gap --
-    `a.py:33-34` there means "between 33 and 34", where the same string on a
-    comment means "lines 33 through 34".
-
-    ! The gap is not necessarily empty of LINES: it is whatever sits between
-    those two, nothing or blank lines, and `reviewer-brief.md` tells a reviewer
-    its `change` replaces all of it. What it holds no more of is PROSE, which is
-    why an interval is always `0L`. Read the KIND, or that count, to know which
-    reading applies -- a paragraph holding prose is never `0L`.
-
-    !! AND IT IS TRUE OF ONE FILE STATE ONLY. This tool EDITS PROSE, and every
-    prose edit moves the line numbers of the code below it, so an address is
-    valid for the file its census was built from and no other. Measured
-    2026-08-18 on a prose-only edit to a single docstring: 2 of 3 prose paragraphs
-    took a NEW line address, and 0 of 3 took a new one from `foliator.py`,
-    which names a place against the CODE rather than the lines. Use this to say
-    where a thing is in the file you just read; use the foliation to say which
-    PLACE it is across two states of that file.
-
-    ! The consequence is not cosmetic: a range REPLACE over an interval's
-    address deletes both bounding statements instead of inserting between them.
-    `galley.py` avoids that by branching on `kind == "interval"`, which is a
-    consumer inferring what this producer knows -- the record should carry the
-    OPERATION instead. Raised by Roy 2026-08-18 reading a filtered census.
-
-    Args:
-        paragraph: one census entry, as a dict.
-
-    Returns:
-        The paragraph's line address, in the format retired at 0.2.4.
-    """
-    warnings.warn(
-        "line_address() is deprecated: a line address is true of ONE file"
-        " state, and this tool edits prose. Use address(), which names a place"
-        " against the code. This form is read only to parse runs already"
-        " recorded.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    path = str(paragraph.get("path", "")).replace("\\", "/")
-    return f"{path}:{paragraph.get('start')}-{paragraph.get('end')}"
 
 
 #: The FIRST TRIGGER every foliator steps past: the file itself, before any line

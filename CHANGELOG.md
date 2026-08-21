@@ -105,6 +105,12 @@ in the history.
 **Tests: 755 to 707.** 41 deleted whose SUBJECT was the retired parser, and `TestCLI`'s fixtures
 rewritten as record files -- the gate reads JSON, so its tests feed JSON.
 
+! **AND THE LINE ADDRESS READER WENT WITH IT.** `foliator.line_address()` named a paragraph
+`path:start-end` -- retired as a NAMING at 0.2.4, and kept afterwards on the same argument the
+report reader used: to parse runs already recorded. A codegraph sweep for shipped symbols nothing
+uses found it with **zero callers anywhere** -- not in `plugins/`, not in `tests/`, not in
+`scripts/`. 63 lines, and the `warnings` import with them.
+
 ! **A DEAD-NAME SWEEP came with it.** Ruff flags an unused import and an unused local; a
 module-level constant nobody reads is invisible to it. That is how `record.ANCHOR_SIDE` survived
 (filed, [`anchor-side-is-dead`](../TODO/anchor-side-is-dead.md)) and how two constants went dead

@@ -280,7 +280,7 @@ differently wherever a consumer had guessed.
 | file | owns |
 | --- | --- |
 | `scripts/page.py` | what a PAGE is -- `Paragraph`, the kind sets over it, and `page_for()`, which builds one |
-| `scripts/foliator.py` | BOTH namings -- `address()`, and the deprecated `line_address()` it replaced |
+| `scripts/foliator.py` | the ONE naming. It carried the deprecated `line_address()` beside it until 2026-08-20; see `docs/history.md` |
 | `scripts/census.py` | STAMPS the address on every block. It is the producer, and consumers read it |
 | `scripts/record.py` | `entry_for(address, blocks)` -- the one lookup from an address to a census entry |
 

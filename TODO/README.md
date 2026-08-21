@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (61)
+### open  (60)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -232,7 +232,6 @@ that changed a published name or rule:
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | session | — | 0/6 | every one re-derivable by a command, and every one wrong |
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | session | — | 0/10 | each passes in the buggy state its own comment forbids |
 | [plugin-version-not-bumped](plugin-version-not-bumped.md) | session | yes | 0/3 | installing this tree overwrites the measured v0.2.3 cache directory |
-| [anchor-side-is-dead](anchor-side-is-dead.md) | session | — | 0/2 | the concept was deliberately removed and the constant stayed |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
 | [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 1/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
 | [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
@@ -295,3 +294,4 @@ the reason is inside the file.
 | [a-hugs-its-declaration-SUPERSEDED](completed/a-hugs-its-declaration-SUPERSEDED.md) | The a -> b -> c order is universal; the error was reading final position as application order |
 | [b-inserts-above-the-shebang-SUPERSEDED](completed/b-inserts-above-the-shebang-SUPERSEDED.md) | No bug: a covered-lines range was read as an insertion point. The field name is the real defect |
 | [the-path-is-repeated-in-every-address](completed/the-path-is-repeated-in-every-address.md) | A reviewer is handed one page per file and a record cites the folio alone; held.py reads both shapes |
+| [anchor-side-is-dead](completed/anchor-side-is-dead.md) | Deleted, with PATHISH and line_address, in the sweep for shipped names nothing reads |

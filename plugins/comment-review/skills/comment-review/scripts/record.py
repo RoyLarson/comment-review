@@ -282,7 +282,6 @@ VERDICTS: dict[str, Verdict] = {
 # ! Backticks are the repo's own citation form -- the brief says cite by symbol
 # or path, never by line number, and every record in it writes a symbol that way.
 # So "named" is checkable without guessing which token is an identifier.
-ANCHOR_SIDE = re.compile(r"\b(above|below|before|after)\b", re.I)
 ANCHOR_NAME = re.compile(r"`[^`\s][^`]*`")
 # !! THE FORM IS PUBLISHED WITH THIS EXAMPLE AND ENFORCED BY THE PATTERN ABOVE,
 # so they are one string rather than two that agree today. `allowed()` used to
@@ -613,16 +612,11 @@ def _half(value: object) -> str:
 # resolves them with the same two, which is why neither module can own them.
 # `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
-# A citation half that is PATH-SHAPED, whether or not it resolves: no whitespace,
-# and a `.` or `/` in it. It is what tells a MALFORMED citation from the wrapped
-# tail of the entry above, and `CITE` alone cannot -- both fail it.
-#
-# !! The space is the discriminator, and it has to be. A verbatim half may hold
-# a `|` of its own: `def _show(repo: Path, ref: str, rel: str) -> str | None:`
-# is a real line in this tree, and its left half is not path-shaped because it
-# holds spaces. A wrapped line whose left half has neither a space nor anything
-# but `.`/`/` would still be misread, which is the residue accepted here.
-PATHISH = re.compile(r"^[^\s]*[./][^\s]*$")
+# ! `PATHISH` STOOD BESIDE IT until 2026-08-20 -- a citation half that is
+# path-shaped whether or not it resolves. It told a MALFORMED citation from the
+# WRAPPED TAIL of the entry above, which is a question only the 0.2.x text
+# report could ask: a `SOURCES` entry there ran across lines. A record file
+# carries a list, so a citation cannot wrap.
 
 # The fields the TOOL fills from the census. ! A mismatch here means the file
 # was CORRUPTED, never that the reviewer misquoted -- it never typed them.

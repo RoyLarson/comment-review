@@ -18,6 +18,45 @@ longer be able to read.
 
 ---
 
+## The LINE address -- `path:start-end`
+
+**Retired as a NAMING at 0.2.4; the reader deleted 2026-08-20.** How this system named a paragraph
+before a place was defined:
+
+```
+redacted_pkg/billing/rates.py:33-34
+```
+
+!! **IT IS TRUE OF ONE FILE STATE ONLY, and this tool EDITS PROSE** -- every prose edit moves the
+line numbers of the code below it. Measured 2026-08-18 on a prose-only edit to a single docstring:
+**2 of 3 prose paragraphs took a new line address, and 0 of 3 took a new folio.**
+
+!! **AND IT NAMED TWO DIFFERENT THINGS WITH NO WAY TO TELL WHICH.** On a paragraph holding prose,
+`33-34` is the lines that prose occupies, inclusive. On an INTERVAL it is the two lines of CODE
+that BOUND a gap -- so the same string means "lines 33 through 34" in one case and "between 33 and
+34" in the other. Reading the KIND, or the `0L` count, was the only way to know.
+
+! **`foliator.line_address()` survived to read it**, warning on every call, on the same argument
+the report reader used: to parse runs already recorded. It was deleted 2026-08-20 with **zero
+callers anywhere** -- not in `plugins/`, not in `tests/`, not in `scripts/`. Found by a codegraph
+sweep for shipped symbols nothing uses.
+
+## Constants that outlived their reader
+
+**Deleted 2026-08-20**, all four found by sweeping the index for shipped names nothing reads:
+
+| gone | what it was for |
+| --- | --- |
+| `record.OPENER` | counted `--- RECORD` openers, to catch a record that never closed |
+| `record.CODE_CONCERNS` | found the text report's last section |
+| `record.PATHISH` | told a MALFORMED citation from the WRAPPED TAIL of the entry above -- a question only the text report could ask, since a `SOURCES` entry there ran across lines |
+| `record.ANCHOR_SIDE` | matched `above`/`below` in an `add`'s payload. The concept was removed on purpose: the ADDRESS says which side |
+
+! **RUFF CANNOT SEE ANY OF THESE.** It flags an unused import and an unused local; a module-level
+constant nobody reads is invisible to it. `ANCHOR_SIDE` survived long enough to be found by a
+review agent READING the file, and three more went dead inside a single session with no gate
+noticing.
+
 ## The reviewer's report: two retired shapes
 
 **Retired 2026-08-20 in `a6da8ad`**, on the branch after 0.2.3. Before that commit, `verdicts.py`
