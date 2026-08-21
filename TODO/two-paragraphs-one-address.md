@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 5 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -47,3 +47,8 @@ Two prose paragraphs in one gap answer to the SAME address.
       Python by giving a docstring its own place -- but see `a-series-never-fills-
       outside-python`, which is why that does not happen here. Fixing that one may
       close this one.
+- [ ] ! THE FRONT-MATTER RULING TAKES ONE OF THE TWO MEASURED CASES OFF THIS TODO.
+      `sentry/eslint.config.ts` shares `@b0` between a 'to get started' header and
+      an 'Import Linting Strategy' note; under the 2026-08-21 ruling the first run
+      becomes `f0` and only the second holds `b0`. ! What remains here is the case
+      where BOTH paragraphs are mid-file and neither is matter.

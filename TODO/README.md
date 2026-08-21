@@ -229,17 +229,17 @@ that changed a published name or rule:
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | session | — | 0/6 | every one re-derivable by a command, and every one wrong |
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | session | — | 0/10 | each passes in the buggy state its own comment forbids |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
-| [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 1/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
+| [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | — | 1/7 | a licence at the bottom of a file belongs to the file, not to the last gap |
 | [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
 | [closing-line-deletes-code](closing-line-deletes-code.md) | session | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | Roy | — | 0/4 | v1.x wants a concrete versioning system on everything that ships |
-| [two-paragraphs-one-address](two-paragraphs-one-address.md) | session | yes | 0/4 | Two prose paragraphs in one gap answer to the SAME address |
+| [two-paragraphs-one-address](two-paragraphs-one-address.md) | session | yes | 0/5 | Two prose paragraphs in one gap answer to the SAME address |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | session | — | 0/3 | foliator --check prints SHARED and exits 0 |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | session | — | 0/12 | Outside Python the `a` place is emitted and never filled |
-| [front-matter-protection-is-python-only](front-matter-protection-is-python-only.md) | session | yes | 0/3 | mark_matter cannot fire outside Python, so a licence header is editable work |
+| [front-matter-protection-is-python-only](front-matter-protection-is-python-only.md) | session | — | 0/7 | mark_matter cannot fire outside Python, so a licence header is editable work |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | session | — | 0/3 | A UTF-8 BOM is censused as a line of code |
 | [strip-strings-runs-before-the-opener](strip-strings-runs-before-the-opener.md) | session | — | 0/4 | A quote inside a block comment blanks the comment's own closer |
-| [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | session | — | 0/3 | A licence header and a doc comment become one paragraph with one address |
+| [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | session | — | 0/5 | A licence header and a doc comment become one paragraph with one address |
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | session | — | 0/3 | A page entry that is not an object loses every record under it, silently |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | session | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | session | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |

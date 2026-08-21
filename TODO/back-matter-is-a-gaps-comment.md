@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks done
+Progress: 1 of 7 tasks done
 Owner:    session
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'the problem with head is what happens if there
           is a tail. Many text documents have both')
 Ruled:    2026-08-20 — 2026-08-20 -- ONE SERIES FOR THIS LABEL TYPE. Roy: front matter
@@ -37,6 +37,9 @@ Ruled:    2026-08-20 — 2026-08-20 -- the f series is NOT a singleton. Roy: 'fk
           f claims at the end of the file is matter that belongs to the FILE. Today f
           emits once, at the module, so the tail place does not exist yet and this TODO
           is what builds it.
+Ruled:    2026-08-21 — the matter rule is POSITIONAL -- the comment run at the top (and
+          at the foot) of a file, terminated by a blank line or a docstring. No module
+          docstring need exist, so it resolves in every language.
 ```
 
 ## Objective
@@ -64,3 +67,25 @@ Back matter has the same problem front matter had, and lands in the closing gap.
       one `f` series holding the file's own matter wherever it sits -- or its own.
       One series keeps the rule 'each series owns its lines exactly' with no
       addition; two make the address say which end.
+- [ ] !! RULED 2026-08-21, AND IT IS POSITIONAL RATHER THAN PER-LANGUAGE. Roy:
+      *"Any normal comment section at the top of the file becomes f0 until there
+      is either a docstring or a blank line."* And, asked whether back matter
+      differs: *"same answer for the back matter because of the same reason"* --
+      so the run at the FOOT of the file, read upward, terminated by a blank line
+      or a docstring, is the back matter. ! No module docstring need EXIST for
+      either, which is what made the old rule Python-only.
+- [ ] !! THERE IS NO PLACE FOR BACK MATTER TO BE WRITTEN INTO YET. MEASURED
+      2026-08-21: `foliate` emits `f` exactly ONCE, at the MODULE trigger
+      (`out._front = f.emit(MODULE)`), so a file ending in a licence gives `f
+      places emitted: ['f0']` and the licence lands in `b2`, the closing gap. The
+      `f` series needs a second emission at the EOF trigger -- which exists and
+      which `b` already uses, ruled 2026-08-21 for this reason: *"f will almost
+      certainly get it and so we might as well pick up both now."*
+- [ ] THE COMPOSITOR THEN WRITES IT POSITIONALLY. Roy: *"back-matter gets a write
+      if it is not None at the end of the file. front-matter gets a write at the
+      front of the file if it is not None."* ! VERIFIED 2026-08-21 that this needs
+      no step over the shebang: the shebang is INSIDE `f0` --
+      `raw=['#!/usr/bin/env bash', '# Copyright 2001.']` with `ann=['matter']` --
+      in shell, Python and Ruby alike, because that route is a regex on line 1
+      rather than a language rule. Roy: *"the shebang is front-matter"*,
+      *"always"*.
