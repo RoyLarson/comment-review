@@ -55,7 +55,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from foliator import FRONT, series_of  # noqa: E402  -- path shim first
+from foliator import (  # noqa: E402  -- path shim must run first
+    FRONT,
+    flatten,
+    folio_of,
+    series_of,
+)
 from page import (  # noqa: E402  -- path shim must run first
     HOLDS_NO_PROSE,
 )
@@ -638,7 +643,7 @@ PATHISH = re.compile(r"^[^\s]*[./][^\s]*$")
 
 # The fields the TOOL fills from the census. ! A mismatch here means the file
 # was CORRUPTED, never that the reviewer misquoted -- it never typed them.
-SEEDED = ("address", "anchor")
+SEEDED = ("place", "anchor")
 # !! THE SHAPE IS VERSIONED, so a held report stays a REGRESSION TEST rather than
 # becoming an archive the day the format moves. Replaying stage-4 output is what
 # made 0.2.1 and 0.2.2 cheap to validate -- five joins over one set of reports,
@@ -720,11 +725,22 @@ def slot(paragraph: dict) -> dict:
         #
         # ! Re-check that asymmetry before reversing this. It has flipped three
         # times, and it is the only argument here that does not rest on taste.
-        # !! THE STABLE ADDRESS, never the line range. A line range is true of
-        # ONE file state and this tool edits prose, so every record written
-        # against one is stale the moment the run writes. `pkg.mod.py@a5` is
-        # counted against the CODE and survives. Deprecated 2026-08-18.
-        "address": str(paragraph.get("address", "")),
+        # !! THE PLACE ALONE -- `a5`, not `pkg:mod.py@a5`. The PAGE names the
+        # file, once, for every record under it. Roy, 2026-08-20: an
+        # enclosing page envelope *"negates the need for creating the
+        # complicated address in the first place"*, and the parse already
+        # *"splits the file name from the address right after the system put
+        # it in, to reduce token usage"* -- composed and decomposed at the
+        # same boundary.
+        #
+        # !! STILL NEVER A LINE RANGE. A range is true of ONE file state and
+        # this tool edits prose, so a record written against one is stale the
+        # moment the run writes. A folio is counted against the CODE.
+        #
+        # ! The FULL address survives where a reference crosses pages -- a
+        # `move` destination may name another file, and `galley --edits` is
+        # keyed across the whole run. `address_for` composes it.
+        "place": folio_of(str(paragraph.get("address", "")))[1],
         # ! `null`, not `""`. An unruled paragraph must be distinguishable from one
         # ruled with an empty verdict, and only one of those is a coverage gap.
         "verdict": None,
@@ -808,6 +824,65 @@ def allowed() -> dict:
 ALLOWED = allowed()
 
 
+def address_for(page: str, place: str) -> str:
+    """`pkg:mod.py@a5` from the page and the place it holds.
+
+    ! The record file names the page ONCE and each record its place; every check
+    downstream resolves by full address. This is the seam, and the only place
+    the two halves are put back together.
+    """
+    return f"{flatten(page)}@{place}" if page and place else ""
+
+
+def every_record(report: dict):
+    """`(page, record)` for every record in a seeded file, in reading order.
+
+    !! ONE READER OF THE SHAPE. Three functions walked `report["records"]`
+    directly, so the envelope would have had to be understood in three places --
+    the same fault as a series list that names its members.
+
+    ! IT YIELDS WHAT IS THERE, INCLUDING AN ENTRY THAT IS NOT AN OBJECT.
+    Filtering those out here made a malformed record VANISH instead of being
+    reported -- the caller is what says so, and `record.py --check` and the join
+    each have their own sentence for it.
+    """
+    for page in report.get("pages") or []:
+        if not isinstance(page, dict):
+            continue
+        where = str(page.get("page", ""))
+        for rec in page.get("records") or []:
+            yield where, rec
+
+
+def pages_of(census: list[dict]) -> list[dict]:
+    """The prose of every page in scope, as a page envelope each.
+
+    !! ORDERED BY ANCHOR LINE, THEN BY SERIES LETTER. Roy, 2026-08-20: *"I don't
+    want to use foliation NUMBER because that would imply it would not change."*
+    A sort on the number would encode a stability the foliation explicitly
+    disclaims; the letter is fixed and the line is a fact about the file.
+
+    ! It groups every place that is ABOUT one line of code, closest first -- a
+    declaration's own documentation, then the gap above it, then the room
+    beside it.
+    """
+    by_page: dict[str, list[dict]] = {}
+    for _, b in prose_paragraphs(census):
+        by_page.setdefault(str(b.get("path", "")), []).append(b)
+    return [
+        {
+            "page": page,
+            "records": [
+                slot(b)
+                for b in sorted(
+                    rows, key=lambda b: (int(b.get("anchor_line") or 0), series_of(b))
+                )
+            ],
+        }
+        for page, rows in sorted(by_page.items())
+    ]
+
+
 def seed(census: list[dict], reviewer: str) -> dict:
     """The whole file a reviewer is handed, ready to fill."""
     return {
@@ -815,7 +890,9 @@ def seed(census: list[dict], reviewer: str) -> dict:
         "reviewer": reviewer,
         # ! FIRST, so it is read before the records it governs.
         "allowed": allowed(),
-        "records": [slot(b) for _, b in prose_paragraphs(census)],
+        # !! A PAGE ENVELOPE EACH, not one flat list. The page names the file
+        # once and its records name only their place.
+        "pages": pages_of(census),
         # ! Code problems get one line each and carry no verdict. A list rather
         # than a section to find with a regex, which is one more boundary that
         # cannot be guessed wrong.
@@ -844,11 +921,11 @@ def seeded_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
     format change exists to end.
     """
     if paragraph is None:
-        return [f"{where}: address {rec.get('address')!r} is not in the census"]
-    want = str(paragraph.get("address", ""))
-    if rec.get("address") != want:
+        return [f"{where}: place {rec.get('place')!r} is not in the census"]
+    want = folio_of(str(paragraph.get("address", "")))[1]
+    if rec.get("place") != want:
         return [
-            f"{where}: `address` reads {rec.get('address')!r} and the census says"
+            f"{where}: `place` reads {rec.get('place')!r} and the census says"
             f" {want!r}. This field was WRITTEN BY THE TOOL, so it was edited"
             " after seeding -- restore it rather than re-deriving it."
         ]
@@ -1004,15 +1081,20 @@ def check(report: dict, census: list[dict]) -> tuple[list[str], int]:
         coverage GATE is `verdicts.py`'s, at the join.
     """
     problems: list[str] = []
-    if not isinstance(report.get("records"), list):
-        return (["no `records` list -- this is not a seeded report"], 0)
+    if not isinstance(report.get("pages"), list):
+        return (["no `pages` list -- this is not a seeded report"], 0)
     unruled = 0
-    for rec in report["records"]:
-        # !! FOUND BY ADDRESS. The census index this used went stale the moment
-        # an `add` or a `drop` shifted the list; an address does not.
-        at = rec.get("address")
-        where = f"address {at!r}" if isinstance(at, str) else "a record with no address"
-        paragraph = entry_for(at, census) if isinstance(at, str) else None
+    for page, rec in every_record(report):
+        if not isinstance(rec, dict):
+            problems.append(f"a record is a {type(rec).__name__}, not an object")
+            continue
+        # !! FOUND BY ADDRESS, COMPOSED FROM THE PAGE AND THE PLACE. The census
+        # index this used went stale the moment an `add` or a `drop` shifted the
+        # list; an address does not. ! The record carries only its place, so the
+        # page it sits under is half the key -- see `address_for`.
+        at = address_for(page, str(rec.get("place", "")))
+        where = f"address {at!r}" if at else "a record with no place"
+        paragraph = entry_for(at, census) if at else None
         if rec.get("verdict") is None:
             unruled += 1
             # ! A slot nobody filled is not MALFORMED, so it is counted rather
@@ -1072,7 +1154,7 @@ def main() -> int:
             print(f"  {stale}")
         for problem in problems:
             print(f"  {problem}")
-        total = len(report.get("records") or [])
+        total = sum(1 for _ in every_record(report))
         print(f"\n{total - unruled} of {total} records ruled; {unruled} still empty.")
         # ! The VERSION counts as one. It is reported above and it is not in
         # `problems`, so a file whose only fault was a missing version printed
@@ -1114,7 +1196,7 @@ def main() -> int:
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, indent=1), encoding="utf-8")
-        ruled = sum(1 for r in report["records"] if r["verdict"] is not None)
+        ruled = sum(1 for _, r in every_record(report) if r["verdict"] is not None)
         # ! The two counts are printed together so a LOSS is visible. A
         # conversion that quietly dropped findings read as a clean run.
         print(f"{args.reviewer}: {len(findings)} findings -> {ruled} filled records")
@@ -1131,7 +1213,7 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=1), encoding="utf-8")
 
-    prose = len(report["records"])
+    prose = sum(1 for _ in every_record(report))
     print(
         f"{args.reviewer}: {prose} records seeded"
         f" from {len(census)} paragraphs -> {out}"

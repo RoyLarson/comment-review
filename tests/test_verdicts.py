@@ -2265,7 +2265,11 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         text = BRIEF.read_text(encoding="utf-8")
         match = self.RECORD.search(text)
         self.assertIsNotNone(match, "no worked record in reviewer-brief.md")
-        self.record = json.loads(match.group(1))
+        # ! The fence is a PAGE now -- it names the file once and holds its
+        # records. The shape being pinned is still one record's.
+        self.page = json.loads(match.group(1))
+        self.assertTrue(self.page.get("page"), "the worked example names no page")
+        self.record = self.page["records"][0]
 
     def test_the_worked_example_is_valid_json(self):
         # ! The whole argument for the format: a reader needs no parser of ours.
@@ -2320,9 +2324,10 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         )
 
     def test_the_example_the_shape_check_reads_is_the_one_taught(self):
-        # ! Guards the guard: a brief that stopped carrying an address would
+        # ! Guards the guard: a brief that stopped carrying a place would
         # make the test above pass vacuously.
-        self.assertEqual(self.record["address"], "redacted_pkg:billing:rates.py@b47")
+        self.assertEqual(self.page["page"], "redacted_pkg/billing/rates.py")
+        self.assertEqual(self.record["place"], "b47")
 
 
 class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
@@ -2716,21 +2721,25 @@ class TestAMalformedEntryIsReportedNotRaised(unittest.TestCase):
         self.assertIn("not a report object", malformed[0])
 
     def test_a_record_that_is_not_an_object_is_reported(self):
-        found, malformed, _ = self._load('{"records": ["not an object"]}')
+        found, malformed, _ = self._load(
+            '{"pages": [{"page": "a.py", "records": ["not an object"]}]}'
+        )
         self.assertEqual(found, [])
         self.assertIn("not an object", malformed[0])
 
     def test_one_bad_record_does_not_lose_the_good_ones(self):
         found, malformed, _ = self._load(
-            '{"records": ["bad", {"address": "a.py@b1", "verdict": "clean"}]}'
+            '{"pages": [{"page": "a.py", "records":'
+            ' ["bad", {"place": "b1", "verdict": "clean"}]}]}'
         )
         self.assertEqual([f.address for f in found], ["a.py@b1"])
         self.assertEqual(len(malformed), 1)
 
     def test_a_non_string_in_CHANGE_does_not_raise(self):
         found, _, _ = self._load(
-            '{"records": [{"address": "a.py@b0", "verdict": "clean",'
-            ' "change": [1, 2]}]}'
+            '{"pages": [{"page": "a.py", "records":'
+            ' [{"place": "b0", "verdict": "clean",'
+            ' "change": [1, 2]}]}]}'
         )
         self.assertEqual(found[0].change, "1\n2")
 
@@ -2757,7 +2766,8 @@ class TestTheJoinReadsRecords(unittest.TestCase):
             json.dumps(
                 {
                     "reviewer": "block-context",
-                    "records": records,
+                    # ! ONE PAGE, because every fixture here is one file.
+                    "pages": [{"page": "a.py", "records": records}],
                     "code_concerns": concerns or [],
                 }
             ),
@@ -2769,7 +2779,7 @@ class TestTheJoinReadsRecords(unittest.TestCase):
         path = self._write(
             [
                 {
-                    "address": "a.py@b2",
+                    "place": "b2",
                     "verdict": "correct",
                     "claim": {"false": "x", "true": "y"},
                     "reason": "because",
@@ -2789,14 +2799,14 @@ class TestTheJoinReadsRecords(unittest.TestCase):
         self.assertEqual(found[0].change, "# y\n# z")
 
     def test_an_unfilled_slot_is_skipped_not_malformed(self):
-        path = self._write([{"address": "a.py@b0", "verdict": None}])
+        path = self._write([{"place": "b0", "verdict": None}])
         found, malformed, _ = held.load_report(
             path, path.read_text(encoding="utf-8"), "block-context"
         )
         self.assertEqual((found, malformed), ([], []))
 
     def test_unparseable_json_names_its_own_position(self):
-        self.path.write_text('{"records": [ ,, ]}', encoding="utf-8")
+        self.path.write_text('{"pages": [ ,, ]}', encoding="utf-8")
         found, malformed, _ = held.load_report(
             self.path, self.path.read_text(encoding="utf-8"), "block-context"
         )

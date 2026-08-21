@@ -45,8 +45,10 @@ from record import (  # noqa: E402  -- path shim must run first
     Finding,
     _half,
     _n,
+    address_for,
     claim_text,
     entry_for,
+    every_record,
     seed,
     slot,
 )
@@ -122,7 +124,7 @@ def load_report(
         return ([], [why], [])
     findings: list[Finding] = []
     malformed: list[str] = []
-    for rec in report.get("records") or []:
+    for page, rec in every_record(report):
         # ! An ENTRY that is not an object. The guard above catches a report
         # that is not one; this catches a record inside a well-shaped report,
         # which `record.py --check` also reports and which raised
@@ -134,13 +136,22 @@ def load_report(
             # ! An unfilled slot is a COVERAGE gap, counted by the caller from
             # the findings it does not see. It is not a malformed record.
             continue
-        # !! THE ADDRESS IS THE KEY. The census index was dropped 2026-08-19 --
-        # it went stale the moment an `add` or a `drop` shifted the list, while
-        # the address survives, and an address identifies exactly one paragraph
-        # (measured: 0 shared over 6,180). A record with none cannot be joined.
-        where = rec.get("address")
-        if not isinstance(where, str) or not where.strip():
-            malformed.append(f"a record carries address {where!r}, which names nothing")
+        # !! THE ADDRESS IS THE KEY, AND IT IS COMPOSED HERE. The census index
+        # was dropped 2026-08-19 -- it went stale the moment an `add` or a
+        # `drop` shifted the list, while the address survives, and an address
+        # identifies exactly one paragraph (measured: 0 shared over 6,180).
+        #
+        # !! THE FILE CARRIES THE TWO HALVES SEPARATELY: the PAGE names the
+        # file once and each record names only its PLACE. This is the seam that
+        # puts them back together, and everything below it works on a full
+        # address exactly as before -- 30 sites, none of which had to change.
+        place = rec.get("place")
+        if not isinstance(place, str) or not place.strip():
+            malformed.append(f"a record carries place {place!r}, which names nothing")
+            continue
+        where = address_for(page, place)
+        if not where:
+            malformed.append(f"a record at place {place!r} sits under no page")
             continue
         claim = rec.get("claim")
         # ! NORMALISED HERE, not at the constructor. `claim_text` does
@@ -506,35 +517,59 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
     # cannot express the one verdict that needs an interval, and a conversion
     # that only filled seeded slots dropped both of them silently. Measured
     # 2026-08-17 on this repo's own smoke test: 228 findings became 226.
-    seeded = {rec["address"] for rec in report["records"]}
+    #
+    # ! ADDED TO THE PAGE IT BELONGS TO, and a page block is created for one
+    # whose only cited place holds no prose -- `seed` lays down no page for a
+    # file with nothing to rule on.
+    seeded = {
+        address_for(page, str(rec["place"])) for page, rec in every_record(report)
+    }
     order = {str(b.get("address", "")): i for i, b in enumerate(census)}
+    blocks = {str(p.get("page", "")): p for p in report["pages"]}
     for at in sorted(
         set(by_paragraph) - seeded, key=lambda a: order.get(a, len(census))
     ):
         held = entry_for(at, census)
-        if held is not None:
-            report["records"].append(slot(held))
-    report["records"].sort(key=lambda r: order.get(r["address"], len(census)))
-
-    filled = []
-    for rec in report["records"]:
-        found = by_paragraph.get(rec["address"], [])
-        if not found:
-            filled.append(rec)
+        if held is None:
             continue
-        # ! One record per FINDING, not per paragraph. A paragraph ruled on twice by one
-        # role is two records that share an index, which the format allows and
-        # the old one did too.
-        for f in found:
-            out = dict(rec)
-            out["verdict"] = f.verdict
-            out["claim"] = claim_object(f.verdict, f.claim)
-            out["reason"] = f.reason
-            out["sources"] = [
-                {"cite": c.strip(), "verbatim": v.strip()}
-                for c, _, v in (s.partition("|") for s in f.sources)
-            ]
-            out["change"] = f.change.splitlines()
-            filled.append(out)
-    report["records"] = filled
+        where = str(held.get("path", ""))
+        page = blocks.get(where)
+        if page is None:
+            page = {"page": where, "records": []}
+            blocks[where] = page
+            report["pages"].append(page)
+        page["records"].append(slot(held))
+    report["pages"].sort(key=lambda p: str(p.get("page", "")))
+    for page in report["pages"]:
+        page["records"].sort(
+            key=lambda r: order.get(
+                address_for(str(page.get("page", "")), str(r["place"])), len(census)
+            )
+        )
+
+    # ! FILLED PAGE BY PAGE, because a record is keyed by its page AND its
+    # place. Over one flat list the place alone would collide across files.
+    for page in report["pages"]:
+        where = str(page.get("page", ""))
+        filled = []
+        for rec in page["records"]:
+            found = by_paragraph.get(address_for(where, str(rec["place"])), [])
+            if not found:
+                filled.append(rec)
+                continue
+            # ! One record per FINDING, not per paragraph. A paragraph ruled on
+            # twice by one role is two records that share a place, which the
+            # format allows and the old one did too.
+            for f in found:
+                out = dict(rec)
+                out["verdict"] = f.verdict
+                out["claim"] = claim_object(f.verdict, f.claim)
+                out["reason"] = f.reason
+                out["sources"] = [
+                    {"cite": c.strip(), "verbatim": v.strip()}
+                    for c, _, v in (s.partition("|") for s in f.sources)
+                ]
+                out["change"] = f.change.splitlines()
+                filled.append(out)
+        page["records"] = filled
     return report

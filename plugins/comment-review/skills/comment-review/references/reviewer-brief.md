@@ -86,24 +86,30 @@ pieces that matter."* ! **What is ruled out is RULING on it**, not seeing it.
 
 ## You FILL a record; you do not write one
 
-**You are handed a file with one slot per prose paragraph.** Each already carries the two things
-the tool knows -- the `address` and the `anchor` it sits on -- and you set the five that are
-yours:
+**You are handed one PAGE per file, and one slot per prose paragraph on it.** The page names the
+file once; each slot already carries the two things the tool knows -- the `place` it is and the
+`anchor` it sits on -- and you set the five that are yours:
 
 ```json
-{ "address": "redacted_pkg:billing:rates.py@b47",
-  "anchor":  "def compute_rates(plan, period, *, clamp=True):",
-  "verdict": "correct",
-  "claim":   { "false": "twenty call sites want this",
-               "true":  "31 callers, all in tests/" },
-  "reason":  "31 callers and every one is under tests/, so the count is stale",
-  "sources": [ { "cite": "redacted_pkg/billing/rates.py:355",
-                 "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
-               { "cite": "redacted_pkg/export/invoice.py:88",
-                 "verbatim": "rates = compute_rates(plan, period)" } ],
-  "change":  [ "# Kept because 31 callers want this, all of them in tests/.",
-               "# Narrowing it means re-deriving the clamp bounds." ] }
+{ "page": "redacted_pkg/billing/rates.py",
+  "records": [
+    { "place":   "b47",
+      "anchor":  "def compute_rates(plan, period, *, clamp=True):",
+      "verdict": "correct",
+      "claim":   { "false": "twenty call sites want this",
+                   "true":  "31 callers, all in tests/" },
+      "reason":  "31 callers and every one is under tests/, so the count is stale",
+      "sources": [ { "cite": "redacted_pkg/billing/rates.py:355",
+                     "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
+                   { "cite": "redacted_pkg/export/invoice.py:88",
+                     "verbatim": "rates = compute_rates(plan, period)" } ],
+      "change":  [ "# Kept because 31 callers want this, all of them in tests/.",
+                   "# Narrowing it means re-deriving the clamp bounds." ] } ] }
 ```
+
+! **THE PLACE IS A FOLIO, NOT A FULL ADDRESS** -- `b47`, because the page above it already said
+which file. You will still meet the full form `redacted_pkg:billing:rates.py@b47` in one place: a `move`
+whose destination is in ANOTHER file, which no page of yours can name.
 
 !! **YOU ARE TOLD WHERE, NOT WHAT. Open the file.** The record carries no copy of the paragraph's
 prose, deliberately: handed the text you could produce a complete, admissible ruling without
