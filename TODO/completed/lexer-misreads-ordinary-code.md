@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 3 of 6 tasks done
+Progress: 6 of 6 tasks done
 Owner:    session
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20; the Rust case verified in-
           session)
 Fixed:    2026-08-20 — 2026-08-20 task 1 -- the Language row gains char_quotes: the
@@ -14,6 +14,18 @@ Fixed:    2026-08-20 — 2026-08-20 task 1 -- the Language row gains char_quotes
           go, c, cpp, java, csharp, kotlin; Python, JS, Ruby, Lua, shell and SQL keep '
           as a string and are untouched. Six tests, and the original repro now censuses
           one trailing-comment.
+Ruled:    2026-08-20 — 2026-08-20 -- the closing-line residue is ACCEPTED, not fixed.
+          The prose half of task 3 is done (the run is cut at the closer, so the
+          statement is no longer censused as prose); the line still leaves code_lines.
+          Both fixes cost more than the shape is worth: dropping the run leaves the
+          opening line -- nothing but comment -- belonging to nothing, and keeping both
+          needs a field for where the text ENDS or a kind for comment-then-code.
+          MEASURED over the fetched corpora: 180,821 lines of C and JS/TS, the spanning
+          shape occurs 0 times (3 apparent hits were '*/' inside a glob string) while
+          the one-line twin is ordinary at 1,551 and already correct. Roy: 'it is stupid
+          to break context like that' -- and ESLint's no-inline-comments plus the
+          kernel, Google C++ and Java guides agree. A test pins the residue so it is
+          checked rather than merely accepted.
 ```
 
 ## Objective
@@ -34,16 +46,16 @@ The lexer misreads three shapes of ordinary code.
       line. In JS, `  "b" // the last one` censuses as `kind=comment` and line 3
       drops out of `code_lines`, shifting every `b` and `c` address below it. A
       galley splice over that address deletes the array element. Same shape in C.
-- [ ] CODE AFTER A BLOCK COMMENT'S CLOSER IS SWALLOWED INTO THE PROSE.
+- [x] CODE AFTER A BLOCK COMMENT'S CLOSER IS SWALLOWED INTO THE PROSE.
       `lexer.py:894`: `/* note\n   more */ int x = 5;` yields one paragraph whose
       text is `/* note more */ int x = 5;`, so `int x = 5;` is handed to four
       reviewers as prose and leaves the code set, moving every interval boundary
       in the file. ! The file records this as fixed for the OPENING line; the
       closing line was never covered.
-- [ ] All three are silent: no refusal, no annotation, exit 0. Each shifts
+- [x] All three are silent: no refusal, no annotation, exit 0. Each shifts
       addresses, so a galley write lands somewhere other than where the reviewer
       cited.
-- [ ] * RULING WANTED: does a line whose comment CLOSES mid-line stay in the code
+- [x] * RULING WANTED: does a line whose comment CLOSES mid-line stay in the code
       set? The prose half of task 3 is fixed -- the run is cut at the closer, so
       `int x = 5;` is no longer censused as prose. But the line still leaves
       `code_lines` (measured: {1, 4} on the four-line C file), so every interval

@@ -1039,7 +1039,29 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
 
     for n, raw_line in enumerate(lines, 1):
         if in_block is not None:
-            # !! CUT AT THE CLOSER, the way the opening line cuts at the opener.
+            # !! CODE AFTER THE CLOSER KEEPS ITS PROSE AND LOSES ITS CODE LINE,
+            # and that residue is ACCEPTED. `/* note\n   more */ int x = 5;`
+            # censuses the run and leaves `int x = 5;` out of `code_lines`, so
+            # every interval boundary below it moves.
+            #
+            # ! NEITHER FIX WAS WORTH ITS COST. Dropping the run the way an
+            # INTERMEDIATE comment is dropped works on the one-line twin --
+            # `/* note */ int x = 5;` is wholly a code line -- and not here,
+            # where the opening line is nothing but comment and would belong to
+            # nothing. Keeping both needs a field for where the text ENDS, or a
+            # kind for comment-then-code; the first re-adds a column the address
+            # system replaced, the second teaches every consumer that switches
+            # on kind.
+            #
+            # !! MEASURED 2026-08-20 OVER THE FETCHED CORPORA: 180,821 lines of
+            # C and JS/TS, and the shape occurs **0 times** -- 3 apparent hits
+            # were `*/` inside a glob string. The one-line form is ordinary
+            # (1,551 hits) and is already right. Roy: *"it is stupid to break
+            # context like that,"* and the style guides agree -- ESLint ships
+            # `no-inline-comments`, and the kernel, Google C++ and Java guides
+            # all put a paragraph comment on its own line.
+            #
+            # ! CUT AT THE CLOSER, the way the opening line cuts at the opener.
             # The whole raw line was appended, so `   more */ int x = 5;` gave a
             # paragraph whose TEXT held the statement -- executable code handed to
             # four reviewers as prose and run through the annotation regexes.

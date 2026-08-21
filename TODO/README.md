@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (58)
+### open  (57)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -219,7 +219,6 @@ that changed a published name or rule:
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 | [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | yes | 6/7 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
 | [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
-| [lexer-misreads-ordinary-code](lexer-misreads-ordinary-code.md) | session | yes | 3/6 | a Rust lifetime, a JS string-prefixed line, and code after a block closer |
 | [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | session | — | 1/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | session | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | session | — | 1/6 | 720 tests green against six deliberate defects in shipped code |
@@ -295,3 +294,4 @@ the reason is inside the file.
 | [anchor-side-is-dead](completed/anchor-side-is-dead.md) | Deleted, with PATHISH and line_address, in the sweep for shipped names nothing reads |
 | [convert-drops-every-record-SUPERSEDED](completed/convert-drops-every-record-SUPERSEDED.md) | Superseded: the converter and the format it read were deleted, not fixed |
 | [stage-5-certifies-an-unaddressed-census](completed/stage-5-certifies-an-unaddressed-census.md) | foliator.unaddressed is the one check; census.py refuses on emit and verdicts.py on read |
+| [lexer-misreads-ordinary-code](completed/lexer-misreads-ordinary-code.md) | Three misreads fixed and nesting added; the closing-line residue measured at 0 occurrences and accepted, with a test |

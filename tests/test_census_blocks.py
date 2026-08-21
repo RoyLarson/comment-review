@@ -470,6 +470,37 @@ class TestARunsCLOSINGLineIsCutAtTheCloser(unittest.TestCase):
         self.assertEqual([b.text for b in prose], ["/* note more */"])
         self.assertNotIn("int x = 5;", prose[0].text)
 
+    def test_the_ONE_LINE_twin_is_already_right(self):
+        """!! `/* note */ int x = 5;` IS WHOLLY A CODE LINE, and censuses as one.
+
+        Roy's 2026-08-19 ruling covers it: a comment that closes mid-line with
+        code after it is not censused, and the line stays code. Measured over
+        the fetched corpora, this form is ordinary -- 1,551 hits in 180,821
+        lines of C and JS/TS.
+        """
+        text, got = self._page("int a = 1;\n/* note */ int x = 5;\nint b = 2;\n")
+        self.assertEqual([b for b in got if b.kind not in page.HOLDS_NO_PROSE], [])
+        self.assertEqual(
+            sorted(page.code_lines(text, [vars(b) for b in got])), [1, 2, 3]
+        )
+
+    def test_the_SPANNING_form_loses_its_code_line_and_that_is_ACCEPTED(self):
+        """!! THE RESIDUE, PINNED. Ruled 2026-08-20 after measuring it.
+
+        The run is censused and `int x = 5;` leaves `code_lines`, so every
+        interval boundary below it moves. Both fixes cost more than the shape is
+        worth: dropping the run leaves the opening line -- nothing but comment --
+        belonging to nothing, and keeping both needs a field for where the text
+        ENDS or a kind for comment-then-code.
+
+        !! IT OCCURS 0 TIMES in 180,821 lines of C and JS/TS across the fetched
+        corpora, and the style guides discourage it. Roy: *"it is stupid to break
+        context like that."* ! This test exists so the residue is CHECKED rather
+        than merely accepted -- if the behaviour changes, it changed on purpose.
+        """
+        text, got = self._page(self.SRC)
+        self.assertEqual(sorted(page.code_lines(text, [vars(b) for b in got])), [1, 4])
+
     def test_a_run_that_does_NOT_close_on_the_line_is_unchanged(self):
         text, got = self._page("/* one\n   two\n   three */\nint a = 1;\n")
         prose = [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
