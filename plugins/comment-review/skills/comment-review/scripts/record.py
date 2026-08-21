@@ -632,7 +632,19 @@ SEEDED = ("place", "anchor")
 # four reports joined green against a worktree at their commit and produced 78
 # "SOURCES not found" against HEAD, 197 lines later in one file. Neither the
 # reader nor the reports were wrong.
-RECORD_VERSION = "1"
+# !! BUMPED TO "2" ON 2026-08-21, AND IT SHOULD HAVE MOVED WITH THE SHAPE. The
+# page envelope replaced a flat `records` list and `address` became `place` --
+# an incompatible change -- and this stayed at "1" for a day. So
+# `version_problem` reported no disagreement on a file the reader cannot parse
+# at all: MEASURED on `evidence/cycle-0.2.3/records/block-context.json`,
+# `version_problem` returned None while `check` returned "no `pages` list --
+# this is not a seeded report".
+#
+# ! THE COMMENT ABOVE ALREADY SAID WHY, and it still went unbumped: the property
+# "dies silently when the shape changes and nothing says so" is exactly what
+# happened, in the file that says it. A version constant is only a gate while
+# somebody moves it, and nothing here can move it for them.
+RECORD_VERSION = "2"
 # The fields the REVIEWER fills. Empty is a legitimate answer for every one of
 # them except `verdict`, which is the ruling itself.
 ANSWERED = ("verdict", "claim", "reason", "sources", "change")
@@ -1000,7 +1012,7 @@ def version_problem(report: dict) -> str | None:
     sign of it would have been a field silently absent.
 
     ! A MISSING version is a file written before the field existed, or one
-    converted by hand. Reported, not refused: `scripts/replay_held.py` is the
+    converted by hand. Reported, not refused: `docs/history.md` is the
     supported route and it writes the field.
 
     Args:

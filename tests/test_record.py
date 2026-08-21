@@ -478,8 +478,13 @@ class TestTheRecordVersionIsRead(unittest.TestCase):
         self.assertIsNone(record.version_problem(record.seed(CENSUS, "block-context")))
 
     def test_a_different_version_is_named(self):
-        problem = record.version_problem({"record_version": "2"})
-        self.assertIn("'2'", problem)
+        # !! DERIVED FROM THE CONSTANT, NOT SPELT. This said `"2"` and broke the
+        # day `RECORD_VERSION` became "2" -- the test asserting that a DIFFERENT
+        # version is caught was itself pinned to a literal that stopped being
+        # different. A bump should cost nothing here.
+        other = f"{record.RECORD_VERSION}-not-this"
+        problem = record.version_problem({"record_version": other})
+        self.assertIn(repr(other), problem)
         self.assertIn(repr(record.RECORD_VERSION), problem)
 
     def test_a_missing_version_is_reported_differently(self):

@@ -365,6 +365,37 @@ class TestAQuoteThatHoldsONECHARACTER(unittest.TestCase):
         prose = self._prose("a.rs", 'let s = "it\'s //here"; // the real one\n')
         self.assertEqual([b.text for b in prose], ["the real one"])
 
+    def test_TWO_LIFETIMES_are_not_one_literal(self):
+        """!! THE FIRST FIX WAS TOO LOOSE AND BLANKED REAL CODE.
+
+        It scanned a WINDOW for any closer within a character's width, so the
+        `'` of `<'a>` found the `'` of `&'a` and everything between them was
+        read as a literal. Measured 2026-08-21: `fn f<'a>(x: &'a T) { } // note`
+        came back `fn f<         a T) { } // note` -- 9 characters of code gone,
+        and a comment opener falling in that span would go with them.
+
+        ! A character is ONE character, so its closer is at a fixed offset. The
+        window was never the right question.
+        """
+        prose = self._prose("a.rs", "fn f<'a>(x: &'a T) { return 1; } // the note\n")
+        self.assertEqual([b.text for b in prose], ["the note"])
+
+    def test_a_comment_BETWEEN_two_lifetimes_survives(self):
+        # ! The consequence that made it worth fixing rather than filing: an
+        # opener inside the blanked span disappears, so the comment is dropped
+        # from the census with exit 0.
+        prose = self._prose("a.rs", "fn f<'a, 'b>(x: u8) { } // the note\n")
+        self.assertEqual([b.text for b in prose], ["the note"])
+
+    def test_the_WIDEST_escape_is_recognised(self):
+        r"""!! `'\u{10FFFF}'` IS THE LITERAL THE BOUND EXISTS FOR, and the first
+        bound never reached it -- the closer sits at +11 and the window stopped
+        at +10, so the one case the constant was sized for was the one it did
+        not recognise. Measured 2026-08-21.
+        """
+        prose = self._prose("a.rs", "let c = '\\u{10FFFF}'; // the note\n")
+        self.assertEqual([b.text for b in prose], ["the note"])
+
     def test_a_SINGLE_QUOTED_STRING_language_is_untouched(self):
         # !! THE REASON IT IS PER LANGUAGE. In JS `'...'` is a string, so the
         # `//` inside it must still be blanked -- the opposite of Rust.

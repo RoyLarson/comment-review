@@ -9,10 +9,10 @@ calls; there is no `held.py --help` to run.
 
 !! IT READS THE CURRENT SHAPE AND NOTHING ELSE, since 2026-08-20. Two retired
 shapes used to be read here -- the 0.2.x TEXT report and the 0.2.4 flat
-`records` list -- and both moved to `scripts/replay_held.py`, which does not
-ship. Roy: *"we are not carrying a backwards compatible shim right now,
-particularly on a format that was a proof-of-concept format ... git can recover
-them if we ever need to figure out how that was done."* A shim in `plugins/` is
+`records` list -- and both are DELETED, not moved. Roy: *"we are not carrying a
+backwards compatible shim right now, particularly on a format that was a
+proof-of-concept format ... git can recover them if we ever need to figure out
+how that was done."* A shim in `plugins/` is
 copied into someone else's `.claude/` and read by an agent as though it were
 current.
 
@@ -49,9 +49,10 @@ def held_records(report: dict):
     them reported a clean join over a report that was not.
 
     ! A REPORT IN ANY OTHER SHAPE YIELDS NOTHING, and that is the intent since
-    2026-08-20: `scripts/replay_held.py` reads the retired ones, and it does not
-    ship. The caller counts the paragraphs nobody ruled on, so a report this
-    cannot read is a total coverage gap rather than a silent pass.
+    2026-08-20: the retired shapes are not read anywhere. `docs/history.md`
+    describes them and names the commit whose PARENT still holds the reader.
+    ! The caller counts the paragraphs nobody ruled on, so a report this cannot
+    read is a total coverage gap rather than a silent pass.
 
     Args:
         report: the parsed record file.
@@ -78,9 +79,9 @@ def load_report(
     left to guess.
 
     !! A REPORT THAT IS NOT `.json` IS REFUSED BY NAME, since 2026-08-20. The
-    0.2.x TEXT reader moved to `scripts/replay_held.py`, which does not ship:
-    converting a held report is development work, and a shim under `plugins/` is
-    copied into someone else's `.claude/` where an agent reads it as current.
+    0.2.x TEXT reader is DELETED: a shim under `plugins/` is copied into
+    someone else's `.claude/` where an agent reads it as current. `docs/history.md`
+    describes the shape and names the commit whose parent still holds the reader.
 
     ! IT TAKES THE TEXT rather than reading the file. The caller has already
     read it -- guarded, which this was not -- and the report was read twice and
@@ -98,7 +99,8 @@ def load_report(
     if path.suffix.lower() != ".json":
         why = (
             f"{path.name} is not a record file. The 0.2.x TEXT report is retired"
-            " -- convert it with `scripts/replay_held.py` and hand in the result"
+            " -- see docs/history.md, which names the commit that still holds"
+            " the reader"
         )
         return ([], [why], [])
     try:
@@ -112,6 +114,27 @@ def load_report(
     # and took the whole join down.
     if not isinstance(report, dict):
         why = f"is a JSON {type(report).__name__}, not a report object"
+        return ([], [why], [])
+    # !! A REPORT IN A RETIRED SHAPE IS REFUSED BY NAME, NOT READ AS EMPTY. It
+    # parses, it is an object, and it holds no `pages` -- so the walk below finds
+    # nothing and returns no findings AND no malformed. Measured 2026-08-21 on
+    # `evidence/cycle-0.2.3/records/block-context.json`, which holds 12 ruled
+    # records: `0 findings, 0 malformed, 3 concerns`.
+    #
+    # !! THE THREE CONCERNS ARE WHAT MAKE IT WORSE THAN SILENT. They come through,
+    # so the join PRINTS that reviewer's code concerns while crediting it with
+    # zero findings and reporting every prose paragraph as its coverage gap --
+    # pointing the reader at the reviewer when the fault is the shape.
+    #
+    # ! A flat `records` list is the shape before the page envelope. It is not
+    # read anywhere: `docs/history.md` describes it and names the commit whose
+    # PARENT still holds the reader.
+    if "pages" not in report:
+        why = (
+            f"{path.name} carries no `pages` list. A record file names one PAGE"
+            " per file with the records under it; a flat `records` list is the"
+            " shape before that and is not read -- see docs/history.md"
+        )
         return ([], [why], [])
     findings: list[Finding] = []
     malformed: list[str] = []

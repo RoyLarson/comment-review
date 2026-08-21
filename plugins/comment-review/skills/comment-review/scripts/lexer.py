@@ -738,24 +738,35 @@ def language_for(path: Path) -> Language | None:
     return BY_EXT.get(path.suffix.lower())
 
 
-# !! A CHARACTER'S WIDTH, IN CHARACTERS AFTER THE OPENING QUOTE. `'a'` closes at
-# 1 and `'\n'` at 2; Rust's longest is `'\u{10FFFF}'`, which closes at 10. A `'`
-# with no closer inside that window is not a literal at all.
-CHAR_WIDTH = 10
+# !! HOW FAR PAST THE OPENING QUOTE AN ESCAPED CHARACTER MAY CLOSE. `'\n'` closes
+# at +3 and Rust's widest, `'\u{10FFFF}'`, at +11. An UNESCAPED character needs no
+# constant: it is exactly one character wide, so its closer is at +2 and nowhere
+# else.
+#
+# ! IT WAS 10, AND MEASURED WRONG AGAINST ITS OWN WORKED EXAMPLE, 2026-08-21:
+# `'\u{10FFFF}'` closes at +11, so the one literal the number was chosen for was
+# the one the window never reached.
+ESCAPE_WIDTH = 11
 
 
 def _closes_a_character(line: str, at: int, quote: str) -> bool:
-    """Does the quote at `at` close within ONE character's width?
+    """Does the quote at `at` open a ONE-CHARACTER literal?
 
     !! THIS IS WHAT TELLS A CHARACTER FROM A LIFETIME. Rust writes both with
     `'`: `'a'` is a character and `&'a mut T` is a lifetime, and the second
     never closes. Read as a quote it blanks everything after it -- measured
     2026-08-20, a whole trailing comment lost with no refusal and exit 0.
 
-    ! ASKED OF THE LINE, NOT OF THE LANGUAGE'S GRAMMAR. A closer inside the
-    window is taken as a character; anything else is ordinary text. That is
-    wrong only for a literal wider than `CHAR_WIDTH`, which no language here
-    has.
+    !! IT ASKS WHERE THE CLOSER IS, NOT WHETHER ONE IS NEARBY. A character is
+    one character, so its closer is at a FIXED offset; an escape is the only
+    variable-width case and is bounded by `ESCAPE_WIDTH`. ! Scanning a window
+    for any closer is what the first version did, and it read TWO LIFETIMES as
+    one literal -- measured 2026-08-21, `fn f<'a>(x: &'a T)` came back
+    `fn f<         a T)`, blanking real code between them.
+
+    ! ASKED OF THE LINE, NOT OF THE LANGUAGE'S GRAMMAR. What it does not cover
+    is a byte or raw literal spelled with a prefix (`b'x'`): the prefix is
+    ordinary text and the quote after it reads normally, which is correct.
 
     Args:
         line: the physical line.
@@ -765,14 +776,20 @@ def _closes_a_character(line: str, at: int, quote: str) -> bool:
     Returns:
         True where this opens a character literal.
     """
-    i = at + 1
-    if i < len(line) and line[i] == "\\":
-        i += 1  # ! The escape's own character is never the closer.
-    while i < len(line) and i <= at + CHAR_WIDTH:
-        if line[i] == quote:
-            return True
-        i += 1
-    return False
+    # !! ONE CHARACTER MEANS THE CLOSER IS AT A FIXED OFFSET, not somewhere in a
+    # window. Scanning FORWARD for any closer within a character's width read two
+    # lifetimes as one literal and blanked the code between them: measured
+    # 2026-08-21, `fn f<'a>(x: &'a T) { } // note` came back
+    # `fn f<         a T) { } // note` -- 9 characters of real code gone, and a
+    # comment opener falling in that span would go with them.
+    if line[at + 1 : at + 2] != "\\":
+        return line[at + 2 : at + 3] == quote
+    # ! An ESCAPE is the one variable-width case, and it is bounded: `'\n'` closes
+    # at +3 and Rust's widest, `'\u{10FFFF}'`, at +11. ! The old bound was 10 and
+    # never reached that closer, so the literal this constant is SIZED FOR was the
+    # one case it did not recognise.
+    end = line.find(quote, at + 2)
+    return 0 <= end - at <= ESCAPE_WIDTH
 
 
 def _strip_strings(

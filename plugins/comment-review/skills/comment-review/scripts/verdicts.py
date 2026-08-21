@@ -438,8 +438,8 @@ def _report(args: argparse.Namespace) -> int:
         for f in records:
             # ! THE RECORD CARRIES ITS OWN ADDRESS. A census INDEX was
             # translated here until 2026-08-20 -- the 0.2.x report keyed by
-            # POSITION -- and that reader now lives in `scripts/replay_held.py`,
-            # which converts before anything reaches this gate.
+            # POSITION -- and that reader is deleted. `docs/history.md` says
+            # where it is in the history.
             held = entry_for(f.address, paragraphs) or {}
             # !! ANY EDIT PROPOSED ON FRONT MATTER BECOMES A `query`. Roy,
             # 2026-08-19: an agent looking to edit that area gets an automatic
