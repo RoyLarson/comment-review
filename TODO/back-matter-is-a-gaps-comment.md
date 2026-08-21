@@ -29,6 +29,14 @@ Narrowed: 2026-08-20 — 2026-08-20 -- the NAMING half is done and back matter i
           matter`. ! What remains is the RECOGNITION half only: `mark_matter` still asks
           one positional question about the TOP of the file. ! It meets `a-prose-file-
           has-no-blocks`, since an index or a glossary is a documentation-file shape.
+Ruled:    2026-08-20 — 2026-08-20 -- the f series is NOT a singleton. Roy: 'fk is not
+          the comments below the code (which should be non- but we left it available).
+          fk is the matter at the end of the page, whatever that looks like.' So f0 is
+          the head and a later f is the TAIL matter -- an index, a glossary, footnotes.
+          A comment run sitting below the last line of code is a b, and stays one; what
+          f claims at the end of the file is matter that belongs to the FILE. Today f
+          emits once, at the module, so the tail place does not exist yet and this TODO
+          is what builds it.
 ```
 
 ## Objective

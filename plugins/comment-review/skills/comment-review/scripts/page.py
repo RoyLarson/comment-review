@@ -9,8 +9,9 @@ place where prose could go.
 `places_on` hands the walk its lines of code and which of them declare something
 documentable; `foliator` emits every place, filled or not, and `attach` says
 which one a given paragraph sits in. A paragraph does not compute its own folio
--- reversed, a place existed only when prose happened to fill it, and `b0` and
-`b1` were mutually exclusive.
+-- reversed, a place existed only when prose happened to fill it, and the
+file's own matter and the gap above the first line of code were mutually
+exclusive.
 
 ! The CENSUS is every page in scope, formatted for the agents. One page is one
 file, so building one was never its work -- Roy, 2026-08-20: *"the census's job
@@ -358,8 +359,9 @@ def empty_places(
     `paragraphs_in` here, and `lexer._undocumented` for the `a` series. Each
     walked the file again to decide which places of its own series deserved a
     paragraph: 198 lines answering one question four ways, and disagreeing.
-    `intervals` skipped a gap a comment held, so once front matter took `b0`
-    nothing occupied `b1` and the place an `add` exists to cite was unreachable.
+    `intervals` skipped a gap a comment held, so once front matter took the
+    file's first place nothing occupied the gap above the first line of code,
+    and the place an `add` exists to cite was unreachable.
 
     ! The walk already emitted every place and said where each sits. This asks
     only which of them prose is sitting in, and gives the rest a paragraph.
@@ -542,8 +544,9 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         mark_matter(got)
         # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
         # Reversed -- each paragraph computing its own folio -- a place existed
-        # only when prose happened to fill it, which is how `b0` and `b1` came
-        # to be mutually exclusive. `foliator` owns both halves: the foliation
+        # only when prose happened to fill it, which is how the file's own
+        # matter and the first gap came to be mutually exclusive -- one address
+        # for two places. `foliator` owns both halves: the foliation
         # assigns the numbering, `attach` reads which place this prose sits in,
         # and the anchor comes from the walk that emitted it rather than from a
         # second pass that could disagree with the first.
@@ -560,9 +563,9 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         for empty in empty_places(text, got, foliation, occupied):
             # ! IT ALREADY KNOWS ITS PLACE -- the emitter filled that folio and
             # said so. Asking `attach` again re-derives it from position, which
-            # answered `b1` for the `b0` paragraph: the front-matter place is
-            # not the gap above the first line of code, and position cannot
-            # tell them apart. That is the whole defect, one layer up.
+            # answered the FIRST GAP for the file's own matter: the two are
+            # different places at the same position, and position cannot tell
+            # them apart. That is the whole defect, one layer up.
             empty.address = f"{flat}@{empty.address}"
             got.append(empty)
         # !! ONE PASS FOR `anchor_line`, OVER EVERYTHING. Stamped per branch it

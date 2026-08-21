@@ -45,11 +45,18 @@ class TestAFoliatorHoldsItsOwnSteps(unittest.TestCase):
         self.assertEqual(f.emit("<module>"), "b0")
         self.assertEqual(f.emit("N = 0"), "b1")
 
-    def test_a_skipped_trigger_still_takes_a_number(self):
-        # ! This is what makes `c`'s first line of code `c1` and not `c0`.
+    def test_a_SKIPPED_trigger_takes_no_number(self):
+        """!! A SERIES THAT DOES NOT EMIT FOR A TRIGGER DOES NOT ADVANCE EITHER.
+
+        Roy, 2026-08-20: *"the foliations own their own rules on what is skipped
+        ... they each decide to record and increment independently."* Skipping
+        used to increment, which burned `b0` and made the first line of code
+        `c1`. ! There is no `skip()` to call: a foliator is only ever handed the
+        triggers it emits for, so this asserts the counter by its absence.
+        """
         f = foliator.Foliator("c")
-        f.skip()
-        self.assertEqual(f.emit("N = 0"), "c1")
+        self.assertFalse(hasattr(f, "skip"))
+        self.assertEqual(f.emit("N = 0"), "c0")
 
     def test_it_records_the_anchor_it_emitted_against(self):
         f = foliator.Foliator("a")
@@ -82,26 +89,31 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
         # step past it: wrapper is `a1`, not `a2`.
         self.assertEqual(self._series("a"), ["a0", "a1", "a2"])
 
-    def test_b_emits_at_the_module_and_above_every_line_of_code(self):
+    def test_b_SKIPS_the_module_and_emits_above_every_line_of_code(self):
         # ! Eight places for seven lines: one above each line of code, and
-        # line, and one for the gap after the last.
+        # one for the gap after the last. ! The module is not `b`'s trigger,
+        # and skipping it takes no number, so the first gap is `b0`.
         self.assertEqual(
-            self._series("b"), ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"]
+            self._series("b"), ["b0", "b1", "b2", "b3", "b4", "b5", "b6", "b7"]
         )
 
-    def test_f0_AND_b1_BOTH_EXIST(self):
+    def test_f0_AND_b0_BOTH_EXIST(self):
         """!! The defect this walk was written for.
 
         Measured over five file shapes before it: `b0` and `b1` never coexisted
         -- the gap above the first line of code was `b1` on a file with no
         licence header and `b0` on a file with one, so adding a module docstring
         renamed it mid-run. Roy: *"b1 isn't able to be swallowed by b0."*
+
+        ! The two are `f0` and `b0` since 2026-08-20, when every series was
+        ruled to start at 0. What the test holds is that they COEXIST, which
+        is what the numbering was never allowed to collapse.
         """
         self.assertIn("f0", self.places)
-        self.assertIn("b1", self.places)
+        self.assertIn("b0", self.places)
 
     def test_c_skips_the_module_and_emits_for_every_line_of_code(self):
-        self.assertEqual(self._series("c"), ["c1", "c2", "c3", "c4", "c5", "c6", "c7"])
+        self.assertEqual(self._series("c"), ["c0", "c1", "c2", "c3", "c4", "c5", "c6"])
 
     def test_every_place_carries_the_line_of_code_it_is_attached_to(self):
         self.assertEqual(self.places["a0"], foliator.MODULE)
@@ -109,12 +121,12 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
         self.assertEqual(self.places["a1"], "def wrapper(fn):")
         # ! A `b` is anchored to the line BELOW the gap -- the statement its
         # prose introduces.
-        self.assertEqual(self.places["b1"], "N = 0")
-        self.assertEqual(self.places["b2"], "def wrapper(fn):")
+        self.assertEqual(self.places["b0"], "N = 0")
+        self.assertEqual(self.places["b1"], "def wrapper(fn):")
         # ! The gap at the end of the file has no line below it and takes the
         # one above, because a gap is bounded by code and that is the bound.
-        self.assertEqual(self.places["b8"], "    return counter")
-        self.assertEqual(self.places["c1"], "N = 0")
+        self.assertEqual(self.places["b7"], "    return counter")
+        self.assertEqual(self.places["c0"], "N = 0")
 
     def test_no_folio_is_emitted_twice(self):
         self.assertEqual(len(self.places), len(set(self.places)))
@@ -138,18 +150,18 @@ class TestReadingTheFoliationBack(unittest.TestCase):
     def test_a_gap_answers_with_the_b_the_walk_emitted_there(self):
         # Line 4 is `def counter`, so a paragraph inserting there is in the gap
         # ABOVE it -- the third gap, `b3`.
-        self.assertEqual(self.foliation.above(4), "b3")
+        self.assertEqual(self.foliation.above(4), "b2")
 
-    def test_above_the_first_line_of_code_is_b1_not_b0(self):
+    def test_above_the_first_line_of_code_is_b0(self):
         # !! `f0` is the file's own front matter and is not a gap between two
         # lines of code. Conflating them is what made the two exclusive.
-        self.assertEqual(self.foliation.above(1), "b1")
+        self.assertEqual(self.foliation.above(1), "b0")
 
     def test_past_the_last_line_is_the_closing_gap(self):
-        self.assertEqual(self.foliation.above(99), "b8")
+        self.assertEqual(self.foliation.above(99), "b7")
 
     def test_a_line_of_code_answers_with_its_own_c(self):
-        self.assertEqual(self.foliation.beside(3), "c2")
+        self.assertEqual(self.foliation.beside(3), "c1")
 
     def test_a_line_holding_no_code_has_no_c(self):
         self.assertEqual(self.foliation.beside(1), "")
@@ -179,8 +191,16 @@ class TestTheWalkOnDegenerateFiles(unittest.TestCase):
         self.assertEqual([f for f in places if f.startswith("a")], ["a0"])
 
     def test_the_module_never_takes_a_c(self):
+        # !! ASKED OF THE ANCHOR, NOT OF THE NUMBER. `c0` exists -- it is the
+        # line of code, since skipping the module takes no number -- so the
+        # property is that NO `c` is anchored to the module, which is what
+        # `assertNotIn("c0", ...)` meant while `c` started at 1.
         places = foliator.foliate({1: "N = 0"}, {}).places
-        self.assertNotIn("c0", places)
+        self.assertEqual(places["c0"], "N = 0")
+        self.assertNotIn(
+            foliator.MODULE,
+            [a for f, a in places.items() if f.startswith("c")],
+        )
 
 
 class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
@@ -232,14 +252,17 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
         # Left per-series, a `b` and a `c` read 0, and an order built on it put
         # every one of them at the top.
         got = foliator.foliate({2: "N = 0", 3: "def f():"}, {1: 4})
-        self.assertEqual(got.anchor_line("c1"), 2)
-        self.assertEqual(got.anchor_line("c2"), 3)
+        self.assertEqual(got.anchor_line("c0"), 2)
+        self.assertEqual(got.anchor_line("c1"), 3)
         # ! A `b` is anchored to the line BELOW its gap -- the statement its
-        # prose introduces.
-        self.assertEqual(got.anchor_line("b1"), 2)
+        # prose introduces. ! `b` and `c` are ALIGNED: each pair shares an
+        # anchor, because neither emits for the module and neither takes a
+        # number there.
+        self.assertEqual(got.anchor_line("b0"), 2)
+        self.assertEqual(got.anchor_line("b1"), 3)
+        # ! The closing gap has no line below it and takes the one above, which
+        # is the one place `b` runs past `c`.
         self.assertEqual(got.anchor_line("b2"), 3)
-        # ! The closing gap has no line below it and takes the one above.
-        self.assertEqual(got.anchor_line("b3"), 3)
         self.assertEqual(got.anchor_line("a1"), 3)
 
     def test_the_MODULE_answers_0_and_that_is_an_answer(self):

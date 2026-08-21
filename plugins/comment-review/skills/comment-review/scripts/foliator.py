@@ -87,11 +87,14 @@ Four series, because prose answers to one of exactly four subjects:
 2026-08-19: *"remove any references that indicate anyone can expect that the
 next line of code is guaranteed to have the next foliation index ... it is a
 happenstance and may change at any point."* FOUR FOLIATORS walk one trigger
-list -- the MODULE, then every line of code -- each taking a number at every
-trigger and emitting or not. Two series lining up on a file is an OUTCOME of
-that walk. ! `f0` is the FILE'S OWN FRONT MATTER, in its own series -- not the
-gap above the first line of code, which is `b1`. The two were one address until
-the foliators split them, and one SERIES until 2026-08-20.
+list -- the MODULE, then every line of code -- and EACH OWNS ITS RULE about
+which triggers are its own. A series that does not emit for a trigger does not
+take a number for it either, so **every series starts at 0**: `a` skips what is
+not documentable, `b` and `c` skip the MODULE, `f` skips everything that is not
+the MODULE or the file's own matter. Two series lining up on a file is an
+OUTCOME of that walk. ! `f0` is the FILE'S OWN MATTER, in its own series -- not
+the gap above the first line of code, which is `b0`. The two were one address
+until the foliators split them, and one SERIES until 2026-08-20.
 
 !! `a` IS SEPARATE FOR A DIFFERENT REASON: IT NAMES A SUBJECT, NOT A POSITION.
 A docstring is about its DECLARATION, and `a0` is the module with `a1..aN` its
@@ -114,7 +117,7 @@ series.
 
 !! THE SAME PLACE IS THE SAME ADDRESS WHETHER PROSE FILLS IT OR NOT, which is
 the property line numbers cannot give. A comment paragraph occupying three lines and
-an empty interval in the same position are both `b1`; a documented and an
+an empty interval in the same position are both `b0`; a documented and an
 undocumented declaration are both `a5`. So a finding can say where prose belongs
 in a file that does not have it yet, and two versions of a file compare place by
 place.
@@ -287,24 +290,27 @@ class Foliator:
     so they are stated by one step of one walk -- not computed here and
     decorated on later, which is what let an anchor disagree with its address.
 
-    ! `skip` exists so a trigger a series does not emit for still TAKES its
-    number. `c` steps past the MODULE without emitting, which is why its first
-    line of code is `c1`. Roy: *"each gets its own counter and each gets passed
-    the lines of code and the module, and the `c` knows it is supposed to skip
-    it."*
+    !! A SERIES OWNS ITS OWN RULE ABOUT WHAT IT SKIPS, AND SKIPPING TAKES NO
+    NUMBER. Roy, 2026-08-20: *"the foliations own their own rules on what is
+    skipped. `<module>` and its paragraph types get passed to all three, they
+    each decide to record and increment independently -- `a` skips
+    undocumentables, `b` and `c` skip `<module>`, `f` skips everything but
+    `<module>`/matter components."* So a foliator that does not emit for a
+    trigger does not advance either, and **every series starts at 0**.
+
+    ! A `skip()` that INCREMENTED is what this replaces. It burned `b0` and made
+    the first line of code `c1`, so two series began at 1 for no reason a reader
+    could derive -- and nothing tested it, which is how 735 green tests passed
+    over it.
 
     Attributes:
-        series: `a`, `b` or `c`.
+        series: `a`, `b`, `c` or `f`.
         places: folio -> the LINE OF CODE it is attached to, in emission order.
     """
 
     series: str
     places: dict[str, str] = field(default_factory=dict)
     _step: int = 0
-
-    def skip(self) -> None:
-        """Step past a trigger without emitting a place for it."""
-        self._step += 1
 
     def emit(self, anchor: str) -> str:
         """Take this trigger's number, record the anchor, and return the folio."""
@@ -404,7 +410,7 @@ class Foliation:
     def matter(self) -> str:
         """`f0` -- the file's own prose, above anything it declares.
 
-        ! It is not the gap above the first line of code. That is `b1`, and the
+        ! It is not the gap above the first line of code. That is `b0`, and the
         two were one address until the walk emitted both.
 
         !! ITS OWN SERIES SINCE 2026-08-20, and it was `b0` before. As a `b` it
@@ -428,11 +434,12 @@ def foliate(
 
     !! THE WALK IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because the
     walk reached its trigger, not because prose was found sitting there -- which
-    is why `b0` and `b1` can now both exist. Before this, `b0` came from a
-    BRANCH that fired only when front-matter prose had already been stamped, so
-    the two were mutually exclusive: measured over five file shapes, the gap
-    above the first line of code was `b1` on a file with no licence header and
-    `b0` on a file with one, and adding a module docstring renamed it mid-run.
+    is why the file's own matter and the first gap can now both exist. Before
+    this, the matter's place came from a BRANCH that fired only when front-matter
+    prose had already been stamped, so the two were mutually exclusive: measured
+    over five file shapes, the gap above the first line of code was `b1` on a
+    file with no licence header and `b0` on a file with one, and adding a module
+    docstring renamed it mid-run. ! They are `f0` and `b0` now, in two series.
 
     ! The three rules differ, and each is measured rather than chosen:
 
@@ -478,24 +485,22 @@ def foliate(
     if module_insert is not None:
         out._declared[0] = a.emit(MODULE)
         out.inserts[out._declared[0]] = module_insert
-    # ! `f0` is the FILE'S OWN front matter, bounded by nothing: the head of the
-    # file on both sides. It is not the gap above the first line of code -- that
-    # is `b1`, and conflating them made the two exclusive.
+    # ! `f0` is the FILE'S OWN matter, bounded by nothing: the head of the file
+    # on both sides. It is not the gap above the first line of code -- that is
+    # `b0`, and conflating them made the two exclusive.
     out._front = f.emit(MODULE)
     out.bounds[out._front] = (0, 0)
-    # !! `b` AND `c` STEP HERE AND EMIT NOTHING. Every foliator takes a number
-    # at every trigger and emits or not -- that is what keeps one walk behind
-    # four series. The module has no gap above it and no line to sit beside, so
-    # neither emits, and the first of each is `b1`/`c1`.
+    # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no number. The
+    # module has no gap above it and no line to sit beside, so the trigger is
+    # not theirs, and the first line of code is `b0`/`c0`. Roy, 2026-08-20:
+    # *"let's initiate all of them at 0 ... bs and cs will stay aligned until
+    # there is some specific reason to split them."*
     #
     # ! WHAT THIS IS NOT: a promise that the numbers stay put. Roy, 2026-08-20:
     # *"there was no promise that any foliation numbering scheme would stay
     # consistent -- there is in fact a very explicit statement against this."*
     # See the module docstring: a folio is a happenstance of the walk and may
-    # change at any point. `b` steps here because the walk steps here, not to
-    # keep any address it had.
-    b.skip()
-    c.skip()
+    # change at any point.
     previous = 0
     for i, (n, line) in enumerate(code.items()):
         if i in documentable:
@@ -532,11 +537,17 @@ def foliate(
 def folio(series: str, step: int) -> str:
     """The folio at one step of the walk -- ONE expression, all three series.
 
-    !! EVERY TRIGGER TAKES A NUMBER, INCLUDING ONE A FOLIATOR SKIPS. `c` does
-    not emit for the MODULE and still steps past it, which is why its first
-    line of code is `c1` and not `c0`. Roy, 2026-08-19: *"each gets its own
-    counter and each gets passed the lines of code and the module, and the `c`
-    knows it is supposed to skip it."*
+    !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Roy,
+    2026-08-20: *"the foliations own their own rules on what is skipped ... they
+    each decide to record and increment independently."* `c` does not emit for
+    the MODULE and does not step past it either, so its first line of code is
+    `c0`.
+
+    ! IT READ THE OTHER WAY UNTIL 2026-08-20, on the earlier half of the same
+    ruling -- *"each gets its own counter and each gets passed the lines of code
+    and the module, and the `c` knows it is supposed to skip it"* (2026-08-19),
+    which said which triggers each series walks and was read as saying it takes
+    a number at all of them. That burned `b0` and started `c` at 1.
 
     !! NOTHING READS ONE FOLIO TO COMPUTE ANOTHER, and no folio follows from a
     line's ordinal. Whether two series happen to line up on a given file is not
@@ -624,8 +635,8 @@ def resolve(address: str, paragraphs: list[dict]) -> list[int]:
     range from N would answer where the gap IS while the question asked which
     entries are THERE.
 
-    ! Several entries can share one address and that is not an error: `c1` and
-    `b1` are different places, but a comment run and the interval it occupies
+    ! Several entries can share one address and that is not an error: `c0` and
+    `b0` are different places, but a comment run and the interval it occupies
     are the same place seen twice by a census built before an edit.
 
     Args:

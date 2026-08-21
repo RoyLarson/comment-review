@@ -87,16 +87,16 @@ class TestTwoFilesDifferingOnlyInComments(unittest.TestCase):
     def test_the_same_gap_gets_the_same_name_prose_or_not(self):
         # !! THE WHOLE POINT. In one file the gap between the two statements
         # holds three comment lines; in the other it is empty. Both are `b2`.
-        self.assertEqual(named(WITH_PROSE, A)[2], "b2")
-        self.assertEqual(named(BARE, B)[1], "b2")
+        self.assertEqual(named(WITH_PROSE, A)[2], "b1")
+        self.assertEqual(named(BARE, B)[1], "b1")
 
     def test_the_gap_after_the_last_statement_agrees(self):
-        self.assertEqual(named(WITH_PROSE, A)[4], "b3")
-        self.assertEqual(named(BARE, B)[2], "b3")
+        self.assertEqual(named(WITH_PROSE, A)[4], "b2")
+        self.assertEqual(named(BARE, B)[2], "b2")
 
     def test_the_gap_before_the_first_statement_agrees(self):
-        self.assertEqual(named(WITH_PROSE, A)[0], "b1")
-        self.assertEqual(named(BARE, B)[0], "b1")
+        self.assertEqual(named(WITH_PROSE, A)[0], "b0")
+        self.assertEqual(named(BARE, B)[0], "b0")
 
     def test_line_addresses_do_NOT_agree_which_is_why_this_exists(self):
         self.assertNotEqual(
@@ -107,14 +107,14 @@ class TestTwoFilesDifferingOnlyInComments(unittest.TestCase):
 
 class TestOnAndBetween(unittest.TestCase):
     def test_a_trailing_comment_sits_ON_its_code_line(self):
-        self.assertEqual(named(WITH_PROSE, A)[1], "c1")
-        self.assertEqual(named(WITH_PROSE, A)[3], "c2")
+        self.assertEqual(named(WITH_PROSE, A)[1], "c0")
+        self.assertEqual(named(WITH_PROSE, A)[3], "c1")
 
     def test_an_interval_names_the_gap_AFTER_its_bounding_line(self):
         # ! Read from `original_start`, which the census states for the splice --
         # the addressing range cannot say it, because an interval spans the two
         # code lines around the gap rather than the gap itself.
-        self.assertEqual(named(BARE, B)[1], "b2")
+        self.assertEqual(named(BARE, B)[1], "b1")
 
     def test_a_block_with_no_range_is_reported_not_guessed(self):
         self.assertEqual(
@@ -151,10 +151,10 @@ class TestCodeOnTheFirstLine(unittest.TestCase):
         self.assertEqual(self.code[0], 1)
 
     def test_the_gap_before_it_is_b0_not_b1(self):
-        self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[0], "c.rs@b1")
+        self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[0], "c.rs@b0")
 
     def test_the_gap_after_it_is_b1(self):
-        self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[1], "c.rs@b2")
+        self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[1], "c.rs@b1")
 
     def test_every_gap_gets_its_own_name(self):
         named = addressed(self.SRC, self.PARAGRAPHS)
@@ -241,7 +241,7 @@ class TestAOneLineInitFile(unittest.TestCase):
     def test_the_stable_addresses_are_not(self):
         list(page.code_lines(self.SRC, self.PARAGRAPHS))
         named = addressed(self.SRC, self.PARAGRAPHS)
-        self.assertEqual(named, ["package:__init__.py@b1", "package:__init__.py@b2"])
+        self.assertEqual(named, ["package:__init__.py@b0", "package:__init__.py@b1"])
 
     def test_a_subpackage_of_the_same_name_is_a_different_place(self):
         sub = dict(self.PARAGRAPHS[0], path="package/subpackage/__init__.py")
@@ -341,8 +341,8 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
         # it: `b2` becomes `b1`, naming a different place with no complaint.
         list(page.code_lines(self.SRC, self.PARAGRAPHS))
         list(page.code_lines("\n" + self.SRC, self.PARAGRAPHS))
-        self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[0], "m.py@b2")
-        self.assertEqual(addressed("\n" + self.SRC, self.PARAGRAPHS)[0], "m.py@b1")
+        self.assertEqual(addressed(self.SRC, self.PARAGRAPHS)[0], "m.py@b1")
+        self.assertEqual(addressed("\n" + self.SRC, self.PARAGRAPHS)[0], "m.py@b0")
 
 
 class TestTheDeclarationSeries(unittest.TestCase):
@@ -531,8 +531,8 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         # !! ONE ANCHOR, THREE ADDRESSES. The declaration's line is the anchor
         # of its own `a`, of the `b` above it and of the `c` beside it.
         self.assertEqual(self._at("def go(n):", "a"), ["a1"])
-        self.assertEqual(self._at("def go(n):", "c"), ["c2"])
-        self.assertEqual(self._at("def go(n):", "b"), ["b2"])
+        self.assertEqual(self._at("def go(n):", "c"), ["c1"])
+        self.assertEqual(self._at("def go(n):", "b"), ["b1"])
 
     def test_the_MODULE_has_an_a_and_NEVER_a_c(self):
         # !! It has no line to open on, so nothing can sit beside it. That is
@@ -783,8 +783,8 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
         # above it and the `c` beside it. This is the one-to-many relationship
         # measured on one line of code.
         self.assertEqual(self._folios("def f():", "a"), ["a1"])
-        self.assertEqual(self._folios("def f():", "b"), ["b1"])
-        self.assertEqual(self._folios("def f():", "c"), ["c1"])
+        self.assertEqual(self._folios("def f():", "b"), ["b0"])
+        self.assertEqual(self._folios("def f():", "c"), ["c0"])
 
     def test_the_NAME_no_longer_answers(self):
         # !! Roy ruled it 2026-08-19: *"drop it -- the line is the anchor."*
@@ -831,7 +831,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
     def test_the_anchor_answers_with_BOTH_trailing_comments(self):
         found = foliator.for_anchor("X=2", "c", self.paragraphs)
         folios = sorted(foliator.folio_of(b["address"])[1] for b in found)
-        self.assertEqual(folios, ["c1", "c2"])
+        self.assertEqual(folios, ["c0", "c1"])
 
     def test_they_are_two_DIFFERENT_statements(self):
         found = foliator.for_anchor("X=2", "c", self.paragraphs)
@@ -851,7 +851,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # below are what THIS walk emits, not a rule anything may count out.
         found = foliator.for_anchor("X=2", "b", self.paragraphs)
         folios = sorted(foliator.folio_of(b["address"])[1] for b in found)
-        self.assertEqual(folios, ["b1", "b2", "b3"])
+        self.assertEqual(folios, ["b0", "b1", "b2"])
 
     def test_the_three_gaps_are_drawn_from_TWO_statements(self):
         """!! And the anchor STRING cannot tell you which.
@@ -870,19 +870,19 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # first covers nothing above line 1, the second covers 2-4, and the
         # third covers nothing after 5.
         #
-        # !! `b2` STARTS AT 2, NOT 3, since 2026-08-20. The gap between the two
-        # statements is lines 2-4 and `# stuff happens` is only line 3, so the
-        # blanks either side of it used to belong to no paragraph at all. Roy:
-        # *"`b` owns it, else a literal two paragraph comment is held by nothing
-        # and cannot have its internal paragraphs merged or dropped
-        # appropriately in the edit process."*
-        # ! `b1` is the gap ABOVE line 1 on a file whose line 1 is code, so it
+        # !! THE MIDDLE GAP STARTS AT 2, NOT 3, since 2026-08-20. It is lines
+        # 2-4 and `# stuff happens` is only line 3, so the blanks either side of
+        # it used to belong to no paragraph at all. Roy: *"`b` owns it, else a
+        # literal two paragraph comment is held by nothing and cannot have its
+        # internal paragraphs merged or dropped appropriately in the edit
+        # process."*
+        # ! `b0` is the gap ABOVE line 1 on a file whose line 1 is code, so it
         # holds no line and says None.
-        self.assertIsNone(by_folio["b1"]["original_start"])
+        self.assertIsNone(by_folio["b0"]["original_start"])
         self.assertEqual(
-            (by_folio["b2"]["original_start"], by_folio["b2"]["original_end"]), (2, 4)
+            (by_folio["b1"]["original_start"], by_folio["b1"]["original_end"]), (2, 4)
         )
-        self.assertIsNone(by_folio["b3"]["original_start"])
+        self.assertIsNone(by_folio["b2"]["original_start"])
         for folio, paragraph in by_folio.items():
             with self.subTest(folio=folio):
                 self.assertEqual(paragraph["anchor"], "X=2")
@@ -892,7 +892,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # second, so its anchor is line 5's code -- not line 1's, which it
         # follows. The gap's prose is about what comes next.
         held = next(b for b in self.paragraphs if b["text"] == "stuff happens")
-        self.assertEqual(foliator.folio_of(held["address"])[1], "b2")
+        self.assertEqual(foliator.folio_of(held["address"])[1], "b1")
         self.assertEqual(held["anchor"], "X=2")
 
     def test_X_2_is_no_declaration_so_the_a_series_is_EMPTY(self):
@@ -950,10 +950,15 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         }
 
     def test_the_MODULE_is_a_trigger_that_c_does_not_emit_for(self):
-        # !! The one rule the three share. `a` and `b` emit at the module; `c`
-        # steps past it, because a module has front matter and a docstring and
-        # no line to sit beside.
-        self.assertNotIn("c0", self.at)
+        # !! ASKED OF THE ANCHOR, NOT OF THE NUMBER. `a` and `f` emit at the
+        # module; `b` and `c` skip it, because a module has no gap above it and
+        # no line to sit beside. ! Skipping takes NO number since 2026-08-20, so
+        # `c0` exists and is the first line of code -- what this holds is that
+        # no `c` is anchored to the module, which is what it always meant.
+        self.assertNotIn(
+            foliator.MODULE,
+            [b.anchor for f, b in self.at.items() if f.startswith("c")],
+        )
         folios = sorted(self.at)
         self.assertTrue(any(f.startswith("a") for f in folios), folios)
 

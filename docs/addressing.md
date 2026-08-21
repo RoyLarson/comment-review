@@ -18,8 +18,9 @@ lines that share one.** Ruled by Roy, 2026-08-19.
 
 ```
 pkg:mod.py@a5    a DECLARATION's documentation
-pkg:mod.py@b3    a GAP -- or, at `b0`, the file's own front matter
+pkg:mod.py@b3    a GAP between two lines of code
 pkg:mod.py@c3    the room BESIDE a line of code
+pkg:mod.py@f0    the FILE's own matter -- a licence, a shebang, an index
 ```
 
 !! **THE PATH IS FLATTENED ON `:`, WHICH NO PATH MAY HOLD.** It was `.` until 2026-08-19, and a
@@ -43,11 +44,28 @@ anchor has many. A line has one.
 
 ## The three series
 
-| | names | counts |
-| --- | --- | --- |
-| `a` | a DECLARATION's documentation | declarations, in SOURCE order. `a0` is the module |
-| `b` | the gap ABOVE a line of code, and the FILE's own front matter | its own walk |
-| `c` | the room BESIDE a line of code | its own walk, skipping the module |
+| | names | skips | counts |
+| --- | --- | --- | --- |
+| `a` | a DECLARATION's documentation | what is not documentable | declarations, in SOURCE order. `a0` is the module |
+| `b` | the gap ABOVE a line of code | the module | its own walk. `b` runs one past `c`: the gap AFTER the last line |
+| `c` | the room BESIDE a line of code | the module | its own walk, aligned with `b` |
+| `f` | the FILE's own matter | everything but the module | its own walk. `f0` today |
+
+!! **EVERY SERIES STARTS AT 0, AND A SKIPPED TRIGGER TAKES NO NUMBER.** Ruled by Roy,
+2026-08-20: *"let's initiate all of them at 0 ... the foliations own their own rules on what is
+skipped. `<module>` and its paragraph types get passed to all three, they each decide to record
+and increment independently."*
+
+! **`a` runs one AHEAD and `b` one BEHIND, and both are consequences rather than rules.** `a0` is
+the module, so on a file with a single documentable declaration `a` is one ahead of the line's
+own `c`; on any file with more code than declarations it falls behind. `b` emits a closing gap
+after the last line of code, which `c` has no counterpart for. ! **`b` and `c` are otherwise
+ALIGNED** -- `bN` and `cN` name the gap above and the room beside the same line -- *"until there
+is some specific reason to split them or make them act different"*.
+
+! **A SKIP THAT INCREMENTED is what this replaced**, on 2026-08-20. It burned `b0` and started
+`c` at 1, and no test held either, so the two series began at 1 for no reason a reader could
+derive.
 
 !! **NO FOLIO CAN BE COMPUTED FROM ANOTHER, OR FROM A LINE'S ORDINAL.** Roy, 2026-08-19:
 *"remove any references that indicate anyone can expect that the next line of code is guaranteed
