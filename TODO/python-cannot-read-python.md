@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 14 tasks done
+Progress: 0 of 21 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -98,3 +98,49 @@ The AST reader gets older every release while the files get newer.
       branch once we merge this branch back to the 0.2.4 branch. It doesn't depend
       on the folio system being correct or the lexer or page or census."* It may
       touch the lexer only to document edge cases.
+- [ ] !! FOUR AST DEPENDENCIES, AND THREE ARE OUTSIDE THE LEXER. MEASURED
+      2026-08-21: `lexer` (paragraphs and declarations), `prove_unchanged` (the
+      CODE CHECK fingerprint), `census` (the name corpus, `ast.parse` at line
+      165), and `referrers` (which files name a symbol). Every one of them fails
+      on syntax newer than the floor, so the same four files break all four.
+- [ ] ! ONLY THE LEXER AND THE COMPOSITOR MAY INTERPRET A FILE, and three of these
+      do it anyway. Roy, 2026-08-21: *"lexer and compositor are the things that
+      are reading files."* ! THE TEST IS NOT `read_text` -- the LEXER READS ZERO
+      FILES, it takes `text` as a parameter, and `census` is what hands it one.
+      The line is who INTERPRETS the content, and `ast.parse` outside the lexer is
+      interpretation.
+- [ ] ! `census.py` NAMES ITS OWN GAP ALREADY: *"Liveness in these languages needs
+      its own harvester; the gap until there is one."* Its harvest is Python-only,
+      so the name corpus a reviewer checks a cited symbol against exists for one
+      language of seventeen -- and vanishes for a Python file the floor cannot
+      parse.
+- [ ] !! THE FOLIATOR DESCRIBES A MECHANISM IT NEVER TOUCHES. It has NO `import
+      ast` and no call; two paragraphs of its module docstring explain `ast.dump`
+      and `_blank_docstrings`, which live in `prove_unchanged`. ! Roy, 2026-08-21,
+      on why: *"when it was addresser a long time ago that kind of made sense."*
+      Addressing was the subject then, and the code check is what makes an address
+      constant. The rename to `foliator` left prose two modules from the code it
+      describes, with nothing able to check it -- which is the obituary class
+      `block-context` is chartered to catch, shipping inside the tool that catches
+      it.
+- [ ] * RULED 2026-08-21 -- THE CODE CHECK BELONGS TO THE COMPOSITOR. Roy: *"that
+      check if it was actually possible should live in compositor since before and
+      after are in some ways its job to verify."* The compositor PRODUCES the
+      after, and every question it already answers is a before/after one --
+      `identity` asks whether an unchanged page sets back byte for byte,
+      `lossless` whether any line was lost. *Did the code survive* is the same
+      question at the same seam.
+- [ ] ! IT ALSO ANSWERS THE AST PROBLEM RATHER THAN MOVING IT. `prove_unchanged`
+      fingerprints Python with `ast.dump(_blank_docstrings(ast.parse(text)))`,
+      which fails on syntax newer than the floor. In the compositor the check has
+      the PAGE, whose `c` places hold every line of code verbatim -- so *the code
+      is unchanged* becomes *every `c` anchor is unchanged*. No parser, one rule
+      for seventeen languages, and stronger than an `ast.dump`, which compares
+      statements and their order rather than the characters.
+- [ ] ! AND IT PUTS THE PROSE BACK BESIDE THE CODE IT DESCRIBES. `foliator.py`
+      carries two paragraphs explaining `ast.dump` and `_blank_docstrings` and
+      imports neither -- Roy: *"when it was addresser a long time ago that kind of
+      made sense."* Addressing was the subject then and the code check is what
+      makes an address constant. Moving the check to the compositor leaves the
+      foliator free to say what it does, and the explanation lands where a reader
+      can check it.
