@@ -465,7 +465,9 @@ def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     if stale:
         return (
             f"move's destination names a LINE, {stale.group(0)!r} -- that form was"
-            " retired: ask `foliator.py --anchor LINE --series a|b|c|f` for the"
+            # ! `a|b|c` and not `a|b|c|f`: this message is read by a REVIEWER,
+            # and the `f` series is not one it rules on -- see `reviewer-brief`.
+            " retired: ask `foliator.py --anchor LINE --series a|b|c` for the"
             " address"
         )
     if "@" not in where:
