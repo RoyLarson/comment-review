@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 13 tasks done
+Progress: 2 of 19 tasks done
 Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
 Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -12,6 +12,10 @@ Reopened: 2026-08-19 — --filtered stopped filtering when the margin kind arriv
 Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads 'Roy ruled the
            design 2026-08-18; the rest is build'. The flag means a DECISION is owed;
            work still remaining is what the unchecked boxes already say.
+Proposed: 2026-08-21 — 2026-08-21 -- a page rendering with the address in the margin is
+          proposed here and measured on one file. It is a candidate for what the
+          retrieval tool RETURNS. Roy deferred the ruling; `docs/plans/0.2.5`'s P3 asks
+          the same question and is still open.
 ```
 
 ## Objective
@@ -188,6 +192,40 @@ not.** The change is to filter the census the same way and give the reviewer som
       never prints -- and never names `margin`, which is most of the rows. ! The
       listing also ships no column legend; the only one is in SKILL.md, which
       reviewers never see, and it is stale.
+- [ ] * PROPOSAL, NOT YET RULED -- the page renders as THE FILE WITH ITS ADDRESS
+      IN THE MARGIN. Roy, 2026-08-21: *"I might be convinced that the addressing
+      per anchor/line would be useful for the agents ... I think this is a
+      valuable concept."* ! He also deferred it: *"this doesn't need my attention
+      just yet"*, so `Requires-Roy` stays FALSE -- it was cleared 2026-08-19 for a
+      stated reason and a proposal awaiting a look is not a decision owed today.
+- [ ] MEASURED 2026-08-21, one file -- `scripts/check_vocabulary.py`, 328 lines
+      and 303 places: the row list that ships today is 25,950 bytes; the same page
+      with its address in the margin is 21,535; annotating only the 24 places that
+      hold prose and listing the other 279 underneath is 19,242; the file itself
+      is 15,076. !! THE MARGIN RENDERING IS 17% SMALLER THAN WHAT SHIPS AND SHOWS
+      STRICTLY MORE -- the whole file, and every place where it sits.
+- [ ] ! THE MEASUREMENT IS ONE PYTHON FILE THAT IS 40% DOCSTRING, and no non-
+      Python file was rendered at all. A file with little prose moves every ratio
+      above. Re-measure across languages before any of these numbers is used to
+      decide.
+- [ ] !! THE RECORDS BELONG ON THE PAGE, and this is the half the rendering above
+      does not have. Roy, 2026-08-21: *"the records though also need to be
+      potentially explicitly shown or retrievable. Because they are supposed to
+      mark on the records what is supposed to happen."* A reviewer MARKS a
+      manuscript; a page that shows addresses but not the marks against them is a
+      proof with no editorial marks on it.
+- [ ] ! IT IS A DISPLAY THEY CALL UP, WHICH IS THE TOOL THIS TODO ALREADY RULED.
+      Roy, 2026-08-18: *"a tool retrieves the correct spot from the enumerated
+      spots, the agents are sent only the FILTERED places, and they call the tool
+      when they need a place outside the filter."* The margin rendering is a
+      candidate for what that tool RETURNS, not necessarily for what a reviewer is
+      handed up front -- so it composes with the filtered handout rather than
+      replacing it.
+- [ ] ! WHAT IS STILL OPEN in the proposal, none of it ruled: whether an EMPTY
+      place gets a row in position (its value is entirely positional -- an `add`
+      cites it) or is listed under the page; whether the page is text or
+      structured; and the margin's own format, which was invented for the mock-up
+      and matches nothing in the tree.
 
 ## Related
 
