@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (57)
+### open  (58)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -232,6 +232,7 @@ that changed a published name or rule:
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
 | [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 1/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
 | [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
+| [dead-names-ungated](dead-names-ungated.md) | session | yes | 0/5 | Nothing gates a module-level name that no code reads |
 
 ### in-progress  (4)
 
