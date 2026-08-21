@@ -177,3 +177,26 @@ Scientific code where a DERIVATION is the comment -- the `derivation` acquittal
 and the recompute-before-acquitting rule have only ever been tested against one
 project's hand-worked arithmetic. Mid-sized review culture.
 """
+
+[[corpus]]
+name = "cpython"
+kind = "public"
+source = "https://github.com/python/cpython"
+ref = "v3.13.1"
+sparse = ["Objects", "Python", "Include"]
+style = "unknown"
+expect = "low"
+note = """
+HAND-WRITTEN C, added 2026-08-21 to settle whether a keyword list can ever
+recognise a C declaration. Roy: *"pull Python -- all C and known to be
+hand-written in most of the important parts."*
+
+! The first C measurement was numpy's `linalg`, which is f2c-GENERATED LAPACK --
+every definition opened with an f2c typedef (`doublereal`, `integer`) and not
+one with a C keyword. That is evidence, but of generated code. `Objects/` and
+`Python/` are the interpreter core: written by hand, reviewed for decades, and
+carrying their own documentation convention.
+
+! Sparse on three directories. The whole checkout is far more than a pass can
+afford, and these hold the C that matters.
+"""

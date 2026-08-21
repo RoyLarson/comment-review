@@ -236,7 +236,7 @@ that changed a published name or rule:
 | [two-paragraphs-one-address](two-paragraphs-one-address.md) | session | yes | 0/4 | Two prose paragraphs in one gap answer to the SAME address |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | session | — | 0/3 | foliator --check prints SHARED and exits 0 |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | session | — | 0/12 | Outside Python the `a` place is emitted and never filled |
-| [front-matter-protection-is-python-only](front-matter-protection-is-python-only.md) | session | yes | 0/2 | mark_matter cannot fire outside Python, so a licence header is editable work |
+| [front-matter-protection-is-python-only](front-matter-protection-is-python-only.md) | session | yes | 0/3 | mark_matter cannot fire outside Python, so a licence header is editable work |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | session | — | 0/3 | A UTF-8 BOM is censused as a line of code |
 | [strip-strings-runs-before-the-opener](strip-strings-runs-before-the-opener.md) | session | — | 0/4 | A quote inside a block comment blanks the comment's own closer |
 | [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | session | — | 0/3 | A licence header and a doc comment become one paragraph with one address |
