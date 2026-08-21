@@ -205,7 +205,19 @@ FRONT = "f"
 #
 # ! ORDER IS THE ORDER A READER MEETS THEM: the file's own matter, then a
 # declaration's documentation, the gap above a line, the room beside it.
-SERIES = (FRONT, DECLARED, GAP, ON)
+# !! THE SPACE BETWEEN TWO PARAGRAPHS -- see `lexer.LEADING` for what it is and
+# why. Roy ruled the letter 2026-08-21: *"and d works."*
+#
+# ! `l` WAS THE OBVIOUS CHOICE AND THE WORST POSSIBLE CHARACTER: `m.py@l0` reads
+# as `@10`, and this whole scheme rests on a folio being unmistakable.
+#
+# !! IT IS THE ONE SERIES NOTHING CITES. Roy: *"there is no information to rule
+# on. It is just there for document preservation."* So a `d` is kept out of
+# `Page.prose` and out of record seeding, and NO EMPTY `d` IS EMITTED -- the
+# other four series exist wherever prose COULD go, because an `add` cites them;
+# a place no verdict can name has no reason to exist unfilled.
+LEAD = "d"
+SERIES = (FRONT, DECLARED, GAP, ON, LEAD)
 
 
 #: The FIRST TRIGGER every foliator steps past: the file itself, before any line

@@ -487,7 +487,13 @@ class TestTheDeclarationSeries(unittest.TestCase):
             '    """Widen."""\n'
             "    return str(width)\n"
         )
-        prose = [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
+        # ! LEADING holds no prose either -- it is the space between two
+        # paragraphs and answers to nothing.
+        prose = [
+            b
+            for b in got
+            if b.kind not in page.HOLDS_NO_PROSE and b.kind != lexer.LEADING
+        ]
         self.assertEqual(
             [b.anchor for b in prose],
             [
@@ -900,20 +906,29 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
             for b in foliator.for_anchor("X=2", "b", self.paragraphs)
         }
         # ! Read from the ORIGINAL range, which is the gap's OWN LINES: the
-        # first covers nothing above line 1, the second covers 2-4, and the
-        # third covers nothing after 5.
+        # first covers nothing above line 1, the second covers line 3 alone, and
+        # the third covers nothing after 5.
         #
-        # !! THE MIDDLE GAP STARTS AT 2, NOT 3, since 2026-08-20. It is lines
-        # 2-4 and `# stuff happens` is only line 3, so the blanks either side of
-        # it used to belong to no paragraph at all. Roy: *"`b` owns it, else a
+        # !! IT WAS 2-4 BETWEEN 2026-08-20 AND 2026-08-21, and the reason it was
+        # is SUPERSEDED rather than wrong. Roy then: *"`b` owns it, else a
         # literal two paragraph comment is held by nothing and cannot have its
         # internal paragraphs merged or dropped appropriately in the edit
-        # process."*
+        # process."* The blanks had to belong to SOMETHING, and `b` was the only
+        # candidate.
+        #
+        # !! THE `d` SERIES IS THE BETTER CANDIDATE, and it is what a `b` owning
+        # both sides of an `a` could not do: a folio is ONE entry in the reading
+        # order, so a `b` holding lines 2 and 4 around prose at 3 emitted both
+        # blanks together and the file came back blank-blank-comment. Every
+        # paragraph is CONTIGUOUS now, and `# stuff happens` is line 3 alone.
+        #
+        # ! The blanks are still held -- by `d`, and still merged or dropped in
+        # the edit process. What changed is which series holds them.
         # ! `b0` is the gap ABOVE line 1 on a file whose line 1 is code, so it
         # holds no line and says None.
         self.assertIsNone(by_folio["b0"]["original_start"])
         self.assertEqual(
-            (by_folio["b1"]["original_start"], by_folio["b1"]["original_end"]), (2, 4)
+            (by_folio["b1"]["original_start"], by_folio["b1"]["original_end"]), (3, 3)
         )
         self.assertIsNone(by_folio["b2"]["original_start"])
         for folio, paragraph in by_folio.items():

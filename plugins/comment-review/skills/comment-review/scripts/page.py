@@ -63,6 +63,7 @@ from foliator import (  # noqa: E402  -- path shim must run first
     DECLARED,
     FRONT,
     GAP,
+    LEAD,
     ON,
     Foliation,
     flatten,
@@ -70,12 +71,14 @@ from foliator import (  # noqa: E402  -- path shim must run first
     series_of,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
+    LEADING,
     MATTER,
     Language,
     Paragraph,
     declarations,
     document_declarations,
     flag_structural_docs,
+    leading_between,
     paragraphs_lexical,
     paragraphs_stdlib,
     tier_for,
@@ -178,17 +181,20 @@ class Page:
         one, and nobody owes it a ruling. Front matter is prose and is not
         accountable either -- no role can settle a licence header.
 
-        ! ASKED BY SERIES, not by the annotation. Since 2026-08-20 the file's
-        own matter is the `f` series, and every consumer that has to know reads
-        that -- `census.py`'s filter, `verdicts.py`'s accountability set and its
-        `query` guard, `record.py`'s seeding, and this. The annotation is what
-        `mark_matter` STAMPS and `attach` reads to give the paragraph its
-        place; asking it again downstream is a second way to ask one question.
+        ! ASKED BY SERIES, not by the kind. Since 2026-08-20 the file's own
+        matter is the `f` series, and every consumer that has to know reads that
+        -- `census.py`'s filter, `verdicts.py`'s accountability set and its
+        `query` guard, `record.py`'s seeding, and this.
+
+        !! `d` IS OUT FOR A DIFFERENT REASON: leading is not prose at all, it is
+        the space BETWEEN two paragraphs. Roy, 2026-08-21: *"there is no
+        information to rule on. It is just there for document preservation."* A
+        reviewer handed one would be asked to rule on blank lines.
         """
         return [
             b
             for b in self.paragraphs
-            if b.kind not in HOLDS_NO_PROSE and series_of(vars(b)) != FRONT
+            if b.kind not in HOLDS_NO_PROSE and series_of(vars(b)) not in (FRONT, LEAD)
         ]
 
 
@@ -587,6 +593,10 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     # ! A file the parser refused is NOT enumerated into intervals. Its one
     # `unparsed` paragraph reports the refusal, and the code lines below it were
     # never established, so any interval drawn there would be invented.
+    # !! THE SPACE BETWEEN PARAGRAPHS, FOR WHICHEVER READER RAN. It is a pass
+    # rather than a branch inside each, so the two cannot disagree about it --
+    # which is what happened to `matter` when it was written on one tier.
+    got.extend(leading_between(got, text))
     foliation = Foliation()
     if not any(b.kind == "unparsed" for b in got):
         # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
@@ -614,8 +624,16 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # which is what makes `f0` the head and `f1` the foot without either
         # word appearing anywhere.
         files = foliation.file_places()
-        for b in got:
-            if b.kind == MATTER:
+        # ! THE `d` SERIES IS NUMBERED HERE AND NOWHERE ELSE. The walk emits no
+        # `d`, because nothing cites one and a place exists unfilled only so a
+        # verdict can name it -- see `foliator.LEAD`. So leading is numbered in
+        # the order it occurs, which is the order the lexer found it.
+        leads = iter(range(10**9))
+        for b in sorted(got, key=lambda b: b.original_start or 0):
+            if b.kind == LEADING:
+                place = f"{LEAD}{next(leads)}"
+                foliation.places[place] = ""
+            elif b.kind == MATTER:
                 # ! HEAD OR FOOT, which is the whole of the mapping. The lexer
                 # types a run `matter` when it opens the file or closes it; the
                 # walk emits a place for each end; this says which is which, and
@@ -647,6 +665,24 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # ! AFTER every paragraph exists, so each one's share of its gap is
         # settled against the neighbours it actually has.
         fill_the_gaps(text, got)
+        # !! THE READING ORDER IS THE PLACES THAT HOLD LINES, IN THE ORDER THEY
+        # HOLD THEM. The walk built one before any prose was looked at, so it
+        # could not know where a `d` falls -- leading exists only where the lexer
+        # found a blank run, and the walk sees no prose. Every paragraph is
+        # CONTIGUOUS since 2026-08-21, so which lines a place owns settles the
+        # sequence, and it is settled ONCE, here.
+        #
+        # ! AN EMPTY PLACE IS NOT IN IT, and nothing is lost by that: it holds no
+        # line, so it sets nothing. It stays citable through its ADDRESS, which
+        # is what an `add` names.
+        #
+        # ! LAST, because `empty_places` and `fill_the_gaps` both change which
+        # lines a place owns -- ordering before them left every `c` out.
+        foliation.reading = [
+            b.address.split("@")[-1]
+            for b in sorted(got, key=lambda b: b.original_start or 0)
+            if b.original_start and b.address
+        ]
     # ! THE PAGE STATES ITS OWN PATH on every paragraph, empty places included.
     # `empty_places` builds them without one -- it is handed the text, not the
     # file -- and a paragraph with no path is one no consumer can place.

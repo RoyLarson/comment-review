@@ -233,21 +233,33 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
                         f"{name}: line -> owner count",
                     )
 
-    def test_the_blank_at_a_gaps_edge_belongs_to_the_b(self):
-        # ! Not to the `a` above it. Roy: an `a` has none of the flexibility
-        # that lets a `b` absorb a blank and give it back on write. 25 of the
-        # 105 were going to a module docstring.
+    def test_the_blank_at_a_gaps_edge_belongs_to_LEADING(self):
+        # !! IT WENT TO THE `b` UNTIL 2026-08-21, and that is what could not be
+        # set back: a `b` holding the blanks on BOTH sides of an `a` is ONE entry
+        # in the reading order, so its two lines emitted together and the file
+        # came back blank-blank-docstring where it was blank-docstring-blank.
+        #
+        # ! Not to the `a` either, and that reason still holds: an `a` has none
+        # of the flexibility that lets a blank be absorbed and given back.
         text = '"""Doc."""\n\nimport os\n'
         path = Path("m.py")
         pg = page.page_for(path, text, lexer.language_for(path))
         owner = next(b for b in pg if 2 in covers(b))
-        self.assertTrue(owner.address.split("@")[-1].startswith("b"), owner.address)
+        self.assertEqual(owner.kind, lexer.LEADING, owner.address)
+        self.assertTrue(owner.address.split("@")[-1].startswith("d"), owner.address)
 
     def test_every_paragraph_names_one_anchor(self):
+        # ! EXCEPT LEADING, whose anchor is empty by ruling rather than by
+        # omission: every other series answers to a line of code, and the space
+        # between two paragraphs answers to nothing. Roy, 2026-08-21, taking the
+        # trade: *"I like the leading solution even though it added another
+        # foliation and the anchors are empty."*
         for name, text in self.SHAPES.items():
             with self.subTest(shape=name):
                 path = Path("m.py")
                 for b in page.page_for(path, text, lexer.language_for(path)):
+                    if b.kind == lexer.LEADING:
+                        continue
                     self.assertTrue(b.anchor, f"{name}: {b.address} has no anchor")
 
     def test_raw_lines_are_the_lines_this_paragraph_OWNS(self):

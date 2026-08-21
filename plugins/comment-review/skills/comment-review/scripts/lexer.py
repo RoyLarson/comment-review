@@ -248,6 +248,27 @@ _NO_TRAILING = -2
 # may hold none, and the page had to reconstruct what "top of the file" meant
 # from a paragraph already typed `comment`.
 MATTER = "matter"
+# !! THE EMPTY SPACE BETWEEN TWO PARAGRAPHS, as a paragraph of its own. Roy,
+# 2026-08-21: *"it covers all empty space between two different types of
+# paragraphs. If the new line is internal to the paragraph then the two
+# paragraphs + the newlines are in fact one paragraph."* So a blank run the
+# lexer does NOT merge into a run is leading, and one it does merge is prose.
+#
+# !! IT IS THE TRADE WORD. Leading is the strip of lead a compositor puts BETWEEN
+# lines of type to space them -- what a compositor inserts and never what an
+# author writes, which is exactly this. ! A LEADER is the row of dots carrying
+# the eye across a table of contents, a different thing.
+#
+# !! IT CARRIES NO INFORMATION AND IS NEVER RULED ON. Roy: *"there is no
+# information to rule on. It is just there for document preservation."* So it is
+# kept out of `Page.prose` and out of record seeding, and its anchor is EMPTY --
+# every other series answers to a line of code; this answers to nothing.
+#
+# ! WHY IT EXISTS: a `b` owned the blanks on BOTH sides of an `a`, and a folio is
+# one entry in the reading order, so its two lines emitted together and a file
+# came back blank-blank-comment where it was blank-comment-blank. With leading,
+# every paragraph is CONTIGUOUS and the straddle cannot arise.
+LEADING = "leading"
 # ! The anchor a run about the FILE answers to. The same string the foliator
 # uses for the module trigger; it is spelled here rather than imported because
 # the lexer imports no sibling but `language`.
@@ -617,6 +638,68 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     return lines[line_no - 1][: column - 1]
 
 
+def leading_between(paragraphs: list["Paragraph"], text: str) -> list["Paragraph"]:
+    """Every blank run no paragraph holds, as LEADING -- see `LEADING`.
+
+    !! ONE RULE FOR BOTH READERS, and that is the point of it being a pass rather
+    than a branch inside each. Written per tier, it was written once: the same
+    day, `matter` went into the lexical reader alone and every `.py` file
+    reported no front matter at all. Roy: *"which is certainly hiding a lot of
+    bugs."*
+
+    ! THE RULE IS SUBTRACTION, so it cannot disagree with either reader about
+    what prose is: a blank line a paragraph already holds is INSIDE it and stays
+    there, and every other blank line is the space between two paragraphs. Roy,
+    2026-08-21: *"if the new line is internal to the paragraph then the two
+    paragraphs + the newlines are in fact one paragraph."*
+
+    Args:
+        paragraphs: what a reader produced, before any place is assigned.
+        text: the file, read for which lines are blank.
+
+    Returns:
+        One paragraph per unheld blank run, in order.
+    """
+    lines = text.splitlines()
+    held = set()
+    for b in paragraphs:
+        if b.original_start:
+            held.update(
+                range(b.original_start, (b.original_end or b.original_start) + 1)
+            )
+    out: list[Paragraph] = []
+    run: list[int] = []
+    for n, line in enumerate(lines, 1):
+        if not line.strip() and n not in held:
+            run.append(n)
+            continue
+        if run:
+            out.append(_leading(paragraphs, run))
+            run = []
+    if run:
+        out.append(_leading(paragraphs, run))
+    return out
+
+
+def _leading(paragraphs: list["Paragraph"], run: list[int]) -> "Paragraph":
+    """One blank run, as a paragraph. Its anchor is EMPTY on purpose.
+
+    ! Every other series answers to a line of code. This answers to nothing --
+    Roy accepted that when he took it: *"I like the leading solution even though
+    it added another foliation and the anchors are empty."*
+    """
+    return Paragraph(
+        path=paragraphs[0].path if paragraphs else "",
+        start=run[0],
+        end=run[-1],
+        kind=LEADING,
+        lines=0,
+        text="",
+        raw_lines=[""] * len(run),
+        tier=paragraphs[0].tier if paragraphs else "lexical",
+    )
+
+
 def _is_doc(line: str, lang: Language) -> bool:
     """Does this line open a run the language treats as DOCUMENTATION?
 
@@ -715,13 +798,24 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # split into two runs that then SHARED `b0` -- a collision manufactured
         # by a rule protecting a file that had no matter in the first place.
         opens_file = bool(run) and run[0][0] == 1 and not _is_doc(run[0][1], lang)
-        if pending and run and opens_file and not out and not seen_code[0]:
+        if not run:
+            # !! BLANKS ABOVE A RUN THAT HAS NOT STARTED ARE NOT ITS OWN. They
+            # separate this prose from whatever precedes it, which is what
+            # LEADING is -- and `leading_between` finds them afterwards, for both
+            # readers at once. ! Extending an EMPTY run with them made the blank
+            # the paragraph's first line, so a comment two lines below a
+            # statement reported itself as starting at the blank.
+            pending.clear()
+            return
+        if pending and opens_file and not out and not seen_code[0]:
             flush()
         else:
             run.extend(pending)
-        pending.clear()
+            pending.clear()
 
     def flush(trailing: bool = False) -> None:
+        # ! The blanks held since the run's last prose line are LEADING, not the
+        # run's -- `leading_between` collects them once every paragraph exists.
         pending.clear()
         if not run:
             partial_first[0] = 0
@@ -901,8 +995,11 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # is a declaration -- extend the paragraph over the gap and an ORPHAN run,
         # held off its declaration by exactly that gap, reads as documenting it.
         if not raw_line.strip():
-            if run:
-                pending.append((n, ""))
+            # ! HELD WHETHER OR NOT A RUN IS OPEN, since 2026-08-21. A blank with
+            # no run above it was dropped outright, so the space between two code
+            # lines belonged to nothing the lexer emitted and `fill_the_gaps` had
+            # to hand it to a `b` afterwards.
+            pending.append((n, ""))
             continue
         code = _strip_strings(raw_line, lang.quotes, lang.char_quotes)
         line_at = min((code.index(o) for o in openers if o in code), default=-1)
@@ -1173,10 +1270,15 @@ def document_declarations(
         decls: `(line, insert, above)` per declaration, module first.
         code: `line -> the code on it`, in order.
     """
+    # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING. It became a paragraph
+    # on 2026-08-21, and without this the walk up from a declaring line stopped
+    # at the blank above it and tied THAT -- so a doc comment separated from its
+    # declaration by one blank line, the shape 38% of CPython's use, was left
+    # undocumented and the blank took the `a`.
     ends = {
         b.original_end: b
         for b in paragraphs
-        if b.original_end and not b.original_column
+        if b.original_end and not b.original_column and b.kind != LEADING
     }
     if not ends:
         return

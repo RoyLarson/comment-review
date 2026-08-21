@@ -808,7 +808,10 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         # and anchors it to the MODULE. Roy: *"It is a matter designator, the
         # anchor is the module."*
         self.assertEqual(self._one("matter", 1).anchor, "<module>")
-        self.assertEqual(self._one("comment", 3).anchor, "def f():")
+        # ! Line 5, not 3. A run stopped OWNING the blanks above it on
+        # 2026-08-21 -- those are LEADING now -- so it starts where its
+        # prose starts.
+        self.assertEqual(self._one("comment", 5).anchor, "def f():")
 
     def test_a_trailing_comment_is_anchored_to_its_OWN_line(self):
         self.assertEqual(self._one("trailing-comment").anchor, "    return os")
@@ -818,7 +821,7 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         # ! Measured on `def f():` rather than on `import os`, because the run
         # above `import os` is the file's own matter and answers to the module
         # rather than to a line -- which is the one anchor that serves no `c`.
-        b = self._one("comment", 3)
+        b = self._one("comment", 5)
         c = self._one("margin", 6)
         self.assertEqual(b.anchor, c.anchor)
         # ! `page_for` does not stamp the address -- the run loop does, once
@@ -850,7 +853,17 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
 
     def test_NO_block_in_this_file_lacks_an_anchor(self):
         # ! Roy, 2026-08-19: "an anchor missing in a Record is a broken Record."
-        self.assertEqual([b.kind for b in self.paragraphs if not b.anchor], [])
+        # ! LEADING is excluded: it answers to nothing, which is ruled rather than
+        # missing -- Roy, 2026-08-21, taking the trade: *"the anchors are
+        # empty."*
+        self.assertEqual(
+            [
+                b.kind
+                for b in self.paragraphs
+                if not b.anchor and b.kind != lexer.LEADING
+            ],
+            [],
+        )
 
     def test_the_gap_at_the_END_takes_the_line_ABOVE_it(self):
         # ! It has no line below. Left empty this was 14 paragraphs of this repo,
@@ -870,6 +883,9 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         for src in sorted(scripts.glob("*.py")):
             body = src.read_text(encoding="utf-8")
             for b in page.page_for(src, body, lexer.language_for(src)):
+                # ! LEADING answers to nothing, ruled 2026-08-21.
+                if b.kind == lexer.LEADING:
+                    continue
                 if not b.anchor:
                     holes.append(f"{src.name} {b.address or b.start} {b.kind}")
         self.assertEqual(holes, [])
