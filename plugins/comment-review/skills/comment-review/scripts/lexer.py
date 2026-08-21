@@ -28,9 +28,33 @@ a page puts the two together.
 import ast
 import io
 import re
+import sys
 import tokenize
 from dataclasses import dataclass, field
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+# !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS TWO IMPORTERS -- see
+# `language.py`. Everything a language says about where its documentation sits is
+# stated there and read here; no module above this one asks a language anything.
+from language import (  # noqa: E402  -- path shim must run first
+    BY_EXT,
+    LANGUAGES,
+    TIER_ANSWERS,
+    Language,
+    language_for,
+    tier_for,
+)
+
+__all__ = [
+    "BY_EXT",
+    "LANGUAGES",
+    "TIER_ANSWERS",
+    "Language",
+    "language_for",
+    "tier_for",
+]
 
 
 @dataclass
@@ -366,363 +390,6 @@ def block_text(
     if kind == "trailing-comment":
         lines = [_from_marker(ln, markers) for ln in lines]
     return _join(lines, markers)
-
-
-@dataclass(frozen=True)
-class Language:
-    """What the LEXICAL tier needs to find prose in a language it only lexes.
-
-    Adding a language is this record -- data, no code.
-
-    Attributes:
-        doc_line: line-comment openers that mean DOC rather than ordinary
-            comment (Rust `///`, `//!`). Empty when the language marks docs
-            some other way.
-        doc_block: paragraph openers that mean DOC (`/**`). Same idea.
-        doc_is_structural: the doc is a string in a declaration's body (Python)
-            or the run above a declaration (Go). Both need structure to decide,
-            so this tier reports `comment` and annotates the paragraph.
-        quotes: string delimiters, so a marker inside a literal is skipped.
-        char_quotes: delimiters that hold exactly ONE character in this
-            language -- `'a'`, or one escape. !! IT IS PER LANGUAGE AND CANNOT BE ONE
-            RULE: `'x'` is a character in Rust, C, C++, Go, Java, C# and
-            Kotlin, and `'a string'` is prose in Python, JS, Ruby, Lua, shell
-            and SQL. ! What it buys is that a `'` which does NOT close within a
-            character's width is ORDINARY TEXT rather than an open quote --
-            which is what a Rust lifetime is. Measured 2026-08-20: `pub fn
-            name(&self) -> &'static str { 1 } // the display name` censused
-            zero prose paragraphs, because `'static` opened a literal that
-            never closed and blanked the comment with the rest of the line.
-        spanning_quotes: delimiters whose literal may cross LINES -- a JS
-            template literal, a Java text paragraph. ! `_strip_strings` is per-line
-            and carries no open-quote state, so a comment marker INSIDE one of
-            these reads as a comment; `prove_unchanged` refuses such a file
-            rather than proving it. Empty where a language has none.
-        declares: the KEYWORDS this language uses to introduce something that
-            can carry documentation. !! EMPTY MEANS THE LANGUAGE HAS NO `a`
-            SERIES AT ALL -- not "none found in this file". Roy, 2026-08-20:
-            *"we need to be able to distinguish `a` foliations for as many
-            languages as there are `a` possible foliations. yaml, toml are not
-            ones."* A YAML file was given an `a0` it can never fill.
-        nests_comments: an opener INSIDE a paragraph comment adds a LAYER, so the
-            run closes only when every one of them does. Rust, Swift and Kotlin;
-            C, C++, Java, C#, JS, TS, Go and SQL do NOT, and there the first
-            closer wins. ! Lua nests only through its `--[==[` long-bracket
-            form, which is a different opener, so it is False.
-        doc_inside: the documentation is the first thing INSIDE the body, not
-            the run ABOVE the declaration. Python alone, and it is why Python
-            needs a parser where a keyword match is enough elsewhere: `///`
-            goes on the declaring line's own line, a docstring goes wherever
-            the body starts, which a wrapped signature moves.
-    """
-
-    name: str
-    extensions: tuple[str, ...]
-    line_comment: tuple[str, ...]
-    block_comment: tuple[tuple[str, str], ...] = ()
-    doc_line: tuple[str, ...] = ()
-    doc_block: tuple[str, ...] = ()
-    doc_is_structural: bool = False
-    quotes: tuple[str, ...] = ('"', "'")
-    char_quotes: tuple[str, ...] = ()
-    nests_comments: bool = False
-    spanning_quotes: tuple[str, ...] = ()
-    declares: tuple[str, ...] = ()
-    doc_inside: bool = False
-
-
-# ! Ordering inside a field is significant: openers are matched longest-first,
-# so `///` must precede `//` or every Rust doc line loses one slash into the
-# prose and the annotations then run over corrupted text.
-LANGUAGES: tuple[Language, ...] = (
-    Language(
-        "python",
-        (".py", ".pyi"),
-        ("#",),
-        declares=("def", "class", "async def"),
-        # !! THE DOC IS INSIDE THE BODY, which is why Python is the one
-        # language here that needs a parser: `a1`'s prose goes wherever
-        # the body starts, and a wrapped signature moves that. Every
-        # other language puts the doc on the declaring line's own line.
-        doc_inside=True,
-        doc_is_structural=True,
-        # !! A triple quote spans lines, and Python reaches the LEXICAL
-        # path whenever `ast.parse` fails -- syntax newer than the floor,
-        # a file mid-edit. Declaring nothing here left the same fail-open
-        # that was closed for JS the same day: two files differing only
-        # in a `#` line INSIDE a triple-quoted literal fingerprinted
-        # identically and the proof reported PROVEN.
-        spanning_quotes=('"""', "'''"),
-    ),
-    Language(
-        "rust",
-        (".rs",),
-        ("///", "//!", "//"),
-        (("/*", "*/"),),
-        doc_line=("///", "//!"),
-        # ! Rust nests its paragraph comments.
-        nests_comments=True,
-        # !! AND A LIFETIME IS NOT A LITERAL. `&'static str` opens a `'` that
-        # never closes, so reading it as a quote blanked the rest of the line --
-        # comment included. `char_quotes` is what tells the two apart.
-        char_quotes=("'",),
-        # ! `pub` opens an item and `let` opens a binding, so one is in and
-        # the other is not.
-        declares=(
-            "pub",
-            "fn",
-            "struct",
-            "enum",
-            "trait",
-            "impl",
-            "mod",
-            "type",
-            "union",
-            "const",
-            "static",
-            "macro_rules!",
-        ),
-    ),
-    Language(
-        "go",
-        (".go",),
-        ("//",),
-        (("/*", "*/"),),
-        doc_is_structural=True,
-        # ! A rune literal is one character.
-        char_quotes=("'",),
-        # ! `package` is NOT here: Go's package comment IS the file's own
-        # documentation, which is `a0`. Listing it gave the same prose two
-        # places, `a0` and `a1`.
-        declares=("func", "type", "var", "const"),
-    ),
-    # !! C AND C++ GET NO `a`, AND THAT IS A RULING. Roy, 2026-08-20: *"leave
-    # it out because it is ambiguous in every way. Let the agents figure out how
-    # to put the b and c paragraphs together correctly."* A C function is
-    # introduced by its RETURN TYPE -- `size_t f(void)`, `MyRec f(void)` -- and
-    # completing that list would mean knowing every type the program defines.
-    # ! A wrong `a` is worse than no `a`: a spurious match renumbers every `a`
-    # below it, and a verdict is then invited on something that cannot hold one.
-    Language(
-        "c",
-        (".c", ".h"),
-        ("//",),
-        (("/*", "*/"),),
-        doc_block=("/**",),
-        char_quotes=("'",),
-    ),
-    Language(
-        "cpp",
-        (".cpp", ".hpp", ".cc", ".cxx"),
-        ("//",),
-        (("/*", "*/"),),
-        doc_block=("/**",),
-        char_quotes=("'",),
-    ),
-    Language(
-        "java",
-        (".java",),
-        ("//",),
-        (("/*", "*/"),),
-        doc_block=("/**",),
-        char_quotes=("'",),
-        # ! A member declaration opens with a MODIFIER or a type. `final` is
-        # left out because it also opens a local; `static` never does in Java.
-        # A package-private member opening with its type is missed, and a
-        # reviewer reading the file is what supplies it.
-        declares=(
-            "public",
-            "protected",
-            "private",
-            "static",
-            "abstract",
-            "synchronized",
-            "native",
-            "strictfp",
-            "class",
-            "interface",
-            "enum",
-            "record",
-        ),
-        # ! A Java TEXT BLOCK spans lines the same way, and a `//` inside one is
-        # not a comment.
-        spanning_quotes=('"""',),
-    ),
-    Language(
-        "csharp",
-        (".cs",),
-        # ! `///` FIRST -- see the note above the table. Listing only `//` cut
-        # two of the three slashes and left the third in the prose:
-        # `/ <summary>The one doc.</summary>`.
-        ("///", "//"),
-        (("/*", "*/"),),
-        doc_line=("///",),
-        doc_block=("/**",),
-        char_quotes=("'",),
-        # ! `var` is left out: it opens a local and nothing else.
-        declares=(
-            "public",
-            "protected",
-            "private",
-            "internal",
-            "static",
-            "abstract",
-            "virtual",
-            "override",
-            "sealed",
-            "partial",
-            "unsafe",
-            "class",
-            "interface",
-            "enum",
-            "struct",
-            "record",
-            "delegate",
-            "namespace",
-        ),
-        spanning_quotes=('"""',),
-    ),
-    Language(
-        "swift",
-        (".swift",),
-        # ! `///` FIRST, for the reason C#'s is.
-        ("///", "//"),
-        (("/*", "*/"),),
-        doc_line=("///",),
-        doc_block=("/**",),
-        # ! Swift nests its paragraph comments.
-        nests_comments=True,
-        # ! `let` and `var` are left out: they open a local as readily as a
-        # property, so including them would declare every local binding.
-        declares=(
-            "func",
-            "class",
-            "struct",
-            "enum",
-            "protocol",
-            "extension",
-            "actor",
-            "typealias",
-            "init",
-            "deinit",
-            "subscript",
-            "public",
-            "private",
-            "fileprivate",
-            "internal",
-            "open",
-            "static",
-            "override",
-            "convenience",
-            "required",
-        ),
-        spanning_quotes=('"""',),
-    ),
-    Language(
-        "kotlin",
-        (".kt", ".kts"),
-        ("//",),
-        (("/*", "*/"),),
-        doc_block=("/**",),
-        char_quotes=("'",),
-        # ! Kotlin nests its paragraph comments.
-        nests_comments=True,
-        # ! `val` and `var` are left out, for the reason Swift's are.
-        declares=(
-            "fun",
-            "class",
-            "interface",
-            "object",
-            "enum",
-            "data",
-            "sealed",
-            "annotation",
-            "typealias",
-            "companion",
-            "abstract",
-            "open",
-            "internal",
-            "public",
-            "protected",
-            "private",
-            "override",
-            "suspend",
-        ),
-        spanning_quotes=('"""',),
-    ),
-    Language(
-        "javascript",
-        (".js", ".jsx", ".mjs", ".cjs"),
-        ("//",),
-        (("/*", "*/"),),
-        doc_block=("/**",),
-        # ! `const`, `let` and `var` are left out: at module scope one may hold
-        # a documented function, and inside a body every one of them is a local.
-        declares=("function", "class", "export", "async"),
-        quotes=('"', "'", "`"),
-        spanning_quotes=("`",),
-    ),
-    Language(
-        "typescript",
-        (".ts", ".tsx", ".mts", ".cts"),
-        ("//",),
-        (("/*", "*/"),),
-        doc_block=("/**",),
-        # ! JavaScript's list plus what TypeScript adds. DUPLICATED ON PURPOSE:
-        # one shared list would make a TypeScript release change JavaScript's
-        # answer.
-        declares=(
-            "function",
-            "class",
-            "export",
-            "async",
-            "interface",
-            "type",
-            "enum",
-            "namespace",
-            "declare",
-            "abstract",
-        ),
-        quotes=('"', "'", "`"),
-        spanning_quotes=("`",),
-    ),
-    Language(
-        "ruby",
-        (".rb",),
-        ("#",),
-        (("=begin", "=end"),),
-        doc_is_structural=True,
-        declares=("def", "class", "module"),
-    ),
-    Language("shell", (".sh", ".bash", ".zsh"), ("#",), declares=("function",)),
-    Language("sql", (".sql",), ("--",), (("/*", "*/"),)),
-    # ! `local function` is TWO WORDS on purpose: bare `local` opens a
-    # variable, so matching it alone would declare every one of them.
-    Language(
-        "lua",
-        (".lua",),
-        ("--",),
-        (("--[[", "]]"),),
-        declares=("function", "local function"),
-    ),
-    Language("toml-ini", (".toml", ".ini", ".cfg"), ("#",)),
-    Language("yaml", (".yaml", ".yml"), ("#",)),
-)
-
-BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
-
-# The ladder is named by the QUESTION each rung answers, not by the library
-# that happens to answer it. Only the top rung knows which declaration a paragraph
-# belongs to.
-TIER_ANSWERS = {
-    "tokenized": "paragraphs, annotations, and DOCSTRING anchors",
-    "lexical": "paragraphs and annotations only",
-}
-
-
-def language_for(path: Path) -> Language | None:
-    """The language record for a path, or None when the suffix is unknown."""
-    return BY_EXT.get(path.suffix.lower())
 
 
 # !! HOW FAR PAST THE OPENING QUOTE AN ESCAPED CHARACTER MAY CLOSE. `'\n'` closes
@@ -1629,12 +1296,3 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
             )
         )
     return sorted(out, key=lambda b: b.start)
-
-
-def tier_for(lang: Language) -> str:
-    """The highest rung reachable for this language, here and now.
-
-    One definition, read by the dispatcher and by `--languages`, so the listing
-    and the run report the same tier.
-    """
-    return "tokenized" if lang.name == "python" else "lexical"

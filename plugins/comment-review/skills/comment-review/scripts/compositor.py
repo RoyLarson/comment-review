@@ -57,7 +57,13 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from foliator import ON, series_of  # noqa: E402
-from lexer import language_for  # noqa: E402
+
+# !! THE OTHER IMPORTER OF THE ROWS -- see `language.py`. The lexer reads a file
+# into paragraphs and this sets a page back into one; they are the only two
+# modules that touch a file, so they are the only two that may ask a language
+# anything. ! It is read DIRECTLY and not through the lexer, so the rule is
+# visible in the import graph rather than in a comment.
+from language import language_for  # noqa: E402
 from page import Page, page_for  # noqa: E402
 
 READ_ERRORS = (OSError, UnicodeDecodeError)

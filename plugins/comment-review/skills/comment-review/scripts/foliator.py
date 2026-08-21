@@ -99,11 +99,25 @@ until the foliators split them, and one SERIES until 2026-08-20.
 
 !! `a` IS SEPARATE FOR A DIFFERENT REASON: IT NAMES A SUBJECT, NOT A POSITION.
 A docstring is about its DECLARATION, and `a0` is the module with `a1..aN` its
-declarations in source order. Roy, 2026-08-18: *"a docstring is about the thing
-above not the thing below"* -- so the direction question disappears, and Python's
-docstring after its `def` and Rust's `///` before its `fn` number alike.
+declarations in source order. The direction question disappears here: Python's
+docstring after its `def` and Rust's `///` before its `fn` number alike, because
+the number counts declarations rather than positions.
 
-! Which declaration a doc belongs to is the CENSUS's to state and never this
+!! SUPERSEDED 2026-08-21 -- THE REASON GIVEN FOR THAT WAS A RULING, AND IT WAS
+WRONG. This paragraph cited Roy, 2026-08-18: *"a docstring is about the thing
+above not the thing below."* He struck it the same day it was tested against a
+language that does the opposite: *"that was true for python and I messed up. We
+have a better discriminator now and the docstring and its position are
+determined by the language not my on-off statement."*
+
+!! SO NO POSITIONING RULE IS STATED IN THIS MODULE, OR ANYWHERE BUT ONE PLACE.
+Roy: *"All framing about positioning should come from the language and should be
+only in either the language definition file, or a reference to the language
+definition file in lexer and compositor. The language definition file should be
+a leaf separate from everything else and imported only by lexer and
+compositor."* So `language.py` says where a language puts its documentation, two
+modules read it, and every step after carries what they state. ! Which
+declaration a doc belongs to is stated by the LEXER and never inferred by this
 module's to infer, because it is language-dependent and a parser knows it while
 a position does not.
 

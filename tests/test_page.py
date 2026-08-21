@@ -57,7 +57,27 @@ class TestTheTwoLeaves(unittest.TestCase):
         # !! IT DEFINES WHAT IT PRODUCES -- `Paragraph` -- and stops there. Where
         # that paragraph SITS is the page's, which is why the lexer needs no
         # address and no foliation.
-        self.assertEqual(_imports("lexer"), set())
+        # ! ONE SIBLING SINCE 2026-08-21, and it is the rows it reads a file
+        # with. Roy: *"The language definition file should be a leaf separate
+        # from everything else and imported only by lexer and compositor."*
+        self.assertEqual(_imports("lexer"), {"language"})
+
+    def test_the_LANGUAGE_ROWS_are_a_leaf_with_two_importers(self):
+        # !! THE RULE, ENFORCED. Roy, 2026-08-21: *"All framing about positioning
+        # should come from the language and should be only in either the language
+        # definition file, or a reference to the language definition file in
+        # lexer and compositor."* The lexer reads a file into paragraphs and the
+        # compositor sets a page back into one; they are the only two modules
+        # that touch a file, so they are the only two that may ask a language
+        # anything.
+        #
+        # ! While the rows sat inside `lexer.py`, FOUR more modules imported them
+        # through it -- `census`, `desk`, `page` and `prove_unchanged` -- and
+        # every module holding a `Language` is a place a positioning rule can be
+        # written a second time and drift from the first.
+        self.assertEqual(_imports("language"), set())
+        readers = {name for name in SIBLINGS if "language" in _imports(name)}
+        self.assertEqual(readers, {"lexer", "compositor"})
 
     def test_the_page_imports_BOTH_and_nothing_else(self):
         # !! THE PAGE BUILDS ITSELF: it asks the lexer where the prose is and the
