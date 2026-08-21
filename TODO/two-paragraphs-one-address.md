@@ -7,6 +7,22 @@ Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
           census route)
+Traced:   2026-08-21 — 2026-08-21 -- IT IS NOT THE FRONT-MATTER AMBIGUITY, and it is not
+          one bug with a-series-never-fills-outside-python either. TRACED: attach()
+          routes on three facts in order -- declares >= 0 -> the declaration's a; the
+          MATTER annotation -> f0; original_column -> that line's c; else above() -> a
+          b. Both paragraphs fail the first two and land in the same gap. ! Even a
+          perfect mark_matter would only move the licence header out of the way by luck:
+          the docstring would still be in a b place and would collide with any ordinary
+          comment above the same declaration -- '// helper below' over '/** Adds. */'
+          collides with no front matter involved. !! AND WIRING declares DOES NOT CLOSE
+          IT FOR C, C++ OR SQL. Those three rows carry an EMPTY declares tuple,
+          deliberately -- Roy: a C function opens with its RETURN TYPE, so the keyword
+          list could never be complete and a spurious a renumbers every a below it.
+          MEASURED: declarations() returns [] for C and [(0,1),(3,3)] for Rust. So in C
+          there is no a place for a doc comment to take and it MUST share the gap. * The
+          ruling is narrower than first filed: what should an address mean when two
+          paragraphs occupy one gap and the language offers no second place?
 ```
 
 ## Objective
