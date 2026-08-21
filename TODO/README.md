@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (69)
+### open  (68)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -217,7 +217,7 @@ that changed a published name or rule:
 | [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
 | [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | foliator.triggers() has no production caller and takes a shape the walk no longer uses |
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
-| [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | yes | 6/12 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
+| [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | — | 10/12 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
 | [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
 | [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | session | — | 1/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | session | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
@@ -233,7 +233,6 @@ that changed a published name or rule:
 | [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
 | [closing-line-deletes-code](closing-line-deletes-code.md) | session | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | Roy | — | 0/4 | v1.x wants a concrete versioning system on everything that ships |
-| [two-paragraphs-one-address](two-paragraphs-one-address.md) | session | yes | 0/8 | Two prose paragraphs in one gap answer to the SAME address |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | session | — | 0/3 | foliator --check prints SHARED and exits 0 |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | session | — | 0/12 | Outside Python the `a` place is emitted and never filled |
 | [front-matter-protection-is-python-only](front-matter-protection-is-python-only.md) | session | — | 0/7 | mark_matter cannot fire outside Python, so a licence header is editable work |
@@ -310,3 +309,4 @@ the reason is inside the file.
 | [dead-names-ungated](completed/dead-names-ungated.md) | scripts/dead_sweep.py, an input rather than a gate; 0 dead names in the tree as of 2026-08-21 |
 | [complete-breaks-links-SUPERSEDED](completed/complete-breaks-links-SUPERSEDED.md) | Accepted: the orphans are inside completed/, and repairing one means rewriting an archived file |
 | [plugin-version-not-bumped](completed/plugin-version-not-bumped.md) | 0.2.4-alpha in all three files; the cache directory can no longer collide with the measured 0.2.3 |
+| [two-paragraphs-one-address](completed/two-paragraphs-one-address.md) | Fixed in 0f72dce -- a comment's DELIMITERS are not paragraph boundaries, only code is. 157 shared addresses over 699 files became 0. |

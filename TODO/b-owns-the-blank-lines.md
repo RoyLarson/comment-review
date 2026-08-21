@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 6 of 12 tasks done
+Progress: 10 of 12 tasks done
 Owner:    session
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'on the original every line belongs to 1
           paragraph and every paragraph belongs to 1 anchor')
 Done:     2026-08-20 — 2026-08-20 -- landed in 5fd5baf. `b` owns every line that is not
@@ -16,6 +16,13 @@ Done:     2026-08-20 — 2026-08-20 -- landed in 5fd5baf. `b` owns every line th
           single place that divides a gap. ! The galley half Roy named -- strip empty
           lines at the ends of a `b` on write, then put one back for spacing -- is NOT
           done and stays with the galley work.
+Ruled:    2026-08-21 — Roy: 'b owns the blank line -- same answer as the blanks around
+          a's and c's for the same reason. it is the flex in the system. it makes the
+          covering precise and full.' Landed in 16661dd: `recut` takes the FREE lines
+          only, so a `b` gives way to what sits inside its span. ! The cost is ruled too
+          -- the series order is fixed at f, a, b, c, so front matter below a blank line
+          is set above it. Lossy on ORDER, never on content, and handed to ownership-
+          context as a query rather than solved.
 ```
 
 ## Objective
@@ -59,20 +66,20 @@ The original range leaves 105 blank lines owned by nothing, and 25 blanks go to 
       and then `recut` slices `source[start - 1 : end]` over the WHOLE span
       anyway. A `b` whose free lines are not CONTIGUOUS therefore swallows the
       paragraph sitting inside it.
-- [ ] MEASURED on `corpora/cpython/Include/floatobject.h`, which opens with a
+- [x] MEASURED on `corpora/cpython/Include/floatobject.h`, which opens with a
       BLANK line: `f0` holds line 2 (`/* Float object interface */`) and `b0`
       holds 1-7, so the comment appears in both and the compositor sets it twice.
       9 files of 699, all the same shape -- a file whose front matter is not on
       line 1.
-- [ ] ! IT WAS UNREACHABLE BEFORE THE MATTER RULE. Front matter resolved only in
+- [x] ! IT WAS UNREACHABLE BEFORE THE MATTER RULE. Front matter resolved only in
       Python and only above a module docstring, so an `f` place never sat inside a
       gap with a blank above it. The rule going positional is what made the shape
       common.
-- [ ] * RULING WANTED: WHO OWNS A BLANK LINE ABOVE FRONT MATTER. Giving it to `f0`
+- [x] * RULING WANTED: WHO OWNS A BLANK LINE ABOVE FRONT MATTER. Giving it to `f0`
       keeps the tiling total and reads as the file's own head. Leaving it to the
       `b` cannot work -- a `b` is contiguous, and the compositor sets places in
       order, so a `b` owning lines 1 and 3-7 around an `f0` at 2 would set line 1
       AFTER line 2.
-- [ ] ! THE INVARIANT AT STAKE is that the page TILES its file: every line belongs
+- [x] ! THE INVARIANT AT STAKE is that the page TILES its file: every line belongs
       to exactly one place. That is what makes the compositor total, and this is
       the only measured shape that breaks it.
