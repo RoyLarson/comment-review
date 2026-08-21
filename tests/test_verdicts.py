@@ -2829,6 +2829,39 @@ class TestTheJoinReadsRecords(unittest.TestCase):
         )
         self.assertEqual(len(found), 1)
 
+    def test_a_0_2_4_JSON_report_still_loads(self):
+        """!! A HELD RUN IS A REGRESSION TEST, AND THE PAGE ENVELOPE MOVED THE SHAPE.
+
+        0.2.4 held a FLAT `records` list whose every record carried the whole
+        address; 0.2.5 groups them under a page that names the file once. ! The
+        walk that reads the envelope returned nothing at all on the older
+        shape -- no findings and no `malformed` -- so a replayed run reported
+        a clean join over a report holding findings. Measured 2026-08-20.
+        """
+        self.path.write_text(
+            json.dumps(
+                {
+                    "reviewer": "block-context",
+                    "records": [
+                        {
+                            "address": "a.py@b1",
+                            "verdict": "drop",
+                            "claim": {"whole": "the note"},
+                            "reason": "stale",
+                            "sources": [],
+                            "change": [],
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        found, malformed, _ = held.load_report(
+            self.path, self.path.read_text(encoding="utf-8"), "block-context"
+        )
+        self.assertEqual(malformed, [])
+        self.assertEqual([f.address for f in found], ["a.py@b1"])
+
 
 class TestClaimTextRendersTheObject(unittest.TestCase):
     """The bridge: an object rendered into the marker form the checks read.

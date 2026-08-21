@@ -78,6 +78,47 @@ RECORD = re.compile(r"^---\s*RECORD\s*$(.*?)^---\s*$", re.M | re.S)
 FIELD = re.compile(r"^(BLOCK|VERDICT|SOURCES|CLAIM|REASON|CHANGE)(?:\s+(.*))?$")
 
 
+def held_records(report: dict):
+    """Every record in a held report, whichever shape it was held in.
+
+    !! A HELD RUN IS A REGRESSION TEST, AND THIS IS WHAT KEEPS IT ONE. Replaying
+    held stage-4 output is what made 0.2.1 and 0.2.2 cheap to validate, and that
+    property dies the day the shape moves unless something reads the older one.
+
+    !! TWO SHAPES, ONE ADDRESS. 0.2.4 held a FLAT `records` list whose every
+    record carried the whole address; 0.2.5 groups records under a PAGE that
+    names the file once, so a record cites its place alone. Composing here means
+    everything below works on a full address either way.
+
+    ! IT YIELDS WHAT IS THERE, INCLUDING AN ENTRY THAT IS NOT AN OBJECT and one
+    that names no place -- the caller reports both, and a walk that filtered
+    them reported a clean join over a report that was not.
+
+    Args:
+        report: the parsed record file.
+
+    Yields:
+        `(address, record)`. The address is "" where the record names no place.
+    """
+    if report.get("pages") is None:
+        # !! THE 0.2.4 SHAPE: a flat list, every record carrying its own whole
+        # address. ! Asked of `pages` and not of `records`, because a report
+        # holding an EMPTY `pages` is the current shape saying it ruled on
+        # nothing -- reading its `records` key instead would be a guess.
+        for rec in report.get("records") or []:
+            if not isinstance(rec, dict):
+                yield "", rec
+                continue
+            yield str(rec.get("address") or "").strip(), rec
+        return
+    for page, rec in every_record(report):
+        if not isinstance(rec, dict):
+            yield "", rec
+            continue
+        place = rec.get("place")
+        yield (address_for(page, place.strip()) if isinstance(place, str) else ""), rec
+
+
 def load_report(
     path: Path, text: str, reviewer: str
 ) -> tuple[list[Finding], list[str], list[str]]:
@@ -124,7 +165,12 @@ def load_report(
         return ([], [why], [])
     findings: list[Finding] = []
     malformed: list[str] = []
-    for page, rec in every_record(report):
+    # !! THE ADDRESS IS THE KEY, AND `held_records` COMPOSED IT. The census index
+    # was dropped 2026-08-19 -- it went stale the moment an `add` or a `drop`
+    # shifted the list, while the address survives, and an address identifies
+    # exactly one paragraph (measured: 0 shared over 6,180). Everything below
+    # here works on a full address whichever shape the report was held in.
+    for where, rec in held_records(report):
         # ! An ENTRY that is not an object. The guard above catches a report
         # that is not one; this catches a record inside a well-shaped report,
         # which `record.py --check` also reports and which raised
@@ -136,22 +182,11 @@ def load_report(
             # ! An unfilled slot is a COVERAGE gap, counted by the caller from
             # the findings it does not see. It is not a malformed record.
             continue
-        # !! THE ADDRESS IS THE KEY, AND IT IS COMPOSED HERE. The census index
-        # was dropped 2026-08-19 -- it went stale the moment an `add` or a
-        # `drop` shifted the list, while the address survives, and an address
-        # identifies exactly one paragraph (measured: 0 shared over 6,180).
-        #
-        # !! THE FILE CARRIES THE TWO HALVES SEPARATELY: the PAGE names the
-        # file once and each record names only its PLACE. This is the seam that
-        # puts them back together, and everything below it works on a full
-        # address exactly as before -- 30 sites, none of which had to change.
-        place = rec.get("place")
-        if not isinstance(place, str) or not place.strip():
-            malformed.append(f"a record carries place {place!r}, which names nothing")
-            continue
-        where = address_for(page, place)
         if not where:
-            malformed.append(f"a record at place {place!r} sits under no page")
+            # ! It names the key the record actually used, so the message is
+            # right about a 0.2.4 report as well as a current one.
+            names = rec.get("place", rec.get("address"))
+            malformed.append(f"a record names the place {names!r}, which is no place")
             continue
         claim = rec.get("claim")
         # ! NORMALISED HERE, not at the constructor. `claim_text` does
@@ -533,26 +568,28 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
         if held is None:
             continue
         where = str(held.get("path", ""))
-        page = blocks.get(where)
-        if page is None:
-            page = {"page": where, "records": []}
-            blocks[where] = page
-            report["pages"].append(page)
-        page["records"].append(slot(held))
+        # ! `block` is the page's BLOCK in the file; `page`, above and below, is
+        # the path it names. Both were called `page` and the two readings sat
+        # four lines apart.
+        block = blocks.get(where)
+        if block is None:
+            block = {"page": where, "records": []}
+            blocks[where] = block
+            report["pages"].append(block)
+        block["records"].append(slot(held))
     report["pages"].sort(key=lambda p: str(p.get("page", "")))
-    for page in report["pages"]:
-        page["records"].sort(
-            key=lambda r: order.get(
-                address_for(str(page.get("page", "")), str(r["place"])), len(census)
-            )
+    for block in report["pages"]:
+        page = str(block.get("page", ""))
+        block["records"].sort(
+            key=lambda r: order.get(address_for(page, str(r["place"])), len(census))
         )
 
     # ! FILLED PAGE BY PAGE, because a record is keyed by its page AND its
     # place. Over one flat list the place alone would collide across files.
-    for page in report["pages"]:
-        where = str(page.get("page", ""))
+    for block in report["pages"]:
+        where = str(block.get("page", ""))
         filled = []
-        for rec in page["records"]:
+        for rec in block["records"]:
             found = by_paragraph.get(address_for(where, str(rec["place"])), [])
             if not found:
                 filled.append(rec)
@@ -571,5 +608,5 @@ def convert(findings: list, census: list[dict], reviewer: str) -> dict:
                 ]
                 out["change"] = f.change.splitlines()
                 filled.append(out)
-        page["records"] = filled
+        block["records"] = filled
     return report
