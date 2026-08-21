@@ -314,26 +314,31 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
 
 
 def documentable(
-    decls: list[tuple[int, int]], code: dict[int, str]
+    decls: list[tuple[int, int, bool]], code: dict[int, str]
 ) -> dict[int, tuple[int, int, str]]:
     """Which code lines DECLARE something documentable, and WHERE the doc sits.
 
-    !! BOTH HALVES ARE ORDINALS, NOT LINES, and that is the point of this
-    function. The lexer states the language's rule as a LINE -- above-doc
-    languages give the declaring line itself, Python gives a line inside the body
-    -- and the walk counts in code lines. Handing the walk a raw line number made
-    it compare `insert <= n` to decide where a docstring falls, which is line
-    arithmetic in the one module that must not do any. Roy, 2026-08-21: *"how do
-    I get you to stop thinking in line numbers?"*
+    !! IT CONVERTS; IT DECIDES NOTHING. The lexer states which side a
+    language's documentation goes on, because the lexer is one of the two modules
+    that touch a file at all. Roy, 2026-08-21: *"The language definition file has
+    to state which, not the code"*, and *"the ONLY places that need this are the
+    lexer and the compositor ... every other part of the program reads inputs and
+    outputs to/from those modules."*
 
-    ! SO THE LANGUAGE'S CALL IS RESOLVED HERE, ONCE, and the walk is left with a
-    position in its own sequence. Rust answers "beside the declaring line";
-    Python answers "after the last line of the signature", which a wrapped
-    signature moves several code lines down.
+    ! TWO EARLIER VERSIONS PUT THE DECISION HERE, and both were wrong in the same
+    way. One compared `insert <= line` and inferred the rule from an arithmetic
+    on two line numbers; the next read `lang.doc_inside` in this module, which
+    only moved the language out of the lexer. What is left is turning a LINE into
+    a position in the walk's own sequence.
+
+    !! THAT POSITION IS AN ORDINAL, which is the other half of the job. The walk
+    counts code lines, so handing it a raw line made it compare `insert <= n` to
+    place a docstring -- line arithmetic in the one module that must do none.
+    Roy: *"how do I get you to stop thinking in line numbers?"*
 
     Args:
-        decls: `(line, insert)` per declaration, module first -- see
-            `lexer.declarations`.
+        decls: `(line, insert, above)` per declaration, module first -- see
+            `lexer.declarations`, which states all three.
         code: the walk's triggers, `(line, anchor)` in order.
 
     Returns:
@@ -341,27 +346,27 @@ def documentable(
         at, WHICH SIDE of that index's gap)`. Three facts, and they were one
         field until 2026-08-21. The line is what `documented_by` walks up from to
         find prose already sitting there. The index and the side are what the
-        walk places by, and the side is the per-language half: `ON` sets the
-        doc between the gap and the code, `GAP` sets it before the gap -- which
-        is where a doc that sits BELOW its declaration lands, because the gap
-        beneath it belongs to whatever comes next. Empty for a tier that
-        resolves no declarations, and the file then has an `a0` and no more.
+        walk places by: `ON` sets the doc between the gap and the code, `GAP`
+        sets it before the gap -- which is where a doc that sits INSIDE its
+        declaration lands, because the gap beneath it introduces whatever comes
+        next. Empty for a tier that resolves no declarations, and the file then
+        has an `a0` and no more.
     """
     at = {n: i for i, n in enumerate(code)}
     ordered = sorted(at)
     out: dict[int, tuple[int, int, str]] = {}
-    for line, insert in decls[1:]:
+    for line, insert, above in decls[1:]:
         if line not in at:
             continue
-        if insert <= line:
-            # ! ABOVE ITS OWN DECLARING LINE -- every above-doc language, where
-            # `lexer.declarations` names that line as the doc's own.
+        if above:
+            # ! ABOVE THE DECLARING LINE, which is that line's own place: the doc
+            # is set after the gap and before the code.
             out[at[line]] = (insert, at[line], ON)
             continue
-        # ! BELOW IT -- Python, whose docstring sits inside the body and after a
-        # signature that may span several code lines. It is set before the gap
-        # that introduces the next code there is, and that gap owns the blank
-        # lines under the docstring rather than the docstring owning them.
+        # ! INSIDE THE DECLARATION -- so it is set after whatever code the
+        # declaration spans, before the gap that introduces the body. A wrapped
+        # signature moves that several code lines down, which is why the LINE is
+        # what the parser states and the ordinal is worked out here.
         follows = [n for n in ordered if n >= insert]
         out[at[line]] = (insert, at[follows[0]] if follows else len(code), GAP)
     return out
@@ -455,7 +460,8 @@ def places_on(
     # documentable declaration has no `a` series at all -- see `foliate`. It is
     # not a series that happens to be empty, and a YAML file carried an `a0`
     # until 2026-08-20 because the two were conflated.
-    return foliate(code, documentable(decls, code), decls[0][1] if decls else None)
+    placed = documentable(decls, code) if lang else {}
+    return foliate(code, placed, decls[0][1] if decls else None)
 
 
 def empty_places(

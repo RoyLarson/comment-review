@@ -1347,7 +1347,7 @@ def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
 
 def declarations(
     text: str, lang: Language, code: dict[int, str] | None = None
-) -> list[tuple[int, int]]:
+) -> list[tuple[int, int, bool]]:
     """Every DOCUMENTABLE declaration in source order: its line, and where its doc goes.
 
     !! ENTRY 0 IS THE MODULE, whose line is 0 -- a module has no line of code
@@ -1384,8 +1384,12 @@ def declarations(
             declare anything. Required for a language that is not Python.
 
     Returns:
-        `(line, insert)` per declaration, module first, or `[]` when the
-        language has no `a` series.
+        `(line, insert, above)` per declaration, module first, or `[]` when the
+        language has no `a` series. !! `above` IS THE ROW SPEAKING, not a
+        comparison of the two numbers -- Roy, 2026-08-21: *"The language
+        definition file has to state which, not the code."* It is `doc_inside`
+        read back out, and it is stated HERE because the lexer is one of the two
+        modules that touch a file at all; every step below carries it.
     """
     if not lang.declares:
         return []
@@ -1402,20 +1406,24 @@ def declarations(
             (n for n in ast.walk(tree) if isinstance(n, NAMED_DEFS)),
             key=lambda n: n.lineno,
         )
-        out: list[tuple[int, int]] = []
+        # ! ABOVE is False for every entry here: this is the `doc_inside`
+        # path, and the row that sent us down it is the statement.
+        out: list[tuple[int, int, bool]] = []
         for node in [tree, *declared]:
             body = getattr(node, "body", [])
             # ! An empty module has no first statement; its doc would open the file.
-            out.append((getattr(node, "lineno", 0), body[0].lineno if body else 1))
+            out.append(
+                (getattr(node, "lineno", 0), body[0].lineno if body else 1, False)
+            )
         return out
     # !! THE MODULE FIRST, AND ITS DOC OPENS THE FILE. `a0` is the file's own
     # documentation, which in an above-doc language is the run at the top --
     # Rust's `//!`, Go's package comment.
-    out = [(0, 1)]
+    out = [(0, 1, True)]
     # ! The doc goes ON the declaring line, pushing it down, so `insert` IS that
     # line. Ordered because `code` is.
     out += [
-        (n, n)
+        (n, n, True)
         for n, line in (code or {}).items()
         if _declares_here(line, lang.declares)
     ]
