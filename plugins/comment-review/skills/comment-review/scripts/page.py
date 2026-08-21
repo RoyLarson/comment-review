@@ -321,6 +321,68 @@ def documentable(decls: list[tuple[int, int]], code: dict[int, str]) -> dict[int
     return {at[line]: insert for line, insert in decls[1:] if line in at}
 
 
+def documented_by(text: str, prose: list["Paragraph"], foliation: "Foliation") -> None:
+    """Tie each prose run to the declaration whose doc position it occupies.
+
+    !! THE LEXER-TO-PARAGRAPH JUNCTION, and both halves already existed.
+    `documentable()` says which line a declaration's doc goes on and the walk
+    emits an `a` for it; `paragraphs_stdlib` states `declares` for Python from
+    its parse. Nothing stated it for the lexical languages that have a keyword
+    list, so `attach` fell past its first branch and every doc comment took the
+    `b` for the gap it sits in -- the `a` place reading `undocumented` while the
+    documentation sat in the gap below it.
+
+    !! NEAREST ABOVE, NOT FLUSH AGAINST. MEASURED 2026-08-21 on CPython v3.13.1
+    (`corpora/cpython`, 489 `.c`/`.h` files): of 2,987 documented declarations,
+    1,863 put the comment flush against the declaring line and 1,124 leave a
+    blank line between it. An adjacency test would abandon that 38% in `b`.
+    Blank lines are therefore skipped, and a line of CODE stops the walk --
+    prose above that code documents the code, not this declaration.
+
+    ! FRONT MATTER IS LEFT ALONE, because `attach` reads `declares` BEFORE it
+    reads the MATTER annotation. A licence header tied here would take an `a`
+    and vacate `f0`, making the file's own matter the first declaration's
+    documentation.
+
+    ! A TRAILING COMMENT IS LEFT ALONE. It states a column, which is what puts
+    it beside a line rather than above one, and its line is a line of code.
+
+    ! THE MODULE IS NOT TIED. Ordinal 0 is the module, whose doc position is the
+    head of the file, and no paragraph sits above the first line.
+
+    Args:
+        text: the file's source, read for which lines are blank.
+        prose: the page's paragraphs, mutated in place.
+        foliation: the walk, which states every declaration's doc position.
+    """
+    lines = text.splitlines()
+    # ! Keyed by the line a run ENDS on, which is the line a declaration's doc
+    # position walks back to.
+    ends = {
+        b.original_end: b
+        for b in prose
+        if b.original_end
+        and not b.original_column
+        and MATTER not in (b.annotations or ())
+    }
+    if not ends:
+        return
+    ordinal = 1
+    while True:
+        folio = foliation.documents(ordinal)
+        if not folio:
+            return
+        insert = foliation.inserts.get(folio)
+        if insert is not None:
+            at = insert - 1
+            while at >= 1 and not lines[at - 1].strip():
+                at -= 1
+            held = ends.get(at)
+            if held is not None:
+                held.declares = ordinal
+        ordinal += 1
+
+
 def places_on(
     text: str, prose: list[dict], lang: "Language | None" = None
 ) -> "Foliation":
@@ -551,6 +613,11 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # and the anchor comes from the walk that emitted it rather than from a
         # second pass that could disagree with the first.
         foliation = places_on(text, [vars(b) for b in got], lang)
+        # ! AFTER the walk and BEFORE `attach`, because it states the fact
+        # `attach` reads first. Python's parse already stated it; this is the
+        # same fact for every language whose `a` series comes from a keyword.
+        if lang.name != "python":
+            documented_by(text, got, foliation)
         flat = flatten(rel if rel is not None else path.as_posix())
         for b in got:
             place = attach(vars(b), foliation)

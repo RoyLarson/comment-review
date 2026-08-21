@@ -30,13 +30,22 @@ def places(name: str, text: str) -> list[str]:
 
 
 def a_places(name: str, text: str) -> list[tuple[str, str]]:
-    """`(folio, anchor)` for every `a` on this file."""
+    """`(folio, anchor)` for every `a` on this file, in SERIES order.
+
+    ! SORTED ON THE FOLIO'S OWN NUMBER, which is what the walk counted. Iterating
+    the page gives the order its PARAGRAPHS are listed in -- `Page.paragraphs` is
+    sorted on the lines a paragraph covers -- and an empty place covers none, so
+    it sorts ahead of every filled one. That is a fact about the prose list and
+    not about the foliation, which never reads a line number to number a place.
+    The two orders agreed only while no `a` outside Python was ever filled.
+    """
     p = Path(name)
-    return [
+    got = [
         (b.address.split("@")[-1], b.anchor)
         for b in page.page_for(p, text, lexer.language_for(p))
         if b.address.split("@")[-1].startswith("a")
     ]
+    return sorted(got, key=lambda f: int(f[0][1:]))
 
 
 class TestALanguageWithNoDocstringPracticeHasNoASeries(unittest.TestCase):
@@ -95,6 +104,62 @@ class TestTheKeywordListResolvesDeclarations(unittest.TestCase):
     def test_the_anchor_is_the_declaring_line_verbatim(self):
         got = a_places("z.rs", "pub fn wrapped(\n    x: i32,\n) -> i32 { x }\n")
         self.assertEqual(got[1], ("a1", "pub fn wrapped("))
+
+
+def folio_of(name: str, text: str, line: int) -> str:
+    """The folio the paragraph STARTING on this line was tied to."""
+    p = Path(name)
+    for b in page.page_for(p, text, lexer.language_for(p)):
+        if b.original_start == line:
+            return b.address.split("@")[-1]
+    return ""
+
+
+class TestTheAPlaceIsFilledOutsidePython(unittest.TestCase):
+    """The lexer-to-paragraph junction: prose above a declaration takes its `a`.
+
+    Wired 2026-08-21. `Paragraph.declares` was stated only by `paragraphs_stdlib`,
+    so `attach` fell past its first branch for every language whose `a` comes
+    from a keyword and every doc comment took the `b` for the gap it sat in.
+    """
+
+    def test_a_doc_comment_flush_against_the_declaration_takes_its_a(self):
+        self.assertEqual(folio_of("z.rs", "/// The name.\npub fn f() {}\n", 1), "a1")
+
+    def test_a_BLANK_LINE_between_does_not_break_the_tie(self):
+        # !! MEASURED on CPython v3.13.1: 1,124 of 2,987 documented declarations
+        # (38%) leave a blank line before the declaring line. An adjacency test
+        # would abandon every one of them in `b`.
+        self.assertEqual(
+            folio_of("g.go", "// One does it.\n\nfunc One() {}\n", 1), "a1"
+        )
+
+    def test_prose_above_a_line_of_CODE_documents_the_code_not_the_next_one(self):
+        # ! The walk back stops at code: this comment sits above `func One`, and
+        # `func Two` two lines below has no documentation at all.
+        text = "// One does it.\nfunc One() {}\nfunc Two() {}\n"
+        self.assertEqual(folio_of("g.go", text, 1), "a1")
+
+    def test_the_NEAREST_paragraph_above_takes_it_and_the_header_keeps_its_gap(self):
+        # !! THE COLLISION THIS CLOSES. Both paragraphs used to answer to `b0`,
+        # and `record.entry_for` returns the FIRST -- so a correct edit to the
+        # doc comment was checked against the licence header and refused.
+        text = (
+            "// Copyright 2001.\npackage thing\n\n// Name returns it.\nfunc Name() {}\n"
+        )
+        self.assertEqual(folio_of("g.go", text, 1), "b0")
+        self.assertEqual(folio_of("g.go", text, 4), "a1")
+
+    def test_a_TRAILING_comment_is_beside_its_line_and_never_documents(self):
+        # ! It states a column, and its line is a line of code.
+        self.assertEqual(folio_of("g.go", "func One() {} // note\n", 1), "c0")
+
+    def test_a_language_with_no_keyword_list_ties_nothing(self):
+        # ! C is deliberately empty -- see `test_c_and_cpp_are_left_out...`. The
+        # junction cannot invent an `a` for a language that has no `a` series.
+        self.assertEqual(
+            folio_of("m.c", "/* Adds. */\nint add(int a) { return a; }\n", 1), "b0"
+        )
 
 
 class TestTheMatchIsOnTheFIRSTWORDNeverASubstring(unittest.TestCase):

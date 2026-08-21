@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 12 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -17,6 +17,10 @@ Traced:   2026-08-21 — 2026-08-21 -- IT IS A MISSING WIRE, and both halves alr
           the declaration's a) and lands on above() -> a b place. ! So this is not an
           inference problem and needs no text finder. The 10 languages with a declares
           keyword list can be wired from what is already computed.
+Ruled:    2026-08-21 — 2026-08-21 -- the criterion is a C round trip, not an argument
+          about keyword recall. Measured on CPython v3.13.1 while settling it: a keyword
+          list finds the anchor line for 92.9% of definitions, and 81.1% of its false
+          positives are lines nobody documented.
 ```
 
 ## Objective
@@ -37,3 +41,51 @@ Outside Python the `a` place is emitted and never filled.
 - [ ] ! CLAUDE.md's claim that the keyword lists made an `a` place resolve for
       eleven languages holds for EMITTING the place, not for ever filling it. 16
       of 17 languages are affected.
+- [ ] !! THE ACCEPTANCE TEST IS A ROUND TRIP, ruled by Roy 2026-08-21: *"if we can
+      show that we can round trip the comments correctly in a c document (assuming
+      the documentation doesn't have typographical errors) with the a foliation
+      then we add it back. If it causes errors then we leave all of them as b and
+      a's do not get populated and are not queriable/settable in the program. That
+      is an easy out for the language."* So this closes on a DEMONSTRATION, not on
+      an argument about whether a keyword list can recognise a declaration.
+- [ ] ! THE FALLBACK IS A REAL OUTCOME, NOT A FAILURE. If the round trip errors, C
+      keeps `declares=()`: every paragraph stays `b`, no `a` is populated, and an
+      `a` is neither queriable nor settable for that language. A language opting
+      out is a supported state -- `yaml`, `toml-ini` and `sql` are already in it.
+- [ ] Wire it: `paragraphs_lexical` sets `Paragraph.declares` from what
+      `page.documentable()` already computes. Both halves exist -- see `Traced:`
+      above. This is the load-bearing change and it covers all 16 lexical
+      languages, not C alone.
+- [ ] The join rule is NEAREST-ABOVE, not adjacency. MEASURED 2026-08-21 on
+      CPython v3.13.1 (`corpora/cpython`, 489 `.c`/`.h` files): of 2,987
+      documented column-0 declaration lines, 1,863 (62%) carry a comment flush
+      against them and 1,124 (38%) have a blank line between. A strict `end + 1 ==
+      insert` test abandons that 38% in `b`. The nearest comment paragraph above
+      the declaring line takes the `a`.
+- [ ] * RULING SETTLED, and it is Roy's reframe of the criterion: the anchor is
+      the line the KEYWORD is on, and a declaration spilling onto the next
+      physical line is not this system's problem. Roy, 2026-08-21: *"The line
+      static ... is where a belongs and the documentation above is where it should
+      go. The fact that the next line is a separate line of code which is
+      implicitly referred to from the previous line is not our problem."*
+      `lexer.declarations` already encodes this -- it returns `(line, insert)`
+      where `insert` IS the keyword line for every above-doc language.
+- [ ] ! PRECISION IS NOT THE OBJECTION IT LOOKED LIKE. MEASURED on CPython: 15,813
+      column-0 lines carry a whitespace-delimited C keyword and only ~6,850
+      declare a function -- but 12,826 of them (81.1%) have NO comment above them
+      at all. A spurious `a` on a non-declaration is therefore an EMPTY PLACE that
+      nothing ever fills, which is the cost the round-trip test measures directly.
+- [ ] ! RECONSTRUCTION IS NOT WHAT A SHARED ADDRESS BREAKS -- VERIFICATION IS.
+      WRITE works from `start`/`end` spans, so prose returns where it came from
+      whatever folio it carries. What fails is `record.entry_for`, which resolves
+      by address and returns the FIRST match: a correct edit to the second
+      paragraph is checked against the first and `verdicts.py` exits 1. So the
+      round-trip test must exercise the JOIN, not just the write -- a test that
+      only proves bytes come back will pass while the gate still refuses the edit.
+- [ ] Reverse the C ruling only if the round trip holds. CLAUDE.md records the
+      empty tuple for C/C++ as deliberate (*"a C function opens with its RETURN
+      TYPE, so the list could never be complete, and a spurious `a` renumbers
+      every `a` below it"). That text needs updating or reaffirming with whichever
+      way this lands, and the renumbering half stays true either way -- it is
+      bounded to one run, since records are seeded per-run and census, reviewers
+      and WRITE all see one numbering.
