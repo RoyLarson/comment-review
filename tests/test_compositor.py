@@ -110,13 +110,18 @@ class TestItReadsTheParagraphsAndNotTheText(unittest.TestCase):
             b.raw_lines = []
         self.assertEqual(compositor.set_page(page), "x = 1\ny = 2\n")
 
-    def test_a_page_with_NO_places_at_all_sets_empty_text(self):
-        # ! Not `page.text`. A model that had lost every place would set the
-        # original file back and the identity would pass over the top of it.
+    def test_a_page_with_NO_places_over_a_FILE_WITH_TEXT_is_refused(self):
+        # !! IT ASSERTED `""` UNTIL 2026-08-21, and that was the wrong answer to
+        # the right question. The question is whether `set_page` falls back to
+        # `page.text` -- it must not, or a model that had lost every place would
+        # set the original file back and the identity would pass over the top of
+        # it. But returning `""` is not safe either: `draft()` writes it, and an
+        # 884-line file came back as 0 characters. Refusing answers both.
         p = Path("m.py")
         page = page_mod.page_for(p, "# a note\n", lexer.language_for(p), rel="m.py")
         page.foliation.reading.clear()
-        self.assertEqual(compositor.set_page(page), "")
+        with self.assertRaises(ValueError):
+            compositor.set_page(page)
 
     def test_changing_a_paragraphs_raw_lines_changes_the_output(self):
         p = Path("m.py")
@@ -186,6 +191,26 @@ class TestTheSeriesOrderIsFixedAndFComesFirst(unittest.TestCase):
             path.write_text("\n/* Header. */\n\nint a;\n", encoding="utf-8")
             self.assertIsNone(compositor.lossless(path))
             self.assertIsNone(compositor.identity(path))
+
+    def test_a_page_that_was_never_BUILT_is_refused_not_set(self):
+        # !! IT WOULD EMPTY THE FILE. `page_for` skips the walk when a reader
+        # refuses the source, so `reading` is empty and every line is
+        # unaccounted for. MEASURED 2026-08-21 on
+        # `sentry/src/sentry/api/paginator.py`: 884 lines in, 0 characters out,
+        # silently -- it uses PEP 695 syntax the floor interpreter cannot parse.
+        #
+        # ! `draft()` writes what `set_page` returns, so an empty draft approved
+        # by anyone not reading the diff is a deleted file.
+        page = self._page("m.py", "x = 1\ny = 2\n")
+        page.foliation.reading.clear()
+        with self.assertRaises(ValueError) as caught:
+            compositor.set_page(page)
+        self.assertIn("never read", str(caught.exception))
+
+    def test_an_EMPTY_file_is_still_set_as_empty(self):
+        # ! The refusal must not fire on a page that is empty because its FILE
+        # is: there is nothing unaccounted for.
+        self.assertEqual(compositor.set_page(self._page("m.py", "")), "")
 
     def test_lossless_REPORTS_a_line_that_goes_missing(self):
         # ! The failure the gate exists for, forced: empty one place's prose and

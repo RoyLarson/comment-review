@@ -139,6 +139,25 @@ def set_page(page: Page, newline: str | None = None) -> str:
             out.extend(prose[1:])
             continue
         out.extend(prose)
+    if not page.foliation.reading and page.text:
+        # !! A PAGE WITH NO PLACES OVER A FILE WITH TEXT IS NOT AN EMPTY PAGE --
+        # it is a page that was never built, and setting it would EMPTY THE FILE.
+        # `page_for` skips the walk when a reader refuses the source, so
+        # `reading` is empty and every line of the file is unaccounted for.
+        #
+        # !! MEASURED 2026-08-21 on `sentry/src/sentry/api/paginator.py`: 884
+        # lines in, 0 characters out, silently. It uses `class Paginator[T]:` --
+        # PEP 695, which the floor interpreter cannot parse -- and 4 files in
+        # `corpora/` are in that state today. Roy: *"we can't use python to parse
+        # python files ... the ast to bootstrap the pieces fails on new python
+        # syntax."*
+        #
+        # ! REFUSING IS THE ONLY SAFE ANSWER. `draft()` writes what this returns,
+        # and an empty draft approved by anyone not reading the diff is a deleted
+        # file. See `TODO/python-cannot-read-python.md`.
+        raise ValueError(
+            f"{page.path}: the page has no places -- its source was never read"
+        )
     if not out:
         # !! AN EMPTY PAGE IS EMPTY TEXT -- and returning `page.text` here is how
         # this whole instrument would come to lie. A model that had lost every
@@ -198,7 +217,10 @@ def lossless(path: Path, rel: str | None = None) -> str | None:
     lang = language_for(path)
     if lang is None:
         return f"no language record for {path.suffix!r}"
-    got = set_page(page_for(path, text, lang, rel=rel))
+    try:
+        got = set_page(page_for(path, text, lang, rel=rel))
+    except ValueError as exc:
+        return str(exc)
     if sorted(got.splitlines()) == sorted(text.splitlines()):
         return None
     was, now = (
@@ -227,7 +249,12 @@ def identity(path: Path, rel: str | None = None) -> str | None:
     if lang is None:
         return f"no language record for {path.suffix!r}"
     page = page_for(path, text, lang, rel=rel)
-    got = set_page(page)
+    try:
+        got = set_page(page)
+    except ValueError as exc:
+        # ! The page was never built -- see `set_page`. It is reported like any
+        # other refusal rather than raised through a sweep over a whole tree.
+        return str(exc)
     if got == text:
         return None
     was, now = text.splitlines(), got.splitlines()
