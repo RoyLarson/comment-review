@@ -16,6 +16,21 @@ reader of an OLD artifact needs to know to make sense of it. An entry earns its 
 something someone could still hold in their hand -- a file on disk, a captured run -- and no
 longer be able to read.
 
+!! **AND REMOVING A THING IS NOT A REGRESSION HERE. THIS IS `0.x`, WHICH SAYS SO.** Roy,
+2026-08-21: *"my project -- 0 dependencies, 1 user (me), my rules. I would rather drop bad stuff
+now and leave no memory while it is easy, rather than leave residues of stuff that will not make
+it. Also the v0.X is stating ALL things are subject to shifting. Zero-vers are specifically for
+that -- no guarantee of any stability."*
+
+! **A REVIEWER WILL READ A DELETION AS A REVERT, and it is worth knowing why that reading is
+wrong.** A code review of 2026-08-21 called the flat-report refusal *"the exact regression commit
+1541697 fixed and a6da8ad reverted"* -- true as a description of the diff, and not a defect: the
+first commit taught the reader an old shape and the second removed the shape on a ruling. What
+IS a defect is failing SILENTLY, and that half was real and fixed.
+
+! So the test for an entry here is not "was something removed" but **"can someone holding an old
+artifact still find out what it was"**. That is all this file promises, and all a `0.x` owes.
+
 ---
 
 ## The LINE address -- `path:start-end`

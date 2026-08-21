@@ -2,10 +2,20 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    session
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21; measured in-session)
+Reassigned: 2026-08-21 — 2026-08-21 -- GALLEY WORK, not a lexer ruling. Roy: 'somewhere
+            along the way the file is going to get a temporary composition ... and how
+            do the agents know that the closing line is going to delete code? Still
+            galley work to be done and I bet we fix it there.' ! The agents CANNOT know,
+            and asking them to is the wrong shape: a reviewer rules on a paragraph and
+            has no view of how the galley splices it. The whole-file composition the
+            galley is heading for is where a write that would drop code becomes visible
+            before it happens -- which is also where prove_unchanged's check moves from
+            after the write to before it. Requires-Roy cleared: the re-ruling is not
+            needed, the galley design absorbs it.
 ```
 
 ## Objective
@@ -37,3 +47,9 @@ An edit to a comment whose run closes mid-line DELETES the code after the closer
       its last line; a kind for comment-then-code, symmetric to `trailing-
       comment`; or refuse the file the way `prove_unchanged` already does, BEFORE
       the write rather than after.
+- [ ] ! CLOSE THIS WITH THE GALLEY, not before. The composition step sees the
+      whole file, so a splice that would drop a line of code is checkable there --
+      and prove_unchanged already knows how to spot it, just too late. See
+      `galley-is-still-index-keyed` and `the-author-approves-blocks-and-never-
+      sees-the-page`, which is where the whole-document read before approval is
+      being designed.

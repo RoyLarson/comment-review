@@ -1069,9 +1069,14 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # prose and `int x = 5;` is gone. `prove_unchanged` catches it, but
             # only AFTER 7b has written the file.
             #
-            # !! THE RESIDUE WAS ACCEPTED ON THE BOUNDARY SHIFT ALONE, 2026-08-20,
-            # which understated it -- filed as `TODO/closing-line-deletes-code.md`
-            # for Roy to re-rule with the deletion on the table.
+            # !! IT IS THE GALLEY'S TO CATCH, NOT THE LEXER'S AND NOT A
+            # REVIEWER'S. Roy, 2026-08-21: a reviewer rules on a paragraph and has
+            # no view of how the galley splices it, so *"how do the agents know
+            # that the closing line is going to delete code?"* -- they cannot.
+            # The whole-file composition the galley is heading for is where a
+            # write that would drop a line becomes visible BEFORE it happens,
+            # which is the same move `prove_unchanged` needs. Filed as
+            # `TODO/closing-line-deletes-code.md`.
             #
             # ! NEITHER FIX WAS WORTH ITS COST. Dropping the run the way an
             # INTERMEDIATE comment is dropped works on the one-line twin --

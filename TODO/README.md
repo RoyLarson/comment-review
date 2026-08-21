@@ -233,7 +233,7 @@ that changed a published name or rule:
 | [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 1/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
 | [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
 | [dead-names-ungated](dead-names-ungated.md) | session | yes | 0/5 | Nothing gates a module-level name that no code reads |
-| [closing-line-deletes-code](closing-line-deletes-code.md) | session | yes | 0/5 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
+| [closing-line-deletes-code](closing-line-deletes-code.md) | session | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [complete-breaks-links](complete-breaks-links.md) | session | — | 0/4 | todo_tool complete breaks a file's relative links when it moves it |
 
 ### in-progress  (4)
