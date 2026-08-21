@@ -370,9 +370,16 @@ payload. Say what is wrong in `REASON`. **Only a destination outside the code ca
 unavailable**, and your run context says whether it is; a relocation into tracked code is
 always available.
 
-!! **`to:` IS AN ADDRESS when the destination is in the code, and it is RESOLVED.** Ask for it
-the same way an `add` does -- `--anchor LINE --series a|b|c`. A destination naming a LINE is
-refused, and so is an address the census does not carry.
+!! **`to:` IS AN ADDRESS when the destination is on a page THIS RUN FOLIATED, and it is
+RESOLVED.** Ask for it the same way an `add` does -- `--anchor LINE --series a|b|c`. A
+destination naming a LINE on such a page is refused, and so is an address the census does not
+carry.
+
+!! **A FILE THE RUN NEVER FOLIATED IS CITED BY LINE, AND THAT IS NOT A LOOPHOLE.** The run
+foliates the files the change touched; everything else has no places at all, so there is no
+address to ask for. A line number is refused INSIDE the run because this run's own edits shift
+the lines below them -- a file the run does not edit has no such shift. ! So the rule is not
+*never a line number*; it is **never a line number for a place this run can name properly.**
 
 ! **The destination may hold NO PROSE, and that is ordinary.** A paragraph can move to a gap with
 no comment in it or a declaration with no docstring: those are places with addresses, not

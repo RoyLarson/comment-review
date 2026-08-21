@@ -3034,6 +3034,33 @@ class TestAMovesDestinationIsResolved(unittest.TestCase):
         # ! Whether that tree exists is stage 1's ruling, in the run context.
         self.assertIsNone(self._to("docs/loads.md"))
 
+    def test_a_LINE_in_a_file_THIS_RUN_NEVER_FOLIATED_is_allowed(self):
+        """!! THE BAN ON LINE NUMBERS STOPS AT THE RUN'S EDGE.
+
+        Roy, 2026-08-20: *"on the move and add piece we should allow the address
+        to be either foliation or line number for files OUTSIDE of the censused
+        range."* A line goes stale because THIS RUN's own edits shift the lines
+        below them; a file the run does not edit has no such shift, and it has
+        no places to cite instead. ! Measured consequence of refusing it: a
+        finding with an obvious destination was unstateable.
+        """
+        self.assertIsNone(self._to("other.py:88"))
+
+    def test_a_LINE_in_a_CENSUSED_file_is_STILL_refused(self):
+        # ! The rule is not "never a line number" -- it is "never a line number
+        # for a place this run can name properly", and `a.py` is in the census.
+        self.assertIn("names a LINE", self._to("a.py:3"))
+
+    def test_an_ADDRESS_for_an_UNFOLIATED_file_says_the_scope_was_short(self):
+        # !! TWO CAUSES, ONE MESSAGE, until now: a wrong address and a right
+        # address for a file nobody censused both read `is not a place in the
+        # census`, and a reviewer reading that about a correct citation goes
+        # looking for an error that is not there.
+        problem = self._to("other.py@b1")
+        self.assertNotIn("not a place in the census", problem)
+        self.assertIn("other.py", problem)
+        self.assertIn("line", problem)
+
     def test_only_a_verdict_the_TABLE_says_relocates_is_checked(self):
         # ! No branch on the verdict NAME -- the row carries the flag.
         self.assertTrue(record.VERDICTS["move"].owes_destination)

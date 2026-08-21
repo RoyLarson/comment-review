@@ -31,6 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from foliator import flatten, folio_of  # noqa: E402  -- path shim must run first
 from lexer import block_text, language_for  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     ANCHOR_NAME,
@@ -432,6 +433,30 @@ ADDRESS_IN = re.compile(r"[\w.:/\\-]+@[abc]\d+")
 LINE_FORM = re.compile(r"[\w./\-]+\.\w+:\d+(?:-\d+)?")
 
 
+def _in_scope(path: str, paragraphs: list[dict]) -> bool:
+    """Did this run foliate that file?
+
+    !! THE RUN ONLY FOLIATES WHAT IS IN SCOPE. `census.py` is handed the files a
+    change touched, and everything else has no places at all -- so whether a
+    destination is nameable as an address depends on which diff it landed in,
+    not on whether the file exists.
+
+    Args:
+        path: the file, in either form -- `pkg/m.py` as a citation writes it, or
+            `pkg:m.py` as an address flattens it.
+        paragraphs: the census, as `census.py --json` emits it.
+
+    Returns:
+        True where some paragraph in the census sits on that file.
+    """
+    want = path.replace("\\", "/").strip()
+    for b in paragraphs:
+        here = str(b.get("path", "")) if b else ""
+        if want and want in (here, flatten(here)):
+            return True
+    return False
+
+
 def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     """Does a `move`'s destination name a place that exists?
 
@@ -457,12 +482,12 @@ def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     where = (_said(f, "to") if f.claim_fields else f.claim).strip()
     if not where:
         return None  # ! Absence is the PAYLOAD check's to report, and it does.
-    # !! A LINE IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER. The retired form
-    # is refused by name rather than passed as an out-of-code destination --
-    # `m.py:3` is inside the code, and it is stale the moment this run edits
-    # anything above it.
+    # !! A LINE IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER, FOR A FILE THIS RUN
+    # FOLIATED. The retired form is refused by name rather than passed off as an
+    # out-of-code destination -- `m.py:3` is inside the code, and it is stale the
+    # moment this run edits anything above it.
     stale = LINE_FORM.search(where)
-    if stale:
+    if stale and _in_scope(stale.group(0).rpartition(":")[0], paragraphs):
         return (
             f"move's destination names a LINE, {stale.group(0)!r} -- that form was"
             # ! `a|b|c` and not `a|b|c|f`: this message is read by a REVIEWER,
@@ -470,12 +495,31 @@ def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
             " retired: ask `foliator.py --anchor LINE --series a|b|c` for the"
             " address"
         )
+    # !! AND THE BAN STOPS AT THE RUN'S EDGE. Roy, 2026-08-20: a `move` may name
+    # a line number for a file OUTSIDE the censused range. A line goes stale
+    # because THIS RUN's own edits shift the lines below them -- a file the run
+    # does not edit has no such shift, and no places to cite instead. ! Measured
+    # consequence of refusing it: a finding with an obvious destination was
+    # unstateable, and the reviewer had no route to file it.
+    if stale:
+        return None
     if "@" not in where:
         return None
     named = ADDRESS_IN.search(where)
     if named is None:
         return f"move's destination {where!r} is not an address"
     if entry_for(named.group(0), paragraphs) is None:
+        # !! TWO CAUSES HAD ONE MESSAGE -- a wrong address, and a RIGHT address
+        # for a file nobody censused. A reviewer reading `not a place in the
+        # census` about a correct citation goes looking for an error that is not
+        # there. The run only foliates what is in scope, so a file outside it has
+        # no places at all and the address cannot be derived.
+        path = folio_of(named.group(0))[0]
+        if not _in_scope(path, paragraphs):
+            return (
+                f"move's destination {named.group(0)} names {path}, which this run"
+                " never foliated -- it has no places. Cite the line instead"
+            )
         return f"move's destination {named.group(0)} is not a place in the census"
     return None
 
