@@ -328,8 +328,11 @@ class Foliation:
     _declared: dict[int, str] = field(default_factory=dict)
     _closing: str = ""
     _code: list[int] = field(default_factory=list)
-    # ! The file's own place, as the walk emitted it -- see `matter`.
+    # ! The file's own places, as the walk emitted them -- see `matter`. TWO of
+    # them, because a file carries matter at both ends and neither belongs to a
+    # gap: a licence at the foot is the file's, exactly as one at the head is.
     _front: str = ""
+    _back: str = ""
 
     def above(self, line: int) -> str:
         """The `b` whose gap a paragraph inserting at `line` falls into.
@@ -389,6 +392,21 @@ class Foliation:
         place would answer correctly the day one is emitted.
         """
         return self._front
+
+    def back_matter(self) -> str:
+        """`f1` -- the file's own prose at its FOOT.
+
+        !! THE SAME RULE AS `f0`, READ FROM THE OTHER END. Roy, 2026-08-21, asked
+        whether the foot of a file needed a rule of its own: *"same answer for
+        the back matter because of the same reason."* A licence at the bottom
+        belongs to the FILE, not to the last gap -- which is where it landed
+        while this place did not exist, measured 2026-08-21 as `b2`.
+
+        ! IT IS EMITTED AT THE `EOF` TRIGGER, which is why that trigger is
+        explicit rather than an N+1 rule. Roy, the same morning: *"f will almost
+        certainly get it and so we might as well pick up both now."*
+        """
+        return self._back
 
 
 def foliate(
@@ -486,6 +504,15 @@ def foliate(
                 # file with no code at all this is the gap that IS the file.
                 out._closing = b.emit(next(reversed(code.values())) if code else MODULE)
                 out.bounds[out._closing] = (previous, 0)
+                # !! `f` EMITS ITS SECOND PLACE HERE, and this is the reason the
+                # EOF trigger is a trigger rather than an N+1 rule. A file's
+                # matter sits at BOTH ends and neither end belongs to a gap:
+                # `f0` is bounded by the head of the file on both sides, `f1` by
+                # the foot. ! Bounded by nothing, exactly as `f0` is -- a licence
+                # at the foot is the FILE's, not the last gap's, which is where
+                # it landed while this place did not exist.
+                out._back = f.emit(MODULE)
+                out.bounds[out._back] = (0, 0)
             continue
         n = trigger
         line = code[n]

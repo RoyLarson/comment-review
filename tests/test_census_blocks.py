@@ -13,6 +13,7 @@ import lexer
 import page
 import prove_unchanged as pu
 from _paths import FIXTURES, SCRIPTS
+from foliator import FRONT
 
 
 def blocks_for(name):
@@ -183,10 +184,13 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # still has the PLACE for one. Neither kind holds prose.
         self.assertTrue(all(b.kind in page.HOLDS_NO_PROSE for b in got), got)
         # ! FOUR INTERVALS: one gap above each of the three code lines, and the
-        # gap after the last. ! The file's own place is NOT among them since
-        # 2026-08-20 -- it is `f0`, kind `dark-matter`, in its own series.
+        # gap after the last. ! The file's own places are NOT among them since
+        # 2026-08-20 -- they are `dark-matter`, in their own series.
         self.assertEqual(sum(1 for b in got if b.kind == "interval"), 4, got)
-        self.assertEqual(sum(1 for b in got if b.kind == "dark-matter"), 1, got)
+        # ! TWO of them since 2026-08-21: `f0` at the head of the file and `f1`
+        # at its foot. A file with no matter at either end still has both
+        # places, exactly as it has an `a0` with no module docstring in it.
+        self.assertEqual(sum(1 for b in got if b.kind == "dark-matter"), 2, got)
 
     def test_a_gap_between_adjacent_code_lines_holds_NO_line(self):
         # !! None, NOT AN EMPTY RANGE. Roy, 2026-08-20: the original lines are
@@ -268,10 +272,12 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
 
     def test_a_file_of_only_prose_carries_every_empty_place(self):
         got = self._census("# just a note\n")
-        # ! `f0` is the file's own place and exists whether or not front matter
-        # sits in it, so a file of one comment carries that too -- and so is
-        # `a0`, where a module docstring would go. Neither depends on prose
-        # already being there.
+        # ! `f0` and `f1` are the file's OWN places -- its matter at the head and
+        # at the foot -- and both exist whether or not anything sits in them, so
+        # a file of one comment carries both. So is `a0`, where a module
+        # docstring would go. None of the three depends on prose already being
+        # there. ! `f1` since 2026-08-21; a licence at the foot of a file used to
+        # land in the closing gap.
         #
         # !! THE `undocumented` WAS ABSENT UNTIL 2026-08-20, because the old
         # generator skipped a node with an empty body: an empty `__init__.py`
@@ -280,7 +286,7 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # page, which asks the walk rather than the AST.
         self.assertEqual(
             sorted(b.kind for b in got),
-            ["comment", "dark-matter", "undocumented"],
+            ["comment", "dark-matter", "dark-matter", "undocumented"],
         )
 
 
@@ -755,9 +761,11 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
             ):
                 continue
             with self.subTest(address=paragraph.address):
-                # ! `f0` is the FILE'S place. Its anchor is the module,
-                # which has no line to sit beside and so no `c` to copy.
-                if paragraph.address.endswith("@f0"):
+                # ! AN `f` IS THE FILE'S OWN place -- `f0` at the head, `f1` at
+                # the foot. Its anchor is the module, which has no line to sit
+                # beside and so no `c` to copy. ! Written as the SERIES rather
+                # than as `@f0`, so the day a third is emitted it needs no edit.
+                if paragraph.address.split("@")[-1].startswith(FRONT):
                     continue
                 self.assertIn(paragraph.anchor, margins.values())
 

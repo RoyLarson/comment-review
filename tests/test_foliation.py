@@ -561,8 +561,11 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         with an ask-the-human. Never resolved by the agents."* That is what the
         place is FOR; it is not a reason for it to be absent.
         """
-        # This fixture opens with a docstring and has no front matter at all.
-        self.assertEqual(self._at("<module>", FRONT), ["f0"])
+        # This fixture opens with a docstring and has no front matter at all --
+        # and BOTH of the file's own places answer to the module, since 2026-08-21:
+        # `f0` at the head and `f1` at the foot. Neither depends on prose being
+        # there, which is the whole assertion.
+        self.assertEqual(self._at("<module>", FRONT), ["f0", "f1"])
 
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")
@@ -570,7 +573,37 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         list(page.code_lines(with_header, [vars(b) for b in got]))
         found = foliator.for_anchor("<module>", FRONT, [vars(b) for b in got])
         self.assertEqual(
-            sorted(foliator.folio_of(b["address"])[1] for b in found), ["f0"]
+            sorted(foliator.folio_of(b["address"])[1] for b in found), ["f0", "f1"]
+        )
+
+    def test_the_FILE_HAS_A_PLACE_AT_ITS_FOOT_TOO(self):
+        # !! `f1`, RULED 2026-08-21. Roy, asked whether the foot of a file needed
+        # a rule of its own: *"same answer for the back matter because of the
+        # same reason."* Before it, `f` emitted once at the MODULE trigger and a
+        # licence at the bottom of a file landed in the CLOSING GAP -- measured
+        # the same day as `b2` on a five-line file.
+        path = Path("m.py")
+        got = page.page_for(path, "import os\n\nx = 1\n", lexer.language_for(path))
+        self.assertEqual(got.foliation.matter(), "f0")
+        self.assertEqual(got.foliation.back_matter(), "f1")
+
+    def test_the_foot_place_is_bounded_by_NOTHING_as_the_head_one_is(self):
+        # ! It is the FILE's, not the last gap's. A `b` is bounded by the code
+        # around it; an `f` is bounded by the edge of the file on both sides, so
+        # a sweep that shares a gap out never reaches it.
+        path = Path("m.py")
+        got = page.page_for(path, "import os\n\nx = 1\n", lexer.language_for(path))
+        self.assertEqual(got.foliation.bounds["f1"], (0, 0))
+        self.assertEqual(got.foliation.bounds["f0"], (0, 0))
+
+    def test_the_foot_place_exists_on_a_file_with_NO_CODE_AT_ALL(self):
+        # ! The EOF trigger fires whether or not the walk stepped a line, so a
+        # file that is one comment still has both of its own places.
+        path = Path("m.py")
+        got = page.page_for(path, "# just a note\n", lexer.language_for(path))
+        self.assertEqual(
+            sorted(f for f in got.foliation.places if f.startswith(FRONT)),
+            ["f0", "f1"],
         )
 
     def test_an_anchor_the_census_never_stamped_answers_nothing(self):
