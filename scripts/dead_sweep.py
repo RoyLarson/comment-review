@@ -82,10 +82,13 @@ def _python_files(*trees: str) -> list[Path]:
 
 
 def defined_names(path: Path) -> list[str]:
-    """Every MODULE-LEVEL name a file defines -- constants, functions, classes.
+    """Every name a file defines that something else could read.
 
-    ! Module level only. A local or an attribute is ruff's to see, and a nested
-    definition is read by its enclosing scope whether or not anything calls it.
+    Module-level constants, functions and classes, and the METHODS on those
+    classes.
+
+    ! A LOCAL is ruff's to see, and a nested definition is read by its enclosing
+    scope whether or not anything calls it -- so neither is here.
 
     Args:
         path: the file to read.
@@ -105,6 +108,20 @@ def defined_names(path: Path) -> list[str]:
             out.append(node.target.id)
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             out.append(node.name)
+        # !! A METHOD IS A NAME TOO, and leaving them out left real ground
+        # uncovered: `Paragraph.widest` was a property nothing read -- not code,
+        # not a test, not prose -- and sat outside both this sweep and ruff.
+        # Found 2026-08-21 by asking what the sweep did NOT look at.
+        #
+        # ! A DUNDER IS NOT REPORTED. `__post_init__` and friends are called by
+        # the runtime, which no reference graph sees.
+        if isinstance(node, ast.ClassDef):
+            out += [
+                item.name
+                for item in node.body
+                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and not item.name.startswith("__")
+            ]
     return out
 
 

@@ -90,19 +90,6 @@ class Paragraph:
     annotations: set[str] = field(default_factory=set)
     notes: list[str] = field(default_factory=list)
 
-    @property
-    def widest(self) -> int:
-        """The longest PHYSICAL line this paragraph sits on, in characters.
-
-        ! A width rule measures the line on disk, so the code a `c` paragraph sits
-        beside counts: `raw_lines` holds only the paragraph's own characters, and
-        `anchor` holds what precedes them on the first line.
-        """
-        if not self.raw_lines:
-            return 0
-        first = len(self.anchor) + len(self.raw_lines[0]) if self.original_column else 0
-        return max(first, *(len(ln) for ln in self.raw_lines))
-
     # !! THE PARAGRAPH'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
     # lines whole where it owns them, and from `original_column` onward on the first
     # line where code comes first. With `anchor` holding the code, the two
