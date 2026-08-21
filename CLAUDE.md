@@ -498,6 +498,29 @@ from LAW and each named something publishing already had a word for: `acquittal`
 2026-08-16 by a session that checked it for collisions and never checked it for register, and is
 now `remit`.
 
+!! **AND IT SUPPLIES CATEGORIES, NOT ONLY NAMES.** Roy, 2026-08-21: *"this is twice now that we
+have realized we were categorically wrong about something that the publishing industry already
+knew and uses actively."* Both times the tell was the same sentence -- **"it had to belong to
+something"** -- said about a category that was straining to hold a second job:
+
+| what was straining | what it was missing | measured cost |
+| --- | --- | --- |
+| `b0` held the file's own matter as well as the first gap | **front/back matter**, its own series | one address for two places; a licence header reviewed as ordinary work |
+| `b` held the blanks on both sides of an `a` | **leading**, the space between lines of type | 16 of 185 files in one corpus could not be set back |
+
+! **So when a category is doing two jobs, ask what a compositor would call the half that does not
+fit -- before inventing a rule to make one category cover both.** Publishing has spent five
+centuries naming the parts of a page; a part this system keeps tripping over probably has a name
+already, and the name usually arrives with the rule attached.
+
+!! **AND A THIRD IS OPEN, FOUND THE SAME WAY.** Roy, 2026-08-21: *"There is no stet. -- we called
+this 'clean' we were incorrect."* `clean` records two different facts -- *a role read this and had
+nothing to report*, and *a mark WAS proposed here and the original stands*. The second is
+publishing's **stet** ("let it stand"), written in the margin with dots under the text so the
+refused correction stays visible underneath. ! Recorded as `clean`, a declined proposal says
+nothing was found, so a re-run raises it again and stage 8 cannot know it was already refused.
+Filed as `TODO/no-mark-for-let-it-stand.md`; **not this branch.**
+
 ! **The register is itself an instruction, and that is the point.** Roy, 2026-08-16: *"I bet it
 helps the LLM focus in on what it is doing. Because of locality and other context items the llm
 will return words and phrases and comment suggestions based upon 'being' an editor better."* An
