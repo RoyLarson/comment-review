@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks done
+Progress: 0 of 14 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -72,3 +72,29 @@ The AST reader gets older every release while the files get newer.
       files: 3,049 byte-identical, 3,075 identical ignoring newlines, and 7
       differing in more than newlines. It is what separates a spacing question
       from a defect.
+- [ ] !! `prove_unchanged` CARRIES THE SAME DEPENDENCY AND IS NOT IN THE LEXER. It
+      fingerprints Python as `ast.dump(_blank_docstrings(ast.parse(text)))` and
+      everything else as stripped text. That is the CODE CHECK -- what
+      `foliator.py` calls the thing that *"MAKES it constant across this tool's
+      own work"* -- so the whole addressing scheme rests on it. Dropping the AST
+      from the reader leaves it standing there unanswered. ! A candidate answer
+      arrived the same day: the compositor sets code from the `c` places' anchors,
+      so "the code is unchanged" could become "every `c` anchor is unchanged" --
+      stronger than an `ast.dump`, and language-independent.
+- [ ] !! THE TEST SUITE IS 4:1 PYTHON, so it barely covers the path Python would
+      move ONTO. MEASURED 2026-08-21: 456 references to a `.py` path against 115
+      to a lexical language, and one fixture each for `.go`, `.rb` and `.rs`.
+      ! THAT IS BOTH THE RISK AND THE PAYOFF -- the suite today exercises the
+      reader that works and not the one where 157 collisions lived, and the moment
+      Python moves, all 456 assertions become coverage of the path that has the
+      bugs.
+- [ ] ! NO HOLE IN THE LEXER CONTRACT, checked 2026-08-21 when Roy asked. Its
+      output shape is pinned and the ORACLE now exists: `compositor.identity` over
+      2,399 Python files, plus `lossless` and the newline-insensitive measure. A
+      replacement reader has to reproduce 2,368 byte-identical round trips.
+      ! Before this day there was no way to check that a reader change preserved
+      anything at all.
+- [ ] * SCOPE, ruled by Roy 2026-08-21: *"the python thing ends up with its own
+      branch once we merge this branch back to the 0.2.4 branch. It doesn't depend
+      on the folio system being correct or the lexer or page or census."* It may
+      touch the lexer only to document edge cases.
