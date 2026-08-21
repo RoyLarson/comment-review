@@ -68,12 +68,20 @@ class Paragraph:
     # answer which declaration a doc belongs to and the foliation must not
     # guess. It reads this and names it `@aN`.
     declares: int = -1
-    # !! THE LINE THE DECLARATION ITSELF OPENS ON, so an anchor's OTHER places
-    # can be found: the `c` beside its `def` and the `b` above it. Without it a
-    # consumer has to infer the line from the docstring's position, which is
-    # exactly the kind of inference that breaks on the next language -- Rust's
-    # doc sits BEFORE its `fn`, Python's after. 0 where none applies.
-    declared_at: int = 0
+    # !! THE LINE THIS PLACE'S ANCHOR SITS ON, so an anchor's OTHER places can
+    # be found: the `c` beside its `def`, the `b` above it, its own `a`.
+    # Without it a consumer has to infer the line from the prose's position,
+    # which is exactly the inference that breaks on the next language --
+    # Rust's doc sits BEFORE its `fn` and Python's after.
+    #
+    # !! IT WAS `declared_at` AND FILLED FOR `a` ALONE, which is why
+    # `for_anchor` could only fall back to it with a declaration in hand. The
+    # fact was never about declaring: it is the anchor's line, and every
+    # series has one. Renamed and filled for all of them 2026-08-20.
+    #
+    # ! 0 where the anchor has no line -- the MODULE, which is what `a0` and
+    # the `f` place answer to. A real answer, not a miss.
+    anchor_line: int = 0
     tier: str = "lexical"  # which question set this file's census can answer
     # !! WHICH PLACE THIS IS, as against where it sits -- see `foliation.address`.
     # Stamped in the path-normalising loop, the only place holding the file
@@ -1308,7 +1316,7 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
                 text=re.sub(r"\s+", " ", doc).strip(),
                 anchor=getattr(node, "name", "<module>"),
                 declares=ordinal.get(id(node), 0),
-                declared_at=getattr(node, "lineno", 0),
+                anchor_line=getattr(node, "lineno", 0),
                 raw_lines=raw,
             )
         )

@@ -410,7 +410,6 @@ def empty_places(
                     text="",
                     anchor=anchor,
                     declares=int(folio[1:]),
-                    declared_at=foliation.lines.get(folio, 0),
                     original_start=None,
                     original_end=None,
                     address=folio,
@@ -566,6 +565,13 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
             # tell them apart. That is the whole defect, one layer up.
             empty.address = f"{flat}@{empty.address}"
             got.append(empty)
+        # !! ONE PASS FOR `anchor_line`, OVER EVERYTHING. Stamped per branch it
+        # was filled on the prose and on ONE of the four empty kinds, so every
+        # `interval` and every `margin` read 0 -- the same shape as a series
+        # list that names its members: a branch that forgets is silent.
+        for b in got:
+            folio = b.address.split("@")[-1]
+            b.anchor_line = foliation.anchor_line(folio) if folio else 0
         # ! AFTER every paragraph exists, so each one's share of its gap is
         # settled against the neighbours it actually has.
         fill_the_gaps(text, got)

@@ -378,6 +378,29 @@ class Foliation:
         """The `a` for the nth documentable declaration; 0 is the module."""
         return self._declared.get(ordinal, "")
 
+    def anchor_line(self, folio: str) -> int:
+        """The LINE the anchor of this place sits on. 0 when it has none.
+
+        !! THE WALK ALREADY KNOWS IT and it was only ever asked for one series.
+        `lines` holds it for an `a` (its declaring line) and a `c` (its own code
+        line); a `b` is bounded by two, and the one it is ANCHORED to is the
+        line BELOW the gap -- the statement its prose introduces -- or the line
+        above when the gap closes the file.
+
+        ! The MODULE has no line, so `a0` and the `f` place answer 0. That is a
+        real answer and not a miss: a licence header and a module docstring sit
+        above everything the file declares.
+
+        ! WHY IT IS WANTED. Roy, 2026-08-20: records are ordered by anchor line
+        and then by series LETTER -- *"I don't want to use foliation number
+        because that would imply it would not change."* A sort on the number
+        would encode a stability this module explicitly disclaims.
+        """
+        if folio in self.lines:
+            return self.lines[folio]
+        previous, following = self.bounds.get(folio, (0, 0))
+        return following or previous
+
     def matter(self) -> str:
         """`f0` -- the file's own prose, above anything it declares.
 
@@ -656,7 +679,7 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
     # !! EVERY SERIES CARRIES THE SAME SPELLING: THE LINE OF CODE. An `a`, the
     # `b` above it and the `c` beside it all answer to `def f():`, never to `f`
     # -- the name is not carried at all. It was two spellings until 2026-08-19,
-    # which routed `b`/`c` through `declared_at` that only an `a` has, so asking
+    # which routed `b`/`c` through `anchor_line` that only an `a` filled, so asking
     # by the LINE found nothing: `--anchor 'def f():' --series c` answered "no
     # `c` place" on a census holding exactly that one.
     #
@@ -667,7 +690,7 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
     if direct:
         return direct
     at = next(
-        (b.get("declared_at") for b in mine if isinstance(b.get("declared_at"), int)),
+        (b.get("anchor_line") for b in mine if isinstance(b.get("anchor_line"), int)),
         0,
     )
     path = {str(b.get("path", "")) for b in mine}

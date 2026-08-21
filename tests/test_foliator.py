@@ -226,6 +226,29 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
             with self.subTest(folio=folio):
                 self.assertIn(folio, got.places, f"{folio} is bounded and unplaced")
 
+    def test_every_place_answers_with_the_line_its_anchor_sits_on(self):
+        # !! IT WAS `declared_at` AND FILLED FOR `a` ALONE. The fact was never
+        # about declaring -- it is the anchor's line, and every series has one.
+        # Left per-series, a `b` and a `c` read 0, and an order built on it put
+        # every one of them at the top.
+        got = foliator.foliate({2: "N = 0", 3: "def f():"}, {1: 4})
+        self.assertEqual(got.anchor_line("c1"), 2)
+        self.assertEqual(got.anchor_line("c2"), 3)
+        # ! A `b` is anchored to the line BELOW its gap -- the statement its
+        # prose introduces.
+        self.assertEqual(got.anchor_line("b1"), 2)
+        self.assertEqual(got.anchor_line("b2"), 3)
+        # ! The closing gap has no line below it and takes the one above.
+        self.assertEqual(got.anchor_line("b3"), 3)
+        self.assertEqual(got.anchor_line("a1"), 3)
+
+    def test_the_MODULE_answers_0_and_that_is_an_answer(self):
+        # ! `a0` and the `f` place sit above everything the file declares, so
+        # they have no line. 0 is what that means, not a miss.
+        got = foliator.foliate({2: "N = 0"}, {})
+        self.assertEqual(got.anchor_line("a0"), 0)
+        self.assertEqual(got.anchor_line("f0"), 0)
+
     def test_the_series_of_a_place_is_READ_and_not_inferred(self):
         # ! Inferred from `declares`/`original_column`, a series that is neither
         # comes back `b`. Read off the address, a new one answers as itself.
