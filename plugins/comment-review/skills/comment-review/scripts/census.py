@@ -51,6 +51,7 @@ from foliator import (  # noqa: E402  -- path shim must run first
     FRONT,
     SEPARATOR,
     series_of,
+    unaddressed,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
     BY_EXT,
@@ -204,6 +205,21 @@ def _repo_relative(path: Path, repo: Path) -> str:
         return path.resolve().relative_to(repo).as_posix()
     except ValueError:
         return path.as_posix()
+
+
+def _unaddressed(missing: list[str]) -> str:
+    """What to say about a census whose paragraphs cannot be cited.
+
+    ! It names them rather than counting them: a reader has to know WHICH file
+    to look at, and the count alone sends them through the whole census.
+    """
+    rows = "\n".join(f"  {line}" for line in missing)
+    plural = "paragraph" if len(missing) == 1 else "paragraphs"
+    return (
+        f"{len(missing)} {plural} carry NO ADDRESS, so nothing can cite them\n"
+        f"and the stage-5 gate would count them as nobody's:\n{rows}\n"
+        "A census with no `original_start` cannot name a gap. Re-run census.py."
+    )
 
 
 def _not_censused(files: list[Path], unreadable: list[str]) -> str:
@@ -378,6 +394,24 @@ def _report(args: argparse.Namespace) -> int:
         if unreadable:
             print(_not_censused(files, unreadable), file=sys.stderr)
             return 1
+        # !! AN UNADDRESSED PARAGRAPH IS UNCITABLE, so a census holding one is a
+        # census nobody can rule on -- and it fails SILENTLY: `verdicts.py` builds
+        # its accountability set from the addresses, so paragraphs with none are
+        # simply not accountable and the run reads as complete. Measured 2026-08-20:
+        # a 5-paragraph census with its addresses stripped certified "Every finding
+        # is admissible. Stage 5 may rule." at exit 0.
+        #
+        # ! ASKED AT BOTH ENDS. This is the EMIT side, catching the census where it
+        # is built; `verdicts.py` asks the same function on READ, for a file that
+        # reached it some other way. ONE implementation, in `foliator` -- Roy,
+        # 2026-08-20: *"one source of truth, else something will parse that
+        # something else will fail."*
+        missing = unaddressed(
+            [vars(b) | {"annotations": sorted(b.annotations)} for b in census]
+        )
+        if missing:
+            print(_unaddressed(missing), file=sys.stderr)
+            return 1
         print(
             json.dumps(
                 [vars(b) | {"annotations": sorted(b.annotations)} for b in census],
@@ -534,6 +568,14 @@ def _report(args: argparse.Namespace) -> int:
     # nobody reviews and there is nothing downstream that notices. Exit on it.
     if unreadable:
         print("\n" + _not_censused(files, unreadable))
+        return 1
+    # ! The same refusal on the text path. It is the one a person reads, and a
+    # census that cannot be cited is no more usable for being legible.
+    missing = unaddressed(
+        [vars(b) | {"annotations": sorted(b.annotations)} for b in census]
+    )
+    if missing:
+        print("\n" + _unaddressed(missing))
         return 1
     return 0
 

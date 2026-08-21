@@ -93,7 +93,11 @@ from desk import (  # noqa: E402  -- path shim must run first
     ruled_text,
     source_problem,
 )
-from foliator import FRONT, series_of  # noqa: E402  -- path shim first
+from foliator import (  # noqa: E402  -- path shim first
+    FRONT,
+    series_of,
+    unaddressed,
+)
 from held import load_report  # noqa: E402  -- path shim must run first
 from page import (
     HOLDS_NO_PROSE,  # noqa: E402  -- path shim must run first
@@ -334,6 +338,30 @@ def _report(args: argparse.Namespace) -> int:
         print(
             f"CANNOT PARSE {args.census} as JSON ({e})"
             " -- is this census.py --json output?"
+        )
+        return 1
+    # !! A CENSUS THIS GATE CANNOT CITE IS ONE IT MUST NOT CERTIFY. Accountability
+    # below is built from the ADDRESSES, so a paragraph carrying none is not
+    # accountable -- and the run then reads as complete because there was nothing
+    # to be incomplete about. Measured 2026-08-20 on a 5-paragraph census with
+    # its addresses stripped and a report ruling on nothing: `0 findings ... over
+    # 0 prose paragraphs`, then **"Every finding is admissible. Stage 5 may
+    # rule."** at exit 0.
+    #
+    # !! THIS IS THE READ SIDE, and `census.py` refuses the same thing on EMIT.
+    # Both are wanted: the emit check catches the census where it is built, and
+    # this catches a FILE -- one from an older version, one edited by hand, one
+    # from a run that crashed midway. This tool takes a PATH and trusts what it
+    # parses, so nothing else stands between a stale census and a certified
+    # review. ! ONE implementation, in `foliator`. Roy, 2026-08-20: *"one source
+    # of truth, else something will parse that something else will fail."*
+    missing = unaddressed(paragraphs)
+    if missing:
+        rows = "\n".join(f"  {line}" for line in missing)
+        print(
+            f"{_n(len(missing), 'paragraph')} in {args.census} carry NO ADDRESS,"
+            f" so this gate cannot cite them and would count them as nobody's:"
+            f"\n{rows}\nRe-run census.py against this checkout."
         )
         return 1
     # !! ADDRESSABLE is not ACCOUNTABLE. Every interval between two lines of

@@ -869,6 +869,50 @@ def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
     return 0
 
 
+def unaddressed(paragraphs: list[dict]) -> list[str]:
+    """Which paragraphs carry NO address, described one per line.
+
+    !! ONE SOURCE OF TRUTH, and the reason is the failure it prevents. Roy,
+    2026-08-20: *"one source of truth, else something will parse that something
+    else will fail."* Three callers ask this question -- `census.py` before it
+    writes, `verdicts.py` before it certifies, and `foliator.py --check` -- and
+    a second implementation of "is this addressed" is a second answer waiting to
+    disagree with the first.
+
+    !! IT IS ASKED AT BOTH ENDS ON PURPOSE. The census refusing on EMIT catches
+    its own degradation where it happens; the gate refusing on READ catches a
+    file that reached it some other way -- a census from an older version, one
+    edited by hand, one written by a run that crashed. `verdicts.py` takes a
+    PATH and trusts what it parses, so nothing but this stands between a stale
+    file and a certified review.
+
+    !! WHAT IT COSTS TO SKIP: an unaddressed census yields an EMPTY
+    accountability set, so every paragraph is unaccounted and none is
+    ACCOUNTABLE. Measured 2026-08-20 on a 5-paragraph census with its addresses
+    stripped and a report ruling on nothing: `0 findings ... over 0 prose
+    paragraphs` and **"Every finding is admissible. Stage 5 may rule."** at exit
+    0. The run reads as complete because there was nothing to be incomplete
+    about.
+
+    Args:
+        paragraphs: the census, as `census.py --json` emits it.
+
+    Returns:
+        One sentence per unaddressed paragraph, naming its file and its lines.
+        Empty when every paragraph carries an address.
+    """
+    out: list[str] = []
+    for path in sorted({str(b.get("path", "")) for b in paragraphs}):
+        mine = [b for b in paragraphs if str(b.get("path", "")) == path]
+        for i, paragraph in enumerate(mine, 1):
+            if not stable(paragraph):
+                out.append(
+                    f"{path} entry {i}: lines"
+                    f" {paragraph.get('start')}-{paragraph.get('end')}"
+                )
+    return out
+
+
 def _check(paragraphs: list[dict]) -> int:
     """Does every address resolve back to the one paragraph that carries it?
 
@@ -901,28 +945,24 @@ def _check(paragraphs: list[dict]) -> int:
         fail the check -- it is a fact about the file, and refusing it would
         refuse every docstring with a comment beneath it.
     """
-    unaddressed: list[str] = []
+    # ! ASKED, NOT RE-DERIVED. `unaddressed` is the one implementation, and
+    # `census.py` and `verdicts.py` ask the same one.
+    missing = unaddressed(paragraphs)
     shared: dict[str, list[str]] = {}
     for path in sorted({str(b.get("path", "")) for b in paragraphs}):
         mine = [b for b in paragraphs if str(b.get("path", "")) == path]
-        for i, paragraph in enumerate(mine, 1):
+        for paragraph in mine:
             where = stable(paragraph)
-            if not where:
-                unaddressed.append(
-                    f"{path} entry {i}: lines"
-                    f" {paragraph.get('start')}-{paragraph.get('end')}"
-                )
-                continue
-            if len(resolve(where, mine)) > 1:
+            if where and len(resolve(where, mine)) > 1:
                 shared.setdefault(where, []).append(
                     f"{paragraph.get('start')}-{paragraph.get('end')}"
                     f" {paragraph.get('kind', '')}"
                 )
-    for line in unaddressed:
+    for line in missing:
         print(f"UNADDRESSED  {line}")
     for where, rows in sorted(shared.items()):
         print(f"SHARED       {where}  <- {' | '.join(rows)}")
-    named = len(paragraphs) - len(unaddressed)
+    named = len(paragraphs) - len(missing)
     files = len({str(b.get("path", "")) for b in paragraphs})
     print(f"\n{named} of {len(paragraphs)} paragraphs addressed over {files} files.")
     if shared:
@@ -933,12 +973,12 @@ def _check(paragraphs: list[dict]) -> int:
             f" ({sum(len(v) for v in shared.values())} paragraphs) -- cite the census"
             f" index alongside the address for those."
         )
-    if unaddressed:
+    if missing:
         print(
-            f"{len(unaddressed)} paragraphs could not be addressed at all."
+            f"{len(missing)} paragraphs could not be addressed at all."
             " A census with no `original_start` cannot name a gap; re-run census.py."
         )
-    return 1 if unaddressed else 0
+    return 1 if missing else 0
 
 
 if __name__ == "__main__":

@@ -1,17 +1,18 @@
 """The census finds every paragraph, at the tier its language reaches."""
 
+import json
 import subprocess  # noqa: I001  -- path shim below must import before census
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from _paths import FIXTURES, SCRIPTS
 import annotate
 import galley
 import lexer
 import page
 import prove_unchanged as pu
+from _paths import FIXTURES, SCRIPTS
 
 
 def blocks_for(name):
@@ -1149,3 +1150,71 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
             p.write_text(body, encoding="utf-8")
             paragraphs = lexer.paragraphs_lexical(p, body, lexer.language_for(p))
             self.assertIn(2, page.code_lines(body, [vars(b) for b in paragraphs]))
+
+
+class TestAnUnaddressedCensusIsREFUSEDAtBothEnds(unittest.TestCase):
+    """The census refuses on EMIT and the stage-5 gate on READ.
+
+    !! BOTH, AND FOR DIFFERENT REASONS. The emit check catches the census where
+    it is BUILT; the read check catches a FILE -- one from an older version, one
+    edited by hand, one from a run that crashed midway. `verdicts.py` takes a
+    PATH and trusts what it parses, so nothing else stands between a stale
+    census and a certified review.
+    """
+
+    def _run(self, script, *args):
+        return subprocess.run(
+            [sys.executable, str(SCRIPTS / script), *args],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+
+    def test_the_gate_REFUSES_a_census_it_cannot_cite(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "m.py").write_text("# x\nN = 0\n", encoding="utf-8")
+            good = self._run(
+                "census.py", "--repo", str(root), "--json", str(root / "m.py")
+            )
+            self.assertEqual(good.returncode, 0, good.stderr)
+            stripped = [b | {"address": ""} for b in json.loads(good.stdout)]
+            census = root / "c.json"
+            census.write_text(json.dumps(stripped), encoding="utf-8")
+            report = root / "block-context.json"
+            report.write_text(
+                json.dumps(
+                    {"reviewer": "block-context", "pages": [], "code_concerns": []}
+                ),
+                encoding="utf-8",
+            )
+            got = self._run(
+                "verdicts.py",
+                "--census",
+                str(census),
+                "--repo",
+                str(root),
+                "--reviewers",
+                "block-context",
+                str(report),
+            )
+            self.assertEqual(got.returncode, 1)
+            self.assertIn("NO ADDRESS", got.stdout)
+            # !! THE SENTENCE IT USED TO PRINT INSTEAD.
+            self.assertNotIn("Stage 5 may rule", got.stdout)
+
+    def test_a_census_of_a_REAL_file_still_passes_both_paths(self):
+        # ! Guards the guard the other way: a check that refuses everything is
+        # not a check. Both output paths run over a file with prose in it.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "m.py").write_text(
+                '"""Doc."""\n\n# a note\nN = 0\n', encoding="utf-8"
+            )
+            for extra in ([], ["--json"]):
+                with self.subTest(json=bool(extra)):
+                    got = self._run(
+                        "census.py", "--repo", str(root), *extra, str(root / "m.py")
+                    )
+                    self.assertEqual(got.returncode, 0, got.stderr or got.stdout)

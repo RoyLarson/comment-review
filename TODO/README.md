@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (60)
+### open  (58)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -221,8 +221,6 @@ that changed a published name or rule:
 | [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
 | [lexer-misreads-ordinary-code](lexer-misreads-ordinary-code.md) | session | yes | 3/6 | a Rust lifetime, a JS string-prefixed line, and code after a block closer |
 | [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | session | — | 1/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
-| [convert-drops-every-record](convert-drops-every-record.md) | session | — | 0/3 | 91 findings -> 0 filled records, exit 0, on a real 0.2.x report |
-| [stage-5-certifies-an-unaddressed-census](stage-5-certifies-an-unaddressed-census.md) | session | — | 0/2 | all_blocks drops falsy addresses, so an unaddressed census passes at exit 0 |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | session | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | session | — | 1/6 | 720 tests green against six deliberate defects in shipped code |
 | [the-xfails-never-reach-the-galley](the-xfails-never-reach-the-galley.md) | session | — | 0/3 | they fail in the test helper on a retired lookup, not in splice_range |
@@ -295,3 +293,5 @@ the reason is inside the file.
 | [b-inserts-above-the-shebang-SUPERSEDED](completed/b-inserts-above-the-shebang-SUPERSEDED.md) | No bug: a covered-lines range was read as an insertion point. The field name is the real defect |
 | [the-path-is-repeated-in-every-address](completed/the-path-is-repeated-in-every-address.md) | A reviewer is handed one page per file and a record cites the folio alone; held.py reads both shapes |
 | [anchor-side-is-dead](completed/anchor-side-is-dead.md) | Deleted, with PATHISH and line_address, in the sweep for shipped names nothing reads |
+| [convert-drops-every-record-SUPERSEDED](completed/convert-drops-every-record-SUPERSEDED.md) | Superseded: the converter and the format it read were deleted, not fixed |
+| [stage-5-certifies-an-unaddressed-census](completed/stage-5-certifies-an-unaddressed-census.md) | foliator.unaddressed is the one check; census.py refuses on emit and verdicts.py on read |
