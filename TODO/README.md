@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (72)
+### open  (73)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -247,6 +247,7 @@ that changed a published name or rule:
 | [python-cannot-read-python](python-cannot-read-python.md) | session | yes | 0/21 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | session | yes | 0/10 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | session | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
+| [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | session | — | 0/6 | the closing quote and the comment beside it are both stored, so the file gains a line |
 
 ### in-progress  (4)
 
