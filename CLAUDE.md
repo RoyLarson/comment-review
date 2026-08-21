@@ -125,6 +125,13 @@ uv run python plugins/comment-review/skills/comment-review/scripts/vocabulary.py
 # every row needs a human to say whether it is a term.
 uv run python scripts/vocabulary_sweep.py
 
+# What nothing points at -- a shipped name no code reads, a link that resolves nowhere.
+# Also an INPUT, ruled 2026-08-21: "I don't think it deserves a gating. I do think it is
+# a genuinely good idea to run every now and then." Always exits 0.
+# ! Ruff sees an unused import and an unused local; a module-level constant nobody reads
+# is invisible to it, and four went dead in one day with no gate noticing.
+uv run python scripts/dead_sweep.py [--names] [--links]
+
 # Release gate no test replaces: the parser the RUNTIME uses on every frontmatter.
 # Run it before tagging -- see "Cutting a release" below.
 claude plugin validate plugins/comment-review

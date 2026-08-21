@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (61)
+### open  (59)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -232,9 +232,7 @@ that changed a published name or rule:
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
 | [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | yes | 1/4 | a licence at the bottom of a file belongs to the file, not to the last gap |
 | [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
-| [dead-names-ungated](dead-names-ungated.md) | session | yes | 0/5 | Nothing gates a module-level name that no code reads |
 | [closing-line-deletes-code](closing-line-deletes-code.md) | session | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
-| [complete-breaks-links](complete-breaks-links.md) | session | — | 0/4 | todo_tool complete breaks a file's relative links when it moves it |
 | [versioning-at-v1](versioning-at-v1.md) | Roy | — | 0/4 | v1.x wants a concrete versioning system on everything that ships |
 
 ### in-progress  (4)
@@ -299,3 +297,5 @@ the reason is inside the file.
 | [convert-drops-every-record-SUPERSEDED](completed/convert-drops-every-record-SUPERSEDED.md) | Superseded: the converter and the format it read were deleted, not fixed |
 | [stage-5-certifies-an-unaddressed-census](completed/stage-5-certifies-an-unaddressed-census.md) | foliator.unaddressed is the one check; census.py refuses on emit and verdicts.py on read |
 | [lexer-misreads-ordinary-code](completed/lexer-misreads-ordinary-code.md) | Three misreads fixed and nesting added; the closing-line residue measured at 0 occurrences and accepted, with a test |
+| [dead-names-ungated](completed/dead-names-ungated.md) | scripts/dead_sweep.py, an input rather than a gate; 0 dead names in the tree as of 2026-08-21 |
+| [complete-breaks-links-SUPERSEDED](completed/complete-breaks-links-SUPERSEDED.md) | Accepted: the orphans are inside completed/, and repairing one means rewriting an archived file |
