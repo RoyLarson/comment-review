@@ -2,9 +2,9 @@
 
     python foliator.py --census census.json --repo D
 
-FOUR FOLIATORS walk one trigger list -- the MODULE, then every line of code --
-each holding its own counter and the places it emitted. `foliate()` runs the
-walk; `Foliation` answers back, which address does this line belong to right
+FOUR FOLIATORS walk one trigger list -- the MODULE, every line of code, then
+EOF -- each holding its own counter and the places it emitted. `foliate()` runs
+the walk; `Foliation` answers back, which address does this line belong to right
 now.
 
 !! IT WAS CALLED `addresser.py`, and the name was wrong the way `pCST` was.
@@ -88,7 +88,7 @@ Four series, because prose answers to one of exactly four subjects:
 2026-08-19: *"remove any references that indicate anyone can expect that the
 next line of code is guaranteed to have the next foliation index ... it is a
 happenstance and may change at any point."* FOUR FOLIATORS walk one trigger
-list -- the MODULE, then every line of code -- and EACH OWNS ITS RULE about
+list -- the MODULE, every line of code, then EOF -- and EACH OWNS ITS RULE about
 which triggers are its own. A series that does not emit for a trigger does not
 take a number for it either, so **every series starts at 0**: `a` skips what is
 not documentable, `b` and `c` skip the MODULE, `f` skips everything that is not
@@ -199,9 +199,27 @@ SERIES = (FRONT, DECLARED, GAP, ON)
 #: for -- a module has front matter and a docstring, and no line to sit beside.
 MODULE = "<module>"
 
+#: The LAST TRIGGER, past the final line of code. `b` emits for it -- the gap
+#: after the last statement is a place prose can go -- and `a`, `c` and `f` skip
+#: it today.
+#:
+#: !! IT IS A TRIGGER AND NOT AN ARITHMETIC RULE, ruled by Roy 2026-08-21. The
+#: alternative was `b` emitting N+1 places per walk by definition, which is what
+#: the code did and is one line shorter. He ruled against it because `f` will
+#: almost certainly want this trigger too -- tail matter, an index or a glossary
+#: at the END of a file -- and then two series would each carry a different
+#: special rule: *"that makes two conditions where you would have to understand
+#: to keep the code consistent, and why 1 gets a +1 and the other gets some other
+#: treatment -- which is the reason each foliator owns its own rules."*
+#:
+#: ! So the cost is paid once, here: every series meets EOF and decides, exactly
+#: as it does at MODULE, and adding `f`'s tail place later is a row rather than a
+#: second arithmetic.
+EOF = "<eof>"
 
-def triggers(code: list[int]) -> list[object]:
-    """What a foliator walks: the MODULE, then every line of code in order.
+
+def triggers(code: list[int]) -> list[int | str]:
+    """What a foliator walks: the MODULE, every line of code, then EOF.
 
     !! ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART. Each folio used to be a
     different expression computed where it was needed -- `declares` for `a`,
@@ -213,8 +231,19 @@ def triggers(code: list[int]) -> list[object]:
     still wrong: `b0` named the module's front matter AND the gap above the
     first line of code, so a licence header and the comment introducing the
     first declaration answered to one address.
+
+    ! BOTH ENDS ARE SENTINELS, and neither is a line. The MODULE is the file
+    before any code and EOF is the file after all of it, so a series that emits
+    for either is naming a place no line of code occupies.
+
+    Args:
+        code: the line numbers that hold code, in order.
+
+    Returns:
+        `[MODULE, *code, EOF]`. A LINE is an int and each SENTINEL is a str,
+        which is how a reader -- and a type checker -- tells the two apart.
     """
-    return [MODULE, *code]
+    return [MODULE, *code, EOF]
 
 
 @dataclass
@@ -419,34 +448,54 @@ def foliate(
     # module docstring in a language that has none -- and no verdict could ever
     # fill it. `None` says the series does not exist; `1` says it does and the
     # module's own doc would open the file.
-    if module_insert is not None:
-        out._declared[0] = a.emit(MODULE)
-        out.inserts[out._declared[0]] = module_insert
-    # ! `f0` is the FILE'S OWN matter, bounded by nothing: the head of the file
-    # on both sides. It is not the gap above the first line of code -- that is
-    # `b0`, and conflating them made the two exclusive.
-    out._front = f.emit(MODULE)
-    out.bounds[out._front] = (0, 0)
-    # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no number. The
-    # module has no gap above it and no line to sit beside, so the trigger is
-    # not theirs, and the first line of code is `b0`/`c0`. Roy, 2026-08-20:
-    # *"let's initiate all of them at 0 ... bs and cs will stay aligned until
-    # there is some specific reason to split them."*
+    # !! THE WALK READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
+    # It did not until 2026-08-21: this loop was written out by hand and
+    # `triggers` had a single caller, a test asserting its SHAPE -- so the
+    # function claiming *"ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART"* was
+    # not the list any series walked. Roy, seeing it: *"WHAT!!!"*
     #
-    # ! WHAT THIS IS NOT: a promise that the numbers stay put. Roy, 2026-08-20:
-    # *"there was no promise that any foliation numbering scheme would stay
-    # consistent -- there is in fact a very explicit statement against this."*
-    # See the module docstring: a folio is a happenstance of the walk and may
-    # change at any point.
+    # ! Each series decides at each trigger, and that rule is now complete --
+    # there is no step a place comes from except one of these.
     previous = 0
-    for i, (n, line) in enumerate(code.items()):
-        if i in documentable:
+    seen = 0
+    for trigger in triggers(list(code)):
+        # ! A SENTINEL IS A STRING AND A LINE IS AN INT. Neither sentinel is a
+        # line, which is what makes them sentinels.
+        if isinstance(trigger, str):
+            if trigger == MODULE:
+                if module_insert is not None:
+                    out._declared[0] = a.emit(MODULE)
+                    out.inserts[out._declared[0]] = module_insert
+                # ! `f0` is the FILE'S OWN matter, bounded by nothing: the head
+                # of the file on both sides. It is not the gap above the first
+                # line of code -- that is `b0`, and conflating them made the two
+                # exclusive.
+                out._front = f.emit(MODULE)
+                out.bounds[out._front] = (0, 0)
+                # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
+                # number. It has no gap above it and no line to sit beside. Roy,
+                # 2026-08-20: *"let's initiate all of them at 0 ... bs and cs
+                # will stay aligned until there is some specific reason to split
+                # them."*
+            else:
+                # !! `b` ALONE EMITS AT EOF, and it is a TRIGGER rather than an
+                # N+1 rule -- ruled 2026-08-21 so that `f`'s tail place becomes a
+                # row at this step rather than a second arithmetic. The gap after
+                # the last line has no line below it, so it takes the one above;
+                # a gap is bounded by code, and that is the bound it has. ! On a
+                # file with no code at all this is the gap that IS the file.
+                out._closing = b.emit(next(reversed(code.values())) if code else MODULE)
+                out.bounds[out._closing] = (previous, 0)
+            continue
+        n = trigger
+        line = code[n]
+        if seen in documentable:
             # ! 0 is the module, so a declaration's ordinal is its position
             # among the documentable ones, counting from 1.
             declared = a.emit(line)
             out._declared[len(out._declared)] = declared
             out.lines[declared] = n
-            out.inserts[declared] = documentable[i]
+            out.inserts[declared] = documentable[seen]
         gap = b.emit(line)
         out._above[n] = gap
         out.bounds[gap] = (previous, n)
@@ -454,11 +503,7 @@ def foliate(
         out._beside[n] = beside
         out.lines[beside] = n
         previous = n
-    # ! The gap AFTER the last line of code has no line below it, so it takes
-    # the one above -- a gap is bounded by code, and that is the bound it has.
-    # On a file with no code at all this is the gap that IS the file.
-    out._closing = b.emit(next(reversed(code.values())) if code else MODULE)
-    out.bounds[out._closing] = (previous, 0)
+        seen += 1
     # !! EVERY FOLIATOR'S PLACES, COUNTED RATHER THAN LISTED. Naming them was
     # how `f0` came to sit in `bounds` and nowhere else: no anchor, and
     # `page.empty_places` -- which walks `places` -- gave it no paragraph, so a

@@ -990,9 +990,40 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         self.assertNotIn('sum(1 for n in code if n < at)}"', body)
         self.assertIn("def folio(", body)
 
-    def test_the_walk_is_one_list_for_b_and_c(self):
-        # ! `triggers` is the module then every line of code. Both read it, so
-        # neither can drift from the other by being edited alone.
+    def test_the_walk_is_one_list_and_foliate_READS_it(self):
+        """!! IT DID NOT, AND THIS TEST SAID IT DID. Measured 2026-08-21.
+
+        `triggers` claimed *"ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART"*
+        and this test said *"both read it, so neither can drift from the other
+        by being edited alone"* -- while `foliate` wrote the walk out by hand and
+        `triggers` had exactly ONE caller: this test. The guarantee was
+        documented, asserted for SHAPE, and not implemented. Roy: *"WHAT!!!"*
+
+        ! So the shape assertion is not enough and never was. This reads the
+        SOURCE for the call, which is the only thing that makes the claim true.
+        """
         walk = foliator.triggers(self.code)
         self.assertEqual(walk[0], foliator.MODULE)
-        self.assertEqual(walk[1:], self.code)
+        self.assertEqual(walk[-1], foliator.EOF)
+        self.assertEqual(walk[1:-1], self.code)
+        source = (SCRIPTS / "foliator.py").read_text(encoding="utf-8")
+        body = source[source.index("def foliate(") :]
+        self.assertIn("triggers(", body[: body.index("\ndef ")])
+
+    def test_EOF_is_a_trigger_and_not_an_arithmetic(self):
+        """!! RULED 2026-08-21, against the cheaper N+1 rule.
+
+        Roy: *"I know the N+1 is easiest but I am hesitant because `f` will
+        almost certainly get it, and so we might as well pick up both now -- that
+        makes two conditions where you would have to understand to keep the code
+        consistent, and why 1 gets a +1 and the other gets some other treatment,
+        which is the reason each foliator owns its own rules."*
+
+        ! So the closing gap comes from a trigger every series meets, exactly as
+        the MODULE does. `b` emits for it and the others skip; `f` taking a tail
+        place later is a row at this step, not a second arithmetic.
+        """
+        self.assertIn(foliator.EOF, foliator.triggers(self.code))
+        # ! N lines of code, N+1 gaps -- the last of them from EOF.
+        gaps = [f for f in self.at if f.startswith("b")]
+        self.assertEqual(len(gaps), len(self.code) + 1)

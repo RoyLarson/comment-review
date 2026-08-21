@@ -21,15 +21,26 @@ constant was FOR, so a reader -- human or agent -- learned a rule the system no
 longer had. That is the defect class this plugin exists to catch, in the one
 place its four editorial roles cannot look.
 
-!! ITS ERRORS RUN ONE WAY, AND THAT IS WHY THE TEXT SCAN IS ENOUGH. A name
-MENTIONED in a comment counts as a use, so a dead constant some docstring happens
-to name reads as live -- a FALSE NEGATIVE. It under-reports and never invents.
-! The reverse was tried and is what makes a gate untenable: an earlier version
-asked the CodeGraph index for callers outside the defining file, and reported 32
-false positives in one run -- every one a function reached through its own
-module's `main`, which is live, because the CLI is a consumer. A second version
-fixed that and still called four dataclasses dead, because an index does not
-resolve a class used as a type annotation.
+!! THE METHOD, RULED BY ROY 2026-08-21 AFTER TWO WRONG ONES:
+
+    1. build the reference graph from the AST -- names DEFINED, names READ
+    2. CUT every reference that comes from a test
+    3. what is left with a caller is fine. *"Python has to have a tree, not a
+       cycle"*, so something reached at all is reached from somewhere real
+    4. what is left with NO caller is what needs a person
+    5. only THAT set is worth grepping -- *"and code comments and other
+       documentation prose is suspect"*
+
+!! STEP 5 IS THE ONE THAT WAS BACKWARDS. An earlier version used the grep as
+CONFIRMATION: a name mentioned anywhere read as live. That is how
+`foliator.triggers` survived -- `page.py` names it once, in a docstring
+describing a parameter, and a text scan called that a caller. Prose does not
+CLEAR a name; finding it there is a reason to look harder.
+
+! AND THE INDEX HAD IT RIGHT. CodeGraph listed `triggers` with one caller, a
+test, which is the correct answer -- and the grep overrode it. Roy: *"technically
+codegraph probably gave you the graph and you decided it was not right even
+though it was probably right."*
 
 ! LINKS ARE SWEPT AND NEVER FIXED. Roy, 2026-08-21, on the 13 that dangle out of
 `TODO/completed/`: *"it orphans the references but only down to the completed
@@ -46,12 +57,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-# ! REPORTED FROM `plugins/` AND SEARCHED EVERYWHERE. Only shipped names are
-# worth reporting -- `tests/` defines classes unittest finds by REFLECTION, and
-# every one would read as unreferenced -- but a test IS a reader, so the search
-# for uses covers the whole tree.
+# ! ONLY SHIPPED NAMES ARE REPORTED. `tests/` defines classes unittest finds by
+# REFLECTION, and every one would read as unreferenced.
 REPORTED = ("plugins",)
-SEARCHED = ("plugins", "scripts", "tests", "evals")
+# !! WORKING CODE, as against code that only HOLDS a name. A development script
+# reading a shipped name is a real consumer; a TEST reading one proves nothing
+# about whether the system uses it, so `tests/` is a holder and not a reader.
+DEV = ("scripts", "evals")
 LINKED = ("docs", "TODO")
 LINK = re.compile(r"\[[^\]]*\]\((?!https?:|#)([^)#]+)")
 # ! A link inside BACKTICKS is an example, not a link. `complete-breaks-links.md`
@@ -96,54 +108,107 @@ def defined_names(path: Path) -> list[str]:
     return out
 
 
+def referenced_names(path: Path) -> set[str]:
+    """Every name a file's CODE reads -- not what its prose mentions.
+
+    !! A TEXT SCAN CANNOT ANSWER THIS, and believing it could is what hid
+    `foliator.triggers` twice. `page.py` contains the word `triggers` once, in a
+    docstring describing a parameter, and a grep over the tree counted that as a
+    caller. ! The AST sees names, so a word inside a comment or a docstring is
+    not one.
+
+    ! A DEFINITION IS NOT A REFERENCE. `def triggers(...)` is a `FunctionDef`
+    and never an `ast.Name`, so a file defining something without using it
+    contributes nothing here -- which is the whole question.
+
+    Args:
+        path: the file to read.
+
+    Returns:
+        Every identifier read as a name or an attribute. Empty when it does not
+        parse.
+    """
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError):
+        return set()
+    out: set[str] = set()
+    for node in ast.walk(tree):
+        # !! READ, NOT WRITTEN. `ALIVE = 1` puts `ALIVE` in an `ast.Name` too --
+        # with a STORE context -- so counting every Name made each constant its
+        # own reader and the sweep reported nothing at all. A `def` escaped it,
+        # being a `FunctionDef` rather than a Name, which is why functions
+        # surfaced and constants never did.
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+            out.add(node.id)
+        elif isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
+            out.add(node.attr)
+        elif isinstance(node, ast.alias):
+            # ! `from record import Finding` reads `Finding`.
+            out.add((node.asname or node.name).split(".")[-1])
+    return out
+
+
 def unread_names() -> tuple[list[tuple[Path, str]], list[tuple[Path, str, list[str]]]]:
-    """Shipped names no CODE reads, split by whether shipped PROSE still names one.
+    """Shipped names no WORKING code reads, and who is left holding each one.
 
-    !! PROSE IS NOT EVIDENCE OF LIFE, AND NOT EVIDENCE OF DEATH. `SKILL.md` and
-    the agent files NAME what a script exposes, and an agent acting on that
-    sentence is a consumer no import graph can see -- so a name reached only
-    that way is alive. ! But the same sentence may be ABANDONED HISTORY. Roy,
-    2026-08-21: *"a call still in the agents file stating something that is
-    possible because it USED to be possible."*
+    !! THREE ANSWERS, NOT TWO, and the middle one is the question this exists to
+    ask. A name is live when other WORKING code reads it -- another shipped
+    module, or a development script. What is left over is raised, never passed:
 
-    ! Counting prose as a use hides the second; ignoring it invents the first.
-    So a prose-only name is neither passed nor reported dead -- it is RAISED,
-    with the files that name it, for a person to answer: dead code, or a tool
-    the prose is the only caller of?
+        held by a TEST   the shipped system does not use it. A test is a reader,
+                         so a count of readers says LIVE -- but the thing is
+                         held UP by its test rather than covered by one.
+        held by PROSE    `SKILL.md` and the agent files NAME what a script
+                         exposes, and an agent acting on that sentence is a
+                         caller no import graph sees. ! Or the sentence is
+                         ABANDONED HISTORY. Roy, 2026-08-21: *"a call still in
+                         the agents file stating something that is possible
+                         because it USED to be possible."*
+
+    !! THE TEST BUCKET WAS ADDED AFTER IT MISSED SOMETHING REAL. `foliator.triggers`
+    is called by exactly one test and by no shipped code, while its own docstring
+    claims *"ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART"* -- the guarantee
+    it was written to provide, documented, tested for SHAPE, and not implemented.
+    An earlier sweep cleared it because a test calls it and because `page.py`
+    contains the WORD in a docstring. Roy, 2026-08-21: *"I thought we just sliced
+    out all of the functions that have only callers in tests?"*
 
     ! `main` and any `_private` name are skipped: the first is an entry point
     every CLI defines and nothing imports, the second is ruff's to see within
     its own file.
 
     Returns:
-        `(dead, prose_only)`. The first is `(file, name)` for a name nothing
-        mentions at all; the second adds the shipped markdown files that do.
+        `(dead, raised)`. `dead` is `(file, name)` for a name nothing mentions at
+        all; `raised` adds the files that still hold it.
     """
-    code = "\n".join(
-        p.read_text(encoding="utf-8", errors="replace")
-        for p in _python_files(*SEARCHED)
-    )
-    prose = {
-        p: p.read_text(encoding="utf-8", errors="replace")
-        for p in sorted((ROOT / "plugins").rglob("*.md"))
+    working: set[str] = set()
+    for p in _python_files(*REPORTED, *DEV):
+        working |= referenced_names(p)
+    # ! A TEST holds by REFERENCE and prose holds by MENTION, so the two are
+    # asked differently -- there is no AST to consult for a markdown file.
+    holders: dict[Path, set[str] | str] = {
+        p: referenced_names(p) for p in _python_files("tests")
     }
+    for p in sorted((ROOT / "plugins").rglob("*.md")):
+        holders[p] = p.read_text(encoding="utf-8", errors="replace")
+
     dead: list[tuple[Path, str]] = []
     raised: list[tuple[Path, str, list[str]]] = []
     for path in sorted(_python_files(*REPORTED)):
         for name in defined_names(path):
             if name.startswith("_") or name == "main":
                 continue
-            word = re.compile(rf"\b{re.escape(name)}\b")
-            # ! ITS OWN DEFINITION IS THE ONE OCCURRENCE THAT DOES NOT COUNT.
-            if len(word.findall(code)) > 1:
+            if name in working:
                 continue
-            named_in = [
+            word = re.compile(rf"\b{re.escape(name)}\b")
+            held_by = [
                 p.relative_to(ROOT).as_posix()
-                for p, t in prose.items()
-                if word.search(t)
+                for p, held in holders.items()
+                if (name in held if isinstance(held, set) else word.search(held))
             ]
-            if named_in:
-                raised.append((path, name, named_in))
+            if held_by:
+                raised.append((path, name, held_by))
             else:
                 dead.append((path, name))
     return dead, raised
@@ -187,14 +252,14 @@ def main() -> int:
         print(f"  {len(dead)} of them.\n")
 
         # !! THE QUESTION A PERSON HAS TO ANSWER, and the reason this is an
-        # input. Prose may be the ONLY caller -- an agent acting on a sentence
-        # in `SKILL.md` -- or it may be abandoned history, still describing
-        # something that used to be possible.
-        print("NAMED ONLY IN SHIPPED PROSE -- dead code, or a tool prose calls?")
-        for path, name, named_in in raised:
+        # input. A TEST holding a name means the shipped system does not use it;
+        # PROSE holding one means an agent may be the only caller, or the
+        # sentence is abandoned history. Neither is answerable mechanically.
+        print("HELD BY A TEST OR BY PROSE -- does the shipped system use it?")
+        for path, name, held_by in raised:
             print(f"  {path.relative_to(ROOT).as_posix():<62} {name}")
-            for where in named_in:
-                print(f"  {'':<62} still in {where}")
+            for where in held_by:
+                print(f"  {'':<62} held by {where}")
         print(f"  {len(raised)} of them.\n")
 
     if both or args.links:

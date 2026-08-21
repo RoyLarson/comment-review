@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 8 of 17 tasks done
-Owner:    session * Roy (* 1 ruling -- the closing trigger)
-Requires-Roy: true
+Progress: 9 of 17 tasks done
+Owner:    session
+Requires-Roy: false
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
           finished file)
 Ruled:    2026-08-19 — the foliation -- not the census -- makes the full address. Roy:
@@ -19,6 +19,17 @@ Renumbered: 2026-08-20 — 2026-08-20 -- every series starts at 0 and a skipped 
             close: four DONE, four SUPERSEDED and checked per CLAUDE.md's marks table.
             Three new tasks at the bottom cover what the shift left behind in the edge-
             case fixture.
+Ruled:    2026-08-21 — 2026-08-21 -- the CLOSING TRIGGER is EOF, task 7 closed.
+          triggers() returns [MODULE, *code, EOF]; b emits there and a, c and f skip,
+          exactly as each decides at the MODULE. Roy rejected the cheaper N+1 rule
+          because f will almost certainly want the same trigger for tail matter: 'that
+          makes two conditions where you would have to understand to keep the code
+          consistent, and why 1 gets a +1 and the other gets some other treatment --
+          which is the reason each foliator owns its own rules.' !! AND IT EXPOSED THAT
+          triggers() WAS NOT THE WALK: one caller, a test asserting its shape, while
+          foliate wrote the walk by hand -- so the function claiming 'ONE LIST, SO THE
+          THREE SERIES CANNOT DRIFT APART' was not the list any series walked. foliate
+          reads it now; behaviour verified unchanged place-for-place.
 ```
 
 ## Objective
@@ -134,7 +145,7 @@ run restamps that run as a licence header -- is the same run's second defect and
 - [x] DONE. `page.attach` says which place a paragraph sits in and `record.seed`
       lays one slot per accountable address, grouped under the page that names
       the file once.
-- [ ] * RULING WANTED: the CLOSING trigger. ! ARITHMETIC SUPERSEDED 2026-08-20 --
+- [x] * RULING WANTED: the CLOSING trigger. ! ARITHMETIC SUPERSEDED 2026-08-20 --
       `b` skips the module, so 7 code lines need EIGHT `b` places, `b0..b6` above
       each line and `b7` for the gap AFTER the last. What is built today is an
       explicit emit after the loop (`out._closing`), which is one of the three
