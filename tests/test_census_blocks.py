@@ -444,6 +444,38 @@ class TestALineWhosePrefixIsAStringIsSTILLCode(unittest.TestCase):
         self.assertEqual([b.kind for b in prose], ["comment"])
 
 
+class TestARunsCLOSINGLineIsCutAtTheCloser(unittest.TestCase):
+    """Code after `*/` is not the comment's, and it was being censused as prose.
+
+    !! THE FILE RECORDED THIS AS FIXED FOR THE OPENING LINE. `int b = 2; /* note`
+    cuts at the opener, and has since 2026-08-17 -- the closing line was never
+    covered, so a run that opened earlier appended its last line WHOLE.
+    Measured 2026-08-20 on C: `/* note\\n   more */ int x = 5;` yielded one
+    paragraph whose text was `/* note more */ int x = 5;`, so the statement was
+    handed to four reviewers as prose and run through the annotation regexes.
+    """
+
+    SRC = "int a = 1;\n/* note\n   more */ int x = 5;\nint b = 2;\n"
+
+    def _page(self, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "a.c"
+            path.write_text(text, encoding="utf-8")
+            return text, page.page_for(path, text, lexer.language_for(path))
+
+    def test_the_statement_is_not_in_the_prose(self):
+        _, got = self._page(self.SRC)
+        prose = [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
+        self.assertEqual([b.text for b in prose], ["/* note more */"])
+        self.assertNotIn("int x = 5;", prose[0].text)
+
+    def test_a_run_that_does_NOT_close_on_the_line_is_unchanged(self):
+        text, got = self._page("/* one\n   two\n   three */\nint a = 1;\n")
+        prose = [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
+        self.assertEqual([b.text for b in prose], ["/* one two three */"])
+        self.assertEqual((prose[0].start, prose[0].end), (1, 3))
+
+
 class TestACPlaceCarriesItsAnchor(unittest.TestCase):
     """The line of code a trailing comment sits beside, VERBATIM.
 

@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks done
+Progress: 2 of 5 tasks done
 Owner:    session
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-20 (the /code-review high of 2026-08-20; the Rust case verified in-
           session)
 Fixed:    2026-08-20 — 2026-08-20 task 1 -- the Language row gains char_quotes: the
@@ -43,3 +43,13 @@ The lexer misreads three shapes of ordinary code.
 - [ ] All three are silent: no refusal, no annotation, exit 0. Each shifts
       addresses, so a galley write lands somewhere other than where the reviewer
       cited.
+- [ ] * RULING WANTED: does a line whose comment CLOSES mid-line stay in the code
+      set? The prose half of task 3 is fixed -- the run is cut at the closer, so
+      `int x = 5;` is no longer censused as prose. But the line still leaves
+      `code_lines` (measured: {1, 4} on the four-line C file), so every interval
+      boundary below it still moves. ! `code_lines` rescues the FIRST line of a
+      paragraph via `original_column` -- code before the text. There is no
+      symmetric field for code AFTER the text on the last line, and adding one
+      cuts against Roy's 2026-08-20 ruling that dropped `edit_column` because the
+      address system resolved what it was for. ! The other route is a kind for
+      comment-then-code, symmetric to `trailing-comment`.

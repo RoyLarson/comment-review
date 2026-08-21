@@ -976,10 +976,20 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
 
     for n, raw_line in enumerate(lines, 1):
         if in_block is not None:
-            run.append((n, raw_line.rstrip()))
-            if in_block[1] in raw_line:
+            # !! CUT AT THE CLOSER, the way the opening line cuts at the opener.
+            # The whole raw line was appended, so `   more */ int x = 5;` gave a
+            # paragraph whose TEXT held the statement -- executable code handed to
+            # four reviewers as prose and run through the annotation regexes.
+            # ! The file recorded this as fixed for the OPENING line; the closing
+            # line was never covered. Measured 2026-08-20 on C.
+            closes_at = raw_line.find(in_block[1])
+            if closes_at >= 0:
+                ends = closes_at + len(in_block[1])
+                run.append((n, raw_line[:ends].rstrip()))
                 in_block = None
                 flush()
+                continue
+            run.append((n, raw_line.rstrip()))
             continue
         # !! ONLY CODE ENDS A PARAGRAPH -- a blank line does not, and this reached
         # `flush()` because `"".startswith(openers)` is False. SKILL.md names
