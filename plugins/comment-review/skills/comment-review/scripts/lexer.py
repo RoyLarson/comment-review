@@ -1237,6 +1237,27 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             )
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own paragraph, anchored to the code on that line
+    # !! THE FOOT OF THE FILE, AND THE LOOP IS OVER SO NOTHING FOLLOWS. Roy,
+    # 2026-08-21, asked whether the foot needed a rule of its own: *"same answer
+    # for the back matter because of the same reason."* Read upward, the run
+    # after the LAST blank line is the file's own matter.
+    #
+    # !! IT NEEDS NO LOOKAHEAD, which is the whole reason it is done here rather
+    # than in the loop: at the head, "no code yet" is a fact already in hand; at
+    # the foot, "no code after" is only a fact once the loop has ended. Both are
+    # the same rule read from opposite ends.
+    #
+    # ! Only an INTERIOR blank can split -- a run never ends on one, because
+    # blanks reach `run` from `pending` and `pending` merges only when another
+    # comment follows. The blank itself goes to neither half; `page.fill_the_gaps`
+    # gives it to the gap that owns it, exactly as at the head.
+    if run:
+        blanks = [i for i, (_, held) in enumerate(run) if not held.strip()]
+        if blanks:
+            tail = run[blanks[-1] + 1 :]
+            del run[blanks[-1] :]
+            flush()
+            run.extend(tail)
     flush()
     if in_block is not None and out:
         # The loop ended with a paragraph comment still open, so the final flush

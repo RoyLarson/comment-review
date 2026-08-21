@@ -857,6 +857,44 @@ class TestFrontMatterIsMarked(unittest.TestCase):
         # the f0 to move it ... it is a little cluggy but it will be consistent."*
         self.assertEqual(self._marked(self.NO_DOCSTRING), [1])
 
+    def _folio(self, name, text, line):
+        """The folio of the paragraph HOLDING this line.
+
+        ! Containment, not `original_start == line`: a gap paragraph owns the
+        blank lines around its prose, so a comment on line 3 with a blank above
+        it starts at 2. Matching the start asked a question about
+        `fill_the_gaps` rather than about the folio.
+        """
+        path = Path(name)
+        for b in page.page_for(path, text, lexer.language_for(path)):
+            first, last = b.original_start, b.original_end
+            if first and last and first <= line <= last and not b.original_column:
+                return b.address.split("@")[-1]
+        return ""
+
+    def test_a_licence_at_the_FOOT_of_a_file_is_back_matter(self):
+        # !! `f1`, ruled 2026-08-21. It landed in the CLOSING GAP before -- the
+        # gap after the last statement, which belongs to that statement.
+        text = "import os\n\nx = 1\n\n# Copyright 2001.\n"
+        self.assertEqual(self._folio("m.py", text, 5), "f1")
+
+    def test_a_file_whose_ONLY_prose_is_at_the_foot_is_not_the_HEAD_matter(self):
+        # !! The head run and the foot run are the SAME paragraph here, and it is
+        # the foot's. Guarding on `foot is not head` left it marked as neither.
+        text = "int add(int a) { return a; }\n\n/* Copyright 2001. */\n"
+        self.assertEqual(self._folio("m.c", text, 3), "f1")
+
+    def test_a_comment_BETWEEN_two_code_lines_is_neither(self):
+        # ! It is above the code below it, which is what a `b` is for. Matter is
+        # only what sits outside the code entirely.
+        text = "import os\n\n# about the next line\nx = 1\n"
+        self.assertEqual(self._folio("m.py", text, 3), "b1")
+
+    def test_the_foot_run_needs_no_blank_line_above_it(self):
+        # ! What ends it reading upward is CODE, exactly as a blank line does.
+        text = "import os\nx = 1\n# no blank above me\n"
+        self.assertEqual(self._folio("m.py", text, 3), "f1")
+
     def test_a_comment_that_DOCUMENTS_something_is_not_front_matter(self):
         # !! WHAT ENDS THE MATTER IS DOCUMENTATION, not the comment's syntax. Go
         # documents with plain `//`, so a kind test would have called every Go

@@ -393,6 +393,25 @@ class Foliation:
         """
         return self._front
 
+    def first_code_line(self) -> int:
+        """The first line of CODE on this page, or 0 when it holds none.
+
+        ! What says a run of prose is at the TOP of the file rather than merely
+        first among the prose. A file whose only comment sits at its foot has a
+        first run and a last run that are the same paragraph, and without this it
+        was claimed as the head's.
+        """
+        return self._code[0] if self._code else 0
+
+    def last_code_line(self) -> int:
+        """The last line of CODE on this page, or 0 when it holds none.
+
+        ! It is what says a run of prose has nothing below it, which is the one
+        extra condition back matter carries over front matter. The walk stepped
+        these lines, so it is asked rather than recomputed from the file.
+        """
+        return self._code[-1] if self._code else 0
+
     def back_matter(self) -> str:
         """`f1` -- the file's own prose at its FOOT.
 

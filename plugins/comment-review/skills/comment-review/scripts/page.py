@@ -127,6 +127,12 @@ HOLDS_NO_PROSE = ("interval", "undocumented", "margin", "dark-matter")
 # an `add` proposing a licence header on a file that has none was never turned
 # into a query. Measured 2026-08-20.
 MATTER = "matter"
+# !! THE SAME FACT AT THE OTHER END OF THE FILE, and a SEPARATE annotation
+# because `attach` has two places to hand out and the position is what tells
+# them apart. Roy, 2026-08-21: *"same answer for the back matter because of the
+# same reason."* A licence at the foot of a file belongs to the FILE, not to the
+# last gap -- which is where it landed until `f1` was emitted.
+BACK_MATTER = "back-matter"
 
 
 @dataclass
@@ -292,8 +298,14 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     # ! FRONT MATTER IS THE FILE'S, so it takes `f0` wherever it sits. Asking
     # `above()` would give it the gap it happens to occupy, which is the gap
     # that introduces the first statement and belongs to that statement.
-    if MATTER in (paragraph.get("annotations") or ()):
+    annotations = paragraph.get("annotations") or ()
+    if MATTER in annotations:
         return foliation.matter()
+    # ! The FOOT of the file, `f1`. Asking `above()` would give it the closing
+    # gap, which is the gap after the last statement and belongs to that
+    # statement -- the same conflation `f0` was pulled out of.
+    if BACK_MATTER in annotations:
+        return foliation.back_matter()
     if paragraph.get("original_column", 0):
         start = paragraph.get("start")
         return foliation.beside(start) if isinstance(start, int) else ""
@@ -621,7 +633,10 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # had set it and call every language's first doc comment a licence.
         # ! It ran before the walk until 2026-08-21, when the rule still needed a
         # module docstring to exist and so could only ever fire in Python.
-        mark_matter(got)
+        # ! The last line of CODE is what says a run at the foot has nothing
+        # below it. The walk already stepped those lines, so it is asked rather
+        # than recomputed.
+        mark_matter(got, foliation.first_code_line(), foliation.last_code_line())
         flat = flatten(rel if rel is not None else path.as_posix())
         for b in got:
             place = attach(vars(b), foliation)
@@ -676,7 +691,9 @@ _SHEBANG = re.compile(r"^#!")
 _CODING = re.compile(r"coding[:=]\s*[-\w.]+")
 
 
-def mark_matter(paragraphs: list[Paragraph]) -> None:
+def mark_matter(
+    paragraphs: list[Paragraph], first_code: int = 0, last_code: int = 0
+) -> None:
     """Stamp the prose that sits ABOVE a module's own docstring.
 
     !! WHAT IT IS. A licence header, a shebang, a coding declaration -- the
@@ -752,9 +769,33 @@ def mark_matter(paragraphs: list[Paragraph]) -> None:
     #
     # ! A TRAILING COMMENT IS EXCLUDED TOO. It states a column, so it sits beside
     # a line of code rather than above the file.
+    # ! ABOVE THE FIRST LINE OF CODE, not merely first among the prose. A file
+    # whose only comment sits at its FOOT has a first run and a last run that are
+    # the same paragraph, and without this it was claimed as the head's -- a
+    # trailing licence stamped `f0`. A file with no code at all has no first
+    # line, and its prose is the head's by position.
     head = held[0]
-    if head.declares < 0 and not head.original_column:
+    at_head = not first_code or head.original_start < first_code
+    if at_head and head.declares < 0 and not head.original_column:
         head.annotations.add(MATTER)
+    # !! THE SAME TEST AT THE FOOT, with one more condition: nothing below it.
+    # A run that documents nothing is matter only if it is the file's LAST prose
+    # and no code follows -- otherwise it is a comment about the code beneath it,
+    # which is every ordinary gap paragraph in the file.
+    #
+    # ! IT ASKS WHETHER THE HEAD CLAIM FIRED, not whether this is a different
+    # paragraph. On a file whose ONLY prose sits at the foot the two are one
+    # run, and `foot is not head` left it marked as neither -- a trailing licence
+    # back in the closing gap, which is the thing `f1` exists to stop. A run the
+    # head already took is skipped because `attach` hands out one place.
+    foot = held[-1]
+    if (
+        MATTER not in foot.annotations
+        and foot.declares < 0
+        and not foot.original_column
+        and foot.original_start > last_code
+    ):
+        foot.annotations.add(BACK_MATTER)
 
 
 def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
