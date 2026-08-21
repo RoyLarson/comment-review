@@ -663,9 +663,9 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
         paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
         list(page.code_lines(self.SRC, [vars(b) for b in paragraphs]))
         self.census = [vars(b) for b in paragraphs]
-        self.marked = [
-            b for b in self.census if page.MATTER in (b["annotations"] or ())
-        ]
+        # ! THE KIND, NOT AN ANNOTATION, since 2026-08-21 -- the lexer types a
+        # run `matter` and the page no longer stamps it afterwards.
+        self.marked = [b for b in self.census if b["kind"] == lexer.MATTER]
 
     def test_the_fixture_really_has_front_matter(self):
         # ! Guards the guard: a fixture whose header stopped being marked would

@@ -132,7 +132,10 @@ class TestADelimiterIsNotAParagraphBoundary(unittest.TestCase):
 
     def test_CODE_still_ends_a_run(self):
         got = self._runs("x.c", "/* one */\nint a;\n/* two */\nint b;\n")
-        self.assertEqual(got, [(1, 1, "comment", 0), (3, 3, "comment", 0)])
+        # ! A run on LINE 1 is the file's own MATTER since 2026-08-21 -- Roy:
+        # *"if the opening/closing line is a comment then the matter continues
+        # down/up."* The lexer types it, so the kind says so here.
+        self.assertEqual(got, [(1, 1, "matter", 0), (3, 3, "comment", 0)])
 
     def test_only_the_FIRST_run_splits_at_the_head_of_a_file(self):
         # !! THREE runs before any code, measured on
@@ -141,7 +144,10 @@ class TestADelimiterIsNotAParagraphBoundary(unittest.TestCase):
         # the file's own matter; the rest are ordinary prose in the gap above the
         # first statement and merge there.
         got = self._runs("x.c", "/* head */\n\n/* one */\n\n/* two */\nint a;\n")
-        self.assertEqual(got, [(1, 1, "comment", 0), (3, 5, "comment", 0)])
+        # ! A run on LINE 1 is the file's own MATTER since 2026-08-21 -- Roy:
+        # *"if the opening/closing line is a comment then the matter continues
+        # down/up."* The lexer types it, so the kind says so here.
+        self.assertEqual(got, [(1, 1, "matter", 0), (3, 5, "comment", 0)])
 
 
 class TestUnterminatedBlockComment(unittest.TestCase):
@@ -349,7 +355,7 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # `b0` is the empty one. Four places either way.
         self.assertEqual(
             sorted(b.kind for b in got),
-            ["comment", "dark-matter", "interval", "undocumented"],
+            ["dark-matter", "interval", "matter", "undocumented"],
         )
 
 
@@ -535,7 +541,10 @@ class TestALineWhosePrefixIsAStringIsSTILLCode(unittest.TestCase):
         self.assertEqual(prose[0].text, "the last one")
 
     def test_a_REAL_whole_line_comment_is_still_one(self):
-        prose = self._prose("a.js", "// a fresh note\nconst a = 1;\n")
+        # ! NOT on line 1: a run there is the file's own MATTER since 2026-08-21,
+        # and this test is about the OPENER being read rather than about which
+        # series the run lands in.
+        prose = self._prose("a.js", "const a = 1;\n// a fresh note\nconst b = 2;\n")
         self.assertEqual([b.kind for b in prose], ["comment"])
 
     def test_an_INDENTED_whole_line_comment_is_still_one(self):
@@ -794,12 +803,11 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         return got[0]
 
     def test_a_comment_run_is_anchored_to_the_code_BELOW_it(self):
-        # ! `# a header note` on line 1 is NOT one of these since 2026-08-21: the
-        # first run of prose on a page is the file's own matter, so it is
-        # anchored to the MODULE and takes `f0`. Roy ruled the over-inclusion
-        # knowingly -- *"a little cluggy but it will be consistent"* -- and a
-        # record on `f0` is how an agent asks for it to move.
-        self.assertEqual(self._one("comment", 1).anchor, "<module>")
+        # ! `# a header note` on line 1 is NOT one of these since 2026-08-21: a
+        # run opening the file is its own MATTER, so the lexer types it `matter`
+        # and anchors it to the MODULE. Roy: *"It is a matter designator, the
+        # anchor is the module."*
+        self.assertEqual(self._one("matter", 1).anchor, "<module>")
         self.assertEqual(self._one("comment", 3).anchor, "def f():")
 
     def test_a_trailing_comment_is_anchored_to_its_OWN_line(self):
@@ -886,7 +894,10 @@ class TestFrontMatterIsMarked(unittest.TestCase):
             return page.page_for(path, text, lexer.language_for(path))
 
     def _marked(self, text):
-        return [b.start for b in self._census(text) if page.MATTER in b.annotations]
+        # ! THE KIND, NOT AN ANNOTATION, since 2026-08-21. The lexer types a run
+        # `matter`; the page used to stamp it afterwards, which put a positioning
+        # rule in a module that may hold none.
+        return [b.start for b in self._census(text) if b.kind == lexer.MATTER]
 
     LICENCE = '# Copyright 2024\n# Apache 2.0\n\n"""What this is."""\n\nimport os\n'
     SHEBANG = '#!/usr/bin/env python3\n\n"""What this is."""\n\nimport os\n'

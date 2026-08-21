@@ -130,15 +130,16 @@ class TestTheAPlaceIsFilledOutsidePython(unittest.TestCase):
         # !! MEASURED on CPython v3.13.1: 1,124 of 2,987 documented declarations
         # (38%) leave a blank line before the declaring line. An adjacency test
         # would abandon every one of them in `b`.
-        self.assertEqual(
-            folio_of("g.go", "// One does it.\n\nfunc One() {}\n", 1), "a1"
-        )
+        # ! `package thing` opens the file so the doc comment is not on LINE 1,
+        # where a run is the file's own matter since 2026-08-21.
+        text = "package thing\n\n// One does it.\n\nfunc One() {}\n"
+        self.assertEqual(folio_of("g.go", text, 3), "a1")
 
     def test_prose_above_a_line_of_CODE_documents_the_code_not_the_next_one(self):
         # ! The walk back stops at code: this comment sits above `func One`, and
         # `func Two` two lines below has no documentation at all.
-        text = "// One does it.\nfunc One() {}\nfunc Two() {}\n"
-        self.assertEqual(folio_of("g.go", text, 1), "a1")
+        text = "package thing\n\n// One does it.\nfunc One() {}\nfunc Two() {}\n"
+        self.assertEqual(folio_of("g.go", text, 3), "a1")
 
     def test_the_NEAREST_paragraph_above_takes_it_and_the_header_keeps_its_gap(self):
         # !! THE COLLISION THIS CLOSES. Both paragraphs used to answer to `b0`,

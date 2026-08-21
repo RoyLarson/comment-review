@@ -438,6 +438,17 @@ class Foliation:
         """
         return self._code[-1] if self._code else 0
 
+    def file_places(self) -> list[str]:
+        """Every `f` this walk emitted, in the order it emitted them.
+
+        !! WHICH ONE A MATTER RUN TAKES IS A COUNT, and the PAGE does the
+        counting -- Roy, 2026-08-21: *"the page makes the mapping between
+        foliator and paragraph."* The walk knows only that a file has places for
+        its own prose and where they fall in the reading order; it never looks at
+        prose to decide which.
+        """
+        return [f for f in (self._front, self._back) if f]
+
     def back_matter(self) -> str:
         """`f1` -- the file's own prose at its FOOT.
 

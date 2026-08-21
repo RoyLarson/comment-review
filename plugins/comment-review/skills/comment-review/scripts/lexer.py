@@ -237,6 +237,21 @@ DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
 _NO_TRAILING = -2
 
 # The work markers `counted_lines` leaves free of the cap.
+# !! THE FILE'S OWN PROSE, AS A PARAGRAPH TYPE. Roy, 2026-08-21: *"if the
+# opening/closing line is a comment then the matter continues down/up until there
+# is an empty line or the start/end of a docstring"*, and *"It is a matter
+# designator, the anchor is the module."* One type for both ends -- which end a
+# run sits at is the ORDER the `f` foliator emits, not a fact about the run.
+#
+# ! IT IS STATED HERE BECAUSE THE LEXER READS THE FILE. It was an ANNOTATION the
+# page stamped afterwards, which meant a positioning rule lived in a module that
+# may hold none, and the page had to reconstruct what "top of the file" meant
+# from a paragraph already typed `comment`.
+MATTER = "matter"
+# ! The anchor a run about the FILE answers to. The same string the foliator
+# uses for the module trigger; it is spelled here rather than imported because
+# the lexer imports no sibling but `language`.
+MODULE_ANCHOR = "<module>"
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
 # ! Every punctuation a language opens a comment with, stripped before the
@@ -602,6 +617,21 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     return lines[line_no - 1][: column - 1]
 
 
+def _is_doc(line: str, lang: Language) -> bool:
+    """Does this line open a run the language treats as DOCUMENTATION?
+
+    ! Two readers ask it and they must agree: `flush` to set the kind, and
+    `carry` to decide whether a blank line ends the file's matter. It was
+    computed inline in one of them, so the other tested a different thing --
+    `eslint.config.ts` opens with `/** */` and had its matter terminated as
+    though the run were an ordinary comment.
+    """
+    opens = line.strip()
+    if lang.doc_line and opens.startswith(lang.doc_line):
+        return True
+    return bool(lang.doc_block and opens.startswith(lang.doc_block))
+
+
 def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]:
     """Comment runs for a language with no parser here -- the FLOOR tier.
 
@@ -675,7 +705,17 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         first is the file's own matter; the rest are ordinary prose in the gap
         above the first statement, and they merge there like any other.
         """
-        if pending and run and not out and not seen_code[0]:
+        # !! IT ENDS THE MATTER, SO IT FIRES ONLY WHEN THERE IS MATTER TO END.
+        # Roy's rule is that matter runs from the OPENING LINE down to a blank,
+        # so a run that does not start on line 1 -- or that is a docstring, which
+        # matter never is -- has nothing here to terminate.
+        #
+        # ! MEASURED 2026-08-21 without those two conditions: `floatobject.h`
+        # opens with a BLANK and `eslint.config.ts` with a `/** */`, and each
+        # split into two runs that then SHARED `b0` -- a collision manufactured
+        # by a rule protecting a file that had no matter in the first place.
+        opens_file = bool(run) and run[0][0] == 1 and not _is_doc(run[0][1], lang)
+        if pending and run and opens_file and not out and not seen_code[0]:
             flush()
         else:
             run.extend(pending)
@@ -696,11 +736,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         span = lines[run[0][0] - 1 : run[-1][0]]
         if partial_first[0] > 0:
             span = [span[0][partial_first[0] - 1 :], *span[1:]]
-        stripped = raw[0].strip()
-        is_doc = stripped.startswith(lang.doc_line) if lang.doc_line else False
-        if lang.doc_block and stripped.startswith(lang.doc_block):
-            is_doc = True
-        if is_doc:
+        if _is_doc(raw[0], lang):
             kind = "docstring"
         else:
             # !! CODE ON THE FIRST LINE MAKES IT TRAILING, however many lines it
@@ -713,6 +749,34 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # several lines -- so `int b = 2; /* opens` was censused as a plain
             # `comment` sitting at a `c` place, and kind and series disagreed.
             kind = "trailing-comment" if trailing or partial_first[0] else "comment"
+        # !! THE LEXER SAYS WHICH SERIES THIS RUN IS, and matter is the case it
+        # can say outright. Roy, 2026-08-21: *"the matter/not matter split is
+        # easy and already determined by my ruling that if the opening/closing
+        # line is a comment then the matter continues down/up until there is an
+        # empty line or the start/end of a docstring ... that makes f trivial and
+        # consistent because that paragraph instead of being marked as comment
+        # and the page trying to reconstruct what was meant by top of the file
+        # and a comment."*
+        #
+        # !! THE OPENING LINE ITSELF MUST BE A COMMENT. A file whose line 1 is
+        # BLANK has no front matter at all -- which is what `page.mark_matter`
+        # could not express, since it took the first run of PROSE wherever it
+        # sat. MEASURED: 11 CPython headers open with a blank, and each one put
+        # an `f0` inside the gap that owned the blank above it, so the gap ran
+        # THROUGH the matter and the compositor set the comment above its own
+        # blank line.
+        #
+        # ! A DOCSTRING IS NOT MATTER, and it is what ENDS matter. A file opening
+        # with its own documentation has none.
+        #
+        # !! ONE TYPE, NOT TWO. Roy, 2026-08-21: *"It is a matter designator, the
+        # anchor is the module ... front-matter, back-matter are paragraph type
+        # matter."* Which END it sits at is not a fact about the paragraph -- it
+        # falls out of the order the `f` foliator emits, exactly as `a1` and `a2`
+        # fall out of the order declarations are met. Naming the two ends here
+        # would state the same fact twice and let them disagree.
+        if kind == "comment" and (run[0][0] == 1 or run[-1][0] == len(lines)):
+            kind = MATTER
         paragraph = Paragraph(
             path=path.as_posix(),
             start=run[0][0],
@@ -728,7 +792,15 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # step earlier and were thrown away. Roy, 2026-08-19: *"the lexer
             # either knows what is before the trailing comment and can snag the
             # whole string or it is broken."*
-            anchor=_anchor_of(lines, run[0][0], partial_first[0]),
+            # !! MATTER IS ANCHORED TO THE MODULE, because that is what it is
+            # about. Roy, 2026-08-21: *"It is a matter designator, the anchor is
+            # the module."* Every other run answers to the line of code it sits
+            # with; the file's own prose answers to the file.
+            anchor=(
+                MODULE_ANCHOR
+                if kind == MATTER
+                else _anchor_of(lines, run[0][0], partial_first[0])
+            ),
         )
         partial_first[0] = 0
         # !! Same split as the tokenized tier: a trailing comment closes its run,
@@ -1052,6 +1124,90 @@ def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
     return bool(second and f"{first} {second.group(1)}" in declares)
 
 
+def document_declarations(
+    paragraphs: list["Paragraph"],
+    decls: list[tuple[int, int, bool]],
+    code: dict[int, str],
+) -> None:
+    """Say which prose run documents which declaration, at the LEXICAL tier.
+
+    !! IT LIVES HERE BECAUSE POSITIONING IS THE LANGUAGE'S, and the lexer is one
+    of the two modules allowed to ask a language anything. Roy, 2026-08-21: *"All
+    framing about positioning should come from the language and should be only in
+    either the language definition file, or a reference to the language
+    definition file in lexer and compositor."* It was in `page.py`, which is
+    neither. ! `paragraphs_stdlib` already states this for Python from its parse;
+    this is the same fact for a language the parser cannot read.
+
+    !! PROSE BELONGS TO WHICHEVER SIDE IT IS NEARER TO, and a TIE goes to the
+    side the language documents on. That is the whole rule, and it replaced
+    "the nearest run above the declaration", which could not tell a
+    declaration's documentation from a note about the statement above it.
+
+    ! MEASURED 2026-08-21 on `meta-package-manager`'s `mpm.js`:
+
+        export const MPM_MIN_VERSION = [6, 4, 0];
+        /* mpm 6.4.0 renamed `--output-format` back to `--table-format` ... */
+
+        export const MPM_TIMEOUT = 60;
+
+    The comment explains why the MINIMUM VERSION is 6.4.0 -- it is about the line
+    it sits under. The old rule walked up from `MPM_TIMEOUT`, skipped the blank
+    and claimed it, so four reviewers would have measured that prose against
+    `= 60`. It is flush under the code above (0 blank lines) and one blank from
+    the declaration below, so it is nearer to what it is about.
+
+    ! A TIE IS FLUSH ON BOTH SIDES, and it goes to the declaration, which is the
+    convention every above-doc language writes by. MEASURED over the corpora: of
+    23 ties in above-doc languages, 20 sit flush above their declaration and are
+    unaffected, 1 has a blank on both sides and is unaffected, and 2 change --
+    both of them the shape above.
+
+    ! WHAT IT CANNOT DO is read the prose. A comment flush under one statement
+    and about the next is indistinguishable by position, which is why
+    `ownership-context` reads every placement rather than trusting one.
+
+    Args:
+        paragraphs: this file's prose, mutated in place -- `declares` is set on
+            the run that documents each declaration.
+        decls: `(line, insert, above)` per declaration, module first.
+        code: `line -> the code on it`, in order.
+    """
+    ends = {
+        b.original_end: b
+        for b in paragraphs
+        if b.original_end and not b.original_column
+    }
+    if not ends:
+        return
+    above_code = sorted(code)
+    for ordinal, (line, _insert, above) in enumerate(decls[1:], 1):
+        if not above:
+            # ! Python states this from its parse; nothing positional to do.
+            continue
+        # ! UP FROM THE DECLARING LINE, past blanks, stopping at CODE -- prose
+        # above that code is about that code and cannot reach across it.
+        held = None
+        at = line - 1
+        while at >= 1:
+            if at in code:
+                break
+            if at in ends:
+                held = ends[at]
+                break
+            at -= 1
+        if held is None:
+            continue
+        # ! THE TWO DISTANCES, counted in blank lines. Nothing above the run
+        # means there is nothing for it to belong to, so the declaration takes
+        # it -- `over` is set past `below` to say so.
+        below = line - held.original_end - 1
+        previous = [n for n in above_code if n < held.original_start]
+        over = held.original_start - previous[-1] - 1 if previous else below + 1
+        if below <= over:
+            held.declares = ordinal
+
+
 def declarations(
     text: str, lang: Language, code: dict[int, str] | None = None
 ) -> list[tuple[int, int, bool]]:
@@ -1156,12 +1312,21 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
             # annotation regexes -- reviewers saw
             # `models.Index(fields=(...)),  # note` as the note's text.
             prose = [c for _, _, c, _ in run]
+            # !! THE SAME MATTER RULE AS THE LEXICAL TIER -- see `MATTER`. Both
+            # readers state it, because a paragraph's TYPE is the lexer's to say
+            # and a file's own prose is not a different thing in Python. ! It was
+            # written on one tier first, and `.py` fixtures then reported NO
+            # matter at all while `.c` ones reported it correctly.
+            whole = not run[0][3]
+            kind = "comment" if whole else "trailing-comment"
+            if whole and (run[0][0] == 1 or run[-1][0] == len(source_lines)):
+                kind = MATTER
             out.append(
                 paragraph := Paragraph(
                     path=path.as_posix(),
                     start=run[0][0],
                     end=run[-1][0],
-                    kind="trailing-comment" if run[0][3] else "comment",
+                    kind=kind,
                     # ! ONE PAST THE LAST CHARACTER OF CODE on the line, or
                     # 0 for a leading comment. NOT the `#`: the whitespace
                     # between a statement and its comment belongs to the `c`

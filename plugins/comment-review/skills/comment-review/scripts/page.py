@@ -70,9 +70,11 @@ from foliator import (  # noqa: E402  -- path shim must run first
     series_of,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
+    MATTER,
     Language,
     Paragraph,
     declarations,
+    document_declarations,
     flag_structural_docs,
     paragraphs_lexical,
     paragraphs_stdlib,
@@ -110,29 +112,21 @@ OCCUPIES_NOTHING = ("margin", "interval", "undocumented", "dark-matter")
 # an `add` and they get no seeded record.
 HOLDS_NO_PROSE = ("interval", "undocumented", "margin", "dark-matter")
 
-# !! THE FILE'S OWN PROSE, ABOVE ITS DOCSTRING -- a licence header, a shebang, a
-# coding line. It is an ANNOTATION rather than a kind, because such a run is an
-# ordinary comment in every way but ownership: it belongs to the FILE and not to
-# whatever follows it.
+# !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE LEXER STATES IT -- see
+# `lexer.MATTER`. It was an ANNOTATION stamped HERE by `mark_matter` until
+# 2026-08-21, which put a positioning rule in a module that may hold none and
+# made the page reconstruct what "top of the file" meant from a run already
+# typed `comment`.
 #
-# ! IT LIVES HERE BECAUSE THE PAGE BOTH STAMPS AND READS IT. `mark_matter`
-# says which runs are the file's own; `attach` gives them the `f` place wherever
-# they sit, rather than the gap they happen to occupy.
+# ! ONE TYPE FOR BOTH ENDS. Roy: *"front-matter, back-matter are paragraph type
+# matter."* Which end a run sits at is the ORDER the `f` foliator emitted its
+# places, counted by `page_for` -- not a second fact that could disagree.
 #
-# !! THE ANNOTATION IS THE PRODUCER, NOT THE QUESTION. `mark_matter`
-# stamps it and `attach` reads it to give the paragraph its `f` place -- and
-# after that, EVERY consumer asks the SERIES: the census filter, the
-# accountability set, the `query` guard, the record seeding, and `Page.prose`.
-# ! Asking the annotation downstream missed the EMPTY place, which carries none:
-# an `add` proposing a licence header on a file that has none was never turned
-# into a query. Measured 2026-08-20.
-MATTER = "matter"
-# !! THE SAME FACT AT THE OTHER END OF THE FILE, and a SEPARATE annotation
-# because `attach` has two places to hand out and the position is what tells
-# them apart. Roy, 2026-08-21: *"same answer for the back matter because of the
-# same reason."* A licence at the foot of a file belongs to the FILE, not to the
-# last gap -- which is where it landed until `f1` was emitted.
-BACK_MATTER = "back-matter"
+# ! EVERY CONSUMER DOWNSTREAM ASKS THE SERIES, not this: the census filter, the
+# accountability set, the `query` guard, the record seeding and `Page.prose`.
+# Asking the type would miss the EMPTY place, which has no prose to type -- an
+# `add` proposing a licence header on a file that has none was never turned into
+# a query. Measured 2026-08-20.
 
 
 @dataclass
@@ -298,14 +292,18 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     # ! FRONT MATTER IS THE FILE'S, so it takes `f0` wherever it sits. Asking
     # `above()` would give it the gap it happens to occupy, which is the gap
     # that introduces the first statement and belongs to that statement.
-    annotations = paragraph.get("annotations") or ()
-    if MATTER in annotations:
-        return foliation.matter()
-    # ! The FOOT of the file, `f1`. Asking `above()` would give it the closing
-    # gap, which is the gap after the last statement and belongs to that
-    # statement -- the same conflation `f0` was pulled out of.
-    if BACK_MATTER in annotations:
-        return foliation.back_matter()
+    # !! THE LEXER SAYS SO, and this only reads it. Roy, 2026-08-21: *"that makes
+    # f trivial and consistent because that paragraph instead of being marked as
+    # comment and the page trying to reconstruct what was meant by top of the
+    # file and a comment."* It was an ANNOTATION that `mark_matter` stamped here,
+    # which is a positioning rule in a module that may hold none.
+    #
+    # ! WHICH `f` IS A COUNT, NOT A POSITION -- the Nth matter run takes the Nth
+    # place the walk emitted, exactly as the Nth declaration takes the Nth `a`.
+    # Counting is the PAGE's, so `page_for` hands them out and this says only
+    # that the question is not `above()`'s to answer.
+    if paragraph.get("kind") == MATTER:
+        return ""
     if paragraph.get("original_column", 0):
         start = paragraph.get("start")
         return foliation.beside(start) if isinstance(start, int) else ""
@@ -370,68 +368,6 @@ def documentable(
         follows = [n for n in ordered if n >= insert]
         out[at[line]] = (insert, at[follows[0]] if follows else len(code), GAP)
     return out
-
-
-def documented_by(text: str, prose: list["Paragraph"], foliation: "Foliation") -> None:
-    """Tie each prose run to the declaration whose doc position it occupies.
-
-    !! THE LEXER-TO-PARAGRAPH JUNCTION, and both halves already existed.
-    `documentable()` says which line a declaration's doc goes on and the walk
-    emits an `a` for it; `paragraphs_stdlib` states `declares` for Python from
-    its parse. Nothing stated it for the lexical languages that have a keyword
-    list, so `attach` fell past its first branch and every doc comment took the
-    `b` for the gap it sits in -- the `a` place reading `undocumented` while the
-    documentation sat in the gap below it.
-
-    !! NEAREST ABOVE, NOT FLUSH AGAINST. MEASURED 2026-08-21 on CPython v3.13.1
-    (`corpora/cpython`, 489 `.c`/`.h` files): of 2,987 documented declarations,
-    1,863 put the comment flush against the declaring line and 1,124 leave a
-    blank line between it. An adjacency test would abandon that 38% in `b`.
-    Blank lines are therefore skipped, and a line of CODE stops the walk --
-    prose above that code documents the code, not this declaration.
-
-    ! FRONT MATTER IS LEFT ALONE, because `attach` reads `declares` BEFORE it
-    reads the MATTER annotation. A licence header tied here would take an `a`
-    and vacate `f0`, making the file's own matter the first declaration's
-    documentation.
-
-    ! A TRAILING COMMENT IS LEFT ALONE. It states a column, which is what puts
-    it beside a line rather than above one, and its line is a line of code.
-
-    ! THE MODULE IS NOT TIED. Ordinal 0 is the module, whose doc position is the
-    head of the file, and no paragraph sits above the first line.
-
-    Args:
-        text: the file's source, read for which lines are blank.
-        prose: the page's paragraphs, mutated in place.
-        foliation: the walk, which states every declaration's doc position.
-    """
-    lines = text.splitlines()
-    # ! Keyed by the line a run ENDS on, which is the line a declaration's doc
-    # position walks back to.
-    # ! FRONT MATTER IS NOT EXCLUDED HERE, because it has not been decided yet --
-    # this is what decides it. A run that turns out to document a declaration is
-    # that declaration's documentation and never the file's matter, which is the
-    # question `mark_matter` asks straight after.
-    ends = {
-        b.original_end: b for b in prose if b.original_end and not b.original_column
-    }
-    if not ends:
-        return
-    ordinal = 1
-    while True:
-        folio = foliation.documents(ordinal)
-        if not folio:
-            return
-        insert = foliation.inserts.get(folio)
-        if insert is not None:
-            at = insert - 1
-            while at >= 1 and not lines[at - 1].strip():
-                at -= 1
-            held = ends.get(at)
-            if held is not None:
-                held.declares = ordinal
-        ordinal += 1
 
 
 def places_on(
@@ -662,24 +598,31 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # and the anchor comes from the walk that emitted it rather than from a
         # second pass that could disagree with the first.
         foliation = places_on(text, [vars(b) for b in got], lang)
-        # ! AFTER the walk and BEFORE `attach`, because it states the fact
-        # `attach` reads first. Python's parse already stated it; this is the
-        # same fact for every language whose `a` series comes from a keyword.
-        if lang.name != "python":
-            documented_by(text, got, foliation)
-        # !! AFTER `documented_by` AND BEFORE `attach`. What makes a run FRONT
-        # MATTER is that it documents nothing, and `documented_by` is what
-        # states that -- so asking first would read `declares` before anything
-        # had set it and call every language's first doc comment a licence.
-        # ! It ran before the walk until 2026-08-21, when the rule still needed a
-        # module docstring to exist and so could only ever fire in Python.
-        # ! The last line of CODE is what says a run at the foot has nothing
-        # below it. The walk already stepped those lines, so it is asked rather
-        # than recomputed.
-        mark_matter(got, foliation.first_code_line(), foliation.last_code_line())
+        # !! THE LEXER STATES WHICH PROSE DOCUMENTS WHAT, and this only asks.
+        # It was decided in this module until 2026-08-21, which may hold no
+        # positioning rule -- Roy: *"the ONLY places that need this are the lexer
+        # and the compositor."* `paragraphs_stdlib` has always stated it for
+        # Python from its parse; `document_declarations` is the same fact for a
+        # language the parser cannot read, and answers nothing for Python.
+        code = code_lines(text, [vars(b) for b in got])
+        document_declarations(got, declarations(text, lang, code), code)
         flat = flatten(rel if rel is not None else path.as_posix())
+        # !! THE PAGE MAKES THE MAPPING. Roy, 2026-08-21: *"the page makes the
+        # mapping between foliator and paragraph."* The lexer types a run
+        # `matter` and the walk emits the places a file has for its own prose;
+        # neither counts, so the Nth matter run takes the Nth place here --
+        # which is what makes `f0` the head and `f1` the foot without either
+        # word appearing anywhere.
+        files = foliation.file_places()
         for b in got:
-            place = attach(vars(b), foliation)
+            if b.kind == MATTER:
+                # ! HEAD OR FOOT, which is the whole of the mapping. The lexer
+                # types a run `matter` when it opens the file or closes it; the
+                # walk emits a place for each end; this says which is which, and
+                # it is the only comparison either side needs.
+                place = files[0] if b.original_start == 1 else files[-1]
+            else:
+                place = attach(vars(b), foliation)
             b.address = f"{flat}@{place}" if place else ""
             b.anchor = foliation.places.get(place, b.anchor)
         # !! EVERY PLACE PROSE DOES NOT FILL GETS A PARAGRAPH, in one loop over
@@ -729,113 +672,6 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
 # the file's own whatever follows them.
 _SHEBANG = re.compile(r"^#!")
 _CODING = re.compile(r"coding[:=]\s*[-\w.]+")
-
-
-def mark_matter(
-    paragraphs: list[Paragraph], first_code: int = 0, last_code: int = 0
-) -> None:
-    """Stamp the prose that sits ABOVE a module's own docstring.
-
-    !! WHAT IT IS. A licence header, a shebang, a coding declaration -- the
-    matter a file carries before it begins. Measured 2026-08-19 over 1,500 files
-    in five corpora: 12 carried prose above the module docstring, and 10 of the
-    12 were the Apache header repeated identically in every file of the project.
-    Inside a declaration it never happens -- 0 of 2,579 docstrings.
-
-    !! WHY IT IS FILTERED OUT OF WHAT A REVIEWER READS. It is not a claim about
-    the code, so no role can settle it:
-
-      block-context     has nothing to resolve the claim against -- a copyright
-                        line states no constraint the code could contradict
-      function-context  it documents no function
-      module-context    it is not the module announcing its subject
-      ownership-context it belongs where it is, by law or by convention, and
-                        that is not a placement this system may rule on
-
-    ! So every role would return `clean` on it, every run, on prose that is
-    identical in every file of the project -- a cost paid per file per role for
-    an answer that was settled before the run started.
-
-    !! AND IT IS THE ONE PLACE A WRONG EDIT IS EXPENSIVE OUTSIDE THIS SYSTEM.
-    A licence header is a legal instrument and a shebang is how the file runs;
-    both are the human's to change and neither is an editorial question. A
-    finding here is therefore turned into a `query` -- ask -- rather than
-    admitted as work. `verdicts.py` does that; this only says which paragraph.
-
-    !! THE RULE IS POSITIONAL, AND IT ASKS NOTHING OF THE LANGUAGE. Roy,
-    2026-08-21: *"Any normal comment section at the top of the file becomes f0
-    until there is either a docstring or a blank line."* The first run of prose
-    on the page is the file's own matter; a blank line ends it, and so does the
-    module's own documentation, which is what `declares == 0` says.
-
-    ! IT REPLACED A RULE THAT COULD ONLY EVER WORK IN PYTHON. Front matter used
-    to be found by looking for a comment run ABOVE a module docstring that
-    EXISTS -- and `declares` is stated only where a parser runs, so a `.c` or
-    `.rs` licence header matched nothing and was reviewed as ordinary work.
-    Measured 2026-08-21: identical headers in `lic.py`, `lic.c` and `lic.rs`
-    got `['matter']`, `[]` and `[]`.
-
-    ! A SHEBANG OR A CODING LINE IS MATTER WHEREVER IT SITS, and that route is a
-    regex rather than a language rule -- so it already fired in shell, Python and
-    Ruby alike. Roy: *"the shebang is front-matter"*, *"always"*.
-
-    !! IT OVER-INCLUDES ON PURPOSE, AND THERE IS A ROUTE BACK. A leading comment
-    that is about the code below it still becomes `f0`. Roy: *"The agents can
-    always ask for the record for the f0 to move it which ultimately doesn't
-    effect the final pageset because the f0 would get a None and be skipped and
-    the b0 would be then put at the top again. it is a little cluggy but it will
-    be consistent."* A rule that guessed which header was a licence would guess
-    differently per language, which is the failure this one refuses.
-    """
-    for b in paragraphs:
-        opens = (b.raw_lines or [""])[0].strip()
-        if b.start >= 1 and (_SHEBANG.match(opens) or _CODING.search(opens)):
-            b.annotations.add(MATTER)
-    held = sorted(
-        (b for b in paragraphs if b.original_start and (b.text or "").strip()),
-        key=lambda b: b.original_start,
-    )
-    if not held:
-        return
-    # !! WHAT ENDS THE MATTER IS DOCUMENTATION, AND `declares` IS WHAT SAYS SO.
-    # Roy's rule reads *"any normal comment section at the top of the file ...
-    # until there is either a docstring or a blank line"* -- and the KIND cannot
-    # decide which is which. Go documents with plain `//`, so `// One does it.`
-    # above `func One()` is a docstring wearing a comment's syntax, while
-    # `/** To get started, read the docs. */` at the head of a TypeScript config
-    # is a comment wearing a docstring's. Asking what the run DOCUMENTS answers
-    # both: `declares == 0` is the module's own, `>= 1` a declaration's, and
-    # below 0 is prose that documents nothing -- which is what matter is.
-    #
-    # ! A TRAILING COMMENT IS EXCLUDED TOO. It states a column, so it sits beside
-    # a line of code rather than above the file.
-    # ! ABOVE THE FIRST LINE OF CODE, not merely first among the prose. A file
-    # whose only comment sits at its FOOT has a first run and a last run that are
-    # the same paragraph, and without this it was claimed as the head's -- a
-    # trailing licence stamped `f0`. A file with no code at all has no first
-    # line, and its prose is the head's by position.
-    head = held[0]
-    at_head = not first_code or head.original_start < first_code
-    if at_head and head.declares < 0 and not head.original_column:
-        head.annotations.add(MATTER)
-    # !! THE SAME TEST AT THE FOOT, with one more condition: nothing below it.
-    # A run that documents nothing is matter only if it is the file's LAST prose
-    # and no code follows -- otherwise it is a comment about the code beneath it,
-    # which is every ordinary gap paragraph in the file.
-    #
-    # ! IT ASKS WHETHER THE HEAD CLAIM FIRED, not whether this is a different
-    # paragraph. On a file whose ONLY prose sits at the foot the two are one
-    # run, and `foot is not head` left it marked as neither -- a trailing licence
-    # back in the closing gap, which is the thing `f1` exists to stop. A run the
-    # head already took is skipped because `attach` hands out one place.
-    foot = held[-1]
-    if (
-        MATTER not in foot.annotations
-        and foot.declares < 0
-        and not foot.original_column
-        and foot.original_start > last_code
-    ):
-        foot.annotations.add(BACK_MATTER)
 
 
 def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:

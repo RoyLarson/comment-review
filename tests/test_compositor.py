@@ -144,34 +144,48 @@ class TestTheSeriesOrderIsFixedAndFComesFirst(unittest.TestCase):
         p = Path(name)
         return page_mod.page_for(p, text, lexer.language_for(p), rel=name)
 
-    def test_front_matter_below_a_blank_LINE_is_set_above_it(self):
-        # ! MEASURED on `cpython/Include/floatobject.h` and 11 others, every one
-        # a C header opening with a blank line.
+    def test_a_file_whose_LINE_1_IS_BLANK_has_no_matter_and_round_trips(self):
+        # !! THE SACRIFICE IS GONE, and a sharper ruling removed it rather than a
+        # workaround. Roy, 2026-08-21: *"if the opening/closing line is a comment
+        # then the matter continues down/up."* Line 1 here is BLANK, so the file
+        # has no matter at all, the gap above `int a;` is contiguous, and nothing
+        # moves.
+        #
+        # ! It used to be set as `/* Header. */\n\n\nint a;\n` -- the comment
+        # above its own blank line -- because `page.mark_matter` took the first
+        # run of PROSE wherever it sat. MEASURED on `cpython/Include/floatobject.h`
+        # and 10 others, every one a C header opening with a blank.
         text = "\n/* Header. */\n\nint a;\n"
-        self.assertEqual(
-            compositor.set_page(self._page("m.c", text)),
-            "/* Header. */\n\n\nint a;\n",
-        )
+        self.assertEqual(compositor.set_page(self._page("m.c", text)), text)
 
-    def test_no_line_is_lost_or_invented_when_it_moves(self):
-        # !! THE INVARIANT THAT MUST NEVER BREAK, and what separates this ruled
-        # reordering from a defect. MEASURED over 699 files: 12 differ on order,
-        # 0 differ on content.
+    def test_no_line_is_lost_or_invented(self):
+        # !! THE INVARIANT THAT MUST NEVER BREAK. It is weaker than `identity` on
+        # purpose -- the series order is FIXED at f, a, b, c, so a page can be
+        # set in an order the file did not have -- but never with a line missing
+        # or a line the file never held.
         text = "\n/* Header. */\n\nint a;\n"
         got = compositor.set_page(self._page("m.c", text))
         self.assertEqual(sorted(got.splitlines()), sorted(text.splitlines()))
 
-    def test_front_matter_ON_line_1_is_set_unchanged(self):
-        # ! The shape that does not pay the sacrifice: nothing sits above it.
+    def test_matter_ON_line_1_is_set_unchanged(self):
         text = "/* Header. */\n\nint a;\n"
         self.assertEqual(compositor.set_page(self._page("m.c", text)), text)
 
-    def test_lossless_passes_where_identity_fails(self):
+    def test_matter_at_the_FOOT_takes_the_second_place_and_stays_there(self):
+        # ! `f1`. Taking `f0` would set a closing licence at the head of the
+        # file, which is what the count-based mapping alone could not tell.
+        text = "int a;\n\n/* Copyright. */\n"
+        self.assertEqual(compositor.set_page(self._page("m.c", text)), text)
+
+    def test_lossless_and_identity_now_agree_on_the_shape_that_parted_them(self):
+        # ! They differed on a file whose matter sat below a blank line, which
+        # the 2026-08-21 ruling stopped producing: line 1 is not a comment, so
+        # there is no matter to move.
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "m.c"
             path.write_text("\n/* Header. */\n\nint a;\n", encoding="utf-8")
             self.assertIsNone(compositor.lossless(path))
-            self.assertIsNotNone(compositor.identity(path))
+            self.assertIsNone(compositor.identity(path))
 
     def test_lossless_REPORTS_a_line_that_goes_missing(self):
         # ! The failure the gate exists for, forced: empty one place's prose and
