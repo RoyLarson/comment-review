@@ -272,7 +272,7 @@ propose no text, so there is nothing for the task agent to apply.
 !! **THE TABLE BELOW IS GENERATED FROM `VERDICTS` IN `verdicts.py`** -- the keys from
 `claim_keys`, the prose from each row's `payload`. Edit the row, not this file; a test
 refuses a brief that has drifted from it. ! It had drifted: the hand-written table taught
-the 0.2.x marker form under a JSON worked example, and ten of the eleven keys a reviewer
+an older marker form under a JSON worked example, and ten of the eleven keys a reviewer
 must type appeared nowhere here as keys.
 
 <!-- BEGIN GENERATED: verdict table -- scripts/render_brief.py -->

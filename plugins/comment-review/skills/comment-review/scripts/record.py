@@ -171,7 +171,7 @@ class Verdict:
     # a test refuses a brief that has drifted from them.
     #
     # ! It does NOT restate the key names -- those are generated. Measured
-    # 2026-08-18, which is why: the hand-written table taught the 0.2.x marker
+    # 2026-08-18, which is why: the hand-written table taught an older marker
     # form (`false: "..." / true: "..."`) forty lines under a JSON worked
     # example, and ten of the eleven keys a reviewer must type appeared nowhere
     # in the brief as keys.
@@ -533,9 +533,10 @@ def _answered(f: Finding, key: str, pattern: re.Pattern, probe: str) -> bool:
     One reads *"reading this docstring against the body of `line_endings` and
     against `splice`"* -- a check, named, containing none of the five.
 
-    ! The word search STAYS for a 0.2.x text record, where there is no field to
-    read: `claim_fields` is empty and this falls through to `pattern`. That is
-    the only route by which the deprecated format keeps its guarantee.
+    ! The word search STAYS for a record whose `claim` is MISSING or is not an
+    object: `claim_fields` is empty there and this falls through to `pattern`,
+    so a reviewer's words are still read rather than the record failing every
+    check at once. ! `record_problems` reports the malformed claim separately.
 
     Args:
         f: the finding.
@@ -613,38 +614,23 @@ def _half(value: object) -> str:
 # resolves them with the same two, which is why neither module can own them.
 # `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
-# ! `PATHISH` STOOD BESIDE IT until 2026-08-20 -- a citation half that is
-# path-shaped whether or not it resolves. It told a MALFORMED citation from the
-# WRAPPED TAIL of the entry above, which is a question only the 0.2.x text
-# report could ask: a `SOURCES` entry there ran across lines. A record file
-# carries a list, so a citation cannot wrap.
+# ! A citation cannot WRAP, because `sources` is a list -- so nothing here has
+# to tell a malformed citation from the tail of the one above it.
 
 # The fields the TOOL fills from the census. ! A mismatch here means the file
 # was CORRUPTED, never that the reviewer misquoted -- it never typed them.
 SEEDED = ("place", "anchor")
-# !! THE SHAPE IS VERSIONED, so a held report stays a REGRESSION TEST rather than
-# becoming an archive the day the format moves. Replaying stage-4 output is what
-# made 0.2.1 and 0.2.2 cheap to validate -- five joins over one set of reports,
-# ~1.6M tokens of review reused -- and that property dies silently when the
-# shape changes and nothing says so.
+# !! THE SHAPE IS VERSIONED so a file can SAY which one it is, and this is the
+# weaker of the two things that notice. `load_report` refuses a report it cannot
+# read whatever the reason -- an older shape and a mangled current one get the
+# same refusal, because the reader states what it needs rather than diagnosing
+# what it got.
 #
-# ! PINNING THE CENSUS IS NOT ENOUGH. `SOURCES` cites the WORKING TREE, so a
-# replay needs the tree at the run's commit too. Measured 2026-08-17: the same
-# four reports joined green against a worktree at their commit and produced 78
-# "SOURCES not found" against HEAD, 197 lines later in one file. Neither the
-# reader nor the reports were wrong.
-# !! BUMPED TO "2" ON 2026-08-21, AND IT SHOULD HAVE MOVED WITH THE SHAPE. The
-# page envelope replaced a flat `records` list and `address` became `place` --
-# an incompatible change -- and this stayed at "1" for a day. So
-# `version_problem` reported no disagreement on a file the reader cannot parse
-# at all: MEASURED on `evidence/cycle-0.2.3/records/block-context.json`,
-# `version_problem` returned None while `check` returned "no `pages` list --
-# this is not a seeded report".
-#
-# ! THE COMMENT ABOVE ALREADY SAID WHY, and it still went unbumped: the property
-# "dies silently when the shape changes and nothing says so" is exactly what
-# happened, in the file that says it. A version constant is only a gate while
-# somebody moves it, and nothing here can move it for them.
+# !! WHAT THIS ADDS IS A SHAPE CHANGE THAT IS NOT STRUCTURAL -- keys in the same
+# places meaning something else -- which no parse can catch. ! And it only works
+# while somebody MOVES it: measured 2026-08-21, it stayed at "1" across an
+# incompatible change, so `version_problem` reported no disagreement on a file
+# the reader could not parse at all.
 RECORD_VERSION = "2"
 # The fields the REVIEWER fills. Empty is a legitimate answer for every one of
 # them except `verdict`, which is the ruling itself.

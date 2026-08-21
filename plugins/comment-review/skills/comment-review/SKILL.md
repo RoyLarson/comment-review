@@ -751,8 +751,8 @@ expected role reads as missing. Two files with the same stem are refused outrigh
 
 !! **ONLY `.json` IS READ, AND ANYTHING ELSE IS REFUSED BY NAME.** A report saved as `.md` gets
 one line saying it is not a record file -- counted fatal -- rather than being parsed by something
-that guesses where a field ends. ! The 0.2.x text parser and `record.py --convert` were DELETED
-2026-08-20; `docs/history.md` names the commit whose parent still holds them.
+that guesses where a field ends. ! There is no other reader and no converter: a report is
+written in the shape `record.py --seed` lays down, or it is not read.
 
 ! **Pass `--reviewers` every time, listing all four roles.** Without it a
 reviewer that never reported at all is invisible -- "every reviewer" silently

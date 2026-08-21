@@ -7,14 +7,11 @@ caller, which is where a subject goes when nobody asks whose it is.
 ! A LIBRARY, not a command. `verdicts.py` is the entry point and this is what it
 calls; there is no `held.py --help` to run.
 
-!! IT READS THE CURRENT SHAPE AND NOTHING ELSE, since 2026-08-20. Two retired
-shapes used to be read here -- the 0.2.x TEXT report and the 0.2.4 flat
-`records` list -- and both are DELETED, not moved. Roy: *"we are not carrying a
-backwards compatible shim right now, particularly on a format that was a
-proof-of-concept format ... git can recover them if we ever need to figure out
-how that was done."* A shim in `plugins/` is
-copied into someone else's `.claude/` and read by an agent as though it were
-current.
+!! IT READS ONE SHAPE. A reader kept for an older one is a shim, and a shim under
+`plugins/` is copied into someone else's `.claude/` where an agent reads it as
+current. Roy, 2026-08-21: *"leave no memory while it is easy, rather than leave
+residues of stuff that will not make it."* ! What this used to read is in
+`docs/history.md`, which does not ship.
 
 ! WHAT A CURRENT REPORT IS: one PAGE entry per file, naming the file once, and
 one record per prose paragraph under it citing its PLACE. `record.every_record`
@@ -48,11 +45,9 @@ def held_records(report: dict):
     that names no place -- the caller reports both, and a walk that filtered
     them reported a clean join over a report that was not.
 
-    ! A REPORT IN ANY OTHER SHAPE YIELDS NOTHING, and that is the intent since
-    2026-08-20: the retired shapes are not read anywhere. `docs/history.md`
-    describes them and names the commit whose PARENT still holds the reader.
-    ! The caller counts the paragraphs nobody ruled on, so a report this cannot
-    read is a total coverage gap rather than a silent pass.
+    ! A REPORT IN ANY OTHER SHAPE YIELDS NOTHING, which is why `load_report`
+    refuses one before reaching here: the caller counts the paragraphs nobody
+    ruled on, so a report this cannot read would read as a total coverage gap.
 
     Args:
         report: the parsed record file.
@@ -78,10 +73,10 @@ def load_report(
     this system a day each were boundary guesses, and there are no boundaries
     left to guess.
 
-    !! A REPORT THAT IS NOT `.json` IS REFUSED BY NAME, since 2026-08-20. The
-    0.2.x TEXT reader is DELETED: a shim under `plugins/` is copied into
-    someone else's `.claude/` where an agent reads it as current. `docs/history.md`
-    describes the shape and names the commit whose parent still holds the reader.
+    !! A REPORT THAT IS NOT `.json` IS REFUSED BY NAME. Nothing here parses any
+    other shape: a reader kept for an older one is a shim, and a shim under
+    `plugins/` is copied into someone else's `.claude/` where an agent reads it
+    as current.
 
     ! IT TAKES THE TEXT rather than reading the file. The caller has already
     read it -- guarded, which this was not -- and the report was read twice and
@@ -98,9 +93,8 @@ def load_report(
     """
     if path.suffix.lower() != ".json":
         why = (
-            f"{path.name} is not a record file. The 0.2.x TEXT report is retired"
-            " -- see docs/history.md, which names the commit that still holds"
-            " the reader"
+            f"{path.name} is not a record file -- `record.py --seed` writes"
+            " `<role>.json` and a reviewer fills it"
         )
         return ([], [why], [])
     try:
@@ -115,25 +109,16 @@ def load_report(
     if not isinstance(report, dict):
         why = f"is a JSON {type(report).__name__}, not a report object"
         return ([], [why], [])
-    # !! A REPORT IN A RETIRED SHAPE IS REFUSED BY NAME, NOT READ AS EMPTY. It
-    # parses, it is an object, and it holds no `pages` -- so the walk below finds
-    # nothing and returns no findings AND no malformed. Measured 2026-08-21 on
-    # `evidence/cycle-0.2.3/records/block-context.json`, which holds 12 ruled
-    # records: `0 findings, 0 malformed, 3 concerns`.
-    #
-    # !! THE THREE CONCERNS ARE WHAT MAKE IT WORSE THAN SILENT. They come through,
-    # so the join PRINTS that reviewer's code concerns while crediting it with
-    # zero findings and reporting every prose paragraph as its coverage gap --
-    # pointing the reader at the reviewer when the fault is the shape.
-    #
-    # ! A flat `records` list is the shape before the page envelope. It is not
-    # read anywhere: `docs/history.md` describes it and names the commit whose
-    # PARENT still holds the reader.
+    # !! A REPORT WITH NO `pages` IS REFUSED, NOT READ AS EMPTY. The walk below
+    # finds nothing in one and returns no findings AND no malformed, so the join
+    # credits the reviewer with zero findings and reports every prose paragraph
+    # as its coverage gap -- pointing the reader at the reviewer when the fault
+    # is the file. ! Worse where the file carries `code_concerns`: those come
+    # through, so the join PRINTS that reviewer's concerns beside the gap.
     if "pages" not in report:
         why = (
             f"{path.name} carries no `pages` list. A record file names one PAGE"
-            " per file with the records under it; a flat `records` list is the"
-            " shape before that and is not read -- see docs/history.md"
+            " per file, with that page's records under it"
         )
         return ([], [why], [])
     findings: list[Finding] = []
@@ -141,8 +126,7 @@ def load_report(
     # !! THE ADDRESS IS THE KEY, AND `held_records` COMPOSED IT. The census index
     # was dropped 2026-08-19 -- it went stale the moment an `add` or a `drop`
     # shifted the list, while the address survives, and an address identifies
-    # exactly one paragraph (measured: 0 shared over 6,180). Everything below
-    # here works on a full address whichever shape the report was held in.
+    # exactly one paragraph (measured: 0 shared over 6,180).
     for where, rec in held_records(report):
         # ! An ENTRY that is not an object. The guard above catches a report
         # that is not one; this catches a record inside a well-shaped report,
@@ -156,17 +140,15 @@ def load_report(
             # the findings it does not see. It is not a malformed record.
             continue
         if not where:
-            # ! It names the key the record actually used, so the message is
-            # right about a 0.2.4 report as well as a current one.
-            names = rec.get("place", rec.get("address"))
-            malformed.append(f"a record names the place {names!r}, which is no place")
+            place = rec.get("place")
+            malformed.append(f"a record names the place {place!r}, which is no place")
             continue
         claim = rec.get("claim")
         # ! NORMALISED HERE, not at the constructor. `claim_text` does
         # `claim[m]`, and the type test sat 23 lines below the use -- so a
-        # record carrying `"claim": "drop: the note"`, which is exactly what a
-        # hand-converted 0.2.x record looks like and what `record.py --check`
-        # reports, took the whole join down with a traceback.
+        # record carrying `"claim": "drop: the note"` -- what a hand-edited record
+        # looks like, and what `record.py --check` reports -- took the whole join
+        # down with a traceback.
         if not isinstance(claim, dict):
             claim = {}
         findings.append(

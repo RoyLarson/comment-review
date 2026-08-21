@@ -435,10 +435,9 @@ def _report(args: argparse.Namespace) -> int:
         # of them about a finding -- cannot arise, because nobody transcribed
         # anything.
         for f in records:
-            # ! THE RECORD CARRIES ITS OWN ADDRESS. A census INDEX was
-            # translated here until 2026-08-20 -- the 0.2.x report keyed by
-            # POSITION -- and that reader is deleted. `docs/history.md` says
-            # where it is in the history.
+            # ! THE RECORD CARRIES ITS OWN ADDRESS, so nothing is translated
+            # here. An address names one paragraph; a position names whichever
+            # one a later edit shifted into it.
             held = entry_for(f.address, paragraphs) or {}
             # !! ANY EDIT PROPOSED ON FRONT MATTER BECOMES A `query`. Roy,
             # 2026-08-19: an agent looking to edit that area gets an automatic
