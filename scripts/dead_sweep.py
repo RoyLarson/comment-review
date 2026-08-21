@@ -96,28 +96,57 @@ def defined_names(path: Path) -> list[str]:
     return out
 
 
-def unread_names() -> list[tuple[Path, str]]:
-    """Shipped names that appear nowhere in the tree but their own definition.
+def unread_names() -> tuple[list[tuple[Path, str]], list[tuple[Path, str, list[str]]]]:
+    """Shipped names no CODE reads, split by whether shipped PROSE still names one.
+
+    !! PROSE IS NOT EVIDENCE OF LIFE, AND NOT EVIDENCE OF DEATH. `SKILL.md` and
+    the agent files NAME what a script exposes, and an agent acting on that
+    sentence is a consumer no import graph can see -- so a name reached only
+    that way is alive. ! But the same sentence may be ABANDONED HISTORY. Roy,
+    2026-08-21: *"a call still in the agents file stating something that is
+    possible because it USED to be possible."*
+
+    ! Counting prose as a use hides the second; ignoring it invents the first.
+    So a prose-only name is neither passed nor reported dead -- it is RAISED,
+    with the files that name it, for a person to answer: dead code, or a tool
+    the prose is the only caller of?
 
     ! `main` and any `_private` name are skipped: the first is an entry point
     every CLI defines and nothing imports, the second is ruff's to see within
     its own file.
 
     Returns:
-        `(file, name)` for each, in file order.
+        `(dead, prose_only)`. The first is `(file, name)` for a name nothing
+        mentions at all; the second adds the shipped markdown files that do.
     """
-    everything = "\n".join(
+    code = "\n".join(
         p.read_text(encoding="utf-8", errors="replace")
         for p in _python_files(*SEARCHED)
     )
-    out: list[tuple[Path, str]] = []
+    prose = {
+        p: p.read_text(encoding="utf-8", errors="replace")
+        for p in sorted((ROOT / "plugins").rglob("*.md"))
+    }
+    dead: list[tuple[Path, str]] = []
+    raised: list[tuple[Path, str, list[str]]] = []
     for path in sorted(_python_files(*REPORTED)):
         for name in defined_names(path):
             if name.startswith("_") or name == "main":
                 continue
-            if len(re.findall(rf"\b{re.escape(name)}\b", everything)) <= 1:
-                out.append((path, name))
-    return out
+            word = re.compile(rf"\b{re.escape(name)}\b")
+            # ! ITS OWN DEFINITION IS THE ONE OCCURRENCE THAT DOES NOT COUNT.
+            if len(word.findall(code)) > 1:
+                continue
+            named_in = [
+                p.relative_to(ROOT).as_posix()
+                for p, t in prose.items()
+                if word.search(t)
+            ]
+            if named_in:
+                raised.append((path, name, named_in))
+            else:
+                dead.append((path, name))
+    return dead, raised
 
 
 def dangling_links() -> list[tuple[Path, str]]:
@@ -151,11 +180,22 @@ def main() -> int:
     both = not (args.names or args.links)
 
     if both or args.names:
-        found = unread_names()
+        dead, raised = unread_names()
         print("SHIPPED NAMES NOTHING READS")
-        for path, name in found:
+        for path, name in dead:
             print(f"  {path.relative_to(ROOT).as_posix():<62} {name}")
-        print(f"  {len(found)} of them.\n")
+        print(f"  {len(dead)} of them.\n")
+
+        # !! THE QUESTION A PERSON HAS TO ANSWER, and the reason this is an
+        # input. Prose may be the ONLY caller -- an agent acting on a sentence
+        # in `SKILL.md` -- or it may be abandoned history, still describing
+        # something that used to be possible.
+        print("NAMED ONLY IN SHIPPED PROSE -- dead code, or a tool prose calls?")
+        for path, name, named_in in raised:
+            print(f"  {path.relative_to(ROOT).as_posix():<62} {name}")
+            for where in named_in:
+                print(f"  {'':<62} still in {where}")
+        print(f"  {len(raised)} of them.\n")
 
     if both or args.links:
         found = dangling_links()
