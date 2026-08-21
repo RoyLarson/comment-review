@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (68)
+### open  (69)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -243,6 +243,7 @@ that changed a published name or rule:
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | session | — | 0/3 | A page entry that is not an object loses every record under it, silently |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | session | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | session | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |
+| [galley-does-two-jobs](galley-does-two-jobs.md) | session | — | 0/13 | the galley both updates the page and sets it; `compositor` takes the setting |
 
 ### in-progress  (4)
 
