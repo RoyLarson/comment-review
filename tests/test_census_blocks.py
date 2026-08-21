@@ -284,9 +284,13 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # had nowhere to cite a missing module docstring. Filed as task 4 of
         # `census-degrades-silently`, and closed by moving the emission to the
         # page, which asks the walk rather than the AST.
+        # !! WHICH PLACE THE COMMENT OCCUPIES MOVED ON 2026-08-21 and the COUNT
+        # did not. It used to fill `b0` -- the gap above the first code line --
+        # leaving `f0` empty; under the positional matter rule it fills `f0` and
+        # `b0` is the empty one. Four places either way.
         self.assertEqual(
             sorted(b.kind for b in got),
-            ["comment", "dark-matter", "dark-matter", "undocumented"],
+            ["comment", "dark-matter", "interval", "undocumented"],
         )
 
 
@@ -731,7 +735,12 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         return got[0]
 
     def test_a_comment_run_is_anchored_to_the_code_BELOW_it(self):
-        self.assertEqual(self._one("comment", 1).anchor, "import os")
+        # ! `# a header note` on line 1 is NOT one of these since 2026-08-21: the
+        # first run of prose on a page is the file's own matter, so it is
+        # anchored to the MODULE and takes `f0`. Roy ruled the over-inclusion
+        # knowingly -- *"a little cluggy but it will be consistent"* -- and a
+        # record on `f0` is how an agent asks for it to move.
+        self.assertEqual(self._one("comment", 1).anchor, "<module>")
         self.assertEqual(self._one("comment", 3).anchor, "def f():")
 
     def test_a_trailing_comment_is_anchored_to_its_OWN_line(self):
@@ -739,8 +748,11 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
 
     def test_one_anchor_serves_the_b_AND_the_c_of_one_line(self):
         # !! The one-to-many relationship, measured on one line of code.
-        b = self._one("comment", 1)
-        c = self._one("margin", 2)
+        # ! Measured on `def f():` rather than on `import os`, because the run
+        # above `import os` is the file's own matter and answers to the module
+        # rather than to a line -- which is the one anchor that serves no `c`.
+        b = self._one("comment", 3)
+        c = self._one("margin", 6)
         self.assertEqual(b.anchor, c.anchor)
         # ! `page_for` does not stamp the address -- the run loop does, once
         # the path is repo-relative -- so the two places are told apart here by
@@ -832,11 +844,29 @@ class TestFrontMatterIsMarked(unittest.TestCase):
         # ! It sits with the code and is reviewed like any other comment.
         self.assertEqual(self._marked(self.ORDINARY), [])
 
-    def test_a_leading_comment_with_NO_module_docstring_is_not(self):
-        # !! DELIBERATELY NARROW. With no docstring above it, a leading comment
-        # is about whatever follows -- claiming it as front matter would silence
-        # a real comment on the first declaration.
-        self.assertEqual(self._marked(self.NO_DOCSTRING), [])
+    def test_a_leading_comment_with_NO_module_docstring_IS_front_matter(self):
+        # !! SUPERSEDED 2026-08-21, and the reverse of what it asserted. The old
+        # rule needed a module docstring to exist above which a comment could
+        # sit, and `declares` is stated only where a parser runs -- so a `.c` or
+        # `.rs` licence header matched nothing and was reviewed as ordinary work.
+        #
+        # ! Roy ruled the replacement positional: *"Any normal comment section at
+        # the top of the file becomes f0 until there is either a docstring or a
+        # blank line."* `# about the import` IS about the import, and it becomes
+        # `f0` anyway -- knowingly: *"The agents can always ask for the record for
+        # the f0 to move it ... it is a little cluggy but it will be consistent."*
+        self.assertEqual(self._marked(self.NO_DOCSTRING), [1])
+
+    def test_a_comment_that_DOCUMENTS_something_is_not_front_matter(self):
+        # !! WHAT ENDS THE MATTER IS DOCUMENTATION, not the comment's syntax. Go
+        # documents with plain `//`, so a kind test would have called every Go
+        # file's first doc comment a licence. `declares` is what tells them apart.
+        path = Path("g.go")
+        got = page.page_for(
+            path, "// One does it.\nfunc One() {}\n", lexer.language_for(path)
+        )
+        marked = [b.start for b in got if "matter" in b.annotations]
+        self.assertEqual(marked, [])
 
     def test_it_is_dropped_from_the_FILTERED_listing(self):
         with tempfile.TemporaryDirectory() as tmp:

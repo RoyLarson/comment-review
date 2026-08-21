@@ -976,6 +976,18 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     # several lines. A list because `flush` is a closure and rebinds nothing.
     partial_first = [0]
 
+    # !! HAS ANY CODE BEEN SEEN YET -- which is what says a run is still at the
+    # HEAD of the file, and therefore whether a blank line ends it. Roy,
+    # 2026-08-21: *"Any normal comment section at the top of the file becomes f0
+    # until there is either a docstring or a blank line."*
+    #
+    # ! Everywhere else a blank line does NOT end a run, and that stays true: a
+    # licence header and the first function's documentation separated by a blank
+    # are two things, while a wrapped sentence with a blank in it is one. Only at
+    # the file's own edge does the blank decide. A list because `flush` is a
+    # closure and rebinds nothing.
+    seen_code = [False]
+
     def flush(trailing: bool = False) -> None:
         pending.clear()
         if not run:
@@ -1194,11 +1206,26 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # JS and C. ! Whitespace before the opener is not code, which is the case
         # the blanked test got right and this keeps right.
         if line_at >= 0 and not raw_line[:line_at].strip():
-            run.extend(pending)
+            # !! AT THE HEAD OF THE FILE A BLANK LINE ENDS THE RUN, and nowhere
+            # else. The run so far is the file's own matter and the comment
+            # opening here is about whatever follows it. MEASURED 2026-08-21: a
+            # Rust file opening `// Copyright` / `// MIT` / blank / `/// Returns
+            # the name.` censused as ONE paragraph over lines 1-4, so a licence
+            # header and a function's documentation shared an address and no
+            # verdict could act on either.
+            #
+            # ! The blanks are DROPPED rather than carried, exactly as they are
+            # between a comment and the code below it -- `page.fill_the_gaps`
+            # gives them to the gap that owns them.
+            if pending and run and not seen_code[0]:
+                flush()
+            else:
+                run.extend(pending)
             pending.clear()
             run.append((n, raw_line.rstrip()))
             continue
         flush()  # ! CODE ends a paragraph; a blank line does not
+        seen_code[0] = True
         at = line_at
         if at >= 0:
             # ! `flush()` above emptied the run, so this line is the first

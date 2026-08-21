@@ -144,10 +144,14 @@ class TestTheAPlaceIsFilledOutsidePython(unittest.TestCase):
         # !! THE COLLISION THIS CLOSES. Both paragraphs used to answer to `b0`,
         # and `record.entry_for` returns the FIRST -- so a correct edit to the
         # doc comment was checked against the licence header and refused.
+        #
+        # ! The header takes `f0` rather than `b0` since 2026-08-21: it documents
+        # nothing, so it is the file's own matter. `package` is not in Go's
+        # `declares`. Either way the two are separate places, which is the point.
         text = (
             "// Copyright 2001.\npackage thing\n\n// Name returns it.\nfunc Name() {}\n"
         )
-        self.assertEqual(folio_of("g.go", text, 1), "b0")
+        self.assertEqual(folio_of("g.go", text, 1), "f0")
         self.assertEqual(folio_of("g.go", text, 4), "a1")
 
     def test_a_TRAILING_comment_is_beside_its_line_and_never_documents(self):
@@ -156,10 +160,21 @@ class TestTheAPlaceIsFilledOutsidePython(unittest.TestCase):
 
     def test_a_language_with_no_keyword_list_ties_nothing(self):
         # ! C is deliberately empty -- see `test_c_and_cpp_are_left_out...`. The
-        # junction cannot invent an `a` for a language that has no `a` series.
+        # junction cannot invent an `a` for a language that has no `a` series, so
+        # `/* Adds. */` documents nothing THE PAGE CAN SEE and becomes the file's
+        # own matter. ! That is the C licence-header case working for the first
+        # time: it took `b0` and was editable work until 2026-08-21.
         self.assertEqual(
-            folio_of("m.c", "/* Adds. */\nint add(int a) { return a; }\n", 1), "b0"
+            folio_of("m.c", "/* Adds. */\nint add(int a) { return a; }\n", 1), "f0"
         )
+
+    def test_a_SECOND_run_is_not_matter_even_when_the_first_is(self):
+        # ! Only the head run is the file's. A licence, a blank, then a doc
+        # comment: the second documents the declaration below it and takes its
+        # `a`, which is the collision `two-paragraphs-one-address` measured.
+        text = "// Copyright 2001.\n\n/// The name.\npub fn name() {}\n"
+        self.assertEqual(folio_of("z.rs", text, 1), "f0")
+        self.assertEqual(folio_of("z.rs", text, 3), "a1")
 
 
 class TestTheMatchIsOnTheFIRSTWORDNeverASubstring(unittest.TestCase):

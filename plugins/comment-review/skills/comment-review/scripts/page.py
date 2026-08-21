@@ -358,12 +358,12 @@ def documented_by(text: str, prose: list["Paragraph"], foliation: "Foliation") -
     lines = text.splitlines()
     # ! Keyed by the line a run ENDS on, which is the line a declaration's doc
     # position walks back to.
+    # ! FRONT MATTER IS NOT EXCLUDED HERE, because it has not been decided yet --
+    # this is what decides it. A run that turns out to document a declaration is
+    # that declaration's documentation and never the file's matter, which is the
+    # question `mark_matter` asks straight after.
     ends = {
-        b.original_end: b
-        for b in prose
-        if b.original_end
-        and not b.original_column
-        and MATTER not in (b.annotations or ())
+        b.original_end: b for b in prose if b.original_end and not b.original_column
     }
     if not ends:
         return
@@ -601,9 +601,6 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     # never established, so any interval drawn there would be invented.
     foliation = Foliation()
     if not any(b.kind == "unparsed" for b in got):
-        # ! BEFORE the walk, because a run that is FRONT MATTER takes `f0` and
-        # this is what says which runs those are.
-        mark_matter(got)
         # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
         # Reversed -- each paragraph computing its own folio -- a place existed
         # only when prose happened to fill it, which is how the file's own
@@ -618,6 +615,13 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # same fact for every language whose `a` series comes from a keyword.
         if lang.name != "python":
             documented_by(text, got, foliation)
+        # !! AFTER `documented_by` AND BEFORE `attach`. What makes a run FRONT
+        # MATTER is that it documents nothing, and `documented_by` is what
+        # states that -- so asking first would read `declares` before anything
+        # had set it and call every language's first doc comment a licence.
+        # ! It ran before the walk until 2026-08-21, when the rule still needed a
+        # module docstring to exist and so could only ever fire in Python.
+        mark_matter(got)
         flat = flatten(rel if rel is not None else path.as_posix())
         for b in got:
             place = attach(vars(b), foliation)
@@ -701,24 +705,56 @@ def mark_matter(paragraphs: list[Paragraph]) -> None:
     finding here is therefore turned into a `query` -- ask -- rather than
     admitted as work. `verdicts.py` does that; this only says which paragraph.
 
-    ! The rule is POSITIONAL and deliberately narrow: prose in the gap before
-    the first code line, sitting above a module docstring that EXISTS -- or
-    opening with a shebang or a coding declaration, which need no docstring to
-    be recognisable. A leading comment in a file with no module docstring is
-    about whatever follows it, and is reviewed like any other.
+    !! THE RULE IS POSITIONAL, AND IT ASKS NOTHING OF THE LANGUAGE. Roy,
+    2026-08-21: *"Any normal comment section at the top of the file becomes f0
+    until there is either a docstring or a blank line."* The first run of prose
+    on the page is the file's own matter; a blank line ends it, and so does the
+    module's own documentation, which is what `declares == 0` says.
+
+    ! IT REPLACED A RULE THAT COULD ONLY EVER WORK IN PYTHON. Front matter used
+    to be found by looking for a comment run ABOVE a module docstring that
+    EXISTS -- and `declares` is stated only where a parser runs, so a `.c` or
+    `.rs` licence header matched nothing and was reviewed as ordinary work.
+    Measured 2026-08-21: identical headers in `lic.py`, `lic.c` and `lic.rs`
+    got `['matter']`, `[]` and `[]`.
+
+    ! A SHEBANG OR A CODING LINE IS MATTER WHEREVER IT SITS, and that route is a
+    regex rather than a language rule -- so it already fired in shell, Python and
+    Ruby alike. Roy: *"the shebang is front-matter"*, *"always"*.
+
+    !! IT OVER-INCLUDES ON PURPOSE, AND THERE IS A ROUTE BACK. A leading comment
+    that is about the code below it still becomes `f0`. Roy: *"The agents can
+    always ask for the record for the f0 to move it which ultimately doesn't
+    effect the final pageset because the f0 would get a None and be skipped and
+    the b0 would be then put at the top again. it is a little cluggy but it will
+    be consistent."* A rule that guessed which header was a licence would guess
+    differently per language, which is the failure this one refuses.
     """
-    doc = next(
-        (b for b in paragraphs if b.kind == "docstring" and b.declares == 0),
-        None,
-    )
     for b in paragraphs:
-        if b.kind not in ("comment", "trailing-comment") or b.start < 1:
-            continue
         opens = (b.raw_lines or [""])[0].strip()
-        if _SHEBANG.match(opens) or _CODING.search(opens):
+        if b.start >= 1 and (_SHEBANG.match(opens) or _CODING.search(opens)):
             b.annotations.add(MATTER)
-        elif doc is not None and b.end < doc.start:
-            b.annotations.add(MATTER)
+    held = sorted(
+        (b for b in paragraphs if b.original_start and (b.text or "").strip()),
+        key=lambda b: b.original_start,
+    )
+    if not held:
+        return
+    # !! WHAT ENDS THE MATTER IS DOCUMENTATION, AND `declares` IS WHAT SAYS SO.
+    # Roy's rule reads *"any normal comment section at the top of the file ...
+    # until there is either a docstring or a blank line"* -- and the KIND cannot
+    # decide which is which. Go documents with plain `//`, so `// One does it.`
+    # above `func One()` is a docstring wearing a comment's syntax, while
+    # `/** To get started, read the docs. */` at the head of a TypeScript config
+    # is a comment wearing a docstring's. Asking what the run DOCUMENTS answers
+    # both: `declares == 0` is the module's own, `>= 1` a declaration's, and
+    # below 0 is prose that documents nothing -- which is what matter is.
+    #
+    # ! A TRAILING COMMENT IS EXCLUDED TOO. It states a column, so it sits beside
+    # a line of code rather than above the file.
+    head = held[0]
+    if head.declares < 0 and not head.original_column:
+        head.annotations.add(MATTER)
 
 
 def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
