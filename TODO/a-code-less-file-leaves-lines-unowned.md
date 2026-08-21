@@ -6,6 +6,16 @@ Progress: 0 of 3 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
+Corroborated: 2026-08-21 — 2026-08-21 -- the xhigh review reached task 2 independently
+              and measured the consequence. splitlines() splits on form feed, \x85 and
+              U+2028/2029, so census line numbers disagree with the file's real lines: a
+              form-feed page separator yields 5 entries where git and every editor see
+              4, and the census reports a statement physically on line 4 as line 5. !
+              desk.py checks citations against the SAME skewed list, so it is self-
+              consistent -- but the reviewer reads the real file, which means a correct
+              citation is refused and an off-by-one passes. ! galley.py splices by index
+              into that list and splitlines() discards the form feed, so a rejoin drops
+              the character.
 ```
 
 ## Objective
