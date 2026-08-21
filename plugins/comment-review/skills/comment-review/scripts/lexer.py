@@ -988,6 +988,32 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     # closure and rebinds nothing.
     seen_code = [False]
 
+    def carry() -> None:
+        """Take the blanks held since the last prose line into the run.
+
+        !! ONE RULE FOR BOTH COMMENT SYNTAXES, and it was written for the line
+        one alone. A delimited comment did not carry them, so `/* one */`, a
+        blank and `/* two */` became two paragraphs where `// one`, a blank and
+        `// two` became one -- the same language, the same gap, a different
+        answer decided by which syntax the author reached for.
+
+        ! The head-of-file split is part of the rule and travels with it: at the
+        top of a file a blank ENDS the run, because what sits above the first
+        line of code is the file's own matter.
+
+        !! IT ENDS THE FIRST RUN ONLY, which `out` is what says. A file opening
+        with THREE comment runs before any code -- measured on
+        `meta-package-manager/tests/cli-test-plan.toml` -- split at every blank,
+        so the second and third both took `b0` and shared an address. Only the
+        first is the file's own matter; the rest are ordinary prose in the gap
+        above the first statement, and they merge there like any other.
+        """
+        if pending and run and not out and not seen_code[0]:
+            flush()
+        else:
+            run.extend(pending)
+        pending.clear()
+
     def flush(trailing: bool = False) -> None:
         pending.clear()
         if not run:
@@ -1106,7 +1132,14 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             if ends >= 0:
                 run.append((n, raw_line[:ends].rstrip()))
                 in_block = None
-                flush()
+                # !! THE SAME RULE AS THE SINGLE-LINE CLOSE BELOW: a closer ends
+                # the COMMENT, not the paragraph. This one opened on an earlier
+                # line, so code cannot precede it here -- `partial_first` records
+                # whether code preceded it THERE, which is what makes the run a
+                # `c`. ! Code after the closer does reach this branch, unlike the
+                # single-line case, and it is the next statement.
+                if partial_first[0] or raw_line[ends:].strip():
+                    flush()
                 continue
             run.append((n, raw_line.rstrip()))
             continue
@@ -1145,7 +1178,13 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         if opened is not None and -1 < line_at < code.index(opened[0]):
             opened = None
         if opened is not None:
-            flush()
+            # !! OPENING A DELIMITED COMMENT DOES NOT END THE RUN BEFORE IT, and
+            # an unconditional `flush()` here is what made `/* one */`, a blank
+            # and `/* two */` two paragraphs where `// one`, a blank and `// two`
+            # are one. Same language, same gap, and the answer decided by which
+            # syntax the author reached for. ! Whether it ends depends on what is
+            # on THIS line, which is not known until `opens_at` below -- so the
+            # decision moved down to where the facts are.
             # !! CUT AT THE OPENER, like the line-comment path below does. The
             # whole raw line was appended, so `int b = 2; /* note */` was
             # censused as one `comment` paragraph whose TEXT held the statement --
@@ -1174,25 +1213,41 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # Neither is available; the line is simply code. It stays a code
             # line, so it keeps its `b` and its `c` like any other.
             if closes_here and after.strip():
+                # ! THE LINE IS CODE, so it ends the run like any other.
+                flush()
                 continue
-            # ! Only the run's FIRST line decides it -- `flush()` above emptied
-            # the run, so this is that line. A continuation line of a paragraph
-            # comment is entirely prose whatever surrounds the run.
+            beside_code = bool(code[:opens_at].strip())
+            if beside_code:
+                # ! Code before the opener makes this a TRAILING run, which
+                # begins here whatever preceded it.
+                flush()
+            else:
+                # ! Nothing but the comment on this line, so the run it may be
+                # continuing carries on -- and the blanks held since its last
+                # prose line come with it, exactly as for a line comment.
+                carry()
+            # ! Only the run's FIRST line decides it, and a run continuing from
+            # an earlier comment already answered 0 -- which is what this sets
+            # when no code precedes the opener, so it stays a no-op there.
             # ! THE RAW LINE, for the reason the whole-line test below gives:
             # a blanked literal is whitespace, so a line whose only prefix is a
             # string reported column 0 and left the code set.
             partial_first[0] = (
-                len(raw_line[:opens_at].rstrip()) + 1
-                if raw_line[:opens_at].strip()
-                else 0
+                len(raw_line[:opens_at].rstrip()) + 1 if beside_code else 0
             )
             run.append((n, raw_line[opens_at:].rstrip()))
-            if closes_here:
-                # ! Code BEFORE the opener makes it a trailing comment, which is
-                # what it is: prose about the statement on its own line.
-                flush(trailing=bool(code[:opens_at].strip()))
-            else:
+            if not closes_here:
                 in_block = opened
+            elif beside_code:
+                # !! ONLY CODE ENDS A PARAGRAPH, AND A CLOSER IS NOT CODE. This
+                # flushed on every close, so `/* one */` alone on a line ended
+                # its paragraph and the blank beneath it could not bridge to the
+                # next run. ! Code AFTER the closer cannot reach here -- such a
+                # line is not censused at all, by the intermediate-comment ruling
+                # above -- so code BEFORE the opener is the only thing left, and
+                # that makes this a trailing comment: prose about the statement
+                # on its own line, which must not absorb the prose beneath it.
+                flush(trailing=True)
             continue
         # !! ASKED OF THE RAW LINE, NOT THE BLANKED ONE. `_strip_strings` replaces
         # a literal with spaces, which erases the evidence that code came first:
@@ -1206,22 +1261,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # JS and C. ! Whitespace before the opener is not code, which is the case
         # the blanked test got right and this keeps right.
         if line_at >= 0 and not raw_line[:line_at].strip():
-            # !! AT THE HEAD OF THE FILE A BLANK LINE ENDS THE RUN, and nowhere
-            # else. The run so far is the file's own matter and the comment
-            # opening here is about whatever follows it. MEASURED 2026-08-21: a
-            # Rust file opening `// Copyright` / `// MIT` / blank / `/// Returns
-            # the name.` censused as ONE paragraph over lines 1-4, so a licence
-            # header and a function's documentation shared an address and no
-            # verdict could act on either.
-            #
-            # ! The blanks are DROPPED rather than carried, exactly as they are
-            # between a comment and the code below it -- `page.fill_the_gaps`
-            # gives them to the gap that owns them.
-            if pending and run and not seen_code[0]:
-                flush()
-            else:
-                run.extend(pending)
-            pending.clear()
+            carry()
             run.append((n, raw_line.rstrip()))
             continue
         flush()  # ! CODE ends a paragraph; a blank line does not

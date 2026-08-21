@@ -85,6 +85,65 @@ class TestLexicalTier(unittest.TestCase):
         self.assertEqual(len(begins), 1)
 
 
+class TestADelimiterIsNotAParagraphBoundary(unittest.TestCase):
+    """Only CODE ends a paragraph -- opening or closing `/* */` does not.
+
+    !! THE WHOLE OF `two-paragraphs-one-address` OUTSIDE PYTHON, fixed
+    2026-08-21. The lexer flushed the run in progress whenever a delimited
+    comment OPENED, and again whenever one CLOSED. A line comment raises neither
+    event, so its run stayed open and a blank line bridged it -- and the same
+    prose in the same gap became one paragraph or several depending only on
+    which comment syntax the author reached for.
+
+    ! MEASURED over 699 files in ten languages: 157 shared addresses before, 0
+    after. `cpython/Include/abstract.h` held SEVENTEEN runs between `#endif` and
+    the next `#if` -- 178 lines with no code in them, so one gap, so one address
+    for all seventeen.
+    """
+
+    def _runs(self, name, text):
+        path = Path(name)
+        got = lexer.paragraphs_lexical(path, text, lexer.language_for(path))
+        return [(b.start, b.end, b.kind, b.original_column) for b in got]
+
+    def test_two_delimited_comments_across_a_blank_are_ONE_paragraph(self):
+        got = self._runs("x.c", "int a;\n\n/* one */\n\n/* two */\n\nint b;\n")
+        self.assertEqual(got, [(3, 5, "comment", 0)])
+
+    def test_which_is_what_LINE_comments_already_did(self):
+        # ! The point is that these two agree. Neither answer is new; they
+        # disagreed, and a gap cannot hold two paragraphs at one address.
+        got = self._runs("x.c", "int a;\n\n// one\n\n// two\n\nint b;\n")
+        self.assertEqual(got, [(3, 5, "comment", 0)])
+
+    def test_the_two_SYNTAXES_MIX_in_one_paragraph(self):
+        got = self._runs("x.c", "int a;\n\n/* one */\n\n// two\n\nint b;\n")
+        self.assertEqual(got, [(3, 5, "comment", 0)])
+
+    def test_a_multi_line_delimited_comment_joins_the_next_one_too(self):
+        got = self._runs("x.c", "int a;\n\n/* one\n   more */\n\n/* two */\n\nint b;\n")
+        self.assertEqual(got, [(3, 6, "comment", 0)])
+
+    def test_a_TRAILING_delimited_comment_still_ends_its_run(self):
+        # ! Code BEFORE the opener makes it a `c` -- the room beside one line --
+        # and it must not absorb the prose beneath it.
+        got = self._runs("x.c", "int a; /* beside */\n\n/* below */\n\nint b;\n")
+        self.assertEqual(got, [(1, 1, "trailing-comment", 7), (3, 3, "comment", 0)])
+
+    def test_CODE_still_ends_a_run(self):
+        got = self._runs("x.c", "/* one */\nint a;\n/* two */\nint b;\n")
+        self.assertEqual(got, [(1, 1, "comment", 0), (3, 3, "comment", 0)])
+
+    def test_only_the_FIRST_run_splits_at_the_head_of_a_file(self):
+        # !! THREE runs before any code, measured on
+        # `meta-package-manager/tests/cli-test-plan.toml`. The head rule split at
+        # every blank, so the second and third both took `b0`. Only the first is
+        # the file's own matter; the rest are ordinary prose in the gap above the
+        # first statement and merge there.
+        got = self._runs("x.c", "/* head */\n\n/* one */\n\n/* two */\nint a;\n")
+        self.assertEqual(got, [(1, 1, "comment", 0), (3, 5, "comment", 0)])
+
+
 class TestUnterminatedBlockComment(unittest.TestCase):
     """A runaway opener ate the rest of the file, and the census says so.
 
