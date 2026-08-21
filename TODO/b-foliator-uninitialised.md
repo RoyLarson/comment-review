@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 14 tasks done
+Progress: 8 of 17 tasks done
 Owner:    session * Roy (* 1 ruling -- the closing trigger)
 Requires-Roy: true
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
@@ -14,6 +14,11 @@ Framing:  2026-08-19 — an ADDRESS is not an EDIT RANGE. Two places sharing an 
           not. Roy: 'by the way you read it those have overlapping edit ranges - and
           they do but that doesn't mean in the end they collide because there is a
           defined order.'
+Renumbered: 2026-08-20 — 2026-08-20 -- every series starts at 0 and a skipped trigger
+            takes no number, so the b and c folios all shifted down by one. Eight tasks
+            close: four DONE, four SUPERSEDED and checked per CLAUDE.md's marks table.
+            Three new tasks at the bottom cover what the shift left behind in the edge-
+            case fixture.
 ```
 
 ## Objective
@@ -105,43 +110,62 @@ run restamps that run as a licence header -- is the same run's second defect and
 
 ## Tasks
 
-- [ ] !! THE FOLIATOR WALKS ANCHORS AND EMITS AT EVERY TRIGGER, recording address
-      -> anchor in one table. Roy: 'the foliator gets an anchor and emits an
-      address and should add the address and the anchor to an internal list or
-      dict.'
-- [ ] b0 is emitted at the <module> trigger UNCONDITIONALLY. Front matter OCCUPIES
-      it, the way a docstring occupies a0 -- it does not define it by being
-      present.
-- [ ] b1 is ALWAYS the gap above the first line of code. Roy: 'b1 isn't able to be
-      swallowed by b0.'
-- [ ] gap_step stops computing from LINE NUMBERS. Roy: 'this system still uses
-      line numbers implicitly to determine what an address is.'
-- [ ] anchor_every_address() is DELETED -- the walk knows the anchor at the moment
-      it emits the address, so the retro-fitting pass and its beside-map go.
-- [ ] The census/page ties addresses to prose; a record is one per accountable
-      address. Roy: 'then the census and the page tie those to the records.'
-- [ ] * RULING WANTED: the CLOSING trigger. 7 code lines need 9 b places -- b0 at
-      the module, b1..b7 above each line, and one for the gap AFTER the last. Is
-      that the module again, an explicit EOF trigger, or does b simply emit N+1
-      per walk?
+- [x] DONE. `Foliator.emit` takes the anchor, records `places[folio] = anchor`
+      and returns the folio -- one step states both facts, so they cannot
+      disagree. ! It emits at every trigger THAT IS ITS OWN: each series owns its
+      skip rule, ruled 2026-08-20.
+- [x] !! SUPERSEDED 2026-08-20 -- FRONT MATTER GOT ITS OWN SERIES. Roy: 'we
+      should have just made the frontmatter its own foliation, then the rule that
+      b owns all the lines that are not another foliation's lines would explicitly
+      stay true.' So the file's own matter is `f0`, `b` skips the module entirely,
+      and nothing is emitted at that trigger for `b` at all. ! What this task
+      WANTED still holds: the place exists whether or not prose sits in it, which
+      is what `f0` on a file with no licence header now proves.
+- [x] !! SUPERSEDED 2026-08-20 BY THE NAME, NOT THE PROPERTY. The gap above the
+      first line of code is `b0`, since every series was ruled to start at 0 and a
+      skipped trigger takes no number. ! It can no longer be swallowed by anything
+      -- the thing that used to swallow it is in another series.
+- [x] DONE 2026-08-20. `gap_step`, `on_step` and `address` are DELETED --
+      `grep -c 'def address\|def gap_step\|def on_step' foliator.py` answers 0.
+      Every folio comes from `Foliator.emit`.
+- [x] DONE. `anchor_every_address` is deleted -- `grep -c` answers 0 in
+      `census.py`. `Foliator.emit` records `places[folio] = anchor` in the step
+      that issues the folio.
+- [x] DONE. `page.attach` says which place a paragraph sits in and `record.seed`
+      lays one slot per accountable address, grouped under the page that names
+      the file once.
+- [ ] * RULING WANTED: the CLOSING trigger. ! ARITHMETIC SUPERSEDED 2026-08-20 --
+      `b` skips the module, so 7 code lines need EIGHT `b` places, `b0..b6` above
+      each line and `b7` for the gap AFTER the last. What is built today is an
+      explicit emit after the loop (`out._closing`), which is one of the three
+      answers rather than a ruling on them. The question stands: an EOF trigger
+      in `triggers()`, or `b` emitting N+1 per walk by definition?
 - [ ] Held artifacts renumber: every b folio in evidence/ shifts. Decide whether
       they are migrated or pinned to the old scheme.
-- [ ] !! ALL THREE SERIES GET A FOLIATOR -- a, b AND c. Roy, 2026-08-19: 'a b and
+- [x] DONE, and FOUR of them since 2026-08-20: `SERIES = (FRONT, DECLARED, GAP,
+      ON)` is the only list, and `foliate` builds one walker per name.
+      ! SUPERSEDED IN ITS COUNT, not its point. Roy, 2026-08-19: 'a b and
       c all get foliators - the other session decided a short-cut was okay even
       though I had just told it that it was not okay.' None is one today: `a`
       reads `paragraph.get('declares')`, `b` is `sum(1 for n in code if n < at) +
       1`, `c` is `code.index(start) + 1`. `triggers()` -- the one list they are
       all supposed to walk -- has NO production caller.
-- [ ] !! THE TEST THAT CLAIMS TO HOLD THIS ASSERTS THE F-STRING PACKAGING, NOT THE
+- [x] !! THE TEST THAT CLAIMS TO HOLD THIS ASSERTS THE F-STRING PACKAGING, NOT THE
       MECHANISM. `test_a_folio_is_never_DERIVED_from_another` forbids
       `f"{path}@c{code.index(start)}"` and `sum(1 for n in code if n < at)}"` --
       both ending in the f-string closer. The expressions survive VERBATIM, lifted
       out of the f-string with `+ 1` appended, so all three assertions pass.
-      Measured 2026-08-19. Rewrite it to hold the property: every folio comes from
-      a walk that emitted it.
-- [ ] * RULED 2026-08-19 -- THE TOP-OF-FILE ORDER IS b0, a0, b1. Roy: 'we can
-      accept that the system reads b0 first if available then a0 then b1. It gets
-      written in that order. Those addresses always exist and can be queried and
+      Measured 2026-08-19. ! DONE: `test_a_folio_is_never_DERIVED_from_another`
+      now reads `foliator.py`'s CODE lines, skipping prose, so the three retired
+      expressions stay quoted in the docstrings where they keep the error legible
+      and cannot pass the assertion.
+- [ ] * RULED 2026-08-19, RENAMED 2026-08-20 -- THE TOP-OF-FILE ORDER IS f0, a0,
+      b0. ! The ORDER is untouched; the file's own matter left the `b` series and
+      the gap above the first line of code became `b0`. ! The half that says those
+      addresses ALWAYS EXIST is done -- all three are emitted on every file. The
+      half that says they are WRITTEN in that order is the galley's, below. Roy:
+      'we can accept that the system reads b0 first if available then a0 then b1.
+      It gets written in that order. Those addresses always exist and can be queried and
       stated.' ! An agent that pushes an edit into b0 raises it to the HUMAN for a
       yes/no -- 'not supposed to happen but it is possible and legaleze has its
       holes as well'. This settles the same-insertion-point collision at the head
@@ -154,10 +178,11 @@ run restamps that run as a licence header -- is the same run's second defect and
       both from the ADDRESS alone. Today galley.splice sorts on (start, end,
       column, replacement) and applies descending by LINE, which is what makes an
       a/b tie fall to the prose text.
-- [ ] * RULED 2026-08-19 -- THE APPLICATION ORDER IS b0, a0, THEN a -> b -> c.
-      Roy: 'we need this to be true for everything except a0 and b0 where b0 goes
-      first then a0 then the rest.' ! b0 is the FRONT MATTER -- a licence
-      agreement, a shebang, a coding line -- so it precedes the module docstring;
+- [ ] * RULED 2026-08-19, RENAMED 2026-08-20 -- THE APPLICATION ORDER IS f0, a0,
+      THEN a -> b -> c. Roy: 'we need this to be true for everything except a0 and
+      b0 where b0 goes first then a0 then the rest.' ! What he called `b0` there is
+      `f0` now -- the FILE'S OWN MATTER, a licence agreement, a shebang, a coding
+      line -- so it precedes the module docstring;
       everything below is docstrings, then comment runs on the appropriate side of
       them, then trailing comments. !! WELL-FOUNDED, NOT ARBITRARY: only `a` and
       `b` ever want one insertion point, and a `c` carries a COLUMN on a line that
@@ -170,3 +195,20 @@ run restamps that run as a licence header -- is the same run's second defect and
       unreachable rather than caught: only `a` and `b` contend, and the order
       settles them. Verify that when write-by-series lands, and either delete the
       check or state what it still guards.
+- [ ] !! ROY'S MARKS ON `tests/fixtures/python_edge_cases.md` NAME THE OLD
+      NUMBERING. Every `b` and `c` mark is one too high: `b1`/`c1` meant the gap
+      above and the room beside `N = 0`, which are `b0`/`c0` since 2026-08-20.
+      `a0`, `a1`, `a2` and `f0` are unchanged. ! It is Roy's document -- each mark
+      says what he wants said at that place -- so shifting them is his call, not a
+      mechanical fix.
+- [ ] !! AND THE TESTS PASSED THROUGH THE SHIFT.
+      `test_every_b_the_marks_name_exists` and
+      `test_every_a_and_c_the_marks_name_exists` ask only that the folio EXISTS,
+      and `b1`..`b4` all still do -- they name different places now. ! An
+      existence check cannot catch a renumbering, which is the one thing it is
+      there to catch: assert the ANCHOR instead, since a mark names a place and a
+      place is a line of code.
+- [ ] `test_b1_is_the_gap_above_the_first_line_of_code` is now FALSE OF ITS OWN
+      NAME -- it asserts `b1` is in the folios, and the gap above the first line
+      of code is `b0`. It passes because `b1` exists as the gap above the SECOND
+      line.
