@@ -371,6 +371,79 @@ class TestAQuoteThatHoldsONECHARACTER(unittest.TestCase):
         self.assertEqual([b.text for b in prose], ["the only comment"])
 
 
+class TestALineWhosePrefixIsAStringIsSTILLCode(unittest.TestCase):
+    """Blanking a literal must not erase the evidence that code came first.
+
+    !! A JS ARRAY ELEMENT WAS CENSUSED AS A WHOLE-LINE COMMENT. The whole-line
+    test ran `code.strip().startswith(openers)` on the string-BLANKED line, so
+    `  "b" // the last one` blanked to `      // the last one`, whose strip
+    starts with the opener. The element left `code_lines` entirely.
+
+    !! WHAT THAT COSTS IS NOT THE MISREADING. Every `b` and `c` below the line
+    shifts, so a galley splice over one of those addresses lands on the wrong
+    place -- and the paragraph's TEXT holds `"b"`, which is executable code
+    handed to four reviewers as prose. Silent: no refusal, exit 0. Measured
+    2026-08-20.
+    """
+
+    def _prose(self, name, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / name
+            path.write_text(text, encoding="utf-8")
+            got = page.page_for(path, text, lexer.language_for(path))
+        return [b for b in got if b.kind not in page.HOLDS_NO_PROSE]
+
+    def _code(self, name, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / name
+            path.write_text(text, encoding="utf-8")
+            got = page.page_for(path, text, lexer.language_for(path))
+        return sorted(page.code_lines(text, [vars(b) for b in got]))
+
+    JS = 'const a = [\n  "a",\n  "b" // the last one\n];\n'
+
+    def test_the_element_is_a_TRAILING_comment_not_a_whole_line_one(self):
+        prose = self._prose("a.js", self.JS)
+        self.assertEqual([b.kind for b in prose], ["trailing-comment"])
+        self.assertEqual(prose[0].text, "the last one")
+
+    def test_the_code_it_sits_beside_is_its_ANCHOR(self):
+        prose = self._prose("a.js", self.JS)
+        self.assertEqual(prose[0].anchor, '  "b"')
+
+    def test_the_anchor_and_the_paragraph_RECONSTRUCT_the_line(self):
+        # !! THE INVARIANT `Paragraph` STATES, and the one that says the split
+        # landed in the right place: the separating space belongs to the
+        # paragraph, not to the anchor.
+        prose = self._prose("a.js", self.JS)
+        self.assertEqual(
+            prose[0].anchor + prose[0].raw_lines[0], self.JS.splitlines()[2]
+        )
+
+    def test_the_line_STAYS_in_the_code_set(self):
+        # !! THE HALF THAT SHIFTS ADDRESSES. Line 3 dropped out entirely, so
+        # every `b` and `c` below it named a different place.
+        self.assertEqual(self._code("a.js", self.JS), [1, 2, 3, 4])
+
+    def test_the_same_shape_in_C(self):
+        # ! The prefix must blank to WHITESPACE for the defect to fire, so it is
+        # an array element and not `char *s = "b"; // note` -- that one has
+        # `char *s =` in front and was always read correctly.
+        prose = self._prose("a.c", 'char *a[] = {\n  "a",\n  "b" // the last one\n};\n')
+        self.assertEqual([b.kind for b in prose], ["trailing-comment"])
+        self.assertEqual(prose[0].text, "the last one")
+
+    def test_a_REAL_whole_line_comment_is_still_one(self):
+        prose = self._prose("a.js", "// a fresh note\nconst a = 1;\n")
+        self.assertEqual([b.kind for b in prose], ["comment"])
+
+    def test_an_INDENTED_whole_line_comment_is_still_one(self):
+        # ! Whitespace before the opener is not code, and this is the case the
+        # blanked-line test got right and must keep getting right.
+        prose = self._prose("a.js", "function f() {\n    // a fresh note\n}\n")
+        self.assertEqual([b.kind for b in prose], ["comment"])
+
+
 class TestACPlaceCarriesItsAnchor(unittest.TestCase):
     """The line of code a trailing comment sits beside, VERBATIM.
 

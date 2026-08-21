@@ -219,7 +219,7 @@ that changed a published name or rule:
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 | [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | yes | 6/7 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
 | [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
-| [lexer-misreads-ordinary-code](lexer-misreads-ordinary-code.md) | session | — | 1/4 | a Rust lifetime, a JS string-prefixed line, and code after a block closer |
+| [lexer-misreads-ordinary-code](lexer-misreads-ordinary-code.md) | session | — | 2/4 | a Rust lifetime, a JS string-prefixed line, and code after a block closer |
 | [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | session | — | 1/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
 | [convert-drops-every-record](convert-drops-every-record.md) | session | — | 0/3 | 91 findings -> 0 filled records, exit 0, on a real 0.2.x report |
 | [stage-5-certifies-an-unaddressed-census](stage-5-certifies-an-unaddressed-census.md) | session | — | 0/2 | all_blocks drops falsy addresses, so an unaddressed census passes at exit 0 |

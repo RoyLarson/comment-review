@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks done
+Progress: 2 of 4 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20; the Rust case verified in-
@@ -29,7 +29,7 @@ The lexer misreads three shapes of ordinary code.
       while the identical line with `&str` yields one. A `/*` is hidden the same
       way, so a whole block comment is lost with no `unterminated-paragraph-
       comment` either. `'static` is ordinary Rust.
-- [ ] A LINE WHOSE PREFIX IS A STRING LITERAL READS AS A WHOLE-LINE COMMENT.
+- [x] A LINE WHOSE PREFIX IS A STRING LITERAL READS AS A WHOLE-LINE COMMENT.
       `lexer.py:979` runs `code.strip().startswith(openers)` on the string-BLANKED
       line. In JS, `  "b" // the last one` censuses as `kind=comment` and line 3
       drops out of `code_lines`, shifting every `b` and `c` address below it. A

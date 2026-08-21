@@ -1050,8 +1050,13 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # ! Only the run's FIRST line decides it -- `flush()` above emptied
             # the run, so this is that line. A continuation line of a paragraph
             # comment is entirely prose whatever surrounds the run.
+            # ! THE RAW LINE, for the reason the whole-line test below gives:
+            # a blanked literal is whitespace, so a line whose only prefix is a
+            # string reported column 0 and left the code set.
             partial_first[0] = (
-                len(code[:opens_at].rstrip()) + 1 if code[:opens_at].strip() else 0
+                len(raw_line[:opens_at].rstrip()) + 1
+                if raw_line[:opens_at].strip()
+                else 0
             )
             run.append((n, raw_line[opens_at:].rstrip()))
             if closes_here:
@@ -1061,7 +1066,18 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             else:
                 in_block = opened
             continue
-        if code.strip().startswith(openers):
+        # !! ASKED OF THE RAW LINE, NOT THE BLANKED ONE. `_strip_strings` replaces
+        # a literal with spaces, which erases the evidence that code came first:
+        # `  "b" // the last one` blanks to `      // the last one`, whose strip
+        # starts with the opener, so a JS array element was censused as a
+        # whole-line `comment` whose TEXT held `"b"` -- executable code handed to
+        # four reviewers as prose -- and its line left `code_lines` entirely.
+        # ! WHAT THAT COSTS IS NOT THE MISREADING. Every `b` and `c` below the
+        # line shifts, so a galley splice over one of those addresses lands
+        # somewhere other than where the reviewer cited. Measured 2026-08-20 on
+        # JS and C. ! Whitespace before the opener is not code, which is the case
+        # the blanked test got right and this keeps right.
+        if line_at >= 0 and not raw_line[:line_at].strip():
             run.extend(pending)
             pending.clear()
             run.append((n, raw_line.rstrip()))
@@ -1072,7 +1088,10 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # ! `flush()` above emptied the run, so this line is the first
             # one and the code before `at` is what makes it trailing. A line
             # comment runs to end of line, so there is no other side to test.
-            partial_first[0] = len(code[:at].rstrip()) + 1 if code[:at].strip() else 0
+            # ! THE RAW LINE, not the blanked one -- same reason as above.
+            partial_first[0] = (
+                len(raw_line[:at].rstrip()) + 1 if raw_line[:at].strip() else 0
+            )
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own paragraph, anchored to the code on that line
     flush()
