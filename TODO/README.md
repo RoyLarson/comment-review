@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (68)
+### open  (69)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -243,6 +243,7 @@ that changed a published name or rule:
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | session | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | session | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |
 | [galley-does-two-jobs](galley-does-two-jobs.md) | session | — | 0/13 | the galley both updates the page and sets it; `compositor` takes the setting |
+| [one-stem-four-jobs](one-stem-four-jobs.md) | session | — | 0/10 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 
 ### in-progress  (4)
 
