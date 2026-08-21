@@ -406,19 +406,15 @@ def _report(args: argparse.Namespace) -> int:
         # reached it some other way. ONE implementation, in `foliator` -- Roy,
         # 2026-08-20: *"one source of truth, else something will parse that
         # something else will fail."*
-        missing = unaddressed(
-            [vars(b) | {"annotations": sorted(b.annotations)} for b in census]
-        )
+        # ! SERIALISED ONCE. This list was built twice -- once to check and once
+        # to print -- which is two full dict copies and a re-sort of every
+        # annotation set over a census that runs to thousands of paragraphs.
+        rows = [vars(b) | {"annotations": sorted(b.annotations)} for b in census]
+        missing = unaddressed(rows)
         if missing:
             print(_unaddressed(missing), file=sys.stderr)
             return 1
-        print(
-            json.dumps(
-                [vars(b) | {"annotations": sorted(b.annotations)} for b in census],
-                indent=1,
-                default=str,
-            )
-        )
+        print(json.dumps(rows, indent=1, default=str))
         return 0
 
     # ! A tier is per FILE: a polyglot repo mixes them in one census. Reported

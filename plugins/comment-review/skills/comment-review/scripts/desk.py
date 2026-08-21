@@ -449,11 +449,37 @@ def _in_scope(path: str, paragraphs: list[dict]) -> bool:
     Returns:
         True where some paragraph in the census sits on that file.
     """
-    want = path.replace("\\", "/").strip()
+    # !! MATCHED FROM THE RIGHT, BY SEGMENT. An exact whole-path test let a
+    # SHORTER but resolvable citation walk past the ban: the census carries
+    # `redacted_pkg/billing/rates.py` and a reviewer writes `to: ... in rates.py:355`,
+    # which matched nothing, counted as out of scope, and admitted a stale line
+    # address for a file this run DOES foliate and WILL edit. Measured
+    # 2026-08-21. ! The same hole took `./rates.py` and a Windows-separated
+    # citation, whose backslash `LINE_FORM` does not carry -- so only the
+    # basename survived to be compared.
+    #
+    # ! IT ERRS TOWARD IN SCOPE, and that is the safe direction. A bare
+    # `utils.py` matching two files in the census is ambiguous, and treating it
+    # as in scope REFUSES the line form and asks for an address -- which is what
+    # the ban is for. Erring the other way admits the stale form silently.
+    # ! NORMALISED THE SAME WAY ON BOTH SIDES, or the flattened spelling matches
+    # itself and nothing else -- `redacted_pkg:billing:rates.py` split on `/` alone is
+    # one segment and can never be a suffix of three.
+    want = [
+        p
+        for p in path.replace("\\", "/").replace(":", "/").strip().split("/")
+        if p not in ("", ".")
+    ]
+    if not want:
+        return False
     for b in paragraphs:
         here = str(b.get("path", "")) if b else ""
-        if want and want in (here, flatten(here)):
-            return True
+        # ! Both spellings, because a citation may carry either -- the address
+        # form flattens the separator to `:`.
+        for spelling in (here, flatten(here)):
+            parts = [p for p in spelling.replace(":", "/").split("/") if p]
+            if parts[-len(want) :] == want:
+                return True
     return False
 
 
@@ -711,7 +737,7 @@ def ruled_text(f: Finding) -> str:
     if spec is None or not spec.quotes_original:
         return ""
     # !! THE FIELD FIRST, and the scan below is now the FALLBACK. A JSON record
-    # carries the keys already and `parse_report` types a 0.2.x claim at load,
+    # carries the keys already,
     # so a record reaches here typed unless its claim did not parse at all.
     #
     # !! It is also the only way a value CONTAINING another key's marker

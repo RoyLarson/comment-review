@@ -2580,6 +2580,23 @@ class TestAMovesDestinationIsResolved(unittest.TestCase):
         """
         self.assertIsNone(self._to("other.py:88"))
 
+    def test_a_SHORTER_spelling_of_a_censused_path_is_still_in_scope(self):
+        """!! AN EXACT WHOLE-PATH TEST LET THE BAN BE WALKED PAST.
+
+        The census carries `a.py` here, but on a real tree it carries
+        `redacted_pkg/billing/rates.py` and a reviewer writes `to: ... in
+        rates.py:355`. That matched nothing, counted as OUT of scope, and the
+        stale line address was admitted for a file the run does foliate and
+        will edit. Measured 2026-08-21.
+
+        ! It errs toward IN SCOPE, which is the safe direction: a bare name
+        matching two censused files refuses the line form and asks for an
+        address, and that is what the ban is for.
+        """
+        for spelling in ("a.py", "./a.py", "x:a.py"):
+            with self.subTest(spelling=spelling):
+                self.assertIn("names a LINE", self._to(f"{spelling}:3"))
+
     def test_a_LINE_in_a_CENSUSED_file_is_STILL_refused(self):
         # ! The rule is not "never a line number" -- it is "never a line number
         # for a place this run can name properly", and `a.py` is in the census.

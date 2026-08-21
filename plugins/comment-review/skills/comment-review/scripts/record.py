@@ -69,7 +69,7 @@ from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,
 # and `allowed()` below is derived entirely from this table. It sat in
 # `verdicts.py` and was imported back, which made the two modules a cycle and
-# blocked `claim_object` from being read by the join that needs it.
+# blocked `claim_object` -- since deleted -- from being read by the join.
 # !! The THREE shapes `reviewer-brief.md` says reach `query`, and a query must
 # NAME the one it is. A closed set beats guessing at free text: the shape decides
 # whether the paragraph is work (the author must answer) or a boundary report (the
@@ -297,7 +297,8 @@ def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
 
     !! ONE ROW, which is the promise the `Verdict` table makes and which four
     sites had taken back. `record.allowed` told a reviewer what to fill,
-    `held.claim_object` read the deprecated form, `claim_text` rendered it
+    `held.claim_object` read the deprecated form (deleted 2026-08-20),
+    `claim_text` rendered it
     and `payload_problem` checked it -- each deriving the same key list from
     the same traits, and two of them hardcoding the names. A new trait had to
     be added in four places and nothing failed if one was missed.
@@ -398,8 +399,8 @@ class Finding:
     measured run were spent on transcription fidelity and none was about a
     finding.
 
-    ! `claim_fields` is the claim as the record held it -- from the file for a
-    JSON record, and from `claim_object` at load for a 0.2.x one, so both
+    ! `claim_fields` is the claim as the record held it, read from the file, so
+    both
     formats arrive typed. A check that can read a FIELD must not search the
     string `claim_text` renders it into -- see `_said`.
 
@@ -416,8 +417,8 @@ class Finding:
     address: str = ""
     anchor: str = ""
     original: str = ""
-    # !! THE CLAIM AS THE RECORD CARRIED IT. Filled from the file for a JSON
-    # record and by `claim_object` at load for a 0.2.x one, so it is empty only
+    # !! THE CLAIM AS THE RECORD CARRIED IT, filled from the file, so it is
+    # empty only
     # where that conversion found no markers. A check that can read the FIELD
     # must not word-search the string the field rendered into: the reviewer
     # answered, and searching its wording for five accepted verbs refuses
@@ -475,8 +476,8 @@ def _said(f: Finding, key: str) -> str:
     `query` whose `settles` mentioned the phrase "outside my role" was
     classified as a scope declaration and dropped out of the work list.
 
-    ! A 0.2.x text record is TYPED AT LOAD now -- `parse_report` runs
-    `claim_object` over its `CLAIM` -- so this is empty only where that
+    ! Every record is TYPED AT LOAD, from the file's own object -- so this is
+    empty only where that
     conversion found no markers at all. A caller still falls back to searching
     the rendered string for that case, which is the last path the deprecated
     format has.

@@ -144,7 +144,7 @@ def by_paragraph(found: list[Finding]) -> dict[str, list[Finding]]:
     the agent to rebuild it from the report files by hand.
 
     Every finding here names a paragraph, because a record that named none never
-    became a `Finding` -- `parse_report` returns those separately.
+    became a `Finding` -- `load_report` reports those as malformed instead.
     """
     out: dict[str, list[Finding]] = defaultdict(list)
     for f in found:
@@ -285,10 +285,9 @@ def main() -> int:
         "reports",
         nargs="+",
         # ! The SUFFIX chooses the reader and the STEM names the role, so both
-        # halves of the filename are load-bearing. A record file named `.md`
-        # goes to the deprecated text parser, which finds no records in it and
-        # reports the reviewer as a total coverage gap with nothing pointing at
-        # the extension.
+        # halves of the filename are load-bearing. A report not named `.json` is
+        # REFUSED BY NAME -- one malformed line saying so, counted fatal -- and
+        # a mistyped stem makes the expected role read as missing.
         help="one report file per reviewer, named <role>.json",
     )
     ap.add_argument("--census", required=True, help="census.py --json output")

@@ -644,10 +644,17 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
     path = {str(b.get("path", "")) for b in mine}
     here = [b for b in paragraphs if str(b.get("path", "")) in path]
     if not at:
-        # !! THE MODULE HAS NO OPENING LINE, so it has no `c` and its `b` is
-        # `b0` by definition -- the gap before the first code line, which is
-        # where a licence header or a shebang sits. Every other anchor without
-        # a line is a tier that resolved no declaration, and has neither.
+        # !! THE MODULE HAS NO OPENING LINE, so it has no `c`, and the `b` it
+        # answers with is `b0` -- the gap ABOVE THE FIRST LINE OF CODE.
+        #
+        # ! IT IS NOT THE FILE'S OWN MATTER. A licence header or a shebang is
+        # `f0`, in its own series since 2026-08-20 -- and this comment said
+        # otherwise until 2026-08-21, which is the exact reading `series_of`
+        # below records as the defect the `f` series ended. Two comments in one
+        # module gave contradictory accounts of what `b0` names.
+        #
+        # ! Every other anchor without a line is a tier that resolved no
+        # declaration, and has neither.
         if series == GAP and any(b.get("declares") == 0 for b in mine):
             return [b for b in here if stable(b).endswith(f"@{GAP}0")]
         return []
@@ -698,11 +705,15 @@ def stable(paragraph: dict) -> str:
 
 
 def main() -> int:
-    """Print every census entry's line address beside its stable one.
+    """Print every census entry's ADDRESS and the kind of place it names.
+
+    ! One address column, not two. The LINE form it once printed beside this one
+    was deleted 2026-08-20; see `docs/history.md`.
 
     Returns:
         0 when every entry was addressed, 1 when any could not be, 2 when the
-        census or a file could not be read.
+        census could not be read. ! This module reads no source file -- the
+        census is the only input.
     """
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):

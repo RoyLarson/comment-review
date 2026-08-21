@@ -21,7 +21,7 @@ sentence and both get applied. Measured on the 2026-08-17 run:
 | shape | blocks | a contradiction? |
 | --- | --- | --- |
 | `move` + `correct` | 126, 166, 645, 1041, 1226 | **no** -- a sequence |
-| different sentences in one block | 981 | **no** -- see [`the-unit-of-review-is-the-statement-not-the-block`](the-unit-of-review-is-the-statement-not-the-block.md) |
+| different sentences in one block | 981 | **no** -- see [`the-unit-of-review-is-the-statement-not-the-block`](completed/the-unit-of-review-is-the-statement-not-the-block.md) |
 | `drop` vs `correct`, same sentence | 728, 1575 | **yes** |
 
 **Two genuine contradictions out of eight flagged.** The other six sent both roles a re-review

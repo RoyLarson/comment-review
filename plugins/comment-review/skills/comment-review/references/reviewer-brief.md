@@ -150,8 +150,8 @@ is exactly what your edit does, and it must be the sentence your `claim` names. 
 reasons about one sentence and rewrites another is refused, whichever of the two is right.
 
 !! **ONE record's `change` makes ONE record's edit.** If you rule twice on one paragraph, write
-TWO records with the same `address`, each showing that paragraph with ITS OWN change and no
-other. Do not
+TWO records with the same `place`, under the same page, each showing that paragraph with ITS OWN
+change and no other. Do not
 hand in the paragraph fully fixed twice: composing is the task agent's job, and it cannot compose
 records that have already been merged.
 

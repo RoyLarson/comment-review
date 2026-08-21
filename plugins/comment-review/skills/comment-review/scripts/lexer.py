@@ -1056,10 +1056,22 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
 
     for n, raw_line in enumerate(lines, 1):
         if in_block is not None:
-            # !! CODE AFTER THE CLOSER KEEPS ITS PROSE AND LOSES ITS CODE LINE,
-            # and that residue is ACCEPTED. `/* note\n   more */ int x = 5;`
-            # censuses the run and leaves `int x = 5;` out of `code_lines`, so
-            # every interval boundary below it moves.
+            # !! CODE AFTER THE CLOSER KEEPS ITS PROSE AND LOSES ITS CODE LINE.
+            # `/* note\n   more */ int x = 5;` censuses the run and leaves
+            # `int x = 5;` out of `code_lines`, so every interval boundary below
+            # it moves.
+            #
+            # !! AND AN EDIT TO THAT PARAGRAPH DELETES THE STATEMENT. This cut
+            # trims the paragraph's TEXT and not its `raw_lines`, and the galley
+            # splices `start..end` wholesale -- it preserves the head of the
+            # FIRST line at `column` and has no tail preservation on the last.
+            # MEASURED 2026-08-21: a `patch` on that paragraph writes the new
+            # prose and `int x = 5;` is gone. `prove_unchanged` catches it, but
+            # only AFTER 7b has written the file.
+            #
+            # !! THE RESIDUE WAS ACCEPTED ON THE BOUNDARY SHIFT ALONE, 2026-08-20,
+            # which understated it -- filed as `TODO/closing-line-deletes-code.md`
+            # for Roy to re-rule with the deletion on the table.
             #
             # ! NEITHER FIX WAS WORTH ITS COST. Dropping the run the way an
             # INTERMEDIATE comment is dropped works on the one-line twin --
