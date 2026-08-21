@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (59)
+### open  (60)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -234,6 +234,7 @@ that changed a published name or rule:
 | [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
 | [dead-names-ungated](dead-names-ungated.md) | session | yes | 0/5 | Nothing gates a module-level name that no code reads |
 | [closing-line-deletes-code](closing-line-deletes-code.md) | session | yes | 0/5 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
+| [complete-breaks-links](complete-breaks-links.md) | session | — | 0/4 | todo_tool complete breaks a file's relative links when it moves it |
 
 ### in-progress  (4)
 
