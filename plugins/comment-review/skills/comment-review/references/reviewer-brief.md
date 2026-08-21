@@ -117,7 +117,12 @@ ever reading the code, and nothing could tell that from real work. Your remit re
 read. ! If you read the wrong lines, the sentence your `claim` quotes will not be in the paragraph
 and the join says so -- that error is caught, and the other one is invisible.
 
-!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `address` and `anchor` are the tool's. Leave them alone;
+!! **WHAT YOU OPEN IS THE ORIGINAL** -- the file as it stood when THIS RUN began, not the first
+version ever written. Nothing is written to disk before stage 7b, so the file you read at stage 4
+IS the state your `place` and your `anchor` were taken from, and the state the join checks your
+`claim` against.
+
+!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `place` and `anchor` are the tool's. Leave them alone;
 a mismatch there means the file was edited, not that you misquoted. ! The `anchor` is there to
 be GREPPED -- it names the declaration the census resolved, and is empty where none was.
 
