@@ -121,7 +121,7 @@ class Paragraph:
     #
     # !! THE TWO TIERS DISAGREED, AND FOUR OF SIX SHAPES COULD NOT BE WRITTEN.
     # `paragraphs_lexical` cut at the comment opener and `paragraphs_stdlib` kept the
-    # whole physical line, so `compositor.transcribes` refused a FRESH census on
+    # whole physical line, so the retired `paragraph_matches` refused a FRESH census on
     # every lexical trailing comment (`'// note'` against `int b = 2; // note`)
     # and on every paragraph comment not at column 0 (`'/* why */'` against
     # `'    /* why */'` -- the indentation was the cut). Measured 2026-08-19.
@@ -583,7 +583,7 @@ def _own_characters(span: list[str], column: int) -> list[str]:
 
     !! ONE RULE FOR BOTH TIERS, which is what B3 is. `paragraphs_lexical` cut at the
     comment OPENER and `paragraphs_stdlib` kept the whole physical line, so the two
-    stored different things and `compositor.transcribes` could not be written to
+    stored different things and the retired `paragraph_matches` could not be written to
     satisfy both -- it refused a FRESH census on four of six comment shapes.
 
     ! With `anchor` holding the code, `anchor + raw_lines[0]` reconstructs the
@@ -616,7 +616,7 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     AGAINST. `paragraphs_stdlib` kept the whole physical line in `raw_lines` and so
     checked both halves by accident; `paragraphs_lexical` cuts at the opener and so
     checked only the prose -- measured 2026-08-19, a lexical trailing comment
-    storing `['// note']` made `compositor.transcribes` answer False on an
+    storing `['// note']` made the retired `paragraph_matches` answer False on an
     UNTOUCHED file. The fix is not to make both tiers store the whole line,
     which conflates the anchor with the prose in one string -- the conflation
     that produced the suffix-test defect twice. Roy: *"not marking or saving the
@@ -1443,7 +1443,7 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
                     # still spanned it -- `raw_lines` was then SHORTER than the
                     # paragraph, and anything comparing the two disagreed on an
                     # untouched file. Measured 2026-08-18: 4 paragraphs in this
-                    # repo, each refused by `compositor.transcribes` as stale,
+                    # repo, each refused by the retired `paragraph_matches` as stale,
                     # and each one a splice that would have deleted the blank
                     # line it did not know about.
                     raw_lines=_own_characters(

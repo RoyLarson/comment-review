@@ -827,8 +827,8 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
         """
         if b.end >= b.start >= 1:
             b.original_start, b.original_end = b.start, b.end
-            # ! `raw_lines` is what `compositor.transcribes` compares against
-            # the file, over exactly this range. Leaving it as the prose alone
+            # ! `raw_lines` is what `compositor.set_page` SETS, over exactly
+            # this range. Leaving it as the prose alone
             # made a FRESH census read as stale on every widened paragraph.
             own = [n for n in range(b.start, b.end + 1) if mine is None or n in mine]
             b.raw_lines = [source[n - 1] for n in own]

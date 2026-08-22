@@ -969,7 +969,7 @@ def main() -> int:
     # ! A sweep WAS here, added after four artifacts three edits old were each
     # read as a defect in the code. That failure was real and the guard was in
     # the wrong module: staleness matters where a file is WRITTEN, and
-    # `compositor.transcribes` already refuses a stale range before it splices.
+    # `galley.drifted` already refuses a moved anchor where a page is set.
     # Here it refused a census built seconds earlier on every non-Python file
     # carrying a trailing comment, with a message that re-running never fixed --
     # and it masked a genuine collision `--check` exists to report.

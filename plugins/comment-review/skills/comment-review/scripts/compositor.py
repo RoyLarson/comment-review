@@ -218,57 +218,6 @@ def set_page(page: Page, newline: str | None = None) -> str:
     return ending.join(out) + tail
 
 
-def transcribes(paragraph: dict, lines: list[str]) -> bool:
-    """Does this paragraph's stored text still read the way the file does?
-
-    !! ONE PREDICATE, AND ITS TWO CALLERS TRUST OPPOSITE SIDES OF IT. The galley
-    reads False as *the file moved since the census*; a census test reads False
-    as *the lexer stored this wrong*. Nothing here can tell those apart, and it
-    is not this function's to say -- it reports the disagreement and the caller
-    supplies which input it came to check.
-
-    ! IT WAS `galley.paragraph_matches` until 2026-08-21, where it sat beside the
-    splice it guarded. It is here because the compositor is what compares a page
-    against the text it came from, which is the same question at a different
-    scale -- see `identity` and `lossless` below.
-
-    ! CONTIGUITY REMOVED ONE CASE, not the branching. An empty place used to be
-    checked by reading every line of its range for blankness; it now answers True
-    outright, because a place holding no line has no text to disagree with the
-    file about. The `c` case BELOW IS UNCHANGED and still compares in two halves,
-    which is what the column is for.
-
-    ! A PLACE THAT HOLDS NO LINE IS TRUE, not false. It has no text to disagree
-    with the file about; whether prose has appeared there since is the question
-    an `add` asks, and it is not this one. Answering False refused every `add` in
-    a run, which is the defect this note is here to stop returning.
-
-    Args:
-        paragraph: one census entry, as `vars(b)` or from the JSON.
-        lines: the file's lines, without endings.
-
-    Returns:
-        Whether the file still reads as the census recorded it.
-    """
-    start = paragraph.get("original_start") or 0
-    end = paragraph.get("original_end") or start
-    stored = paragraph.get("raw_lines") or []
-    if not start or not stored:
-        return True
-    if start < 1 or end > len(lines) or start > end:
-        return False
-    here = list(lines[start - 1 : end])
-    column = paragraph.get("original_column") or 0
-    if column > 0:
-        # ! A `c` SHARES ITS FIRST LINE WITH CODE, and the census stores both
-        # halves: `anchor` is the statement, `raw_lines` is everything from the
-        # column on. Together they are the physical line.
-        if here[0][: column - 1] != paragraph.get("anchor", ""):
-            return False
-        here[0] = here[0][column - 1 :]
-    return [ln.rstrip() for ln in here] == [ln.rstrip() for ln in stored]
-
-
 def draft(page: Page, into: Path) -> Path:
     """Write this page to `into` -- a file of its own, never the original.
 

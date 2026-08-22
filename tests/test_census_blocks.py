@@ -8,11 +8,11 @@ import unittest
 from pathlib import Path
 
 import annotate
-import compositor
 import lexer
 import page
 import prove_unchanged as pu
 from _paths import FIXTURES, SCRIPTS
+from _transcription import transcribes
 from foliator import FRONT
 
 
@@ -1091,7 +1091,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
     | column-0 `/* why */`        | yes |
 
     ! So every paragraph comment not at column 0, and every trailing comment in the
-    ten lexical languages, was refused by `compositor.transcribes` on a census
+    ten lexical languages, was refused by the retired `paragraph_matches` on a census
     seconds old -- which is what made the `c` series writable in Python only.
     """
 
@@ -1119,7 +1119,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             for b in self._prose(text):
                 with self.subTest(shape=label):
                     self.assertTrue(
-                        compositor.transcribes(vars(b), lines),
+                        transcribes(vars(b), lines),
                         f"{b.raw_lines!r} against {lines[b.start - 1]!r}",
                     )
 
@@ -1155,7 +1155,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             with self.subTest(kind=b.kind, start=b.start):
                 head = b.anchor if b.original_column else ""
                 self.assertEqual(head + b.raw_lines[0], lines[b.start - 1])
-                self.assertTrue(compositor.transcribes(vars(b), lines))
+                self.assertTrue(transcribes(vars(b), lines))
 
     def test_a_trailing_comments_CODE_no_longer_reaches_the_annotators(self):
         """!! `prose_numbers` reads `raw_lines`, so the whole physical line put
@@ -1190,7 +1190,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
         )
         self.assertEqual(margin.anchor, "a = 1")
         self.assertEqual(margin.raw_lines, [""])
-        self.assertTrue(compositor.transcribes(vars(margin), text.splitlines()))
+        self.assertTrue(transcribes(vars(margin), text.splitlines()))
 
     def test_no_prose_block_in_the_fixtures_is_refused_by_a_FRESH_census(self):
         # !! The measurement, as a gate. It was 4 of 6 shapes and 1 of 8 fixture
@@ -1209,8 +1209,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             refused += [
                 f"{src.name}:{b.start} {b.kind}"
                 for b in paragraphs
-                if b.kind not in page.HOLDS_NO_PROSE
-                and not compositor.transcribes(vars(b), lines)
+                if b.kind not in page.HOLDS_NO_PROSE and not transcribes(vars(b), lines)
             ]
         self.assertEqual(refused, [])
 
