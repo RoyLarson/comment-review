@@ -4,7 +4,7 @@
 Status:   in-flight
 Progress: 18 of 18 tasks done
 Owner:    comment-review
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines? I think
           I asked this question before ... it might need to so it can give that data to
           the record so the agents can rule on it but it makes me think it is suspect

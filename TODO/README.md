@@ -266,11 +266,10 @@ other tasks can proceed without them._
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | session | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | comment-review | yes | 1/7 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 
-### in flight  (1)
+### in flight  (0)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [foliation-knows-about-lines](foliation-knows-about-lines.md) | comment-review | yes | 18/18 | The foliation carries line data for one consumer, and one field of it is read by nobody |
 
 ### blocked  (6)
 
@@ -325,3 +324,4 @@ the reason is inside the file.
 | [galley-does-two-jobs](completed/galley-does-two-jobs.md) | Split built and wired: galley.reset places by address, compositor.set_page sets, splice/overlaps/splice_range/paragraph_matches deleted, and the shipped prose now defines both terms |
 | [galley-is-still-index-keyed](completed/galley-is-still-index-keyed.md) | Tasks 1-2 done (address-keyed); task 3 was an observation whose mechanism -- splice and its line-ordered sort -- was deleted in the galley rewrite |
 | [second-key-stale-on-drop](completed/second-key-stale-on-drop.md) | Ruled and cut the same morning: the second key is DELETED, so it cannot go stale -- Page.leading is dict[str, str], keyed by the place a run of blanks follows |
+| [foliation-knows-about-lines](completed/foliation-knows-about-lines.md) | Foliation is 3 fields -- foliators, walk, reading. A place records the trigger it was emitted at, so no position is reconstructed; d left SERIES as a symbol; lines and _code were both views of the walk |
