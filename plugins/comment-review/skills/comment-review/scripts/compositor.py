@@ -174,18 +174,35 @@ def set_page(page: Page, newline: str | None = None) -> str:
     for folio in page.foliation.reading:
         prose = held.get(folio, [])
         beside_code = series_of({"address": f"@{folio}"}) == ON
-        # !! A PLACE THAT SETS NOTHING BREAKS NO EDGE. Leading separates two
-        # pieces of TEXT, and an empty place is not text -- it is a position a
-        # verdict can cite. Skipping it keeps the pair the same one `tie_leading`
-        # tied: with `b0` empty between them, `a0` and `c0` are still adjacent in
-        # the file even though the walk names a place in between.
+        # !! EVERY PLACE ADVANCES `previous`, INCLUDING ONE THAT SETS NOTHING,
+        # and that is what makes this walk exact. An empty place is still a
+        # place -- it is a position a verdict can cite -- so skipping it here
+        # made this list disagree with the one `tie_leading` walked.
         #
+        # ! IT SKIPPED THEM UNTIL 2026-08-22, and `tie_leading` skipped them
+        # too, so the two halves agreed by taking the SAME shortcut rather than
+        # by either being right. The visible cost was a dark-matter `f0`: it set
+        # nothing, so `previous` stayed `""` past the head of the file and a run
+        # of blank lines there was keyed on the empty string.
+        #
+        # ! THE EDGE IS LOOKED UP BEFORE THE PLACE IS SET, so it lands between
+        # what came before and what comes next. A place that sets nothing
+        # contributes no lines, so the space still falls exactly where it did.
+        #
+        # !! A PLACE IS INVIOLABLE -- IT NEVER DISAPPEARS. Roy, 2026-08-22:
+        # *"places are involatile; having an empty sentinel is the key, not that
+        # the place disappears."* An emptied place still holds its position and
+        # still owns the space below it. ! A first attempt made this loop skip a
+        # place that had held lines and now set none, so that a `drop` would
+        # take its leading with it -- which put an editorial decision inside the
+        # compositor, whose whole charter is to decide NOTHING. `galley.reset`
+        # empties the leading when it empties the paragraph.
+        out.extend(held.get(edges.get(previous, ""), []))
+        previous = folio
         # ! A `c` IS NEVER EMPTY IN THIS SENSE -- it sets its line of code
         # whether or not anything sits beside it.
         if not prose and not beside_code:
             continue
-        out.extend(held.get(edges.get(previous, ""), []))
-        previous = folio
         if beside_code:
             # ! A `c` IS THE LINE OF CODE, so it is set whether or not anything
             # sits beside it. Its first line is the code and the room together;

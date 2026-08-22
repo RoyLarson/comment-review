@@ -567,11 +567,15 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         with an ask-the-human. Never resolved by the agents."* That is what the
         place is FOR; it is not a reason for it to be absent.
         """
-        # This fixture opens with a docstring and has no front matter at all --
-        # and BOTH of the file's own places answer to the module, since 2026-08-21:
-        # `f0` at the head and `f1` at the foot. Neither depends on prose being
-        # there, which is the whole assertion.
-        self.assertEqual(self._at("<module>", FRONT), ["f0", "f1"])
+        # This fixture opens with a docstring and has no front matter at all,
+        # and the file's own place at the HEAD exists anyway -- which is the
+        # whole assertion: it does not depend on prose being there.
+        #
+        # ! ITS TWIN AT THE FOOT ANSWERS `<eof>`, since 2026-08-22. Each place's
+        # anchor is the trigger it was emitted at, so the two ends of the file
+        # no longer answer with one string.
+        self.assertEqual(self._at("<module>", FRONT), ["f0"])
+        self.assertEqual(self._at(foliator.EOF, FRONT), ["f1"])
 
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")
@@ -579,7 +583,11 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         list(page.code_lines(with_header, [vars(b) for b in got]))
         found = foliator.for_anchor("<module>", FRONT, [vars(b) for b in got])
         self.assertEqual(
-            sorted(foliator.folio_of(b["address"])[1] for b in found), ["f0", "f1"]
+            sorted(foliator.folio_of(b["address"])[1] for b in found), ["f0"]
+        )
+        found = foliator.for_anchor(foliator.EOF, FRONT, [vars(b) for b in got])
+        self.assertEqual(
+            sorted(foliator.folio_of(b["address"])[1] for b in found), ["f1"]
         )
 
     def test_the_FILE_HAS_A_PLACE_AT_ITS_FOOT_TOO(self):
@@ -893,16 +901,26 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # below are what THIS walk emits, not a rule anything may count out.
         found = foliator.for_anchor("X=2", "b", self.paragraphs)
         folios = sorted(foliator.folio_of(b["address"])[1] for b in found)
-        self.assertEqual(folios, ["b0", "b1", "b2"])
+        self.assertEqual(folios, ["b0", "b1"])
 
-    def test_the_three_gaps_are_drawn_from_TWO_statements(self):
+    def test_the_two_gaps_are_drawn_from_TWO_statements(self):
         """!! And the anchor STRING cannot tell you which.
 
         The first gap sits above the opening statement, so its anchor is that
         line's code. The second holds a comment and is anchored to the code
-        BELOW it, which is line 5. The third is the gap at the end of the file
-        and takes the line ABOVE, which is line 5 again. Two statements, three
-        gaps, one spelling.
+        BELOW it, which is line 5. Two statements spelled alike, two gaps, one
+        spelling -- and no rule over the text can separate them.
+
+        !! WHAT THE REMAINING AMBIGUITY IS, MEASURED: `b0` answers the FIRST
+        `X=2` and `b1` the SECOND -- trigger 1 and trigger 2, two different
+        statements carrying one spelling. That is the class's own thesis, and
+        the reverse lookup cannot resolve it from the text.
+
+        !! THE CLOSING GAP WAS A THIRD UNTIL 2026-08-22 and inflated a genuine
+        2-way ambiguity into a fake 3-way one. It took the line ABOVE it for
+        want of one below, so it answered `X=2` while belonging to NEITHER
+        statement. Anchored to the EOF trigger it was emitted at, it leaves this
+        question entirely.
         """
         by_folio = {
             foliator.folio_of(b["address"])[1]: b
@@ -933,7 +951,12 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         self.assertEqual(
             (by_folio["b1"]["original_start"], by_folio["b1"]["original_end"]), (3, 3)
         )
-        self.assertIsNone(by_folio["b2"]["original_start"])
+        self.assertEqual(sorted(by_folio), ["b0", "b1"])
+        # !! THE PROPERTY THIS CLASS IS NAMED FOR, and it was never asserted:
+        # the two gaps answer DIFFERENT statements. Same spelling, different
+        # trigger -- which is what makes `X=2` two anchors rather than one with
+        # two places, and what no rule over the anchor TEXT can separate.
+        self.assertNotEqual(by_folio["b0"]["anchor_num"], by_folio["b1"]["anchor_num"])
         for folio, paragraph in by_folio.items():
             with self.subTest(folio=folio):
                 self.assertEqual(paragraph["anchor"], "X=2")
@@ -956,7 +979,10 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
     def test_the_CLI_says_the_answer_is_AMBIGUOUS_in_both_series(self):
         # !! What an agent actually sees. Without it a caller reads the first
         # line of output as "the" answer and rules on the wrong statement.
-        for series, count in (("b", 3), ("c", 2)):
+        # ! TWO `b`s, not three: the closing gap is anchored to EOF since
+        # 2026-08-22 and never answered to this statement -- it was borrowing
+        # the line above it, which manufactured a third ambiguity.
+        for series, count in (("b", 2), ("c", 2)):
             with self.subTest(series=series):
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out):

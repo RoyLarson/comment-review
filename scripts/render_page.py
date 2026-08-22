@@ -66,6 +66,9 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 # ! The margin is wide enough for a folio and a series letter; a page with more
 # than four digits of places is past the point this rendering answers anything.
 MARGIN = 8
+#: The row a place PAST THE END is drawn on -- one past the last line, so
+#: `margin` reaches it after every line of the file and before nothing.
+_PAST_THE_END = -1
 
 
 def _places(pg) -> tuple[dict[int, list[str]], dict[int, list[str]]]:
@@ -101,6 +104,19 @@ def _places(pg) -> tuple[dict[int, list[str]], dict[int, list[str]]]:
         anchored = pg.foliation.anchor_line(folio)
         if anchored:
             at_line.setdefault(anchored, []).append(f"{folio}*")
+            continue
+        # !! A PLACE WITH NO LINE SITS AT THE HEAD OR AT THE FOOT, and the
+        # ORDINAL is what tells them apart -- the ANCHOR cannot, because `a0`
+        # and both `f` places all answer `<module>`. `f1` was drawn at line 1
+        # with `f0`, so the file's own FOOT was rendered at its HEAD.
+        #
+        # ! ZERO IS THE HEAD AND ANYTHING ELSE IS PAST THE END, which is what
+        # `anchor_num` already means: 0 is *no anchor*, and the foot answers one
+        # past every line of CODE. ! A first pass compared that ordinal against
+        # the count of FILE lines -- 58 against 205 on `repo.py` -- so the foot
+        # kept rendering at the head. Two units, one comparison.
+        if pg.foliation.anchor_num(folio):
+            gap_above.setdefault(_PAST_THE_END, []).append(f"{folio}*")
         else:
             gap_above.setdefault(1, []).append(f"{folio}*")
     return at_line, gap_above
@@ -114,6 +130,9 @@ def margin(pg, text: str) -> str:
         for folio in gap_above.get(n, []):
             out.append(f"{'':>{MARGIN}} .. {folio}")
         out.append(f"{' '.join(at_line.get(n, [])):>{MARGIN}} | {line}")
+    # ! The foot of the page, drawn after every line of it -- see `_PAST_THE_END`.
+    for folio in gap_above.get(_PAST_THE_END, []):
+        out.append(f"{'':>{MARGIN}} .. {folio}")
     return "\n".join(out)
 
 

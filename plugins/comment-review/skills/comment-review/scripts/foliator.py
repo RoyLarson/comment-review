@@ -326,12 +326,33 @@ class Foliator:
 
     series: str
     places: dict[str, str] = field(default_factory=dict)
+    #: folio -> WHICH TRIGGER it was emitted at, as an index into `triggers()`:
+    #: 0 is the MODULE, 1..N are the lines of code, N+1 is EOF.
+    #:
+    #: !! THE WALK KNOWS THIS AND USED TO THROW IT AWAY, which is the same
+    #: mistake the discarded foliators were. `anchor_num` rebuilt it afterwards
+    #: with three separate arithmetics -- `n + 1` for a gap, `len(code) + 1` for
+    #: the file's foot, `code.index(line) + 1` for the rest -- and each was a
+    #: GUESS about which trigger a place had come from.
+    #:
+    #: ! THE ANCHOR CANNOT ANSWER IT, which is why the guesses were needed. The
+    #: closing gap is emitted at EOF and anchored to the LAST LINE OF CODE, a
+    #: different trigger; `f0` and `f1` both answer `<module>` from opposite
+    #: ends of the file. Recording the trigger is the only thing that
+    #: distinguishes them without inference.
+    trigger: dict[str, int] = field(default_factory=dict)
     _step: int = 0
 
-    def emit(self, anchor: str) -> str:
-        """Take this trigger's number, record the anchor, and return the folio."""
+    def emit(self, anchor: str, trigger: int) -> str:
+        """Take this trigger's number, record what it is, and return the folio.
+
+        Args:
+            anchor: the line of code this place is attached to, or `MODULE`.
+            trigger: which trigger this is, indexing `triggers()`.
+        """
         got = folio(self.series, self._step)
         self.places[got] = anchor
+        self.trigger[got] = trigger
         self._step += 1
         return got
 
@@ -486,7 +507,7 @@ class Foliation:
         return following or previous
 
     def anchor_num(self, folio: str) -> int:
-        """The ORDINAL of this place's anchor among the lines of code. 0 if none.
+        """WHICH TRIGGER this place was emitted at, indexing `triggers()`.
 
         !! A LINE MOVES AND AN ORDINAL DOES NOT, which is the whole reason this
         exists. Roy, 2026-08-21: *"where it is in the original and where it ends
@@ -505,39 +526,35 @@ class Foliation:
         `def f():` becoming `def RENAMED():` shifts nothing -- and the anchor
         text alone cannot cheaply see an insertion. The pair sees both.
 
-        ! 1-BASED, so 0 keeps meaning *no anchor*: the MODULE, which `a0` and
-        every `f` answer to, sits above everything the file declares.
+        !! IT IS READ FROM THE WALK, NOT RECONSTRUCTED, since 2026-08-22. Roy,
+        on being shown a consumer that trusted the reconstruction: *"you hardened
+        the mistake that you were just fixing -- that the walk didn't emit ALL
+        anchors, which caused the problem."* THREE ARITHMETICS ARE GONE:
+
+            b_n         -> n + 1
+            f_n         -> 0, or len(code) + 1
+            everything  -> code.index(anchor_line) + 1
+
+        ! EACH WAS A GUESS ABOUT WHICH TRIGGER A PLACE CAME FROM, and the anchor
+        could not settle it: the closing gap is emitted at EOF and anchored to
+        the LAST LINE OF CODE -- a different trigger -- while `f0` and `f1` both
+        answer `<module>` from opposite ends of the file. `Foliator.emit` records
+        the trigger, so this is a lookup.
+
+        ! THE VALUES ARE UNCHANGED, and that is checkable: 0 for the MODULE,
+        1..N for the lines of code, N+1 for EOF, which is what the three
+        expressions computed. What changed is that a place now SAYS where it
+        came from instead of being asked to prove it afterwards.
+
+        ! 0 IS THE MODULE, which is a real position and not a miss -- the first
+        trigger every foliator steps past. `a0` and `f0` answer it because a
+        licence header and a module docstring sit above everything the file
+        declares.
         """
-        # !! A GAP ANSWERS FROM ITS OWN ORDINAL, and that is what makes the EOF
-        # gap ordinary. `b_n` sits above `c_n` -- MEASURED over 3,863 gaps, no
-        # exceptions -- so `b_n` is `n + 1`, and the closing gap is ONE PAST
-        # every named anchor rather than sharing a bucket with the gap above the
-        # last statement. Roy, 2026-08-21: *"the anchor_num will resolve to the
-        # end of the file because it will be 1 past all of the named anchors."*
-        #
-        # ! IT IS NOT A SPECIAL CASE FOR THE CLOSING GAP. The same expression
-        # answers for every `b`; the last one simply has no `c` at its ordinal,
-        # which is exactly what "past the end" means.
-        if folio.startswith(GAP):
-            return int(folio[len(GAP) :]) + 1
-        # !! THE FILE'S MATTER ANSWERS FROM ITS ORDINAL TOO, and that is what
-        # tells the two ends apart. Roy, 2026-08-21, on the past-the-end bucket:
-        # *"b3 and f2."* Both `f` places answer to the MODULE, so the ANCHOR
-        # cannot say which is the head and which the foot -- which is why they
-        # were two fields, `_front` and `_back`, until this answered it. The
-        # ordinal can: `f0` is the head at 0, and every later `f` is the foot,
-        # past every named anchor, beside the closing gap it follows.
-        if folio.startswith(FRONT):
-            return len(self._code) + 1 if int(folio[len(FRONT) :]) else 0
-        line = self.anchor_line(folio)
-        if not line:
+        walker = self.walk.get(folio[:1])
+        if walker is None:
             return 0
-        try:
-            return self._code.index(line) + 1
-        except ValueError:
-            # ! A line the walk never counted as CODE anchors nothing. It is a
-            # real answer for a page whose reader refused the source.
-            return 0
+        return walker.trigger.get(folio, 0)
 
     def gap_bounds(self, folio: str) -> tuple[int, int]:
         """The two lines of CODE around this gap; 0 for the file's own edge.
@@ -702,19 +719,25 @@ def foliate(
     # released in the loop below. For an above-doc language every entry is filed
     # against the declaration's own step; Python's are filed later.
     release: dict[tuple[int, str], list[str]] = {}
-    for trigger in triggers(list(code)):
+    # !! EVERY EMIT NAMES THE TRIGGER IT FIRED AT, and `at` is that position --
+    # 0 the MODULE, 1..N the lines of code, N+1 the EOF. The walk knew it and
+    # threw it away until 2026-08-22, leaving `anchor_num` to guess afterwards.
+    # ! It cannot be recovered from the anchor: the closing gap fires at EOF and
+    # records the LAST LINE OF CODE, and both `f` places record `<module>` from
+    # opposite ends of the file.
+    for at, trigger in enumerate(triggers(list(code))):
         # ! A SENTINEL IS A STRING AND A LINE IS AN INT. Neither sentinel is a
         # line, which is what makes them sentinels.
         if isinstance(trigger, str):
             if trigger == MODULE:
-                documented = a.emit(MODULE) if module_insert is not None else ""
+                documented = a.emit(MODULE, at) if module_insert is not None else ""
                 # ! `f0` is the FILE'S OWN matter, bounded by nothing: the head
                 # of the file on both sides. It is not the gap above the first
                 # line of code -- that is `b0`, and conflating them made the two
                 # exclusive.
                 # ! THE HEAD OF THE PAGE, in the order a reader meets it: the
                 # file's own matter, then the module's own documentation.
-                out.reading.append(f.emit(MODULE))
+                out.reading.append(f.emit(MODULE, at))
                 if documented:
                     out.reading.append(documented)
                 # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
@@ -723,13 +746,26 @@ def foliate(
                 # will stay aligned until there is some specific reason to split
                 # them."*
             else:
-                # !! `b` ALONE EMITS AT EOF, and it is a TRIGGER rather than an
-                # N+1 rule -- ruled 2026-08-21 so that `f`'s tail place becomes a
-                # row at this step rather than a second arithmetic. The gap after
-                # the last line has no line below it, so it takes the one above;
-                # a gap is bounded by code, and that is the bound it has. ! On a
-                # file with no code at all this is the gap that IS the file.
-                closing = b.emit(next(reversed(code.values())) if code else MODULE)
+                # !! A PLACE'S ANCHOR IS THE TRIGGER IT WAS EMITTED AT. One rule,
+                # no series exempt: `MODULE` at the head, the line of code in
+                # between, `EOF` at the foot.
+                #
+                # !! THE CLOSING GAP RECORDED THE LAST LINE OF CODE UNTIL
+                # 2026-08-22, and that broke Roy's own ruling of 2026-08-21 in
+                # the sentence that made this a trigger: *"that makes two
+                # conditions where you would have to understand to keep the code
+                # consistent, and why 1 gets a +1 and the other gets some other
+                # treatment -- which is the reason each foliator owns its own
+                # rules."* EOF became a trigger so a place emitted here is a ROW
+                # at it. Reaching back to the previous trigger for an anchor
+                # reinstated the special case one level down.
+                #
+                # ! Roy, 2026-08-22: *"the last `b` triggers on EOF and records
+                # either `<eof>` or `<module>`, and its anchor and where it is
+                # placed becomes a determined fact by the compositor."* WHERE it
+                # sets is not this walk's business, and `gap_bounds` already
+                # answers it from the ordinal without reading an anchor at all.
+                closing = b.emit(EOF, at)
                 # !! `f` EMITS ITS SECOND PLACE HERE, and this is the reason the
                 # EOF trigger is a trigger rather than an N+1 rule. A file's
                 # matter sits at BOTH ends and neither end belongs to a gap:
@@ -743,14 +779,18 @@ def foliate(
                 # the last one, which is this gap.
                 out.reading.extend(release.pop((len(code), GAP), ()))
                 out.reading.append(closing)
-                out.reading.append(f.emit(MODULE))
+                # ! `EOF` FOR THE SAME REASON THE GAP TAKES IT: the anchor names
+                # the trigger. `f0` answers `<module>` because that is where it
+                # was emitted, not because the file's matter belongs to the
+                # module -- and the foot answers `<eof>` on the same rule.
+                out.reading.append(f.emit(EOF, at))
             continue
         n = trigger
         line = code[n]
         if seen in documentable:
             # ! 0 is the module, so a declaration's ordinal is its position
             # among the documentable ones, counting from 1.
-            declared = a.emit(line)
+            declared = a.emit(line, at)
             out.lines[declared] = n
             # !! TWO FACTS, AND THE WALK USES ONLY THE SECOND. `page.documentable`
             # states the LINE the doc occupies -- which `page.documented_by` walks
@@ -759,8 +799,8 @@ def foliate(
             # holds the place until that step and compares nothing.
             _insert_at, at_step, side = documentable[seen]
             release.setdefault((at_step, side), []).append(declared)
-        gap = b.emit(line)
-        beside = c.emit(line)
+        gap = b.emit(line, at)
+        beside = c.emit(line, at)
         out.lines[beside] = n
         # !! THE ORDER A READER MEETS THEM: the gap above this line, then any
         # declaration whose documentation belongs at or before it, then the line

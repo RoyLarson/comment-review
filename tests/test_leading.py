@@ -30,6 +30,7 @@ sys.path.insert(
 )
 
 import compositor  # noqa: E402
+import galley  # noqa: E402
 import lexer  # noqa: E402
 import page as page_mod  # noqa: E402
 
@@ -172,17 +173,18 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
 
     def test_a_DROP_keeps_the_leading_ABOVE_it_and_loses_its_own(self):
         # !! ROY'S RULE, 2026-08-21: *"the live first key foliation lives, the
-        # drop first key dies. The live one gets a new key that takes the new end
-        # and beginning."* An edge belongs to the place BEFORE it.
+        # drop first key dies."* An edge belongs to the place BEFORE it.
         #
         # ! Dropping the module docstring leaves the licence and the import with
-        # ONE blank between them -- the edge `(f0, a0)` survives its second key
-        # and now separates `f0` from `c0`. The edge `(a0, c0)` dies with `a0`,
-        # which is what stops the two blanks collapsing into a run of two.
+        # ONE blank between them: the edge below `f0` survives, and the edge
+        # below `a0` is emptied with it, which is what stops the two blanks
+        # collapsing into a run of two.
+        #
+        # !! THROUGH THE GALLEY, because a `drop` is an EDIT and the compositor
+        # decides nothing -- see `galley.reset`. Emptying `raw_lines` by hand
+        # here tested the compositor's mechanics and called it a drop.
         page = built("m.py", self.SRC)
-        for b in page:
-            if b.address.split("@")[-1] == "a0":
-                b.raw_lines = []
+        self.assertEqual(galley.reset(page, {"m.py@a0": ""}), [])
         self.assertEqual(compositor.set_page(page), "# Copyright 2001.\n\nimport os\n")
 
     def test_a_DROP_of_the_FIRST_place_takes_its_own_edge_with_it(self):
@@ -190,12 +192,46 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
         # drops that blank too and the file opens on the docstring. Before the
         # rule it opened on a BLANK LINE, the leading having no owner to die with.
         page = built("m.py", self.SRC)
-        for b in page:
-            if b.address.split("@")[-1] == "f0":
-                b.raw_lines = []
+        self.assertEqual(galley.reset(page, {"m.py@f0": ""}), [])
         self.assertEqual(
             compositor.set_page(page), '"""What this is."""\n\nimport os\n'
         )
+
+    def test_a_MOVE_vacates_its_SOURCE_exactly_as_a_drop_does(self):
+        # !! TWO EDITS, ONE OPERATION. A `move` takes the text to its
+        # destination and leaves an empty replacement behind, and the source is
+        # vacated by the same `_vacate` a `drop` uses -- the prose is no longer
+        # there, so the space it introduced is no longer owed.
+        #
+        # ! Roy, 2026-08-22: *"the place/foliation becomes the empty sentinel,
+        # not that the place itself disappears."*
+        page = built("m.py", self.SRC)
+        moved = '"""What this is."""'
+        self.assertEqual(
+            galley.reset(page, {"m.py@b0": moved, "m.py@a0": ""}),
+            [],
+        )
+        self.assertEqual(
+            compositor.set_page(page),
+            '# Copyright 2001.\n\n"""What this is."""\nimport os\n',
+        )
+        # !! THE SOURCE IS STILL A PLACE, which is the whole of the ruling. It
+        # holds nothing and can be cited again.
+        vacated = next(b for b in page if b.address.split("@")[-1] == "a0")
+        self.assertEqual(vacated.raw_lines, [])
+        self.assertEqual(vacated.address, "m.py@a0")
+
+    def test_an_ALWAYS_empty_place_takes_no_leading_with_it(self):
+        # !! THE DISTINCTION A PLACE CANNOT MAKE ABOUT ITSELF. An emptied place
+        # and one that was never filled hold the same empty sentinel -- Roy,
+        # 2026-08-22: *"places are involatile; having an empty sentinel is the
+        # key, not that the place disappears."* So the compositor cannot tell
+        # them apart and must not try: it advances past both and sets the space
+        # each owns. Only the EDIT knows a drop happened.
+        page = built("m.py", self.SRC)
+        empty = [b for b in page if b.address and not b.raw_lines]
+        self.assertTrue(empty, "the fixture must carry an unfilled place")
+        self.assertEqual(compositor.set_page(page), self.SRC)
 
     def test_a_DROP_in_the_MIDDLE_needs_no_RE_KEYING_of_the_survivor(self):
         """!! ROY'S RULE, WITHOUT THE REWRITE IT SOUNDS LIKE IT NEEDS.

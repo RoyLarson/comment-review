@@ -641,11 +641,28 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> dict[str, 
         (b for b in paragraphs if b.original_start and b.kind != LEADING),
         key=lambda b: b.original_start or 0,
     )
+    # !! THE HEAD OF THE FILE IS A PLACE, NOT AN ABSENCE, and that is the whole
+    # of this fix. Roy, 2026-08-22: *"the drift is happening because you are
+    # short-cutting the opening anchor emission instead of doing it exactly. If
+    # it happened then the anchor and the series would always get the `f0` as it
+    # should, even if `f0` is dark-matter."*
+    #
+    # ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING THAT HOLDS LINES, so this used to
+    # answer `""`. MEASURED before the fix: 48 edges in the corpus were keyed on
+    # the empty string, and an earlier note of mine called them "the file's own
+    # ends" -- they were this. The walk emits `f0` at the MODULE on EVERY file,
+    # filled or not, so there was always a real place to name.
+    head = foliation.reading[0] if foliation.reading else ""
     for b in sorted(paragraphs, key=lambda b: b.original_start or 0):
         if b.kind != LEADING or not b.symbol:
             continue
         start = b.original_start or 0
-        before = ""
+        # !! IT IS THE LAST PLACE THAT HELD LINES, never merely the last place
+        # SEEN. A first pass walked the reading order and took whatever came
+        # last, which handed the space below a docstring to the EMPTY gap under
+        # it -- so an `add` into that gap set its comment ABOVE the blank line
+        # and away from the code it documents.
+        before = head
         for other in set_places:
             if (other.original_end or 0) >= start:
                 break

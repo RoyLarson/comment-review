@@ -53,8 +53,8 @@ class TestAFoliatorHoldsItsOwnSteps(unittest.TestCase):
 
     def test_it_emits_from_its_own_counter(self):
         f = foliator.Foliator("b")
-        self.assertEqual(f.emit("<module>"), "b0")
-        self.assertEqual(f.emit("N = 0"), "b1")
+        self.assertEqual(f.emit("<module>", 0), "b0")
+        self.assertEqual(f.emit("N = 0", 1), "b1")
 
     def test_a_SKIPPED_trigger_takes_no_number(self):
         """!! A SERIES THAT DOES NOT EMIT FOR A TRIGGER DOES NOT ADVANCE EITHER.
@@ -67,19 +67,96 @@ class TestAFoliatorHoldsItsOwnSteps(unittest.TestCase):
         """
         f = foliator.Foliator("c")
         self.assertFalse(hasattr(f, "skip"))
-        self.assertEqual(f.emit("N = 0"), "c0")
+        self.assertEqual(f.emit("N = 0", 1), "c0")
 
     def test_it_records_the_anchor_it_emitted_against(self):
         f = foliator.Foliator("a")
-        f.emit("<module>")
-        f.emit("def wrapper(fn):")
+        f.emit("<module>", 0)
+        f.emit("def wrapper(fn):", 1)
         self.assertEqual(f.places, {"a0": "<module>", "a1": "def wrapper(fn):"})
 
     def test_two_foliators_do_not_share_a_counter(self):
         a, b = foliator.Foliator("a"), foliator.Foliator("b")
-        b.emit("<module>")
-        b.emit("N = 0")
-        self.assertEqual(a.emit("<module>"), "a0")
+        b.emit("<module>", 0)
+        b.emit("N = 0", 1)
+        self.assertEqual(a.emit("<module>", 0), "a0")
+
+
+class TestEveryPlaceRecordsTheTriggerItFiredAt(unittest.TestCase):
+    """`anchor_num` is READ from the walk, never reconstructed after it.
+
+    !! THE WALK KNEW THIS AND THREW IT AWAY. Roy, 2026-08-22, on a consumer that
+    trusted the reconstruction instead: *"you hardened the mistake that you were
+    just fixing -- that the walk didn't emit ALL anchors, which caused the
+    problem."* Three arithmetics stood in for it: `n + 1` for a gap,
+    `len(code) + 1` for the file's foot, `code.index(anchor) + 1` for the rest.
+
+    ! Driven by `foliate`, because the claim is about the WALK. A hand-built
+    `Foliator` handed two numbers can only show that `emit` assigns them.
+    """
+
+    def setUp(self):
+        self.foliation = foliator.foliate(EDGE_CODE, EDGE_DOCUMENTABLE)
+        self.walk = foliator.triggers(list(EDGE_CODE))
+
+    def test_the_walk_OPENS_on_the_module_and_CLOSES_on_eof(self):
+        """!! THE TWO ENDS ARE THE WALK'S OWN, not something a file can supply.
+
+        Every place's position indexes this list, so the list having exactly one
+        head and one foot is what the position means. ! Roy, 2026-08-22: *"the
+        only other test that has to be put in is that the walk starts and ends
+        with those, and not by accident or injection."*
+
+        ! BY ACCIDENT: on a file with NO code at all, the two sentinels are the
+        whole walk, and they must still be one each and in that order.
+
+        ! BY INJECTION: a sentinel is a STRING and a line is an INT, which is
+        the only thing separating them. A file whose code literally reads
+        `<eof>` supplies the text, never the trigger.
+        """
+        for name, code in (
+            ("the edge case", EDGE_CODE),
+            ("no code at all", {}),
+            ("one line", {1: "x = 1"}),
+            ("code that SPELLS a sentinel", {1: foliator.EOF, 2: foliator.MODULE}),
+        ):
+            with self.subTest(shape=name):
+                walk = foliator.triggers(list(code))
+                self.assertEqual(walk[0], foliator.MODULE)
+                self.assertEqual(walk[-1], foliator.EOF)
+                self.assertEqual(walk.count(foliator.MODULE), 1)
+                self.assertEqual(walk.count(foliator.EOF), 1)
+                # ! Everything between them is a LINE, which is what makes the
+                # two sentinels unforgeable from a file's contents.
+                self.assertTrue(all(isinstance(n, int) for n in walk[1:-1]))
+
+    def test_indexing_the_walk_with_what_a_place_REPORTS_gives_its_trigger(self):
+        """!! THE INVARIANT: `triggers()[anchor_num(folio)]` is the trigger that
+        place was emitted at, for every place on the page.
+
+        ! WHERE THAT TRIGGER IS A LINE OF CODE, IT IS THE PLACE'S OWN ANCHOR --
+        which is what makes this a cross-check rather than a restatement. It
+        would fail on any emit that named the wrong position, and it cannot be
+        satisfied by re-deriving the number from the folio.
+
+        !! THE TWO SENTINELS ARE THE CASES THE ANCHOR CANNOT ANSWER, and they
+        are exactly the ones that needed arithmetic before. `MODULE` is `a0` and
+        `f0`; `EOF` is the closing gap, whose anchor is the LAST LINE OF CODE --
+        a different trigger's line, because it has none below it -- and the file
+        foot, which answers `<module>` from the other end of the file.
+        """
+        places = self.foliation.places
+        self.assertTrue(places)
+        for folio in sorted(places):
+            at = self.foliation.anchor_num(folio)
+            with self.subTest(folio=folio):
+                trigger = self.walk[at]
+                if isinstance(trigger, int):
+                    self.assertEqual(
+                        EDGE_CODE[trigger], self.foliation.anchor_of(folio)
+                    )
+                else:
+                    self.assertIn(trigger, (foliator.MODULE, foliator.EOF))
 
 
 class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
@@ -134,9 +211,11 @@ class TestTheWalkOverRoysEdgeCase(unittest.TestCase):
         # prose introduces.
         self.assertEqual(self.places["b0"], "N = 0")
         self.assertEqual(self.places["b1"], "def wrapper(fn):")
-        # ! The gap at the end of the file has no line below it and takes the
-        # one above, because a gap is bounded by code and that is the bound.
-        self.assertEqual(self.places["b7"], "    return counter")
+        # !! THE GAP AT THE END IS ANCHORED TO THE TRIGGER IT WAS EMITTED AT,
+        # since 2026-08-22. It took the line ABOVE it until then -- the previous
+        # trigger's -- which is the special case Roy's 2026-08-21 ruling made
+        # EOF a trigger to remove.
+        self.assertEqual(self.places["b7"], foliator.EOF)
         self.assertEqual(self.places["c0"], "N = 0")
 
     def test_no_folio_is_emitted_twice(self):

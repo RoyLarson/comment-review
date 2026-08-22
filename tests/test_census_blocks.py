@@ -13,7 +13,7 @@ import page
 import prove_unchanged as pu
 from _paths import FIXTURES, SCRIPTS
 from _transcription import transcribes
-from foliator import FRONT
+from foliator import EOF, FRONT
 
 
 def blocks_for(name):
@@ -844,10 +844,16 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
                 continue
             with self.subTest(address=paragraph.address):
                 # ! AN `f` IS THE FILE'S OWN place -- `f0` at the head, `f1` at
-                # the foot. Its anchor is the module, which has no line to sit
-                # beside and so no `c` to copy. ! Written as the SERIES rather
-                # than as `@f0`, so the day a third is emitted it needs no edit.
+                # the foot -- and neither is anchored to a line, so neither has
+                # a `c` to copy. ! Written as the SERIES rather than as `@f0`,
+                # so the day a third is emitted it needs no edit.
                 if paragraph.address.split("@")[-1].startswith(FRONT):
+                    continue
+                # !! NOR IS THE CLOSING GAP, since 2026-08-22. It is emitted at
+                # the EOF trigger and anchored to it, so there is no line of
+                # code for a `c` to agree with -- which is the point: it used to
+                # borrow the last line's, and then two places answered one line.
+                if paragraph.anchor == EOF:
                     continue
                 self.assertIn(paragraph.anchor, margins.values())
 
@@ -865,14 +871,21 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
             [],
         )
 
-    def test_the_gap_at_the_END_takes_the_line_ABOVE_it(self):
-        # ! It has no line below. Left empty this was 14 paragraphs of this repo,
-        # one per file, every one a broken record.
+    def test_the_gap_at_the_END_is_anchored_to_EOF(self):
+        # !! IT TOOK THE LINE ABOVE IT UNTIL 2026-08-22, which broke Roy's own
+        # 2026-08-21 ruling in the sentence that made EOF a trigger: a place
+        # emitted at a trigger is a ROW at that trigger, never *"some other
+        # treatment"*. Reaching back to the previous trigger for an anchor put
+        # the special case back one level down.
+        #
+        # ! Roy, 2026-08-22: *"the last `b` triggers on EOF and records either
+        # `<eof>` or `<module>`, and its anchor and where it is placed becomes a
+        # determined fact by the compositor."*
         gaps = [b for b in self.paragraphs if b.kind == "interval"]
         # ! By ADDRESS, not by line: a gap holding no line has None for both
         # ends, and the `b` series counts down the page in order anyway.
         last = max(gaps, key=lambda b: int(b.address.split("@")[-1][1:]))
-        self.assertEqual(last.anchor, "    return os")
+        self.assertEqual(last.anchor, EOF)
 
     def test_no_block_in_this_repos_own_scripts_lacks_one(self):
         # !! The hole, run as a gate: 6,376 of 6,531 paragraphs carried an empty

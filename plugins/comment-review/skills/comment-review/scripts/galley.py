@@ -79,10 +79,32 @@ def reset(page, edits: dict[str, str]) -> list[str]:
     difference between this and the splice it replaces: growing a paragraph from
     one line to four used to shift every range below it.
 
-    ! AN EMPTY REPLACEMENT IS A `drop`, and needs no case of its own -- the
-    paragraph holds no lines and sets none. Its leading goes with it, because an
-    edge belongs to the place before it and a place that sets nothing never
-    owns one.
+    !! A PLACE IS NEVER REMOVED -- IT IS VACATED. Roy, 2026-08-22, correcting the
+    reading of his own earlier ruling: *"I really meant that the place/foliation
+    becomes the empty sentinel, not that the place itself disappears. Places are
+    involatile."* So `drop` does not delete anything: the paragraph stays, at the
+    same address, holding no lines. That is what keeps it citable afterwards --
+    an `add` can fill the very place a `drop` emptied.
+
+    !! `drop` AND THE SOURCE HALF OF A `move` ARE THE SAME OPERATION, and both
+    go through `_vacate`. A `move` is expressed as two edits -- the destination
+    takes the text, the source takes an empty replacement -- and the source is
+    vacated exactly as a `drop` vacates, because in both cases the prose is no
+    longer there and the space it introduced is no longer owed.
+
+    ! THE LEADING BELOW IT IS VACATED TOO, for the same reason and by the same
+    rule: Roy, 2026-08-21, *"the live first key foliation lives, the drop first
+    key dies."* The `d` becomes the empty sentinel; it does not cease to exist.
+    Without it the blank line the paragraph introduced stands over whatever
+    follows.
+
+    !! AND IT IS AN EDITORIAL DECISION MADE HERE, not in the compositor. It read
+    as a side-effect there until 2026-08-22 -- the loop skipped a place that set
+    nothing, so its edge was never asked for -- which had the module chartered
+    to decide NOTHING carrying out a `drop`. ! It could not have been right
+    there in any case: an emptied place and an always-empty one hold the SAME
+    empty sentinel, so the compositor cannot tell them apart. Only the EDIT
+    knows.
 
     ! A `c` TAKES ONLY THE PROSE. The compositor sets the line of code and joins
     what sits beside it, so the replacement is the comment and its separator --
@@ -97,6 +119,10 @@ def reset(page, edits: dict[str, str]) -> list[str]:
         landed.
     """
     by_place: dict[str, list] = {}
+    # ! The `d` a place owns, so a `drop` can empty it too. Leading carries a
+    # SYMBOL and never an address -- it names no place -- so it is found here by
+    # that symbol and nowhere by a folio.
+    by_symbol = {b.symbol: b for b in page if b.symbol}
     for b in page:
         if b.address:
             by_place.setdefault(folio_of(b.address), []).append(b)
@@ -117,8 +143,33 @@ def reset(page, edits: dict[str, str]) -> list[str]:
                 " replacement can be placed against it"
             )
             continue
-        found[0].raw_lines = replacement.splitlines()
+        if replacement:
+            found[0].raw_lines = replacement.splitlines()
+            continue
+        # ! AN EMPTY REPLACEMENT IS A VACATION -- a `drop`, or the source half
+        # of a `move`. Anything else leaves the space below untouched, because
+        # the separation a reader saw is not the author's to lose by editing the
+        # text above it.
+        _vacate(found[0], by_symbol.get(page.leading.get(folio_of(address), "")))
     return refused
+
+
+def _vacate(paragraph, leading) -> None:
+    """Empty this place and the space below it, without removing either.
+
+    !! THE EMPTY SENTINEL IS THE POINT. Roy, 2026-08-22: *"the place/foliation
+    becomes the empty sentinel, not that the place itself disappears."* Both
+    paragraphs keep their address, their anchor and their position in the
+    reading order; they hold no lines. A place that vanished could not be cited
+    by the `add` that fills it next.
+
+    Args:
+        paragraph: the place being vacated.
+        leading: the `d` it owns, or None where nothing blank follows it.
+    """
+    paragraph.raw_lines = []
+    if leading is not None:
+        leading.raw_lines = []
 
 
 def drifted(page, census: list[dict]) -> list[str]:
