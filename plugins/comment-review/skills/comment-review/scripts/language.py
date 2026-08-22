@@ -151,11 +151,23 @@ LANGUAGES: tuple[Language, ...] = (
         doc_is_structural=True,
         # ! A rune literal is one character.
         char_quotes=("'",),
-        # !! A RAW STRING CROSSES LINES, and the backtick is not in `quotes`
-        # above because a raw string takes no escapes. It is declared here so
-        # `prove_unchanged` REFUSES a file holding one rather than stripping a
-        # line inside it as a comment -- MEASURED 2026-08-22 on the same shape
-        # in Rust: a payload edited INSIDE a literal reported PROVEN, exit 0.
+        # !! THE BACKTICK IS A STRING DELIMITER AND MUST BE BLANKED. Leaving it
+        # out on the ground that a raw string takes no escapes was reasoning
+        # about the wrong cost: `return `http://example.com/a`` then censused as
+        # a TRAILING COMMENT carrying the URL as prose, the `return` line left
+        # `return `http:` and dropped out of `code_lines`, and every `b`/`c`
+        # below it renumbered. MEASURED 2026-08-22 on that exact line.
+        # ! What the old note got right is that this blanking is imperfect here:
+        # `_strip_strings` honours a backslash, and a raw string ending in one
+        # (`` `C:\` ``) runs past its closer. That shape is rarer than a URL by
+        # a wide margin, and both are subsumed when the reader becomes stateful
+        # -- `TODO/python-cannot-read-python.md`.
+        quotes=('"', "'", "`"),
+        # !! AND IT CROSSES LINES, which is a separate claim with a separate
+        # consumer: `prove_unchanged` REFUSES a file holding one rather than
+        # trusting a per-line read of it -- MEASURED 2026-08-22 on the same
+        # shape in Rust, where a payload edited INSIDE a literal reported
+        # PROVEN at exit 0.
         spanning_quotes=("`",),
         # ! `package` is NOT here: Go's package comment IS the file's own
         # documentation, which is `a0`. Listing it gave the same prose two
@@ -184,6 +196,13 @@ LANGUAGES: tuple[Language, ...] = (
         (("/*", "*/"),),
         doc_block=("/**",),
         char_quotes=("'",),
+        # !! A RAW STRING LITERAL CROSSES LINES. `R"(...)"` takes no escapes and
+        # ends only at its matching delimiter, so a line inside one beginning
+        # `//` is censused as a comment and deleted from BOTH fingerprints --
+        # the fail-open measured on Rust 2026-08-22. The prefix is declared
+        # rather than the bare quote because `R"` is distinctive: `LR"`, `u8R"`
+        # and `uR"` all contain it, and ordinary C++ strings do not.
+        spanning_quotes=('R"',),
     ),
     Language(
         "java",
@@ -261,7 +280,12 @@ LANGUAGES: tuple[Language, ...] = (
             "delegate",
             "namespace",
         ),
-        spanning_quotes=('"""',),
+        # !! TWO SHAPES CROSS LINES HERE, and only the newer one was declared.
+        # `"""` is the C# 11 raw string; `@"..."` is the VERBATIM string and has
+        # been in the language since 1.0, so it is the one a real file holds. A
+        # `//` inside either is censused as a comment -- the fail-open measured
+        # on Rust 2026-08-22. ! `$@"` and `@$"` both contain `@"`.
+        spanning_quotes=('"""', '@"'),
     ),
     Language(
         "swift",
@@ -395,7 +419,18 @@ LANGUAGES: tuple[Language, ...] = (
         # parity is what a per-line reader cannot compute.
         spanning_quotes=("<<~", "<<-"),
     ),
-    Language("shell", (".sh", ".bash", ".zsh"), ("#",), declares=("function",)),
+    # ! A HEREDOC CROSSES LINES, and in shell `<<` is one almost always -- the
+    # only other reading is an arithmetic left shift inside `$(( ))`. A `#` line
+    # inside a heredoc body is DATA, and reading it as a comment deleted it from
+    # both fingerprints; the same fail-open measured on Rust 2026-08-22.
+    # ! `<<<` (herestring) and `<<-` both contain `<<`.
+    Language(
+        "shell",
+        (".sh", ".bash", ".zsh"),
+        ("#",),
+        declares=("function",),
+        spanning_quotes=("<<",),
+    ),
     Language("sql", (".sql",), ("--",), (("/*", "*/"),)),
     # ! `local function` is TWO WORDS on purpose: bare `local` opens a
     # variable, so matching it alone would declare every one of them.
@@ -403,20 +438,47 @@ LANGUAGES: tuple[Language, ...] = (
         "lua",
         (".lua",),
         ("--",),
-        (("--[[", "]]"),),
+        # ! Longest-first, so `--[==[` is tried before `--[=[` before `--[[`;
+        # matched the other way every level loses its `=` into the prose.
+        (("--[==[", "]==]"), ("--[=[", "]=]"), ("--[[", "]]")),
         declares=("function", "local function"),
         # ! A LONG STRING `[[ ... ]]` crosses lines. Declared for the same
         # reason as Go's backtick and Ruby's heredoc -- refuse the file rather
         # than strip a line inside the literal.
-        spanning_quotes=("[[",),
+        # !! THE LEVELLED FORMS ARE THE SAME CONSTRUCT AND WERE MISSING. Lua
+        # writes `[=[`, `[==[` and so on when the body itself holds brackets,
+        # and the comment form takes the level too. Without them `--[==[ ... ]==]`
+        # censused as ONE `matter` paragraph whose whole text was `[==[`, with
+        # the real prose below it counted as executable code. MEASURED 2026-08-22.
+        # ! THE LEVEL IS UNBOUNDED AND THIS LIST IS NOT -- it stops at two `=`,
+        # which is every level the wild uses. A deeper one is read as it was
+        # before this row changed, so the bound costs nothing it was not already
+        # costing; it is stated because a silent bound reads as completeness.
+        spanning_quotes=("[[", "[=[", "[==["),
     ),
-    # ! `"""` AND `'''` ARE TOML'S MULTI-LINE STRINGS, declared so a file
+    # !! TOML AND INI ARE TWO LANGUAGES AND WERE ONE ROW. They share `#` and
+    # nothing else: INI has ALSO always taken `;`, so every semicolon comment in
+    # a `.ini` was invisible and counted as executable code -- and TOML's
+    # multi-line strings do not exist in INI at all, so the joint row refused
+    # `.ini` files for a syntax they cannot hold. MEASURED 2026-08-22.
+    # ! Split rather than merged, per the rule the `c-family` and `js-family`
+    # rows were split under: *"every language gets all of the definitions
+    # necessary to parse it specifically, because anything else is failing the
+    # SRP rules."* A row serving two languages is wrong for at least one.
+    # ! `"""` and `'''` are TOML's multi-line strings, declared so a file
     # holding one is refused rather than proved through it.
     Language(
-        "toml-ini",
-        (".toml", ".ini", ".cfg"),
+        "toml",
+        (".toml",),
         ("#",),
         spanning_quotes=('"""', "'''"),
+    ),
+    # ! `;` is INI's original comment marker and `#` the later convention; both
+    # are live, so both are listed. There is no multi-line string in INI.
+    Language(
+        "ini",
+        (".ini", ".cfg"),
+        ("#", ";"),
     ),
     Language("yaml", (".yaml", ".yml"), ("#",)),
 )

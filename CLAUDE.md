@@ -299,7 +299,7 @@ elision and a dash are spelled the same. **When a ruling is quoted here, quote a
 commit that first recorded it is the source, and `git log -S` finds it.
 
 ! **AN EMPTY LIST MEANS THE LANGUAGE HAS NO `a` SERIES AT ALL** -- not an empty one. `yaml`,
-`toml-ini` and `sql` have no docstring practice, and carried an `a0` no verdict could fill until
+`toml`, `ini` and `sql` have no docstring practice, and carried an `a0` no verdict could fill until
 this landed. **C and C++ are deliberately in that group**: a C function opens with its RETURN
 TYPE, so the list could never be complete, and a spurious `a` renumbers every `a` below it.
 
