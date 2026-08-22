@@ -1,8 +1,8 @@
 # The corpora are nine Python projects, so every per-language rule is measured on Python and C alone
 
 ```
-Status:   blocked
-Progress: 0 of 6 tasks done
+Status:   in-progress
+Progress: 2 of 6 tasks done
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on the boundary table: 'Was this language
@@ -11,6 +11,13 @@ Raised:   2026-08-21 (Roy, 2026-08-21, on the boundary table: 'Was this language
 Updated:  2026-08-21 — Roy, 2026-08-21: 'this can land in another branch later. Probably
           even in a 0.2.5 version release' -- not the folio-placement branch, which
           needs no corpus for the ordering fix
+Advanced: 2026-08-22 — Ten corpora added to the manifest 2026-08-22 -- rust, go,
+          typescript, elasticsearch (javadoc), dotnet-runtime (xmldoc), llvm (doxygen),
+          rails (rdoc), neovim (lua), kotlin, swift -- every tag resolved against the
+          remote rather than guessed. ! Only neovim is FETCHED; the rest are rows, so
+          the remaining tasks are about measurement and not about the manifest. The one
+          fetch immediately found that 2,505 of 2,741 Lua declarations (91%) censused as
+          undocumented, which is the whole argument for this TODO.
 ```
 
 ## Objective
@@ -24,9 +31,9 @@ The corpora are nine Python projects, so every per-language rule is measured on 
       lua, cpp, go, ruby, RUST one file each
 - [ ] csharp, java, kotlin and swift have NO corpus file at all, yet each carries
       a keyword list giving it an a series
-- [ ] Add a Rust corpus to corpora.toml -- the keyword-list work gave Rust an a
+- [x] Add a Rust corpus to corpora.toml -- the keyword-list work gave Rust an a
       series and one file cannot check it
-- [ ] Add corpora for go, ruby, java, csharp, kotlin, swift -- or record in the
+- [x] Add corpora for go, ruby, java, csharp, kotlin, swift -- or record in the
       manifest that these languages ship unmeasured
 - [ ] Re-take the boundary distribution per language once the corpus covers them;
       the c->a row INVERTS between python (0 blanks 100%) and javascript (1 blank

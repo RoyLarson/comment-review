@@ -258,7 +258,7 @@ that changed a published name or rule:
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | comment-review | yes | 0/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | comment-review | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 
-### in-progress  (4)
+### in-progress  (5)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -266,6 +266,7 @@ that changed a published name or rule:
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | session * Roy (* 2 rulings) | yes | 1/8 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [verdicts-py-announces-one-subject-and-holds-four](verdicts-py-announces-one-subject-and-holds-four.md) | session * Roy (* 1 ruling -- the module names, which `docs/vocabulary.md` constrains) | yes | 7/8 | * **2,083 lines, four subjects, and a docstring announcing one.** The verdict table, a report reader, a per-finding checker and the join. !! `module-context` FOUND IT and then emitted a `patch` widening the docstring to announce TWO subjects -- the defect its own trigger is named for, applied as the remedy, and no `code_concerns` entry. Filed as the one miss in `evals/test-cases.jsonl`, pinned at `4fd8384`. ! Scheduled with the census filter because the lookup tool needs the verdict table to be a module, and because two open TODOs sit entirely inside one half each -- the bridge is COPIED into a new module if it is not rewritten during the cut. * Unruled: the four module names, which `docs/vocabulary.md` constrains by binding `the join` to `verdicts.py` |
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | session * Roy (* 1 ruling -- where the verdict table lives) | yes | 5/10 | The bridge landed and the rewrite did not |
+| [corpora-are-all-python](corpora-are-all-python.md) | comment-review | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
 ### decision-needed  (5)
 
@@ -282,7 +283,7 @@ other tasks can proceed without them._
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 
-### blocked  (6)
+### blocked  (5)
 
 _None._
 
@@ -291,7 +292,6 @@ _None._
 | [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 1/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | session | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [drop-the-column](drop-the-column.md) | session | — | 0/6 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
-| [corpora-are-all-python](corpora-are-all-python.md) | comment-review | — | 0/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 ---
 
 ## Completed
