@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 6 tasks done
+Progress: 0 of 7 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: that whole system of from census to findings to
@@ -42,3 +42,8 @@ The census to findings to verdicts path has never been determined against a back
       reviewer, reviewer to record, record to verdict -- with the fields NAMED, so
       that each of the TODOs above becomes either a task under it or superseded by
       it
+- [ ] THE RECORD/VERDICTS FINDINGS ARE FILED SEPARATELY, on record-and-verdicts-
+      disagree, deferred to an independent session. Four of them are ONE class:
+      record.py --check refuses a record verdicts.py admits, and the admitting one
+      is the gate that certifies a review. ! Which of the two is right is not
+      answerable until this determination settles what a record IS

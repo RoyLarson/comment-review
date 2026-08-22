@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (75)
+### open  (81)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -250,6 +250,12 @@ that changed a published name or rule:
 | [marketplace-resolves-live](marketplace-resolves-live.md) | comment-review | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | comment-review | yes | 0/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | comment-review | yes | 0/7 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
+| [tier-dispatched-on-name](tier-dispatched-on-name.md) | comment-review | yes | 0/5 | The tier is dispatched on the language NAME, so a second tokenized language is not a data row |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | comment-review | — | 0/10 | Ten findings in lexer.py and language.py, from three review rounds |
+| [census-walks-and-flushes](census-walks-and-flushes.md) | comment-review | — | 0/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | comment-review | yes | 0/5 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [page-and-foliator-scans](page-and-foliator-scans.md) | comment-review | — | 0/7 | page.py and foliator.py carry four scans that grow with the file and one CLI that contradicts the gate |
+| [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | comment-review | yes | 0/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 
 ### in-progress  (4)
 
@@ -268,7 +274,7 @@ other tasks can proceed without them._
 | [role-rule-register](role-rule-register.md) | Roy | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | session | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | comment-review | yes | 1/7 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
-| [front-half-undetermined](front-half-undetermined.md) | comment-review | yes | 0/6 | The census to findings to verdicts path has never been determined against a backend that works |
+| [front-half-undetermined](front-half-undetermined.md) | comment-review | yes | 0/7 | The census to findings to verdicts path has never been determined against a backend that works |
 
 ### in flight  (0)
 
