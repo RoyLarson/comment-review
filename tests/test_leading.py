@@ -150,6 +150,44 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
             {("f0", "a0"): "d0", ("a0", "c0"): "d1"},
         )
 
+    def test_an_ADD_to_an_empty_place_IS_SET(self):
+        # !! IT WAS DISCARDED IN SILENCE UNTIL 2026-08-21. An empty place holds
+        # no line, so the line-sorted reading order could not carry it and
+        # `set_page` emitted nothing -- no error, and a page identical to the one
+        # before the edit. An `add` cites exactly such a place.
+        page = built("m.py", self.SRC)
+        for b in page:
+            if b.address.split("@")[-1] == "b1":
+                b.raw_lines = ["# a new comment"]
+        self.assertIn("# a new comment", compositor.set_page(page))
+
+    def test_a_DROP_keeps_the_leading_ABOVE_it_and_loses_its_own(self):
+        # !! ROY'S RULE, 2026-08-21: *"the live first key foliation lives, the
+        # drop first key dies. The live one gets a new key that takes the new end
+        # and beginning."* An edge belongs to the place BEFORE it.
+        #
+        # ! Dropping the module docstring leaves the licence and the import with
+        # ONE blank between them -- the edge `(f0, a0)` survives its second key
+        # and now separates `f0` from `c0`. The edge `(a0, c0)` dies with `a0`,
+        # which is what stops the two blanks collapsing into a run of two.
+        page = built("m.py", self.SRC)
+        for b in page:
+            if b.address.split("@")[-1] == "a0":
+                b.raw_lines = []
+        self.assertEqual(compositor.set_page(page), "# Copyright 2001.\n\nimport os\n")
+
+    def test_a_DROP_of_the_FIRST_place_takes_its_own_edge_with_it(self):
+        # ! The mirror: `f0` owns the blank below it, so dropping the licence
+        # drops that blank too and the file opens on the docstring. Before the
+        # rule it opened on a BLANK LINE, the leading having no owner to die with.
+        page = built("m.py", self.SRC)
+        for b in page:
+            if b.address.split("@")[-1] == "f0":
+                b.raw_lines = []
+        self.assertEqual(
+            compositor.set_page(page), '"""What this is."""\n\nimport os\n'
+        )
+
     def test_a_doc_comment_one_blank_above_its_declaration_is_STILL_tied(self):
         # !! LEADING MUST NOT BREAK THE TIE. The walk up from a declaring line
         # skips blanks, and once those blanks were paragraphs it stopped at the
