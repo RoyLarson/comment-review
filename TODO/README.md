@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (72)
+### open  (73)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -247,6 +247,7 @@ that changed a published name or rule:
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | session | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | session | — | 0/11 | the closing quote and the comment beside it are both stored, so the file gains a line |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | comment-review | — | 0/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
+| [marketplace-resolves-live](marketplace-resolves-live.md) | comment-review | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
 
 ### in-progress  (4)
 
