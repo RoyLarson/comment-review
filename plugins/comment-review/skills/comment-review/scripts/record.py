@@ -725,7 +725,7 @@ def slot(paragraph: dict) -> dict:
         # ! The FULL address survives where a reference crosses pages -- a
         # `move` destination may name another file, and `galley --edits` is
         # keyed across the whole run. `address_for` composes it.
-        "place": folio_of(str(paragraph.get("address", "")))[1],
+        "place": folio_of(str(paragraph.get("address", ""))).folio,
         # ! `null`, not `""`. An unruled paragraph must be distinguishable from one
         # ruled with an empty verdict, and only one of those is a coverage gap.
         "verdict": None,
@@ -913,7 +913,7 @@ def seeded_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
     """
     if paragraph is None:
         return [f"{where}: place {rec.get('place')!r} is not in the census"]
-    want = folio_of(str(paragraph.get("address", "")))[1]
+    want = folio_of(str(paragraph.get("address", ""))).folio
     if rec.get("place") != want:
         return [
             f"{where}: `place` reads {rec.get('place')!r} and the census says"

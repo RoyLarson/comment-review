@@ -583,11 +583,11 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         list(page.code_lines(with_header, [vars(b) for b in got]))
         found = foliator.for_anchor("<module>", FRONT, [vars(b) for b in got])
         self.assertEqual(
-            sorted(foliator.folio_of(b["address"])[1] for b in found), ["f0"]
+            sorted(foliator.folio_of(b["address"]).folio for b in found), ["f0"]
         )
         found = foliator.for_anchor(foliator.EOF, FRONT, [vars(b) for b in got])
         self.assertEqual(
-            sorted(foliator.folio_of(b["address"])[1] for b in found), ["f1"]
+            sorted(foliator.folio_of(b["address"]).folio for b in found), ["f1"]
         )
 
     def test_the_FILE_HAS_A_PLACE_AT_ITS_FOOT_TOO(self):
@@ -823,7 +823,7 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
 
     def _folios(self, anchor, series):
         found = foliator.for_anchor(anchor, series, self.paragraphs)
-        return sorted(foliator.folio_of(b["address"])[1] for b in found)
+        return sorted(foliator.folio_of(b["address"]).folio for b in found)
 
     def test_the_LINE_reaches_all_three_series(self):
         # !! ONE ANCHOR, THREE ADDRESSES -- the declaration's own `a`, the `b`
@@ -880,7 +880,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
 
     def test_the_anchor_answers_with_BOTH_trailing_comments(self):
         found = foliator.for_anchor("X=2", "c", self.paragraphs)
-        folios = sorted(foliator.folio_of(b["address"])[1] for b in found)
+        folios = sorted(foliator.folio_of(b["address"]).folio for b in found)
         self.assertEqual(folios, ["c0", "c1"])
 
     def test_they_are_two_DIFFERENT_statements(self):
@@ -900,7 +900,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # `# stuff happens`, and the gap at the end of the file. ! The folios
         # below are what THIS walk emits, not a rule anything may count out.
         found = foliator.for_anchor("X=2", "b", self.paragraphs)
-        folios = sorted(foliator.folio_of(b["address"])[1] for b in found)
+        folios = sorted(foliator.folio_of(b["address"]).folio for b in found)
         self.assertEqual(folios, ["b0", "b1"])
 
     def test_the_two_gaps_are_drawn_from_TWO_statements(self):
@@ -923,7 +923,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         question entirely.
         """
         by_folio = {
-            foliator.folio_of(b["address"])[1]: b
+            foliator.folio_of(b["address"]).folio: b
             for b in foliator.for_anchor("X=2", "b", self.paragraphs)
         }
         # ! Read from the ORIGINAL range, which is the gap's OWN LINES: the
@@ -966,7 +966,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # second, so its anchor is line 5's code -- not line 1's, which it
         # follows. The gap's prose is about what comes next.
         held = next(b for b in self.paragraphs if b["text"] == "stuff happens")
-        self.assertEqual(foliator.folio_of(held["address"])[1], "b1")
+        self.assertEqual(foliator.folio_of(held["address"]).folio, "b1")
         self.assertEqual(held["anchor"], "X=2")
 
     def test_X_2_is_no_declaration_so_the_a_series_is_EMPTY(self):

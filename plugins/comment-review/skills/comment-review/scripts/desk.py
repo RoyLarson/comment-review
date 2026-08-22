@@ -540,7 +540,7 @@ def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
         # census` about a correct citation goes looking for an error that is not
         # there. The run only foliates what is in scope, so a file outside it has
         # no places at all and the address cannot be derived.
-        path = folio_of(named.group(0))[0]
+        path = folio_of(named.group(0)).path
         if not _in_scope(path, paragraphs):
             return (
                 f"move's destination {named.group(0)} names {path}, which this run"

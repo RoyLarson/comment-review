@@ -159,6 +159,7 @@ import json
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -941,10 +942,32 @@ def unflatten(name: str, paths: list[str]) -> str:
     return hits.pop() if len(hits) == 1 else ""
 
 
-def folio_of(address: str) -> tuple[str, str]:
+class Address(NamedTuple):
+    """An address in its two halves, so a caller names the one it wants.
+
+    !! IT WAS A BARE TUPLE AND EVERY CALLER SUBSCRIPTED `[1]` -- fifteen of them
+    after `galley`'s second `folio_of` was consolidated onto this one. Roy,
+    2026-08-22, reading that diff: *"interesting sentinel as a number."* The `1`
+    means *the folio* and nothing in it says so; a reader has to know the
+    tuple's order to know what was asked for.
+
+    ! IT IS THE `0`-FOR-A-MISSING-LINE DEFECT ONE FIELD OVER, and I wrote fifteen
+    of them an hour after recording that one -- a bare number carrying a meaning
+    the number does not hold.
+
+    ! ADDITIVE, NOT A MIGRATION. A `NamedTuple` unpacks and subscripts exactly
+    as the tuple did, so nothing that already worked had to change; the sites
+    that read better by name were changed and the rest are free to follow.
+    """
+
+    path: str
+    folio: str
+
+
+def folio_of(address: str) -> Address:
     """An address split into its flattened path and its folio, or two blanks."""
     path, sep, where = address.rpartition("@")
-    return (path, where) if sep else ("", "")
+    return Address(path, where) if sep else Address("", "")
 
 
 def resolve(address: str, paragraphs: list[dict]) -> list[int]:
@@ -1070,7 +1093,7 @@ def series_of(paragraph: dict) -> str:
     avoids that too. It costs nothing: `for_anchor` is given a census, and an
     entry carrying no address is one no caller could cite anyway.
     """
-    return folio_of(str(paragraph.get("address", "")))[1][:1]
+    return folio_of(str(paragraph.get("address", ""))).folio[:1]
 
 
 def stable(paragraph: dict) -> str:
