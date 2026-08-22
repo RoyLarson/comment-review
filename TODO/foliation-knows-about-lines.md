@@ -2,7 +2,7 @@
 
 ```
 Status:   in-flight
-Progress: 16 of 18 tasks done
+Progress: 18 of 18 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines? I think
@@ -23,9 +23,9 @@ The foliation carries line data for one consumer, and one field of it is read by
 
 - [x] MEASURED 2026-08-21: Foliation.inserts is WRITTEN twice (foliator.py:577,
       :633) and READ NOWHERE -- delete it, or name its reader
-- [ ] bounds and lines have ONE shipped reader each, both in page.py empty_places,
+- [x] bounds and lines have ONE shipped reader each, both in page.py empty_places,
       to give an empty place a range the agents can see
-- [ ] RULING: should page.py compute those bounds itself? It already reads the
+- [x] RULING: should page.py compute those bounds itself? It already reads the
       file, so the foliation would then hold no line data except the ruled
       anchor_line
 - [x] anchor_line is NOT suspect and stays -- Roy ruled 2026-08-20 that records

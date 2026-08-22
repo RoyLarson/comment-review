@@ -246,7 +246,7 @@ that changed a published name or rule:
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | session | yes | 0/10 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | session | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | session | — | 0/11 | the closing quote and the comment beside it are both stored, so the file gains a line |
-| [dead-sweep-skips-private](dead-sweep-skips-private.md) | comment-review | — | 0/4 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
+| [dead-sweep-skips-private](dead-sweep-skips-private.md) | comment-review | — | 0/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 
 ### in-progress  (4)
 
@@ -270,7 +270,7 @@ other tasks can proceed without them._
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [foliation-knows-about-lines](foliation-knows-about-lines.md) | comment-review | yes | 16/18 | The foliation carries line data for one consumer, and one field of it is read by nobody |
+| [foliation-knows-about-lines](foliation-knows-about-lines.md) | comment-review | yes | 18/18 | The foliation carries line data for one consumer, and one field of it is read by nobody |
 
 ### blocked  (6)
 

@@ -401,9 +401,19 @@ class Foliation:
             its places in EMISSION ORDER. `places` flattens all five.
     """
 
-    walk: dict[str, Foliator] = field(
+    foliators: dict[str, Foliator] = field(
         default_factory=lambda: {name: Foliator(name) for name in SERIES}
     )
+    # !! THE WALK ITSELF, kept -- what `triggers()` returned: `[MODULE, *code,
+    # EOF]`. Every position a place reports indexes THIS, so holding it is what
+    # makes those positions mean something without arithmetic.
+    #
+    # !! IT REPLACED TWO FIELDS, and both were views of it. `lines` was
+    # folio -> the line its anchor sits on, filled for `a` and `c` alone; `_code`
+    # was the code lines the walk stepped, which is this list without its two
+    # sentinels. Neither was a fact of its own: a place's line is the line of the
+    # trigger it fired at, and the walk already knew both halves.
+    walk: list[int | str] = field(default_factory=list)
     # !! EVERY PLACE IN READING ORDER, TOP TO BOTTOM, recorded by the walk that
     # emitted them. It is what a compositor sets from: a page IS its places in
     # sequence, and the sequence is a fact the walk knows rather than an
@@ -420,12 +430,16 @@ class Foliation:
     # the walk never filled it and never read it, because `foliate` runs before
     # any prose exists and leading is only where the LEXER found a blank run.
     # Roy, 2026-08-21: *"I kind of expected that to be the pages job."*
-    lines: dict[str, int] = field(default_factory=dict)
-    # !! THE ONE LINE FACT LEFT, and it is the ORDINAL-TO-LINE map rather than a
-    # table of places: the code lines the walk stepped, in order. Every accessor
-    # below that takes a LINE uses it to find a POSITION, and every accessor that
-    # takes a position does not touch it.
-    _code: list[int] = field(default_factory=list)
+
+    @property
+    def _code(self) -> list[int]:
+        """The lines of code the walk stepped, in order -- its own interior.
+
+        ! `walk` is `[MODULE, *code, EOF]`, so this is that list without its two
+        sentinels. It was a stored field until 2026-08-22 and was the same list
+        written twice.
+        """
+        return [t for t in self.walk if isinstance(t, int)]
 
     @property
     def places(self) -> dict[str, str]:
@@ -442,7 +456,7 @@ class Foliation:
         return {
             folio: anchor
             for name in SERIES
-            for folio, anchor in self.walk[name].places.items()
+            for folio, anchor in self.foliators[name].places.items()
         }
 
     def anchor_of(self, folio: str, default: str = "") -> str:
@@ -457,7 +471,7 @@ class Foliation:
         ! IT TAKES A DEFAULT because "" is a real anchor: every `d` place has
         one, so absence cannot be spelled the same way as an empty answer.
         """
-        walker = self.walk.get(folio[:1])
+        walker = self.foliators.get(folio[:1])
         if walker is None:
             return default
         return walker.places.get(folio, default)
@@ -471,40 +485,40 @@ class Foliation:
         """
         for step, n in enumerate(self._code):
             if line <= n:
-                return self.walk[GAP].at(step)
-        return self.walk[GAP].at(len(self._code))
+                return self.foliators[GAP].at(step)
+        return self.foliators[GAP].at(len(self._code))
 
     def beside(self, line: int) -> str:
         """The `c` on this line of code, or "" if the line holds no code."""
         if line not in self._code:
             return ""
-        return self.walk[ON].at(self._code.index(line))
+        return self.foliators[ON].at(self._code.index(line))
 
     def documents(self, ordinal: int) -> str:
         """The `a` for the nth documentable declaration; 0 is the module."""
-        return self.walk[DECLARED].at(ordinal)
+        return self.foliators[DECLARED].at(ordinal)
 
     def anchor_line(self, folio: str) -> int:
         """The LINE the anchor of this place sits on. 0 when it has none.
 
-        !! THE WALK ALREADY KNOWS IT and it was only ever asked for one series.
-        `lines` holds it for an `a` (its declaring line) and a `c` (its own code
-        line); a `b` is bounded by two, and the one it is ANCHORED to is the
-        line BELOW the gap -- the statement its prose introduces -- or the line
-        above when the gap closes the file.
+        !! IT IS THE LINE OF THE TRIGGER THE PLACE FIRED AT, which is one lookup
+        and not a table. A `lines` dict held it for an `a` and a `c` alone, and a
+        `b` fell through to `gap_bounds` -- two mechanisms answering one
+        question, and neither of them a fact the walk did not already carry.
 
-        ! The MODULE has no line, so `a0` and the `f` place answer 0. That is a
-        real answer and not a miss: a licence header and a module docstring sit
-        above everything the file declares.
+        ! A SENTINEL HAS NO LINE, so `MODULE` and `EOF` answer 0. That is a real
+        answer and not a miss: `a0` and `f0` sit above everything the file
+        declares, and the closing gap and the file's foot below all of it. ! The
+        closing gap answered the LAST LINE OF CODE until 2026-08-22, borrowing
+        the previous trigger's -- see `foliate`.
 
-        ! IT IS NOT WHAT ORDERS A RECORD ANY MORE -- see `anchor_num`. This
-        remains because a consumer READING A FILE needs the line to slice it,
-        which is a different job from naming or ordering a place.
+        ! IT IS NOT WHAT ORDERS A RECORD -- see `anchor_num`. This remains
+        because a consumer READING A FILE needs a line to slice it, which is a
+        different job from naming or ordering a place.
         """
-        if folio in self.lines:
-            return self.lines[folio]
-        previous, following = self.gap_bounds(folio)
-        return following or previous
+        at = self.anchor_num(folio)
+        trigger = self.walk[at] if 0 <= at < len(self.walk) else None
+        return trigger if isinstance(trigger, int) else 0
 
     def anchor_num(self, folio: str) -> int:
         """WHICH TRIGGER this place was emitted at, indexing `triggers()`.
@@ -551,7 +565,7 @@ class Foliation:
         licence header and a module docstring sit above everything the file
         declares.
         """
-        walker = self.walk.get(folio[:1])
+        walker = self.foliators.get(folio[:1])
         if walker is None:
             return 0
         return walker.trigger.get(folio, 0)
@@ -562,14 +576,17 @@ class Foliation:
         !! COMPUTED, NOT STORED. It was a `bounds` dict written at four points in
         the walk and read at two -- one of the five objects `Foliation` had been
         squished into. Roy, 2026-08-21: *"why does folio look like 5 objects
-        squished into one shape."* The walk already holds its code lines, and a
-        `b`'s ordinal is its position among them, so the pair is an index rather
-        than a fact needing storage.
+        squished into one shape."*
 
-        ! **`b_n` IS THE GAP ABOVE `c_n`**, and the correspondence is exact --
-        MEASURED 2026-08-21 over 3,863 gaps in 21 files, zero exceptions. `b_N`
-        with no `c_N` is the closing gap: it has the last line of code above it
-        and nothing below.
+        !! IT IS THE TRIGGER BEFORE THIS GAP AND THE ONE IT FIRED AT, read off
+        the walk. A gap is emitted at the trigger BELOW it -- `b_n` fires with
+        `c_n` -- so the pair either side of it is `walk[at - 1]` and `walk[at]`,
+        and a sentinel on either end answers 0 because the file's own edge is
+        not a line of code.
+
+        ! WHICH IS WHY THE CLOSING GAP STILL BOUNDS CORRECTLY while being
+        anchored to `EOF`: it fires at the EOF trigger, so its pair is the last
+        line of code above it and nothing below. Placement never read an anchor.
 
         ! A SERIES THAT IS NOT A GAP ANSWERS `(0, 0)`, which is what the `f`
         places were given explicitly before. A file's own matter is bounded by
@@ -577,10 +594,14 @@ class Foliation:
         """
         if not folio.startswith(GAP):
             return (0, 0)
-        n = int(folio[len(GAP) :])
-        previous = self._code[n - 1] if 0 < n <= len(self._code) else 0
-        following = self._code[n] if n < len(self._code) else 0
-        return (previous, following)
+        at = self.anchor_num(folio)
+        if not 0 < at < len(self.walk):
+            return (0, 0)
+        previous, following = self.walk[at - 1], self.walk[at]
+        return (
+            previous if isinstance(previous, int) else 0,
+            following if isinstance(following, int) else 0,
+        )
 
     def matter(self) -> str:
         """`f0` -- the file's own prose, above anything it declares.
@@ -597,7 +618,7 @@ class Foliation:
         ! Read from the walk rather than named here, so a second front-matter
         place would answer correctly the day one is emitted.
         """
-        return self.walk[FRONT].at(0)
+        return self.foliators[FRONT].at(0)
 
     def first_code_line(self) -> int:
         """The first line of CODE on this page, or 0 when it holds none.
@@ -627,7 +648,7 @@ class Foliation:
         its own prose and where they fall in the reading order; it never looks at
         prose to decide which.
         """
-        return list(self.walk[FRONT].places)
+        return list(self.foliators[FRONT].places)
 
     def back_matter(self) -> str:
         """`f1` -- the file's own prose at its FOOT.
@@ -642,7 +663,7 @@ class Foliation:
         explicit rather than an N+1 rule. Roy, the same morning: *"f will almost
         certainly get it and so we might as well pick up both now."*
         """
-        return self.walk[FRONT].at(1)
+        return self.foliators[FRONT].at(1)
 
 
 def foliate(
@@ -697,8 +718,10 @@ def foliate(
     # function, which left every accessor on `Foliation` rebuilding an index
     # into a collection that no longer existed. They are the foliation's now, so
     # the walk fills the object it returns rather than a set of side tables.
-    out = Foliation(_code=list(code))
-    a, b, c, f = (out.walk[s] for s in (DECLARED, GAP, ON, FRONT))
+    # ! THE FOLIATION KEEPS THE WALK IT MADE, so every position a place reports
+    # indexes something the object still holds.
+    out = Foliation(walk=triggers(list(code)))
+    a, b, c, f = (out.foliators[s] for s in (DECLARED, GAP, ON, FRONT))
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. Roy, 2026-08-20: *"we need to be able to distinguish `a`
     # foliations for as many languages as there are `a` possible foliations.
@@ -791,7 +814,6 @@ def foliate(
             # ! 0 is the module, so a declaration's ordinal is its position
             # among the documentable ones, counting from 1.
             declared = a.emit(line, at)
-            out.lines[declared] = n
             # !! TWO FACTS, AND THE WALK USES ONLY THE SECOND. `page.documentable`
             # states the LINE the doc occupies -- which `page.documented_by` walks
             # up from to find prose already there -- and the code ordinal it is
@@ -801,7 +823,6 @@ def foliate(
             release.setdefault((at_step, side), []).append(declared)
         gap = b.emit(line, at)
         beside = c.emit(line, at)
-        out.lines[beside] = n
         # !! THE ORDER A READER MEETS THEM: the gap above this line, then any
         # declaration whose documentation belongs at or before it, then the line
         # itself with the room beside it.

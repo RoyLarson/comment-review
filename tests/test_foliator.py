@@ -353,9 +353,14 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
         # number there.
         self.assertEqual(got.anchor_line("b0"), 2)
         self.assertEqual(got.anchor_line("b1"), 3)
-        # ! The closing gap has no line below it and takes the one above, which
-        # is the one place `b` runs past `c`.
-        self.assertEqual(got.anchor_line("b2"), 3)
+        # !! THE CLOSING GAP ANSWERS 0, because it is anchored to `EOF` and a
+        # sentinel sits on no line -- the same answer `a0` and `f0` give for the
+        # MODULE. It took the line ABOVE it until 2026-08-22, borrowing the
+        # previous trigger's.
+        self.assertEqual(got.anchor_line("b2"), 0)
+        # ! AND IT IS STILL BOUNDED, which is what places it. `gap_bounds` reads
+        # the walk either side of the trigger it fired at, never the anchor.
+        self.assertEqual(got.gap_bounds("b2"), (3, 0))
         self.assertEqual(got.anchor_line("a1"), 3)
 
     def test_the_MODULE_answers_0_and_that_is_an_answer(self):

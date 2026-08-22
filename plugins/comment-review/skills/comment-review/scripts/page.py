@@ -508,7 +508,7 @@ def empty_places(
             # which is nothing unless the line ends in whitespace. The code is
             # the ANCHOR, so storing it here too would put one fact in two
             # fields.
-            n = foliation.lines[folio]
+            n = foliation.anchor_line(folio)
             code = lines[n - 1].rstrip()
             out.append(
                 Paragraph(

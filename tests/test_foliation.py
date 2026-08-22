@@ -1303,7 +1303,7 @@ class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
         because the page/symbol map is what shows every line is covered.
         """
         self.assertNotIn(foliator.LEAD, foliator.SERIES)
-        self.assertNotIn(foliator.LEAD, self.foliation.walk)
+        self.assertNotIn(foliator.LEAD, self.foliation.foliators)
         self.assertEqual([f for f in self.foliation.places if f[:1] == "d"], [])
         leads = [b for b in self.built if b.symbol]
         self.assertEqual([b.symbol for b in leads], ["d0", "d1"])
