@@ -538,7 +538,13 @@ def _report(args: argparse.Namespace) -> int:
         fatal += 1
 
     for f in found:
-        if entry_for(f.address, paragraphs) is None:
+        # !! ASKED ONCE, AND THE ANSWER IS CARRIED. `entry_for` is a linear scan
+        # over the census; this loop called it here and AGAIN below for the same
+        # address, and the second call was then guarded by `if held is not None`
+        # -- a branch that cannot be false, because the `continue` here is the
+        # only way past this point.
+        held = entry_for(f.address, paragraphs)
+        if held is None:
             print(
                 f"  {f.address} {f.reviewer}: names no paragraph in a"
                 f" {_n(len(paragraphs), 'paragraph')} census"
@@ -569,12 +575,10 @@ def _report(args: argparse.Namespace) -> int:
         if wrong_block:
             print(f"  {f.address} {f.reviewer}: {wrong_block}")
             fatal += 1
-        held = entry_for(f.address, paragraphs)
-        if held is not None:
-            disagrees = edit_problem(f, held)
-            if disagrees:
-                print(f"  {f.address} {f.reviewer}: {disagrees}")
-                fatal += 1
+        disagrees = edit_problem(f, held)
+        if disagrees:
+            print(f"  {f.address} {f.reviewer}: {disagrees}")
+            fatal += 1
         payload = payload_problem(f)
         if payload:
             print(f"  {f.address} {f.reviewer}: {payload}")

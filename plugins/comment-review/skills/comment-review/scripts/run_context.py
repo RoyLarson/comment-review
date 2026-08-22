@@ -109,11 +109,17 @@ SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
 # because neither line alone starts with "<!--".
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 
-READ_ERRORS = (OSError, UnicodeDecodeError)
 # ! Bound to a NAME so no `except` clause here holds a tuple LITERAL -- the
-# same rule `repo.py` carries in full. ValueError is in this one because
-# `Path.exists()` raises it (not OSError) on a candidate holding a NUL byte,
-# and a packet is arbitrary text a person typed.
+# same rule `repo.py` carries in full.
+#
+# !! THE COMMENT HERE CLAIMED A GUARD THAT IS NOT IN THE TUPLE. It read:
+# *"ValueError is in this one because `Path.exists()` raises it (not OSError)
+# on a candidate holding a NUL byte, and a packet is arbitrary text a person
+# typed."* `ValueError` is not in the tuple and never was in this file --
+# MEASURED 2026-08-22 on the floor interpreter, `Path("a\0b").exists()` returns
+# False and raises nothing. Both halves of the sentence were false: the guard
+# and the reason for it.
+READ_ERRORS = (OSError, UnicodeDecodeError)
 PATH_ERRORS = (OSError, ValueError)
 
 # A leading list marker, so `- /abs/path` and `1. /abs/path` name the path

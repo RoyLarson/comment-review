@@ -432,16 +432,6 @@ class Foliation:
     # Roy, 2026-08-21: *"I kind of expected that to be the pages job."*
 
     @property
-    def _code(self) -> list[int]:
-        """The lines of code the walk stepped, in order -- its own interior.
-
-        ! `walk` is `[MODULE, *code, EOF]`, so this is that list without its two
-        sentinels. It was a stored field until 2026-08-22 and was the same list
-        written twice.
-        """
-        return [t for t in self.walk if isinstance(t, int)]
-
-    @property
     def places(self) -> dict[str, str]:
         """Every place in the file -> the line of code it is attached to.
 
@@ -482,17 +472,31 @@ class Foliation:
         ! The gap above the FIRST code line at or after `line`. Past the last
         one it is the closing gap, which is the place with no line below it --
         the `b` at the ordinal one past every line of code.
+
+        ! IT READS THE WALK DIRECTLY. A `b` fires at the trigger BELOW it, so
+        the gap above `walk[i]` is `b` at `i - 1`, and the closing gap is the one
+        at the EOF trigger. ! This went through a `_code` PROPERTY for one hour
+        on 2026-08-22, which rebuilt the list on every read -- twice here -- in
+        the file whose `anchor_of` twenty lines below records fixing exactly that
+        quadratic. The property is deleted; the walk is the list.
         """
-        for step, n in enumerate(self._code):
-            if line <= n:
-                return self.foliators[GAP].at(step)
-        return self.foliators[GAP].at(len(self._code))
+        for step, trigger in enumerate(self.walk):
+            if isinstance(trigger, int) and line <= trigger:
+                return self.foliators[GAP].at(step - 1)
+        return self.foliators[GAP].at(len(self.walk) - 2)
 
     def beside(self, line: int) -> str:
-        """The `c` on this line of code, or "" if the line holds no code."""
-        if line not in self._code:
+        """The `c` on this line of code, or "" if the line holds no code.
+
+        ! ONE SCAN. It asked `line not in self._code` and then `.index(line)`,
+        which rebuilt the list twice to answer one question.
+        """
+        try:
+            return self.foliators[ON].at(self.walk.index(line) - 1)
+        except ValueError:
+            # ! A line the walk never stepped holds no code, which is a real
+            # answer -- the sentinels are strings, so no line can match one.
             return ""
-        return self.foliators[ON].at(self._code.index(line))
 
     def documents(self, ordinal: int) -> str:
         """The `a` for the nth documentable declaration; 0 is the module."""
@@ -636,25 +640,6 @@ class Foliation:
         """
         return self.foliators[FRONT].at(0)
 
-    def first_code_line(self) -> int:
-        """The first line of CODE on this page, or 0 when it holds none.
-
-        ! What says a run of prose is at the TOP of the file rather than merely
-        first among the prose. A file whose only comment sits at its foot has a
-        first run and a last run that are the same paragraph, and without this it
-        was claimed as the head's.
-        """
-        return self._code[0] if self._code else 0
-
-    def last_code_line(self) -> int:
-        """The last line of CODE on this page, or 0 when it holds none.
-
-        ! It is what says a run of prose has nothing below it, which is the one
-        extra condition back matter carries over front matter. The walk stepped
-        these lines, so it is asked rather than recomputed from the file.
-        """
-        return self._code[-1] if self._code else 0
-
     def file_places(self) -> list[str]:
         """Every `f` this walk emitted, in the order it emitted them.
 
@@ -764,7 +749,12 @@ def foliate(
     # ! It cannot be recovered from the anchor: the closing gap fires at EOF and
     # records the LAST LINE OF CODE, and both `f` places record `<module>` from
     # opposite ends of the file.
-    for at, trigger in enumerate(triggers(list(code))):
+    # ! THE FOLIATION'S OWN LIST, not a second call. `out.walk` IS what
+    # `triggers()` returned above, and building it twice is the drift the
+    # function's own docstring forbids -- *"ONE LIST, SO THE THREE SERIES CANNOT
+    # DRIFT APART."* Two calls agree today and are two things that can stop
+    # agreeing, which is the whole reason the list exists.
+    for at, trigger in enumerate(out.walk):
         # ! A SENTINEL IS A STRING AND A LINE IS AN INT. Neither sentinel is a
         # line, which is what makes them sentinels.
         if isinstance(trigger, str):

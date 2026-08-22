@@ -60,14 +60,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import compositor  # noqa: E402  -- path shim must run first
+
+# !! THE ONE `folio_of`, since 2026-08-22. This module had a second of its own --
+# `str(address).split("@")[-1]` -- and the two DISAGREED on a malformed address:
+# a bare `b3` with no `@` came back as the folio `b3` here and as *not an
+# address* from `foliator`, which returns two blanks when there is no separator.
+# Both were live in one process. ! The shared one answers `(path, folio)`, so
+# every site here takes `[1]`.
+from foliator import folio_of  # noqa: E402  -- path shim must run first
 from lexer import language_for  # noqa: E402  -- path shim must run first
 from page import page_for  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS, read_raw  # noqa: E402  -- path shim must run first
-
-
-def folio_of(address: str) -> str:
-    """The place an address names, without the page it is on."""
-    return str(address).split("@")[-1]
 
 
 def reset(page, edits: dict[str, str]) -> list[str]:
@@ -125,10 +128,10 @@ def reset(page, edits: dict[str, str]) -> list[str]:
     by_symbol = {b.symbol: b for b in page if b.symbol}
     for b in page:
         if b.address:
-            by_place.setdefault(folio_of(b.address), []).append(b)
+            by_place.setdefault(folio_of(b.address)[1], []).append(b)
     refused = []
     for address, replacement in edits.items():
-        found = by_place.get(folio_of(address))
+        found = by_place.get(folio_of(address)[1])
         if not found:
             refused.append(f"{address}: this page carries no such place")
             continue
@@ -150,7 +153,7 @@ def reset(page, edits: dict[str, str]) -> list[str]:
         # of a `move`. Anything else leaves the space below untouched, because
         # the separation a reader saw is not the author's to lose by editing the
         # text above it.
-        _vacate(found[0], by_symbol.get(page.leading.get(folio_of(address), "")))
+        _vacate(found[0], by_symbol.get(page.leading.get(folio_of(address)[1], "")))
     return refused
 
 
@@ -228,14 +231,14 @@ def drifted(page, census: list[dict]) -> list[str]:
     now = {}
     for b in page:
         if b.address and b.anchor:
-            now[folio_of(b.address)] = b.anchor
+            now[folio_of(b.address)[1]] = b.anchor
     out = []
     for b in census:
         address = str(b.get("address", ""))
         was = str(b.get("anchor", ""))
         if not address or not was:
             continue
-        here = now.get(folio_of(address))
+        here = now.get(folio_of(address)[1])
         if here is not None and here != was:
             out.append(
                 f"{address}: the census read {was!r}, the file now reads {here!r}"
