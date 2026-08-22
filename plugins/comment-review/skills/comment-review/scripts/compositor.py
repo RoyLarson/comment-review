@@ -1,6 +1,6 @@
 """Sets a page as TEXT, in memory, top to bottom. It decides nothing.
 
-    python compositor.py --repo D <paths...>      # prove the identity, file by file
+    python compositor.py <paths...>               # prove the identity, file by file
 
 !! A COMPOSITOR SETS TYPE; IT DOES NOT EDIT IT. Roy, 2026-08-21: *"galley gets
 the old page - updates the old page with the verdict/record/marks and then a
@@ -346,8 +346,16 @@ def identity(path: Path, rel: str | None = None) -> str | None:
 def main(argv: list[str] | None = None) -> int:
     """Prove the identity over every path given; nonzero if any file differs."""
     parser = argparse.ArgumentParser(description="Set a page as text.")
+    # !! NO `--repo`, and it was ADVERTISED rather than merely unread. It was
+    # parsed here, named on line 3 of this module's own docstring, and passed
+    # nowhere: `identity` and `lossless` both take a `rel` and were called
+    # without one. MEASURED 2026-08-22 -- `identity(p)` and
+    # `identity(p, rel="totally/different/name.py")` both answer `None`, and
+    # they must: `rel` sets only the PATH half of an address, `_held` keys on
+    # the folio half, and `set_page` never reads `page.path`. A documented flag
+    # that cannot change an answer is a false statement where a reader looks
+    # first.
     parser.add_argument("paths", nargs="+", type=Path)
-    parser.add_argument("--repo", type=Path, default=Path("."))
     args = parser.parse_args(argv)
     utf8_console()
     same = moved = broken = 0

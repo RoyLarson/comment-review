@@ -408,16 +408,49 @@ class TestAnEmptyPlaceHoldsNoProse(unittest.TestCase):
                     )
 
 
-class TestTheTwoKindSetsAreNotInterchangeable(unittest.TestCase):
-    """A trailing comment occupies no lines of its own AND is prose."""
+class TestEverySeriesHasAPositiveAndANegative(unittest.TestCase):
+    """The pairing is the structure, and the negatives are read off it.
 
-    def test_a_trailing_comment_shares_its_FIRST_line_and_owns_the_rest(self):
-        # It is in NEITHER set: it holds prose, and a WRAPPED one owns every
-        # line after the first outright. `code_lines` occupies its whole span
-        # and discards the first line, which reduces to "occupies nothing" when
-        # there is only one.
-        self.assertNotIn("trailing-comment", page.OCCUPIES_NOTHING)
+    !! IT WAS TWO HAND-KEPT TUPLES, and this class was named
+    `TestTheTwoKindSetsAreNotInterchangeable` while proving the opposite: its
+    first test asserted `trailing-comment` was in NEITHER set, which shows
+    nothing about two sets that hold identical members. Roy, 2026-08-22: *"each
+    foliation gets its positive and its negative"*, and *"they are enums not a
+    list."*
+    """
+
+    def test_each_series_pairs_prose_with_its_absence(self):
+        self.assertEqual(
+            {s: (p.value, n.value) for s, (p, n) in lexer.PAIRED.items()},
+            {
+                "a": ("docstring", "undocumented"),
+                "b": ("comment", "interval"),
+                "c": ("trailing-comment", "margin"),
+                "f": ("matter", "dark-matter"),
+            },
+        )
+
+    def test_the_negatives_are_DERIVED_and_not_listed(self):
+        # ! The thing a hand-kept tuple could get wrong, and did.
+        self.assertEqual(
+            set(page.HOLDS_NO_PROSE), {n for _, n in lexer.PAIRED.values()}
+        )
+
+    def test_LEADING_has_a_positive_and_NO_negative(self):
+        # !! SQUARING THE TABLE WOULD BE THE ERROR. An empty leading run could
+        # not be cited -- Roy: *"there is no information to rule on"* -- which
+        # is the same reason `d` is not in `foliator.SERIES`. It is a kind with
+        # no series.
+        self.assertNotIn(lexer.LEADING, page.HOLDS_NO_PROSE)
+        self.assertNotIn("d", lexer.PAIRED)
+
+    def test_a_trailing_comment_is_a_POSITIVE_and_owns_its_wrapped_lines(self):
+        # ! It is the `c` positive, so it is not among the negatives -- and the
+        # rule that it shares its FIRST line with code belongs to the series,
+        # not to a membership list: `code_lines` discards that line by column
+        # and `set_page` lays the code down first.
         self.assertNotIn("trailing-comment", page.HOLDS_NO_PROSE)
+        self.assertEqual(lexer.PAIRED["c"][0], "trailing-comment")
 
     def test_a_wrapped_trailing_comment_takes_its_continuation_lines(self):
         path = Path("a.c")
@@ -429,8 +462,8 @@ class TestTheTwoKindSetsAreNotInterchangeable(unittest.TestCase):
         self.assertEqual(list(got), [1, 2, 4])
         self.assertEqual(got[2], "int b = 2;")
 
-    def test_the_empty_kinds_are_in_both(self):
-        for kind in ("interval", "undocumented"):
+    def test_every_negative_is_an_empty_kind_of_some_series(self):
+        for kind in page.HOLDS_NO_PROSE:
             with self.subTest(kind=kind):
-                self.assertIn(kind, page.OCCUPIES_NOTHING)
-                self.assertIn(kind, page.HOLDS_NO_PROSE)
+                owner = [s for s, (_, n) in lexer.PAIRED.items() if n == kind]
+                self.assertEqual(len(owner), 1, f"{kind} belongs to {owner}")

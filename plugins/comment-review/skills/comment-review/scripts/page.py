@@ -74,6 +74,7 @@ from foliator import (  # noqa: E402  -- path shim must run first
 from lexer import (  # noqa: E402  -- path shim must run first
     LEADING,
     MATTER,
+    NEGATIVE,
     Language,
     Paragraph,
     declarations,
@@ -96,25 +97,27 @@ from lexer import (  # noqa: E402  -- path shim must run first
 #   c   `margin`        a code line with no trailing comment
 #   f   `dark-matter`   a file with none of its own prose
 #
-# !! KINDS THAT OCCUPY NO LINES AT ALL. A `margin` is the empty room beside a
-# code line; an `interval` and an `undocumented` declaration are both EMPTY --
-# a place where prose could go and does not. Counting any of them as occupied
-# would drop a real code line from the count and renumber every `b` below it.
+# !! ONE SET, DERIVED FROM THE PAIRING -- see `lexer.NEGATIVE`. It was TWO
+# hand-kept tuples here, `OCCUPIES_NOTHING` and `HOLDS_NO_PROSE`, holding the
+# same four strings in different orders under comments claiming they answered
+# different questions. They do not. An empty place holds no prose AND occupies
+# no lines, for one reason: nothing is there.
 #
-# !! A `trailing-comment` IS NOT ONE OF THEM, and was until 2026-08-20. It
-# shares only its FIRST line with code: a WRAPPED one -- `int b = 2; /* opens`
-# running on to a second line -- owns every line after that outright. Listing
-# it here left those continuation lines counted as code, so `   and runs on */`
-# was given a `margin` of its own. The loop below occupies its whole span and
-# then discards the first line, which is right for a wrapped one and reduces to
-# "occupies nothing" for a single-line one.
-OCCUPIES_NOTHING = ("margin", "interval", "undocumented", "dark-matter")
-# !! HOLDS NO PROSE -- a DIFFERENT set, and the two are not interchangeable. A
-# `trailing-comment` occupies no lines of its own but is prose; an `interval`
-# and an `undocumented` declaration are places where prose could go and does
-# not. This set is what "addressable, not accountable" means: they are cited by
-# an `add` and they get no seeded record.
-HOLDS_NO_PROSE = ("interval", "undocumented", "margin", "dark-matter")
+# ! WHAT SEEMED TO DISTINGUISH THEM WAS A `trailing-comment`, which left the
+# first tuple on 2026-08-20 -- a WRAPPED one owns every line after its first
+# outright. Once it was gone the two held identical members, and a class named
+# `TestTheTwoKindSetsAreNotInterchangeable` went on passing by asserting a kind
+# that was in NEITHER.
+#
+# !! THE `c` RULE IS NOT IN HERE, AND THAT IS THE POINT. A trailing comment
+# shares its first line with code whether or not anything is written beside it,
+# so the rule belongs to the SERIES rather than to a membership list. Roy,
+# 2026-08-22: *"the compositor can have the simple and accurate and perfect rule
+# that when laying down a `c` foliation it lays down the line of code first ...
+# it is pretty much defined by the trailing_comment/margin that defines `c`
+# foliations in the first place."* Setting, that is `set_page`; reading, it is
+# the `original_column` discard in `code_lines`.
+HOLDS_NO_PROSE = NEGATIVE
 
 # !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE LEXER STATES IT -- see
 # `lexer.MATTER`. It was an ANNOTATION stamped HERE by `mark_matter` until
@@ -288,7 +291,11 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
         # standing in for one is a `margin`, which occupies nothing.
         if b.get("original_column") and isinstance(start, int):
             beside[start] = b.get("anchor", "")
-        if b.get("kind") in OCCUPIES_NOTHING:
+        # ! AN EMPTY PLACE OCCUPIES NOTHING, which is what its kind means. At
+        # this point an `interval` still spans the gap between two code lines --
+        # `fill_the_gaps` has not recut it yet -- so counting it would take
+        # those lines out of the code and renumber every `b` below.
+        if b.get("kind") in HOLDS_NO_PROSE:
             continue
         if not isinstance(start, int) or not isinstance(end, int):
             continue
@@ -452,9 +459,9 @@ def empty_places(
     ! The walk already emitted every place and said where each sits. This asks
     only which of them prose is sitting in, and gives the rest a paragraph.
 
-    ! An empty place OCCUPIES NOTHING -- that is what `OCCUPIES_NOTHING` means,
-    and it is why emitting one cannot move a code line or renumber anything
-    below it.
+    ! An empty place occupies no lines -- that is what the NEGATIVE of a series
+    means, see `lexer.PAIRED` -- and it is why emitting one cannot move a code
+    line or renumber anything below it.
 
     Args:
         text: the page's source.

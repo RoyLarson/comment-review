@@ -31,6 +31,7 @@ import re
 import sys
 import tokenize
 from dataclasses import dataclass, field
+from enum import StrEnum
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -307,6 +308,72 @@ MATTER = "matter"
 # came back blank-blank-comment where it was blank-comment-blank. With leading,
 # every paragraph is CONTIGUOUS and the straddle cannot arise.
 LEADING = "leading"
+
+
+class Kind(StrEnum):
+    """Every kind a paragraph can be, PAIRED with the series it belongs to.
+
+    !! EACH SERIES HAS A POSITIVE AND A NEGATIVE, and that is the whole shape.
+    Roy, 2026-08-22: *"each foliation gets its positive and its negative"*, and
+    *"they are enums not a list."*
+
+        a   docstring          undocumented
+        b   comment            interval
+        c   trailing-comment   margin
+        f   matter             dark-matter
+
+    !! THE TWO HALVES WERE SET IN DIFFERENT MODULES AND NOTHING TIED THEM. The
+    lexer writes a positive because it found prose; `page.py` writes a negative
+    because the walk emitted a place nothing filled. Which strings paired up was
+    known only to a hand-kept tuple in a third file -- so when
+    `trailing-comment` left one of those tuples on 2026-08-20, nothing
+    structural noticed, and the two tuples drifted into holding the same four
+    kinds while claiming to answer different questions.
+
+    ! A `StrEnum` MEMBER IS ITS STRING, so every `paragraph.kind == "docstring"`
+    already written keeps working and nothing had to migrate.
+
+    ! `leading` HAS A POSITIVE AND NO NEGATIVE, and squaring the table would be
+    the error. An empty one could not be cited -- Roy: *"there is no information
+    to rule on"* -- which is the same reason `d` is not in `foliator.SERIES`.
+    It is a kind with no series, and `NEGATIVE` below leaves it out.
+    """
+
+    DOCSTRING = "docstring"
+    UNDOCUMENTED = "undocumented"
+    COMMENT = "comment"
+    INTERVAL = "interval"
+    TRAILING = "trailing-comment"
+    MARGIN = "margin"
+    MATTER = "matter"
+    DARK_MATTER = "dark-matter"
+    LEADING = "leading"
+
+
+#: series letter -> `(what prose looks like there, what its absence looks like)`.
+#: ! Spelled with the letters rather than imported from `foliator`, because the
+#: lexer takes no sibling but `language` -- see `MODULE` below, which is spelled
+#: here for the same reason.
+PAIRED = {
+    "a": (Kind.DOCSTRING, Kind.UNDOCUMENTED),
+    "b": (Kind.COMMENT, Kind.INTERVAL),
+    "c": (Kind.TRAILING, Kind.MARGIN),
+    "f": (Kind.MATTER, Kind.DARK_MATTER),
+}
+
+#: The negative of every series -- a place that exists and holds no prose.
+#:
+#: !! DERIVED, NOT LISTED, since 2026-08-22. This was two hand-kept tuples in
+#: `page.py` holding the same four strings in different orders, each with a
+#: comment claiming it answered a different question. They did not: an empty
+#: place holds no prose AND occupies no lines, for one reason. ! What is NOT in
+#: here is the rule about a `c` -- a trailing comment shares its first line with
+#: code whether or not anything is written beside it -- and that belongs to the
+#: series, not to a membership list. Roy: *"the compositor can have the simple
+#: and accurate and perfect rule that when laying down a `c` foliation it lays
+#: down the line of code first ... it is pretty much defined by the
+#: trailing_comment/margin that defines `c` foliations in the first place."*
+NEGATIVE = tuple(absent for _, absent in PAIRED.values())
 # ! The anchor a run about the FILE answers to. The same string the foliator
 # uses for the module trigger; it is spelled here rather than imported because
 # the lexer imports no sibling but `language`.
