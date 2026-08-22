@@ -345,15 +345,6 @@ class Foliation:
     # the walk turns it into a position in this list -- so nothing downstream
     # asks the question again, and no two readers can answer it differently.
     reading: list[str] = field(default_factory=list)
-    # !! WHERE EACH PLACE SITS, recorded by the walk that emitted it. A `b` is
-    # bounded by the two lines of CODE around its gap -- 0 for the file's own
-    # edge -- and a `c` sits ON one line. Nothing else may work these out: three
-    # generators each re-derived them from the file, and that is how a gap held
-    # by a comment came to have no place at all.
-    #
-    # ! They are BOUNDS and not an edit range. Turning one into the other needs
-    # the file's own last line, which is the page's to know and not the walk's.
-    bounds: dict[str, tuple[int, int]] = field(default_factory=dict)
     # !! LEADING IS AN EDGE, NOT A PLACE IN THE SEQUENCE -- keyed by the PAIR it
     # separates, so `(f0, a0) -> d0` reads as *the space between the file's
     # matter and the module's doc*. Roy, 2026-08-21: *"make the pre-post
@@ -374,10 +365,6 @@ class Foliation:
     # `(X, Y)` and creates `(X, new)` and `(new, Y)`, and nothing else changes.
     leading: dict[tuple[str, str], str] = field(default_factory=dict)
     lines: dict[str, int] = field(default_factory=dict)
-    # ! WHERE AN `a`'s PROSE WOULD GO, which is not its declaration's line:
-    # a wrapped signature puts the first statement several lines down. Only
-    # a parser knows it, so the lexer states it and the walk carries it.
-    inserts: dict[str, int] = field(default_factory=dict)
     # Each keyed by the 1-based LINE the trigger sat on, so a reader with a
     # position can find the place without knowing how the walk numbered it.
     _above: dict[int, str] = field(default_factory=dict)
@@ -430,8 +417,34 @@ class Foliation:
         """
         if folio in self.lines:
             return self.lines[folio]
-        previous, following = self.bounds.get(folio, (0, 0))
+        previous, following = self.gap_bounds(folio)
         return following or previous
+
+    def gap_bounds(self, folio: str) -> tuple[int, int]:
+        """The two lines of CODE around this gap; 0 for the file's own edge.
+
+        !! COMPUTED, NOT STORED. It was a `bounds` dict written at four points in
+        the walk and read at two -- one of the five objects `Foliation` had been
+        squished into. Roy, 2026-08-21: *"why does folio look like 5 objects
+        squished into one shape."* The walk already holds its code lines, and a
+        `b`'s ordinal is its position among them, so the pair is an index rather
+        than a fact needing storage.
+
+        ! **`b_n` IS THE GAP ABOVE `c_n`**, and the correspondence is exact --
+        MEASURED 2026-08-21 over 3,863 gaps in 21 files, zero exceptions. `b_N`
+        with no `c_N` is the closing gap: it has the last line of code above it
+        and nothing below.
+
+        ! A SERIES THAT IS NOT A GAP ANSWERS `(0, 0)`, which is what the `f`
+        places were given explicitly before. A file's own matter is bounded by
+        the head or the foot of the file, not by code.
+        """
+        if not folio.startswith(GAP):
+            return (0, 0)
+        n = int(folio[len(GAP) :])
+        previous = self._code[n - 1] if 0 < n <= len(self._code) else 0
+        following = self._code[n] if n < len(self._code) else 0
+        return (previous, following)
 
     def matter(self) -> str:
         """`f0` -- the file's own prose, above anything it declares.
@@ -561,7 +574,6 @@ def foliate(
     #
     # ! Each series decides at each trigger, and that rule is now complete --
     # there is no step a place comes from except one of these.
-    previous = 0
     seen = 0
     # ! Which `a` places are set at which step, filed by `page.documentable` and
     # released in the loop below. For an above-doc language every entry is filed
@@ -574,13 +586,11 @@ def foliate(
             if trigger == MODULE:
                 if module_insert is not None:
                     out._declared[0] = a.emit(MODULE)
-                    out.inserts[out._declared[0]] = module_insert
                 # ! `f0` is the FILE'S OWN matter, bounded by nothing: the head
                 # of the file on both sides. It is not the gap above the first
                 # line of code -- that is `b0`, and conflating them made the two
                 # exclusive.
                 out._front = f.emit(MODULE)
-                out.bounds[out._front] = (0, 0)
                 # ! THE HEAD OF THE PAGE, in the order a reader meets it: the
                 # file's own matter, then the module's own documentation.
                 out.reading.append(out._front)
@@ -599,7 +609,6 @@ def foliate(
                 # a gap is bounded by code, and that is the bound it has. ! On a
                 # file with no code at all this is the gap that IS the file.
                 out._closing = b.emit(next(reversed(code.values())) if code else MODULE)
-                out.bounds[out._closing] = (previous, 0)
                 # !! `f` EMITS ITS SECOND PLACE HERE, and this is the reason the
                 # EOF trigger is a trigger rather than an N+1 rule. A file's
                 # matter sits at BOTH ends and neither end belongs to a gap:
@@ -608,7 +617,6 @@ def foliate(
                 # at the foot is the FILE's, not the last gap's, which is where
                 # it landed while this place did not exist.
                 out._back = f.emit(MODULE)
-                out.bounds[out._back] = (0, 0)
                 # ! THE FOOT OF THE PAGE: the gap after the last statement, then
                 # the file's own matter, which is bounded by nothing.
                 # ! A doc with no code after it is filed against the step past
@@ -630,11 +638,10 @@ def foliate(
             # up from to find prose already there -- and the code ordinal it is
             # SET BEFORE, which is the language's rule already resolved. The walk
             # holds the place until that step and compares nothing.
-            out.inserts[declared], at_step, side = documentable[seen]
+            _insert_at, at_step, side = documentable[seen]
             release.setdefault((at_step, side), []).append(declared)
         gap = b.emit(line)
         out._above[n] = gap
-        out.bounds[gap] = (previous, n)
         beside = c.emit(line)
         out._beside[n] = beside
         out.lines[beside] = n
@@ -654,7 +661,6 @@ def foliate(
         out.reading.append(gap)
         out.reading.extend(release.pop((seen, ON), ()))
         out.reading.append(beside)
-        previous = n
         seen += 1
     # !! EVERY FOLIATOR'S PLACES, COUNTED RATHER THAN LISTED. Naming them was
     # how `f0` came to sit in `bounds` and nowhere else: no anchor, and

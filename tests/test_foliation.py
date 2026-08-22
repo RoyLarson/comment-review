@@ -599,8 +599,8 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         # a sweep that shares a gap out never reaches it.
         path = Path("m.py")
         got = page.page_for(path, "import os\n\nx = 1\n", lexer.language_for(path))
-        self.assertEqual(got.foliation.bounds["f1"], (0, 0))
-        self.assertEqual(got.foliation.bounds["f0"], (0, 0))
+        self.assertEqual(got.foliation.gap_bounds("f1"), (0, 0))
+        self.assertEqual(got.foliation.gap_bounds("f0"), (0, 0))
 
     def test_the_foot_place_exists_on_a_file_with_NO_CODE_AT_ALL(self):
         # ! The EOF trigger fires whether or not the walk stepped a line, so a
@@ -1025,46 +1025,56 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         in four places, and `b0` still ended up naming the module's front matter
         AND the gap above the first line of code.
         """
-        # ! The CODE, not the prose: the docstrings quote the three retired
-        # expressions on purpose, to keep the error legible.
         # !! THE PROPERTY, NOT THE PUNCTUATION. This forbade two f-string forms
-        # by exact text until 2026-08-21 -- and BOTH retired expressions survive
-        # verbatim with `+ 1` appended, so the arithmetic could come back in a
-        # form the assertion cannot see. A folio is what the WALK emitted, and
-        # the way to say that is to show two series disagreeing on one line.
+        # by exact text until 2026-08-21, and BOTH retired expressions survive
+        # verbatim with `+ 1` appended -- so the arithmetic could return in a
+        # form the assertion cannot see.
+        #
+        # !! AND IT IS STATED WITHOUT A LINE NUMBER, WHICH IS THE POINT. Roy:
+        # *"be careful not to bake into the test_foliation the old system of
+        # lines and addresses. A passing test is more than worthless if the test
+        # is encoding the wrong behavior."* A first rewrite read `foliation.lines`
+        # and called `above(2)` -- a folio-to-LINE map and a line-keyed lookup --
+        # which says the property in the terms the foliation exists to replace.
+        # `places` maps a folio to its ANCHOR, and that is the whole relation.
         src = (
-            '"""Module doc."""\n'  # a0 -- the module's own documentation
-            "import os\n"  # c0
-            "import sys\n"  # c1
+            '"""Module doc."""\n'  # the module's own documentation
+            "import os\n"
+            "import sys\n"
             "\n"
-            "def f():\n"  # c2, and the FIRST declaration -> a1
-            "    return os, sys\n"  # c3
+            "def f():\n"  # the first declaration: an `a` AND a `c` answer here
+            "    return os, sys\n"
         )
         built = page.page_for(Path("m.py"), src, lexer.language_for(Path("m.py")))
-        lines = built.foliation.lines
+        places = built.foliation.places
 
-        # ! `a` COUNTS DECLARATIONS AND `c` COUNTS CODE LINES, so the two
-        # ordinals for one line differ -- `a1` sits on the line `c2` names. Any
-        # rule deriving one series from another's position collapses this.
-        self.assertEqual(lines["a1"], lines["c2"])
-        self.assertNotEqual("a1", "c1")
+        # !! ONE ANCHOR, MANY ADDRESSES -- and the count is read from the walk
+        # rather than asserted between two literals. `a` numbers DECLARATIONS
+        # and `c` numbers LINES OF CODE, so the declaring line answers to both
+        # under different ordinals; a rule deriving either series from the
+        # other's position collapses them onto one.
+        declaring = places[built.foliation.documents(1)]
+        sharing = {f for f, anchor in places.items() if anchor == declaring}
+        self.assertGreater(len(sharing), 1, sharing)
+        self.assertTrue(any(f.startswith("a") for f in sharing), sharing)
+        self.assertTrue(any(f.startswith("c") for f in sharing), sharing)
 
-        # !! AND THE DEFECT THE THREE MECHANISMS ACTUALLY PRODUCED: `b0` naming
-        # the module's front matter AND the gap above the first line of code.
-        # One walk emits both, so they are two places and cannot collide.
-        # ! MEASURED while writing this: asserting `c2` is file line 5 does NOT
-        # discriminate -- the retired `code.index(start)` returns 2 here too. A
-        # `c` IS the code-line ordinal; what drifted was three mechanisms
-        # answering one question, not the answer any one of them gave.
-        self.assertNotEqual(built.foliation.matter(), built.foliation.above(2))
-        self.assertTrue(built.foliation.matter().startswith("f"))
+        # !! AND THE COLLISION THE THREE MECHANISMS ACTUALLY PRODUCED: `b0`
+        # naming the module's front matter AND the gap above the first line of
+        # code. One walk emits both, so they are two places and cannot be one.
+        # ! MEASURED while writing this: asserting a `c`'s FILE LINE does not
+        # discriminate at all -- the retired `code.index(start)` returns the
+        # same ordinal the walk does. A `c` IS the code-line ordinal; what
+        # drifted was three mechanisms answering one question, never the answer.
+        front = built.foliation.matter()
+        self.assertTrue(front.startswith(FRONT), front)
+        self.assertNotIn(front, [f for f in places if not f.startswith(FRONT)])
 
         # ! Every place the page carries was emitted by the walk -- `places` is
         # what `foliate` filled, and nothing else writes to it.
         for paragraph in built:
             if paragraph.address:
-                folio = paragraph.address.split("@")[-1]
-                self.assertIn(folio, built.foliation.places)
+                self.assertIn(paragraph.address.split("@")[-1], places)
 
     def test_the_walk_is_one_list_and_foliate_READS_it(self):
         """!! IT DID NOT, AND THIS TEST SAID IT DID. Measured 2026-08-21.

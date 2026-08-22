@@ -538,7 +538,7 @@ def empty_places(
                 " `foliator.SERIES` needs a branch here"
             )
         else:
-            previous, following = foliation.bounds[folio]
+            previous, following = foliation.gap_bounds(folio)
             low = previous + 1
             high = following - 1 if following else last
             # ! THE WHOLE GAP, PROVISIONALLY. `fill_the_gaps` runs after every

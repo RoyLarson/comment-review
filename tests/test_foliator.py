@@ -253,9 +253,12 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
         for folio, anchor in got.places.items():
             with self.subTest(folio=folio):
                 self.assertTrue(anchor, f"{folio} carries no anchor")
-        for folio in got.bounds:
-            with self.subTest(folio=folio):
-                self.assertIn(folio, got.places, f"{folio} is bounded and unplaced")
+        # ! THE SECOND HALF OF THIS IS NOW STRUCTURAL. It read `for folio in
+        # got.bounds: assertIn(folio, got.places)` -- a place could sit in one
+        # registry and not the other, which is exactly what `f0` did. `bounds`
+        # was deleted 2026-08-21 and is computed from the walk's own code lines,
+        # so there is no second registry left to disagree with `places`.
+        self.assertFalse(hasattr(got, "bounds"), "a second registry is back")
 
     def test_every_place_answers_with_the_line_its_anchor_sits_on(self):
         # !! IT WAS `declared_at` AND FILLED FOR `a` ALONE. The fact was never

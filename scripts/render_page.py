@@ -90,7 +90,7 @@ def _places(pg) -> tuple[dict[int, list[str]], dict[int, list[str]]]:
         # ! An EMPTY place, marked so a reader can tell it from a filled one --
         # it is a place a verdict can still cite, and nothing occupies it.
         if folio[0] == "b":
-            low, high = pg.foliation.bounds.get(folio, (0, 0))
+            low, high = pg.foliation.gap_bounds(folio)
             gap_above.setdefault(high or low + 1, []).append(f"{folio}*")
             continue
         anchored = pg.foliation.anchor_line(folio)
