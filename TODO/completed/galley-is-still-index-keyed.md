@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 3 tasks done
+Progress: 3 of 3 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -56,6 +56,11 @@ Blocked:  2026-08-20 — 2026-08-20 -- THE GALLEY NOW CANNOT SPLICE AN EMPTY PLA
           `test_galley.TestAnIntervalIsInsertedInto` are marked `expectedFailure` and
           report an UNEXPECTED SUCCESS the moment this is rebuilt. ! They are gated OUT
           by box R7 of docs/plans/0.2.5: no expectedFailure survives the plan.
+Superseded: 2026-08-21 — the MECHANISM this file is about was deleted 2026-08-21 in
+            578d7fe -- splice, its sort key, overlaps, and the insert-vs-replace
+            ordering are all gone. A change is now an assignment to an ADDRESS and the
+            compositor sets the page from the walk's order, so there is no tie for a
+            sort key to break
 ```
 
 ## Objective
@@ -83,6 +88,6 @@ entry -- but `galley` imports neither. `SKILL.md` still documents the index form
       needed and is called only from inside foliation; galley imports neither
       foliation nor record.
 - [x] **`SKILL.md` still documents the index form** at the 5b/6b galley step.
-- [ ] ! It sits exactly at the round-2 boundary, where `re-review.md` says *"THE
+- [x] ! It sits exactly at the round-2 boundary, where `re-review.md` says *"THE
       ADDRESS DOES CARRY"* -- so the one place the rebuild's property matters most
       is the one place it is discarded.

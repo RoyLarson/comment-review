@@ -1027,16 +1027,44 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         """
         # ! The CODE, not the prose: the docstrings quote the three retired
         # expressions on purpose, to keep the error legible.
-        text = Path(foliator.__file__).read_text(encoding="utf-8")
-        code = [
-            ln
-            for ln in text.splitlines()
-            if ln.strip() and not ln.lstrip().startswith(("#", '"', "'"))
-        ]
-        body = "\n".join(code)
-        self.assertNotIn('f"{path}@c{code.index(start)}"', body)
-        self.assertNotIn('sum(1 for n in code if n < at)}"', body)
-        self.assertIn("def folio(", body)
+        # !! THE PROPERTY, NOT THE PUNCTUATION. This forbade two f-string forms
+        # by exact text until 2026-08-21 -- and BOTH retired expressions survive
+        # verbatim with `+ 1` appended, so the arithmetic could come back in a
+        # form the assertion cannot see. A folio is what the WALK emitted, and
+        # the way to say that is to show two series disagreeing on one line.
+        src = (
+            '"""Module doc."""\n'  # a0 -- the module's own documentation
+            "import os\n"  # c0
+            "import sys\n"  # c1
+            "\n"
+            "def f():\n"  # c2, and the FIRST declaration -> a1
+            "    return os, sys\n"  # c3
+        )
+        built = page.page_for(Path("m.py"), src, lexer.language_for(Path("m.py")))
+        lines = built.foliation.lines
+
+        # ! `a` COUNTS DECLARATIONS AND `c` COUNTS CODE LINES, so the two
+        # ordinals for one line differ -- `a1` sits on the line `c2` names. Any
+        # rule deriving one series from another's position collapses this.
+        self.assertEqual(lines["a1"], lines["c2"])
+        self.assertNotEqual("a1", "c1")
+
+        # !! AND THE DEFECT THE THREE MECHANISMS ACTUALLY PRODUCED: `b0` naming
+        # the module's front matter AND the gap above the first line of code.
+        # One walk emits both, so they are two places and cannot collide.
+        # ! MEASURED while writing this: asserting `c2` is file line 5 does NOT
+        # discriminate -- the retired `code.index(start)` returns 2 here too. A
+        # `c` IS the code-line ordinal; what drifted was three mechanisms
+        # answering one question, not the answer any one of them gave.
+        self.assertNotEqual(built.foliation.matter(), built.foliation.above(2))
+        self.assertTrue(built.foliation.matter().startswith("f"))
+
+        # ! Every place the page carries was emitted by the walk -- `places` is
+        # what `foliate` filled, and nothing else writes to it.
+        for paragraph in built:
+            if paragraph.address:
+                folio = paragraph.address.split("@")[-1]
+                self.assertIn(folio, built.foliation.places)
 
     def test_the_walk_is_one_list_and_foliate_READS_it(self):
         """!! IT DID NOT, AND THIS TEST SAID IT DID. Measured 2026-08-21.

@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (72)
+### open  (71)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -207,7 +207,6 @@ that changed a published name or rule:
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 4/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 1/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
-| [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 2/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
 | [b-foliator-uninitialised](b-foliator-uninitialised.md) | session | — | 9/17 | The b foliator is never initialised at the module trigger, and computes its folio from line numbers |
 | [front-matter-restamps](front-matter-restamps.md) | session | — | 0/7 | Adding a module docstring restamps the comment run above it as front matter |
@@ -317,3 +316,4 @@ the reason is inside the file.
 | [plugin-version-not-bumped](completed/plugin-version-not-bumped.md) | 0.2.4-alpha in all three files; the cache directory can no longer collide with the measured 0.2.3 |
 | [two-paragraphs-one-address](completed/two-paragraphs-one-address.md) | Fixed in 0f72dce -- a comment's DELIMITERS are not paragraph boundaries, only code is. 157 shared addresses over 699 files became 0. |
 | [galley-does-two-jobs](completed/galley-does-two-jobs.md) | Split built and wired: galley.reset places by address, compositor.set_page sets, splice/overlaps/splice_range/paragraph_matches deleted, and the shipped prose now defines both terms |
+| [galley-is-still-index-keyed](completed/galley-is-still-index-keyed.md) | Tasks 1-2 done (address-keyed); task 3 was an observation whose mechanism -- splice and its line-ordered sort -- was deleted in the galley rewrite |
