@@ -55,6 +55,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from constants import utf8_console  # noqa: E402  -- path shim must run first
 from foliator import (  # noqa: E402  -- path shim must run first
     FRONT,
     flatten,
@@ -1097,9 +1098,7 @@ def check(report: dict, census: list[dict]) -> tuple[list[str], int]:
 def main() -> int:
     """Seed a reviewer's record file from the census."""
     # A Windows console is cp1252; one non-ASCII glyph in a report kills the run.
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
+    utf8_console()
 
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--seed", action="store_true", help="write an empty record file")

@@ -56,6 +56,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from constants import utf8_console  # noqa: E402
 from foliator import ON, series_of  # noqa: E402
 
 # !! THE OTHER IMPORTER OF THE ROWS -- see `language.py`. The lexer reads a file
@@ -348,9 +349,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("paths", nargs="+", type=Path)
     parser.add_argument("--repo", type=Path, default=Path("."))
     args = parser.parse_args(argv)
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
+    utf8_console()
     same = moved = broken = 0
     for path in args.paths:
         gone = lossless(path)

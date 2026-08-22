@@ -51,7 +51,12 @@ class TestTheTwoLeaves(unittest.TestCase):
         # ! `repo` is the exception and is not one: it answers what the CHECKOUT
         # says -- git, the filesystem, the exception tuples -- and carries no
         # notion of prose at all.
-        self.assertEqual(_imports("foliator") - {"repo"}, set())
+        #
+        # ! `constants` likewise, and for a stronger reason: it is a LEAF that
+        # imports nothing from this package, so taking it acquires no dependency
+        # and can carry no notion of anything. It holds the console guard that
+        # every entry point needs -- see `constants.utf8_console`.
+        self.assertEqual(_imports("foliator") - {"repo", "constants"}, set())
 
     def test_the_lexer_knows_nothing_about_places(self):
         # !! IT DEFINES WHAT IT PRODUCES -- `Paragraph` -- and stops there. Where

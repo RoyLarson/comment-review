@@ -42,6 +42,15 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+# !! ITS FIRST SIBLING IMPORT, and the ruling that permitted it. This module was
+# stdlib-only, which made the console guard a copy it could not share. Roy,
+# 2026-08-22: *"the guard lives in a constants.py file. The test verifies no
+# readers or printers are missing the guard."* ! `constants` imports nothing
+# from this package, so taking it acquires no other dependency.
+from constants import utf8_console  # noqa: E402  -- path shim must run first
+
 REQUIRED = (
     "REPO ROOT",
     "DOC CONVENTION",
@@ -290,9 +299,7 @@ def invalid_answers(text: str) -> list[str]:
 
 def main() -> int:
     """Print the template, or check a filled packet."""
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
+    utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--template", action="store_true")
     ap.add_argument("--check", metavar="FILE")

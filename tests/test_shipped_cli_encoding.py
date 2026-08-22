@@ -23,7 +23,20 @@ ROOT = Path(__file__).resolve().parent.parent
 # The library modules -- `repo.py`, `annotate.py` -- write nothing and are
 # excluded by that test rather than by a hand-kept list that would go stale.
 ENTRY = re.compile(r'^if __name__ == "__main__":', re.M)
-GUARD = re.compile(r"reconfigure\(encoding=\"utf-8\", errors=\"replace\"\)")
+# !! TWO SHAPES, ONE GUARD, since 2026-08-22. The shipped scripts share ONE
+# definition -- `constants.utf8_console` -- because ten byte-identical copies
+# drifted into three rationales with five carrying none. Roy: *"the guard lives
+# in a constants.py file. The test verifies no readers or printers are missing
+# the guard."*
+#
+# ! THE INLINE FORM IS STILL LEGAL AND IS NOT A LEFTOVER. This gate covers
+# `scripts/`, `evals/` and `evidence/ga/` as well, and none of those may import
+# from inside the plugin -- `constants.py` SHIPS and they do not. A program that
+# prints is a program that prints, wherever it lives, and it guards its output
+# with whichever of the two it can reach.
+GUARD = re.compile(
+    r"reconfigure\(encoding=\"utf-8\", errors=\"replace\"\)|utf8_console\(\)"
+)
 
 
 def shipped_clis():

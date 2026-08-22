@@ -47,6 +47,7 @@ from annotate import (  # noqa: E402  -- path shim must run first
     annotate,
     prose_numbers,
 )
+from constants import utf8_console  # noqa: E402  -- path shim must run first
 from foliator import (  # noqa: E402  -- path shim must run first
     FRONT,
     SEPARATOR,
@@ -244,9 +245,7 @@ def main() -> int:
     """Build the census, resolve its annotations, print both."""
     # UTF-8 with replacement, so an em-dash in someone's docstring still prints
     # on a console whose encoding lacks it.
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
+    utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--repo", default=".", help="repo root for citation resolution")
