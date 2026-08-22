@@ -2,7 +2,7 @@
 
 ```
 Status:   in-flight
-Progress: 4 of 17 tasks done
+Progress: 15 of 18 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines? I think
@@ -11,6 +11,8 @@ Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines?
           and becoming a property that it shouldn't be')
 Updated:  2026-08-21 — anchor_num started 2026-08-21; the field collapse it enables is a
           separate step
+Narrowed: 2026-08-22 — the walkers survive the walk (6912fbe); Foliation is 4 fields --
+          walk, reading, lines, _code
 ```
 
 ## Objective
@@ -26,19 +28,19 @@ The foliation carries line data for one consumer, and one field of it is read by
 - [ ] RULING: should page.py compute those bounds itself? It already reads the
       file, so the foliation would then hold no line data except the ruled
       anchor_line
-- [ ] anchor_line is NOT suspect and stays -- Roy ruled 2026-08-20 that records
+- [x] anchor_line is NOT suspect and stays -- Roy ruled 2026-08-20 that records
       sort by anchor line then series letter, because a foliation number would
       imply it does not change
-- [ ] _above, _beside and _code are the walk's own line lookups behind
+- [x] _above, _beside and _code are the walk's own line lookups behind
       above()/beside(); decide whether they are internal detail or the same smell
 - [x] Re-run scripts/dead_sweep.py --names after any deletion; a module-level dict
       nobody reads is invisible to ruff, which is how inserts survived
-- [ ] RULING/PROPOSAL, Roy 2026-08-21: replace anchor_line with anchor_num -- an
+- [x] RULING/PROPOSAL, Roy 2026-08-21: replace anchor_line with anchor_num -- an
       ORDINAL over code lines -- carried ALONGSIDE the anchor text. MEASURED:
       anchor_line has exactly two consumers, record.py:854 (sort key) and
       foliator.py:846 (identity lookup), and NEITHER does arithmetic on the line,
       so an ordinal serves both
-- [ ] The pair is what makes it work: an ordinal alone cannot see a rename in
+- [x] The pair is what makes it work: an ordinal alone cannot see a rename in
       place (def f -> def RENAMED shifts no ordinal), and the anchor text alone
       cannot cheaply see an insertion. Roy: 'a single shift on anchor_num and you
       know it is all trash after rereading' -- the file-wide drift ruling in one
@@ -51,28 +53,28 @@ The foliation carries line data for one consumer, and one field of it is read by
       reads it, and the only mention in foliator.py is the field declaration. It
       is the PAGE's data parked on the foliation because that is what gets passed
       around. Move it or say why it stays
-- [ ] Roy's cut, 2026-08-21: _declared (a), leading (d), _front/_back (f) and
+- [x] Roy's cut, 2026-08-21: _declared (a), leading (d), _front/_back (f) and
       _closing (ONE b) are the places that do NOT answer to a line -- by ordinal,
       by neighbour-pair, by the file, and by having no line below it. _above (b)
       and _beside (c) are the two that DO. If anchor_num lands, those two become
       ordinal-keyed and the whole set is uniform
-- [ ] Roy's three questions, 2026-08-21, all one answer: the b's ARE tabled
+- [x] Roy's three questions, 2026-08-21, all one answer: the b's ARE tabled
       (_above, keyed by the code line BELOW the gap); _front/_back need not be
       fields at all since places holds f0/f1 in order; and _closing is special
       ONLY because there are N+1 b's for N code lines, so a table keyed by the
       line below cannot hold the one with no line below it
-- [ ] SO anchor_num IS THE ENABLING CHANGE, not a field swap: key by ordinal and
+- [x] SO anchor_num IS THE ENABLING CHANGE, not a field swap: key by ordinal and
       b_N is just the index past the end, f is series-letter-plus-position, and
       SIX fields become derivable -- _above, _beside, _code, _closing, _front,
       _back. What is left is places + _declared + reading
-- [ ] Roy, 2026-08-21, the sharpest form: '_above, _beside, _declared, _front,
+- [x] Roy, 2026-08-21, the sharpest form: '_above, _beside, _declared, _front,
       _back, _closing are 1 object type flattened into a special case with
       different names.' A PLACE is (folio, series, anchor, anchor_num). Six
       collections of one type, each keyed differently and named separately -- so
       every accessor becomes a QUERY over one collection: above(n) is the b at
       ordinal n, matter() is the first f, the closing gap is the b with the
       highest ordinal
-- [ ] THE FLATTENING IS ONE COMPREHENSION, foliator.py:686. walkers = {name:
+- [x] THE FLATTENING IS ONE COMPREHENSION, foliator.py:686. walkers = {name:
       Foliator(name) for name in SERIES} creates five per-series collections of
       (folio -> anchor) IN EMISSION ORDER; the walk uses them; then out.places
       flattens all five into one dict and the walkers are DISCARDED at return.
@@ -80,7 +82,7 @@ The foliation carries line data for one consumer, and one field of it is read by
       documents/matter/back_matter/_closing/above/beside -- is an index into a
       walker that was just thrown away. Keep the walkers, delete six fields, add
       no data
-- [ ] Roy 2026-08-21: 'the foliator needs to key off of the anchor_num and the
+- [x] Roy 2026-08-21: 'the foliator needs to key off of the anchor_num and the
       line doesn't matter, because the compositor can only put it near the
       anchor_num and by its own rules will have to put it at the end of the file.'
       Placement consults NO line -- the foot lands last because it holds the
@@ -93,3 +95,12 @@ The foliation carries line data for one consumer, and one field of it is read by
       verdict names it -- so being a SERIES in foliator.SERIES may be the wrong
       category. Decide whether d stops being a series and the leading paragraph is
       referenced directly instead of through a folio
+- [x] CORRECTION 2026-08-22, to the task above it: the collapse landed and
+      predicted the WRONG two fields. It said six become derivable -- _above,
+      _beside, _code, _closing, _front, _back -- leaving places + _declared +
+      reading. What actually happened: _code STAYED and _declared WENT. _code is
+      the ordinal-to-line map, which is the one line fact the walk genuinely owns
+      and every accessor taking a LINE uses to find a POSITION; _declared was an
+      ordinal-keyed table of a places, which is exactly what the a foliator
+      already is. ! The count was right and the membership was not, which is why
+      the box names both.
