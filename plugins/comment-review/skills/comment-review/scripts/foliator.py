@@ -311,6 +311,22 @@ class Foliator:
         self._step += 1
         return got
 
+    def at(self, step: int) -> str:
+        """This series' folio at `step`, or "" if the walk never emitted one.
+
+        !! THE QUERY THAT REPLACED SIX TABLES. Roy, 2026-08-21: the old fields
+        were *"1 object type flattened into a special case with different
+        names."* Each held a place keyed its own way -- by the line below a gap,
+        by the line beside a `c`, by a declaration's ordinal -- and each was an
+        index into this collection. Asking THIS is what the caller wanted.
+
+        ! THE EMPTY ANSWER IS LOAD-BEARING. A page whose reader refused the
+        source has emitted nothing, so every position is unfilled; the old
+        tables answered "" there by being empty, and this answers it by asking.
+        """
+        got = folio(self.series, step)
+        return got if got in self.places else ""
+
 
 @dataclass
 class Foliation:
@@ -327,12 +343,22 @@ class Foliation:
     anything. That is the difference between line order driving the walk and a
     line number computing a number.
 
+    !! IT KEEPS ITS FOLIATORS RATHER THAN FLATTENING THEM. Roy, 2026-08-21:
+    *"`_above`, `_beside`, `_declared`, `_front`, `_back`, `_closing` are 1
+    object type flattened into a special case with different names."* They were
+    six dicts of the same fact -- a place and its anchor -- each keyed
+    differently, and every one of them was an index into a `Foliator` the walk
+    had just discarded. The walkers survive now, so an accessor is a QUERY over
+    one collection instead of a lookup in a table of its own.
+
     Attributes:
-        places: folio -> the line of code it is attached to. Every place in the
-            file, whether or not prose sits in it.
+        walk: series letter -> the `Foliator` that emitted that series, holding
+            its places in EMISSION ORDER. `places` flattens all five.
     """
 
-    places: dict[str, str] = field(default_factory=dict)
+    walk: dict[str, Foliator] = field(
+        default_factory=lambda: {name: Foliator(name) for name in SERIES}
+    )
     # !! EVERY PLACE IN READING ORDER, TOP TO BOTTOM, recorded by the walk that
     # emitted them. It is what a compositor sets from: a page IS its places in
     # sequence, and the sequence is a fact the walk knows rather than an
@@ -350,37 +376,68 @@ class Foliation:
     # any prose exists and leading is only where the LEXER found a blank run.
     # Roy, 2026-08-21: *"I kind of expected that to be the pages job."*
     lines: dict[str, int] = field(default_factory=dict)
-    # Each keyed by the 1-based LINE the trigger sat on, so a reader with a
-    # position can find the place without knowing how the walk numbered it.
-    _above: dict[int, str] = field(default_factory=dict)
-    _beside: dict[int, str] = field(default_factory=dict)
-    _declared: dict[int, str] = field(default_factory=dict)
-    _closing: str = ""
+    # !! THE ONE LINE FACT LEFT, and it is the ORDINAL-TO-LINE map rather than a
+    # table of places: the code lines the walk stepped, in order. Every accessor
+    # below that takes a LINE uses it to find a POSITION, and every accessor that
+    # takes a position does not touch it.
     _code: list[int] = field(default_factory=list)
-    # ! The file's own places, as the walk emitted them -- see `matter`. TWO of
-    # them, because a file carries matter at both ends and neither belongs to a
-    # gap: a licence at the foot is the file's, exactly as one at the head is.
-    _front: str = ""
-    _back: str = ""
+
+    @property
+    def places(self) -> dict[str, str]:
+        """Every place in the file -> the line of code it is attached to.
+
+        ! DERIVED FROM THE FOLIATORS, in `SERIES` order. It was a field the walk
+        assigned by flattening the five walkers on its last line, which is what
+        made every other projection an index into something already discarded.
+
+        !! IT IS A FRESH DICT EACH TIME, so writing into it changes nothing.
+        `page.py` used to number the `d` series by assigning here; it calls
+        `emit` on the `d` foliator now, which is the only way a place is made.
+        """
+        return {
+            folio: anchor
+            for name in SERIES
+            for folio, anchor in self.walk[name].places.items()
+        }
+
+    def anchor_of(self, folio: str, default: str = "") -> str:
+        """The line of code this place is attached to; `default` if no such place.
+
+        !! ONE LOOKUP, NOT A REBUILT DICT. `places` composes five walkers into a
+        fresh mapping on every read, so asking it for ONE place inside a loop is
+        quadratic -- MEASURED 2026-08-22, a corpus sweep that ran in under three
+        minutes did not finish in ten. The two callers that ask per paragraph
+        ask here; the ones that want the whole mapping still take `places`.
+
+        ! IT TAKES A DEFAULT because "" is a real anchor: every `d` place has
+        one, so absence cannot be spelled the same way as an empty answer.
+        """
+        walker = self.walk.get(folio[:1])
+        if walker is None:
+            return default
+        return walker.places.get(folio, default)
 
     def above(self, line: int) -> str:
         """The `b` whose gap a paragraph inserting at `line` falls into.
 
         ! The gap above the FIRST code line at or after `line`. Past the last
-        one it is the closing gap, which is the place with no line below it.
+        one it is the closing gap, which is the place with no line below it --
+        the `b` at the ordinal one past every line of code.
         """
-        for n in self._code:
+        for step, n in enumerate(self._code):
             if line <= n:
-                return self._above[n]
-        return self._closing
+                return self.walk[GAP].at(step)
+        return self.walk[GAP].at(len(self._code))
 
     def beside(self, line: int) -> str:
         """The `c` on this line of code, or "" if the line holds no code."""
-        return self._beside.get(line, "")
+        if line not in self._code:
+            return ""
+        return self.walk[ON].at(self._code.index(line))
 
     def documents(self, ordinal: int) -> str:
         """The `a` for the nth documentable declaration; 0 is the module."""
-        return self._declared.get(ordinal, "")
+        return self.walk[DECLARED].at(ordinal)
 
     def anchor_line(self, folio: str) -> int:
         """The LINE the anchor of this place sits on. 0 when it has none.
@@ -442,10 +499,10 @@ class Foliation:
         # !! THE FILE'S MATTER ANSWERS FROM ITS ORDINAL TOO, and that is what
         # tells the two ends apart. Roy, 2026-08-21, on the past-the-end bucket:
         # *"b3 and f2."* Both `f` places answer to the MODULE, so the ANCHOR
-        # cannot say which is the head and which the foot -- which is the whole
-        # reason `_front` and `_back` are two fields. The ordinal can: `f0` is
-        # the head at 0, and every later `f` is the foot, past every named
-        # anchor, beside the closing gap it follows.
+        # cannot say which is the head and which the foot -- which is why they
+        # were two fields, `_front` and `_back`, until this answered it. The
+        # ordinal can: `f0` is the head at 0, and every later `f` is the foot,
+        # past every named anchor, beside the closing gap it follows.
         if folio.startswith(FRONT):
             return len(self._code) + 1 if int(folio[len(FRONT) :]) else 0
         line = self.anchor_line(folio)
@@ -499,7 +556,7 @@ class Foliation:
         ! Read from the walk rather than named here, so a second front-matter
         place would answer correctly the day one is emitted.
         """
-        return self._front
+        return self.walk[FRONT].at(0)
 
     def first_code_line(self) -> int:
         """The first line of CODE on this page, or 0 when it holds none.
@@ -529,7 +586,7 @@ class Foliation:
         its own prose and where they fall in the reading order; it never looks at
         prose to decide which.
         """
-        return [f for f in (self._front, self._back) if f]
+        return list(self.walk[FRONT].places)
 
     def back_matter(self) -> str:
         """`f1` -- the file's own prose at its FOOT.
@@ -544,7 +601,7 @@ class Foliation:
         explicit rather than an N+1 rule. Roy, the same morning: *"f will almost
         certainly get it and so we might as well pick up both now."*
         """
-        return self._back
+        return self.walk[FRONT].at(1)
 
 
 def foliate(
@@ -591,12 +648,16 @@ def foliate(
     Returns:
         The `Foliation`: every place, and both directions between them.
     """
-    # ! ONE PER SERIES, BUILT FROM THE LIST. The names below are for the
-    # walk, which is genuinely per-series -- each emits at different
+    # ! ONE PER SERIES, AND THEY BELONG TO THE FOLIATION. The names below are
+    # for the walk, which is genuinely per-series -- each emits at different
     # triggers -- but nothing downstream has to know how many there are.
-    walkers = {name: Foliator(name) for name in SERIES}
-    a, b, c, f = (walkers[s] for s in (DECLARED, GAP, ON, FRONT))
+    #
+    # !! THEY USED TO BE LOCAL AND WERE FLATTENED AWAY at the end of this
+    # function, which left every accessor on `Foliation` rebuilding an index
+    # into a collection that no longer existed. They are the foliation's now, so
+    # the walk fills the object it returns rather than a set of side tables.
     out = Foliation(_code=list(code))
+    a, b, c, f = (out.walk[s] for s in (DECLARED, GAP, ON, FRONT))
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. Roy, 2026-08-20: *"we need to be able to distinguish `a`
     # foliations for as many languages as there are `a` possible foliations.
@@ -622,18 +683,16 @@ def foliate(
         # line, which is what makes them sentinels.
         if isinstance(trigger, str):
             if trigger == MODULE:
-                if module_insert is not None:
-                    out._declared[0] = a.emit(MODULE)
+                documented = a.emit(MODULE) if module_insert is not None else ""
                 # ! `f0` is the FILE'S OWN matter, bounded by nothing: the head
                 # of the file on both sides. It is not the gap above the first
                 # line of code -- that is `b0`, and conflating them made the two
                 # exclusive.
-                out._front = f.emit(MODULE)
                 # ! THE HEAD OF THE PAGE, in the order a reader meets it: the
                 # file's own matter, then the module's own documentation.
-                out.reading.append(out._front)
-                if 0 in out._declared:
-                    out.reading.append(out._declared[0])
+                out.reading.append(f.emit(MODULE))
+                if documented:
+                    out.reading.append(documented)
                 # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
                 # number. It has no gap above it and no line to sit beside. Roy,
                 # 2026-08-20: *"let's initiate all of them at 0 ... bs and cs
@@ -646,7 +705,7 @@ def foliate(
                 # the last line has no line below it, so it takes the one above;
                 # a gap is bounded by code, and that is the bound it has. ! On a
                 # file with no code at all this is the gap that IS the file.
-                out._closing = b.emit(next(reversed(code.values())) if code else MODULE)
+                closing = b.emit(next(reversed(code.values())) if code else MODULE)
                 # !! `f` EMITS ITS SECOND PLACE HERE, and this is the reason the
                 # EOF trigger is a trigger rather than an N+1 rule. A file's
                 # matter sits at BOTH ends and neither end belongs to a gap:
@@ -654,14 +713,13 @@ def foliate(
                 # the foot. ! Bounded by nothing, exactly as `f0` is -- a licence
                 # at the foot is the FILE's, not the last gap's, which is where
                 # it landed while this place did not exist.
-                out._back = f.emit(MODULE)
                 # ! THE FOOT OF THE PAGE: the gap after the last statement, then
                 # the file's own matter, which is bounded by nothing.
                 # ! A doc with no code after it is filed against the step past
                 # the last one, which is this gap.
                 out.reading.extend(release.pop((len(code), GAP), ()))
-                out.reading.append(out._closing)
-                out.reading.append(out._back)
+                out.reading.append(closing)
+                out.reading.append(f.emit(MODULE))
             continue
         n = trigger
         line = code[n]
@@ -669,7 +727,6 @@ def foliate(
             # ! 0 is the module, so a declaration's ordinal is its position
             # among the documentable ones, counting from 1.
             declared = a.emit(line)
-            out._declared[len(out._declared)] = declared
             out.lines[declared] = n
             # !! TWO FACTS, AND THE WALK USES ONLY THE SECOND. `page.documentable`
             # states the LINE the doc occupies -- which `page.documented_by` walks
@@ -679,9 +736,7 @@ def foliate(
             _insert_at, at_step, side = documentable[seen]
             release.setdefault((at_step, side), []).append(declared)
         gap = b.emit(line)
-        out._above[n] = gap
         beside = c.emit(line)
-        out._beside[n] = beside
         out.lines[beside] = n
         # !! THE ORDER A READER MEETS THEM: the gap above this line, then any
         # declaration whose documentation belongs at or before it, then the line
@@ -700,15 +755,11 @@ def foliate(
         out.reading.extend(release.pop((seen, ON), ()))
         out.reading.append(beside)
         seen += 1
-    # !! EVERY FOLIATOR'S PLACES, COUNTED RATHER THAN LISTED. Naming them was
-    # how `f0` came to sit in `bounds` and nowhere else: no anchor, and
-    # `page.empty_places` -- which walks `places` -- gave it no paragraph, so a
-    # file whose front matter is absent had a line belonging to nothing.
-    out.places = {
-        folio: anchor
-        for name in SERIES
-        for folio, anchor in walkers[name].places.items()
-    }
+    # !! NOTHING IS COLLECTED AT THE END ANY MORE. This function closed by
+    # flattening the five walkers into `out.places` and dropping them, so a
+    # place existed twice -- once in the walker that emitted it and once in the
+    # flat dict -- and every accessor had to be given its own table because the
+    # emitter was gone. `Foliation.places` reads the walkers instead.
     return out
 
 

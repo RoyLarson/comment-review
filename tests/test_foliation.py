@@ -1186,3 +1186,91 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         # ! N lines of code, N+1 gaps -- the last of them from EOF.
         gaps = [f for f in self.at if f.startswith("b")]
         self.assertEqual(len(gaps), len(self.code) + 1)
+
+
+class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
+    """A place exists in ONE collection: the foliator that emitted it.
+
+    !! SIX FIELDS WERE SIX KEYINGS OF ONE FACT. Roy, 2026-08-21: *"`_above`,
+    `_beside`, `_declared`, `_front`, `_back`, `_closing` are 1 object type
+    flattened into a special case with different names."* `foliate` built five
+    `Foliator`s, used them, flattened them into a `places` dict and DISCARDED
+    them -- so every accessor needed a table of its own, keyed by whatever it
+    happened to be asked with. The walkers are kept now and each accessor asks
+    the one that owns the series.
+
+    ! WHAT THIS CLASS HOLDS is the two things that keying could get wrong: a
+    position with no place must answer NOTHING, and a place must be MADE by an
+    emit rather than written into a mapping.
+    """
+
+    SRC = '"""Doc."""\n\n\nimport os\n\n\ndef f():\n    return os\n'
+
+    def setUp(self):
+        path = Path("m.py")
+        self.built = page.page_for(path, self.SRC, lexer.language_for(path))
+        self.foliation = self.built.foliation
+
+    def test_a_foliation_that_never_WALKED_names_no_place(self):
+        """!! THE EMPTY ANSWER IS THE POINT, and it is what `at` buys.
+
+        Each accessor computes the folio a position WOULD have and then asks
+        whether the walk emitted it. Computing it alone is not enough: a page
+        whose reader refused the source carries a foliation with no places at
+        all, and every accessor must say so rather than name `b0`, `c0` or `f0`
+        -- addresses that would resolve to nothing downstream.
+        """
+        empty = foliator.Foliation()
+        self.assertEqual(empty.places, {})
+        self.assertEqual(empty.above(1), "")
+        self.assertEqual(empty.above(10**6), "")
+        self.assertEqual(empty.beside(1), "")
+        self.assertEqual(empty.documents(0), "")
+        self.assertEqual(empty.matter(), "")
+        self.assertEqual(empty.back_matter(), "")
+        self.assertEqual(empty.file_places(), [])
+
+    def test_writing_into_places_MAKES_no_place(self):
+        """!! `places` IS DERIVED, so the only way to make a place is `emit`.
+
+        It was a field, and `page.py` numbered the `d` series by assigning into
+        it -- a second way to make a place, with a counter of its own beside the
+        one every `Foliator` already carries. That write is silent now, which is
+        why it was replaced rather than left to be discovered.
+        """
+        self.foliation.places["zz9"] = "invented"
+        self.assertNotIn("zz9", self.foliation.places)
+
+    def test_every_accessor_answers_with_a_place_the_walk_EMITTED(self):
+        """! Whatever an accessor names, `places` holds -- one collection, one
+        set of names. The old shape allowed a side table and the flat dict to
+        disagree, because the emitter that could have settled it was gone.
+        """
+        places = self.foliation.places
+        answers = [
+            self.foliation.matter(),
+            self.foliation.back_matter(),
+            *self.foliation.file_places(),
+            *(self.foliation.above(n) for n in range(1, 12)),
+            *(self.foliation.beside(n) for n in range(1, 12)),
+            *(self.foliation.documents(k) for k in range(4)),
+        ]
+        named = [f for f in answers if f]
+        self.assertTrue(named)
+        for folio in named:
+            self.assertIn(folio, places)
+
+    def test_a_LEADING_place_is_emitted_by_its_own_foliator(self):
+        """!! THE `d` SERIES IS MADE THE SAME WAY EVERY OTHER SERIES IS.
+
+        `page.py` states which paragraphs are leading and in what order; the
+        `d` foliator numbers them. This fixture has two blank runs, so the page
+        carries `d0` and `d1` -- present in the walker that emitted them and in
+        `places`, which is the whole of what "a place exists" means.
+        """
+        lead = self.foliation.walk[foliator.LEAD].places
+        self.assertEqual(sorted(lead), ["d0", "d1"])
+        for folio in lead:
+            self.assertIn(folio, self.foliation.places)
+        # ! Numbered from 0 by the foliator's own counter, like every series.
+        self.assertEqual(self.foliation.walk[foliator.LEAD]._step, len(lead))

@@ -698,11 +698,17 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # `d`, because nothing cites one and a place exists unfilled only so a
         # verdict can name it -- see `foliator.LEAD`. So leading is numbered in
         # the order it occurs, which is the order the lexer found it.
-        leads = iter(range(10**9))
+        #
+        # !! BY ITS OWN FOLIATOR, which is the only thing that makes a place.
+        # This kept a counter of its own and wrote the result into
+        # `foliation.places`; that dict is derived from the walkers now, so the
+        # write would have gone nowhere. The `d` foliator was built by every
+        # walk and never used -- it holds the same counter this was rolling by
+        # hand.
+        lead = foliation.walk[LEAD]
         for b in sorted(got, key=lambda b: b.original_start or 0):
             if b.kind == LEADING:
-                place = f"{LEAD}{next(leads)}"
-                foliation.places[place] = ""
+                place = lead.emit("")
             elif b.kind == MATTER:
                 # ! HEAD OR FOOT, which is the whole of the mapping. The lexer
                 # types a run `matter` when it opens the file or closes it; the
@@ -712,7 +718,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
             else:
                 place = attach(vars(b), foliation)
             b.address = f"{flat}@{place}" if place else ""
-            b.anchor = foliation.places.get(place, b.anchor)
+            b.anchor = foliation.anchor_of(place, b.anchor)
         # !! EVERY PLACE PROSE DOES NOT FILL GETS A PARAGRAPH, in one loop over
         # what the walk emitted. Three generators used to answer this one
         # question a series at a time, each walking the file again.

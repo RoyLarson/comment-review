@@ -177,7 +177,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
             # sits beside it. Its first line is the code and the room together;
             # a comment opened in that room and closed on a later line owns
             # those lines outright, because no code is on them.
-            code = page.foliation.places.get(folio, "")
+            code = page.foliation.anchor_of(folio)
             out.append(f"{code}{prose[0] if prose else ''}")
             out.extend(prose[1:])
             continue
