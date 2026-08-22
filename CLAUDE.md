@@ -573,6 +573,18 @@ something"** -- said about a category that was straining to hold a second job:
 | --- | --- | --- |
 | `b0` held the file's own matter as well as the first gap | **front/back matter**, its own series | one address for two places; a licence header reviewed as ordinary work |
 | `b` held the blanks on both sides of an `a` | **leading**, the space between lines of type | 16 of 185 files in one corpus could not be set back |
+| `galley.py` both EDITED the page and SET it | **the compositor**, who sets type and decides nothing | the whole module was line arithmetic; three plan boxes were held for it |
+
+!! **THE THIRD IS THE ONE WHERE THE METHOD IS VISIBLE**, because it was three questions rather
+than a conclusion. Roy, 2026-08-22, recalling the sequence -- *"something like"*, so this is the
+shape of it and not his words: what IS a galley in the publishing space; the galley is doing both
+the editing of the page and the setting of it; what does publishing call the page-setter. **The
+answer named a module.** Ask what the thing IS in the trade, notice it is doing two jobs, ask what
+the trade calls the second one.
+
+! **AND IT SAYS WHEN TO ASK.** Roy held this until the page, foliation and census were *"at least
+passably functional"*: *"there was no reason to try to fix the galley as it was."* A split chosen
+against a module that is about to stop existing is chosen for nothing.
 
 ! **So when a category is doing two jobs, ask what a compositor would call the half that does not
 fit -- before inventing a rule to make one category cover both.** Publishing has spent five
