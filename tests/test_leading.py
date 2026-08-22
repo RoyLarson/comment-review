@@ -145,8 +145,10 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
         # the licence and the docstring, then the docstring and the import.
         # ! `b0` is empty and sits between `a0` and `c0` in the walk's order, so
         # the pair skips it -- a place that sets nothing separates nothing.
+        # ! IT IS THE PAGE'S, NOT THE FOLIATION'S. It sat on `Foliation` for one
+        # evening; the walk never filled it and never read it.
         self.assertEqual(
-            built("m.py", self.SRC).foliation.leading,
+            built("m.py", self.SRC).leading,
             {("f0", "a0"): "d0", ("a0", "c0"): "d1"},
         )
 

@@ -345,25 +345,10 @@ class Foliation:
     # the walk turns it into a position in this list -- so nothing downstream
     # asks the question again, and no two readers can answer it differently.
     reading: list[str] = field(default_factory=list)
-    # !! LEADING IS AN EDGE, NOT A PLACE IN THE SEQUENCE -- keyed by the PAIR it
-    # separates, so `(f0, a0) -> d0` reads as *the space between the file's
-    # matter and the module's doc*. Roy, 2026-08-21: *"make the pre-post
-    # foliation a dictionary look up for the d foliation and its associated
-    # paragraph ... that last one makes the resolver easier because adding a
-    # paragraph adds the place in the page and it knows its numbers."*
-    #
-    # !! AN ABSENT KEY IS THE SENTINEL. Roy asked for a `d` at every boundary,
-    # absent-typed where there is commonly no blank line; a dict gives the same
-    # answer by holding no entry. MEASURED 2026-08-21 over 1,955 files:
-    # `c`->`c` is 386,509 of 421,502 boundaries and 90% of those hold no blank,
-    # so emitting a place per boundary would multiply a file's places six- to
-    # tenfold to record nothing.
-    #
-    # ! WHY AN EDGE AND NOT AN ORDINAL. A queue position shifts when anything is
-    # inserted above it, which is the defect that made line numbers unusable
-    # here. An edge does not move: adding a paragraph between X and Y destroys
-    # `(X, Y)` and creates `(X, new)` and `(new, Y)`, and nothing else changes.
-    leading: dict[tuple[str, str], str] = field(default_factory=dict)
+    # ! LEADING IS NOT HERE, and was for one evening. It is `Page.leading` --
+    # the walk never filled it and never read it, because `foliate` runs before
+    # any prose exists and leading is only where the LEXER found a blank run.
+    # Roy, 2026-08-21: *"I kind of expected that to be the pages job."*
     lines: dict[str, int] = field(default_factory=dict)
     # Each keyed by the 1-based LINE the trigger sat on, so a reader with a
     # position can find the place without knowing how the walk numbered it.

@@ -54,6 +54,7 @@ it was the deepest module all three could reach.
 import re
 import sys
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from itertools import pairwise
 from pathlib import Path
 
@@ -153,6 +154,9 @@ class Page:
         foliation: EVERY place on the page, filled or not -- see
             `foliator.foliate`. It is what makes an `add` citable.
         tier: which questions this file's reader could answer.
+        leading: the space between two places, keyed by the PAIR it separates --
+            `(f0, a0) -> d0`. An absent key means those two sit against each
+            other, which is what most boundaries do.
     """
 
     path: str
@@ -160,6 +164,17 @@ class Page:
     paragraphs: list[Paragraph]
     foliation: Foliation
     tier: str
+    # !! IT IS THE PAGE'S, NOT THE WALK'S, and it sat on `Foliation` for one
+    # evening. Roy, 2026-08-21, reading the field list: *"I kind of expected that
+    # to be the pages job."* MEASURED: the walk never filled it and never read it
+    # -- `tie_leading` here filled it, `compositor.set_page` read it, and
+    # `foliator.py` held nothing but the declaration. It was parked there because
+    # the foliation is what gets passed around, which is not a reason.
+    #
+    # ! WHY THE PAGE AND NOT THE WALK: `foliate` runs before any prose is read,
+    # and leading exists only where the LEXER found a blank run. The walk cannot
+    # know a `d` is there, so it cannot be the walk's to hold.
+    leading: dict[tuple[str, str], str] = dataclass_field(default_factory=dict)
 
     def __iter__(self):
         """Down the page, in order."""
@@ -565,7 +580,9 @@ def empty_places(
     return out
 
 
-def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> None:
+def tie_leading(
+    paragraphs: list[Paragraph], foliation: Foliation
+) -> dict[tuple[str, str], str]:
     """Tie each run of leading to the PAIR of places it separates.
 
     !! LEADING IS AN EDGE. Every other series answers to a line of code and has
@@ -586,8 +603,13 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> None:
 
     Args:
         paragraphs: every paragraph on the page, addressed.
-        foliation: the walk's places; `leading` is filled here.
+        foliation: the walk's places, to name what sits either side.
+
+    Returns:
+        The edge map: the pair of folios a run of leading separates -> its
+        own folio. An absent key means those two places sit against each other.
     """
+    edges: dict[tuple[str, str], str] = {}
     # ! The places that HOLD LINES, in the order they hold them -- the sequence
     # a run of leading falls between. Read from the original text, which is what
     # this pass is entitled to: it is establishing the edges ONCE, at build.
@@ -608,7 +630,8 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> None:
             elif (other.original_start or 0) > end:
                 after = other.address.split("@")[-1]
                 break
-        foliation.leading[(before, after)] = b.address.split("@")[-1]
+        edges[(before, after)] = b.address.split("@")[-1]
+    return edges
 
 
 def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> Page:
@@ -644,6 +667,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     # which is what happened to `matter` when it was written on one tier.
     got.extend(leading_between(got, text))
     foliation = Foliation()
+    edges: dict[tuple[str, str], str] = {}
     if not any(b.kind == "unparsed" for b in got):
         # !! THE WALK EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
         # Reversed -- each paragraph computing its own folio -- a place existed
@@ -728,11 +752,11 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # line numbers?"*
         #
         # ! SO LEADING IS TIED TO THE PAIR IT SEPARATES, not inserted into the
-        # sequence -- see `Foliation.leading`. The walk cannot emit a `d`,
+        # sequence -- see `Page.leading`. The walk cannot emit a `d`,
         # because it runs before any prose is read and leading exists only where
         # the lexer found a blank run; an edge needs no position in the walk's
         # list, so the walk does not have to know.
-        tie_leading(got, foliation)
+        edges = tie_leading(got, foliation)
     # ! THE PAGE STATES ITS OWN PATH on every paragraph, empty places included.
     # `empty_places` builds them without one -- it is handed the text, not the
     # file -- and a paragraph with no path is one no consumer can place.
@@ -750,6 +774,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         foliation=foliation,
         tier=tier_for(lang),
+        leading=edges,
     )
 
 

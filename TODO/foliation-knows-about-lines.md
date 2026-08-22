@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 11 tasks done
+Progress: 4 of 11 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines? I think
@@ -29,7 +29,7 @@ The foliation carries line data for one consumer, and one field of it is read by
       imply it does not change
 - [ ] _above, _beside and _code are the walk's own line lookups behind
       above()/beside(); decide whether they are internal detail or the same smell
-- [ ] Re-run scripts/dead_sweep.py --names after any deletion; a module-level dict
+- [x] Re-run scripts/dead_sweep.py --names after any deletion; a module-level dict
       nobody reads is invisible to ruff, which is how inserts survived
 - [ ] RULING/PROPOSAL, Roy 2026-08-21: replace anchor_line with anchor_num -- an
       ORDINAL over code lines -- carried ALONGSIDE the anchor text. MEASURED:
@@ -44,7 +44,7 @@ The foliation carries line data for one consumer, and one field of it is read by
 - [x] DONE 2026-08-21: inserts DELETED (dead, 0 readers) and bounds DELETED,
       replaced by Foliation.gap_bounds() computed from the walk's own code lines.
       Round-trip held at 3,068 of 3,073, 0 collisions
-- [ ] MEASURED 2026-08-21: Foliation.leading is declared in foliator.py and NEVER
+- [x] MEASURED 2026-08-21: Foliation.leading is declared in foliator.py and NEVER
       touched by the walk -- page.py:611 (tie_leading) fills it, compositor.py:158
       reads it, and the only mention in foliator.py is the field declaration. It
       is the PAGE's data parked on the foliation because that is what gets passed

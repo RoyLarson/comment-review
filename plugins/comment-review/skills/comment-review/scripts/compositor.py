@@ -155,7 +155,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # ! THE SECOND KEY IS KEPT ON THE FOLIATION AND NOT USED HERE. A place has
     # at most one place after it, so the first key alone is unique; the pair is
     # what makes the edge legible -- and checkable -- rather than what finds it.
-    edges = {before: folio for (before, _), folio in page.foliation.leading.items()}
+    edges = {before: folio for (before, _), folio in page.leading.items()}
     previous = ""
     for folio in page.foliation.reading:
         prose = held.get(folio, [])
