@@ -151,6 +151,12 @@ LANGUAGES: tuple[Language, ...] = (
         doc_is_structural=True,
         # ! A rune literal is one character.
         char_quotes=("'",),
+        # !! A RAW STRING CROSSES LINES, and the backtick is not in `quotes`
+        # above because a raw string takes no escapes. It is declared here so
+        # `prove_unchanged` REFUSES a file holding one rather than stripping a
+        # line inside it as a comment -- MEASURED 2026-08-22 on the same shape
+        # in Rust: a payload edited INSIDE a literal reported PROVEN, exit 0.
+        spanning_quotes=("`",),
         # ! `package` is NOT here: Go's package comment IS the file's own
         # documentation, which is `a0`. Listing it gave the same prose two
         # places, `a0` and `a1`.
@@ -353,6 +359,11 @@ LANGUAGES: tuple[Language, ...] = (
         (("=begin", "=end"),),
         doc_is_structural=True,
         declares=("def", "class", "module"),
+        # ! A HEREDOC CROSSES LINES BY DEFINITION. Declared so a file holding
+        # one is refused rather than having a line inside it stripped as a
+        # comment -- see `prove_unchanged`, which refuses on PRESENCE because
+        # parity is what a per-line reader cannot compute.
+        spanning_quotes=("<<~", "<<-"),
     ),
     Language("shell", (".sh", ".bash", ".zsh"), ("#",), declares=("function",)),
     Language("sql", (".sql",), ("--",), (("/*", "*/"),)),
@@ -364,8 +375,19 @@ LANGUAGES: tuple[Language, ...] = (
         ("--",),
         (("--[[", "]]"),),
         declares=("function", "local function"),
+        # ! A LONG STRING `[[ ... ]]` crosses lines. Declared for the same
+        # reason as Go's backtick and Ruby's heredoc -- refuse the file rather
+        # than strip a line inside the literal.
+        spanning_quotes=("[[",),
     ),
-    Language("toml-ini", (".toml", ".ini", ".cfg"), ("#",)),
+    # ! `"""` AND `'''` ARE TOML'S MULTI-LINE STRINGS, declared so a file
+    # holding one is refused rather than proved through it.
+    Language(
+        "toml-ini",
+        (".toml", ".ini", ".cfg"),
+        ("#",),
+        spanning_quotes=('"""', "'''"),
+    ),
     Language("yaml", (".yaml", ".yml"), ("#",)),
 )
 

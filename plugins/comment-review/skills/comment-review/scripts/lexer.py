@@ -1134,7 +1134,21 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # every interval boundary in the file. Measured 2026-08-17, the same
             # shape as the `//`-before-`/*` case fixed directly above.
             opens_at = code.index(opened[0])
-            tail = code[opens_at + len(opened[0]) :]
+            # !! THE OPENER IS FOUND IN THE BLANKED LINE AND THE CLOSER IN THE
+            # RAW ONE, and they are different questions. Whether a `/*` OPENS a
+            # comment depends on whether it is inside a string, so that is asked
+            # of `code`. Once the comment is open, a quote has no meaning at all
+            # -- which is why the continuation path above scans `raw_line`.
+            #
+            # !! THIS SCANNED THE BLANKED TEXT FOR THE CLOSER, and an apostrophe
+            # ate it. MEASURED 2026-08-22 on JavaScript: `/* don't cache this */`
+            # over two statements censused as ONE `matter` paragraph spanning
+            # lines 1-3, with NO `c` place on the file -- the executable code
+            # handed to four reviewers as prose and every address below it gone.
+            # ! It hits every language whose `quotes` holds `'` and whose
+            # `char_quotes` is empty: javascript, typescript, sql, lua, ruby. C
+            # escaped only because it declares `char_quotes`.
+            tail = raw_line[opens_at + len(opened[0]) :]
             ends_at, layers = run_ends(tail, opened, lang.nests_comments)
             closes_here = ends_at >= 0
             after = tail[ends_at:] if closes_here else ""

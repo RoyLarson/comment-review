@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 24 tasks done
+Progress: 0 of 27 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -169,3 +169,24 @@ The AST reader gets older every release while the files get newer.
       same fixture y = """not a docstring""" sits at depth 8 like every other line
       of that body, so depth says WHICH BODY and the walk order says FIRST -- the
       pair replaces ast.get_docstring, not depth alone.
+- [ ] * DEFERRED HERE BY TRANSITIVITY, Roy 2026-08-22: *"to make python capable of
+      being read correctly we are going to have to do this ... the fix to one will
+      fix the other."* MAKE _strip_strings STATEFUL -- carry open-quote state
+      across lines instead of reading each line alone. It is the same reader:
+      triple-quote is Pythons doc delimiter AND a spanning quote, so whatever
+      computes parity for one computes it for the other
+- [ ] THE COST OF NOT HAVING IT, MEASURED 2026-08-22 by a code review and
+      reproduced here: prove_unchanged refuses a file on the PRESENCE of a
+      spanning delimiter, because parity is what a per-line reader cannot compute
+      -- its own words, *a proof that refuses costs a report; a proof that lies
+      costs the claim*. TEN languages declared none, so the refusal never fired
+      and the gate LIED instead: an edit made INSIDE a Rust string literal
+      reported PROVEN at exit 0, fingerprints identical. That is the stage 7b gate
+      failing open
+- [ ] ! FOUR ROWS WERE FIXED THE SAME DAY AND FOUR WERE NOT, and the split is why
+      this task exists. Go raw-string backtick, Ruby heredoc, Lua long-bracket and
+      TOML triple-quote are DISTINCTIVE delimiters, so declaring them costs almost
+      nothing. rust, shell, sql and the C++ raw string use the ordinary double and
+      single quote, which appear in nearly every file -- declaring those is
+      CORRECT by the rule and makes Rust effectively unprovable. A stateful reader
+      is what removes the choice between refusing everything and lying sometimes

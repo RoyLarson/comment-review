@@ -438,12 +438,13 @@ class Foliation:
         """Every place in the file -> the line of code it is attached to.
 
         ! DERIVED FROM THE FOLIATORS, in `SERIES` order. It was a field the walk
-        assigned by flattening the five walkers on its last line, which is what
-        made every other projection an index into something already discarded.
+        assigned by flattening the walkers on its last line, which is what made
+        every other projection an index into something already discarded.
 
         !! IT IS A FRESH DICT EACH TIME, so writing into it changes nothing.
-        `page.py` used to number the `d` series by assigning here; it calls
-        `emit` on the `d` foliator now, which is the only way a place is made.
+        `page.py` used to number the `d` series by assigning here, and numbers
+        it with a counter of its own now -- leading is not a place, so nothing
+        here makes one. See `SERIES`.
         """
         return {
             folio: anchor
@@ -454,7 +455,7 @@ class Foliation:
     def anchor_of(self, folio: str, default: str = "") -> str:
         """The line of code this place is attached to; `default` if no such place.
 
-        !! ONE LOOKUP, NOT A REBUILT DICT. `places` composes five walkers into a
+        !! ONE LOOKUP, NOT A REBUILT DICT. `places` composes the walkers into a
         fresh mapping on every read, so asking it for ONE place inside a loop is
         quadratic -- MEASURED 2026-08-22, a corpus sweep that ran in under three
         minutes did not finish in ten. The two callers that ask per paragraph
@@ -849,7 +850,7 @@ def foliate(
         out.reading.append(beside)
         seen += 1
     # !! NOTHING IS COLLECTED AT THE END ANY MORE. This function closed by
-    # flattening the five walkers into `out.places` and dropping them, so a
+    # flattening the walkers into `out.places` and dropping them, so a
     # place existed twice -- once in the walker that emitted it and once in the
     # flat dict -- and every accessor had to be given its own table because the
     # emitter was gone. `Foliation.places` reads the walkers instead.
