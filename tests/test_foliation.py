@@ -1100,23 +1100,30 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         built = page.page_for(Path("m.py"), src, lexer.language_for(Path("m.py")))
         rows = [b for b in built if b.address and b.kind != lexer.LEADING]
         folio = {b.address: b.address.split("@")[-1] for b in rows}
-        foot = {f for f in folio.values() if f in ("b3", "f1")}
-        self.assertTrue(foot, folio)
+        # !! WHICH PLACES HAVE A LINE IS ASKED, NOT LISTED. This named `b3` and
+        # `f1` outright, which is a fixture's arithmetic wearing a test. A place
+        # anchored to a SENTINEL answers `None` since 2026-08-22, so the three
+        # groups below are derived from what each place says about itself.
+        lined = [b for b in rows if b.anchor_line is not None]
+        sentinels = [b for b in rows if b.anchor_line is None]
+        self.assertTrue(lined)
+        self.assertTrue(sentinels)
 
         # ! Every place ANCHORED TO A LINE OF CODE ranks the same either way.
-        anchored = [b for b in rows if folio[b.address] not in foot]
         self.assertEqual(
-            [b.address for b in sorted(anchored, key=lambda b: b.anchor_line)],
-            [b.address for b in sorted(anchored, key=lambda b: b.anchor_num)],
+            [b.address for b in sorted(lined, key=lambda b: b.anchor_line)],
+            [b.address for b in sorted(lined, key=lambda b: b.anchor_num)],
         )
 
-        # ! And the foot sorts PAST all of them by ordinal -- which is what the
-        # line cannot do, because its anchor is a line further up the file.
-        highest = max(b.anchor_num for b in anchored)
-        for b in rows:
-            if folio[b.address] in foot:
-                with self.subTest(place=folio[b.address]):
-                    self.assertGreater(b.anchor_num, highest)
+        # !! AND THE SENTINELS SPLIT INTO A HEAD AND A FOOT, which is the whole
+        # of what the line cannot say: it answered 0 for both, so the file's own
+        # foot sorted to the TOP of the page.
+        highest = max(b.anchor_num for b in lined)
+        head = [b for b in sentinels if b.anchor_num == 0]
+        foot = [b for b in sentinels if b.anchor_num > highest]
+        self.assertEqual(len(head) + len(foot), len(sentinels))
+        self.assertTrue(head, folio)
+        self.assertTrue(foot, folio)
 
     def test_a_folio_is_never_DERIVED_from_another(self):
         """!! The property the arithmetic destroyed and the walk restores.

@@ -498,27 +498,43 @@ class Foliation:
         """The `a` for the nth documentable declaration; 0 is the module."""
         return self.foliators[DECLARED].at(ordinal)
 
-    def anchor_line(self, folio: str) -> int:
-        """The LINE the anchor of this place sits on. 0 when it has none.
+    def anchor_line(self, folio: str) -> int | None:
+        """The LINE the anchor of this place sits on. None when it has none.
 
         !! IT IS THE LINE OF THE TRIGGER THE PLACE FIRED AT, which is one lookup
         and not a table. A `lines` dict held it for an `a` and a `c` alone, and a
         `b` fell through to `gap_bounds` -- two mechanisms answering one
         question, and neither of them a fact the walk did not already carry.
 
-        ! A SENTINEL HAS NO LINE, so `MODULE` and `EOF` answer 0. That is a real
-        answer and not a miss: `a0` and `f0` sit above everything the file
-        declares, and the closing gap and the file's foot below all of it. ! The
-        closing gap answered the LAST LINE OF CODE until 2026-08-22, borrowing
-        the previous trigger's -- see `foliate`.
+        !! A SENTINEL HAS NO LINE, AND `None` IS HOW THIS SAYS SO. It answered 0
+        for both until 2026-08-22, and Roy named the asymmetry that hid in it:
+        *"`<module>` gets somewhat attached to line 0 by accident and because it
+        is functional, but the end of file getting a 0 is non-functional filling
+        in for a missing value. They either both get None, or they get 0 and
+        -1."*
+
+        ! ZERO WAS A POSITION FOR THE HEAD AND A NULL FOR THE FOOT. Line 0 is
+        genuinely above line 1, so it sorted first and rendered at the head and
+        both were right; the foot inherited those two behaviours and both were
+        wrong. One number doing two jobs is what this repo's own `repo.py` warns
+        against: *"a caller that reads a non-answer as an empty answer produces
+        the failure this whole skill exists to catch."*
+
+        ! MEASURED before choosing between `None` and `0`/`-1`: both branching
+        consumers already handle `None` and neither handles `-1`.
+        `render_page` tests `if anchored:` -- `-1` is TRUTHY and would draw the
+        foot at line -1 -- and `for_anchor` filters on `isinstance(..., int)`,
+        which `-1` passes and then wins a `min`. ! `-1` also already means *the
+        last line* in Python, which is the borrowed anchor this branch removed.
 
         ! IT IS NOT WHAT ORDERS A RECORD -- see `anchor_num`. This remains
         because a consumer READING A FILE needs a line to slice it, which is a
         different job from naming or ordering a place.
         """
-        at = self.anchor_num(folio)
-        trigger = self.walk[at] if 0 <= at < len(self.walk) else None
-        return trigger if isinstance(trigger, int) else 0
+        if not self.walk:
+            return None
+        trigger = self.walk[self.anchor_num(folio)]
+        return trigger if isinstance(trigger, int) else None
 
     def anchor_num(self, folio: str) -> int:
         """WHICH TRIGGER this place was emitted at, indexing `triggers()`.

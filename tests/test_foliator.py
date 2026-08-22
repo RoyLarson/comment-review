@@ -353,22 +353,27 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
         # number there.
         self.assertEqual(got.anchor_line("b0"), 2)
         self.assertEqual(got.anchor_line("b1"), 3)
-        # !! THE CLOSING GAP ANSWERS 0, because it is anchored to `EOF` and a
-        # sentinel sits on no line -- the same answer `a0` and `f0` give for the
-        # MODULE. It took the line ABOVE it until 2026-08-22, borrowing the
-        # previous trigger's.
-        self.assertEqual(got.anchor_line("b2"), 0)
+        # !! THE CLOSING GAP ANSWERS None, because it is anchored to `EOF` and a
+        # sentinel sits on no line. It took the line ABOVE it until 2026-08-22,
+        # borrowing the previous trigger's.
+        self.assertIsNone(got.anchor_line("b2"))
         # ! AND IT IS STILL BOUNDED, which is what places it. `gap_bounds` reads
         # the walk either side of the trigger it fired at, never the anchor.
         self.assertEqual(got.gap_bounds("b2"), (3, 0))
         self.assertEqual(got.anchor_line("a1"), 3)
 
-    def test_the_MODULE_answers_0_and_that_is_an_answer(self):
-        # ! `a0` and the `f` place sit above everything the file declares, so
-        # they have no line. 0 is what that means, not a miss.
+    def test_a_SENTINEL_answers_None_because_it_sits_on_no_line(self):
+        # !! IT ANSWERED 0 FOR BOTH ENDS UNTIL 2026-08-22, and the two were not
+        # the same fact. Line 0 is genuinely above line 1, so the head sorted
+        # first and rendered at the top and both were right; the FOOT inherited
+        # those behaviours and both were wrong. Roy: *"the end of file getting a
+        # 0 is non-functional filling in for a missing value."*
         got = foliator.foliate({2: "N = 0"}, {})
-        self.assertEqual(got.anchor_line("a0"), 0)
-        self.assertEqual(got.anchor_line("f0"), 0)
+        for folio in ("a0", "f0", "b1", "f1"):
+            with self.subTest(folio=folio):
+                self.assertIsNone(got.anchor_line(folio))
+        # ! The place that DOES sit on a line still answers with it.
+        self.assertEqual(got.anchor_line("c0"), 2)
 
     def test_the_series_of_a_place_is_READ_and_not_inferred(self):
         # ! Inferred from `declares`/`original_column`, a series that is neither

@@ -777,7 +777,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # list that names its members: a branch that forgets is silent.
         for b in got:
             folio = b.address.split("@")[-1]
-            b.anchor_line = foliation.anchor_line(folio) if folio else 0
+            b.anchor_line = foliation.anchor_line(folio) if folio else None
             # ! THE ORDINAL, stamped in the same pass and for the same reason:
             # every paragraph carries it or a consumer has to ask the walk again.
             b.anchor_num = foliation.anchor_num(folio) if folio else 0

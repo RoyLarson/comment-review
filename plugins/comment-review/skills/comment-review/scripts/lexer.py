@@ -103,9 +103,16 @@ class Paragraph:
     # fact was never about declaring: it is the anchor's line, and every
     # series has one. Renamed and filled for all of them 2026-08-20.
     #
-    # ! 0 where the anchor has no line -- the MODULE, which is what `a0` and
-    # the `f` place answer to. A real answer, not a miss.
-    anchor_line: int = 0
+    # !! `None` WHERE THE ANCHOR IS A SENTINEL -- `<module>` at the head of the
+    # walk, `<eof>` at its foot. Neither sits on a line, and this says so
+    # rather than answering 0.
+    #
+    # ! IT WAS 0 FOR BOTH until 2026-08-22, and the two were not the same fact.
+    # Line 0 is genuinely above line 1, so the head sorted first and rendered at
+    # the top and both were correct; the foot inherited those behaviours and
+    # both were wrong. Roy: *"the end of file getting a 0 is non-functional
+    # filling in for a missing value."*
+    anchor_line: int | None = None
     # !! THE ORDINAL OF THAT ANCHOR AMONG THE LINES OF CODE, and it is what
     # ORDERS a record now. Roy, 2026-08-21: *"where it is in the original and
     # where it ends up on the resulting page can be two very different things --
