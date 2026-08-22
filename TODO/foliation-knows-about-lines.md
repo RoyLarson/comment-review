@@ -2,7 +2,7 @@
 
 ```
 Status:   in-flight
-Progress: 4 of 14 tasks done
+Progress: 4 of 15 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines? I think
@@ -72,3 +72,11 @@ The foliation carries line data for one consumer, and one field of it is read by
       every accessor becomes a QUERY over one collection: above(n) is the b at
       ordinal n, matter() is the first f, the closing gap is the b with the
       highest ordinal
+- [ ] THE FLATTENING IS ONE COMPREHENSION, foliator.py:686. walkers = {name:
+      Foliator(name) for name in SERIES} creates five per-series collections of
+      (folio -> anchor) IN EMISSION ORDER; the walk uses them; then out.places
+      flattens all five into one dict and the walkers are DISCARDED at return.
+      Every projection rebuilt during the walk --
+      documents/matter/back_matter/_closing/above/beside -- is an index into a
+      walker that was just thrown away. Keep the walkers, delete six fields, add
+      no data
