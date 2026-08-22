@@ -95,14 +95,12 @@ from desk import (  # noqa: E402  -- path shim must run first
     source_problem,
 )
 from foliator import (  # noqa: E402  -- path shim first
-    FRONT,
+    COVERS,
     series_of,
     unaddressed,
 )
 from held import load_report  # noqa: E402  -- path shim must run first
-from page import (
-    HOLDS_NO_PROSE,  # noqa: E402  -- path shim must run first
-)
+from lexer import Kind  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     VERDICTS,
     Finding,
@@ -383,9 +381,9 @@ def _report(args: argparse.Namespace) -> int:
     all_blocks = {
         str(b.get("address", ""))
         for b in paragraphs
-        if b.get("kind") not in HOLDS_NO_PROSE
+        if not Kind.holds_no_prose(str(b.get("kind", "")))
         and b.get("address")
-        and series_of(b) != FRONT
+        and series_of(b) != COVERS
     }
 
     fatal = 0
@@ -464,7 +462,7 @@ def _report(args: argparse.Namespace) -> int:
             # the galley without the human ever being asked. Measured
             # 2026-08-20 on a file with no front matter: `f0` is
             # `dark-matter`, annotations `[]`, and the guard did not fire.
-            if series_of(held) == FRONT and (
+            if series_of(held) == COVERS and (
                 proposes is not None and proposes.owes_change
             ):
                 print(

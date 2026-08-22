@@ -16,7 +16,7 @@ from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
 import foliator
-from foliator import FRONT
+from foliator import COVERS
 import lexer
 import page
 
@@ -492,7 +492,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
         prose = [
             b
             for b in got
-            if b.kind not in page.HOLDS_NO_PROSE and b.kind != lexer.LEADING
+            if not lexer.Kind.holds_no_prose(b.kind) and b.kind != lexer.Kind.LEADING
         ]
         self.assertEqual(
             [b.anchor for b in prose],
@@ -574,18 +574,18 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         # ! ITS TWIN AT THE FOOT ANSWERS `<eof>`, since 2026-08-22. Each place's
         # anchor is the trigger it was emitted at, so the two ends of the file
         # no longer answer with one string.
-        self.assertEqual(self._at("<module>", FRONT), ["f0"])
-        self.assertEqual(self._at(foliator.EOF, FRONT), ["f1"])
+        self.assertEqual(self._at("<module>", COVERS), ["f0"])
+        self.assertEqual(self._at(foliator.EOF, COVERS), ["f1"])
 
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")
         got = page.page_for(path, with_header, lexer.language_for(path))
         list(page.code_lines(with_header, [vars(b) for b in got]))
-        found = foliator.for_anchor("<module>", FRONT, [vars(b) for b in got])
+        found = foliator.for_anchor("<module>", COVERS, [vars(b) for b in got])
         self.assertEqual(
             sorted(foliator.folio_of(b["address"]).folio for b in found), ["f0"]
         )
-        found = foliator.for_anchor(foliator.EOF, FRONT, [vars(b) for b in got])
+        found = foliator.for_anchor(foliator.EOF, COVERS, [vars(b) for b in got])
         self.assertEqual(
             sorted(foliator.folio_of(b["address"]).folio for b in found), ["f1"]
         )
@@ -616,7 +616,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         path = Path("m.py")
         got = page.page_for(path, "# just a note\n", lexer.language_for(path))
         self.assertEqual(
-            sorted(f for f in got.foliation.places if f.startswith(FRONT)),
+            sorted(f for f in got.foliation.places if f.startswith(COVERS)),
             ["f0", "f1"],
         )
 
@@ -1098,7 +1098,7 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
             '# licence\n"""Doc."""\nimport os\n\ndef f():\n    """D."""\n    return 1\n'
         )
         built = page.page_for(Path("m.py"), src, lexer.language_for(Path("m.py")))
-        rows = [b for b in built if b.address and b.kind != lexer.LEADING]
+        rows = [b for b in built if b.address and b.kind != lexer.Kind.LEADING]
         folio = {b.address: b.address.split("@")[-1] for b in rows}
         # !! WHICH PLACES HAVE A LINE IS ASKED, NOT LISTED. This named `b3` and
         # `f1` outright, which is a fixture's arithmetic wearing a test. A place
@@ -1176,8 +1176,8 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         # same ordinal the walk does. A `c` IS the code-line ordinal; what
         # drifted was three mechanisms answering one question, never the answer.
         front = built.foliation.matter()
-        self.assertTrue(front.startswith(FRONT), front)
-        self.assertNotIn(front, [f for f in places if not f.startswith(FRONT)])
+        self.assertTrue(front.startswith(COVERS), front)
+        self.assertNotIn(front, [f for f in places if not f.startswith(COVERS)])
 
         # ! Every place the page carries was emitted by the walk -- `places` is
         # what `foliate` filled, and nothing else writes to it.

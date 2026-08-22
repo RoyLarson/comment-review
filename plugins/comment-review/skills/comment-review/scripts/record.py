@@ -57,14 +57,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from constants import utf8_console  # noqa: E402  -- path shim must run first
 from foliator import (  # noqa: E402  -- path shim must run first
-    FRONT,
+    COVERS,
     flatten,
     folio_of,
     series_of,
 )
-from page import (  # noqa: E402  -- path shim must run first
-    HOLDS_NO_PROSE,
-)
+from lexer import Kind  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,
@@ -664,8 +662,8 @@ def prose_paragraphs(census: list[dict]) -> list[tuple[int, dict]]:
         (i, b)
         for i, b in enumerate(census, 1)
         if b.get("address")
-        and b.get("kind") not in HOLDS_NO_PROSE
-        and series_of(b) != FRONT
+        and not Kind.holds_no_prose(str(b.get("kind", "")))
+        and series_of(b) != COVERS
     ]
 
 

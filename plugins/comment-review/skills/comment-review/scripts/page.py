@@ -61,8 +61,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from foliator import (  # noqa: E402  -- path shim must run first
+    COVERS,
     DECLARED,
-    FRONT,
     GAP,
     LEAD,
     ON,
@@ -72,9 +72,7 @@ from foliator import (  # noqa: E402  -- path shim must run first
     series_of,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
-    LEADING,
-    MATTER,
-    NEGATIVE,
+    Kind,
     Language,
     Paragraph,
     declarations,
@@ -97,27 +95,14 @@ from lexer import (  # noqa: E402  -- path shim must run first
 #   c   `margin`        a code line with no trailing comment
 #   f   `dark-matter`   a file with none of its own prose
 #
-# !! ONE SET, DERIVED FROM THE PAIRING -- see `lexer.NEGATIVE`. It was TWO
-# hand-kept tuples here, `OCCUPIES_NOTHING` and `HOLDS_NO_PROSE`, holding the
-# same four strings in different orders under comments claiming they answered
-# different questions. They do not. An empty place holds no prose AND occupies
-# no lines, for one reason: nothing is there.
-#
-# ! WHAT SEEMED TO DISTINGUISH THEM WAS A `trailing-comment`, which left the
-# first tuple on 2026-08-20 -- a WRAPPED one owns every line after its first
-# outright. Once it was gone the two held identical members, and a class named
-# `TestTheTwoKindSetsAreNotInterchangeable` went on passing by asserting a kind
-# that was in NEITHER.
-#
-# !! THE `c` RULE IS NOT IN HERE, AND THAT IS THE POINT. A trailing comment
-# shares its first line with code whether or not anything is written beside it,
-# so the rule belongs to the SERIES rather than to a membership list. Roy,
-# 2026-08-22: *"the compositor can have the simple and accurate and perfect rule
-# that when laying down a `c` foliation it lays down the line of code first ...
-# it is pretty much defined by the trailing_comment/margin that defines `c`
-# foliations in the first place."* Setting, that is `set_page`; reading, it is
-# the `original_column` discard in `code_lines`.
-HOLDS_NO_PROSE = NEGATIVE
+# !! THE QUESTIONS ARE ASKED OF `Kind`, AND THIS MODULE KEEPS NO SET. It held
+# `OCCUPIES_NOTHING` and `HOLDS_NO_PROSE` -- two hand-kept tuples of the same
+# four strings in different orders, under comments claiming they answered
+# different questions -- then ONE tuple, when the four were seen to be equal.
+# ! Both shapes were wrong, and the second was wrong in the more expensive way:
+# it looked settled. `leading` holds no prose and DOES occupy lines, so the two
+# questions part on it, and `Kind.holds_no_prose` and `Kind.occupies_no_lines`
+# are what tell them apart. Neither is listed; both derive from `lexer.Series`.
 
 # !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE LEXER STATES IT -- see
 # `lexer.MATTER`. It was an ANNOTATION stamped HERE by `mark_matter` until
@@ -216,7 +201,7 @@ class Page:
         document preservation."* A reviewer handed one would be asked to rule on
         blank lines.
 
-        ! IT WAS NAMED AS A SERIES HERE, `not in (FRONT, LEAD)`, and that stopped
+        ! IT WAS NAMED AS A SERIES HERE, `not in (COVERS, LEAD)`, and that stopped
         working the moment leading gave up its address: `series_of` reads the
         address, so a `d` answered `""` and passed a filter listing letters.
         Requiring an ADDRESS says the same thing without a list to keep current
@@ -226,8 +211,8 @@ class Page:
             b
             for b in self.paragraphs
             if b.address
-            and b.kind not in HOLDS_NO_PROSE
-            and series_of(vars(b)) != FRONT
+            and not Kind.holds_no_prose(b.kind)
+            and series_of(vars(b)) != COVERS
         ]
 
 
@@ -295,7 +280,7 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
         # this point an `interval` still spans the gap between two code lines --
         # `fill_the_gaps` has not recut it yet -- so counting it would take
         # those lines out of the code and renumber every `b` below.
-        if b.get("kind") in HOLDS_NO_PROSE:
+        if Kind.occupies_no_lines(str(b.get("kind", ""))):
             continue
         if not isinstance(start, int) or not isinstance(end, int):
             continue
@@ -345,7 +330,7 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     # place the walk emitted, exactly as the Nth declaration takes the Nth `a`.
     # Counting is the PAGE's, so `page_for` hands them out and this says only
     # that the question is not `above()`'s to answer.
-    if paragraph.get("kind") == MATTER:
+    if paragraph.get("kind") == Kind.MATTER:
         return ""
     if paragraph.get("original_column", 0):
         start = paragraph.get("start")
@@ -533,7 +518,7 @@ def empty_places(
                     address=folio,
                 )
             )
-        elif folio.startswith(FRONT):
+        elif folio.startswith(COVERS):
             # !! THE FILE'S OWN PROSE, AND IT HOLDS NO LINE WHEN IT IS EMPTY.
             # A licence header or a shebang goes at the very top, bounded by
             # nothing on either side -- so there is no gap to measure and
@@ -645,7 +630,7 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> dict[str, 
     # a run of leading falls between. Read from the original text, which is what
     # this pass is entitled to: it is establishing the edges ONCE, at build.
     set_places = sorted(
-        (b for b in paragraphs if b.original_start and b.kind != LEADING),
+        (b for b in paragraphs if b.original_start and b.kind != Kind.LEADING),
         key=lambda b: b.original_start or 0,
     )
     # !! THE HEAD OF THE FILE IS A PLACE, NOT AN ABSENCE, and that is the whole
@@ -661,7 +646,7 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> dict[str, 
     # filled or not, so there was always a real place to name.
     head = foliation.reading[0] if foliation.reading else ""
     for b in sorted(paragraphs, key=lambda b: b.original_start or 0):
-        if b.kind != LEADING or not b.symbol:
+        if b.kind != Kind.LEADING or not b.symbol:
             continue
         start = b.original_start or 0
         # !! IT IS THE LAST PLACE THAT HELD LINES, never merely the last place
@@ -749,14 +734,14 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # it, because there is no walk to take a number from.
         leads = iter(range(10**9))
         for b in sorted(got, key=lambda b: b.original_start or 0):
-            if b.kind == LEADING:
+            if b.kind == Kind.LEADING:
                 # ! NO ADDRESS. Nothing cites a run of blank lines -- Roy: *"there
                 # is no information to rule on, it is just there for document
                 # preservation"* -- and an address names a place it does not have.
                 b.symbol = f"{LEAD}{next(leads)}"
                 b.address = ""
                 continue
-            if b.kind == MATTER:
+            if b.kind == Kind.MATTER:
                 # ! HEAD OR FOOT, which is the whole of the mapping. The lexer
                 # types a run `matter` when it opens the file or closes it; the
                 # walk emits a place for each end; this says which is which, and

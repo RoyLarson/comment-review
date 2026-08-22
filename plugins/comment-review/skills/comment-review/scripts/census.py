@@ -49,7 +49,7 @@ from annotate import (  # noqa: E402  -- path shim must run first
 )
 from constants import utf8_console  # noqa: E402  -- path shim must run first
 from foliator import (  # noqa: E402  -- path shim must run first
-    FRONT,
+    COVERS,
     SEPARATOR,
     series_of,
     unaddressed,
@@ -59,12 +59,12 @@ from lexer import (  # noqa: E402  -- path shim must run first
     LANGUAGES,
     NAMED_DEFS,
     TIER_ANSWERS,
+    Kind,
     Paragraph,
     language_for,
     tier_for,
 )
 from page import (  # noqa: E402  -- path shim must run first
-    HOLDS_NO_PROSE,
     page_for,
 )
 from repo import (  # noqa: E402  -- path shim must run first
@@ -480,8 +480,16 @@ def _report(args: argparse.Namespace) -> int:
         where = f"{run[0]:4d}" if len(run) == 1 else f"{run[0]:4d}-{run[-1]}"
         # ! A run spans several PLACES, so it names its ends. Each is still
         # cited singly, by its own address.
-        at = first.address.split("@")[-1]
-        seat = at if len(run) == 1 else f"{at}..{last.address.split('@')[-1]}"
+        # !! IT NAMES ITS ADDRESSED ENDS, and not simply its first and last.
+        # `leading` carries no address -- it names no place and nothing can cite
+        # it -- so a run that opens or closes on one rendered `@..c0`, an end a
+        # reviewer cannot use and a range that reads as truncated. MEASURED
+        # 2026-08-22 on `--filtered`, the command SKILL.md hands a reviewer.
+        cited = [
+            b.address.split("@")[-1] for b in (census[i - 1] for i in run) if b.address
+        ]
+        at = cited[0] if cited else ""
+        seat = at if len(cited) < 2 else f"{at}..{cited[-1]}"
         # !! THE SAME COLUMNS AS A PARAGRAPH ROW -- index, address, KIND, lines,
         # notes -- because this listing is pasted into a reviewer's prompt and
         # is read down its columns. Written as prose (`no prose (5 intervals)`)
@@ -536,13 +544,13 @@ def _report(args: argparse.Namespace) -> int:
             flush_run()
             run_path = b.path
         if args.filtered and not args.include_matter:
-            if series_of(vars(b)) == FRONT:
+            if series_of(vars(b)) == COVERS:
                 # ! FLUSHED, NOT SKIPPED. Front matter is PROSE that this
                 # listing drops; a run that continued across it would claim no
                 # prose over a stretch that has some.
                 flush_run()
                 continue
-        if args.filtered and b.kind in HOLDS_NO_PROSE:
+        if args.filtered and Kind.holds_no_prose(b.kind):
             run.append(i)
             continue
         flush_run()

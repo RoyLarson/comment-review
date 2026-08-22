@@ -97,20 +97,20 @@ class TestLeadingIsNotCitable(unittest.TestCase):
 
     def test_it_carries_no_anchor(self):
         # ! Every other series answers to a line of code. This answers to nothing.
-        leads = [b for b in built("m.py", self.SRC) if b.kind == lexer.LEADING]
+        leads = [b for b in built("m.py", self.SRC) if b.kind == lexer.Kind.LEADING]
         self.assertTrue(leads)
         self.assertEqual([b.anchor for b in leads], [""] * len(leads))
 
     def test_it_is_not_prose_a_reviewer_owes_a_record_on(self):
         page = built("m.py", self.SRC)
-        self.assertNotIn(lexer.LEADING, {b.kind for b in page.prose})
+        self.assertNotIn(lexer.Kind.LEADING, {b.kind for b in page.prose})
 
     def test_NO_EMPTY_d_IS_EMITTED(self):
         # !! THE OTHER FOUR SERIES EXIST WHEREVER PROSE COULD GO, because an
         # `add` cites them. A place no verdict can name has no reason to exist
         # unfilled -- so a `d` exists only where the lexer found a blank run.
         page = built("m.py", "import os\nimport sys\n")
-        self.assertEqual([b for b in page if b.kind == lexer.LEADING], [])
+        self.assertEqual([b for b in page if b.kind == lexer.Kind.LEADING], [])
 
 
 class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
@@ -259,6 +259,26 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
         self.assertEqual(
             compositor.set_page(page), "# X\na = 1\n\nb = 2\n\n# Y\nc = 3\n"
         )
+
+    def test_a_blank_line_holding_whitespace_keeps_its_characters(self):
+        """A line blank to `str.strip` is not always empty on disk.
+
+        !! `_leading` FABRICATED ITS `raw_lines` as a list of empty strings, so a
+        tab or three spaces came back as nothing. That is a false LOSSY on a file
+        the model can hold -- and the same loss on the write path is SILENT,
+        because `compositor.draft` runs no identity of its own.
+
+        ! Invisible on every corpus here: 0 of 3,986 files, all formatter-clean.
+        A tree that is not formatter-clean is the tree a reviewer is pointed at.
+        """
+        src = "x = 1\n\t\n   \ny = 2\n"
+        self.assertEqual(compositor.set_page(built("ws.py", src)), src)
+
+    def test_the_run_is_still_ONE_paragraph_however_it_is_spelled(self):
+        """Carrying the characters must not split the run into one per line."""
+        page = built("ws.py", "x = 1\n\t\n   \ny = 2\n")
+        leads = [b for b in page if b.kind == lexer.Kind.LEADING]
+        self.assertEqual([(b.start, b.end) for b in leads], [(2, 3)])
 
     def test_a_doc_comment_one_blank_above_its_declaration_is_STILL_tied(self):
         # !! LEADING MUST NOT BREAK THE TIE. The walk up from a declaring line

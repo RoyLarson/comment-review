@@ -665,7 +665,7 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
         self.census = [vars(b) for b in paragraphs]
         # ! THE KIND, NOT AN ANNOTATION, since 2026-08-21 -- the lexer types a
         # run `matter` and the page no longer stamps it afterwards.
-        self.marked = [b for b in self.census if b["kind"] == lexer.MATTER]
+        self.marked = [b for b in self.census if b["kind"] == lexer.Kind.MATTER]
 
     def test_the_fixture_really_has_front_matter(self):
         # ! Guards the guard: a fixture whose header stopped being marked would
@@ -687,7 +687,7 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
                 or {}
             )
             with self.subTest(place=s["place"]):
-                self.assertNotIn(page.MATTER, held.get("annotations") or ())
+                self.assertNotIn(lexer.Kind.MATTER, held.get("annotations") or ())
 
     def test_the_JOIN_and_the_SEED_agree_on_what_is_accountable(self):
         """!! They disagreed, which is how the gap reached nobody.
@@ -705,8 +705,8 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
         accountable = {
             str(b.get("address", ""))
             for b in self.census
-            if b.get("kind") not in page.HOLDS_NO_PROSE
+            if not lexer.Kind.holds_no_prose(str(b.get("kind", "")))
             and b.get("address")
-            and foliator.series_of(b) != foliator.FRONT
+            and foliator.series_of(b) != foliator.COVERS
         }
         self.assertEqual(seeded, accountable)

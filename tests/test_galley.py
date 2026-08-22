@@ -167,7 +167,7 @@ class TestTheAnchorIsTheWholeStalenessCheck(unittest.TestCase):
         pg = built('# licence\n\n"""Doc."""\n\nimport os\n')
         census = [vars(b) for b in pg]
         self.assertEqual(
-            [b for b in census if b["kind"] == lexer.LEADING and b["anchor"]], []
+            [b for b in census if b["kind"] == lexer.Kind.LEADING and b["anchor"]], []
         )
 
 

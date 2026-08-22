@@ -191,7 +191,7 @@ DECLARED = "a"
 # COUNTED like any other series rather than hardcoded to one place -- `f0` today
 # because the walk emits it at the module and nowhere else, and `f1..fN` the day
 # a second front-matter place is emitted.
-FRONT = "f"
+COVERS = "f"
 
 # !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row here
 # -- the same rule `lexer.LANGUAGES` follows. Roy, 2026-08-20: *"we may find
@@ -243,7 +243,7 @@ LEAD = "d"
 #:
 #: ! `LEAD` SURVIVES AS A SYMBOL, on Roy's ruling that the page/symbol map is
 #: what shows every line is covered -- see `lexer.Paragraph.symbol`.
-SERIES = (FRONT, DECLARED, GAP, ON)
+SERIES = (COVERS, DECLARED, GAP, ON)
 
 
 #: The FIRST TRIGGER every foliator steps past: the file itself, before any line
@@ -641,7 +641,7 @@ class Foliation:
         ! Read from the walk rather than named here, so a second front-matter
         place would answer correctly the day one is emitted.
         """
-        return self.foliators[FRONT].at(0)
+        return self.foliators[COVERS].at(0)
 
     def file_places(self) -> list[str]:
         """Every `f` this walk emitted, in the order it emitted them.
@@ -652,7 +652,7 @@ class Foliation:
         its own prose and where they fall in the reading order; it never looks at
         prose to decide which.
         """
-        return list(self.foliators[FRONT].places)
+        return list(self.foliators[COVERS].places)
 
     def back_matter(self) -> str:
         """`f1` -- the file's own prose at its FOOT.
@@ -667,7 +667,7 @@ class Foliation:
         explicit rather than an N+1 rule. Roy, the same morning: *"f will almost
         certainly get it and so we might as well pick up both now."*
         """
-        return self.foliators[FRONT].at(1)
+        return self.foliators[COVERS].at(1)
 
 
 def foliate(
@@ -725,7 +725,7 @@ def foliate(
     # ! THE FOLIATION KEEPS THE WALK IT MADE, so every position a place reports
     # indexes something the object still holds.
     out = Foliation(walk=triggers(list(code)))
-    a, b, c, f = (out.foliators[s] for s in (DECLARED, GAP, ON, FRONT))
+    a, b, c, f = (out.foliators[s] for s in (DECLARED, GAP, ON, COVERS))
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. Roy, 2026-08-20: *"we need to be able to distinguish `a`
     # foliations for as many languages as there are `a` possible foliations.
@@ -1197,16 +1197,27 @@ def main() -> int:
     if args.check:
         return _check(paragraphs)
 
-    unplaced = 0
+    # !! ASKED, NOT RE-DERIVED -- the rule `_check` states below, which this
+    # listing was the one caller to break. It counted every entry with an empty
+    # address as UNPLACED, while `--check` on the SAME census answered that
+    # every paragraph was addressed. MEASURED 2026-08-22 on
+    # `tests/fixtures/sample.py`: "3 entries could not be addressed", exit 1,
+    # beside "18 of 18 paragraphs addressed", exit 0.
+    # ! The half it dropped is the SYMBOL. Leading names no place -- see
+    # `SERIES` -- so it owes no address and cannot be cited; `unaddressed` knows
+    # that and a re-derivation of it did not.
+    missing = unaddressed(paragraphs)
     for i, paragraph in enumerate(paragraphs, 1):
-        where = stable(paragraph)
-        if not where:
-            unplaced += 1
-        kind = paragraph.get("kind", "")
-        print(f"{i:4d}  {stable(paragraph) or 'UNPLACED':<34} {kind}")
-    if unplaced:
-        print(f"\n{unplaced} entries could not be addressed.")
-    return 1 if unplaced else 0
+        # ! A paragraph that owes no address shows the SYMBOL it is known by,
+        # which is the only handle it has. UNPLACED is kept for an entry nothing
+        # can cite -- the fault this exit code is about.
+        where = stable(paragraph) or str(paragraph.get("symbol", "")) or "UNPLACED"
+        print(f"{i:4d}  {where:<34} {paragraph.get('kind', '')}")
+    if missing:
+        print(f"\n{len(missing)} entries could not be addressed:")
+        for line in missing:
+            print(f"  {line}")
+    return 1 if missing else 0
 
 
 def _resolve_one(address: str, paragraphs: list[dict]) -> int:

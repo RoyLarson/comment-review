@@ -310,7 +310,7 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
     """
 
     def test_every_series_constant_is_in_the_list(self):
-        for name in ("DECLARED", "GAP", "ON", "FRONT"):
+        for name in ("DECLARED", "GAP", "ON", "COVERS"):
             with self.subTest(series=name):
                 self.assertIn(getattr(foliator, name), foliator.SERIES)
 

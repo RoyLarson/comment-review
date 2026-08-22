@@ -20,6 +20,7 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
+import foliator
 import lexer
 import page
 
@@ -90,13 +91,27 @@ class TestTheTwoLeaves(unittest.TestCase):
         self.assertEqual(_imports("page"), {"foliator", "lexer"})
 
     def test_every_module_that_reads_a_paragraph_can_import_one(self):
-        # ! `galley` is not here. It reads paragraph DICTS and needs none of the
-        # kinds -- its staleness check keys on whether text was stored, not on
-        # what kind the paragraph is. It joins this list when it takes the type.
-        for name in ("record", "census"):
+        # ! `galley` and `record` are not here. Both read paragraph DICTS rather
+        # than the type: galley's staleness check keys on whether text was
+        # stored, and record asks one question about a KIND. Either joins this
+        # list when it takes the type itself.
+        for name in ("census",):
             with self.subTest(module=name):
                 text = (SCRIPTS / f"{name}.py").read_text(encoding="utf-8")
                 self.assertIn("from page import", text)
+
+    def test_a_KIND_question_goes_to_the_LEAF_and_not_through_the_page(self):
+        # !! `record` IMPORTED NOTHING ELSE FROM `page`, and what it imported was
+        # a re-export: `page.HOLDS_NO_PROSE` was `lexer`'s tuple under a second
+        # name. So the edge existed to carry a constant that was never the
+        # page's, and asking `lexer.Kind` directly removed the edge entirely.
+        #
+        # ! THE OLD TEST COULD NOT SEE THIS. It asserted the STRING
+        # `"from page import"` appeared, which a pass-through satisfies exactly
+        # as well as a real dependency does.
+        text = (SCRIPTS / "record.py").read_text(encoding="utf-8")
+        self.assertIn("from lexer import Kind", text)
+        self.assertNotIn("from page import", text)
 
 
 class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
@@ -259,7 +274,7 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
         path = Path("m.py")
         pg = page.page_for(path, text, lexer.language_for(path))
         owner = next(b for b in pg if 2 in covers(b))
-        self.assertEqual(owner.kind, lexer.LEADING, owner.symbol)
+        self.assertEqual(owner.kind, lexer.Kind.LEADING, owner.symbol)
         # ! ITS `d` IS A SYMBOL, NOT AN ADDRESS, since 2026-08-22 -- leading
         # names no place, so it carries a label and cites nothing.
         self.assertTrue(owner.symbol.startswith("d"), owner.symbol)
@@ -275,7 +290,7 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
             with self.subTest(shape=name):
                 path = Path("m.py")
                 for b in page.page_for(path, text, lexer.language_for(path)):
-                    if b.kind == lexer.LEADING:
+                    if b.kind == lexer.Kind.LEADING:
                         continue
                     self.assertTrue(b.anchor, f"{name}: {b.address} has no anchor")
 
@@ -400,7 +415,7 @@ class TestAnEmptyPlaceHoldsNoProse(unittest.TestCase):
             with self.subTest(shape=name):
                 path = Path("m.py")
                 for b in page.page_for(path, text, lexer.language_for(path)):
-                    if b.kind in page.HOLDS_NO_PROSE or not b.text.strip():
+                    if lexer.Kind.holds_no_prose(b.kind) or not b.text.strip():
                         continue
                     self.assertTrue(
                         covers(b),
@@ -421,36 +436,66 @@ class TestEverySeriesHasAPositiveAndANegative(unittest.TestCase):
 
     def test_each_series_pairs_prose_with_its_absence(self):
         self.assertEqual(
-            {s: (p.value, n.value) for s, (p, n) in lexer.PAIRED.items()},
+            {s.name: (s.value.present, s.value.absent) for s in lexer.Series},
             {
-                "a": ("docstring", "undocumented"),
-                "b": ("comment", "interval"),
-                "c": ("trailing-comment", "margin"),
-                "f": ("matter", "dark-matter"),
+                "DECLARED": ("docstring", "undocumented"),
+                "GAP": ("comment", "interval"),
+                "ON": ("trailing-comment", "margin"),
+                "COVERS": ("matter", "dark-matter"),
             },
         )
 
-    def test_the_negatives_are_DERIVED_and_not_listed(self):
+    def test_the_pair_is_NAMED_and_not_positional(self):
+        # ! `pair[0]` and `pair[1]` said nothing, so every reader had to know
+        # which way round they went. Roy: *"NamedTuples(present, absent)."*
+        self.assertEqual(lexer.Series.ON.value.present, "trailing-comment")
+        self.assertEqual(lexer.Series.ON.value.absent, "margin")
+
+    def test_the_absences_are_DERIVED_and_not_listed(self):
         # ! The thing a hand-kept tuple could get wrong, and did.
+        self.assertEqual(lexer.ABSENT, {s.value.absent for s in lexer.Series})
+
+    def test_every_series_NAME_is_a_foliator_constant(self):
+        # !! WHAT TIES THE TWO MODULES, now that the letters are spelled in only
+        # ONE of them. `lexer` cannot import `foliator` -- it takes no sibling
+        # but `language` -- so a letter it duplicated could drift in silence.
+        # The member NAME carries the link instead, and this fails if either
+        # side renames a series without the other.
         self.assertEqual(
-            set(page.HOLDS_NO_PROSE), {n for _, n in lexer.PAIRED.values()}
+            sorted(getattr(foliator, s.name) for s in lexer.Series),
+            sorted(foliator.SERIES),
         )
 
-    def test_LEADING_has_a_positive_and_NO_negative(self):
+    def test_LEADING_IS_A_KIND_WITH_NO_SERIES(self):
         # !! SQUARING THE TABLE WOULD BE THE ERROR. An empty leading run could
         # not be cited -- Roy: *"there is no information to rule on"* -- which
-        # is the same reason `d` is not in `foliator.SERIES`. It is a kind with
-        # no series.
-        self.assertNotIn(lexer.LEADING, page.HOLDS_NO_PROSE)
-        self.assertNotIn("d", lexer.PAIRED)
+        # is the same reason `d` is not in `foliator.SERIES`. So `Kind` keeps
+        # nine members and `Series` covers the eight that pair.
+        self.assertIn(lexer.Kind.LEADING, set(lexer.Kind))
+        self.assertNotIn(
+            lexer.Kind.LEADING,
+            {k for s in lexer.Series for k in s.value},
+        )
 
-    def test_a_trailing_comment_is_a_POSITIVE_and_owns_its_wrapped_lines(self):
-        # ! It is the `c` positive, so it is not among the negatives -- and the
-        # rule that it shares its FIRST line with code belongs to the series,
-        # not to a membership list: `code_lines` discards that line by column
-        # and `set_page` lays the code down first.
-        self.assertNotIn("trailing-comment", page.HOLDS_NO_PROSE)
-        self.assertEqual(lexer.PAIRED["c"][0], "trailing-comment")
+    def test_leading_HOLDS_NO_PROSE_BUT_OCCUPIES_LINES(self):
+        # !! THE TWO QUESTIONS PART ON EXACTLY THIS MEMBER, which is why one
+        # merged set was wrong. A blank run has nothing to read AND stands on
+        # real lines; answering the second with the first takes those lines out
+        # of `occupied` in `code_lines`, so they read as CODE and every `b` and
+        # `c` below them renumbers.
+        self.assertTrue(lexer.Kind.holds_no_prose(lexer.Kind.LEADING))
+        self.assertFalse(lexer.Kind.occupies_no_lines(lexer.Kind.LEADING))
+
+    def test_the_two_questions_agree_on_every_OTHER_kind(self):
+        # ! Leading is the ONLY member they part on -- so the merge was right
+        # about the four negatives and wrong about the ninth kind.
+        parted = [
+            k
+            for k in lexer.Kind
+            if k is not lexer.Kind.LEADING
+            and lexer.Kind.holds_no_prose(k) != lexer.Kind.occupies_no_lines(k)
+        ]
+        self.assertEqual(parted, [])
 
     def test_a_wrapped_trailing_comment_takes_its_continuation_lines(self):
         path = Path("a.c")
@@ -462,8 +507,8 @@ class TestEverySeriesHasAPositiveAndANegative(unittest.TestCase):
         self.assertEqual(list(got), [1, 2, 4])
         self.assertEqual(got[2], "int b = 2;")
 
-    def test_every_negative_is_an_empty_kind_of_some_series(self):
-        for kind in page.HOLDS_NO_PROSE:
+    def test_every_absence_belongs_to_exactly_ONE_series(self):
+        for kind in lexer.ABSENT:
             with self.subTest(kind=kind):
-                owner = [s for s, (_, n) in lexer.PAIRED.items() if n == kind]
+                owner = [s.name for s in lexer.Series if s.value.absent == kind]
                 self.assertEqual(len(owner), 1, f"{kind} belongs to {owner}")
