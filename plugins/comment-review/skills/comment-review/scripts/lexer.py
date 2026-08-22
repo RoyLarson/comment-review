@@ -106,6 +106,17 @@ class Paragraph:
     # ! 0 where the anchor has no line -- the MODULE, which is what `a0` and
     # the `f` place answer to. A real answer, not a miss.
     anchor_line: int = 0
+    # !! THE ORDINAL OF THAT ANCHOR AMONG THE LINES OF CODE, and it is what
+    # ORDERS a record now. Roy, 2026-08-21: *"where it is in the original and
+    # where it ends up on the resulting page can be two very different things --
+    # but a single shift on anchor_num and you know it is all trash after
+    # rereading."* This tool edits prose and every prose edit moves the lines
+    # below it; the Nth line of code stays the Nth line of code.
+    #
+    # ! CARRIED ALONGSIDE `anchor`, never instead of it. An ordinal cannot see a
+    # rename in place and the text cannot cheaply see an insertion; the pair
+    # sees both, which is the whole drift question in two fields.
+    anchor_num: int = 0
     tier: str = "lexical"  # which question set this file's census can answer
     # !! WHICH PLACE THIS IS, as against where it sits -- see `foliation.address`.
     # Stamped in the path-normalising loop, the only place holding the file

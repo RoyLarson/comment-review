@@ -256,7 +256,7 @@ that changed a published name or rule:
 | [verdicts-py-announces-one-subject-and-holds-four](verdicts-py-announces-one-subject-and-holds-four.md) | session * Roy (* 1 ruling -- the module names, which `docs/vocabulary.md` constrains) | yes | 7/8 | * **2,083 lines, four subjects, and a docstring announcing one.** The verdict table, a report reader, a per-finding checker and the join. !! `module-context` FOUND IT and then emitted a `patch` widening the docstring to announce TWO subjects -- the defect its own trigger is named for, applied as the remedy, and no `code_concerns` entry. Filed as the one miss in `evals/test-cases.jsonl`, pinned at `4fd8384`. ! Scheduled with the census filter because the lookup tool needs the verdict table to be a module, and because two open TODOs sit entirely inside one half each -- the bridge is COPIED into a new module if it is not rewritten during the cut. * Unruled: the four module names, which `docs/vocabulary.md` constrains by binding `the join` to `verdicts.py` |
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | session * Roy (* 1 ruling -- where the verdict table lives) | yes | 5/10 | The bridge landed and the rewrite did not |
 
-### decision-needed  (5)
+### decision-needed  (4)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -264,7 +264,12 @@ other tasks can proceed without them._
 | [role-rule-register](role-rule-register.md) | Roy | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | session | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | comment-review | yes | 1/7 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
-| [foliation-knows-about-lines](foliation-knows-about-lines.md) | comment-review | yes | 4/11 | The foliation carries line data for one consumer, and one field of it is read by nobody |
+
+### in flight  (1)
+
+| file | owner | roy? | done | what |
+| --- | --- | :-: | ---: | --- |
+| [foliation-knows-about-lines](foliation-knows-about-lines.md) | comment-review | yes | 4/14 | The foliation carries line data for one consumer, and one field of it is read by nobody |
 
 ### blocked  (6)
 

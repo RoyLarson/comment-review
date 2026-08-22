@@ -1,14 +1,16 @@
 # The foliation carries line data for one consumer, and one field of it is read by nobody
 
 ```
-Status:   decision-needed
-Progress: 4 of 11 tasks done
+Status:   in-flight
+Progress: 4 of 14 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines? I think
           I asked this question before ... it might need to so it can give that data to
           the record so the agents can rule on it but it makes me think it is suspect
           and becoming a property that it shouldn't be')
+Updated:  2026-08-21 — anchor_num started 2026-08-21; the field collapse it enables is a
+          separate step
 ```
 
 ## Objective
@@ -54,3 +56,19 @@ The foliation carries line data for one consumer, and one field of it is read by
       by neighbour-pair, by the file, and by having no line below it. _above (b)
       and _beside (c) are the two that DO. If anchor_num lands, those two become
       ordinal-keyed and the whole set is uniform
+- [ ] Roy's three questions, 2026-08-21, all one answer: the b's ARE tabled
+      (_above, keyed by the code line BELOW the gap); _front/_back need not be
+      fields at all since places holds f0/f1 in order; and _closing is special
+      ONLY because there are N+1 b's for N code lines, so a table keyed by the
+      line below cannot hold the one with no line below it
+- [ ] SO anchor_num IS THE ENABLING CHANGE, not a field swap: key by ordinal and
+      b_N is just the index past the end, f is series-letter-plus-position, and
+      SIX fields become derivable -- _above, _beside, _code, _closing, _front,
+      _back. What is left is places + _declared + reading
+- [ ] Roy, 2026-08-21, the sharpest form: '_above, _beside, _declared, _front,
+      _back, _closing are 1 object type flattened into a special case with
+      different names.' A PLACE is (folio, series, anchor, anchor_num). Six
+      collections of one type, each keyed differently and named separately -- so
+      every accessor becomes a QUERY over one collection: above(n) is the b at
+      ordinal n, matter() is the first f, the closing gap is the b with the
+      highest ordinal

@@ -1016,6 +1016,53 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         named = [b.address for b in self.at.values()]
         self.assertEqual(len(named), len(set(named)))
 
+    def test_the_anchor_NUM_survives_a_prose_edit_and_the_LINE_does_not(self):
+        """!! WHY A RECORD IS ORDERED BY AN ORDINAL SINCE 2026-08-21.
+
+        Roy: *"where it is in the original and where it ends up on the resulting
+        page can be two very different things -- but a single shift on
+        anchor_num and you know it is all trash after rereading."*
+
+        ! This tool EDITS PROSE, and every prose edit moves the line numbers of
+        the code below it. The Nth line of code stays the Nth line of code, so
+        the ordinal is the half of the pair that survives its own tool.
+        """
+        before = '"""Doc."""\n\n# one line\nimport os\n\n\ndef f():\n    return 1\n'
+        after = before.replace("# one line\n", "# one line\n# two\n# three\n")
+        lang = lexer.language_for(Path("m.py"))
+        one = page.page_for(Path("m.py"), before, lang, rel="m.py")
+        two = page.page_for(Path("m.py"), after, lang, rel="m.py")
+
+        def stamped(pg):
+            return {
+                b.address.split("@")[-1]: (b.anchor_line, b.anchor_num)
+                for b in pg
+                if b.address and b.anchor_num
+            }
+
+        was, now = stamped(one), stamped(two)
+        shared = sorted(set(was) & set(now))
+        self.assertTrue(shared)
+        # ! THE LINE MOVED FOR EVERY ONE OF THEM -- which is what makes the
+        # ordinal's stability a claim rather than a coincidence of the fixture.
+        self.assertEqual([f for f in shared if was[f][0] != now[f][0]], shared)
+        self.assertEqual([f for f in shared if was[f][1] != now[f][1]], [])
+
+    def test_the_ordinal_ranks_a_page_the_way_the_line_did(self):
+        # ! The order is Roy's 2026-08-20 ruling and is UNCHANGED; only the
+        # number expressing it survives an edit now. Lines of code ascend, so
+        # their ordinals do -- MEASURED over 58 pages, zero disagreeing.
+        src = (
+            '"""Doc."""\n\n# note\nimport os\n\n\n'
+            'def f():\n    """D."""\n    return 1\n'
+        )
+        built = page.page_for(Path("m.py"), src, lexer.language_for(Path("m.py")))
+        rows = [b for b in built if b.address]
+        self.assertEqual(
+            [b.address for b in sorted(rows, key=lambda b: b.anchor_line)],
+            [b.address for b in sorted(rows, key=lambda b: b.anchor_num)],
+        )
+
     def test_a_folio_is_never_DERIVED_from_another(self):
         """!! The property the arithmetic destroyed and the walk restores.
 

@@ -395,15 +395,47 @@ class Foliation:
         real answer and not a miss: a licence header and a module docstring sit
         above everything the file declares.
 
-        ! WHY IT IS WANTED. Roy, 2026-08-20: records are ordered by anchor line
-        and then by series LETTER -- *"I don't want to use foliation number
-        because that would imply it would not change."* A sort on the number
-        would encode a stability this module explicitly disclaims.
+        ! IT IS NOT WHAT ORDERS A RECORD ANY MORE -- see `anchor_num`. This
+        remains because a consumer READING A FILE needs the line to slice it,
+        which is a different job from naming or ordering a place.
         """
         if folio in self.lines:
             return self.lines[folio]
         previous, following = self.gap_bounds(folio)
         return following or previous
+
+    def anchor_num(self, folio: str) -> int:
+        """The ORDINAL of this place's anchor among the lines of code. 0 if none.
+
+        !! A LINE MOVES AND AN ORDINAL DOES NOT, which is the whole reason this
+        exists. Roy, 2026-08-21: *"where it is in the original and where it ends
+        up on the resulting page can be two very different things -- but a single
+        shift on anchor_num and you know it is all trash after rereading."* This
+        tool edits prose, and every prose edit moves the line numbers of the code
+        below it; the Nth line of code is still the Nth line of code.
+
+        !! IT REPLACES `anchor_line` AS THE ORDER, and the two rank identically:
+        lines of code ascend, so their ordinals do. MEASURED 2026-08-21 --
+        `anchor_line` had exactly two consumers, `record.py`'s sort key and
+        `for_anchor`'s identity lookup, and NEITHER did arithmetic on the line.
+
+        ! CARRIED ALONGSIDE THE ANCHOR, never instead of it. Roy: *"anchor_num
+        along with anchor."* An ordinal alone cannot see a rename in place --
+        `def f():` becoming `def RENAMED():` shifts nothing -- and the anchor
+        text alone cannot cheaply see an insertion. The pair sees both.
+
+        ! 1-BASED, so 0 keeps meaning *no anchor*: the MODULE, which `a0` and
+        every `f` answer to, sits above everything the file declares.
+        """
+        line = self.anchor_line(folio)
+        if not line:
+            return 0
+        try:
+            return self._code.index(line) + 1
+        except ValueError:
+            # ! A line the walk never counted as CODE anchors nothing. It is a
+            # real answer for a page whose reader refused the source.
+            return 0
 
     def gap_bounds(self, folio: str) -> tuple[int, int]:
         """The two lines of CODE around this gap; 0 for the file's own edge.

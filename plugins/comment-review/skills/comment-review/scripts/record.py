@@ -850,8 +850,14 @@ def pages_of(census: list[dict]) -> list[dict]:
             "page": page,
             "records": [
                 slot(b)
+                # !! ORDERED BY THE ANCHOR'S ORDINAL, then by series letter. It
+                # sorted on `anchor_line` until 2026-08-21 and ranks identically
+                # -- lines of code ascend, so their ordinals do -- but a line
+                # moves under every prose edit this tool makes and an ordinal
+                # does not. Roy's rule for the order is unchanged; only the
+                # number expressing it survives an edit now.
                 for b in sorted(
-                    rows, key=lambda b: (int(b.get("anchor_line") or 0), series_of(b))
+                    rows, key=lambda b: (int(b.get("anchor_num") or 0), series_of(b))
                 )
             ],
         }
