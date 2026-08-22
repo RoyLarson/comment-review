@@ -266,10 +266,18 @@ definitions necessary to parse it specifically, because anything else is failing
 ! **GROUPING IS PRESENTATION; SHARING IS THE DEFECT.** Rows may sit together so a reader can see
 the family. What they may not do is take a rule from a neighbour.
 
-!! **AND A FIX BORROWED FROM ANOTHER ROW BREAKS THIS EVEN WHEN IT WORKS.** Measured 2026-08-22:
-Kotlin's `data` is a soft keyword, and `data class` -- two fixed words -- fixes it. The same trick
-was tried on Java's `record` and BROKE THE REAL DECLARATION, because Java's second word is the
-record's NAME and varies. Java needs its own way to say *soft keyword*; it does not get Kotlin's.
+!! **THE MACHINERY IS SHARED; THE DEFINITION IS NOT.** A two-word entry, an empty keyword list, a
+`spanning_quotes` tuple -- every row may use any of them. What goes IN one comes from that
+language's grammar and from nothing else. Roy, 2026-08-22: *"I am not against a two word entry
+`data class`. I just wanted to make certain that it wasn't assumed you could assemble two
+different definition systems together to get a correct one."*
+
+! **THE TELL IS REASONING FROM A NEIGHBOUR, and it is in the prose rather than the row.** Measured
+2026-08-22: `data class` is right because KOTLIN'S grammar says so; `local function` is right
+because LUA'S does. Neither is evidence about the other. The failure was arguing *"Kotlin solved
+it this way, so Java should"* -- and Java's second word is the record's NAME, which varies, so the
+same shape broke a real declaration. **A row is wrong the moment its justification cites another
+row**, whether or not the value it lands on happens to be correct.
 
 !! **AND THE RULE WAS ALREADY HERE, WITH ITS OPERATIVE SENTENCE CUT OFF.** This file carried
 two-thirds of the 2026-08-20 ruling. The full quotation, recovered from `560422a`:

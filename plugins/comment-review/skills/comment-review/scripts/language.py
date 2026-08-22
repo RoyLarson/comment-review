@@ -210,12 +210,16 @@ LANGUAGES: tuple[Language, ...] = (
             "enum",
             # !! `record` IS A SOFT KEYWORD AND THIS ROW CANNOT YET SAY SO.
             # `record = lookup()` is a legal assignment and mints a spurious `a`
-            # place. ! Kotlin's answer -- a two-word entry like `data class` --
-            # does NOT transfer: Java's second word is the record's NAME, which
-            # varies, so `record Point(int x)` has no fixed pair to match.
+            # place.
             #
-            # ! WHAT IT NEEDS IS ITS OWN, not a borrowed trick. Roy, 2026-08-22:
-            # *"every language gets all of the definitions necessary to parse it
+            # ! JAVA'S SECOND WORD IS THE RECORD'S NAME AND VARIES, so a
+            # two-word entry has no fixed pair to match and `record Point(int x)`
+            # would stop being found. That is a fact about Java's grammar, not
+            # about whether the two-word form is available -- it is, to every
+            # row. MEASURED 2026-08-22 by trying it: the real declaration broke.
+            #
+            # ! SO JAVA NEEDS A DEFINITION OF ITS OWN. Roy, 2026-08-22: *"every
+            # language gets all of the definitions necessary to parse it
             # specifically, because anything else is failing the SRP rules."*
             # Filed on `lexer-and-language-findings`; `record` stays here so the
             # real declaration is still found.
@@ -311,16 +315,20 @@ LANGUAGES: tuple[Language, ...] = (
             "interface",
             "object",
             "enum",
-            # !! THE SOFT KEYWORDS TAKE THEIR SECOND WORD, since 2026-08-22.
-            # `data`, `sealed` and `open` are ordinary identifiers in Kotlin, and
-            # `_declares_here` matches the FIRST word -- so `data = load()` minted
-            # an `a` place for a variable assignment. MEASURED: a two-line file
-            # of plain assignments produced a spurious `a1`.
+            # !! KOTLIN'S SOFT KEYWORDS DECLARE ONLY BEFORE A FIXED SECOND WORD,
+            # which is a fact about KOTLIN. `data`, `sealed` and `open` are
+            # ordinary identifiers, and `_declares_here` matches the FIRST word
+            # -- so `data = load()` minted an `a` place for an assignment.
+            # MEASURED 2026-08-22: two lines of plain assignment produced a
+            # spurious `a1`.
             #
-            # ! Two-word entries are how this row already says such a thing --
-            # Lua's `local function` is here for the same reason: bare `local`
-            # opens a variable. ! It is the failure the C/C++ rows were written
-            # to avoid, arriving through a different door.
+            # ! A TWO-WORD ENTRY IS MACHINERY THIS FILE OFFERS EVERY ROW, not a
+            # technique one language takes from another. What goes IN it comes
+            # from the grammar of this language and nowhere else -- Kotlin says
+            # `data class` because Kotlin's grammar does; Lua says
+            # `local function` because Lua's does. Neither is evidence about the
+            # other, and a row that reasoned from a neighbour would be assembling
+            # one definition out of two.
             "data class",
             "sealed class",
             "sealed interface",
