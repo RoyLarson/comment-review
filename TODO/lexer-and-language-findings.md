@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 11 tasks done
+Progress: 1 of 14 tasks done
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
@@ -16,7 +16,7 @@ Ten findings in lexer.py and language.py, from three review rounds.
 
 ## Tasks
 
-- [ ] lexer.py:1582 -- the unparsed fallback catches SyntaxError, but
+- [x] lexer.py:1582 -- the unparsed fallback catches SyntaxError, but
       tokenize.TokenError is NOT one (repo.PARSE_ERRORS says so) and
       IndentationError is raised inside the loop. A file mid-edit escapes page_for
       entirely instead of getting the unparsed paragraph page.py expects
@@ -61,3 +61,23 @@ Ten findings in lexer.py and language.py, from three review rounds.
       because anything else is failing the SRP rules* -- so Java needs its OWN
       expression of soft keyword, not Kotlins. Swift required and convenience are
       the same class
+- [ ] language.py -- rust, ruby and c still have no spanning_quotes, and theirs
+      are EXPENSIVE. A Rust multi-line string opens with a plain double quote, and
+      a Ruby heredoc opens with the same two characters as array append, so
+      declaring either refuses nearly every file in that language. ! The four
+      DISTINCTIVE delimiters landed 2026-08-22 (go backtick, cpp R-quote, csharp
+      at-quote, shell heredoc). These three want the STATEFUL reader from python-
+      cannot-read-python, which fixes them by transitivity.
+- [ ] language.py -- the lua long-bracket list stops at two equals signs and the
+      level is UNBOUNDED. The bound is stated in the row rather than left silent,
+      but a deeper comment is still read as code. ! MEASURED 2026-08-22: the
+      compositor identity CANNOT catch this -- prose read as code sets back byte-
+      identical -- so the sentence test in test_fixture_identity.py is the only
+      gate that would.
+- [ ] page.py documentable() -- a declaration whose doc shares its LINE is
+      skipped, so a one-line `def f(): docstring` yields a paragraph with no
+      address and census.py refuses the WHOLE FILE at exit 1, advising a re-run
+      that never helps. MEASURED 2026-08-22 on legal Python. ! * NEEDS A RULING:
+      does a same-line docstring get an `a`, is it intermediate and ignored (the
+      2026-08-19 intermediate-comment ruling), or is it refused with a message
+      that names the cause? The advice cannot be written before the answer.
