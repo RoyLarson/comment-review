@@ -208,6 +208,17 @@ LANGUAGES: tuple[Language, ...] = (
             "class",
             "interface",
             "enum",
+            # !! `record` IS A SOFT KEYWORD AND THIS ROW CANNOT YET SAY SO.
+            # `record = lookup()` is a legal assignment and mints a spurious `a`
+            # place. ! Kotlin's answer -- a two-word entry like `data class` --
+            # does NOT transfer: Java's second word is the record's NAME, which
+            # varies, so `record Point(int x)` has no fixed pair to match.
+            #
+            # ! WHAT IT NEEDS IS ITS OWN, not a borrowed trick. Roy, 2026-08-22:
+            # *"every language gets all of the definitions necessary to parse it
+            # specifically, because anything else is failing the SRP rules."*
+            # Filed on `lexer-and-language-findings`; `record` stays here so the
+            # real declaration is still found.
             "record",
         ),
         # ! A Java TEXT BLOCK spans lines the same way, and a `//` inside one is
@@ -300,13 +311,24 @@ LANGUAGES: tuple[Language, ...] = (
             "interface",
             "object",
             "enum",
-            "data",
-            "sealed",
+            # !! THE SOFT KEYWORDS TAKE THEIR SECOND WORD, since 2026-08-22.
+            # `data`, `sealed` and `open` are ordinary identifiers in Kotlin, and
+            # `_declares_here` matches the FIRST word -- so `data = load()` minted
+            # an `a` place for a variable assignment. MEASURED: a two-line file
+            # of plain assignments produced a spurious `a1`.
+            #
+            # ! Two-word entries are how this row already says such a thing --
+            # Lua's `local function` is here for the same reason: bare `local`
+            # opens a variable. ! It is the failure the C/C++ rows were written
+            # to avoid, arriving through a different door.
+            "data class",
+            "sealed class",
+            "sealed interface",
+            "open class",
             "annotation",
             "typealias",
             "companion",
             "abstract",
-            "open",
             "internal",
             "public",
             "protected",

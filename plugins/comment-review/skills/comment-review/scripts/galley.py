@@ -68,7 +68,7 @@ from constants import utf8_console  # noqa: E402  -- path shim must run first
 # address* from `foliator`, which returns two blanks when there is no separator.
 # Both were live in one process. ! The shared one answers `(path, folio)`, so
 # every site here takes `[1]`.
-from foliator import folio_of  # noqa: E402  -- path shim must run first
+from foliator import ON, folio_of  # noqa: E402  -- path shim must run first
 from lexer import language_for  # noqa: E402  -- path shim must run first
 from page import page_for  # noqa: E402  -- path shim must run first
 from repo import READ_ERRORS, read_raw  # noqa: E402  -- path shim must run first
@@ -154,7 +154,19 @@ def reset(page, edits: dict[str, str]) -> list[str]:
         # of a `move`. Anything else leaves the space below untouched, because
         # the separation a reader saw is not the author's to lose by editing the
         # text above it.
-        _vacate(found[0], by_symbol.get(page.leading.get(folio_of(address).folio, "")))
+        #
+        # !! A `c` GIVES UP NO LEADING, and this vacated it unconditionally when
+        # `_vacate` was written on 2026-08-22. A `c` sits BESIDE code: dropping
+        # the trailing comment leaves the statement exactly where it was, so the
+        # blank below it separates that CODE from what follows and was never the
+        # comment's to lose. ! `prove_unchanged` cannot see the difference --
+        # the AST is identical either way -- so it would land silently at 7b.
+        where = folio_of(address).folio
+        owns_leading = not where.startswith(ON)
+        _vacate(
+            found[0],
+            by_symbol.get(page.leading.get(where, "")) if owns_leading else None,
+        )
     return refused
 
 
@@ -265,6 +277,25 @@ def main() -> int:
 
     repo = Path(args.repo).resolve()
     out = Path(args.out).resolve()
+    # !! `--out` MUST BE DISJOINT FROM `--repo`, AND NOTHING ASKED UNTIL
+    # 2026-08-22. The per-file guard below checks that a target lands inside
+    # `--out`; on an OVERLAP that is satisfied by the source file itself, so the
+    # guard passed and `compositor.draft` OVERWROTE the file under review --
+    # printing `1 page(s) set` and exiting 0.
+    #
+    # ! IT IS THE SAME DESTRUCTIVE OUTCOME THE GUARD BELOW RECORDS from
+    # 2026-08-17. That fix closed the absolute-path cause and left this one, and
+    # a per-file test cannot close it: the question is about the two ROOTS and
+    # has to be asked once, here, before any file is read.
+    #
+    # ! REFUSED WHOLE. Nothing under `--repo` is touched by this module, so a
+    # run that could touch it is not a run with some bad files in it.
+    if out == repo or out.is_relative_to(repo) or repo.is_relative_to(out):
+        print(
+            f"REFUSED: --out {out} overlaps --repo {repo}, so a galley would be"
+            " written over the files under review -- no galley written"
+        )
+        return 2
     try:
         census = json.loads(Path(args.census).read_text(encoding="utf-8"))
         edits = json.loads(Path(args.edits).read_text(encoding="utf-8"))

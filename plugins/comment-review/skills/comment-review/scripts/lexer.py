@@ -309,6 +309,16 @@ MATTER = "matter"
 # every paragraph is CONTIGUOUS and the straddle cannot arise.
 LEADING = "leading"
 
+# !! BOUND TO A NAME so no `except` clause here holds a tuple LITERAL -- the
+# rule `repo.py` states in full, and this file ships into repositories formatted
+# by their own config.
+#
+# ! `tokenize.TokenError` IS NOT A `SyntaxError`, which is the whole reason this
+# exists: `ast.parse` raises the second and `generate_tokens` raises the first,
+# and a catch written for one never saw the other. `repo.PARSE_ERRORS` names
+# both; the lexer cannot import it, because it takes no sibling but `language`.
+TOKENIZE_ERRORS = (tokenize.TokenError, SyntaxError)
+
 
 class Kind(StrEnum):
     """Every kind a paragraph can be, PAIRED with the series it belongs to.
@@ -1593,7 +1603,34 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
                 trailing_end[0] = paragraph.end
             run.clear()
 
-    for raw in tokenize.generate_tokens(io.StringIO(text).readline):
+    # !! THE TOKENIZER RUNS BEFORE THE `unparsed` FALLBACK, so its failure
+    # escaped `page_for` entirely instead of producing the paragraph that
+    # reports it. MEASURED 2026-08-22: `x = [1,` and `x = """open` both raised
+    # `TokenError` out of this loop -- *"EOF in multi-line statement"* and *"EOF
+    # in multi-line string"* -- and a file mid-edit took the caller down with
+    # it. ! `tokenize.TokenError` is NOT a `SyntaxError`, which is why the
+    # `except` below never saw it; `repo.PARSE_ERRORS` names both for exactly
+    # this reason.
+    #
+    # ! DRAINED FIRST rather than guarded in place: the generator raises during
+    # ITERATION, so the alternative was wrapping the whole loop and indenting
+    # every line of it. A source file's tokens fit in memory.
+    try:
+        tokens = list(tokenize.generate_tokens(io.StringIO(text).readline))
+    except TOKENIZE_ERRORS as e:
+        at = e.args[1][0] if len(e.args) > 1 and e.args[1] else 1
+        out.append(
+            Paragraph(
+                path=path.as_posix(),
+                start=at,
+                end=at,
+                kind="unparsed",
+                lines=0,
+                text=f"UNPARSED ({e.args[0]}) -- no docstrings, no names harvested",
+            )
+        )
+        return out
+    for raw in tokens:
         if raw.type == tokenize.COMMENT:
             # ! The COLUMN when code precedes it, 0 otherwise -- one fact,
             # and its truthiness is still "this is a trailing comment".

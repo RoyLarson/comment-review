@@ -256,10 +256,39 @@ that a language/practice uses to say this can get a docstring. Then the lexer ma
 instead of having to have independent tooling."* So an `a` place resolves for Rust, Go, Java,
 C#, Swift, Kotlin, JS, TS, Ruby, Lua and shell -- not Python alone.
 
-! **THE LIST IS PER LANGUAGE AND DUPLICATED ON PURPOSE.** Roy: *"don't try to make the list
-generic -- that is a failure of the single responsibility principle. Each language could change
-on a new version invalidating the list for all of them."* The `c-family` and `js-family` rows
-were split for this reason.
+!! **EVERY LANGUAGE CARRIES EVERY DEFINITION IT NEEDS, AND NO LANGUAGE EVER INHERITS ONE.** Roy,
+2026-08-22, restating it *explicitly* after a session read the weaker form below and assumed he
+could not have meant literally every language: *"every language gets its own definition
+requirements in the file. No language ever inherits from the `a` family. The file can be grouped
+or sorted to make it easier to understand what is happening, but every language gets all of the
+definitions necessary to parse it specifically, because anything else is failing the SRP rules."*
+
+! **GROUPING IS PRESENTATION; SHARING IS THE DEFECT.** Rows may sit together so a reader can see
+the family. What they may not do is take a rule from a neighbour.
+
+!! **AND A FIX BORROWED FROM ANOTHER ROW BREAKS THIS EVEN WHEN IT WORKS.** Measured 2026-08-22:
+Kotlin's `data` is a soft keyword, and `data class` -- two fixed words -- fixes it. The same trick
+was tried on Java's `record` and BROKE THE REAL DECLARATION, because Java's second word is the
+record's NAME and varies. Java needs its own way to say *soft keyword*; it does not get Kotlin's.
+
+!! **AND THE RULE WAS ALREADY HERE, WITH ITS OPERATIVE SENTENCE CUT OFF.** This file carried
+two-thirds of the 2026-08-20 ruling. The full quotation, recovered from `560422a`:
+
+> *"don't try to make the list generic -- that is a failure of the single responsibility
+> principle. Each language could change on a new version invalidating the list for all of them.
+> **Better an explicit precise list with duplicated words than an implicit word set hoping to
+> catch each.**"*
+
+! **THE THIRD SENTENCE IS THE ONE THAT DECIDES ANYTHING**, and it is the one that went. The first
+two say a generic list is a risk; only the third says which way to resolve it -- **explicit and
+duplicated beats implicit and shared** -- which is the sentence that forbids borrowing a
+neighbour's rule. The `c-family` and `js-family` rows were split under it.
+
+!! **A SHORTENED QUOTATION IS NOT A SHORTER RULE; IT IS A DIFFERENT ONE.** Roy, 2026-08-22:
+*"I am pretty certain that the session cut out the important part when it shortened it."* ! And
+nothing marks a cut: this tree writes `--` for an em-dash because of the ASCII rule, so an
+elision and a dash are spelled the same. **When a ruling is quoted here, quote all of it** -- the
+commit that first recorded it is the source, and `git log -S` finds it.
 
 ! **AN EMPTY LIST MEANS THE LANGUAGE HAS NO `a` SERIES AT ALL** -- not an empty one. `yaml`,
 `toml-ini` and `sql` have no docstring practice, and carried an `a0` no verdict could fill until

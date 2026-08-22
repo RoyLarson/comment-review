@@ -251,7 +251,7 @@ that changed a published name or rule:
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | comment-review | yes | 0/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | comment-review | yes | 0/7 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
 | [tier-dispatched-on-name](tier-dispatched-on-name.md) | comment-review | yes | 0/5 | The tier is dispatched on the language NAME, so a second tokenized language is not a data row |
-| [lexer-and-language-findings](lexer-and-language-findings.md) | comment-review | — | 0/10 | Ten findings in lexer.py and language.py, from three review rounds |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | comment-review | — | 0/11 | Ten findings in lexer.py and language.py, from three review rounds |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | comment-review | — | 0/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | comment-review | yes | 0/5 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [page-and-foliator-scans](page-and-foliator-scans.md) | comment-review | — | 0/7 | page.py and foliator.py carry four scans that grow with the file and one CLI that contradicts the gate |

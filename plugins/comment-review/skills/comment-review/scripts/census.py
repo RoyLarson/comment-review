@@ -456,6 +456,8 @@ def _report(args: argparse.Namespace) -> int:
     # file, so the file heads its own rows instead.
     seen_path = ""
     run: list[int] = []
+    # ! Which file the open run belongs to, so it can be closed at the boundary.
+    run_path = ""
 
     def heading(path: str) -> None:
         """Announce the file these rows belong to, once."""
@@ -521,8 +523,24 @@ def _report(args: argparse.Namespace) -> int:
         # drops entirely rather than collapsing into a run, so without an
         # explicit flag a reader comparing the two listings cannot tell a file
         # with a licence header from one without.
+        # !! A RUN ENDS AT THE FILE IT IS IN, and nothing said so until
+        # 2026-08-22. Neither `continue` below reaches `flush_run`, and no test
+        # was on the PATH at all -- so a run opened in one file carried into the
+        # next and the row named ends from two different files.
+        #
+        # ! MEASURED: `constants.py`, 43 lines, carried a row reading
+        # `15-72 @c2..b58 41-0` -- `repo.py`'s 53 intervals attributed to it, a
+        # span running BACKWARDS, and an `add` composed from that row citing an
+        # address that does not exist on the file it names.
+        if b.path != run_path:
+            flush_run()
+            run_path = b.path
         if args.filtered and not args.include_matter:
             if series_of(vars(b)) == FRONT:
+                # ! FLUSHED, NOT SKIPPED. Front matter is PROSE that this
+                # listing drops; a run that continued across it would claim no
+                # prose over a stretch that has some.
+                flush_run()
                 continue
         if args.filtered and b.kind in HOLDS_NO_PROSE:
             run.append(i)

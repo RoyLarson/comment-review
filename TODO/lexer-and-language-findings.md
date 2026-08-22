@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks done
+Progress: 0 of 11 tasks done
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
@@ -52,3 +52,12 @@ Ten findings in lexer.py and language.py, from three review rounds.
       ONE display column (census.py:540). ! Related to census-row-carries-empty-
       fields, where a margin row shows lines=0 with raw_lines holding one empty
       string
+- [ ] JAVA record IS A SOFT KEYWORD AND ITS ROW CANNOT SAY SO. record = lookup()
+      is a legal assignment and mints a spurious a place; MEASURED 2026-08-22. !
+      Kotlin data class -- two FIXED words -- fixes the same class for Kotlin, and
+      trying it on Java as *record + space* BROKE THE REAL DECLARATION, because
+      Java second word is the record NAME and varies. ! Roy 2026-08-22: *every
+      language gets all of the definitions necessary to parse it specifically,
+      because anything else is failing the SRP rules* -- so Java needs its OWN
+      expression of soft keyword, not Kotlins. Swift required and convenience are
+      the same class
