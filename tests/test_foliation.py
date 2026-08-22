@@ -1043,25 +1043,51 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         was, now = stamped(one), stamped(two)
         shared = sorted(set(was) & set(now))
         self.assertTrue(shared)
-        # ! THE LINE MOVED FOR EVERY ONE OF THEM -- which is what makes the
-        # ordinal's stability a claim rather than a coincidence of the fixture.
-        self.assertEqual([f for f in shared if was[f][0] != now[f][0]], shared)
+        # ! THE LINE MOVED FOR EVERY PLACE ANCHORED TO CODE -- which is what
+        # makes the ordinal's stability a claim rather than a coincidence of the
+        # fixture. ! A place whose anchor is the MODULE has no line to move: the
+        # file's own matter reads 0 before and after, and is excluded here
+        # because it cannot demonstrate either half.
+        on_code = [f for f in shared if was[f][0]]
+        self.assertTrue(on_code)
+        self.assertEqual([f for f in on_code if was[f][0] != now[f][0]], on_code)
         self.assertEqual([f for f in shared if was[f][1] != now[f][1]], [])
 
-    def test_the_ordinal_ranks_a_page_the_way_the_line_did(self):
-        # ! The order is Roy's 2026-08-20 ruling and is UNCHANGED; only the
-        # number expressing it survives an edit now. Lines of code ascend, so
-        # their ordinals do -- MEASURED over 58 pages, zero disagreeing.
+    def test_the_ordinal_ranks_the_page_and_puts_the_FOOT_past_the_end(self):
+        """The order is Roy's 2026-08-20 ruling and is unchanged for every place
+        anchored to a line of code. Where the two diverge, the ORDINAL is right.
+
+        !! THE FOOT OF THE FILE IS WHAT THE LINE CANNOT SAY. The closing gap
+        takes the last code line as its anchor -- it has none below it -- and
+        BOTH `f` places answer to the MODULE, so by line the back matter sorts
+        to the TOP. Roy, 2026-08-21: *"the anchor_num will resolve to the end of
+        the file because it will be 1 past all of the named anchors"*, and
+        *"b3 and f2"* -- the closing gap and the file's own foot, together, in
+        the bucket past every named anchor.
+        """
         src = (
-            '"""Doc."""\n\n# note\nimport os\n\n\n'
-            'def f():\n    """D."""\n    return 1\n'
+            '# licence\n"""Doc."""\nimport os\n\ndef f():\n    """D."""\n    return 1\n'
         )
         built = page.page_for(Path("m.py"), src, lexer.language_for(Path("m.py")))
-        rows = [b for b in built if b.address]
+        rows = [b for b in built if b.address and b.kind != lexer.LEADING]
+        folio = {b.address: b.address.split("@")[-1] for b in rows}
+        foot = {f for f in folio.values() if f in ("b3", "f1")}
+        self.assertTrue(foot, folio)
+
+        # ! Every place ANCHORED TO A LINE OF CODE ranks the same either way.
+        anchored = [b for b in rows if folio[b.address] not in foot]
         self.assertEqual(
-            [b.address for b in sorted(rows, key=lambda b: b.anchor_line)],
-            [b.address for b in sorted(rows, key=lambda b: b.anchor_num)],
+            [b.address for b in sorted(anchored, key=lambda b: b.anchor_line)],
+            [b.address for b in sorted(anchored, key=lambda b: b.anchor_num)],
         )
+
+        # ! And the foot sorts PAST all of them by ordinal -- which is what the
+        # line cannot do, because its anchor is a line further up the file.
+        highest = max(b.anchor_num for b in anchored)
+        for b in rows:
+            if folio[b.address] in foot:
+                with self.subTest(place=folio[b.address]):
+                    self.assertGreater(b.anchor_num, highest)
 
     def test_a_folio_is_never_DERIVED_from_another(self):
         """!! The property the arithmetic destroyed and the walk restores.

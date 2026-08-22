@@ -2,7 +2,7 @@
 
 ```
 Status:   in-flight
-Progress: 4 of 15 tasks done
+Progress: 4 of 17 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines? I think
@@ -80,3 +80,16 @@ The foliation carries line data for one consumer, and one field of it is read by
       documents/matter/back_matter/_closing/above/beside -- is an index into a
       walker that was just thrown away. Keep the walkers, delete six fields, add
       no data
+- [ ] Roy 2026-08-21: 'the foliator needs to key off of the anchor_num and the
+      line doesn't matter, because the compositor can only put it near the
+      anchor_num and by its own rules will have to put it at the end of the file.'
+      Placement consults NO line -- the foot lands last because it holds the
+      highest ordinal. The last line-shaped consumer is for_anchor, which matches
+      by RANGE to answer which places belong to an anchor: a reviewer lookup, not
+      a placement
+- [ ] Roy 2026-08-21: 'leading is better in the page and it is a paragraph type,
+      but it really fits the spanning of paragraphs better than a foliation.' It
+      is an EDGE keyed by a folio pair, has no anchor, is not citable and no
+      verdict names it -- so being a SERIES in foliator.SERIES may be the wrong
+      category. Decide whether d stops being a series and the leading paragraph is
+      referenced directly instead of through a folio

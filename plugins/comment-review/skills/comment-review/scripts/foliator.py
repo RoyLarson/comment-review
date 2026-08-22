@@ -427,6 +427,27 @@ class Foliation:
         ! 1-BASED, so 0 keeps meaning *no anchor*: the MODULE, which `a0` and
         every `f` answer to, sits above everything the file declares.
         """
+        # !! A GAP ANSWERS FROM ITS OWN ORDINAL, and that is what makes the EOF
+        # gap ordinary. `b_n` sits above `c_n` -- MEASURED over 3,863 gaps, no
+        # exceptions -- so `b_n` is `n + 1`, and the closing gap is ONE PAST
+        # every named anchor rather than sharing a bucket with the gap above the
+        # last statement. Roy, 2026-08-21: *"the anchor_num will resolve to the
+        # end of the file because it will be 1 past all of the named anchors."*
+        #
+        # ! IT IS NOT A SPECIAL CASE FOR THE CLOSING GAP. The same expression
+        # answers for every `b`; the last one simply has no `c` at its ordinal,
+        # which is exactly what "past the end" means.
+        if folio.startswith(GAP):
+            return int(folio[len(GAP) :]) + 1
+        # !! THE FILE'S MATTER ANSWERS FROM ITS ORDINAL TOO, and that is what
+        # tells the two ends apart. Roy, 2026-08-21, on the past-the-end bucket:
+        # *"b3 and f2."* Both `f` places answer to the MODULE, so the ANCHOR
+        # cannot say which is the head and which the foot -- which is the whole
+        # reason `_front` and `_back` are two fields. The ordinal can: `f0` is
+        # the head at 0, and every later `f` is the foot, past every named
+        # anchor, beside the closing gap it follows.
+        if folio.startswith(FRONT):
+            return len(self._code) + 1 if int(folio[len(FRONT) :]) else 0
         line = self.anchor_line(folio)
         if not line:
             return 0
