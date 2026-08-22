@@ -382,6 +382,40 @@ is fine and is usually better -- it fails loudly on a bad assumption (`assert ol
   to start implementing before realizing we were corrections to code that belongs on a branch
   first.
 
+### !! A THING WHOSE DEPENDENCIES ARE BROKEN IS NOT WORKED ON. IT IS REFUSED.
+
+Roy, 2026-08-22, correcting a claim that the round-trip identity was this system's most productive
+instrument: *"But the compositor couldn't be built until the lexer and the langauges and the page
+and the census was doing the work each needed to do individually. So from start to finish the old
+system was insufficient and mixed up concerns in so many places that it was never going to
+work."*
+
+!! **THIS IS A STANDING PRACTICE, NOT A ONE-OFF, and it is visible six times in the record:**
+
+| when | what was refused | until |
+| --- | --- | --- |
+| 2026-08-21 | *"I have refused every galley update to this point. The galley was always broken and on this commit is still broken."* | the compositor split existed |
+| 2026-08-21 | *"what was broken stays very broken out of this branch and I am not willing to accept that. I can accept it being broken in the branch but not merged out of it."* | the merge |
+| 2026-08-22 | *"I stopped the development at the page everytime before that ... there was no reason to try to fix the galley as it was."* | page, foliation and census were *"at least passably functional"* |
+| 2026-08-22 | *"this needs to go in before we can finish this plan and branch"* | `TODO/foliation-knows-about-lines.md` landed |
+| 2026-08-22 | the compositor itself | the lexer, the languages, the page and the census each did ONE job |
+| 2026-08-21 | *"This one is going to take serious thought before we can release it because it looks like it needs a look-ahead lexer"* | the lexer can see ahead |
+
+!! **THE COST OF IGNORING IT IS THE FIX ITSELF, NOT THE TIME.** A repair to a module whose inputs
+are wrong is SHAPED BY those inputs, so it encodes the defect and has to be undone -- which is
+what *"mixed up concerns in so many places that it was never going to work"* describes. The old
+galley was not badly written; it was written against parts that had not decided what they were.
+
+! **AND IT IS WHY AN INSTRUMENT ARRIVES LATE.** The round-trip could not be built early, so
+`matter`, the collisions, the straddle and the empty-file bug stayed invisible -- not because
+nobody looked, but because **nothing yet existed that could disagree with the file.** ! A measuring
+device is downstream of every part it measures, which is the same rule wearing its most expensive
+consequence: see [`docs/gates.md`](docs/gates.md).
+
+! **WHAT THIS ASKS OF A SESSION** is to name the dependency and STOP, rather than to produce a
+plausible local fix. A refusal is a finding: file it, say what it waits on, and leave the box
+unchecked -- *"Deferred is not done."*
+
 ### !! THE TODOs ARE THE JOB BOARD. PLANS ARE HOW WE MARK THEM OFF.
 
 Roy, 2026-08-19: *"the todos are the job board -- plans are how we mark them off."*
