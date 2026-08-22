@@ -437,6 +437,21 @@ LANGUAGES: tuple[Language, ...] = (
     Language(
         "lua",
         (".lua",),
+        # !! `---` IS LUA'S DOC COMMENT AND THIS ROW DOES NOT SAY SO, which
+        # makes every documented declaration read as `undocumented`. MEASURED
+        # 2026-08-22 on `corpora/neovim`, the first real Lua this repo censused:
+        # 2,505 of 2,741 declarations carry a `---` run -- 91% -- and all 2,505
+        # came back undocumented. 43,563 lines there open with `---`, of which
+        # 11,987 are LuaLS annotations (`---@param`, `---@return`).
+        #
+        # ! THE ONE-LINE FIX IS WRONG, AND THE IDENTITY SAID SO. Adding `---` to
+        # this field and to `doc_line` turned 0 differing files into 8: LuaLS
+        # writes `--- @class` and `--- @field` runs that document NO declaration
+        # -- whole type-stub files are nothing else -- and a docstring tied to a
+        # declaration that is not there cannot be set back where it was read.
+        # ! So `---` is a doc marker AND a standalone type declaration in the
+        # same language, which no field here can currently express. Filed in
+        # `lexer-and-language-findings`.
         ("--",),
         # ! Longest-first, so `--[==[` is tried before `--[=[` before `--[[`;
         # matched the other way every level loses its `=` into the prose.

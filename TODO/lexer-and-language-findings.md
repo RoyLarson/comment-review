@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 14 tasks done
+Progress: 1 of 15 tasks done
 Owner:    comment-review
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
           round 3, 2026-08-22 -- the ones touching the two reader modules, filed because
           those modules are settled and will not shift under front-half-undetermined)
@@ -81,3 +81,17 @@ Ten findings in lexer.py and language.py, from three review rounds.
       does a same-line docstring get an `a`, is it intermediate and ignored (the
       2026-08-19 intermediate-comment ruling), or is it refused with a message
       that names the cause? The advice cannot be written before the answer.
+- [ ] language.py -- `---` IS LUA'S DOC COMMENT and the row does not say so, so
+      every documented declaration reads as `undocumented`. MEASURED 2026-08-22 on
+      corpora/neovim, the first real Lua ever censused here: 2,505 of 2,741
+      declarations carry a `---` run above them (91%) and ALL of them came back
+      undocumented; 43,563 of 92,578 lines open with `---`, of which 11,987 are
+      LuaLS annotations. ! THE ONE-LINE FIX IS WRONG AND WAS TRIED: adding `---`
+      to line_comment and doc_line turned 4,230 comments into docstrings and
+      turned 0 differing files into 8. LuaLS writes `--- @class` and `--- @field`
+      runs that document NO declaration -- whole type-stub files are nothing else
+      -- and a docstring tied to a declaration that is not there cannot be set
+      back where it was read. ! So `---` is a doc marker AND a standalone type
+      declaration in one language, which no field on the row can express today. *
+      NEEDS A RULING or a new field: is a doc run above no declaration a comment,
+      a docstring anchored to the module, or its own thing?
