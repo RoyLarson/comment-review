@@ -2,7 +2,7 @@
 
 ```
 Status:   blocked
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on the boundary table: 'Was this language
@@ -31,3 +31,9 @@ The corpora are nine Python projects, so every per-language rule is measured on 
 - [ ] Re-take the boundary distribution per language once the corpus covers them;
       the c->a row INVERTS between python (0 blanks 100%) and javascript (1 blank
       100%)
+- [ ] The LEADING edge was measured 2026-08-22 in ten languages only -- c 48,966
+      edges, python 41,356, yaml 4,174, toml-ini 672, cpp 557, javascript 161,
+      typescript 147, shell 7, sql 4, lua 3. ! rust, go and ruby were checked with
+      HAND FIXTURES when the pair key was cut, and java, csharp, swift and kotlin
+      have neither corpus nor fixture -- so the claim that before alone is unique
+      rests on 10 of 17 languages, three of them on single-digit evidence

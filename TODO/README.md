@@ -281,7 +281,7 @@ _None._
 | [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 1/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | session | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [drop-the-column](drop-the-column.md) | session | — | 0/6 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
-| [corpora-are-all-python](corpora-are-all-python.md) | comment-review | — | 0/5 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
+| [corpora-are-all-python](corpora-are-all-python.md) | comment-review | — | 0/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 ---
 
 ## Completed
@@ -324,3 +324,4 @@ the reason is inside the file.
 | [two-paragraphs-one-address](completed/two-paragraphs-one-address.md) | Fixed in 0f72dce -- a comment's DELIMITERS are not paragraph boundaries, only code is. 157 shared addresses over 699 files became 0. |
 | [galley-does-two-jobs](completed/galley-does-two-jobs.md) | Split built and wired: galley.reset places by address, compositor.set_page sets, splice/overlaps/splice_range/paragraph_matches deleted, and the shipped prose now defines both terms |
 | [galley-is-still-index-keyed](completed/galley-is-still-index-keyed.md) | Tasks 1-2 done (address-keyed); task 3 was an observation whose mechanism -- splice and its line-ordered sort -- was deleted in the galley rewrite |
+| [second-key-stale-on-drop](completed/second-key-stale-on-drop.md) | Ruled and cut the same morning: the second key is DELETED, so it cannot go stale -- Page.leading is dict[str, str], keyed by the place a run of blanks follows |

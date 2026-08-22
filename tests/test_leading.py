@@ -140,16 +140,19 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
             ["f0", "a0", "b0", "c0", "b1", "f1"],
         )
 
-    def test_the_leading_is_tied_to_the_PAIR_it_separates(self):
-        # ! The same two runs of blank, keyed by what sits either side of them:
-        # the licence and the docstring, then the docstring and the import.
+    def test_the_leading_is_tied_to_the_place_it_FOLLOWS(self):
+        # ! The same two runs of blank, keyed by what each comes after: the
+        # licence, then the docstring.
         # ! `b0` is empty and sits between `a0` and `c0` in the walk's order, so
-        # the pair skips it -- a place that sets nothing separates nothing.
+        # the tie skips it -- a place that sets nothing is not followed by
+        # anything.
         # ! IT IS THE PAGE'S, NOT THE FOLIATION'S. It sat on `Foliation` for one
         # evening; the walk never filled it and never read it.
+        # !! ONE KEY SINCE 2026-08-22. It was `(before, after)` and nothing read
+        # `after`; Roy: *"so drop the second edge if it isn't necessary."*
         self.assertEqual(
             built("m.py", self.SRC).leading,
-            {("f0", "a0"): "d0", ("a0", "c0"): "d1"},
+            {"f0": "d0", "a0": "d1"},
         )
 
     def test_an_ADD_to_an_empty_place_IS_SET(self):
@@ -188,6 +191,33 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
                 b.raw_lines = []
         self.assertEqual(
             compositor.set_page(page), '"""What this is."""\n\nimport os\n'
+        )
+
+    def test_a_DROP_in_the_MIDDLE_needs_no_RE_KEYING_of_the_survivor(self):
+        """!! ROY'S RULE, WITHOUT THE REWRITE IT SOUNDS LIKE IT NEEDS.
+
+        2026-08-21: *"the live first key foliation lives, the drop first key
+        dies. The live one gets a new key that takes the new end and
+        beginning."* Dropping `b1` between `c0` and `c1` kills `b1`'s own edge
+        and moves `c0`'s from *above the comment* to *above the code* -- and no
+        new key is computed, because the key that finds it never named `b1`.
+
+        ! WHICH IS WHY THE PAIR WENT. Keyed by `(before, after)` this edge would
+        still read `('c0', 'b1')` after the drop -- legible, checkable, and
+        naming a place it no longer separates. Roy, 2026-08-22: *"so drop the
+        second edge if it isn't necessary."* Measured first: `before` alone is
+        unique over 96,047 edges in ten languages.
+        """
+        src = "# X\na = 1\n\n# P\nb = 2\n\n# Y\nc = 3\n"
+        page = built("chain.py", src)
+        self.assertEqual(page.leading, {"c0": "d0", "c1": "d1"})
+        for b in page:
+            if b.address.split("@")[-1] == "b1":
+                b.raw_lines = []
+        # ! The blank above `b = 2` SURVIVES -- its edge is keyed on `c0`, which
+        # still sets -- and `d1`, keyed on the dropped `b1`, is never asked for.
+        self.assertEqual(
+            compositor.set_page(page), "# X\na = 1\n\nb = 2\n\n# Y\nc = 3\n"
         )
 
     def test_a_doc_comment_one_blank_above_its_declaration_is_STILL_tied(self):

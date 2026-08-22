@@ -128,18 +128,16 @@ def set_page(page: Page, newline: str | None = None) -> str:
     held = _held(page)
     out: list[str] = []
     # !! LEADING IS SET BETWEEN TWO PLACES, NOT AT ONE. It is an edge -- see
-    # `Foliation.leading` -- so the walk hands over a sequence of places and the
+    # `Page.leading` -- so the walk hands over a sequence of places and the
     # space between each adjacent pair is looked up as it is reached. An absent
     # key means those two places sit against each other, which is what 90% of
     # `c`->`c` boundaries do.
     #
-    # ! THE FILE'S OWN EDGES ARE PAIRS TOO, with `""` for the side that has no
-    # place: a blank run above everything is `("", f0)`.
-    # !! AN EDGE BELONGS TO THE PLACE BEFORE IT, so it is looked up by its FIRST
-    # key alone. Roy, 2026-08-21, ruling on what happens to leading when a
-    # paragraph goes away: *"the live first key foliation lives, the drop first
-    # key dies. The live one gets a new key that takes the new end and
-    # beginning."*
+    # ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING, and is filed under `""`.
+    # !! AN EDGE BELONGS TO THE PLACE BEFORE IT, which is what it is KEYED BY.
+    # Roy, 2026-08-21, ruling on what happens to leading when a paragraph goes
+    # away: *"the live first key foliation lives, the drop first key dies. The
+    # live one gets a new key that takes the new end and beginning."*
     #
     # !! IT IS ONE RULE FOR BOTH DIRECTIONS, which is why it is a lookup rather
     # than a rewrite. DROP `P` between X and Y: `P` sets nothing, so it never
@@ -152,10 +150,19 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # 88% of 15,987 boundaries, so a new comment sitting straight on the code it
     # documents is the common case, not a compromise.
     #
-    # ! THE SECOND KEY IS KEPT ON THE FOLIATION AND NOT USED HERE. A place has
-    # at most one place after it, so the first key alone is unique; the pair is
-    # what makes the edge legible -- and checkable -- rather than what finds it.
-    edges = {before: folio for (before, _), folio in page.leading.items()}
+    # !! THE SURVIVOR NEEDS NO NEW KEY, which is why this is a lookup and not a
+    # rewrite. Dropping `P` between X and Y leaves X's edge keyed on X, and this
+    # loop sets it before Y -- the new adjacency, reached without computing
+    # anything, because the key that finds it never mentioned `P`.
+    #
+    # ! IT WAS KEYED BY A PAIR UNTIL 2026-08-22 and this line collapsed it. Roy,
+    # shown that nothing read the second half: *"so drop the second edge if it
+    # isn't necessary."* MEASURED before the cut over 96,047 edges on 2,792
+    # corpus pages in ten languages, C carrying more of them than Python:
+    # `before` alone is unique and the collapse lost ZERO. ! The pair was kept
+    # for legibility and was the half that could be WRONG -- after a drop it
+    # named a place it no longer separated.
+    edges = page.leading
     previous = ""
     for folio in page.foliation.reading:
         prose = held.get(folio, [])
