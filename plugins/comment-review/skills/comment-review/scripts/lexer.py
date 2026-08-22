@@ -122,6 +122,26 @@ class Paragraph:
     # Stamped in the path-normalising loop, the only place holding the file
     # text, the finished paragraph list and the repo-relative path at once.
     address: str = ""
+    # !! A LABEL, NOT AN ADDRESS, and only LEADING carries one. Roy, 2026-08-22:
+    # *"we need to keep the symbol for the leading, because the page/symbol map
+    # has really helped in understanding what each line is, so that we maintain
+    # the cover."* `d0` marks a run of blank lines in `scripts/render_page.py`'s
+    # margin, so a reader can see that every line on the page belongs to
+    # something.
+    #
+    # !! IT IS NOT AN `address` BECAUSE LEADING IS NOT A PLACE, and putting it
+    # in that field is what made `d` fail the substitution the other four series
+    # satisfy. Roy: *"it has no anchor, and so by the LSR -- any child class has
+    # to be able to answer its parent class's answers as well, correctly -- it
+    # breaks that rule."* MEASURED: `a0` and every `f` answer `<module>` and
+    # every `b` and `c` answer a line of code; a `d` answered `""`, which is the
+    # absence of an answer rather than a different one.
+    #
+    # ! WHICH FOLLOWS FROM WHERE IT COMES FROM. Every other place exists because
+    # the WALK reached a trigger -- and the trigger IS the anchor. A `d` exists
+    # because the LEXER found blank lines, so there was never a trigger for it
+    # to be anchored to. `foliator.SERIES` holds four series; `LEAD` is a symbol.
+    symbol: str = ""
     annotations: set[str] = field(default_factory=set)
     notes: list[str] = field(default_factory=list)
 

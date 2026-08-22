@@ -217,7 +217,31 @@ FRONT = "f"
 # other four series exist wherever prose COULD go, because an `add` cites them;
 # a place no verdict can name has no reason to exist unfilled.
 LEAD = "d"
-SERIES = (FRONT, DECLARED, GAP, ON, LEAD)
+#: The four series a walk emits. **`LEAD` IS NOT ONE OF THEM**, since 2026-08-22.
+#:
+#: !! IT FAILED THE SUBSTITUTION THE OTHER FOUR SATISFY. Roy: *"it has no
+#: anchor, and so by the LSR -- any child class has to be able to answer its
+#: parent class's answers as well, correctly -- it breaks that rule."* `places`
+#: is `folio -> the line of code it is attached to`; `a0` and every `f` answer
+#: `<module>`, every `b` and `c` answer a line, and a `d` answered `""`. That is
+#: the absence of an answer, not a different one, so a consumer could not use a
+#: `d` where it expected a place.
+#:
+#: ! AND THE CAUSE IS WHERE IT COMES FROM, which is what makes this a category
+#: error rather than a missing field. Every place here exists because the WALK
+#: reached a trigger, and the trigger IS the anchor. A `d` exists because the
+#: LEXER found blank lines -- so it was never anchored to anything, it was
+#: FOUND. It also never entered `reading`, so the compositor could not set from
+#: it the way it sets every other place; it is set as an EDGE, from
+#: `Page.leading`.
+#:
+#: ! WHAT PUBLISHING ALREADY SAID: leading is not an object on the page, it is a
+#: measurement of the type it accompanies -- "10 on 12". A measurement cannot be
+#: anchored; only the thing measured can.
+#:
+#: ! `LEAD` SURVIVES AS A SYMBOL, on Roy's ruling that the page/symbol map is
+#: what shows every line is covered -- see `lexer.Paragraph.symbol`.
+SERIES = (FRONT, DECLARED, GAP, ON)
 
 
 #: The FIRST TRIGGER every foliator steps past: the file itself, before any line
@@ -1208,7 +1232,12 @@ def unaddressed(paragraphs: list[dict]) -> list[str]:
     for path in sorted({str(b.get("path", "")) for b in paragraphs}):
         mine = [b for b in paragraphs if str(b.get("path", "")) == path]
         for i, paragraph in enumerate(mine, 1):
-            if not stable(paragraph):
+            # !! A PARAGRAPH CARRYING A SYMBOL OWES NO ADDRESS, since 2026-08-22.
+            # Leading is the only kind that does: it names no place -- see
+            # `SERIES` -- so demanding one of it asks for something that cannot
+            # exist. ! The test is the SYMBOL and not the kind, so this stays a
+            # leaf: `foliator` never learns what the lexer calls a blank run.
+            if not stable(paragraph) and not paragraph.get("symbol"):
                 out.append(
                     f"{path} entry {i}: lines"
                     f" {paragraph.get('start')}-{paragraph.get('end')}"

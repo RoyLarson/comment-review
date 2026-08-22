@@ -41,11 +41,15 @@ def built(name: str, text: str):
 
 
 def owner(page, line: int) -> str:
-    """The folio of the paragraph holding this line."""
+    """The folio of the paragraph holding this line -- or a `d`'s SYMBOL.
+
+    ! Leading names no place, so it answers with the label it carries instead.
+    Both are how a reader identifies what owns a line, which is what this asks.
+    """
     for b in page:
         first, last = b.original_start, b.original_end
         if first and last and first <= line <= last and not b.original_column:
-            return b.address.split("@")[-1]
+            return b.address.split("@")[-1] or b.symbol
     return ""
 
 

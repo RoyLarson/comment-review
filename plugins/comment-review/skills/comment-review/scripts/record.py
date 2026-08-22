@@ -652,11 +652,19 @@ def prose_paragraphs(census: list[dict]) -> list[tuple[int, dict]]:
     GAP, on every run, for as long as the file has a licence. `verdicts.py`
     already excludes it from the set it counts coverage against; this is the
     other half, and without it the report says INCOMPLETE forever.
+
+    !! NOR IS ANYTHING THAT NAMES NO PLACE, which is leading and only leading.
+    A record CITES an address; a run of blank lines has none -- see
+    `foliator.SERIES` -- so a slot for one could not be written down. ! Without
+    the `address` test this passed a `d` through on an empty string, because
+    `series_of` reads the address and answers `""` for a paragraph without one.
     """
     return [
         (i, b)
         for i, b in enumerate(census, 1)
-        if b.get("kind") not in HOLDS_NO_PROSE and series_of(b) != FRONT
+        if b.get("address")
+        and b.get("kind") not in HOLDS_NO_PROSE
+        and series_of(b) != FRONT
     ]
 
 

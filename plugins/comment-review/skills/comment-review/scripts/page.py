@@ -207,15 +207,24 @@ class Page:
         -- `census.py`'s filter, `verdicts.py`'s accountability set and its
         `query` guard, `record.py`'s seeding, and this.
 
-        !! `d` IS OUT FOR A DIFFERENT REASON: leading is not prose at all, it is
-        the space BETWEEN two paragraphs. Roy, 2026-08-21: *"there is no
-        information to rule on. It is just there for document preservation."* A
-        reviewer handed one would be asked to rule on blank lines.
+        !! `d` IS OUT BECAUSE IT NAMES NO PLACE, and that is now the whole test.
+        Leading is not prose, it is the space BETWEEN two paragraphs -- Roy,
+        2026-08-21: *"there is no information to rule on. It is just there for
+        document preservation."* A reviewer handed one would be asked to rule on
+        blank lines.
+
+        ! IT WAS NAMED AS A SERIES HERE, `not in (FRONT, LEAD)`, and that stopped
+        working the moment leading gave up its address: `series_of` reads the
+        address, so a `d` answered `""` and passed a filter listing letters.
+        Requiring an ADDRESS says the same thing without a list to keep current
+        -- a paragraph that names no place is owed no record.
         """
         return [
             b
             for b in self.paragraphs
-            if b.kind not in HOLDS_NO_PROSE and series_of(vars(b)) not in (FRONT, LEAD)
+            if b.address
+            and b.kind not in HOLDS_NO_PROSE
+            and series_of(vars(b)) != FRONT
         ]
 
 
@@ -633,7 +642,7 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> dict[str, 
         key=lambda b: b.original_start or 0,
     )
     for b in sorted(paragraphs, key=lambda b: b.original_start or 0):
-        if b.kind != LEADING or not b.address:
+        if b.kind != LEADING or not b.symbol:
             continue
         start = b.original_start or 0
         before = ""
@@ -641,7 +650,7 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> dict[str, 
             if (other.original_end or 0) >= start:
                 break
             before = other.address.split("@")[-1]
-        edges[before] = b.address.split("@")[-1]
+        edges[before] = b.symbol
     return edges
 
 
@@ -705,22 +714,25 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # which is what makes `f0` the head and `f1` the foot without either
         # word appearing anywhere.
         files = foliation.file_places()
-        # ! THE `d` SERIES IS NUMBERED HERE AND NOWHERE ELSE. The walk emits no
-        # `d`, because nothing cites one and a place exists unfilled only so a
-        # verdict can name it -- see `foliator.LEAD`. So leading is numbered in
-        # the order it occurs, which is the order the lexer found it.
+        # !! LEADING TAKES A SYMBOL AND NOT A PLACE, ruled 2026-08-22, and the
+        # counter is the PAGE'S because a `d` is not something the walk makes.
+        # It briefly had its own `Foliator` -- which was the wrong fix to a real
+        # problem, since `emit` is what MAKES a place and leading is not one.
+        # See `foliator.SERIES` for why it failed the substitution, and
+        # `lexer.Paragraph.symbol` for what the label is for.
         #
-        # !! BY ITS OWN FOLIATOR, which is the only thing that makes a place.
-        # This kept a counter of its own and wrote the result into
-        # `foliation.places`; that dict is derived from the walkers now, so the
-        # write would have gone nowhere. The `d` foliator was built by every
-        # walk and never used -- it holds the same counter this was rolling by
-        # hand.
-        lead = foliation.walk[LEAD]
+        # ! NUMBERED IN THE ORDER IT OCCURS, which is the order the lexer found
+        # it, because there is no walk to take a number from.
+        leads = iter(range(10**9))
         for b in sorted(got, key=lambda b: b.original_start or 0):
             if b.kind == LEADING:
-                place = lead.emit("")
-            elif b.kind == MATTER:
+                # ! NO ADDRESS. Nothing cites a run of blank lines -- Roy: *"there
+                # is no information to rule on, it is just there for document
+                # preservation"* -- and an address names a place it does not have.
+                b.symbol = f"{LEAD}{next(leads)}"
+                b.address = ""
+                continue
+            if b.kind == MATTER:
                 # ! HEAD OR FOOT, which is the whole of the mapping. The lexer
                 # types a run `matter` when it opens the file or closes it; the
                 # walk emits a place for each end; this says which is which, and
@@ -852,9 +864,16 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     # made the front matter its own foliation; then the rule that `b` owns all
     # the lines that are not another foliation's lines would explicitly stay
     # true."*
+    #
+    # !! LEADING IS IN THAT LIST BY ITS SYMBOL, not by an address, because it
+    # HAS none -- see `foliator.SERIES`. It owns its lines exactly for the same
+    # reason an `a` does: the lexer found them and said which they are. ! Read
+    # from `address` alone this returned "" for a `d`, the `if` below fell
+    # through, and the gap took the blank lines a run of leading already held --
+    # so they were set TWICE. Measured the moment `d` left the series.
     exact: set[int] = set()
     for b in paragraphs:
-        series = b.address.split("@")[-1][:1]
+        series = (b.address.split("@")[-1] or b.symbol)[:1]
         if series and series != GAP and b.original_start:
             exact.update(range(b.original_start, b.original_end + 1))
 

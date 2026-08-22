@@ -864,7 +864,10 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
 
     def test_every_ADDRESS_is_still_unique(self):
         # !! The direction that stays exact. This is what a record cites.
-        named = [b["address"] for b in self.paragraphs]
+        # ! A paragraph carrying NO address is not a duplicate of another one --
+        # leading names no place, so several answer "" and none of them is an
+        # address. Counting them made this read 10 against 9.
+        named = [b["address"] for b in self.paragraphs if b["address"]]
         self.assertEqual(len(named), len(set(named)))
 
     def test_the_anchor_answers_with_BOTH_trailing_comments(self):
@@ -1260,17 +1263,36 @@ class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
         for folio in named:
             self.assertIn(folio, places)
 
-    def test_a_LEADING_place_is_emitted_by_its_own_foliator(self):
-        """!! THE `d` SERIES IS MADE THE SAME WAY EVERY OTHER SERIES IS.
+    def test_LEADING_is_NOT_a_series_and_the_walk_makes_no_d(self):
+        """!! IT WAS GIVEN ITS OWN FOLIATOR FOR ONE MORNING, and that was the
+        wrong fix to a real problem.
 
-        `page.py` states which paragraphs are leading and in what order; the
-        `d` foliator numbers them. This fixture has two blank runs, so the page
-        carries `d0` and `d1` -- present in the walker that emitted them and in
-        `places`, which is the whole of what "a place exists" means.
+        `emit` is what MAKES a place, and leading is not one: it names nothing a
+        verdict can cite and it answers `""` where every other place answers a
+        line of code or `<module>`. Roy, 2026-08-22: *"it has no anchor, and so
+        by the LSR -- any child class has to be able to answer its parent
+        class's answers as well, correctly -- it breaks that rule."*
+
+        ! SO IT CARRIES A SYMBOL AND NOT AN ADDRESS -- kept, on Roy's ruling,
+        because the page/symbol map is what shows every line is covered.
         """
-        lead = self.foliation.walk[foliator.LEAD].places
-        self.assertEqual(sorted(lead), ["d0", "d1"])
-        for folio in lead:
-            self.assertIn(folio, self.foliation.places)
-        # ! Numbered from 0 by the foliator's own counter, like every series.
-        self.assertEqual(self.foliation.walk[foliator.LEAD]._step, len(lead))
+        self.assertNotIn(foliator.LEAD, foliator.SERIES)
+        self.assertNotIn(foliator.LEAD, self.foliation.walk)
+        self.assertEqual([f for f in self.foliation.places if f[:1] == "d"], [])
+        leads = [b for b in self.built if b.symbol]
+        self.assertEqual([b.symbol for b in leads], ["d0", "d1"])
+        # !! THE SYMBOL IS NOT AN ADDRESS, which is the whole of the ruling.
+        self.assertEqual([b.address for b in leads], ["", ""])
+
+    def test_every_place_the_walk_MAKES_answers_with_an_anchor(self):
+        """!! THE SUBSTITUTION `d` COULD NOT SATISFY, stated as the property.
+
+        `places` is `folio -> the line of code it is attached to`. Every member
+        must answer it: a line of code, or `<module>` for the places that answer
+        to the file. An empty string is the ABSENCE of an answer, and a series
+        that gives one cannot be used where a place is expected.
+        """
+        self.assertTrue(self.foliation.places)
+        for folio, anchor in self.foliation.places.items():
+            with self.subTest(folio=folio):
+                self.assertTrue(anchor, f"{folio} answers with no anchor")

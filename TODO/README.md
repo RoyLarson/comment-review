@@ -270,7 +270,7 @@ other tasks can proceed without them._
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [foliation-knows-about-lines](foliation-knows-about-lines.md) | comment-review | yes | 15/18 | The foliation carries line data for one consumer, and one field of it is read by nobody |
+| [foliation-knows-about-lines](foliation-knows-about-lines.md) | comment-review | yes | 16/18 | The foliation carries line data for one consumer, and one field of it is read by nobody |
 
 ### blocked  (6)
 

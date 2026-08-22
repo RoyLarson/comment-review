@@ -81,7 +81,12 @@ def _places(pg) -> tuple[dict[int, list[str]], dict[int, list[str]]]:
     at_line: dict[int, list[str]] = {}
     gap_above: dict[int, list[str]] = {}
     for b in pg.paragraphs:
-        folio = (b.address or "").split("@")[-1]
+        # !! A `d` ANSWERS WITH ITS SYMBOL, because it has no address -- leading
+        # names no place. Roy, 2026-08-22, ruling that the symbol survives the
+        # cut: *"the page/symbol map has really helped in understanding what
+        # each line is, so that we maintain the cover."* This margin IS that
+        # map, so reading `address` alone left every run of blank lines blank.
+        folio = (b.address or "").split("@")[-1] or b.symbol
         if not folio:
             continue
         if b.original_start:

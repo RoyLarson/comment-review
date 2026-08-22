@@ -210,15 +210,24 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
         pg = page.page_for(path, text, lexer.language_for(path))
         counts = collections.Counter()
         exact = set()
+
         # ! EVERY SERIES BUT `b` IS EXACT -- `a`, `c`, and `f` since front
-        # matter got its own. Naming the exact ones is how this drifted: `f0`
-        # was in neither branch and its line came out owned by nobody.
+        # matter got its own -- and LEADING with them, by its SYMBOL.
+        #
+        # !! NAMING THE EXACT ONES IS HOW THIS DRIFTS, TWICE NOW. First `f0` was
+        # in neither branch and its line came out owned by nobody. Then
+        # 2026-08-22, when `d` left `foliator.SERIES` and gave up its address,
+        # every run of blank lines fell into the same hole -- read from
+        # `address` alone a `d` answers `""`, which this excludes.
+        def series(b):
+            return (b.address.split("@")[-1] or b.symbol)[:1]
+
         for b in pg:
-            if b.address.split("@")[-1][:1] not in ("b", ""):
+            if series(b) not in ("b", ""):
                 counts.update(covers(b, attr))
                 exact.update(covers(b, attr))
         for b in pg:
-            if b.address.split("@")[-1][:1] == "b":
+            if series(b) == "b":
                 counts.update(n for n in covers(b, attr) if n not in exact)
         return {n: counts.get(n, 0) for n in range(1, len(text.splitlines()) + 1)}
 
@@ -245,8 +254,11 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
         path = Path("m.py")
         pg = page.page_for(path, text, lexer.language_for(path))
         owner = next(b for b in pg if 2 in covers(b))
-        self.assertEqual(owner.kind, lexer.LEADING, owner.address)
-        self.assertTrue(owner.address.split("@")[-1].startswith("d"), owner.address)
+        self.assertEqual(owner.kind, lexer.LEADING, owner.symbol)
+        # ! ITS `d` IS A SYMBOL, NOT AN ADDRESS, since 2026-08-22 -- leading
+        # names no place, so it carries a label and cites nothing.
+        self.assertTrue(owner.symbol.startswith("d"), owner.symbol)
+        self.assertEqual(owner.address, "")
 
     def test_every_paragraph_names_one_anchor(self):
         # ! EXCEPT LEADING, whose anchor is empty by ruling rather than by

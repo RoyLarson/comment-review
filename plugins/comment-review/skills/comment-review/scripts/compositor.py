@@ -82,10 +82,17 @@ def line_endings(text: str) -> str:
 
 
 def _held(page: Page) -> dict[str, list[str]]:
-    """The prose each place holds, by folio. Empty places hold none."""
+    """The lines each place holds, by folio -- and each `d` by its symbol.
+
+    ! Empty places hold none.
+
+    !! LEADING IS KEYED BY ITS SYMBOL BECAUSE IT HAS NO ADDRESS. It is not a
+    place -- see `foliator.SERIES` -- so it never appears in the reading order
+    and is reached only through `Page.leading`, which names it by that symbol.
+    """
     out: dict[str, list[str]] = {}
     for paragraph in page.paragraphs:
-        folio = (paragraph.address or "").split("@")[-1]
+        folio = (paragraph.address or "").split("@")[-1] or paragraph.symbol
         if folio:
             out[folio] = list(paragraph.raw_lines)
     return out

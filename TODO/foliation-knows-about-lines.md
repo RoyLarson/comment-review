@@ -2,7 +2,7 @@
 
 ```
 Status:   in-flight
-Progress: 15 of 18 tasks done
+Progress: 16 of 18 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines? I think
@@ -89,7 +89,7 @@ The foliation carries line data for one consumer, and one field of it is read by
       highest ordinal. The last line-shaped consumer is for_anchor, which matches
       by RANGE to answer which places belong to an anchor: a reviewer lookup, not
       a placement
-- [ ] Roy 2026-08-21: 'leading is better in the page and it is a paragraph type,
+- [x] Roy 2026-08-21: 'leading is better in the page and it is a paragraph type,
       but it really fits the spanning of paragraphs better than a foliation.' It
       is an EDGE keyed by a folio pair, has no anchor, is not citable and no
       verdict names it -- so being a SERIES in foliator.SERIES may be the wrong
