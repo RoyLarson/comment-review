@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 23 tasks done
+Progress: 0 of 24 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -157,3 +157,15 @@ The AST reader gets older every release while the files get newer.
       by design, so a `//` inside a string cannot open a comment. So a docstring
       is a STRING IN A PARTICULAR POSITION, and stating that position is what
       replaces the parser.
+- [ ] * PROPOSED 2026-08-22 (Roy): THE ANCHORS MAY NEED THEIR DEPTH. The position
+      rule this branch owes -- a docstring is a STRING IN A PARTICULAR POSITION --
+      is a rule about DEPTH once there is no parser. MEASURED 2026-08-22: an
+      anchor already holds its line VERBATIM WITH ITS INDENTATION (a2 is "    def
+      m(self):" at 4, c2 is "        x = 1" at 8), so depth is DERIVABLE from
+      every place today and STATED by none. ! It answers TWO of the three things
+      the AST buys: WHERE THE BODY STARTS is the first anchor deeper than the
+      declaration, which a wrapped signature no longer moves, and INSIDE THIS BODY
+      is depth greater than the declaration. ! NECESSARY, NOT SUFFICIENT: on the
+      same fixture y = """not a docstring""" sits at depth 8 like every other line
+      of that body, so depth says WHICH BODY and the walk order says FIRST -- the
+      pair replaces ast.get_docstring, not depth alone.
