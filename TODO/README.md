@@ -242,7 +242,7 @@ that changed a published name or rule:
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | session | — | 0/3 | A page entry that is not an object loses every record under it, silently |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | session | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | session | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |
-| [galley-does-two-jobs](galley-does-two-jobs.md) | session | — | 0/13 | the galley both updates the page and sets it; `compositor` takes the setting |
+| [galley-does-two-jobs](galley-does-two-jobs.md) | session | — | 4/13 | the galley both updates the page and sets it; `compositor` takes the setting |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | session | — | 0/11 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [python-cannot-read-python](python-cannot-read-python.md) | session | yes | 0/23 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | session | yes | 0/10 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |

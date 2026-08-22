@@ -323,16 +323,16 @@ class TestAStaleCensusIsRefused(unittest.TestCase):
     ]
 
     def test_the_census_matches_the_file_it_came_from(self):
-        from galley import paragraph_matches
+        from compositor import transcribes
 
-        self.assertTrue(paragraph_matches(self.SRC.splitlines(), self.PARAGRAPHS[0]))
+        self.assertTrue(transcribes(self.PARAGRAPHS[0], self.SRC.splitlines()))
 
     def test_it_does_not_match_a_file_that_has_moved(self):
         # ! One line added ABOVE the paragraph, which is what a prose edit does.
         moved = "import os\n" + self.SRC
-        from galley import paragraph_matches
+        from compositor import transcribes
 
-        self.assertFalse(paragraph_matches(moved.splitlines(), self.PARAGRAPHS[0]))
+        self.assertFalse(transcribes(self.PARAGRAPHS[0], moved.splitlines()))
 
     def test_the_addresses_differ_silently_and_neither_errors(self):
         # !! THE POINT. Both answer, both look right, and they disagree. A blank
@@ -638,7 +638,7 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
     ! A sweep was here and it refused a census built SECONDS earlier on every
     non-Python file carrying a trailing comment -- and masked a real collision
     `--check` exists to report. Staleness belongs where a file is WRITTEN;
-    `galley.paragraph_matches` refuses a stale range before it splices.
+    `compositor.transcribes` refuses a census the file no longer reads as.
     """
 
     def _run(self, *args):

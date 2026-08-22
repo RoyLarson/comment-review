@@ -2,11 +2,15 @@
 
 ```
 Status:   open
-Progress: 0 of 13 tasks done
+Progress: 4 of 13 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on why every galley update to date has been
           refused)
+Built:    2026-08-21 — the split is built and wired: galley.reset places by address,
+          compositor.set_page sets, splice/overlaps/splice_range/paragraph_matches
+          deleted. The shipped PROSE still describes the old shape -- vocabulary.toml,
+          SKILL.md and review.md remain
 ```
 
 ## Objective
@@ -78,12 +82,12 @@ A compositor writes a FILE; what a reviewer READS is that other question.
       floor holds, `check_vocabulary` reports 0 drifted -- and the shipped
       definition of the term disagrees with the shipped implementation of it. No
       gate can ask that question.
-- [ ] * RULED 2026-08-21 -- THE SPLIT. Roy: *"galley gets the old page - updates
+- [x] * RULED 2026-08-21 -- THE SPLIT. Roy: *"galley gets the old page - updates
       the old page with the verdict/record/marks and then a page-setter sets the
       page to rewrite the output text."* GALLEY takes a Page and the records and
       returns an UPDATED PAGE -- marks applied, nothing set. COMPOSITOR takes a
       Page and returns TEXT. Two roles, two sets of rules.
-- [ ] * RULED 2026-08-21 -- THE TERM IS `compositor`. In the trade a compositor is
+- [x] * RULED 2026-08-21 -- THE TERM IS `compositor`. In the trade a compositor is
       the one who SETS type; make-up is what turns set type into pages. Roy:
       *"compositor works."* ! Chosen against the register rather than after it,
       which is the rule three LAW words broke.
@@ -100,7 +104,7 @@ A compositor writes a FILE; what a reviewer READS is that other question.
 - [ ] SKILL.md: the pipeline gains the compositor at stage 7. Today 7a PRESENT and
       7b WRITE both sit on the galley, and the stage diagram shows neither the
       update nor the setting.
-- [ ] `references/review.md` -- the FINAL REVIEWER, stage 8 -- reads the finished
+- [x] `references/review.md` -- the FINAL REVIEWER, stage 8 -- reads the finished
       page. Roy asked for the term to land there: a proofreader reads a PROOF,
       which is what the compositor produced, and the file currently has no word
       for where its input came from.
@@ -111,7 +115,7 @@ A compositor writes a FILE; what a reviewer READS is that other question.
       -- it proves the EXECUTABLE CODE survived, not that the model of a page is
       lossless. Roy: *"we can compare the round trip directly page in page out,
       page in, comments removed, page out no comments."*
-- [ ] ! IT CLOSES THE C QUESTION MECHANICALLY. `a-series-never-fills-outside-
+- [x] ! IT CLOSES THE C QUESTION MECHANICALLY. `a-series-never-fills-outside-
       python` waits on a round trip that was going to be a judgement call; the
       identity above is that instrument, and one run over `corpora/cpython`
       answers it for C while the same run answers Rust, Go, Java and the rest.

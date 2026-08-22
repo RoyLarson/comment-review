@@ -56,6 +56,45 @@ the report reader used: to parse runs already recorded. It was deleted 2026-08-2
 callers anywhere** -- not in `plugins/`, not in `tests/`, not in `scripts/`. Found by a codegraph
 sweep for shipped symbols nothing uses.
 
+## The SPLICE -- how a change reached a file before the compositor
+
+**Deleted 2026-08-21.** Every edit this system made was a line rewrite. `galley.py` held
+`splice`, `overlaps`, `splice_range`, `paragraph_matches` and its own `line_endings`, and a
+change was a tuple:
+
+```
+(start, end, column, replacement)     1-based, inclusive; column 0 = whole lines
+```
+
+!! **APPLIED IN DESCENDING ORDER, WHICH IS WHAT MADE THE RANGES MEAN ANYTHING.** A replacement
+rarely has the same number of lines as what it replaces, so splicing top-down shifted every range
+below the one just written. Overlaps were refused up front so descending order could be exact.
+
+!! **THE `column` WAS ADDED BECAUSE A SPLICE REPLACES WHOLE LINES.** A `patch` on
+`z = 3  # trailing` wrote `# reworded` over the statement -- measured 2026-08-18, in the galley a
+human is asked to approve. Keeping `line[: column - 1]` wrote the prose and left the code.
+
+!! **AND IT COULD NOT INSERT.** An empty gap has no lines, so its range was `n+1 .. n` and the
+arithmetic for landing BETWEEN two code lines was never got right. **8 tests were
+`@unittest.expectedFailure`** for exactly that: the insertion between two lines, deleting no code,
+the gap above the first line, the gap below the last, and telling the two boundary gaps of a
+one-line file apart. All 8 now pass through `galley.reset` -- see
+`tests/test_galley.py::TestAnAddIntoAnEmptyGap`.
+
+! **What replaced it**: a page addresses its paragraphs and `compositor.set_page` walks the
+reading order, so a change is an ASSIGNMENT to one paragraph. Nothing shifts, so there is no order
+to apply in, no overlap to refuse, and no column -- the compositor sets the line of code and joins
+what sits beside it.
+
+! **The staleness check went with it.** `paragraph_matches` compared stored text against the
+file's lines and needed a case per kind. It is `compositor.transcribes` now, one comparison,
+because `leading` made every paragraph contiguous. What the GALLEY checks instead is
+`drifted` -- the anchor, per Roy's ruling 2026-08-21: *"the reset should only check if the address
+is tied to the anchor line of code - like they claim."*
+
+! **To read the mechanism**, it is at `a679253` -- `git show
+a679253:plugins/comment-review/skills/comment-review/scripts/galley.py`.
+
 ## Constants that outlived their reader
 
 **Deleted 2026-08-20**, all four found by sweeping the index for shipped names nothing reads:

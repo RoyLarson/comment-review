@@ -218,6 +218,51 @@ def set_page(page: Page, newline: str | None = None) -> str:
     return ending.join(out) + tail
 
 
+def transcribes(paragraph: dict, lines: list[str]) -> bool:
+    """Does this paragraph's stored text still read the way the file does?
+
+    !! BEFORE AND AFTER ARE THIS MODULE'S TO VERIFY. Roy, 2026-08-21: *"that
+    check if it was actually possible should live in compositor since before and
+    after are in some ways its job to verify."* It was `galley.paragraph_matches`
+    until then, where it sat beside the splice it guarded.
+
+    !! CONTIGUITY MADE IT ONE COMPARISON. The old check needed a case per kind --
+    a `c` compared in two halves, an empty place compared for emptiness, an
+    undocumented declaration exempted -- because a paragraph could own lines 2
+    and 4 but not 3. Every paragraph is contiguous since `leading` took the
+    blanks, so its stored lines are its range and there is nothing to reassemble.
+
+    ! A PLACE THAT HOLDS NO LINE IS TRUE, not false. It has no text to disagree
+    with the file about; whether prose has appeared there since is the question
+    an `add` asks, and it is not this one. Answering False refused every `add` in
+    a run, which is the defect this note is here to stop returning.
+
+    Args:
+        paragraph: one census entry, as `vars(b)` or from the JSON.
+        lines: the file's lines, without endings.
+
+    Returns:
+        Whether the file still reads as the census recorded it.
+    """
+    start = paragraph.get("original_start") or 0
+    end = paragraph.get("original_end") or start
+    stored = paragraph.get("raw_lines") or []
+    if not start or not stored:
+        return True
+    if start < 1 or end > len(lines) or start > end:
+        return False
+    here = list(lines[start - 1 : end])
+    column = paragraph.get("original_column") or 0
+    if column > 0:
+        # ! A `c` SHARES ITS FIRST LINE WITH CODE, and the census stores both
+        # halves: `anchor` is the statement, `raw_lines` is everything from the
+        # column on. Together they are the physical line.
+        if here[0][: column - 1] != paragraph.get("anchor", ""):
+            return False
+        here[0] = here[0][column - 1 :]
+    return [ln.rstrip() for ln in here] == [ln.rstrip() for ln in stored]
+
+
 def draft(page: Page, into: Path) -> Path:
     """Write this page to `into` -- a file of its own, never the original.
 
