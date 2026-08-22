@@ -230,7 +230,25 @@ Each announces ONE subject, which is what `module-context` asks of any module:
 | `lexical`   | a comment-syntax record, nothing else | blocks, marks                   | any owner         |
 
 A language with no record is named and the census EXITS NONZERO: every file handed in is
-censused or the run stops. Adding a language is a data row, not new code.
+censused or the run stops. Adding a LEXICAL language is a data row, not new code.
+
+!! **AND A TOKENIZED ONE IS NOT, WHICH THIS SAID OTHERWISE UNTIL 2026-08-22.** It read *"adding
+a language is a data row"* flat. MEASURED: `language.py` decides the tier as `return "tokenized"
+if lang.name == "python" else "lexical"`, and `page.py` dispatches the READER on that same name
+test while the same file STAMPS the tier from `tier_for` -- so a second tokenized language is
+three edits in two modules, and half a fix leaves a file **read at one tier and labelled at the
+other**. Three more sites decide *is this Python* three more ways.
+
+! **IT IS A CLAIM ABOUT THE COST OF A CHANGE, which is the kind that invites someone to make the
+change and discover the cost.** Filed as
+[`tier-dispatched-on-name`](TODO/tier-dispatched-on-name.md).
+
+!! **THE ROW BECOMES TRUE AGAIN WHEN THE AST GOES.** Roy, 2026-08-22: *"as much because we are
+going to remove the ast system from python coming up as it is not an accurate statement."* With
+Python read lexically -- [`python-cannot-read-python`](TODO/python-cannot-read-python.md) -- there
+is one tier, the name test has nothing to answer, and adding any language is a row again. **The
+sentence is not being corrected toward permanence; it is being made honest until the thing it
+describes is rebuilt.**
 
 !! **WHICH LINES DECLARE SOMETHING DOCUMENTABLE IS A KEYWORD LIST ON THE LANGUAGE ROW**, per
 language, since 2026-08-20. Roy: *"the easy way is to supply the lexer with the list of keywords
