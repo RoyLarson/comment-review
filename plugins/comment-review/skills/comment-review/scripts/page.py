@@ -565,6 +565,52 @@ def empty_places(
     return out
 
 
+def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> None:
+    """Tie each run of leading to the PAIR of places it separates.
+
+    !! LEADING IS AN EDGE. Every other series answers to a line of code and has
+    a position in the walk's reading order; the space between two paragraphs
+    answers to neither of them alone, so it is keyed by both -- `(f0, a0)` reads
+    as *the space between the file's matter and the module's doc*. Roy,
+    2026-08-21: *"make the pre-post foliation a dictionary look up for the d
+    foliation and its associated paragraph."*
+
+    ! WHICH IS WHY THE WALK DOES NOT EMIT ONE. `foliate` runs before any prose
+    is read and leading exists only where the lexer found a blank run, so the
+    walk cannot know a `d` is there. An edge needs no position in the walk's
+    list, so it does not have to.
+
+    ! AN EDGE AT THE FILE'S OWN EDGE HAS ONE END. A blank run above everything
+    or below everything is tied with `""` for the missing side, which is a real
+    answer: there is no place on that side to separate from.
+
+    Args:
+        paragraphs: every paragraph on the page, addressed.
+        foliation: the walk's places; `leading` is filled here.
+    """
+    # ! The places that HOLD LINES, in the order they hold them -- the sequence
+    # a run of leading falls between. Read from the original text, which is what
+    # this pass is entitled to: it is establishing the edges ONCE, at build.
+    set_places = sorted(
+        (b for b in paragraphs if b.original_start and b.kind != LEADING),
+        key=lambda b: b.original_start or 0,
+    )
+    for b in sorted(paragraphs, key=lambda b: b.original_start or 0):
+        if b.kind != LEADING or not b.address:
+            continue
+        start = b.original_start or 0
+        end = b.original_end or start
+        before = ""
+        after = ""
+        for other in set_places:
+            if (other.original_end or 0) < start:
+                before = other.address.split("@")[-1]
+            elif (other.original_start or 0) > end:
+                after = other.address.split("@")[-1]
+                break
+        foliation.leading[(before, after)] = b.address.split("@")[-1]
+
+
 def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> Page:
     """The census for one file, at the highest tier available for its language.
 
@@ -665,24 +711,28 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # ! AFTER every paragraph exists, so each one's share of its gap is
         # settled against the neighbours it actually has.
         fill_the_gaps(text, got)
-        # !! THE READING ORDER IS THE PLACES THAT HOLD LINES, IN THE ORDER THEY
-        # HOLD THEM. The walk built one before any prose was looked at, so it
-        # could not know where a `d` falls -- leading exists only where the lexer
-        # found a blank run, and the walk sees no prose. Every paragraph is
-        # CONTIGUOUS since 2026-08-21, so which lines a place owns settles the
-        # sequence, and it is settled ONCE, here.
+        # !! THE READING ORDER IS THE WALK'S, AND THIS MODULE DOES NOT BUILD ONE.
+        # `foliate` emits every place in sequence and says so at the field --
+        # *"a fact the walk knows rather than an arithmetic over line numbers"* --
+        # including WHERE AN `a` FALLS, which is the language's call and is
+        # settled there once.
         #
-        # ! AN EMPTY PLACE IS NOT IN IT, and nothing is lost by that: it holds no
-        # line, so it sets nothing. It stays citable through its ADDRESS, which
-        # is what an `add` names.
+        # !! IT WAS OVERWRITTEN HERE UNTIL 2026-08-21, by a sort on
+        # `original_start` filtered to paragraphs that hold a line. Two comments
+        # in two modules then stated opposite rules for one field and the later
+        # write won. What it cost: a place holding no prose has no line, so it
+        # fell out of the order, and `compositor.set_page` -- which walks this
+        # list -- could not emit one. An `add` names exactly such a place, so its
+        # approved text was DISCARDED IN SILENCE: no error, and a page identical
+        # to the one before the edit. Roy: *"how do I get you to stop thinking in
+        # line numbers?"*
         #
-        # ! LAST, because `empty_places` and `fill_the_gaps` both change which
-        # lines a place owns -- ordering before them left every `c` out.
-        foliation.reading = [
-            b.address.split("@")[-1]
-            for b in sorted(got, key=lambda b: b.original_start or 0)
-            if b.original_start and b.address
-        ]
+        # ! SO LEADING IS TIED TO THE PAIR IT SEPARATES, not inserted into the
+        # sequence -- see `Foliation.leading`. The walk cannot emit a `d`,
+        # because it runs before any prose is read and leading exists only where
+        # the lexer found a blank run; an edge needs no position in the walk's
+        # list, so the walk does not have to know.
+        tie_leading(got, foliation)
     # ! THE PAGE STATES ITS OWN PATH on every paragraph, empty places included.
     # `empty_places` builds them without one -- it is handed the text, not the
     # file -- and a paragraph with no path is one no consumer can place.

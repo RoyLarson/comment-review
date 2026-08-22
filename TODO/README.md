@@ -267,7 +267,7 @@ other tasks can proceed without them._
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | session | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | comment-review | yes | 1/7 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 
-### blocked  (5)
+### blocked  (6)
 
 _None._
 
@@ -276,6 +276,7 @@ _None._
 | [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 1/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | session | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [drop-the-column](drop-the-column.md) | session | — | 0/6 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
+| [corpora-are-all-python](corpora-are-all-python.md) | comment-review | — | 0/5 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 ---
 
 ## Completed

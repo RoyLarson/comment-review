@@ -121,12 +121,33 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
         self.assertTrue(owner(page, 2).startswith("d"), owner(page, 2))
         self.assertTrue(owner(page, 4).startswith("d"), owner(page, 4))
 
-    def test_the_reading_order_puts_them_where_they_sit(self):
-        # ! `f0` the licence, `d0` the blank, `a0` the docstring, `d1` the blank,
-        # `c0` the import -- which is the file, top to bottom.
+    def test_the_reading_order_IS_THE_WALKS_AND_HOLDS_NO_d(self):
+        # !! THIS TEST ASSERTED THE DEFECT UNTIL 2026-08-21. It read
+        # `["f0", "d0", "a0", "d1", "c0"]` -- the order `page_for` built by
+        # sorting on `original_start`, which OVERWROTE the order `foliate`
+        # emitted. Two modules stated opposite rules for one field and the later
+        # write won; this test pinned the loser.
+        #
+        # ! WHAT IT COST: a sort on a line number can only carry places that HOLD
+        # a line, so `b0`, `b1` and `f1` -- every place an `add` cites -- fell out
+        # of the order, and `set_page` could not emit one. The approved text of an
+        # `add` was discarded in silence.
+        #
+        # ! SO THE ORDER NOW HOLDS THE EMPTY PLACES AND NO `d`: leading is an
+        # EDGE between two places, not a place in the sequence.
         self.assertEqual(
             built("m.py", self.SRC).foliation.reading,
-            ["f0", "d0", "a0", "d1", "c0"],
+            ["f0", "a0", "b0", "c0", "b1", "f1"],
+        )
+
+    def test_the_leading_is_tied_to_the_PAIR_it_separates(self):
+        # ! The same two runs of blank, keyed by what sits either side of them:
+        # the licence and the docstring, then the docstring and the import.
+        # ! `b0` is empty and sits between `a0` and `c0` in the walk's order, so
+        # the pair skips it -- a place that sets nothing separates nothing.
+        self.assertEqual(
+            built("m.py", self.SRC).foliation.leading,
+            {("f0", "a0"): "d0", ("a0", "c0"): "d1"},
         )
 
     def test_a_doc_comment_one_blank_above_its_declaration_is_STILL_tied(self):

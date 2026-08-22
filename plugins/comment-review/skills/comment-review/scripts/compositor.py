@@ -127,9 +127,32 @@ def set_page(page: Page, newline: str | None = None) -> str:
     ending = newline if newline is not None else line_endings(page.text)
     held = _held(page)
     out: list[str] = []
+    # !! LEADING IS SET BETWEEN TWO PLACES, NOT AT ONE. It is an edge -- see
+    # `Foliation.leading` -- so the walk hands over a sequence of places and the
+    # space between each adjacent pair is looked up as it is reached. An absent
+    # key means those two places sit against each other, which is what 90% of
+    # `c`->`c` boundaries do.
+    #
+    # ! THE FILE'S OWN EDGES ARE PAIRS TOO, with `""` for the side that has no
+    # place: a blank run above everything is `("", f0)`.
+    edges = page.foliation.leading
+    previous = ""
     for folio in page.foliation.reading:
         prose = held.get(folio, [])
-        if series_of({"address": f"@{folio}"}) == ON:
+        beside_code = series_of({"address": f"@{folio}"}) == ON
+        # !! A PLACE THAT SETS NOTHING BREAKS NO EDGE. Leading separates two
+        # pieces of TEXT, and an empty place is not text -- it is a position a
+        # verdict can cite. Skipping it keeps the pair the same one `tie_leading`
+        # tied: with `b0` empty between them, `a0` and `c0` are still adjacent in
+        # the file even though the walk names a place in between.
+        #
+        # ! A `c` IS NEVER EMPTY IN THIS SENSE -- it sets its line of code
+        # whether or not anything sits beside it.
+        if not prose and not beside_code:
+            continue
+        out.extend(held.get(edges.get((previous, folio), ""), []))
+        previous = folio
+        if beside_code:
             # ! A `c` IS THE LINE OF CODE, so it is set whether or not anything
             # sits beside it. Its first line is the code and the room together;
             # a comment opened in that room and closed on a later line owns
@@ -139,6 +162,9 @@ def set_page(page: Page, newline: str | None = None) -> str:
             out.extend(prose[1:])
             continue
         out.extend(prose)
+    # ! THE CLOSING EDGE. A file ending in blank lines has leading below its last
+    # place, which the loop cannot reach -- it sets the space BEFORE each place.
+    out.extend(held.get(edges.get((previous, ""), ""), []))
     if not page.foliation.reading and page.text:
         # !! A PAGE WITH NO PLACES OVER A FILE WITH TEXT IS NOT AN EMPTY PAGE --
         # it is a page that was never built, and setting it would EMPTY THE FILE.

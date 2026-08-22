@@ -354,6 +354,25 @@ class Foliation:
     # ! They are BOUNDS and not an edit range. Turning one into the other needs
     # the file's own last line, which is the page's to know and not the walk's.
     bounds: dict[str, tuple[int, int]] = field(default_factory=dict)
+    # !! LEADING IS AN EDGE, NOT A PLACE IN THE SEQUENCE -- keyed by the PAIR it
+    # separates, so `(f0, a0) -> d0` reads as *the space between the file's
+    # matter and the module's doc*. Roy, 2026-08-21: *"make the pre-post
+    # foliation a dictionary look up for the d foliation and its associated
+    # paragraph ... that last one makes the resolver easier because adding a
+    # paragraph adds the place in the page and it knows its numbers."*
+    #
+    # !! AN ABSENT KEY IS THE SENTINEL. Roy asked for a `d` at every boundary,
+    # absent-typed where there is commonly no blank line; a dict gives the same
+    # answer by holding no entry. MEASURED 2026-08-21 over 1,955 files:
+    # `c`->`c` is 386,509 of 421,502 boundaries and 90% of those hold no blank,
+    # so emitting a place per boundary would multiply a file's places six- to
+    # tenfold to record nothing.
+    #
+    # ! WHY AN EDGE AND NOT AN ORDINAL. A queue position shifts when anything is
+    # inserted above it, which is the defect that made line numbers unusable
+    # here. An edge does not move: adding a paragraph between X and Y destroys
+    # `(X, Y)` and creates `(X, new)` and `(new, Y)`, and nothing else changes.
+    leading: dict[tuple[str, str], str] = field(default_factory=dict)
     lines: dict[str, int] = field(default_factory=dict)
     # ! WHERE AN `a`'s PROSE WOULD GO, which is not its declaration's line:
     # a wrapped signature puts the first statement several lines down. Only
