@@ -139,6 +139,28 @@ class TestTheAnchorIsTheWholeStalenessCheck(unittest.TestCase):
         self.assertTrue(moved)
         self.assertIn("def f():", moved[0])
 
+    def test_RENAMING_THE_ENCLOSING_DECLARATION_drifts(self):
+        # !! THE CASE A PER-ADDRESS CHECK WOULD ALLOW, and the reason the check
+        # asks the whole file. The comment being edited sits inside `def f():`
+        # and is anchored to `    return 1`, which does not move when the
+        # declaration is renamed -- so checking only the address being written
+        # says "fine" and the approved text describing `f` is set against
+        # `RENAMED`. The paragraph did not move; the thing it is ABOUT did.
+        census = [vars(b) for b in built(ORIGINAL)]
+        moved = galley.drifted(
+            built(ORIGINAL.replace("def f():", "def RENAMED():")), census
+        )
+        self.assertTrue(moved)
+
+    def test_AN_UNRELATED_APPEND_AT_THE_FOOT_drifts_TOO(self):
+        # !! BY RULING, NOT BY ACCIDENT. Roy, 2026-08-21: *"If the file shifted
+        # at all it is dead and so are the edits. There is no way we can know if
+        # we are setting things correctly ... IT failing loudly is the 'right'
+        # call on any modification to the anchors."* Appending below everything
+        # moves the closing gap's anchor, and that refuses the page.
+        census = [vars(b) for b in built(ORIGINAL)]
+        self.assertTrue(galley.drifted(built(ORIGINAL + "\n\nX = 1\n"), census))
+
     def test_a_series_with_NO_anchor_is_not_checked(self):
         # ! Leading answers to nothing by ruling, so it cannot drift against a
         # line of code. Its absence from the report is a fact, not a gap.

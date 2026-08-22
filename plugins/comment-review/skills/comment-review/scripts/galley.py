@@ -124,10 +124,37 @@ def reset(page, edits: dict[str, str]) -> list[str]:
 def drifted(page, census: list[dict]) -> list[str]:
     """Addresses whose ANCHOR is no longer the one the census recorded.
 
-    !! THIS IS THE WHOLE STALENESS CHECK. Roy, 2026-08-21: *"the reset should
-    only check if the address is tied to the anchor line of code - like they
-    claim, else writing to b3 might have caused a collision because someone
-    shifted stuff out from underneath them."*
+    !! THIS IS THE WHOLE STALENESS CHECK, AND IT ASKS THE WHOLE FILE. Roy,
+    2026-08-21, ruling on the scope after a narrower reading was measured: *"If
+    the file shifted at all it is dead and so are the edits. There is no way we
+    can know if we are setting things correctly ... IT failing loudly is the
+    'right' call on any modification to the anchors."*
+
+    !! CHECKING ONLY THE ADDRESS BEING WRITTEN IS NOT ENOUGH, MEASURED. Rename
+    `def f():` to `def RENAMED():` and edit a comment inside its body: that
+    comment's own address is anchored to `    return 1`, which did not move, so
+    a per-address check ALLOWS IT -- and the approved text describing `f` is
+    written onto a declaration that no longer carries the name. The paragraph a
+    reviewer read did not move; the thing it is ABOUT did.
+
+    !! AND RE-ADDRESSING THE EDITS WOULD NOT SAVE THEM, WHICH IS WHY THERE IS NO
+    PARTIAL ANSWER. Roy: *"it seems easy just keep applying until it no longer
+    applies, but then the edits also no longer apply ... what is stated in the
+    edits could be stale and need something else."*
+
+    ! THE STALENESS IS IN THE TEXT, NOT ONLY IN THE PLACEMENT. A replacement is
+    prose ABOUT code, approved against the code as it read. Move that code and
+    the sentence can become false where it was true -- a comment that described
+    `f` is not made correct by finding the right place to put it on `RENAMED`.
+    So there is no re-keying shortcut: the shortcut assumes the words still
+    hold, and that is the assumption the shift breaks.
+
+    ! WHAT IS OWED IS A NEW REVIEW, not a new address. Re-censusing and
+    re-running is the answer, and it is the author's to trigger.
+
+    ! SO AN UNRELATED APPEND AT THE FOOT OF THE FILE REFUSES THE WHOLE PAGE, and
+    that is the rule rather than a cost of it -- measured as case D of the sweep
+    above: `X = 1` appended below everything moves the closing gap's anchor.
 
     ! IT REPLACES A COMPARISON OF STORED TEXT AGAINST THE FILE'S LINES. That one
     asked whether the paragraph still reads as it did, which is a fact about
