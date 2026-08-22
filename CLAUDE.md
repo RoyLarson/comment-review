@@ -575,16 +575,34 @@ something"** -- said about a category that was straining to hold a second job:
 | `b` held the blanks on both sides of an `a` | **leading**, the space between lines of type | 16 of 185 files in one corpus could not be set back |
 | `galley.py` both EDITED the page and SET it | **the compositor**, who sets type and decides nothing | the whole module was line arithmetic; three plan boxes were held for it |
 
-!! **THE THIRD IS THE ONE WHERE THE METHOD IS VISIBLE**, because it was three questions rather
-than a conclusion. Roy, 2026-08-22, recalling the sequence -- *"something like"*, so this is the
-shape of it and not his words: what IS a galley in the publishing space; the galley is doing both
-the editing of the page and the setting of it; what does publishing call the page-setter. **The
-answer named a module.** Ask what the thing IS in the trade, notice it is doing two jobs, ask what
-the trade calls the second one.
+!! **THE THIRD IS THE ONE WHERE THE METHOD IS ON THE RECORD**, 2026-08-21, in four messages:
 
-! **AND IT SAYS WHEN TO ASK.** Roy held this until the page, foliation and census were *"at least
-passably functional"*: *"there was no reason to try to fix the galley as it was."* A split chosen
-against a module that is about to stop existing is chosen for nothing.
+| Roy, verbatim | what it does |
+| --- | --- |
+| *"first what is a galley or what does it do in the publishing world?"* | asks what the thing IS -- **before** proposing anything |
+| *"So right now what the problem is - is actually galley doing two things, creating an updated page and page-setting the text. Those are two different roles and two different sets of rules."* | reads the two jobs OUT of that answer |
+| *"So my proposal is galley gets the old page - updates the old page with the verdict/record/marks and then a page-setter sets the page to rewrite the output text."* | names the missing half **from what it does**, in plain English |
+| *"compositor works"* | takes the trade's word for the role he had already isolated |
+
+!! **THE NAME CAME LAST, AND IT CAME FROM THE FUNCTION FIRST.** `page-setter` is Roy's own
+coinage and is what the module was called for the whole diagnosis; `compositor` arrived afterward
+and was ratified in two words. ! So the method is NOT *ask publishing what to call things*. It is
+**ask what the thing IS, find the second job in the answer, name that job by what it DOES, and
+only then look for the trade's word for it.** A term reached the other way names a category
+nobody has yet shown to exist.
+
+! **AND THE PAYOFF IS STATED AS A TEST, NOT AS TIDINESS**: *"Then we can compare the round trip
+directly page in page out, page in, comments removed, page out no comments... No ambiguity about
+how the page gets written. No this got lost this wasn't done right."* The split is what made the
+identity ABLE TO FAIL -- which is [`docs/gates.md`](docs/gates.md)'s rule arriving from the other
+direction, and Roy said so at the time: this header *"is referencing this exact error even though
+it was masked by so many other things."*
+
+!! **AND IT SAYS WHEN TO ASK -- IT WAS A REFUSAL, NOT A SCHEDULE.** Roy, 2026-08-21: *"This
+page-setter idea is what I was thinking about a lot when you stated this and how it to do it. It
+is also why I have refused every galley update to this point. The galley was always broken and on
+this commit is still broken."* ! Every proposed galley fix was declined while the category error
+stood, because a fix to a module that is about to stop existing is chosen for nothing.
 
 ! **So when a category is doing two jobs, ask what a compositor would call the half that does not
 fit -- before inventing a rule to make one category cover both.** Publishing has spent five
