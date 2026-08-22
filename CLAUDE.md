@@ -33,6 +33,17 @@ every check that would have caught it then skipped; the brief generator imported
 module that no longer defined it, passing only on an accidental re-export; and the backlog index
 listed eight finished TODOs as open. **Every one was found by reading, and none by a gate.**
 
+!! **AND A GATE CAN BE GREEN BECAUSE IT SHARES THE DEFECT** -- a different failure from answering
+a different question, and the one that looks most like success. **MEASURED 2026-08-21**: the
+round-trip identity, the strongest check in this tree, scored **699 of 699 across ten languages
+on its first run while 157 addresses were held by two paragraphs each**. It rebuilt each file
+from the line positions it had just read out of that file, so it could not disagree. It began
+finding things one commit later (`e3ae738`), when it was made to set from the FOLIATION instead.
+
+! **[`docs/gates.md`](docs/gates.md) holds that case and the rule it produced**: *"does the check
+pass" is not the question; "could the check fail" is* -- plus the three ways a green run means
+nothing, and what to ask before trusting a new check.
+
 The repo root is **not** the plugin. Only `plugins/comment-review/` ships to a user's
 `.claude/`; everything else (`docs/`, `evidence/`, `evals/`, `corpora/`, `scripts/`) is
 development and measurement tooling that stays behind.
