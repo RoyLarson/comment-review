@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 9 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, reading a census JSON: there are a lot of extra
@@ -43,3 +43,15 @@ A census row carries 19 fields and an empty place fills 7, with three different 
 - [ ] ! MEASURE THE COST BEFORE AND AFTER on a real census, in bytes and in the
       filtered listing, so the trim is reported as a number rather than as
       tidiness
+- [ ] MEASURED 2026-08-22 over the 135-row census of repo.py -- 73,429 bytes of
+      field data, and roughly HALF is duplication or empty: path 9,450 (12.9%, the
+      same string 135 times) plus address 9,727 (13.2%) which CONTAINS that path;
+      raw_lines 10,000 (13.6%) plus text 8,247 (11.2%) which is the same prose
+      joined; tier 2,565 (3.5%) one value 135 times; annotations, notes, declares
+      and symbol 8,944 together (12.2%) and empty on 125 to 130 of 135 rows
+- [ ] !! start/end IS A PURE DUPLICATE OF original_start/original_end -- identical
+      on 80 of 135 rows, which is EVERY row where both exist. ! But lines matches
+      NEITHER derivation: equal to len(raw_lines) on 68 of 135 and to the original
+      span on 13 of 135. So it is a THIRD fact whose definition the record does
+      not show, and establishing what it means has to come before any trim -- it
+      may be right, or it may be a stale field nobody has checked

@@ -248,7 +248,7 @@ that changed a published name or rule:
 | [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | session | — | 0/11 | the closing quote and the comment beside it are both stored, so the file gains a line |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | comment-review | — | 0/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | comment-review | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
-| [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | comment-review | yes | 0/7 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
+| [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | comment-review | yes | 0/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 
 ### in-progress  (4)
 
