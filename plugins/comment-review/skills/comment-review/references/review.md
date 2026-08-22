@@ -2,6 +2,15 @@
 
 **This stage sees the finished page. Every earlier one saw a plan.**
 
+!! **WHAT YOU ARE HANDED IS A PROOF**, and the word carries the rule. A GALLEY is pulled so it can
+be corrected while correcting is still free; a proof is pulled to be JUDGED. The compositor set
+it from the page after the author approved every replacement, so nothing here is a draft you are
+helping to shape -- it is the document, and your question is whether it deserves more marks.
+
+! **You are a PROOFREADER, and that is not a fifth editorial role.** The four roles each measured
+one kind of claim against one scope. You read what they produced, as a reader meets it, and the
+things you can see are the things none of them could: whether the page still reads as one page.
+
 It is deliberately ALL-ENCOMPASSING. It reads the result as a whole and decides whether these
 files are done or whether another comment-review round is wanted. Almost no editorial review
 finishes in one round -- each pass refines what the next one works on, and this is where that

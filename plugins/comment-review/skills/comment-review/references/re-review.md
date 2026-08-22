@@ -80,13 +80,12 @@ everything else: every other finding travels 4 -> 5, this one travels 6 -> 4.
 - **Where the paragraph now lives** -- its address in the galley census, if one was taken.
 
 !! **The joined paragraph is on no disk and in no census until a GALLEY is set.** `galley.py`
-splices the proposed text into a copy of its file; censusing that copy gives the paragraph a real
-address and a real transcription, so **a round-2 record is an ORDINARY record** and every check
-in `verdicts.py` applies to it unchanged.
+puts the proposed text on a copy of its page and the compositor sets it; censusing that copy gives
+the paragraph a real address and a real transcription, so **a round-2 record is an ORDINARY
+record** and every check in `verdicts.py` applies to it unchanged.
 
-! **Cite the galley census, and do not carry a round-1 INDEX into round 2.** A replacement whose
-line count differs shifts every paragraph below it, so the same prose holds different indices in the
-two censuses.
+! **Cite the galley census.** The paragraph you are ruling on is the one set there, and its
+transcription is what the checks resolve against.
 
 !! **THE ADDRESS DOES CARRY, and it is what to quote back.** An address names a place against
 the CODE, and a galley changes only prose -- including a `drop`, whose place survives as an

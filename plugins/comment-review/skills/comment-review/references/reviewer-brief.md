@@ -217,7 +217,7 @@ docstring sits after. The census parsed the file and knows which is which; a cou
 ! **There is no by-LINE lookup, and that is deliberate.** One existed until 2026-08-20 and was
 dropped: the anchor IS the line of code, verbatim, so asking by anchor already asks by line --
 and its other use, *where do I insert text*, is not a question a reviewer answers. You name the
-PLACE; the galley decides what that means on disk.
+PLACE; the galley puts the text in it and the compositor sets the page.
 
 !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A record naming a line as the
 place a thing belongs is refused.

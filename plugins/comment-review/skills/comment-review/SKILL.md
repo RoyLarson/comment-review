@@ -32,8 +32,8 @@ first, then truth, then fit, then the page.
 | 5b | **RE-REVIEW** | the roles that ruled | *is this what you meant?* -- answered on the JOINED paragraph |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
 | 6b | **RE-REVIEW** | the roles that ruled | *is this still correct after my edits?* -- **stage 6's only reader** |
-| 7a | **APPROVAL -- present** | task agent | the FINAL text in front of the author; **the run stops here** |
-| 7b | **APPROVAL -- write** | **author**, then task agent | the approved text on disk, byte-for-byte as approved |
+| 7a | **APPROVAL -- present** | task agent, then `galley.py` and the **compositor** | the FINAL text SET as a galley -- a copy of each page, nothing under the repo touched -- in front of the author; **the run stops here** |
+| 7b | **APPROVAL -- write** | **author**, then the **compositor** | the approved draft put over the real file wholesale, byte-for-byte as approved |
 | 8 | **REVIEW** | `comment-review-review` | the finished page read as a reader would read it |
 
 !! **5b and 6b are the same mechanism asking DIFFERENT questions**, and

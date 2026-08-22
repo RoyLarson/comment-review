@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (73)
+### open  (72)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -242,7 +242,6 @@ that changed a published name or rule:
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | session | — | 0/3 | A page entry that is not an object loses every record under it, silently |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | session | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | session | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |
-| [galley-does-two-jobs](galley-does-two-jobs.md) | session | — | 4/13 | the galley both updates the page and sets it; `compositor` takes the setting |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | session | — | 0/11 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [python-cannot-read-python](python-cannot-read-python.md) | session | yes | 0/23 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | session | yes | 0/10 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
@@ -317,3 +316,4 @@ the reason is inside the file.
 | [complete-breaks-links-SUPERSEDED](completed/complete-breaks-links-SUPERSEDED.md) | Accepted: the orphans are inside completed/, and repairing one means rewriting an archived file |
 | [plugin-version-not-bumped](completed/plugin-version-not-bumped.md) | 0.2.4-alpha in all three files; the cache directory can no longer collide with the measured 0.2.3 |
 | [two-paragraphs-one-address](completed/two-paragraphs-one-address.md) | Fixed in 0f72dce -- a comment's DELIMITERS are not paragraph boundaries, only code is. 157 shared addresses over 699 files became 0. |
+| [galley-does-two-jobs](completed/galley-does-two-jobs.md) | Split built and wired: galley.reset places by address, compositor.set_page sets, splice/overlaps/splice_range/paragraph_matches deleted, and the shipped prose now defines both terms |
