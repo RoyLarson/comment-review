@@ -55,6 +55,24 @@ RETIRED = {
     # isn't."* Naming the thing for a syntax tree invited an apology for not
     # being one, in every file that mentioned it.
     "pcst": "page",
+    # !! FOUR NAMES THAT WERE WRONG ABOUT THEIR OWN REFERENTS, retired
+    # 2026-08-23. A folio numbers a LEAF or a PAGE; the `@` half of an address
+    # names a position WITHIN a page, so `b3` was never any folio. The error
+    # shipped as a DEFINITION -- *"a leaf's number in publishing, which is what
+    # it is here"* -- and reviewers were given it.
+    "folio": "cue",
+    "folios": "cues",
+    "foliation": "cues",
+    "foliator": "addresser",
+    "foliate": "cue",
+    # !! `leaf` IS NOT HERE AND THAT IS DELIBERATE. The PAGE sense went with the
+    # rest -- one sheet carries TWO pages, so it was neither the page nor the
+    # cue, and a file has no verso. But the DEPENDENCY-GRAPH sense is live and
+    # correct: `constants.py`'s ULTIMATE LEAF, ruled by Roy 2026-08-22. Retiring
+    # the word would refuse that, and `leaves` is an ordinary English verb --
+    # measured 2026-08-23, it fired on 15 sentences reading *"leaves it
+    # unaccounted for"*. ! The two senses are declared polysemy; see
+    # `docs/vocabulary.md` and `TODO/leaf-means-two-things.md`.
 }
 
 # !! THE WAY OUT, AND IT IS PER FILE. Roy, 2026-08-19: *"let's give ourselves a
@@ -78,6 +96,22 @@ NOQA = "# noqa: vocabulary"
 # keeps a SUPERSEDED task checked rather than deleted. A sentence that USES the
 # word to mean the thing is what this catches.
 MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ", "`pCST`")
+
+# !! A QUOTATION IS NOT AN EXEMPTION, AND THERE IS NOTHING TO EXEMPT. Ruled by
+# Roy, 2026-08-23: *"It simply isn't necessary to know the history to understand
+# the code. It is a bad habit to think it needs it."* A shipped file states what
+# the code does NOW. A ruling quoted in the words it was made in is history, and
+# history is in the git commits for whoever wants it.
+#
+# ! A CITATION IS THE SAME PROSE ONE INDIRECTION ALONG. Pointing a comment at an
+# entry that holds the old wording keeps the history in reach of the code, which
+# is the thing the rule exists to stop. The comment states the rule and the
+# reason it is that way; neither needs a date, an attribution or a link.
+#
+# ! THE COST OF THE ALTERNATIVE IS THE MECHANISM `README.md`'s *Why* records: a
+# dead term is a CONTEXT ANCHOR, and quotation marks do not stop a word reaching
+# an LLM's attention. A human reads the marks and discounts the word, which is
+# exactly the imprecision an agent does not share.
 
 # ! And these are not the retired term at all, by exact form:
 #   block-context   a ROLE NAME -- an agent id, a filename, a `--reviewers`

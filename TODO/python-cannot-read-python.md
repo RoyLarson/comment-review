@@ -109,7 +109,7 @@ The AST reader gets older every release while the files get newer.
       anything at all.
 - [ ] * SCOPE, ruled by Roy 2026-08-21: *"the python thing ends up with its own
       branch once we merge this branch back to the 0.2.4 branch. It doesn't depend
-      on the cue system being correct or the lexer or page or census."* It may
+      on the folio system being correct or the lexer or page or census."* It may
       touch the lexer only to document edge cases.
 - [ ] !! FOUR AST DEPENDENCIES, AND THREE ARE OUTSIDE THE LEXER. MEASURED
       2026-08-21: `lexer` (paragraphs and declarations), `prove_unchanged` (the

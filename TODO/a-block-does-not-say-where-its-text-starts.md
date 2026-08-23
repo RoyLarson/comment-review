@@ -109,9 +109,9 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       the stored text is wrong. ! It also masked the mid-line collision, which is why that one
       survived the first measurement.
 - [x] !! **THE ADDRESSER NO LONGER SWEEPS FOR STALENESS -- done 2026-08-19, and it
-      un-blocked the rest of this file.** Roy: *"not necessary for cues to do
+      un-blocked the rest of this file.** Roy: *"not necessary for foliation to do
       the staleness sweep as long as the original census is still an available
-      document ... In a small way it is the cues stating the line numbers
+      document ... In a small way it is the foliation stating the line numbers
       matter still."* ! Every question it takes is census-internal, so it reads no
       file and takes no `--repo`. **`--check` now reports the mid-line collision
       it was written to catch** -- `SHARED s.js@b1 <- 0-0 interval | 2-3 comment`

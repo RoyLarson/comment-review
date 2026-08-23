@@ -19,7 +19,7 @@ should be to take the output of all of the pages and reformat it into the (most)
 usable format for the agents."*
 
 !! IT IS A FLAT LIST, AND THAT IS THE SHAPE OF THE THING. Paragraphs run down a
-leaf and do not nest. An address is an ORDINAL over a linear sequence and cannot
+page and do not nest. An address is an ORDINAL over a linear sequence and cannot
 express containment, so the two agree by construction rather than by compromise.
 
 ! It was called a *pseudo* Concrete Syntax Tree, and the word is retired. Roy,
@@ -469,12 +469,12 @@ def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
             # it swallowed whatever sat between the `def` and its first
             # statement.
             #
-            # !! SO ITS ORIGINAL LINES ARE None, NOT `insert..insert-1`. Roy,
-            # 2026-08-20: a closed list of lines, *"or it is None, meaning there
-            # are currently no lines that have that foliation."* WHERE the prose
-            # would go is `cues.inserts[cue_name]` and was never this field's
-            # to say -- an empty slice standing in for a position is what taught
-            # a reader to take these numbers for one.
+            # !! SO ITS ORIGINAL LINES ARE None, NOT `insert..insert-1`. The
+            # field holds a closed list of lines, or None when no line currently
+            # holds the place. WHERE the prose would go is
+            # `cues.inserts[cue_name]` and is not this field's to say -- an empty
+            # slice standing in for a position teaches a reader to take these
+            # numbers for one.
             out.append(
                 Paragraph(
                     path="",
@@ -598,8 +598,8 @@ def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
 def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     """Tie each run of leading to the place it FOLLOWS.
 
-    !! LEADING IS AN EDGE, AND AN EDGE BELONGS TO THE PLACE BEFORE IT. Roy,
-    2026-08-21: *"the live first key foliation lives, the drop first key dies."*
+    !! LEADING IS AN EDGE, AND AN EDGE BELONGS TO THE PLACE BEFORE IT -- so on a
+    `drop` the live first key keeps its leading and the dropped one loses it.
     Every other series answers to a line of code and has a position in the
     walk's reading order; a run of blanks answers to neither, so it is filed
     under the place it comes after -- `f0 -> d0` reads as *the space below the
@@ -725,8 +725,8 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         code = code_lines(text, prose)
         document_declarations(got, declarations(text, lang, code), code)
         here = rel if rel is not None else path.as_posix()
-        # !! THE PAGE MAKES THE MAPPING. Roy, 2026-08-21: *"the page makes the
-        # mapping between foliator and paragraph."* The lexer types a run
+        # !! THE PAGE MAKES THE MAPPING between addresser and paragraph. The
+        # lexer types a run
         # `matter` and `cue` emits the places a file has for its own prose;
         # neither counts, so the Nth matter run takes the Nth place here --
         # which is what makes `f0` the head and `f1` the foot without either
@@ -817,10 +817,10 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # settled against the neighbours it actually has.
         fill_the_gaps(text, got)
         # !! THE READING ORDER IS `cue`'S, AND THIS MODULE DOES NOT BUILD ONE.
-        # `cue` emits every place in sequence and says so at the field --
-        # *"a fact `foliate` knows rather than an arithmetic over line numbers"* --
-        # including WHERE AN `a` FALLS, which is the language's call and is
-        # settled there once.
+        # `cue` emits every place in sequence and states it at the field -- a
+        # fact it knows, rather than an arithmetic over line numbers -- including
+        # WHERE AN `a` FALLS, which is the language's call and is settled there
+        # once.
         #
         # !! IT WAS OVERWRITTEN HERE UNTIL 2026-08-21, by a sort on
         # `original_start` filtered to paragraphs that hold a line. Two comments
@@ -899,13 +899,11 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     # other lines."*
     #
     # ! `f` IS IN THAT LIST BECAUSE IT IS A SERIES, not because it is front
-    # matter. While front matter was `b0` this needed a clause naming it -- the
-    # one paragraph whose cue disagreed with the gap it sat in -- and the
-    # clause was missing. Measured over 662 corpus files: 51 paragraphs where a
-    # licence header was reported as an `interval`. Roy: *"we should have just
-    # made the front matter its own foliation; then the rule that `b` owns all
-    # the lines that are not another foliation's lines would explicitly stay
-    # true."*
+    # matter. `b` owns every line that is not another series' lines, and that
+    # rule stays true without a clause naming front matter only because front
+    # matter has a series of its own -- otherwise it is the one paragraph whose
+    # cue disagrees with the gap it sits in, and a licence header reads as an
+    # `interval`.
     #
     # !! LEADING IS IN THAT LIST BY ITS SYMBOL, not by an address, because it
     # HAS none -- see `addresser.SERIES`. It owns its lines exactly for the same

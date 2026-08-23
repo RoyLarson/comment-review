@@ -46,6 +46,9 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `worktree` | git's word, not this system's. It had been cited as a REASON in six shipped rules, which was a fact about the eval rig |
 | `CAP` in the packet | removed -- reviewers are not given a cap |
 | `EDIT` (stage 5) | -> **APPLY**. Stage 7b is **WRITE**; `references/apply.md` is `write.md` |
+| `folio` | -> **cue**. A folio numbers a LEAF or a PAGE; the `@` half of an address names a position WITHIN a page, so `b3` was never any folio. ! The error shipped as a DEFINITION -- *"a leaf's number in publishing, which is what it is here"* -- and reviewers were given it |
+| `foliator.py`, `foliate()`, `Foliation` | -> **`addresser.py`**, **`cue()`**, **`Cues`**. The module supplies both halves of an address and the whole take-apart; `Cues` holds cues, not addresses. See `docs/decision-log.md` Addressing: #6 |
+| `leaf`, `leaves` (of a page or a place) | **deleted** in that sense. One sheet carries TWO pages, so it was neither the page nor the cue, and a file has no verso. ! Two shipped definitions disagreed -- one said paragraphs run DOWN a leaf, one said a leaf IS a place. ! The IMPORT-GRAPH sense is a different word and is live -- see the polysemy rule below |
 
 ## Held in reserve -- publishing's word for something we already have
 
@@ -123,6 +126,15 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
   charged for; this table is where a superseded term stays legible.
 - **Polysemy is allowed when it is DECLARED and the contexts do not overlap** -- `opener` (a
   comment delimiter, and a record's `--- RECORD`), `annotations` (the census's, and
-  `from __future__`), `node` (a page's node, and an AST node).
+  `from __future__`), `node` (a page's node, and an AST node), **`leaf`** (a module that imports
+  no sibling, and -- retired -- a sheet of paper).
+  - !! **`leaf` IS THE ONE WHERE ONE SENSE WAS RETIRED AND THE OTHER KEPT.** Ruled by Roy,
+    2026-08-23. The PAGE sense is gone; the IMPORT-GRAPH sense is his own term from 2026-08-22 --
+    *"Constants.py is the ultimate leaf and no other module may reimport from another module"* --
+    and it is standard in that domain. ! The two operate on different things, which is the test
+    this rule states, and `leaves` is an ordinary English verb besides: measured 2026-08-23,
+    retiring the word fired on 15 sentences reading *"leaves it unaccounted for"*.
+  - ! **It is confined to `.py` and is checked there**: 10 uses, none in `agents/`, `SKILL.md` or
+    `references/`, so nothing an agent is handed carries the ambiguity.
 - **`clean` is reserved.** It is one of the seven verdicts and is never a loose adjective for
   code, prose, a grep result or a run.

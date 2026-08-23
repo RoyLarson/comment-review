@@ -32,7 +32,7 @@ Six shipped docstrings contradict themselves or their own bodies.
       `True` -- the justification rested on `trailing-comment`, removed from the
       first set on this branch.
 - [ ] `record.py:747-751` says an address identifying one paragraph is *"held by
-      `addresser.py --check` on every run"*. It is not held -- `--check` reports
+      `foliator.py --check` on every run"*. It is not held -- `--check` reports
       SHARED and returns 0.
 - [ ] Retired concepts still named: `desk.py:482` *"the paragraph the census has
       AT THAT INDEX"* (body calls `entry_for(address)`); `desk.py:244` names a

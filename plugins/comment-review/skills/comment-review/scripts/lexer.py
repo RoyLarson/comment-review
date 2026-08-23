@@ -240,11 +240,9 @@ class Paragraph:
     # line, and on a one-line file the gap above and the gap below reduced to
     # the same address, so a reviewer could not tell them apart either.
     #
-    # !! A CLOSED LIST OF LINES, OR None. Roy, 2026-08-20: *"the original lines
-    # for `b`s are specifically the closed list of lines, `[1..7]` -- not
-    # `(1..7)` or `[1..7)` -- or it is None, meaning there are currently no
-    # lines that have that foliation."* Both ends are INCLUSIVE and both are
-    # real lines of the file.
+    # !! A CLOSED LIST OF LINES, OR None. `[1..7]` -- not `(1..7)` or `[1..7)`
+    # -- or None, meaning no line currently holds that place. Both ends are
+    # INCLUSIVE and both are real lines of the file.
     #
     # ! SO THERE IS NO EMPTY-SLICE SENTINEL. `(n, n - 1)` used to say "holds
     # nothing", which reads as a range, invites arithmetic, and was read once
@@ -339,8 +337,6 @@ class Kind(StrEnum):
     """Every kind a paragraph can be, paired with the series it belongs to.
 
     !! EACH SERIES HAS A PRESENT AND AN ABSENT, and that is the whole shape.
-    Roy, 2026-08-22: *"each foliation gets its positive and its negative"*, and
-    *"they are enums not a list."*
 
         a   docstring          undocumented
         b   comment            interval
@@ -464,10 +460,10 @@ class Pair(NamedTuple):
 class Series(Enum):
     """Every series `cue` emits, each member its own `Pair`.
 
-    !! AN ENUM AND NOT A MAPPING. Roy, 2026-08-22: *"each foliation gets its
-    positive and its negative"*, and *"they are enums not a list."* The value IS
-    the `Pair`, so the shape is readable in the declaration rather than assembled
-    somewhere else, and `ABSENT` below is derived from these four.
+    !! AN ENUM AND NOT A MAPPING, one member per series, each carrying its
+    positive and its negative. The value IS the `Pair`, so the shape is readable
+    in the declaration rather than assembled somewhere else, and `ABSENT` below
+    is derived from these four.
 
     !! THE LETTER IS NOT IN HERE. `addresser` owns the letters -- `COVERS = "f"`
     and its three siblings -- and this module cannot import it, so spelling them
@@ -917,9 +913,8 @@ def _leading(
 ) -> "Paragraph":
     """One blank run, as a paragraph. Its anchor is EMPTY on purpose.
 
-    ! Every other series answers to a line of code. This answers to nothing --
-    Roy accepted that when he took it: *"I like the leading solution even though
-    it added another foliation and the anchors are empty."*
+    ! Every other series answers to a line of code. This answers to nothing, and
+    its anchors are empty by design rather than by omission.
 
     !! A BLANK LINE IS NOT ALWAYS AN EMPTY ONE, which is why `lines` is passed
     rather than the count. `raw_lines` was fabricated as `[""] * len(run)`, so a
@@ -1632,10 +1627,9 @@ def declarations(
     them down the page, which is the order the `a` series counts.
 
     !! AN EMPTY LIST MEANS THIS LANGUAGE HAS NO `a` SERIES, not "none found
-    here". Roy, 2026-08-20: *"we need to be able to distinguish `a` foliations
-    for as many languages as there are `a` possible foliations. yaml, toml are
-    not ones."* A YAML file carried an `a0` -- a place for a module docstring in
-    a language with no such thing -- which no verdict could ever fill.
+    here". A language with no docstring practice, such as YAML or TOML, would
+    otherwise carry an `a0` -- a place for a module docstring in a language with
+    no such thing -- which no verdict could ever fill.
 
     !! THE KEYWORDS ARE DATA, AND THAT IS THE WHOLE POINT. Roy: *"the easy way
     is to supply the lexer with the list of keywords that a language/practice

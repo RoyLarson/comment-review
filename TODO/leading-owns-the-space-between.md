@@ -19,7 +19,7 @@ The space between two paragraphs belongs to nobody, so a page cannot be set back
 - [ ] * RULED 2026-08-21 -- A FIFTH SERIES, `leading`, OWNS THE SPACE BETWEEN
       PARAGRAPHS. Roy took it over the alternative he raised first, collapsing the
       blanks and having the compositor regenerate them: *"It is either this or one
-      more addresser that gets the inbetween lines."* ! He accepted its two costs
+      more foliator that gets the inbetween lines."* ! He accepted its two costs
       by name -- another cues, and anchors that are empty.
 - [ ] !! THE TRADE WORD IS `leading` -- the strips of lead a compositor puts
       BETWEEN lines of type to space them. Confirmed by Roy after the register

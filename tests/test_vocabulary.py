@@ -1,12 +1,12 @@
 """A definition exists once, and every agent is given the terms it uses."""
 
+import re
+import sys
 import unittest  # noqa: I001  -- path shim below must import before vocabulary
 from pathlib import Path
 
-import sys
-
-from _paths import SCRIPTS  # noqa: F401
 import vocabulary as vocab
+from _paths import SCRIPTS  # noqa: F401
 
 REPO = Path(__file__).resolve().parent.parent
 REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
@@ -236,3 +236,59 @@ class TestTheRetiredWordsStayRetired(unittest.TestCase):
             and cv.NOQA in f.read_text(encoding="utf-8")
         ]
         self.assertEqual(claimed, [])
+
+
+class TestNoRetiredWordSurvivesAnywhere(unittest.TestCase):
+    """A quotation is not an exemption, and there is nothing to exempt.
+
+    !! RULED BY ROY, 2026-08-23: *"It simply isn't necessary to know the history
+    to understand the code. It is a bad habit to think it needs it."* A shipped
+    file states what the code does NOW; a ruling quoted in the words it was made
+    in is history, and history is in the git commits.
+
+    ! A CITATION IS THE SAME PROSE ONE INDIRECTION ALONG, which is why the gate
+    has no exemption and the code has no links to one. An earlier pass here
+    exempted a quoted span outside agent-facing files; the exemption is gone
+    because the 32 quotations that needed it are gone.
+    """
+
+    RETIRED_WORD = "folio"
+
+    def _hits(self, text: str) -> int:
+        """What  counts. No suffix rule, no quote rule."""
+        hay = text
+        for allowed in (*cv.MENTION, *cv.NOT_THE_TERM):
+            hay = hay.replace(allowed, "")
+        return len(re.findall(rf"(?<![\w-]){self.RETIRED_WORD}(?![\w-])", hay, re.I))
+
+    def test_a_quoted_ruling_fails_like_any_other_use(self):
+        # !! THE CHECK CAN FAIL, which is what makes it a gate -- see
+        # `docs/gates.md`: "does the check pass" is not the question.
+        quoted = 'Roy: *"An ADDRESS is `path@folio`, composed on the PAGE."*'
+        self.assertEqual(self._hits(quoted), 1)
+
+    def test_a_bare_use_fails(self):
+        self.assertEqual(self._hits("the folio half of an address"), 1)
+
+    def test_portfolio_is_not_a_folio(self):
+        # ! `folio` is a substring of `portfolio`, and the word boundary is what
+        # stops six backlog sites reading as a defect.
+        self.assertEqual(self._hits("a portfolio of prints"), 0)
+
+    def test_the_gate_has_no_quote_or_suffix_exemption(self):
+        self.assertFalse(hasattr(cv, "QUOTED"))
+        self.assertFalse(hasattr(cv, "AGENT_FACING"))
+
+    def test_the_gate_holds_the_family_rather_than_this_test(self):
+        for word in ("folio", "foliation", "foliator", "foliate"):
+            with self.subTest(word=word):
+                self.assertIn(word, cv.RETIRED)
+
+    def test_leaf_is_NOT_retired_because_the_graph_sense_is_live(self):
+        """The PAGE sense is gone; a module that imports no sibling is a leaf.
+
+        !  is an ordinary English verb besides -- retiring the word
+        fired on 15 sentences reading *"leaves it unaccounted for"*.
+        """
+        self.assertNotIn("leaf", cv.RETIRED)
+        self.assertNotIn("leaves", cv.RETIRED)

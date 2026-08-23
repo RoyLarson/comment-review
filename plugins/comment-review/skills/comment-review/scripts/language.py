@@ -60,10 +60,9 @@ class Language:
             rather than proving it. Empty where a language has none.
         declares: the KEYWORDS this language uses to introduce something that
             can carry documentation. !! EMPTY MEANS THE LANGUAGE HAS NO `a`
-            SERIES AT ALL -- not "none found in this file". Roy, 2026-08-20:
-            *"we need to be able to distinguish `a` foliations for as many
-            languages as there are `a` possible foliations. yaml, toml are not
-            ones."* A YAML file was given an `a0` it can never fill.
+            SERIES AT ALL -- not "none found in this file". A language with no
+            docstring practice, such as YAML or TOML, would otherwise be given
+            an `a0` it can never fill.
         nests_comments: an opener INSIDE a paragraph comment adds a LAYER, so the
             run closes only when every one of them does. Rust, Swift and Kotlin;
             C, C++, Java, C#, JS, TS, Go and SQL do NOT, and there the first

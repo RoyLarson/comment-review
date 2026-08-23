@@ -7,59 +7,28 @@ EOF -- each holding its own counter and the places it emitted. `cue()` runs
 `cue`; `Cues` answers back, which address does this line belong to right
 now.
 
-!! IT IS AN ADDRESSER, AND THE 2026-08-20 RULING AGAINST THAT NAME IS SUPERSEDED.
-It read: *"An ADDRESS is `path@folio`, and it is composed on the PAGE -- this
-module supplies the folio and flattens the path, and addresses nothing."* !
-BOTH HALVES ARE HERE: `flatten` is in this file and its own docstring says *"THE
-ADDRESS IS THE FULL PATH from the runner's root"*, while `emit` supplies the
-other half. ! The page composed its own with an f-string until 2026-08-23;
-`address_for` below is now the only join, which is what makes the ruling's
-own sentence false rather than merely arguable.
+!! BOTH HALVES OF AN ADDRESS ARE MADE HERE, and joined in one place. `flatten`
+makes the path half, `emit` makes the cue, `address_for` is the only site that
+puts them together, `cue_of` splits one back and `unflatten` recovers the real
+path.
 
-!! THE RULING WAS RIGHT ABOUT THE SYMPTOM AND WRONG ABOUT THE CAUSE, which is
-why it is kept rather than deleted. Roy, 2026-08-23: *"My frustration when I made
-the ruling was that it wasn't being used as an addresser. It was something that
-was included because I stated it needed to be included and then the rest of the
-program continued working in trying to use lines as the address."* ! The name
-promised addressing the system was not yet doing. Renaming the module treated a
-true observation as a naming defect, and the line-based addressing it was really
-about survived another two days.
-
-! WHAT SETTLED IT IS THE ROUND TRIP, not an argument. Roy: *"It is obvious in the
-code now how much better the address system is ... because it reliably
-round-trips the stuff after being entirely decomposed in the system without
-knowing anything about the original lines."* A page is taken apart into places
-and set back from the places alone; the line numbers are never consulted. Nothing
-line-based could do that, because every prose edit moves the lines below it.
-
-! WHAT IT ADDRESSES IS EVERY PLACE AND EVERY POTENTIAL PLACE. Roy, 2026-08-23.
-An addresser that named only what exists would not be this one: the empty places
-are what an `add` cites, and giving them addresses is what makes `add`
-expressible at all.
-
-! The form this replaced named a paragraph by LINE, `a.py:33-34`, which answers
-"where is this in the file I just read" and cannot answer "which place is this":
-this tool EDITS PROSE, and every prose edit moves the line numbers of the code
-below it. ! That form was READ here until 2026-08-20, warning on every call, so
-a run already recorded could be parsed. It is DELETED: nothing called it, and
-`docs/history.md` says where the reader is in the history.
+!! IT ADDRESSES EVERY PLACE AND EVERY POTENTIAL PLACE. The empty places are what
+an `add` cites, so giving them addresses is what makes `add` expressible at all.
 
 !! AN ADDRESS IS NOT A SPAN OF LINES. NO LINE HAS MORE THAN ONE, AND A
-PARAGRAPH IS JUST THE LINES THAT SHARE ONE. Ruled 2026-08-19. ! Read it as a range
-and the old system is back under a new name: you start asking which lines a
-paragraph "covers", whether two paragraphs overlap, and how wide to make an addressing
-range -- all questions a line-numbered address had and an address does not.
-Three sessions in one day reached for a range after this was settled; it is
-written here because the reflex is strong, not because it is subtle.
+PARAGRAPH IS JUST THE LINES THAT SHARE ONE. ! Read it as a range and every
+question a line-numbered address had comes back: which lines a paragraph
+"covers", whether two overlap, how wide to make the range. This tool EDITS
+PROSE, and a prose edit moves the line numbers of everything below it -- so a
+page is taken apart into places and set back from the places alone, consulting
+no line number anywhere.
 
 ! An ANCHOR is the exception that proves it. A declaration carries prose at
 several addresses -- the `b` above it, the `c` beside it, its own `a`, the `b`s
 in its body -- so an anchor has many addresses. A LINE still has one.
 
-!! SAID "EVERY LINE HAS EXACTLY ONE" UNTIL 2026-08-23, AND THAT WAS FALSE BY 595
-LINES in this directory alone -- measured over 8,746 paragraphs, 401 of which
-carry no address, every one of them `d`. ! The `d` series takes no address at
-all: see `owes_address` for why, and `SERIES` for what it takes instead.
+! THE `d` SERIES TAKES NO ADDRESS AT ALL -- see `owes_address` for why, and
+`SERIES` for what it takes instead.
 
 !! THIS RESTS ENTIRELY ON THE CENSUS BEING WHAT ROY CALLED IT, 2026-08-18: a
 HASHED STATIC TABLE -- exact, constant, FULLY ENUMERATED. Take away any one of
@@ -108,10 +77,9 @@ Four series, because prose answers to one of exactly four subjects:
     package:core.py@b3    a GAP between two lines of code
     package:core.py@f0    the FILE'S OWN matter, at either end
 
-!! NO CUE IS COMPUTABLE FROM ANOTHER, OR FROM A LINE'S ORDINAL. Roy,
-2026-08-19: *"remove any references that indicate anyone can expect that the
-next line of code is guaranteed to have the next foliation index ... it is a
-happenstance and may change at any point."* FOUR ADDRESSERS walk one trigger
+!! NO CUE IS COMPUTABLE FROM ANOTHER, OR FROM A LINE'S ORDINAL. Where two
+series happen to line up on a file that is a happenstance and may change at any
+point. FOUR ADDRESSERS walk one trigger
 list -- the MODULE, every line of code, then EOF -- and EACH OWNS ITS RULE about
 which triggers are its own. A series that does not emit for a trigger does not
 take a number for it either, so **every series starts at 0**: `a` skips what is
@@ -193,28 +161,20 @@ import exceptions  # noqa: E402  -- path shim must run first
 ON = "c"
 GAP = "b"
 DECLARED = "a"
-# !! THE FILE'S OWN PROSE, IN ITS OWN SERIES. Roy, 2026-08-20: *"we should have
-# just made the front matter its own foliation -- then the rule that `b` owns
-# all the lines that are not another foliation's lines would explicitly stay
-# true. Treating the front matter as regular comments, even though they are
-# not, is the mistake."*
+# !! THE FILE'S OWN PROSE, IN ITS OWN SERIES. `b` owns every line that is not
+# another series' lines, and typing the file's own matter as an ordinary comment
+# breaks that: it would take a `b` cue wherever it sits, making it the one
+# paragraph whose cue disagrees with the gap it occupies, and a licence header
+# then reads as an `interval` -- a place holding no prose -- because the gap it
+# sits in re-cuts it.
 #
-# ! IT WAS `b0` UNTIL THEN, and that cost an EXCEPTION in every sweep that
-# shares a gap out: `attach` gives front matter `b0` wherever it sits, so it is
-# the one paragraph whose cue disagrees with the gap it occupies. Measured
-# 2026-08-20 over 662 corpus files -- 51 paragraphs where a licence header was
-# reported as an `interval`, a place holding no prose, because the gap it sat
-# in re-cut it.
+# ! A SINGLETON SERIES IS STILL A SERIES, and the rule then needs no clause
+# about which `b` is not really a `b`.
 #
-# ! A SINGLETON SERIES IS STILL A SERIES. Roy: *"I know it is likely a
-# singleton foliation but it fits."* The rule then needs no clause about which
-# `b` is not really a `b`.
-#
-# ! AND IT MAY NOT STAY A SINGLETON. Roy, 2026-08-20: *"maybe it will show up in
-# more places for copyright or other pieces in the docs files."* So it is
-# COUNTED like any other series rather than hardcoded to one place -- `f0` today
-# because `cue` emits it at the module and nowhere else, and `f1..fN` the day
-# a second front-matter place is emitted.
+# ! AND IT IS COUNTED RATHER THAN HARDCODED TO ONE PLACE, because it may not stay
+# a singleton -- a copyright or another piece in a docs file would want one.
+# `f0` today, because `cue` emits it at the module and nowhere else; `f1..fN`
+# the day a second front-matter place is emitted.
 COVERS = "f"
 
 # !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row here
@@ -279,14 +239,12 @@ MODULE = "<module>"
 #: after the last statement is a place prose can go -- and `a`, `c` and `f` skip
 #: it today.
 #:
-#: !! IT IS A TRIGGER AND NOT AN ARITHMETIC RULE, ruled by Roy 2026-08-21. The
-#: alternative was `b` emitting N+1 places `cue` by definition, which is what
-#: the code did and is one line shorter. He ruled against it because `f` will
-#: almost certainly want this trigger too -- tail matter, an index or a glossary
-#: at the END of a file -- and then two series would each carry a different
-#: special rule: *"that makes two conditions where you would have to understand
-#: to keep the code consistent, and why 1 gets a +1 and the other gets some other
-#: treatment -- which is the reason each foliator owns its own rules."*
+#: !! IT IS A TRIGGER AND NOT AN ARITHMETIC RULE. The alternative is `b`
+#: emitting N+1 places by definition, which is one line shorter and puts a
+#: special rule inside one series. ! `f` will almost certainly want this trigger
+#: too -- tail matter, an index or a glossary at the END of a file -- and then
+#: two series each carry a different special rule, and a reader has to know why
+#: one gets a +1 and the other gets some other treatment.
 #:
 #: ! So the cost is paid once, here: every series meets EOF and decides, exactly
 #: as it does at MODULE, and adding `f`'s tail place later is a row rather than a
@@ -326,24 +284,18 @@ def triggers(code: list[int]) -> list[int | str]:
 class Addresser:
     """One series' counter, and every place it emitted.
 
-    !! IT HOLDS BOTH HALVES. Roy, 2026-08-19: *"the foliator gets an anchor and
-    emits an address and should add the address and the anchor to an internal
-    list or dict."* A cue and the line of code it is attached to are one fact,
-    so they are stated by ONE STEP of `cue` -- not computed here and
-    decorated on later, which is what let an anchor disagree with its address.
+    !! IT HOLDS BOTH HALVES. A cue and the line of code it is attached to are one
+    fact, so they are stated by ONE STEP of `cue` -- not computed here and
+    decorated on later, which is what lets an anchor disagree with its address.
 
     !! A SERIES OWNS ITS OWN RULE ABOUT WHAT IT SKIPS, AND SKIPPING TAKES NO
-    NUMBER. Roy, 2026-08-20: *"the foliations own their own rules on what is
-    skipped. `<module>` and its paragraph types get passed to all three, they
-    each decide to record and increment independently -- `a` skips
-    undocumentables, `b` and `c` skip `<module>`, `f` skips everything but
-    `<module>`/matter components."* So a addresser that does not emit for a
-    trigger does not advance either, and **every series starts at 0**.
+    NUMBER. Every trigger is offered to every series -- `a` skips what cannot be
+    documented, `b` and `c` skip `<module>`, `f` skips everything but the module
+    and matter -- and a series that does not emit for a trigger does not advance
+    either, so **every series starts at 0**.
 
-    ! A `skip()` that INCREMENTED is what this replaces. It burned `b0` and made
-    the first line of code `c1`, so two series began at 1 for no reason a reader
-    could derive -- and nothing tested it, which is how 735 green tests passed
-    over it.
+    ! A skip that INCREMENTED would burn `b0` and make the first line of code
+    `c1`, starting two series at 1 for no reason a reader could derive.
 
     Attributes:
         series: `a`, `b`, `c` or `f`.
@@ -361,12 +313,11 @@ class Addresser:
     #: the file's foot, `code.index(line) + 1` for the rest -- and each was a
     #: GUESS about which trigger a place had come from.
     #:
-    #: ! THE ANCHOR CANNOT ANSWER IT, which is why the guesses were needed.
-    #: TWO IDENTICAL LINES OF CODE ARE TWO TRIGGERS WITH ONE ANCHOR -- Roy,
-    #: 2026-08-22: *"looking up anchor names returns many potential foliation
-    #: points because lines of code are not unique."* And a sentinel is shared
-    #: across series: `a0` and `f0` both answer `<module>`, the closing gap and
-    #: `f1` both answer `<eof>`. Recording the trigger is the only thing that
+    #: ! THE ANCHOR CANNOT ANSWER IT. TWO IDENTICAL LINES OF CODE ARE TWO
+    #: TRIGGERS WITH ONE ANCHOR, because lines of code are not unique -- looking
+    #: one up returns many candidate places. And a sentinel is shared across
+    #: series: `a0` and `f0` both answer `<module>`, the closing gap and `f1`
+    #: both answer `<eof>`. Recording the trigger is the only thing that
     #: distinguishes them without inference.
     trigger: dict[str, int] = field(default_factory=dict)
     _step: int = 0
@@ -598,10 +549,9 @@ class Cues:
         `def f():` becoming `def RENAMED():` shifts nothing -- and the anchor
         text alone cannot cheaply see an insertion. The pair sees both.
 
-        !! IT IS READ FROM `cue`, NOT RECONSTRUCTED, since 2026-08-22. Roy,
-        on being shown a consumer that trusted the reconstruction: *"you hardened
-        the mistake that you were just fixing -- that `foliate` didn't emit ALL
-        anchors, which caused the problem."* THREE ARITHMETICS ARE GONE:
+        !! IT IS READ FROM `cue`, NOT RECONSTRUCTED. Reconstructing it hardens
+        the very mistake it looks like a fix for, because it assumes `cue`
+        emitted every anchor. THREE ARITHMETICS ARE GONE:
 
             b_n         -> n + 1
             f_n         -> 0, or len(code) + 1
@@ -631,10 +581,9 @@ class Cues:
     def gap_bounds(self, cue: str) -> tuple[int, int]:
         """The two lines of CODE around this gap; 0 for the file's own edge.
 
-        !! COMPUTED, NOT STORED. It was a `bounds` dict written at four points in
-        `cue` and read at two -- one of the five objects `Cues` had been
-        squished into. Roy, 2026-08-21: *"why does folio look like 5 objects
-        squished into one shape."*
+        !! COMPUTED, NOT STORED. Held as its own dict it is a second object
+        inside `Cues`, written at four points and read at two, with nothing
+        holding the two in step.
 
         !! IT IS THE TRIGGER BEFORE THIS GAP AND THE ONE IT FIRED AT, read off
         `cue`. A gap is emitted at the trigger BELOW it -- `b_n` fires with
@@ -665,10 +614,9 @@ class Cues:
         """Every `f` `cue` emitted, in the order it emitted them.
 
         !! WHICH ONE A MATTER RUN TAKES IS A COUNT, and the PAGE does the
-        counting -- Roy, 2026-08-21: *"the page makes the mapping between
-        foliator and paragraph."* `cue` knows only that a file has places for
-        its own prose and where they fall in the reading order; it never looks at
-        prose to decide which.
+        counting. `cue` knows only that a file has places for its own prose and
+        where they fall in the reading order; it never looks at prose to decide
+        which.
         """
         return list(self.addressers[COVERS].places)
 
@@ -737,17 +685,13 @@ def cue(
     out = Cues(triggers=triggers(list(code)))
     a, b, c, f = (out.addressers[s] for s in (DECLARED, GAP, ON, COVERS))
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
-    # DECLARATION. Roy, 2026-08-20: *"we need to be able to distinguish `a`
-    # foliations for as many languages as there are `a` possible foliations.
-    # yaml, toml are not ones."* A YAML file was given an `a0` -- a place for a
-    # module docstring in a language that has none -- and no verdict could ever
-    # fill it. `None` says the series does not exist; `1` says it does and the
-    # module's own doc would open the file.
+    # DECLARATION. A language with no docstring practice -- YAML, TOML -- would
+    # otherwise be given an `a0`, a place for a module docstring it cannot have,
+    # and no verdict could ever fill it. `None` says the series does not exist;
+    # `1` says it does and the module's own doc would open the file.
     # !! `cue` READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
-    # It did not until 2026-08-21: this loop was written out by hand and
-    # `triggers` had a single caller, a test asserting its SHAPE -- so the
-    # function claiming *"ONE LIST, SO THE FOUR SERIES CANNOT DRIFT APART"* was
-    # not the list any series walked. Roy, seeing it: *"WHAT!!!"*
+    # A loop written out by hand beside it makes the list that claims *"ONE LIST,
+    # SO THE FOUR SERIES CANNOT DRIFT APART"* a list no series walks.
     #
     # ! Each series decides at each trigger, and that rule is now complete --
     # there is no step a place comes from except one of these.
@@ -795,15 +739,11 @@ def cue(
                 # no series exempt: `MODULE` at the head, the line of code in
                 # between, `EOF` at the foot.
                 #
-                # !! THE CLOSING GAP RECORDED THE LAST LINE OF CODE UNTIL
-                # 2026-08-22, and that broke Roy's own ruling of 2026-08-21 in
-                # the sentence that made this a trigger: *"that makes two
-                # conditions where you would have to understand to keep the code
-                # consistent, and why 1 gets a +1 and the other gets some other
-                # treatment -- which is the reason each foliator owns its own
-                # rules."* EOF became a trigger so a place emitted here is a ROW
-                # at it. Reaching back to the previous trigger for an anchor
-                # reinstated the special case one level down.
+                # !! THE CLOSING GAP RECORDS EOF, NOT THE LAST LINE OF
+                # CODE. EOF is a trigger so that a place emitted here is a ROW at
+                # it, like every other place. Reaching back to the previous
+                # trigger for an anchor reinstates, one level down, exactly the
+                # special case that making EOF a trigger removes.
                 #
                 # ! Roy, 2026-08-22: *"the last `b` triggers on EOF and records
                 # either `<eof>` or `<module>`, and its anchor and where it is
@@ -875,25 +815,18 @@ def cue_for(series: str, step: int) -> str:
     ! NAMED FOR ITS DIRECTION, so it cannot collide with `cue()` again: this
     BUILDS a cue from its parts, and `cue_of` takes one apart.
 
-    !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Roy,
-    2026-08-20: *"the foliations own their own rules on what is skipped ... they
-    each decide to record and increment independently."* `c` does not emit for
-    the MODULE and does not step past it either, so its first line of code is
-    `c0`.
-
-    ! IT READ THE OTHER WAY UNTIL 2026-08-20, on the earlier half of the same
-    ruling -- *"each gets its own counter and each gets passed the lines of code
-    and the module, and the `c` knows it is supposed to skip it"* (2026-08-19),
-    which said which triggers each series walks and was read as saying it takes
-    a number at all of them. That burned `b0` and started `c` at 1.
+    !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Each
+    series owns its rule about what it skips and records and increments
+    independently: `c` does not emit for the MODULE and does not step past it
+    either, so its first line of code is `c0`. ! Reading it the other way --
+    that a series takes a number at every trigger it is offered -- burns `b0`
+    and starts `c` at 1.
 
     !! NOTHING READS ONE CUE TO COMPUTE ANOTHER, and no cue follows from a
     line's ordinal. Whether two series happen to line up on a given file is not
-    stated anywhere, deliberately: Roy, 2026-08-19, *"I don't want to make that
-    promise -- I don't know the edge cases where that might break yet,"* and
-    *"remove any references that indicate anyone can expect that the next line
-    of code is guaranteed to have the next foliation index."* A reader told the
-    numbers coincide will rely on it whatever the sentence around it says.
+    stated anywhere, deliberately: the edge cases where it breaks are not known,
+    and a reader told the numbers coincide will rely on it whatever the sentence
+    around it says.
     """
     return f"{series}{step}"
 
@@ -1223,19 +1156,15 @@ def main() -> int:
     # place is this anchor's `c`. None of them reads the tree.
     #
     # !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
-    # the thing an address exists to stop mattering. Roy, 2026-08-19: *"not
-    # necessary for foliation to do the staleness sweep as long as the original
-    # census is still an available document ... it doesn't matter that the file
-    # changed lines underneath it. In a small way it is the foliation stating
-    # the line numbers matter still."*
+    # the thing an address exists to stop mattering. So long as the census is
+    # the document the caller means, it does not matter that the file has
+    # changed lines underneath it.
     #
-    # ! A sweep WAS here, added after four artifacts three edits old were each
-    # read as a defect in the code. That failure was real and the guard was in
-    # the wrong module: staleness matters where a file is WRITTEN, and
-    # `galley.drifted` already refuses a moved anchor where a page is set.
-    # Here it refused a census built seconds earlier on every non-Python file
-    # carrying a trailing comment, with a message that re-running never fixed --
-    # and it masked a genuine collision `--check` exists to report.
+    # ! STALENESS MATTERS WHERE A FILE IS WRITTEN, and `galley.drifted` refuses a
+    # moved anchor there. A sweep here refuses a census built seconds earlier on
+    # every non-Python file carrying a trailing comment, with a message
+    # re-running never fixes, and masks the collisions `--check` exists to
+    # report.
     #
     # ! THE CALLER CHOOSES THE CENSUS, which is what makes this safe. Stage 8
     # censuses the file as it now stands and resolves against that, so the two
