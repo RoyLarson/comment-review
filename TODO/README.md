@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (84)
+### open  (85)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -259,6 +259,7 @@ that changed a published name or rule:
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | comment-review | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [exception-hierarchy](exception-hierarchy.md) | comment-review | — | 0/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | comment-review | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
+| [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | comment-review | yes | 0/6 | Two graded arms, orchestration held constant; the rewording is the confound |
 
 ### in-progress  (5)
 
