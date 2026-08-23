@@ -285,13 +285,15 @@ fabricated five of its seven reviewer reports and did not notice until asked to 
 itself; self-certified `CONFIRMED` ran at 97% across 298 findings -- a label that two runs
 in three thousand disagree with does not discriminate.
 
-```
-python evals/grade_hazards.py <worktree> [<worktree> ...]
-```
+!! **THERE IS NO GRADER IN THIS REPO.** The twelve planted hazards and the script that
+scored a worktree against them were tied to a corpus this repo cannot ship, so the rule
+above currently has nothing to run it.
 
-! It reports `NEEDS-EYES` where it has no signal. Two of the twelve hazards are positional
-or leave true prose standing, so no text probe can separate a correct repair from an
-ignored one -- and a check that cannot see a defect must not report it clean.
+! **What has to be rebuilt is the HAZARDS, not the script.** Each one has to be RESTATED --
+naming the failure precisely enough to score, without reproducing the code it was found in
+-- and planted on one of the public corpora. Two of the twelve were positional or left true
+prose standing, so no text probe could separate a correct repair from an ignored one; those
+two reported `NEEDS-EYES` rather than clean, and any replacement owes the same refusal.
 
 ## Known gaps
 

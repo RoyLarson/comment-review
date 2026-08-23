@@ -8,7 +8,6 @@ on **whose behavior it describes**:
 | --- | --- |
 | how **this system** behaves today, and any survey of it | [`docs/`](../docs/) |
 | a prose defect in **someone else's codebase**, which this system is measured against | [`evidence/`](../evidence/) |
-| one of the twelve planted hazards | [`evals/discriminators.md`](../evals/discriminators.md) |
 
 ! **Those first two read alike and are not.** `evidence/` is the labeled failures the tool is
 scored on -- probe reports over a real codebase, the triage over them, `ga/ground_truth.py`.
@@ -27,11 +26,14 @@ from.** Tick the box and bump the count **in the same edit, every time** -- and 
 the table below with it. A stale-low count does not look untidy; it manufactures a wrong
 instruction, because he asks for work already done and the session burns context discovering that.
 
-! **Nothing checks that arithmetic here.** In `redacted_corpus` a test
-(`scripts/tests/test_todo_counts_agree.py`) fails when a file's `Progress:` disagrees with its
-boxes or with its row here. This repo has no equivalent, no `todo_tool.py`, and no `completed/`
-directory yet -- those exist there because that backlog runs to ~120 open files, and one file does
-not earn them. Port them at the point where hand-arithmetic starts being wrong, not before.
+! **`scripts/todo_tool.py` checks that arithmetic, which is why the counts are not written by
+hand.** Every command recomputes `Progress:` and this table's `N/M` cell from the boxes it just
+wrote, and `resync` repairs drift after a merge.
+
+! **It REFUSES rather than guessing when the two disagree.** MEASURED 2026-08-23: a README row
+whose file is no longer in `TODO/` stops `resync` with the mismatch named, and it fixes nothing
+else in that run. Removing the row by hand and re-running is what recomputes the section count --
+`### decision-needed (6) -> (5)`.
 
 **`completed/`** will hold finished work when there is any, kept as the record. A file named
 `*-SUPERSEDED.md` was **not implemented and is no longer necessary** -- the reason goes in the file.
@@ -176,7 +178,7 @@ that changed a published name or rule:
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | backend · Roy | — | 2/20 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
-| [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | testing | yes | 6/21 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
+| [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | testing | yes | 6/22 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
 | [a-coverage-gap-should-go-back-to-the-reviewer](a-coverage-gap-should-go-back-to-the-reviewer.md) | agents | yes | 0/6 | **A block a reviewer never accounted for is unfinished work, not a finding about the run.** Today `verdicts.py` prints a COVERAGE GAP against the role by name and exits nonzero. Roy, 2026-08-16: *"if comment blocks are missed by a reviewer then they are returned to the reviewer to rule on."* ! Same shape as the two deleted lists one level up -- the reviewer stopped early, and the system files the stopping rather than fixing it. * Unruled: re-dispatch with only the missed indices or the whole census, and what bounds the retry |
 | [the-two-lists-were-tuned-to-one-diff](the-two-lists-were-tuned-to-one-diff.md) | agents | yes | 2/7 | **Both lists are DELETED from the brief; this holds what was inside them.** The acquittal list matched a prose SHAPE and claimed to be *"the ONLY reasons to pass a block over"* -- but what decides `clean` is stated per role and is a TRUTH assertion at that role's scope, so the two disagreed outright. Its measurement was `evidence/ga/`: ten candidates over SIX `redacted_pkg` files, scored on F1 against what one later commit rewrote -- and the search itself concluded *"the acquittal RATE is the trait; the acquittal LIST is just vocabulary."* The suppression list had no provenance at all. ! Three entries were CHECKS wearing an exemption's name, one CONTRADICTS `function-context`, and `detector` -- a settled term -- lost its only definition |
 | [the-author-approves-blocks-and-never-sees-the-page](the-author-approves-blocks-and-never-sees-the-page.md) | agents | yes | 1/9 | * **Pipeline, not vocabulary.** 7a shows the author a per-block LIST; stage 8 is the only pass that reads the PAGE, and it runs AFTER 7b has written to disk. So every defect `review.md` exists to catch -- a block that is no longer a proposition, two runs merged across a blank line, the same sentence in two places -- is found after approval and after the write. Roy wants a whole-document read BEFORE the person sees it, and floated a temporary branch with the diff so they can accept it in git's own tools. Stage 8 then becomes a verification with two outcomes: good, or raise to human as a new review. ! Already done: the 7b paragraph claiming *"this pass cuts, and it can cut a lot"* is deleted -- self-contradicting since the import |
@@ -269,7 +271,7 @@ that changed a published name or rule:
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | yes | 5/10 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
-### decision-needed  (6)
+### decision-needed  (5)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -278,7 +280,6 @@ other tasks can proceed without them._
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | testing | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | agents | yes | 1/7 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 | [front-half-undetermined](front-half-undetermined.md) | testing | yes | 0/7 | The census to findings to verdicts path has never been determined against a backend that works |
-| [private-repo-exposure](private-repo-exposure.md) | systems | yes | 0/8 | 34 evidence files, 3 evals files and 1 test name the private repo, and the probes quote its source -- three options, and history fixes none of them |
 
 ### in flight  (0)
 

@@ -87,6 +87,7 @@ Two things follow, and both are load-bearing:
 
 ## What is NOT here
 
-Grading lives in `evals/` -- `grade_hazards.py` for the twelve planted hazards,
-`generator_split.py` for the trailer split. They read a corpus; they do not
-fetch one.
+Grading lives in `evals/` -- `generator_split.py` for the trailer split. It reads
+a corpus; it does not fetch one. ! There is no hazard grader: it was tied to a
+corpus this repo cannot ship, and rebuilding it is
+`TODO/the-harness-cannot-run-the-system-it-grades.md`.

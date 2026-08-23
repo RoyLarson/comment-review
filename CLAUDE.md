@@ -16,10 +16,15 @@ Roy, 2026-08-18: *"Just because the code passes -- even if it has gone through m
 simplify and code-review -- doesn't mean that the code is good, that it has the right structure,
 the right documentation and the right reasons why things are the way they are."*
 
-!! **MEASURED, on a real run.** `evidence/redacted-corpus-full-v0_2/` records a tree carrying **31
-reader-visible defects** while every mechanical gate was green: `prove_unchanged` 23/23, the
-hygiene guard 19/19, **2,413 tests passing**, every citation resolving, the residue check clean.
-Stage 8 -- a reader, not a checker -- is what found them.
+!! **MEASURED, on a real run.** A tree carrying **31 reader-visible defects** while every
+mechanical gate was green: `prove_unchanged` 23/23, the hygiene guard 19/19, **2,413 tests
+passing**, every citation resolving, the residue check clean. Stage 8 -- a reader, not a checker
+-- is what found them.
+
+! **THE PACKAGE THAT RECORDED THAT RUN IS NOT IN THIS TREE**, so the numbers above are a
+measurement you cannot re-derive here. They are kept because they are specific enough to be
+checked against a NEW run, which is the only thing that would settle them either way -- and
+because the corroborating case below was measured on this repo and can still be read.
 
 ! **The gates were not wrong; they were answering a different question.** Each says the code still
 parses, still runs, still says what it said. None can say whether the prose beside it is TRUE, or
@@ -69,8 +74,17 @@ uv run python scripts/fetch_corpora.py --list          # print the manifest only
 uv run python scripts/fetch_corpora.py --only numpy pymc
 uv run python scripts/fetch_corpora.py --clean sentry --only sentry   # refetch one
 
-# Grade a comment-review run against the twelve planted hazards, from the diff (never the report)
-uv run python evals/grade_hazards.py <worktree> [<worktree> ...]
+# !! THERE IS NO END-TO-END GRADE. `grade_hazards.py` and the twelve planted
+# hazards are not in this tree: they were tied to a corpus this repo cannot ship.
+#
+# ! The rule they enforced stands and has nowhere to run: GRADE FROM THE DIFF,
+# NEVER FROM THE RUN'S OWN REPORT -- self-reported confidence was measured not to
+# discriminate a real finding from a fabricated one.
+#
+# ! Rebuilding it means RESTATING each hazard -- naming the failure precisely
+# without copying the code it was found in -- and planting the set on one of the
+# public corpora below. Tracked in
+# `TODO/the-harness-cannot-run-the-system-it-grades.md`.
 
 # Split a corpus's prose defects by whether the introducing commit carries an assistant trailer
 uv run python evals/generator_split.py <corpus-dir> [paths...]
@@ -189,8 +203,8 @@ the standard library; `tests/` never leaves this repo, and `pytest`, `ruff` and
 and `tests/test_shipped_imports.py` is what enforces it -- including
 `TestTheCheckItselfFires`, which proves the check can fail. A dev tool that
 reads this tree is not that. `scripts/check_shipped_syntax.py` answers the
-neighbouring question, whether a shipped file still PARSES on the floor, and
-`evals/grade_hazards.py` remains the end-to-end grade.
+neighbouring question, whether a shipped file still PARSES on the floor. ! There
+is NO end-to-end grade behind those two -- see the note under Commands.
 
 ## Architecture
 
@@ -354,7 +368,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read), `decision-log.md` (WHAT was decided and WHEN -- the dated chain of rulings, retractions and supersessions; the commentary on WHY is `history.md`'s. Cited as `decision-log.md TOPIC: #N`) |
 | `docs/plans/`                     | RELEASE SCOPES -- what one version ships, what it does not, and which TODOs it works. !! **NOT `docs/superpowers/plans/`**, and the split is deliberate: Roy, 2026-08-19, *"I don't want to conflate the rigorous one for the less rigorous one."* A superpowers plan is written for an engineer with no context -- exact files, TDD steps, a commit per task. ! **A PLAN IS NOT A TODO**: *"Todos can remain open an indefinite amount of time and make progress as we see fit. Plans are scopes of work to be complete in one run."* Anything in a plan that does not get done is filed in `TODO/` before the plan closes |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ! Nothing here describes this system's own behavior -- that is `docs/`                                                    |
-| `evals/`                          | the twelve planted hazards (`evals.json`, `discriminators.md`), `grade_hazards.py`, and `generator_split.py` (the authorship split)                                        |
+| `evals/`                          | `generator_split.py` (the authorship split) and `test-cases.jsonl`. ! The twelve planted hazards and their grader are NOT here -- there is no end-to-end grade, see Commands |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |
 | `scripts/`                        | `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` -- none of this ships with the plugin                                                                    |
 | `.claude-plugin/marketplace.json` | lets this checkout be installed as a plugin marketplace in the same session (`claude plugin marketplace add <path>` then `claude plugin install comment-review`)           |

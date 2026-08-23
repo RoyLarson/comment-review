@@ -5,7 +5,7 @@ Status:   open
 Progress: 0 of 9 tasks done
 Owner:    backend
 Requires-Roy: true
-Raised:   2026-08-17 (Roy: "both todo-tool and redacted_lane_a ended up in / six rules are
+Raised:   2026-08-17 (Roy: "both todo-tool and another project ended up in / six rules are
           attributed to CLAUDE.md while living in conventions.md / which tells me that the
           system does need to figure out how to work with .md, .rst, .txt files")
 Unblocked: 2026-08-20 — the lexer is its own module as of 2026-08-20 and is the

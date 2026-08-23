@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 21 tasks done
+Progress: 6 of 22 tasks done
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -403,6 +403,14 @@ only which side of the network each commit is on.
       remember that these specific commits are good test cases for the system to
       test itself against.' ! Running `/comment-review` over them is the
       measurement this file exists to make possible, and it has not been done.
+- [ ] !! REBUILD THE TWELVE HAZARDS BY RESTATEMENT. The grader and the hazard set
+      are no longer in this tree -- they were tied to a corpus this repo cannot
+      ship. Each hazard has to be RESTATED (the failure named precisely enough to
+      score, without reproducing the code it was found in) and planted on one of
+      the public corpora. ! Two of the twelve were positional or left true prose
+      standing, so no text probe separated a correct repair from an ignored one;
+      those reported NEEDS-EYES, and the replacement owes the same refusal rather
+      than a clean.
 
 ## What this costs today
 
