@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 12 tasks done
 Owner:    session
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
           census route)
 Traced:   2026-08-21 — 2026-08-21 -- IT IS A MISSING WIRE, and both halves already
@@ -21,6 +21,20 @@ Ruled:    2026-08-21 — 2026-08-21 -- the criterion is a C round trip, not an a
           about keyword recall. Measured on CPython v3.13.1 while settling it: a keyword
           list finds the anchor line for 92.9% of definitions, and 81.1% of its false
           positives are lines nobody documented.
+Condition: 2026-08-22 — THE C CONDITION IS MET. Roy set it as a demonstration, not an
+           argument: *"if we can show that we can round trip the comments correctly in a
+           c document ... with the a foliation then we add it back."* MEASURED
+           2026-08-22: 489 of 489 `.c` and `.h` files in `corpora/cpython` round trip
+           IDENTICAL, zero differ, zero crash. ! So the ruling is not a standing refusal
+           -- it is a conditional whose condition has since been satisfied and never
+           cashed in. ! WHAT IS ACTUALLY BLOCKING IS THE WIRE, the task two lines below
+           this one: `paragraphs_lexical` never sets `Paragraph.declares` from what
+           `page.documentable()` already computes, so the `a` series fills for NO
+           lexical language -- Rust, Go, Java, all sixteen -- not for C alone. MEASURED
+           the same day: 205 `a` places over 19 Python files on the AST tier, and 0 over
+           180 cpython C and H files. ! Roy, 2026-08-22, on reading the current state:
+           *"I swear this problem was solved."* Half of it was: the demonstration
+           passed. The half that fills the place did not.
 ```
 
 ## Objective
