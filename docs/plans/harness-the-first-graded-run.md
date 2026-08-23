@@ -47,13 +47,17 @@ judgement this whole system exists to replace.
 
 ### A -- Settle what a case IS, before writing one
 
-- [ ] **A1 -- Re-decide the suite layout against `skill-creator`'s actual shape.**
-      Works `the-harness-cannot-run-the-system-it-grades`. The 2026-08-23 ruling chose A SECOND
-      SUITE because `(address, hash, files)` had nowhere to put the hash. `skill-creator`
+- [x] **A1 -- ANSWERED 2026-08-23 by `e31b438`: no second suite. `evals/evals.json` grew the
+      fields.** Works `the-harness-cannot-run-the-system-it-grades`. The 2026-08-23 ruling chose
+      A SECOND SUITE because `(address, hash, files)` had nowhere to put the hash. **Case 3 put
+      it there** -- `start` and `end` beside `prompt`, `hazards` and `evidence` -- so the premise
+      is gone and the shipped file holds a hash-pinned case today. ! The ruling is superseded by
+      what landed, not by an argument. The question as it was put:
+
+      **Re-decide the suite layout against `skill-creator`'s actual shape.** `skill-creator`
       prescribes `evals/evals.json` plus a sibling `<skill-name>-workspace/`, and `files` is a
       list of PATHS -- so a pre-step can materialise a hash into paths and the hash lives in our
-      own sidecar. **Both models can now hold.** Verify: the ruling either stands with its premise
-      corrected, or is superseded in the same file, beside what it replaced.
+      own sidecar. Both models can now hold.
 
 - [ ] **A2 -- Settle the field name before any case is written: `assertions` or
       `expectations`.** Works `the-harness-cannot-run-the-system-it-grades`. Anthropic's own docs
@@ -63,10 +67,18 @@ judgement this whole system exists to replace.
       record which name it consumes; the existing task *"Add `assertions` to `evals/evals.json`"*
       is corrected or confirmed by what that file does.
 
-- [ ] **A3 -- Write the START/END fixture down as a shape.** Works
-      `the-harness-cannot-run-the-system-it-grades`. A case pins TWO hashes (Roy, 2026-08-23) and
-      `evals.json` has one field for files and none for a ref. Verify: one case file expresses
-      `(repo, start, end, paths, role)` and a script materialises `files` from it.
+- [x] **A3 -- DONE 2026-08-23 by `e31b438`, and the shape is `start`/`end`.** Works
+      `the-harness-cannot-run-the-system-it-grades`. Case 3 `rename-left-history-in-the-comments`
+      carries `start: ff1cab5`, `end: ba5eb32` -- **a nine-commit range**, which is the ruling
+      demonstrating itself: one review takes several commits, so a single fix hash could not name
+      it. `evals.json`'s own `notes` states the rule.
+
+      ! **The keys were `base`/`fixed` and are now `start`/`end`** (`decision-log.md Vocabulary:
+      #10`). `base` already meant two other things here -- the unmodified text of a planted hazard
+      in `grade_hazards.py`, and a merge-base in `prove_unchanged.py --base`. Roy, 2026-08-23:
+      *"I knew that this collision could happen while writing that case but it needed to be
+      written."* ! Nothing reads these keys programmatically yet, so the rename cost nothing --
+      **which is exactly why it had to happen before something did.**
 
 ### B -- Build the four mechanics
 
@@ -150,6 +162,10 @@ judgement this whole system exists to replace.
       the unit, and a threshold anyone can re-derive.
 
 ### D -- The first case, end to end
+
+! **CASE 3 IS THE TEMPLATE, AND D1 IS THE SECOND ONE.** `rename-left-history-in-the-comments`
+already runs this shape end to end in `evals/evals.json` -- a `start`, an `end`, four paths, three
+hazards and an `evidence` package. D1 is not inventing a form; it is filling in one that exists.
 
 - [ ] **D1 -- The 2026-08-16 hand pass: START `3ce610c`, END `8c0cef6`.** Works
       `the-harness-cannot-run-the-system-it-grades` and

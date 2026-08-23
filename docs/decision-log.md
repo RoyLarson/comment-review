@@ -125,6 +125,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   sense is Roy's own term from 2026-08-22 -- *"Constants.py is the ultimate leaf"* -- and
   `leaves` is an ordinary English verb besides. Declared as polysemy in `vocabulary.md`.
 
+- **#10.** **An eval case's two hashes are `start` and `end`, not `base` and `fixed`** (Roy,
+  2026-08-23: *"Overwrite its terms with yours. I knew that this collision could happen while
+  writing that case but it needed to be written and going back and forth can cause other
+  unnecessary complications."*). `base` already carries two other meanings here --
+  `grade_hazards.py` uses it for the unmodified text of a planted hazard, and
+  `prove_unchanged.py --base` takes a merge-base -- and START/END is the wording the range ruling
+  was made in. ! **The collision was known when the case was written and the case was written
+  anyway**, which is the right order: a term is cheap to overwrite and an unwritten case is not.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
