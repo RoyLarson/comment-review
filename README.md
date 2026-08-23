@@ -64,6 +64,49 @@ This will find coding mistakes as well because of it.
 Little things that no test is looking for will popup in looking for a clarification on
 documentation.
 
+### A dead term in a comment is a context anchor
+
+A comment should state what the code does **now**. What it used to be called, what it used to
+do, and why it changed belong in git and in the changelog -- those preserve how the code got
+here, which is a different question from what it is.
+
+For a human reader, a comment naming something that no longer exists is a citation that
+resolves nowhere: they grep it, find nothing, and lose a minute.
+
+**For an LLM it is worse, because the dead term becomes an anchor.** A model reading the file
+takes every concept in it into context and weights them by how often they appear -- not by
+whether they are still correct. A name that was replaced but is still written in the comments
+is still frequent, so it keeps drawing attention, and the model reasons from it. The wrong
+concept wins because it is the common one.
+
+**And the general word beats the specific one, for the same reason.** `walk` is a general
+programming concept with an enormous number of examples behind it; `foliate` exists in this
+repository and almost nowhere else. The general term is the stronger prior, so it is what a
+model reaches for and what it keeps being reinforced on -- even where the specific term is the
+one that is actually true. Precision loses to frequency.
+
+**Nothing corrects it, because humans do not mind the imprecision.** "The walk emits every
+place" reads perfectly well to a person; they know what is meant and move on. So no feedback
+ever arrives, the loose word survives every review, and the model goes on reasoning from a
+concept the code stopped using. A domain term with no general twin -- `foliate`, `folio`,
+`galley`, `compositor` -- cannot be displaced by a prior, which is a large part of why this
+project takes its vocabulary from publishing rather than from computing.
+
+This is visible in this project's own history, and it is not a hypothetical:
+
+- A field was renamed and its comments kept explaining the old name "for context". The next
+  edits went on using the old word, and three comments were left citing `walk[i]` on a field
+  that no longer had that name -- written an hour after the rename, by the session that did it.
+- Two constants were merged into one and the comment kept naming both. The merge was wrong for
+  a case neither name covered, and the comment's confident history made it read as settled.
+- A two-word fix that was correct for Kotlin's grammar was applied to Java on the strength of
+  the pattern being fresh in context. It broke a real declaration. The rule it violated was
+  written down; the salient example beat the rule.
+
+So the rule is not tidiness. **Proper naming plus a present-tense comment is what stops the
+next reader -- human or model -- from reasoning out of a concept that is no longer true.** If
+the name says what it does, the comment does not need to say what it was.
+
 ### A green gate is not evidence of a good result
 
 This is the argument the whole tool rests on. Code that compiles, passes its tests and survives

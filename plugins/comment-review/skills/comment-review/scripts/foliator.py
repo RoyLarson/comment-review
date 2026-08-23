@@ -273,7 +273,7 @@ EOF = "<eof>"
 def triggers(code: list[int]) -> list[int | str]:
     """What a foliator walks: the MODULE, every line of code, then EOF.
 
-    !! ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART. Each folio used to be a
+    !! ONE LIST, SO THE FOUR SERIES CANNOT DRIFT APART. Each folio used to be a
     different expression computed where it was needed -- `declares` for `a`,
     `code.index(start)` for `c`, `sum(1 for n in code if n < at)` for `b` --
     three mechanisms for one question, *which step am I*. Roy, 2026-08-19:
@@ -414,28 +414,15 @@ class Foliation:
     foliators: dict[str, Foliator] = field(
         default_factory=lambda: {name: Foliator(name) for name in SERIES}
     )
-    # !! WHAT `foliate` STEPS THROUGH, kept -- what `triggers()` returned:
+    # !! WHAT `foliate` STEPS THROUGH -- what `triggers()` returned:
     # `[MODULE, *code, EOF]`. Every position a place reports indexes THIS, so
     # holding it is what makes those positions mean something without arithmetic.
     #
-    # !! IT WAS CALLED `walk`, AND THAT WORD ALREADY MEANT SOMETHING ELSE. Roy,
-    # 2026-08-22: *"because `Path.walk` is the common term, I feel that we should
-    # use a separate term for the lexing part."* `census._walk` enumerates the
-    # FILESYSTEM, which is what a Python reader expects `walk` to mean, and this
-    # field held the foliator's traversal -- one word, two meanings, in one
-    # package. ! The field takes its PRODUCER's name rather than a coinage: it
-    # is literally what `triggers()` returns.
-    #
-    # ! THE VERB IS STILL A WALK, and that is not the collision. This module
-    # walks the triggers and says so; nothing here enumerates a directory, and
-    # `census.py` never means anything but the filesystem. What was wrong was a
-    # NOUN naming the thing walked after the walking.
-    #
-    # !! IT REPLACED TWO FIELDS, and both were views of it. `lines` was
-    # folio -> the line its anchor sits on, filled for `a` and `c` alone; `_code`
-    # was the code lines `foliate` stepped, which is this list without its two
-    # sentinels. Neither was a fact of its own: a place's line is the line of the
-    # trigger it fired at, and `foliate` already knew both halves.
+    # !! AND IT IS THE ONLY LINE FACT A `Foliation` HOLDS. Everything else about
+    # a place is read off it: a place's line is the line of the trigger it fired
+    # at, and the step it reports is an index here. A field holding the lines, or
+    # the code without the sentinels, is half of this written twice -- two facts
+    # where there is one, and the copy is what drifts.
     triggers: list[int | str] = field(default_factory=list)
     # !! EVERY PLACE IN READING ORDER, TOP TO BOTTOM, recorded by `foliate` that
     # emitted them. It is what a compositor sets from: a page IS its places in
@@ -708,7 +695,7 @@ def foliate(
     file with no licence header and `b0` on a file with one, and adding a module
     docstring renamed it mid-run. ! They are `f0` and `b0` now, in two series.
 
-    ! The three rules differ, and each is measured rather than chosen:
+    ! The four rules differ, and each is measured rather than chosen:
 
         a   the MODULE, then every documentable declaration. It does not step
             past a line it cannot emit for, so `a1` is the first declaration
@@ -717,6 +704,9 @@ def foliate(
             after the last one.
         c   every line of code. It steps past the module without emitting,
             because a module has no line to sit beside.
+        f   the MODULE and the EOF sentinel, and nothing in between. It is
+            the file's own matter at either end, so it emits exactly twice on
+            every file and steps past every line of code without emitting.
 
     ! Line ORDER drives `foliate`; no line NUMBER is arithmetic here. Nothing
     reads one folio to compute another, and no folio follows from a line's
@@ -762,7 +752,7 @@ def foliate(
     # !! `foliate` READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
     # It did not until 2026-08-21: this loop was written out by hand and
     # `triggers` had a single caller, a test asserting its SHAPE -- so the
-    # function claiming *"ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART"* was
+    # function claiming *"ONE LIST, SO THE FOUR SERIES CANNOT DRIFT APART"* was
     # not the list any series walked. Roy, seeing it: *"WHAT!!!"*
     #
     # ! Each series decides at each trigger, and that rule is now complete --
@@ -780,7 +770,7 @@ def foliate(
     # opposite ends of the file.
     # ! THE FOLIATION'S OWN LIST, not a second call. `out.triggers` IS what
     # `triggers()` returned above, and building it twice is the drift the
-    # function's own docstring forbids -- *"ONE LIST, SO THE THREE SERIES CANNOT
+    # function's own docstring forbids -- *"ONE LIST, SO THE FOUR SERIES CANNOT
     # DRIFT APART."* Two calls agree today and are two things that can stop
     # agreeing, which is the whole reason the list exists.
     for at, trigger in enumerate(out.triggers):
@@ -884,7 +874,7 @@ def foliate(
 
 
 def folio(series: str, step: int) -> str:
-    """The folio at one step of `foliate` -- ONE expression, all three series.
+    """The folio at one step of `foliate` -- ONE expression, all four series.
 
     !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Roy,
     2026-08-20: *"the foliations own their own rules on what is skipped ... they

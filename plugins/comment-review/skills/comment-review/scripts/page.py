@@ -95,14 +95,13 @@ from lexer import (  # noqa: E402  -- path shim must run first
 #   c   `margin`        a code line with no trailing comment
 #   f   `dark-matter`   a file with none of its own prose
 #
-# !! THE QUESTIONS ARE ASKED OF `Kind`, AND THIS MODULE KEEPS NO SET. It held
-# `OCCUPIES_NOTHING` and `HOLDS_NO_PROSE` -- two hand-kept tuples of the same
-# four strings in different orders, under comments claiming they answered
-# different questions -- then ONE tuple, when the four were seen to be equal.
-# ! Both shapes were wrong, and the second was wrong in the more expensive way:
-# it looked settled. `leading` holds no prose and DOES occupy lines, so the two
-# questions part on it, and `Kind.holds_no_prose` and `Kind.occupies_no_lines`
-# are what tell them apart. Neither is listed; both derive from `lexer.Series`.
+# !! THE QUESTIONS ARE ASKED OF `Kind`, AND THIS MODULE KEEPS NO SET. There are
+# TWO of them and they are not the same question: `Kind.holds_no_prose` is what
+# a listing, a count or a record asks, and `Kind.occupies_no_lines` is what
+# `code_lines` asks. ! They part on exactly `leading`, which holds no prose and
+# DOES stand on real lines -- so answering the second with the first takes a
+# blank run out of `occupied`, reads it as CODE, and renumbers every `b` and
+# `c` below it. Neither is listed; both derive from `lexer.Series`.
 
 # !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE LEXER STATES IT -- see
 # `lexer.MATTER`. It was an ANNOTATION stamped HERE by `mark_matter` until
@@ -444,7 +443,7 @@ def empty_places(
     ! `foliate` already emitted every place and said where each sits. This asks
     only which of them prose is sitting in, and gives the rest a paragraph.
 
-    ! An empty place occupies no lines -- that is what the NEGATIVE of a series
+    ! An empty place occupies no lines -- that is what the ABSENT half of a series
     means, see `lexer.Series` -- and it is why emitting one cannot move a code
     line or renumber anything below it.
 

@@ -288,9 +288,9 @@ TOKENIZE_ERRORS = (tokenize.TokenError, SyntaxError)
 
 
 class Kind(StrEnum):
-    """Every kind a paragraph can be, PAIRED with the series it belongs to.
+    """Every kind a paragraph can be, paired with the series it belongs to.
 
-    !! EACH SERIES HAS A POSITIVE AND A NEGATIVE, and that is the whole shape.
+    !! EACH SERIES HAS A PRESENT AND AN ABSENT, and that is the whole shape.
     Roy, 2026-08-22: *"each foliation gets its positive and its negative"*, and
     *"they are enums not a list."*
 
@@ -310,7 +310,7 @@ class Kind(StrEnum):
     ! A `StrEnum` MEMBER IS ITS STRING, so every `paragraph.kind == "docstring"`
     already written keeps working and nothing had to migrate.
 
-    ! `leading` HAS A POSITIVE AND NO NEGATIVE, and squaring the table would be
+    ! `leading` HAS A PRESENT AND NO ABSENT, and squaring the table would be
     the error. An empty one could not be cited -- Roy: *"there is no information
     to rule on"* -- which is the same reason `d` is not in `foliator.SERIES`.
     It is a kind with no series, and `ABSENT` below leaves it out.
@@ -364,17 +364,16 @@ class Kind(StrEnum):
     def holds_no_prose(cls, kind: str) -> bool:
         """Is there nothing here for a reviewer to read?
 
-        !! THE FOUR NEGATIVES AND `leading`, WHICH IS NOT ONE OF THEM. A negative
-        is a place the walk emitted and no prose filled; `leading` is not a place
-        at all and holds no prose for a different reason -- there was never
-        anything to hold. Both answer YES here, and the question is what this is
+        !! EVERY ABSENCE, AND `leading`, WHICH IS NOT ONE. An absence is a place
+        `foliate` emitted and no prose filled; `leading` is not a place at all
+        and holds no prose for a different reason -- there was never anything to
+        hold. Both answer YES here, because holding no prose is what this is
         NAMED for.
 
-        ! IT WAS `page.HOLDS_NO_PROSE = NEGATIVE`, and `leading` fell out of it
-        for the reason above, so four modules counted a blank run as prose.
-        MEASURED 2026-08-22: `census.py --filtered` -- the command SKILL.md hands
-        a reviewer -- emitted rows with a BLANK address column, and they split
-        adjacent no-prose runs that would otherwise have collapsed.
+        ! ASK THIS WHEREVER A READER IS SHOWN PROSE -- a listing, a count, a
+        record. `census.py --filtered` is the command SKILL.md hands a reviewer,
+        and a blank run counted as prose puts a row with no address in front of
+        them and splits two no-prose runs that should collapse into one.
 
         Args:
             kind: a paragraph's kind. A plain `str` is accepted because a census
@@ -415,26 +414,19 @@ class Pair(NamedTuple):
 
 
 class Series(Enum):
-    """Every series a walk emits, each member its own `Pair`.
+    """Every series `foliate` emits, each member its own `Pair`.
 
-    !! IT IS AN ENUM AND NOT A MAPPING. Roy, 2026-08-22: *"each foliation gets
-    its positive and its negative"*, and *"they are enums not a list."* This was
-    a dict keyed by letter whose values were bare 2-tuples, with the set of
-    negatives derived by unpacking them positionally -- so the pairing was real
-    but nothing could be asked of it except by indexing.
+    !! AN ENUM AND NOT A MAPPING. Roy, 2026-08-22: *"each foliation gets its
+    positive and its negative"*, and *"they are enums not a list."* The value IS
+    the `Pair`, so the shape is readable in the declaration rather than assembled
+    somewhere else, and `ABSENT` below is derived from these four.
 
-    ! THE VALUE IS THE `Pair` ITSELF. A first draft declared a flat
-    `("f", Kind.MATTER, Kind.DARK_MATTER)` and rebuilt the pair in `__init__`,
-    which is the same unnamed 2-tuple one layer down -- the declaration is where
-    the shape has to be readable, not the constructor.
-
-    !! THE LETTER IS NOT IN HERE, and that draft put it in. `foliator` owns the
-    letters -- `COVERS = "f"` and its three siblings -- and spelling them again
-    in a module that cannot import the one holding them is exactly the drift the
-    old `PAIRED` map already was. ! What ties the two is the MEMBER NAME: every
-    name here is a constant in `foliator`, and `tests/test_page.py` holds the sets
-    equal, so a letter that moves fails a test instead of leaving two spellings
-    quietly disagreeing.
+    !! THE LETTER IS NOT IN HERE. `foliator` owns the letters -- `COVERS = "f"`
+    and its three siblings -- and this module cannot import it, so spelling them
+    again here would be two sources for one fact. ! What ties them is the MEMBER
+    NAME: every name here is a constant in `foliator`, and `tests/test_page.py`
+    holds the sets equal, so a letter that moves fails a test instead of leaving
+    two spellings quietly disagreeing.
 
     ! `LEAD` IS NOT A MEMBER, the same exclusion `foliator.SERIES` makes:
     leading has a present and no absent, so it cannot belong to a type whose

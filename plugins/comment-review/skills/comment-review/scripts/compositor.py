@@ -57,7 +57,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from constants import utf8_console  # noqa: E402
-from foliator import ON, series_of  # noqa: E402
+from foliator import ON, folio_of, series_of  # noqa: E402
 
 # !! THE OTHER IMPORTER OF THE ROWS -- see `language.py`. The lexer reads a file
 # into paragraphs and this sets a page back into one; they are the only two
@@ -93,7 +93,13 @@ def _held(page: Page) -> dict[str, list[str]]:
     """
     out: dict[str, list[str]] = {}
     for paragraph in page.paragraphs:
-        folio = (paragraph.address or "").split("@")[-1] or paragraph.symbol
+        # !! ASKED, NOT SPLIT. `folio_of` is the one reader of an address, and
+        # this re-derived it -- so the two disagreed on the one input that tells
+        # them apart. MEASURED 2026-08-22: `folio_of("b3")` answers `""`, because
+        # an address is `path@folio` and a bare folio is not one; `"b3".split("@")
+        # [-1]` answers `"b3"`. So the compositor SET a place `galley.reset`
+        # REFUSES, and the disagreement is invisible until the two are compared.
+        folio = folio_of(paragraph.address or "").folio or paragraph.symbol
         if folio:
             out[folio] = list(paragraph.raw_lines)
     return out
