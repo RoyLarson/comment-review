@@ -253,9 +253,11 @@ class TestAQuotedSpanIsExemptAndAnAgentFileIsNot(unittest.TestCase):
     A human reads the marks and discounts the word, which is the imprecision an
     agent does not share.
 
-    ! MEASURED 2026-08-23, which is why strict costs nothing: of the 31 `foli*`
-    uses left in the shipped tree, ZERO are in `agents/`, `SKILL.md` or
-    `references/`.
+    ! THE RULE DOES NOT REST ON WHAT IT COSTS. A count of how many agent-facing
+    files hold a retired word today is a fact about today; tying the rule to it
+    gives a later reader a stated reason to relax it the moment the count moves.
+    The measurement taken when this was adopted is in `docs/decision-log.md`
+    Vocabulary: #8, where a dated fact belongs.
     """
 
     RETIRED_WORD = "folio"

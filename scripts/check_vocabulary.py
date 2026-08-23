@@ -118,9 +118,6 @@ MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ", "`pCST`")
 # the engineering record, is read by whoever changes it, and keeps its rulings
 # verbatim.
 #
-# ! MEASURED 2026-08-23, which is why strict costs nothing: of 31 `foli*` uses
-# left in the shipped tree, ZERO are in `agents/`, `SKILL.md` or `references/`.
-# All 31 are in `scripts/*.py`, and every one is inside a quotation.
 #
 # ! IT IS NOT THE LINE EXEMPTION ROY REFUSED. A line marker says *this line is
 # special*, which lets a word creep back one suppression at a time -- the reason
