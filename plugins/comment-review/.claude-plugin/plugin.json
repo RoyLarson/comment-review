@@ -1,7 +1,7 @@
 {
   "name": "comment-review",
   "version": "0.2.4-alpha",
-  "description": "Review the comments and docstrings in the files a change touched, across four editorial roles -- ownership-context, block-context, function-context, module-context -- as parallel read-only agents over one prose tree. Returns a verdict per finding for the human to approve, then applies them and proves the executable code byte-identical.",
+  "description": "Professional editorial practice, applied to the prose in a codebase. Comments and docstrings are claims about code that no test checks, so four read-only reviewers ask of each one whether it is still true of the code it sits on. Because a comment says what code is FOR, checking it against what the code DOES examines the design and not only the sentence -- a module whose docstring announces one subject while the file holds four is an architecture finding that arrived through its prose. Where the code is right, the comment is corrected; where the code is not, the reviewer files a code concern instead of editing the prose to fit. The author approves every replacement, and WRITE proves the executable code byte-identical.",
   "author": {
     "name": "Roy"
   }

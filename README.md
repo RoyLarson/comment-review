@@ -1,9 +1,33 @@
 # comment-review
 
-A Claude Code plugin: an **editorial board** for the comments and docstrings a change
-touched. Four read-only reviewers walk one page, an editor writes the replacement
-text, it is cut to fit, **then** the author approves the exact text that will be written --
-and WRITE puts it on disk and proves the executable code byte-identical.
+A Claude Code plugin that brings **professional editorial practice** to the prose in a
+codebase. Comments and docstrings are claims about code, and no test checks them: a suite
+says the code runs, never that the sentence beside it is true, or that a reader would learn
+why the thing is the way it is.
+
+Four read-only reviewers walk one page, an editor writes the replacement text, it is cut to
+fit, **then** the author approves the exact text that will be written -- and WRITE puts it on
+disk and proves the executable code byte-identical.
+
+!! **AND IT READS ON THE DESIGN, NOT ONLY THE WORDING.** A comment says what code is FOR, so
+checking it against what the code DOES is a check on the structure. Where the two disagree and
+the code is right, the comment is corrected. Where the code is what is wrong, the reviewer
+files a **code concern** and does not bend the prose to fit -- a module whose docstring
+announces one subject while the file holds four is an architecture finding that arrived
+through its prose.
+
+! **THE OTHER HALF IS NOT BUILT.** A role can today only DESCRIBE a code problem; it cannot
+propose the change. That gap has a measured cost: a reviewer that finds a structural problem
+and has no way to resolve it reaches for the only verdict it has and edits the prose --
+`module-context` did exactly that, widening a two-subject docstring to announce two subjects,
+which is the defect its own trigger is named for.
+
+! It is two jobs in two lanes, and neither is worth landing alone -- a shape nobody is told to
+fill stays empty, and an instruction to propose a change the record cannot hold produces a
+proposal nothing can read:
+[what a role is TOLD it may do](TODO/a-role-with-no-code-out-damages-the-prose.md) (`agents`),
+and [what the record can CARRY](TODO/code-concerns-cannot-carry-a-proposed-change.md)
+(`backend`).
 
 ```
 project -> gather -> find refs -> mark -> apply -> compact -> APPROVAL -> review

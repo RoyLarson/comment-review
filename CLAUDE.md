@@ -10,6 +10,23 @@ read-only reviewer agents walk one page, a task agent (the `/comment-review` ski
 synthesizes verdicts, the human approves the exact replacement text, and WRITE puts it on disk and
 proves the executable code byte-identical.
 
+!! **AND THE SUBJECT IS THE DESIGN AS MUCH AS THE WORDING.** A comment says what code is FOR,
+so checking it against what the code DOES is a check on the structure. Where the two disagree
+and the code is right, the comment is corrected; where the CODE is what is wrong, the role
+raises a code concern and does not bend the prose to fit.
+
+! **A ROLE CANNOT PROPOSE THE CODE CHANGE, AND THAT COSTS SOMETHING MEASURED.** Roy,
+2026-08-23: *"we can't tell the agents to review all of this and not give them an out for
+properly resolving the issues. Several times they were overly restricted by what they could do
+and that caused tension in the recommendations."* The harness records the shape:
+`module-context` found a module announcing one subject while holding four, had no verdict for
+*split this module*, and widened the docstring to announce TWO -- the defect its own trigger is
+named for. Two lanes, filed separately and neither worth landing alone --
+[`a-role-with-no-code-out-damages-the-prose`](TODO/a-role-with-no-code-out-damages-the-prose.md)
+(`agents`) and
+[`code-concerns-cannot-carry-a-proposed-change`](TODO/code-concerns-cannot-carry-a-proposed-change.md)
+(`backend`).
+
 ### !! WHY IT EXISTS: A GREEN GATE IS NOT EVIDENCE OF A GOOD RESULT
 
 Roy, 2026-08-18: *"Just because the code passes -- even if it has gone through multiple rounds of
