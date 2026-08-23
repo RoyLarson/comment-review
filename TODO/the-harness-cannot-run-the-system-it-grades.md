@@ -2,10 +2,9 @@
 
 ```
 Status:   open
-Progress: 7 of 28 tasks done
-Owner:    session * Roy (* the suite layout was ruled 2026-08-23 -- a second suite.
-          `plugin eval` access is the one decision left, and this file already says it
-          is not a blocker)
+Progress: 8 of 28 tasks done
+Owner:    session * Roy (* 1 ruling left -- what CLOSE TO HERE measures. The suite
+          layout and the `plugin eval` question were both settled 2026-08-23)
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
 Corrected: 2026-08-20 — the fixtures in evidence/self-test-commits.md are FIVE module-
@@ -77,6 +76,18 @@ Amended:  2026-08-23 — 2026-08-23 by Roy, completing Process #5: vocabulary te
           vocabulary -- is what the amended rule requires rather than a workaround.
           `check_vocabulary.py` is the gate: 59 definitions across 6 roles, 0 holes, 0
           drifted, verified 2026-08-23.
+Located:  2026-08-23 — 2026-08-23, the HOW: the skill tester is `skill-creator`, not
+          `claude plugin eval`. Roy: the plugin/agent system is about agents working on
+          their own for corporations, routing and deciding; this is an isolated skill
+          that reviews a codebase and stays local. ! The previous session had already
+          recorded this and I read past it -- the plugin-eval task ends *"Not a blocker
+          -- skill-creator covers isolation, the baseline and assertions today."*
+          Confirmed 2026-08-23: `claude plugin eval` and `eval init` both still exit 1
+          with "currently in early access". !! skill-creator ships
+          `scripts/run_eval.py`, `scripts/aggregate_benchmark.py`, `agents/grader.md`,
+          `agents/analyzer.md`, `agents/comparator.md` and `references/schemas.md` under
+          its cache dir, and SKILL.md section "Running and evaluating test cases" is a
+          five-step procedure that answers all four unknowns.
 ```
 
 ## Objective
@@ -467,7 +478,25 @@ only which side of the network each commit is on.
       that bears most directly on the claim that file exists to make, because a human found
       those by hand and the question is whether the system finds them.
 
-- [ ] * **Decide whether to ask for `claude plugin eval` early access.** Separate, newer,
+- [x] * **DECIDED 2026-08-23 by Roy: NO. We do not want it, and access is not worth asking
+      for.** *"the plugin/agent testing system was much more about testing agents working on
+      their own for corporations and routing things or making decisions. This is supposed to
+      be an isolated skill that reviews code bases and stays local -- which is much closer to
+      the skill tester setup requirements and doesn't cost money."*
+
+      ! **It is a fit judgement, not an availability one.** Re-verified 2026-08-23: `claude
+      plugin eval` and `plugin eval init` both still exit 1 with *"currently in early
+      access"*, and the full option set is still listed by `--help`. **Availability stopped
+      being the question** -- `skill-creator` is the right instrument for a local skill, and
+      the plugin harness is built for a different subject.
+
+      ! **`skill-creator` is what the harness is built on**, and it is already on this
+      machine: `scripts/run_eval.py`, `scripts/aggregate_benchmark.py`, `agents/grader.md`,
+      `agents/analyzer.md`, `agents/comparator.md`, `references/schemas.md`, and a five-step
+      procedure under SKILL.md's *"Running and evaluating test cases"*. The question as it
+      was put:
+
+      **Decide whether to ask for `claude plugin eval` early access.** Separate, newer,
       CLI-driven -- `evals/**/case.yaml` or `prompt.md` plus `graders/*.md`, `--ablation
       with-without`, `--json`, `--threshold`, built for CI. Verified 2026-08-18: `--help`
       works and lists the full option set; running it prints `plugin eval is currently in early
