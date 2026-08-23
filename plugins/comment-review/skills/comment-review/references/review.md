@@ -66,7 +66,7 @@ code reads the same in the same ORDER -- the Nth code line is still the same
 statement, and an address counts those. The line numbers moved with the prose;
 the ordinal did not.
 
-To read at one, resolve against a census of the file as it now stands. ! The cues answers
+To read at one, resolve against a census of the file as it now stands. ! The addresser answers
 about the CENSUS, never the tree -- so census the file first and the two agree by construction:
 
 ```bash

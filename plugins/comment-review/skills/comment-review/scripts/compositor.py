@@ -10,7 +10,7 @@ together. A module that did both is what `galley.py` was, and its own vocabulary
 said so -- `references/vocabulary.toml`: *"the GALLEY is text set but not yet
 made into pages."*
 
-!! IT SETS FROM THE CUES'S READING ORDER AND KNOWS NO LINE NUMBERS. Roy,
+!! IT SETS FROM THE READING ORDER OF THE CUES AND KNOWS NO LINE NUMBERS. Roy,
 2026-08-21: *"the compositor forms the whole file top to bottom in the order
 defined by the language requirements IN MEMORY."* A page is its places in
 sequence; `Cues.reading` is that sequence, recorded by the walk that
@@ -150,7 +150,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING, and is filed under `""`.
     # !! AN EDGE BELONGS TO THE PLACE BEFORE IT, which is what it is KEYED BY.
     # Roy, 2026-08-21, ruling on what happens to leading when a paragraph goes
-    # away: *"the live first key folio lives, the drop first key dies. The
+    # away: *"the live first key foliation lives, the drop first key dies. The
     # live one gets a new key that takes the new end and beginning."*
     #
     # !! IT IS ONE RULE FOR BOTH DIRECTIONS, which is why it is a lookup rather

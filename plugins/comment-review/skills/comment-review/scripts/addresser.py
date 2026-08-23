@@ -1,4 +1,4 @@
-"""THE CUES: numbering the places on a page, and reading the number back.
+"""THE ADDRESSER: numbering the places on a page, and reading the number back.
 
     python addresser.py --census census.json --anchor "def f():" --series a
 
@@ -110,7 +110,7 @@ Four series, because prose answers to one of exactly four subjects:
 
 !! NO CUE IS COMPUTABLE FROM ANOTHER, OR FROM A LINE'S ORDINAL. Roy,
 2026-08-19: *"remove any references that indicate anyone can expect that the
-next line of code is guaranteed to have the next cues index ... it is a
+next line of code is guaranteed to have the next foliation index ... it is a
 happenstance and may change at any point."* FOUR ADDRESSERS walk one trigger
 list -- the MODULE, every line of code, then EOF -- and EACH OWNS ITS RULE about
 which triggers are its own. A series that does not emit for a trigger does not
@@ -194,8 +194,8 @@ ON = "c"
 GAP = "b"
 DECLARED = "a"
 # !! THE FILE'S OWN PROSE, IN ITS OWN SERIES. Roy, 2026-08-20: *"we should have
-# just made the front matter its own cues -- then the rule that `b` owns
-# all the lines that are not another cues's lines would explicitly stay
+# just made the front matter its own foliation -- then the rule that `b` owns
+# all the lines that are not another foliation's lines would explicitly stay
 # true. Treating the front matter as regular comments, even though they are
 # not, is the mistake."*
 #
@@ -207,7 +207,7 @@ DECLARED = "a"
 # in re-cut it.
 #
 # ! A SINGLETON SERIES IS STILL A SERIES. Roy: *"I know it is likely a
-# singleton cues but it fits."* The rule then needs no clause about which
+# singleton foliation but it fits."* The rule then needs no clause about which
 # `b` is not really a `b`.
 #
 # ! AND IT MAY NOT STAY A SINGLETON. Roy, 2026-08-20: *"maybe it will show up in
@@ -286,7 +286,7 @@ MODULE = "<module>"
 #: at the END of a file -- and then two series would each carry a different
 #: special rule: *"that makes two conditions where you would have to understand
 #: to keep the code consistent, and why 1 gets a +1 and the other gets some other
-#: treatment -- which is the reason each addresser owns its own rules."*
+#: treatment -- which is the reason each foliator owns its own rules."*
 #:
 #: ! So the cost is paid once, here: every series meets EOF and decides, exactly
 #: as it does at MODULE, and adding `f`'s tail place later is a row rather than a
@@ -326,14 +326,14 @@ def triggers(code: list[int]) -> list[int | str]:
 class Addresser:
     """One series' counter, and every place it emitted.
 
-    !! IT HOLDS BOTH HALVES. Roy, 2026-08-19: *"the addresser gets an anchor and
+    !! IT HOLDS BOTH HALVES. Roy, 2026-08-19: *"the foliator gets an anchor and
     emits an address and should add the address and the anchor to an internal
     list or dict."* A cue and the line of code it is attached to are one fact,
     so they are stated by ONE STEP of `cue` -- not computed here and
     decorated on later, which is what let an anchor disagree with its address.
 
     !! A SERIES OWNS ITS OWN RULE ABOUT WHAT IT SKIPS, AND SKIPPING TAKES NO
-    NUMBER. Roy, 2026-08-20: *"the cues own their own rules on what is
+    NUMBER. Roy, 2026-08-20: *"the foliations own their own rules on what is
     skipped. `<module>` and its paragraph types get passed to all three, they
     each decide to record and increment independently -- `a` skips
     undocumentables, `b` and `c` skip `<module>`, `f` skips everything but
@@ -363,7 +363,7 @@ class Addresser:
     #:
     #: ! THE ANCHOR CANNOT ANSWER IT, which is why the guesses were needed.
     #: TWO IDENTICAL LINES OF CODE ARE TWO TRIGGERS WITH ONE ANCHOR -- Roy,
-    #: 2026-08-22: *"looking up anchor names returns many potential cues
+    #: 2026-08-22: *"looking up anchor names returns many potential foliation
     #: points because lines of code are not unique."* And a sentinel is shared
     #: across series: `a0` and `f0` both answer `<module>`, the closing gap and
     #: `f1` both answer `<eof>`. Recording the trigger is the only thing that
@@ -406,7 +406,7 @@ class Cues:
     """Every place in one file, and the line of code each is attached to.
 
     !! IT ANSWERS BOTH DIRECTIONS, which is why it is one object. `cue`
-    assigns the cues; these read it back -- *which address does this line
+    assigns them; these read them back -- *which address does this line
     belong to right now*. Roy, 2026-08-19: that second half *"helps the agents
     understand what they are looking at right now in the code -- they need to
     search it anyways."*
@@ -600,7 +600,7 @@ class Cues:
 
         !! IT IS READ FROM `cue`, NOT RECONSTRUCTED, since 2026-08-22. Roy,
         on being shown a consumer that trusted the reconstruction: *"you hardened
-        the mistake that you were just fixing -- that `cue` didn't emit ALL
+        the mistake that you were just fixing -- that `foliate` didn't emit ALL
         anchors, which caused the problem."* THREE ARITHMETICS ARE GONE:
 
             b_n         -> n + 1
@@ -633,7 +633,7 @@ class Cues:
 
         !! COMPUTED, NOT STORED. It was a `bounds` dict written at four points in
         `cue` and read at two -- one of the five objects `Cues` had been
-        squished into. Roy, 2026-08-21: *"why does cue look like 5 objects
+        squished into. Roy, 2026-08-21: *"why does folio look like 5 objects
         squished into one shape."*
 
         !! IT IS THE TRIGGER BEFORE THIS GAP AND THE ONE IT FIRED AT, read off
@@ -666,7 +666,7 @@ class Cues:
 
         !! WHICH ONE A MATTER RUN TAKES IS A COUNT, and the PAGE does the
         counting -- Roy, 2026-08-21: *"the page makes the mapping between
-        addresser and paragraph."* `cue` knows only that a file has places for
+        foliator and paragraph."* `cue` knows only that a file has places for
         its own prose and where they fall in the reading order; it never looks at
         prose to decide which.
         """
@@ -724,21 +724,21 @@ def cue(
     Returns:
         The `Cues`: every place, and both directions between them.
     """
-    # ! ONE PER SERIES, AND THEY BELONG TO THE CUES. The names below are
+    # ! ONE PER SERIES, AND THEY BELONG TO THE `Cues`. The names below are
     # for `cue`, which is genuinely per-series -- each emits at different
     # triggers -- but nothing downstream has to know how many there are.
     #
     # !! THEY USED TO BE LOCAL AND WERE FLATTENED AWAY at the end of this
     # function, which left every accessor on `Cues` rebuilding an index
-    # into a collection that no longer existed. They are the cues's now, so
+    # into a collection that no longer existed. They belong to it now, so
     # `cue` fills the object it returns rather than a set of side tables.
-    # ! THE CUES KEEPS `cue` IT MADE, so every position a place reports
+    # ! THE `Cues` KEEPS THE ADDRESSERS IT MADE, so every position a place reports
     # indexes something the object still holds.
     out = Cues(triggers=triggers(list(code)))
     a, b, c, f = (out.addressers[s] for s in (DECLARED, GAP, ON, COVERS))
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. Roy, 2026-08-20: *"we need to be able to distinguish `a`
-    # cues for as many languages as there are `a` possible cues.
+    # foliations for as many languages as there are `a` possible foliations.
     # yaml, toml are not ones."* A YAML file was given an `a0` -- a place for a
     # module docstring in a language that has none -- and no verdict could ever
     # fill it. `None` says the series does not exist; `1` says it does and the
@@ -762,7 +762,7 @@ def cue(
     # ! It cannot be recovered from the anchor: two identical lines of code are
     # two triggers with one anchor, and both sentinels are shared -- `a0` with
     # `f0` at the head, the closing gap with `f1` at the foot.
-    # ! THE CUES'S OWN LIST, not a second call. `out.triggers` IS what
+    # ! ITS OWN LIST, not a second call. `out.triggers` IS what
     # `triggers()` returned above, and building it twice is the drift the
     # function's own docstring forbids -- *"ONE LIST, SO THE FOUR SERIES CANNOT
     # DRIFT APART."* Two calls agree today and are two things that can stop
@@ -800,7 +800,7 @@ def cue(
                 # the sentence that made this a trigger: *"that makes two
                 # conditions where you would have to understand to keep the code
                 # consistent, and why 1 gets a +1 and the other gets some other
-                # treatment -- which is the reason each addresser owns its own
+                # treatment -- which is the reason each foliator owns its own
                 # rules."* EOF became a trigger so a place emitted here is a ROW
                 # at it. Reaching back to the previous trigger for an anchor
                 # reinstated the special case one level down.
@@ -876,7 +876,7 @@ def cue_for(series: str, step: int) -> str:
     BUILDS a cue from its parts, and `cue_of` takes one apart.
 
     !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Roy,
-    2026-08-20: *"the cues own their own rules on what is skipped ... they
+    2026-08-20: *"the foliations own their own rules on what is skipped ... they
     each decide to record and increment independently."* `c` does not emit for
     the MODULE and does not step past it either, so its first line of code is
     `c0`.
@@ -892,7 +892,7 @@ def cue_for(series: str, step: int) -> str:
     stated anywhere, deliberately: Roy, 2026-08-19, *"I don't want to make that
     promise -- I don't know the edge cases where that might break yet,"* and
     *"remove any references that indicate anyone can expect that the next line
-    of code is guaranteed to have the next cues index."* A reader told the
+    of code is guaranteed to have the next foliation index."* A reader told the
     numbers coincide will rely on it whatever the sentence around it says.
     """
     return f"{series}{step}"
@@ -1224,9 +1224,9 @@ def main() -> int:
     #
     # !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
     # the thing an address exists to stop mattering. Roy, 2026-08-19: *"not
-    # necessary for cues to do the staleness sweep as long as the original
+    # necessary for foliation to do the staleness sweep as long as the original
     # census is still an available document ... it doesn't matter that the file
-    # changed lines underneath it. In a small way it is the cues stating
+    # changed lines underneath it. In a small way it is the foliation stating
     # the line numbers matter still."*
     #
     # ! A sweep WAS here, added after four artifacts three edits old were each

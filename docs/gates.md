@@ -37,7 +37,7 @@ each paragraph's recorded line position -- so it reconstructed the text out of n
 just read from that text. The check and its subject shared a source, so agreement was guaranteed.
 A tautology with a green light on it.
 
-! **It became an instrument at `e3ae738`, 13:56**, when it was made to set from the CUES
+! **It became an instrument at `e3ae738`, 13:56**, when it was made to set from the FOLIATION
 instead -- every place named, in the order the walk emitted them, with no line consulted. Within
 the hour it had surfaced the collisions and the non-contiguous `b`. **Same module, same
 assertion, opposite value**; the only difference was whether it could reach a fact belonging to

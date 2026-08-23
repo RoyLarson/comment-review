@@ -156,7 +156,7 @@ class Page:
     # to be the pages job."* MEASURED: `cue` never filled it and never read it
     # -- `tie_leading` here filled it, `compositor.set_page` read it, and
     # `addresser.py` held nothing but the declaration. It was parked there because
-    # the cues is what gets passed around, which is not a reason.
+    # the cues are what get passed around, which is not a reason.
     #
     # ! WHY THE PAGE AND NOT `cue`: `cue` runs before any prose is read,
     # and leading exists only where the LEXER found a blank run. `cue` cannot
@@ -471,7 +471,7 @@ def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
             #
             # !! SO ITS ORIGINAL LINES ARE None, NOT `insert..insert-1`. Roy,
             # 2026-08-20: a closed list of lines, *"or it is None, meaning there
-            # are currently no lines that have that cues."* WHERE the prose
+            # are currently no lines that have that foliation."* WHERE the prose
             # would go is `cues.inserts[cue_name]` and was never this field's
             # to say -- an empty slice standing in for a position is what taught
             # a reader to take these numbers for one.
@@ -599,7 +599,7 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     """Tie each run of leading to the place it FOLLOWS.
 
     !! LEADING IS AN EDGE, AND AN EDGE BELONGS TO THE PLACE BEFORE IT. Roy,
-    2026-08-21: *"the live first key folio lives, the drop first key dies."*
+    2026-08-21: *"the live first key foliation lives, the drop first key dies."*
     Every other series answers to a line of code and has a position in the
     walk's reading order; a run of blanks answers to neither, so it is filed
     under the place it comes after -- `f0 -> d0` reads as *the space below the
@@ -710,8 +710,8 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # Reversed -- each paragraph computing its own cue -- a place existed
         # only when prose happened to fill it, which is how the file's own
         # matter and the first gap came to be mutually exclusive -- one address
-        # for two places. `addresser` owns both halves: the cues
-        # assigns the numbering, `attach` reads which place this prose sits in,
+        # for two places. `addresser` owns both halves: it assigns
+        # the numbering, `attach` reads which place this prose sits in,
         # and the anchor comes from `cue` that emitted it rather than from a
         # second pass that could disagree with the first.
         prose = [vars(b) for b in got]
@@ -726,7 +726,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         document_declarations(got, declarations(text, lang, code), code)
         here = rel if rel is not None else path.as_posix()
         # !! THE PAGE MAKES THE MAPPING. Roy, 2026-08-21: *"the page makes the
-        # mapping between addresser and paragraph."* The lexer types a run
+        # mapping between foliator and paragraph."* The lexer types a run
         # `matter` and `cue` emits the places a file has for its own prose;
         # neither counts, so the Nth matter run takes the Nth place here --
         # which is what makes `f0` the head and `f1` the foot without either
@@ -903,8 +903,8 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     # one paragraph whose cue disagreed with the gap it sat in -- and the
     # clause was missing. Measured over 662 corpus files: 51 paragraphs where a
     # licence header was reported as an `interval`. Roy: *"we should have just
-    # made the front matter its own cues; then the rule that `b` owns all
-    # the lines that are not another cues's lines would explicitly stay
+    # made the front matter its own foliation; then the rule that `b` owns all
+    # the lines that are not another foliation's lines would explicitly stay
     # true."*
     #
     # !! LEADING IS IN THAT LIST BY ITS SYMBOL, not by an address, because it

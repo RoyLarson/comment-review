@@ -129,7 +129,7 @@ class Paragraph:
     #
     # !! STATED HERE BECAUSE ONLY A PARSER KNOWS IT. Python's docstring sits
     # AFTER its `def` and Rust's `///` sits BEFORE its `fn`, so position cannot
-    # answer which declaration a doc belongs to and the cues must not
+    # answer which declaration a doc belongs to and the addresser must not
     # guess. It reads this and names it `@aN`.
     declares: int = -1
     # !! THE LINE THIS PLACE'S ANCHOR SITS ON, so an anchor's OTHER places can
@@ -243,7 +243,7 @@ class Paragraph:
     # !! A CLOSED LIST OF LINES, OR None. Roy, 2026-08-20: *"the original lines
     # for `b`s are specifically the closed list of lines, `[1..7]` -- not
     # `(1..7)` or `[1..7)` -- or it is None, meaning there are currently no
-    # lines that have that cues."* Both ends are INCLUSIVE and both are
+    # lines that have that foliation."* Both ends are INCLUSIVE and both are
     # real lines of the file.
     #
     # ! SO THERE IS NO EMPTY-SLICE SENTINEL. `(n, n - 1)` used to say "holds
@@ -464,7 +464,7 @@ class Pair(NamedTuple):
 class Series(Enum):
     """Every series `cue` emits, each member its own `Pair`.
 
-    !! AN ENUM AND NOT A MAPPING. Roy, 2026-08-22: *"each cues gets its
+    !! AN ENUM AND NOT A MAPPING. Roy, 2026-08-22: *"each foliation gets its
     positive and its negative"*, and *"they are enums not a list."* The value IS
     the `Pair`, so the shape is readable in the declaration rather than assembled
     somewhere else, and `ABSENT` below is derived from these four.
@@ -919,7 +919,7 @@ def _leading(
 
     ! Every other series answers to a line of code. This answers to nothing --
     Roy accepted that when he took it: *"I like the leading solution even though
-    it added another cues and the anchors are empty."*
+    it added another foliation and the anchors are empty."*
 
     !! A BLANK LINE IS NOT ALWAYS AN EMPTY ONE, which is why `lines` is passed
     rather than the count. `raw_lines` was fabricated as `[""] * len(run)`, so a
@@ -1632,8 +1632,8 @@ def declarations(
     them down the page, which is the order the `a` series counts.
 
     !! AN EMPTY LIST MEANS THIS LANGUAGE HAS NO `a` SERIES, not "none found
-    here". Roy, 2026-08-20: *"we need to be able to distinguish `a` cues
-    for as many languages as there are `a` possible cues. yaml, toml are
+    here". Roy, 2026-08-20: *"we need to be able to distinguish `a` foliations
+    for as many languages as there are `a` possible foliations. yaml, toml are
     not ones."* A YAML file carried an `a0` -- a place for a module docstring in
     a language with no such thing -- which no verdict could ever fill.
 

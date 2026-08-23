@@ -52,7 +52,7 @@ anchor has many. A line has one.
 | `f` | the FILE's own matter | everything but the module | its own walk. `f0` today |
 
 !! **EVERY SERIES STARTS AT 0, AND A SKIPPED TRIGGER TAKES NO NUMBER.** Ruled by Roy,
-2026-08-20: *"let's initiate all of them at 0 ... the cues own their own rules on what is
+2026-08-20: *"let's initiate all of them at 0 ... the foliations own their own rules on what is
 skipped. `<module>` and its paragraph types get passed to all three, they each decide to record
 and increment independently."*
 
@@ -69,7 +69,7 @@ derive.
 
 !! **NO CUE CAN BE COMPUTED FROM ANOTHER, OR FROM A LINE'S ORDINAL.** Roy, 2026-08-19:
 *"remove any references that indicate anyone can expect that the next line of code is guaranteed
-to have the next cues index. It is a happenstance and may change at any point if it is
+to have the next foliation index. It is a happenstance and may change at any point if it is
 determined that another system will work better."*
 
 **Three ADDRESSERS, three counters, one trigger list.** Each walks the MODULE and then every line

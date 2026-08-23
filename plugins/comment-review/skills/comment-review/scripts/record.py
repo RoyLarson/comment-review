@@ -837,9 +837,9 @@ def pages_of(census: list[dict]) -> list[dict]:
     """The prose of every page in scope, as a page envelope each.
 
     !! ORDERED BY ANCHOR LINE, THEN BY SERIES LETTER. Roy, 2026-08-20: *"I don't
-    want to use cues NUMBER because that would imply it would not change."*
+    want to use foliation NUMBER because that would imply it would not change."*
     A sort on the number would encode a stability the cues explicitly
-    disclaims; the letter is fixed and the line is a fact about the file.
+    disclaim; the letter is fixed and the line is a fact about the file.
 
     ! It groups every place that is ABOUT one line of code, closest first -- a
     declaration's own documentation, then the gap above it, then the room

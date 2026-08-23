@@ -101,7 +101,7 @@ def reset(page, edits: dict[str, str]) -> list[str]:
     one line to four used to shift every range below it.
 
     !! A PLACE IS NEVER REMOVED -- IT IS VACATED. Roy, 2026-08-22, correcting the
-    reading of his own earlier ruling: *"I really meant that the place/cues
+    reading of his own earlier ruling: *"I really meant that the place/foliation
     becomes the empty sentinel, not that the place itself disappears. Places are
     involatile."* So `drop` does not delete anything: the paragraph stays, at the
     same address, holding no lines. That is what keeps it citable afterwards --
@@ -114,7 +114,7 @@ def reset(page, edits: dict[str, str]) -> list[str]:
     longer there and the space it introduced is no longer owed.
 
     ! THE LEADING BELOW IT IS VACATED TOO, for the same reason and by the same
-    rule: Roy, 2026-08-21, *"the live first key folio lives, the drop first
+    rule: Roy, 2026-08-21, *"the live first key foliation lives, the drop first
     key dies."* The `d` becomes the empty sentinel; it does not cease to exist.
     Without it the blank line the paragraph introduced stands over whatever
     follows.
@@ -207,7 +207,7 @@ def reset(page, edits: dict[str, str]) -> list[str]:
 def _vacate(paragraph, leading) -> None:
     """Empty this place and the space below it, without removing either.
 
-    !! THE EMPTY SENTINEL IS THE POINT. Roy, 2026-08-22: *"the place/cues
+    !! THE EMPTY SENTINEL IS THE POINT. Roy, 2026-08-22: *"the place/foliation
     becomes the empty sentinel, not that the place itself disappears."* Both
     paragraphs keep their address, their anchor and their position in the
     reading order; they hold no lines. A place that vanished could not be cited
