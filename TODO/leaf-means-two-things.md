@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 14 tasks done
+Progress: 0 of 15 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves
@@ -123,3 +123,12 @@ leafs I think is the correct term"*), then asking whether it is one.
 - [ ] ! AND `collate` IS FREED WHATEVER STAGE 2 BECOMES, which is the first
       starred blocker on `verdicts-is-the-join` -- collating would then mean what
       the trade means: transferring every hand's marks onto one proof.
+- [ ] `PORTFOLIO` IS PROPOSED FOR WHAT THE CENSUS PRODUCES. Roy, 2026-08-23: *"The
+      census creates a portfolio."* A portfolio is a case of LOOSE sheets --
+      gathered but unbound -- and it is the only container that makes `--filtered`
+      coherent: you cannot hand a reviewer pages 12, 40 and 88 of a bound book,
+      because the binding IS the order, but you can hand them sheets from a
+      portfolio. ! The word appears nowhere in the tree. ! It also names a THING
+      rather than an act, so it leaves the stage name free instead of competing
+      with FOLIATE. * Unruled; the one strain is that a trade portfolio usually
+      holds FINISHED work.
