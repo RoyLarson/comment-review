@@ -7,6 +7,17 @@ Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: since tomllib is available the language
           definitions should live in a toml file not in code)
+Cost:     2026-08-22 — THERE IS NO PARSER TO WRITE, AND NONE TO REPLACE. Roy,
+          2026-08-22: *"I really thought you had made a temporary parser for the toml
+          file since it was small and toml is pretty easy."* MEASURED: five readers
+          across this tree parse TOML and ALL FIVE use stdlib `tomllib` -- the shipped
+          `vocabulary.py`, `scripts/check_vocabulary.py`, `scripts/vocabulary_sweep.py`,
+          `scripts/fetch_corpora.py` for `corpora.toml`, and nothing hand-rolled
+          anywhere. `tomllib` is stdlib from 3.11, which IS the floor, verified on the
+          floor interpreter. ! So the work is three steps and no machinery: transcribe
+          the 18 rows, build `Language` from the table, and move the quotes-are-stated
+          test from reading the Python AST to asking whether a key is present. No
+          dependency, no parser, no floor risk.
 ```
 
 ## Objective
