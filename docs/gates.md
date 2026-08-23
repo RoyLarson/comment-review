@@ -67,6 +67,32 @@ the page and the census was doing the work each needed to do individually. So fr
 finish the old system was insufficient and mixed up concerns in so many places that it was never
 going to work."*
 
+## A measurement across two moving parts attributes to neither
+
+!! **THE MECHANISM MUST WORK END TO END BEFORE THE INSTRUCTIONS ARE TOUCHED**, and this is a
+measurement rule rather than a tidiness one. Change the machinery and the agent prose in one
+step and a movement in the output could be either -- nothing separates them afterwards, so the
+question *did the change help* cannot be asked at all, however carefully the run was graded.
+
+!! **MEASURED, AND IT COST EVERY RELEASE TO DATE.** Roy, 2026-08-23: *"v0.1.0, 0.2.0, 0.2.1,
+0.2.2, 0.2.3 are all conflated about how well the system works because the mechanics of the
+system didn't work and we changed both at the same time."* The 0.1.x line and 0.2.0 through
+0.2.3 each moved the census, the addressing or the join AND the four role files together. Every
+number in their evidence is real; none of it answers how well the SYSTEM works, because no run
+holds one side still.
+
+! **A CONFOUNDED RUN IS NOT A WEAKER MEASUREMENT, IT IS A DIFFERENT KIND OF THING.** A green
+gate that shares its subject's defect (above) still reports on something. This reports on a
+compound nobody will build again -- that mechanism with those instructions -- so the finding
+does not carry to the next version even when the numbers look good.
+
+! **WHAT IT ASKS OF A CHANGE THAT TOUCHES BOTH:** land the mechanism first with no agent file
+edited, and require that effectiveness does NOT move -- the machinery is a CONTROL, and a move
+there is the finding. Only then change what a role is told, against a baseline that now exists.
+The worked instance is
+[`code-concerns-cannot-carry-a-proposed-change`](../TODO/code-concerns-cannot-carry-a-proposed-change.md)
+then [`a-role-with-no-code-out-damages-the-prose`](../TODO/a-role-with-no-code-out-damages-the-prose.md).
+
 ## What to do with a new check
 
 - **Name the two sources.** What does the check read, and what does the subject read? If the
@@ -77,3 +103,6 @@ going to work."*
   is set from the cues while the file is read by the lexer -- two sources that must be made
   to agree rather than one consulted twice.
 - **A green run is not a report.** State what the check would have caught, not that it passed.
+- **Move one side at a time.** If the change touches the machinery AND what an agent is told,
+  the measurement attributes to neither. Land the mechanism first and require that nothing
+  moves; that null result is what makes the second step readable.
