@@ -118,8 +118,8 @@ the work in hand and the third is a different question wearing the same shape.
 
 | kind | the question | strength | answer key |
 | --- | --- | --- | --- |
-| REGRESSION | does the system still catch what it caught at `6c863b3e`? | strong | a commit we wrote |
-| KNOWN MISS | did it stop emitting the two-subject `patch` at `9a74c5f`? | strong | the role file's own trigger |
+| REGRESSION | does the system still catch what it caught at `1ad4ba72`? | strong | a commit we wrote |
+| KNOWN MISS | did it stop emitting the two-subject `patch` at `d3aa065`? | strong | the role file's own trigger |
 | DISCOVERY | does it find a defect class nobody has shown it? | weak from our history | none -- the point is that there is none |
 
 !! **The KNOWN MISS is the only kind that can prove a fix to the SYSTEM rather than to the
@@ -176,9 +176,9 @@ supplied both halves 2026-08-18; verified the same day:
 
 | pin | commit | where | durable |
 | --- | --- | --- | --- |
-| comment-review `v0.2.0` | `6eb409f1ec3a` | `origin/main`, annotated tag | yes |
-| comment-review `v0.2.1` | `324e4cf70bc6` | `origin/main`, annotated tag | yes |
-| comment-review `v0.2.2` | `ddd722bf48a1` | `origin/main`, annotated tag | yes |
+| comment-review `v0.2.0` | `a0801d49e5c8` | `origin/main`, annotated tag | yes |
+| comment-review `v0.2.1` | `bb3281769298` | `origin/main`, annotated tag | yes |
+| comment-review `v0.2.2` | `ccb2404cb250` | `origin/main`, annotated tag | yes |
 | redacted_corpus BASE | `REDACTED_SHA_E` | `origin/master` | yes |
 | redacted_corpus RUN | `REDACTED_SHA_F` | `origin/redacted-branch-b` (tip) | yes |
 | redacted_corpus todo-tool | `REDACTED_SHA_D` | `origin/todo-requires-roy`, 1 behind tip | yes |
@@ -250,7 +250,7 @@ only which side of the network each commit is on.
       real-world roles makes me think it is unlikely."* The four are a copy desk; `compact` and
       `review` are stages rather than members of the board.
 
-- [x] **Corrected 2026-08-18, `9a74c5f`.** The agent file now reads *"the truth of the
+- [x] **Corrected 2026-08-18, `d3aa065`.** The agent file now reads *"the truth of the
       ANCHORING, as against the truth of the ASSERTION -- the count, the bound, the worked
       example -- which belongs to the other three"*, and its frontmatter carries the same
       sentence. The text it replaced:
@@ -262,7 +262,7 @@ only which side of the network each commit is on.
       wording: the role that is never dropped should state its remit at full width, or a reader
       deciding a set will under-rate it.
 
-- [x] * **RULED 2026-08-18 by Roy: the PROJECT, and it shipped in `9a74c5f`.** The role file
+- [x] * **RULED 2026-08-18 by Roy: the PROJECT, and it shipped in `d3aa065`.** The role file
       now asks whether the block is about any specific piece of code or documentation IN THIS
       PROJECT, and says so twice -- the second question itself, and *"the right place is
       anywhere in the PROJECT, not only this file -- another module, or the documentation tree
@@ -396,7 +396,7 @@ only which side of the network each commit is on.
       *"Everything up-to-date"* and `git ls-remote` confirmed both. ! What the task
       leaves behind is the RULE above: ask the remote, not the clone.
 - [ ] !! TWENTY-ONE COMMITS ARE RECORDED AS FIXTURES -- `evidence/self-test-
-      commits.md`, range `dbf8dac..12b750e`. Each is a PROSE defect a person found
+      commits.md`, range `d96b10d..64ed7a4`. Each is a PROSE defect a person found
       by reading, with the fix commit as its answer key, and NOT ONE broke a test:
       the suite was green through all of them, 672 to 713 passing. ! Roy,
       2026-08-20: 'put the commit range in the evidence files or wherever we can

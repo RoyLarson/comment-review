@@ -130,7 +130,7 @@ saying so is more use than ruling it in.
       arithmetic-with-no-enforcing-line.
 - [ ] module-context: its role file lists three triggers for a module announcing
       more than one subject and never says what VERDICT one earns. Measured at
-      9a74c5f: it detected the two-subject module, quoted its own trigger, then
+      d3aa065: it detected the two-subject module, quoted its own trigger, then
       emitted a patch WIDENING the docstring to announce both -- the defect the
       trigger names, applied as the remedy. The same file already says a misplaced
       module constant is a CODE CONCERN, so the pattern exists and was not reached

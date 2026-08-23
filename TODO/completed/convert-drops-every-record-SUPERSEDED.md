@@ -8,7 +8,7 @@ Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
 Superseded: 2026-08-20 — 2026-08-20 -- all three tasks name code that no longer exists.
             held.convert, held.parse_report and record.py --convert were DELETED in
-            a74a037, with the 0.2.x TEXT format they read. Roy: 'we are not carrying a
+            2a86573, with the 0.2.x TEXT format they read. Roy: 'we are not carrying a
             backwards compatible shim right now, particularly on a format that was a
             proof-of-concept format.' ! The defect was real and is kept legible here:
             the guard tested whether an address was EMPTY when it needed to test whether

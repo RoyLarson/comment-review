@@ -27,7 +27,7 @@ because it is the one that looks most like success.
 !! **MEASURED 2026-08-21.** `compositor.set_page(page_for(text)) == text` is the strongest check
 this system has: it asks whether the model of a page is LOSSLESS, byte for byte, and nothing here
 could ask that before it existed. **Its first run scored 699 of 699 across ten languages**
-(`b8f9507`, 12:44).
+(`8c39da9`, 12:44).
 
 !! **157 ADDRESSES WERE HELD BY TWO PARAGRAPHS EACH AT THAT MOMENT, AND IT REPORTED NONE OF
 THEM.**
@@ -37,7 +37,7 @@ each paragraph's recorded line position -- so it reconstructed the text out of n
 just read from that text. The check and its subject shared a source, so agreement was guaranteed.
 A tautology with a green light on it.
 
-! **It became an instrument at `9ad6350`, 13:56**, when it was made to set from the FOLIATION
+! **It became an instrument at `7c9ad96`, 13:56**, when it was made to set from the FOLIATION
 instead -- every place named, in the order the walk emitted them, with no line consulted. Within
 the hour it had surfaced the collisions and the non-contiguous `b`. **Same module, same
 assertion, opposite value**; the only difference was whether it could reach a fact belonging to
@@ -49,13 +49,13 @@ Each concern returned to its owner made the same assertion sharper. Measured ove
 
 | | the move | found by |
 | --- | --- | --- |
-| `9ad6350` | the compositor sets from the reading order, not from line numbers | Roy, reading |
-| `cf2351c` | the LANGUAGE ROW states which side its documentation goes on | Roy, reading |
-| `9546d52` | the language rows become a LEAF, read by the lexer and compositor alone | Roy, reading |
-| `aacb345` | the LEXER types a paragraph `matter`; the page only maps it | the identity, silent on every `.py` |
-| `b8e3348` | `leading` takes the blanks a `b` owned on both sides | the identity, 16 of 185 files |
-| `bb2be6c` | the reading order is the WALK'S; `page.py` had overwritten it | reading, after an `add` vanished |
-| `d7734d2` | the galley stops splicing; a change is an assignment | the split, once the order was right |
+| `7c9ad96` | the compositor sets from the reading order, not from line numbers | Roy, reading |
+| `ee42920` | the LANGUAGE ROW states which side its documentation goes on | Roy, reading |
+| `f411b76` | the language rows become a LEAF, read by the lexer and compositor alone | Roy, reading |
+| `3ddf7b1` | the LEXER types a paragraph `matter`; the page only maps it | the identity, silent on every `.py` |
+| `875b0d4` | `leading` takes the blanks a `b` owned on both sides | the identity, 16 of 185 files |
+| `b998a60` | the reading order is the WALK'S; `page.py` had overwritten it | reading, after an `add` vanished |
+| `97359c2` | the galley stops splicing; a change is an assignment | the split, once the order was right |
 
 !! **SO THE ORDER IS NOT "BUILD THE DETECTOR, THEN IT FINDS THINGS."** The detector worked only
 to the degree the separation had already happened, and each increment of separation made it

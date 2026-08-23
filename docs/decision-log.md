@@ -44,7 +44,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
 - **#5.** **Leading will not be given a place, and the attempt is closed** (Roy, 2026-08-23: *"We
   tried leading getting a place. We tried several different ways. The constraints of coding AND
-  editing do not allow it."*). Tried three times -- `b8e3348`, `bb2be6c`, `1728d8a`. Two things
+  editing do not allow it."*). Tried three times -- `875b0d4`, `b998a60`, `c27ea1d`. Two things
   stop being determinable: where everything below an edit shifted to, and how much blank belongs
   where afterwards. ! **Unaddressed is not unrecorded**: `Page.leading` keys the fence on the
   place it follows, and the compositor puts it back exactly.

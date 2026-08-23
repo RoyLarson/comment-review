@@ -5,7 +5,7 @@ joined, ruled, spliced or written. Kept because the findings are unharvested and
 them costs what they cost: **~870,000 subagent tokens** -- 186k ownership, 184k module, 253k
 function, 247k block.
 
-**Subject:** `RoyLarson/comment-review` at **`9a74c5fadb0bd7376e855b9731a133951b7d235e`**, on
+**Subject:** `RoyLarson/comment-review` at **`d3aa0655b963f8b2fb9ef47d783ce9bffca09936`**, on
 `main`. **1,120 census blocks, 154 holding prose.**
 
 ```

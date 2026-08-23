@@ -7,7 +7,7 @@ Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'on the original every line belongs to 1
           paragraph and every paragraph belongs to 1 anchor')
-Done:     2026-08-20 — 2026-08-20 -- landed in dc384d7. `b` owns every line that is not
+Done:     2026-08-20 — 2026-08-20 -- landed in 4d576d3. `b` owns every line that is not
           an `a` or a `c`, on BOTH ranges. Measured over the 16 shipped scripts: 105
           lines in no paragraph became 0, and the 25 that were going to a module
           docstring go to the `b` instead. ! Ownership is by PRECEDENCE, not by non-
@@ -18,7 +18,7 @@ Done:     2026-08-20 — 2026-08-20 -- landed in dc384d7. `b` owns every line th
           done and stays with the galley work.
 Ruled:    2026-08-21 — Roy: 'b owns the blank line -- same answer as the blanks around
           a's and c's for the same reason. it is the flex in the system. it makes the
-          covering precise and full.' Landed in d0e5454: `recut` takes the FREE lines
+          covering precise and full.' Landed in 1f97878: `recut` takes the FREE lines
           only, so a `b` gives way to what sits inside its span. ! The cost is ruled too
           -- the series order is fixed at f, a, b, c, so front matter below a blank line
           is set above it. Lossy on ORDER, never on content, and handed to ownership-

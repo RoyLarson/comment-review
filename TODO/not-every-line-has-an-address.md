@@ -23,7 +23,7 @@ ADDRESS, AND A PARAGRAPH IS JUST THE LINES THAT SHARE ONE"* -- is false in its o
 editing do not allow it. It makes the shifting impossible to correctly determine and lay the prose
 back in."*
 
-! **THAT IS THE OPERATIVE REASON AND IT WAS NOT IN THE RECORD.** `1728d8a` already carries three
+! **THAT IS THE OPERATIVE REASON AND IT WAS NOT IN THE RECORD.** `c27ea1d` already carries three
 others -- a `d` has no anchor so it fails the substitution, `""` being the ABSENCE of an answer
 rather than one; every other place exists because the walk reached a trigger and THE TRIGGER IS
 THE ANCHOR, while a `d` exists only because the lexer found blank lines; and publishing agreeing
@@ -97,11 +97,11 @@ trade never needed a word for.
       a place, so the sentence is NARROWED rather than made true. Roy: *"We tried
       leading getting a place. We tried several different ways. The constraints of
       coding AND editing do not allow it."* ! It was ATTEMPTED, which the git
-      history shows in three commits -- `b8e3348` a fifth series, `bb2be6c` the
-      edge repair, `1728d8a` the retreat to a symbol. Recorded so a fourth attempt
+      history shows in three commits -- `875b0d4` a fifth series, `b998a60` the
+      edge repair, `c27ea1d` the retreat to a symbol. Recorded so a fourth attempt
       is not made.
 - [ ] ! PUT ROY'S TWO REASONS INTO `addresser.py` BESIDE THE NARROWED SENTENCE.
-      `1728d8a` already carries the substitution argument, the trigger-is-the-
+      `c27ea1d` already carries the substitution argument, the trigger-is-the-
       anchor cause and the measurement analogy; none of them says what breaks
       DOWNSTREAM. ! Make the slack addressable and neither the SHIFTING nor the
       AMOUNT can be determined -- and the amount is a typographic judgement, not a

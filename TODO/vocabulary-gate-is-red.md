@@ -24,13 +24,13 @@ The vocabulary gate is red, and the test that would say so does not exist.
       -- `block-context`, `function-context`, `module-context`, `ownership-
       context` -- are handed the term `original`, which their own text never uses.
       `references/vocabulary.toml:128,164,201,240`. Branch-introduced: 1
-      occurrence at `f9a2e00`, 5 at HEAD.
+      occurrence at `3e1fedf`, 5 at HEAD.
 - [ ] !! AND THE SUITE IS GREEN WITH THE GATE RED. `tests/test_vocabulary.py`
       asserts `check_duplicate() == 0` and `check_retired() == 0` and NEVER
       asserts `check_drift() == 0`. CLAUDE.md requires this gate after any edit to
       an agent file or a reference, and this branch edited all of them.
 - [ ] ! I REPORTED THIS GATE AS PASSING THREE TIMES on 2026-08-20 -- in the commit
-      messages for dc384d7 and others -- because I piped it through `tail -2`,
+      messages for 4d576d3 and others -- because I piped it through `tail -2`,
       read the last line, and never checked `$?`. The commit messages are wrong
       where they say `vocabulary gate 0`.
 - [ ] `check_vocabulary.py:88`'s retired-word regex uses `\w` boundaries, so

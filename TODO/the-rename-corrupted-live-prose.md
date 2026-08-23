@@ -16,9 +16,9 @@ The block-to-paragraph rename corrupted a verb inside the verdict table.
 
 - [ ] !! `SKILL.md:68`, INSIDE THE VERDICT TABLE: *"`query` | unsettled | resolve
       it or escalate it. It PARAGRAPHS every other verdict on that sentence"*.
-      `git show f9a2e00:...SKILL.md | sed -n 68p` reads *blocks* -- the verb. This
+      `git show 3e1fedf:...SKILL.md | sed -n 68p` reads *blocks* -- the verb. This
       is the task agent's ONLY statement of what `query` obliges. Introduced by
-      304376e.
+      713f8af.
 - [ ] Twice more in `references/compact.md:30-31`: *"does not PARAGRAPH this
       pass"* and *"Read as 'unresolved PARAGRAPHS stage 6'"*.
 - [ ] !! `agents/comment-review-block-context.md:7-8` TELLS THE AGENT ITS OWN ROLE

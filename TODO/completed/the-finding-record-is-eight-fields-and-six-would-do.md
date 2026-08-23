@@ -17,7 +17,7 @@ ruled, so the reason they were held back is gone.
 
 **The record shipped with five fields and now has eight, and every field added since exists to
 serve the GATE, not the reviewer.** `BLOCK` and `EVIDENCE` came in with `5f14da7` (parse the
-findings and gate stage 5), `QUOTE` with `706686d` (split QUOTE from SUMMARY). Roy's memory of
+findings and gate stage 5), `QUOTE` with `cb7e361` (split QUOTE from SUMMARY). Roy's memory of
 the original -- *"Line | summary | reason | and something else"* -- is `LOCATION`, `SUMMARY`,
 `FINDING`, `VERDICT`, `CHANGE`, exactly as imported at `9932c3f`.
 
@@ -47,7 +47,7 @@ loads the census and takes only `len(blocks)` from it.
       because verbatim text can contain a comma.
 
 - [x] Keep `SOURCE` merged, not re-split. `EVIDENCE` and `QUOTE` were ONE field until
-      `706686d` split them, because the old `SUMMARY` mixed verbatim with derived text and a
+      `cb7e361` split them, because the old `SUMMARY` mixed verbatim with derived text and a
       checker cannot verify both in one field. `SOURCE`'s two halves are both verbatim, so the
       merge does not recreate that. ! Do not merge anything DERIVED into it.
       ! **HELD.** One field, and both halves verbatim -- which is why the merge does not

@@ -31,11 +31,11 @@ is the SOURCE**, and every held run records the hash to get it.
 
 | held run | subject, as its own README states |
 | --- | --- |
-| `evidence/cycle-0.2.3/` | **this repo**, `feat/0.2.3-cycle-and-record` @ `6c863b3` |
+| `evidence/cycle-0.2.3/` | **this repo**, `feat/0.2.3-cycle-and-record` @ `1ad4ba7` |
 | `evidence/todo-tool-full-run/` | `redacted_corpus`, `todo-requires-roy` @ `REDACTED_SHA_D` |
 | `evidence/redacted-corpus-full-v0_2/` | `redacted-branch-b` @ `REDACTED_SHA_F`, base `REDACTED_SHA_E` |
 
-! **`cycle-0.2.3` is the cheap first case**: `6c863b3` is in this repo's own history, so it needs
+! **`cycle-0.2.3` is the cheap first case**: `1ad4ba7` is in this repo's own history, so it needs
 no clone and the answer can be checked by reading.
 
 **The recipe, which is why this is a script and not a feature:**
@@ -62,7 +62,7 @@ This buys back the runs already in `evidence/`, and only those.
       held start line, and it is a guess until it is checked against a run whose
       answer is known. Block boundaries moved between census versions -- the held
       census has no `margin` and no `undocumented`.
-- [ ] Start with `evidence/cycle-0.2.3/` -- its subject is THIS repo at `6c863b3`,
+- [ ] Start with `evidence/cycle-0.2.3/` -- its subject is THIS repo at `1ad4ba7`,
       so it needs no clone and the result can be checked by reading.
 - [ ] The script reads the held report's RAW text. `record.parse_report` discards
       `LOCATION`, which is the only field that can place a record once the source
