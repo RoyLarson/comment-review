@@ -31,7 +31,7 @@ import re
 import sys
 import tokenize
 from dataclasses import dataclass, field
-from enum import Enum, StrEnum
+from enum import Enum, IntEnum, StrEnum
 from pathlib import Path
 from typing import NamedTuple
 
@@ -59,6 +59,42 @@ __all__ = [
     "language_for",
     "tier_for",
 ]
+
+
+class Layout(IntEnum):
+    """Python's LAYOUT tokens: the ones carrying neither code nor prose.
+
+    !! IT IS A CATEGORY AND IT HAD NO NAME. The reader spelled it as two
+    membership tests joined by `or`, over the same operand with disjoint
+    literals -- so what these five have in common was stated nowhere and had to
+    be re-derived by anyone reading the branch. They are what the tokenizer
+    emits to describe SHAPE: where a line ends, where a suite opens and closes,
+    where the file stops.
+
+    ! WHAT ASKS: a comment run SURVIVES every one of them and is ended by
+    anything else. That rule is only sayable once the category has a name.
+
+    ! IT LIVES HERE AND NOT IN `constants`, because it is a fact about CPython's
+    tokenizer rather than about a file. Roy, 2026-08-22, moving it back: *"it is
+    a specific thing to the ast of python."*
+    """
+
+    NL = tokenize.NL
+    NEWLINE = tokenize.NEWLINE
+    INDENT = tokenize.INDENT
+    DEDENT = tokenize.DEDENT
+    ENDMARKER = tokenize.ENDMARKER
+
+
+#: Membership is asked of THIS, never of `Layout` itself.
+#:
+#: !! `x in Layout` RAISES ON THE FLOOR. MEASURED 2026-08-22 on 3.11.15:
+#: `TypeError: unsupported operand type(s) for 'in': 'int' and 'EnumType'`, with
+#: a DeprecationWarning saying 3.12 will answer True or False instead. A token
+#: type is a plain `int`, so the enum cannot be asked directly until the floor
+#: moves -- and a form that works on the dev machine and raises for a user is
+#: exactly what the floor rule exists to stop.
+LAYOUT = frozenset(Layout)
 
 
 @dataclass
@@ -1794,11 +1830,11 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
             # reviewer one paragraph built from two comments.
             if trailing:
                 flush()
-        elif raw.type in (
-            tokenize.NL,
-            tokenize.NEWLINE,
-            tokenize.INDENT,
-        ) or raw.type in (tokenize.ENDMARKER, tokenize.DEDENT):
+        # ! A COMMENT RUN SURVIVES LAYOUT AND IS ENDED BY ANYTHING ELSE. The
+        # five types are named as one category in `constants.LAYOUT_TOKENS`; this
+        # asked the same operand twice against two disjoint tuples, which said
+        # nothing about what they have in common.
+        elif raw.type in LAYOUT:
             continue
         else:
             flush()
