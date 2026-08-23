@@ -1413,7 +1413,7 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
         # !! The lexical tier stamps `docstring` on any run opening with a
         # language's doc marker. Reading `///` as a quoted literal leaves the
         # marker in the prose and refuses every doc comment in ten of the
-        # eleven languages -- everything but Python.
+        # seventeen languages -- everything but Python.
         rust = ["/// Returns the budget.", "/// Callers round separately."]
         self.assertEqual(
             lexer.block_text("docstring", rust, ("///", "//!", "//"), structural=False),

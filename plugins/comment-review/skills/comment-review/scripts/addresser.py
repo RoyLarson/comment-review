@@ -847,7 +847,7 @@ def flatten(path: str) -> str:
 
     !! THE EXTENSION STAYS. Dropping it reads better and reintroduces collisions
     the moment a repo holds `b.py` beside `b.rs` -- which this census supports by
-    design, eleven languages in one run. Roy ruled it 2026-08-18: "we could have
+    design, eighteen languages in one run. Roy ruled it 2026-08-18: "we could have
     mixed languages in the system with the same names that without that we are
     back to collisions."
 

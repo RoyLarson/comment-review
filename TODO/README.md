@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (80)
+### open  (81)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -262,6 +262,7 @@ that changed a published name or rule:
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | yes | 0/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [retired-word-in-a-quote](retired-word-in-a-quote.md) | systems | yes | 0/5 | folio cannot join RETIRED without exempting the five core modules whole, because each quotes a ruling made when the word was current |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | — | 0/5 | 31 relative links resolve nowhere, and two of them are in a live TODO |
+| [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | — | 0/4 | A per-language fixture can pass without exercising the shape its language is measured on |
 
 ### in-progress  (4)
 
