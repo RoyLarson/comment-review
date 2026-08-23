@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (82)
+### open  (83)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -257,6 +257,7 @@ that changed a published name or rule:
 | [page-and-foliator-scans](page-and-foliator-scans.md) | comment-review | — | 0/7 | page.py and foliator.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | comment-review | yes | 0/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | comment-review | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
+| [exception-hierarchy](exception-hierarchy.md) | comment-review | — | 0/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 
 ### in-progress  (5)
 
