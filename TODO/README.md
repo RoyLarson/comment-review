@@ -173,7 +173,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (83)
+### open  (84)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -260,6 +260,7 @@ that changed a published name or rule:
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | yes | 0/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [retired-word-in-a-quote](retired-word-in-a-quote.md) | systems | yes | 0/5 | folio cannot join RETIRED without exempting the five core modules whole, because each quotes a ruling made when the word was current |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 0/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
+| [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | — | 0/4 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 
 ### in-progress  (5)
 
