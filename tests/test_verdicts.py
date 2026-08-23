@@ -944,7 +944,9 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
         self.assertIsNone(self._at(address="redacted_pkg.rates.py@b1"))
 
     def test_an_address_naming_the_wrong_file_is_refused(self):
-        self.assertIn("is not in the census", self._at(address="redacted_pkg.other.py@b0"))
+        self.assertIn(
+            "is not in the census", self._at(address="redacted_pkg.other.py@b0")
+        )
 
     def test_the_retired_LINE_form_is_no_longer_accepted(self):
         # !! BOTH TOLERANCES WENT WITH THE FORM THEY FORGAVE. A line address is
