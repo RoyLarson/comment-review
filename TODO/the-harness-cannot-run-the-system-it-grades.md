@@ -48,7 +48,8 @@ Ruled:    2026-08-23 — 2026-08-23 by Roy: there is never going to be an oracle
           is.
 Ruled:    2026-08-23 — 2026-08-23 by Roy: a version changes the AGENTS or the MACHINERY,
           never both, so a test can say whether the python tools got better or the agent
-          reviews did. Recorded as `decision-log.md Process: #5` and #6. ! It does NOT
+          reviews did. Recorded as `decision-log.md Process: #5` and
+          `decision-log.md Process: #6`. ! It does NOT
           hold retroactively -- the current work changed both -- so every score taken
           before it is uncomparable and the baseline has to be retaken. !! PREDICTION,
           not a ruling, and dated so it can be checked: Roy expects the python side to
