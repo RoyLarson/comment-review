@@ -71,11 +71,18 @@ judgement this whole system exists to replace.
 ### B -- Build the four mechanics
 
 - [ ] **B1 -- ISOLATE: snapshot the skill at a ref and prove the run used the snapshot.**
-      Works `the-harness-cannot-run-the-system-it-grades`. `cp -r` the plugin's skill directory
-      out of a `git worktree` at the pinned ref, hand the subagent that path. ! **Proving it is
-      the box, not doing it** -- a run that silently used the installed skill scores the wrong
-      tree. Verify: the run records the snapshot path and the ref it came from, and a deliberate
-      mismatch is detectable.
+      Works `the-harness-cannot-run-the-system-it-grades` and `isolate-the-codes-contribution`.
+      `cp -r` out of a `git worktree` at the pinned ref, hand the subagent that path. ! **Proving
+      it is the box, not doing it** -- a run that silently used the installed skill scores the
+      wrong tree. Verify: the run records the snapshot path and the ref it came from, and a
+      deliberate mismatch is detectable.
+
+      !! **SNAPSHOT THE WHOLE PLUGIN, NOT JUST `skills/comment-review/`.**
+      `isolate-the-codes-contribution` needs arm A to be *"v0.2.3 code with v0.2.3 agents exactly
+      as tagged"* -- so the SCRIPTS and the AGENTS have to travel together at one ref, or the two
+      things the split exists to separate get mixed at the point of capture. ! And the tags here
+      are ANNOTATED: `v0.2.3^{}` for the commit, which that TODO calls *"the trap anyone
+      re-deriving which code produced a measurement hits first"*, and which this session hit.
 
 - [ ] **B2 -- STAGE: materialise START into the directory to be graded.** Works
       `the-harness-cannot-run-the-system-it-grades`. Check the START hash out, copy the case's
@@ -207,3 +214,27 @@ against a known answer; E1's method is what measures its spread.
   ! **Its two `*` rulings are not this plan's to ask for** -- what `address:lines` does with a
   code RANGE, and what bounds a FREEFORM source. A case asserting at MARK level does not reach
   either, which is one more reason the first case stops at the record file.
+
+- **`held-runs-need-a-one-off-migration`, and this plan makes the case for it WEAKER.** It is
+  already `blocked`/deferred -- Roy, 2026-08-19: *"a one-off script thing and not worth doing
+  right now"* -- and its own note says nothing depends on it. ! The harness produces NEW runs in
+  the current format, so it never reads a held 0.2.x report; and `isolate-the-codes-contribution`
+  already records that the held runs cannot serve as a baseline anyway, because
+  `evidence/cycle-0.2.3/` is *"a MECHANICAL run ... and carries no hazard grade"*. **Both arms
+  have to be run fresh regardless.** It stays deferred, waiting on someone needing a specific
+  held run replayed.
+
+- **RUNNING `isolate-the-codes-contribution`'s two arms.** This plan BUILDS what that measurement
+  needs -- B1 snapshots a whole plugin at a tag, B3 runs two arms in one turn -- but its own
+  question (*"how much of the improvement is the code, and not the orchestration"*, graded on the
+  twelve planted hazards via `grade_hazards.py`) is a second measurement with a different
+  instrument. ! **It is UNBLOCKED by this plan, not performed by it.**
+
+  !! **AND ITS CENTRAL CONSTRAINT WAS RULED INDEPENDENTLY THE NEXT DAY.** Raised 2026-08-22, it
+  says the rewording is the confound and *"the substitution must be MECHANICAL AND DIFFABLE: a
+  dictionary rename only, no new instruction, no restructured stage, no sharpened sentence."*
+  That is `decision-log.md Process: #5`'s vocabulary carve-out, stated a day early -- and
+  measured true 2026-08-23: the six agent files move 29/29 between `v0.2.3` and HEAD, and that is
+  a rename plus exactly one orchestration change (four parallel reviewers becoming three at stage
+  4c). ! `check_vocabulary.py` is what says the result speaks the shipped language, and it passes
+  today at 59 terms, 0 drifted.
