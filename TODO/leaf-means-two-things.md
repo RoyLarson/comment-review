@@ -2,55 +2,62 @@
 
 ```
 Status:   open
-Progress: 0 of 18 tasks done
+Progress: 0 of 19 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves
           -- the sense foliator.py rules against)
 Narrowed: 2026-08-23 — paginate ruled out for stage 2 on the split-infinite-output
           sense; the leaf premise is what the remaining choice turns on
+Settled:  2026-08-23 — the binder model closes it -- no leaf in the picture, folio
+          becomes cue, and Foliation needs no exotic noun because completeness is in the
+          tabbing practice
 ```
 
 ## Objective
 
-**A leaf is ONE SHEET and carries TWO pages, recto and verso. This tree uses it for the page in
-one shipped definition and for the PLACE in another, and both are wrong against the trade.**
+**The model is settled, 2026-08-23, and it is one picture in one register.** Roy: *"by the time
+we are back to census I think we are back to it being a Binder of pages. The cues are the little
+sticky notes that we put on the edge of the page and, like an overly diligent person, we also
+sticky-noted the places where we might want to insert text explicitly."*
 
-!! **THE FALSE ONE IS SHIPPED AS A DEFINITION AGENTS READ.** `references/vocabulary.toml:81`:
+| | what it is |
+| --- | --- |
+| **binder** | what the census supplies -- loose pages, kept in order but not bound to it, updated by replacing one page |
+| **page** | one file |
+| **cue** | the tab on the page edge. It carries NO content, only the claim that content belongs here |
+| **note** | the prose a cue points at |
+| **address** | `path@cue` -- the full routing, with the runner's root implicit and never written |
 
-> `folio = "The `b3` half of an address, after the `@`. A leaf's number in publishing, which is
-> what it is here."`
+!! **THIS DISSOLVES BOTH HALVES OF THIS FILE RATHER THAN SETTLING THEM.** There is no leaf in the
+picture at all, so the two contradicting definitions have nothing to contradict about; and `folio`
+becomes `cue`, so the false equivalence in `vocabulary.toml:81` -- *"a leaf's number in
+publishing, which is what it is here"* -- goes with the word.
 
-! **`b3` is the fourth gap on one page.** It is not any leaf's number, and the clause *"which is
-what it is here"* asserts the equivalence rather than merely borrowing the word. A reviewer is
-given this and nothing contradicts it.
+!! **AND COMPLETENESS LIVES IN THE PRACTICE, NOT IN THE NOUN**, which is what ends the search for a
+word for `Foliation`. Roy asked for *"a name for a contiguous list of addresses"* -- his block,
+where every lot has an address whether or not a house sits on it. `cadastre` was the exact word
+for that and carries completeness IN the word. ! It is not needed: an overly diligent person tabs
+every place they might insert, so *every cue on this page* is already the full enumeration. **The
+tabbing habit delivers what the noun would have promised**, and that habit is what `foliate` does
+-- it emits a place per trigger whether prose sits there or not.
 
-!! **AND A RULING RESTS ON THE SAME PREMISE.** `foliator.py:17` reads *"FOLIATION, not
-pagination: the numbering of LEAVES, which is what a place is."* The choice between the two words
-is justified by the claim that a place is a leaf. **A place is not a leaf**, so the reason given
-does not hold -- whatever the right answer turns out to be.
+! **THE FAR-AFIELD CANDIDATES ARE RECORDED AND NOT TAKEN.** `cadastre`, `plat`, `registrar`,
+`address space`, `cue sheet` -- all free, all measured. Roy: *"going too far afield too many times
+on this is not an ideal thing."* ! `cadastre` and `plat` are land-law and surveying, which is the
+neighbourhood `jurisdiction` came from before it became `remit` -- the recorded example of a term
+checked for collisions and never for register. **The binder picture needs no second register.**
 
-! **The trade's split is narrow and neither half fits:** foliation numbers LEAVES, the practice
-that predates page numbers; pagination numbers PAGES. This system numbers **positions within a
-page**, which is neither, because a proof is marked by MARGIN AND LINE and the trade never needed
-addressable slots.
+! **`register` ITSELF IS TAKEN TWICE** and was refused on that: 48 uses, mostly the linguistic
+sense this repo's whole method runs on, plus `printing register`, where being out of register is a
+press defect.
 
-! **`page` and `place` are both correct and are not in question.** A file has one continuous side
-and no verso, so it is a page and there is no leaf anywhere in the model. What has no trade word
-is the numbering of places -- which the register rule permits as a coinage, since the method is
-to name the job by what it DOES and take the trade's word only where one exists.
-
-! **The dependency-graph sense is a separate matter and reads as harmless** -- `constants.py`'s
-ULTIMATE LEAF, ruled 2026-08-22. Different domain, no overlap in what it operates on, which is
-the test `docs/vocabulary.md` states for allowed polysemy. What is missing there is the
-DECLARATION, not the separation.
-
-!! **`check_vocabulary.py` CANNOT SEE ANY OF THIS**, and extending it is not the obvious fix: it
-refuses a term defined twice and a term no role uses, and both `leaf` claims sit INSIDE other
-terms' definition strings, where nothing reads them as definitions at all.
-
-! Raised by Roy, 2026-08-22, in two steps -- first using the word (*"stacks them together into
-leafs I think is the correct term"*), then asking whether it is one.
+!! **THE GUARD, KEPT AS A TEST.** Roy: *"I want to be careful in this because I don't want the
+line-numbers creeping in again."* **A name reinvents line numbers if it implies POSITION MEASURED
+FROM A START** -- `index`, `sequence`, `ordinal` all fail it. ! And this is why `b3` is not a line
+number even though it is the fourth gap: it is assigned once by walking CODE, and code does not
+move when prose is edited. **Line numbers fail because the thing they count is the thing the edit
+changes.**
 
 ## Tasks
 
@@ -153,3 +160,9 @@ leafs I think is the correct term"*), then asking whether it is one.
       NOT A LINE NUMBER even though it is the fourth gap: it is assigned once by
       walking CODE, and code does not move when prose is edited. Line numbers fail
       because the thing they count is the thing the edit changes.
+- [ ] ! WHAT REMAINS IS MECHANICAL, NOT A RULING: 278 `folio` sites become `cue`,
+      and `Foliation`/`foliate`/`foliator` follow the addresser rename. ! HISTORY
+      KEEPS THE OLD NAMES -- `docs/history.md`, `TODO/completed/`, `CHANGELOG.md`
+      and `evidence/` record what the system WAS, and renaming inside them is what
+      makes an old artifact unreadable, which is the thing those files exist to
+      prevent.
