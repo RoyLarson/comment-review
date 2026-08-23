@@ -49,7 +49,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 # 2026-08-22: *"the guard lives in a constants.py file. The test verifies no
 # readers or printers are missing the guard."* ! `constants` imports nothing
 # from this package, so taking it acquires no other dependency.
-from constants import utf8_console  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402  -- path shim must run first
 
 REQUIRED = (
     "REPO ROOT",
@@ -299,7 +299,7 @@ def invalid_answers(text: str) -> list[str]:
 
 def main() -> int:
     """Print the template, or check a filled packet."""
-    utf8_console()
+    constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--template", action="store_true")
     ap.add_argument("--check", metavar="FILE")

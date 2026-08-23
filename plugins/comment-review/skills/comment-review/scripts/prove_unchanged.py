@@ -39,7 +39,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from constants import utf8_console  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402  -- path shim must run first
 
 # ! `READ_ERRORS` is IMPORTED. It is bound to a NAME so no `except` clause here
 # holds a tuple literal; `repo.py` carries that reason once.
@@ -141,7 +141,7 @@ def _without_comments(text: str, path: Path) -> str | None:
     if any(q in text for q in lang.spanning_quotes):
         return None
 
-    lines = text.splitlines()
+    lines = constants.text_lines(text)
     # Pre-seed every line as itself; a paragraph below either drops its entry
     # (None) or replaces it with the code prefix it proved survives.
     kept: dict[int, str | None] = {i + 1: ln.rstrip() for i, ln in enumerate(lines)}
@@ -261,7 +261,7 @@ def main() -> int:
     """Prove every named path, and report what could not be proven."""
     # UTF-8 with replacement, so an em-dash in someone's docstring still prints
     # on a console whose encoding lacks it.
-    utf8_console()
+    constants.utf8_console()
 
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="+")

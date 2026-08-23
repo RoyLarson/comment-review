@@ -81,7 +81,7 @@ from pathlib import Path
 # sibling importer that did not.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from constants import utf8_console  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402  -- path shim must run first
 from desk import (  # noqa: E402  -- path shim must run first
     _words,
     address_problem,
@@ -276,7 +276,7 @@ def contradictions(
 
 def main() -> int:
     """Join the reports, report what is inadmissible, and gate on it."""
-    utf8_console()
+    constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "reports",

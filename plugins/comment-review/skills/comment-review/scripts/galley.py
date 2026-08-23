@@ -60,7 +60,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import compositor  # noqa: E402  -- path shim must run first
-from constants import utf8_console  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402  -- path shim must run first
 
 # !! THE ONE `folio_of`, since 2026-08-22. This module had a second of its own --
 # `str(address).split("@")[-1]` -- and the two DISAGREED on a malformed address:
@@ -165,7 +165,7 @@ def reset(page, edits: dict[str, str]) -> list[str]:
             )
             continue
         if replacement:
-            found[0].raw_lines = replacement.splitlines()
+            found[0].raw_lines = constants.text_lines(replacement)
             continue
         # ! AN EMPTY REPLACEMENT IS A VACATION -- a `drop`, or the source half
         # of a `move`. Anything else leaves the space below untouched, because
@@ -310,7 +310,7 @@ def drifted(page, census: list[dict]) -> list[str]:
 def main() -> int:
     """Set a galley of every page an edit touches, and report what refused."""
     # A Windows console is cp1252; one non-ASCII glyph in a report kills the run.
-    utf8_console()
+    constants.utf8_console()
 
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--repo", default=".", help="repo root the census resolves against")

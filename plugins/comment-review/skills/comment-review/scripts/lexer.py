@@ -40,6 +40,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 # !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS TWO IMPORTERS -- see
 # `language.py`. Everything a language says about where its documentation sits is
 # stated there and read here; no module above this one asks a language anything.
+import constants  # noqa: E402  -- path shim must run first
 from language import (  # noqa: E402  -- path shim must run first
     BY_EXT,
     LANGUAGES,
@@ -837,7 +838,7 @@ def leading_between(paragraphs: list["Paragraph"], text: str) -> list["Paragraph
     Returns:
         One paragraph per unheld blank run, in order.
     """
-    lines = text.splitlines()
+    lines = constants.text_lines(text)
     held = set()
     for b in paragraphs:
         if b.original_start:
@@ -948,7 +949,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     comment; `prove_unchanged.py` refuses the whole file on that annotation.
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
-    lines = text.splitlines()
+    lines = constants.text_lines(text)
     out: list[Paragraph] = []
     run: list[tuple[int, str]] = []
     # ! Blank lines seen since the last comment line. They join the run only if
@@ -1425,7 +1426,7 @@ def flag_structural_docs(
     """
     if not lang.doc_is_structural:
         return
-    lines = text.splitlines()
+    lines = constants.text_lines(text)
     for paragraph in paragraphs:
         # Only a leading `comment` run can be a positional doc: a trailing
         # comment annotates the code on its own line.
@@ -1657,7 +1658,7 @@ def declarations(
 def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
     """Comment paragraphs (bounded by CODE) and docstrings, via tokenize + ast."""
     out: list[Paragraph] = []
-    source_lines = text.splitlines()
+    source_lines = constants.text_lines(text)
     # (line, physical source line, the comment token alone, is it trailing)
     # ! THE LAST FIELD IS A COLUMN, NOT A FLAG, and was annotated `bool`. It is
     # the column when code precedes the comment and 0 otherwise -- ONE fact,

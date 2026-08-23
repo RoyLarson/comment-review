@@ -60,6 +60,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import constants  # noqa: E402  -- path shim must run first
 from foliator import (  # noqa: E402  -- path shim must run first
     COVERS,
     DECLARED,
@@ -288,7 +289,7 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
             occupied.discard(start)
     return {
         n: beside.get(n) or line.rstrip()
-        for n, line in enumerate(text.splitlines(), 1)
+        for n, line in enumerate(constants.text_lines(text), 1)
         if line.strip() and n not in occupied
     }
 
@@ -456,7 +457,7 @@ def empty_places(
     Returns:
         The empty paragraphs, in no particular order -- the caller sorts.
     """
-    lines = text.splitlines()
+    lines = constants.text_lines(text)
     last = len(lines)
     # ! WHICH LINES ARE ALREADY SPOKEN FOR IS NOT ASKED HERE ANY MORE.
     # `fill_the_gaps` runs after every paragraph exists and settles it once, for
@@ -897,7 +898,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     the gap. 25 of the 105 were going to an `a` because this extended whichever
     paragraph opened the gap.
     """
-    source = text.splitlines()
+    source = constants.text_lines(text)
     code = list(code_lines(text, [vars(b) for b in paragraphs]))
     last = len(source)
     edges = [0, *code, last + 1]

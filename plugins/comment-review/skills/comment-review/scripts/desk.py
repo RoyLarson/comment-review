@@ -31,6 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import constants  # noqa: E402  -- path shim must run first
 from foliator import flatten, folio_of  # noqa: E402  -- path shim must run first
 from lexer import block_text, language_for  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
@@ -272,7 +273,9 @@ def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | 
     if not target.is_file():
         return f"{cite} does not resolve to a file"
     try:
-        lines = target.read_text(encoding="utf-8", errors="replace").splitlines()
+        lines = constants.text_lines(
+            target.read_text(encoding="utf-8", errors="replace")
+        )
     except READ_ERRORS as e:
         return f"{cite} unreadable ({type(e).__name__})"
     if end > len(lines):

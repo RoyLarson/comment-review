@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 # ! ITS FIRST SIBLING IMPORT -- see `run_context.py`, which took one for the same
 # reason on the same ruling. This module's own copy of the guard was the one
 # carrying a comment true of it and false of the other nine.
-from constants import utf8_console  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402  -- path shim must run first
 
 VOCABULARY = Path(__file__).resolve().parent.parent / "references" / "vocabulary.toml"
 
@@ -91,7 +91,7 @@ def main() -> int:
     # dashes; since the tree went ASCII there are none, and `vocabulary.toml`
     # holds no character above U+007F. The guard now stands against a
     # definition someone else adds, not against the text shipped here.
-    utf8_console()
+    constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--reviewer", choices=[r.value for r in Reviewer])
     ap.add_argument("--roles", action="store_true", help="list the roles and exit")

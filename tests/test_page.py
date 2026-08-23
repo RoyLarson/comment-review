@@ -27,8 +27,16 @@ import page
 SIBLINGS = {p.stem for p in SCRIPTS.glob("*.py")}
 
 
+# !! A LEAF IS NOT A DEPENDENCY, and every rule below is about dependencies.
+# `constants` imports nothing from this package -- it holds the console guard and
+# `text_lines`, the one definition of where a line of a FILE ends -- so taking it
+# acquires no subject and can carry no notion of anything. See `constants.py`,
+# which states that contract itself.
+LEAF = {"constants"}
+
+
 def _imports(name: str) -> set[str]:
-    """The sibling modules `name` imports."""
+    """The sibling modules `name` imports, LEAVES excluded."""
     tree = ast.parse((SCRIPTS / f"{name}.py").read_text(encoding="utf-8"))
     got = set()
     for node in ast.walk(tree):
@@ -36,7 +44,7 @@ def _imports(name: str) -> set[str]:
             got.add(node.module.split(".")[0])
         elif isinstance(node, ast.Import):
             got.update(a.name.split(".")[0] for a in node.names)
-    return got & (SIBLINGS - {name})
+    return got & (SIBLINGS - {name} - LEAF)
 
 
 class TestTheTwoLeaves(unittest.TestCase):
@@ -53,11 +61,7 @@ class TestTheTwoLeaves(unittest.TestCase):
         # says -- git, the filesystem, the exception tuples -- and carries no
         # notion of prose at all.
         #
-        # ! `constants` likewise, and for a stronger reason: it is a LEAF that
-        # imports nothing from this package, so taking it acquires no dependency
-        # and can carry no notion of anything. It holds the console guard that
-        # every entry point needs -- see `constants.utf8_console`.
-        self.assertEqual(_imports("foliator") - {"repo", "constants"}, set())
+        self.assertEqual(_imports("foliator") - {"repo"}, set())
 
     def test_the_lexer_knows_nothing_about_places(self):
         # !! IT DEFINES WHAT IT PRODUCES -- `Paragraph` -- and stops there. Where
@@ -99,6 +103,42 @@ class TestTheTwoLeaves(unittest.TestCase):
             with self.subTest(module=name):
                 text = (SCRIPTS / f"{name}.py").read_text(encoding="utf-8")
                 self.assertIn("from page import", text)
+
+    def test_the_ULTIMATE_LEAF_is_only_ever_imported_WHOLE(self):
+        """`import constants`, never `from constants import`.
+
+        !! ROY'S RULE, 2026-08-22: *"constants.py is the ultimate leaf"*, and
+        *"you can't do `from constants import` anywhere. All things are
+        `import constants`, `constants.ENCODING`."*
+
+        ! IT IS ABOUT THIS MODULE, not about re-export in general. What the form
+        buys is that `constants` CANNOT BE RE-EXPORTED: a `from constants import
+        text_lines` binds that name into the importing module, and a third module
+        can then take it from there -- so a module that owns nothing becomes a
+        door to the leaf. A qualified `constants.text_lines` names the owner at
+        every call site, and there is no local name for anyone to take.
+
+        ! Every module may import it, because it is the leaf beneath all of them
+        and taking it acquires no subject.
+        """
+        offenders = [
+            p.name
+            for p in sorted(SCRIPTS.glob("*.py"))
+            if "from constants import" in p.read_text(encoding="utf-8")
+        ]
+        self.assertEqual(offenders, [])
+
+    def test_the_ULTIMATE_LEAF_IMPORTS_NOTHING_FROM_THIS_PACKAGE(self):
+        # ! The other half of the contract, and what makes it safe for anything
+        # to take: `constants` cannot pull a sibling in behind it.
+        tree = ast.parse((SCRIPTS / "constants.py").read_text(encoding="utf-8"))
+        taken = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module:
+                taken.add(node.module.split(".")[0])
+            elif isinstance(node, ast.Import):
+                taken.update(a.name.split(".")[0] for a in node.names)
+        self.assertEqual(taken & SIBLINGS, set())
 
     def test_a_KIND_question_goes_to_the_LEAF_and_not_through_the_page(self):
         # !! `record` IMPORTED NOTHING ELSE FROM `page`, and what it imported was

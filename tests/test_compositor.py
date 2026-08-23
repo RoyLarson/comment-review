@@ -19,6 +19,7 @@ sys.path.insert(
 )
 
 import compositor  # noqa: E402
+import constants  # noqa: E402
 import lexer  # noqa: E402
 import page as page_mod  # noqa: E402
 
@@ -247,3 +248,45 @@ class TestTheShippedTreeSetsBackToItself(unittest.TestCase):
             if why is not None:
                 broken[path.name] = why
         self.assertEqual(broken, {})
+
+
+class TestOnlyALineBreakBreaksALine(unittest.TestCase):
+    """A separator inside a literal is DATA, and setting it back must keep it.
+
+    !! `str.splitlines()` BREAKS ON ELEVEN THINGS AND EIGHT ARE NOT LINE
+    ENDINGS -- the vertical tab, the form feed, three ASCII separators, the
+    next-line control, and Unicode's own line and paragraph separators. Every one
+    of them can sit inside a string literal, where it is a character and not a
+    line break.
+
+    !! AND BOTH GATES PASSED ON THE CORRUPTED FILE, which is why this is a test
+    and not a note. MEASURED 2026-08-22: the reader saw three lines where the
+    file has two, the compositor rejoined them with newlines, and the literal
+    came back broken across two lines -- a `SyntaxError`. `identity` reported
+    *3 lines in, 3 out* and `lossless` returned None, because both were counting
+    the reader's own idea of a line rather than the file's.
+    """
+
+    # ! One per separator `splitlines` invents a line at, each inside a literal.
+    SEPARATORS = ("\v", "\f", "\x1c", "\x1d", "\x1e", "\x85", " ", " ")
+
+    def test_a_separator_inside_a_literal_sets_back_unchanged(self):
+        for sep in self.SEPARATORS:
+            with self.subTest(sep=repr(sep)):
+                src = f'x = "a{sep}b"\ny = 1\n'
+                self.assertEqual(set_from("m.py", src), src)
+
+    def test_the_file_still_compiles_after_setting(self):
+        # ! The consequence a reader sees. A lost separator does not merely
+        # differ -- it ends the string literal early.
+        for sep in self.SEPARATORS:
+            with self.subTest(sep=repr(sep)):
+                src = f'x = "a{sep}b"\ny = 1\n'
+                compile(set_from("m.py", src), "m.py", "exec")
+
+    def test_a_real_line_ending_still_breaks_a_line(self):
+        # ! The other half: the three that ARE endings must still split.
+        for ending in ("\n", "\r\n", "\r"):
+            with self.subTest(ending=repr(ending)):
+                src = f"x = 1{ending}y = 2{ending}"
+                self.assertEqual(len(constants.text_lines(src)), 2)

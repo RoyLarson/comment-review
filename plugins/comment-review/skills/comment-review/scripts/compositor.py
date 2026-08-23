@@ -56,7 +56,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from constants import utf8_console  # noqa: E402
+import constants  # noqa: E402  -- path shim must run first
 from foliator import ON, folio_of, series_of  # noqa: E402
 
 # !! THE OTHER IMPORTER OF THE ROWS -- see `language.py`. The lexer reads a file
@@ -306,11 +306,11 @@ def lossless(path: Path, rel: str | None = None) -> str | None:
         got = set_page(page_for(path, text, lang, rel=rel))
     except ValueError as exc:
         return str(exc)
-    if sorted(got.splitlines()) == sorted(text.splitlines()):
+    if sorted(constants.text_lines(got)) == sorted(constants.text_lines(text)):
         return None
     was, now = (
-        collections.Counter(text.splitlines()),
-        collections.Counter(got.splitlines()),
+        collections.Counter(constants.text_lines(text)),
+        collections.Counter(constants.text_lines(got)),
     )
     missing = list((was - now).elements())[:1]
     invented = list((now - was).elements())[:1]
@@ -342,7 +342,7 @@ def identity(path: Path, rel: str | None = None) -> str | None:
         return str(exc)
     if got == text:
         return None
-    was, now = text.splitlines(), got.splitlines()
+    was, now = constants.text_lines(text), constants.text_lines(got)
     for n, (a, b) in enumerate(zip(was, now, strict=False), 1):
         if a != b:
             return f"line {n}: was {a!r}, set {b!r}"
@@ -363,7 +363,7 @@ def main(argv: list[str] | None = None) -> int:
     # first.
     parser.add_argument("paths", nargs="+", type=Path)
     args = parser.parse_args(argv)
-    utf8_console()
+    constants.utf8_console()
     same = moved = broken = 0
     for path in args.paths:
         gone = lossless(path)

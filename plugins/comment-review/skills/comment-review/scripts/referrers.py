@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from constants import utf8_console  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402  -- path shim must run first
 
 # ! The exception tuples are IMPORTED. Each is bound to a NAME so no `except`
 # clause here holds a tuple literal; `repo.py` carries that reason once.
@@ -96,7 +96,7 @@ def _grep(repo: Path, token: str) -> tuple[list[str] | None, str]:
 
 def main() -> int:
     """Print the REFERENCE ONLY candidates for the named targets."""
-    utf8_console()
+    constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("targets", nargs="+")
     ap.add_argument("--repo", default=".", help="repo root")

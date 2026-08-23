@@ -42,12 +42,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import constants  # noqa: E402  -- path shim must run first
 from annotate import (  # noqa: E402  -- path shim must run first
     SYMBOLISH,
     annotate,
     prose_numbers,
 )
-from constants import utf8_console  # noqa: E402  -- path shim must run first
 from foliator import (  # noqa: E402  -- path shim must run first
     COVERS,
     SEPARATOR,
@@ -257,7 +257,7 @@ def main() -> int:
     """Build the census, resolve its annotations, print both."""
     # UTF-8 with replacement, so an em-dash in someone's docstring still prints
     # on a console whose encoding lacks it.
-    utf8_console()
+    constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--repo", default=".", help="repo root for citation resolution")
