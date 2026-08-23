@@ -16,6 +16,18 @@ Criterion: 2026-08-22 — THE TEST IS NOT WHETHER IT CAN BE REFACTORED. Roy, 202
            impossible, but because no version of the work is ever worth its price. The
            named surface holds that cost flat, which is what makes waiting a decision
            rather than a drift.
+Deferral: 2026-08-22 — AND THE DEFERRAL ALWAYS LOOKS CHEAP, WHICH IS HOW IT GETS
+          DEFERRED. Roy, 2026-08-22: *"the amortization of the now cost versus the over
+          always seems small."* Spread the fix across every future encounter and the
+          per-encounter share is below the threshold that would make anyone act -- so
+          the comparison comes out in favour of waiting EVERY time it is made, and the
+          decision is never actually taken. ! That is exactly how nine definitions of
+          `READ_ERRORS` arrived: adding the TENTH costs nothing visible, and the bill
+          only lands when two of them disagree. ! So a filed TODO is not free, and this
+          one is filed on a specific ground rather than by default -- the named surface
+          holds the future cost flat. Where there is no seam, the same reasoning argues
+          for paying NOW, because the per-encounter share will never rise enough to
+          force it later.
 ```
 
 ## Objective
