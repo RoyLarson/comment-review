@@ -77,6 +77,20 @@ judgement this whole system exists to replace.
       wrong tree. Verify: the run records the snapshot path and the ref it came from, and a
       deliberate mismatch is detectable.
 
+      !! **THE PROOF REQUIREMENT IS NOT HYPOTHETICAL -- IT HAS ALREADY HAPPENED.** Works
+      `marketplace-resolves-live`. A directory marketplace POINTS, it does not copy: re-verified
+      2026-08-23, `known_marketplaces.json` has `roy-local` as `source: directory` with both
+      `path` and `installLocation` set to `C:\Users\Roy\projects\comment-review` -- **the working
+      tree**, which is the shared checkout another session commits to. Roy caught it 2026-08-22
+      when the installed plugin traced back to the commit just finished instead of `v0.2.3`, and
+      the `d` records gave it away because no cue had a `d` before that branch. **So a run
+      believed pinned to a tag was against whatever the tree held at run time.**
+
+      ! **The harness sidesteps it by construction and must not rely on that quietly.** A
+      snapshot handed to a subagent as a path never consults the marketplace, so the failure
+      cannot recur here -- but B1's *"a deliberate mismatch is detectable"* is exactly the check
+      that would have caught it, and it is the box for that reason.
+
       !! **SNAPSHOT THE WHOLE PLUGIN, NOT JUST `skills/comment-review/`.**
       `isolate-the-codes-contribution` needs arm A to be *"v0.2.3 code with v0.2.3 agents exactly
       as tagged"* -- so the SCRIPTS and the AGENTS have to travel together at one ref, or the two
@@ -147,9 +161,18 @@ judgement this whole system exists to replace.
       report.
 
 - [ ] **D2 -- Record what the first run actually returned, whatever it was.** Works
-      `the-harness-cannot-run-the-system-it-grades`. ! A first number that is bad is the point of
-      having one. Verify: the result lands in `evidence/`, names the snapshot ref, the START/END
-      pair and the grader model, and says which of the six were caught.
+      `the-harness-cannot-run-the-system-it-grades` and `marketplace-resolves-live`. ! A first
+      number that is bad is the point of having one. Verify: the result lands in `evidence/`,
+      names the snapshot ref, the START/END pair and the grader model, and says which of the six
+      were caught.
+
+      !! **A COMMIT, NEVER A VERSION NUMBER.** `marketplace-resolves-live` task 5 asks for every
+      existing measurement that names a version to be re-checked, *"because the tag did not fix
+      that"*. **This plan's job is to not add another one.** ! A version names a tree only if the
+      install copies, and this machine's does not -- so a result recorded as *"v0.2.3"* names
+      nothing. Its own summary of the failure is the standard to hold to: *"a pin that pins
+      nothing and reports as a pin is findings.md section 33"* -- the green gate that shares the
+      defect.
 
 ### E -- The rate nothing measures
 
@@ -223,6 +246,19 @@ against a known answer; E1's method is what measures its spread.
   `evidence/cycle-0.2.3/` is *"a MECHANICAL run ... and carries no hazard grade"*. **Both arms
   have to be run fresh regardless.** It stays deferred, waiting on someone needing a specific
   held run replayed.
+
+- **FIXING `marketplace-resolves-live`, or auditing what it invalidated.** Its `*` ruling is
+  Roy's -- whether the fix is to the INSTALL (a marketplace that copies, or installing from a tag
+  rather than a path), to the DOCS (say plainly that `roy-local` is live and no local measurement
+  is pinned), or to both. ! **The harness needs neither answer**, because it never installs; it
+  hands a subagent a path. And its task 5 -- re-checking every measurement in `docs/` and
+  `evidence/` that names a version rather than a commit -- is an audit of the PAST, where this
+  plan's D2 is a rule for the FUTURE. Both are wanted; only one is here.
+
+  ! **It also contradicts `CLAUDE.md`'s release section, which is still uncorrected.** That text
+  describes the CACHE half only -- *"the plugin cache keys its directory on that version field"*
+  -- and never says a directory-source marketplace resolves live. Correcting it is shipped-doc
+  work and belongs with the ruling.
 
 - **RUNNING `isolate-the-codes-contribution`'s two arms.** This plan BUILDS what that measurement
   needs -- B1 snapshots a whole plugin at a tag, B3 runs two arms in one turn -- but its own
