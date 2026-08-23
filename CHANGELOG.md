@@ -8,7 +8,7 @@ file existed as a one-line stub until this release.
 !! **From 0.2.1 the plugin states its own version.** `plugin.json` carries a `version` field
 and `tests/test_release.py` holds it equal to the newest heading here. Before that it carried
 none, so the plugin cache named its directory for the COMMIT --
-`roy-local/comment-review/7a0945ad3f40/` where an official plugin has `code-simplifier/1.0.0/`
+`roy-local/comment-review/324e4cf70bc6/` where an official plugin has `code-simplifier/1.0.0/`
 -- and `claude plugin list` reported that hash. **A run could not be attributed to a release**,
 which cost a real evidence package its attribution on 2026-08-17. `.claude-plugin/marketplace.json`
 still carries no version; `claude plugin tag` validates the two against each other when one is
@@ -78,7 +78,7 @@ and rust (`startraders`, 2026-08-17).
 
 ### Changed
 
-- **Renamed, 2026-08-23** (`ff1cab5`). No behaviour changed: the corpus round trip returned the
+- **Renamed, 2026-08-23** (`326af1a`). No behaviour changed: the corpus round trip returned the
   same three numbers over the same 3,153 files before and after. Why each word moved is in
   [`docs/history.md`](docs/history.md); what was decided and when is in
   [`docs/decision-log.md`](docs/decision-log.md).

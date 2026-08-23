@@ -43,7 +43,7 @@ a different question, and the one that looks most like success. **MEASURED 2026-
 round-trip identity, the strongest check in this tree, scored **699 of 699 across ten languages
 on its first run while 157 addresses were held by two paragraphs each**. It rebuilt each file
 from the line positions it had just read out of that file, so it could not disagree. It began
-finding things one commit later (`e3ae738`), when it was made to set from the CUES instead.
+finding things one commit later (`9ad6350`), when it was made to set from the CUES instead.
 
 ! **[`docs/gates.md`](docs/gates.md) holds that case and the rule it produced**: *"does the check
 pass" is not the question; "could the check fail" is* -- plus the three ways a green run means
@@ -327,7 +327,7 @@ same shape broke a real declaration. **A row is wrong the moment its justificati
 row**, whether or not the value it lands on happens to be correct.
 
 !! **AND THE RULE WAS ALREADY HERE, WITH ITS OPERATIVE SENTENCE CUT OFF.** This file carried
-two-thirds of the 2026-08-20 ruling. The full quotation, recovered from `560422a`:
+two-thirds of the 2026-08-20 ruling. The full quotation, recovered from `de49da8`:
 
 > *"don't try to make the list generic -- that is a failure of the single responsibility
 > principle. Each language could change on a new version invalidating the list for all of them.

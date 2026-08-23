@@ -21,7 +21,7 @@ corrected on this."* Both were checked and both hold, and asking the same of `ow
 ! Every one is readable from the file alone, with no knowledge of this session. That is the bar:
 a reviewer that needs the transcript cannot be graded.
 
-! **They are all from `3af9752..7026646`**, branch `fix/folio-placement-is-not-where-the-anchor-is`,
+! **They are all from `dbf8dac..7026646`**, branch `fix/folio-placement-is-not-where-the-anchor-is`,
 2026-08-19 to 2026-08-20.
 
 ## How to run one
@@ -40,11 +40,11 @@ discriminate real findings from fabricated ones.
 
 | # | the file, before | what its docstring said | what the module actually held | fixed by |
 | --- | --- | --- | --- | --- |
-| 1 | `census.py`, **1,759 lines** | *"Stage 2, COLLATE: the pCST -- every line of these files classified"* | one file's paragraphs, AND their addressing, AND the aggregation across files. **Three subjects** | `b342cd1`, `07d40b8` |
-| 2 | `page.py`, 220 lines | *"What a pCST NODE is"* | a node, and no PAGE at all -- the module was named for a thing it did not implement | `4daf7be` |
-| 3 | `page.py`, **1,543 lines** | *"A PAGE: one file, its paragraphs in order"* | that, plus 709 lines of language-specific LEXING -- the `Language` record, both tier readers, the text helpers | `bfc3441` |
-| 4 | `lexer.py` at its split | -- | the reader BUILDS a `Paragraph` and states its anchor, so the type belongs with it. The kinds split on the same line: a reader emits prose it FOUND, a page adds where prose is MISSING | `bfc3441` |
-| 5 | `addresser.py`, 835 lines | *"An address that survives the edits this tool makes"* | the FOLIATION -- it supplies a folio and flattens a path. **The address is composed in `page.py`** | `93cc4b0` |
+| 1 | `census.py`, **1,759 lines** | *"Stage 2, COLLATE: the pCST -- every line of these files classified"* | one file's paragraphs, AND their addressing, AND the aggregation across files. **Three subjects** | `4286833`, `9824dbc` |
+| 2 | `page.py`, 220 lines | *"What a pCST NODE is"* | a node, and no PAGE at all -- the module was named for a thing it did not implement | `df252c6` |
+| 3 | `page.py`, **1,543 lines** | *"A PAGE: one file, its paragraphs in order"* | that, plus 709 lines of language-specific LEXING -- the `Language` record, both tier readers, the text helpers | `532c555` |
+| 4 | `lexer.py` at its split | -- | the reader BUILDS a `Paragraph` and states its anchor, so the type belongs with it. The kinds split on the same line: a reader emits prose it FOUND, a page adds where prose is MISSING | `532c555` |
+| 5 | `addresser.py`, 835 lines | *"An address that survives the edits this tool makes"* | the FOLIATION -- it supplies a folio and flattens a path. **The address is composed in `page.py`** | `12b750e` |
 
 ## Why each is findable by reading, not by knowing
 
@@ -79,10 +79,10 @@ file answers each on its own.
 
 | the function, before | its name and docstring said | its body did | fixed by |
 | --- | --- | --- | --- |
-| `census_for(path, text, lang)` | a CENSUS -- *"the census for one file"* | built one PAGE. The census is every page in scope; this was one of them | `07d40b8` |
-| `gap_step(paragraph, code)` | *"which TRIGGER a `b` paragraph belongs to"*, and *"THIS IS THE LOOK-AHEAD"* | `sum(1 for n in code if n < at) + 1` -- line arithmetic. **It described a walk it was not part of** | `93cc4b0` |
-| `anchor_every_address(text, paragraphs)` | *"give every `a` and `b` place the line of code it is attached to"* | a SECOND pass restating what the walk had already emitted, from a `beside` map keyed on lines | `b342cd1` |
-| `address(paragraph, code)` | one thing | composed a folio AND flattened a path AND joined them. The docstring needed an "and" to be accurate | `93cc4b0` |
+| `census_for(path, text, lang)` | a CENSUS -- *"the census for one file"* | built one PAGE. The census is every page in scope; this was one of them | `9824dbc` |
+| `gap_step(paragraph, code)` | *"which TRIGGER a `b` paragraph belongs to"*, and *"THIS IS THE LOOK-AHEAD"* | `sum(1 for n in code if n < at) + 1` -- line arithmetic. **It described a walk it was not part of** | `12b750e` |
+| `anchor_every_address(text, paragraphs)` | *"give every `a` and `b` place the line of code it is attached to"* | a SECOND pass restating what the walk had already emitted, from a `beside` map keyed on lines | `4286833` |
+| `address(paragraph, code)` | one thing | composed a folio AND flattened a path AND joined them. The docstring needed an "and" to be accurate | `12b750e` |
 
 ! **`gap_step` is the sharpest of these.** Its own docstring uses the walk's vocabulary --
 *trigger*, *look-ahead* -- while the body counts line numbers. A reader who trusts the docstring
@@ -220,7 +220,7 @@ which module defines that symbol. A run that misses these is missing something a
 | --- | --- |
 | `_undocumented` was one of the three | it was **still alive in `lexer.py`**, still emitting, for two more commits. The third consolidated there was `paragraphs_in` |
 | 206 lines | the three NAMED held **181** (76 + 50 + 55). The three actually consolidated held **143** |
-| three generators | **four**, once `_undocumented` went at `0c67b7f` -- 198 lines |
+| three generators | **four**, once `_undocumented` went at `1af310d` -- 198 lines |
 
 !! **THE PROSE DESCRIBED THE CHANGE THE AUTHOR MEANT TO MAKE, not the one on disk.** The
 `_undocumented` half was real work, correctly reasoned, and landed two commits later -- the

@@ -8,8 +8,8 @@ gate and the corpus round trip were all green throughout.
 
 | | |
 | --- | --- |
-| base (defect present) | `ff1cab5` |
-| answer key (defect gone) | `ba5eb32` |
+| base (defect present) | `326af1a` |
+| answer key (defect gone) | `cfffa70` |
 | repo | this one |
 
 ! **The base is a commit in this tree, which is a deliberate fixture shape** --

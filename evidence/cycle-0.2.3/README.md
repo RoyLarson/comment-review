@@ -4,7 +4,7 @@ The run that cleared **0.2.3's gate**: *"the goal of 0.2.3 is still getting a fu
 rereviewer - cycle functional. We are not releasing until we have that."* (Roy, 2026-08-17.)
 
 **Subject:** `plugins/comment-review/skills/comment-review/scripts/galley.py`, on branch
-`feat/0.2.3-cycle-and-record` at `882635b`. **110 census blocks, 11 holding prose.**
+`feat/0.2.3-cycle-and-record` at `6c863b3`. **110 census blocks, 11 holding prose.**
 Four roles, **47 findings**, stage-5 gate **exit 0**.
 
 **Why this file.** It was written the same week by the same session that reviewed it, and it is
@@ -38,7 +38,7 @@ is the operator's to do.
 
 ! **The tree moved under the run.** A REFERENCE ONLY file was edited during MARK, which moved a
 cited line from 1320 to 1365 -- the join correctly reported `function-context`'s correct citation
-as unresolved. `join.txt` here is taken against a worktree pinned at `882635b`, the tree the
+as unresolved. `join.txt` here is taken against a worktree pinned at `6c863b3`, the tree the
 roles actually read. Replaying it against any other commit will fail citations that were right.
 
 ! **The operating session knew it was testing the skill, and was fixing the code under review
@@ -149,9 +149,9 @@ Both measured the compacted widths themselves before answering.
 context.md              the stage-4 packet, as `run_context.py --check` passed it
 census.txt              stage 2-3, the reviewers' copy
 census.json             the same, as the tools read it
-pinned-census.json      re-censused at 882635b AFTER the raw_lines fix -- what the galley used
+pinned-census.json      re-censused at 6c863b3 AFTER the raw_lines fix -- what the galley used
 records/*.json          the four filled record files, as the roles left them
-join.txt                the stage-5 gate, exit 0, against a worktree pinned at 882635b
+join.txt                the stage-5 gate, exit 0, against a worktree pinned at 6c863b3
 edits.json              stage 5's rulings: one replacement per block, 8 blocks
 galley/galley.py        the proposal spliced into a copy -- what 5b read
 galley-census.json      that copy, censused, so a round-2 record has a real address

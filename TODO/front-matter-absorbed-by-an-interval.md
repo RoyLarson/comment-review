@@ -44,7 +44,7 @@ Front matter is absorbed by an interval, and the galley then deletes it.
       On `def f():` / blank / `"""Doc."""` / blank / `return 1`, `@b2` gets 2-4
       and `@a1` is line 3. Two paragraphs own line 3, against `docs/addressing.md`
       and against the ruling in the commit that introduced it.
-- [x] !! INTRODUCED BY 5fd5baf, 2026-08-20 -- this session's own work, hours after
+- [x] !! INTRODUCED BY dc384d7, 2026-08-20 -- this session's own work, hours after
       Roy ruled *"a's and c's own their lines exactly, b's own all the other
       lines."* The code three lines below that comment does not do it.
 - [ ] * RULING WANTED: front matter is a `b` that is NOT its gap's `b`. Either

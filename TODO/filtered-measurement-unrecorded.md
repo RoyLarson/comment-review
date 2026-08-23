@@ -9,7 +9,7 @@ Raised:   2026-08-20 (Roy, 2026-08-20, correcting a claim that only size had bee
           measured)
 Unblocked: 2026-08-20 — not lost -- reproducible. Roy: 'we can always rerun it by
            checking out the 0.1.x tag and the 0.2.1 tag.' Requires-Roy cleared: nobody's
-           history is needed, only a checkout. The seam is 771547e, so v0.1.6 -> v0.1.7
+           history is needed, only a checkout. The seam is 1aa8067, so v0.1.6 -> v0.1.7
            isolates it in 11 commits where v0.1.6 -> v0.2.1 confounds it in 87.
 ```
 
@@ -32,7 +32,7 @@ fixture model already ruled in
 [`the-harness-cannot-run-the-system-it-grades`](the-harness-cannot-run-the-system-it-grades.md):
 **a fixture is a CHECKOUT AT A HASH, this repo's own history included.**
 
-!! **THE SEAM IS NARROWER THAN THE BRACKET.** The behaviour change is `771547e`,
+!! **THE SEAM IS NARROWER THAN THE BRACKET.** The behaviour change is `1aa8067`,
 *"feat(census)!: every interval between two lines of code is a block"*, 2026-08-17. It is first
 released in **v0.1.7**, and the last release without it is **v0.1.6**:
 
@@ -63,7 +63,7 @@ hold that to.
 ## Tasks
 
 - [ ] !! RE-RUN IT ACROSS `v0.1.6^{}` -> `v0.1.7^{}`, the 11 commits that
-      isolate `771547e` -- *"every interval between two lines of code is a
+      isolate `1aa8067` -- *"every interval between two lines of code is a
       block"*. ! Roy remembered it as a v0.1.0 -> v0.2.0 split and offered
       v0.1.x -> v0.2.1; that bracket holds 87 commits and confounds the
       variable. The narrow one is the experiment. Roy on the result: 'the agents

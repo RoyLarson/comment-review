@@ -137,8 +137,8 @@ defined, dropped, or declared as deliberate polysemy.
    author/page ordering, the shipped Python's own comments, the harness sweep, the two lists'
    entries, the unit-of-review contradiction, and returning a coverage gap to the reviewer.
 
-**Landed 2026-08-15 on `main`:** 0.1.2 (`4a62b93`) -- the four reviewer agents renamed for scope,
-each stating what its own `clean` asserts, and the placement precedence. Then `8c7d81d`, the
+**Landed 2026-08-15 on `main`:** 0.1.2 (`5975890`) -- the four reviewer agents renamed for scope,
+each stating what its own `clean` asserts, and the placement precedence. Then `2fdced3`, the
 vocabulary survey.
 
 **The rulings on `feat/settle-the-vocabulary`** -- 52 commits in all; the table lists the ones
@@ -146,28 +146,28 @@ that changed a published name or rule:
 
 | commit | what |
 | --- | --- |
-| `ef4f33b` | `sweep` retired (7b is APPLY), `angle` retired (editorial role / reviewer), eight facts reconciled |
-| `599e20e` | `reanchor` collapsed into `move` -- eight verdicts, availability and synthesis order key on the destination |
-| `764b1a7` -> `da06046` | `budget` settled, then **corrected**: it is what a shipped file costs to load, not the reviewer's runtime |
-| `f1a3cc5` | reviewers no longer receive `CAP` or `WIDTH` -- the packet gate had been enforcing the opposite of the stated rule |
-| `d9c7697` | stage 5 is APPLY, stage 7b is WRITE |
-| `64e36f7` | a block is the interval between two lines of CODE |
-| `7ee082e` | the census's `marks` are `annotations`; `mark` is editorial |
-| `c53d832` -> `df1855c` | 7b's gate is the CODE CHECK, and it proves the parser reads the file the same -- not byte identity |
-| `4d3b7a2` -> `e9b2ff3` | `DOC CONVENTION` settled -- stage 1.3 MEASURES the repo's formats instead of naming a standard |
-| `9a84c6f` | `HOME` retired; **owner** is the anchor with the best justification, and `Block.owner` became `Block.anchor` |
-| `f40d26b` -> `2b2ed42` | a role's categories of claim get their own word -- **`remit`**, after `jurisdiction` failed the register |
-| `f20d376` -> `dd4e55a` | absence left `ownership-context` -- missing documentation is `module-context`'s or `function-context`'s, by scope |
-| `ab1bae0` | `worktree` settled: git's word, not a term of art here |
-| `b722fb6` | nothing gets suppressed -- `NOISE_FLOOR` deleted from `referrers.py` |
-| `5294a32` | the exemptions-off rule deleted -- a second harness leak |
-| `665479b` -> `540522d` | the acquittal and suppression lists deleted; the no-excuse rule restored in `clean`'s own section |
-| `905e9f5` | the CODE CHECK compares a **`stripped`** text; `residue` is the prose check alone |
-| `b1522df` -> `47d4345` | stage 8 REVIEW is all-encompassing, never edits, and names nothing outside itself |
-| `afde1f8` | `statement` / `expression` / `declaration` / `assignment` name CODE; `signature` -> `fingerprint` |
-| `c356f9e` -> `e1b430d` | the re-sweep, and its six ruled -- `walk` retired, a surface gap is an **OMISSION** |
-| `24d151b` -> `fbdba29` | `template` and `original` stated; `detector` dropped -- every inventory row now carries a ruling |
-| `204d662` -> `66d9b3b` | `scripts/check_vocabulary.py` -- every term ruled and every citation live, as a command |
+| `e34d37f` | `sweep` retired (7b is APPLY), `angle` retired (editorial role / reviewer), eight facts reconciled |
+| `4b00e1c` | `reanchor` collapsed into `move` -- eight verdicts, availability and synthesis order key on the destination |
+| `ce9037e` -> `9be347a` | `budget` settled, then **corrected**: it is what a shipped file costs to load, not the reviewer's runtime |
+| `33630ff` | reviewers no longer receive `CAP` or `WIDTH` -- the packet gate had been enforcing the opposite of the stated rule |
+| `402c00f` | stage 5 is APPLY, stage 7b is WRITE |
+| `5c45dd8` | a block is the interval between two lines of CODE |
+| `28ec14d` | the census's `marks` are `annotations`; `mark` is editorial |
+| `62269ca` -> `7559969` | 7b's gate is the CODE CHECK, and it proves the parser reads the file the same -- not byte identity |
+| `cea5bc4` -> `ae81b46` | `DOC CONVENTION` settled -- stage 1.3 MEASURES the repo's formats instead of naming a standard |
+| `ba45faf` | `HOME` retired; **owner** is the anchor with the best justification, and `Block.owner` became `Block.anchor` |
+| `0ca3f48` -> `6a069a6` | a role's categories of claim get their own word -- **`remit`**, after `jurisdiction` failed the register |
+| `6903a71` -> `b0888c3` | absence left `ownership-context` -- missing documentation is `module-context`'s or `function-context`'s, by scope |
+| `375c254` | `worktree` settled: git's word, not a term of art here |
+| `9990adf` | nothing gets suppressed -- `NOISE_FLOOR` deleted from `referrers.py` |
+| `94e2550` | the exemptions-off rule deleted -- a second harness leak |
+| `16ac6b3` -> `b75fab9` | the acquittal and suppression lists deleted; the no-excuse rule restored in `clean`'s own section |
+| `c24ab6d` | the CODE CHECK compares a **`stripped`** text; `residue` is the prose check alone |
+| `7424d3f` -> `c73bbbe` | stage 8 REVIEW is all-encompassing, never edits, and names nothing outside itself |
+| `a3aefb4` | `statement` / `expression` / `declaration` / `assignment` name CODE; `signature` -> `fingerprint` |
+| `aeaeb00` -> `5160b8d` | the re-sweep, and its six ruled -- `walk` retired, a surface gap is an **OMISSION** |
+| `aee7035` -> `535213d` | `template` and `original` stated; `detector` dropped -- every inventory row now carries a ruling |
+| `3ed70cb` -> `cf20ea1` | `scripts/check_vocabulary.py` -- every term ruled and every citation live, as a command |
 
 167 tests pass, `ruff check` clean, 5 shipped files parse on 3.9, `check_vocabulary.py` exits 0.
 
@@ -267,7 +267,7 @@ that changed a published name or rule:
 | --- | --- | :-: | ---: | --- |
 | [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents · Roy | — | 1/6 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | yes | 1/8 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
-| [verdicts-py-announces-one-subject-and-holds-four](verdicts-py-announces-one-subject-and-holds-four.md) | backend | yes | 7/8 | * **2,083 lines, four subjects, and a docstring announcing one.** The verdict table, a report reader, a per-finding checker and the join. !! `module-context` FOUND IT and then emitted a `patch` widening the docstring to announce TWO subjects -- the defect its own trigger is named for, applied as the remedy, and no `code_concerns` entry. Filed as the one miss in `evals/test-cases.jsonl`, pinned at `4fd8384`. ! Scheduled with the census filter because the lookup tool needs the verdict table to be a module, and because two open TODOs sit entirely inside one half each -- the bridge is COPIED into a new module if it is not rewritten during the cut. * Unruled: the four module names, which `docs/vocabulary.md` constrains by binding `the join` to `verdicts.py` |
+| [verdicts-py-announces-one-subject-and-holds-four](verdicts-py-announces-one-subject-and-holds-four.md) | backend | yes | 7/8 | * **2,083 lines, four subjects, and a docstring announcing one.** The verdict table, a report reader, a per-finding checker and the join. !! `module-context` FOUND IT and then emitted a `patch` widening the docstring to announce TWO subjects -- the defect its own trigger is named for, applied as the remedy, and no `code_concerns` entry. Filed as the one miss in `evals/test-cases.jsonl`, pinned at `9a74c5f`. ! Scheduled with the census filter because the lookup tool needs the verdict table to be a module, and because two open TODOs sit entirely inside one half each -- the bridge is COPIED into a new module if it is not rewritten during the cut. * Unruled: the four module names, which `docs/vocabulary.md` constrains by binding `the join` to `verdicts.py` |
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | yes | 5/10 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
@@ -336,12 +336,12 @@ the reason is inside the file.
 | [dead-names-ungated](completed/dead-names-ungated.md) | scripts/dead_sweep.py, an input rather than a gate; 0 dead names in the tree as of 2026-08-21 |
 | [complete-breaks-links-SUPERSEDED](completed/complete-breaks-links-SUPERSEDED.md) | Accepted: the orphans are inside completed/, and repairing one means rewriting an archived file |
 | [plugin-version-not-bumped](completed/plugin-version-not-bumped.md) | 0.2.4-alpha in all three files; the cache directory can no longer collide with the measured 0.2.3 |
-| [two-paragraphs-one-address](completed/two-paragraphs-one-address.md) | Fixed in 0f72dce -- a comment's DELIMITERS are not paragraph boundaries, only code is. 157 shared addresses over 699 files became 0. |
+| [two-paragraphs-one-address](completed/two-paragraphs-one-address.md) | Fixed in e9d2cb1 -- a comment's DELIMITERS are not paragraph boundaries, only code is. 157 shared addresses over 699 files became 0. |
 | [galley-does-two-jobs](completed/galley-does-two-jobs.md) | Split built and wired: galley.reset places by address, compositor.set_page sets, splice/overlaps/splice_range/paragraph_matches deleted, and the shipped prose now defines both terms |
 | [galley-is-still-index-keyed](completed/galley-is-still-index-keyed.md) | Tasks 1-2 done (address-keyed); task 3 was an observation whose mechanism -- splice and its line-ordered sort -- was deleted in the galley rewrite |
 | [second-key-stale-on-drop](completed/second-key-stale-on-drop.md) | Ruled and cut the same morning: the second key is DELETED, so it cannot go stale -- Page.leading is dict[str, str], keyed by the place a run of blanks follows |
 | [foliation-knows-about-lines](completed/foliation-knows-about-lines.md) | Cues is 3 fields -- addressers, walk, reading. A place records the trigger it was emitted at, so no position is reconstructed; d left SERIES as a symbol; lines and _code were both views of the walk |
-| [leaf-means-two-things](completed/leaf-means-two-things.md) | The binder model dissolved it: no leaf in the picture, folio became cue, and the shipped tree holds zero foli* -- the corrections and the rename landed in ff1cab5..ba5eb32 |
+| [leaf-means-two-things](completed/leaf-means-two-things.md) | The binder model dissolved it: no leaf in the picture, folio became cue, and the shipped tree holds zero foli* -- the corrections and the rename landed in 326af1a..cfffa70 |
 | [front-matter-restamps](completed/front-matter-restamps.md) | SOLVED by the lexer typing matter. The rule is now 'the run starts on line 1', not 'it ends before the module docstring', so it no longer depends on what follows. MEASURED 2026-08-23: a top-of-file comment run is `f0 kind=matter` both before and after an `a0` edit fills the module docstring -- the annotation is stable under this tool's own edits, which is what the file existed to get |
 | [back-matter-is-a-gaps-comment](completed/back-matter-is-a-gaps-comment.md) | SOLVED by the `f` series emitting at both ends. MEASURED 2026-08-23: a trailing licence or modeline lands in `f1 kind=matter` -- Python AND Rust -- not in the closing gap. The RECOGNITION half the file said was missing is the lexer's `run[-1] == last line` clause, and `file_places()` returns head and foot |
 | [front-matter-protection-is-python-only-SUPERSEDED](completed/front-matter-protection-is-python-only-SUPERSEDED.md) | SUPERSEDED by `matter-misses-two-languages`: the title is false as of 2026-08-23. MEASURED -- an identical licence header types `f0 kind=matter` in C as well as Python, so it is not Python-only. Rust and TypeScript still fail, for two causes neither of which is the positional `mark_matter` this file was written about |

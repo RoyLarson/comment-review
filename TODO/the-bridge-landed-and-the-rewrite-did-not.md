@@ -46,9 +46,9 @@ this module generated, feeding `block_problem`, `edit_problem`, `contradictions`
 
 ## Tasks
 
-- [x] **DONE `7fab8c6`**, in `parse_report` where the two formats meet. Both formats now arrive typed; a text record used to leave `claim_fields` empty and every check fell back to searching a rendered string.
+- [x] **DONE `113e2f8`**, in `parse_report` where the two formats meet. Both formats now arrive typed; a text record used to leave `claim_fields` empty and every check fell back to searching a rendered string.
 
-- [x] **DONE `7fab8c6`.** Verified on the case the task named: `false: "the cap is 5 / true: not really"` returns the whole value from the field and truncates to `the cap is 5` under the scan. ! `ruled_text` is what `block_problem`, `edit_problem` and `contradictions` compare on, so a truncated original is a finding checked against the wrong sentence.
+- [x] **DONE `113e2f8`.** Verified on the case the task named: `false: "the cap is 5 / true: not really"` returns the whole value from the field and truncates to `the cap is 5` under the scan. ! `ruled_text` is what `block_problem`, `edit_problem` and `contradictions` compare on, so a truncated original is a finding checked against the wrong sentence.
 
 - [x] * **RULED 2026-08-18: `record.py`**, which already derived `allowed()` from the table and imported six names back. Moving it inverted the cycle that blocked the task above.
 
@@ -57,14 +57,14 @@ this module generated, feeding `block_problem`, `edit_problem`, `contradictions`
       line array, `code_concerns` -- all of it restated in a module that does not own it. A
       `record.load(path, text)` is the seam, and it is where the task above belongs.
 
-- [x] **DONE `a6f86b5`.** All five `claim_help` rows name `claim.<key>` instead of the retired marker form, and four tests that asserted the old phrasing now assert the KEY, which is what the record carries.
+- [x] **DONE `d01c367`.** All five `claim_help` rows name `claim.<key>` instead of the retired marker form, and four tests that asserted the old phrasing now assert the KEY, which is what the record carries.
 
 - [ ] **`sources` is a typed pair round-tripped through a string.** `load_report` flattens
       `{cite, verbatim}` into `"cite | verbatim"` and `citation_problem` partitions it back.
       Not a live defect -- the first-pipe partition holds -- but it is the same shape and it
       goes away with the task above.
 
-- [x] **DONE `386ed42`.** `ANCHOR_EXAMPLE` is one string -- published in the form and run against the pattern -- and two tests hold them equal. ! Verified by MUTATION: loosening the pattern to `.*` fails three tests.
+- [x] **DONE `0599091`.** `ANCHOR_EXAMPLE` is one string -- published in the form and run against the pattern -- and two tests hold them equal. ! Verified by MUTATION: loosening the pattern to `.*` fails three tests.
 
 - [ ] **Three readers of a census file, and the two new ones unwrap a shape `census.py` cannot
       emit.** `galley.py` and `record.py` both carry

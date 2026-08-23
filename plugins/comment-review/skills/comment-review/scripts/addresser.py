@@ -1358,8 +1358,8 @@ def owes_address(paragraph: dict) -> bool:
     blank run sits BETWEEN two places and is attached to neither, so the
     ownership question has no answer rather than an unknown one.
 
-    ! IT WAS TRIED AND REFUSED THREE TIMES -- `21ca92a` made it a fifth series,
-    `6a7be73` repaired it as an edge, `ef7079c` retreated to a symbol. Roy,
+    ! IT WAS TRIED AND REFUSED THREE TIMES -- `b8e3348` made it a fifth series,
+    `bb2be6c` repaired it as an edge, `1728d8a` retreated to a symbol. Roy,
     closing it: *"We tried leading getting a place. We tried several different
     ways. The constraints of coding AND editing do not allow it."* Two things stop
     being determinable the moment the slack is addressable: WHERE everything below

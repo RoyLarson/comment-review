@@ -24,7 +24,7 @@ that -- no guarantee of any stability."*
 
 ! **A REVIEWER WILL READ A DELETION AS A REVERT, and it is worth knowing why that reading is
 wrong.** A code review of 2026-08-21 called the flat-report refusal *"the exact regression commit
-1541697 fixed and a6da8ad reverted"* -- true as a description of the diff, and not a defect: the
+1541697 fixed and a74a037 reverted"* -- true as a description of the diff, and not a defect: the
 first commit taught the reader an old shape and the second removed the shape on a ruling. What
 IS a defect is failing SILENTLY, and that half was real and fixed.
 
@@ -92,8 +92,8 @@ because `leading` made every paragraph contiguous. What the GALLEY checks instea
 `drifted` -- the anchor, per Roy's ruling 2026-08-21: *"the reset should only check if the address
 is tied to the anchor line of code - like they claim."*
 
-! **To read the mechanism**, it is at `a679253` -- `git show
-a679253:plugins/comment-review/skills/comment-review/scripts/galley.py`.
+! **To read the mechanism**, it is at `9080bc0` -- `git show
+9080bc0:plugins/comment-review/skills/comment-review/scripts/galley.py`.
 
 ## Constants that outlived their reader
 
@@ -113,7 +113,7 @@ noticing.
 
 ## The reviewer's report: two retired shapes
 
-**Retired 2026-08-20 in `a6da8ad`**, on the branch after 0.2.3. Before that commit, `verdicts.py`
+**Retired 2026-08-20 in `a74a037`**, on the branch after 0.2.3. Before that commit, `verdicts.py`
 read three shapes; after it, one.
 
 ### 1. The 0.2.x TEXT report
@@ -190,8 +190,8 @@ that spell it that way, and no shipped file says it now.
 !! **EVERY RECORD FILE UNDER `evidence/` IS IN THE FLAT SHAPE.** All 8 of them, in
 `evidence/cycle-0.2.3/records/` and `evidence/comment-review-skill-023-dev-review/records/`. They
 are records of what happened, not inputs: no script, eval or gate reads one, which is what made
-deleting the reader safe. **If you need to replay one, the reader is at `a6da8ad^`** --
-`git show a6da8ad^:plugins/comment-review/skills/comment-review/scripts/held.py`.
+deleting the reader safe. **If you need to replay one, the reader is at `a74a037^`** --
+`git show a74a037^:plugins/comment-review/skills/comment-review/scripts/held.py`.
 
 ! **The older packages under `evidence/todo-tool-full-run/` hold TEXT reports**, and that
 package's own `PROVENANCE.md` already says they are unreadable by the current tool and that
@@ -200,7 +200,7 @@ an index-keyed report, and those reports are index-keyed.
 
 ## `foliator.py`, `folio`, `Foliation` -- the words the addressing scheme was built under
 
-Renamed 2026-08-23 in `ff1cab5`. An artifact written before that date says `folio` where the
+Renamed 2026-08-23 in `326af1a`. An artifact written before that date says `folio` where the
 system now says `cue`, and names a module that no longer exists. **Nothing about the SCHEME
 changed** -- the same places, the same series letters, the same `path@...` shape, and the corpus
 round trip returned the same three numbers over the same 3,153 files before and after. Only the
@@ -248,7 +248,7 @@ lines."* A page is taken apart into places and set back from the places alone.
 
 ### Reading an old artifact
 
-! **A record or census written before `ff1cab5` is still readable** -- the addresses in it are
+! **A record or census written before `326af1a` is still readable** -- the addresses in it are
 unchanged, because only the NAMES of the machinery moved and never the `path@...` strings
 themselves. What will not resolve is a reference to the module: `foliator.py --census ... --anchor`
 is now `addresser.py` with the same flags.

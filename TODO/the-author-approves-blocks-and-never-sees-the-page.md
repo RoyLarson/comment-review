@@ -30,7 +30,7 @@ with the new comments before bringing it to the attention of the person."*
 - [x] Delete the claim that 7b cuts. **Done 2026-08-15 -- Roy: "This has got to go no matter
       what."** `write.md` was headed *"Shorten by TRUTH here"* and opened *"This pass cuts, and
       it can cut a lot"*, four lines above its own *"Write the APPROVED text verbatim"*. It had
-      been self-contradicting since the import at `7154b92`. Cutting happens at 5, and again at
+      been self-contradicting since the import at `9932c3f`. Cutting happens at 5, and again at
       6 if it runs; then it is presented and approved and cannot be modified. The section is now
       "Nothing is judged here".
 

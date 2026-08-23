@@ -53,7 +53,7 @@ A docstring whose closing `"""` carries a trailing comment is owned twice.
 - [ ] 3 of the 7 files that fail `lossless` over 3,082 are this shape:
       `numpy/numpy/exceptions.py`, `numpy/.venv/Lib/site-packages/_virtualenv.py`
       and `numpy/.venv/Scripts/activate_this.py`. ! The other 4 are the unparsed-
-      page case, guarded in 56d52dc.
+      page case, guarded in ff2660c.
 - [ ] * THE QUESTION IS WHICH ONE OWNS IT. A `c` is the room beside a line of
       code, and a docstring's closing `"""` is not code -- so `# NOQA` beside it
       may not be a trailing comment at all. !

@@ -14,7 +14,7 @@ the vocabulary survey was filed here once for exactly that reason and moved.
 current when it was captured.** Renaming inside a captured run would make it describe something
 that never happened.
 
-**From `ff1cab5` (2026-08-23) onward, the shipped tree says:**
+**From `326af1a` (2026-08-23) onward, the shipped tree says:**
 
 | what these files say | what the system says now |
 | --- | --- |
@@ -38,6 +38,6 @@ when** is in [`docs/decision-log.md`](../docs/decision-log.md).
 ## Older shapes, already noted where they live
 
 - **Record files here are all in the FLAT shape**, and the reader for the retired one is at
-  `a6da8ad^`. `docs/history.md` says how to replay one.
+  `a74a037^`. `docs/history.md` says how to replay one.
 - **`todo-tool-full-run/` holds TEXT reports**, which the current tool cannot read; that package's
   own `PROVENANCE.md` says so and says that bringing them forward is separate work.
