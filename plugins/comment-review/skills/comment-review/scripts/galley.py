@@ -147,6 +147,23 @@ def reset(page, edits: dict[str, str]) -> list[str]:
                 " replacement can be placed against it"
             )
             continue
+        # !! A REPLACEMENT IS TEXT, AND ONLY AN EMPTY STRING IS A VACATION. This
+        # asked whether the value was TRUTHY, so every falsy value took the drop
+        # path below and every non-string truthy one reached `.splitlines()`.
+        # MEASURED 2026-08-22 against a scratch checkout: `{"m.py@b1": null}`
+        # exited 0 reporting `1 page(s) set, 0 edit(s) refused` with the comment
+        # GONE, and `{"m.py@b1": 123}` died on an uncaught
+        # `AttributeError: 'int' object has no attribute 'splitlines'`.
+        # ! A NULL IS NOT A DECISION. `--edits` is machine-written from approved
+        # text; a key whose value failed to serialise arrives as `null`, and
+        # reading that as "the author asked to delete this" turns a bug upstream
+        # into a deletion here, at exit 0.
+        if not isinstance(replacement, str):
+            refused.append(
+                f"{address}: a replacement must be text, not"
+                f" {type(replacement).__name__} -- an empty string is the only drop"
+            )
+            continue
         if replacement:
             found[0].raw_lines = replacement.splitlines()
             continue
@@ -242,12 +259,43 @@ def drifted(page, census: list[dict]) -> list[str]:
         One sentence per address whose anchor moved.
     """
     now = {}
+    prose_now: dict[str, list[str]] = {}
     for b in page:
         if b.address and b.anchor:
             now[folio_of(b.address).folio] = b.anchor
+        if b.address:
+            prose_now[folio_of(b.address).folio] = list(b.raw_lines)
     out = []
     for b in census:
         address = str(b.get("address", ""))
+        # !! THE PROSE IS CHECKED TOO, and only the anchor was. An anchor is a
+        # line of CODE, so a comment edited since the census moved nothing the
+        # anchor can see -- and the galley wrote the reviewer's approved text
+        # over prose nobody had read. MEASURED 2026-08-22 side by side on one
+        # census: a code change refused correctly at exit 1 naming three moved
+        # anchors, while replacing one comment with two unreviewed lines gave
+        # exit 0 and overwrote both.
+        #
+        # ! IT IS THE RULE THIS FUNCTION ALREADY QUOTES. Roy: *"If the file
+        # shifted at all it is dead and so are the edits."* A prose edit is the
+        # file shifting; the anchor comparison simply could not see it.
+        #
+        # ! ONE COMPARISON, EVERY KIND -- which was the objection to the text
+        # check this replaced. That one asked whether the paragraph still READS
+        # as it did and needed a case per kind; `raw_lines` is the lines
+        # themselves, and the census records them for every paragraph it carries.
+        #
+        # ! IT ALSO COVERS THE SERIES WITH NO ANCHOR. Leading and the file's own
+        # matter answer to no line of code, so the anchor test skipped them
+        # entirely; their prose can still be edited, and now that is seen.
+        stored = b.get("raw_lines")
+        if address and isinstance(stored, list):
+            here_lines = prose_now.get(folio_of(address).folio)
+            if here_lines is not None and here_lines != stored:
+                out.append(
+                    f"{address}: the prose here changed since the census"
+                    f" -- {len(stored)} line(s) read, {len(here_lines)} now"
+                )
         was = str(b.get("anchor", ""))
         if not address or not was:
             continue

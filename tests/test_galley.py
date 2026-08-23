@@ -313,3 +313,79 @@ class TestCLI(unittest.TestCase):
         result = self._run({"m.py@b0": "    # anything"})
         self.assertEqual(result.returncode, 2)
         self.assertIn("carries no addresses", result.stdout)
+
+
+SRC = '"""Doc."""\n\n# introduces N\nN = 0\n'
+
+
+def introduces(pg):
+    """The paragraph holding the comment, on a page built from `SRC`."""
+    return next(b for b in pg if "introduces N" in b.text)
+
+
+class TestAReplacementIsTEXT(unittest.TestCase):
+    """Only an empty string is a drop; anything not text is refused.
+
+    !! IT ASKED WHETHER THE VALUE WAS TRUTHY, so every falsy value took the drop
+    path and every non-string truthy one reached `.splitlines()`. MEASURED
+    2026-08-22 against a scratch checkout: a null value exited 0 reporting
+    `1 page(s) set, 0 edit(s) refused` with the comment GONE, and an int died on
+    an uncaught `AttributeError`.
+
+    ! A NULL IS NOT A DECISION. `--edits` is machine-written from approved text,
+    so a key whose value failed to serialise arrives as `null` -- and reading
+    that as "the author asked to delete this" turns a bug upstream into a
+    deletion here, at exit 0.
+    """
+
+    def test_a_non_string_is_refused_and_the_prose_is_untouched(self):
+        for value in (None, 123, [], {}, True):
+            with self.subTest(value=value):
+                pg = built(SRC)
+                held = introduces(pg)
+                refused = galley.reset(pg, {held.address: value})
+                self.assertEqual(len(refused), 1, refused)
+                self.assertIn("must be text", refused[0])
+                self.assertEqual(held.raw_lines, ["# introduces N"])
+
+    def test_an_EMPTY_STRING_is_still_the_drop(self):
+        pg = built(SRC)
+        held = introduces(pg)
+        self.assertEqual(galley.reset(pg, {held.address: ""}), [])
+        self.assertEqual(held.raw_lines, [])
+
+    def test_real_text_is_still_applied(self):
+        pg = built(SRC)
+        held = introduces(pg)
+        self.assertEqual(galley.reset(pg, {held.address: "# new"}), [])
+        self.assertEqual(held.raw_lines, ["# new"])
+
+
+class TestDriftIsPROSEAsWellAsANCHOR(unittest.TestCase):
+    """A comment edited since the census is the file shifting.
+
+    !! THE ANCHOR IS A LINE OF CODE, so a prose edit moves nothing it can see,
+    and the galley wrote approved text over prose nobody had read. MEASURED
+    2026-08-22 on one census: a code change refused at exit 1 naming three moved
+    anchors, while replacing one comment with two unreviewed lines gave exit 0
+    and overwrote both.
+
+    ! IT IS THE RULE `drifted` ALREADY QUOTES. Roy: *"If the file shifted at all
+    it is dead and so are the edits."*
+    """
+
+    def _census(self):
+        return [vars(b) for b in built(SRC)]
+
+    def test_an_unchanged_file_does_not_drift(self):
+        self.assertEqual(galley.drifted(built(SRC), self._census()), [])
+
+    def test_PROSE_edited_since_the_census_is_drift(self):
+        edited = SRC.replace("# introduces N", "# introduces N\n# a second line")
+        got = galley.drifted(built(edited), self._census())
+        self.assertTrue(got)
+        self.assertIn("the prose here changed", got[0])
+
+    def test_CODE_moved_since_the_census_is_still_drift(self):
+        moved = SRC.replace("N = 0", "RENAMED = 0")
+        self.assertTrue(galley.drifted(built(moved), self._census()))
