@@ -113,6 +113,7 @@ LANGUAGES: tuple[Language, ...] = (
         # in a `#` line INSIDE a triple-quoted literal fingerprinted
         # identically and the proof reported PROVEN.
         spanning_quotes=('"""', "'''"),
+        quotes=('"', "'"),
     ),
     Language(
         "rust",
@@ -142,6 +143,7 @@ LANGUAGES: tuple[Language, ...] = (
             "static",
             "macro_rules!",
         ),
+        quotes=('"', "'"),
     ),
     Language(
         "go",
@@ -188,6 +190,7 @@ LANGUAGES: tuple[Language, ...] = (
         (("/*", "*/"),),
         doc_block=("/**",),
         char_quotes=("'",),
+        quotes=('"', "'"),
     ),
     Language(
         "cpp",
@@ -203,6 +206,7 @@ LANGUAGES: tuple[Language, ...] = (
         # rather than the bare quote because `R"` is distinctive: `LR"`, `u8R"`
         # and `uR"` all contain it, and ordinary C++ strings do not.
         spanning_quotes=('R"',),
+        quotes=('"', "'"),
     ),
     Language(
         "java",
@@ -247,6 +251,7 @@ LANGUAGES: tuple[Language, ...] = (
         # ! A Java TEXT BLOCK spans lines the same way, and a `//` inside one is
         # not a comment.
         spanning_quotes=('"""',),
+        quotes=('"', "'"),
     ),
     Language(
         "csharp",
@@ -286,6 +291,7 @@ LANGUAGES: tuple[Language, ...] = (
         # `//` inside either is censused as a comment -- the fail-open measured
         # on Rust 2026-08-22. ! `$@"` and `@$"` both contain `@"`.
         spanning_quotes=('"""', '@"'),
+        quotes=('"', "'"),
     ),
     Language(
         "swift",
@@ -322,6 +328,7 @@ LANGUAGES: tuple[Language, ...] = (
             "required",
         ),
         spanning_quotes=('"""',),
+        quotes=('"',),
     ),
     Language(
         "kotlin",
@@ -369,6 +376,7 @@ LANGUAGES: tuple[Language, ...] = (
             "suspend",
         ),
         spanning_quotes=('"""',),
+        quotes=('"', "'"),
     ),
     Language(
         "javascript",
@@ -418,6 +426,7 @@ LANGUAGES: tuple[Language, ...] = (
         # comment -- see `prove_unchanged`, which refuses on PRESENCE because
         # parity is what a per-line reader cannot compute.
         spanning_quotes=("<<~", "<<-"),
+        quotes=('"', "'"),
     ),
     # ! A HEREDOC CROSSES LINES, and in shell `<<` is one almost always -- the
     # only other reading is an arithmetic left shift inside `$(( ))`. A `#` line
@@ -430,8 +439,15 @@ LANGUAGES: tuple[Language, ...] = (
         ("#",),
         declares=("function",),
         spanning_quotes=("<<",),
+        quotes=('"', "'"),
     ),
-    Language("sql", (".sql",), ("--",), (("/*", "*/"),)),
+    Language(
+        "sql",
+        (".sql",),
+        ("--",),
+        (("/*", "*/"),),
+        quotes=("'", '"'),
+    ),
     # ! `local function` is TWO WORDS on purpose: bare `local` opens a
     # variable, so matching it alone would declare every one of them.
     Language(
@@ -470,6 +486,7 @@ LANGUAGES: tuple[Language, ...] = (
         # before this row changed, so the bound costs nothing it was not already
         # costing; it is stated because a silent bound reads as completeness.
         spanning_quotes=("[[", "[=[", "[==["),
+        quotes=('"', "'"),
     ),
     # !! TOML AND INI ARE TWO LANGUAGES AND WERE ONE ROW. They share `#` and
     # nothing else: INI has ALSO always taken `;`, so every semicolon comment in
@@ -487,6 +504,7 @@ LANGUAGES: tuple[Language, ...] = (
         (".toml",),
         ("#",),
         spanning_quotes=('"""', "'''"),
+        quotes=('"', "'"),
     ),
     # ! `;` is INI's original comment marker and `#` the later convention; both
     # are live, so both are listed. There is no multi-line string in INI.
@@ -494,8 +512,14 @@ LANGUAGES: tuple[Language, ...] = (
         "ini",
         (".ini", ".cfg"),
         ("#", ";"),
+        quotes=(),
     ),
-    Language("yaml", (".yaml", ".yml"), ("#",)),
+    Language(
+        "yaml",
+        (".yaml", ".yml"),
+        ("#",),
+        quotes=('"', "'"),
+    ),
 )
 
 BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}

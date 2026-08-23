@@ -6,17 +6,16 @@ easy way to do that is to supply the lexer with the list of keywords that a
 language/practice uses to say this can get a docstring."*
 """
 
+import ast
 import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(
-    0,
-    str(
-        Path(__file__).resolve().parents[1]
-        / "plugins/comment-review/skills/comment-review/scripts"
-    ),
+SCRIPTS = (
+    Path(__file__).resolve().parents[1]
+    / "plugins/comment-review/skills/comment-review/scripts"
 )
+sys.path.insert(0, str(SCRIPTS))
 
 import lexer  # noqa: E402
 import page  # noqa: E402
@@ -237,6 +236,42 @@ class TestEachLanguageCarriesItsOwnList(unittest.TestCase):
             for ext in lang.extensions:
                 self.assertNotIn(ext, seen, f"{ext}: {seen.get(ext)} and {lang.name}")
                 seen[ext] = lang.name
+
+    def test_every_row_STATES_its_own_quotes(self):
+        """A row that says nothing takes the dataclass default, which is inheriting.
+
+        !! 15 OF 18 ROWS INHERITED `('"', "'")` AND NOBODY HAD DECIDED IT. Roy,
+        2026-08-22, stating the rule explicitly for the second time: *"every
+        language gets its own definition requirements in the file. No language
+        ever inherits from the `a` family ... every language gets all of the
+        definitions necessary to parse it specifically, because anything else is
+        failing the SRP rules."*
+
+        ! IT WAS WRONG FOR AT LEAST TWO. INI has no string quoting at all, so
+        `name = Roy's config ; a trailing comment` censused with NO prose -- the
+        apostrophe opened a literal that swallowed the comment. Swift has no
+        character literal, so its `'` had nothing to open either.
+
+        ! THE TEST READS THE SOURCE, not the objects. Every row's `quotes`
+        attribute is populated at runtime whether it was stated or defaulted, so
+        only the text can tell a decision from an inheritance.
+        """
+        source = (SCRIPTS / "language.py").read_text(encoding="utf-8")
+        rows = [
+            node
+            for node in ast.walk(ast.parse(source))
+            if isinstance(node, ast.Call) and getattr(node.func, "id", "") == "Language"
+        ]
+        # ! Guards the guard: if the walk stops finding rows, the check below
+        # passes by having nothing to look at.
+        self.assertEqual(len(rows), len(lexer.LANGUAGES))
+        silent = [
+            node.args[0].value
+            for node in rows
+            if isinstance(node.args[0], ast.Constant)
+            and not any(kw.arg == "quotes" for kw in node.keywords)
+        ]
+        self.assertEqual(silent, [])
 
     def test_every_doc_opener_is_listed_as_a_comment_opener_LONGEST_FIRST(self):
         # !! THE TABLE'S OWN RULE, and nothing checked it until 2026-08-20: a
