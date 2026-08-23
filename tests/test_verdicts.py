@@ -2107,7 +2107,8 @@ class TestAFindingStatedOnlyInReason(unittest.TestCase):
             self._run(
                 "correct",
                 'false: "callers round separately" / true: "31 callers"',
-                'the definition reads "def compute(plan, period)" so the count is stale',
+                'the definition reads "def compute(plan, period)" so the count is'
+                " stale",
             ),
             [],
         )
