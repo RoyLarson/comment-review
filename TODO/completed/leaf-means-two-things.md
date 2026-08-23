@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 19 tasks done
+Progress: 19 of 19 tasks done
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves
@@ -88,7 +88,7 @@ changes.**
       `leaf` definitions are inside OTHER terms' definition strings, where nothing
       reads them as definitions at all. ! Whatever check is added has to be able
       to fail -- see `docs/gates.md`.
-- [ ] RAISED BY THE SENTENCE THAT USED IT. Roy, 2026-08-22, on what stage 2 does:
+- [x] RAISED BY THE SENTENCE THAT USED IT. Roy, 2026-08-22, on what stage 2 does:
       *"it calls census to get the pages and the references and stacks them
       together into leafs I think is the correct term."* ! That is the
       `vocabulary.toml` sense, and it is the sense `addresser.py` contradicts -- so
@@ -113,7 +113,7 @@ changes.**
       only thing in the tree that rules against `pagination`, and it does so on
       the false premise. ! Settle the two together or the stage takes a word the
       module refuses.
-- [ ] ! WHAT IS NOT IN QUESTION: `page` and `place`. A file has one continuous
+- [x] ! WHAT IS NOT IN QUESTION: `page` and `place`. A file has one continuous
       side and no verso, so it is a page and there is no leaf in the model at all.
       The numbering of PLACES has no trade word because a proof is marked by
       margin and line -- a coinage is correct here, which is what the register
@@ -155,7 +155,7 @@ changes.**
       TAKEN TWICE (48 uses: the linguistic sense this repo's method runs on, plus
       `printing register`, where out-of-register is a press defect). `registrar`,
       `cadastre`, `plat`, `cue sheet` and `address space` are all free.
-- [ ] ! THE TEST FOR LINE-NUMBER CREEP, which is what Roy asked to guard against:
+- [x] ! THE TEST FOR LINE-NUMBER CREEP, which is what Roy asked to guard against:
       a name reinvents line numbers if it implies POSITION MEASURED FROM A START.
       `index`, `sequence`, `ordinal` fail it. `cadastre`, `register`, `plat` pass
       -- they enumerate IDENTIFIED PARCELS, and the identifier belongs to the
@@ -163,7 +163,7 @@ changes.**
       NOT A LINE NUMBER even though it is the fourth gap: it is assigned once by
       walking CODE, and code does not move when prose is edited. Line numbers fail
       because the thing they count is the thing the edit changes.
-- [ ] ! WHAT REMAINS IS MECHANICAL, NOT A RULING: 278 `folio` sites become `cue`,
+- [x] ! WHAT REMAINS IS MECHANICAL, NOT A RULING: 278 `folio` sites become `cue`,
       and `Foliation`/`foliate`/`foliator` follow the addresser rename. ! HISTORY
       KEEPS THE OLD NAMES -- `docs/history.md`, `TODO/completed/`, `CHANGELOG.md`
       and `evidence/` record what the system WAS, and renaming inside them is what
