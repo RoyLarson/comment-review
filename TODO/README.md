@@ -260,7 +260,7 @@ that changed a published name or rule:
 | [exception-hierarchy](exception-hierarchy.md) | comment-review | — | 0/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | comment-review | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | comment-review | yes | 0/6 | Two graded arms, orchestration held constant; the rewording is the confound |
-| [lexer-does-not-lex](lexer-does-not-lex.md) | comment-review | yes | 0/4 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
+| [lexer-does-not-lex](lexer-does-not-lex.md) | comment-review | yes | 0/7 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | comment-review | yes | 0/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [computed-and-never-read](computed-and-never-read.md) | session | — | 0/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [leaf-means-two-things](leaf-means-two-things.md) | comment-review | yes | 0/15 | vocabulary.toml says paragraphs run down a leaf; foliator.py says a leaf IS a place -- and folio is defined against the first |
