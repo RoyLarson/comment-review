@@ -100,11 +100,10 @@ def reset(page, edits: dict[str, str]) -> list[str]:
     difference between this and the splice it replaces: growing a paragraph from
     one line to four used to shift every range below it.
 
-    !! A PLACE IS NEVER REMOVED -- IT IS VACATED. Roy, 2026-08-22, correcting the
-    reading of his own earlier ruling: *"I really meant that the place/foliation
-    becomes the empty sentinel, not that the place itself disappears. Places are
-    involatile."* So `drop` does not delete anything: the paragraph stays, at the
-    same address, holding no lines. That is what keeps it citable afterwards --
+    !! A PLACE IS NEVER REMOVED -- IT IS VACATED. Places are involatile: the
+    place takes the empty sentinel and does not itself disappear, so `drop`
+    deletes nothing and the paragraph stays, at the same address, holding no
+    lines. That is what keeps it citable afterwards --
     an `add` can fill the very place a `drop` emptied.
 
     !! `drop` AND THE SOURCE HALF OF A `move` ARE THE SAME OPERATION, and both
@@ -114,8 +113,8 @@ def reset(page, edits: dict[str, str]) -> list[str]:
     longer there and the space it introduced is no longer owed.
 
     ! THE LEADING BELOW IT IS VACATED TOO, for the same reason and by the same
-    rule: Roy, 2026-08-21, *"the live first key foliation lives, the drop first
-    key dies."* The `d` becomes the empty sentinel; it does not cease to exist.
+    rule -- the live first key keeps its leading, the dropped one loses it. The
+    `d` becomes the empty sentinel; it does not cease to exist.
     Without it the blank line the paragraph introduced stands over whatever
     follows.
 
@@ -207,10 +206,10 @@ def reset(page, edits: dict[str, str]) -> list[str]:
 def _vacate(paragraph, leading) -> None:
     """Empty this place and the space below it, without removing either.
 
-    !! THE EMPTY SENTINEL IS THE POINT. Roy, 2026-08-22: *"the place/foliation
-    becomes the empty sentinel, not that the place itself disappears."* Both
-    paragraphs keep their address, their anchor and their position in the
-    reading order; they hold no lines. A place that vanished could not be cited
+    !! THE EMPTY SENTINEL IS THE POINT: the place takes it, and does not itself
+    disappear. Both paragraphs keep their address, their anchor and their
+    position in the reading order; they hold no lines. A place that vanished
+    could not be cited
     by the `add` that fills it next.
 
     Args:

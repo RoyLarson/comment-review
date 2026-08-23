@@ -62,6 +62,7 @@ evidence/*
 !evidence/todo-tool-full-run/
 !evidence/cycle-0.2.3/
 !evidence/comment-review-skill-023-dev-review/
+!evidence/rename-left-history-in-the-comments/
 !evidence/*.md
 
 # CodeGraph index -- derived from the tree, rebuilt with `codegraph init`.
