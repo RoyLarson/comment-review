@@ -911,9 +911,33 @@ def _is_doc(line: str, lang: Language) -> bool:
     though the run were an ordinary comment.
     """
     opens = line.strip()
-    if lang.doc_line and opens.startswith(lang.doc_line):
-        return True
-    return bool(lang.doc_block and opens.startswith(lang.doc_block))
+    return _opens_doc(opens, lang.doc_line) or _opens_doc(opens, lang.doc_block)
+
+
+def _opens_doc(opens: str, markers: tuple[str, ...]) -> bool:
+    """Does this line open a DOC run with one of these markers?
+
+    !! A RULE IS NOT A DOC COMMENT, and `startswith` could not tell them apart.
+    `/*******************/` opens with `/**`, so a BANNER was typed `docstring`
+    and became eligible to document the declaration beneath it -- routing by
+    FORMAT where the question is what the run says. MEASURED 2026-08-22; the
+    corpora hold 135 runs of that shape.
+
+    ! THE TEST IS THE CHARACTER AFTER THE MARKER, which is the rule Javadoc and
+    Doxygen themselves use: `/**` opens documentation, `/***` does not, and the
+    difference is whether the next character repeats the marker. It holds for
+    `doc_line` unchanged -- `///` is a Rust doc line and `////` is a rule.
+
+    ! An EMPTY doc opener is still one: `///` with nothing after it, or
+    `/** */`, are documentation a reviewer can rule on. Only a REPEAT disqualifies.
+    """
+    for marker in markers:
+        if (
+            opens.startswith(marker)
+            and opens[len(marker) : len(marker) + 1] != marker[-1:]
+        ):
+            return True
+    return False
 
 
 def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]:
@@ -1266,6 +1290,29 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             if closes_here and after.strip():
                 # ! THE LINE IS CODE, so it ends the run like any other.
                 flush()
+                # !! AND A LINE COMMENT AFTER IT IS STILL A TRAILING COMMENT.
+                # This returned immediately, so `int x = /* why */ 5; // note`
+                # lost the `// note` ENTIRELY: the `c` place survived as an empty
+                # `margin` and a real comment reached no reviewer. MEASURED
+                # 2026-08-22 against the same line without the intermediate
+                # comment, where `c1` is a `trailing-comment` reading `note`.
+                # ! The ruling ignores the INTERMEDIATE comment -- Roy,
+                # 2026-08-19: *"all intermediate comments are ignored"* -- and
+                # says the line is then simply code. A code line carrying a
+                # trailing comment is the ordinary case, not an exception to it.
+                # ! It must sit past the CLOSER: a `//` before the delimited
+                # opener never reaches here, because whichever opener comes
+                # first owns the line and `opened` was cleared above.
+                seen_code[0] = True
+                closed_at = opens_at + len(opened[0]) + ends_at
+                if line_at >= closed_at:
+                    partial_first[0] = (
+                        len(raw_line[:line_at].rstrip()) + 1
+                        if raw_line[:line_at].strip()
+                        else 0
+                    )
+                    run.append((n, raw_line[line_at:].rstrip()))
+                    flush(trailing=True)
                 continue
             beside_code = bool(code[:opens_at].strip())
             if beside_code:

@@ -1,6 +1,7 @@
 """A language that attaches docs by POSITION declares the gap, never guesses."""
 
 import unittest  # noqa: I001  -- path shim must import first
+from pathlib import Path
 
 from _paths import FIXTURES
 import lexer
@@ -47,3 +48,78 @@ class TestStructuralDocGap(unittest.TestCase):
     def test_python_never_reaches_this_pass(self):
         for paragraph in blocks_for("sample.py"):
             self.assertNotIn("doc-kind-unresolved", paragraph.annotations)
+
+
+def built(name: str, text: str):
+    """A page for text that has no fixture of its own."""
+    p = Path(name)
+    return page.page_for(p, text, lexer.language_for(p))
+
+
+def prose(pg):
+    """`(address, kind)` for every paragraph holding prose."""
+    return [(b.address.split("@")[-1], str(b.kind)) for b in pg if b.text.strip()]
+
+
+class TestARuleIsNotADocComment(unittest.TestCase):
+    """A banner made of the marker's own character opens nothing.
+
+    !! IT WAS TYPED `docstring` AND COULD THEN DOCUMENT A DECLARATION.
+    `/*******************/` starts with `/**`, and the test was `startswith` --
+    so a RULE was routed by FORMAT where the question is what the run says.
+    MEASURED 2026-08-22; the corpora hold 135 runs of that shape.
+
+    ! The test is the character AFTER the marker, which is the rule Javadoc and
+    Doxygen use themselves, and it holds for `doc_line` unchanged.
+    """
+
+    def test_a_rule_of_stars_is_not_a_docstring(self):
+        got = prose(built("a.c", "/*******************/\nint x = 1;\n"))
+        self.assertNotIn("docstring", [kind for _, kind in got])
+
+    def test_a_real_doc_block_still_is_one(self):
+        got = prose(built("b.c", "/** Adds one. */\nint x = 1;\n"))
+        self.assertIn("docstring", [kind for _, kind in got])
+
+    def test_a_rule_of_slashes_is_not_a_rust_doc_line(self):
+        got = prose(built("c.rs", "////////////////\npub fn f() {}\n"))
+        self.assertNotIn("docstring", [kind for _, kind in got])
+
+    def test_a_real_rust_doc_line_still_is_one(self):
+        got = prose(built("d.rs", "/// Adds one.\npub fn f() {}\n"))
+        self.assertIn("docstring", [kind for _, kind in got])
+
+
+class TestATrailingCommentSurvivesAnIntermediateOne(unittest.TestCase):
+    """`int x = /* why */ 5; // note` keeps the `// note`.
+
+    !! IT LOST IT ENTIRELY. The intermediate-comment branch returned as soon as
+    it saw code after the closer, so the `c` place survived as an empty `margin`
+    and a real comment reached no reviewer. MEASURED 2026-08-22 against the same
+    line without the intermediate comment, where `c1` reads `note`.
+
+    ! The ruling ignores the INTERMEDIATE comment -- Roy, 2026-08-19: *"all
+    intermediate comments are ignored"* -- and says the line is then simply
+    code. A code line carrying a trailing comment is the ordinary case.
+    """
+
+    def _c1(self, text: str):
+        held = [b for b in built("m.c", text) if b.address.endswith("c1")]
+        self.assertEqual(len(held), 1, text)
+        return held[0]
+
+    def test_the_trailing_comment_survives(self):
+        got = self._c1("int y = 0;\nint x = /* why */ 5; // note\nint z = 1;\n")
+        self.assertEqual(str(got.kind), "trailing-comment")
+        self.assertEqual(got.text, "note")
+
+    def test_the_same_line_without_the_intermediate_one_is_unchanged(self):
+        got = self._c1("int y = 0;\nint x = 5; // note\nint z = 1;\n")
+        self.assertEqual(str(got.kind), "trailing-comment")
+        self.assertEqual(got.text, "note")
+
+    def test_an_intermediate_comment_ALONE_still_yields_no_prose(self):
+        # ! The ruling itself: nothing is censused for the intermediate comment.
+        got = self._c1("int y = 0;\nint x = /* why */ 5;\nint z = 1;\n")
+        self.assertEqual(str(got.kind), "margin")
+        self.assertEqual(got.text, "")
