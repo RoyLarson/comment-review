@@ -93,3 +93,22 @@ class TestTheVersionIsStatedOnce(unittest.TestCase):
         self.assertEqual(
             (ROOT / ".python-version").read_text(encoding="utf-8").strip(), "3.11"
         )
+
+    def test_every_gate_tool_is_pinned_where_uv_enforces_it(self):
+        """The floor rule, applied to the tools that check the floor.
+
+        !! IT WAS APPLIED TO THE INTERPRETER AND NOT TO THE LINTER for months.
+        `pyproject.toml` spent sixteen lines arguing that an ambient interpreter
+        silently passed broken code -- and declared no dev dependencies at all,
+        so `ruff` and `ty` were whatever the machine happened to have. Roy,
+        2026-08-22: *"we can't have my personal computer's `ty` happens to
+        work."*
+
+        ! `==` AND NOT `>=`. `ruff format` REWRITES source and its output moves
+        between releases, so a range lets a different formatter author this
+        tree; `ty` is pre-1.0, so its diagnostics move too. A gate that changes
+        under a green run is what `docs/gates.md` is about.
+        """
+        dev = self.pyproject["dependency-groups"]["dev"]
+        pinned = {name.split("==")[0]: name for name in dev if "==" in name}
+        self.assertEqual(sorted(pinned), ["ruff", "ty"], dev)

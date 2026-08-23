@@ -35,6 +35,29 @@ version = "0.2.4-alpha"
 [tool.uv]
 package = false
 
+# !! THE GATES ARE PINNED, FOR THE REASON THE HEADER ABOVE PINS THE INTERPRETER.
+# Roy, 2026-08-22: *"we can't have my personal computer's `ty` happens to work."*
+# Until then this file spent sixteen lines arguing that an ambient interpreter
+# silently passed broken code for two days -- and then invoked `ruff` off PATH,
+# so the linter that enforces the floor was itself whatever the machine had.
+#
+# ! A LINTER IS NOT A NEUTRAL READER. `ruff format` REWRITES source, and its
+# output changes between versions; the `target-version` above protects the
+# syntax it emits and cannot protect against a different ruff emitting something
+# else. An unpinned formatter is an unreviewed author.
+#
+# ! `ty` IS PRE-1.0 AND SAYS SO IN ITS VERSION NUMBER, which is an argument FOR
+# pinning it rather than against having it: its diagnostics will change, and a
+# gate that changes underneath a green run is the thing `docs/gates.md` is about.
+#
+# ! `uv run` INSTALLS THIS GROUP BY DEFAULT, so `uv run ruff` and `uv run ty`
+# get these and not PATH. The commands in CLAUDE.md say `uv run` for that reason.
+[dependency-groups]
+dev = [
+  "ruff==0.16.1",
+  "ty==0.0.68",
+]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 88

@@ -445,7 +445,7 @@ def empty_places(
     only which of them prose is sitting in, and gives the rest a paragraph.
 
     ! An empty place occupies no lines -- that is what the NEGATIVE of a series
-    means, see `lexer.PAIRED` -- and it is why emitting one cannot move a code
+    means, see `lexer.Series` -- and it is why emitting one cannot move a code
     line or renumber anything below it.
 
     Args:
@@ -501,6 +501,17 @@ def empty_places(
             # the ANCHOR, so storing it here too would put one fact in two
             # fields.
             n = foliation.anchor_line(folio)
+            if n is None:
+                # !! A `c` ANSWERS TO A LINE OF CODE BY CONSTRUCTION. The `ON`
+                # series emits at code triggers and never at the `<module>` or
+                # `<eof>` sentinels, which are the only triggers with no line --
+                # so None here is the foliation disagreeing with the page that
+                # built it, and not a shape any file can produce.
+                # ! IT IS NAMED RATHER THAN SKIPPED. Continuing would drop a
+                # place out of the reading order, which the compositor sets
+                # from, so the file would come back missing a line and every
+                # gate would still be green.
+                raise ValueError(f"{folio}: a `c` place whose anchor has no line")
             code = lines[n - 1].rstrip()
             out.append(
                 Paragraph(
@@ -883,7 +894,11 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     exact: set[int] = set()
     for b in paragraphs:
         series = (b.address.split("@")[-1] or b.symbol)[:1]
-        if series and series != GAP and b.original_start:
+        # ! BOTH ENDS ARE TESTED because both are `int | None` and they are set
+        # as a PAIR -- a paragraph that holds lines holds both, one that holds
+        # none holds neither. Testing the start alone narrowed half the range
+        # and left the other half to fail on `None + 1`.
+        if series and series != GAP and b.original_start and b.original_end:
             exact.update(range(b.original_start, b.original_end + 1))
 
     def recut(b: Paragraph, mine: set[int] | None = None) -> None:

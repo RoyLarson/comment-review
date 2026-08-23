@@ -116,8 +116,20 @@ uv run python scripts/todo_tool.py list [--owner T] [--status S] [--requires-roy
 uv run python scripts/todo_tool.py resync     # after a merge, before trusting any count
 
 # Lint (ruff config lives in pyproject.toml; corpora/** is excluded from linting)
-ruff check .
-ruff format .
+# !! THROUGH `uv run`, LIKE EVERYTHING ELSE. `ruff` and `ty` are PINNED dev
+# dependencies since 2026-08-22; a bare `ruff` is whatever the machine has, and
+# `ruff format` REWRITES source. Roy: "we can't have my personal computer's `ty`
+# happens to work."
+uv run ruff check .
+uv run ruff format .
+
+# Type gate. Roy, 2026-08-22: "type drifts happen because we have been willing
+# to ignore a ty gate and that is probably not the right thing to do."
+# ! IT FOUND THINGS NO TEST DID, on the day it was added: `foliate` annotated a
+# parameter its own body unpacks as a 3-tuple, so anyone honouring the signature
+# crashed; and a `SyntaxError` put the string `<unknown>` into `Paragraph.start`,
+# because two exception types were read as though `args[1]` meant one thing.
+uv run ty check plugins/comment-review/skills/comment-review/scripts/
 
 # Gate check: refuse to ship a plugins/ file that won't parse on the floor interpreter (py3.11).
 # Run AFTER `ruff format`.

@@ -398,11 +398,16 @@ class Foliation:
     had just discarded. The walkers survive now, so an accessor is a QUERY over
     one collection instead of a lookup in a table of its own.
 
-    Attributes:
-        walk: series letter -> the `Foliator` that emitted that series, holding
-            its places in EMISSION ORDER. `places` flattens all five.
+    ! Each of the three fields is documented where it is DECLARED, below. An
+    `Attributes:` section here said the same things a second time and drifted from
+    both: it described this first field under the name of the second, and said
+    `places` flattens "all five" when `SERIES` has four.
     """
 
+    # !! SERIES LETTER -> THE `Foliator` THAT EMITTED IT, holding its places in
+    # EMISSION ORDER. `places` flattens all four. ! Keyed by letter because that
+    # is what a folio's first character IS -- so a lookup needs no table beside
+    # this one, which is the whole reason the walkers survive the walk.
     foliators: dict[str, Foliator] = field(
         default_factory=lambda: {name: Foliator(name) for name in SERIES}
     )
@@ -672,7 +677,7 @@ class Foliation:
 
 def foliate(
     code: dict[int, str],
-    documentable: dict[int, int],
+    documentable: dict[int, tuple[int, int, str]],
     module_insert: int | None = 1,
 ) -> Foliation:
     """Walk the anchors of one file; return every folio and its line of code.
@@ -704,9 +709,13 @@ def foliate(
         code: `line number -> the exact characters on it`, ascending -- what
             `page.code_lines` returns. The number POSITIONS the trigger; it
             never numbers it, so the walk reads this in order and counts.
-        documentable: index into `code` -> the line that declaration's doc
-            would go on. The LEXER states both, because only a parser knows
-            which lines declare and where a doc belongs.
+        documentable: index into `code` -> `(the LINE the doc occupies, the code
+            index it is set at, WHICH SIDE of that index's gap)` -- what
+            `page.documentable` returns, and the body below unpacks all three.
+            ! IT WAS ANNOTATED `dict[int, int]` AND DOCUMENTED AS ONE LINE
+            NUMBER, which is the shape this had before the three facts were
+            split apart 2026-08-21. Honouring either crashed: `{0: 2}` raises
+            `cannot unpack non-iterable int object`.
         module_insert: where the MODULE's own doc would go, or None when the
             language has no documentable declaration at all -- then there is no
             `a` series, not an empty one.
@@ -1158,9 +1167,20 @@ def main() -> int:
     except json.JSONDecodeError as e:
         print(f"{args.census} is not JSON ({e})")
         return 2
-    paragraphs = loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded
-    if not isinstance(paragraphs, list) or not paragraphs:
+    raw = loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded
+    if not isinstance(raw, list) or not raw:
         print(f"{args.census} carries no paragraphs")
+        return 2
+    # !! EVERY ENTRY IS CHECKED, not just the list around them. A census row that
+    # is not a mapping cannot carry an address, a kind or a symbol, and every
+    # reader below calls `.get` on it -- so a hand-edited or truncated census
+    # arrived as an `AttributeError` naming neither the file nor the row.
+    # ! It is also what lets the type checker see this list as paragraphs. Before
+    # the check, each entry was `object` and three call sites here were reading
+    # attributes off it that the annotation said were not there.
+    paragraphs: list[dict] = [b for b in raw if isinstance(b, dict)]
+    if len(paragraphs) != len(raw):
+        print(f"{args.census}: {len(raw) - len(paragraphs)} entries are not paragraphs")
         return 2
 
     # !! NO STALENESS SWEEP. This module answers about the CENSUS IT WAS GIVEN,

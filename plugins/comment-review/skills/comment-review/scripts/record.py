@@ -52,6 +52,7 @@ import sys
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from pathlib import Path
+from typing import TypeGuard
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -450,8 +451,14 @@ def _is(f: Finding, trait: str) -> bool:
     return bool(spec and getattr(spec, trait))
 
 
-def filled(value: object) -> bool:
+def filled(value: object) -> TypeGuard[str]:
     """Is this `claim` value a real answer?
+
+    ! A `TypeGuard`, NOT A `bool`, because the answer IS a fact about the type
+    and every caller then acts on it. `_half` returned `value` on a True and was
+    the one place a checker could see the gap: `object` where `str` was
+    promised. Saying it here narrows at every call site instead of adding a
+    second `isinstance` at each of them.
 
     !! A CLAIM VALUE IS PROSE, so anything that is not a non-blank STRING is
     empty -- and `str(value).strip()` cannot say so, because it renders `None`

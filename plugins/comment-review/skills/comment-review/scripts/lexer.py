@@ -313,7 +313,7 @@ class Kind(StrEnum):
     ! `leading` HAS A POSITIVE AND NO NEGATIVE, and squaring the table would be
     the error. An empty one could not be cited -- Roy: *"there is no information
     to rule on"* -- which is the same reason `d` is not in `foliator.SERIES`.
-    It is a kind with no series, and `NEGATIVE` below leaves it out.
+    It is a kind with no series, and `ABSENT` below leaves it out.
     """
 
     DOCSTRING = "docstring"
@@ -397,7 +397,7 @@ class Kind(StrEnum):
         `occupied`, so they are read as CODE and every `b` and `c` below them
         renumbers -- the same class of break the merge itself was measured
         against. ! So the two names are back, and neither is hand-kept: both are
-        derived from `PAIRED`, and they differ by exactly one member.
+        derived from `Series`, and they differ by exactly one member.
         """
         return kind in ABSENT
 
@@ -430,9 +430,9 @@ class Series(Enum):
 
     !! THE LETTER IS NOT IN HERE, and that draft put it in. `foliator` owns the
     letters -- `COVERS = "f"` and its three siblings -- and spelling them again
-    in a module that cannot import the one holding them is exactly the drift
-    `PAIRED` already was. ! What ties the two is the MEMBER NAME: every name here
-    is a constant in `foliator`, and `tests/test_page.py` holds the two sets
+    in a module that cannot import the one holding them is exactly the drift the
+    old `PAIRED` map already was. ! What ties the two is the MEMBER NAME: every
+    name here is a constant in `foliator`, and `tests/test_page.py` holds the sets
     equal, so a letter that moves fails a test instead of leaving two spellings
     quietly disagreeing.
 
@@ -1513,7 +1513,12 @@ def document_declarations(
                 held = ends[at]
                 break
             at -= 1
-        if held is None:
+        # ! BOTH ENDS ARE TESTED, not just `held`. A paragraph reaches `ends`
+        # KEYED BY ITS OWN END LINE, so it holds lines and both fields are set --
+        # but they are typed `int | None`, and the three lines below do
+        # arithmetic on them. The test costs nothing and says which invariant
+        # the arithmetic is standing on.
+        if held is None or held.original_start is None or held.original_end is None:
             continue
         # ! THE TWO DISTANCES, counted in blank lines. Nothing above the run
         # means there is nothing for it to belong to, so the declaration takes
@@ -1615,7 +1620,12 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
     out: list[Paragraph] = []
     source_lines = text.splitlines()
     # (line, physical source line, the comment token alone, is it trailing)
-    run: list[tuple[int, str, str, bool]] = []
+    # ! THE LAST FIELD IS A COLUMN, NOT A FLAG, and was annotated `bool`. It is
+    # the column when code precedes the comment and 0 otherwise -- ONE fact,
+    # whose truthiness still answers "is this a trailing comment", which is why
+    # it reads like a flag at every use site. The annotation believed the use
+    # and not the value.
+    run: list[tuple[int, str, str, int]] = []
     # ! The line the last trailing comment ended on. A comment opening on the
     # VERY NEXT line continues that sentence, and the flush below has already
     # split them. A list because `flush` is a closure and rebinds nothing.
@@ -1704,7 +1714,20 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
     try:
         tokens = list(tokenize.generate_tokens(io.StringIO(text).readline))
     except TOKENIZE_ERRORS as e:
-        at = e.args[1][0] if len(e.args) > 1 and e.args[1] else 1
+        # !! THE TWO EXCEPTIONS PUT DIFFERENT THINGS IN `args[1]`, and reading
+        # them the same way put a STRING in `Paragraph.start`. `TokenError` cites
+        # `(row, col)`, so `args[1][0]` is the line; `SyntaxError` cites
+        # `(filename, lineno, offset, text, ...)`, so `args[1][0]` is
+        # `'<unknown>'`. MEASURED 2026-08-22 on a dedent mismatch: `page_for`
+        # raised `TypeError: '>=' not supported between 'str' and 'int'`, the
+        # census printed that TypeError as its diagnosis, and the compositor
+        # exited 1 on a traceback.
+        # ! `lineno` IS THE ATTRIBUTE `SyntaxError` PUBLISHES, and `TokenError`
+        # does not have one -- so asking for it tells the two apart without a
+        # type test, and without either of them naming the other.
+        at = getattr(e, "lineno", None) or (
+            e.args[1][0] if len(e.args) > 1 and e.args[1] else 1
+        )
         out.append(
             Paragraph(
                 path=path.as_posix(),
