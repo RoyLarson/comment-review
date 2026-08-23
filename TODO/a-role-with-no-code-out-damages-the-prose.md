@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 4 tasks done
+Progress: 0 of 5 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-23 (2026-08-23, Roy: 'we can't tell the agents to review all of this
@@ -25,12 +25,25 @@ for. `code_concerns` came back empty. Roy, 2026-08-23: *"we can't tell the agent
 of this and not give them an out for properly resolving the issues. Several times they were
 overly restricted by what they could do and that caused tension in the recommendations."*
 
-! **THIS IS THE `agents` HALF -- what a role is TOLD it may do.** The machinery that carries a
-proposed change is `backend` and is filed as
-[`code-concerns-cannot-carry-a-proposed-change`](code-concerns-cannot-carry-a-proposed-change.md).
-Neither half is worth landing alone: telling a role it may propose a code change while the
-record can only hold a string produces a proposal nothing can read, and building the shape
-while no role is told to fill it produces a field that stays empty.
+## !! THIS LANDS SECOND, AND IT IS THE MEASUREMENT
+
+Roy, 2026-08-23: *"it has to be landed in the code, tested that the effectiveness didn't
+change, and then change the agents to tell them they can use it. Verify that it improved the
+recommendations."*
+
+**This half is the TREATMENT.**
+[`code-concerns-cannot-carry-a-proposed-change`](code-concerns-cannot-carry-a-proposed-change.md)
+(`backend`) lands first and is proven to change nothing; only then is a role told the channel
+exists. Any movement in the recommendations after this change is attributable to the
+INSTRUCTION, because the shape was already in place and already shown inert.
+
+! **SHIPPING BOTH AT ONCE DESTROYS THE ATTRIBUTION**, which is why they are two files and not
+one. It is a measurement rule, not a filing convention: with one step there is no baseline and
+the question *did telling the roles help* cannot be answered at all.
+
+! **AND THE RULING COMES BEFORE EITHER.** What a role may PROPOSE when the right fix is a code
+change decides the shape the backend has to carry, so the `*` task below gates both files
+rather than only this one.
 
 ## Tasks
 
@@ -45,3 +58,7 @@ while no role is told to fill it produces a field that stays empty.
       earns', so the role reached for the only one it had.
 - [ ] Re-run the harness case `module-context-widens-a-two-subject-docstring` --
       it is a MISS today and is the pass criterion for this TODO.
+- [ ] !! PASS CRITERION: RECOMMENDATIONS IMPROVED, measured against the baseline
+      the backend half established. Not 'the field is populated' -- that is
+      activity. The comparison is whether a role still bends prose to fit a code
+      problem.

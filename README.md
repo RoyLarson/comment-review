@@ -22,12 +22,16 @@ and has no way to resolve it reaches for the only verdict it has and edits the p
 `module-context` did exactly that, widening a two-subject docstring to announce two subjects,
 which is the defect its own trigger is named for.
 
-! It is two jobs in two lanes, and neither is worth landing alone -- a shape nobody is told to
-fill stays empty, and an instruction to propose a change the record cannot hold produces a
-proposal nothing can read:
+!! **IT IS TWO JOBS, AND THEY LAND IN ORDER FOR A MEASUREMENT REASON.** First
+[what the record can CARRY](TODO/code-concerns-cannot-carry-a-proposed-change.md) (`backend`),
+with no agent file touched -- its pass criterion is that **effectiveness does not change**,
+because the machinery is the control. Only then
 [what a role is TOLD it may do](TODO/a-role-with-no-code-out-damages-the-prose.md) (`agents`),
-and [what the record can CARRY](TODO/code-concerns-cannot-carry-a-proposed-change.md)
-(`backend`).
+whose pass criterion is that **the recommendations improve** against the baseline the first
+step established.
+
+! Shipped together they cannot be told apart: a change in the output could be the shape or the
+instruction, and the question *did telling the roles help* has no answer.
 
 ```
 project -> gather -> find refs -> mark -> apply -> compact -> APPROVAL -> review

@@ -21,11 +21,22 @@ properly resolving the issues. Several times they were overly restricted by what
 and that caused tension in the recommendations."* The harness records the shape:
 `module-context` found a module announcing one subject while holding four, had no verdict for
 *split this module*, and widened the docstring to announce TWO -- the defect its own trigger is
-named for. Two lanes, filed separately and neither worth landing alone --
-[`a-role-with-no-code-out-damages-the-prose`](TODO/a-role-with-no-code-out-damages-the-prose.md)
-(`agents`) and
-[`code-concerns-cannot-carry-a-proposed-change`](TODO/code-concerns-cannot-carry-a-proposed-change.md)
-(`backend`).
+named for.
+
+!! **TWO LANES, AND THEY ARE SEQUENCED BECAUSE OF THE MEASUREMENT, NOT THE FILING.** Roy,
+2026-08-23: *"it has to be landed in the code, tested that the effectiveness didn't change, and
+then change the agents to tell them they can use it. Verify that it improved the
+recommendations."*
+
+| order | file | lane | pass criterion |
+| --- | --- | --- | --- |
+| 1 | [`code-concerns-cannot-carry-a-proposed-change`](TODO/code-concerns-cannot-carry-a-proposed-change.md) | `backend` | effectiveness **unchanged** -- the machinery is the CONTROL and no agent file is touched |
+| 2 | [`a-role-with-no-code-out-damages-the-prose`](TODO/a-role-with-no-code-out-damages-the-prose.md) | `agents` | recommendations **improve** against the baseline step 1 established |
+
+! **SHIPPING BOTH AT ONCE DESTROYS THE ATTRIBUTION.** A movement in the output could be the
+SHAPE or the INSTRUCTION, and nothing separates them after the fact -- so the question the
+second half exists to answer cannot be asked. ! Both comparisons need a grader, which is why
+step 1 is blocked on [`the-harness-cannot-run-the-system-it-grades`](TODO/the-harness-cannot-run-the-system-it-grades.md).
 
 ### !! WHY IT EXISTS: A GREEN GATE IS NOT EVIDENCE OF A GOOD RESULT
 

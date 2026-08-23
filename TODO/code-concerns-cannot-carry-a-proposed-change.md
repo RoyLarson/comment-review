@@ -1,8 +1,11 @@
 # code_concerns is a bare list of strings, so a code problem reaches no gate
 
 ```
-Status:   open
-Progress: 0 of 5 tasks done
+Status:   blocked (on the * ruling in a-role-with-no-code-out-damages-the-prose, which
+          decides the shape this must carry; and on a working grader -- 'effectiveness
+          unchanged' is a comparison and the-harness-cannot-run-the-system-it-grades is
+          open)
+Progress: 0 of 6 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, splitting a-role-with-no-code-out-damages-the-prose:
@@ -27,11 +30,29 @@ cannot fix is also the only channel nothing verifies, which is the shape
 when two roles raise it, or checked for staleness -- the three things an address buys every
 other finding.
 
-! **THIS IS THE `backend` HALF -- what the Python can carry.** What a role is TOLD it may do is
-`agents` and is filed as
-[`a-role-with-no-code-out-damages-the-prose`](a-role-with-no-code-out-damages-the-prose.md).
-Neither half is worth landing alone: a shape nobody is told to fill stays empty, and an
-instruction to propose a change the record cannot hold produces a proposal nothing can read.
+## !! THIS LANDS FIRST, AND ITS PASS CRITERION IS THAT NOTHING CHANGES
+
+Roy, 2026-08-23: *"it has to be landed in the code, tested that the effectiveness didn't
+change, and then change the agents to tell them they can use it. Verify that it improved the
+recommendations."*
+
+**The machinery is the CONTROL.** No role is told about the new shape while this lands, so a
+run over the same subject must produce the same findings and the same verdicts as before. If
+effectiveness moves on this change, the machinery is doing something it was not asked to do
+and that is the finding.
+
+! **THE TWO HALVES MUST NOT LAND TOGETHER**, and this is a measurement rule rather than a
+tidiness one: shipped in one step, a change in the recommendations cannot be attributed to the
+INSTRUCTION rather than to the SHAPE, and the experiment that
+[`a-role-with-no-code-out-damages-the-prose`](a-role-with-no-code-out-damages-the-prose.md)
+exists to run has no baseline.
+
+!! **AND BOTH MEASUREMENTS NEED A HARNESS THAT DOES NOT EXIST YET.** "Effectiveness did not
+change" and "the recommendations improved" are both comparisons, and nothing in this repo
+currently grades a run --
+[`the-harness-cannot-run-the-system-it-grades`](the-harness-cannot-run-the-system-it-grades.md).
+Building this against no baseline produces a claim nobody can check, which is the practice
+`CLAUDE.md` names: a thing whose dependencies are broken is not worked on, it is refused.
 
 ## Tasks
 
@@ -50,3 +71,7 @@ instruction to propose a change the record cannot hold produces a proposal nothi
       roles, or checked for staleness.
 - [ ] Decide what stage 8 does with one. `review.md` reads the finished page; a
       code concern is by definition not on the page.
+- [ ] !! PASS CRITERION: EFFECTIVENESS UNCHANGED. Run the graded set before and
+      after this lands, with NO agent file touched, and show the findings and
+      verdicts are the same. A move here means the machinery changed behaviour it
+      was not asked to change.
