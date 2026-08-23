@@ -200,7 +200,7 @@ neighbouring question, whether a shipped file still PARSES on the floor, and
 read it before touching the skill. The pipeline:
 
 ```
-1 PROJECT      2 COLLATE    3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
+1 PROJECT      2 GATHER     3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
   DETERMINATION             REFERENCES               |                    7b WRITE
                                                       +---- no cap --------^
 ```
@@ -208,7 +208,7 @@ read it before touching the skill. The pipeline:
 1. **PROJECT DETERMINATION** (task agent) -- scope from the merge base, find the repo's cap/width
    conventions, doc style, `move` destination, style sheet, verify reviewer agents resolve, probe
    for a language server, decide the name-corpus source.
-2. **COLLATE** (`page.py` builds each page, `census.py` stacks them) -- every line classified, in order -- code, part-code, comment, docstring. Each paragraph is addressed by the subject its prose answers to: a gap between two lines of code, a declaration's documentation, or the room beside a line.
+2. **GATHER** (`page.py` builds each page, `census.py` stacks them) -- every line classified, in order -- code, part-code, comment, docstring. Each paragraph is addressed by the subject its prose answers to: a gap between two lines of code, a declaration's documentation, or the room beside a line.
 3. **FIND REFERENCES** (`census.py`) -- every reference each node makes, resolved (paths, symbols,
    counts).
 4. **MARK** (4 reviewer agents, read-only) -- findings on the nodes. **SERIAL in two rounds:

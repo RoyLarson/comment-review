@@ -67,7 +67,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   proposed** (Roy, 2026-08-16). `jurisdiction` -> `remit` is the standing example of a term
   checked for collisions and never for register.
 
-- **#2.** **Stage 2 `ANNOTATE` became `COLLATE`** (Roy, 2026-08-17).
+- **#2.** **Stage 2 `ANNOTATE` became `COLLATE`** (Roy, 2026-08-17). **SUPERSEDED by #10.**
 
 - **#3.** **`PAGINATE` is refused for stage 2** (Roy, 2026-08-23: *"the way I have used in the past
   is by taking something that can print infinitely and split it into pages"*). Stage 2 splits
@@ -110,6 +110,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   2026-08-23). One sheet carries two pages, so it was neither the page nor the cue. The graph
   sense is Roy's own term from 2026-08-22 -- *"Constants.py is the ultimate leaf"* -- and
   `leaves` is an ordinary English verb besides. Declared as polysemy in `vocabulary.md`.
+
+- **#10.** **Stage 2 is GATHER; #2 is superseded** (Roy, 2026-08-23: *"I think stage 2 is Gather
+  -- it is what finds all of the files and puts them in the binder."*). Gathering is the binder's
+  own word for collecting sheets into sequence, and every other stage name is an act. ! It frees
+  `collate` for its trade meaning -- transferring every hand's marks onto one proof.
 
 ## Metaphor and its limits
 
