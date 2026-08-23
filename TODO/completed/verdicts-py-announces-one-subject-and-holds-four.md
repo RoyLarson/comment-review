@@ -2,12 +2,20 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 8 tasks done
+Progress: 8 of 8 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-18, from the dev review of the file by its own editorial board
 Updated:  2026-08-18 — the module names are ruled -- three modules, verdicts.py keeps
           its name
+Updated:  2026-08-23 — Verified in place 2026-08-23. record.check() guards both cases: a
+          report whose 'pages' is not a list returns 'not a seeded report'
+          (tests/test_record.py:276), and a non-object record reports 'a record is a
+          <type>, not an object' (tests/test_verdicts.py:2365). claim_keys is the single
+          source -- three call sites, and a grep for hardcoded claim-key names returns
+          nothing. ! The split landed as desk.py / record.py / verdicts.py / held.py,
+          not the proposed join.py / checks.py: the subjects separated, the filenames
+          differed.
 ```
 
 ## Objective
@@ -93,7 +101,7 @@ per-finding checker each need a name that states their one subject.
 
 - [x] **DONE.** `verdicts.py` 2,084 -> 603 lines and is the only one of the three with a `main`. Dependencies run one way: verdicts -> desk -> record.
 
-- [ ] **Fix the two dev-review findings inside the split**: `claim_keys` reaching two of four
+- [x] **Fix the two dev-review findings inside the split**: `claim_keys` reaching two of four
       sites, and `record.check()` raising `AttributeError` on a non-object report where
       `load_report` guards. Verify: a test reproduces each against the pre-split behaviour.
 

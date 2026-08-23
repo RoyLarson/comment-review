@@ -11,6 +11,14 @@ Measured: 2026-08-19 — tasks 1-4 verified done 2026-08-19: locator.py:96 match
           per series for a line-1 declaration and BOTH of two same-named ones. Task 5
           stands and is worse than filed -- 63 of 164 places on locator.py's own census
           float to the head of the file as one fabricated run '@b1..b80' spanning 0-0.
+RE-MEASURED: 2026-08-23 — 2026-08-23, still live, and the numbers moved. On
+             tests/fixtures/sample.py the census now floats 7 of 18 rows to the top of
+             the file, every one with a 0-0 span: f0, f1 (front/back matter) then b0,
+             b2, b3, b4, b5. The rest print in source order from line 1. ! The recorded
+             symptom has INVERTED -- the TODO says '@b0 printing after @a4'; today @b0
+             prints BEFORE @a0. The cause is the same (a zero span sorts first) but the
+             example no longer reproduces as written, and the front-matter series did
+             not exist when this was measured.
 ```
 
 ## Objective

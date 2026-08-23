@@ -173,7 +173,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (84)
+### open  (83)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -213,7 +213,6 @@ that changed a published name or rule:
 | [census-owns-addressing](census-owns-addressing.md) | backend | — | 4/5 | The census owns addressing, and four modules share one subject between them |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | testing | — | 1/5 | The filtered-census measurement exists only in run history |
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | backend | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
-| [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | backend | — | 10/12 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
 | [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | backend | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
 | [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | systems | — | 1/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
@@ -262,13 +261,12 @@ that changed a published name or rule:
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 0/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | — | 0/4 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 
-### in-progress  (5)
+### in-progress  (4)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents · Roy | — | 1/6 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | yes | 1/8 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
-| [verdicts-py-announces-one-subject-and-holds-four](verdicts-py-announces-one-subject-and-holds-four.md) | backend | yes | 7/8 | * **2,083 lines, four subjects, and a docstring announcing one.** The verdict table, a report reader, a per-finding checker and the join. !! `module-context` FOUND IT and then emitted a `patch` widening the docstring to announce TWO subjects -- the defect its own trigger is named for, applied as the remedy, and no `code_concerns` entry. Filed as the one miss in `evals/test-cases.jsonl`, pinned at `d3aa065`. ! Scheduled with the census filter because the lookup tool needs the verdict table to be a module, and because two open TODOs sit entirely inside one half each -- the bridge is COPIED into a new module if it is not rewritten during the cut. * Unruled: the four module names, which `docs/vocabulary.md` constrains by binding `the join` to `verdicts.py` |
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | yes | 5/10 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
@@ -352,3 +350,5 @@ the reason is inside the file.
 | [triggers-has-no-caller](completed/triggers-has-no-caller.md) | SOLVED. `addresser.py:685` is `out = Cues(triggers=triggers(list(code)))` -- production, not a test -- and the shape is the one the walk steps through. The docstring's promise that ONE LIST keeps the four series from drifting is now true of the list they actually walk |
 | [lexer-owns-a-page-kind](completed/lexer-owns-a-page-kind.md) | SOLVED, and the last task CHECKED rather than assumed: `OCCUPIES_NOTHING` no longer appears in `lexer.py` at all, and `code_lines` appears only in four comment prose references, never as an import. The docstring's one-sibling claim holds |
 | [anchor-was-empty-on-98-percent](completed/anchor-was-empty-on-98-percent.md) | SOLVED and the sweep it asked for found one. MEASURED 2026-08-23: 0 of 687 prose paragraphs carry no anchor, against 98 percent when this was filed. ! The last task -- look for the same shape in the other SEEDED fields -- ran in simplify round 7 and found `Finding.anchor`: filled from the record and read by neither `desk` nor the join. It was cut |
+| [verdicts-py-announces-one-subject-and-holds-four](completed/verdicts-py-announces-one-subject-and-holds-four.md) | The four subjects are separated -- desk.py, record.py, verdicts.py and held.py -- and the two dev-review findings inside the split are fixed and tested. Verified 2026-08-23 rather than assumed: record.check() guards a non-object report and a non-object record, and claim_keys is the one source with no hardcoded key names left. |
+| [b-owns-the-blank-lines-SUPERSEDED](completed/b-owns-the-blank-lines-SUPERSEDED.md) | SUPERSEDED 2026-08-23. Roy: 'b doesn't own the blank lines any more.' The blanks went to LEADING, which is its own kind, holds the run the lexer found, and has given up its address -- the census prints it as '@  2-2  leading'. So the premise in the title is no longer true of the system. ! Task 8 WAS fixed on the way and is verified: page.recut takes only the free lines and tests/test_compositor.py:162 pins the cpython/Include/floatobject.h case. Task 7, the galley half, goes with the premise. What leading owes is TODO/leading-owns-the-space-between.md. |
