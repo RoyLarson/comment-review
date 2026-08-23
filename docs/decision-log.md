@@ -126,3 +126,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 - **#4.** **This decision log exists, and history holds the commentary** (Roy, 2026-08-23). Format
   borrowed from `redacted_corpus/docs/redacted_pkg/decision-log.md`, including per-section numbering
   and the reason for it.
+
+- **#5.** **A version changes the AGENTS or the MACHINERY, never both -- VOCABULARY TERMS
+  excepted, in both directions** (Roy, 2026-08-23: *"either it is agent work being done or it is
+  code work being done not both anymore. That allows the tests to verify was the python tools
+  better or did the agent reviews get better."*; and *"The agents files can be updated in a
+  machinery set for vocabulary terms only same on the reverse case. Because those items have to
+  be kept in sync else vocabulary drift is a problem that several pieces have missed and caused
+  problems."*). One variable per release is what makes a score attributable. A term renamed on
+  one side and not the other is drift, which `check_vocabulary.py` gates.
+
+- **#6.** **The baseline is the OLD agent workflow run on the NEW machinery** (Roy, 2026-08-23:
+  *"we will want to patch the agent workflow from the old into the new just to get the baseline.
+  The old results are conflated by the machinery more than how well the agents did."*). #5 does
+  not hold retroactively: the current work changed both, so no score taken before it is
+  comparable to one taken after, and the old numbers are not a baseline.

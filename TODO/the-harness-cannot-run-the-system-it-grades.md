@@ -2,9 +2,10 @@
 
 ```
 Status:   open
-Progress: 6 of 21 tasks done
-Owner:    session * Roy (* 1 ruling left -- the suite layout. `plugin eval`
-          access is open and this file already says it is not a blocker)
+Progress: 7 of 28 tasks done
+Owner:    session * Roy (* the suite layout was ruled 2026-08-23 -- a second suite.
+          `plugin eval` access is the one decision left, and this file already says it
+          is not a blocker)
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
 Corrected: 2026-08-20 — the fixtures in evidence/self-test-commits.md are FIVE module-
@@ -14,6 +15,67 @@ Corrected: 2026-08-20 — the fixtures in evidence/self-test-commits.md are FIVE
            defects, and this system reads comments and docstrings against the code they
            sit with. The useful ones are the modules whose docstring announced one
            subject while the module held several.
+Located:  2026-08-23 — the 2026-08-16 hand pass is a RUN of four commits,
+          5cb05ce..8c0cef6, recorded by e3fd99d -- not one commit, which is why a single
+          --grep or a single -S search kept landing on a fragment of it. The case
+          fixture is its parent 3ce610c, on main, reachable from origin/main, contained
+          in v0.1.6 through v0.2.3. Making it a case still waits on the suite-layout
+          ruling.
+Amended:  2026-08-23 — a case pins a START and an END hash, not one. Roy, 2026-08-23:
+          each set of recommendations can take many commits to implement properly, so
+          the intermediate commits are not necessarily useful. Confirmed on the
+          2026-08-16 hand pass, whose fix is four commits. ! Part IV of
+          evidence/findings.md is already a START/END pair -- fix/folio-placement-is-
+          not-where-the-anchor-is, 7850bbc to 1a0d41f; Parts I-III cite files and no
+          commits.
+Measured: 2026-08-23 — the findings.md Parts I-III commits DO exist in redacted_corpus
+          -- 42 subjects carrying comment-review across 2026-08-11, found by searching
+          the corrected TEXT rather than the messages. What does NOT exist is a clean
+          repo-level pair: aba2b42a to 99f71bde holds 203 commits, 71 on first-parent
+          and 109 touching tests/, while findings.md records the burn-down as ~37. So
+          roughly 160 commits of unrelated work sit inside any range that spans it, and
+          an END tree scored against START would credit or blame the reviewers for
+          refactors they never saw. ! Part IV does not have this problem, which is what
+          Roy meant by almost every commit belongs in there. Candidate remedy: a PER-
+          FILE pair, since every findings.md entry already cites a file -- START blob at
+          aba2b42a, END blob at the last burn-down commit touching that file.
+Ruled:    2026-08-23 — 2026-08-23 by Roy: there is never going to be an oracle that can
+          be exact, so an AGENT grades the run A-F, the way an english language teacher
+          rules that this was well done prose and that was not. ! Two halves and only
+          one is subjective -- the rules we HAND the reviewers are objective and must
+          pass; whether the prose reads well is a letter. !! And the confound is named:
+          what we must NOT measure is how good the python machinery under all of this
+          is.
+Ruled:    2026-08-23 — 2026-08-23 by Roy: a version changes the AGENTS or the MACHINERY,
+          never both, so a test can say whether the python tools got better or the agent
+          reviews did. Recorded as `decision-log.md Process: #5` and #6. ! It does NOT
+          hold retroactively -- the current work changed both -- so every score taken
+          before it is uncomparable and the baseline has to be retaken. !! PREDICTION,
+          not a ruling, and dated so it can be checked: Roy expects the python side to
+          mostly resolve itself by being implemented and tested correctly, with the
+          split becoming usability rather than correctness AFTER 0.2.4 lands. If
+          correctness defects are still the majority after that, the prediction was
+          wrong and the split needs re-arguing.
+Measured: 2026-08-23 — the OLD agent workflow is NOT a checkout of the old agent files.
+          Measured 2026-08-23, v0.2.3 to HEAD: the six agent files change by 29
+          insertions and 29 deletions, and that is TWO things -- `block` renamed to
+          `paragraph` (a declared synonym, harmless) and four PARALLEL reviewers
+          becoming three dispatched at stage 4c after ownership-context settles
+          placement at 4a. Only the second is agent workflow; the first tracks the
+          machinery. ! The real drift is elsewhere: SKILL.md and reviewer-brief.md carry
+          626 insertions and 292 deletions between them, and vocabulary.toml 131. So the
+          patch has to be SELECTIVE -- restore the old dispatch shape, keep the new
+          vocabulary -- or the baseline mixes the two variables the split exists to
+          separate.
+Amended:  2026-08-23 — 2026-08-23 by Roy, completing Process #5: vocabulary terms MAY
+          cross the agent/machinery split in both directions, because those items have
+          to be kept in sync else vocabulary drift is a problem that several pieces have
+          missed and caused problems. ! So the `block` to `paragraph` rename arriving
+          with a machinery release was CORRECT, not a violation, and the selective patch
+          this file already describes -- restore the old dispatch shape, keep the new
+          vocabulary -- is what the amended rule requires rather than a workaround.
+          `check_vocabulary.py` is the gate: 59 definitions across 6 roles, 0 holes, 0
+          drifted, verified 2026-08-23.
 ```
 
 ## Objective
@@ -322,6 +384,22 @@ only which side of the network each commit is on.
       `git worktree` of a repo on the machine and a `public` one as a sparse clone at a tag;
       `scripts/fetch_corpora.py` builds both. Nothing new is needed to check out a fixture.
 
+      !! **AMENDED 2026-08-23 by Roy: a case pins TWO hashes, a START and an END.** *"the
+      evals need to have the start/end commits the intermediate commits are not necessarily
+      useful because each set of recommendations can take many commits to implement properly.
+      The goal would be to have this was the starting point and after the work is done the
+      comment-reviewers would have got it close to here."*
+
+      ! **A single hash cannot name the answer key, because a fix is not a commit.** Measured
+      2026-08-23 on the 2026-08-16 hand pass: the fix is FOUR commits, `5cb05ce..8c0cef6`, so
+      under the one-hash reading there is no commit to point at -- picking any one of the four
+      names a tree where some files are corrected and others are not. START `3ce610c` and END
+      `8c0cef6` name it exactly, and the two commits between them stop mattering.
+
+      ! **And the assertion it implies is APPROXIMATE, not identity.** *"got it close to
+      here"* -- the END tree is a target the run is scored against, not an output it must
+      reproduce. What counts as close is unruled and is the next question this file owes.
+
 - [ ] **Answer "how much context" for the extracted case, since it is the fallback either way.**
       A reviewer is given a census, a packet, a brief and a vocabulary; the packet names
       REFERENCE ONLY files whose whole purpose is settling claims that the file under review
@@ -334,7 +412,13 @@ only which side of the network each commit is on.
       `evals/generator_split.py` already splits a corpus's prose defects by whether the
       introducing commit carries an assistant trailer, so the search tooling half exists.
 
-- [ ] * **Rule the suite layout, because roles are not skills.** The documented format is
+- [x] * **RULED 2026-08-23 by Roy: A SECOND SUITE, with its own layout.** Role cases and
+      hash-pinned fixtures live there; `evals/evals.json` is untouched and the shipped runner
+      keeps covering whole-skill cases only. So the corpus is a case per file, and a case
+      carries `(address, hash, files, role)` -- the shape `evals.json` has nowhere to put.
+      The question as it was put:
+
+      **Rule the suite layout, because roles are not skills.** The documented format is
       `evals/evals.json` inside a SKILL directory, and the four reviewers are AGENTS. Either
       role cases live in the skill's suite with a prompt that dispatches one role, or they are
       a second suite with its own layout and the shipped runner covers only whole-skill cases.
@@ -346,6 +430,10 @@ only which side of the network each commit is on.
       A case whose fixture is `(address, hash, files)` has nowhere to put the hash in that
       format. So the choice is not between two shapes of equal cost: it is a second suite, or
       it is abandoning hash fixtures.
+
+      ! **What the ruling costs is a runner this repo writes and maintains**, which is the
+      half `evals.json` would have supplied. It buys the fixture ruling intact: the tree is
+      real and complete at a commit that cannot drift, rather than copied into the case.
 
 - [ ] **Add `assertions` to `evals/evals.json`.** The documented schema is `id`, `prompt`,
       `expected_output`, `files`, `assertions`; this repo's three cases carry every field but
@@ -404,6 +492,62 @@ only which side of the network each commit is on.
       remember that these specific commits are good test cases for the system to
       test itself against.' ! Running `/comment-review` over them is the
       measurement this file exists to make possible, and it has not been done.
+- [ ] Write the Part IV case -- the branch that is ALREADY the answer key, and
+      needs no commit hunt. `fix/folio-placement-is-not-where-the-anchor-is`,
+      START `7850bbc` to END `1a0d41f`: 235 commits over five days, 198 files,
+      +56k/-5.4k. Roy, 2026-08-22: this branch is the manual review version of
+      what it takes to get this correct. Verify: the case pins both hashes and
+      `git rev-parse` resolves each in this checkout.
+- [ ] Tie `evidence/findings.md` Parts I-III to a START/END pair, or record that
+      no such pair exists. Roy, 2026-08-23: those cases unfortunately do not have
+      commits tied to them. The burn-down ran 2026-08-11 over another repo under
+      `tests/`; every entry cites a file and none cites a commit. ! Part IV is NOT
+      in this task -- it already names its own answer key branch. Verify: each
+      case names two hashes that resolve in the repo it came from, or this file
+      states why Parts I-III cannot become cases.
+- [ ] * Rule what CLOSE TO HERE measures, since a START/END case scores a run
+      against a target tree rather than matching it. Roy, 2026-08-23: the goal is
+      that after the work is done the comment-reviewers would have got it close to
+      here. ! An identity test would fail every real run and a bare count would
+      pass a run that found different things; neither is the measure. Verify: the
+      rule names the artifact compared, the unit, and a threshold anyone can re-
+      derive without having done the work.
+- [ ] Split every case result in TWO -- MACHINERY pass-or-void, and EDITORIAL A-F
+      -- so a machinery defect VOIDS a case instead of grading the reviewer for
+      it. Roy, 2026-08-23: what we need to make certain we are not measuring is
+      how good the python machinery under all of this. ! Five things are checkable
+      before the grader reads anything, and all five have already been WRONG in
+      this tree: the round trip sets the START page back byte-identical, no
+      address is held by two paragraphs (157 were), every prose paragraph is
+      censused exactly once, `record.py --check` passes, and every citation
+      resolves in the join. Verify: a case failing any of the five reports VOID,
+      files a machinery defect, and never reaches the grader.
+- [ ] Derive the OBJECTIVE floor of the rubric from what the role was HANDED,
+      rather than writing it by hand. Roy, 2026-08-23: we do know a bunch of the
+      rules that must pass because we tell the reviewers those. ! `vocabulary.py
+      --reviewer <role>` already emits the 42 to 46 terms one role is given, and
+      several are rules with a checkable failure -- `laundering` forbids a `patch`
+      on a claim that is false, `move` carries a DESTINATION or it is not a
+      `move`, `clean` is wrong where the role did not READ the paragraph and
+      should be `query`. Verify: every must-pass rubric item cites the emitted
+      term it comes from, and `check_vocabulary.py` still passes afterward.
+- [ ] Calibrate the GRADER against the END tree, which the START/END model
+      supplies for free. The END prose is the human answer key, so the same grader
+      on the same rubric must score it at the top; a grader that hands the answer
+      key a middling letter is what is broken, not the tree. ! This is
+      docs/gates.md applied to the grader itself -- could the check FAIL, not does
+      it pass -- and a grader is a role, so `a-role-can-reverse-itself-between-
+      runs.md` applies to it too. Verify: the END tree is graded and its letter
+      recorded beside every run it calibrates.
+- [ ] Take the BASELINE by running the OLD agent workflow on the NEW machinery.
+      Roy, 2026-08-23: the old results are conflated by the machinery more than
+      how well the agents did, so patch the agent workflow from the old into the
+      new just to get the baseline. ! Recorded as `decision-log.md Process: #6`.
+      The candidate old set is the agent files at `v0.2.3`, the last tag cut
+      before the machinery rewrite -- use `v0.2.3^{}` for the commit, since the
+      tag is annotated. Verify: the run pins which agent files came from which
+      ref, the machinery is HEAD, and the score is recorded as the first number
+      any later agent change is measured against.
 
 ## What this costs today
 

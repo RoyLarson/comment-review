@@ -7,6 +7,13 @@ Owner:    session
 Requires-Roy: true
 Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it.
           Comments about 'cannot answer OWNERSHIP' are not helpful.")
+Measured: 2026-08-23 — the Result baseline column mixes two trees. Re-measuring by the
+          recorded method (comment and docstring lines carrying the nine words):
+          census.py carries 55 such lines at 841f806, BEFORE 3ce610c split repo.py and
+          annotate.py out of it. At 3ce610c the same prose reads 37 in census.py, 12 in
+          repo.py and 7 in annotate.py. So the census.py 55 of 286 row is PRE-SPLIT
+          while the repo.py and annotate.py rows beside it are POST-SPLIT, and a case
+          pinned at 3ce610c cannot expect 55 findings in census.py.
 ```
 
 ## Objective
