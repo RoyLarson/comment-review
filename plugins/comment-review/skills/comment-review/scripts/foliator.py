@@ -4,7 +4,7 @@
 
 FOUR FOLIATORS walk one trigger list -- the MODULE, every line of code, then
 EOF -- each holding its own counter and the places it emitted. `foliate()` runs
-the walk; `Foliation` answers back, which address does this line belong to right
+`foliate`; `Foliation` answers back, which address does this line belong to right
 now.
 
 !! IT WAS CALLED `addresser.py`, and the name was wrong the way `pCST` was.
@@ -93,7 +93,7 @@ which triggers are its own. A series that does not emit for a trigger does not
 take a number for it either, so **every series starts at 0**: `a` skips what is
 not documentable, `b` and `c` skip the MODULE, `f` skips everything that is not
 the MODULE or the file's own matter. Two series lining up on a file is an
-OUTCOME of that walk. ! `f0` is the FILE'S OWN MATTER, in its own series -- not
+OUTCOME of `foliate`. ! `f0` is the FILE'S OWN MATTER, in its own series -- not
 the gap above the first line of code, which is `b0`. The two were one address
 until the foliators split them, and one SERIES until 2026-08-20.
 
@@ -189,7 +189,7 @@ DECLARED = "a"
 # ! AND IT MAY NOT STAY A SINGLETON. Roy, 2026-08-20: *"maybe it will show up in
 # more places for copyright or other pieces in the docs files."* So it is
 # COUNTED like any other series rather than hardcoded to one place -- `f0` today
-# because the walk emits it at the module and nowhere else, and `f1..fN` the day
+# because `foliate` emits it at the module and nowhere else, and `f1..fN` the day
 # a second front-matter place is emitted.
 COVERS = "f"
 
@@ -219,7 +219,7 @@ COVERS = "f"
 # other four series exist wherever prose COULD go, because an `add` cites them;
 # a place no verdict can name has no reason to exist unfilled.
 LEAD = "d"
-#: The four series a walk emits. **`LEAD` IS NOT ONE OF THEM**, since 2026-08-22.
+#: The four series `foliate` emits. **`LEAD` IS NOT ONE OF THEM**, since 2026-08-22.
 #:
 #: !! IT FAILED THE SUBSTITUTION THE OTHER FOUR SATISFY. Roy: *"it has no
 #: anchor, and so by the LSR -- any child class has to be able to answer its
@@ -230,7 +230,7 @@ LEAD = "d"
 #: `d` where it expected a place.
 #:
 #: ! AND THE CAUSE IS WHERE IT COMES FROM, which is what makes this a category
-#: error rather than a missing field. Every place here exists because the WALK
+#: error rather than a missing field. Every place here exists because `foliate`
 #: reached a trigger, and the trigger IS the anchor. A `d` exists because the
 #: LEXER found blank lines -- so it was never anchored to anything, it was
 #: FOUND. It also never entered `reading`, so the compositor could not set from
@@ -256,7 +256,7 @@ MODULE = "<module>"
 #: it today.
 #:
 #: !! IT IS A TRIGGER AND NOT AN ARITHMETIC RULE, ruled by Roy 2026-08-21. The
-#: alternative was `b` emitting N+1 places per walk by definition, which is what
+#: alternative was `b` emitting N+1 places `foliate` by definition, which is what
 #: the code did and is one line shorter. He ruled against it because `f` will
 #: almost certainly want this trigger too -- tail matter, an index or a glossary
 #: at the END of a file -- and then two series would each carry a different
@@ -305,7 +305,7 @@ class Foliator:
     !! IT HOLDS BOTH HALVES. Roy, 2026-08-19: *"the foliator gets an anchor and
     emits an address and should add the address and the anchor to an internal
     list or dict."* A folio and the line of code it is attached to are one fact,
-    so they are stated by one step of one walk -- not computed here and
+    so they are stated by ONE STEP of `foliate` -- not computed here and
     decorated on later, which is what let an anchor disagree with its address.
 
     !! A SERIES OWNS ITS OWN RULE ABOUT WHAT IT SKIPS, AND SKIPPING TAKES NO
@@ -331,7 +331,7 @@ class Foliator:
     #: folio -> WHICH TRIGGER it was emitted at, as an index into `triggers()`:
     #: 0 is the MODULE, 1..N are the lines of code, N+1 is EOF.
     #:
-    #: !! THE WALK KNOWS THIS AND USED TO THROW IT AWAY, which is the same
+    #: !! `foliate` KNOWS THIS AND USED TO THROW IT AWAY, which is the same
     #: mistake the discarded foliators were. `anchor_num` rebuilt it afterwards
     #: with three separate arithmetics -- `n + 1` for a gap, `len(code) + 1` for
     #: the file's foot, `code.index(line) + 1` for the rest -- and each was a
@@ -359,7 +359,7 @@ class Foliator:
         return got
 
     def at(self, step: int) -> str:
-        """This series' folio at `step`, or "" if the walk never emitted one.
+        """This series' folio at `step`, or "" if `foliate` never emitted one.
 
         !! THE QUERY THAT REPLACED SIX TABLES. Roy, 2026-08-21: the old fields
         were *"1 object type flattened into a special case with different
@@ -379,15 +379,15 @@ class Foliator:
 class Foliation:
     """Every place in one file, and the line of code each is attached to.
 
-    !! IT ANSWERS BOTH DIRECTIONS, which is why it is one object. The walk
+    !! IT ANSWERS BOTH DIRECTIONS, which is why it is one object. `foliate`
     assigns the foliation; these read it back -- *which address does this line
     belong to right now*. Roy, 2026-08-19: that second half *"helps the agents
     understand what they are looking at right now in the code -- they need to
     search it anyways."*
 
     ! Reading back is a LOOKUP, never arithmetic. `above` ITERATES the triggers
-    the walk stepped and returns the folio it EMITTED there; it does not count
-    anything. That is the difference between line order driving the walk and a
+    `foliate` stepped and returns the folio it EMITTED there; it does not count
+    anything. That is the difference between line order driving `foliate` and a
     line number computing a number.
     ! It ITERATES rather than SCANS, and the word matters here: scanning is what
     the LEXER does, over characters, looking at what they are. Nothing in this
@@ -397,7 +397,7 @@ class Foliation:
     *"`_above`, `_beside`, `_declared`, `_front`, `_back`, `_closing` are 1
     object type flattened into a special case with different names."* They were
     six dicts of the same fact -- a place and its anchor -- each keyed
-    differently, and every one of them was an index into a `Foliator` the walk
+    differently, and every one of them was an index into a `Foliator` `foliate`
     had just discarded. The walkers survive now, so an accessor is a QUERY over
     one collection instead of a lookup in a table of its own.
 
@@ -410,11 +410,11 @@ class Foliation:
     # !! SERIES LETTER -> THE `Foliator` THAT EMITTED IT, holding its places in
     # EMISSION ORDER. `places` flattens all four. ! Keyed by letter because that
     # is what a folio's first character IS -- so a lookup needs no table beside
-    # this one, which is the whole reason the walkers survive the walk.
+    # this one, which is the whole reason the walkers survive `foliate`.
     foliators: dict[str, Foliator] = field(
         default_factory=lambda: {name: Foliator(name) for name in SERIES}
     )
-    # !! WHAT THE WALK STEPS THROUGH, kept -- what `triggers()` returned:
+    # !! WHAT `foliate` STEPS THROUGH, kept -- what `triggers()` returned:
     # `[MODULE, *code, EOF]`. Every position a place reports indexes THIS, so
     # holding it is what makes those positions mean something without arithmetic.
     #
@@ -433,24 +433,24 @@ class Foliation:
     #
     # !! IT REPLACED TWO FIELDS, and both were views of it. `lines` was
     # folio -> the line its anchor sits on, filled for `a` and `c` alone; `_code`
-    # was the code lines the walk stepped, which is this list without its two
+    # was the code lines `foliate` stepped, which is this list without its two
     # sentinels. Neither was a fact of its own: a place's line is the line of the
-    # trigger it fired at, and the walk already knew both halves.
+    # trigger it fired at, and `foliate` already knew both halves.
     triggers: list[int | str] = field(default_factory=list)
-    # !! EVERY PLACE IN READING ORDER, TOP TO BOTTOM, recorded by the walk that
+    # !! EVERY PLACE IN READING ORDER, TOP TO BOTTOM, recorded by `foliate` that
     # emitted them. It is what a compositor sets from: a page IS its places in
-    # sequence, and the sequence is a fact the walk knows rather than an
+    # sequence, and the sequence is a fact `foliate` knows rather than an
     # arithmetic over line numbers -- which shift the moment one paragraph grows.
     #
     # !! WHERE AN `a` FALLS IS THE LANGUAGE'S CALL AND IS SETTLED HERE, ONCE.
     # Rust puts a declaration's documentation ABOVE the declaring line; Python
     # puts it INSIDE the body, which a wrapped signature moves several lines
     # down. `lexer.declarations` states that as the line the doc occupies, and
-    # the walk turns it into a position in this list -- so nothing downstream
+    # `foliate` turns it into a position in this list -- so nothing downstream
     # asks the question again, and no two readers can answer it differently.
     reading: list[str] = field(default_factory=list)
     # ! LEADING IS NOT HERE, and was for one evening. It is `Page.leading` --
-    # the walk never filled it and never read it, because `foliate` runs before
+    # `foliate` never filled it and never read it, because `foliate` runs before
     # any prose exists and leading is only where the LEXER found a blank run.
     # Roy, 2026-08-21: *"I kind of expected that to be the pages job."*
 
@@ -458,7 +458,7 @@ class Foliation:
     def places(self) -> dict[str, str]:
         """Every place in the file -> the line of code it is attached to.
 
-        ! DERIVED FROM THE FOLIATORS, in `SERIES` order. It was a field the walk
+        ! DERIVED FROM THE FOLIATORS, in `SERIES` order. It was a field `foliate`
         assigned by flattening the walkers on its last line, which is what made
         every other projection an index into something already discarded.
 
@@ -497,12 +497,12 @@ class Foliation:
         one it is the closing gap, which is the place with no line below it --
         the `b` at the ordinal one past every line of code.
 
-        ! IT READS THE WALK DIRECTLY. A `b` fires at the trigger BELOW it, so
-        the gap above `walk[i]` is `b` at `i - 1`, and the closing gap is the one
+        ! IT READS `foliate` DIRECTLY. A `b` fires at the trigger BELOW it, so
+        the gap above `triggers[i]` is `b` at `i - 1`, and the closing gap is the one
         at the EOF trigger. ! This went through a `_code` PROPERTY for one hour
         on 2026-08-22, which rebuilt the list on every read -- twice here -- in
         the file whose `anchor_of` twenty lines below records fixing exactly that
-        quadratic. The property is deleted; the walk is the list.
+        quadratic. The property is deleted; `foliate` is the list.
         """
         for step, trigger in enumerate(self.triggers):
             if isinstance(trigger, int) and line <= trigger:
@@ -518,7 +518,7 @@ class Foliation:
         try:
             return self.foliators[ON].at(self.triggers.index(line) - 1)
         except ValueError:
-            # ! A line the walk never stepped holds no code, which is a real
+            # ! A line `foliate` never stepped holds no code, which is a real
             # answer -- the sentinels are strings, so no line can match one.
             return ""
 
@@ -532,7 +532,7 @@ class Foliation:
         !! IT IS THE LINE OF THE TRIGGER THE PLACE FIRED AT, which is one lookup
         and not a table. A `lines` dict held it for an `a` and a `c` alone, and a
         `b` fell through to `gap_bounds` -- two mechanisms answering one
-        question, and neither of them a fact the walk did not already carry.
+        question, and neither of them a fact `foliate` did not already carry.
 
         !! A SENTINEL HAS NO LINE, AND `None` IS HOW THIS SAYS SO. It answered 0
         for both until 2026-08-22, and Roy named the asymmetry that hid in it:
@@ -584,9 +584,9 @@ class Foliation:
         `def f():` becoming `def RENAMED():` shifts nothing -- and the anchor
         text alone cannot cheaply see an insertion. The pair sees both.
 
-        !! IT IS READ FROM THE WALK, NOT RECONSTRUCTED, since 2026-08-22. Roy,
+        !! IT IS READ FROM `foliate`, NOT RECONSTRUCTED, since 2026-08-22. Roy,
         on being shown a consumer that trusted the reconstruction: *"you hardened
-        the mistake that you were just fixing -- that the walk didn't emit ALL
+        the mistake that you were just fixing -- that `foliate` didn't emit ALL
         anchors, which caused the problem."* THREE ARITHMETICS ARE GONE:
 
             b_n         -> n + 1
@@ -618,13 +618,13 @@ class Foliation:
         """The two lines of CODE around this gap; 0 for the file's own edge.
 
         !! COMPUTED, NOT STORED. It was a `bounds` dict written at four points in
-        the walk and read at two -- one of the five objects `Foliation` had been
+        `foliate` and read at two -- one of the five objects `Foliation` had been
         squished into. Roy, 2026-08-21: *"why does folio look like 5 objects
         squished into one shape."*
 
         !! IT IS THE TRIGGER BEFORE THIS GAP AND THE ONE IT FIRED AT, read off
-        the walk. A gap is emitted at the trigger BELOW it -- `b_n` fires with
-        `c_n` -- so the pair either side of it is `walk[at - 1]` and `walk[at]`,
+        `foliate`. A gap is emitted at the trigger BELOW it -- `b_n` fires with
+        `c_n` -- so the pair either side of it is `triggers[at - 1]` and `triggers[at]`,
         and a sentinel on either end answers 0 because the file's own edge is
         not a line of code.
 
@@ -651,7 +651,7 @@ class Foliation:
         """`f0` -- the file's own prose, above anything it declares.
 
         ! It is not the gap above the first line of code. That is `b0`, and the
-        two were one address until the walk emitted both.
+        two were one address until `foliate` emitted both.
 
         !! ITS OWN SERIES SINCE 2026-08-20, and it was `b0` before. As a `b` it
         was the one paragraph whose folio disagreed with the gap it sat in --
@@ -659,17 +659,17 @@ class Foliation:
         shares a gap out needed a clause naming it. Roy: *"treating the front
         matter as regular comments, even though they are not, is the mistake."*
 
-        ! Read from the walk rather than named here, so a second front-matter
+        ! Read from `foliate` rather than named here, so a second front-matter
         place would answer correctly the day one is emitted.
         """
         return self.foliators[COVERS].at(0)
 
     def file_places(self) -> list[str]:
-        """Every `f` this walk emitted, in the order it emitted them.
+        """Every `f` `foliate` emitted, in the order it emitted them.
 
         !! WHICH ONE A MATTER RUN TAKES IS A COUNT, and the PAGE does the
         counting -- Roy, 2026-08-21: *"the page makes the mapping between
-        foliator and paragraph."* The walk knows only that a file has places for
+        foliator and paragraph."* `foliate` knows only that a file has places for
         its own prose and where they fall in the reading order; it never looks at
         prose to decide which.
         """
@@ -698,8 +698,8 @@ def foliate(
 ) -> Foliation:
     """Walk the anchors of one file; return every folio and its line of code.
 
-    !! THE WALK IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because the
-    walk reached its trigger, not because prose was found sitting there -- which
+    !! `foliate` IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because
+    `foliate` reached its trigger, not because prose was found sitting there -- which
     is why the file's own matter and the first gap can now both exist. Before
     this, the matter's place came from a BRANCH that fired only when front-matter
     prose had already been stamped, so the two were mutually exclusive: measured
@@ -717,14 +717,14 @@ def foliate(
         c   every line of code. It steps past the module without emitting,
             because a module has no line to sit beside.
 
-    ! Line ORDER drives the walk; no line NUMBER is arithmetic here. Nothing
+    ! Line ORDER drives `foliate`; no line NUMBER is arithmetic here. Nothing
     reads one folio to compute another, and no folio follows from a line's
     ordinal -- see `folio`.
 
     Args:
         code: `line number -> the exact characters on it`, ascending -- what
             `page.code_lines` returns. The number POSITIONS the trigger; it
-            never numbers it, so the walk reads this in order and counts.
+            never numbers it, so `foliate` reads this in order and counts.
         documentable: index into `code` -> `(the LINE the doc occupies, the code
             index it is set at, WHICH SIDE of that index's gap)` -- what
             `page.documentable` returns, and the body below unpacks all three.
@@ -740,14 +740,14 @@ def foliate(
         The `Foliation`: every place, and both directions between them.
     """
     # ! ONE PER SERIES, AND THEY BELONG TO THE FOLIATION. The names below are
-    # for the walk, which is genuinely per-series -- each emits at different
+    # for `foliate`, which is genuinely per-series -- each emits at different
     # triggers -- but nothing downstream has to know how many there are.
     #
     # !! THEY USED TO BE LOCAL AND WERE FLATTENED AWAY at the end of this
     # function, which left every accessor on `Foliation` rebuilding an index
     # into a collection that no longer existed. They are the foliation's now, so
-    # the walk fills the object it returns rather than a set of side tables.
-    # ! THE FOLIATION KEEPS THE WALK IT MADE, so every position a place reports
+    # `foliate` fills the object it returns rather than a set of side tables.
+    # ! THE FOLIATION KEEPS `foliate` IT MADE, so every position a place reports
     # indexes something the object still holds.
     out = Foliation(triggers=triggers(list(code)))
     a, b, c, f = (out.foliators[s] for s in (DECLARED, GAP, ON, COVERS))
@@ -758,7 +758,7 @@ def foliate(
     # module docstring in a language that has none -- and no verdict could ever
     # fill it. `None` says the series does not exist; `1` says it does and the
     # module's own doc would open the file.
-    # !! THE WALK READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
+    # !! `foliate` READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
     # It did not until 2026-08-21: this loop was written out by hand and
     # `triggers` had a single caller, a test asserting its SHAPE -- so the
     # function claiming *"ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART"* was
@@ -772,7 +772,7 @@ def foliate(
     # against the declaration's own step; Python's are filed later.
     release: dict[tuple[int, str], list[str]] = {}
     # !! EVERY EMIT NAMES THE TRIGGER IT FIRED AT, and `at` is that position --
-    # 0 the MODULE, 1..N the lines of code, N+1 the EOF. The walk knew it and
+    # 0 the MODULE, 1..N the lines of code, N+1 the EOF. `foliate` knew it and
     # threw it away until 2026-08-22, leaving `anchor_num` to guess afterwards.
     # ! It cannot be recovered from the anchor: the closing gap fires at EOF and
     # records the LAST LINE OF CODE, and both `f` places record `<module>` from
@@ -820,7 +820,7 @@ def foliate(
                 # ! Roy, 2026-08-22: *"the last `b` triggers on EOF and records
                 # either `<eof>` or `<module>`, and its anchor and where it is
                 # placed becomes a determined fact by the compositor."* WHERE it
-                # sets is not this walk's business, and `gap_bounds` already
+                # sets is not `foliate`'s business, and `gap_bounds` already
                 # answers it from the ordinal without reading an anchor at all.
                 closing = b.emit(EOF, at)
                 # !! `f` EMITS ITS SECOND PLACE HERE, and this is the reason the
@@ -848,10 +848,10 @@ def foliate(
             # ! 0 is the module, so a declaration's ordinal is its position
             # among the documentable ones, counting from 1.
             declared = a.emit(line, at)
-            # !! TWO FACTS, AND THE WALK USES ONLY THE SECOND. `page.documentable`
+            # !! TWO FACTS, AND `foliate` USES ONLY THE SECOND. `page.documentable`
             # states the LINE the doc occupies -- which `page.documented_by` walks
             # up from to find prose already there -- and the code ordinal it is
-            # SET BEFORE, which is the language's rule already resolved. The walk
+            # SET BEFORE, which is the language's rule already resolved. `foliate`
             # holds the place until that step and compares nothing.
             _insert_at, at_step, side = documentable[seen]
             release.setdefault((at_step, side), []).append(declared)
@@ -867,7 +867,7 @@ def foliate(
         # language files a declaration against its own step and its `a` sits
         # above the code; Python files it against the body's first statement, so
         # the docstring lands after the signature -- however many code lines a
-        # wrapped one spans. ! No line is compared, which is what keeps the walk
+        # wrapped one spans. ! No line is compared, which is what keeps `foliate`
         # free of arithmetic it would otherwise have to keep right.
         out.reading.extend(release.pop((seen, GAP), ()))
         out.reading.append(gap)
@@ -883,7 +883,7 @@ def foliate(
 
 
 def folio(series: str, step: int) -> str:
-    """The folio at one step of the walk -- ONE expression, all three series.
+    """The folio at one step of `foliate` -- ONE expression, all three series.
 
     !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Roy,
     2026-08-20: *"the foliations own their own rules on what is skipped ... they
