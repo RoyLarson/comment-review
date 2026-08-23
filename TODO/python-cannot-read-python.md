@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 27 tasks done
+Progress: 0 of 28 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -190,3 +190,17 @@ The AST reader gets older every release while the files get newer.
       single quote, which appear in nearly every file -- declaring those is
       CORRECT by the rule and makes Rust effectively unprovable. A stateful reader
       is what removes the choice between refusing everything and lying sometimes
+- [ ] RECORD THE ARGUMENT LISP MAKES, because it separates two properties this
+      repo has been treating as one. CLAUDE.md says *only Python's doc sits INSIDE
+      the declaration, so Python alone needs a parser to say WHERE the prose
+      goes*. Emacs Lisp has the SAME shape -- the docstring is a string member of
+      the `defun` form, not a run above it -- and needs NO parser to find it: it
+      is the third element of a balanced-paren form, and S-expressions lex
+      trivially. ! SO `doc_inside` IS NOT WHAT COSTS US. What costs us is that
+      Python's grammar is hard to lex and a wrapped signature moves where the body
+      starts. A Lisp row would be `doc_inside=True` and still be a data row. !
+      Consequence for this TODO: the lexical reader does not have to give up
+      `doc_inside` to give up the AST -- it has to find a body start without one,
+      which is a narrower problem than the sentence in CLAUDE.md implies. ! Not a
+      request for a Lisp row; there is none, and a `.el` file is named and refused
+      today (verified 2026-08-22).
