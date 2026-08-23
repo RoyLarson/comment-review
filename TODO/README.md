@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (89)
+### open  (90)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -264,6 +264,7 @@ that changed a published name or rule:
 | [verdicts-is-the-join](verdicts-is-the-join.md) | comment-review | yes | 0/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [computed-and-never-read](computed-and-never-read.md) | session | — | 0/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [leaf-means-two-things](leaf-means-two-things.md) | comment-review | yes | 0/14 | vocabulary.toml says paragraphs run down a leaf; foliator.py says a leaf IS a place -- and folio is defined against the first |
+| [not-every-line-has-an-address](not-every-line-has-an-address.md) | comment-review | yes | 0/6 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
 
 ### in-progress  (5)
 
