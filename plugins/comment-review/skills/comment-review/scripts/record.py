@@ -1056,7 +1056,13 @@ def record_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
                 f"{where}: `{field}` is {type(rec[field]).__name__}, not"
                 f" {want.__name__}"
             )
-    for i, source in enumerate(rec.get("sources") or [], 1):
+    # ! ONLY A LIST IS WALKED. `SHAPES` above already reports a `sources` that
+    # is the wrong type; walking it anyway emitted one further message PER
+    # ELEMENT -- so a string of forty characters became forty lines about one
+    # defect, which is the wall of output `claim_problems` states the rule
+    # against.
+    sources = rec.get("sources")
+    for i, source in enumerate(sources if isinstance(sources, list) else [], 1):
         if not isinstance(source, dict) or {"cite", "verbatim"} - set(source):
             out.append(
                 f"{where}: source {i} is not `{{cite, verbatim}}` -- it reads"

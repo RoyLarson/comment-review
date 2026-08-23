@@ -637,23 +637,6 @@ class Foliation:
             following if isinstance(following, int) else 0,
         )
 
-    def matter(self) -> str:
-        """`f0` -- the file's own prose, above anything it declares.
-
-        ! It is not the gap above the first line of code. That is `b0`, and the
-        two were one address until `foliate` emitted both.
-
-        !! ITS OWN SERIES SINCE 2026-08-20, and it was `b0` before. As a `b` it
-        was the one paragraph whose folio disagreed with the gap it sat in --
-        `attach` gives it this place WHEREVER IT SITS -- so every sweep that
-        shares a gap out needed a clause naming it. Roy: *"treating the front
-        matter as regular comments, even though they are not, is the mistake."*
-
-        ! Read from `foliate` rather than named here, so a second front-matter
-        place would answer correctly the day one is emitted.
-        """
-        return self.foliators[COVERS].at(0)
-
     def file_places(self) -> list[str]:
         """Every `f` `foliate` emitted, in the order it emitted them.
 
@@ -664,21 +647,6 @@ class Foliation:
         prose to decide which.
         """
         return list(self.foliators[COVERS].places)
-
-    def back_matter(self) -> str:
-        """`f1` -- the file's own prose at its FOOT.
-
-        !! THE SAME RULE AS `f0`, READ FROM THE OTHER END. Roy, 2026-08-21, asked
-        whether the foot of a file needed a rule of its own: *"same answer for
-        the back matter because of the same reason."* A licence at the bottom
-        belongs to the FILE, not to the last gap -- which is where it landed
-        while this place did not exist, measured 2026-08-21 as `b2`.
-
-        ! IT IS EMITTED AT THE `EOF` TRIGGER, which is why that trigger is
-        explicit rather than an N+1 rule. Roy, the same morning: *"f will almost
-        certainly get it and so we might as well pick up both now."*
-        """
-        return self.foliators[COVERS].at(1)
 
 
 def foliate(
@@ -1331,6 +1299,24 @@ def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
     return 0
 
 
+def _by_path(paragraphs: list[dict]) -> dict[str, list[dict]]:
+    """Every paragraph grouped by the file it belongs to, in census order.
+
+    !! ONE PASS, NOT ONE PER FILE. Four sites built the set of paths and then
+    filtered the WHOLE census once for each of them -- O(files x paragraphs),
+    on a structure that arrives already grouped because a census is stacked one
+    page at a time.
+
+    ! The grouping is what every caller actually wanted; the set of paths is
+    `.keys()` and the census order inside a file is preserved, which is what
+    `entry N` in a report counts.
+    """
+    out: dict[str, list[dict]] = {}
+    for b in paragraphs:
+        out.setdefault(str(b.get("path", "")), []).append(b)
+    return out
+
+
 def unaddressed(paragraphs: list[dict]) -> list[str]:
     """Which paragraphs carry NO address, described one per line.
 
@@ -1364,8 +1350,7 @@ def unaddressed(paragraphs: list[dict]) -> list[str]:
         Empty when every paragraph carries an address.
     """
     out: list[str] = []
-    for path in sorted({str(b.get("path", "")) for b in paragraphs}):
-        mine = [b for b in paragraphs if str(b.get("path", "")) == path]
+    for path, mine in sorted(_by_path(paragraphs).items()):
         for i, paragraph in enumerate(mine, 1):
             if owes_address(paragraph) and not stable(paragraph):
                 out.append(
@@ -1430,8 +1415,9 @@ def _check(paragraphs: list[dict]) -> int:
     # `census.py` and `verdicts.py` ask the same one.
     missing = unaddressed(paragraphs)
     shared: dict[str, list[str]] = {}
-    for path in sorted({str(b.get("path", "")) for b in paragraphs}):
-        mine = [b for b in paragraphs if str(b.get("path", "")) == path]
+    # ! The path is not read here -- an address already names its own file, and
+    # this only needs each file's paragraphs grouped to resolve within one.
+    for mine in _by_path(paragraphs).values():
         for paragraph in mine:
             where = stable(paragraph)
             if where and len(resolve(where, mine)) > 1:
@@ -1449,7 +1435,7 @@ def _check(paragraphs: list[dict]) -> int:
     owed = [b for b in paragraphs if owes_address(b)]
     exempt = len(paragraphs) - len(owed)
     named = len(owed) - len(missing)
-    files = len({str(b.get("path", "")) for b in paragraphs})
+    files = len(_by_path(paragraphs))
     print(f"\n{named} of {len(owed)} paragraphs addressed over {files} files.")
     if exempt:
         # ! SAID, NOT SILENTLY DROPPED. A reader comparing this against the

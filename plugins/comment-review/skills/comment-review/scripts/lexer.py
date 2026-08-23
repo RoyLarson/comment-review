@@ -816,10 +816,16 @@ def run_ends(
 def _own_characters(span: list[str], column: int) -> list[str]:
     """A paragraph's own characters: its lines, cut at `column` on the first.
 
-    !! ONE RULE FOR BOTH TIERS, which is what B3 is. `paragraphs_lexical` cut at the
-    comment OPENER and `paragraphs_stdlib` kept the whole physical line, so the two
-    stored different things and the retired `paragraph_matches` could not be written to
-    satisfy both -- it refused a FRESH census on four of six comment shapes.
+    !! ONE RULE, AND ONLY THE STDLIB TIER CALLS IT. The rule is shared -- both
+    tiers store a paragraph's own characters and neither keeps the code beside
+    them -- but `paragraphs_lexical` reaches it by cutting at the opener as it
+    reads, through `partial_first`, and never asks this. ! It said *"one rule for
+    both tiers"*, which reads as two callers and is a claim a grep refutes.
+
+    ! WHAT THE RULE IS FOR: the two tiers once stored different things -- the
+    lexical one cut at the comment OPENER, the stdlib one kept the whole physical
+    line -- so the retired `paragraph_matches` could not be written to satisfy
+    both, and refused a FRESH census on four of six comment shapes.
 
     ! With `anchor` holding the code, `anchor + raw_lines[0]` reconstructs the
     first line exactly. Storing the whole line here instead would put the code

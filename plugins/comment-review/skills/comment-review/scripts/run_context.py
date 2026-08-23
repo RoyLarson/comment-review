@@ -52,6 +52,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import constants  # noqa: E402  -- path shim must run first
 import exceptions  # noqa: E402  -- path shim must run first
 
+#: The sections whose answers are PATHS, checked against the filesystem.
+#:
+#: ! `LOOKUP CENSUS` IS ONE OF THEM. It is the census a reviewer runs
+#: `foliator.py --anchor` against, so an unresolvable path there fails at the
+#: moment a reviewer needs a place the filtered census collapsed.
+#: ! Everything else in `REQUIRED` is prose no check can settle.
+PATH_SECTIONS = ("REPO ROOT", "CENSUS", "LOOKUP CENSUS", "REVIEWER FILES")
+
 REQUIRED = (
     "REPO ROOT",
     "DOC CONVENTION",
@@ -276,24 +284,14 @@ def invalid_answers(text: str) -> list[str]:
     """
     bodies = section_bodies(text)
     bad: list[str] = []
-    for body in bodies.get("REPO ROOT", []):
-        for line in _answer_lines(body):
-            if not any(_resolves(c) for c in _path_candidates(line)):
-                bad.append(f"REPO ROOT: {line!r} is not an absolute path that exists")
-    # ! Both census paths, checked the same way. `LOOKUP CENSUS` is the one a
-    # reviewer runs `foliator.py --anchor` against, so an unchecked path there
-    # fails at the moment a reviewer needs a spot the filtered census collapsed.
-    for name in ("CENSUS", "LOOKUP CENSUS"):
+    # ! ONE LOOP OVER THE NAMED SECTIONS. This was three copies of one rule
+    # with one message, and the count in the success line below was written by
+    # hand against how many copies there happened to be.
+    for name in PATH_SECTIONS:
         for body in bodies.get(name, []):
             for line in _answer_lines(body):
                 if not any(_resolves(c) for c in _path_candidates(line)):
                     bad.append(f"{name}: {line!r} is not an absolute path that exists")
-    for body in bodies.get("REVIEWER FILES", []):
-        for line in _answer_lines(body):
-            if not any(_resolves(c) for c in _path_candidates(line)):
-                bad.append(
-                    f"REVIEWER FILES: {line!r} is not an absolute path that exists"
-                )
     return bad
 
 
@@ -338,9 +336,14 @@ def main() -> int:
         )
         return 1
 
+    # ! BOTH NUMBERS ARE DERIVED. The message named three sections and
+    # subtracted three while FOUR were checked -- `LOOKUP CENSUS` joined them
+    # and the sentence did not, so the line under-reported what it had
+    # verified and over-reported what it had not.
+    checked = ", ".join(PATH_SECTIONS)
     print(
-        f"Complete: all {len(REQUIRED)} sections answered, and REPO ROOT, CENSUS"
-        f" and REVIEWER FILES check out.\n! The other {len(REQUIRED) - 3} are"
+        f"Complete: all {len(REQUIRED)} sections answered, and {checked}"
+        f" check out.\n! The other {len(REQUIRED) - len(PATH_SECTIONS)} are"
         " prose nothing here can settle. Dispatch all four in ONE message, so no"
         " role sees another's findings.\n! Withhold every TASK AGENT ONLY"
         f" section: {', '.join(sorted(TASK_AGENT_ONLY))}."

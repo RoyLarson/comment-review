@@ -289,8 +289,14 @@ def drifted(page, census: list[dict]) -> list[str]:
         # ! IT ALSO COVERS THE SERIES WITH NO ANCHOR. Leading and the file's own
         # matter answer to no line of code, so the anchor test skipped them
         # entirely; their prose can still be edited, and now that is seen.
+        # ! NOTHING WITHOUT AN ADDRESS IS COMPARED AT ALL, so it is asked here
+        # rather than in each of the two checks below -- which tested it in
+        # opposite directions inside one loop body, with nothing between them
+        # that could change the answer.
+        if not address:
+            continue
         stored = b.get("raw_lines")
-        if address and isinstance(stored, list):
+        if isinstance(stored, list):
             here_lines = prose_now.get(folio_of(address).folio)
             if here_lines is not None and here_lines != stored:
                 out.append(
@@ -298,7 +304,7 @@ def drifted(page, census: list[dict]) -> list[str]:
                     f" -- {len(stored)} line(s) read, {len(here_lines)} now"
                 )
         was = str(b.get("anchor", ""))
-        if not address or not was:
+        if not was:
             continue
         here = now.get(folio_of(address).folio)
         if here is not None and here != was:

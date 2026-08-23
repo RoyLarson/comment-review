@@ -598,8 +598,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         # the same day as `b2` on a five-line file.
         path = Path("m.py")
         got = page.page_for(path, "import os\n\nx = 1\n", lexer.language_for(path))
-        self.assertEqual(got.foliation.matter(), "f0")
-        self.assertEqual(got.foliation.back_matter(), "f1")
+        self.assertEqual(got.foliation.file_places(), ["f0", "f1"])
 
     def test_the_foot_place_is_bounded_by_NOTHING_as_the_head_one_is(self):
         # ! It is the FILE's, not the last gap's. A `b` is bounded by the code
@@ -1175,7 +1174,7 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         # discriminate at all -- the retired `code.index(start)` returns the
         # same ordinal the walk does. A `c` IS the code-line ordinal; what
         # drifted was three mechanisms answering one question, never the answer.
-        front = built.foliation.matter()
+        front = built.foliation.file_places()[0]
         self.assertTrue(front.startswith(COVERS), front)
         self.assertNotIn(front, [f for f in places if not f.startswith(COVERS)])
 
@@ -1262,8 +1261,6 @@ class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
         self.assertEqual(empty.above(10**6), "")
         self.assertEqual(empty.beside(1), "")
         self.assertEqual(empty.documents(0), "")
-        self.assertEqual(empty.matter(), "")
-        self.assertEqual(empty.back_matter(), "")
         self.assertEqual(empty.file_places(), [])
 
     def test_writing_into_places_MAKES_no_place(self):
@@ -1284,8 +1281,6 @@ class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
         """
         places = self.foliation.places
         answers = [
-            self.foliation.matter(),
-            self.foliation.back_matter(),
             *self.foliation.file_places(),
             *(self.foliation.above(n) for n in range(1, 12)),
             *(self.foliation.beside(n) for n in range(1, 12)),

@@ -245,7 +245,10 @@ def _sibling(
     """
     for rel in tracked:
         cand = (repo / rel).resolve()
-        if cand.parent != target.parent or cand in edited or cand == target:
+        # ! `cand == target` IS COVERED. `edited` is built from every path this
+        # run was given and `target` is one of them, so a candidate equal to
+        # the target is already in the set the test above it uses.
+        if cand.parent != target.parent or cand in edited:
             continue
         try:
             read_raw(cand)
