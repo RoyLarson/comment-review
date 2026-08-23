@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 11 tasks done
+Progress: 4 of 11 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the join but
@@ -10,6 +10,8 @@ Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the jo
 Answered: 2026-08-22 — the register question has an answer -- collating / master proof /
           editor -- and it splits the misnomer from a second unnamed step; two term
           collisions now need a ruling
+Narrowed: 2026-08-23 — stage 2 is GATHER, so collate is free for the marks -- the first
+          collision is gone; editorial role vs editor is the one left
 ```
 
 ## Objective
@@ -39,13 +41,13 @@ The module is `verdicts.py` and everything calls it the join.
       worth deciding together: `lexer.py` mostly reads a parse rather than lexing
       -- see `lexer-does-not-lex`. Both are cases of a name that was true when the
       file was created and stopped being true as the split settled.
-- [ ] * THE REGISTER SHOULD BE ASKED FIRST, per CLAUDE.md's rule that a new term
+- [x] * THE REGISTER SHOULD BE ASKED FIRST, per CLAUDE.md's rule that a new term
       comes from publishing before anywhere else. `join` is a database word. What
       does a copy desk call the step where several marked-up proofs are weighed
       against each other before anyone rules? If publishing has that word, it
       beats `join` -- and it is the same question the SYNTHESIS step needs
       answered, since that has no name at all.
-- [ ] THE TRADE SPLITS THE QUESTION IN THREE, and only the middle one is a rename.
+- [x] THE TRADE SPLITS THE QUESTION IN THREE, and only the middle one is a rename.
       **Collating** is transferring every hand's marks onto one proof -- conflicts
       go down beside each other, nothing is decided. The **master proof** is the
       copy they land on. The **editor** reads it and rules. ! So `verdicts.py` is
@@ -55,7 +57,7 @@ The module is `verdicts.py` and everything calls it the join.
       the task agent, is the only thing here that reads every mark and decides
       what stands. Naming the join `editor` would name the collator after the job
       it explicitly does not do.
-- [ ] * `COLLATE` IS ALREADY STAGE 2 -- the census stacking pages, which is
+- [x] * `COLLATE` IS ALREADY STAGE 2 -- the census stacking pages, which is
       gathering the copy rather than collating marks. The two senses operate on
       different things, so this is the DECLARED polysemy `docs/vocabulary.md`
       allows; what is missing is the declaration. Rule: take `collate` for the
@@ -64,6 +66,6 @@ The module is `verdicts.py` and everything calls it the join.
       the joiner puts two jobs one syllable apart. ! In the trade the four ARE the
       hands that mark -- a copy editor, a proofreader -- and only one hand rules,
       so the collision is real rather than cosmetic.
-- [ ] ! RECORDED IN `docs/vocabulary.md` under *Bringing the marks together*, with
+- [x] ! RECORDED IN `docs/vocabulary.md` under *Bringing the marks together*, with
       what each word would name and both collisions. Nothing is renamed until the
       two starred tasks above are ruled.

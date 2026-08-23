@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 19 tasks done
+Progress: 15 of 19 tasks done
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves
@@ -108,7 +108,7 @@ changes.**
       the stated reason is not a reason. Rule the word again with the trade split
       in view -- foliation numbers leaves, pagination numbers pages, and this
       numbers positions within a page.
-- [ ] ! AND IT IS THE SAME QUESTION AS THE STAGE NAME. Roy, 2026-08-22: *"I think
+- [x] ! AND IT IS THE SAME QUESTION AS THE STAGE NAME. Roy, 2026-08-22: *"I think
       the collate step now is actually a paginate step."* `addresser.py:17` is the
       only thing in the tree that rules against `pagination`, and it does so on
       the false premise. ! Settle the two together or the stage takes a word the
@@ -118,19 +118,19 @@ changes.**
       The numbering of PLACES has no trade word because a proof is marked by
       margin and line -- a coinage is correct here, which is what the register
       rule allows.
-- [ ] `PAGINATE` IS OUT FOR STAGE 2, AND THE REASON IS THE SENSE OF THE WORD. Roy,
+- [x] `PAGINATE` IS OUT FOR STAGE 2, AND THE REASON IS THE SENSE OF THE WORD. Roy,
       2026-08-23: *"the way I have used in the past is by taking something that
       can print infinitely and split it into pages."* ! Stage 2 splits nothing --
       the division arrives from the filesystem, one file, one page -- so
       pagination names an act it does not perform. Recorded because it was
       PROPOSED the same day and will read as open otherwise.
-- [ ] ! WHAT IS LEFT IS THE NUMBERING, WHICH IS THE ONLY THING STAGE 2 CREATES.
+- [x] ! WHAT IS LEFT IS THE NUMBERING, WHICH IS THE ONLY THING STAGE 2 CREATES.
       The division arrives done, the lexing happens on the way, and the stacking
       is MEASURED order-free -- see `galley.py`, 179 paragraphs identical forward
       and reversed. ! So the candidate that needs no new vocabulary is `CUE`:
       already the function, the module and the result type, and an act like MARK,
       APPLY, COMPACT and REVIEW. * Unruled.
-- [ ] ! AND `collate` IS FREED WHATEVER STAGE 2 BECOMES, which is the first
+- [x] ! AND `collate` IS FREED WHATEVER STAGE 2 BECOMES, which is the first
       starred blocker on `verdicts-is-the-join` -- collating would then mean what
       the trade means: transferring every hand's marks onto one proof.
 - [x] `PORTFOLIO` IS PROPOSED FOR WHAT THE CENSUS PRODUCES. Roy, 2026-08-23: *"The

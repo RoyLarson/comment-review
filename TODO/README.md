@@ -261,9 +261,9 @@ that changed a published name or rule:
 | [language-rows-in-toml](language-rows-in-toml.md) | comment-review | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | comment-review | yes | 0/6 | Two graded arms, orchestration held constant; the rewording is the confound |
 | [lexer-does-not-lex](lexer-does-not-lex.md) | comment-review | yes | 0/7 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
-| [verdicts-is-the-join](verdicts-is-the-join.md) | comment-review | yes | 0/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
+| [verdicts-is-the-join](verdicts-is-the-join.md) | comment-review | yes | 4/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [computed-and-never-read](computed-and-never-read.md) | session | — | 0/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
-| [leaf-means-two-things](leaf-means-two-things.md) | comment-review | — | 11/19 | vocabulary.toml says paragraphs run down a leaf; addresser.py says a leaf IS a place -- and cue is defined against the first |
+| [leaf-means-two-things](leaf-means-two-things.md) | comment-review | — | 15/19 | vocabulary.toml says paragraphs run down a leaf; addresser.py says a leaf IS a place -- and cue is defined against the first |
 | [not-every-line-has-an-address](not-every-line-has-an-address.md) | comment-review | yes | 0/8 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | comment-review | yes | 0/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [retired-word-in-a-quote](retired-word-in-a-quote.md) | comment-review | yes | 0/5 | folio cannot join RETIRED without exempting the five core modules whole, because each quotes a ruling made when the word was current |

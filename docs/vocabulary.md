@@ -15,7 +15,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 
 | word | what happened |
 | --- | --- |
-| `ANNOTATE` (stage 2) | -> **COLLATE**. Stage 2 adds no notes; it gathers every position in the file into one ordered tree. It also pointed at two stages -- `annotate.py` performs stage 3 |
+| `ANNOTATE` (stage 2) | -> **GATHER**, via `COLLATE`. Stage 2 adds no notes; it gathers every position in the file into one ordered tree. It also pointed at two stages -- `annotate.py` performs stage 3 |
 | **line address** (`mod.py:1-24`) | -> **address**. True of ONE file state, and this tool edits prose. `addresser.line_address` read it and warned on every call, and was DELETED 2026-08-20 with nothing calling it -- see `docs/history.md` |
 | `block` | -> **paragraph**. The register is EDITORIAL, and `block` was the last structural term borrowed from compilers. Its definition -- the interval between two lines of CODE -- is also untrue of a prose file |
 | the four KINDS of a line of code | **deleted** -- *statement, expression, declaration, assignment*, shipped to every role and read by nothing. Neither exhaustive nor disjoint, and meaningless in the three data languages |
@@ -92,9 +92,10 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
 
 !! **BOTH CANDIDATE WORDS ARE ALREADY SPOKEN FOR HERE, AND THAT IS THE RULING NEEDED FIRST:**
 
-- **`COLLATE` is stage 2** -- the census stacking pages. That is gathering the copy, not collating
-  marks; the two senses do not overlap in what they operate on, which is the test this file
-  states for allowed polysemy, but nothing declares the split today.
+- **`collate` is FREE.** Stage 2 was `COLLATE` and is **GATHER** since 2026-08-23, because what
+  it does is find every file in scope and put a page for each in the binder -- gathering is the
+  binder's own word for collecting sheets into sequence. ! So `collate` is available for its
+  trade meaning, transferring every hand's marks onto one proof.
 - **`editorial role` is one of the four reviewers.** Calling the joiner `editor` puts two
   different jobs one syllable apart. In the trade the four are the hands that MARK -- a copy
   editor, a proofreader -- and only one hand rules.

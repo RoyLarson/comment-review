@@ -6,7 +6,7 @@ text, it is cut to fit, **then** the author approves the exact text that will be
 and WRITE puts it on disk and proves the executable code byte-identical.
 
 ```
-project -> collate -> find refs -> mark -> apply -> compact -> APPROVAL -> review
+project -> gather -> find refs -> mark -> apply -> compact -> APPROVAL -> review
                                          |                   ^
                                          +----- no cap ------+
 ```
@@ -174,7 +174,7 @@ claim attached to the wrong scope gets measured against the wrong code.
 The skill is broken up into eight phases to cover an editorial system.
 
 1) PROJECT DETERMINATION - Language, documentation style, project rules
-2) COLLATE - Gather every interval between two lines of code into one numbered tree, and locate the comments and documentation on it.
+2) GATHER - Find every file in scope, build a page from each, and put them in the binder -- every place prose can sit, numbered, with the comments and documentation located on it.
 3) FIND REFERENCES - Determine external links to the code comments that might also need updating
 4) MARK - Provide appropriate editorial marks to the Annotated comments and documentation to determine what to do
 
