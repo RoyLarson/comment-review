@@ -120,7 +120,7 @@ SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 
 # ! Bound to a NAME so no `except` clause here holds a tuple LITERAL -- the
-# same rule `repo.py` carries in full.
+# same rule `exceptions.py` carries in full.
 #
 # !! THE COMMENT HERE CLAIMED A GUARD THAT IS NOT IN THE TUPLE. It read:
 # *"ValueError is in this one because `Path.exists()` raises it (not OSError)

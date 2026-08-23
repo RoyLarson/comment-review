@@ -42,9 +42,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import constants  # noqa: E402  -- path shim must run first
 import exceptions  # noqa: E402  -- path shim must run first
 
-# ! THE TUPLE IS IMPORTED, never spelled here. It is bound to a NAME so no
-# `except` clause in this file holds a tuple LITERAL
-# holds a tuple literal; `repo.py` carries that reason once.
+# ! THE TUPLE IS IMPORTED, never spelled here, so no `except` clause in this
+# file holds a tuple LITERAL. `exceptions.py` carries the reason once.
 from lexer import (  # noqa: E402  -- path shim must run first
     Language,
     language_for,

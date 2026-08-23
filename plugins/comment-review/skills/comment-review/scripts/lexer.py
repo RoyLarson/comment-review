@@ -279,7 +279,8 @@ DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
 _NO_TRAILING = -2
 
 # !! BOUND TO A NAME so no `except` clause here holds a tuple LITERAL -- the
-# rule `repo.py` states in full, and this file ships into repositories formatted
+# rule `exceptions.py` states in full, and this file ships into repositories
+# formatted
 # by their own config.
 #
 # ! `tokenize.TokenError` IS NOT A `SyntaxError`, which is the whole reason this

@@ -150,11 +150,11 @@ def reset(page, edits: dict[str, str]) -> list[str]:
             continue
         # !! A REPLACEMENT IS TEXT, AND ONLY AN EMPTY STRING IS A VACATION. This
         # asked whether the value was TRUTHY, so every falsy value took the drop
-        # path below and every non-string truthy one reached `.splitlines()`.
+        # path below and every non-string truthy one reached the SPLITTER.
         # MEASURED 2026-08-22 against a scratch checkout: `{"m.py@b1": null}`
         # exited 0 reporting `1 page(s) set, 0 edit(s) refused` with the comment
         # GONE, and `{"m.py@b1": 123}` died on an uncaught
-        # `AttributeError: 'int' object has no attribute 'splitlines'`.
+        # an uncaught `AttributeError` on a value with no lines to take.
         # ! A NULL IS NOT A DECISION. `--edits` is machine-written from approved
         # text; a key whose value failed to serialise arrives as `null`, and
         # reading that as "the author asked to delete this" turns a bug upstream

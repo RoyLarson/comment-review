@@ -249,7 +249,8 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # line would set the original file back and the identity would pass over
         # the top of it.
         return ""
-    # ! THE TRAILING NEWLINE IS THE FILE'S, and `splitlines` drops it, so no
+    # ! THE TRAILING NEWLINE IS THE FILE'S, and the reader drops it -- see
+    # `constants.text_lines`, which states that rule -- so no
     # paragraph can state whether it was there. A file that ended in one is set
     # with one; a file that did not is not.
     tail = ending if page.text.endswith(("\n", "\r")) else ""

@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import constants  # noqa: E402  -- path shim must run first
 
 # ! The exception tuples are IMPORTED. Each is bound to a NAME so no `except`
-# clause here holds a tuple literal; `repo.py` carries that reason once.
+# clause here holds a tuple literal; `exceptions.py` carries that reason once.
 import exceptions  # noqa: E402  -- path shim must run first
 from repo import (  # noqa: E402  -- path shim must run first
     git,

@@ -534,12 +534,13 @@ def _report(args: argparse.Namespace) -> int:
         print(f"  MALFORMED {reviewer}: {why}")
         fatal += 1
 
+    # !! ASKED ONCE, AND THE ANSWER IS CARRIED. `entry_for` is a linear scan over
+    # the census, and it was called for the same address twice -- here, and again
+    # in the accounting below. ! The `continue` is the ONLY way out of this loop
+    # short of the end, so what reaches the append is exactly the set the second
+    # scan rebuilt: the findings that name a paragraph the census carries.
+    in_range = []
     for f in found:
-        # !! ASKED ONCE, AND THE ANSWER IS CARRIED. `entry_for` is a linear scan
-        # over the census; this loop called it here and AGAIN below for the same
-        # address, and the second call was then guarded by `if held is not None`
-        # -- a branch that cannot be false, because the `continue` here is the
-        # only way past this point.
         held = entry_for(f.address, paragraphs)
         if held is None:
             print(
@@ -548,6 +549,7 @@ def _report(args: argparse.Namespace) -> int:
             )
             fatal += 1
             continue
+        in_range.append(f)
         if f.verdict not in VERDICTS:
             print(
                 f"  {f.address} {f.reviewer}: {f.verdict!r} is not a verdict"
@@ -619,7 +621,6 @@ def _report(args: argparse.Namespace) -> int:
     # nothing is asked of stage 5 either. Counting those as work buried 76 real
     # verdicts inside 1159 on a measured run.
     ran = sorted(reported | {f.reviewer for f in found})
-    in_range = [f for f in found if entry_for(f.address, paragraphs) is not None]
     ruled = {f.address for f in in_range if _substantive(f) and not declares_scope(f)}
     scoped_out = {f.address for f in in_range if declares_scope(f)} - ruled
     # !! A PARAGRAPH NOBODY ACCOUNTED FOR IS NOT A PARAGRAPH EVERY ROLE PASSED. It fell
