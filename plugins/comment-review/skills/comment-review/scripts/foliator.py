@@ -512,8 +512,9 @@ class Foliation:
     def beside(self, line: int) -> str:
         """The `c` on this line of code, or "" if the line holds no code.
 
-        ! ONE ITERATION. It asked `line not in self._code` and then
-        `.index(line)`, which walked the list twice to answer one question.
+        ! ONE ITERATION, and it was two. `.index` iterates the list ONCE; asking
+        `line not in self._code` first and then `.index(line)` iterated it TWICE
+        to answer one question.
         """
         try:
             return self.foliators[ON].at(self.triggers.index(line) - 1)
