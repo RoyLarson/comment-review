@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 19 tasks done
+Progress: 5 of 19 tasks done
 Owner:    comment-review
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves
           -- the sense foliator.py rules against)
 Narrowed: 2026-08-23 — paginate ruled out for stage 2 on the split-infinite-output
@@ -76,7 +76,7 @@ changes.**
       LEAF rule Roy stated 2026-08-22. Different domain, no overlap in what it
       operates on -- which is the test `docs/vocabulary.md` states for allowed
       polysemy. ! What is missing is the DECLARATION, not the separation.
-- [ ] * WHICH SENSE SURVIVES IS A RULING. In the trade a leaf is one SHEET and
+- [x] * WHICH SENSE SURVIVES IS A RULING. In the trade a leaf is one SHEET and
       carries TWO pages, recto and verso -- so a leaf CONTAINS pages, and this
       tree has it the other way in both live senses. Rule whether a leaf is the
       page, the place, or a word this system stops using.
@@ -99,7 +99,7 @@ changes.**
       down a leaf and do not nest"*. The flatness claim is TRUE and is the point
       of the sentence; only the word `leaf` is wrong -- a page is what they run
       down.
-- [ ] * RE-DECIDE `foliator.py:17` ON A PREMISE THAT HOLDS. It rules *"FOLIATION,
+- [x] * RE-DECIDE `foliator.py:17` ON A PREMISE THAT HOLDS. It rules *"FOLIATION,
       not pagination: the numbering of LEAVES, which is what a place is."* A place
       is not a leaf. ! The conclusion may still be right; what is certain is that
       the stated reason is not a reason. Rule the word again with the trade split
@@ -130,7 +130,7 @@ changes.**
 - [ ] ! AND `collate` IS FREED WHATEVER STAGE 2 BECOMES, which is the first
       starred blocker on `verdicts-is-the-join` -- collating would then mean what
       the trade means: transferring every hand's marks onto one proof.
-- [ ] `PORTFOLIO` IS PROPOSED FOR WHAT THE CENSUS PRODUCES. Roy, 2026-08-23: *"The
+- [x] `PORTFOLIO` IS PROPOSED FOR WHAT THE CENSUS PRODUCES. Roy, 2026-08-23: *"The
       census creates a portfolio."* A portfolio is a case of LOOSE sheets --
       gathered but unbound -- and it is the only container that makes `--filtered`
       coherent: you cannot hand a reviewer pages 12, 40 and 88 of a bound book,
@@ -139,14 +139,14 @@ changes.**
       rather than an act, so it leaves the stage name free instead of competing
       with FOLIATE. * Unruled; the one strain is that a trade portfolio usually
       holds FINISHED work.
-- [ ] RULED 2026-08-23: THE ADDRESS IS `path@cue`. Roy: *"path@place is definitely
+- [x] RULED 2026-08-23: THE ADDRESS IS `path@cue`. Roy: *"path@place is definitely
       @cue. Place was a good stand in but imprecise enough that we have had
       problems already."* ! A CUE is the mark in the text saying a note belongs at
       this point -- it carries no content, only the claim that content belongs
       HERE, which is exactly what the `@` half asserts. The note carries the
       content and not the position. ! `cue`, `reference mark` and `superior
       figure` are all unused in the tree.
-- [ ] * STILL OPEN: what `Foliation` and `folio` become. `folio` follows `cue`
+- [x] * STILL OPEN: what `Foliation` and `folio` become. `folio` follows `cue`
       (278 sites); `Foliation` -- the complete ordered set of cues for one page,
       filled or not -- does not. ! Candidates measured 2026-08-23: `register` is
       TAKEN TWICE (48 uses: the linguistic sense this repo's method runs on, plus
