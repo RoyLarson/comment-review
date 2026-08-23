@@ -1,6 +1,6 @@
 """THE FOLIATION: numbering the places on a page, and reading the number back.
 
-    python foliator.py --census census.json --repo D
+    python foliator.py --census census.json --anchor "def f():" --series a
 
 FOUR FOLIATORS walk one trigger list -- the MODULE, every line of code, then
 EOF -- each holding its own counter and the places it emitted. `foliate()` runs
@@ -748,7 +748,6 @@ def foliate(
         # line, which is what makes them sentinels.
         if isinstance(trigger, str):
             if trigger == MODULE:
-                documented = a.emit(MODULE, at) if module_insert is not None else ""
                 # ! `f0` is the FILE'S OWN matter, bounded by nothing: the head
                 # of the file on both sides. It is not the gap above the first
                 # line of code -- that is `b0`, and conflating them made the two
@@ -756,13 +755,12 @@ def foliate(
                 # ! THE HEAD OF THE PAGE, in the order a reader meets it: the
                 # file's own matter, then the module's own documentation.
                 out.reading.append(f.emit(MODULE, at))
-                # ! ONE TEST OF ONE CONDITION. `documented` was assigned from
-                # `module_insert is not None` above and then tested for truth
-                # here, which is the same question asked twice -- `emit` returns
-                # `a0` at the least, so it is never falsy when the language has
-                # an `a` series.
+                # ! ONE TEST OF ONE CONDITION. The emit was bound above and then
+                # tested for truth here, which is the same question asked twice
+                # -- `emit` returns `a0` at the least, so it is never falsy when
+                # the language has an `a` series.
                 if module_insert is not None:
-                    out.reading.append(documented)
+                    out.reading.append(a.emit(MODULE, at))
                 # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
                 # number. It has no gap above it and no line to sit beside. Roy,
                 # 2026-08-20: *"let's initiate all of them at 0 ... bs and cs
@@ -815,9 +813,8 @@ def foliate(
             # among the documentable ones, counting from 1.
             declared = a.emit(line, at)
             # !! TWO FACTS, AND `foliate` USES ONLY THE SECOND. `page.documentable`
-            # states the LINE the doc occupies -- which `page.documented_by` walks
-            # up from to find prose already there -- and the code ordinal it is
-            # SET BEFORE, which is the language's rule already resolved. `foliate`
+            # states the LINE the doc occupies and the code ordinal it is SET
+            # BEFORE, which is the language's rule already resolved. `foliate`
             # holds the place until that step and compares nothing.
             _insert_at, at_step, side = documentable[seen]
             release.setdefault((at_step, side), []).append(declared)

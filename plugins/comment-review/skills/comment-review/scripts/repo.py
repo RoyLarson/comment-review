@@ -5,7 +5,7 @@ carries the NON-ANSWER in its return type -- `None` for "git could not tell me",
 a named list for "these files were unread". A caller that reads a non-answer as
 an empty answer produces the failure this whole skill exists to catch.
 
-Imported by `census.py`, `annotate.py`, `referrers.py` and `prove_unchanged.py`.
+Imported by `census.py`, `galley.py`, `referrers.py` and `prove_unchanged.py`.
 """
 
 import subprocess

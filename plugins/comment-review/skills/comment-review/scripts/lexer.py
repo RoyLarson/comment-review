@@ -334,16 +334,6 @@ def declared_in_source_order(tree: ast.AST) -> list:
 # SUPPRESSED real findings on file headers.
 _NO_TRAILING = -2
 
-# !! BOUND TO A NAME so no `except` clause here holds a tuple LITERAL -- the
-# rule `exceptions.py` states in full, and this file ships into repositories
-# formatted
-# by their own config.
-#
-# ! `tokenize.TokenError` IS NOT A `SyntaxError`, which is the whole reason this
-# exists: `ast.parse` raises the second and `generate_tokens` raises the first,
-# and a catch written for one never saw the other. `repo.PARSE_ERRORS` names
-# both; the lexer cannot import it, because it takes no sibling but `language`.
-
 
 class Kind(StrEnum):
     """Every kind a paragraph can be, paired with the series it belongs to.
@@ -1133,10 +1123,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # and the page trying to reconstruct what was meant by top of the file
         # and a comment."*
         #
-        # !! THE OPENING LINE ITSELF MUST BE A COMMENT. A file whose line 1 is
-        # BLANK has no front matter at all -- which is what `page.mark_matter`
-        # could not express, since it took the first run of PROSE wherever it
-        # sat. MEASURED: 11 CPython headers open with a blank, and each one put
+        # !! THE OPENING LINE ITSELF MUST BE A COMMENT, not merely the first run
+        # of PROSE wherever it sits: a file whose line 1 is BLANK has no front
+        # matter at all. MEASURED: 11 CPython headers open with a blank, each put
         # an `f0` inside the gap that owned the blank above it, so the gap ran
         # THROUGH the matter and the compositor set the comment above its own
         # blank line.
@@ -1803,8 +1792,8 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
     # `TokenError` out of this loop -- *"EOF in multi-line statement"* and *"EOF
     # in multi-line string"* -- and a file mid-edit took the caller down with
     # it. ! `tokenize.TokenError` is NOT a `SyntaxError`, which is why the
-    # `except` below never saw it; `repo.PARSE_ERRORS` names both for exactly
-    # this reason.
+    # `except` below never saw it; `exceptions.TOKENIZE_ERRORS` names both for
+    # exactly this reason.
     #
     # ! DRAINED FIRST rather than guarded in place: the generator raises during
     # ITERATION, so the alternative was wrapping the whole loop and indenting
@@ -1852,7 +1841,7 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
             if trailing:
                 flush()
         # ! A COMMENT RUN SURVIVES LAYOUT AND IS ENDED BY ANYTHING ELSE. The
-        # five types are named as one category in `constants.LAYOUT_TOKENS`; this
+        # five types are named as one category by `Layout`; this
         # asked the same operand twice against two disjoint tuples, which said
         # nothing about what they have in common.
         elif raw.type in LAYOUT:

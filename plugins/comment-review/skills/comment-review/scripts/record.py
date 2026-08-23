@@ -415,7 +415,6 @@ class Finding:
     sources: list[str]
     change: str
     address: str = ""
-    anchor: str = ""
     original: str = ""
     # !! THE CLAIM AS THE RECORD CARRIED IT, filled from the file, so it is
     # empty only

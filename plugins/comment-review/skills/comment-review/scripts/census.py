@@ -546,9 +546,9 @@ def _report(args: argparse.Namespace) -> int:
         # !! THE FILE'S OWN MATTER IS DROPPED FROM WHAT A REVIEWER READS, not
         # into a run. A licence header or a shebang is not a claim about the
         # code, so no role can settle it and every role would return `clean` on
-        # it every run -- see `mark_matter`. It keeps its address and its
-        # index, so a `move` may still cite it; what it loses is a reviewer's
-        # attention and a record it owes.
+        # it every run. It keeps its address and its index, so a `move` may
+        # still cite it; what it loses is a reviewer's attention and a record it
+        # owes.
         # ! `--include-matter` OVERRIDES that, and is the only way to see it in
         # a filtered listing. The `f` series is the one prose a filtered run
         # drops entirely rather than collapsing into a run, so without an

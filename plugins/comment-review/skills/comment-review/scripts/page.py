@@ -51,7 +51,6 @@ that READ paragraphs could not import the definition of one -- 21 untyped
 it was the deepest module all three could reach.
 """
 
-import re
 import sys
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
@@ -106,10 +105,9 @@ from lexer import (  # noqa: E402  -- path shim must run first
 # `c` below it. Neither is listed; both derive from `lexer.Series`.
 
 # !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE LEXER STATES IT -- see
-# `lexer.MATTER`. It was an ANNOTATION stamped HERE by `mark_matter` until
-# 2026-08-21, which put a positioning rule in a module that may hold none and
-# made the page reconstruct what "top of the file" meant from a run already
-# typed `comment`.
+# `lexer.MATTER`. Stamping it HERE would put a positioning rule in a module that
+# may hold none, and make the page reconstruct what "top of the file" meant from
+# a run already typed `comment`.
 #
 # ! ONE TYPE FOR BOTH ENDS. Roy: *"front-matter, back-matter are paragraph type
 # matter."* Which end a run sits at is the ORDER the `f` foliator emitted its
@@ -324,8 +322,8 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     # !! THE LEXER SAYS SO, and this only reads it. Roy, 2026-08-21: *"that makes
     # f trivial and consistent because that paragraph instead of being marked as
     # comment and the page trying to reconstruct what was meant by top of the
-    # file and a comment."* It was an ANNOTATION that `mark_matter` stamped here,
-    # which is a positioning rule in a module that may hold none.
+    # file and a comment."* Stamping it here instead would be a positioning rule
+    # in a module that may hold none.
     #
     # ! WHICH `f` IS A COUNT, NOT A POSITION -- the Nth matter run takes the Nth
     # place `foliate` emitted, exactly as the Nth declaration takes the Nth `a`.
@@ -371,9 +369,10 @@ def documentable(
     Returns:
         `index into code -> (the LINE the doc occupies, the code index it is set
         at, WHICH SIDE of that index's gap)`. Three facts, and they were one
-        field until 2026-08-21. The line is what `documented_by` walks up from to
-        find prose already sitting there. The index and the side are what the
-        walk places by: `ON` sets the doc between the gap and the code, `GAP`
+        field until 2026-08-21. `lexer.document_declarations` is what walks up
+        from a declaration to find prose already sitting there. The index and
+        the side are what the walk places by: `ON` sets the doc between the gap
+        and the code, `GAP`
         sets it before the gap -- which is where a doc that sits INSIDE its
         declaration lands, because the gap beneath it introduces whatever comes
         next. Empty for a tier that resolves no declarations, and the file then
@@ -430,7 +429,7 @@ def places_on(
 
 
 def empty_places(
-    text: str, prose: list[Paragraph], foliation: Foliation, occupied: set[str]
+    text: str, foliation: Foliation, occupied: set[str]
 ) -> list[Paragraph]:
     """A paragraph for every place `foliate` emitted that no prose fills.
 
@@ -451,7 +450,6 @@ def empty_places(
 
     Args:
         text: the page's source.
-        prose: the paragraphs a reader found.
         foliation: every place on the page.
         occupied: the folios that prose already sits in.
 
@@ -720,14 +718,15 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # assigns the numbering, `attach` reads which place this prose sits in,
         # and the anchor comes from `foliate` that emitted it rather than from a
         # second pass that could disagree with the first.
-        foliation = places_on(text, [vars(b) for b in got], lang)
+        prose = [vars(b) for b in got]
+        foliation = places_on(text, prose, lang)
         # !! THE LEXER STATES WHICH PROSE DOCUMENTS WHAT, and this only asks.
         # It was decided in this module until 2026-08-21, which may hold no
         # positioning rule -- Roy: *"the ONLY places that need this are the lexer
         # and the compositor."* `paragraphs_stdlib` has always stated it for
         # Python from its parse; `document_declarations` is the same fact for a
         # language the parser cannot read, and answers nothing for Python.
-        code = code_lines(text, [vars(b) for b in got])
+        code = code_lines(text, prose)
         document_declarations(got, declarations(text, lang, code), code)
         flat = flatten(rel if rel is not None else path.as_posix())
         # !! THE PAGE MAKES THE MAPPING. Roy, 2026-08-21: *"the page makes the
@@ -800,7 +799,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # what `foliate` emitted. Three generators used to answer this one
         # question a series at a time, each walking the file again.
         occupied = {b.address.split("@")[-1] for b in got if "@" in b.address}
-        for empty in empty_places(text, got, foliation, occupied):
+        for empty in empty_places(text, foliation, occupied):
             # ! IT ALREADY KNOWS ITS PLACE -- the emitter filled that folio and
             # said so. Asking `attach` again re-derives it from position, which
             # answered the FIRST GAP for the file's own matter: the two are
@@ -862,13 +861,6 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         tier=tier_for(lang),
         leading=edges,
     )
-
-
-# The two shapes that earn FRONT MATTER without a module docstring to sit above:
-# a shebang says how the file RUNS and a coding line how it is READ, and both are
-# the file's own whatever follows them.
-_SHEBANG = re.compile(r"^#!")
-_CODING = re.compile(r"coding[:=]\s*[-\w.]+")
 
 
 def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:

@@ -443,11 +443,10 @@ def _report(args: argparse.Namespace) -> int:
             # ! Because the cost is asymmetric and sits OUTSIDE this system. A
             # licence header is a legal instrument and a shebang is how the file
             # runs; a wrong edit to either is not an editorial mistake, and no
-            # role here can settle whether it is right -- see
-            # `page.mark_matter`. The reviewer was not shown the paragraph,
-            # `--filtered` drops it, so a verdict here came from reading the
-            # file directly: a reasonable thing to have done, and still not this
-            # system's call.
+            # role here can settle whether it is right. The reviewer was not
+            # shown the paragraph -- `--filtered` drops it -- so a verdict here
+            # came from reading the file directly: a reasonable thing to have
+            # done, and still not this system's call.
             #
             # ! CONVERTED, not refused. The reviewer saw something; dropping it
             # silently would lose it. The human is asked instead.
@@ -520,9 +519,9 @@ def _report(args: argparse.Namespace) -> int:
 
     gaps = coverage_gaps(all_blocks, reported, found)
     if gaps:
-        print("COVERAGE GAPS - indices no reviewer accounted for:")
+        print("COVERAGE GAPS - addresses no reviewer accounted for:")
         for reviewer, missing in sorted(gaps.items()):
-            shown = ", ".join(str(n) for n in missing[:20])
+            shown = ", ".join(missing[:20])
             more = f" (+{len(missing) - 20} more)" if len(missing) > 20 else ""
             count = _n(len(missing), "paragraph")
             print(f"  {reviewer}: {count} unaccounted -- {shown}{more}")
@@ -619,7 +618,7 @@ def _report(args: argparse.Namespace) -> int:
     # rather than `clean` so it does not certify what it never read -- and
     # nothing is asked of stage 5 either. Counting those as work buried 76 real
     # verdicts inside 1159 on a measured run.
-    ran = sorted(reported | {f.reviewer for f in found})
+    ran = reported | {f.reviewer for f in found}
     ruled = {f.address for f in in_range if _substantive(f) and not declares_scope(f)}
     scoped_out = {f.address for f in in_range if declares_scope(f)} - ruled
     # !! A PARAGRAPH NOBODY ACCOUNTED FOR IS NOT A PARAGRAPH EVERY ROLE PASSED. It fell

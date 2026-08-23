@@ -676,7 +676,11 @@ def block_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     # row quotes no original -- `clean`, `add`, `query`, `move` -- and for a
     # malformed spec, and the next line already treats "" as nothing to check.
     # A second list would be a second place to update.
-    if entry_for(f.address, paragraphs) is None:
+    # ! ASKED ONCE, AND THE ANSWER IS CARRIED. `entry_for` is a linear scan of
+    # the census; asking it twice for one address is the same defect
+    # `verdicts.py` names at its own join.
+    entry = entry_for(f.address, paragraphs)
+    if entry is None:
         return None
     needle = ruled_text(f)
     if not needle:
@@ -685,7 +689,6 @@ def block_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     # which drops per-token quotes and trailing punctuation; a haystack that
     # was only whitespace-collapsed still holds them, so any comma, colon or
     # backtick inside a quoted sentence refused a correct finding.
-    entry = entry_for(f.address, paragraphs) or {}
     haystack = _words(str(entry.get("text", "")))
     # ! Same rule as SOURCES: compare all of it, truncate only the message. A
     # fabricated tail here made `edit_problem` MORE permissive, because it

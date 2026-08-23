@@ -30,8 +30,9 @@ started, which has been measured failing, and with the paths already in the
 packet the fallback -- four general-purpose agents handed their reviewer file and
 the brief -- is a substitution rather than an improvisation.
 
-Three sections carry an answer a machine can settle, and they ARE checked:
-`REPO ROOT`, `CENSUS` and each `REVIEWER FILES` entry, against the filesystem.
+Four sections carry an answer a machine can settle, and they ARE checked -- the
+whole of `PATH_SECTIONS`: `REPO ROOT`, `CENSUS`, `LOOKUP CENSUS` and each
+`REVIEWER FILES` entry, against the filesystem.
 Presence alone let a packet whose every hint was replaced with `x` report itself
 complete. The rest carry prose no oracle settles, and this reports nothing about
 them.
@@ -130,14 +131,14 @@ COMMENT = re.compile(r"<!--.*?-->", re.S)
 # ! Bound to a NAME so no `except` clause here holds a tuple LITERAL -- the
 # same rule `exceptions.py` carries in full.
 #
-# !! THE COMMENT HERE CLAIMED A GUARD THAT IS NOT IN THE TUPLE. It read:
-# *"ValueError is in this one because `Path.exists()` raises it (not OSError)
-# on a candidate holding a NUL byte, and a packet is arbitrary text a person
-# typed."* `ValueError` is not in the tuple and never was in this file --
-# MEASURED 2026-08-22 on the floor interpreter, `Path("a\0b").exists()` returns
-# False and raises nothing. Both halves of the sentence were false: the guard
-# and the reason for it.
-PATH_ERRORS = (OSError, ValueError)
+# !! `ValueError` WAS HERE ON A REASON THAT DOES NOT HOLD. The comment beside it
+# read *"ValueError is in this one because `Path.exists()` raises it (not
+# OSError) on a candidate holding a NUL byte, and a packet is arbitrary text a
+# person typed."* MEASURED 2026-08-22 on the floor interpreter: a path holding a
+# NUL answers `False` from `exists()` and raises nothing, because 3.11's
+# `pathlib` swallows the `ValueError` itself. So the member was unreachable and
+# the sentence that justified it was false; both are gone.
+PATH_ERRORS = (OSError,)
 
 # A leading list marker, so `- /abs/path` and `1. /abs/path` name the path
 # rather than the bullet.

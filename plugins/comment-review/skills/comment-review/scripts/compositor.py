@@ -60,11 +60,11 @@ import constants  # noqa: E402
 import exceptions  # noqa: E402  -- path shim must run first
 from foliator import ON, folio_of  # noqa: E402
 
-# !! THE OTHER IMPORTER OF THE ROWS -- see `language.py`. The lexer reads a file
-# into paragraphs and this sets a page back into one; they are the only two
-# modules that touch a file, so they are the only two that may ask a language
-# anything. ! It is read DIRECTLY and not through the lexer, so the rule is
-# visible in the import graph rather than in a comment.
+# !! THE OTHER DIRECT IMPORTER OF THE ROWS -- see `language.py`. The lexer reads
+# a file into paragraphs and this sets a page back into one, so these two are
+# where a language's own grammar is applied to text. ! Everywhere else reaches
+# `language_for` through the lexer's re-export, which is a lookup rather than a
+# reading; taking it from `language` here says which of the two this is.
 from language import language_for  # noqa: E402
 from page import Page, page_for  # noqa: E402
 
@@ -287,7 +287,7 @@ def approve(drafted: Path, real: Path) -> Path:
     return real
 
 
-def lossless(path: Path, rel: str | None = None) -> str | None:
+def lossless(path: Path) -> str | None:
     """Does this file come back with every line it went in with? None if so.
 
     !! THE WEAKER INVARIANT, AND THE ONE THAT MUST NEVER BREAK. `identity` asks
@@ -308,7 +308,7 @@ def lossless(path: Path, rel: str | None = None) -> str | None:
     if lang is None:
         return f"no language record for {path.suffix!r}"
     try:
-        got = set_page(page_for(path, text, lang, rel=rel))
+        got = set_page(page_for(path, text, lang))
     except exceptions.Refused as exc:
         return str(exc)
     if sorted(constants.text_lines(got)) == sorted(constants.text_lines(text)):
@@ -324,7 +324,7 @@ def lossless(path: Path, rel: str | None = None) -> str | None:
     return f"line invented: {invented[0]!r}"
 
 
-def identity(path: Path, rel: str | None = None) -> str | None:
+def identity(path: Path) -> str | None:
     """Set this file from its own page and say where it differs, or None.
 
     Returns:
@@ -338,7 +338,7 @@ def identity(path: Path, rel: str | None = None) -> str | None:
     lang = language_for(path)
     if lang is None:
         return f"no language record for {path.suffix!r}"
-    page = page_for(path, text, lang, rel=rel)
+    page = page_for(path, text, lang)
     try:
         got = set_page(page)
     except exceptions.Refused as exc:
@@ -361,13 +361,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Set a page as text.")
     # !! NO `--repo`, and it was ADVERTISED rather than merely unread. It was
     # parsed here, named on line 3 of this module's own docstring, and passed
-    # nowhere: `identity` and `lossless` both take a `rel` and were called
-    # without one. MEASURED 2026-08-22 -- `identity(p)` and
-    # `identity(p, rel="totally/different/name.py")` both answer `None`, and
-    # they must: `rel` sets only the PATH half of an address, `_held` keys on
-    # the folio half, and `set_page` never reads `page.path`. A documented flag
-    # that cannot change an answer is a false statement where a reader looks
-    # first.
+    # nowhere. MEASURED 2026-08-22, while `identity` and `lossless` still took
+    # the `rel` it fed -- `identity(p)` and `identity(p, rel="totally/other.py")`
+    # both answered `None`, and they had to: `rel` set only the PATH half of an
+    # address, `_held` keys on the folio half, and `set_page` never reads
+    # `page.path`. A documented flag that cannot change an answer is a false
+    # statement where a reader looks first, so the flag went and the parameter
+    # went after it.
     parser.add_argument("paths", nargs="+", type=Path)
     args = parser.parse_args(argv)
     constants.utf8_console()

@@ -180,7 +180,6 @@ def load_report(
                 # does not catch, on a file it calls well formed.
                 change="\n".join(str(line) for line in rec.get("change") or []),
                 address=where.strip(),
-                anchor=str(rec.get("anchor") or ""),
                 # ! The record no longer carries the paragraph's text -- the census
                 # does. `address_problem` reads this, so it is filled from the
                 # census by the caller rather than by the reviewer.
