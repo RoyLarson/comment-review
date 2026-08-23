@@ -210,7 +210,7 @@ that changed a published name or rule:
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
 | [b-foliator-uninitialised](b-foliator-uninitialised.md) | session | — | 9/17 | The b foliator is never initialised at the module trigger, and computes its folio from line numbers |
 | [front-matter-restamps](front-matter-restamps.md) | session | — | 0/7 | Adding a module docstring restamps the comment run above it as front matter |
-| [census-owns-addressing](census-owns-addressing.md) | session | — | 0/5 | The census owns addressing, and four modules share one subject between them |
+| [census-owns-addressing](census-owns-addressing.md) | session | — | 3/5 | The census owns addressing, and four modules share one subject between them |
 | [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
 | [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
