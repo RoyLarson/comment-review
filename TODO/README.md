@@ -293,11 +293,10 @@ other tasks can proceed without them._
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 
-### blocked  (5)
+### blocked  (4)
 
 _None._
 
-| [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | session | — | 2/5 | nothing recomputes it or prompts the clearing; 6 cleared, 26 left to read |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | session | — | 0/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 | [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 1/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | session | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
@@ -346,3 +345,4 @@ the reason is inside the file.
 | [galley-is-still-index-keyed](completed/galley-is-still-index-keyed.md) | Tasks 1-2 done (address-keyed); task 3 was an observation whose mechanism -- splice and its line-ordered sort -- was deleted in the galley rewrite |
 | [second-key-stale-on-drop](completed/second-key-stale-on-drop.md) | Ruled and cut the same morning: the second key is DELETED, so it cannot go stale -- Page.leading is dict[str, str], keyed by the place a run of blanks follows |
 | [foliation-knows-about-lines](completed/foliation-knows-about-lines.md) | Cues is 3 fields -- addressers, walk, reading. A place records the trigger it was emitted at, so no position is reconstructed; d left SERIES as a symbol; lines and _code were both views of the walk |
+| [requires-roy-never-goes-back-down](completed/requires-roy-never-goes-back-down.md) | Tool half re-filed in job_board as requires-roy-never-clears, which owns todo_tool; the local flag audit is being done by hand during the 2026-08-23 backlog read-through |

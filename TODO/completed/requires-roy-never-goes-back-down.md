@@ -14,6 +14,12 @@ Narrowed: 2026-08-19 — Six cleared from evidence in their own files, 32 -> 26.
           false' exists and is documented. The defect is that nothing recomputes it or
           prompts the clearing -- check the upstream vendor at redacted_corpus todo-
           requires-roy REDACTED_SHA_D before building one.
+Moved:    2026-08-23 — the TOOL half moved to job_board as `requires-roy-never-clears`,
+          2026-08-23 -- job_board owns todo_tool now and this repo only vendors it. !
+          What did NOT move is task 3: the audit of the remaining ~25 flags here against
+          the commits that would carry their rulings. That is this project own backlog
+          hygiene, and it needs a home if it is still wanted separately from the read-
+          through.
 ```
 
 ## Objective
