@@ -10,6 +10,22 @@ that it can be corrected before anything is committed. That is exactly what
 this writes -- every paragraph a stage proposes to change, put on a copy of its
 page under `--out`. Nothing under `--repo` is touched.
 
+!! "NOT YET MADE INTO PAGES" AND "A COPY OF ITS PAGE" ARE BOTH TRUE HERE, and
+reading the first as a contradiction of the second is the wrong inference this
+paragraph invites. Roy, 2026-08-22: *"Galley still works because our pages are
+infinite lengths, and can be reordered at will to make them look like one
+unordered length."* ! A page here is a FILE: unbounded, no verso, and nothing
+pushes its last line onto a next sheet. Making up copy into fixed-height sheets
+-- the step a galley precedes -- never happens in this system at all, so setting
+text onto a page does not stop it being galley copy.
+
+! AND THE STACK IS ORDER-FREE, which is the second half of what makes the word
+hold. Every address carries its own path, so nothing downstream depends on which
+page precedes which. MEASURED 2026-08-22: three files censused forward and
+reversed gave 179 paragraphs whose address, kind, text and anchor were identical
+in both orders. ! Order is load-bearing WITHIN a page -- that is what an
+address's folio counts -- and free between them.
+
 !! IT RENDERS; IT DOES NOT RULE. A stage that both produced the galley and
 judged it would be MARK and APPLY in one actor, which is the separation the
 pipeline exists to keep.
