@@ -61,7 +61,7 @@ The lexer does not lex -- it reads a parse.
       OPEN QUESTION, which is a typecoder declining to assign a code rather than
       guessing -- what a copy editor does with an ambiguous element.
 - [ ] ! NOT THE ADDRESSER, WHICH WAS THE FIRST GUESS. `cue(code, documentable,
-      module_insert)` never sees prose -- *"a place is emitted because `cue`
+      module_insert)` never sees prose -- *"a place is emitted because `foliate`
       reached its trigger, not because prose was found sitting there"* -- and
       `test_the_addresser_knows_nothing_about_prose` enforces it. A typecoder reads
       each element and says WHAT IT IS; the addresser says WHERE things sit, blind

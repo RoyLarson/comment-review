@@ -25,7 +25,7 @@ is a render for printing. It calls no `cues.address(...)`. It composes nothing: 
 that file is `b.address.split("@")[-1]`, printing an address it was handed.
 
 !! **WHAT IS LEFT IS THE PUT-TOGETHER.** Roy's ruling on this file, 2026-08-19, was that *"the
-cues is the only and official spot that converts the galley artifact into an address."* The
+foliation is the only and official spot that converts the galley artifact into an address."* The
 addresser owns every PART of an address and the whole TAKE-APART -- `flatten`, `emit`, `cue_of`,
 `unflatten`, `Address` -- and does not own the join:
 

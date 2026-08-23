@@ -8,8 +8,8 @@ Requires-Roy: true
 Raised:   2026-08-20 (both reviews of 2026-08-20, independently; verified in-session)
 Fixed:    2026-08-20 — 2026-08-20 -- fixed by giving front matter ITS OWN SERIES rather
           than by carving an exception. Roy: *"we should have just made the front matter
-          its own cues -- then the rule that b owns all the lines that are not
-          another cues's lines would explicitly stay true. Treating the front
+          its own foliation -- then the rule that b owns all the lines that are not
+          another foliation's lines would explicitly stay true. Treating the front
           matter as regular comments, even though they are not, is the mistake."* ! An
           earlier fix that DID carve the exception -- naming front matter twice inside
           `fill_the_gaps` -- was written, measured working, and reverted for this.

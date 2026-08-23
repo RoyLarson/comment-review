@@ -23,7 +23,7 @@ Ruled:    2026-08-21 — 2026-08-21 -- the criterion is a C round trip, not an a
           positives are lines nobody documented.
 Condition: 2026-08-22 — THE C CONDITION IS MET. Roy set it as a demonstration, not an
            argument: *"if we can show that we can round trip the comments correctly in a
-           c document ... with the a cues then we add it back."* MEASURED
+           c document ... with the a foliation then we add it back."* MEASURED
            2026-08-22: 489 of 489 `.c` and `.h` files in `corpora/cpython` round trip
            IDENTICAL, zero differ, zero crash. ! So the ruling is not a standing refusal
            -- it is a conditional whose condition has since been satisfied and never
@@ -57,7 +57,7 @@ Outside Python the `a` place is emitted and never filled.
       of 17 languages are affected.
 - [ ] !! THE ACCEPTANCE TEST IS A ROUND TRIP, ruled by Roy 2026-08-21: *"if we can
       show that we can round trip the comments correctly in a c document (assuming
-      the documentation doesn't have typographical errors) with the a cues
+      the documentation doesn't have typographical errors) with the a foliation
       then we add it back. If it causes errors then we leave all of them as b and
       a's do not get populated and are not queriable/settable in the program. That
       is an easy out for the language."* So this closes on a DEMONSTRATION, not on
@@ -120,7 +120,7 @@ Outside Python the `a` place is emitted and never filled.
       under the new rule -- the four existing cases are compatible, not in
       conflict -- and the added cases resolve correctly: `pub async fn foo`,
       `static inline void f(void)`, `public static void f()`, `data class Pair`. !
-      Roy stopped it as scope creep on the cue-placement branch: *"that is
+      Roy stopped it as scope creep on the folio-placement branch: *"that is
       definitely a todo and I want to finish this branch."* ! `_FIRST_WORD` in
       `lexer.py` becomes dead the moment this lands and should go with it.
 - [ ] THE BODY THAT PASSED, so this is a paste rather than a re-derivation.

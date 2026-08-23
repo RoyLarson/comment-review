@@ -19,7 +19,7 @@ should be to take the output of all of the pages and reformat it into the (most)
 usable format for the agents."*
 
 !! IT IS A FLAT LIST, AND THAT IS THE SHAPE OF THE THING. Paragraphs run down a
-leaf and do not nest. An address is an ORDINAL over a linear sequence and cannot
+page and do not nest. An address is an ORDINAL over a linear sequence and cannot
 express containment, so the two agree by construction rather than by compromise.
 
 ! It was called a *pseudo* Concrete Syntax Tree, and the word is retired. Roy,
