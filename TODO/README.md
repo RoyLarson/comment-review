@@ -233,7 +233,7 @@ that changed a published name or rule:
 | [closing-line-deletes-code](closing-line-deletes-code.md) | session | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | Roy | — | 0/4 | v1.x wants a concrete versioning system on everything that ships |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | session | — | 0/3 | foliator --check prints SHARED and exits 0 |
-| [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | session | yes | 0/12 | Outside Python the `a` place is emitted and never filled |
+| [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | session | yes | 0/17 | Outside Python the `a` place is emitted and never filled |
 | [front-matter-protection-is-python-only](front-matter-protection-is-python-only.md) | session | — | 0/7 | mark_matter cannot fire outside Python, so a licence header is editable work |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | session | — | 0/3 | A UTF-8 BOM is censused as a line of code |
 | [strip-strings-runs-before-the-opener](strip-strings-runs-before-the-opener.md) | session | — | 0/4 | A quote inside a block comment blanks the comment's own closer |

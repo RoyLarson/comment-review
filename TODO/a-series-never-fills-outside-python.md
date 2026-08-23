@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 12 tasks done
+Progress: 0 of 17 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -103,3 +103,44 @@ Outside Python the `a` place is emitted and never filled.
       way this lands, and the renumbering half stays true either way -- it is
       bounded to one run, since records are seeded per-run and census, reviewers
       and WRITE all see one numbering.
+- [ ] THE MATCH RULE, STATED BY ROY 2026-08-22 -- `_declares_here` searches for
+      `"\n{keyword} "` or `" {keyword} "`. The keyword opens the line, or is
+      preceded by a space, and is followed by a space either way; read per line
+      the first form is `startswith(f"{keyword} ")`. ! IT IS STILL NEVER A
+      SUBSTRING, which the space either side buys: `deffered = 1` opens with
+      `deffered`, `x = my_func()` has no space before `func`, and `return fn(a)`
+      has a bracket after `fn`. ! AND IT NO LONGER HAS TO BE THE FIRST WORD OR THE
+      SECOND, which is the change: today a keyword behind two modifiers is
+      invisible -- `pub async fn foo`, or a c-family `static inline void f()`
+      whose list holds `static`. The two-word form papers over ONE modifier and
+      cannot reach two. ! The trailing space means a keyword ENDING a line does
+      not declare, which is the rule as stated and costs nothing real.
+- [ ] IT WAS TRIED AND REVERTED ON PURPOSE, 2026-08-22, so the next session does
+      not think it is untested. All 27 tests in `tests/test_declarations.py` pass
+      under the new rule -- the four existing cases are compatible, not in
+      conflict -- and the added cases resolve correctly: `pub async fn foo`,
+      `static inline void f(void)`, `public static void f()`, `data class Pair`. !
+      Roy stopped it as scope creep on the folio-placement branch: *"that is
+      definitely a todo and I want to finish this branch."* ! `_FIRST_WORD` in
+      `lexer.py` becomes dead the moment this lands and should go with it.
+- [ ] THE BODY THAT PASSED, so this is a paste rather than a re-derivation.
+      `_declares_here(line, declares)` becomes: `return
+      any(line.startswith(f"{keyword} ") or f" {keyword} " in line for keyword in
+      declares)` -- and the whole of the previous body goes, including the
+      `_FIRST_WORD` match, the two-word reassembly, and the module-level
+      `_FIRST_WORD` pattern itself.
+- [ ] THE CASES IT WAS CHECKED AGAINST, all measured 2026-08-22, so a future
+      session can re-run them before and after. MUST NOT declare: `deffered = 1`
+      against `def`; `funcs = []` against `func`; `x = my_func()` against `func`;
+      `return fn(a)` against `fn`. MUST declare: `        fn inner() {}` against
+      `fn` (indentation does not hide it); `macro_rules! thing {` against
+      `macro_rules!`; `pub async fn foo() {}` against `fn`; `static inline void
+      f(void)` against `static`; `public static void f()` against `static`; `data
+      class Pair(val a: Int)` against `data class`. ! The last four are the ones
+      the current first-word-or-second rule gets WRONG.
+- [ ] AND THE WIRE IS THE OTHER HALF -- Roy: *"you have to put in the correct
+      machinery in the lexer AND the declares part to make it work."* The match
+      rule alone changes nothing a reviewer sees: `paragraphs_lexical` still never
+      sets `Paragraph.declares` from what `page.documentable()` computes, so no
+      `a` place fills for any lexical language. Both halves land together or
+      neither is observable.
