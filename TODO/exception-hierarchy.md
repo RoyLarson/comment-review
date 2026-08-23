@@ -7,6 +7,15 @@ Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, on the exceptions.py layer: a human would have
           created the hierarchy rather than moving the tuples)
+Criterion: 2026-08-22 — THE TEST IS NOT WHETHER IT CAN BE REFACTORED. Roy, 2026-08-22:
+           *"I know technically all code can eventually be refactored, but sometimes
+           that is a serious mess that becomes not worth it."* Everything is possible in
+           principle; what decays is whether anyone will pay for it. Nine definitions of
+           one name across nine files, two of them subtly different, is the state where
+           the cost keeps rising until the answer is permanently no -- not because it is
+           impossible, but because no version of the work is ever worth its price. The
+           named surface holds that cost flat, which is what makes waiting a decision
+           rather than a drift.
 ```
 
 ## Objective
