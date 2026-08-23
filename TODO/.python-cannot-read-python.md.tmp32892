@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 31 of 33 tasks done
+Progress: 20 of 31 tasks done
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
           parse: 'we can't use python to parse python files ... that means using the ast
           to bootstrap the pieces fails on new python syntax. This puts python right
@@ -22,16 +22,6 @@ Evidence: 2026-08-22 — THE ONE FILE THAT WILL NOT ROUND TRIP IS THE ARGUMENT F
           check in this tree fails on precisely the shape the AST tier creates and the
           lexical tier does not -- which is evidence for the rework rather than a defect
           beside it.
-SCOPED:   2026-08-23 — 2026-08-23, Roy: 'The task is simple. Make the lexer be able to
-          parse python code.' All 31 prior boxes were records, rulings, measurements or
-          arguments -- none was a task -- and they are ticked as the record of how the
-          ruling was reached. ! ONE AST DEPENDENCY SITS OUTSIDE THAT SCOPE:
-          prove_unchanged fingerprints Python with ast.dump(ast.parse(text)), so it
-          carries the same floor limit and is not in the lexer. The 2026-08-21 ruling
-          says the code check belongs to the COMPOSITOR, where the page's c places hold
-          every line of code verbatim -- that is what answers it rather than moving it.
-          Not filed as a task here because it is not the lexer; it belongs to whatever
-          works the compositor half.
 ```
 
 ## Objective
@@ -177,27 +167,27 @@ python code."***
       is unchanged* becomes *every `c` anchor is unchanged*. No parser, one rule
       for seventeen languages, and stronger than an `ast.dump`, which compares
       statements and their order rather than the characters.
-- [x] ! AND IT PUTS THE PROSE BACK BESIDE THE CODE IT DESCRIBES. `addresser.py`
+- [ ] ! AND IT PUTS THE PROSE BACK BESIDE THE CODE IT DESCRIBES. `addresser.py`
       carries two paragraphs explaining `ast.dump` and `_blank_docstrings` and
       imports neither -- Roy: *"when it was addresser a long time ago that kind of
       made sense."* Addressing was the subject then and the code check is what
       makes an address constant. Moving the check to the compositor leaves the
       addresser free to say what it does, and the explanation lands where a reader
       can check it.
-- [x] ! IT CARRIES `a-closing-quote-with-a-comment` WITH IT, FOR FREE. CHECKED
+- [ ] ! IT CARRIES `a-closing-quote-with-a-comment` WITH IT, FOR FREE. CHECKED
       2026-08-21: read through `paragraphs_lexical` with `"""` as a delimiter, the
       numpy shape yields ONE paragraph and line 5 is owned ONCE -- the `# NOQA`
       rides along on the closing line as part of the run. A reader that cuts at
       the delimiter has no second half to reconcile, so that defect is gone by
       construction rather than fixed.
-- [x] !! WHAT THIS BRANCH ACTUALLY OWES IS THE POSITION RULE, and it is the third
+- [ ] !! WHAT THIS BRANCH ACTUALLY OWES IS THE POSITION RULE, and it is the third
       of the three things listed above. `"""` is BOTH Python's string quote and
       its doc delimiter: the row lists it under `spanning_quotes`, and
       `_strip_strings` blanks a spanning quote BEFORE the comment-opener test --
       by design, so a `//` inside a string cannot open a comment. So a docstring
       is a STRING IN A PARTICULAR POSITION, and stating that position is what
       replaces the parser.
-- [x] * PROPOSED 2026-08-22 (Roy): THE ANCHORS MAY NEED THEIR DEPTH. The position
+- [ ] * PROPOSED 2026-08-22 (Roy): THE ANCHORS MAY NEED THEIR DEPTH. The position
       rule this branch owes -- a docstring is a STRING IN A PARTICULAR POSITION --
       is a rule about DEPTH once there is no parser. MEASURED 2026-08-22: an
       anchor already holds its line VERBATIM WITH ITS INDENTATION (a2 is "    def
@@ -209,13 +199,13 @@ python code."***
       same fixture y = """not a docstring""" sits at depth 8 like every other line
       of that body, so depth says WHICH BODY and the walk order says FIRST -- the
       pair replaces ast.get_docstring, not depth alone.
-- [x] * DEFERRED HERE BY TRANSITIVITY, Roy 2026-08-22: *"to make python capable of
+- [ ] * DEFERRED HERE BY TRANSITIVITY, Roy 2026-08-22: *"to make python capable of
       being read correctly we are going to have to do this ... the fix to one will
       fix the other."* MAKE _strip_strings STATEFUL -- carry open-quote state
       across lines instead of reading each line alone. It is the same reader:
       triple-quote is Pythons doc delimiter AND a spanning quote, so whatever
       computes parity for one computes it for the other
-- [x] THE COST OF NOT HAVING IT, MEASURED 2026-08-22 by a code review and
+- [ ] THE COST OF NOT HAVING IT, MEASURED 2026-08-22 by a code review and
       reproduced here: prove_unchanged refuses a file on the PRESENCE of a
       spanning delimiter, because parity is what a per-line reader cannot compute
       -- its own words, *a proof that refuses costs a report; a proof that lies
@@ -223,14 +213,14 @@ python code."***
       and the gate LIED instead: an edit made INSIDE a Rust string literal
       reported PROVEN at exit 0, fingerprints identical. That is the stage 7b gate
       failing open
-- [x] ! FOUR ROWS WERE FIXED THE SAME DAY AND FOUR WERE NOT, and the split is why
+- [ ] ! FOUR ROWS WERE FIXED THE SAME DAY AND FOUR WERE NOT, and the split is why
       this task exists. Go raw-string backtick, Ruby heredoc, Lua long-bracket and
       TOML triple-quote are DISTINCTIVE delimiters, so declaring them costs almost
       nothing. rust, shell, sql and the C++ raw string use the ordinary double and
       single quote, which appear in nearly every file -- declaring those is
       CORRECT by the rule and makes Rust effectively unprovable. A stateful reader
       is what removes the choice between refusing everything and lying sometimes
-- [x] RECORD THE ARGUMENT LISP MAKES, because it separates two properties this
+- [ ] RECORD THE ARGUMENT LISP MAKES, because it separates two properties this
       repo has been treating as one. CLAUDE.md says *only Python's doc sits INSIDE
       the declaration, so Python alone needs a parser to say WHERE the prose
       goes*. Emacs Lisp has the SAME shape -- the docstring is a string member of
@@ -244,7 +234,7 @@ python code."***
       which is a narrower problem than the sentence in CLAUDE.md implies. ! Not a
       request for a Lisp row; there is none, and a `.el` file is named and refused
       today (verified 2026-08-22).
-- [x] PEP 701 PUTS A COMMENT INSIDE AN F-STRING, and the lexical reader calls it
+- [ ] PEP 701 PUTS A COMMENT INSIDE AN F-STRING, and the lexical reader calls it
       prose. MEASURED 2026-08-22 on a three-line file: a multi-line f-string whose
       expression holds a `#` comment (legal since Python 3.12) censuses at the
       LEXICAL tier as a `trailing-comment`, handed to four reviewers as text they
@@ -261,7 +251,7 @@ python code."***
       with no state cannot see any of the three. ! Same root as the stateful
       `_strip_strings` task above -- an f-string is the case where parity alone is
       not enough, because the nesting is unbounded.
-- [x] AND THE WRITE SIDE IS WORSE THAN THE READ SIDE, because a misread is visible
+- [ ] AND THE WRITE SIDE IS WORSE THAN THE READ SIDE, because a misread is visible
       and a miswrite is not. Reading Python lexically means nothing knows WHERE A
       BODY STARTS -- that is what `doc_inside` needs and what a wrapped signature
       moves -- so the compositor cannot place an `a` paragraph from the cues
@@ -276,7 +266,7 @@ python code."***
       check that would catch it is the check that abstains. ! WHATEVER REPLACES
       THE AST MUST ANSWER `where does this body start`, or the `a` series has to
       stop being settable for Python.
-- [x] THE CHECK FOR THE STATEFUL READER, so the fix has something to be measured
+- [ ] THE CHECK FOR THE STATEFUL READER, so the fix has something to be measured
       against rather than reasoned about. `_strip_strings` re-initialises its
       quote state on EVERY PHYSICAL LINE, so no literal crosses a newline and the
       INTERIOR of a multi-line literal is censused as prose. MEASURED 2026-08-22,
@@ -292,18 +282,3 @@ python code."***
       consumer, `prove_unchanged`, which REFUSES such a file -- so the 7b proof is
       safe and the CENSUS is not. The refusal protects the proof, never the
       review, and nothing today protects the review.
-- [ ] MAKE THE LEXER PARSE PYTHON. No `import ast` in the read path; Python reads
-      on the lexical tier like the other sixteen languages. Verify: (a) the round-
-      trip identity holds over the Python corpora, (b) a file using syntax NEWER
-      than the floor still censuses instead of setting as an empty file, (c) `grep
-      -rn 'import ast' plugins/` returns nothing in the read path.
-- [ ] PROVE_UNCHANGED PROVES A LEXED LANGUAGE, PYTHON INCLUDED. The `stripped`
-      proof already does this for the other sixteen -- delete every comment the
-      lexer finds, compare the remaining lines right-stripped with blanks dropped.
-      Drop the `ast` proof and run `stripped` for every language. ! STATE THE
-      WEAKER GUARANTEE where the docstring now claims the language's own parser:
-      Roy, 2026-08-23, it 'can only prove that the code didn't move relative to
-      each other'. A projection cannot prove semantic equivalence -- it proves the
-      non-comment lines are the same lines in the same order. Verify: (a) no
-      `import ast` in prove_unchanged.py, (b) the Python fixtures still pass, (c)
-      the docstring says what the proof does NOT cover.

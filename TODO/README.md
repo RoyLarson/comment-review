@@ -241,7 +241,7 @@ that changed a published name or rule:
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | — | 0/11 | one stem, four jobs -- and the vocabulary sweep cannot see it |
-| [python-cannot-read-python](python-cannot-read-python.md) | backend | yes | 0/31 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
+| [python-cannot-read-python](python-cannot-read-python.md) | backend | — | 31/33 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | backend | yes | 9/11 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | — | 0/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
