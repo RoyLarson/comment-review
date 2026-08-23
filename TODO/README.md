@@ -84,7 +84,12 @@ Rules that keep it that shape:
 - **The Objective is prose and it is short.** Growing tables or headings means it has become a
   document; split it out to its home in the table above and link it.
 - **A task is checkable or it is not a task.** "Clean up the vocabulary" is a project; the
-  checkbox names the file, the grep that must come back empty, or the ruling that must exist.
+  checkbox names the file, or the grep that must come back empty.
+- **A ruling that is OWED is a task; a ruling already MADE is not.** *"Rule whether `b0` leaves
+  the `b` series"* finishes the day Roy answers. *"The trade word is `leading`"* never finishes
+  -- it is the Objective's, or a `note`'s. ! Boxing the second is what made
+  `leading-owns-the-space-between` read `0 of 10` with nine of them settled; see `CLAUDE.md`,
+  *A box is a claim about whether work remains*.
 - **The checkboxes ARE the record -- no `## Response` section.** Tick with a date; the header's
   status summarizes the boxes.
 - *** marks a task that needs Roy before anyone can act on it**, so the ones that gate the rest
@@ -237,7 +242,7 @@ that changed a published name or rule:
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | — | 0/11 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [python-cannot-read-python](python-cannot-read-python.md) | backend | yes | 0/31 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
-| [leading-owns-the-space-between](leading-owns-the-space-between.md) | backend | yes | 0/10 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
+| [leading-owns-the-space-between](leading-owns-the-space-between.md) | backend | yes | 9/11 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | — | 0/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | systems | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
@@ -259,7 +264,7 @@ that changed a published name or rule:
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | yes | 0/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [retired-word-in-a-quote](retired-word-in-a-quote.md) | systems | yes | 0/5 | folio cannot join RETIRED without exempting the five core modules whole, because each quotes a ruling made when the word was current |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 0/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
-| [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | — | 0/4 | 31 relative links resolve nowhere, and two of them are in a live TODO |
+| [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | — | 0/5 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 
 ### in-progress  (4)
 

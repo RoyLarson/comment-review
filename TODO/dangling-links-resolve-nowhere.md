@@ -2,11 +2,14 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 5 tasks done
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, from scripts/dead_sweep.py --links after the history
           purge; Roy: 'not important right now')
+GROWING:  2026-08-23 — 2026-08-23: 31 at filing, 40 after two closures. The inventory
+          pass over the backend TODOs will keep raising it, so the count is not a stable
+          target -- the tool defect (a) is.
 ```
 
 ## Objective
@@ -56,3 +59,10 @@ list, not a green run.
 - [ ] Re-run `uv run python scripts/dead_sweep.py --links` as the check. It exits
       0 always and is an INPUT, so the pass criterion is a human reading the list,
       not a green run.
+- [ ] !! CLOSING A TODO GENERATES DANGLING LINKS, so this grows as the backlog is
+      worked. MEASURED 2026-08-23: closing two took the count 31 -> 40. Two
+      mechanisms -- (a) `complete` moves the file into `completed/` without
+      rewriting its own relative links, so every sibling it cites needs `../`; (b)
+      live files that cited it now point one directory too high. ! (a) is a tool
+      defect and is fixable once for all future closures; (b) is the archival
+      pattern the stance already covers.
