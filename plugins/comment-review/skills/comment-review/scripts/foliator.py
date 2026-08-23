@@ -7,16 +7,33 @@ EOF -- each holding its own counter and the places it emitted. `foliate()` runs
 `foliate`; `Foliation` answers back, which address does this line belong to right
 now.
 
-!! IT WAS CALLED `addresser.py`, and the name was wrong the way `pCST` was.
-Roy, 2026-08-20: *"we have been using that word instead of address all session
-... it doesn't cause the system to crash but it also doesn't make the system
-work correctly either."* An ADDRESS is `path@folio`, and it is composed on the
-PAGE -- this module supplies the folio and flattens the path, and addresses
-nothing. Anyone reading the old name looked here for the wrong half.
+!! IT IS AN ADDRESSER, AND THE 2026-08-20 RULING AGAINST THAT NAME IS SUPERSEDED.
+It read: *"An ADDRESS is `path@folio`, and it is composed on the PAGE -- this
+module supplies the folio and flattens the path, and addresses nothing."* !
+BOTH HALVES ARE HERE: `flatten` is in this file and its own docstring says *"THE
+ADDRESS IS THE FULL PATH from the runner's root"*, while `emit` supplies the
+other half. What the page does is `f"{flat}@{place}"` -- one f-string.
 
-! FOLIATION, not pagination: the numbering of LEAVES, which is what a place is.
-A page is one file and its places are counted against the code, so nothing here
-numbers a page.
+!! THE RULING WAS RIGHT ABOUT THE SYMPTOM AND WRONG ABOUT THE CAUSE, which is
+why it is kept rather than deleted. Roy, 2026-08-23: *"My frustration when I made
+the ruling was that it wasn't being used as an addresser. It was something that
+was included because I stated it needed to be included and then the rest of the
+program continued working in trying to use lines as the address."* ! The name
+promised addressing the system was not yet doing. Renaming the module treated a
+true observation as a naming defect, and the line-based addressing it was really
+about survived another two days.
+
+! WHAT SETTLED IT IS THE ROUND TRIP, not an argument. Roy: *"It is obvious in the
+code now how much better the address system is ... because it reliably
+round-trips the stuff after being entirely decomposed in the system without
+knowing anything about the original lines."* A page is taken apart into places
+and set back from the places alone; the line numbers are never consulted. Nothing
+line-based could do that, because every prose edit moves the lines below it.
+
+! WHAT IT ADDRESSES IS EVERY PLACE AND EVERY POTENTIAL PLACE. Roy, 2026-08-23.
+An addresser that named only what exists would not be this one: the empty places
+are what an `add` cites, and giving them addresses is what makes `add`
+expressible at all.
 
 ! The form this replaced named a paragraph by LINE, `a.py:33-34`, which answers
 "where is this in the file I just read" and cannot answer "which place is this":
@@ -25,7 +42,7 @@ below it. ! That form was READ here until 2026-08-20, warning on every call, so
 a run already recorded could be parsed. It is DELETED: nothing called it, and
 `docs/history.md` says where the reader is in the history.
 
-!! AN ADDRESS IS NOT A SPAN OF LINES. EVERY LINE HAS EXACTLY ONE ADDRESS, AND A
+!! AN ADDRESS IS NOT A SPAN OF LINES. NO LINE HAS MORE THAN ONE, AND A
 PARAGRAPH IS JUST THE LINES THAT SHARE ONE. Ruled 2026-08-19. ! Read it as a range
 and the old system is back under a new name: you start asking which lines a
 paragraph "covers", whether two paragraphs overlap, and how wide to make an addressing
@@ -36,6 +53,11 @@ written here because the reflex is strong, not because it is subtle.
 ! An ANCHOR is the exception that proves it. A declaration carries prose at
 several addresses -- the `b` above it, the `c` beside it, its own `a`, the `b`s
 in its body -- so an anchor has many addresses. A LINE still has one.
+
+!! SAID "EVERY LINE HAS EXACTLY ONE" UNTIL 2026-08-23, AND THAT WAS FALSE BY 595
+LINES in this directory alone -- measured over 8,746 paragraphs, 401 of which
+carry no address, every one of them `d`. ! The `d` series takes no address at
+all: see `owes_address` for why, and `SERIES` for what it takes instead.
 
 !! THIS RESTS ENTIRELY ON THE CENSUS BEING WHAT ROY CALLED IT, 2026-08-18: a
 HASHED STATIC TABLE -- exact, constant, FULLY ENUMERATED. Take away any one of
@@ -1365,6 +1387,32 @@ def owes_address(paragraph: dict) -> bool:
     it asks for something that cannot exist. ! The test is the SYMBOL and not the
     kind, so this stays a leaf: `foliator` never learns what the lexer calls a
     blank run.
+
+    !! IT IS A FENCE, AND FENCES HAVE NO ADDRESS. Roy, 2026-08-23: *"the `d`
+    series doesn't get an address for the same reasons fences in the real world
+    don't get addresses. They mark a demarcation boundary and they have the same
+    problem as fences -- whose fence is it."* ! Every other place is attached to
+    a line of code, and that line is what a reviewer measures a claim against. A
+    blank run sits BETWEEN two places and is attached to neither, so the
+    ownership question has no answer rather than an unknown one.
+
+    ! IT WAS TRIED AND REFUSED THREE TIMES -- `21ca92a` made it a fifth series,
+    `6a7be73` repaired it as an edge, `ef7079c` retreated to a symbol. Roy,
+    closing it: *"We tried leading getting a place. We tried several different
+    ways. The constraints of coding AND editing do not allow it."* Two things stop
+    being determinable the moment the slack is addressable: WHERE everything below
+    an edit shifted to, and HOW MUCH blank belongs where afterwards -- the second
+    being a typographic judgement no rule computes.
+
+    !! UNADDRESSED IS NOT UNRECORDED, and that is the whole of the arrangement.
+    Roy: *"the system knows hey there was a fence here we should put it back."*
+    `Page.leading` keys the fence on the place it FOLLOWS -- `f0 -> d0` -- so
+    what is remembered is a fact about a boundary rather than a thing with a
+    location. ! Nobody can cite it, nobody can rule on it, and the compositor
+    puts it back exactly where it was.
+
+    ! WHICH IS WHY THE EDGE SHAPE HOLDS: this system never chooses an amount of
+    blank, it replays what it read.
 
     !! IT IS A FUNCTION BECAUSE TWO CALLERS DISAGREED ABOUT IT. `unaddressed`
     exempted leading; `_check`'s HEADLINE counted it in both the numerator and
