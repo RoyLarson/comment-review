@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (89)
+### open  (85)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -207,13 +207,9 @@ that changed a published name or rule:
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 4/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 1/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
-| [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | session | — | 9/17 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [census-owns-addressing](census-owns-addressing.md) | session | — | 4/5 | The census owns addressing, and four modules share one subject between them |
-| [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
-| [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
-| [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | addresser.triggers() has no production caller and takes a shape the walk no longer uses |
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 | [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | — | 10/12 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
 | [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
@@ -296,7 +292,7 @@ _None._
 
 | [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | session | — | 2/5 | nothing recomputes it or prompts the clearing; 6 cleared, 26 left to read |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | session | — | 0/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
-| [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 1/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
+| [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 2/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | session | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [drop-the-column](drop-the-column.md) | session | — | 0/6 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 ---
@@ -347,3 +343,7 @@ the reason is inside the file.
 | [front-matter-restamps](completed/front-matter-restamps.md) | SOLVED by the lexer typing matter. The rule is now 'the run starts on line 1', not 'it ends before the module docstring', so it no longer depends on what follows. MEASURED 2026-08-23: a top-of-file comment run is `f0 kind=matter` both before and after an `a0` edit fills the module docstring -- the annotation is stable under this tool's own edits, which is what the file existed to get |
 | [back-matter-is-a-gaps-comment](completed/back-matter-is-a-gaps-comment.md) | SOLVED by the `f` series emitting at both ends. MEASURED 2026-08-23: a trailing licence or modeline lands in `f1 kind=matter` -- Python AND Rust -- not in the closing gap. The RECOGNITION half the file said was missing is the lexer's `run[-1] == last line` clause, and `file_places()` returns head and foot |
 | [front-matter-protection-is-python-only-SUPERSEDED](completed/front-matter-protection-is-python-only-SUPERSEDED.md) | SUPERSEDED by `matter-misses-two-languages`: the title is false as of 2026-08-23. MEASURED -- an identical licence header types `f0 kind=matter` in C as well as Python, so it is not Python-only. Rust and TypeScript still fail, for two causes neither of which is the positional `mark_matter` this file was written about |
+| [census-emits-no-page](completed/census-emits-no-page.md) | SOLVED by the page/census split. `page.py` defines `Page` -- path, text, paragraphs, cues, tier, leading -- and `census.py` imports `page_for` and calls it per file. The census emits pages and no longer builds one |
+| [triggers-has-no-caller](completed/triggers-has-no-caller.md) | SOLVED. `addresser.py:685` is `out = Cues(triggers=triggers(list(code)))` -- production, not a test -- and the shape is the one the walk steps through. The docstring's promise that ONE LIST keeps the four series from drifting is now true of the list they actually walk |
+| [lexer-owns-a-page-kind](completed/lexer-owns-a-page-kind.md) | SOLVED, and the last task CHECKED rather than assumed: `OCCUPIES_NOTHING` no longer appears in `lexer.py` at all, and `code_lines` appears only in four comment prose references, never as an import. The docstring's one-sibling claim holds |
+| [anchor-was-empty-on-98-percent](completed/anchor-was-empty-on-98-percent.md) | SOLVED and the sweep it asked for found one. MEASURED 2026-08-23: 0 of 687 prose paragraphs carry no anchor, against 98 percent when this was filed. ! The last task -- look for the same shape in the other SEEDED fields -- ran in simplify round 7 and found `Finding.anchor`: filled from the record and read by neither `desk` nor the join. It was cut |

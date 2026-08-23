@@ -2,7 +2,7 @@
 
 ```
 Status:   blocked
-Progress: 1 of 5 tasks done
+Progress: 2 of 5 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (Roy's ruling while shipping the address vocabulary, 2026-08-19)
@@ -20,6 +20,10 @@ Ruled:    2026-08-20 — pCST -> page is settled and GATED, 2026-08-20. Roy: 'it
           CLAUDE.md and the live docs no longer say it; `check_vocabulary.RETIRED` now
           holds 'pcst' alongside 'block'. ! The identifier half of this file is
           unaffected -- `Block` -> `Paragraph` in ~1,935 sites is still the scope.
+Narrowed: 2026-08-23 — shipped is DONE -- 25 uses left and every one is block-context,
+          the role name, or the BLOCK record marker, both deliberately exempt. What
+          remains is 16 uses in live docs (addressing, parsing, limitations); the 243 in
+          docs/superpowers are dated records this file already says to leave
 ```
 
 ## Objective
@@ -67,7 +71,7 @@ the deprecated 0.2.x record index.
       (52), `compact.md` (43), `re-review.md` (33) and the agent files. This is
       the half that must move before `[roles] all` can say `paragraph`, because
       `check_vocabulary` refuses a role a term its own text never uses.
-- [ ] Shipped CODE -- **706** uses, all internal identifiers and docstring prose. ! **READ THE
+- [x] Shipped CODE -- **706** uses, all internal identifiers and docstring prose. ! **READ THE
       FOUR TRAPS IN THE OBJECTIVE FIRST.** Each was found by breaking the suite, and a bulk pass
       that misses one leaves 60-152 tests red. Shipped CODE -- 721 uses. `Block` -> `Paragraph`, `pcst.py` -> the page
       module, `blocks_stdlib`/`blocks_lexical`, `block_matches`, `by_block`, and
