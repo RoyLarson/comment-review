@@ -37,7 +37,7 @@ each paragraph's recorded line position -- so it reconstructed the text out of n
 just read from that text. The check and its subject shared a source, so agreement was guaranteed.
 A tautology with a green light on it.
 
-! **It became an instrument at `e3ae738`, 13:56**, when it was made to set from the FOLIATION
+! **It became an instrument at `e3ae738`, 13:56**, when it was made to set from the CUES
 instead -- every place named, in the order the walk emitted them, with no line consulted. Within
 the hour it had surfaced the collisions and the non-contiguous `b`. **Same module, same
 assertion, opposite value**; the only difference was whether it could reach a fact belonging to
@@ -74,6 +74,6 @@ going to work."*
 - **Break it on purpose once.** A check that has never been observed failing has not been
   observed at all. Every measurement in this file came from one that could.
 - **Prefer a check whose input the subject cannot reach.** The identity works now because a page
-  is set from the foliation while the file is read by the lexer -- two sources that must be made
+  is set from the cues while the file is read by the lexer -- two sources that must be made
   to agree rather than one consulted twice.
 - **A green run is not a report.** State what the check would have caught, not that it passed.

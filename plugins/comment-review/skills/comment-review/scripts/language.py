@@ -61,8 +61,8 @@ class Language:
         declares: the KEYWORDS this language uses to introduce something that
             can carry documentation. !! EMPTY MEANS THE LANGUAGE HAS NO `a`
             SERIES AT ALL -- not "none found in this file". Roy, 2026-08-20:
-            *"we need to be able to distinguish `a` foliations for as many
-            languages as there are `a` possible foliations. yaml, toml are not
+            *"we need to be able to distinguish `a` cues for as many
+            languages as there are `a` possible cues. yaml, toml are not
             ones."* A YAML file was given an `a0` it can never fill.
         nests_comments: an opener INSIDE a paragraph comment adds a LAYER, so the
             run closes only when every one of them does. Rust, Swift and Kotlin;

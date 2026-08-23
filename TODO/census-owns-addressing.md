@@ -6,7 +6,7 @@ Progress: 3 of 5 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (Roy, 2026-08-19: 'this is because the census is doing the
-          foliation's job')
+          cues's job')
 Narrowed: 2026-08-23 — the census owns no addressing; what remains is that an address is
           COMPOSED in page.py and record.py, not in the addresser
 ```
@@ -21,12 +21,12 @@ owns addressing -- the Addresser."*
 
 ! **MEASURED the same day.** `census.py` sets no anchor -- the five sites named below are gone,
 `paragraphs_lexical` and `paragraphs_stdlib` moved to the lexer, and the one surviving `anchor =`
-is a render for printing. It calls no `foliation.address(...)`. It composes nothing: every `@` in
+is a render for printing. It calls no `cues.address(...)`. It composes nothing: every `@` in
 that file is `b.address.split("@")[-1]`, printing an address it was handed.
 
 !! **WHAT IS LEFT IS THE PUT-TOGETHER.** Roy's ruling on this file, 2026-08-19, was that *"the
-foliation is the only and official spot that converts the galley artifact into an address."* The
-addresser owns every PART of an address and the whole TAKE-APART -- `flatten`, `emit`, `folio_of`,
+cues is the only and official spot that converts the galley artifact into an address."* The
+addresser owns every PART of an address and the whole TAKE-APART -- `flatten`, `emit`, `cue_of`,
 `unflatten`, `Address` -- and does not own the join:
 
 | site | what it does |
@@ -45,22 +45,22 @@ what that task asks for.
 ## Tasks
 
 - [ ] !! THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE. Roy: 'make
-      certain that the foliation is the only and official spot that converts the
-      galley artifact into an address through the foliator assigning the
-      foliation, and the foliation being able to take the foliation and convert
+      certain that the cues is the only and official spot that converts the
+      galley artifact into an address through the addresser assigning the
+      cues, and the cues being able to take the cues and convert
       those into which address does this line belong to right now.'
 - [x] `census.py` sets an anchor in FIVE places -- `paragraphs_lexical`:522,
       `paragraphs_stdlib`:747, and :851/:906 which still write `getattr(node,
       'name', '<module>')`, the NAME, later overwritten by `anchor_every_address`.
       The census produces a wrong value and a second pass corrects it.
-- [x] `census.py`'s run loop calls `foliation.address(vars(b), lines)` per
-      paragraph, so the PARAGRAPH produces the address. Inverted, the foliator
+- [x] `census.py`'s run loop calls `cues.address(vars(b), lines)` per
+      paragraph, so the PARAGRAPH produces the address. Inverted, the addresser
       emits the address and the census ties prose to it.
-- [x] BOTH DIRECTIONS LIVE IN THE ADDRESSER: foliation out (walk anchors, emit
+- [x] BOTH DIRECTIONS LIVE IN THE ADDRESSER: cues out (walk anchors, emit
       addresses) and lookup back (which address does THIS line belong to right
       now). ! The second is what an agent needs while reading code it must search
       anyway; `locator.py` answers it today from a separate module.
-- [ ] State each module's ONE subject once they are separated -- `foliation` names
+- [ ] State each module's ONE subject once they are separated -- `cues` names
       places, `page` says what a page and a paragraph are, `census` says which
       prose occupies which address, `galley` sets the proposed text. Verify with
       `module-context` on all four.

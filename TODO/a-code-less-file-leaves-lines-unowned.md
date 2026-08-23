@@ -24,7 +24,7 @@ A code-less file leaves lines owned by no paragraph.
 
 ## Tasks
 
-- [ ] `foliator.py:426`: on `"""Doc."""\n\n` or a whitespace-only file, lines are
+- [ ] `addresser.py:426`: on `"""Doc."""\n\n` or a whitespace-only file, lines are
       left owned by no paragraph -- the invariant Roy stated 2026-08-20, *"every
       line belongs to 1 paragraph"*, which the 2026-08-20 fix closed for files
       that HAVE code.

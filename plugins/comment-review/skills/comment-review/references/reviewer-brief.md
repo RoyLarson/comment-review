@@ -66,8 +66,8 @@ NOWHERE in prose, which is a finding about one of them.
 DECLARATION's documentation, `@c3` is prose BESIDE a line of code, and `@b3` is a GAP.
 **Which line each one names is not something you can work out -- ask.**
 
-!! **YOU CANNOT WORK OUT A FOLIO. ASK FOR IT.** The three series are counted by three
-separate foliators, and no number in one tells you a number in another -- nor does a line's
+!! **YOU CANNOT WORK OUT A CUE. ASK FOR IT.** The three series are counted by three
+separate addressers, and no number in one tells you a number in another -- nor does a line's
 position tell you either. Two of them lining up on the file in front of you is a coincidence of
 that file, and it may change.
 
@@ -107,7 +107,7 @@ file once; each slot already carries the two things the tool knows -- the `place
                    "# Narrowing it means re-deriving the clamp bounds." ] } ] }
 ```
 
-! **THE PLACE IS A FOLIO, NOT A FULL ADDRESS** -- `b47`, because the page above it already said
+! **THE PLACE IS A CUE, NOT A FULL ADDRESS** -- `b47`, because the page above it already said
 which file. You will still meet the full form `redacted_pkg:billing:rates.py@b47` in one place: a `move`
 whose destination is in ANOTHER file, which no page of yours can name.
 
@@ -207,7 +207,7 @@ tool prints how many answered; read that line.
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 ```
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
@@ -370,13 +370,13 @@ payload. Say what is wrong in `REASON`. **Only a destination outside the code ca
 unavailable**, and your run context says whether it is; a relocation into tracked code is
 always available.
 
-!! **`to:` IS AN ADDRESS when the destination is on a page THIS RUN FOLIATED, and it is
+!! **`to:` IS AN ADDRESS when the destination is on a page THIS RUN CUED, and it is
 RESOLVED.** Ask for it the same way an `add` does -- `--anchor LINE --series a|b|c`. A
 destination naming a LINE on such a page is refused, and so is an address the census does not
 carry.
 
-!! **A FILE THE RUN NEVER FOLIATED IS CITED BY LINE, AND THAT IS NOT A LOOPHOLE.** The run
-foliates the files the change touched; everything else has no places at all, so there is no
+!! **A FILE THE RUN NEVER CUED IS CITED BY LINE, AND THAT IS NOT A LOOPHOLE.** The run
+cues the files the change touched; everything else has no places at all, so there is no
 address to ask for. A line number is refused INSIDE the run because this run's own edits shift
 the lines below them -- a file the run does not edit has no such shift. ! So the rule is not
 *never a line number*; it is **never a line number for a place this run can name properly.**

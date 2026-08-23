@@ -58,10 +58,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
 import exceptions  # noqa: E402  -- path shim must run first
-from foliator import (  # noqa: E402  -- path shim must run first
+from addresser import (  # noqa: E402  -- path shim must run first
     COVERS,
+    cue_of,
     flatten,
-    folio_of,
     series_of,
 )
 from lexer import Kind  # noqa: E402  -- path shim must run first
@@ -660,7 +660,7 @@ def prose_paragraphs(census: list[dict]) -> list[tuple[int, dict]]:
 
     !! NOR IS ANYTHING THAT NAMES NO PLACE, which is leading and only leading.
     A record CITES an address; a run of blank lines has none -- see
-    `foliator.SERIES` -- so a slot for one could not be written down. ! Without
+    `addresser.SERIES` -- so a slot for one could not be written down. ! Without
     the `address` test this passed a `d` through on an empty string, because
     `series_of` reads the address and answers `""` for a paragraph without one.
     """
@@ -724,12 +724,12 @@ def slot(paragraph: dict) -> dict:
         #
         # !! STILL NEVER A LINE RANGE. A range is true of ONE file state and
         # this tool edits prose, so a record written against one is stale the
-        # moment the run writes. A folio is counted against the CODE.
+        # moment the run writes. A cue is counted against the CODE.
         #
         # ! The FULL address survives where a reference crosses pages -- a
         # `move` destination may name another file, and `galley --edits` is
         # keyed across the whole run. `address_for` composes it.
-        "place": folio_of(str(paragraph.get("address", ""))).folio,
+        "place": cue_of(str(paragraph.get("address", ""))).cue,
         # ! `null`, not `""`. An unruled paragraph must be distinguishable from one
         # ruled with an empty verdict, and only one of those is a coverage gap.
         "verdict": None,
@@ -749,7 +749,7 @@ def entry_for(address: str, paragraphs: list[dict]) -> dict | None:
     resolved to a neighbour, silently. An address survives both.
 
     ! One entry or none -- an address identifies exactly one paragraph, held by
-    `foliator.py --check` on every run (0 shared over 6,180 paragraphs, measured
+    `addresser.py --check` on every run (0 shared over 6,180 paragraphs, measured
     2026-08-19). This returns the first regardless, so a census that broke that
     rule degrades to a wrong answer rather than a crash; `--check` is what
     reports it.
@@ -847,8 +847,8 @@ def pages_of(census: list[dict]) -> list[dict]:
     """The prose of every page in scope, as a page envelope each.
 
     !! ORDERED BY ANCHOR LINE, THEN BY SERIES LETTER. Roy, 2026-08-20: *"I don't
-    want to use foliation NUMBER because that would imply it would not change."*
-    A sort on the number would encode a stability the foliation explicitly
+    want to use cues NUMBER because that would imply it would not change."*
+    A sort on the number would encode a stability the cues explicitly
     disclaims; the letter is fixed and the line is a fact about the file.
 
     ! It groups every place that is ABOUT one line of code, closest first -- a
@@ -917,7 +917,7 @@ def seeded_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
     """
     if paragraph is None:
         return [f"{where}: place {rec.get('place')!r} is not in the census"]
-    want = folio_of(str(paragraph.get("address", ""))).folio
+    want = cue_of(str(paragraph.get("address", ""))).cue
     if rec.get("place") != want:
         return [
             f"{where}: `place` reads {rec.get('place')!r} and the census says"

@@ -17,7 +17,7 @@ Three renderings, and the file itself as the floor:
   ROWS    what ships today -- one numbered row per place, each carrying its
           anchor as a parenthetical. No code context: a reviewer reads N
           disconnected fragments.
-  MARGIN  the file, every line, with each place's folio in the left margin. A
+  MARGIN  the file, every line, with each place's cue in the left margin. A
           gap gets its own rule between the lines it separates, so the place an
           `add` cites is visible as a position rather than a name.
   PROSE   the same, annotating ONLY the places that hold prose. The empty ones
@@ -37,7 +37,7 @@ wins: ROWS pays per PLACE and MARGIN pays per LINE. A file with much code and
 little prose has an empty place between every pair of statements, each costing a
 row with its anchor repeated -- `listobject.c` -50%, `eslint.config.ts` -51%,
 `todo_tool.py` -45%. ! The three files the margin LOSES on are prose-dense with
-few code lines: `foliator.py` +7%, `desk.py` +9%, `page.py` level.
+few code lines: `addresser.py` +7%, `desk.py` +9%, `page.py` level.
 
 ! A ONE-FILE MEASUREMENT SAID 17% AND IS SUPERSEDED. `check_vocabulary.py`
 alone is -20%, which happened to sit near neither end of the real range.
@@ -63,7 +63,7 @@ import lexer  # noqa: E402
 import page as page_mod  # noqa: E402
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
-# ! The margin is wide enough for a folio and a series letter; a page with more
+# ! The margin is wide enough for a cue and a series letter; a page with more
 # than four digits of places is past the point this rendering answers anything.
 MARGIN = 8
 #: The row a place PAST THE END is drawn on -- one past the last line, so
@@ -79,7 +79,7 @@ def _places(pg) -> tuple[dict[int, list[str]], dict[int, list[str]]]:
     is cited at its anchor, since both have one.
 
     Returns:
-        `(at_line, gap_above)`, each `line -> folios`.
+        `(at_line, gap_above)`, each `line -> cues`.
     """
     at_line: dict[int, list[str]] = {}
     gap_above: dict[int, list[str]] = {}
@@ -89,21 +89,21 @@ def _places(pg) -> tuple[dict[int, list[str]], dict[int, list[str]]]:
         # cut: *"the page/symbol map has really helped in understanding what
         # each line is, so that we maintain the cover."* This margin IS that
         # map, so reading `address` alone left every run of blank lines blank.
-        folio = (b.address or "").split("@")[-1] or b.symbol
-        if not folio:
+        cue = (b.address or "").split("@")[-1] or b.symbol
+        if not cue:
             continue
         if b.original_start:
-            at_line.setdefault(b.original_start, []).append(folio)
+            at_line.setdefault(b.original_start, []).append(cue)
             continue
         # ! An EMPTY place, marked so a reader can tell it from a filled one --
         # it is a place a verdict can still cite, and nothing occupies it.
-        if folio[0] == "b":
-            low, high = pg.foliation.gap_bounds(folio)
-            gap_above.setdefault(high or low + 1, []).append(f"{folio}*")
+        if cue[0] == "b":
+            low, high = pg.cues.gap_bounds(cue)
+            gap_above.setdefault(high or low + 1, []).append(f"{cue}*")
             continue
-        anchored = pg.foliation.anchor_line(folio)
+        anchored = pg.cues.anchor_line(cue)
         if anchored:
-            at_line.setdefault(anchored, []).append(f"{folio}*")
+            at_line.setdefault(anchored, []).append(f"{cue}*")
             continue
         # !! A PLACE WITH NO LINE SITS AT THE HEAD OR AT THE FOOT, and the
         # ORDINAL is what tells them apart -- the ANCHOR cannot, because `a0`
@@ -115,10 +115,10 @@ def _places(pg) -> tuple[dict[int, list[str]], dict[int, list[str]]]:
         # past every line of CODE. ! A first pass compared that ordinal against
         # the count of FILE lines -- 58 against 205 on `repo.py` -- so the foot
         # kept rendering at the head. Two units, one comparison.
-        if pg.foliation.anchor_num(folio):
-            gap_above.setdefault(_PAST_THE_END, []).append(f"{folio}*")
+        if pg.cues.anchor_num(cue):
+            gap_above.setdefault(_PAST_THE_END, []).append(f"{cue}*")
         else:
-            gap_above.setdefault(1, []).append(f"{folio}*")
+            gap_above.setdefault(1, []).append(f"{cue}*")
     return at_line, gap_above
 
 
@@ -127,12 +127,12 @@ def margin(pg, text: str) -> str:
     at_line, gap_above = _places(pg)
     out = []
     for n, line in enumerate(text.splitlines(), 1):
-        for folio in gap_above.get(n, []):
-            out.append(f"{'':>{MARGIN}} .. {folio}")
+        for cue in gap_above.get(n, []):
+            out.append(f"{'':>{MARGIN}} .. {cue}")
         out.append(f"{' '.join(at_line.get(n, [])):>{MARGIN}} | {line}")
     # ! The foot of the page, drawn after every line of it -- see `_PAST_THE_END`.
-    for folio in gap_above.get(_PAST_THE_END, []):
-        out.append(f"{'':>{MARGIN}} .. {folio}")
+    for cue in gap_above.get(_PAST_THE_END, []):
+        out.append(f"{'':>{MARGIN}} .. {cue}")
     return "\n".join(out)
 
 

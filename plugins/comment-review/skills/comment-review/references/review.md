@@ -66,12 +66,12 @@ code reads the same in the same ORDER -- the Nth code line is still the same
 statement, and an address counts those. The line numbers moved with the prose;
 the ordinal did not.
 
-To read at one, resolve against a census of the file as it now stands. ! The foliation answers
+To read at one, resolve against a census of the file as it now stands. ! The cues answers
 about the CENSUS, never the tree -- so census the file first and the two agree by construction:
 
 ```bash
 python <skill>/scripts/census.py --json --repo . --out <run-dir>/after.json <paths...>
-python <skill>/scripts/foliator.py --census <run-dir>/after.json --resolve <ADDRESS>
+python <skill>/scripts/addresser.py --census <run-dir>/after.json --resolve <ADDRESS>
 ```
 
 ! More than one range can come back -- a docstring and the comment run beneath

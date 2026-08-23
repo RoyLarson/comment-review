@@ -7,7 +7,7 @@ Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: the installed plugin traced itself back up to the
           commit just finished, when he expected v0.2.3 -- the d records gave it away
-          because no foliation had a d before this branch)
+          because no cues had a d before this branch)
 ```
 
 ## Objective
@@ -20,7 +20,7 @@ A directory marketplace resolves the plugin LIVE, so a version-pinned measuremen
       source=directory with installLocation = C:\Users\Roy\projects\comment-review
       -- the WORKING TREE. A directory marketplace points; it does not copy
 - [ ] MEASURED: the cached 0.2.3 holds annotate/census/galley/prove_unchanged/reco
-      rd/referrers/repo/run_context/verdicts/vocabulary and NO foliator.py,
+      rd/referrers/repo/run_context/verdicts/vocabulary and NO addresser.py,
       addresser.py, page.py, lexer.py or compositor.py -- those did not exist at
       that tag. So the d series is UNREACHABLE from that cache: no module in it
       can emit one. The run that produced d records was reading the live tree

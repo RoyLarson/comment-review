@@ -6,9 +6,9 @@ code, this PART of a line is code, this line is comment, this line is docstring
 place where prose could go.
 
 !! A PAGE NAMES ITS OWN PLACES, which is what makes it a page and not a list.
-`places_on` hands `foliate` its lines of code and which of them declare something
-documentable; `foliator` emits every place, filled or not, and `attach` says
-which one a given paragraph sits in. A paragraph does not compute its own folio
+`places_on` hands `cue` its lines of code and which of them declare something
+documentable; `addresser` emits every place, filled or not, and `attach` says
+which one a given paragraph sits in. A paragraph does not compute its own cue
 -- reversed, a place existed only when prose happened to fill it, and the
 file's own matter and the gap above the first line of code were mutually
 exclusive.
@@ -39,8 +39,8 @@ of this repo's 266 anchorless prose paragraphs sit inside. Depth is 1 for 182 of
 those 191, so a parent link is the shape that fits and a tree is not.
 
 !! TWO LEAVES BENEATH THIS ONE, and the direction inverted 2026-08-20. A page
-builds itself, so it needs the foliator -- which had been importing this module
-for two constants, a cycle. The cut is that THE FOLIATOR KNOWS NOTHING ABOUT A
+builds itself, so it needs the addresser -- which had been importing this module
+for two constants, a cycle. The cut is that THE ADDRESSER KNOWS NOTHING ABOUT A
 PARAGRAPH: `code_lines` and `attach` were the only two functions of it that did,
 and both are page questions wearing an addressing name.
 
@@ -61,15 +61,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
 import exceptions  # noqa: E402  -- path shim must run first
-from foliator import (  # noqa: E402  -- path shim must run first
+from addresser import (  # noqa: E402  -- path shim must run first
     COVERS,
     DECLARED,
     GAP,
     LEAD,
     ON,
-    Foliation,
+    Cues,
+    cue,
     flatten,
-    foliate,
     series_of,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
@@ -110,7 +110,7 @@ from lexer import (  # noqa: E402  -- path shim must run first
 # a run already typed `comment`.
 #
 # ! ONE TYPE FOR BOTH ENDS. Roy: *"front-matter, back-matter are paragraph type
-# matter."* Which end a run sits at is the ORDER the `f` foliator emitted its
+# matter."* Which end a run sits at is the ORDER the `f` addresser emitted its
 # places, counted by `page_for` -- not a second fact that could disagree.
 #
 # ! EVERY CONSUMER DOWNSTREAM ASKS THE SERIES, not this: the census filter, the
@@ -125,7 +125,7 @@ class Page:
     """ONE FILE: its paragraphs in order, among the code they sit with.
 
     !! IT CARRIES WHAT IT WAS BUILT FROM, and that is the whole reason it is a
-    type. `page_for` returned a bare list and dropped the text, the foliation,
+    type. `page_for` returned a bare list and dropped the text, the cues,
     the tier and the path -- so every consumer that needed one of them either
     re-derived it from the file, which is a chance to read a file the page no
     longer describes, or asked the caller to carry it alongside.
@@ -138,8 +138,8 @@ class Page:
         path: as the REPO sees it. Every citation resolves against that root.
         text: the file, exactly as it reads. What a splice is checked against.
         paragraphs: in order down the page, prose and empty places alike.
-        foliation: EVERY place on the page, filled or not -- see
-            `foliator.foliate`. It is what makes an `add` citable.
+        cues: EVERY place on the page, filled or not -- see
+            `addresser.cue`. It is what makes an `add` citable.
         tier: which questions this file's reader could answer.
         leading: the space below a place, keyed by the place it FOLLOWS --
             `f0 -> d0`. An absent key means nothing blank follows that place,
@@ -149,18 +149,18 @@ class Page:
     path: str
     text: str
     paragraphs: list[Paragraph]
-    foliation: Foliation
+    cues: Cues
     tier: str
-    # !! IT IS THE PAGE'S, NOT `foliate`'S, and it sat on `Foliation` for one
+    # !! IT IS THE PAGE'S, NOT `cue`'S, and it sat on `Cues` for one
     # evening. Roy, 2026-08-21, reading the field list: *"I kind of expected that
-    # to be the pages job."* MEASURED: `foliate` never filled it and never read it
+    # to be the pages job."* MEASURED: `cue` never filled it and never read it
     # -- `tie_leading` here filled it, `compositor.set_page` read it, and
-    # `foliator.py` held nothing but the declaration. It was parked there because
-    # the foliation is what gets passed around, which is not a reason.
+    # `addresser.py` held nothing but the declaration. It was parked there because
+    # the cues is what gets passed around, which is not a reason.
     #
-    # ! WHY THE PAGE AND NOT `foliate`: `foliate` runs before any prose is read,
-    # and leading exists only where the LEXER found a blank run. `foliate` cannot
-    # know a `d` is there, so it cannot be `foliate`'s to hold.
+    # ! WHY THE PAGE AND NOT `cue`: `cue` runs before any prose is read,
+    # and leading exists only where the LEXER found a blank run. `cue` cannot
+    # know a `d` is there, so it cannot be `cue`'s to hold.
     #
     # !! ONE KEY, NOT A PAIR, SINCE 2026-08-22. It was `(before, after) -> d`
     # and nothing ever read `after`. Roy: *"so drop the second edge if it isn't
@@ -231,7 +231,7 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
     thinking we have a sorted-dictionary or it should always be a list."*
 
     ! A `dict` is insertion-ordered, so ASCENDING BY CONSTRUCTION answers all
-    four consumers: iterate it for `foliate`, `n in code` for occupancy,
+    four consumers: iterate it for `cue`, `n in code` for occupancy,
     `enumerate` for the ordinals, `code[n]` for one line's anchor.
 
     A line is code when it holds something that is not blank and not prose. The
@@ -293,13 +293,13 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
     }
 
 
-def attach(paragraph: dict, foliation: "Foliation") -> str:
-    """Which place this paragraph occupies -- the folio, without the path.
+def attach(paragraph: dict, cues: "Cues") -> str:
+    """Which place this paragraph occupies -- the cue, without the path.
 
-    !! THE PARAGRAPH DOES NOT PRODUCE THE ADDRESS; IT IS TIED TO ONE. `foliate`
+    !! THE PARAGRAPH DOES NOT PRODUCE THE ADDRESS; IT IS TIED TO ONE. `cue`
     emitted every place before any prose was looked at, so this only asks which
     of them this prose is sitting in. Reversed -- a paragraph computing its own
-    folio -- is how a place could exist only when prose happened to fill it.
+    cue -- is how a place could exist only when prose happened to fill it.
 
     ! Three facts decide it, each stated by a producer and none inferred from
     the kind: a paragraph that DOCUMENTS a declaration takes that declaration's
@@ -308,14 +308,14 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
 
     Args:
         paragraph: one census entry, as a dict.
-        foliation: `foliate` over that paragraph's file.
+        cues: `cue` over that paragraph's file.
 
     Returns:
-        The folio, or "" when the paragraph states no position to tie it to.
+        The cue, or "" when the paragraph states no position to tie it to.
     """
     declares = paragraph.get("declares", -1)
     if isinstance(declares, int) and declares >= 0:
-        return foliation.documents(declares)
+        return cues.documents(declares)
     # ! FRONT MATTER IS THE FILE'S, so it takes `f0` wherever it sits. Asking
     # `above()` would give it the gap it happens to occupy, which is the gap
     # that introduces the first statement and belongs to that statement.
@@ -326,16 +326,16 @@ def attach(paragraph: dict, foliation: "Foliation") -> str:
     # in a module that may hold none.
     #
     # ! WHICH `f` IS A COUNT, NOT A POSITION -- the Nth matter run takes the Nth
-    # place `foliate` emitted, exactly as the Nth declaration takes the Nth `a`.
+    # place `cue` emitted, exactly as the Nth declaration takes the Nth `a`.
     # Counting is the PAGE's, so `page_for` hands them out and this says only
     # that the question is not `above()`'s to answer.
     if paragraph.get("kind") == Kind.MATTER:
         return ""
     if paragraph.get("original_column", 0):
         start = paragraph.get("start")
-        return foliation.beside(start) if isinstance(start, int) else ""
+        return cues.beside(start) if isinstance(start, int) else ""
     at = paragraph.get("original_start")
-    return foliation.above(at) if isinstance(at, int) else ""
+    return cues.above(at) if isinstance(at, int) else ""
 
 
 def documentable(
@@ -354,9 +354,9 @@ def documentable(
     way. One compared `insert <= line` and inferred the rule from an arithmetic
     on two line numbers; the next read `lang.doc_inside` in this module, which
     only moved the language out of the lexer. What is left is turning a LINE into
-    a position in `foliate`'s own sequence.
+    a position in `cue`'s own sequence.
 
-    !! THAT POSITION IS AN ORDINAL, which is the other half of the job. `foliate`
+    !! THAT POSITION IS AN ORDINAL, which is the other half of the job. `cue`
     counts code lines, so handing it a raw line made it compare `insert <= n` to
     place a docstring -- line arithmetic in the one module that must do none.
     Roy: *"how do I get you to stop thinking in line numbers?"*
@@ -364,7 +364,7 @@ def documentable(
     Args:
         decls: `(line, insert, above)` per declaration, module first -- see
             `lexer.declarations`, which states all three.
-        code: `foliate`'s triggers, `(line, anchor)` in order.
+        code: `cue`'s triggers, `(line, anchor)` in order.
 
     Returns:
         `index into code -> (the LINE the doc occupies, the code index it is set
@@ -398,14 +398,12 @@ def documentable(
     return out
 
 
-def places_on(
-    text: str, prose: list[dict], lang: "Language | None" = None
-) -> "Foliation":
+def places_on(text: str, prose: list[dict], lang: "Language | None" = None) -> "Cues":
     """Every place on this page, walked.
 
     !! THE PAGE NAMES ITS OWN PLACES, which is what makes it a page rather than
-    a list. It hands `foliate` its lines of code and which of them declare
-    something documentable; `foliate` emits every place, filled or not, and
+    a list. It hands `cue` its lines of code and which of them declare
+    something documentable; `cue` emits every place, filled or not, and
     `attach` says which one a given paragraph sits in.
 
     Args:
@@ -416,22 +414,20 @@ def places_on(
             computed. None gives a page with no `a` series.
 
     Returns:
-        The `Foliation` for this page.
+        The `Cues` for this page.
     """
     code = code_lines(text, prose)
     decls = declarations(text, lang, code) if lang else []
     # !! `None`, NOT `1`, WHEN THERE ARE NO DECLARATIONS. A language with no
-    # documentable declaration has no `a` series at all -- see `foliate`. It is
+    # documentable declaration has no `a` series at all -- see `cue`. It is
     # not a series that happens to be empty, and a YAML file carried an `a0`
     # until 2026-08-20 because the two were conflated.
     placed = documentable(decls, code) if lang else {}
-    return foliate(code, placed, decls[0][1] if decls else None)
+    return cue(code, placed, decls[0][1] if decls else None)
 
 
-def empty_places(
-    text: str, foliation: Foliation, occupied: set[str]
-) -> list[Paragraph]:
-    """A paragraph for every place `foliate` emitted that no prose fills.
+def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
+    """A paragraph for every place `cue` emitted that no prose fills.
 
     !! ONE LOOP, WHERE THERE WERE FOUR GENERATORS -- `intervals`, `margins` and
     `paragraphs_in` here, and `lexer._undocumented` for the `a` series. Each
@@ -441,7 +437,7 @@ def empty_places(
     file's first place nothing occupied the gap above the first line of code,
     and the place an `add` exists to cite was unreachable.
 
-    ! `foliate` already emitted every place and said where each sits. This asks
+    ! `cue` already emitted every place and said where each sits. This asks
     only which of them prose is sitting in, and gives the rest a paragraph.
 
     ! An empty place occupies no lines -- that is what the ABSENT half of a series
@@ -450,8 +446,8 @@ def empty_places(
 
     Args:
         text: the page's source.
-        foliation: every place on the page.
-        occupied: the folios that prose already sits in.
+        cues: every place on the page.
+        occupied: the cues that prose already sits in.
 
     Returns:
         The empty paragraphs, in no particular order -- the caller sorts.
@@ -464,10 +460,10 @@ def empty_places(
     # `a`/`c`-exact rule there. Asking it twice is how the two answers came to
     # disagree.
     out: list[Paragraph] = []
-    for folio, anchor in foliation.places.items():
-        if folio in occupied:
+    for cue_name, anchor in cues.places.items():
+        if cue_name in occupied:
             continue
-        if folio.startswith(DECLARED):
+        if cue_name.startswith(DECLARED):
             # ! A DECLARATION WITH NO DOCSTRING. It occupies NO LINE, because
             # the prose is not written yet -- given the declaration's own range
             # it swallowed whatever sat between the `def` and its first
@@ -475,8 +471,8 @@ def empty_places(
             #
             # !! SO ITS ORIGINAL LINES ARE None, NOT `insert..insert-1`. Roy,
             # 2026-08-20: a closed list of lines, *"or it is None, meaning there
-            # are currently no lines that have that foliation."* WHERE the prose
-            # would go is `foliation.inserts[folio]` and was never this field's
+            # are currently no lines that have that cues."* WHERE the prose
+            # would go is `cues.inserts[cue_name]` and was never this field's
             # to say -- an empty slice standing in for a position is what taught
             # a reader to take these numbers for one.
             out.append(
@@ -488,30 +484,30 @@ def empty_places(
                     lines=0,
                     text="",
                     anchor=anchor,
-                    declares=int(folio[1:]),
+                    declares=int(cue_name[1:]),
                     original_start=None,
                     original_end=None,
-                    address=folio,
+                    address=cue_name,
                 )
             )
-        elif folio.startswith(ON):
+        elif cue_name.startswith(ON):
             # ! The room BESIDE a line of code: whatever follows the statement,
             # which is nothing unless the line ends in whitespace. The code is
             # the ANCHOR, so storing it here too would put one fact in two
             # fields.
-            n = foliation.anchor_line(folio)
+            n = cues.anchor_line(cue_name)
             if n is None:
                 # !! A `c` ANSWERS TO A LINE OF CODE BY CONSTRUCTION. The `ON`
                 # series emits at code triggers and never at the `<module>` or
                 # `<eof>` sentinels, which are the only triggers with no line --
-                # so None here is the foliation disagreeing with the page that
+                # so None here is the cues disagreeing with the page that
                 # built it, and not a shape any file can produce.
                 # ! IT IS NAMED RATHER THAN SKIPPED. Continuing would drop a
                 # place out of the reading order, which the compositor sets
                 # from, so the file would come back missing a line and every
                 # gate would still be green.
                 raise exceptions.Refused(
-                    f"{folio}: a `c` place whose anchor has no line"
+                    f"{cue_name}: a `c` place whose anchor has no line"
                 )
             code = lines[n - 1].rstrip()
             out.append(
@@ -527,10 +523,10 @@ def empty_places(
                     original_end=n,
                     original_column=len(code) + 1,
                     anchor=anchor,
-                    address=folio,
+                    address=cue_name,
                 )
             )
-        elif folio.startswith(COVERS):
+        elif cue_name.startswith(COVERS):
             # !! THE FILE'S OWN PROSE, AND IT HOLDS NO LINE WHEN IT IS EMPTY.
             # A licence header or a shebang goes at the very top, bounded by
             # nothing on either side -- so there is no gap to measure and
@@ -556,23 +552,23 @@ def empty_places(
                     original_start=None,
                     original_end=None,
                     anchor=anchor,
-                    address=folio,
+                    address=cue_name,
                 )
             )
-        elif not folio.startswith(GAP):
+        elif not cue_name.startswith(GAP):
             # !! A SERIES THIS FUNCTION DOES NOT KNOW IS AN ERROR, NOT A SKIP.
-            # Every place `foliate` emitted must get a paragraph; one that
+            # Every place `cue` emitted must get a paragraph; one that
             # falls off the end of these branches gets none, and a place with
             # no paragraph is uncitable and invisible. That is exactly how
             # `f0` behaved for its first hour. ! `census.py` turns a raise
             # here into a REPORTED per-file gap, which is loud; falling
             # through is silent.
             raise exceptions.Refused(
-                f"no rule for the series of {folio!r} -- every series in"
-                " `foliator.SERIES` needs a branch here"
+                f"no rule for the series of {cue_name!r} -- every series in"
+                " `addresser.SERIES` needs a branch here"
             )
         else:
-            previous, following = foliation.gap_bounds(folio)
+            previous, following = cues.gap_bounds(cue_name)
             low = previous + 1
             high = following - 1 if following else last
             # ! THE WHOLE GAP, PROVISIONALLY. `fill_the_gaps` runs after every
@@ -593,17 +589,17 @@ def empty_places(
                     original_start=low if low <= high else None,
                     original_end=high if low <= high else None,
                     anchor=anchor,
-                    address=folio,
+                    address=cue_name,
                 )
             )
     return out
 
 
-def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> dict[str, str]:
+def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     """Tie each run of leading to the place it FOLLOWS.
 
     !! LEADING IS AN EDGE, AND AN EDGE BELONGS TO THE PLACE BEFORE IT. Roy,
-    2026-08-21: *"the live first key foliation lives, the drop first key dies."*
+    2026-08-21: *"the live first key cues lives, the drop first key dies."*
     Every other series answers to a line of code and has a position in the
     walk's reading order; a run of blanks answers to neither, so it is filed
     under the place it comes after -- `f0 -> d0` reads as *the space below the
@@ -621,9 +617,9 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> dict[str, 
     place it no longer separated. It was legible and WRONG, and only safe
     because the lookup ignored it.
 
-    ! WHICH IS WHY `foliate` DOES NOT EMIT ONE. `foliate` runs before any prose
+    ! WHICH IS WHY `cue` DOES NOT EMIT ONE. `cue` runs before any prose
     is read and leading exists only where the lexer found a blank run, so the
-    walk cannot know a `d` is there. An edge needs no position in `foliate`'s
+    walk cannot know a `d` is there. An edge needs no position in `cue`'s
     list, so it does not have to.
 
     ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING, and is tied under `""`. That is a
@@ -631,10 +627,10 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> dict[str, 
 
     Args:
         paragraphs: every paragraph on the page, addressed.
-        foliation: `foliate`'s places, to name what sits before each run.
+        cues: `cue`'s places, to name what sits before each run.
 
     Returns:
-        The edge map: the folio a run of leading follows -> its own folio. An
+        The edge map: the cue a run of leading follows -> its own cue. An
         absent key means that place is followed by no blank line.
     """
     edges: dict[str, str] = {}
@@ -654,9 +650,9 @@ def tie_leading(paragraphs: list[Paragraph], foliation: Foliation) -> dict[str, 
     # ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING THAT HOLDS LINES, so this used to
     # answer `""`. MEASURED before the fix: 48 edges in the corpus were keyed on
     # the empty string, and an earlier note of mine called them "the file's own
-    # ends" -- they were this. `foliate` emits `f0` at the MODULE on EVERY file,
+    # ends" -- they were this. `cue` emits `f0` at the MODULE on EVERY file,
     # filled or not, so there was always a real place to name.
-    head = foliation.reading[0] if foliation.reading else ""
+    head = cues.reading[0] if cues.reading else ""
     for b in sorted(paragraphs, key=lambda b: b.original_start or 0):
         if b.kind != Kind.LEADING or not b.symbol:
             continue
@@ -707,19 +703,19 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     # rather than a branch inside each, so the two cannot disagree about it --
     # which is what happened to `matter` when it was written on one tier.
     got.extend(leading_between(got, text))
-    foliation = Foliation()
+    cues = Cues()
     edges: dict[str, str] = {}
     if not any(b.kind == "unparsed" for b in got):
-        # !! `foliate` EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
-        # Reversed -- each paragraph computing its own folio -- a place existed
+        # !! `cue` EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
+        # Reversed -- each paragraph computing its own cue -- a place existed
         # only when prose happened to fill it, which is how the file's own
         # matter and the first gap came to be mutually exclusive -- one address
-        # for two places. `foliator` owns both halves: the foliation
+        # for two places. `addresser` owns both halves: the cues
         # assigns the numbering, `attach` reads which place this prose sits in,
-        # and the anchor comes from `foliate` that emitted it rather than from a
+        # and the anchor comes from `cue` that emitted it rather than from a
         # second pass that could disagree with the first.
         prose = [vars(b) for b in got]
-        foliation = places_on(text, prose, lang)
+        cues = places_on(text, prose, lang)
         # !! THE LEXER STATES WHICH PROSE DOCUMENTS WHAT, and this only asks.
         # It was decided in this module until 2026-08-21, which may hold no
         # positioning rule -- Roy: *"the ONLY places that need this are the lexer
@@ -730,17 +726,17 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         document_declarations(got, declarations(text, lang, code), code)
         flat = flatten(rel if rel is not None else path.as_posix())
         # !! THE PAGE MAKES THE MAPPING. Roy, 2026-08-21: *"the page makes the
-        # mapping between foliator and paragraph."* The lexer types a run
-        # `matter` and `foliate` emits the places a file has for its own prose;
+        # mapping between addresser and paragraph."* The lexer types a run
+        # `matter` and `cue` emits the places a file has for its own prose;
         # neither counts, so the Nth matter run takes the Nth place here --
         # which is what makes `f0` the head and `f1` the foot without either
         # word appearing anywhere.
-        files = foliation.file_places()
+        files = cues.file_places()
         # !! LEADING TAKES A SYMBOL AND NOT A PLACE, ruled 2026-08-22, and the
-        # counter is the PAGE'S because a `d` is not something `foliate` makes.
-        # It briefly had its own `Foliator` -- which was the wrong fix to a real
+        # counter is the PAGE'S because a `d` is not something `cue` makes.
+        # It briefly had its own `Addresser` -- which was the wrong fix to a real
         # problem, since `emit` is what MAKES a place and leading is not one.
-        # See `foliator.SERIES` for why it failed the substitution, and
+        # See `addresser.SERIES` for why it failed the substitution, and
         # `lexer.Paragraph.symbol` for what the label is for.
         #
         # ! NUMBERED IN THE ORDER IT OCCURS, which is the order the lexer found
@@ -792,15 +788,15 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
                 # it is the only comparison either side needs.
                 place = files[0] if b.original_start == 1 else files[-1]
             else:
-                place = attach(vars(b), foliation)
+                place = attach(vars(b), cues)
             b.address = f"{flat}@{place}" if place else ""
-            b.anchor = foliation.anchor_of(place, b.anchor)
+            b.anchor = cues.anchor_of(place, b.anchor)
         # !! EVERY PLACE PROSE DOES NOT FILL GETS A PARAGRAPH, in one loop over
-        # what `foliate` emitted. Three generators used to answer this one
+        # what `cue` emitted. Three generators used to answer this one
         # question a series at a time, each walking the file again.
         occupied = {b.address.split("@")[-1] for b in got if "@" in b.address}
-        for empty in empty_places(text, foliation, occupied):
-            # ! IT ALREADY KNOWS ITS PLACE -- the emitter filled that folio and
+        for empty in empty_places(text, cues, occupied):
+            # ! IT ALREADY KNOWS ITS PLACE -- the emitter filled that cue and
             # said so. Asking `attach` again re-derives it from position, which
             # answered the FIRST GAP for the file's own matter: the two are
             # different places at the same position, and position cannot tell
@@ -812,17 +808,17 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # `interval` and every `margin` read 0 -- the same shape as a series
         # list that names its members: a branch that forgets is silent.
         for b in got:
-            folio = b.address.split("@")[-1]
-            b.anchor_line = foliation.anchor_line(folio) if folio else None
+            cue = b.address.split("@")[-1]
+            b.anchor_line = cues.anchor_line(cue) if cue else None
             # ! THE ORDINAL, stamped in the same pass and for the same reason:
-            # every paragraph carries it or a consumer has to ask `foliate` again.
-            b.anchor_num = foliation.anchor_num(folio) if folio else 0
+            # every paragraph carries it or a consumer has to ask `cue` again.
+            b.anchor_num = cues.anchor_num(cue) if cue else 0
         # ! AFTER every paragraph exists, so each one's share of its gap is
         # settled against the neighbours it actually has.
         fill_the_gaps(text, got)
-        # !! THE READING ORDER IS `foliate`'S, AND THIS MODULE DOES NOT BUILD ONE.
-        # `foliate` emits every place in sequence and says so at the field --
-        # *"a fact `foliate` knows rather than an arithmetic over line numbers"* --
+        # !! THE READING ORDER IS `cue`'S, AND THIS MODULE DOES NOT BUILD ONE.
+        # `cue` emits every place in sequence and says so at the field --
+        # *"a fact `cue` knows rather than an arithmetic over line numbers"* --
         # including WHERE AN `a` FALLS, which is the language's call and is
         # settled there once.
         #
@@ -837,11 +833,11 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # line numbers?"*
         #
         # ! SO LEADING IS TIED TO THE PLACE IT FOLLOWS, not inserted into the
-        # sequence -- see `Page.leading`. `foliate` cannot emit a `d`,
+        # sequence -- see `Page.leading`. `cue` cannot emit a `d`,
         # because it runs before any prose is read and leading exists only where
-        # the lexer found a blank run; an edge needs no position in `foliate`'s
-        # list, so `foliate` does not have to know.
-        edges = tie_leading(got, foliation)
+        # the lexer found a blank run; an edge needs no position in `cue`'s
+        # list, so `cue` does not have to know.
+        edges = tie_leading(got, cues)
     # ! THE PAGE STATES ITS OWN PATH on every paragraph, empty places included.
     # `empty_places` builds them without one -- it is handed the text, not the
     # file -- and a paragraph with no path is one no consumer can place.
@@ -849,7 +845,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     for b in got:
         b.path = where
         b.tier = tier_for(lang)
-    # ! An UNPARSED file never reached `foliate`, so it has no foliation. An empty
+    # ! An UNPARSED file never reached `cue`, so it has no cues. An empty
     # one is the honest answer: the page carries no places, and a consumer that
     # asks gets nothing rather than a table built over code lines that were
     # never established.
@@ -857,7 +853,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         path=rel if rel is not None else path.as_posix(),
         text=text,
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
-        foliation=foliation,
+        cues=cues,
         tier=tier_for(lang),
         leading=edges,
     )
@@ -904,15 +900,15 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     #
     # ! `f` IS IN THAT LIST BECAUSE IT IS A SERIES, not because it is front
     # matter. While front matter was `b0` this needed a clause naming it -- the
-    # one paragraph whose folio disagreed with the gap it sat in -- and the
+    # one paragraph whose cue disagreed with the gap it sat in -- and the
     # clause was missing. Measured over 662 corpus files: 51 paragraphs where a
     # licence header was reported as an `interval`. Roy: *"we should have just
-    # made the front matter its own foliation; then the rule that `b` owns all
-    # the lines that are not another foliation's lines would explicitly stay
+    # made the front matter its own cues; then the rule that `b` owns all
+    # the lines that are not another cues's lines would explicitly stay
     # true."*
     #
     # !! LEADING IS IN THAT LIST BY ITS SYMBOL, not by an address, because it
-    # HAS none -- see `foliator.SERIES`. It owns its lines exactly for the same
+    # HAS none -- see `addresser.SERIES`. It owns its lines exactly for the same
     # reason an `a` does: the lexer found them and said which they are. ! Read
     # from `address` alone this returned "" for a `d`, the `if` below fell
     # through, and the gap took the blank lines a run of leading already held --
@@ -947,7 +943,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
             own = [n for n in range(b.start, b.end + 1) if mine is None or n in mine]
             b.raw_lines = [source[n - 1] for n in own]
         else:
-            # ! NO LINE CARRIES THIS FOLIATION, and that is the whole
+            # ! NO LINE CARRIES THIS CUES, and that is the whole
             # answer. Where prose would GO is not recorded: Roy,
             # 2026-08-20, on dropping the tool that asked -- *"which
             # lines to edit is no longer helpful"*. A record names the
@@ -979,7 +975,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
         if not free:
             # ! Every line here is spoken for, so each `b` holds NONE. `0/0` is
             # how the addressing range spells "occupies nothing" and `None` is
-            # how the original lines do -- there is no line with this foliation.
+            # how the original lines do -- there is no line with this cues.
             for b in here:
                 b.start, b.end = 0, 0
                 recut(b)

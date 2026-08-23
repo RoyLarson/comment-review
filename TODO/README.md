@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (90)
+### open  (91)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -208,13 +208,13 @@ that changed a published name or rule:
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 4/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 1/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
-| [b-foliator-uninitialised](b-foliator-uninitialised.md) | session | — | 9/17 | The b foliator is never initialised at the module trigger, and computes its folio from line numbers |
+| [b-addresser-uninitialised](b-addresser-uninitialised.md) | session | — | 9/17 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [front-matter-restamps](front-matter-restamps.md) | session | — | 0/7 | Adding a module docstring restamps the comment run above it as front matter |
 | [census-owns-addressing](census-owns-addressing.md) | session | — | 3/5 | The census owns addressing, and four modules share one subject between them |
 | [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
 | [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
-| [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | foliator.triggers() has no production caller and takes a shape the walk no longer uses |
+| [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | addresser.triggers() has no production caller and takes a shape the walk no longer uses |
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 | [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | — | 10/12 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
 | [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
@@ -229,10 +229,10 @@ that changed a published name or rule:
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | session | — | 0/10 | each passes in the buggy state its own comment forbids |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
 | [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | — | 1/7 | a licence at the bottom of a file belongs to the file, not to the last gap |
-| [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
+| [move-across-an-uncued-file](move-across-an-uncued-file.md) | session | — | 4/6 | the address form spans files; the census does not |
 | [closing-line-deletes-code](closing-line-deletes-code.md) | session | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | Roy | — | 0/4 | v1.x wants a concrete versioning system on everything that ships |
-| [check-passes-a-shared-address](check-passes-a-shared-address.md) | session | — | 0/3 | foliator --check prints SHARED and exits 0 |
+| [check-passes-a-shared-address](check-passes-a-shared-address.md) | session | — | 0/3 | addresser --check prints SHARED and exits 0 |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | session | yes | 0/17 | Outside Python the `a` place is emitted and never filled |
 | [front-matter-protection-is-python-only](front-matter-protection-is-python-only.md) | session | — | 0/7 | mark_matter cannot fire outside Python, so a licence header is editable work |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | session | — | 0/3 | A UTF-8 BOM is censused as a line of code |
@@ -254,7 +254,7 @@ that changed a published name or rule:
 | [lexer-and-language-findings](lexer-and-language-findings.md) | comment-review | yes | 1/15 | Ten findings in lexer.py and language.py, from three review rounds |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | comment-review | — | 0/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | comment-review | yes | 0/5 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
-| [page-and-foliator-scans](page-and-foliator-scans.md) | comment-review | — | 0/7 | page.py and foliator.py carry four scans that grow with the file and one CLI that contradicts the gate |
+| [page-and-addresser-scans](page-and-addresser-scans.md) | comment-review | — | 0/7 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | comment-review | yes | 0/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | comment-review | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [exception-hierarchy](exception-hierarchy.md) | comment-review | — | 0/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
@@ -263,8 +263,9 @@ that changed a published name or rule:
 | [lexer-does-not-lex](lexer-does-not-lex.md) | comment-review | yes | 0/7 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | comment-review | yes | 0/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [computed-and-never-read](computed-and-never-read.md) | session | — | 0/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
-| [leaf-means-two-things](leaf-means-two-things.md) | comment-review | — | 5/19 | vocabulary.toml says paragraphs run down a leaf; foliator.py says a leaf IS a place -- and folio is defined against the first |
+| [leaf-means-two-things](leaf-means-two-things.md) | comment-review | — | 5/19 | vocabulary.toml says paragraphs run down a leaf; addresser.py says a leaf IS a place -- and cue is defined against the first |
 | [not-every-line-has-an-address](not-every-line-has-an-address.md) | comment-review | yes | 0/8 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
+| [lookup-parses-whole-census](lookup-parses-whole-census.md) | comment-review | yes | 0/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 
 ### in-progress  (5)
 
@@ -322,7 +323,7 @@ the reason is inside the file.
 | [re-review-is-ordered-everywhere-and-defined-nowhere](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md) | **What a re-review IS**, in the one file that says: `references/re-review.md`. Ten sites ordered a re-review and none defined one. It is the JOINED BLOCK that goes back, never the finding -- Roy, 2026-08-17: *"sending it right back doesn't help"* -- and it answers three questions about the role's own edit. Two slots, 5b after APPLY and 6b after COMPACT, which must not be collapsed: 6b is the only reader of stage 6's output before the author sees it. ! A contested block goes to its FILERS and no others, because all three questions presuppose an edit to answer for; a third role reading it is a FRESH REVIEW travelling 6 -> 4. ! `galley` stays defined inline -- deriving the file into the four reviewers' vocabulary adds exactly one term, `cap`, and those are the four roles the cap is never passed to |
 | [eight-terms-have-no-definition-and-angle-means-five-things](completed/eight-terms-have-no-definition-and-angle-means-five-things.md) | **The vocabulary itself.** A twelve-agent survey found nine terms used with a fixed sense and stated nowhere, and fifteen more carrying two or three senses each; every one is now defined, dropped, or declared as deliberate polysemy, and `scripts/check_vocabulary.py` says so as a command. ! Its last * dissolved rather than being ruled: *"5 of its 7 reviewer reports"* had lost two of its four sites already, and the two left sit in prose the shipped-Python cleanup rewrites on grounds that do not need the number |
 | [an-editorial-mark-is-not-an-action-and-reanchor-is-move](completed/an-editorial-mark-is-not-an-action-and-reanchor-is-move.md) | **A verdict is a MARK, not an action**, and the relocation verdicts collapsed twice: `reanchor` into `move` (2026-08-15), then `split` into `move` (2026-08-16). ! Both by the same argument -- a relocation is ONE judgment and the destination is payload -- and `split` was additionally the only verdict whose subject was the BLOCK rather than the sentence. Seven verdicts. `drop`, `patch` and `add` were ruled to STAY: Roy, *"everything else we have come up with has had a valid use case."* |
-| [address-is-not-stable-under-prose-edits](completed/address-is-not-stable-under-prose-edits.md) | A line-numbered address is valid for one file state only, and `foliator.py` names a place against the CODE instead: `a` a declaration, `b` a gap, `c` an on-line position. Measured: a prose-only edit moved 2 of 3 line addresses and 0 of 3 stable ones. |
+| [address-is-not-stable-under-prose-edits](completed/address-is-not-stable-under-prose-edits.md) | A line-numbered address is valid for one file state only, and `addresser.py` names a place against the CODE instead: `a` a declaration, `b` a gap, `c` an on-line position. Measured: a prose-only edit moved 2 of 3 line addresses and 0 of 3 stable ones. |
 | [address-collides-across-dotted-paths](completed/address-collides-across-dotted-paths.md) | Separator changed from '.' to ':', which no path may hold; census refuses a POSIX path that does |
 | [c-series-admitted-not-writable](completed/c-series-admitted-not-writable.md) | The galley splices within a line: original_column replaces whole_lines, and an intermediate comment is no longer censused |
 | [prose-fenced-by-code-on-both-sides](completed/prose-fenced-by-code-on-both-sides.md) | Ruled the same day it was raised: an intermediate comment is not censused, and its line is code |
@@ -331,10 +332,10 @@ the reason is inside the file.
 | [three-names-two-words](completed/three-names-two-words.md) | One ordered mapping replaces all three; no sorted() survives and the edge case is byte-identical |
 | [a-hugs-its-declaration-SUPERSEDED](completed/a-hugs-its-declaration-SUPERSEDED.md) | The a -> b -> c order is universal; the error was reading final position as application order |
 | [b-inserts-above-the-shebang-SUPERSEDED](completed/b-inserts-above-the-shebang-SUPERSEDED.md) | No bug: a covered-lines range was read as an insertion point. The field name is the real defect |
-| [the-path-is-repeated-in-every-address](completed/the-path-is-repeated-in-every-address.md) | A reviewer is handed one page per file and a record cites the folio alone; held.py reads both shapes |
+| [the-path-is-repeated-in-every-address](completed/the-path-is-repeated-in-every-address.md) | A reviewer is handed one page per file and a record cites the cue alone; held.py reads both shapes |
 | [anchor-side-is-dead](completed/anchor-side-is-dead.md) | Deleted, with PATHISH and line_address, in the sweep for shipped names nothing reads |
 | [convert-drops-every-record-SUPERSEDED](completed/convert-drops-every-record-SUPERSEDED.md) | Superseded: the converter and the format it read were deleted, not fixed |
-| [stage-5-certifies-an-unaddressed-census](completed/stage-5-certifies-an-unaddressed-census.md) | foliator.unaddressed is the one check; census.py refuses on emit and verdicts.py on read |
+| [stage-5-certifies-an-unaddressed-census](completed/stage-5-certifies-an-unaddressed-census.md) | addresser.unaddressed is the one check; census.py refuses on emit and verdicts.py on read |
 | [lexer-misreads-ordinary-code](completed/lexer-misreads-ordinary-code.md) | Three misreads fixed and nesting added; the closing-line residue measured at 0 occurrences and accepted, with a test |
 | [dead-names-ungated](completed/dead-names-ungated.md) | scripts/dead_sweep.py, an input rather than a gate; 0 dead names in the tree as of 2026-08-21 |
 | [complete-breaks-links-SUPERSEDED](completed/complete-breaks-links-SUPERSEDED.md) | Accepted: the orphans are inside completed/, and repairing one means rewriting an archived file |
@@ -343,4 +344,4 @@ the reason is inside the file.
 | [galley-does-two-jobs](completed/galley-does-two-jobs.md) | Split built and wired: galley.reset places by address, compositor.set_page sets, splice/overlaps/splice_range/paragraph_matches deleted, and the shipped prose now defines both terms |
 | [galley-is-still-index-keyed](completed/galley-is-still-index-keyed.md) | Tasks 1-2 done (address-keyed); task 3 was an observation whose mechanism -- splice and its line-ordered sort -- was deleted in the galley rewrite |
 | [second-key-stale-on-drop](completed/second-key-stale-on-drop.md) | Ruled and cut the same morning: the second key is DELETED, so it cannot go stale -- Page.leading is dict[str, str], keyed by the place a run of blanks follows |
-| [foliation-knows-about-lines](completed/foliation-knows-about-lines.md) | Foliation is 3 fields -- foliators, walk, reading. A place records the trigger it was emitted at, so no position is reconstructed; d left SERIES as a symbol; lines and _code were both views of the walk |
+| [foliation-knows-about-lines](completed/foliation-knows-about-lines.md) | Cues is 3 fields -- addressers, walk, reading. A place records the trigger it was emitted at, so no position is reconstructed; d left SERIES as a symbol; lines and _code were both views of the walk |

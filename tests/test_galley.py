@@ -187,11 +187,11 @@ class TestAnAddIntoAnEmptyGap(unittest.TestCase):
 
     FILE = "a = 1\nb = 2\nc = 3\n"
 
-    def _gap(self, pg, folio: str) -> str:
+    def _gap(self, pg, cue: str) -> str:
         for b in pg:
-            if b.address.split("@")[-1] == folio:
+            if b.address.split("@")[-1] == cue:
                 return b.address
-        raise AssertionError(f"no {folio} on this page")
+        raise AssertionError(f"no {cue} on this page")
 
     def test_the_insertion_lands_BETWEEN_the_two_code_lines(self):
         pg = built(self.FILE)

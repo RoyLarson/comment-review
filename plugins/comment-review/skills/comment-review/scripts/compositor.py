@@ -10,10 +10,10 @@ together. A module that did both is what `galley.py` was, and its own vocabulary
 said so -- `references/vocabulary.toml`: *"the GALLEY is text set but not yet
 made into pages."*
 
-!! IT SETS FROM THE FOLIATION'S READING ORDER AND KNOWS NO LINE NUMBERS. Roy,
+!! IT SETS FROM THE CUES'S READING ORDER AND KNOWS NO LINE NUMBERS. Roy,
 2026-08-21: *"the compositor forms the whole file top to bottom in the order
 defined by the language requirements IN MEMORY."* A page is its places in
-sequence; `Foliation.reading` is that sequence, recorded by the walk that
+sequence; `Cues.reading` is that sequence, recorded by the walk that
 emitted them. ! An earlier draft built the file from each paragraph's
 `original_start`, which passed the identity by REPLAYING positions -- and would
 have set a reset page wrong, because a paragraph that grows moves every line
@@ -58,7 +58,7 @@ if str(REPO_ROOT) not in sys.path:
 
 import constants  # noqa: E402
 import exceptions  # noqa: E402  -- path shim must run first
-from foliator import ON, folio_of  # noqa: E402
+from addresser import ON, cue_of  # noqa: E402
 
 # !! THE OTHER DIRECT IMPORTER OF THE ROWS -- see `language.py`. The lexer reads
 # a file into paragraphs and this sets a page back into one, so these two are
@@ -83,25 +83,25 @@ def line_endings(text: str) -> str:
 
 
 def _held(page: Page) -> dict[str, list[str]]:
-    """The lines each place holds, by folio -- and each `d` by its symbol.
+    """The lines each place holds, by cue -- and each `d` by its symbol.
 
     ! Empty places hold none.
 
     !! LEADING IS KEYED BY ITS SYMBOL BECAUSE IT HAS NO ADDRESS. It is not a
-    place -- see `foliator.SERIES` -- so it never appears in the reading order
+    place -- see `addresser.SERIES` -- so it never appears in the reading order
     and is reached only through `Page.leading`, which names it by that symbol.
     """
     out: dict[str, list[str]] = {}
     for paragraph in page.paragraphs:
-        # !! ASKED, NOT SPLIT. `folio_of` is the one reader of an address, and
+        # !! ASKED, NOT SPLIT. `cue_of` is the one reader of an address, and
         # this re-derived it -- so the two disagreed on the one input that tells
-        # them apart. MEASURED 2026-08-22: `folio_of("b3")` answers `""`, because
-        # an address is `path@folio` and a bare folio is not one; `"b3".split("@")
+        # them apart. MEASURED 2026-08-22: `cue_of("b3")` answers `""`, because
+        # an address is `path@cue` and a bare cue is not one; `"b3".split("@")
         # [-1]` answers `"b3"`. So the compositor SET a place `galley.reset`
         # REFUSES, and the disagreement is invisible until the two are compared.
-        folio = folio_of(paragraph.address or "").folio or paragraph.symbol
-        if folio:
-            out[folio] = list(paragraph.raw_lines)
+        cue = cue_of(paragraph.address or "").cue or paragraph.symbol
+        if cue:
+            out[cue] = list(paragraph.raw_lines)
     return out
 
 
@@ -131,7 +131,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
     time per file.
 
     Args:
-        page: the page to set. Its foliation states the order.
+        page: the page to set. Its cues states the order.
         newline: the ending to join with. `None` takes it from the page's own
             text, which is the one fact a paragraph cannot state.
 
@@ -150,7 +150,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING, and is filed under `""`.
     # !! AN EDGE BELONGS TO THE PLACE BEFORE IT, which is what it is KEYED BY.
     # Roy, 2026-08-21, ruling on what happens to leading when a paragraph goes
-    # away: *"the live first key foliation lives, the drop first key dies. The
+    # away: *"the live first key cues lives, the drop first key dies. The
     # live one gets a new key that takes the new end and beginning."*
     #
     # !! IT IS ONE RULE FOR BOTH DIRECTIONS, which is why it is a lookup rather
@@ -178,13 +178,13 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # named a place it no longer separated.
     edges = page.leading
     previous = ""
-    for folio in page.foliation.reading:
-        prose = held.get(folio, [])
-        # ! ASKED OF THE FOLIO DIRECTLY. `series_of` reads an ADDRESS and
+    for cue in page.cues.reading:
+        prose = held.get(cue, [])
+        # ! ASKED OF THE CUE DIRECTLY. `series_of` reads an ADDRESS and
         # returns its first character, so building one here to take that
         # character back off is the same test twice -- and it is spelled the
         # direct way at five other sites in `galley` and `page`.
-        beside_code = folio.startswith(ON)
+        beside_code = cue.startswith(ON)
         # !! EVERY PLACE ADVANCES `previous`, INCLUDING ONE THAT SETS NOTHING,
         # and that is what makes this walk exact. An empty place is still a
         # place -- it is a position a verdict can cite -- so skipping it here
@@ -209,7 +209,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # compositor, whose whole charter is to decide NOTHING. `galley.reset`
         # empties the leading when it empties the paragraph.
         out.extend(held.get(edges.get(previous, ""), []))
-        previous = folio
+        previous = cue
         # ! A `c` IS NEVER EMPTY IN THIS SENSE -- it sets its line of code
         # whether or not anything sits beside it.
         if not prose and not beside_code:
@@ -219,7 +219,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
             # sits beside it. Its first line is the code and the room together;
             # a comment opened in that room and closed on a later line owns
             # those lines outright, because no code is on them.
-            code = page.foliation.anchor_of(folio)
+            code = page.cues.anchor_of(cue)
             out.append(f"{code}{prose[0] if prose else ''}")
             out.extend(prose[1:])
             continue
@@ -228,7 +228,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # place, which the loop cannot reach -- it sets the space BEFORE each place,
     # so the last place's own edge is still owed when the walk runs out.
     out.extend(held.get(edges.get(previous, ""), []))
-    if not page.foliation.reading and page.text:
+    if not page.cues.reading and page.text:
         # !! A PAGE WITH NO PLACES OVER A FILE WITH TEXT IS NOT AN EMPTY PAGE --
         # it is a page that was never built, and setting it would EMPTY THE FILE.
         # `page_for` skips the walk when a reader refuses the source, so
@@ -364,7 +364,7 @@ def main(argv: list[str] | None = None) -> int:
     # nowhere. MEASURED 2026-08-22, while `identity` and `lossless` still took
     # the `rel` it fed -- `identity(p)` and `identity(p, rel="totally/other.py")`
     # both answered `None`, and they had to: `rel` set only the PATH half of an
-    # address, `_held` keys on the folio half, and `set_page` never reads
+    # address, `_held` keys on the cue half, and `set_page` never reads
     # `page.path`. A documented flag that cannot change an answer is a false
     # statement where a reader looks first, so the flag went and the parameter
     # went after it.
