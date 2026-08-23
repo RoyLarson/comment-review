@@ -45,6 +45,7 @@ import exceptions  # noqa: E402  -- path shim must run first
 # ! THE TUPLE IS IMPORTED, never spelled here, so no `except` clause in this
 # file holds a tuple LITERAL. `exceptions.py` carries the reason once.
 from lexer import (  # noqa: E402  -- path shim must run first
+    DOC_ANCHORS,
     Language,
     language_for,
     paragraphs_lexical,
@@ -54,8 +55,6 @@ from repo import (  # noqa: E402  -- path shim must run first
     git_ls_files,
     read_raw,
 )
-
-DOC_ANCHORS = (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 
 def _blank_docstrings(tree: ast.AST) -> ast.AST:

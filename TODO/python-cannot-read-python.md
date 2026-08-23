@@ -9,6 +9,19 @@ Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interprete
           parse: 'we can't use python to parse python files ... that means using the ast
           to bootstrap the pieces fails on new python syntax. This puts python right
           next to the other languages in the lexer')
+Evidence: 2026-08-22 — THE ONE FILE THAT WILL NOT ROUND TRIP IS THE ARGUMENT FOR THIS
+          TODO. Roy, 2026-08-22: *"it actually is the thing that puts python in the
+          lexer category. They will get lost without it. Your numpy tests prove it."*
+          MEASURED: of 3,228 files across ten languages, exactly ONE differs --
+          `corpora/numpy/numpy/exceptions.py`, which ends `"""  # NOQA` and then `pass`.
+          The docstring's CLOSING QUOTE shares its line with a comment, so the AST hands
+          over a docstring node with an `end_lineno` while the comment arrives from the
+          tokenizer as a separate token, and reassembling the two puts one line's
+          content on the next. ! A CHARACTER READER HAS NO SUCH SEAM: it meets the quote
+          and the comment in order, on one line, as text. ! So the single strongest
+          check in this tree fails on precisely the shape the AST tier creates and the
+          lexical tier does not -- which is evidence for the rework rather than a defect
+          beside it.
 ```
 
 ## Objective

@@ -141,7 +141,7 @@ class TestEveryPlaceRecordsTheTriggerItFiredAt(unittest.TestCase):
 
         !! THE TWO SENTINELS ARE THE CASES THE ANCHOR CANNOT ANSWER, and they
         are exactly the ones that needed arithmetic before. `MODULE` is `a0` and
-        `f0`; `EOF` is the closing gap, whose anchor is the LAST LINE OF CODE --
+        `f0`; `EOF` is the closing gap, whose anchor is `<eof>` --
         a different trigger's line, because it has none below it -- and the file
         foot, which answers `<module>` from the other end of the file.
         """

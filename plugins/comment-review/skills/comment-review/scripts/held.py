@@ -151,11 +151,14 @@ def load_report(
         # down with a traceback.
         if not isinstance(claim, dict):
             claim = {}
+        # ! ONE READ OF ONE FIELD. It was rendered twice, four characters apart,
+        # for the same record.
+        verdict = str(rec.get("verdict"))
         findings.append(
             Finding(
                 reviewer=reviewer,
-                verdict=str(rec.get("verdict")),
-                claim=claim_text(str(rec.get("verdict")), claim),
+                verdict=verdict,
+                claim=claim_text(verdict, claim),
                 reason=str(rec.get("reason") or ""),
                 # !! `filled` ON BOTH HALVES, because an f-string renders a
                 # non-string into prose and the result is SEARCHED FOR. Measured

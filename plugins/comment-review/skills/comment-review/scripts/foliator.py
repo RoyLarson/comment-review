@@ -337,10 +337,12 @@ class Foliator:
     #: the file's foot, `code.index(line) + 1` for the rest -- and each was a
     #: GUESS about which trigger a place had come from.
     #:
-    #: ! THE ANCHOR CANNOT ANSWER IT, which is why the guesses were needed. The
-    #: closing gap is emitted at EOF and anchored to the LAST LINE OF CODE, a
-    #: different trigger; `f0` and `f1` both answer `<module>` from opposite
-    #: ends of the file. Recording the trigger is the only thing that
+    #: ! THE ANCHOR CANNOT ANSWER IT, which is why the guesses were needed.
+    #: TWO IDENTICAL LINES OF CODE ARE TWO TRIGGERS WITH ONE ANCHOR -- Roy,
+    #: 2026-08-22: *"looking up anchor names returns many potential foliation
+    #: points because lines of code are not unique."* And a sentinel is shared
+    #: across series: `a0` and `f0` both answer `<module>`, the closing gap and
+    #: `f1` both answer `<eof>`. Recording the trigger is the only thing that
     #: distinguishes them without inference.
     trigger: dict[str, int] = field(default_factory=dict)
     _step: int = 0
@@ -582,10 +584,10 @@ class Foliation:
             everything  -> code.index(anchor_line) + 1
 
         ! EACH WAS A GUESS ABOUT WHICH TRIGGER A PLACE CAME FROM, and the anchor
-        could not settle it: the closing gap is emitted at EOF and anchored to
-        the LAST LINE OF CODE -- a different trigger -- while `f0` and `f1` both
-        answer `<module>` from opposite ends of the file. `Foliator.emit` records
-        the trigger, so this is a lookup.
+        cannot settle it: two identical lines of code are two triggers with one
+        anchor, and a sentinel is shared across series -- `a0` and `f0` both
+        answer `<module>`, the closing gap and `f1` both answer `<eof>`.
+        `Foliator.emit` records the trigger, so this is a lookup.
 
         ! THE VALUES ARE UNCHANGED, and that is checkable: 0 for the MODULE,
         1..N for the lines of code, N+1 for EOF, which is what the three
@@ -765,9 +767,9 @@ def foliate(
     # !! EVERY EMIT NAMES THE TRIGGER IT FIRED AT, and `at` is that position --
     # 0 the MODULE, 1..N the lines of code, N+1 the EOF. `foliate` knew it and
     # threw it away until 2026-08-22, leaving `anchor_num` to guess afterwards.
-    # ! It cannot be recovered from the anchor: the closing gap fires at EOF and
-    # records the LAST LINE OF CODE, and both `f` places record `<module>` from
-    # opposite ends of the file.
+    # ! It cannot be recovered from the anchor: two identical lines of code are
+    # two triggers with one anchor, and both sentinels are shared -- `a0` with
+    # `f0` at the head, the closing gap with `f1` at the foot.
     # ! THE FOLIATION'S OWN LIST, not a second call. `out.triggers` IS what
     # `triggers()` returned above, and building it twice is the drift the
     # function's own docstring forbids -- *"ONE LIST, SO THE FOUR SERIES CANNOT

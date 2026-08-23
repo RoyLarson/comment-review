@@ -7,6 +7,16 @@ Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, on adding a token-type enum: the lexer is not
           doing lexing, it is parsing a tokenized parser and that is different)
+Known:    2026-08-22 — IT MOSTLY WORKS, AND THE EXCEPTION IS NAMED. Roy, 2026-08-22:
+          *"the parser-lexer will get settled later, it mostly works now except for
+          comments after docstrings which the ast separates."* ! That is the shape to
+          test against when the rename or the rework is taken up: a comment sitting
+          BELOW a docstring is on the far side of a boundary the AST draws and a
+          character reader would not -- the docstring is a node with an end, and the
+          comment is not in the tree at all, so the two arrive from different sources
+          and their adjacency has to be reconstructed. ! A lexical reader has the
+          opposite problem and not this one: it sees both as runs of characters in
+          order.
 ```
 
 ## Objective

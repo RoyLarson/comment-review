@@ -306,6 +306,26 @@ NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
 
 
+def declared_in_source_order(tree: ast.AST) -> list:
+    """Every declaration in this tree, in the order a reader meets it.
+
+    !! SOURCE ORDER, WHICH `ast.walk` DOES NOT GIVE. The walk is breadth first,
+    so a method nested in a class comes back after every top-level declaration
+    rather than where it sits on the page. `lineno` is the order down the page,
+    and it is the only one a human can check.
+
+    ! IT IS ONE FUNCTION BECAUSE THE ORDINALS MUST AGREE. The same sort stood in
+    two places, under a comment promising they were *"the same sort, so the
+    ordinals line up by construction"* -- which is a claim about two copies, and
+    the kind that stops being true without anything failing. One call site each
+    now, and the agreement is structural.
+    """
+    return sorted(
+        (n for n in ast.walk(tree) if isinstance(n, NAMED_DEFS)),
+        key=lambda n: n.lineno,
+    )
+
+
 # !! A sentinel that CANNOT be a line number. `0` is one less than line 1, so
 # `paragraph.start == trailing_end[0] + 1` was true for every comment opening a
 # file -- stamping `continues-a-trailing-comment` with no trailing comment
@@ -1662,12 +1682,7 @@ def declarations(
             # ! A file the parser refused declares nothing this can state. Its
             # one `unparsed` paragraph reports the refusal.
             return []
-        # ! SOURCE ORDER, which `ast.walk` does not give -- the same sort
-        # `paragraphs_stdlib` makes, so the ordinals line up by construction.
-        declared = sorted(
-            (n for n in ast.walk(tree) if isinstance(n, NAMED_DEFS)),
-            key=lambda n: n.lineno,
-        )
+        declared = declared_in_source_order(tree)
         # ! ABOVE is False for every entry here: this is the `doc_inside`
         # path, and the row that sent us down it is the statement.
         out: list[tuple[int, int, bool]] = []
@@ -1855,14 +1870,7 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
         )
         return out
 
-    # !! SOURCE ORDER, WHICH `ast.walk` DOES NOT GIVE. The walk is breadth
-    # first, so a method nested in a class comes back after every top-level
-    # declaration rather than where a reader meets it. `lineno` is the order
-    # down the page, and it is the only one a human can check.
-    declared = sorted(
-        (n for n in ast.walk(tree) if isinstance(n, NAMED_DEFS)),
-        key=lambda n: n.lineno,
-    )
+    declared = declared_in_source_order(tree)
     # `id()`, because two declarations can be equal as AST nodes and are never
     # the same declaration. Module is 0; its declarations count from 1.
     ordinal = {id(n): i for i, n in enumerate(declared, 1)}

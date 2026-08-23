@@ -455,16 +455,15 @@ def _report(args: argparse.Namespace) -> int:
             # ! The trigger is `owes_change` -- the table's own word for "this
             # verdict proposes an EDIT" -- not a verdict NAME. `clean` and
             # `query` propose none and are left exactly as they were.
-            proposes = VERDICTS.get(f.verdict)
             # !! THE SERIES, NOT THE ANNOTATION. Only a FILLED front-matter
             # run carries the annotation, so an `add` on the EMPTY place --
             # proposing the licence header that place exists for -- reached
             # the galley without the human ever being asked. Measured
             # 2026-08-20 on a file with no front matter: `f0` is
             # `dark-matter`, annotations `[]`, and the guard did not fire.
-            if series_of(held) == COVERS and (
-                proposes is not None and proposes.owes_change
-            ):
+            # ! ASKED THROUGH `_is`, which is the table's own reader and
+            # answers False for an unknown verdict rather than raising.
+            if series_of(held) == COVERS and _is(f, "owes_change"):
                 print(
                     f"  {f.address} {f.reviewer}: {f.verdict!r} on FRONT MATTER"
                     " (a licence header, shebang or coding line) -- turned into"
