@@ -70,6 +70,35 @@ edit. Renaming something that already covers its job spends that for nothing.
 something and the fit is bad. `CLAUDE.md` carries the method under *"it supplies categories, not
 only names"*.
 
+## Bringing the marks together -- the words, and what each one would name
+
+!! **RECORDED FOR REFERENCE, NOT ADOPTED.** Raised by Roy, 2026-08-22, on the `verdicts.py`
+misnomer: *"Who in publishing brings together all of the different marks and joins them together.
+I think that is the editor actually."* The trade splits that sentence into three things, and this
+system has a different problem with each.
+
+| publishing's word | what it names there | ours |
+| --- | --- | --- |
+| **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | `verdicts.py`, which the shipped tree calls **the join** at 43 sites and which rules on nothing by design. `join` is a database word |
+| **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **unnamed.** It is what `verdicts.py` prints |
+| **editor** | who reads the master proof and decides what stands | **unnamed, and there is no module.** Stage 5 APPLY, performed by the task agent |
+
+! **THE THREE ARE NOT ONE JOB, WHICH IS WHY ONE WORD WOULD NOT FIT.** Collating is mechanical and
+answerable by a program; ruling is not. `verdicts.py` checks citations, reports contradictions and
+names coverage gaps, and hands every conflict up -- so whatever it is called, it is not the editor.
+
+!! **BOTH CANDIDATE WORDS ARE ALREADY SPOKEN FOR HERE, AND THAT IS THE RULING NEEDED FIRST:**
+
+- **`COLLATE` is stage 2** -- the census stacking pages. That is gathering the copy, not collating
+  marks; the two senses do not overlap in what they operate on, which is the test this file
+  states for allowed polysemy, but nothing declares the split today.
+- **`editorial role` is one of the four reviewers.** Calling the joiner `editor` puts two
+  different jobs one syllable apart. In the trade the four are the hands that MARK -- a copy
+  editor, a proofreader -- and only one hand rules.
+
+! Tracked in [`TODO/verdicts-is-the-join.md`](../TODO/verdicts-is-the-join.md). Nothing is
+renamed until those two are settled.
+
 ## ownership -- settled, and deliberately not emitted
 
 **The relation: which anchor best justifies holding a comment.** `anchor` is the code position,
