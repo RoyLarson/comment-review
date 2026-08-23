@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (91)
+### open  (89)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -209,7 +209,6 @@ that changed a published name or rule:
 | [census-degrades-silently](census-degrades-silently.md) | session | — | 1/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | session | — | 9/17 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
-| [front-matter-restamps](front-matter-restamps.md) | session | — | 0/7 | Adding a module docstring restamps the comment run above it as front matter |
 | [census-owns-addressing](census-owns-addressing.md) | session | — | 4/5 | The census owns addressing, and four modules share one subject between them |
 | [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
@@ -228,13 +227,11 @@ that changed a published name or rule:
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | session | — | 0/6 | every one re-derivable by a command, and every one wrong |
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | session | — | 0/10 | each passes in the buggy state its own comment forbids |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
-| [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | — | 1/7 | a licence at the bottom of a file belongs to the file, not to the last gap |
 | [move-across-an-uncued-file](move-across-an-uncued-file.md) | session | — | 4/6 | the address form spans files; the census does not |
 | [closing-line-deletes-code](closing-line-deletes-code.md) | session | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | Roy | — | 0/4 | v1.x wants a concrete versioning system on everything that ships |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | session | — | 0/3 | addresser --check prints SHARED and exits 0 |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | session | yes | 0/17 | Outside Python the `a` place is emitted and never filled |
-| [front-matter-protection-is-python-only](front-matter-protection-is-python-only.md) | session | — | 0/7 | mark_matter cannot fire outside Python, so a licence header is editable work |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | session | — | 0/3 | A UTF-8 BOM is censused as a line of code |
 | [strip-strings-runs-before-the-opener](strip-strings-runs-before-the-opener.md) | session | — | 0/4 | A quote inside a block comment blanks the comment's own closer |
 | [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | session | — | 0/5 | A licence header and a doc comment become one paragraph with one address |
@@ -266,6 +263,7 @@ that changed a published name or rule:
 | [not-every-line-has-an-address](not-every-line-has-an-address.md) | comment-review | yes | 0/8 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | comment-review | yes | 0/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [retired-word-in-a-quote](retired-word-in-a-quote.md) | comment-review | yes | 0/5 | folio cannot join RETIRED without exempting the five core modules whole, because each quotes a ruling made when the word was current |
+| [matter-misses-two-languages](matter-misses-two-languages.md) | comment-review | yes | 0/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 
 ### in-progress  (5)
 
@@ -346,3 +344,6 @@ the reason is inside the file.
 | [second-key-stale-on-drop](completed/second-key-stale-on-drop.md) | Ruled and cut the same morning: the second key is DELETED, so it cannot go stale -- Page.leading is dict[str, str], keyed by the place a run of blanks follows |
 | [foliation-knows-about-lines](completed/foliation-knows-about-lines.md) | Cues is 3 fields -- addressers, walk, reading. A place records the trigger it was emitted at, so no position is reconstructed; d left SERIES as a symbol; lines and _code were both views of the walk |
 | [leaf-means-two-things](completed/leaf-means-two-things.md) | The binder model dissolved it: no leaf in the picture, folio became cue, and the shipped tree holds zero foli* -- the corrections and the rename landed in ff1cab5..ba5eb32 |
+| [front-matter-restamps](completed/front-matter-restamps.md) | SOLVED by the lexer typing matter. The rule is now 'the run starts on line 1', not 'it ends before the module docstring', so it no longer depends on what follows. MEASURED 2026-08-23: a top-of-file comment run is `f0 kind=matter` both before and after an `a0` edit fills the module docstring -- the annotation is stable under this tool's own edits, which is what the file existed to get |
+| [back-matter-is-a-gaps-comment](completed/back-matter-is-a-gaps-comment.md) | SOLVED by the `f` series emitting at both ends. MEASURED 2026-08-23: a trailing licence or modeline lands in `f1 kind=matter` -- Python AND Rust -- not in the closing gap. The RECOGNITION half the file said was missing is the lexer's `run[-1] == last line` clause, and `file_places()` returns head and foot |
+| [front-matter-protection-is-python-only-SUPERSEDED](completed/front-matter-protection-is-python-only-SUPERSEDED.md) | SUPERSEDED by `matter-misses-two-languages`: the title is false as of 2026-08-23. MEASURED -- an identical licence header types `f0 kind=matter` in C as well as Python, so it is not Python-only. Rust and TypeScript still fail, for two causes neither of which is the positional `mark_matter` this file was written about |
