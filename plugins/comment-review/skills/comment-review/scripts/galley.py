@@ -339,7 +339,9 @@ def main() -> int:
     #
     # ! REFUSED WHOLE. Nothing under `--repo` is touched by this module, so a
     # run that could touch it is not a run with some bad files in it.
-    if out == repo or out.is_relative_to(repo) or repo.is_relative_to(out):
+    # ! `is_relative_to` IS TRUE OF A PATH AND ITSELF, so the equality test
+    # that stood here first was covered by the one beside it.
+    if out.is_relative_to(repo) or repo.is_relative_to(out):
         print(
             f"REFUSED: --out {out} overlaps --repo {repo}, so a galley would be"
             " written over the files under review -- no galley written"

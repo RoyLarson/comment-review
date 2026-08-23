@@ -614,17 +614,15 @@ def address_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     entry = entry_for(f.address, paragraphs)
     if entry is None:
         return f"ADDRESS {f.address!r} is not in the census"
-    # !! ONE FORM NOW. The line range this compared was deprecated 2026-08-18 --
-    # it is true of one file state, and this tool edits prose. The stable
-    # address has no short form, so the one-line tolerance that cost 268
-    # refusals in a single run has nothing left to forgive.
-    want = str(entry.get("address", ""))
-    ok = {want}
-    got = f.address.replace("\\", "/").strip()
-    if not got:
-        return f"a record carries no ADDRESS -- write `{want}`"
-    if got not in ok:
-        return f"address is {got!r}, the census says {want!r}"
+    # !! THERE IS NOTHING LEFT TO COMPARE, and the comparison that stood here
+    # could not fire. `entry_for` matches on `entry["address"] == f.address`, so
+    # reaching this line already proves the two are equal byte for byte -- the
+    # normalised copy differed only if the address held a backslash or outer
+    # whitespace, and such an address matches no entry, so `entry` is None above.
+    # ! What it was FOR is gone with the short form it forgave: a line range was
+    # deprecated 2026-08-18, and the stable address has no short form, so the
+    # one-line tolerance that cost 268 refusals in a single run has nothing left
+    # to forgive.
     # !! THE TEXT IS NO LONGER COMPARED, and it must not be. `original` is
     # filled from the census's `raw_lines` by `_report`, and `text` is the
     # census's own normalised copy of the same paragraph -- so the comparison put

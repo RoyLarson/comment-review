@@ -58,7 +58,7 @@ if str(REPO_ROOT) not in sys.path:
 
 import constants  # noqa: E402
 import exceptions  # noqa: E402  -- path shim must run first
-from foliator import ON, folio_of, series_of  # noqa: E402
+from foliator import ON, folio_of  # noqa: E402
 
 # !! THE OTHER IMPORTER OF THE ROWS -- see `language.py`. The lexer reads a file
 # into paragraphs and this sets a page back into one; they are the only two
@@ -180,7 +180,11 @@ def set_page(page: Page, newline: str | None = None) -> str:
     previous = ""
     for folio in page.foliation.reading:
         prose = held.get(folio, [])
-        beside_code = series_of({"address": f"@{folio}"}) == ON
+        # ! ASKED OF THE FOLIO DIRECTLY. `series_of` reads an ADDRESS and
+        # returns its first character, so building one here to take that
+        # character back off is the same test twice -- and it is spelled the
+        # direct way at five other sites in `galley` and `page`.
+        beside_code = folio.startswith(ON)
         # !! EVERY PLACE ADVANCES `previous`, INCLUDING ONE THAT SETS NOTHING,
         # and that is what makes this walk exact. An empty place is still a
         # place -- it is a position a verdict can cite -- so skipping it here

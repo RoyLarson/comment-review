@@ -258,8 +258,6 @@ def _sibling(
 
 def main() -> int:
     """Prove every named path, and report what could not be proven."""
-    # UTF-8 with replacement, so an em-dash in someone's docstring still prints
-    # on a console whose encoding lacks it.
     constants.utf8_console()
 
     ap = argparse.ArgumentParser(description=__doc__)

@@ -786,7 +786,12 @@ def foliate(
                 # ! THE HEAD OF THE PAGE, in the order a reader meets it: the
                 # file's own matter, then the module's own documentation.
                 out.reading.append(f.emit(MODULE, at))
-                if documented:
+                # ! ONE TEST OF ONE CONDITION. `documented` was assigned from
+                # `module_insert is not None` above and then tested for truth
+                # here, which is the same question asked twice -- `emit` returns
+                # `a0` at the least, so it is never falsy when the language has
+                # an `a` series.
+                if module_insert is not None:
                     out.reading.append(documented)
                 # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
                 # number. It has no gap above it and no line to sit beside. Roy,

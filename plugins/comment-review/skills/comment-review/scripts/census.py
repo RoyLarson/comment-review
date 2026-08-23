@@ -254,8 +254,6 @@ def _not_censused(files: list[Path], unreadable: list[str]) -> str:
 
 def main() -> int:
     """Build the census, resolve its annotations, print both."""
-    # UTF-8 with replacement, so an em-dash in someone's docstring still prints
-    # on a console whose encoding lacks it.
     constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="*")
@@ -387,8 +385,6 @@ def _report(args: argparse.Namespace) -> int:
         except Exception as e:  # a parse failure is REPORTED, as a gap
             unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
             continue
-        for b in got:
-            b.path = rel
         census.extend(got)
 
     for b in census:

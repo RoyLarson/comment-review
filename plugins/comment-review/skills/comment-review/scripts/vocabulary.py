@@ -85,11 +85,6 @@ def main() -> int:
     # corrupted every dash and exited 0, and a PowerShell redirect wrote UTF-16
     # that read as a binary file. The dispatch went out with three roles
     # instead of four.
-    #
-    # ! What it defends has CHANGED. That run corrupted this file's own em
-    # dashes; since the tree went ASCII there are none, and `vocabulary.toml`
-    # holds no character above U+007F. The guard now stands against a
-    # definition someone else adds, not against the text shipped here.
     constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--reviewer", choices=[r.value for r in Reviewer])
