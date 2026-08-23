@@ -242,7 +242,7 @@ that changed a published name or rule:
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | session | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | session | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | session | — | 0/11 | one stem, four jobs -- and the vocabulary sweep cannot see it |
-| [python-cannot-read-python](python-cannot-read-python.md) | session | yes | 0/30 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
+| [python-cannot-read-python](python-cannot-read-python.md) | session | yes | 0/31 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | session | yes | 0/10 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | session | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | session | — | 0/11 | the closing quote and the comment beside it are both stored, so the file gains a line |

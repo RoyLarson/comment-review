@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 30 tasks done
+Progress: 0 of 31 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -236,3 +236,19 @@ The AST reader gets older every release while the files get newer.
       check that would catch it is the check that abstains. ! WHATEVER REPLACES
       THE AST MUST ANSWER `where does this body start`, or the `a` series has to
       stop being settable for Python.
+- [ ] THE CHECK FOR THE STATEFUL READER, so the fix has something to be measured
+      against rather than reasoned about. `_strip_strings` re-initialises its
+      quote state on EVERY PHYSICAL LINE, so no literal crosses a newline and the
+      INTERIOR of a multi-line literal is censused as prose. MEASURED 2026-08-22,
+      three languages, three lines each -- a Java text block, a Go raw string, a
+      C# verbatim string, each holding one line that begins with that language's
+      comment marker. Every one came back as `b1 comment`, handed to four
+      reviewers as prose they may rewrite, INTO THE MIDDLE OF A STRING. The
+      reviewer's sweep found the same leak in go, cpp, csharp, java, kotlin,
+      swift, js, ts, ruby, shell, lua and toml -- twelve of eighteen rows, all at
+      exit 0. ! WHEN THE READER BECOMES STATEFUL, THIS IS THE CHECK: none of those
+      files may yield a prose paragraph whose text is the literal's interior. !
+      AND `spanning_quotes` DOES NOT COVER IT. That field is read by exactly ONE
+      consumer, `prove_unchanged`, which REFUSES such a file -- so the 7b proof is
+      safe and the CENSUS is not. The refusal protects the proof, never the
+      review, and nothing today protects the review.
