@@ -20,6 +20,20 @@ no cross-section coupling, and a citation never has to be reassigned.
 
 **Citing an entry:** `decision-log.md TOPIC: #N`, where TOPIC is the exact `##` heading text.
 
+!! **RESOLVING A CONFLICT HERE: ACCEPT BOTH SIDES, THEN RENUMBER. There is no third option, and
+that is the reason for the rule.** Roy, 2026-08-23, on why he made it: *"I could see this
+happening alot. It also makes merging relatively easy because both sides get accepted everytime
+and then get renumbered."* Two branches each appending to the same section both wrote a `#N`;
+neither is wrong and neither is dropped, so the resolution is mechanical -- keep both entries in
+whatever order, then give the second the next unused number. **No merge of this file ever asks
+which ruling survives**, which is the failure a shared log invites: a decision quietly lost
+because a conflict looked like a choice.
+
+! **What the renumbering costs is a CITATION WRITTEN ON A BRANCH.** *"Never reused, reordered or
+reassigned"* holds for an entry already on `main`; an entry still on a branch can move when it
+lands. So cite a number from a branch entry only in that branch's own files, and re-check any
+`TOPIC: #N` written the same day the entry was.
+
 ! **This is the audit trail, not a second copy of the truth.** What is true NOW belongs in the
 doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabulary.md),
 [`gates.md`](gates.md) -- and in the code. This file says only what changed and on what day.
