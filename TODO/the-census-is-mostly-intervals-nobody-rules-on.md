@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 13 tasks done
+Progress: 2 of 20 tasks done
 Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
 Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -12,6 +12,13 @@ Reopened: 2026-08-19 — --filtered stopped filtering when the margin kind arriv
 Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads 'Roy ruled the
            design 2026-08-18; the rest is build'. The flag means a DECISION is owed;
            work still remaining is what the unchecked boxes already say.
+Proposed: 2026-08-21 — 2026-08-21 -- a page rendering with the address in the margin is
+          proposed here and measured across 26 files by `scripts/render_page.py`. It is
+          a candidate for what the retrieval tool RETURNS, so it is one decision with
+          the 2026-08-18 ruling above rather than a second one. Roy deferred it. ! This
+          note cited a plan box until the same day, which is the thing the
+          one-directional rule forbids -- the box changed state within the hour and the
+          citation was stale on arrival.
 ```
 
 ## Objective
@@ -175,7 +182,7 @@ not.** The change is to filter the census the same way and give the reviewer som
       -`**, one per code line, zero information, four times per run. ! The file's
       own cost table (1,120 blocks / 131,353 bytes) is a rotted measurement; re-
       measure with it. **Collapse on `HOLDS_NO_PROSE`, not on one kind.**
-- [ ] **A reviewer is told to run `&lt;skill&gt;/scripts/addresser.py` and nothing
+- [ ] **A reviewer is told to run `&lt;skill&gt;/scripts/foliator.py` and nothing
       resolves `&lt;skill&gt;`.** The packet carries REPO ROOT, CENSUS, LOOKUP
       CENSUS and REVIEWER FILES -- and REVIEWER FILES, the only section holding
       plugin paths, is explicitly withheld from reviewers. SKILL.md insists *"An
@@ -188,6 +195,52 @@ not.** The change is to filter the census the same way and give the reviewer som
       never prints -- and never names `margin`, which is most of the rows. ! The
       listing also ships no column legend; the only one is in SKILL.md, which
       reviewers never see, and it is stale.
+- [ ] * PROPOSAL, NOT YET RULED -- the page renders as THE FILE WITH ITS ADDRESS
+      IN THE MARGIN. Roy, 2026-08-21: *"I might be convinced that the addressing
+      per anchor/line would be useful for the agents ... I think this is a
+      valuable concept."* ! He also deferred it: *"this doesn't need my attention
+      just yet"*, so `Requires-Roy` stays FALSE -- it was cleared 2026-08-19 for a
+      stated reason and a proposal awaiting a look is not a decision owed today.
+- [ ] MEASURED 2026-08-21, one file -- `scripts/check_vocabulary.py`, 328 lines
+      and 303 places: the row list that ships today is 25,950 bytes; the same page
+      with its address in the margin is 21,535; annotating only the 24 places that
+      hold prose and listing the other 279 underneath is 19,242; the file itself
+      is 15,076. !! THE MARGIN RENDERING IS 17% SMALLER THAN WHAT SHIPS AND SHOWS
+      STRICTLY MORE -- the whole file, and every place where it sits.
+- [ ] ! THE MEASUREMENT IS ONE PYTHON FILE THAT IS 40% DOCSTRING, and no non-
+      Python file was rendered at all. A file with little prose moves every ratio
+      above. Re-measure across languages before any of these numbers is used to
+      decide.
+- [ ] !! THE RECORDS BELONG ON THE PAGE, and this is the half the rendering above
+      does not have. Roy, 2026-08-21: *"the records though also need to be
+      potentially explicitly shown or retrievable. Because they are supposed to
+      mark on the records what is supposed to happen."* A reviewer MARKS a
+      manuscript; a page that shows addresses but not the marks against them is a
+      proof with no editorial marks on it.
+- [ ] ! IT IS A DISPLAY THEY CALL UP, WHICH IS THE TOOL THIS TODO ALREADY RULED.
+      Roy, 2026-08-18: *"a tool retrieves the correct spot from the enumerated
+      spots, the agents are sent only the FILTERED places, and they call the tool
+      when they need a place outside the filter."* The margin rendering is a
+      candidate for what that tool RETURNS, not necessarily for what a reviewer is
+      handed up front -- so it composes with the filtered handout rather than
+      replacing it.
+- [ ] ! WHAT IS STILL OPEN in the proposal, none of it ruled: whether an EMPTY
+      place gets a row in position (its value is entirely positional -- an `add`
+      cites it) or is listed under the page; whether the page is text or
+      structured; and the margin's own format, which was invented for the mock-up
+      and matches nothing in the tree.
+- [ ] !! THE ONE-FILE NUMBER IS SUPERSEDED, and the renderer now lives in the tree
+      as `scripts/render_page.py` so nobody re-derives it. MEASURED 2026-08-21
+      over 26 files -- every shipped script, this repo's `scripts/`, plus
+      `corpora/cpython/Objects/listobject.c` and
+      `corpora/sentry/eslint.config.ts`: rows 1,635,544 bytes, margin 1,088,304
+      (-33%, smaller on 23 of 26), prose-only 1,029,443 (-37%). ! THE TWO FORMATS
+      COST DIFFERENT THINGS and that predicts where each wins: ROWS pays per
+      PLACE, MARGIN pays per LINE. Code-heavy files have an empty place between
+      every pair of statements, each a row with its anchor repeated --
+      listobject.c -50%, eslint.config.ts -51%. The three files the margin LOSES
+      on are prose-dense with little code: foliator.py +7%, desk.py +9%, page.py
+      level.
 
 ## Related
 

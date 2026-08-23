@@ -30,8 +30,9 @@ started, which has been measured failing, and with the paths already in the
 packet the fallback -- four general-purpose agents handed their reviewer file and
 the brief -- is a substitution rather than an improvisation.
 
-Three sections carry an answer a machine can settle, and they ARE checked:
-`REPO ROOT`, `CENSUS` and each `REVIEWER FILES` entry, against the filesystem.
+Four sections carry an answer a machine can settle, and they ARE checked -- the
+whole of `PATH_SECTIONS`: `REPO ROOT`, `CENSUS`, `LOOKUP CENSUS` and each
+`REVIEWER FILES` entry, against the filesystem.
 Presence alone let a packet whose every hint was replaced with `x` report itself
 complete. The rest carry prose no oracle settles, and this reports nothing about
 them.
@@ -41,6 +42,24 @@ import argparse
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+# !! ITS FIRST SIBLING IMPORT, and the ruling that permitted it. This module was
+# stdlib-only, which made the console guard a copy it could not share. Roy,
+# 2026-08-22: *"the guard lives in a constants.py file. The test verifies no
+# readers or printers are missing the guard."* ! `constants` imports nothing
+# from this package, so taking it acquires no other dependency.
+import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
+
+#: The sections whose answers are PATHS, checked against the filesystem.
+#:
+#: ! `LOOKUP CENSUS` IS ONE OF THEM. It is the census a reviewer runs
+#: `foliator.py --anchor` against, so an unresolvable path there fails at the
+#: moment a reviewer needs a place the filtered census collapsed.
+#: ! Everything else in `REQUIRED` is prose no check can settle.
+PATH_SECTIONS = ("REPO ROOT", "CENSUS", "LOOKUP CENSUS", "REVIEWER FILES")
 
 REQUIRED = (
     "REPO ROOT",
@@ -84,12 +103,12 @@ HINTS = {
     # !! TWO CENSUS PATHS, because the reviewer READS one and QUERIES the other.
     # `CENSUS` is filtered: it collapses each run of empty intervals to a single
     # line, so the gaps inside a run are no longer numbered in front of the
-    # reviewer. `locator.py` answers for those, and it answers from the FULL
+    # reviewer. `foliator.py --anchor` names those, and it answers from the FULL
     # census -- so a reviewer given only the filtered path can be told a lookup
     # exists and have no file to run it against.
     "LOOKUP CENSUS": (
-        "absolute path to the FULL census JSON -- what `locator.py` reads to name"
-        " a spot the filtered census collapsed"
+        "absolute path to the FULL census JSON -- what `foliator.py --anchor`"
+        " reads to name a spot the filtered census collapsed"
     ),
     "REVIEWER FILES": (
         "absolute path per reviewer, the brief, and the compact + review agents"
@@ -109,12 +128,17 @@ SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
 # because neither line alone starts with "<!--".
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 
-READ_ERRORS = (OSError, UnicodeDecodeError)
 # ! Bound to a NAME so no `except` clause here holds a tuple LITERAL -- the
-# same rule `repo.py` carries in full. ValueError is in this one because
-# `Path.exists()` raises it (not OSError) on a candidate holding a NUL byte,
-# and a packet is arbitrary text a person typed.
-PATH_ERRORS = (OSError, ValueError)
+# same rule `exceptions.py` carries in full.
+#
+# !! `ValueError` WAS HERE ON A REASON THAT DOES NOT HOLD. The comment beside it
+# read *"ValueError is in this one because `Path.exists()` raises it (not
+# OSError) on a candidate holding a NUL byte, and a packet is arbitrary text a
+# person typed."* MEASURED 2026-08-22 on the floor interpreter: a path holding a
+# NUL answers `False` from `exists()` and raises nothing, because 3.11's
+# `pathlib` swallows the `ValueError` itself. So the member was unreachable and
+# the sentence that justified it was false; both are gone.
+PATH_ERRORS = (OSError,)
 
 # A leading list marker, so `- /abs/path` and `1. /abs/path` name the path
 # rather than the bullet.
@@ -261,32 +285,20 @@ def invalid_answers(text: str) -> list[str]:
     """
     bodies = section_bodies(text)
     bad: list[str] = []
-    for body in bodies.get("REPO ROOT", []):
-        for line in _answer_lines(body):
-            if not any(_resolves(c) for c in _path_candidates(line)):
-                bad.append(f"REPO ROOT: {line!r} is not an absolute path that exists")
-    # ! Both census paths, checked the same way. `LOOKUP CENSUS` is the one a
-    # reviewer runs `locator.py` against, so an unchecked path there fails at
-    # the moment a reviewer needs a spot the filtered census collapsed.
-    for name in ("CENSUS", "LOOKUP CENSUS"):
+    # ! ONE LOOP OVER THE NAMED SECTIONS. This was three copies of one rule
+    # with one message, and the count in the success line below was written by
+    # hand against how many copies there happened to be.
+    for name in PATH_SECTIONS:
         for body in bodies.get(name, []):
             for line in _answer_lines(body):
                 if not any(_resolves(c) for c in _path_candidates(line)):
                     bad.append(f"{name}: {line!r} is not an absolute path that exists")
-    for body in bodies.get("REVIEWER FILES", []):
-        for line in _answer_lines(body):
-            if not any(_resolves(c) for c in _path_candidates(line)):
-                bad.append(
-                    f"REVIEWER FILES: {line!r} is not an absolute path that exists"
-                )
     return bad
 
 
 def main() -> int:
     """Print the template, or check a filled packet."""
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
+    constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--template", action="store_true")
     ap.add_argument("--check", metavar="FILE")
@@ -300,7 +312,7 @@ def main() -> int:
 
     try:
         text = Path(args.check).read_text(encoding="utf-8")
-    except READ_ERRORS as e:
+    except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ {args.check} ({type(e).__name__}) -- no packet to check")
         return 1
 
@@ -325,9 +337,14 @@ def main() -> int:
         )
         return 1
 
+    # ! BOTH NUMBERS ARE DERIVED. The message named three sections and
+    # subtracted three while FOUR were checked -- `LOOKUP CENSUS` joined them
+    # and the sentence did not, so the line under-reported what it had
+    # verified and over-reported what it had not.
+    checked = ", ".join(PATH_SECTIONS)
     print(
-        f"Complete: all {len(REQUIRED)} sections answered, and REPO ROOT, CENSUS"
-        f" and REVIEWER FILES check out.\n! The other {len(REQUIRED) - 3} are"
+        f"Complete: all {len(REQUIRED)} sections answered, and {checked}"
+        f" check out.\n! The other {len(REQUIRED) - len(PATH_SECTIONS)} are"
         " prose nothing here can settle. Dispatch all four in ONE message, so no"
         " role sees another's findings.\n! Withhold every TASK AGENT ONLY"
         f" section: {', '.join(sorted(TASK_AGENT_ONLY))}."

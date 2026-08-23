@@ -2,10 +2,15 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 4 of 5 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
+Measured: 2026-08-19 — tasks 1-4 verified done 2026-08-19: locator.py:96 matches
+          start==0 and original_start==line, and for_anchor's direct path answers one place
+          per series for a line-1 declaration and BOTH of two same-named ones. Task 5
+          stands and is worse than filed -- 63 of 164 places on locator.py's own census
+          float to the head of the file as one fabricated run '@b1..b80' spanning 0-0.
 ```
 
 ## Objective
@@ -34,20 +39,20 @@ nested `flush`.
 
 ## Tasks
 
-- [ ] !! **`locator.at` can never return a zero-width gap or an undocumented
+- [x] !! **`locator.at` can never return a zero-width gap or an undocumented
       declaration.** Measured on `locator.py`'s own census: 61 of 158 blocks are
       at 0-0. Asked where prose goes above a line, it returns the `margin` BESIDE
       it -- so a compliant reviewer files an above-the-code `add` at a beside
       address.
-- [ ] !! **An `add` above an ordinary statement inside a function body has NO
+- [x] !! **An `add` above an ordinary statement inside a function body has NO
       sanctioned route.** `--anchor --series b` answers only for a DECLARATION's
       gap; the locator cannot reach the place; and `reviewer-brief.md` says *"ASK
       FOR THE ADDRESS. DO NOT COUNT."* This is the most common `add` site in the
       system's own remit.
-- [ ] **`--anchor --series b|c` is wrong for a declaration on line 1** --
+- [x] **`--anchor --series b|c` is wrong for a declaration on line 1** --
       `for_anchor` tests `end == at - 1`, which is `end == 0`, and every empty
       place matches. Measured: four answers where one was wanted.
-- [ ] **`--anchor --series b|c` silently answers for the FIRST of two same-named
+- [x] **`--anchor --series b|c` silently answers for the FIRST of two same-named
       declarations.** `at = next(...)` takes one. Real in shipped code --
       `census.py` has two nested `flush`. The `a` series is correct; `b`/`c`
       under-report with no signal, and the docstring claims `--check` reports it.

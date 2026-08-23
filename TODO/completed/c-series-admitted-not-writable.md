@@ -7,8 +7,8 @@ Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 Ruled:    2026-08-19 — Roy, 2026-08-19: 'c needs to be writeable. It is the reason c is
-          not an extension of b.' The census states edit_column, one past the last
-          character of CODE on the line; galley.splice keeps line[:edit_column-1].
+          not an extension of b.' The census states original_column, one past the last
+          character of CODE on the line; galley.splice keeps line[:original_column-1].
           whole_lines is gone -- it was the same fact, weaker. Task 5's twin is NOT the
           same shape and stays open: the code check refuses an add/drop on a docstring
           because the AST changes, which no column can express.

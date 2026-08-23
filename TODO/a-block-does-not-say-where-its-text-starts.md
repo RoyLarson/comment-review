@@ -10,7 +10,7 @@ Narrowed: 2026-08-19 — the staleness symptom was the ADDRESSER's sweep, now re
           what remains is the galley's comparison, where checking the file is right and
           the stored text is wrong
 Narrowed: 2026-08-19 — B3 closed 2026-08-19: one raw_lines rule for both tiers, the
-          block's own characters cut at edit_column. Four of six comment shapes were
+          block's own characters cut at original_column. Four of six comment shapes were
           unwritable, not one. Two boxes ticked and one SUPERSEDED -- it prescribed
           storing the whole physical line in both tiers, which would have put the code
           in two fields.
@@ -53,7 +53,7 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
 
 ## Tasks
 
-- [x] **DONE 2026-08-19 -- `edit_column`, set by every producer, and `whole_lines` is gone.**
+- [x] **DONE 2026-08-19 -- `original_column`, set by every producer, and `whole_lines` is gone.**
       The START column is a field; the END column was RULED AWAY rather than built. Roy,
       2026-08-19: an INTERMEDIATE comment -- `/* note */ x = 1`, code on both sides -- *"is not a
       comment that can be systemically and completely verified across code bases"* and is not
@@ -91,7 +91,7 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       0 shared.** The prior figure was Python-only.
 
 - [x] !! **DONE 2026-08-19 -- ONE RULE, BOTH TIERS: `raw_lines` is the block's OWN
-      CHARACTERS**, its lines whole where it owns them and cut at `edit_column` where code comes
+      CHARACTERS**, its lines whole where it owns them and cut at `original_column` where code comes
       first, so `anchor + raw_lines[0]` rebuilds the physical line. ! **It was FOUR of six comment
       shapes, not the indented block alone** -- every block comment off column 0 and every
       trailing comment in the ten lexical languages. Re-measured: 6 of 6 match a fresh census, 0
@@ -104,14 +104,14 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       `REFUSED sample.rs: 1 range(s) no longer match the census: 6-7`.
       ! **SCOPE CORRECTED 2026-08-19.** This was filed as *"a FRESH census reads as STALE"*, which
       it no longer does: it reached `--check`, `--resolve` and `--anchor` only through a staleness
-      sweep the addresser had no business running, and that sweep is gone (task above). **What
+      sweep the foliation had no business running, and that sweep is gone (task above). **What
       remains is the galley**, where comparing stored text against the file is exactly right and
       the stored text is wrong. ! It also masked the mid-line collision, which is why that one
       survived the first measurement.
 - [x] !! **THE ADDRESSER NO LONGER SWEEPS FOR STALENESS -- done 2026-08-19, and it
-      un-blocked the rest of this file.** Roy: *"not necessary for addresser to do
+      un-blocked the rest of this file.** Roy: *"not necessary for foliation to do
       the staleness sweep as long as the original census is still an available
-      document ... In a small way it is the addresser stating the line numbers
+      document ... In a small way it is the foliation stating the line numbers
       matter still."* ! Every question it takes is census-internal, so it reads no
       file and takes no `--repo`. **`--check` now reports the mid-line collision
       it was written to catch** -- `SHARED s.js@b1 <- 0-0 interval | 2-3 comment`

@@ -171,12 +171,12 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (34)
+### open  (88)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | session (Roy ruled the design 2026-08-18; the rest is build) | — | 2/13 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
-| [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | session * Roy (* 1 ruling left -- the suite layout. `plugin eval` access is open and this file already says it is not a blocker) | yes | 6/20 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
+| [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | session (Roy ruled the design 2026-08-18; the rest is build) | — | 2/20 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
+| [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | session * Roy (* 1 ruling left -- the suite layout. `plugin eval` access is open and this file already says it is not a blocker) | yes | 6/21 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
 | [a-coverage-gap-should-go-back-to-the-reviewer](a-coverage-gap-should-go-back-to-the-reviewer.md) | session * Roy (1 ruling) | yes | 0/6 | **A block a reviewer never accounted for is unfinished work, not a finding about the run.** Today `verdicts.py` prints a COVERAGE GAP against the role by name and exits nonzero. Roy, 2026-08-16: *"if comment blocks are missed by a reviewer then they are returned to the reviewer to rule on."* ! Same shape as the two deleted lists one level up -- the reviewer stopped early, and the system files the stopping rather than fixing it. * Unruled: re-dispatch with only the missed indices or the whole census, and what bounds the retry |
 | [the-two-lists-were-tuned-to-one-diff](the-two-lists-were-tuned-to-one-diff.md) | session * Roy (2 rulings) | yes | 2/7 | **Both lists are DELETED from the brief; this holds what was inside them.** The acquittal list matched a prose SHAPE and claimed to be *"the ONLY reasons to pass a block over"* -- but what decides `clean` is stated per role and is a TRUTH assertion at that role's scope, so the two disagreed outright. Its measurement was `evidence/ga/`: ten candidates over SIX `redacted_pkg` files, scored on F1 against what one later commit rewrote -- and the search itself concluded *"the acquittal RATE is the trait; the acquittal LIST is just vocabulary."* The suppression list had no provenance at all. ! Three entries were CHECKS wearing an exemption's name, one CONTRADICTS `function-context`, and `detector` -- a settled term -- lost its only definition |
 | [the-author-approves-blocks-and-never-sees-the-page](the-author-approves-blocks-and-never-sees-the-page.md) | session * Roy (* 4 rulings) | yes | 1/9 | * **Pipeline, not vocabulary.** 7a shows the author a per-block LIST; stage 8 is the only pass that reads the PAGE, and it runs AFTER 7b has written to disk. So every defect `review.md` exists to catch -- a block that is no longer a proposition, two runs merged across a blank line, the same sentence in two places -- is found after approval and after the write. Roy wants a whole-document read BEFORE the person sees it, and floated a temporary branch with the diff so they can accept it in git's own tools. Stage 8 then becomes a verification with two outcomes: good, or raise to human as a new review. ! Already done: the 7b paragraph claiming *"this pass cuts, and it can cut a lot"* is deleted -- self-contradicting since the import |
@@ -184,7 +184,7 @@ that changed a published name or rule:
 | [7a-can-prove-the-change-by-applying-it-to-a-copy](7a-can-prove-the-change-by-applying-it-to-a-copy.md) | session * Roy (raised it, 2026-08-17) | — | 2/5 | 7a can PROVE the change by applying it to a copy and diffing |
 | [a-block-does-not-say-where-its-text-starts](a-block-does-not-say-where-its-text-starts.md) | session | yes | 7/10 | A block does not say where its text starts, so two things infer it |
 | [a-comment-inside-a-line-makes-the-file-unprovable](a-comment-inside-a-line-makes-the-file-unprovable.md) | session * Roy (* 1 ruling, MADE) | — | 1/5 | A comment INSIDE a line makes the whole file unprovable |
-| [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | Roy | yes | 0/7 | A prose file has no blocks, so the system cannot review documentation |
+| [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | Roy | yes | 0/9 | A prose file has no blocks, so the system cannot review documentation |
 | [a-role-can-reverse-itself-between-runs](a-role-can-reverse-itself-between-runs.md) | session * Roy (* 1 ruling) | yes | 0/6 | A role can reverse itself between runs, and nothing measures it |
 | [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | session * Roy (* 1 ruling) | yes | 0/4 | A scope declaration costs as much as a finding |
 | [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | session | yes | 0/6 | Block-comment markers survive into the prose the reviewers read |
@@ -205,12 +205,66 @@ that changed a published name or rule:
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | session | — | 0/2 | doc_is_structural means two things and its docstring names one |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | session * Roy (* 1 ruling -- the numbering) | — | 5/7 | A docstring needs its own address series, and it names what it documents |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | session * Roy (* 1 ruling -- whose remit this is) | yes | 0/3 | A claim can be false by arithmetic with no enforcing line to check it against |
-| [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 0/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
-| [census-degrades-silently](census-degrades-silently.md) | session | — | 0/5 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
-| [galley-is-still-index-keyed](galley-is-still-index-keyed.md) | session | — | 0/3 | **`galley.py --edits` takes `{"&lt;census index&gt;": ...}` and no record carries an index any more.** So between stage 5 and the galley there is a HAND conversion from address to position, with nothing checking it -- at the step that produces the artifact a human approves at 7a. |
+| [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | session | — | 4/5 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
+| [census-degrades-silently](census-degrades-silently.md) | session | — | 1/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
+| [b-foliator-uninitialised](b-foliator-uninitialised.md) | session | — | 9/17 | The b foliator is never initialised at the module trigger, and computes its folio from line numbers |
+| [front-matter-restamps](front-matter-restamps.md) | session | — | 0/7 | Adding a module docstring restamps the comment run above it as front matter |
+| [census-owns-addressing](census-owns-addressing.md) | session | — | 0/5 | The census owns addressing, and four modules share one subject between them |
+| [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
+| [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
+| [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
+| [triggers-has-no-caller](triggers-has-no-caller.md) | session | — | 0/3 | foliator.triggers() has no production caller and takes a shape the walk no longer uses |
+| [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
+| [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | — | 10/12 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
+| [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
+| [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | session | — | 1/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
+| [stage-4b-is-undefined](stage-4b-is-undefined.md) | session | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
+| [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | session | — | 1/6 | 720 tests green against six deliberate defects in shipped code |
+| [the-xfails-never-reach-the-galley](the-xfails-never-reach-the-galley.md) | session | — | 0/3 | they fail in the test helper on a retired lookup, not in splice_range |
+| [the-rename-corrupted-live-prose](the-rename-corrupted-live-prose.md) | session | — | 0/5 | a blanket word swap turned verbs and a role name into nonsense |
+| [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | session | — | 0/2 | shipped prose says an anchor is often empty; it is never empty |
+| [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | session | — | 0/6 | each states a rule and then denies it, in the same file |
+| [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | session | — | 0/6 | every one re-derivable by a command, and every one wrong |
+| [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | session | — | 0/10 | each passes in the buggy state its own comment forbids |
+| [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | session | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
+| [back-matter-is-a-gaps-comment](back-matter-is-a-gaps-comment.md) | session | — | 1/7 | a licence at the bottom of a file belongs to the file, not to the last gap |
+| [move-across-an-unfoliated-file](move-across-an-unfoliated-file.md) | session | — | 4/6 | the address form spans files; the census does not |
+| [closing-line-deletes-code](closing-line-deletes-code.md) | session | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
+| [versioning-at-v1](versioning-at-v1.md) | Roy | — | 0/4 | v1.x wants a concrete versioning system on everything that ships |
+| [check-passes-a-shared-address](check-passes-a-shared-address.md) | session | — | 0/3 | foliator --check prints SHARED and exits 0 |
+| [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | session | yes | 0/17 | Outside Python the `a` place is emitted and never filled |
+| [front-matter-protection-is-python-only](front-matter-protection-is-python-only.md) | session | — | 0/7 | mark_matter cannot fire outside Python, so a licence header is editable work |
+| [bom-is-read-as-source](bom-is-read-as-source.md) | session | — | 0/3 | A UTF-8 BOM is censused as a line of code |
+| [strip-strings-runs-before-the-opener](strip-strings-runs-before-the-opener.md) | session | — | 0/4 | A quote inside a block comment blanks the comment's own closer |
+| [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | session | — | 0/5 | A licence header and a doc comment become one paragraph with one address |
+| [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | session | — | 0/3 | A page entry that is not an object loses every record under it, silently |
+| [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | session | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
+| [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | session | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |
+| [one-stem-four-jobs](one-stem-four-jobs.md) | session | — | 0/11 | one stem, four jobs -- and the vocabulary sweep cannot see it |
+| [python-cannot-read-python](python-cannot-read-python.md) | session | yes | 0/31 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
+| [leading-owns-the-space-between](leading-owns-the-space-between.md) | session | yes | 0/10 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
+| [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | session | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
+| [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | session | — | 0/11 | the closing quote and the comment beside it are both stored, so the file gains a line |
+| [dead-sweep-skips-private](dead-sweep-skips-private.md) | comment-review | — | 0/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
+| [marketplace-resolves-live](marketplace-resolves-live.md) | comment-review | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
+| [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | comment-review | yes | 0/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
+| [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | comment-review | yes | 0/7 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
+| [tier-dispatched-on-name](tier-dispatched-on-name.md) | comment-review | yes | 0/5 | The tier is dispatched on the language NAME, so a second tokenized language is not a data row |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | comment-review | yes | 1/15 | Ten findings in lexer.py and language.py, from three review rounds |
+| [census-walks-and-flushes](census-walks-and-flushes.md) | comment-review | — | 0/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | comment-review | yes | 0/5 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [page-and-foliator-scans](page-and-foliator-scans.md) | comment-review | — | 0/7 | page.py and foliator.py carry four scans that grow with the file and one CLI that contradicts the gate |
+| [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | comment-review | yes | 0/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
+| [record-verdict-desk-findings](record-verdict-desk-findings.md) | comment-review | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
+| [exception-hierarchy](exception-hierarchy.md) | comment-review | — | 0/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
+| [language-rows-in-toml](language-rows-in-toml.md) | comment-review | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
+| [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | comment-review | yes | 0/6 | Two graded arms, orchestration held constant; the rewording is the confound |
+| [lexer-does-not-lex](lexer-does-not-lex.md) | comment-review | yes | 0/4 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
+| [verdicts-is-the-join](verdicts-is-the-join.md) | comment-review | yes | 0/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
+| [computed-and-never-read](computed-and-never-read.md) | session | — | 0/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 
-### in-progress  (4)
+### in-progress  (5)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -218,17 +272,24 @@ that changed a published name or rule:
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | session * Roy (* 2 rulings) | yes | 1/8 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [verdicts-py-announces-one-subject-and-holds-four](verdicts-py-announces-one-subject-and-holds-four.md) | session * Roy (* 1 ruling -- the module names, which `docs/vocabulary.md` constrains) | yes | 7/8 | * **2,083 lines, four subjects, and a docstring announcing one.** The verdict table, a report reader, a per-finding checker and the join. !! `module-context` FOUND IT and then emitted a `patch` widening the docstring to announce TWO subjects -- the defect its own trigger is named for, applied as the remedy, and no `code_concerns` entry. Filed as the one miss in `evals/test-cases.jsonl`, pinned at `4fd8384`. ! Scheduled with the census filter because the lookup tool needs the verdict table to be a module, and because two open TODOs sit entirely inside one half each -- the bridge is COPIED into a new module if it is not rewritten during the cut. * Unruled: the four module names, which `docs/vocabulary.md` constrains by binding `the join` to `verdicts.py` |
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | session * Roy (* 1 ruling -- where the verdict table lives) | yes | 5/10 | The bridge landed and the rewrite did not |
+| [corpora-are-all-python](corpora-are-all-python.md) | comment-review | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
-### decision-needed  (4)
+### decision-needed  (5)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
 | [correct-against-patch-is-a-conflict-and-is-not-flagged](correct-against-patch-is-a-conflict-and-is-not-flagged.md) | session * Roy (the widening is a cost decision Roy has already ruled on once) | — | 0/3 | `correct` against `patch` is a conflict, and the gate does not flag it |
 | [role-rule-register](role-rule-register.md) | Roy | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | session | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
-| [the-path-is-repeated-in-every-address](the-path-is-repeated-in-every-address.md) | session | yes | 0/4 | a page stating its path once saves 30,055 bytes per reviewer, 120KB per run |
+| [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | comment-review | yes | 1/7 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
+| [front-half-undetermined](front-half-undetermined.md) | comment-review | yes | 0/7 | The census to findings to verdicts path has never been determined against a backend that works |
 
-### blocked  (4)
+### in flight  (0)
+
+| file | owner | roy? | done | what |
+| --- | --- | :-: | ---: | --- |
+
+### blocked  (5)
 
 _None._
 
@@ -236,6 +297,7 @@ _None._
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | session | — | 0/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 | [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 1/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | session | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
+| [drop-the-column](drop-the-column.md) | session | — | 0/6 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 ---
 
 ## Completed
@@ -258,9 +320,25 @@ the reason is inside the file.
 | [re-review-is-ordered-everywhere-and-defined-nowhere](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md) | **What a re-review IS**, in the one file that says: `references/re-review.md`. Ten sites ordered a re-review and none defined one. It is the JOINED BLOCK that goes back, never the finding -- Roy, 2026-08-17: *"sending it right back doesn't help"* -- and it answers three questions about the role's own edit. Two slots, 5b after APPLY and 6b after COMPACT, which must not be collapsed: 6b is the only reader of stage 6's output before the author sees it. ! A contested block goes to its FILERS and no others, because all three questions presuppose an edit to answer for; a third role reading it is a FRESH REVIEW travelling 6 -> 4. ! `galley` stays defined inline -- deriving the file into the four reviewers' vocabulary adds exactly one term, `cap`, and those are the four roles the cap is never passed to |
 | [eight-terms-have-no-definition-and-angle-means-five-things](completed/eight-terms-have-no-definition-and-angle-means-five-things.md) | **The vocabulary itself.** A twelve-agent survey found nine terms used with a fixed sense and stated nowhere, and fifteen more carrying two or three senses each; every one is now defined, dropped, or declared as deliberate polysemy, and `scripts/check_vocabulary.py` says so as a command. ! Its last * dissolved rather than being ruled: *"5 of its 7 reviewer reports"* had lost two of its four sites already, and the two left sit in prose the shipped-Python cleanup rewrites on grounds that do not need the number |
 | [an-editorial-mark-is-not-an-action-and-reanchor-is-move](completed/an-editorial-mark-is-not-an-action-and-reanchor-is-move.md) | **A verdict is a MARK, not an action**, and the relocation verdicts collapsed twice: `reanchor` into `move` (2026-08-15), then `split` into `move` (2026-08-16). ! Both by the same argument -- a relocation is ONE judgment and the destination is payload -- and `split` was additionally the only verdict whose subject was the BLOCK rather than the sentence. Seven verdicts. `drop`, `patch` and `add` were ruled to STAY: Roy, *"everything else we have come up with has had a valid use case."* |
-| [address-is-not-stable-under-prose-edits](completed/address-is-not-stable-under-prose-edits.md) | A line-numbered address is valid for one file state only, and `addresser.py` names a place against the CODE instead: `a` a declaration, `b` a gap, `c` an on-line position. Measured: a prose-only edit moved 2 of 3 line addresses and 0 of 3 stable ones. |
+| [address-is-not-stable-under-prose-edits](completed/address-is-not-stable-under-prose-edits.md) | A line-numbered address is valid for one file state only, and `foliator.py` names a place against the CODE instead: `a` a declaration, `b` a gap, `c` an on-line position. Measured: a prose-only edit moved 2 of 3 line addresses and 0 of 3 stable ones. |
 | [address-collides-across-dotted-paths](completed/address-collides-across-dotted-paths.md) | Separator changed from '.' to ':', which no path may hold; census refuses a POSIX path that does |
-| [c-series-admitted-not-writable](completed/c-series-admitted-not-writable.md) | The galley splices within a line: edit_column replaces whole_lines, and an intermediate comment is no longer censused |
+| [c-series-admitted-not-writable](completed/c-series-admitted-not-writable.md) | The galley splices within a line: original_column replaces whole_lines, and an intermediate comment is no longer censused |
 | [prose-fenced-by-code-on-both-sides](completed/prose-fenced-by-code-on-both-sides.md) | Ruled the same day it was raised: an intermediate comment is not censused, and its line is code |
 | [deprecated-reader-cannot-replay](completed/deprecated-reader-cannot-replay.md) | the old form cannot name a place -- an index is not portable and `LOCATION` is not retained -- so `convert` refuses instead of dropping or fanning out |
 | [shipped-prose-lags-the-rulings](completed/shipped-prose-lags-the-rulings.md) | SKILL.md converted, the brief's worked record fixed, ~25 docstrings corrected, and a measurement that had rotted twice re-taken |
+| [three-names-two-words](completed/three-names-two-words.md) | One ordered mapping replaces all three; no sorted() survives and the edge case is byte-identical |
+| [a-hugs-its-declaration-SUPERSEDED](completed/a-hugs-its-declaration-SUPERSEDED.md) | The a -> b -> c order is universal; the error was reading final position as application order |
+| [b-inserts-above-the-shebang-SUPERSEDED](completed/b-inserts-above-the-shebang-SUPERSEDED.md) | No bug: a covered-lines range was read as an insertion point. The field name is the real defect |
+| [the-path-is-repeated-in-every-address](completed/the-path-is-repeated-in-every-address.md) | A reviewer is handed one page per file and a record cites the folio alone; held.py reads both shapes |
+| [anchor-side-is-dead](completed/anchor-side-is-dead.md) | Deleted, with PATHISH and line_address, in the sweep for shipped names nothing reads |
+| [convert-drops-every-record-SUPERSEDED](completed/convert-drops-every-record-SUPERSEDED.md) | Superseded: the converter and the format it read were deleted, not fixed |
+| [stage-5-certifies-an-unaddressed-census](completed/stage-5-certifies-an-unaddressed-census.md) | foliator.unaddressed is the one check; census.py refuses on emit and verdicts.py on read |
+| [lexer-misreads-ordinary-code](completed/lexer-misreads-ordinary-code.md) | Three misreads fixed and nesting added; the closing-line residue measured at 0 occurrences and accepted, with a test |
+| [dead-names-ungated](completed/dead-names-ungated.md) | scripts/dead_sweep.py, an input rather than a gate; 0 dead names in the tree as of 2026-08-21 |
+| [complete-breaks-links-SUPERSEDED](completed/complete-breaks-links-SUPERSEDED.md) | Accepted: the orphans are inside completed/, and repairing one means rewriting an archived file |
+| [plugin-version-not-bumped](completed/plugin-version-not-bumped.md) | 0.2.4-alpha in all three files; the cache directory can no longer collide with the measured 0.2.3 |
+| [two-paragraphs-one-address](completed/two-paragraphs-one-address.md) | Fixed in 0f72dce -- a comment's DELIMITERS are not paragraph boundaries, only code is. 157 shared addresses over 699 files became 0. |
+| [galley-does-two-jobs](completed/galley-does-two-jobs.md) | Split built and wired: galley.reset places by address, compositor.set_page sets, splice/overlaps/splice_range/paragraph_matches deleted, and the shipped prose now defines both terms |
+| [galley-is-still-index-keyed](completed/galley-is-still-index-keyed.md) | Tasks 1-2 done (address-keyed); task 3 was an observation whose mechanism -- splice and its line-ordered sort -- was deleted in the galley rewrite |
+| [second-key-stale-on-drop](completed/second-key-stale-on-drop.md) | Ruled and cut the same morning: the second key is DELETED, so it cannot go stale -- Page.leading is dict[str, str], keyed by the place a run of blanks follows |
+| [foliation-knows-about-lines](completed/foliation-knows-about-lines.md) | Foliation is 3 fields -- foliators, walk, reading. A place records the trigger it was emitted at, so no position is reconstructed; d left SERIES as a symbol; lines and _code were both views of the walk |

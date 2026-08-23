@@ -81,7 +81,8 @@ from pathlib import Path
 # sibling importer that did not.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from census import FRONT_MATTER  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 from desk import (  # noqa: E402  -- path shim must run first
     _words,
     address_problem,
@@ -94,8 +95,13 @@ from desk import (  # noqa: E402  -- path shim must run first
     ruled_text,
     source_problem,
 )
-from held import address_of, load_report  # noqa: E402  -- path shim must run first
-from page import HOLDS_NO_PROSE  # noqa: E402  -- path shim must run first
+from foliator import (  # noqa: E402  -- path shim first
+    COVERS,
+    series_of,
+    unaddressed,
+)
+from held import load_report  # noqa: E402  -- path shim must run first
+from lexer import Kind  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     VERDICTS,
     Finding,
@@ -105,7 +111,6 @@ from record import (  # noqa: E402  -- path shim must run first
     claim_text,
     entry_for,
 )
-from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 from vocabulary import Reviewer  # noqa: E402  -- path shim must run first
 
 
@@ -138,7 +143,7 @@ def by_paragraph(found: list[Finding]) -> dict[str, list[Finding]]:
     the agent to rebuild it from the report files by hand.
 
     Every finding here names a paragraph, because a record that named none never
-    became a `Finding` -- `parse_report` returns those separately.
+    became a `Finding` -- `load_report` reports those as malformed instead.
     """
     out: dict[str, list[Finding]] = defaultdict(list)
     for f in found:
@@ -271,18 +276,15 @@ def contradictions(
 
 def main() -> int:
     """Join the reports, report what is inadmissible, and gate on it."""
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
+    constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "reports",
         nargs="+",
         # ! The SUFFIX chooses the reader and the STEM names the role, so both
-        # halves of the filename are load-bearing. A record file named `.md`
-        # goes to the deprecated text parser, which finds no records in it and
-        # reports the reviewer as a total coverage gap with nothing pointing at
-        # the extension.
+        # halves of the filename are load-bearing. A report not named `.json` is
+        # REFUSED BY NAME -- one malformed line saying so, counted fatal -- and
+        # a mistyped stem makes the expected role read as missing.
         help="one report file per reviewer, named <role>.json",
     )
     ap.add_argument("--census", required=True, help="census.py --json output")
@@ -320,7 +322,7 @@ def _report(args: argparse.Namespace) -> int:
     # why in one line.
     try:
         census_text = Path(args.census).read_text(encoding="utf-8")
-    except READ_ERRORS as e:
+    except exceptions.READ_ERRORS as e:
         print(
             f"CANNOT READ {args.census} ({type(e).__name__})"
             " -- no census to join against"
@@ -332,6 +334,30 @@ def _report(args: argparse.Namespace) -> int:
         print(
             f"CANNOT PARSE {args.census} as JSON ({e})"
             " -- is this census.py --json output?"
+        )
+        return 1
+    # !! A CENSUS THIS GATE CANNOT CITE IS ONE IT MUST NOT CERTIFY. Accountability
+    # below is built from the ADDRESSES, so a paragraph carrying none is not
+    # accountable -- and the run then reads as complete because there was nothing
+    # to be incomplete about. Measured 2026-08-20 on a 5-paragraph census with
+    # its addresses stripped and a report ruling on nothing: `0 findings ... over
+    # 0 prose paragraphs`, then **"Every finding is admissible. Stage 5 may
+    # rule."** at exit 0.
+    #
+    # !! THIS IS THE READ SIDE, and `census.py` refuses the same thing on EMIT.
+    # Both are wanted: the emit check catches the census where it is built, and
+    # this catches a FILE -- one from an older version, one edited by hand, one
+    # from a run that crashed midway. This tool takes a PATH and trusts what it
+    # parses, so nothing else stands between a stale census and a certified
+    # review. ! ONE implementation, in `foliator`. Roy, 2026-08-20: *"one source
+    # of truth, else something will parse that something else will fail."*
+    missing = unaddressed(paragraphs)
+    if missing:
+        rows = "\n".join(f"  {line}" for line in missing)
+        print(
+            f"{_n(len(missing), 'paragraph')} in {args.census} carry NO ADDRESS,"
+            f" so this gate cannot cite them and would count them as nobody's:"
+            f"\n{rows}\nRe-run census.py against this checkout."
         )
         return 1
     # !! ADDRESSABLE is not ACCOUNTABLE. Every interval between two lines of
@@ -355,9 +381,9 @@ def _report(args: argparse.Namespace) -> int:
     all_blocks = {
         str(b.get("address", ""))
         for b in paragraphs
-        if b.get("kind") not in HOLDS_NO_PROSE
+        if not Kind.holds_no_prose(str(b.get("kind", "")))
         and b.get("address")
-        and FRONT_MATTER not in (b.get("annotations") or ())
+        and series_of(b) != COVERS
     }
 
     fatal = 0
@@ -392,7 +418,7 @@ def _report(args: argparse.Namespace) -> int:
         reviewer = path.stem
         try:
             text = path.read_text(encoding="utf-8")
-        except READ_ERRORS as e:
+        except exceptions.READ_ERRORS as e:
             print(
                 f"  CANNOT READ {raw} ({type(e).__name__}) -- {reviewer} did not report"
             )
@@ -406,20 +432,9 @@ def _report(args: argparse.Namespace) -> int:
         # of them about a finding -- cannot arise, because nobody transcribed
         # anything.
         for f in records:
-            # !! THE DEPRECATED FORMAT'S INDEX IS TRANSLATED HERE. A 0.2.x report
-            # keys by census POSITION, and a `clean` record in it writes that
-            # index alone with no address at all -- so without this every old
-            # report joins as "names no paragraph". Everything downstream is
-            # address-keyed.
-            #
-            # ! `held.address_of` OWNS THE RULE. It was written out here and
-            # NOT in `held.convert`, so a held report joined and did not
-            # convert: `convert` grouped on `f.address`, every held finding
-            # landed under "", and it returned a file of null verdicts and
-            # exited 0. Measured 2026-08-19, 3 of 3 dropped on a six-line file.
-            # One bridge across the format change, built twice and finished
-            # once.
-            f.address = address_of(f, paragraphs)
+            # ! THE RECORD CARRIES ITS OWN ADDRESS, so nothing is translated
+            # here. An address names one paragraph; a position names whichever
+            # one a later edit shifted into it.
             held = entry_for(f.address, paragraphs) or {}
             # !! ANY EDIT PROPOSED ON FRONT MATTER BECOMES A `query`. Roy,
             # 2026-08-19: an agent looking to edit that area gets an automatic
@@ -428,11 +443,10 @@ def _report(args: argparse.Namespace) -> int:
             # ! Because the cost is asymmetric and sits OUTSIDE this system. A
             # licence header is a legal instrument and a shebang is how the file
             # runs; a wrong edit to either is not an editorial mistake, and no
-            # role here can settle whether it is right -- see
-            # `census.mark_front_matter`. The reviewer was not shown the paragraph,
-            # `--filtered` drops it, so a verdict here came from reading the
-            # file directly: a reasonable thing to have done, and still not this
-            # system's call.
+            # role here can settle whether it is right. The reviewer was not
+            # shown the paragraph -- `--filtered` drops it -- so a verdict here
+            # came from reading the file directly: a reasonable thing to have
+            # done, and still not this system's call.
             #
             # ! CONVERTED, not refused. The reviewer saw something; dropping it
             # silently would lose it. The human is asked instead.
@@ -440,10 +454,15 @@ def _report(args: argparse.Namespace) -> int:
             # ! The trigger is `owes_change` -- the table's own word for "this
             # verdict proposes an EDIT" -- not a verdict NAME. `clean` and
             # `query` propose none and are left exactly as they were.
-            proposes = VERDICTS.get(f.verdict)
-            if FRONT_MATTER in (held.get("annotations") or ()) and (
-                proposes is not None and proposes.owes_change
-            ):
+            # !! THE SERIES, NOT THE ANNOTATION. Only a FILLED front-matter
+            # run carries the annotation, so an `add` on the EMPTY place --
+            # proposing the licence header that place exists for -- reached
+            # the galley without the human ever being asked. Measured
+            # 2026-08-20 on a file with no front matter: `f0` is
+            # `dark-matter`, annotations `[]`, and the guard did not fire.
+            # ! ASKED THROUGH `_is`, which is the table's own reader and
+            # answers False for an unknown verdict rather than raising.
+            if series_of(held) == COVERS and _is(f, "owes_change"):
                 print(
                     f"  {f.address} {f.reviewer}: {f.verdict!r} on FRONT MATTER"
                     " (a licence header, shebang or coding line) -- turned into"
@@ -500,9 +519,9 @@ def _report(args: argparse.Namespace) -> int:
 
     gaps = coverage_gaps(all_blocks, reported, found)
     if gaps:
-        print("COVERAGE GAPS - indices no reviewer accounted for:")
+        print("COVERAGE GAPS - addresses no reviewer accounted for:")
         for reviewer, missing in sorted(gaps.items()):
-            shown = ", ".join(str(n) for n in missing[:20])
+            shown = ", ".join(missing[:20])
             more = f" (+{len(missing) - 20} more)" if len(missing) > 20 else ""
             count = _n(len(missing), "paragraph")
             print(f"  {reviewer}: {count} unaccounted -- {shown}{more}")
@@ -513,14 +532,22 @@ def _report(args: argparse.Namespace) -> int:
         print(f"  MALFORMED {reviewer}: {why}")
         fatal += 1
 
+    # !! ASKED ONCE, AND THE ANSWER IS CARRIED. `entry_for` is a linear scan over
+    # the census, and it was called for the same address twice -- here, and again
+    # in the accounting below. ! The `continue` is the ONLY way out of this loop
+    # short of the end, so what reaches the append is exactly the set the second
+    # scan rebuilt: the findings that name a paragraph the census carries.
+    in_range = []
     for f in found:
-        if entry_for(f.address, paragraphs) is None:
+        held = entry_for(f.address, paragraphs)
+        if held is None:
             print(
                 f"  {f.address} {f.reviewer}: names no paragraph in a"
                 f" {_n(len(paragraphs), 'paragraph')} census"
             )
             fatal += 1
             continue
+        in_range.append(f)
         if f.verdict not in VERDICTS:
             print(
                 f"  {f.address} {f.reviewer}: {f.verdict!r} is not a verdict"
@@ -545,12 +572,10 @@ def _report(args: argparse.Namespace) -> int:
         if wrong_block:
             print(f"  {f.address} {f.reviewer}: {wrong_block}")
             fatal += 1
-        held = entry_for(f.address, paragraphs)
-        if held is not None:
-            disagrees = edit_problem(f, held)
-            if disagrees:
-                print(f"  {f.address} {f.reviewer}: {disagrees}")
-                fatal += 1
+        disagrees = edit_problem(f, held)
+        if disagrees:
+            print(f"  {f.address} {f.reviewer}: {disagrees}")
+            fatal += 1
         payload = payload_problem(f)
         if payload:
             print(f"  {f.address} {f.reviewer}: {payload}")
@@ -593,8 +618,7 @@ def _report(args: argparse.Namespace) -> int:
     # rather than `clean` so it does not certify what it never read -- and
     # nothing is asked of stage 5 either. Counting those as work buried 76 real
     # verdicts inside 1159 on a measured run.
-    ran = sorted(reported | {f.reviewer for f in found})
-    in_range = [f for f in found if entry_for(f.address, paragraphs) is not None]
+    ran = reported | {f.reviewer for f in found}
     ruled = {f.address for f in in_range if _substantive(f) and not declares_scope(f)}
     scoped_out = {f.address for f in in_range if declares_scope(f)} - ruled
     # !! A PARAGRAPH NOBODY ACCOUNTED FOR IS NOT A PARAGRAPH EVERY ROLE PASSED. It fell

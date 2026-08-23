@@ -177,3 +177,211 @@ Scientific code where a DERIVATION is the comment -- the `derivation` acquittal
 and the recompute-before-acquitting rule have only ever been tested against one
 project's hand-worked arithmetic. Mid-sized review culture.
 """
+
+[[corpus]]
+name = "cpython"
+kind = "public"
+source = "https://github.com/python/cpython"
+ref = "v3.13.1"
+sparse = ["Objects", "Python", "Include"]
+style = "unknown"
+expect = "low"
+note = """
+HAND-WRITTEN C, added 2026-08-21 to settle whether a keyword list can ever
+recognise a C declaration. Roy: *"pull Python -- all C and known to be
+hand-written in most of the important parts."*
+
+! The first C measurement was numpy's `linalg`, which is f2c-GENERATED LAPACK --
+every definition opened with an f2c typedef (`doublereal`, `integer`) and not
+one with a C keyword. That is evidence, but of generated code. `Objects/` and
+`Python/` are the interpreter core: written by hand, reviewed for decades, and
+carrying their own documentation convention.
+
+! Sparse on three directories. The whole checkout is far more than a pass can
+afford, and these hold the C that matters.
+"""
+
+# -- The languages with no corpus at all ---------------------------------------
+# Added 2026-08-22. Roy, on `rust-lang/rust`: *"I was thinking of other large
+# corpora that we could get and that has got to be a decent one."*
+#
+# !! SEVENTEEN LANGUAGE ROWS SHIP AND TWO HAVE EVER BEEN MEASURED. Everything
+# above is Python except `cpython`, which is C -- so `doc_line`, `doc_block` and
+# `doc_is_structural` are asserted for fifteen languages against nothing but
+# fixtures this repo wrote itself. A fixture proves the reader does what its
+# author expected; a corpus is the only thing that can disagree.
+#
+# ! CHOSEN FOR CONVENTION, not popularity -- the same rule the public corpora
+# above follow. Each entry brings a documentation practice the tool has never
+# read: rustdoc, godoc, javadoc, XML doc, doxygen, KDoc, RDoc, TSDoc, Swift
+# markup, LuaLS. That set is the actual independent variable here, and the
+# language is how it is spelled.
+#
+# ! ALL ARE SPARSE AND SHALLOW. None is here for the trailer split, so none
+# needs `depth = 0`; each names the subtree where that language's own convention
+# is written most carefully -- usually a standard library, which is the code its
+# community documents to its own published rule.
+
+[[corpus]]
+name = "rust"
+kind = "public"
+source = "https://github.com/rust-lang/rust"
+ref = "1.89.0"
+sparse = ["library/core/src", "library/std/src"]
+style = "rustdoc"
+expect = "low"
+note = """
+The rustdoc convention at its source: `///` on an item, `//!` on the module, and
+a doctest inside the prose that CI actually runs. ! That last part is the reason
+this corpus is worth more than its size -- a worked example in a Rust docstring
+is executable, so `block-context`'s worked-example remit has, for once, a
+population where the ground truth is machine-checked.
+
+! `library/` and not `compiler/`: the standard library is documented to a
+published rule and the compiler internals are not.
+"""
+
+[[corpus]]
+name = "go"
+kind = "public"
+source = "https://github.com/golang/go"
+ref = "go1.27.0"
+sparse = ["src/net/http", "src/os"]
+style = "godoc"
+expect = "low"
+note = """
+The one convention this repo has already ENCODED and never tested: Go's package
+comment IS the file's own documentation, which is why `package` is deliberately
+absent from the go row's `declares` list -- listing it gave the same prose both
+`a0` and `a1`. That rule was reasoned out, not measured.
+
+! It also carries the raw-string shape fixed 2026-08-22: a backtick literal
+holding a URL, which censused as a trailing comment until the row named the
+backtick a quote.
+"""
+
+[[corpus]]
+name = "typescript"
+kind = "public"
+source = "https://github.com/microsoft/TypeScript"
+ref = "v7.0.2"
+sparse = ["src/compiler"]
+style = "tsdoc"
+expect = "low"
+note = """
+TSDoc, and a compiler written in its own language -- so the prose describes type
+machinery precisely, which is the hardest case for `function-context`'s absence
+question. ! Template literals cross lines here, the shape the `ts` row declares
+as a spanning quote.
+"""
+
+[[corpus]]
+name = "elasticsearch"
+kind = "public"
+source = "https://github.com/elastic/elasticsearch"
+ref = "v9.5.2"
+sparse = ["server/src/main/java/org/elasticsearch/index"]
+style = "javadoc"
+expect = "low"
+note = """
+Javadoc -- the oldest structured docstring convention in wide use, and the one
+whose `@param`/`@return` tags make a claim mechanically checkable against a
+signature. ! Java's `record` is a SOFT keyword and the row cannot say so, which
+is filed in `lexer-and-language-findings`; this is the corpus that would say how
+often a real file trips it.
+"""
+
+[[corpus]]
+name = "dotnet-runtime"
+kind = "public"
+source = "https://github.com/dotnet/runtime"
+ref = "v10.0.11"
+sparse = ["src/libraries/System.Private.CoreLib/src/System"]
+style = "xmldoc"
+expect = "low"
+note = """
+XML documentation comments -- prose inside MARKUP inside a comment, which no
+other convention here does, and which `block-context` has never been asked to
+read. ! Verbatim strings (`@"..."`) cross lines and were undeclared until
+2026-08-22; this is where that fix meets real code.
+"""
+
+[[corpus]]
+name = "llvm"
+kind = "public"
+source = "https://github.com/llvm/llvm-project"
+ref = "llvmorg-22.1.8"
+sparse = ["llvm/lib/IR"]
+style = "doxygen"
+expect = "low"
+note = """
+Doxygen, and the C++ counterpart to `cpython`'s hand-written C. ! It is the
+corpus for the C/C++ `a`-series RULING -- Roy, 2026-08-20: *"leave it out
+because it is ambiguous in every way"* -- since a C++ declaration opens with a
+return type and no keyword list can name one. This is where the cost of that
+absence becomes a number rather than an argument. ! Raw string literals
+(`R"(...)"`) live here too.
+"""
+
+[[corpus]]
+name = "rails"
+kind = "public"
+source = "https://github.com/rails/rails"
+ref = "v8.1.3.1"
+sparse = ["activerecord/lib/active_record"]
+style = "rdoc"
+expect = "low"
+note = """
+RDoc, and a house style where the comment above a method is documentation by
+convention rather than by syntax -- the weakest structural signal of any corpus
+here, which makes it the hardest test of `ownership-context`. ! Ruby heredocs
+are the spanning shape the row still cannot declare cheaply, because the opener
+is also the array-append operator.
+"""
+
+[[corpus]]
+name = "neovim"
+kind = "public"
+source = "https://github.com/neovim/neovim"
+ref = "v0.12.4"
+sparse = ["runtime/lua"]
+style = "luals"
+expect = "medium"
+note = """
+The only Lua corpus available at this scale, and it exercises the long-bracket
+comment whose LEVELS were missing until 2026-08-22. ! LuaLS annotations
+(`---@param`) are a docstring convention layered on an ordinary line comment,
+which is a shape the `doc_line` field cannot currently express for any language.
+"""
+
+[[corpus]]
+name = "kotlin"
+kind = "public"
+source = "https://github.com/JetBrains/kotlin"
+ref = "v2.4.10"
+sparse = ["libraries/stdlib/src/kotlin"]
+style = "kdoc"
+expect = "low"
+note = """
+KDoc, and the corpus for the SOFT KEYWORD question: `data`, `sealed` and `open`
+are ordinary identifiers, so `data class` is a two-word entry on the row -- right
+because KOTLIN'S grammar says so, and evidence about no other language. ! Trying
+that same shape on Java's `record` broke a real declaration, which is the
+measurement that produced the per-language rule in CLAUDE.md.
+"""
+
+[[corpus]]
+name = "swift"
+kind = "public"
+source = "https://github.com/apple/swift"
+ref = "swift-6.3.3-RELEASE"
+sparse = ["stdlib/public/core"]
+style = "swift-markup"
+expect = "low"
+note = """
+Swift markup: `///` carrying a Markdown dialect with named sections, so a
+docstring here has STRUCTURE a reviewer can be wrong about in ways plain prose
+cannot. ! `required` and `convenience` are the same soft-keyword class as
+Kotlin's `data`, and are still unhandled -- filed in
+`lexer-and-language-findings`.
+"""

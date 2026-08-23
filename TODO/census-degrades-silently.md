@@ -2,10 +2,18 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 1 of 8 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
+Measured: 2026-08-19 — the BOM case is worse than filed: the comment came back with
+          address '' -- genuinely unaddressed, not merely misparsed -- with anchor set
+          to the BOM character itself.
+Closed:   2026-08-20 — task 4 -- 'an empty file yields zero blocks and has no a0, so an
+          empty __init__.py is uncitable' -- is closed by the lexer/page split of
+          2026-08-20. The old generator skipped a node with an EMPTY BODY; the page now
+          emits an `a` place for every declaration the lexer reports, module included.
+          Measured: an empty file carries a0, b0 and b1, where it had nothing.
 ```
 
 ## Objective
@@ -53,7 +61,7 @@ docstring: *"A file with no code at all is therefore one interval."*
       `def` line. Measured end to end: the galley wrote a docstring above the
       declaration and the file raised `IndentationError`; un-indented it silently
       becomes the MODULE docstring. Also hits `@overload` and `class C: pass`.
-- [ ] **An empty file yields zero blocks and has no `a0`**, so an empty
+- [x] **An empty file yields zero blocks and has no `a0`**, so an empty
       `__init__.py` is uncitable -- there is nowhere to say a module docstring is
       missing. ! Contradicts `intervals`' own docstring: *"A file with no code at
       all is therefore one interval."* The weaker form hits any file with no
@@ -61,3 +69,27 @@ docstring: *"A file with no code at all is therefore one interval."*
 - [ ] **`references/compact.md` says of `unparsed` "the file did not parse, so
       nothing was censused"** -- false. The comment blocks ARE censused and handed
       to reviewers.
+- [ ] !! A ONE-LINE DECLARATION'S `a` PLACE POINTS OUTSIDE THE DECLARATION, AND NO
+      APPLICATION ORDER FIXES IT. `_undocumented` takes `body[0].lineno`, which
+      for `def f(): pass` is the `def` line itself -- so the insertion point is
+      ABOVE the declaration the docstring documents. ! It is not a collision with
+      a0: an address is not an edit range, and the a -> b -> c order settles two
+      places that share an insertion point. This is different -- there is no line
+      INSIDE the body to insert on, and writing one needs the line SPLIT, which is
+      a code change 7b forbids. ! So decide whether the place is UNWRITABLE and an
+      `add` on it is refused with a reason, rather than landing above the `def`.
+      Same shape for `@overload` and `class C: pass`.
+- [ ] !! A UTF-8 BOM MAKES A FILE UNCENSUSED AND UNREFUSED, EXIT 0.
+      `census.py:294` reads with `encoding="utf-8"`, not `utf-8-sig`, so the BOM
+      survives into the text as code and `ast.parse` refuses the file. VERIFIED
+      2026-08-20 on a BOM'd `.py` holding a module docstring: one `unparsed`
+      paragraph, EMPTY address, no places, exit 0. The docstring is in the file
+      and absent from the census. That is the fifth input of this kind and it
+      breaks the contract CLAUDE.md calls absolute -- every file handed in is
+      censused or the run stops.
+- [ ] `--filtered` DROPS A WHOLE FILE FROM THE LISTING A REVIEWER IS HANDED.
+      `census.py:496`: the no-prose run is never flushed at a file boundary, and
+      `flush_run` prints under `heading(first.path)`. Reported 2026-08-20:
+      censusing `a.py` then `b.py` printed the run `5-12 @c1..c2` under `== a.py`
+      -- `c1` is a.py's and `c2` is b.py's -- and b.py never appeared at all.
+      SKILL.md calls the filtered census the one a reviewer is handed.

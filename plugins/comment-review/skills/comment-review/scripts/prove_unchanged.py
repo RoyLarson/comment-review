@@ -39,22 +39,22 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-# ! `READ_ERRORS` is IMPORTED. It is bound to a NAME so no `except` clause here
-# holds a tuple literal; `repo.py` carries that reason once.
-from census import (  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
+
+# ! THE TUPLE IS IMPORTED, never spelled here, so no `except` clause in this
+# file holds a tuple LITERAL. `exceptions.py` carries the reason once.
+from lexer import (  # noqa: E402  -- path shim must run first
+    DOC_ANCHORS,
     Language,
     language_for,
     paragraphs_lexical,
 )
 from repo import (  # noqa: E402  -- path shim must run first
-    GIT_ERRORS,
-    READ_ERRORS,
     git,
     git_ls_files,
     read_raw,
 )
-
-DOC_ANCHORS = (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 
 def _blank_docstrings(tree: ast.AST) -> ast.AST:
@@ -139,7 +139,7 @@ def _without_comments(text: str, path: Path) -> str | None:
     if any(q in text for q in lang.spanning_quotes):
         return None
 
-    lines = text.splitlines()
+    lines = constants.text_lines(text)
     # Pre-seed every line as itself; a paragraph below either drops its entry
     # (None) or replaces it with the code prefix it proved survives.
     kept: dict[int, str | None] = {i + 1: ln.rstrip() for i, ln in enumerate(lines)}
@@ -220,7 +220,7 @@ def _show(repo: Path, ref: str, rel: str) -> str | None:
     """`git show <ref>:./<rel>`, or None when git cannot produce it."""
     try:
         got = git(repo, "show", _spec(ref, rel))
-    except GIT_ERRORS:
+    except exceptions.GIT_ERRORS:
         return None
     return got.stdout if got.returncode == 0 else None
 
@@ -245,11 +245,14 @@ def _sibling(
     """
     for rel in tracked:
         cand = (repo / rel).resolve()
-        if cand.parent != target.parent or cand in edited or cand == target:
+        # ! `cand == target` IS COVERED. `edited` is built from every path this
+        # run was given and `target` is one of them, so a candidate equal to
+        # the target is already in the set the test above it uses.
+        if cand.parent != target.parent or cand in edited:
             continue
         try:
             read_raw(cand)
-        except READ_ERRORS:
+        except exceptions.READ_ERRORS:
             continue
         return cand
     return None
@@ -257,11 +260,7 @@ def _sibling(
 
 def main() -> int:
     """Prove every named path, and report what could not be proven."""
-    # UTF-8 with replacement, so an em-dash in someone's docstring still prints
-    # on a console whose encoding lacks it.
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
+    constants.utf8_console()
 
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="+")
@@ -292,7 +291,7 @@ def main() -> int:
             continue
         try:
             after = target.read_text(encoding="utf-8")
-        except READ_ERRORS as e:
+        except exceptions.READ_ERRORS as e:
             print(f"FAIL      {rel}: {type(e).__name__}")
             failures += 1
             continue

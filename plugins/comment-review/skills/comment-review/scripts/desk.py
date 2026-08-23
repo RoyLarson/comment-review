@@ -31,7 +31,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from census import block_text, language_for  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
+from foliator import flatten, folio_of  # noqa: E402  -- path shim must run first
+from lexer import block_text, language_for  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     ANCHOR_NAME,
     CITE,
@@ -47,7 +50,6 @@ from record import (  # noqa: E402  -- path shim must run first
     entry_for,
     filled,
 )
-from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
 # !! WHAT COMES OFF A WORD'S EDGES: ALL PUNCTUATION, not a list of it. `_words`
 # strips it from a quoted CLAIM and `removed_spans` from the tokens it diffs,
@@ -271,8 +273,10 @@ def _resolve_lines(cite: str, repo: Path) -> tuple[Path, int, int, list[str]] | 
     if not target.is_file():
         return f"{cite} does not resolve to a file"
     try:
-        lines = target.read_text(encoding="utf-8", errors="replace").splitlines()
-    except READ_ERRORS as e:
+        lines = constants.text_lines(
+            target.read_text(encoding="utf-8", errors="replace")
+        )
+    except exceptions.READ_ERRORS as e:
         return f"{cite} unreadable ({type(e).__name__})"
     if end > len(lines):
         return (
@@ -354,7 +358,7 @@ def source_problem(f: Finding, repo: Path) -> str | None:
 def as_block(text: str, entry: dict) -> str:
     """A reviewer's transcription, normalised the way the CENSUS normalises.
 
-    !! This calls `census.block_text`, and that is the whole point. A second
+    !! This calls `lexer.block_text`, and that is the whole point. A second
     implementation of lines-to-paragraph is a second DEFINITION of what a paragraph's
     text is, and the two drift. Measured 2026-08-17: this file grew its own and
     disagreed with the census three ways at once -- a blank line, a raw-string
@@ -432,6 +436,56 @@ ADDRESS_IN = re.compile(r"[\w.:/\\-]+@[abc]\d+")
 LINE_FORM = re.compile(r"[\w./\-]+\.\w+:\d+(?:-\d+)?")
 
 
+def _in_scope(path: str, paragraphs: list[dict]) -> bool:
+    """Did this run foliate that file?
+
+    !! THE RUN ONLY FOLIATES WHAT IS IN SCOPE. `census.py` is handed the files a
+    change touched, and everything else has no places at all -- so whether a
+    destination is nameable as an address depends on which diff it landed in,
+    not on whether the file exists.
+
+    Args:
+        path: the file, in either form -- `pkg/m.py` as a citation writes it, or
+            `pkg:m.py` as an address flattens it.
+        paragraphs: the census, as `census.py --json` emits it.
+
+    Returns:
+        True where some paragraph in the census sits on that file.
+    """
+    # !! MATCHED FROM THE RIGHT, BY SEGMENT. An exact whole-path test let a
+    # SHORTER but resolvable citation walk past the ban: the census carries
+    # `redacted_pkg/billing/rates.py` and a reviewer writes `to: ... in rates.py:355`,
+    # which matched nothing, counted as out of scope, and admitted a stale line
+    # address for a file this run DOES foliate and WILL edit. Measured
+    # 2026-08-21. ! The same hole took `./rates.py` and a Windows-separated
+    # citation, whose backslash `LINE_FORM` does not carry -- so only the
+    # basename survived to be compared.
+    #
+    # ! IT ERRS TOWARD IN SCOPE, and that is the safe direction. A bare
+    # `utils.py` matching two files in the census is ambiguous, and treating it
+    # as in scope REFUSES the line form and asks for an address -- which is what
+    # the ban is for. Erring the other way admits the stale form silently.
+    # ! NORMALISED THE SAME WAY ON BOTH SIDES, or the flattened spelling matches
+    # itself and nothing else -- `redacted_pkg:billing:rates.py` split on `/` alone is
+    # one segment and can never be a suffix of three.
+    want = [
+        p
+        for p in path.replace("\\", "/").replace(":", "/").strip().split("/")
+        if p not in ("", ".")
+    ]
+    if not want:
+        return False
+    for b in paragraphs:
+        here = str(b.get("path", "")) if b else ""
+        # ! Both spellings, because a citation may carry either -- the address
+        # form flattens the separator to `:`.
+        for spelling in (here, flatten(here)):
+            parts = [p for p in spelling.replace(":", "/").split("/") if p]
+            if parts[-len(want) :] == want:
+                return True
+    return False
+
+
 def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     """Does a `move`'s destination name a place that exists?
 
@@ -457,23 +511,44 @@ def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     where = (_said(f, "to") if f.claim_fields else f.claim).strip()
     if not where:
         return None  # ! Absence is the PAYLOAD check's to report, and it does.
-    # !! A LINE IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER. The retired form
-    # is refused by name rather than passed as an out-of-code destination --
-    # `m.py:3` is inside the code, and it is stale the moment this run edits
-    # anything above it.
+    # !! A LINE IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER, FOR A FILE THIS RUN
+    # FOLIATED. The retired form is refused by name rather than passed off as an
+    # out-of-code destination -- `m.py:3` is inside the code, and it is stale the
+    # moment this run edits anything above it.
     stale = LINE_FORM.search(where)
-    if stale:
+    if stale and _in_scope(stale.group(0).rpartition(":")[0], paragraphs):
         return (
             f"move's destination names a LINE, {stale.group(0)!r} -- that form was"
-            " retired: ask `addresser.py --anchor NAME --series a|b|c` for the"
-            " address, or `locator.py --at path:LINE`"
+            # ! `a|b|c` and not `a|b|c|f`: this message is read by a REVIEWER,
+            # and the `f` series is not one it rules on -- see `reviewer-brief`.
+            " retired: ask `foliator.py --anchor LINE --series a|b|c` for the"
+            " address"
         )
+    # !! AND THE BAN STOPS AT THE RUN'S EDGE. Roy, 2026-08-20: a `move` may name
+    # a line number for a file OUTSIDE the censused range. A line goes stale
+    # because THIS RUN's own edits shift the lines below them -- a file the run
+    # does not edit has no such shift, and no places to cite instead. ! Measured
+    # consequence of refusing it: a finding with an obvious destination was
+    # unstateable, and the reviewer had no route to file it.
+    if stale:
+        return None
     if "@" not in where:
         return None
     named = ADDRESS_IN.search(where)
     if named is None:
         return f"move's destination {where!r} is not an address"
     if entry_for(named.group(0), paragraphs) is None:
+        # !! TWO CAUSES HAD ONE MESSAGE -- a wrong address, and a RIGHT address
+        # for a file nobody censused. A reviewer reading `not a place in the
+        # census` about a correct citation goes looking for an error that is not
+        # there. The run only foliates what is in scope, so a file outside it has
+        # no places at all and the address cannot be derived.
+        path = folio_of(named.group(0)).path
+        if not _in_scope(path, paragraphs):
+            return (
+                f"move's destination {named.group(0)} names {path}, which this run"
+                " never foliated -- it has no places. Cite the line instead"
+            )
         return f"move's destination {named.group(0)} is not a place in the census"
     return None
 
@@ -539,17 +614,15 @@ def address_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     entry = entry_for(f.address, paragraphs)
     if entry is None:
         return f"ADDRESS {f.address!r} is not in the census"
-    # !! ONE FORM NOW. The line range this compared was deprecated 2026-08-18 --
-    # it is true of one file state, and this tool edits prose. The stable
-    # address has no short form, so the one-line tolerance that cost 268
-    # refusals in a single run has nothing left to forgive.
-    want = str(entry.get("address", ""))
-    ok = {want}
-    got = f.address.replace("\\", "/").strip()
-    if not got:
-        return f"a record carries no ADDRESS -- write `{want}`"
-    if got not in ok:
-        return f"address is {got!r}, the census says {want!r}"
+    # !! THERE IS NOTHING LEFT TO COMPARE, and the comparison that stood here
+    # could not fire. `entry_for` matches on `entry["address"] == f.address`, so
+    # reaching this line already proves the two are equal byte for byte -- the
+    # normalised copy differed only if the address held a backslash or outer
+    # whitespace, and such an address matches no entry, so `entry` is None above.
+    # ! What it was FOR is gone with the short form it forgave: a line range was
+    # deprecated 2026-08-18, and the stable address has no short form, so the
+    # one-line tolerance that cost 268 refusals in a single run has nothing left
+    # to forgive.
     # !! THE TEXT IS NO LONGER COMPARED, and it must not be. `original` is
     # filled from the census's `raw_lines` by `_report`, and `text` is the
     # census's own normalised copy of the same paragraph -- so the comparison put
@@ -603,7 +676,11 @@ def block_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     # row quotes no original -- `clean`, `add`, `query`, `move` -- and for a
     # malformed spec, and the next line already treats "" as nothing to check.
     # A second list would be a second place to update.
-    if entry_for(f.address, paragraphs) is None:
+    # ! ASKED ONCE, AND THE ANSWER IS CARRIED. `entry_for` is a linear scan of
+    # the census; asking it twice for one address is the same defect
+    # `verdicts.py` names at its own join.
+    entry = entry_for(f.address, paragraphs)
+    if entry is None:
         return None
     needle = ruled_text(f)
     if not needle:
@@ -612,7 +689,6 @@ def block_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     # which drops per-token quotes and trailing punctuation; a haystack that
     # was only whitespace-collapsed still holds them, so any comma, colon or
     # backtick inside a quoted sentence refused a correct finding.
-    entry = entry_for(f.address, paragraphs) or {}
     haystack = _words(str(entry.get("text", "")))
     # ! Same rule as SOURCES: compare all of it, truncate only the message. A
     # fabricated tail here made `edit_problem` MORE permissive, because it
@@ -665,7 +741,7 @@ def ruled_text(f: Finding) -> str:
     if spec is None or not spec.quotes_original:
         return ""
     # !! THE FIELD FIRST, and the scan below is now the FALLBACK. A JSON record
-    # carries the keys already and `parse_report` types a 0.2.x claim at load,
+    # carries the keys already,
     # so a record reaches here typed unless its claim did not parse at all.
     #
     # !! It is also the only way a value CONTAINING another key's marker

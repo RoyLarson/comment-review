@@ -71,30 +71,45 @@ separate foliators, and no number in one tells you a number in another -- nor do
 position tell you either. Two of them lining up on the file in front of you is a coincidence of
 that file, and it may change.
 
-! **`@b0` IS THE FILE'S OWN FRONT MATTER** -- a licence header, a shebang, a coding line -- and
-not the gap above the first line of code. It is filtered out of your census, and any edit proposed
-on it becomes a `query`.
+! **`@f0` IS THE FILE'S OWN MATTER** -- a licence header, a shebang, a coding line, and at the
+other end an index, a glossary or a run of footnotes -- and not the gap above the first line of
+code. It is filtered out of your census, and any edit proposed on it becomes a `query`.
+
+!! **YOUR CENSUS CARRIES `a`, `b` AND `c`. THAT IS THE WHOLE SET YOU RULE ON.** The `f` series
+is not a place you were asked about, so there is no verdict to reach on one.
+
+! **YOU WILL STILL READ IT, AND THAT IS FINE.** Opening the file puts a licence header in front
+of you, and you should use it the way you use any other context -- to understand what the file
+is and who owns it. Roy, 2026-08-20: *"they will obviously read the matter ends when they look at
+the file ... anytime you start to do something you load the whole document and then slice the
+pieces that matter."* ! **What is ruled out is RULING on it**, not seeing it.
 
 ## You FILL a record; you do not write one
 
-**You are handed a file with one slot per prose paragraph.** Each already carries the two things
-the tool knows -- the `address` and the `anchor` it sits on -- and you set the five that are
-yours:
+**You are handed one PAGE per file, and one slot per prose paragraph on it.** The page names the
+file once; each slot already carries the two things the tool knows -- the `place` it is and the
+`anchor` it sits on -- and you set the five that are yours:
 
 ```json
-{ "address": "redacted_pkg:billing:rates.py@b47",
-  "anchor":  "def compute_rates(plan, period, *, clamp=True):",
-  "verdict": "correct",
-  "claim":   { "false": "twenty call sites want this",
-               "true":  "31 callers, all in tests/" },
-  "reason":  "31 callers and every one is under tests/, so the count is stale",
-  "sources": [ { "cite": "redacted_pkg/billing/rates.py:355",
-                 "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
-               { "cite": "redacted_pkg/export/invoice.py:88",
-                 "verbatim": "rates = compute_rates(plan, period)" } ],
-  "change":  [ "# Kept because 31 callers want this, all of them in tests/.",
-               "# Narrowing it means re-deriving the clamp bounds." ] }
+{ "page": "redacted_pkg/billing/rates.py",
+  "records": [
+    { "place":   "b47",
+      "anchor":  "def compute_rates(plan, period, *, clamp=True):",
+      "verdict": "correct",
+      "claim":   { "false": "twenty call sites want this",
+                   "true":  "31 callers, all in tests/" },
+      "reason":  "31 callers and every one is under tests/, so the count is stale",
+      "sources": [ { "cite": "redacted_pkg/billing/rates.py:355",
+                     "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
+                   { "cite": "redacted_pkg/export/invoice.py:88",
+                     "verbatim": "rates = compute_rates(plan, period)" } ],
+      "change":  [ "# Kept because 31 callers want this, all of them in tests/.",
+                   "# Narrowing it means re-deriving the clamp bounds." ] } ] }
 ```
+
+! **THE PLACE IS A FOLIO, NOT A FULL ADDRESS** -- `b47`, because the page above it already said
+which file. You will still meet the full form `redacted_pkg:billing:rates.py@b47` in one place: a `move`
+whose destination is in ANOTHER file, which no page of yours can name.
 
 !! **YOU ARE TOLD WHERE, NOT WHAT. Open the file.** The record carries no copy of the paragraph's
 prose, deliberately: handed the text you could produce a complete, admissible ruling without
@@ -102,7 +117,12 @@ ever reading the code, and nothing could tell that from real work. Your remit re
 read. ! If you read the wrong lines, the sentence your `claim` quotes will not be in the paragraph
 and the join says so -- that error is caught, and the other one is invisible.
 
-!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `address` and `anchor` are the tool's. Leave them alone;
+!! **WHAT YOU OPEN IS THE ORIGINAL** -- the file as it stood when THIS RUN began, not the first
+version ever written. Nothing is written to disk before stage 7b, so the file you read at stage 4
+IS the state your `place` and your `anchor` were taken from, and the state the join checks your
+`claim` against.
+
+!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `place` and `anchor` are the tool's. Leave them alone;
 a mismatch there means the file was edited, not that you misquoted. ! The `anchor` is there to
 be GREPPED -- it names the declaration the census resolved, and is empty where none was.
 
@@ -130,8 +150,8 @@ is exactly what your edit does, and it must be the sentence your `claim` names. 
 reasons about one sentence and rewrites another is refused, whichever of the two is right.
 
 !! **ONE record's `change` makes ONE record's edit.** If you rule twice on one paragraph, write
-TWO records with the same `address`, each showing that paragraph with ITS OWN change and no
-other. Do not
+TWO records with the same `place`, under the same page, each showing that paragraph with ITS OWN
+change and no other. Do not
 hand in the paragraph fully fixed twice: composing is the task agent's job, and it cannot compose
 records that have already been merged.
 
@@ -181,21 +201,23 @@ different statements -- the gap above the first, the gap holding the comment bet
 is anchored to the code BELOW it, the second statement), and the gap at the end of the file. The
 tool prints how many answered; read that line.
 
-! **A declaration is spelled two ways and both answer**: `f` on its own `a`, and `def f():` on the
-`b` above it and the `c` beside it.
+! **An anchor is a LINE OF CODE, never a name**: ask with `def f():`, not with `f`. Its `a`, the
+`b` above it and the `c` beside it all answer to that one spelling.
 
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor NAME --series a|b|c
-
-# by LINE, when what you have is a line of the original document
-python <skill>/scripts/locator.py --census <LOOKUP CENSUS> --at path:LINE
+python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 ```
 
-!! **PREFER THE ANCHOR.** Asking by position -- "the paragraph above the `def`" -- is right in
-Python and wrong in Rust, whose `///` sits before its `fn` where Python's docstring sits after.
-The census parsed the file and knows which is which; a count does not.
+!! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
+`def`" -- is right in Python and wrong in Rust, whose `///` sits before its `fn` where Python's
+docstring sits after. The census parsed the file and knows which is which; a count does not.
+
+! **There is no by-LINE lookup, and that is deliberate.** One existed until 2026-08-20 and was
+dropped: the anchor IS the line of code, verbatim, so asking by anchor already asks by line --
+and its other use, *where do I insert text*, is not a question a reviewer answers. You name the
+PLACE; the galley puts the text in it and the compositor sets the page.
 
 !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A record naming a line as the
 place a thing belongs is refused.
@@ -250,7 +272,7 @@ propose no text, so there is nothing for the task agent to apply.
 !! **THE TABLE BELOW IS GENERATED FROM `VERDICTS` IN `verdicts.py`** -- the keys from
 `claim_keys`, the prose from each row's `payload`. Edit the row, not this file; a test
 refuses a brief that has drifted from it. ! It had drifted: the hand-written table taught
-the 0.2.x marker form under a JSON worked example, and ten of the eleven keys a reviewer
+an older marker form under a JSON worked example, and ten of the eleven keys a reviewer
 must type appeared nowhere here as keys.
 
 <!-- BEGIN GENERATED: verdict table -- scripts/render_brief.py -->
@@ -348,9 +370,16 @@ payload. Say what is wrong in `REASON`. **Only a destination outside the code ca
 unavailable**, and your run context says whether it is; a relocation into tracked code is
 always available.
 
-!! **`to:` IS AN ADDRESS when the destination is in the code, and it is RESOLVED.** Ask for it
-the same way an `add` does -- `--anchor NAME --series a|b|c`, or the locator. A destination
-naming a LINE is refused, and so is an address the census does not carry.
+!! **`to:` IS AN ADDRESS when the destination is on a page THIS RUN FOLIATED, and it is
+RESOLVED.** Ask for it the same way an `add` does -- `--anchor LINE --series a|b|c`. A
+destination naming a LINE on such a page is refused, and so is an address the census does not
+carry.
+
+!! **A FILE THE RUN NEVER FOLIATED IS CITED BY LINE, AND THAT IS NOT A LOOPHOLE.** The run
+foliates the files the change touched; everything else has no places at all, so there is no
+address to ask for. A line number is refused INSIDE the run because this run's own edits shift
+the lines below them -- a file the run does not edit has no such shift. ! So the rule is not
+*never a line number*; it is **never a line number for a place this run can name properly.**
 
 ! **The destination may hold NO PROSE, and that is ordinary.** A paragraph can move to a gap with
 no comment in it or a declaration with no docstring: those are places with addresses, not

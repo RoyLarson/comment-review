@@ -32,8 +32,8 @@ first, then truth, then fit, then the page.
 | 5b | **RE-REVIEW** | the roles that ruled | *is this what you meant?* -- answered on the JOINED paragraph |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
 | 6b | **RE-REVIEW** | the roles that ruled | *is this still correct after my edits?* -- **stage 6's only reader** |
-| 7a | **APPROVAL -- present** | task agent | the FINAL text in front of the author; **the run stops here** |
-| 7b | **APPROVAL -- write** | **author**, then task agent | the approved text on disk, byte-for-byte as approved |
+| 7a | **APPROVAL -- present** | task agent, then `galley.py` and the **compositor** | the FINAL text SET as a galley -- a copy of each page, nothing under the repo touched -- in front of the author; **the run stops here** |
+| 7b | **APPROVAL -- write** | **author**, then the **compositor** | the approved draft put over the real file wholesale, byte-for-byte as approved |
 | 8 | **REVIEW** | `comment-review-review` | the finished page read as a reader would read it |
 
 !! **5b and 6b are the same mechanism asking DIFFERENT questions**, and
@@ -85,12 +85,11 @@ enforce it at stage 5 by refusing a verdict that arrives without one.
 
 ## Why the stages are in this order
 
-**1-3 build the pCST** -- a *pseudo* Concrete Syntax Tree: every LINE of the files under
-review classified, numbered in order, with every reference it makes already resolved. This
-line is code, this PART of a line is code, this line is comment, this line is docstring.
-**Pseudo** because a real CST would carry the names and the symbols precisely; this carries
-only which lines are which, which is what a reviewer of COMMENTS needs. The places holding
-nothing are on it too, because that is where prose is MISSING.
+**1-3 build the PAGES** -- one per file: every LINE classified, numbered in order, with every
+reference it makes already resolved. This line is code, this PART of a line is code, this
+line is comment, this line is docstring. It carries only which lines are which, which is
+what a reviewer of COMMENTS needs. The places holding nothing are on it too, because that
+is where prose is MISSING.
 
 **MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
 destroyed the finding.
@@ -355,10 +354,11 @@ is a position in one census, and the galley is censused again for round 2. The f
 stays on disk and is what stages 5 and 7b read; only the copy pasted into a reviewer's prompt is
 narrowed.
 
-!! **DO NOT SHIP THE FILTER WITHOUT STAGE 4's LOOKUP.** A reviewer handed the filtered census
-can still see every gap, but the intervals inside a run are no longer individually numbered in
-front of it -- so a reviewer needing to place prose at one of them has no address to cite unless
-the packet tells it `locator.py` exists. Filtering without that is worse than not filtering.
+!! **DO NOT SHIP THE FILTER WITHOUT A WAY TO NAME WHAT IT COLLAPSED.** A reviewer handed the
+filtered census can still see every gap, but the intervals inside a run are no longer numbered
+individually in front of it. A run NAMES ITS ENDS -- `@b7..b12` -- and `foliator.py --anchor`
+resolves any place in between, so every collapsed interval is still citable. Filtering without
+that is worse than not filtering.
 
 ### What a place is CALLED
 
@@ -367,7 +367,8 @@ edits -- a prose edit moves the line numbers below it, and an address counts aga
 
 ```
 pkg:core.py@a5    a DECLARATION's documentation
-pkg:core.py@b3    a GAP -- or, at `b0`, the file's own front matter
+pkg:core.py@b3    a GAP between two lines of code
+pkg:core.py@f0    the FILE'S OWN matter -- a licence, a shebang, an index
 pkg:core.py@c3    the room BESIDE a line of code
 ```
 
@@ -379,9 +380,8 @@ foliators, and no number in one tells you a number in another -- nor does a line
 you either.
 
 ```bash
-python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor NAME --series a|b|c
-python <skill>/scripts/addresser.py --census <CENSUS> --resolve <ADDRESS>
-python <skill>/scripts/locator.py --census <FULL CENSUS> --at path:LINE
+python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c|f
+python <skill>/scripts/foliator.py --census <CENSUS> --resolve <ADDRESS>
 ```
 
 ! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many
@@ -749,10 +749,10 @@ seeded. The tool takes the role name from the report's FILE STEM, and `--reviewe
 against those stems, so a report saved as `report1.json` is a role nobody expected and every
 expected role reads as missing. Two files with the same stem are refused outright.
 
-! **The SUFFIX chooses the reader**, and only `.json` is the shipped shape. Anything else is
-read by the DEPRECATED 0.2.x text parser, which is kept so a run already captured on disk stays
-usable -- `record.py --convert` carries one forward. A report saved as `.md` today is not
-refused; it is read by the parser whose boundary guesses this format exists to retire.
+!! **ONLY `.json` IS READ, AND ANYTHING ELSE IS REFUSED BY NAME.** A report saved as `.md` gets
+one line saying it is not a record file -- counted fatal -- rather than being parsed by something
+that guesses where a field ends. ! There is no other reader and no converter: a report is
+written in the shape `record.py --seed` lays down, or it is not read.
 
 ! **Pass `--reviewers` every time, listing all four roles.** Without it a
 reviewer that never reported at all is invisible -- "every reviewer" silently

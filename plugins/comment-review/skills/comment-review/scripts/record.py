@@ -52,19 +52,24 @@ import sys
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from pathlib import Path
+from typing import TypeGuard
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from page import (  # noqa: E402  -- path shim must run first
-    FRONT_MATTER,
-    HOLDS_NO_PROSE,
+import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
+from foliator import (  # noqa: E402  -- path shim must run first
+    COVERS,
+    flatten,
+    folio_of,
+    series_of,
 )
-from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
+from lexer import Kind  # noqa: E402  -- path shim must run first
 
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,
 # and `allowed()` below is derived entirely from this table. It sat in
 # `verdicts.py` and was imported back, which made the two modules a cycle and
-# blocked `claim_object` from being read by the join that needs it.
+# blocked `claim_object` -- since deleted -- from being read by the join.
 # !! The THREE shapes `reviewer-brief.md` says reach `query`, and a query must
 # NAME the one it is. A closed set beats guessing at free text: the shape decides
 # whether the paragraph is work (the author must answer) or a boundary report (the
@@ -166,7 +171,7 @@ class Verdict:
     # a test refuses a brief that has drifted from them.
     #
     # ! It does NOT restate the key names -- those are generated. Measured
-    # 2026-08-18, which is why: the hand-written table taught the 0.2.x marker
+    # 2026-08-18, which is why: the hand-written table taught an older marker
     # form (`false: "..." / true: "..."`) forty lines under a JSON worked
     # example, and ten of the eleven keys a reviewer must type appeared nowhere
     # in the brief as keys.
@@ -277,7 +282,6 @@ VERDICTS: dict[str, Verdict] = {
 # ! Backticks are the repo's own citation form -- the brief says cite by symbol
 # or path, never by line number, and every record in it writes a symbol that way.
 # So "named" is checkable without guessing which token is an identifier.
-ANCHOR_SIDE = re.compile(r"\b(above|below|before|after)\b", re.I)
 ANCHOR_NAME = re.compile(r"`[^`\s][^`]*`")
 # !! THE FORM IS PUBLISHED WITH THIS EXAMPLE AND ENFORCED BY THE PATTERN ABOVE,
 # so they are one string rather than two that agree today. `allowed()` used to
@@ -293,7 +297,8 @@ def claim_keys(spec: "Verdict") -> tuple[list[str], list[str]]:
 
     !! ONE ROW, which is the promise the `Verdict` table makes and which four
     sites had taken back. `record.allowed` told a reviewer what to fill,
-    `record.claim_object` read the deprecated form, `claim_text` rendered it
+    `held.claim_object` read the deprecated form (deleted 2026-08-20),
+    `claim_text` rendered it
     and `payload_problem` checked it -- each deriving the same key list from
     the same traits, and two of them hardcoding the names. A new trait had to
     be added in four places and nothing failed if one was missed.
@@ -394,8 +399,8 @@ class Finding:
     measured run were spent on transcription fidelity and none was about a
     finding.
 
-    ! `claim_fields` is the claim as the record held it -- from the file for a
-    JSON record, and from `claim_object` at load for a 0.2.x one, so both
+    ! `claim_fields` is the claim as the record held it, read from the file, so
+    both
     formats arrive typed. A check that can read a FIELD must not search the
     string `claim_text` renders it into -- see `_said`.
 
@@ -410,15 +415,9 @@ class Finding:
     sources: list[str]
     change: str
     address: str = ""
-    anchor: str = ""
-    # !! DEPRECATED, and 0 for a record written since 2026-08-19. The census
-    # INDEX keyed every join until then; it goes stale the moment an `add` or a
-    # `drop` shifts the list, where the address does not. Only the 0.2.x prose
-    # reader still fills it, because an old report on disk carries one.
-    block: int = 0
     original: str = ""
-    # !! THE CLAIM AS THE RECORD CARRIED IT. Filled from the file for a JSON
-    # record and by `claim_object` at load for a 0.2.x one, so it is empty only
+    # !! THE CLAIM AS THE RECORD CARRIED IT, filled from the file, so it is
+    # empty only
     # where that conversion found no markers. A check that can read the FIELD
     # must not word-search the string the field rendered into: the reviewer
     # answered, and searching its wording for five accepted verbs refuses
@@ -451,8 +450,14 @@ def _is(f: Finding, trait: str) -> bool:
     return bool(spec and getattr(spec, trait))
 
 
-def filled(value: object) -> bool:
+def filled(value: object) -> TypeGuard[str]:
     """Is this `claim` value a real answer?
+
+    ! A `TypeGuard`, NOT A `bool`, because the answer IS a fact about the type
+    and every caller then acts on it. `_half` returned `value` on a True and was
+    the one place a checker could see the gap: `object` where `str` was
+    promised. Saying it here narrows at every call site instead of adding a
+    second `isinstance` at each of them.
 
     !! A CLAIM VALUE IS PROSE, so anything that is not a non-blank STRING is
     empty -- and `str(value).strip()` cannot say so, because it renders `None`
@@ -476,8 +481,8 @@ def _said(f: Finding, key: str) -> str:
     `query` whose `settles` mentioned the phrase "outside my role" was
     classified as a scope declaration and dropped out of the work list.
 
-    ! A 0.2.x text record is TYPED AT LOAD now -- `parse_report` runs
-    `claim_object` over its `CLAIM` -- so this is empty only where that
+    ! Every record is TYPED AT LOAD, from the file's own object -- so this is
+    empty only where that
     conversion found no markers at all. A caller still falls back to searching
     the rendered string for that case, which is the last path the deprecated
     format has.
@@ -533,9 +538,10 @@ def _answered(f: Finding, key: str, pattern: re.Pattern, probe: str) -> bool:
     One reads *"reading this docstring against the body of `line_endings` and
     against `splice`"* -- a check, named, containing none of the five.
 
-    ! The word search STAYS for a 0.2.x text record, where there is no field to
-    read: `claim_fields` is empty and this falls through to `pattern`. That is
-    the only route by which the deprecated format keeps its guarantee.
+    ! The word search STAYS for a record whose `claim` is MISSING or is not an
+    object: `claim_fields` is empty there and this falls through to `pattern`,
+    so a reviewer's words are still read rather than the record failing every
+    check at once. ! `record_problems` reports the malformed claim separately.
 
     Args:
         f: the finding.
@@ -557,18 +563,6 @@ def _n(count: int, noun: str) -> str:
     ! This output decides whether an agent proceeds.
     """
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
-
-
-# Counts "--- RECORD" OPENERS on their own, independent of whether a closing
-# "---" was ever found. A first record missing its close makes RECORD's
-# non-greedy search skip straight past the second record's opener (it is not a
-# bare "---" line) and swallow both into one match -- the second record's
-# fields silently overwrite the first's and a finding vanishes with no output.
-# Comparing this count against RECORD's match count is how that is caught.
-OPENER = re.compile(r"^---\s*RECORD\s*$", re.M)
-# The section `reviewer-brief.md` sends code problems to. Matched to the next
-# heading or the end, because it is the LAST section of a report by contract.
-CODE_CONCERNS = re.compile(r"^#+\s*CODE CONCERNS\s*$(.*?)(?=^#|\Z)", re.M | re.S | re.I)
 
 
 def claim_text(verdict: str, claim: dict) -> str:
@@ -625,32 +619,24 @@ def _half(value: object) -> str:
 # resolves them with the same two, which is why neither module can own them.
 # `file:line` or `file:start-end`, as each SOURCES entry writes its citation half.
 CITE = re.compile(r"^(.+?):(\d+)(?:-(\d+))?$")
-# A citation half that is PATH-SHAPED, whether or not it resolves: no whitespace,
-# and a `.` or `/` in it. It is what tells a MALFORMED citation from the wrapped
-# tail of the entry above, and `CITE` alone cannot -- both fail it.
-#
-# !! The space is the discriminator, and it has to be. A verbatim half may hold
-# a `|` of its own: `def _show(repo: Path, ref: str, rel: str) -> str | None:`
-# is a real line in this tree, and its left half is not path-shaped because it
-# holds spaces. A wrapped line whose left half has neither a space nor anything
-# but `.`/`/` would still be misread, which is the residue accepted here.
-PATHISH = re.compile(r"^[^\s]*[./][^\s]*$")
+# ! A citation cannot WRAP, because `sources` is a list -- so nothing here has
+# to tell a malformed citation from the tail of the one above it.
 
 # The fields the TOOL fills from the census. ! A mismatch here means the file
 # was CORRUPTED, never that the reviewer misquoted -- it never typed them.
-SEEDED = ("address", "anchor")
-# !! THE SHAPE IS VERSIONED, so a held report stays a REGRESSION TEST rather than
-# becoming an archive the day the format moves. Replaying stage-4 output is what
-# made 0.2.1 and 0.2.2 cheap to validate -- five joins over one set of reports,
-# ~1.6M tokens of review reused -- and that property dies silently when the
-# shape changes and nothing says so.
+SEEDED = ("place", "anchor")
+# !! THE SHAPE IS VERSIONED so a file can SAY which one it is, and this is the
+# weaker of the two things that notice. `load_report` refuses a report it cannot
+# read whatever the reason -- an older shape and a mangled current one get the
+# same refusal, because the reader states what it needs rather than diagnosing
+# what it got.
 #
-# ! PINNING THE CENSUS IS NOT ENOUGH. `SOURCES` cites the WORKING TREE, so a
-# replay needs the tree at the run's commit too. Measured 2026-08-17: the same
-# four reports joined green against a worktree at their commit and produced 78
-# "SOURCES not found" against HEAD, 197 lines later in one file. Neither the
-# reader nor the reports were wrong.
-RECORD_VERSION = "1"
+# !! WHAT THIS ADDS IS A SHAPE CHANGE THAT IS NOT STRUCTURAL -- keys in the same
+# places meaning something else -- which no parse can catch. ! And it only works
+# while somebody MOVES it: measured 2026-08-21, it stayed at "1" across an
+# incompatible change, so `version_problem` reported no disagreement on a file
+# the reader could not parse at all.
+RECORD_VERSION = "2"
 # The fields the REVIEWER fills. Empty is a legitimate answer for every one of
 # them except `verdict`, which is the ruling itself.
 ANSWERED = ("verdict", "claim", "reason", "sources", "change")
@@ -671,12 +657,19 @@ def prose_paragraphs(census: list[dict]) -> list[tuple[int, dict]]:
     GAP, on every run, for as long as the file has a licence. `verdicts.py`
     already excludes it from the set it counts coverage against; this is the
     other half, and without it the report says INCOMPLETE forever.
+
+    !! NOR IS ANYTHING THAT NAMES NO PLACE, which is leading and only leading.
+    A record CITES an address; a run of blank lines has none -- see
+    `foliator.SERIES` -- so a slot for one could not be written down. ! Without
+    the `address` test this passed a `d` through on an empty string, because
+    `series_of` reads the address and answers `""` for a paragraph without one.
     """
     return [
         (i, b)
         for i, b in enumerate(census, 1)
-        if b.get("kind") not in HOLDS_NO_PROSE
-        and FRONT_MATTER not in (b.get("annotations") or ())
+        if b.get("address")
+        and not Kind.holds_no_prose(str(b.get("kind", "")))
+        and series_of(b) != COVERS
     ]
 
 
@@ -721,11 +714,22 @@ def slot(paragraph: dict) -> dict:
         #
         # ! Re-check that asymmetry before reversing this. It has flipped three
         # times, and it is the only argument here that does not rest on taste.
-        # !! THE STABLE ADDRESS, never the line range. A line range is true of
-        # ONE file state and this tool edits prose, so every record written
-        # against one is stale the moment the run writes. `pkg.mod.py@a5` is
-        # counted against the CODE and survives. Deprecated 2026-08-18.
-        "address": str(paragraph.get("address", "")),
+        # !! THE PLACE ALONE -- `a5`, not `pkg:mod.py@a5`. The PAGE names the
+        # file, once, for every record under it. Roy, 2026-08-20: an
+        # enclosing page envelope *"negates the need for creating the
+        # complicated address in the first place"*, and the parse already
+        # *"splits the file name from the address right after the system put
+        # it in, to reduce token usage"* -- composed and decomposed at the
+        # same boundary.
+        #
+        # !! STILL NEVER A LINE RANGE. A range is true of ONE file state and
+        # this tool edits prose, so a record written against one is stale the
+        # moment the run writes. A folio is counted against the CODE.
+        #
+        # ! The FULL address survives where a reference crosses pages -- a
+        # `move` destination may name another file, and `galley --edits` is
+        # keyed across the whole run. `address_for` composes it.
+        "place": folio_of(str(paragraph.get("address", ""))).folio,
         # ! `null`, not `""`. An unruled paragraph must be distinguishable from one
         # ruled with an empty verdict, and only one of those is a coverage gap.
         "verdict": None,
@@ -745,7 +749,7 @@ def entry_for(address: str, paragraphs: list[dict]) -> dict | None:
     resolved to a neighbour, silently. An address survives both.
 
     ! One entry or none -- an address identifies exactly one paragraph, held by
-    `addresser.py --check` on every run (0 shared over 6,180 paragraphs, measured
+    `foliator.py --check` on every run (0 shared over 6,180 paragraphs, measured
     2026-08-19). This returns the first regardless, so a census that broke that
     rule degrades to a wrong answer rather than a crash; `--check` is what
     reports it.
@@ -809,6 +813,71 @@ def allowed() -> dict:
 ALLOWED = allowed()
 
 
+def address_for(page: str, place: str) -> str:
+    """`pkg:mod.py@a5` from the page and the place it holds.
+
+    ! The record file names the page ONCE and each record its place; every check
+    downstream resolves by full address. This is the seam, and the only place
+    the two halves are put back together.
+    """
+    return f"{flatten(page)}@{place}" if page and place else ""
+
+
+def every_record(report: dict):
+    """`(page, record)` for every record in a seeded file, in reading order.
+
+    !! ONE READER OF THE SHAPE. Three functions walked `report["records"]`
+    directly, so the envelope would have had to be understood in three places --
+    the same fault as a series list that names its members.
+
+    ! IT YIELDS WHAT IS THERE, INCLUDING AN ENTRY THAT IS NOT AN OBJECT.
+    Filtering those out here made a malformed record VANISH instead of being
+    reported -- the caller is what says so, and `record.py --check` and the join
+    each have their own sentence for it.
+    """
+    for page in report.get("pages") or []:
+        if not isinstance(page, dict):
+            continue
+        where = str(page.get("page", ""))
+        for rec in page.get("records") or []:
+            yield where, rec
+
+
+def pages_of(census: list[dict]) -> list[dict]:
+    """The prose of every page in scope, as a page envelope each.
+
+    !! ORDERED BY ANCHOR LINE, THEN BY SERIES LETTER. Roy, 2026-08-20: *"I don't
+    want to use foliation NUMBER because that would imply it would not change."*
+    A sort on the number would encode a stability the foliation explicitly
+    disclaims; the letter is fixed and the line is a fact about the file.
+
+    ! It groups every place that is ABOUT one line of code, closest first -- a
+    declaration's own documentation, then the gap above it, then the room
+    beside it.
+    """
+    by_page: dict[str, list[dict]] = {}
+    for _, b in prose_paragraphs(census):
+        by_page.setdefault(str(b.get("path", "")), []).append(b)
+    return [
+        {
+            "page": page,
+            "records": [
+                slot(b)
+                # !! ORDERED BY THE ANCHOR'S ORDINAL, then by series letter. It
+                # sorted on `anchor_line` until 2026-08-21 and ranks identically
+                # -- lines of code ascend, so their ordinals do -- but a line
+                # moves under every prose edit this tool makes and an ordinal
+                # does not. Roy's rule for the order is unchanged; only the
+                # number expressing it survives an edit now.
+                for b in sorted(
+                    rows, key=lambda b: (int(b.get("anchor_num") or 0), series_of(b))
+                )
+            ],
+        }
+        for page, rows in sorted(by_page.items())
+    ]
+
+
 def seed(census: list[dict], reviewer: str) -> dict:
     """The whole file a reviewer is handed, ready to fill."""
     return {
@@ -816,7 +885,9 @@ def seed(census: list[dict], reviewer: str) -> dict:
         "reviewer": reviewer,
         # ! FIRST, so it is read before the records it governs.
         "allowed": allowed(),
-        "records": [slot(b) for _, b in prose_paragraphs(census)],
+        # !! A PAGE ENVELOPE EACH, not one flat list. The page names the file
+        # once and its records name only their place.
+        "pages": pages_of(census),
         # ! Code problems get one line each and carry no verdict. A list rather
         # than a section to find with a regex, which is one more boundary that
         # cannot be guessed wrong.
@@ -845,11 +916,11 @@ def seeded_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
     format change exists to end.
     """
     if paragraph is None:
-        return [f"{where}: address {rec.get('address')!r} is not in the census"]
-    want = str(paragraph.get("address", ""))
-    if rec.get("address") != want:
+        return [f"{where}: place {rec.get('place')!r} is not in the census"]
+    want = folio_of(str(paragraph.get("address", ""))).folio
+    if rec.get("place") != want:
         return [
-            f"{where}: `address` reads {rec.get('address')!r} and the census says"
+            f"{where}: `place` reads {rec.get('place')!r} and the census says"
             f" {want!r}. This field was WRITTEN BY THE TOOL, so it was edited"
             " after seeding -- restore it rather than re-deriving it."
         ]
@@ -946,8 +1017,8 @@ def version_problem(report: dict) -> str | None:
     A file from a future version was read as if it were this one, and the first
     sign of it would have been a field silently absent.
 
-    ! A MISSING version is the 0.2.x text format converted by hand, or a file
-    written before the field existed. Reported, not refused: `--convert` is the
+    ! A MISSING version is a file written before the field existed, or one
+    converted by hand. Reported, not refused: `docs/history.md` is the
     supported route and it writes the field.
 
     Args:
@@ -984,7 +1055,13 @@ def record_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
                 f"{where}: `{field}` is {type(rec[field]).__name__}, not"
                 f" {want.__name__}"
             )
-    for i, source in enumerate(rec.get("sources") or [], 1):
+    # ! ONLY A LIST IS WALKED. `SHAPES` above already reports a `sources` that
+    # is the wrong type; walking it anyway emitted one further message PER
+    # ELEMENT -- so a string of forty characters became forty lines about one
+    # defect, which is the wall of output `claim_problems` states the rule
+    # against.
+    sources = rec.get("sources")
+    for i, source in enumerate(sources if isinstance(sources, list) else [], 1):
         if not isinstance(source, dict) or {"cite", "verbatim"} - set(source):
             out.append(
                 f"{where}: source {i} is not `{{cite, verbatim}}` -- it reads"
@@ -1005,15 +1082,20 @@ def check(report: dict, census: list[dict]) -> tuple[list[str], int]:
         coverage GATE is `verdicts.py`'s, at the join.
     """
     problems: list[str] = []
-    if not isinstance(report.get("records"), list):
-        return (["no `records` list -- this is not a seeded report"], 0)
+    if not isinstance(report.get("pages"), list):
+        return (["no `pages` list -- this is not a seeded report"], 0)
     unruled = 0
-    for rec in report["records"]:
-        # !! FOUND BY ADDRESS. The census index this used went stale the moment
-        # an `add` or a `drop` shifted the list; an address does not.
-        at = rec.get("address")
-        where = f"address {at!r}" if isinstance(at, str) else "a record with no address"
-        paragraph = entry_for(at, census) if isinstance(at, str) else None
+    for page, rec in every_record(report):
+        if not isinstance(rec, dict):
+            problems.append(f"a record is a {type(rec).__name__}, not an object")
+            continue
+        # !! FOUND BY ADDRESS, COMPOSED FROM THE PAGE AND THE PLACE. The census
+        # index this used went stale the moment an `add` or a `drop` shifted the
+        # list; an address does not. ! The record carries only its place, so the
+        # page it sits under is half the key -- see `address_for`.
+        at = address_for(page, str(rec.get("place", "")))
+        where = f"address {at!r}" if at else "a record with no place"
+        paragraph = entry_for(at, census) if at else None
         if rec.get("verdict") is None:
             unruled += 1
             # ! A slot nobody filled is not MALFORMED, so it is counted rather
@@ -1026,27 +1108,22 @@ def check(report: dict, census: list[dict]) -> tuple[list[str], int]:
 def main() -> int:
     """Seed a reviewer's record file from the census."""
     # A Windows console is cp1252; one non-ASCII glyph in a report kills the run.
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
+    constants.utf8_console()
 
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--seed", action="store_true", help="write an empty record file")
     ap.add_argument("--check", metavar="PATH", help="check a filled record file")
-    ap.add_argument(
-        "--convert", metavar="PATH", help="a 0.2.x text report, as record JSON"
-    )
     ap.add_argument("--census", required=True, help="census.py --json output")
     ap.add_argument("--reviewer", help="the editorial role's name (--seed only)")
     ap.add_argument("--out", help="the file to write (--seed only)")
     args = ap.parse_args()
 
-    if not args.seed and not args.check and not args.convert:
-        print("nothing to do: pass --seed, --check or --convert")
+    if not args.seed and not args.check:
+        print("nothing to do: pass --seed or --check")
         return 2
     try:
         loaded = json.loads(Path(args.census).read_text(encoding="utf-8"))
-    except READ_ERRORS as e:
+    except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ {args.census} ({type(e).__name__})")
         return 2
     except json.JSONDecodeError as e:
@@ -1057,7 +1134,7 @@ def main() -> int:
     if args.check:
         try:
             report = json.loads(Path(args.check).read_text(encoding="utf-8"))
-        except READ_ERRORS as e:
+        except exceptions.READ_ERRORS as e:
             print(f"CANNOT READ {args.check} ({type(e).__name__})")
             return 2
         except json.JSONDecodeError as e:
@@ -1073,7 +1150,7 @@ def main() -> int:
             print(f"  {stale}")
         for problem in problems:
             print(f"  {problem}")
-        total = len(report.get("records") or [])
+        total = sum(1 for _ in every_record(report))
         print(f"\n{total - unruled} of {total} records ruled; {unruled} still empty.")
         # ! The VERSION counts as one. It is reported above and it is not in
         # `problems`, so a file whose only fault was a missing version printed
@@ -1088,42 +1165,6 @@ def main() -> int:
         print("Every filled record is well formed." if total else "No records.")
         return 0
 
-    if args.convert:
-        if not args.reviewer or not args.out:
-            print("--convert needs --reviewer and --out")
-            return 2
-        try:
-            text = Path(args.convert).read_text(encoding="utf-8")
-        except READ_ERRORS as e:
-            print(f"CANNOT READ {args.convert} ({type(e).__name__})")
-            return 2
-        # !! IMPORTED HERE, NOT AT THE TOP, and the direction is the point.
-        # `held.py` reads the retired 0.2.x TEXT shape and imports THIS module
-        # to build the current one; importing it back at module scope would
-        # make the pair circular and would say that the current representation
-        # knows the retired one exists. It does not: this is the one entry
-        # point that does.
-        import held  # noqa: PLC0415  -- see above
-
-        findings, malformed = held.parse_report(text, args.reviewer)
-        report = held.convert(findings, census, args.reviewer)
-        # ! CODE CONCERNS travel too. They carry no verdict and are gated by
-        # nothing, which is exactly why a conversion drops them without any
-        # count moving -- measured here, 14 lines that vanished while the
-        # finding totals matched to the paragraph.
-        report["code_concerns"] = held.code_concerns(text)
-        out = Path(args.out)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(report, indent=1), encoding="utf-8")
-        ruled = sum(1 for r in report["records"] if r["verdict"] is not None)
-        # ! The two counts are printed together so a LOSS is visible. A
-        # conversion that quietly dropped findings read as a clean run.
-        print(f"{args.reviewer}: {len(findings)} findings -> {ruled} filled records")
-        print(f"  -> {out}")
-        for line in malformed:
-            print(f"  MALFORMED IN THE SOURCE: {line}")
-        return 0
-
     if not args.reviewer or not args.out:
         print("--seed needs --reviewer and --out")
         return 2
@@ -1132,7 +1173,7 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=1), encoding="utf-8")
 
-    prose = len(report["records"])
+    prose = sum(1 for _ in every_record(report))
     print(
         f"{args.reviewer}: {prose} records seeded"
         f" from {len(census)} paragraphs -> {out}"

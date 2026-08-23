@@ -5,14 +5,12 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from dataclasses import fields
 from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
-import addresser
-import census
+import foliator
+import lexer
 import page
-import held
 import record
 import verdicts
 
@@ -49,6 +47,16 @@ CENSUS = [
 ]
 
 
+def all_records(report):
+    """Every record, flattened out of its page block.
+
+    ! The file groups records under the page they sit on -- see
+    `record.pages_of`. A test that asserts about ONE record does not care which
+    page it came from; one that cares reaches into `report["pages"]` itself.
+    """
+    return [rec for _, rec in record.every_record(report)]
+
+
 class TestOnlyProseGetsASlot(unittest.TestCase):
     def test_intervals_are_skipped(self):
         self.assertEqual([i for i, _ in record.prose_paragraphs(CENSUS)], [1, 3])
@@ -63,23 +71,21 @@ class TestOnlyProseGetsASlot(unittest.TestCase):
                 "address": "a.py@b0",
             }
         ]
-        self.assertEqual(record.seed(only, "block-context")["records"], [])
+        self.assertEqual(all_records(record.seed(only, "block-context")), [])
 
     def test_the_address_is_the_CENSUSS_not_a_slot_number(self):
         # !! THE ADDRESS IS THE CENSUS'S, not a slot number. The index this
         # once asserted was dropped 2026-08-19 -- it went stale the moment an
         # `add` or a `drop` shifted the list.
-        self.assertEqual(
-            record.seed(CENSUS, "x")["records"][1]["address"], "pkg:m.py@b2"
-        )
+        self.assertEqual(all_records(record.seed(CENSUS, "x"))[1]["place"], "b2")
 
 
 class TestWhatTheToolFills(unittest.TestCase):
     def setUp(self):
-        self.records = record.seed(CENSUS, "block-context")["records"]
+        self.records = all_records(record.seed(CENSUS, "block-context"))
 
-    def test_the_address_is_built_from_the_census(self):
-        self.assertEqual(self.records[0]["address"], "pkg:m.py@a0")
+    def test_the_place_is_built_from_the_census(self):
+        self.assertEqual(self.records[0]["place"], "a0")
 
     def test_the_record_does_NOT_carry_the_block_text(self):
         """!! The reviewer is told WHERE, not WHAT, and that is deliberate.
@@ -102,12 +108,12 @@ class TestWhatTheToolFills(unittest.TestCase):
                 self.assertIn(field, self.records[0])
 
     def test_only_the_address_and_the_anchor_are_seeded(self):
-        self.assertEqual(record.SEEDED, ("address", "anchor"))
+        self.assertEqual(record.SEEDED, ("place", "anchor"))
 
 
 class TestWhatTheReviewerFills(unittest.TestCase):
     def setUp(self):
-        self.records = record.seed(CENSUS, "block-context")["records"]
+        self.records = all_records(record.seed(CENSUS, "block-context"))
 
     def test_the_verdict_is_NULL_not_empty(self):
         # ! An unruled paragraph must be distinguishable from one ruled with an
@@ -179,7 +185,7 @@ class TestTheTemplateStatesWhatIsAllowed(unittest.TestCase):
 
     def test_the_seeded_file_carries_it_before_the_records(self):
         keys = list(record.seed(CENSUS, "x"))
-        self.assertLess(keys.index("allowed"), keys.index("records"))
+        self.assertLess(keys.index("allowed"), keys.index("pages"))
 
 
 class TestCheckNamesTheRightThing(unittest.TestCase):
@@ -221,7 +227,7 @@ class TestCheckNamesTheRightThing(unittest.TestCase):
     def test_a_clobbered_address_blames_the_EDIT_not_the_reviewer(self):
         # !! The whole point. The reviewer never typed this field, so a message
         # accusing it of misquoting would send it to fix correct work.
-        rec = self._filled(verdict="clean", address="WRONG:1-2")
+        rec = self._filled(verdict="clean", place="WRONG")
         problem = " ".join(record.seeded_problems("paragraph 1", rec, CENSUS[0]))
         self.assertIn("WRITTEN BY THE TOOL", problem)
         self.assertIn("edited after seeding", problem)
@@ -261,123 +267,13 @@ class TestUnruledIsCountedNotRefused(unittest.TestCase):
 
     def test_a_filled_record_is_not_counted_as_unruled(self):
         report = record.seed(CENSUS, "block-context")
-        report["records"][0].update(verdict="clean")
+        all_records(report)[0].update(verdict="clean")
         _, unruled = record.check(report, CENSUS)
         self.assertEqual(unruled, 1)
 
     def test_a_file_that_is_not_a_report_says_so(self):
         problems, _ = record.check({"nothing": "here"}, CENSUS)
         self.assertIn("not a seeded report", " ".join(problems))
-
-
-class TestConvertKeepsAHeldRunReplayable(unittest.TestCase):
-    """A 0.2.x report becomes records, so a captured run stays a regression test.
-
-    !! Replaying held stage-4 output is what made 0.2.1 and 0.2.2 cheap to
-    validate -- five joins over one set of reports, about 1.6M tokens of review
-    reused -- and that property dies the day the shape moves unless something
-    carries the old reports across.
-    """
-
-    def test_a_two_marker_claim_becomes_its_two_keys(self):
-        self.assertEqual(
-            held.claim_object("correct", 'false: "the budget is 3" / true: "it is 5"'),
-            {"false": "the budget is 3", "true": "it is 5"},
-        )
-
-    def test_a_drop_carries_its_one_key(self):
-        self.assertEqual(
-            held.claim_object("drop", 'drop: "callers round separately"'),
-            {"drop": "callers round separately"},
-        )
-
-    def test_an_add_recovers_its_ANCHOR_from_the_prose(self):
-        # !! The old format carried these as prose inside CLAIM, checked by
-        # regex rather than by marker. A conversion reading only markers turned
-        # 179 of one report's 228 admissible records into malformed ones.
-        got = held.claim_object(
-            "add", 'missing: "the units are seconds", above `COOLDOWN_HOLD_S`'
-        )
-        self.assertEqual(got["anchor"], "`COOLDOWN_HOLD_S`")
-
-    def test_the_old_SIDE_word_is_dropped_not_carried_across(self):
-        # !! THE ADDRESS SAYS WHICH SIDE. A 0.2.x claim stated it as prose;
-        # carrying that word forward would put the field back that this
-        # conversion exists to leave behind.
-        got = held.claim_object("add", 'missing: "x", before `F`')
-        self.assertNotIn("side", got)
-
-    def test_a_query_recovers_its_shape_and_owes_the_rest(self):
-        got = held.claim_object(
-            "query", "outside my role -- I grepped for it and found nothing"
-        )
-        self.assertEqual(got["shape"], "outside my role")
-        self.assertIn("attempted", got)
-        self.assertIn("settles", got)
-
-    def test_an_unknown_verdict_converts_to_an_empty_claim(self):
-        self.assertEqual(held.claim_object("reject", 'drop: "x"'), {})
-
-
-class TestConvertGivesACitedIntervalASlot(unittest.TestCase):
-    """!! `add` cites an EMPTY INTERVAL, which `--seed` gives no slot.
-
-    Seeding lays down the PROSE paragraphs because those are what a reviewer is
-    accountable for. But an `add`'s finding is that a constraint holds in code
-    and appears in no prose, so its subject is the GAP -- and a conversion that
-    filled only seeded slots dropped both of one report's `add`s in silence.
-    Measured 2026-08-17: 228 findings became 226.
-    """
-
-    @staticmethod
-    def _F(address, verdict):
-        """A finding, as `parse_report` builds them -- `convert`'s real input.
-
-        ! A hand-rolled stub stood here and re-declared six of `Finding`'s
-        fields. `convert` consumes real ones, so a field added to `Finding` --
-        `claim_fields` was, on this branch -- would not have reached these
-        tests, and a conversion could lose data with a green suite.
-        """
-        return record.Finding(
-            reviewer="module-context",
-            address=address,
-            verdict=verdict,
-            claim='missing: "x", above `F`',
-            reason="r",
-            sources=["a.py:1 | x"],
-            change="# x",
-        )
-
-    def test_a_finding_on_an_interval_is_not_dropped(self):
-        report = held.convert([self._F("pkg:m.py@b1", "add")], CENSUS, "module-context")
-        cited = [r for r in report["records"] if r["address"] == "pkg:m.py@b1"]
-        self.assertEqual(len(cited), 1)
-        self.assertEqual(cited[0]["verdict"], "add")
-
-    def test_the_interval_slot_carries_the_censuss_address(self):
-        report = held.convert([self._F("pkg:m.py@b1", "add")], CENSUS, "module-context")
-        cited = next(r for r in report["records"] if r["address"] == "pkg:m.py@b1")
-        # !! THE STABLE ADDRESS, not a line range. A line range is true of one
-        # file state and this tool edits prose; deprecated 2026-08-18.
-        self.assertEqual(cited["address"], "pkg:m.py@b1")
-
-    def test_records_stay_in_census_order(self):
-        report = held.convert([self._F("pkg:m.py@b1", "add")], CENSUS, "module-context")
-        # ! Census order, which the addresses no longer sort into by string --
-        # the census position is what `convert` orders by.
-        order = [b["address"] for b in CENSUS]
-        got = [order.index(r["address"]) for r in report["records"]]
-        self.assertEqual(got, sorted(got))
-
-    def test_no_finding_is_lost(self):
-        findings = [
-            self._F("pkg:m.py@a0", "add"),
-            self._F("pkg:m.py@b1", "add"),
-            self._F("pkg:m.py@b2", "add"),
-        ]
-        report = held.convert(findings, CENSUS, "module-context")
-        ruled = [r for r in report["records"] if r["verdict"] is not None]
-        self.assertEqual(len(ruled), 3)
 
 
 class TestCLI(unittest.TestCase):
@@ -414,7 +310,7 @@ class TestCLI(unittest.TestCase):
         result = self._run("--seed")
         self.assertEqual(result.returncode, 0, result.stdout)
         written = json.loads(self.out.read_text(encoding="utf-8"))
-        self.assertEqual(len(written["records"]), 2)
+        self.assertEqual(len(all_records(written)), 2)
         self.assertEqual(written["reviewer"], "block-context")
 
     def test_it_round_trips_as_json(self):
@@ -459,7 +355,7 @@ class TestCLI(unittest.TestCase):
     def test_a_malformed_record_exits_1(self):
         self._run("--seed")
         report = json.loads(self.out.read_text(encoding="utf-8"))
-        report["records"][0].update(verdict="drop", claim={"from": "x"})
+        all_records(report)[0].update(verdict="drop", claim={"from": "x"})
         self.out.write_text(json.dumps(report), encoding="utf-8")
         result = self._check(self.out)
         self.assertEqual(result.returncode, 1)
@@ -582,8 +478,13 @@ class TestTheRecordVersionIsRead(unittest.TestCase):
         self.assertIsNone(record.version_problem(record.seed(CENSUS, "block-context")))
 
     def test_a_different_version_is_named(self):
-        problem = record.version_problem({"record_version": "2"})
-        self.assertIn("'2'", problem)
+        # !! DERIVED FROM THE CONSTANT, NOT SPELT. This said `"2"` and broke the
+        # day `RECORD_VERSION` became "2" -- the test asserting that a DIFFERENT
+        # version is caught was itself pinned to a literal that stopped being
+        # different. A bump should cost nothing here.
+        other = f"{record.RECORD_VERSION}-not-this"
+        problem = record.version_problem({"record_version": other})
+        self.assertIn(repr(other), problem)
         self.assertIn(repr(record.RECORD_VERSION), problem)
 
     def test_a_missing_version_is_reported_differently(self):
@@ -616,7 +517,7 @@ class TestTheAnchorFormIsCheckedHereToo(unittest.TestCase):
     def _rec(self, anchor):
         return {
             "block": 1,
-            "address": "a.py@b0",
+            "place": "b0",
             "anchor": "x = 1",
             "verdict": "add",
             "claim": {"missing": "a note", "anchor": anchor},
@@ -687,7 +588,7 @@ class TestARecordWithNoAnchorIsBroken(unittest.TestCase):
 
     def _rec(self, **over):
         rec = {
-            "address": self.PARAGRAPH["address"],
+            "place": self.PARAGRAPH["address"].split("@")[-1],
             "anchor": self.PARAGRAPH["anchor"],
             "verdict": "clean",
             "claim": {},
@@ -725,128 +626,9 @@ class TestARecordWithNoAnchorIsBroken(unittest.TestCase):
         self.assertIn("restore it", problems[0])
 
     def test_every_seeded_slot_carries_the_census_anchor(self):
-        for i, slot in enumerate(record.seed(CENSUS, "block-context")["records"]):
+        for i, slot in enumerate(all_records(record.seed(CENSUS, "block-context"))):
             with self.subTest(slot=i):
                 self.assertTrue(slot["anchor"], "a seeded slot with no anchor")
-
-
-class TestA02xReportCANNOTBeConverted(unittest.TestCase):
-    """The old form does not carry enough to name a place, and says so.
-
-    !! ROY RULED IT, 2026-08-19: *"is it possible to convert the old form to the
-    new form at all without the code there next to it? I don't think it is.
-    There is not enough definition in the old form to make the address."*
-    Measured the same day, and both routes are closed.
-
-    **`PARAGRAPH <index>`** is a position in ONE census. The census it names carries
-    no addresses -- 0 of 3,333 on a real held run, because the field postdates
-    it -- and a census built today is a different list: the held one holds
-    `interval`, `docstring`, `comment` and `trailing-comment` and has no
-    `margin` or `undocumented`, which today's census emits one of per code line
-    and per undocumented declaration. Every index shifts.
-
-    **`LOCATION path:start-end`** is line numbers, and turning a line into an
-    ordinal needs the SOURCE to say which lines are code. `Finding` does not
-    even retain it.
-
-    ! **The failure it replaces was silent in both directions.** Against a fresh
-    census every held finding grouped under `""` and matched nothing -- 3 of 3
-    dropped, exit 0. Against the genuine held census every paragraph keyed on `""`
-    too, so every record matched every finding: **3,333 paragraphs and 173 findings
-    produced 29,583 records**, each with a verdict and no error raised.
-
-    ! `TestConvertKeepsAHeldRunReplayable` above is named for the property and
-    tests `claim_object` one field at a time, so `convert` was never called by a
-    test at all.
-    """
-
-    SRC = (
-        '"""Module doc."""\n\n# a note\ndef f():\n    """Doc."""\n    return 1  # why\n'
-    )
-
-    def setUp(self):
-        path = Path("m.py")
-        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, paragraphs))
-        for b in paragraphs:
-            b.address = addresser.address(vars(b), lines)
-        self.census = [vars(b) for b in paragraphs]
-        self.prose = [
-            i
-            for i, b in enumerate(self.census, 1)
-            if b["kind"] in ("comment", "docstring", "trailing-comment")
-        ]
-
-    def _held(self, indices):
-        # ! The 0.2.x shape: `--- RECORD`, an INDEX, and no address anywhere.
-        text = "\n".join(
-            f"--- RECORD\nBLOCK       {i}\nVERDICT     clean\n"
-            f"FINDING     nothing to report from this role\n---"
-            for i in indices
-        )
-        found, problems = held.parse_report(text, "ownership-context")
-        self.assertEqual(problems, [])
-        return found
-
-    def test_a_held_record_carries_an_INDEX_and_no_address(self):
-        # ! Guards the guard: a fixture that grew an address would make the
-        # refusal below untestable.
-        for f in self._held(self.prose):
-            with self.subTest(block=f.block):
-                self.assertEqual(f.address, "")
-                self.assertIn(f.block, self.prose)
-
-    def test_the_LOCATION_line_is_not_even_retained(self):
-        # ! So the one route that COULD work with the source in hand is closed
-        # at the parser, before any converter sees it.
-        self.assertNotIn("location", {f.name for f in fields(record.Finding)})
-
-    def test_convert_REFUSES_and_names_what_is_missing(self):
-        with self.assertRaises(ValueError) as caught:
-            held.convert(self._held(self.prose), self.census, "ownership-context")
-        said = str(caught.exception)
-        self.assertIn("carry no address", said)
-        self.assertIn("census POSITION", said)
-
-    def test_it_refuses_rather_than_dropping_them_quietly(self):
-        # !! The failure being replaced: a file of null verdicts and exit 0.
-        records = self._held(self.prose)
-        self.assertGreater(len(records), 0)
-        with self.assertRaises(ValueError):
-            held.convert(records, self.census, "ownership-context")
-
-    def test_the_REAL_held_run_in_this_repo_is_refused(self):
-        """The regression fixture: a genuine 0.2.x census and its own report."""
-        run = FIXTURES.parent.parent / "evidence/todo-tool-full-run/run-2-complete"
-        if not (run / "census.json").exists():
-            self.skipTest("the held run is not in this checkout")
-        old = json.loads((run / "census.json").read_text(encoding="utf-8"))
-        text = (run / "ownership-context.md").read_text(encoding="utf-8")
-        records, problems = held.parse_report(text, "ownership-context")
-        self.assertEqual(problems, [])
-        self.assertGreater(
-            len(records), 100, "the held report should carry its findings"
-        )
-        # !! The census it was written against carries no addresses at all.
-        self.assertFalse(any(b.get("address") for b in old))
-        # ! And its kinds are not today's, so the indices do not survive either.
-        self.assertNotIn("margin", {b["kind"] for b in old})
-        with self.assertRaises(ValueError):
-            held.convert(records, old, "ownership-context")
-
-    def test_an_ADDRESSED_report_still_converts(self):
-        # ! The bridge is not dead -- it carries a run held from 0.2.4 on, where
-        # a record names a PLACE rather than a position.
-        records = self._held(self.prose)
-        for f in records:
-            f.address = self.census[f.block - 1]["address"]
-        out = held.convert(records, self.census, "ownership-context")
-        ruled = [r for r in out["records"] if r["verdict"] is not None]
-        self.assertEqual(len(ruled), len(records))
-        self.assertEqual(
-            {r["address"] for r in ruled},
-            {self.census[i - 1]["address"] for i in self.prose},
-        )
 
 
 class TestFrontMatterIsNotSEEDED(unittest.TestCase):
@@ -878,14 +660,12 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
 
     def setUp(self):
         path = Path("m.py")
-        paragraphs = census.census_for(path, self.SRC, census.language_for(path))
-        lines = sorted(census.code_lines(self.SRC, paragraphs))
-        for b in paragraphs:
-            b.address = addresser.address(vars(b), lines)
+        paragraphs = page.page_for(path, self.SRC, lexer.language_for(path))
+        list(page.code_lines(self.SRC, [vars(b) for b in paragraphs]))
         self.census = [vars(b) for b in paragraphs]
-        self.marked = [
-            b for b in self.census if page.FRONT_MATTER in (b["annotations"] or ())
-        ]
+        # ! THE KIND, NOT AN ANNOTATION, since 2026-08-21 -- the lexer types a
+        # run `matter` and the page no longer stamps it afterwards.
+        self.marked = [b for b in self.census if b["kind"] == lexer.Kind.MATTER]
 
     def test_the_fixture_really_has_front_matter(self):
         # ! Guards the guard: a fixture whose header stopped being marked would
@@ -893,32 +673,40 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
         self.assertTrue(self.marked, "the licence header is not marked front matter")
 
     def test_no_seeded_slot_is_front_matter(self):
-        seeded = record.seed(self.census, "ownership-context")["records"]
+        seeded = all_records(record.seed(self.census, "ownership-context"))
         at = {b["address"] for b in self.marked}
-        self.assertEqual([s for s in seeded if s["address"] in at], [])
+        self.assertEqual([s for s in seeded if s["place"] in at], [])
 
     def test_the_prose_a_reviewer_DOES_owe_still_gets_one(self):
         # ! The filter must not take the ordinary prose with it.
-        seeded = record.seed(self.census, "ownership-context")["records"]
+        seeded = all_records(record.seed(self.census, "ownership-context"))
         self.assertTrue(seeded)
         for s in seeded:
-            held = record.entry_for(s["address"], self.census) or {}
-            with self.subTest(address=s["address"]):
-                self.assertNotIn(page.FRONT_MATTER, held.get("annotations") or ())
+            held = (
+                record.entry_for(record.address_for("m.py", s["place"]), self.census)
+                or {}
+            )
+            with self.subTest(place=s["place"]):
+                self.assertNotIn(lexer.Kind.MATTER, held.get("annotations") or ())
 
     def test_the_JOIN_and_the_SEED_agree_on_what_is_accountable(self):
         """!! They disagreed, which is how the gap reached nobody.
 
         `verdicts.py` builds its coverage set with the same two exclusions --
-        `HOLDS_NO_PROSE` and `FRONT_MATTER` -- and `record.prose_paragraphs`
+        `HOLDS_NO_PROSE` and `MATTER` -- and `record.prose_paragraphs`
         excluded only the first.
         """
-        seeded = {s["address"] for s in record.seed(self.census, "x")["records"]}
+        seeded = {
+            record.address_for(where, s["place"])
+            for where, s in record.every_record(record.seed(self.census, "x"))
+        }
+        # ! ASKED BY SERIES, as the shipped code does -- the annotation is what
+        # `attach` reads to ASSIGN the place, not what a consumer asks.
         accountable = {
             str(b.get("address", ""))
             for b in self.census
-            if b.get("kind") not in page.HOLDS_NO_PROSE
+            if not lexer.Kind.holds_no_prose(str(b.get("kind", "")))
             and b.get("address")
-            and page.FRONT_MATTER not in (b.get("annotations") or ())
+            and foliator.series_of(b) != foliator.COVERS
         }
         self.assertEqual(seeded, accountable)

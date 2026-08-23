@@ -8,3 +8,5 @@ end
 A block comment spanning
 two lines of prose.
 =end
+
+URL = "http://example.com/not-a-comment"

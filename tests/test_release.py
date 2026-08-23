@@ -9,7 +9,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 # The newest release heading. `[Unreleased]` is skipped: it carries no number,
 # which is what makes it unreleased.
-RELEASE = re.compile(r"^## \[(\d+\.\d+\.\d+)\]", re.M)
+#
+# !! A PRE-RELEASE SUFFIX IS PART OF THE NUMBER. Three numeric components only
+# would skip `## [0.2.4-alpha]` and match the release BELOW it, so the check that
+# holds the three files equal would compare the wrong one and pass -- or fail
+# against a version nobody wrote. ! Ruled 2026-08-21: a pre-release is cut so an
+# unreleased tree cannot land in the cache directory a measured release owns.
+RELEASE = re.compile(r"^## \[(\d+\.\d+\.\d+(?:[-.]?[A-Za-z][\w.]*)?)\]", re.M)
 
 
 class TestTheVersionIsStatedOnce(unittest.TestCase):
@@ -86,4 +92,28 @@ class TestTheVersionIsStatedOnce(unittest.TestCase):
         self.assertEqual(self.pyproject["project"]["requires-python"], ">=3.11")
         self.assertEqual(
             (ROOT / ".python-version").read_text(encoding="utf-8").strip(), "3.11"
+        )
+
+    def test_every_gate_tool_is_pinned_where_uv_enforces_it(self):
+        """The floor rule, applied to the tools that check the floor.
+
+        !! IT WAS APPLIED TO THE INTERPRETER AND NOT TO THE LINTER for months.
+        `pyproject.toml` spent sixteen lines arguing that an ambient interpreter
+        silently passed broken code -- and declared no dev dependencies at all,
+        so `ruff` and `ty` were whatever the machine happened to have. Roy,
+        2026-08-22: *"we can't have my personal computer's `ty` happens to
+        work."*
+
+        ! `==` AND NOT `>=`. `ruff format` REWRITES source and its output moves
+        between releases, so a range lets a different formatter author this
+        tree; `ty` is pre-1.0, so its diagnostics move too. A gate that changes
+        under a green run is what `docs/gates.md` is about.
+        """
+        dev = self.pyproject["dependency-groups"]["dev"]
+        # ! THE RULE, NOT A ROLL-CALL. A fixed list of names would fail the day a
+        # tool is ADDED, which is the one day nobody is thinking about pinning.
+        self.assertEqual([name for name in dev if "==" not in name], [], dev)
+        # ! And the three that are gates are named, so removing one is loud.
+        self.assertLessEqual(
+            {"pytest", "ruff", "ty"}, {name.split("==")[0] for name in dev}, dev
         )

@@ -8,6 +8,11 @@ Requires-Roy: true
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
           for each of the languages so we can verify that the lexers work for the
           11 languages we claim")
+Renamed:  2026-08-20 — 2026-08-20 -- the language rows measured here were SPLIT, so the
+          names in the tables above no longer resolve. `c-family` became `c`, `cpp`,
+          `java`, `csharp`, `swift` and `kotlin`; `js-family` became `javascript` and
+          `typescript`. The measurements stand as taken -- the `.java` sample is now the
+          `java` row and the `.js` sample the `javascript` row.
 ```
 
 ## Objective

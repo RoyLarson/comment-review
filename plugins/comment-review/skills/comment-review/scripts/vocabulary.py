@@ -22,12 +22,18 @@ import tomllib
 from enum import StrEnum
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+# ! ITS FIRST SIBLING IMPORT -- see `run_context.py`, which took one for the same
+# reason on the same ruling. This module's own copy of the guard was the one
+# carrying a comment true of it and false of the other nine.
+import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
+
 VOCABULARY = Path(__file__).resolve().parent.parent / "references" / "vocabulary.toml"
 
 # The key every role's list is extended with. A shared set, and no role's name.
 EVERY_AGENT = "all"
-
-READ_ERRORS = (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError)
 
 
 class Reviewer(StrEnum):
@@ -79,14 +85,7 @@ def main() -> int:
     # corrupted every dash and exited 0, and a PowerShell redirect wrote UTF-16
     # that read as a binary file. The dispatch went out with three roles
     # instead of four.
-    #
-    # ! What it defends has CHANGED. That run corrupted this file's own em
-    # dashes; since the tree went ASCII there are none, and `vocabulary.toml`
-    # holds no character above U+007F. The guard now stands against a
-    # definition someone else adds, not against the text shipped here.
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
+    constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--reviewer", choices=[r.value for r in Reviewer])
     ap.add_argument("--roles", action="store_true", help="list the roles and exit")
@@ -94,7 +93,7 @@ def main() -> int:
 
     try:
         definitions, roles = load()
-    except READ_ERRORS as e:
+    except exceptions.TOML_ERRORS as e:
         print(f"cannot read {VOCABULARY}: {type(e).__name__}: {e}", file=sys.stderr)
         return 1
 

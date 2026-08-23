@@ -13,3 +13,6 @@ func Add(a, b int) int {
 // and then more blank lines follow it.
 
 var url = "http://example.com/not-a-comment"
+
+// A RAW string holds the same marker and takes no escapes.
+var raw = `http://example.com/also-not-a-comment`

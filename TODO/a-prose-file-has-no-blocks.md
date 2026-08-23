@@ -2,12 +2,17 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 9 tasks done
 Owner:    Roy (* 2 rulings) * session
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "both todo-tool and redacted_lane_a ended up in / six rules are
           attributed to CLAUDE.md while living in conventions.md / which tells me that the
           system does need to figure out how to work with .md, .rst, .txt files")
+Unblocked: 2026-08-20 — the lexer is its own module as of 2026-08-20 and is the
+           CONVERSION POINT -- text in, paragraphs out. A markdown reader is a Language
+           row plus a reader, and the page assembles the result the same way. That is a
+           far smaller job than when this was filed, when the blocker was that `block`
+           meant 'the interval between two lines of CODE'.
 ```
 
 ## Objective
@@ -112,3 +117,18 @@ four roles do.
 
 - [ ] Re-measure after any change. `README.md`'s gap row is the current statement and must move
       with the answer, including if the answer is (d).
+- [ ] !! THE FOUR DESKS ALREADY ASK THE MARKDOWN QUESTIONS. Roy, 2026-08-20: a
+      prose file 'does have a title, headers, prose, and references, all map
+      pretty cleanly to the editorial desks we have identified'. title -> module-
+      context (does it announce ONE subject); headers -> function-context (a
+      header is a promise the way a signature is, so: does the section deliver
+      what its header says); prose and references -> block-context (claims, and
+      whether a cited thing says that); placement under a header -> ownership-
+      context. ! No new role, no new remit.
+- [ ] !! A HEADER IS A DOCUMENTABLE DECLARATION, so the `a` series works unchanged
+      -- `a0` the document, `a1..aN` its headers in source order, which is what
+      the `a` foliator already does once the reader states which lines declare. !
+      `c` HAS NO ANALOGUE: there is no room beside a header, so a markdown page
+      emits `a` and `b` only. The walk handles that (`c` simply never emits) but
+      `attach`, `margins` and `intervals` assume three series -- the first
+      language whose tier reaches two.

@@ -14,6 +14,12 @@ Narrowed: 2026-08-19 — Prose done 2026-08-19 and un-deferred at Roy's word -- 
           refused the half-state within minutes. What remains is internal identifiers.
           The four traps that break a bulk rename are now recorded in the objective,
           which is the expensive half of the job.
+Ruled:    2026-08-20 — pCST -> page is settled and GATED, 2026-08-20. Roy: 'it never
+          really fit -- using libcst in python made it easy to move and edit comments
+          and so I thought that was what this was. It isn't.' The shipped tree, README,
+          CLAUDE.md and the live docs no longer say it; `check_vocabulary.RETIRED` now
+          holds 'pcst' alongside 'block'. ! The identifier half of this file is
+          unaffected -- `Block` -> `Paragraph` in ~1,935 sites is still the scope.
 ```
 
 ## Objective

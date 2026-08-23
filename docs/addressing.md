@@ -1,9 +1,15 @@
 # Addressing -- how this system names a place
 
+!! **STOP. IF YOU ARE CLAUDE, DO NOT READ ON -- ask whether you should.** This file records how
+the addressing was ARRIVED AT, including forms that were tried and dropped. Reading it puts
+superseded rulings into your context beside the live ones, where nothing tells them apart.
+
+!! **THE OFFICIAL DEFINITIONS ARE IN
+`plugins/comment-review/skills/comment-review/references/vocabulary.toml`**, emitted by
+`scripts/vocabulary.py`; `foliator.py` is the code that owns the naming.
+
 **A place is where prose sits, or where prose could sit.** Every finding, every record, every
-edit and every re-review names one. This file is the settled definition; `docs/vocabulary.md`
-carries the one-line term and `plugins/comment-review/skills/comment-review/scripts/addresser.py`
-is the code that owns it.
+edit and every re-review names one.
 
 ## The rule
 
@@ -12,8 +18,9 @@ lines that share one.** Ruled by Roy, 2026-08-19.
 
 ```
 pkg:mod.py@a5    a DECLARATION's documentation
-pkg:mod.py@b3    a GAP -- or, at `b0`, the file's own front matter
+pkg:mod.py@b3    a GAP between two lines of code
 pkg:mod.py@c3    the room BESIDE a line of code
+pkg:mod.py@f0    the FILE's own matter -- a licence, a shebang, an index
 ```
 
 !! **THE PATH IS FLATTENED ON `:`, WHICH NO PATH MAY HOLD.** It was `.` until 2026-08-19, and a
@@ -37,11 +44,28 @@ anchor has many. A line has one.
 
 ## The three series
 
-| | names | counts |
-| --- | --- | --- |
-| `a` | a DECLARATION's documentation | declarations, in SOURCE order. `a0` is the module |
-| `b` | the gap ABOVE a line of code, and the FILE's own front matter | its own walk |
-| `c` | the room BESIDE a line of code | its own walk, skipping the module |
+| | names | skips | counts |
+| --- | --- | --- | --- |
+| `a` | a DECLARATION's documentation | what is not documentable | declarations, in SOURCE order. `a0` is the module |
+| `b` | the gap ABOVE a line of code | the module | its own walk. `b` runs one past `c`: the gap AFTER the last line |
+| `c` | the room BESIDE a line of code | the module | its own walk, aligned with `b` |
+| `f` | the FILE's own matter | everything but the module | its own walk. `f0` today |
+
+!! **EVERY SERIES STARTS AT 0, AND A SKIPPED TRIGGER TAKES NO NUMBER.** Ruled by Roy,
+2026-08-20: *"let's initiate all of them at 0 ... the foliations own their own rules on what is
+skipped. `<module>` and its paragraph types get passed to all three, they each decide to record
+and increment independently."*
+
+! **`a` runs one AHEAD and `b` one BEHIND, and both are consequences rather than rules.** `a0` is
+the module, so on a file with a single documentable declaration `a` is one ahead of the line's
+own `c`; on any file with more code than declarations it falls behind. `b` emits a closing gap
+after the last line of code, which `c` has no counterpart for. ! **`b` and `c` are otherwise
+ALIGNED** -- `bN` and `cN` name the gap above and the room beside the same line -- *"until there
+is some specific reason to split them or make them act different"*.
+
+! **A SKIP THAT INCREMENTED is what this replaced**, on 2026-08-20. It burned `b0` and started
+`c` at 1, and no test held either, so the two series began at 1 for no reason a reader could
+derive.
 
 !! **NO FOLIO CAN BE COMPUTED FROM ANOTHER, OR FROM A LINE'S ORDINAL.** Roy, 2026-08-19:
 *"remove any references that indicate anyone can expect that the next line of code is guaranteed
@@ -53,7 +77,7 @@ of code, takes a number at every trigger, and emits or does not: `a` and `b` emi
 `c` steps past it. That any two series line up on a given file is an OUTCOME of that walk, not a
 rule -- and nothing in this system reads one folio to derive another.
 
-! **ASK. DO NOT COUNT.** `addresser.py --anchor NAME --series a|b|c`, or `locator.py --at
+! **ASK. DO NOT COUNT.** `foliator.py --anchor LINE --series a|b|c`, or `locator.py --at
 path:LINE`. The only supported way to learn a folio is to be told it.
 
 !! **The `a` series counts DECLARATIONS, not code lines, and that is a ruling.** Numbering each
@@ -87,7 +111,7 @@ is broken."*
 | --- | --- |
 | `a` | the LINE that declares it -- `def f():`, not `f`. The name is not carried: Roy, 2026-08-19, *"drop it -- the line is the anchor"* |
 | `b` | the code line BELOW the gap -- the statement the prose introduces. At the end of a file, the line above, because that is the bound the gap has |
-| `c` | the code on its own line, which is `line[:edit_column - 1]` |
+| `c` | the code on its own line, which is `line[:original_column - 1]` |
 
 !! **A RECORD WITH NO ANCHOR IS A BROKEN RECORD** -- Roy -- and `record.seeded_problems` says so.
 Measured 2026-08-19 against the commit before that rule: **6,376 of 6,531 blocks in this repo's
@@ -115,15 +139,16 @@ X=2   # initial
 X=2  # reseting X
 ```
 
-Every ADDRESS is unique -- `a0 b0 b1 b2 c0 c1` -- and that is the direction a record cites. But
-`X=2` is TWO anchors spelled alike, so it answers with **two `c` places and three `b` places**,
-drawn from two different statements: `b0` is anchored to line 1, `b1` and `b2` to line 5.
-`addresser.py --anchor` prints every match and says how many; the CALLER chooses by address.
+Every ADDRESS is unique -- measured `a0 b1 b2 b3 c1 c2` -- and that is the direction a record
+cites. But `X=2` is TWO anchors spelled alike, so it answers with **two `c` places and three `b`
+places**, drawn from two different statements: the first gap is anchored to line 1, the other two
+to line 5. ! Those folios are what THIS walk emits on THIS file. Nothing may count them out from
+the lines -- see the ruling above.
+`foliator.py --anchor` prints every match and says how many; the CALLER chooses by address.
 Taking the first rules on the wrong statement.
 
-! **An anchor is also SPELLED two ways.** A declaration's `a` carries its NAME (`f`) while the
-`b` above it and the `c` beside it carry the LINE (`def f():`). Both answer, and where both exist
-they name the same place.
+! **An anchor has ONE spelling: the line of code.** A declaration's `a`, the `b` above it and the
+`c` beside it all carry `def f():`. The NAME is not carried at all.
 
 
 !! **A MODULE IS THE ONE ADDRESS WITH NO LINE OF CODE.** In Python it keeps `<module>` -- the name
@@ -150,8 +175,8 @@ import name.
 **Not at the `#`.** Roy ruled it 2026-08-19: *"c addresses start at the end of the code on the
 line."* The whitespace separating a statement from its trailing comment belongs to the `c` place,
 so `margin` and `trailing-comment` on one line carry the SAME column and an `add` and a `patch`
-write to the same point. The census states it as `edit_column`, 1-based, `0` where the block owns
-its lines whole; `galley.splice` keeps `line[:edit_column - 1]` and replaces the rest.
+write to the same point. The census states it as `original_column`, 1-based, `0` where the block owns
+its lines whole; `galley.splice` keeps `line[:original_column - 1]` and replaces the rest.
 
 ! **It is a little opinionated, and it is the opinion every formatter already holds.** black and
 ruff normalise the gap before an inline comment to two spaces, `gofmt` aligns it, `cargo fmt` the
@@ -238,7 +263,7 @@ Measured on this repo's own shipped scripts, 2026-08-18 and 2026-08-19:
 
 **After, re-measured 2026-08-19 over 18 files in four languages -- `.py`, `.go`, `.rs`, `.rb`:
 7,436 lines, each with exactly ONE address. 0 with none, 0 with more than one, 0 shared.**
-`addresser.py --check` re-reads that claim on every run.
+`foliator.py --check` re-reads that claim on every run.
 
 ! **The first measurement was PYTHON-ONLY and overstated.** It read 6,873 lines, 0 shared -- true
 of Python, where a comment cannot open after a statement and run on. In every C-family language
@@ -254,8 +279,8 @@ differently wherever a consumer had guessed.
 
 | file | owns |
 | --- | --- |
-| `scripts/page.py` | what a pCST NODE is -- `Block`, and the kind sets over it. A LEAF, so every module that reads a block can import the definition of one |
-| `scripts/addresser.py` | BOTH namings -- `address()`, and the deprecated `line_address()` it replaced |
+| `scripts/page.py` | what a PAGE is -- `Paragraph`, the kind sets over it, and `page_for()`, which builds one |
+| `scripts/foliator.py` | the ONE naming. It carried the deprecated `line_address()` beside it until 2026-08-20; see `docs/history.md` |
 | `scripts/census.py` | STAMPS the address on every block. It is the producer, and consumers read it |
 | `scripts/record.py` | `entry_for(address, blocks)` -- the one lookup from an address to a census entry |
 
@@ -271,13 +296,13 @@ inside one is how a citation lands a place off.
 
 ```bash
 # by ANCHOR -- which place of this declaration
-addresser.py --census <FULL CENSUS> --anchor NAME --series a|b|c
+foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 
 # by LINE, when what you have is a line of the original document
 locator.py --census <FULL CENSUS> --at path:LINE
 
 # an address in, the lines THIS CENSUS says it names out
-addresser.py --census <CENSUS> --resolve <ADDRESS>
+foliator.py --census <CENSUS> --resolve <ADDRESS>
 ```
 
 !! **THE ADDRESSER READS THE CENSUS, NEVER THE TREE.** It takes no `--repo`: every question it
@@ -302,11 +327,11 @@ Measured 2026-08-19 over 1,500 files in five corpora: **12 carried prose above t
 docstring, 10 of them the same Apache header repeated in every file of the project.** Inside a
 declaration it never happens -- 0 of 2,579 docstrings.
 
-## The pCST is FLAT, and the address is why
+## A PAGE is FLAT, and the address is why
 
-A pCST is a *pseudo* Concrete Syntax Tree: this line is code, this PART of a line is code, this
-line is comment, this line is docstring. **Pseudo for two reasons** -- a real CST would carry the
-names and the symbols precisely, and a real CST has HIERARCHY.
+A page classifies every line of one file: this line is code, this PART of a line is code, this
+line is comment, this line is docstring. It carries only which lines are which, which is what a
+reviewer of COMMENTS needs.
 
 !! **An address is an ORDINAL over a linear sequence, and an ordinal cannot express
 containment.** Roy, 2026-08-18: *"it probably is just a flat list because of the way we defined

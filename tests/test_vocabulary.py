@@ -89,34 +89,94 @@ class TestWhatIsEmitted(unittest.TestCase):
             vocab.render("review", self.definitions, roles)
 
 
-class TestProseTreeRetired(unittest.TestCase):
-    """Ruled 2026-08-17: the census builds a pCST, and one name had to go.
+class TestTheThingIsAPage(unittest.TestCase):
+    """It was a `prose tree`, then a `pCST`, and it is a PAGE.
 
-    Roy: *"pCST not prose tree"*. While the pCST was an aspiration and the prose
-    tree was what the census actually built, the two were distinguishable. The
-    census enumerates intervals now, so they name one thing.
+    !! THE SECOND NAME WAS BORROWED AND NEVER FIT. Roy, 2026-08-20: *"using
+    libcst in python made it easy to move and edit comments and so I thought
+    that was what this was. It isn't."* Naming it for a syntax tree invited an
+    apology for not being one -- every file that mentioned it explained at
+    length why it was only *pseudo*, and everything those apologies defended is
+    simply correct for a page.
+
+    ! `check_vocabulary.RETIRED` is what holds this; these tests are the record
+    of why, and that the retired table still says so.
     """
 
     ROOT = Path(__file__).resolve().parent.parent
 
-    def test_no_shipped_file_says_prose_tree(self):
+    def test_no_shipped_file_says_either_older_name(self):
+        """! A retired word NAMED is not a retired word USED.
+
+        This grepped raw and so contradicted the gate it defers to: a docstring
+        saying *"the name was wrong the way `pCST` was"* is a mention, which
+        `MENTION` exempts and this refused. The exemption is stripped here the
+        same way `check_retired` strips it, so the two cannot disagree.
+        """
         shipped = sorted((self.ROOT / "plugins").rglob("*.md"))
         shipped += sorted((self.ROOT / "plugins").rglob("*.py"))
         self.assertTrue(shipped, "no shipped files found -- the glob is wrong")
         for path in shipped:
-            with self.subTest(path=path.name):
-                # ! `assertFalse` with a short message, not `assertNotIn`: these
-                # files are tens of kilobytes and `assertNotIn` prints the whole
-                # haystack, burying the name of the file that failed.
-                self.assertFalse(
-                    "prose tree" in path.read_text(encoding="utf-8").lower(),
-                    f"{path.name} still says 'prose tree'",
-                )
+            body = path.read_text(encoding="utf-8")
+            if cv.NOQA in body:
+                continue
+            for allowed in (*cv.MENTION, *cv.NOT_THE_TERM):
+                body = body.replace(allowed, "")
+            body = body.lower()
+            for word in ("prose tree", "pcst"):
+                with self.subTest(path=path.name, word=word):
+                    # ! `assertFalse` with a short message, not `assertNotIn`:
+                    # these files are tens of kilobytes and `assertNotIn` prints
+                    # the whole haystack, burying the name of the file that
+                    # failed.
+                    self.assertFalse(word in body, f"{path.name} still says {word!r}")
 
-    def test_the_retired_table_records_it_with_a_reason(self):
+    def test_the_retired_table_records_both_with_a_reason(self):
         text = (self.ROOT / "docs" / "vocabulary.md").read_text(encoding="utf-8")
         self.assertIn("`prose tree`", text)
-        self.assertIn("pCST", text)
+        self.assertIn("`pCST`", text)
+
+    def test_the_gate_holds_it_rather_than_this_test(self):
+        # ! Naming a word here and not there is how `block` survived in 298
+        # places: a test that greps is one file's opinion, and the gate runs on
+        # every shipped file at once.
+        self.assertIn("pcst", cv.RETIRED)
+
+
+class TestADefinitionIsNotWrittenTwice(unittest.TestCase):
+    """A live term is defined where it is EMITTED from, and nowhere else.
+
+    !! TWO COPIES OF ONE DEFINITION DRIFT SILENTLY. Six terms carried one in
+    both `vocabulary.toml` and `docs/vocabulary.md`, and the two copies of
+    `anchor` had already disagreed -- the shipped one said an `a` is attached to
+    "its declaration", the doc said "the LINE that declares it ... and the name
+    is not carried at all". Every role was handed the first and every human read
+    the second.
+    """
+
+    def setUp(self):
+        self.definitions, _ = vocab.load()
+
+    def test_the_doc_defines_nothing_the_shipped_file_defines(self):
+        self.assertEqual(cv.check_duplicate(self.definitions), 0)
+
+    def test_a_definition_row_IS_found(self):
+        # ! Guards the guard: a pattern that matches nothing is a green bar over
+        # every duplicate there is.
+        self.assertEqual(cv.doc_defines("| **anchor** | a line of code |"), ["anchor"])
+
+    def test_the_RETIRED_table_is_a_record_and_not_a_definition(self):
+        # !! The record NAMES a shipped term on purpose -- `block` -> `paragraph`
+        # only means something if it may say `paragraph`. Counting those rows
+        # would make the gate refuse the file for doing its job.
+        doc = "| **live** | x |\n## Retired\n| **paragraph** | the newer word |\n"
+        self.assertEqual(cv.doc_defines(doc), ["live"])
+
+    def test_the_real_doc_carries_the_retired_heading(self):
+        # ! Without it the split is a no-op and the record would be scanned as
+        # definitions -- the failure would look like a broken document.
+        text = (REPO / "docs" / "vocabulary.md").read_text(encoding="utf-8")
+        self.assertIn(cv.RETIRED_HEADING, text)
 
 
 class TestTheRetiredWordsStayRetired(unittest.TestCase):
@@ -153,24 +213,21 @@ class TestTheRetiredWordsStayRetired(unittest.TestCase):
         toml = (REFERENCES / "vocabulary.toml").read_text(encoding="utf-8")
         self.assertIn("`block` is the older word", toml)
 
-    def test_the_EXEMPTION_is_per_file_and_held_carries_it(self):
-        """!! `held.py` reads a format that no longer ships and must say
-        `BLOCK`, because that is the line MARKER in reports already on disk.
+    def test_the_EXEMPTION_is_CLAIMED_BY_NOTHING_that_ships(self):
+        """!! IT WAS `held.py`, AND THE NEED LEFT WITH THE FORMAT. That file read
+        the 0.2.x TEXT report and had to say `BLOCK`, because that is the line
+        MARKER in reports already on disk -- renaming it there made 173 of 173
+        held records unreadable, measured 2026-08-19.
 
-        Renaming it there made 173 of 173 held records unreadable, measured
-        2026-08-19. It is exempt WHOLE, which is why the code that needs the
-        exemption was moved out of `record.py` first -- 473 lines, 30% of a file
-        that announces ONE subject. Roy, 2026-08-19: *"let's make certain to
-        move the code into separate files to make it easy."*
+        The reader moved to `scripts/replay_held.py` on 2026-08-20, which does
+        not ship. Roy: *"we are not carrying a backwards compatible shim right
+        now, particularly on a format that was a proof-of-concept format."* So
+        the exemption still exists and the shipped tree no longer spends it.
+
+        ! A per-FILE out is only safe while it stays rare, and rarest is none.
+        Exempting a file that IS about the current representation would let the
+        retired word creep back one suppression at a time.
         """
-        held = SCRIPTS / "held.py"
-        self.assertTrue(held.exists(), "held.py is where the retired format lives")
-        self.assertIn(cv.NOQA, held.read_text(encoding="utf-8"))
-
-    def test_NO_OTHER_shipped_file_claims_the_exemption(self):
-        # !! A per-FILE out is only safe while it stays rare. Exempting a file
-        # that IS about the current representation would let the retired word
-        # creep back one suppression at a time.
         claimed = [
             f.name
             for f in sorted((REPO / "plugins").rglob("*"))
@@ -178,4 +235,4 @@ class TestTheRetiredWordsStayRetired(unittest.TestCase):
             and f.suffix in (".md", ".py", ".toml")
             and cv.NOQA in f.read_text(encoding="utf-8")
         ]
-        self.assertEqual(claimed, ["held.py"])
+        self.assertEqual(claimed, [])

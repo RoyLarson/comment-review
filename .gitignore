@@ -29,9 +29,15 @@ venv/
 .DS_Store
 Thumbs.db
 
-# `uv run --with <pkg>` treats the ruff-config pyproject as a project and writes
-# a lock for it. This is not a package and has no dependencies to pin.
-uv.lock
+# !! `uv.lock` IS TRACKED SINCE 2026-08-22, and was ignored on a premise that
+# expired. The rule read *"this is not a package and has no dependencies to
+# pin"*; it now pins `ruff` and `ty`, which are the gates. Roy: *"we can't have
+# my personal computer's `ty` happens to work."*
+#
+# ! The `==` pins in `pyproject.toml` already fix those two exactly -- both are
+# standalone binaries with no Python dependencies of their own -- so the lock
+# adds little today. It is tracked anyway, because the day a gate acquires a
+# transitive dependency is not a day anyone will remember to revisit this line.
 
 # Subagent-driven-development scratch: one workspace per plan, holding that
 # plan's ledger, task briefs, implementer reports and review packages. The
@@ -61,3 +67,9 @@ evidence/*
 # CodeGraph index -- derived from the tree, rebuilt with `codegraph init`.
 # 4.2 MB and regenerated in under a second, so it is not worth versioning.
 .codegraph/
+
+# Scratch. A REVIEWING AGENT writes its probe scripts here -- 2026-08-20 two of
+# them left 20+ files under `.tmp/` while this repo's own habit is `git add -A`,
+# which would have committed another agent's working notes as though they were
+# the work.
+.tmp/

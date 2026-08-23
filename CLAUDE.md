@@ -33,6 +33,17 @@ every check that would have caught it then skipped; the brief generator imported
 module that no longer defined it, passing only on an accidental re-export; and the backlog index
 listed eight finished TODOs as open. **Every one was found by reading, and none by a gate.**
 
+!! **AND A GATE CAN BE GREEN BECAUSE IT SHARES THE DEFECT** -- a different failure from answering
+a different question, and the one that looks most like success. **MEASURED 2026-08-21**: the
+round-trip identity, the strongest check in this tree, scored **699 of 699 across ten languages
+on its first run while 157 addresses were held by two paragraphs each**. It rebuilt each file
+from the line positions it had just read out of that file, so it could not disagree. It began
+finding things one commit later (`e3ae738`), when it was made to set from the FOLIATION instead.
+
+! **[`docs/gates.md`](docs/gates.md) holds that case and the rule it produced**: *"does the check
+pass" is not the question; "could the check fail" is* -- plus the three ways a green run means
+nothing, and what to ask before trusting a new check.
+
 The repo root is **not** the plugin. Only `plugins/comment-review/` ships to a user's
 `.claude/`; everything else (`docs/`, `evidence/`, `evals/`, `corpora/`, `scripts/`) is
 development and measurement tooling that stays behind.
@@ -67,8 +78,16 @@ uv run python evals/generator_split.py <corpus-dir> [paths...]
 # Survey GitHub for assistant-authored repos to extend the corpus
 uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
-# Run the test suite (stdlib unittest; there are no third-party test deps)
+# Run the test suite. BOTH RUNNERS WORK and neither is going away.
+uv run pytest -q                              # the one to reach for
 uv run python -m unittest discover -s tests -v
+
+# !! THE TESTS ARE NOT BEING REWRITTEN. Roy, 2026-08-22: *"since we have dev
+# dependencies PYTEST -- don't rewrite, but that is a big one for me."* pytest
+# collects `unittest.TestCase` natively, so all 795 cases and 690 subtests run
+# under it with no edit to any of them. ! A case written in the `unittest` style
+# is CORRECT here; do not convert one to bare asserts or fixtures because pytest
+# would allow it, and do not add a `conftest.py` a `unittest` run cannot see.
 
 # ONE file, one class, one test -- `-k` matches any of the three, and NOTHING
 # else runs a subset. There is no `python tests/test_x.py`: a `__main__` runner
@@ -105,8 +124,20 @@ uv run python scripts/todo_tool.py list [--owner T] [--status S] [--requires-roy
 uv run python scripts/todo_tool.py resync     # after a merge, before trusting any count
 
 # Lint (ruff config lives in pyproject.toml; corpora/** is excluded from linting)
-ruff check .
-ruff format .
+# !! THROUGH `uv run`, LIKE EVERYTHING ELSE. `ruff` and `ty` are PINNED dev
+# dependencies since 2026-08-22; a bare `ruff` is whatever the machine has, and
+# `ruff format` REWRITES source. Roy: "we can't have my personal computer's `ty`
+# happens to work."
+uv run ruff check .
+uv run ruff format .
+
+# Type gate. Roy, 2026-08-22: "type drifts happen because we have been willing
+# to ignore a ty gate and that is probably not the right thing to do."
+# ! IT FOUND THINGS NO TEST DID, on the day it was added: `foliate` annotated a
+# parameter its own body unpacks as a 3-tuple, so anyone honouring the signature
+# crashed; and a `SyntaxError` put the string `<unknown>` into `Paragraph.start`,
+# because two exception types were read as though `args[1]` meant one thing.
+uv run ty check plugins/comment-review/skills/comment-review/scripts/
 
 # Gate check: refuse to ship a plugins/ file that won't parse on the floor interpreter (py3.11).
 # Run AFTER `ruff format`.
@@ -125,15 +156,41 @@ uv run python plugins/comment-review/skills/comment-review/scripts/vocabulary.py
 # every row needs a human to say whether it is a term.
 uv run python scripts/vocabulary_sweep.py
 
+# What nothing points at -- a shipped name no code reads, a link that resolves nowhere.
+# Also an INPUT, ruled 2026-08-21: "I don't think it deserves a gating. I do think it is
+# a genuinely good idea to run every now and then." Always exits 0.
+# ! Ruff sees an unused import and an unused local; a module-level constant nobody reads
+# is invisible to it, and four went dead in one day with no gate noticing.
+uv run python scripts/dead_sweep.py [--names] [--links]
+
+# What a page could LOOK like, and what each rendering costs -- the row list that ships,
+# the file with its address in the margin, and the same annotating only what holds prose.
+# An INPUT to `TODO/the-census-is-mostly-intervals-nobody-rules-on.md`, where the decision
+# lies. Never a gate; always exits 0.
+uv run python scripts/render_page.py <paths...> [--show margin|prose|rows]
+
 # Release gate no test replaces: the parser the RUNTIME uses on every frontmatter.
 # Run it before tagging -- see "Cutting a release" below.
 claude plugin validate plugins/comment-review
 ```
 
-Tests are stdlib `unittest` with per-language fixtures under `tests/fixtures/`;
-there are no third-party test dependencies, matching the plugin's own
-stdlib-only rule. `evals/grade_hazards.py` remains the end-to-end grade, and
-`scripts/check_shipped_syntax.py` the shipped-syntax floor.
+Tests are written as stdlib `unittest` cases, with per-language fixtures under
+`tests/fixtures/` -- one short, ordinary file per language row, which is what
+`test_fixture_identity.py` runs the round trip over.
+
+!! **THE STDLIB-ONLY RULE IS ABOUT `plugins/`, AND THIS SAID OTHERWISE UNTIL
+2026-08-22.** It read *"there are no third-party test dependencies, matching the
+plugin's own stdlib-only rule"* -- treating one constraint as two. Only
+`plugins/` is copied into someone else's `.claude/`, and it imports nothing but
+the standard library; `tests/` never leaves this repo, and `pytest`, `ruff` and
+`ty` are pinned dev dependencies that run against it.
+
+! **What the rule actually forbids is a third-party import in a SHIPPED file**,
+and `tests/test_shipped_imports.py` is what enforces it -- including
+`TestTheCheckItselfFires`, which proves the check can fail. A dev tool that
+reads this tree is not that. `scripts/check_shipped_syntax.py` answers the
+neighbouring question, whether a shipped file still PARSES on the floor, and
+`evals/grade_hazards.py` remains the end-to-end grade.
 
 ## Architecture
 
@@ -151,7 +208,7 @@ read it before touching the skill. The pipeline:
 1. **PROJECT DETERMINATION** (task agent) -- scope from the merge base, find the repo's cap/width
    conventions, doc style, `move` destination, style sheet, verify reviewer agents resolve, probe
    for a language server, decide the name-corpus source.
-2. **COLLATE** (`census.py`) -- the pCST: every line classified, in order -- code, part-code, comment, docstring. Each block is addressed by the subject its prose answers to: an interval between two lines of code, or a declaration.
+2. **COLLATE** (`page.py` builds each page, `census.py` stacks them) -- every line classified, in order -- code, part-code, comment, docstring. Each paragraph is addressed by the subject its prose answers to: a gap between two lines of code, a declaration's documentation, or the room beside a line.
 3. **FIND REFERENCES** (`census.py`) -- every reference each node makes, resolved (paths, symbols,
    counts).
 4. **MARK** (4 reviewer agents, read-only) -- findings on the nodes. **SERIAL in two rounds:
@@ -185,13 +242,18 @@ Reviewers are read-only and never see SKILL.md directly; they read the shared
 `references/reviewer-brief.md`. Fixing what you find destroys the finding -- MARK and APPLY are
 deliberately separate stages/actors.
 
-### `census.py` -- the only thing the reviewers depend on
+### The census -- the only thing the reviewers depend on
 
-`plugins/comment-review/skills/comment-review/scripts/census.py` builds the pCST from the
-stdlib alone (no third-party dependency), at a per-language tier. It is one of four: `page.py`
-says what a pCST NODE is -- the `Block` dataclass and the kind sets over it -- and is a LEAF so
-every module that reads a block can import the definition of one; `repo.py` answers what the
-checkout says (git, the filesystem, the exception tuples) and is imported by four scripts;
+It is built from the stdlib alone (no third-party dependency), at a per-language tier,
+across four modules that each announce ONE subject:
+
+| module | owns |
+| --- | --- |
+| `foliator.py` | names places -- the foliators walk out, `Foliation` reads back. The LEAF: it knows nothing about a paragraph |
+| `page.py` | ONE FILE -- its paragraphs tied to the places on it. `page_for()` builds one; a page names its own places |
+| `census.py` | every page in scope, formatted for the agents |
+| `repo.py` | what the checkout says: git, the filesystem, the exception tuples |
+
 `annotate.py` is stage 3, the resolution a reviewer would otherwise do by hand.
 Each announces ONE subject, which is what `module-context` asks of any module:
 
@@ -201,10 +263,83 @@ Each announces ONE subject, which is what `module-context` asks of any module:
 | `lexical`   | a comment-syntax record, nothing else | blocks, marks                   | any owner         |
 
 A language with no record is named and the census EXITS NONZERO: every file handed in is
-censused or the run stops. Adding a language is a data row, not new code. Only a STRUCTURAL doc
-carries an anchor, and only Python has one; every other anchor comes from a reviewer reading
-the file, or from an LSP `documentSymbol` enrichment when a language server answered stage 1.7's
-probe. Every ownership-context verdict therefore rests on a reviewer reading the file.
+censused or the run stops. Adding a LEXICAL language is a data row, not new code.
+
+!! **AND A TOKENIZED ONE IS NOT, WHICH THIS SAID OTHERWISE UNTIL 2026-08-22.** It read *"adding
+a language is a data row"* flat. MEASURED: `language.py` decides the tier as `return "tokenized"
+if lang.name == "python" else "lexical"`, and `page.py` dispatches the READER on that same name
+test while the same file STAMPS the tier from `tier_for` -- so a second tokenized language is
+three edits in two modules, and half a fix leaves a file **read at one tier and labelled at the
+other**. Three more sites decide *is this Python* three more ways.
+
+! **IT IS A CLAIM ABOUT THE COST OF A CHANGE, which is the kind that invites someone to make the
+change and discover the cost.** Filed as
+[`tier-dispatched-on-name`](TODO/tier-dispatched-on-name.md).
+
+!! **THE ROW BECOMES TRUE AGAIN WHEN THE AST GOES.** Roy, 2026-08-22: *"as much because we are
+going to remove the ast system from python coming up as it is not an accurate statement."* With
+Python read lexically -- [`python-cannot-read-python`](TODO/python-cannot-read-python.md) -- there
+is one tier, the name test has nothing to answer, and adding any language is a row again. **The
+sentence is not being corrected toward permanence; it is being made honest until the thing it
+describes is rebuilt.**
+
+!! **WHICH LINES DECLARE SOMETHING DOCUMENTABLE IS A KEYWORD LIST ON THE LANGUAGE ROW**, per
+language, since 2026-08-20. Roy: *"the easy way is to supply the lexer with the list of keywords
+that a language/practice uses to say this can get a docstring. Then the lexer matches on that
+instead of having to have independent tooling."* So an `a` place resolves for Rust, Go, Java,
+C#, Swift, Kotlin, JS, TS, Ruby, Lua and shell -- not Python alone.
+
+!! **EVERY LANGUAGE CARRIES EVERY DEFINITION IT NEEDS, AND NO LANGUAGE EVER INHERITS ONE.** Roy,
+2026-08-22, restating it *explicitly* after a session read the weaker form below and assumed he
+could not have meant literally every language: *"every language gets its own definition
+requirements in the file. No language ever inherits from the `a` family. The file can be grouped
+or sorted to make it easier to understand what is happening, but every language gets all of the
+definitions necessary to parse it specifically, because anything else is failing the SRP rules."*
+
+! **GROUPING IS PRESENTATION; SHARING IS THE DEFECT.** Rows may sit together so a reader can see
+the family. What they may not do is take a rule from a neighbour.
+
+!! **THE MACHINERY IS SHARED; THE DEFINITION IS NOT.** A two-word entry, an empty keyword list, a
+`spanning_quotes` tuple -- every row may use any of them. What goes IN one comes from that
+language's grammar and from nothing else. Roy, 2026-08-22: *"I am not against a two word entry
+`data class`. I just wanted to make certain that it wasn't assumed you could assemble two
+different definition systems together to get a correct one."*
+
+! **THE TELL IS REASONING FROM A NEIGHBOUR, and it is in the prose rather than the row.** Measured
+2026-08-22: `data class` is right because KOTLIN'S grammar says so; `local function` is right
+because LUA'S does. Neither is evidence about the other. The failure was arguing *"Kotlin solved
+it this way, so Java should"* -- and Java's second word is the record's NAME, which varies, so the
+same shape broke a real declaration. **A row is wrong the moment its justification cites another
+row**, whether or not the value it lands on happens to be correct.
+
+!! **AND THE RULE WAS ALREADY HERE, WITH ITS OPERATIVE SENTENCE CUT OFF.** This file carried
+two-thirds of the 2026-08-20 ruling. The full quotation, recovered from `560422a`:
+
+> *"don't try to make the list generic -- that is a failure of the single responsibility
+> principle. Each language could change on a new version invalidating the list for all of them.
+> **Better an explicit precise list with duplicated words than an implicit word set hoping to
+> catch each.**"*
+
+! **THE THIRD SENTENCE IS THE ONE THAT DECIDES ANYTHING**, and it is the one that went. The first
+two say a generic list is a risk; only the third says which way to resolve it -- **explicit and
+duplicated beats implicit and shared** -- which is the sentence that forbids borrowing a
+neighbour's rule. The `c-family` and `js-family` rows were split under it.
+
+!! **A SHORTENED QUOTATION IS NOT A SHORTER RULE; IT IS A DIFFERENT ONE.** Roy, 2026-08-22:
+*"I am pretty certain that the session cut out the important part when it shortened it."* ! And
+nothing marks a cut: this tree writes `--` for an em-dash because of the ASCII rule, so an
+elision and a dash are spelled the same. **When a ruling is quoted here, quote all of it** -- the
+commit that first recorded it is the source, and `git log -S` finds it.
+
+! **AN EMPTY LIST MEANS THE LANGUAGE HAS NO `a` SERIES AT ALL** -- not an empty one. `yaml`,
+`toml`, `ini` and `sql` have no docstring practice, and carried an `a0` no verdict could fill until
+this landed. **C and C++ are deliberately in that group**: a C function opens with its RETURN
+TYPE, so the list could never be complete, and a spurious `a` renumbers every `a` below it.
+
+! Only Python's doc sits INSIDE the declaration, so Python alone needs a parser to say WHERE the
+prose goes; everywhere else it goes on the declaring line's own line. An LSP `documentSymbol`
+enrichment still refines this when a language server answered stage 1.7's probe, and a reviewer
+reading the file is what supplies an anchor no keyword names.
 
 `references/` under the skill directory (`write.md`, `compact.md`, `residue-check.md`,
 `review.md`, `reviewer-brief.md`) are each single-sourced for one stage -- nothing pastes their
@@ -216,7 +351,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | path                              | what                                                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `plugins/comment-review/`         | the shipped plugin -- `skills/`, `agents/`, manifests                                                                                                                       |
-| `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using) |
+| `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read) |
 | `docs/plans/`                     | RELEASE SCOPES -- what one version ships, what it does not, and which TODOs it works. !! **NOT `docs/superpowers/plans/`**, and the split is deliberate: Roy, 2026-08-19, *"I don't want to conflate the rigorous one for the less rigorous one."* A superpowers plan is written for an engineer with no context -- exact files, TDD steps, a commit per task. ! **A PLAN IS NOT A TODO**: *"Todos can remain open an indefinite amount of time and make progress as we see fit. Plans are scopes of work to be complete in one run."* Anything in a plan that does not get done is filed in `TODO/` before the plan closes |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ! Nothing here describes this system's own behavior -- that is `docs/`                                                    |
 | `evals/`                          | the twelve planted hazards (`evals.json`, `discriminators.md`), `grade_hazards.py`, and `generator_split.py` (the authorship split)                                        |
@@ -279,6 +414,40 @@ is fine and is usually better -- it fails loudly on a bad assumption (`assert ol
   The git history on main contains work that should have been branch work because we decided
   to start implementing before realizing we were corrections to code that belongs on a branch
   first.
+
+### !! A THING WHOSE DEPENDENCIES ARE BROKEN IS NOT WORKED ON. IT IS REFUSED.
+
+Roy, 2026-08-22, correcting a claim that the round-trip identity was this system's most productive
+instrument: *"But the compositor couldn't be built until the lexer and the langauges and the page
+and the census was doing the work each needed to do individually. So from start to finish the old
+system was insufficient and mixed up concerns in so many places that it was never going to
+work."*
+
+!! **THIS IS A STANDING PRACTICE, NOT A ONE-OFF, and it is visible six times in the record:**
+
+| when | what was refused | until |
+| --- | --- | --- |
+| 2026-08-21 | *"I have refused every galley update to this point. The galley was always broken and on this commit is still broken."* | the compositor split existed |
+| 2026-08-21 | *"what was broken stays very broken out of this branch and I am not willing to accept that. I can accept it being broken in the branch but not merged out of it."* | the merge |
+| 2026-08-22 | *"I stopped the development at the page everytime before that ... there was no reason to try to fix the galley as it was."* | page, foliation and census were *"at least passably functional"* |
+| 2026-08-22 | *"this needs to go in before we can finish this plan and branch"* | `TODO/foliation-knows-about-lines.md` landed |
+| 2026-08-22 | the compositor itself | the lexer, the languages, the page and the census each did ONE job |
+| 2026-08-21 | *"This one is going to take serious thought before we can release it because it looks like it needs a look-ahead lexer"* | the lexer can see ahead |
+
+!! **THE COST OF IGNORING IT IS THE FIX ITSELF, NOT THE TIME.** A repair to a module whose inputs
+are wrong is SHAPED BY those inputs, so it encodes the defect and has to be undone -- which is
+what *"mixed up concerns in so many places that it was never going to work"* describes. The old
+galley was not badly written; it was written against parts that had not decided what they were.
+
+! **AND IT IS WHY AN INSTRUMENT ARRIVES LATE.** The round-trip could not be built early, so
+`matter`, the collisions, the straddle and the empty-file bug stayed invisible -- not because
+nobody looked, but because **nothing yet existed that could disagree with the file.** ! A measuring
+device is downstream of every part it measures, which is the same rule wearing its most expensive
+consequence: see [`docs/gates.md`](docs/gates.md).
+
+! **WHAT THIS ASKS OF A SESSION** is to name the dependency and STOP, rather than to produce a
+plausible local fix. A refusal is a finding: file it, say what it waits on, and leave the box
+unchecked -- *"Deferred is not done."*
 
 ### !! THE TODOs ARE THE JOB BOARD. PLANS ARE HOW WE MARK THEM OFF.
 
@@ -461,6 +630,59 @@ from LAW and each named something publishing already had a word for: `acquittal`
 `suppression` arrived with the initial plugin import and are deleted; `jurisdiction` was added
 2026-08-16 by a session that checked it for collisions and never checked it for register, and is
 now `remit`.
+
+!! **AND IT SUPPLIES CATEGORIES, NOT ONLY NAMES.** Roy, 2026-08-21: *"this is twice now that we
+have realized we were categorically wrong about something that the publishing industry already
+knew and uses actively."* Both times the tell was the same sentence -- **"it had to belong to
+something"** -- said about a category that was straining to hold a second job:
+
+| what was straining | what it was missing | measured cost |
+| --- | --- | --- |
+| `b0` held the file's own matter as well as the first gap | **front/back matter**, its own series | one address for two places; a licence header reviewed as ordinary work |
+| `b` held the blanks on both sides of an `a` | **leading**, the space between lines of type | 16 of 185 files in one corpus could not be set back |
+| `galley.py` both EDITED the page and SET it | **the compositor**, who sets type and decides nothing | the whole module was line arithmetic; three plan boxes were held for it |
+
+!! **THE THIRD IS THE ONE WHERE THE METHOD IS ON THE RECORD**, 2026-08-21, in four messages:
+
+| Roy, verbatim | what it does |
+| --- | --- |
+| *"first what is a galley or what does it do in the publishing world?"* | asks what the thing IS -- **before** proposing anything |
+| *"So right now what the problem is - is actually galley doing two things, creating an updated page and page-setting the text. Those are two different roles and two different sets of rules."* | reads the two jobs OUT of that answer |
+| *"So my proposal is galley gets the old page - updates the old page with the verdict/record/marks and then a page-setter sets the page to rewrite the output text."* | names the missing half **from what it does**, in plain English |
+| *"compositor works"* | takes the trade's word for the role he had already isolated |
+
+!! **THE NAME CAME LAST, AND IT CAME FROM THE FUNCTION FIRST.** `page-setter` is Roy's own
+coinage and is what the module was called for the whole diagnosis; `compositor` arrived afterward
+and was ratified in two words. ! So the method is NOT *ask publishing what to call things*. It is
+**ask what the thing IS, find the second job in the answer, name that job by what it DOES, and
+only then look for the trade's word for it.** A term reached the other way names a category
+nobody has yet shown to exist.
+
+! **AND THE PAYOFF IS STATED AS A TEST, NOT AS TIDINESS**: *"Then we can compare the round trip
+directly page in page out, page in, comments removed, page out no comments... No ambiguity about
+how the page gets written. No this got lost this wasn't done right."* The split is what made the
+identity ABLE TO FAIL -- which is [`docs/gates.md`](docs/gates.md)'s rule arriving from the other
+direction, and Roy said so at the time: this header *"is referencing this exact error even though
+it was masked by so many other things."*
+
+!! **AND IT SAYS WHEN TO ASK -- IT WAS A REFUSAL, NOT A SCHEDULE.** Roy, 2026-08-21: *"This
+page-setter idea is what I was thinking about a lot when you stated this and how it to do it. It
+is also why I have refused every galley update to this point. The galley was always broken and on
+this commit is still broken."* ! Every proposed galley fix was declined while the category error
+stood, because a fix to a module that is about to stop existing is chosen for nothing.
+
+! **So when a category is doing two jobs, ask what a compositor would call the half that does not
+fit -- before inventing a rule to make one category cover both.** Publishing has spent five
+centuries naming the parts of a page; a part this system keeps tripping over probably has a name
+already, and the name usually arrives with the rule attached.
+
+!! **AND A THIRD IS OPEN, FOUND THE SAME WAY.** Roy, 2026-08-21: *"There is no stet. -- we called
+this 'clean' we were incorrect."* `clean` records two different facts -- *a role read this and had
+nothing to report*, and *a mark WAS proposed here and the original stands*. The second is
+publishing's **stet** ("let it stand"), written in the margin with dots under the text so the
+refused correction stays visible underneath. ! Recorded as `clean`, a declined proposal says
+nothing was found, so a re-run raises it again and stage 8 cannot know it was already refused.
+Filed as `TODO/no-mark-for-let-it-stand.md`; **not this branch.**
 
 ! **The register is itself an instruction, and that is the point.** Roy, 2026-08-16: *"I bet it
 helps the LLM focus in on what it is doing. Because of locality and other context items the llm

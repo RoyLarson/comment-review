@@ -11,3 +11,6 @@ result = CONST + 1  # a trailing comment
 def add(a, b):
     """Add two numbers."""
     return a + b
+
+
+URL = "http://example.com/not-a-comment"

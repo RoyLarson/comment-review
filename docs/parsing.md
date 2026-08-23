@@ -163,18 +163,19 @@ differs per machine, so a run with a server and one without produce different
 liveness results from identical input -- the same discipline the corpus manifest
 applies to refs.
 
-## What the pCST is FOR, and where it stops
+## What a PAGE is FOR, and where it stops
 
-!! **IT IS AS GOOD A pCST AS THIS SYSTEM NEEDS, and the bar is not a real CST.**
-Roy, 2026-08-18: *"without a full cst system for every language - this is as good
-of a pCST for what we need."*
+!! **IT CLASSIFIES LINES, AND THE BAR IS NOT A PARSER.** Roy, 2026-08-18, when this
+was still named for a syntax tree: *"without a full cst system for every language -
+this is as good of a pCST for what we need."* ! The NAME is retired -- Roy,
+2026-08-20: *"it never really fit"* -- and the bound it describes is unchanged.
 
 What the tool asks of it is bounded, and every question fits inside a
 comment-syntax record plus a lexer:
 
 - **where prose sits** -- comment runs, docstrings, trailing comments
 - **where prose is MISSING** -- the intervals between two lines of code
-- **which lines are CODE**, which is what `addresser.py` numbers a place against
+- **which lines are CODE**, which is what `foliator.py` numbers a place against
 
 ! None of those needs a grammar. What a grammar would add is OWNERSHIP -- which
 declaration a comment belongs to -- and that is a REVIEWER's judgement in every

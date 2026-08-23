@@ -8,7 +8,7 @@ Requires-Roy: false
 Raised:   2026-08-19 (the c-series writability ruling, 2026-08-19)
 Ruled:    2026-08-19 — Roy, 2026-08-19: 'all intermediate comments are ignored. They can
           be brought up by the agents as code change suggestions.' Not censused at all
-          -- the same ruling that keeps a Python type annotation out. edit_column no
+          -- the same ruling that keeps a Python type annotation out. original_column no
           longer carries -1, and prove_unchanged got STRONGER: the line is code now, so
           a literal beside the delimiter is caught where the old 'unprovable' refused to
           compare.
@@ -32,7 +32,7 @@ would make `5` and `7` compare EQUAL and `prove_unchanged` report PROVEN on a ch
 that condition is written at `census.py` and is correct. What is missing is that the block is then
 handed on as prose.
 
-!! **`edit_column = -1` IS A SECOND FACT WEARING THE FIRST ONE'S CLOTHES.** Roy, 2026-08-19, on
+!! **`original_column = -1` IS A SECOND FACT WEARING THE FIRST ONE'S CLOTHES.** Roy, 2026-08-19, on
 the column: *"Or does it only apply to address lines - which drops the -1 sense entirely."* The
 field says WHERE THE PROSE STARTS. For this block that is a real column -- the `/*`. What makes it
 unwritable is that the prose does not run to the END of its last line, which is a fact about the
@@ -55,7 +55,7 @@ out of what a reviewer reads, the way front matter is filtered.
       matter is filtered. Today it is neither: it is handed on as prose.
 - [x] The block's `text` is the whole statement and it carries no annotation.
       Measured 2026-08-19: `f.c@c1  comment  col=-1  text='int x = /* why */ 5;'`.
-- [x] Whatever is ruled, `edit_column` stops carrying `-1` -- the field says where
+- [x] Whatever is ruled, `original_column` stops carrying `-1` -- the field says where
       the prose STARTS, and this is a fact about where it ENDS.
       `galley.code_on_both_sides` reads it today and is the only reader.
 - [x] No test covers the both-sides shape reaching a reviewer.

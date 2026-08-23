@@ -9,7 +9,8 @@ import unittest
 from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
-import census
+import lexer
+import page
 import held
 import record
 import desk
@@ -18,25 +19,6 @@ import verdicts
 BRIEF = (
     Path(verdicts.__file__).resolve().parent.parent / "references" / "reviewer-brief.md"
 )
-
-REPORT = """
-Some preamble the tool ignores.
-
---- RECORD
-BLOCK       1
-VERDICT     correct
-SOURCES     a.py:5 | the settling line
-CLAIM       false: "only one caller" / true: "three callers"
-REASON      three callers here, so the count is wrong
-CHANGE      # three callers, all under tests/
----
-
---- RECORD
-BLOCK       2
-VERDICT     clean
-REASON      nothing to report from this role
----
-"""
 
 
 def stamped(paragraphs):
@@ -54,20 +36,37 @@ def stamped(paragraphs):
     return out
 
 
-def _clean_records(*paragraphs: int) -> str:
-    """One `clean` RECORD per paragraph. There is no range list to write instead."""
-    return "".join(
-        "--- RECORD\n"
-        f"BLOCK       {n}\n"
-        "VERDICT     clean\n"
-        "REASON      nothing to report from this role\n"
-        "---\n"
+def _rec(place, verdict, **kw):
+    """One record as a reviewer fills it -- the shape `record.seed` lays down.
+
+    !! THE FIXTURES WERE THE RETIRED TEXT REPORT until 2026-08-20, and
+    `verdicts.py` read it. That reader is gone: a proof-of-concept format is not
+    something to carry, and a shim under `plugins/` is copied into someone
+    else's `.claude/` and read by an agent as current. A fixture here is now
+    what the gate actually eats.
+    """
+    rec = {
+        "place": place,
+        "anchor": "",
+        "verdict": verdict,
+        "claim": {},
+        "reason": "",
+        "sources": [],
+        "change": [],
+    }
+    rec.update(kw)
+    return rec
+
+
+def _clean_records(*paragraphs):
+    """One `clean` record per paragraph -- there is no range list."""
+    return [
+        _rec(f"b{n - 1}", "clean", reason="nothing to report from this role")
         for n in paragraphs
-    )
+    ]
 
 
 _CLEAN_RECORDS = _clean_records(1, 2, 3)
-_CLEAN_RECORDS_23 = _clean_records(2, 3)
 
 
 def _finding(**kw):
@@ -80,7 +79,6 @@ def _finding(**kw):
     """
     fields = {
         "reviewer": "block-context",
-        "block": 1,
         "verdict": "correct",
         "sources": ["a.py:5 | the settling line"],
         "claim": 'false: "a" / true: "b"',
@@ -88,66 +86,14 @@ def _finding(**kw):
         "change": "# b, written out with its surrounding paragraph",
     }
     fields.update(kw)
-    # ! The ADDRESS is the key now, and `stamped` numbers a fixture `@b{index}`
-    # from 0. A test that still says `block=N` means the Nth entry, so derive
-    # it rather than making every call site carry both.
-    fields.setdefault("address", f"a.py@b{fields['block'] - 1}")
+    # !! `block=N` IS A TEST CONVENIENCE AND NEVER REACHES THE RECORD. It means
+    # "the Nth entry", which ~150 call sites read that way, and `stamped`
+    # numbers a fixture `@b{index}` from 0 -- so the address is derived here.
+    # ! `Finding.block` itself is GONE, 2026-08-20: only the retired 0.2.x
+    # reader ever filled it, and that reader was deleted with the format.
+    nth = fields.pop("block", 1)
+    fields.setdefault("address", f"a.py@b{nth - 1}")
     return record.Finding(**fields)
-
-
-class TestParsing(unittest.TestCase):
-    def test_a_record_is_parsed(self):
-        found, _ = held.parse_report(REPORT, "block-context")
-        self.assertEqual(len(found), 2)
-        self.assertEqual(found[0].block, 1)
-        self.assertEqual(found[0].verdict, "correct")
-        self.assertEqual(found[0].sources, ["a.py:5 | the settling line"])
-
-    def test_a_clean_record_parses_like_any_other(self):
-        found, _ = held.parse_report(REPORT, "block-context")
-        self.assertEqual(found[1].verdict, "clean")
-        self.assertEqual(found[1].block, 2)
-
-    def test_the_reviewer_is_attached(self):
-        found, _ = held.parse_report(REPORT, "block-context")
-        self.assertEqual(found[0].reviewer, "block-context")
-
-    def test_a_bare_range_line_accounts_for_nothing(self):
-        # A range list used to cover N paragraphs in one line and cite nothing. It is
-        # not a record, so it parses to no findings and every paragraph it named is a
-        # coverage gap.
-        found, malformed = held.parse_report("CLEAN 1-9\n", "module-context")
-        self.assertEqual(found, [])
-        self.assertEqual(malformed, [])
-
-    def test_an_unterminated_record_is_flagged_not_silently_merged(self):
-        # I4: two records, the first missing its closing "---", must not merge
-        # into one record carrying only the second's fields.
-        text = """
---- RECORD
-BLOCK       1
-VERDICT     correct
-SOURCES     a.py:1 | one
-CLAIM       false: "x" / true: "y"
-REASON      first record, never closed
-
---- RECORD
-BLOCK       2
-VERDICT     correct
-SOURCES     a.py:1 | one
-CLAIM       false: "x" / true: "y"
-REASON      second record, closed
-CHANGE      # y, in its paragraph
----
-"""
-        found, malformed = held.parse_report(text, "block-context")
-        self.assertTrue(
-            malformed, "an opener/closer mismatch must be reported as malformed"
-        )
-        self.assertTrue(
-            all(f.block > 0 for f in found),
-            "a malformed record must not enter the findings at all",
-        )
 
 
 class TestCoverage(unittest.TestCase):
@@ -435,39 +381,6 @@ class TestScopeDeclaration(unittest.TestCase):
         self.assertFalse(desk.declares_scope(_finding(verdict="correct")))
 
 
-class TestCodeConcerns(unittest.TestCase):
-    """Carried, never gated. A reviewer WILL find code defects while opening the
-    code to settle a comment, and the brief gives them a place -- but nothing read
-    that place, so a reviewer following the rule was less visible than one
-    breaking it."""
-
-    REPORT = """--- RECORD
-BLOCK       1
-VERDICT     clean
-REASON      nothing to report from this role
----
-
-## CODE CONCERNS
-
-- `complete --outcome "a | b"` writes a malformed row
-- `_ROW_FULL` accepts a row with no trailing pipe
-"""
-
-    def test_the_lines_are_carried(self):
-        self.assertEqual(len(held.code_concerns(self.REPORT)), 2)
-        self.assertIn("malformed row", held.code_concerns(self.REPORT)[0])
-
-    def test_a_report_without_the_section_carries_none(self):
-        self.assertEqual(held.code_concerns(_clean_records(1)), [])
-
-    def test_they_are_not_findings(self):
-        # They carry no verdict, so they must never reach the record parser --
-        # a code concern counted as a finding would enter coverage arithmetic.
-        found, _ = held.parse_report(self.REPORT, "block-context")
-        self.assertEqual(len(found), 1)
-        self.assertEqual(found[0].verdict, "clean")
-
-
 class TestWorkList(unittest.TestCase):
     """The grouping stage 5 works from, and when it is withheld."""
 
@@ -490,15 +403,6 @@ class TestWorkList(unittest.TestCase):
         grouped = verdicts.by_paragraph(found)
         self.assertEqual(sorted(grouped), ["a.py@b6", "a.py@b8"])
         self.assertEqual(len(grouped["a.py@b6"]), 2)
-
-    def test_a_record_with_no_block_index_never_becomes_a_finding(self):
-        # It used to arrive as `block=-1` and every consumer filtered on the
-        # sentinel first. `parse_report` returns it on the side instead, so
-        # there is nothing for the work list to leave out.
-        text = "--- RECORD\nVERDICT     drop\nLOCATION    a.py:1\n---\n"
-        found, malformed = held.parse_report(text, "block-context")
-        self.assertEqual(found, [])
-        self.assertEqual(malformed, ["a record with no PARAGRAPH index"])
 
 
 class TestContradiction(unittest.TestCase):
@@ -663,19 +567,6 @@ class TestContradiction(unittest.TestCase):
             ["a.py@b0"],
         )
 
-    def test_a_record_that_names_no_block_cannot_reach_a_contradiction(self):
-        # It used to reach here as `block=-1` and surface as "RE-REVIEW [-1]".
-        # Now it never becomes a Finding, so there is no index to collide on.
-        text = (
-            "--- RECORD\nVERDICT     drop\nLOCATION    a.py:1\n---\n"
-            "--- RECORD\nVERDICT     correct\nLOCATION    a.py:1\n---\n"
-        )
-        found, malformed = held.parse_report(text, "ownership-context")
-        self.assertEqual(len(malformed), 2)
-        self.assertEqual(
-            verdicts.contradictions(verdicts.by_paragraph(found), self.PARAGRAPHS), []
-        )
-
 
 class TestSource(unittest.TestCase):
     """`EVIDENCE` and `QUOTE` merged into `SOURCES` as `file:line | verbatim`.
@@ -815,17 +706,6 @@ class TestSeveralSources(unittest.TestCase):
         f = _finding(sources=['c.py:1 | x = "a | b"'])
         self.assertIsNone(desk.source_problem(f, self.repo))
 
-    def test_repeated_SOURCE_lines_are_all_kept(self):
-        text = (
-            "--- RECORD\nBLOCK       1\nVERDICT     correct\nLOCATION    a.py:1\n"
-            "SOURCES     a.py:5 | the settling line\n"
-            "SOURCES     b.py:2 | beta\n"
-            'CLAIM       false: "x" / true: "y"\nREASON      y\n'
-            "CHANGE      # b, in its paragraph\n---\n"
-        )
-        found, _ = held.parse_report(text, "block-context")
-        self.assertEqual(len(found[0].sources), 2)
-
 
 class TestBlockProblem(unittest.TestCase):
     """Is the sentence this finding rules on actually IN the paragraph it cites?
@@ -957,96 +837,6 @@ class TestChangeIsRequired(unittest.TestCase):
         # depends on.
         f = _finding(verdict="correct", claim='from: "a" / to: "b"')
         self.assertIn("claim.false", desk.payload_problem(f))
-
-
-class TestAFieldMayRunOverSeveralLines(unittest.TestCase):
-    """`CHANGE` is a whole paragraph, so it is several lines by construction.
-
-    ! Lines naming no field were SKIPPED, so a multi-line CHANGE arrived holding
-    only its first line and nothing said so. The task agent then applied one
-    line of a paragraph it was told was the whole paragraph.
-    """
-
-    def _one(self, body):
-        found, malformed = held.parse_report(
-            f"--- RECORD\n{body}---\n", "block-context"
-        )
-        self.assertEqual(malformed, [])
-        self.assertEqual(len(found), 1)
-        return found[0]
-
-    def test_a_change_keeps_every_line(self):
-        f = self._one(
-            "BLOCK       1\n"
-            "VERDICT     correct\n"
-            'CLAIM       false: "three" / true: "31"\n'
-            "REASON      counted with git grep\n"
-            "CHANGE      # 31 callers want this, all under tests/.\n"
-            "            # Narrowing it re-derives the clamp bounds.\n"
-        )
-        self.assertIn("Narrowing it", f.change)
-        self.assertEqual(len(f.change.splitlines()), 2)
-
-    def test_a_blank_line_INSIDE_a_field_is_content(self):
-        # !! The worst defect 0.2.0 shipped was the opposite of this. A blank
-        # line ended the continuation, so every docstring -- which has one
-        # between its summary and its `Args:` -- was truncated to its first
-        # paragraph. Measured: 33% of one census, ~450 paragraphs of another, and
-        # every refused transcription was correct.
-        f = self._one(
-            "BLOCK       1\n"
-            "VERDICT     correct\n"
-            'CLAIM       false: "a" / true: "b"\n'
-            "REASON      why\n"
-            "CHANGE      # b, first paragraph.\n"
-            "\n"
-            "            # and the second, after a gap.\n"
-        )
-        self.assertIn("second", f.change)
-        self.assertIn("\n\n", f.change)
-
-    def test_trailing_blank_lines_come_off_a_field(self):
-        # ! Blank lines INSIDE a field are content; the ones before the next
-        # label are the spacing between records.
-        f = self._one(
-            "BLOCK       1\n"
-            "VERDICT     correct\n"
-            'CLAIM       false: "a" / true: "b"\n'
-            "REASON      why\n"
-            "CHANGE      # b\n"
-            "\n"
-            "\n"
-        )
-        self.assertEqual(f.change, "# b")
-
-    def test_a_later_field_ends_the_continuation(self):
-        f = self._one(
-            "BLOCK       1\n"
-            "VERDICT     correct\n"
-            "CHANGE      # b\n"
-            "            # and a second line\n"
-            'CLAIM       false: "a" / true: "b"\n'
-            "REASON      why\n"
-        )
-        self.assertEqual(f.change, "# b\n            # and a second line")
-        self.assertEqual(f.reason, "why")
-
-    def test_a_continued_SOURCE_stays_with_its_own_citation(self):
-        # ! SOURCES accumulates where the others overwrite, so a continuation
-        # must join the LAST citation rather than starting a new one.
-        f = self._one(
-            "BLOCK       1\n"
-            "VERDICT     correct\n"
-            "SOURCES     a.py:5 | def f(\n"
-            "                x, y\n"
-            "SOURCES     b.py:2 | beta\n"
-            'CLAIM       false: "a" / true: "b"\n'
-            "REASON      why\n"
-            "CHANGE      # b\n"
-        )
-        self.assertEqual(len(f.sources), 2)
-        self.assertIn("x, y", f.sources[0])
-        self.assertEqual(f.sources[1], "b.py:2 | beta")
 
 
 class TestMoveShowsBothBlocks(unittest.TestCase):
@@ -1235,72 +1025,6 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
 
     def test_an_out_of_range_block_is_left_to_the_range_check(self):
         self.assertIsNone(self._at(block=99))
-
-
-class TestTheBlockLineParses(unittest.TestCase):
-    """`PARAGRAPH <index> | <address>` with the original on the lines below."""
-
-    def _one(self, body):
-        found, malformed = held.parse_report(
-            f"--- RECORD\n{body}---\n", "block-context"
-        )
-        self.assertEqual(malformed, [])
-        return found[0]
-
-    def test_the_three_parts_come_apart(self):
-        f = self._one(
-            "BLOCK       17 | redacted_pkg.rates.py@b47\n"
-            "            # Kept because twenty call sites want this.\n"
-            "            # Narrowing it re-derives the clamp bounds.\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-        )
-        self.assertEqual(f.block, 17)
-        self.assertEqual(f.address, "redacted_pkg.rates.py@b47")
-        self.assertIn("twenty call sites", f.original)
-        self.assertIn("clamp bounds", f.original)
-
-    def test_a_bare_index_still_parses_for_clean(self):
-        f = self._one(
-            "BLOCK       17\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-        )
-        self.assertEqual(f.block, 17)
-        self.assertEqual(f.address, "")
-        self.assertEqual(f.original, "")
-
-
-class TestSourcesTakeContinuationLines(unittest.TestCase):
-    """SOURCES is plural because it repeats -- by label or by continuation."""
-
-    def _sources(self, body):
-        found, _ = held.parse_report(f"--- RECORD\n{body}---\n", "block-context")
-        return found[0].sources
-
-    def test_a_second_citation_below_the_label_is_its_own_entry(self):
-        got = self._sources(
-            "BLOCK       1\n"
-            "VERDICT     clean\n"
-            "SOURCES     a.py:5 | def f():\n"
-            "            b.py:9 | f()\n"
-            "REASON      why\n"
-        )
-        self.assertEqual(got, ["a.py:5 | def f():", "b.py:9 | f()"])
-
-    def test_a_wrapped_verbatim_half_stays_with_its_own_citation(self):
-        # ! The ambiguity this resolves: a continuation is either the NEXT
-        # citation or the wrapped tail of the one above. Only a line opening
-        # with `path:line` is the former.
-        got = self._sources(
-            "BLOCK       1\n"
-            "VERDICT     clean\n"
-            "SOURCES     a.py:5 | def compute(plan,\n"
-            "            week, *, clamp=True):\n"
-            "REASON      why\n"
-        )
-        self.assertEqual(len(got), 1)
-        self.assertIn("clamp=True", got[0])
 
 
 class TestTheClaimAndTheEditMustAgree(unittest.TestCase):
@@ -1690,15 +1414,13 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
         # eleven languages -- everything but Python.
         rust = ["/// Returns the budget.", "/// Callers round separately."]
         self.assertEqual(
-            census.block_text(
-                "docstring", rust, ("///", "//!", "//"), structural=False
-            ),
+            lexer.block_text("docstring", rust, ("///", "//!", "//"), structural=False),
             "Returns the budget. Callers round separately.",
         )
 
     def test_a_STRUCTURAL_doc_is_read_past_its_delimiters(self):
         self.assertEqual(
-            census.block_text("docstring", ['    """Returns the budget."""'], ("#",)),
+            lexer.block_text("docstring", ['    """Returns the budget."""'], ("#",)),
             "Returns the budget.",
         )
 
@@ -1708,7 +1430,7 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
         # so the code on it has to come off or every trailing comment is a
         # fatal.
         self.assertEqual(
-            census.block_text("trailing-comment", ["    x: int  # the cap"], ("#",)),
+            lexer.block_text("trailing-comment", ["    x: int  # the cap"], ("#",)),
             "the cap",
         )
 
@@ -1900,7 +1622,7 @@ class TestALineCommentContainingABlockOpener(unittest.TestCase):
             p.write_text(body, encoding="utf-8")
             return [
                 b
-                for b in census.paragraphs_lexical(p, body, census.language_for(p))
+                for b in lexer.paragraphs_lexical(p, body, lexer.language_for(p))
                 if b.text.strip()
             ]
 
@@ -1975,9 +1697,22 @@ class TestCLI(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def _write(self, name, text):
-        path = Path(self.tmp.name) / name
-        path.write_text(text, encoding="utf-8")
+    def _write(self, name, records, concerns=()):
+        """One reviewer's report on disk, as the record file the gate reads."""
+        # ! The STEM names the reviewer, so a call site may pass `block-context`
+        # or the older `block-context.txt` and mean the same report.
+        path = Path(self.tmp.name) / f"{Path(name).stem}.json"
+        path.write_text(
+            json.dumps(
+                {
+                    "reviewer": name,
+                    # ! ONE PAGE, because every fixture here is one file.
+                    "pages": [{"page": "a.py", "records": list(records)}],
+                    "code_concerns": list(concerns),
+                }
+            ),
+            encoding="utf-8",
+        )
         return path
 
     def _run(self, *reports, reviewers=None, census=None):
@@ -1997,18 +1732,7 @@ class TestCLI(unittest.TestCase):
         )
 
     def _clean_report(self, name, paragraphs=(1, 2, 3)):
-        """One `clean` RECORD per paragraph -- there is no range list."""
-        return self._write(
-            name,
-            "".join(
-                "--- RECORD\n"
-                f"BLOCK       {n}\n"
-                "VERDICT     clean\n"
-                "REASON      nothing to report from this role\n"
-                "---\n"
-                for n in paragraphs
-            ),
-        )
+        return self._write(name, _clean_records(*paragraphs))
 
     def test_full_coverage_exits_zero(self):
         report = self._clean_report("block-context.txt")
@@ -2041,26 +1765,19 @@ class TestCLI(unittest.TestCase):
     def test_a_missing_payload_is_fatal(self):
         # C2: a payload problem must not print and then exit 0.
         report = self._write(
-            "block-context.txt",
-            "--- RECORD\n"
-            "BLOCK       1 | a.py@b0\n"
-            "            x\n"
-            "VERDICT     move\n"
-            "SOURCES     a.py:5 | five callers, all in tests\n"
-            "CLAIM       from: `a.py` line 1 / to: `docs/a.md`\n"
-            "REASON      five callers, all in tests\n"
-            "CHANGE      \n"
-            "---\n"
-            "--- RECORD\n"
-            "BLOCK       2\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-            "---\n"
-            "--- RECORD\n"
-            "BLOCK       3\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-            "---\n",
+            "block-context",
+            [
+                _rec(
+                    "b0",
+                    "move",
+                    claim={"from": "`a.py` line 1", "to": "`docs/a.md`"},
+                    reason="five callers, all in tests",
+                    sources=[
+                        {"cite": "a.py:5", "verbatim": "five callers, all in tests"}
+                    ],
+                ),
+                *_clean_records(2, 3),
+            ],
         )
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
@@ -2069,29 +1786,17 @@ class TestCLI(unittest.TestCase):
 
     def test_an_out_of_range_block_is_fatal(self):
         report = self._write(
-            "block-context.txt",
-            "--- RECORD\n"
-            "BLOCK       999\n"
-            "VERDICT     query\n"
-            'CLAIM       false: "x" / true: "y"\n'
-            "REASON      could not be settled from the checkout\n"
-            "CHANGE      # the settled line, in its paragraph\n"
-            "---\n"
-            "--- RECORD\n"
-            "BLOCK       1\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-            "---\n"
-            "--- RECORD\n"
-            "BLOCK       2\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-            "---\n"
-            "--- RECORD\n"
-            "BLOCK       3\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-            "---\n",
+            "block-context",
+            [
+                _rec(
+                    "b998",
+                    "query",
+                    claim={"false": "x", "true": "y"},
+                    reason="could not be settled from the checkout",
+                    change=["# the settled line, in its paragraph"],
+                ),
+                *_clean_records(1, 2, 3),
+            ],
         )
         result = self._run(report)
         self.assertNotEqual(result.returncode, 0)
@@ -2121,9 +1826,18 @@ class TestCLI(unittest.TestCase):
     def test_duplicate_report_stems_are_refused(self):
         sub = Path(self.tmp.name) / "dup"
         sub.mkdir()
-        one = sub / "block-context.txt"
-        one.write_text(_CLEAN_RECORDS, encoding="utf-8")
-        two = self._write("block-context.txt", _CLEAN_RECORDS)
+        one = sub / "block-context.json"
+        one.write_text(
+            json.dumps(
+                {
+                    "reviewer": "block-context",
+                    "pages": [{"page": "a.py", "records": _CLEAN_RECORDS}],
+                    "code_concerns": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        two = self._write("block-context", _CLEAN_RECORDS)
         result = self._run(one, two)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("DUPLICATE", result.stdout)
@@ -2136,86 +1850,47 @@ class TestCLI(unittest.TestCase):
 
     def test_pluralisation_of_a_single_reviewer_and_block(self):
         report = self._write(
-            "block-context.txt",
-            "--- RECORD\n"
-            "BLOCK       1\n"
-            "VERDICT     query\n"
-            'CLAIM       false: "x" / true: "y"\n'
-            "REASON      could not be settled from the checkout\n"
-            "CHANGE      # the settled line, in its paragraph\n"
-            "---\n"
-            "--- RECORD\n"
-            "BLOCK       2\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-            "---\n"
-            "--- RECORD\n"
-            "BLOCK       3\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-            "---\n",
+            "block-context",
+            [
+                _rec(
+                    "b0",
+                    "query",
+                    claim={"false": "x", "true": "y"},
+                    reason="could not be settled from the checkout",
+                    change=["# the settled line, in its paragraph"],
+                ),
+                *_clean_records(2, 3),
+            ],
         )
-        result = self._run(report)
+        result = self._run(report, reviewers="block-context")
+        self.assertIn("1 reviewer", result.stdout)
         self.assertNotIn("1 reviewers", result.stdout)
-        self.assertNotIn("1 paragraphs", result.stdout)
-
-    def test_an_unterminated_record_is_fatal(self):
-        # I8: a parser-level test only proves the mismatch is DETECTED. Only a
-        # CLI-level test proves it reaches `fatal` and changes the exit code
-        # -- the exact distinction that let all three Criticals ship.
-        report = self._write(
-            "block-context.txt",
-            "--- RECORD\n"
-            "BLOCK       1\n"
-            "VERDICT     correct\n"
-            "SOURCES     a.py:5 | five callers, all in tests\n"
-            'CLAIM       false: "x" / true: "y"\n'
-            "REASON      the count is stale, and this record never closed\n"
-            "\n"
-            "--- RECORD\n"
-            "BLOCK       2\n"
-            "VERDICT     correct\n"
-            "SOURCES     a.py:5 | five callers, all in tests\n"
-            'CLAIM       false: "x" / true: "y"\n'
-            "REASON      the count is stale, and this record closed\n"
-            "CHANGE      # y, in its paragraph\n"
-            "---\n"
-            "--- RECORD\n"
-            "BLOCK       3\n"
-            "VERDICT     clean\n"
-            "REASON      nothing to report from this role\n"
-            "---\n",
-        )
-        result = self._run(report)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("MALFORMED", result.stdout)
-        self.assertIn("swallows the next one", result.stdout)
 
     def test_a_contradiction_is_named_in_the_closing_line_not_contradicted(self):
         # I3: `contradictions()` never increments `fatal` -- correctly, a
         # re-review is not an inadmissible finding -- but the run printed
         # "send the paragraph back" and four lines later "Stage 5 may rule" at
         # exit 0. The two outputs contradicted each other.
-        finding = (
-            "--- RECORD\n"
-            "BLOCK       1 | a.py@b0\n"
-            "            x\n"
-            "VERDICT     {verdict}\n"
-            "SOURCES     a.py:5 | five callers, all in tests\n"
-            "CLAIM       {claim}\n"
-            "REASON      the count is stale\n"
-            "CHANGE      # the paragraph, as it reads after this edit\n"
-            "---\n" + _CLEAN_RECORDS_23
-        )
-        drop = self._write(
-            "ownership-context.txt",
+        def one(verdict, claim):
             # ! The two must name the SAME sentence, or there is no collision:
-            # a contradiction is keyed on the text, not on the paragraph index.
-            finding.format(verdict="drop", claim='drop: "x"'),
-        )
+            # a contradiction is keyed on the text, not on the paragraph.
+            return [
+                _rec(
+                    "b0",
+                    verdict,
+                    claim=claim,
+                    reason="the count is stale",
+                    sources=[
+                        {"cite": "a.py:5", "verbatim": "five callers, all in tests"}
+                    ],
+                    change=["# the paragraph, as it reads after this edit"],
+                ),
+                *_clean_records(2, 3),
+            ]
+
+        drop = self._write("ownership-context", one("drop", {"drop": "x"}))
         correct = self._write(
-            "block-context.txt",
-            finding.format(verdict="correct", claim='false: "x" / true: "y"'),
+            "block-context", one("correct", {"false": "x", "true": "y"})
         )
         result = self._run(drop, correct)
         self.assertEqual(result.returncode, 0)
@@ -2266,7 +1941,11 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         text = BRIEF.read_text(encoding="utf-8")
         match = self.RECORD.search(text)
         self.assertIsNotNone(match, "no worked record in reviewer-brief.md")
-        self.record = json.loads(match.group(1))
+        # ! The fence is a PAGE now -- it names the file once and holds its
+        # records. The shape being pinned is still one record's.
+        self.page = json.loads(match.group(1))
+        self.assertTrue(self.page.get("page"), "the worked example names no page")
+        self.record = self.page["records"][0]
 
     def test_the_worked_example_is_valid_json(self):
         # ! The whole argument for the format: a reader needs no parser of ours.
@@ -2321,9 +2000,10 @@ class TestTheBriefsOwnRecordPasses(unittest.TestCase):
         )
 
     def test_the_example_the_shape_check_reads_is_the_one_taught(self):
-        # ! Guards the guard: a brief that stopped carrying an address would
+        # ! Guards the guard: a brief that stopped carrying a place would
         # make the test above pass vacuously.
-        self.assertEqual(self.record["address"], "redacted_pkg:billing:rates.py@b47")
+        self.assertEqual(self.page["page"], "redacted_pkg/billing/rates.py")
+        self.assertEqual(self.record["place"], "b47")
 
 
 class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
@@ -2372,48 +2052,6 @@ class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
             "read the code around where that replacement lands" in self._skill(),
             "SKILL.md does not oblige the synthesiser to read the context",
         )
-
-
-class TestAMalformedSourceIsItsOwnEntry(unittest.TestCase):
-    """A bad citation must be REPORTED, not glued onto the good one above it.
-
-    !! `CITE` fails on a malformed citation exactly as it fails on a wrapped
-    verbatim tail, so the malformed line was appended to the previous entry.
-    That entry then searched for a needle carrying the bad line's text, failed,
-    and the tool reported the error against a CORRECT citation while never
-    naming the broken one. Measured 2026-08-17.
-    """
-
-    REPORT = (
-        "--- RECORD\n"
-        "BLOCK       1 | a.py@b0\n"
-        "            # first\n"
-        "VERDICT     correct\n"
-        'CLAIM       false: "x" / true: "y"\n'
-        "REASON      because\n"
-        "SOURCES     a.py:10 | def real_line():\n"
-        "            b.py | this citation has no line number\n"
-        "CHANGE      # first\n"
-        "---\n"
-    )
-
-    def test_the_malformed_citation_becomes_its_own_entry(self):
-        findings, _ = held.parse_report(self.REPORT, "block-context")
-        self.assertEqual(len(findings[0].sources), 2)
-
-    def test_the_good_citation_keeps_its_own_verbatim_half(self):
-        findings, _ = held.parse_report(self.REPORT, "block-context")
-        self.assertEqual(findings[0].sources[0], "a.py:10 | def real_line():")
-
-    def test_a_wrapped_verbatim_half_holding_a_pipe_still_continues(self):
-        # !! A PEP 604 union in a cited line is a real case in this tree, and
-        # its left half is not path-shaped because it holds spaces.
-        report = self.REPORT.replace(
-            "            b.py | this citation has no line number\n",
-            "            def _show(repo: Path, ref: str) -> str | None:\n",
-        )
-        findings, _ = held.parse_report(report, "block-context")
-        self.assertEqual(len(findings[0].sources), 1)
 
 
 class TestAFindingStatedOnlyInReason(unittest.TestCase):
@@ -2717,21 +2355,25 @@ class TestAMalformedEntryIsReportedNotRaised(unittest.TestCase):
         self.assertIn("not a report object", malformed[0])
 
     def test_a_record_that_is_not_an_object_is_reported(self):
-        found, malformed, _ = self._load('{"records": ["not an object"]}')
+        found, malformed, _ = self._load(
+            '{"pages": [{"page": "a.py", "records": ["not an object"]}]}'
+        )
         self.assertEqual(found, [])
         self.assertIn("not an object", malformed[0])
 
     def test_one_bad_record_does_not_lose_the_good_ones(self):
         found, malformed, _ = self._load(
-            '{"records": ["bad", {"address": "a.py@b1", "verdict": "clean"}]}'
+            '{"pages": [{"page": "a.py", "records":'
+            ' ["bad", {"place": "b1", "verdict": "clean"}]}]}'
         )
         self.assertEqual([f.address for f in found], ["a.py@b1"])
         self.assertEqual(len(malformed), 1)
 
     def test_a_non_string_in_CHANGE_does_not_raise(self):
         found, _, _ = self._load(
-            '{"records": [{"address": "a.py@b0", "verdict": "clean",'
-            ' "change": [1, 2]}]}'
+            '{"pages": [{"page": "a.py", "records":'
+            ' [{"place": "b0", "verdict": "clean",'
+            ' "change": [1, 2]}]}]}'
         )
         self.assertEqual(found[0].change, "1\n2")
 
@@ -2758,7 +2400,8 @@ class TestTheJoinReadsRecords(unittest.TestCase):
             json.dumps(
                 {
                     "reviewer": "block-context",
-                    "records": records,
+                    # ! ONE PAGE, because every fixture here is one file.
+                    "pages": [{"page": "a.py", "records": records}],
                     "code_concerns": concerns or [],
                 }
             ),
@@ -2770,7 +2413,7 @@ class TestTheJoinReadsRecords(unittest.TestCase):
         path = self._write(
             [
                 {
-                    "address": "a.py@b2",
+                    "place": "b2",
                     "verdict": "correct",
                     "claim": {"false": "x", "true": "y"},
                     "reason": "because",
@@ -2790,35 +2433,19 @@ class TestTheJoinReadsRecords(unittest.TestCase):
         self.assertEqual(found[0].change, "# y\n# z")
 
     def test_an_unfilled_slot_is_skipped_not_malformed(self):
-        path = self._write([{"address": "a.py@b0", "verdict": None}])
+        path = self._write([{"place": "b0", "verdict": None}])
         found, malformed, _ = held.load_report(
             path, path.read_text(encoding="utf-8"), "block-context"
         )
         self.assertEqual((found, malformed), ([], []))
 
     def test_unparseable_json_names_its_own_position(self):
-        self.path.write_text('{"records": [ ,, ]}', encoding="utf-8")
+        self.path.write_text('{"pages": [ ,, ]}', encoding="utf-8")
         found, malformed, _ = held.load_report(
             self.path, self.path.read_text(encoding="utf-8"), "block-context"
         )
         self.assertEqual(found, [])
         self.assertRegex(" ".join(malformed), r"line \d+ column \d+")
-
-    def test_a_text_report_still_loads(self):
-        # ! The deprecated reader is kept: runs in flight and every captured
-        # package on disk are written in it, and `--convert` needs it. ! The
-        # LINE address below is deliberate and must stay -- an old run carries
-        # exactly that, and reading one is the only reason this path survives.
-        path = Path(self.tmp.name) / "block-context.md"
-        path.write_text(
-            "--- RECORD\nBLOCK       1 | a.py:1-1\n            # x\n"
-            "VERDICT     clean\n---\n",
-            encoding="utf-8",
-        )
-        found, _, _ = held.load_report(
-            path, path.read_text(encoding="utf-8"), "block-context"
-        )
-        self.assertEqual(len(found), 1)
 
 
 class TestClaimTextRendersTheObject(unittest.TestCase):
@@ -2851,57 +2478,6 @@ class TestClaimTextRendersTheObject(unittest.TestCase):
 
     def test_an_empty_claim_renders_empty(self):
         self.assertEqual(record.claim_text("clean", {}), "")
-
-
-class TestABareFieldLabelIsStillALabel(unittest.TestCase):
-    """A label with nothing after it must not be glued onto the field above.
-
-    !! `FIELD` required `\\s+` after the label, so a bare `CHANGE` line did not
-    match, fell into the continuation branch and joined the last `SOURCES`
-    entry -- giving a needle ending `... MAY LIVE.\\nCHANGE`. The record was
-    then refused for a citation whose verbatim half could not be found, instead
-    of for the empty `CHANGE` that `payload_problem` was waiting to report.
-    Measured 2026-08-17 on a live run.
-    """
-
-    REPORT = (
-        "--- RECORD\n"
-        "BLOCK       1 | a.py@b0\n"
-        "            # first\n"
-        "VERDICT     correct\n"
-        'CLAIM       false: "x" / true: "y"\n'
-        "REASON      because\n"
-        "SOURCES     a.py:10 | THE ONE PLACE ANY ASSERTION MAY LIVE.\n"
-        "CHANGE\n"
-        "---\n"
-    )
-
-    def test_a_bare_label_matches(self):
-        self.assertTrue(held.FIELD.match("CHANGE"))
-
-    def test_a_longer_word_starting_with_a_label_does_not(self):
-        # After the label the pattern needs whitespace or the end of the line.
-        self.assertIsNone(held.FIELD.match("CHANGES  x"))
-        self.assertIsNone(held.FIELD.match("CHANGE: x"))
-
-    def test_the_bare_label_does_not_pollute_the_source_above_it(self):
-        findings, _ = held.parse_report(self.REPORT, "block-context")
-        self.assertEqual(
-            findings[0].sources,
-            ["a.py:10 | THE ONE PLACE ANY ASSERTION MAY LIVE."],
-        )
-
-    def test_the_empty_field_is_what_survives(self):
-        findings, _ = held.parse_report(self.REPORT, "block-context")
-        self.assertEqual(findings[0].change, "")
-
-    def test_the_record_is_refused_for_the_empty_change(self):
-        # ! The point of the fix: the RIGHT refusal, not a citation error on a
-        # correct citation.
-        findings, _ = held.parse_report(self.REPORT, "block-context")
-        problem = desk.payload_problem(findings[0])
-        self.assertIsNotNone(problem)
-        self.assertIn("CHANGE", problem)
 
 
 class TestWordsStripsEveryEdgePunctuation(unittest.TestCase):
@@ -2992,6 +2568,50 @@ class TestAMovesDestinationIsResolved(unittest.TestCase):
         # ! Whether that tree exists is stage 1's ruling, in the run context.
         self.assertIsNone(self._to("docs/loads.md"))
 
+    def test_a_LINE_in_a_file_THIS_RUN_NEVER_FOLIATED_is_allowed(self):
+        """!! THE BAN ON LINE NUMBERS STOPS AT THE RUN'S EDGE.
+
+        Roy, 2026-08-20: *"on the move and add piece we should allow the address
+        to be either foliation or line number for files OUTSIDE of the censused
+        range."* A line goes stale because THIS RUN's own edits shift the lines
+        below them; a file the run does not edit has no such shift, and it has
+        no places to cite instead. ! Measured consequence of refusing it: a
+        finding with an obvious destination was unstateable.
+        """
+        self.assertIsNone(self._to("other.py:88"))
+
+    def test_a_SHORTER_spelling_of_a_censused_path_is_still_in_scope(self):
+        """!! AN EXACT WHOLE-PATH TEST LET THE BAN BE WALKED PAST.
+
+        The census carries `a.py` here, but on a real tree it carries
+        `redacted_pkg/billing/rates.py` and a reviewer writes `to: ... in
+        rates.py:355`. That matched nothing, counted as OUT of scope, and the
+        stale line address was admitted for a file the run does foliate and
+        will edit. Measured 2026-08-21.
+
+        ! It errs toward IN SCOPE, which is the safe direction: a bare name
+        matching two censused files refuses the line form and asks for an
+        address, and that is what the ban is for.
+        """
+        for spelling in ("a.py", "./a.py", "x:a.py"):
+            with self.subTest(spelling=spelling):
+                self.assertIn("names a LINE", self._to(f"{spelling}:3"))
+
+    def test_a_LINE_in_a_CENSUSED_file_is_STILL_refused(self):
+        # ! The rule is not "never a line number" -- it is "never a line number
+        # for a place this run can name properly", and `a.py` is in the census.
+        self.assertIn("names a LINE", self._to("a.py:3"))
+
+    def test_an_ADDRESS_for_an_UNFOLIATED_file_says_the_scope_was_short(self):
+        # !! TWO CAUSES, ONE MESSAGE, until now: a wrong address and a right
+        # address for a file nobody censused both read `is not a place in the
+        # census`, and a reviewer reading that about a correct citation goes
+        # looking for an error that is not there.
+        problem = self._to("other.py@b1")
+        self.assertNotIn("not a place in the census", problem)
+        self.assertIn("other.py", problem)
+        self.assertIn("line", problem)
+
     def test_only_a_verdict_the_TABLE_says_relocates_is_checked(self):
         # ! No branch on the verdict NAME -- the row carries the flag.
         self.assertTrue(record.VERDICTS["move"].owes_destination)
@@ -3022,6 +2642,92 @@ class TestAnEditOnFrontMatterBecomesAQuery(unittest.TestCase):
         self.assertFalse(record.VERDICTS["clean"].owes_change)
         self.assertFalse(record.VERDICTS["query"].owes_change)
 
-    def test_the_marked_block_is_the_one_above_the_module_docstring(self):
-        # ! The census decides which paragraph; this file only acts on the mark.
-        self.assertEqual(census.FRONT_MATTER, "front-matter")
+    def _conversion(self, source: str) -> str:
+        """Run the join over an `add` on this file's `f` place, and return stdout.
+
+        !! THE PLACE COMES FROM A REAL PAGE, so the census carries whatever the
+        walk actually emits -- a `comment` annotated `front-matter` when the file
+        has some, a `dark-matter` when it has none. Hand-building the entry is
+        how the old test came to assert a constant's spelling.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "m.py").write_text(source, encoding="utf-8")
+            path = Path("m.py")
+            got = page.page_for(path, source, lexer.language_for(path), "m.py")
+            entries = [vars(b) for b in got]
+            for e in entries:
+                e["annotations"] = sorted(e["annotations"])
+            census_path = root / "c.json"
+            census_path.write_text(json.dumps(entries), encoding="utf-8")
+            place = next(
+                i
+                for i, e in enumerate(entries, 1)
+                if str(e["address"]).split("@")[-1].startswith("f")
+            )
+            address = entries[place - 1]["address"]
+            report = root / "ownership-context.json"
+            report.write_text(
+                json.dumps(
+                    {
+                        "reviewer": "ownership-context",
+                        "pages": [
+                            {
+                                "page": "m.py",
+                                "records": [
+                                    {
+                                        "place": address.split("@")[-1],
+                                        "anchor": "",
+                                        "verdict": "add",
+                                        "claim": {"anchor": "the module"},
+                                        "reason": (
+                                            "this file should carry the project licence"
+                                        ),
+                                        "sources": [],
+                                        "change": ["# Copyright 2026 Roy."],
+                                    }
+                                ],
+                            }
+                        ],
+                        "code_concerns": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            return subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "verdicts.py"),
+                    "--census",
+                    str(census_path),
+                    "--repo",
+                    str(root),
+                    str(report),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            ).stdout
+
+    def test_an_add_on_FILLED_front_matter_becomes_a_query(self):
+        # !! THE CONVERSION ITSELF, RUN. Deleting the whole 25-line block in
+        # `verdicts.py` left the entire suite green until 2026-08-20: the only
+        # mention of it in the tests was a class docstring, and the two tests
+        # under it asserted a `VERDICTS` flag and a constant's spelling.
+        out = self._conversion('#!/usr/bin/env python\n"""Doc."""\nX = 1\n')
+        self.assertIn("FRONT MATTER", out)
+        self.assertIn("turned into", out)
+        self.assertIn("query", out)
+
+    def test_an_add_on_the_EMPTY_front_matter_place_becomes_a_query_TOO(self):
+        # !! THE CASE THE ANNOTATION MISSED. Only a FILLED run carries the
+        # `front-matter` annotation, so a file with NO licence header had an
+        # `f0` of kind `dark-matter` and no annotations -- and an `add` there,
+        # proposing the licence header that place exists for, went through
+        # without the human ever being asked. Measured 2026-08-20; closed by
+        # keying the guard on the SERIES, which both cases share.
+        out = self._conversion('"""Doc."""\nX = 1\n')
+        self.assertIn("FRONT MATTER", out)
+        self.assertIn("turned into", out)
+        self.assertIn("query", out)

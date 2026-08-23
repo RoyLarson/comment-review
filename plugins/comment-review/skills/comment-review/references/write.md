@@ -26,6 +26,20 @@ fit, that is a finding to report -- and it may turn out to be the code's, not th
 **Keep every scratch copy**, and check against the ORIGINAL paragraph, never against what you
 leave behind.
 
+## What actually writes
+
+!! **The COMPOSITOR writes, and it is the only thing that does.** 7a already set the approved
+text as a GALLEY -- a complete copy of each page, built by putting every approved replacement on
+the page and setting the whole of it. **7b puts that copy over the real file, wholesale.**
+
+! **So there is nothing to merge and no range to get wrong.** The draft IS the finished page: it
+was set from the whole of it, not patched into the original. A write that edited the real file in
+place would be re-deriving, at the one point in the run where a mistake lands on disk, a result
+that already exists.
+
+! **Which is also why the real file is untouched until this moment.** A run abandoned, refused or
+stopped at 7a leaves the tree exactly as it found it.
+
 ## Rails
 
 **Never change a line of code, a docstring's MEANING, or a string literal.** Correcting a
