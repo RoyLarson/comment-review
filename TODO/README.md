@@ -269,7 +269,7 @@ that changed a published name or rule:
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | yes | 5/10 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
-### decision-needed  (5)
+### decision-needed  (6)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -278,6 +278,7 @@ other tasks can proceed without them._
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | testing | yes | 0/9 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | agents | yes | 1/7 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 | [front-half-undetermined](front-half-undetermined.md) | testing | yes | 0/7 | The census to findings to verdicts path has never been determined against a backend that works |
+| [private-repo-exposure](private-repo-exposure.md) | systems | yes | 0/8 | 34 evidence files, 3 evals files and 1 test name the private repo, and the probes quote its source -- three options, and history fixes none of them |
 
 ### in flight  (0)
 
