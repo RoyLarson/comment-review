@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 15 tasks done
+Progress: 0 of 18 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves
@@ -132,3 +132,24 @@ leafs I think is the correct term"*), then asking whether it is one.
       rather than an act, so it leaves the stage name free instead of competing
       with FOLIATE. * Unruled; the one strain is that a trade portfolio usually
       holds FINISHED work.
+- [ ] RULED 2026-08-23: THE ADDRESS IS `path@cue`. Roy: *"path@place is definitely
+      @cue. Place was a good stand in but imprecise enough that we have had
+      problems already."* ! A CUE is the mark in the text saying a note belongs at
+      this point -- it carries no content, only the claim that content belongs
+      HERE, which is exactly what the `@` half asserts. The note carries the
+      content and not the position. ! `cue`, `reference mark` and `superior
+      figure` are all unused in the tree.
+- [ ] * STILL OPEN: what `Foliation` and `folio` become. `folio` follows `cue`
+      (278 sites); `Foliation` -- the complete ordered set of cues for one page,
+      filled or not -- does not. ! Candidates measured 2026-08-23: `register` is
+      TAKEN TWICE (48 uses: the linguistic sense this repo's method runs on, plus
+      `printing register`, where out-of-register is a press defect). `registrar`,
+      `cadastre`, `plat`, `cue sheet` and `address space` are all free.
+- [ ] ! THE TEST FOR LINE-NUMBER CREEP, which is what Roy asked to guard against:
+      a name reinvents line numbers if it implies POSITION MEASURED FROM A START.
+      `index`, `sequence`, `ordinal` fail it. `cadastre`, `register`, `plat` pass
+      -- they enumerate IDENTIFIED PARCELS, and the identifier belongs to the
+      parcel rather than being recomputed by counting. !! AND THIS IS WHY `b3` IS
+      NOT A LINE NUMBER even though it is the fourth gap: it is assigned once by
+      walking CODE, and code does not move when prose is edited. Line numbers fail
+      because the thing they count is the thing the edit changes.
