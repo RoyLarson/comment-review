@@ -73,3 +73,9 @@ evidence/*
 # which would have committed another agent's working notes as though they were
 # the work.
 .tmp/
+
+# Session worktrees. Roy, 2026-08-23: two sessions committing on one branch
+# collide, so a second session works in a worktree and fast-forwards to pick the
+# branch up -- which means the worktree itself must never be tracked.
+.claude/.worktrees/
+.claude/worktrees/
