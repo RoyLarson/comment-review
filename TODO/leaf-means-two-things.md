@@ -2,11 +2,13 @@
 
 ```
 Status:   open
-Progress: 0 of 11 tasks done
+Progress: 0 of 14 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves
           -- the sense foliator.py rules against)
+Narrowed: 2026-08-23 — paginate ruled out for stage 2 on the split-infinite-output
+          sense; the leaf premise is what the remaining choice turns on
 ```
 
 ## Objective
@@ -106,3 +108,18 @@ leafs I think is the correct term"*), then asking whether it is one.
       The numbering of PLACES has no trade word because a proof is marked by
       margin and line -- a coinage is correct here, which is what the register
       rule allows.
+- [ ] `PAGINATE` IS OUT FOR STAGE 2, AND THE REASON IS THE SENSE OF THE WORD. Roy,
+      2026-08-23: *"the way I have used in the past is by taking something that
+      can print infinitely and split it into pages."* ! Stage 2 splits nothing --
+      the division arrives from the filesystem, one file, one page -- so
+      pagination names an act it does not perform. Recorded because it was
+      PROPOSED the same day and will read as open otherwise.
+- [ ] ! WHAT IS LEFT IS THE NUMBERING, WHICH IS THE ONLY THING STAGE 2 CREATES.
+      The division arrives done, the lexing happens on the way, and the stacking
+      is MEASURED order-free -- see `galley.py`, 179 paragraphs identical forward
+      and reversed. ! So the candidate that needs no new vocabulary is `FOLIATE`:
+      already the function, the module and the result type, and an act like MARK,
+      APPLY, COMPACT and REVIEW. * Unruled.
+- [ ] ! AND `collate` IS FREED WHATEVER STAGE 2 BECOMES, which is the first
+      starred blocker on `verdicts-is-the-join` -- collating would then mean what
+      the trade means: transferring every hand's marks onto one proof.
