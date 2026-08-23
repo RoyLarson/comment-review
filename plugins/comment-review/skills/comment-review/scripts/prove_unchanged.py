@@ -125,7 +125,7 @@ def _without_comments(text: str, path: Path) -> str | None:
         return None
     # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
     # is per-line and carries no open-quote state, so a line INSIDE a JS
-    # template literal or a Java text paragraph that begins with the language's
+    # template literal or a Java text block that begins with the language's
     # comment marker is censused as a comment and deleted from BOTH
     # fingerprints. Measured 2026-08-17: a template literal whose body changed
     # from `// alpha` to `// omega` produced identical fingerprints and the file

@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (83)
+### open  (82)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -223,7 +223,6 @@ that changed a published name or rule:
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | — | 1/6 | 720 tests green against six deliberate defects in shipped code |
 | [the-xfails-never-reach-the-galley](the-xfails-never-reach-the-galley.md) | testing | — | 0/3 | they fail in the test helper on a retired lookup, not in splice_range |
-| [the-rename-corrupted-live-prose](the-rename-corrupted-live-prose.md) | backend | — | 0/5 | a blanket word swap turned verbs and a role name into nonsense |
 | [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | agents | — | 0/2 | shipped prose says an anchor is often empty; it is never empty |
 | [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | backend | — | 0/6 | each states a rule and then denies it, in the same file |
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | backend | — | 0/6 | every one re-derivable by a command, and every one wrong |
@@ -357,3 +356,4 @@ the reason is inside the file.
 | [anchor-was-empty-on-98-percent](completed/anchor-was-empty-on-98-percent.md) | SOLVED and the sweep it asked for found one. MEASURED 2026-08-23: 0 of 687 prose paragraphs carry no anchor, against 98 percent when this was filed. ! The last task -- look for the same shape in the other SEEDED fields -- ran in simplify round 7 and found `Finding.anchor`: filled from the record and read by neither `desk` nor the join. It was cut |
 | [verdicts-py-announces-one-subject-and-holds-four](completed/verdicts-py-announces-one-subject-and-holds-four.md) | The four subjects are separated -- desk.py, record.py, verdicts.py and held.py -- and the two dev-review findings inside the split are fixed and tested. Verified 2026-08-23 rather than assumed: record.check() guards a non-object report and a non-object record, and claim_keys is the one source with no hardcoded key names left. |
 | [b-owns-the-blank-lines-SUPERSEDED](completed/b-owns-the-blank-lines-SUPERSEDED.md) | SUPERSEDED 2026-08-23. Roy: 'b doesn't own the blank lines any more.' The blanks went to LEADING, which is its own kind, holds the run the lexer found, and has given up its address -- the census prints it as '@  2-2  leading'. So the premise in the title is no longer true of the system. ! Task 8 WAS fixed on the way and is verified: page.recut takes only the free lines and tests/test_compositor.py:162 pins the cpython/Include/floatobject.h case. Task 7, the galley half, goes with the premise. What leading owes is TODO/leading-owns-the-space-between.md. |
+| [the-rename-corrupted-live-prose](completed/the-rename-corrupted-live-prose.md) | All five sites restored 2026-08-23, and the CAUSE is fixed with them. The rename replaced a live sense of 'block' with 'paragraph' in four places the vocabulary gate flagged: the VERB in SKILL.md's verdict table and twice in compact.md, a PYTHON code block in module-context, and a JAVA TEXT BLOCK in prove_unchanged -- a language feature that does not exist under the new name. The agent file also told block-context its own role was PARAGRAPH-CONTEXT. ! Restoring the correct words trips the gate, which is why they were corrupted, so the four live senses are now declared in check_vocabulary.NOT_THE_TERM. Verified the gate still FAILS on a planted retired use. |

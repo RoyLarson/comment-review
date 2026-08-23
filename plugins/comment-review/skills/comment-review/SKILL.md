@@ -65,7 +65,7 @@ pass stage 8 rolled back.
 | verdict | the claim is | what you do with it |
 |---|---|---|
 | `clean` | nothing to report **from this role**, on a paragraph that role READ | nothing. Not a pass, and not a claim the paragraph is correct -- one role having no finding. A paragraph outside what the role reads is `query` |
-| `query` | unsettled | resolve it or escalate it. It paragraphs every other verdict on that sentence |
+| `query` | unsettled | resolve it or escalate it. It blocks every other verdict on that sentence |
 | `drop` | true but not worth keeping | delete the sentence |
 | `correct` | **FALSE** | apply the true/false pair. **Always before any `patch`** |
 | `patch` | **TRUE**, badly worded | apply the rewrite |
