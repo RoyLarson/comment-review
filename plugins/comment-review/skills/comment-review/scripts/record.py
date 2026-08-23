@@ -60,8 +60,8 @@ import constants  # noqa: E402  -- path shim must run first
 import exceptions  # noqa: E402  -- path shim must run first
 from addresser import (  # noqa: E402  -- path shim must run first
     COVERS,
+    address_for,
     cue_of,
-    flatten,
     series_of,
 )
 from lexer import Kind  # noqa: E402  -- path shim must run first
@@ -811,16 +811,6 @@ def allowed() -> dict:
 # embedded in the JSON it writes and a shared mutable would let one run's
 # report edit the next one's.
 ALLOWED = allowed()
-
-
-def address_for(page: str, place: str) -> str:
-    """`pkg:mod.py@a5` from the page and the place it holds.
-
-    ! The record file names the page ONCE and each record its place; every check
-    downstream resolves by full address. This is the seam, and the only place
-    the two halves are put back together.
-    """
-    return f"{flatten(page)}@{place}" if page and place else ""
 
 
 def every_record(report: dict):

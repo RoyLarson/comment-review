@@ -114,7 +114,7 @@ def reset(page, edits: dict[str, str]) -> list[str]:
     longer there and the space it introduced is no longer owed.
 
     ! THE LEADING BELOW IT IS VACATED TOO, for the same reason and by the same
-    rule: Roy, 2026-08-21, *"the live first key cues lives, the drop first
+    rule: Roy, 2026-08-21, *"the live first key folio lives, the drop first
     key dies."* The `d` becomes the empty sentinel; it does not cease to exist.
     Without it the blank line the paragraph introduced stands over whatever
     follows.

@@ -68,8 +68,8 @@ from addresser import (  # noqa: E402  -- path shim must run first
     LEAD,
     ON,
     Cues,
+    address_for,
     cue,
-    flatten,
     series_of,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
@@ -599,7 +599,7 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     """Tie each run of leading to the place it FOLLOWS.
 
     !! LEADING IS AN EDGE, AND AN EDGE BELONGS TO THE PLACE BEFORE IT. Roy,
-    2026-08-21: *"the live first key cues lives, the drop first key dies."*
+    2026-08-21: *"the live first key folio lives, the drop first key dies."*
     Every other series answers to a line of code and has a position in the
     walk's reading order; a run of blanks answers to neither, so it is filed
     under the place it comes after -- `f0 -> d0` reads as *the space below the
@@ -724,7 +724,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         # language the parser cannot read, and answers nothing for Python.
         code = code_lines(text, prose)
         document_declarations(got, declarations(text, lang, code), code)
-        flat = flatten(rel if rel is not None else path.as_posix())
+        here = rel if rel is not None else path.as_posix()
         # !! THE PAGE MAKES THE MAPPING. Roy, 2026-08-21: *"the page makes the
         # mapping between addresser and paragraph."* The lexer types a run
         # `matter` and `cue` emits the places a file has for its own prose;
@@ -789,7 +789,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
                 place = files[0] if b.original_start == 1 else files[-1]
             else:
                 place = attach(vars(b), cues)
-            b.address = f"{flat}@{place}" if place else ""
+            b.address = address_for(here, place)
             b.anchor = cues.anchor_of(place, b.anchor)
         # !! EVERY PLACE PROSE DOES NOT FILL GETS A PARAGRAPH, in one loop over
         # what `cue` emitted. Three generators used to answer this one
@@ -801,7 +801,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
             # answered the FIRST GAP for the file's own matter: the two are
             # different places at the same position, and position cannot tell
             # them apart. That is the whole defect, one layer up.
-            empty.address = f"{flat}@{empty.address}"
+            empty.address = address_for(here, empty.address)
             got.append(empty)
         # !! ONE PASS FOR `anchor_line`, OVER EVERYTHING. Stamped per branch it
         # was filled on the prose and on ONE of the four empty kinds, so every
@@ -818,7 +818,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         fill_the_gaps(text, got)
         # !! THE READING ORDER IS `cue`'S, AND THIS MODULE DOES NOT BUILD ONE.
         # `cue` emits every place in sequence and says so at the field --
-        # *"a fact `cue` knows rather than an arithmetic over line numbers"* --
+        # *"a fact `foliate` knows rather than an arithmetic over line numbers"* --
         # including WHERE AN `a` FALLS, which is the language's call and is
         # settled there once.
         #

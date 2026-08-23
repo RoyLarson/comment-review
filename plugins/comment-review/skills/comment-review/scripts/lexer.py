@@ -339,7 +339,7 @@ class Kind(StrEnum):
     """Every kind a paragraph can be, paired with the series it belongs to.
 
     !! EACH SERIES HAS A PRESENT AND AN ABSENT, and that is the whole shape.
-    Roy, 2026-08-22: *"each cues gets its positive and its negative"*, and
+    Roy, 2026-08-22: *"each foliation gets its positive and its negative"*, and
     *"they are enums not a list."*
 
         a   docstring          undocumented

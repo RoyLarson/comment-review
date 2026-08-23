@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks done
+Progress: 4 of 5 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (Roy, 2026-08-19: 'this is because the census is doing the
@@ -44,7 +44,7 @@ what that task asks for.
 
 ## Tasks
 
-- [ ] !! THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE. Roy: 'make
+- [x] !! THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE. Roy: 'make
       certain that the cues is the only and official spot that converts the
       galley artifact into an address through the addresser assigning the
       cues, and the cues being able to take the cues and convert

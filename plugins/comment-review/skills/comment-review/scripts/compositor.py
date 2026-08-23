@@ -150,7 +150,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING, and is filed under `""`.
     # !! AN EDGE BELONGS TO THE PLACE BEFORE IT, which is what it is KEYED BY.
     # Roy, 2026-08-21, ruling on what happens to leading when a paragraph goes
-    # away: *"the live first key cues lives, the drop first key dies. The
+    # away: *"the live first key folio lives, the drop first key dies. The
     # live one gets a new key that takes the new end and beginning."*
     #
     # !! IT IS ONE RULE FOR BOTH DIRECTIONS, which is why it is a lookup rather

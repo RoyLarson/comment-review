@@ -8,11 +8,13 @@ EOF -- each holding its own counter and the places it emitted. `cue()` runs
 now.
 
 !! IT IS AN ADDRESSER, AND THE 2026-08-20 RULING AGAINST THAT NAME IS SUPERSEDED.
-It read: *"An ADDRESS is `path@cue`, and it is composed on the PAGE -- this
-module supplies the cue and flattens the path, and addresses nothing."* !
+It read: *"An ADDRESS is `path@folio`, and it is composed on the PAGE -- this
+module supplies the folio and flattens the path, and addresses nothing."* !
 BOTH HALVES ARE HERE: `flatten` is in this file and its own docstring says *"THE
 ADDRESS IS THE FULL PATH from the runner's root"*, while `emit` supplies the
-other half. What the page does is `f"{flat}@{place}"` -- one f-string.
+other half. ! The page composed its own with an f-string until 2026-08-23;
+`address_for` below is now the only join, which is what makes the ruling's
+own sentence false rather than merely arguable.
 
 !! THE RULING WAS RIGHT ABOUT THE SYMPTOM AND WRONG ABOUT THE CAUSE, which is
 why it is kept rather than deleted. Roy, 2026-08-23: *"My frustration when I made
@@ -930,6 +932,34 @@ def flatten(path: str) -> str:
     file rather than addressing it.
     """
     return str(path).replace("\\", "/").replace("/", SEPARATOR)
+
+
+def address_for(path: str, cue: str) -> str:
+    """`pkg:mod.py@a5` -- the two halves of an address, put together.
+
+    !! THE ONLY PLACE THEY ARE JOINED, and it lives here because this module
+    already owns both halves and the whole take-apart: `flatten` makes the path
+    half, `emit` makes the cue, `cue_of` splits one back, and `unflatten` recovers
+    the real path. The join was the one direction that had leaked.
+
+    ! IT LEAKED TO TWO MODULES, and `record.address_for` -- which this is --
+    carried the claim *"the only place the two halves are put back together"*
+    while `page.py` composed its own with an f-string at two sites. Ruled by Roy,
+    2026-08-23: *"Something else owns addressing -- the Addresser."*
+
+    ! BOTH HALVES OR NOTHING. An address missing either half resolves nowhere,
+    so a blank is returned rather than `pkg:mod.py@` or `@a5`, both of which read
+    as an address and are not one.
+
+    Args:
+        path: the page, as the repo sees it. Flattened here, so a caller never
+            has to know whether it already was.
+        cue: the `@` half, as `emit` returned it.
+
+    Returns:
+        The address, or `""` when either half is missing.
+    """
+    return f"{flatten(path)}@{cue}" if path and cue else ""
 
 
 def unflatten(name: str, paths: list[str]) -> str:

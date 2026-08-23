@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (91)
+### open  (92)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -210,7 +210,7 @@ that changed a published name or rule:
 | [anchor-was-empty-on-98-percent](anchor-was-empty-on-98-percent.md) | session | — | 3/4 | the anchor was wired into the record and never populated; fixed, with the gates that would have caught it |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | session | — | 9/17 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [front-matter-restamps](front-matter-restamps.md) | session | — | 0/7 | Adding a module docstring restamps the comment run above it as front matter |
-| [census-owns-addressing](census-owns-addressing.md) | session | — | 3/5 | The census owns addressing, and four modules share one subject between them |
+| [census-owns-addressing](census-owns-addressing.md) | session | — | 4/5 | The census owns addressing, and four modules share one subject between them |
 | [census-emits-no-page](census-emits-no-page.md) | session | — | 0/7 | The census emits rows, not pages, and page.py defines no Page |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | session | — | 1/5 | The filtered-census measurement exists only in run history |
 | [lexer-owns-a-page-kind](lexer-owns-a-page-kind.md) | session | — | 4/5 | The lexer emits a page kind, and its own docstring says it does not |
@@ -266,6 +266,7 @@ that changed a published name or rule:
 | [leaf-means-two-things](leaf-means-two-things.md) | comment-review | — | 5/19 | vocabulary.toml says paragraphs run down a leaf; addresser.py says a leaf IS a place -- and cue is defined against the first |
 | [not-every-line-has-an-address](not-every-line-has-an-address.md) | comment-review | yes | 0/8 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | comment-review | yes | 0/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
+| [retired-word-in-a-quote](retired-word-in-a-quote.md) | comment-review | yes | 0/5 | folio cannot join RETIRED without exempting the five core modules whole, because each quotes a ruling made when the word was current |
 
 ### in-progress  (5)
 
