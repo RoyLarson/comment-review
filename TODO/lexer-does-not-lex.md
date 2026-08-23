@@ -60,9 +60,9 @@ The lexer does not lex -- it reads a parse.
       `flag_structural_docs` is the tell: it marks a run whose KIND IS STILL AN
       OPEN QUESTION, which is a typecoder declining to assign a code rather than
       guessing -- what a copy editor does with an ambiguous element.
-- [ ] ! NOT THE FOLIATOR, WHICH WAS THE FIRST GUESS. `foliate(code, documentable,
-      module_insert)` never sees prose -- *"a place is emitted because `foliate`
+- [ ] ! NOT THE ADDRESSER, WHICH WAS THE FIRST GUESS. `cue(code, documentable,
+      module_insert)` never sees prose -- *"a place is emitted because `cue`
       reached its trigger, not because prose was found sitting there"* -- and
-      `test_the_foliator_knows_nothing_about_prose` enforces it. A typecoder reads
-      each element and says WHAT IT IS; the foliator says WHERE things sit, blind
+      `test_the_addresser_knows_nothing_about_prose` enforces it. A typecoder reads
+      each element and says WHAT IT IS; the addresser says WHERE things sit, blind
       to content.

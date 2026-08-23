@@ -74,6 +74,31 @@ gate is that list, verified, not a general claim about languages. As of `0.2.0` 
 families, 1 `tokenized` and 10 `lexical`**, of which **2 have been run** -- python (this repo)
 and rust (`startraders`, 2026-08-17).
 
+## [Unreleased]
+
+### Changed
+
+- **Renamed, 2026-08-23** (`ff1cab5`). No behaviour changed: the corpus round trip returned the
+  same three numbers over the same 3,153 files before and after. Why each word moved is in
+  [`docs/history.md`](docs/history.md); what was decided and when is in
+  [`docs/decision-log.md`](docs/decision-log.md).
+
+  | was | is |
+  | --- | --- |
+  | `foliator.py` | `addresser.py` |
+  | `folio` | `cue` |
+  | `Foliation` | `Cues` |
+  | `foliate()` | `cue()` |
+  | `folio_of` | `cue_of` |
+  | `folio(series, step)` | `cue_for(series, step)` |
+  | `Address.folio` | `Address.cue` |
+  | `tests/test_foliator.py` | `tests/test_addresser.py` |
+  | `tests/test_foliation.py` | `tests/test_cues.py` |
+
+- **`address_for` moved from `record.py` to `addresser.py`**, and `page.py` stopped composing its
+  own. An address is now joined in ONE place, which is what its docstring had claimed while two
+  modules did it.
+
 ## [0.2.4-alpha] -- 2026-08-21
 
 !! **A PRE-RELEASE, AND THE NUMBER IS THE POINT.** Roy, 2026-08-21: *"I do not plan to run the

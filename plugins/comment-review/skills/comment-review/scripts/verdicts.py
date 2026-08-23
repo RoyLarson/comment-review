@@ -83,6 +83,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
 import exceptions  # noqa: E402  -- path shim must run first
+from addresser import (  # noqa: E402  -- path shim first
+    COVERS,
+    series_of,
+    unaddressed,
+)
 from desk import (  # noqa: E402  -- path shim must run first
     _words,
     address_problem,
@@ -94,11 +99,6 @@ from desk import (  # noqa: E402  -- path shim must run first
     removed_spans,
     ruled_text,
     source_problem,
-)
-from foliator import (  # noqa: E402  -- path shim first
-    COVERS,
-    series_of,
-    unaddressed,
 )
 from held import load_report  # noqa: E402  -- path shim must run first
 from lexer import Kind  # noqa: E402  -- path shim must run first
@@ -349,7 +349,7 @@ def _report(args: argparse.Namespace) -> int:
     # this catches a FILE -- one from an older version, one edited by hand, one
     # from a run that crashed midway. This tool takes a PATH and trusts what it
     # parses, so nothing else stands between a stale census and a certified
-    # review. ! ONE implementation, in `foliator`. Roy, 2026-08-20: *"one source
+    # review. ! ONE implementation, in `addresser`. Roy, 2026-08-20: *"one source
     # of truth, else something will parse that something else will fail."*
     missing = unaddressed(paragraphs)
     if missing:

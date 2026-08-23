@@ -24,7 +24,7 @@
 # --- what a comment sits on -------------------------------------------------
 anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. An `a` is attached to the line that OPENS the thing it documents, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
-census = "Every PARAGRAPH on every PAGE under review, in order, each carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a leaf and do not nest."
+census = "Every PARAGRAPH on every PAGE under review, in order, each carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a page and do not nest."
 
 # --- the units that get ruled on --------------------------------------------
 sentence = "The unit a verdict rules on. A container of six sentences can hold six verdicts."
@@ -77,8 +77,8 @@ residue = "The check asking, of each ORIGINAL sentence, whether anything true, n
 proofreader = "Who reads the finished PROOF and decides whether the document deserves more marks."
 
 # --- how a place is NAMED ---------------------------------------------------
-address = "The name of a place: `pkg:mod.py@b3` -- a path, an `@`, and a folio. Counted against the CODE and not against the lines, which is what makes it survive this tool's own edits: every prose edit moves the line numbers below it, and an ordinal counts statements instead. It is what a record cites."
-folio = "The `b3` half of an address, after the `@`. A leaf's number in publishing, which is what it is here."
+address = "The name of a place: `pkg:mod.py@b3` -- a path, an `@`, and a cue. Counted against the CODE and not against the lines, which is what makes it survive this tool's own edits: every prose edit moves the line numbers below it, and an ordinal counts statements instead. It is what a record cites."
+cue = "The `b3` half of an address, after the `@`. The mark that says prose belongs at this place -- it carries no content, only the position. A reference mark in publishing, which is what it is here."
 series = "One of the three kinds of address, and which one says what the prose answers to: `a` a declaration's documentation, `b` the gap above a line of code, `c` the room beside one."
 "line of code" = "A line the census counts as CODE, and the exact characters on it that are code -- anything that is neither blank nor prose. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two anchors spelled alike."
 
@@ -115,12 +115,12 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "clean",
   "compositor",
   "correct",
+  "cue",
   "declaration",
   "drop",
   "edit mark",
   "editorial role",
   "expression",
-  "folio",
   "galley",
   "intermediate comment",
   "interval",
@@ -154,11 +154,11 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "clean",
   "compositor",
   "correct",
+  "cue",
   "declaration",
   "drop",
   "edit mark",
   "editorial role",
-  "folio",
   "galley",
   "guard",
   "intermediate comment",
@@ -194,11 +194,11 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "clean",
   "compositor",
   "correct",
+  "cue",
   "declaration",
   "drop",
   "edit mark",
   "editorial role",
-  "folio",
   "galley",
   "guard",
   "intermediate comment",
@@ -235,11 +235,11 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "clean",
   "compositor",
   "correct",
+  "cue",
   "declaration",
   "drop",
   "edit mark",
   "editorial role",
-  "folio",
   "galley",
   "intermediate comment",
   "interval",

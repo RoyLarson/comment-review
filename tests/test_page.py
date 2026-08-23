@@ -1,16 +1,16 @@
-"""`page.py` says what a PAGE is, and `foliator.py` is the LEAF beneath it.
+"""`page.py` says what a PAGE is, and `addresser.py` is the LEAF beneath it.
 
 !! THE DIRECTION INVERTED 2026-08-20, and the reason is that a page BUILDS
-ITSELF. It has to name the places on it, so it needs the foliator -- while the
-foliation had been importing `page` for two constants. That is a cycle, and the
-cut is that **the foliation knows nothing about a paragraph**: `code_lines_of`
+ITSELF. It has to name the places on it, so it needs the addresser -- while the
+cues had been importing `page` for two constants. That is a cycle, and the
+cut is that **the cues knows nothing about a paragraph**: `code_lines_of`
 and `attach` were the only two functions of it that did, and both are page
 questions wearing an addressing name.
 
 ! The property the original split bought still holds and is what these tests
 guard: every module that READS a paragraph can import the definition of one.
 `Paragraph` lived in `census.py`, the top of the import graph, so `galley`,
-`foliation` and `record` read untyped dicts instead, and the two kind sets ended
+`cues` and `record` read untyped dicts instead, and the two kind sets ended
 up in `galley` because it was the deepest module all three could reach.
 """
 
@@ -20,7 +20,7 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
-import foliator
+import addresser
 import lexer
 import page
 
@@ -48,7 +48,7 @@ def _imports(name: str) -> set[str]:
 
 
 class TestTheTwoLeaves(unittest.TestCase):
-    """`foliator` names places; `lexer` finds prose. Neither knows the other.
+    """`addresser` names places; `lexer` finds prose. Neither knows the other.
 
     !! THAT IS THE SHAPE, and it is why the page can be one subject. A place has
     no prose in it, and prose has no place until a page puts the two together --
@@ -56,17 +56,17 @@ class TestTheTwoLeaves(unittest.TestCase):
     both.
     """
 
-    def test_the_foliator_knows_nothing_about_prose(self):
+    def test_the_addresser_knows_nothing_about_prose(self):
         # ! `repo` is the exception and is not one: it answers what the CHECKOUT
         # says -- git, the filesystem, the exception tuples -- and carries no
         # notion of prose at all.
         #
-        self.assertEqual(_imports("foliator") - {"repo"}, set())
+        self.assertEqual(_imports("addresser") - {"repo"}, set())
 
     def test_the_lexer_knows_nothing_about_places(self):
         # !! IT DEFINES WHAT IT PRODUCES -- `Paragraph` -- and stops there. Where
         # that paragraph SITS is the page's, which is why the lexer needs no
-        # address and no foliation.
+        # address and no cues.
         # ! ONE SIBLING SINCE 2026-08-21, and it is the rows it reads a file
         # with. Roy: *"The language definition file should be a leaf separate
         # from everything else and imported only by lexer and compositor."*
@@ -91,8 +91,8 @@ class TestTheTwoLeaves(unittest.TestCase):
 
     def test_the_page_imports_BOTH_and_nothing_else(self):
         # !! THE PAGE BUILDS ITSELF: it asks the lexer where the prose is and the
-        # foliation what to call each place. That is the whole inversion.
-        self.assertEqual(_imports("page"), {"foliator", "lexer"})
+        # cues what to call each place. That is the whole inversion.
+        self.assertEqual(_imports("page"), {"addresser", "lexer"})
 
     def test_every_module_that_reads_a_paragraph_can_import_one(self):
         # ! `galley` and `record` are not here. Both read paragraph DICTS rather
@@ -157,7 +157,7 @@ class TestTheTwoLeaves(unittest.TestCase):
 class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
     """!! THE REASON IT IS A TYPE and not a list.
 
-    `page_for` returned a bare list and dropped the text, the foliation, the
+    `page_for` returned a bare list and dropped the text, the cues, the
     tier and the path. Every consumer that needed one of them either re-derived
     it from the file -- a chance to read a file the page no longer describes --
     or made the caller carry it alongside.
@@ -189,14 +189,14 @@ class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
         # !! What makes an `add` citable. The walk emitted these before any
         # prose was looked at, so a place exists whether or not anything sits
         # in it -- including `f0`, which no paragraph occupies here.
-        folios = set(self.page.foliation.places)
-        self.assertIn("f0", folios)
-        self.assertIn("a0", folios)
+        cues = set(self.page.cues.places)
+        self.assertIn("f0", cues)
+        self.assertIn("a0", cues)
         # !! EVERY PLACE HAS A PARAGRAPH -- that is what the collapse bought.
         # A place the walk emitted and nothing filled gets an empty paragraph,
-        # so the two sets are equal rather than the folios being a superset.
+        # so the two sets are equal rather than the cues being a superset.
         occupied = {b.address.split("@")[-1] for b in self.page if "@" in b.address}
-        self.assertEqual(folios, occupied)
+        self.assertEqual(cues, occupied)
 
     def test_prose_is_what_a_reviewer_owes_a_record_on(self):
         # ! The empty places are ADDRESSABLE and not accountable.
@@ -206,13 +206,13 @@ class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
         self.assertNotIn("undocumented", kinds)
         self.assertLess(len(self.page.prose), len(self.page))
 
-    def test_an_unparsed_file_carries_an_EMPTY_foliation(self):
+    def test_an_unparsed_file_carries_an_EMPTY_cues(self):
         # !! HONEST RATHER THAN INVENTED. The walk never ran, because the code
         # lines were never established -- so a consumer that asks gets nothing
         # instead of a table built over lines nobody found.
         path = Path("bad.py")
         broken = page.page_for(path, "x = = 1\n", lexer.language_for(path))
-        self.assertEqual(broken.foliation.places, {})
+        self.assertEqual(broken.cues.places, {})
         self.assertTrue(any(b.kind == "unparsed" for b in broken))
 
 
@@ -220,7 +220,7 @@ def covers(paragraph, which="original") -> list[int]:
     """The lines this paragraph covers -- a CLOSED list, or empty.
 
     !! `original_start`/`original_end` are `[lo..hi]` INCLUSIVE, or None when no
-    line carries that foliation. Roy, 2026-08-20. There is no `(n, n - 1)`
+    line carries that cues. Roy, 2026-08-20. There is no `(n, n - 1)`
     empty-slice form to decode, which is why this reads as a membership question
     and not as arithmetic.
     """
@@ -276,7 +276,7 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
         #
         # !! NAMING THE EXACT ONES IS HOW THIS DRIFTS, TWICE NOW. First `f0` was
         # in neither branch and its line came out owned by nobody. Then
-        # 2026-08-22, when `d` left `foliator.SERIES` and gave up its address,
+        # 2026-08-22, when `d` left `addresser.SERIES` and gave up its address,
         # every run of blank lines fell into the same hole -- read from
         # `address` alone a `d` answers `""`, which this excludes.
         def series(b):
@@ -325,7 +325,7 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
         # omission: every other series answers to a line of code, and the space
         # between two paragraphs answers to nothing. Roy, 2026-08-21, taking the
         # trade: *"I like the leading solution even though it added another
-        # foliation and the anchors are empty."*
+        # cues and the anchors are empty."*
         for name, text in self.SHAPES.items():
             with self.subTest(shape=name):
                 path = Path("m.py")
@@ -376,7 +376,7 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
 
     def test_a_place_with_no_lines_says_None_and_not_an_empty_range(self):
         # !! ROY'S RULE, 2026-08-20: a closed list `[1..7]`, *"or it is None,
-        # meaning there are currently no lines that have that foliation."* The
+        # meaning there are currently no lines that have that cues."* The
         # `(n, n - 1)` form it replaced reads as a range and invites arithmetic.
         path = Path("m.py")
         text = "x = 1\ny = 2\n"  # adjacent code: the gap between them holds nothing
@@ -470,7 +470,7 @@ class TestEverySeriesHasAPositiveAndANegative(unittest.TestCase):
     `TestTheTwoKindSetsAreNotInterchangeable` while proving the opposite: its
     first test asserted `trailing-comment` was in NEITHER set, which shows
     nothing about two sets that hold identical members. Roy, 2026-08-22: *"each
-    foliation gets its positive and its negative"*, and *"they are enums not a
+    cues gets its positive and its negative"*, and *"they are enums not a
     list."*
     """
 
@@ -495,21 +495,21 @@ class TestEverySeriesHasAPositiveAndANegative(unittest.TestCase):
         # ! The thing a hand-kept tuple could get wrong, and did.
         self.assertEqual(lexer.ABSENT, {s.value.absent for s in lexer.Series})
 
-    def test_every_series_NAME_is_a_foliator_constant(self):
+    def test_every_series_NAME_is_a_addresser_constant(self):
         # !! WHAT TIES THE TWO MODULES, now that the letters are spelled in only
-        # ONE of them. `lexer` cannot import `foliator` -- it takes no sibling
+        # ONE of them. `lexer` cannot import `addresser` -- it takes no sibling
         # but `language` -- so a letter it duplicated could drift in silence.
         # The member NAME carries the link instead, and this fails if either
         # side renames a series without the other.
         self.assertEqual(
-            sorted(getattr(foliator, s.name) for s in lexer.Series),
-            sorted(foliator.SERIES),
+            sorted(getattr(addresser, s.name) for s in lexer.Series),
+            sorted(addresser.SERIES),
         )
 
     def test_LEADING_IS_A_KIND_WITH_NO_SERIES(self):
         # !! SQUARING THE TABLE WOULD BE THE ERROR. An empty leading run could
         # not be cited -- Roy: *"there is no information to rule on"* -- which
-        # is the same reason `d` is not in `foliator.SERIES`. So `Kind` keeps
+        # is the same reason `d` is not in `addresser.SERIES`. So `Kind` keeps
         # nine members and `Series` covers the eight that pair.
         self.assertIn(lexer.Kind.LEADING, set(lexer.Kind))
         self.assertNotIn(

@@ -28,7 +28,7 @@ correct and stays. Three relatives borrowed the stem for other jobs:
 
 !! **`Paragraph.declares` STATES THE RELATIONSHIP BACKWARDS**, and it is the one that misleads
 rather than merely crowds. A docstring declares nothing; `def f():` is the declaration and the
-prose documents it. ! `Foliation.documents(ordinal)` already answers that exact question in the
+prose documents it. ! `Cues.documents(ordinal)` already answers that exact question in the
 right word — so one module asks in one vocabulary and another answers in a second.
 
 ! **`declares_scope` is the same class of error as `acquittal` and `jurisdiction`**: a word from
@@ -51,8 +51,8 @@ MEASURED: `census.py` writes `vars(b)`, so all 17 paragraph fields reach the age
 is needed for ONE hop — the lexer states it, `page.attach` reads it to pick which `a`. After the
 address is stamped, `@a5` carries the same fact and is what every other consumer already keys on.
 
-! **The tree shows the redundancy three ways.** `page.py` sets `declares=int(folio[1:])` on
-synthetic empty places, deriving the field from the folio it duplicates. `foliator.for_anchor`
+! **The tree shows the redundancy three ways.** `page.py` sets `declares=int(cue[1:])` on
+synthetic empty places, deriving the field from the cue it duplicates. `addresser.for_anchor`
 reads it twice where `series_of(address)` is the module's own stated rule three lines below:
 *"an `a` declares, a `c` has a column, a `b` has neither. No second field, no inference from
 kind."* The `a` branch is the one that uses a second field.
@@ -77,7 +77,7 @@ became `anchor_line`.
 - [ ] !! `Paragraph.declares` STATES THE RELATIONSHIP BACKWARDS, and it is the one
       that actually misleads. It holds the ORDINAL of the declaration a run
       DOCUMENTS -- a docstring declares nothing; `def f():` is the declaration. !
-      `Foliation.documents(ordinal)` already answers the same question in the
+      `Cues.documents(ordinal)` already answers the same question in the
       right word, three modules away: one asks and one answers, in two
       vocabularies. * PROPOSED: `documents`.
 - [ ] ! `Language.declares` IS A TUPLE OF KEYWORDS, not of declarations -- the
@@ -104,8 +104,8 @@ became `anchor_line`.
       `a`. After the address is stamped, `@a5` carries the same fact and is what
       everything else already keys on.
 - [ ] ! THE TREE ALREADY SHOWS THE REDUNDANCY THREE WAYS. `page.py` sets
-      `declares=int(folio[1:])` on synthetic empty places -- deriving the field
-      FROM the folio it duplicates. `foliator.for_anchor` reads it twice where
+      `declares=int(cue[1:])` on synthetic empty places -- deriving the field
+      FROM the cue it duplicates. `addresser.for_anchor` reads it twice where
       `series_of(address)` is the module's own stated rule three lines below: *"an
       `a` declares, a `c` has a column, a `b` has neither. No second field, no
       inference from kind."* The `a` branch is the one that uses a second field.

@@ -26,7 +26,7 @@ def stamped(paragraphs):
 
     ! Fixtures are hand-built, and `address` is the tool's own field -- the
     checks compare a record's copy against it, so a fixture without one tests
-    nothing. The folio here is arbitrary and only has to be DISTINCT: these
+    nothing. The cue here is arbitrary and only has to be DISTINCT: these
     tests are about the record agreeing with the census, not about numbering.
     """
     out = []
@@ -2568,11 +2568,11 @@ class TestAMovesDestinationIsResolved(unittest.TestCase):
         # ! Whether that tree exists is stage 1's ruling, in the run context.
         self.assertIsNone(self._to("docs/loads.md"))
 
-    def test_a_LINE_in_a_file_THIS_RUN_NEVER_FOLIATED_is_allowed(self):
+    def test_a_LINE_in_a_file_THIS_RUN_NEVER_CUED_is_allowed(self):
         """!! THE BAN ON LINE NUMBERS STOPS AT THE RUN'S EDGE.
 
         Roy, 2026-08-20: *"on the move and add piece we should allow the address
-        to be either foliation or line number for files OUTSIDE of the censused
+        to be either cues or line number for files OUTSIDE of the censused
         range."* A line goes stale because THIS RUN's own edits shift the lines
         below them; a file the run does not edit has no such shift, and it has
         no places to cite instead. ! Measured consequence of refusing it: a
@@ -2586,7 +2586,7 @@ class TestAMovesDestinationIsResolved(unittest.TestCase):
         The census carries `a.py` here, but on a real tree it carries
         `redacted_pkg/billing/rates.py` and a reviewer writes `to: ... in
         rates.py:355`. That matched nothing, counted as OUT of scope, and the
-        stale line address was admitted for a file the run does foliate and
+        stale line address was admitted for a file the run does cue and
         will edit. Measured 2026-08-21.
 
         ! It errs toward IN SCOPE, which is the safe direction: a bare name
@@ -2602,7 +2602,7 @@ class TestAMovesDestinationIsResolved(unittest.TestCase):
         # for a place this run can name properly", and `a.py` is in the census.
         self.assertIn("names a LINE", self._to("a.py:3"))
 
-    def test_an_ADDRESS_for_an_UNFOLIATED_file_says_the_scope_was_short(self):
+    def test_an_ADDRESS_for_an_UNCUED_file_says_the_scope_was_short(self):
         # !! TWO CAUSES, ONE MESSAGE, until now: a wrong address and a right
         # address for a file nobody censused both read `is not a place in the
         # census`, and a reviewer reading that about a correct citation goes

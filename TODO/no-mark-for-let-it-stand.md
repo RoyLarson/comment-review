@@ -60,7 +60,7 @@ verdicts"*), as does `SKILL.md`'s heading and `CLAUDE.md` twice.
 | `CLAUDE.md` | the count at :179 and the reserved-word rule at :545 |
 | `docs/vocabulary.md` | the reserved-word rule under "Rules about the words themselves" |
 
-! **Not this branch.** `fix/folio-placement-is-not-where-the-anchor-is` is the
+! **Not this branch.** `fix/cue-placement-is-not-where-the-anchor-is` is the
 compositor and the five series; this is the verdict vocabulary. It wants 0.2.4 or its
 own branch, after `python-cannot-read-python`.
 

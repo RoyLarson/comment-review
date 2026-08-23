@@ -13,7 +13,7 @@ import page
 import prove_unchanged as pu
 from _paths import FIXTURES, SCRIPTS
 from _transcription import transcribes
-from foliator import COVERS, EOF
+from addresser import COVERS, EOF
 
 
 def blocks_for(name):
@@ -260,7 +260,7 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
     def test_a_gap_between_adjacent_code_lines_holds_NO_line(self):
         # !! None, NOT AN EMPTY RANGE. Roy, 2026-08-20: the original lines are
         # a closed list `[1..7]`, *"or it is None, meaning there are currently
-        # no lines that have that foliation."* These gaps sit between adjacent
+        # no lines that have that cues."* These gaps sit between adjacent
         # code lines, so none holds a line of its own -- the bounding lines
         # belong to the `c` series. `(1, 0)` and `(4, 3)` said the same thing
         # in a form that reads as a range and invites arithmetic on it.
@@ -826,7 +826,7 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
         self.assertEqual(b.anchor, c.anchor)
         # ! `page_for` does not stamp the address -- the run loop does, once
         # the path is repo-relative -- so the two places are told apart here by
-        # the fact the foliation reads: a `c` has a column and a `b` has none.
+        # the fact the cues reads: a `c` has a column and a `b` has none.
         self.assertTrue(c.original_column)
         self.assertFalse(b.original_column)
 
@@ -956,13 +956,13 @@ class TestFrontMatterIsMarked(unittest.TestCase):
         # the f0 to move it ... it is a little cluggy but it will be consistent."*
         self.assertEqual(self._marked(self.NO_DOCSTRING), [1])
 
-    def _folio(self, name, text, line):
-        """The folio of the paragraph HOLDING this line.
+    def _cue(self, name, text, line):
+        """The cue of the paragraph HOLDING this line.
 
         ! Containment, not `original_start == line`: a gap paragraph owns the
         blank lines around its prose, so a comment on line 3 with a blank above
         it starts at 2. Matching the start asked a question about
-        `fill_the_gaps` rather than about the folio.
+        `fill_the_gaps` rather than about the cue.
         """
         path = Path(name)
         for b in page.page_for(path, text, lexer.language_for(path)):
@@ -975,24 +975,24 @@ class TestFrontMatterIsMarked(unittest.TestCase):
         # !! `f1`, ruled 2026-08-21. It landed in the CLOSING GAP before -- the
         # gap after the last statement, which belongs to that statement.
         text = "import os\n\nx = 1\n\n# Copyright 2001.\n"
-        self.assertEqual(self._folio("m.py", text, 5), "f1")
+        self.assertEqual(self._cue("m.py", text, 5), "f1")
 
     def test_a_file_whose_ONLY_prose_is_at_the_foot_is_not_the_HEAD_matter(self):
         # !! The head run and the foot run are the SAME paragraph here, and it is
         # the foot's. Guarding on `foot is not head` left it marked as neither.
         text = "int add(int a) { return a; }\n\n/* Copyright 2001. */\n"
-        self.assertEqual(self._folio("m.c", text, 3), "f1")
+        self.assertEqual(self._cue("m.c", text, 3), "f1")
 
     def test_a_comment_BETWEEN_two_code_lines_is_neither(self):
         # ! It is above the code below it, which is what a `b` is for. Matter is
         # only what sits outside the code entirely.
         text = "import os\n\n# about the next line\nx = 1\n"
-        self.assertEqual(self._folio("m.py", text, 3), "b1")
+        self.assertEqual(self._cue("m.py", text, 3), "b1")
 
     def test_the_foot_run_needs_no_blank_line_above_it(self):
         # ! What ends it reading upward is CODE, exactly as a blank line does.
         text = "import os\nx = 1\n# no blank above me\n"
-        self.assertEqual(self._folio("m.py", text, 3), "f1")
+        self.assertEqual(self._cue("m.py", text, 3), "f1")
 
     def test_a_comment_that_DOCUMENTS_something_is_not_front_matter(self):
         # !! WHAT ENDS THE MATTER IS DOCUMENTATION, not the comment's syntax. Go

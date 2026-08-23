@@ -37,7 +37,7 @@ An above-declaration doc comment is addressed as a b, not as the declaration's a
       the line immediately above a declaring line documents that declaration.
       `declarations()` already reports which lines those are.
 - [ ] !! THE DOC MUST LEAVE THE `b` SERIES when it joins, which is what `a` was
-      introduced for -- `foliator.py`: *'with `a` the docstring leaves the `b`
+      introduced for -- `addresser.py`: *'with `a` the docstring leaves the `b`
       series: re-measured over 10,744 paragraphs, 0 shared places.'* Today a Rust
       `///` is counted as a `b`, so a declaration's doc and the gap above it are
       the same address, the exact shape the `a` series ended for Python.

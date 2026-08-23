@@ -80,7 +80,7 @@ is still frequent, so it keeps drawing attention, and the model reasons from it.
 concept wins because it is the common one.
 
 **And the general word beats the specific one, for the same reason.** `walk` is a general
-programming concept with an enormous number of examples behind it; `foliate` exists in this
+programming concept with an enormous number of examples behind it; `cue` exists in this
 repository and almost nowhere else. The general term is the stronger prior, so it is what a
 model reaches for and what it keeps being reinforced on -- even where the specific term is the
 one that is actually true. Precision loses to frequency.
@@ -88,7 +88,7 @@ one that is actually true. Precision loses to frequency.
 **Nothing corrects it, because humans do not mind the imprecision.** "The walk emits every
 place" reads perfectly well to a person; they know what is meant and move on. So no feedback
 ever arrives, the loose word survives every review, and the model goes on reasoning from a
-concept the code stopped using. A domain term with no general twin -- `foliate`, `folio`,
+concept the code stopped using. A domain term with no general twin -- `cue`, `cue`,
 `galley`, `compositor` -- cannot be displaced by a prior, which is a large part of why this
 project takes its vocabulary from publishing rather than from computing.
 

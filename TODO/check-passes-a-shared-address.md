@@ -1,4 +1,4 @@
-# foliator --check prints SHARED and exits 0
+# addresser --check prints SHARED and exits 0
 
 ```
 Status:   open
@@ -11,7 +11,7 @@ Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-
 
 ## Objective
 
-foliator --check prints SHARED and exits 0.
+addresser --check prints SHARED and exits 0.
 
 ## Tasks
 

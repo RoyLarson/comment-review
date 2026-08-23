@@ -30,7 +30,7 @@ original_column is redundant and can be dropped entirely.
       Verified with zero exceptions after the 2026-08-20 kind fix. So 16 of the 18
       shipped sites, which use the column only as a BOOLEAN, become a membership
       test.
-- [ ] `foliator._series_of` argues *'NOT from the kind, which would need a case
+- [ ] `addresser._series_of` argues *'NOT from the kind, which would need a case
       per kind and a new one for every kind added'*. That was written when kind
       and series disagreed. It is now ONE membership test, and the docstring's
       reasoning is stale.

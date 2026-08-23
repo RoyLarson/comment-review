@@ -6,11 +6,11 @@ Progress: 5 of 19 tasks done
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves
-          -- the sense foliator.py rules against)
+          -- the sense addresser.py rules against)
 Narrowed: 2026-08-23 — paginate ruled out for stage 2 on the split-infinite-output
           sense; the leaf premise is what the remaining choice turns on
-Settled:  2026-08-23 — the binder model closes it -- no leaf in the picture, folio
-          becomes cue, and Foliation needs no exotic noun because completeness is in the
+Settled:  2026-08-23 — the binder model closes it -- no leaf in the picture, cue
+          becomes cue, and Cues needs no exotic noun because completeness is in the
           tabbing practice
 ```
 
@@ -30,16 +30,16 @@ sticky-noted the places where we might want to insert text explicitly."*
 | **address** | `path@cue` -- the full routing, with the runner's root implicit and never written |
 
 !! **THIS DISSOLVES BOTH HALVES OF THIS FILE RATHER THAN SETTLING THEM.** There is no leaf in the
-picture at all, so the two contradicting definitions have nothing to contradict about; and `folio`
+picture at all, so the two contradicting definitions have nothing to contradict about; and `cue`
 becomes `cue`, so the false equivalence in `vocabulary.toml:81` -- *"a leaf's number in
 publishing, which is what it is here"* -- goes with the word.
 
 !! **AND COMPLETENESS LIVES IN THE PRACTICE, NOT IN THE NOUN**, which is what ends the search for a
-word for `Foliation`. Roy asked for *"a name for a contiguous list of addresses"* -- his block,
+word for `Cues`. Roy asked for *"a name for a contiguous list of addresses"* -- his block,
 where every lot has an address whether or not a house sits on it. `cadastre` was the exact word
 for that and carries completeness IN the word. ! It is not needed: an overly diligent person tabs
 every place they might insert, so *every cue on this page* is already the full enumeration. **The
-tabbing habit delivers what the noun would have promised**, and that habit is what `foliate` does
+tabbing habit delivers what the noun would have promised**, and that habit is what `cue` does
 -- it emits a place per trigger whether prose sits there or not.
 
 ! **THE FAR-AFIELD CANDIDATES ARE RECORDED AND NOT TAKEN.** `cadastre`, `plat`, `registrar`,
@@ -64,13 +64,13 @@ changes.**
 - [ ] TWO SHIPPED DEFINITIONS DISAGREE ABOUT WHAT A LEAF IS.
       `references/vocabulary.toml:27` defines the census as *"Flat, because a page
       is: paragraphs run down a leaf and do not nest"* -- a leaf is the PAGE.
-      `foliator.py:17` reads *"the numbering of LEAVES, which is what a place is"*
+      `addresser.py:17` reads *"the numbering of LEAVES, which is what a place is"*
       -- a leaf is a PLACE. ! A place cannot both BE a leaf and be one of the
       things that run down a leaf.
-- [ ] ! AND `folio` IS DEFINED AGAINST THE FIRST SENSE. `vocabulary.toml:81`: *"A
-      leaf's number in publishing, which is what it is here."* A folio numbers a
+- [ ] ! AND `cue` IS DEFINED AGAINST THE FIRST SENSE. `vocabulary.toml:81`: *"A
+      leaf's number in publishing, which is what it is here."* A cue numbers a
       PLACE here -- `b3`, `a0` -- so if a leaf is the page, this definition says a
-      folio numbers the page, which is the one thing an address does not do.
+      cue numbers the page, which is the one thing an address does not do.
 - [ ] ! A THIRD SENSE IS THE DEPENDENCY GRAPH'S, and it is the one that reads as
       harmless: `constants.py:3`, *"A LEAF WITH NO SIBLINGS"*, and the ULTIMATE
       LEAF rule Roy stated 2026-08-22. Different domain, no overlap in what it
@@ -88,9 +88,9 @@ changes.**
 - [ ] RAISED BY THE SENTENCE THAT USED IT. Roy, 2026-08-22, on what stage 2 does:
       *"it calls census to get the pages and the references and stacks them
       together into leafs I think is the correct term."* ! That is the
-      `vocabulary.toml` sense, and it is the sense `foliator.py` contradicts -- so
+      `vocabulary.toml` sense, and it is the sense `addresser.py` contradicts -- so
       the collision is not dormant; it is what a reader reaches for.
-- [ ] CORRECT `vocabulary.toml:81`. The `folio` definition ends *"A leaf's number
+- [ ] CORRECT `vocabulary.toml:81`. The `cue` definition ends *"A leaf's number
       in publishing, which is what it is here"* -- a shipped false equivalence,
       since `b3` is the fourth gap on one page. ! It is EMITTED to reviewers by
       `vocabulary.py`, so this is prose an agent acts on rather than prose a
@@ -99,14 +99,14 @@ changes.**
       down a leaf and do not nest"*. The flatness claim is TRUE and is the point
       of the sentence; only the word `leaf` is wrong -- a page is what they run
       down.
-- [x] * RE-DECIDE `foliator.py:17` ON A PREMISE THAT HOLDS. It rules *"FOLIATION,
+- [x] * RE-DECIDE `addresser.py:17` ON A PREMISE THAT HOLDS. It rules *"CUES,
       not pagination: the numbering of LEAVES, which is what a place is."* A place
       is not a leaf. ! The conclusion may still be right; what is certain is that
       the stated reason is not a reason. Rule the word again with the trade split
-      in view -- foliation numbers leaves, pagination numbers pages, and this
+      in view -- cues numbers leaves, pagination numbers pages, and this
       numbers positions within a page.
 - [ ] ! AND IT IS THE SAME QUESTION AS THE STAGE NAME. Roy, 2026-08-22: *"I think
-      the collate step now is actually a paginate step."* `foliator.py:17` is the
+      the collate step now is actually a paginate step."* `addresser.py:17` is the
       only thing in the tree that rules against `pagination`, and it does so on
       the false premise. ! Settle the two together or the stage takes a word the
       module refuses.
@@ -124,20 +124,20 @@ changes.**
 - [ ] ! WHAT IS LEFT IS THE NUMBERING, WHICH IS THE ONLY THING STAGE 2 CREATES.
       The division arrives done, the lexing happens on the way, and the stacking
       is MEASURED order-free -- see `galley.py`, 179 paragraphs identical forward
-      and reversed. ! So the candidate that needs no new vocabulary is `FOLIATE`:
+      and reversed. ! So the candidate that needs no new vocabulary is `CUE`:
       already the function, the module and the result type, and an act like MARK,
       APPLY, COMPACT and REVIEW. * Unruled.
 - [ ] ! AND `collate` IS FREED WHATEVER STAGE 2 BECOMES, which is the first
       starred blocker on `verdicts-is-the-join` -- collating would then mean what
       the trade means: transferring every hand's marks onto one proof.
-- [x] `PORTFOLIO` IS PROPOSED FOR WHAT THE CENSUS PRODUCES. Roy, 2026-08-23: *"The
-      census creates a portfolio."* A portfolio is a case of LOOSE sheets --
+- [x] `PORTCUE` IS PROPOSED FOR WHAT THE CENSUS PRODUCES. Roy, 2026-08-23: *"The
+      census creates a  PORTCUE ."* A  PORTCUE  is a case of LOOSE sheets --
       gathered but unbound -- and it is the only container that makes `--filtered`
       coherent: you cannot hand a reviewer pages 12, 40 and 88 of a bound book,
       because the binding IS the order, but you can hand them sheets from a
-      portfolio. ! The word appears nowhere in the tree. ! It also names a THING
+       PORTCUE . ! The word appears nowhere in the tree. ! It also names a THING
       rather than an act, so it leaves the stage name free instead of competing
-      with FOLIATE. * Unruled; the one strain is that a trade portfolio usually
+      with CUE. * Unruled; the one strain is that a trade  PORTCUE  usually
       holds FINISHED work.
 - [x] RULED 2026-08-23: THE ADDRESS IS `path@cue`. Roy: *"path@place is definitely
       @cue. Place was a good stand in but imprecise enough that we have had
@@ -146,8 +146,8 @@ changes.**
       HERE, which is exactly what the `@` half asserts. The note carries the
       content and not the position. ! `cue`, `reference mark` and `superior
       figure` are all unused in the tree.
-- [x] * STILL OPEN: what `Foliation` and `folio` become. `folio` follows `cue`
-      (278 sites); `Foliation` -- the complete ordered set of cues for one page,
+- [x] * STILL OPEN: what `Cues` and `cue` become. `cue` follows `cue`
+      (278 sites); `Cues` -- the complete ordered set of cues for one page,
       filled or not -- does not. ! Candidates measured 2026-08-23: `register` is
       TAKEN TWICE (48 uses: the linguistic sense this repo's method runs on, plus
       `printing register`, where out-of-register is a press defect). `registrar`,
@@ -160,8 +160,8 @@ changes.**
       NOT A LINE NUMBER even though it is the fourth gap: it is assigned once by
       walking CODE, and code does not move when prose is edited. Line numbers fail
       because the thing they count is the thing the edit changes.
-- [ ] ! WHAT REMAINS IS MECHANICAL, NOT A RULING: 278 `folio` sites become `cue`,
-      and `Foliation`/`foliate`/`foliator` follow the addresser rename. ! HISTORY
+- [ ] ! WHAT REMAINS IS MECHANICAL, NOT A RULING: 278 `cue` sites become `cue`,
+      and `Cues`/`cue`/`addresser` follow the addresser rename. ! HISTORY
       KEEPS THE OLD NAMES -- `docs/history.md`, `TODO/completed/`, `CHANGELOG.md`
       and `evidence/` record what the system WAS, and renaming inside them is what
       makes an old artifact unreadable, which is the thing those files exist to

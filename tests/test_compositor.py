@@ -120,7 +120,7 @@ class TestItReadsTheParagraphsAndNotTheText(unittest.TestCase):
         # 884-line file came back as 0 characters. Refusing answers both.
         p = Path("m.py")
         page = page_mod.page_for(p, "# a note\n", lexer.language_for(p), rel="m.py")
-        page.foliation.reading.clear()
+        page.cues.reading.clear()
         with self.assertRaises(ValueError):
             compositor.set_page(page)
 
@@ -203,7 +203,7 @@ class TestTheSeriesOrderIsFixedAndFComesFirst(unittest.TestCase):
         # ! `draft()` writes what `set_page` returns, so an empty draft approved
         # by anyone not reading the diff is a deleted file.
         page = self._page("m.py", "x = 1\ny = 2\n")
-        page.foliation.reading.clear()
+        page.cues.reading.clear()
         with self.assertRaises(ValueError) as caught:
             compositor.set_page(page)
         self.assertIn("never read", str(caught.exception))

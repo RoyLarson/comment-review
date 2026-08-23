@@ -1,10 +1,10 @@
 """Roy's `python_edge_cases.md`, run as a test rather than read as a document.
 
-!! IT IS THE FIXTURE THAT FOUND THE FOLIATOR BUG. Twelve `add` marks over every
+!! IT IS THE FIXTURE THAT FOUND THE ADDRESSER BUG. Twelve `add` marks over every
 series at every nesting level -- module, a closure, the function inside it -- and
 eleven of the twelve land correctly. The twelfth is `b0`, which does not exist on
-a file that has no front matter, because the `b` foliator never takes a step at
-the `<module>` trigger. See `TODO/b-foliator-uninitialised.md`.
+a file that has no front matter, because the `b` addresser never takes a step at
+the `<module>` trigger. See `TODO/b-addresser-uninitialised.md`.
 
 ! The document is the SOURCE, not a copy of one: the original and the addresses
 its marks name are read out of the fenced blocks below, so the two cannot drift.
@@ -37,7 +37,7 @@ def _original() -> str:
 
 
 def _marked() -> list[str]:
-    """Every folio the document's marks name, in document order."""
+    """Every cue the document's marks name, in document order."""
     return MARK.findall(FIXTURE.read_text(encoding="utf-8"))
 
 
@@ -74,19 +74,19 @@ class TestEveryMarkedAddressExists(unittest.TestCase):
         paragraphs = page.page_for(path, text, lexer.language_for(path))
         # ! The census addresses itself now, so this reads what it stamped
         # rather than re-deriving it -- which is the property under test.
-        self.folios = {
+        self.cues = {
             b.address.split("@")[1] for b in paragraphs if "@" in (b.address or "")
         }
 
     def test_every_a_and_c_the_marks_name_exists(self):
-        for folio in sorted(f for f in _marked() if not f.startswith("b")):
-            with self.subTest(folio=folio):
-                self.assertIn(folio, self.folios)
+        for cue in sorted(f for f in _marked() if not f.startswith("b")):
+            with self.subTest(cue=cue):
+                self.assertIn(cue, self.cues)
 
     def test_b1_is_the_gap_above_the_first_line_of_code(self):
         # ! It is where the author put a comment introducing the first
         # statement, and it must not depend on whether front matter exists.
-        self.assertIn("b1", self.folios)
+        self.assertIn("b1", self.cues)
 
     def test_f0_exists_on_a_file_with_no_front_matter(self):
         """!! FIXED 2026-08-20, and this was the pin that reported it.
@@ -101,11 +101,11 @@ class TestEveryMarkedAddressExists(unittest.TestCase):
         an UNEXPECTED SUCCESS the moment the collapse landed. That is what made
         the box impossible to leave ticked-or-not by anyone's judgement.
         """
-        self.assertIn("f0", self.folios)
+        self.assertIn("f0", self.cues)
 
     def test_every_b_the_marks_name_exists(self):
         # ! The other half of the same defect: Roy's `b1` mark was unresolvable
         # on the finished file, because front matter had consumed the place.
-        for folio in sorted(f for f in _marked() if f.startswith("b")):
-            with self.subTest(folio=folio):
-                self.assertIn(folio, self.folios)
+        for cue in sorted(f for f in _marked() if f.startswith("b")):
+            with self.subTest(cue=cue):
+                self.assertIn(cue, self.cues)

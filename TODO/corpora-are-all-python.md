@@ -9,7 +9,7 @@ Raised:   2026-08-21 (Roy, 2026-08-21, on the boundary table: 'Was this language
           agnostic? Do we have enough good Rust libraries in our corpora? What about the
           other languages?')
 Updated:  2026-08-21 — Roy, 2026-08-21: 'this can land in another branch later. Probably
-          even in a 0.2.5 version release' -- not the folio-placement branch, which
+          even in a 0.2.5 version release' -- not the cue-placement branch, which
           needs no corpus for the ordering fix
 Advanced: 2026-08-22 — Ten corpora added to the manifest 2026-08-22 -- rust, go,
           typescript, elasticsearch (javadoc), dotnet-runtime (xmldoc), llvm (doxygen),
