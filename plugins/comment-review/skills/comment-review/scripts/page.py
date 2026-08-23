@@ -752,6 +752,37 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
                 b.symbol = f"{LEAD}{next(leads)}"
                 b.address = ""
                 continue
+            # !! A RUN THAT DOCUMENTS A DECLARATION IS NOT THE FILE'S OWN MATTER,
+            # and this tested `matter` FIRST, so it never asked. `attach` has had
+            # the right order since it was written -- a paragraph that declares
+            # takes its `a` place, and only then is matter considered -- but the
+            # branch below short-circuited before `attach` was called, which made
+            # `attach`'s own `matter` case dead code.
+            #
+            # !! MEASURED 2026-08-22 on a two-line file, `.js` and `.ts` alike:
+            # a `//` run documenting the first function was typed `matter`,
+            # withheld from every reviewer as the file's own prose, and the
+            # declaration below it reported `undocumented`. `Page.prose` came
+            # back EMPTY -- the only prose in the file reached nobody -- while
+            # the run ALSO carried `declares=1`, so two paragraphs answered to
+            # declaration 1.
+            #
+            # ! IT DOES NOT REACH A DOC RUN. A `/**` opener is documentation the
+            # language itself marks, so `_is_doc` never let it become matter --
+            # Java's top-of-file Javadoc was already `a1`. What was wrong is the
+            # run a language does NOT mark, `//` and `#`, which is exactly the
+            # run whose ownership has to be read rather than lexed.
+            #
+            # ! RETYPED, because kind and series must agree. A documenting `//`
+            # run that is not at the top of a file is `comment` at an `a` place;
+            # this makes the top-of-file one the same thing, rather than leaving
+            # `matter` sitting on an `a`.
+            if (
+                b.kind == Kind.MATTER
+                and isinstance(b.declares, int)
+                and b.declares >= 0
+            ):
+                b.kind = Kind.COMMENT
             if b.kind == Kind.MATTER:
                 # ! HEAD OR FOOT, which is the whole of the mapping. The lexer
                 # types a run `matter` when it opens the file or closes it; the
