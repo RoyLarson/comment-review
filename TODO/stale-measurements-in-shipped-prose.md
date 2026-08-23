@@ -6,6 +6,10 @@ Progress: 0 of 6 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
+RE-CHECKED: 2026-08-23 — 2026-08-23, still live. census.py --languages lists 18 rows;
+            vocabulary.toml:34 still reads 'five of the eleven' and is shipped to all
+            four roles. Not triaged further -- every box here is real work (re-measure
+            and edit shipped prose), not a record.
 ```
 
 ## Objective

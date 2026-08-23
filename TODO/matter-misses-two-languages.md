@@ -1,13 +1,21 @@
 # A licence header is unprotected in Rust and TypeScript
 
 ```
-Status:   open
-Progress: 0 of 5 tasks done
+Status:   decision-needed
+Progress: 1 of 5 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-23 (2026-08-23, re-measuring `front-matter-protection-is-python-only`
           during a backlog audit -- its title was false and the surviving defect is a
           different one)
+RE-MEASURED: 2026-08-23 — 2026-08-23, all three findings still reproduce, re-measured on
+             purpose-built probes rather than the repo fixtures --
+             tests/fixtures/sample.ts opens with a LINE comment and sample.rs with
+             '//!', so neither exercises the case this file is about, and both look like
+             passes. Probes: a .ts opening '/**' types f0 dark-matter; a .rs opening '//
+             Copyright' above fn main() types f0 dark-matter; a .c opening '/* */' types
+             f0 matter. So task 4 holds -- C proves the mechanism reaches beyond Python
+             -- and the ruling in task 5 is the only thing standing.
 ```
 
 ## Objective
@@ -30,7 +38,7 @@ A licence header is unprotected in Rust and TypeScript.
       the lexer's own rule says a docstring is not matter and is what ENDS matter.
       ! This is the `corpora/sentry/eslint.config.ts` case the superseded file
       measured, still live.
-- [ ] ! WHAT IS ALREADY RIGHT, so it is not re-litigated: the rule is POSITIONAL
+- [x] ! WHAT IS ALREADY RIGHT, so it is not re-litigated: the rule is POSITIONAL
       and per-language only in what counts as a comment -- a run starting on line
       1 or ending on the last line is matter. C proves the mechanism reaches
       beyond Python.
