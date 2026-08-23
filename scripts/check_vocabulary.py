@@ -97,37 +97,21 @@ NOQA = "# noqa: vocabulary"
 # word to mean the thing is what this catches.
 MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ", "`pCST`")
 
-# !! A QUOTED SPAN IS EXEMPT, AND NEVER IN A FILE AN AGENT IS HANDED. Ruled by
-# Roy, 2026-08-23: the exemption is for *"the specific doc files that could have
-# old references"*, and there is *"strict no mistakes even quoted in the agents
-# files."*
+# !! A QUOTATION IS NOT AN EXEMPTION, AND THERE IS NOTHING TO EXEMPT. Ruled by
+# Roy, 2026-08-23: *"It simply isn't necessary to know the history to understand
+# the code. It is a bad habit to think it needs it."* A shipped file states what
+# the code does NOW. A ruling quoted in the words it was made in is history, and
+# history is in the git commits for whoever wants it.
 #
-# ! WHY A QUOTE IS EXEMPT AT ALL: a ruling is quoted in the words it was made in.
-# `path@folio` was ruled 2026-08-20, three days before `cue` existed, so holding
-# the quotation to today's vocabulary would make it a paraphrase wearing
-# quotation marks.
+# ! A CITATION IS THE SAME PROSE ONE INDIRECTION ALONG. Pointing a comment at an
+# entry that holds the old wording keeps the history in reach of the code, which
+# is the thing the rule exists to stop. The comment states the rule and the
+# reason it is that way; neither needs a date, an attribution or a link.
 #
-# !! WHY AN AGENT FILE IS STRICT ANYWAY: quotation marks do not stop a word
-# reaching an LLM's attention. `README.md`'s *Why* records the mechanism -- a
-# dead term is a CONTEXT ANCHOR, and an agent pulls toward the most common
-# concept even when it is the wrong one. A human reads the marks and discounts
-# the word; that is exactly the imprecision an agent does not share.
-#
-# ! SO THE LINE IS WHAT AN AGENT IS GIVEN: every shipped `.md` and `.toml` is
-# prose an agent reads or is emitted from, and gets no exemption. A `.py` holds
-# the engineering record, is read by whoever changes it, and keeps its rulings
-# verbatim.
-#
-#
-# ! IT IS NOT THE LINE EXEMPTION ROY REFUSED. A line marker says *this line is
-# special*, which lets a word creep back one suppression at a time -- the reason
-# `NOQA` is per FILE and whole. This says *these are someone else's words*, and
-# it cannot accumulate into a file-wide pass.
-#
-# ! The convention is this repo's own and is one form: `*"..."*`, possibly
-# wrapped across lines.
-QUOTED = re.compile(r'\*"(?:.+?)"\*', re.S)
-AGENT_FACING = (".md", ".toml")
+# ! THE COST OF THE ALTERNATIVE IS THE MECHANISM `README.md`'s *Why* records: a
+# dead term is a CONTEXT ANCHOR, and quotation marks do not stop a word reaching
+# an LLM's attention. A human reads the marks and discounts the word, which is
+# exactly the imprecision an agent does not share.
 
 # ! And these are not the retired term at all, by exact form:
 #   block-context   a ROLE NAME -- an agent id, a filename, a `--reviewers`
@@ -338,12 +322,8 @@ def check_retired() -> int:
         text = path.read_text(encoding="utf-8")
         if NOQA in text:
             continue
-        # ! A FILE AN AGENT IS HANDED KEEPS ITS QUOTATIONS IN THE HAYSTACK --
-        # see `QUOTED` and `AGENT_FACING`. Only a `.py` gets the exemption.
-        exempt = path.suffix not in AGENT_FACING
-        quoted_out = QUOTED.sub("", text) if exempt else text
         for word, instead in RETIRED.items():
-            hay = quoted_out
+            hay = text
             for allowed in (*MENTION, *NOT_THE_TERM):
                 hay = hay.replace(allowed, "")
             hits = len(re.findall(rf"(?<![\w-]){word}(?![\w-])", hay, re.I))
