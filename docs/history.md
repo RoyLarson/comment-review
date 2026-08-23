@@ -197,3 +197,63 @@ deleting the reader safe. **If you need to replay one, the reader is at `a6da8ad
 package's own `PROVENANCE.md` already says they are unreadable by the current tool and that
 bringing them forward is separate work. It was true before this commit too: the converter refused
 an index-keyed report, and those reports are index-keyed.
+
+## `foliator.py`, `folio`, `Foliation` -- the words the addressing scheme was built under
+
+Renamed 2026-08-23 in `ff1cab5`. An artifact written before that date says `folio` where the
+system now says `cue`, and names a module that no longer exists. **Nothing about the SCHEME
+changed** -- the same places, the same series letters, the same `path@...` shape, and the corpus
+round trip returned the same three numbers over the same 3,153 files before and after. Only the
+words moved:
+
+| was | is |
+| --- | --- |
+| `foliator.py` | `addresser.py` |
+| `folio` -- the `@` half | `cue` |
+| `Foliation` -- every place on one page | `Cues` |
+| `foliate()` -- the walk | `cue()` |
+| `folio_of` | `cue_of` |
+| `folio(series, step)` -- build one from its parts | `cue_for(series, step)` |
+
+! **`cue_for` is not a straight rename.** `foliate()` and `folio(series, step)` both mapped onto
+`cue`, in one module, where Python keeps the last definition -- so it had to be split, and it was
+named for its direction: `cue_for` BUILDS a cue, `cue_of` takes one apart.
+
+### Why the words went
+
+!! **`folio` was wrong about its own referent.** A folio numbers a leaf or a page; the `@` half
+names a POSITION WITHIN a page -- `b3` is the fourth gap. `references/vocabulary.toml` shipped the
+error as a definition -- *"a leaf's number in publishing, which is what it is here"* -- and agents
+were given it. ! A **cue** is the mark in the text saying a note belongs at this point: it carries
+no content, only the position, which is exactly what the `@` half asserts.
+
+! **`leaf` went with it, and had been contradicting itself.** One shipped definition said
+paragraphs run DOWN a leaf (a leaf is the page); another said the numbering was *"of LEAVES, which
+is what a place is"* (a leaf is the place). A leaf is one SHEET carrying TWO pages, so it could be
+neither -- and a file has no verso, so there is no leaf in this model at all.
+
+!! **`foliator` was a name that had been RIGHT and PREMATURE.** It was `addresser.py` until
+2026-08-20, when Roy ruled the name wrong on the grounds that the module *"supplies the folio and
+flattens the path, and addresses nothing."* ! The observation underneath was true and the
+diagnosis was not. Roy, 2026-08-23: *"My frustration when I made the ruling was that it wasn't
+being used as an addresser. It was something that was included because I stated it needed to be
+included and then the rest of the program continued working in trying to use lines as the
+address."* **The name promised addressing the system was not yet doing**, so renaming the module
+treated a true observation as a naming defect, and the line-based addressing it was really about
+survived another two days.
+
+! **What settled it was the round trip, not an argument.** Roy: *"it reliably round-trips the
+stuff after being entirely decomposed in the system without knowing anything about the original
+lines."* A page is taken apart into places and set back from the places alone.
+
+### Reading an old artifact
+
+! **A record or census written before `ff1cab5` is still readable** -- the addresses in it are
+unchanged, because only the NAMES of the machinery moved and never the `path@...` strings
+themselves. What will not resolve is a reference to the module: `foliator.py --census ... --anchor`
+is now `addresser.py` with the same flags.
+
+! **`TODO/completed/`, `CHANGELOG.md`, `docs/plans/` and `evidence/` keep the old words on
+purpose**, each for its own reason -- see `evidence/README.md` for the one that needed a note
+saying from which commit the terms changed.
+

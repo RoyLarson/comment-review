@@ -38,7 +38,7 @@ a different question, and the one that looks most like success. **MEASURED 2026-
 round-trip identity, the strongest check in this tree, scored **699 of 699 across ten languages
 on its first run while 157 addresses were held by two paragraphs each**. It rebuilt each file
 from the line positions it had just read out of that file, so it could not disagree. It began
-finding things one commit later (`e3ae738`), when it was made to set from the FOLIATION instead.
+finding things one commit later (`e3ae738`), when it was made to set from the CUES instead.
 
 ! **[`docs/gates.md`](docs/gates.md) holds that case and the rule it produced**: *"does the check
 pass" is not the question; "could the check fail" is* -- plus the three ways a green run means
@@ -96,7 +96,7 @@ uv run python -m unittest discover -s tests -v
 # `test_addresser.py` ran 18 tests directly and 67 under discovery, and five
 # more files had the same shape. 20 runners deleted, 184 lines with them.
 uv run python -m unittest discover -s tests -k test_addresser
-uv run python -m unittest discover -s tests -k TestEachFoliatorCountsItsOwnSteps
+uv run python -m unittest discover -s tests -k TestEachAddresserCountsItsOwnSteps
 uv run python -m unittest discover -s tests -k test_the_MODULE_has_an_a_and_NEVER_a_c
 
 # Stage 3 inbound: which tracked files NAME the files under review
@@ -133,7 +133,7 @@ uv run ruff format .
 
 # Type gate. Roy, 2026-08-22: "type drifts happen because we have been willing
 # to ignore a ty gate and that is probably not the right thing to do."
-# ! IT FOUND THINGS NO TEST DID, on the day it was added: `foliate` annotated a
+# ! IT FOUND THINGS NO TEST DID, on the day it was added: `cue` annotated a
 # parameter its own body unpacks as a 3-tuple, so anyone honouring the signature
 # crashed; and a `SyntaxError` put the string `<unknown>` into `Paragraph.start`,
 # because two exception types were read as though `args[1]` meant one thing.
@@ -249,7 +249,7 @@ across four modules that each announce ONE subject:
 
 | module | owns |
 | --- | --- |
-| `foliator.py` | names places -- the foliators walk out, `Foliation` reads back. The LEAF: it knows nothing about a paragraph |
+| `addresser.py` | names places -- the addressers walk out, `Cues` reads back. The LEAF: it knows nothing about a paragraph |
 | `page.py` | ONE FILE -- its paragraphs tied to the places on it. `page_for()` builds one; a page names its own places |
 | `census.py` | every page in scope, formatted for the agents |
 | `repo.py` | what the checkout says: git, the filesystem, the exception tuples |
@@ -351,7 +351,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | path                              | what                                                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `plugins/comment-review/`         | the shipped plugin -- `skills/`, `agents/`, manifests                                                                                                                       |
-| `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read) |
+| `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read), `decision-log.md` (WHAT was decided and WHEN -- the dated chain of rulings, retractions and supersessions; the commentary on WHY is `history.md`'s. Cited as `decision-log.md TOPIC: #N`) |
 | `docs/plans/`                     | RELEASE SCOPES -- what one version ships, what it does not, and which TODOs it works. !! **NOT `docs/superpowers/plans/`**, and the split is deliberate: Roy, 2026-08-19, *"I don't want to conflate the rigorous one for the less rigorous one."* A superpowers plan is written for an engineer with no context -- exact files, TDD steps, a commit per task. ! **A PLAN IS NOT A TODO**: *"Todos can remain open an indefinite amount of time and make progress as we see fit. Plans are scopes of work to be complete in one run."* Anything in a plan that does not get done is filed in `TODO/` before the plan closes |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ! Nothing here describes this system's own behavior -- that is `docs/`                                                    |
 | `evals/`                          | the twelve planted hazards (`evals.json`, `discriminators.md`), `grade_hazards.py`, and `generator_split.py` (the authorship split)                                        |
@@ -429,8 +429,8 @@ work."*
 | --- | --- | --- |
 | 2026-08-21 | *"I have refused every galley update to this point. The galley was always broken and on this commit is still broken."* | the compositor split existed |
 | 2026-08-21 | *"what was broken stays very broken out of this branch and I am not willing to accept that. I can accept it being broken in the branch but not merged out of it."* | the merge |
-| 2026-08-22 | *"I stopped the development at the page everytime before that ... there was no reason to try to fix the galley as it was."* | page, foliation and census were *"at least passably functional"* |
-| 2026-08-22 | *"this needs to go in before we can finish this plan and branch"* | `TODO/foliation-knows-about-lines.md` landed |
+| 2026-08-22 | *"I stopped the development at the page everytime before that ... there was no reason to try to fix the galley as it was."* | page, cues and census were *"at least passably functional"* |
+| 2026-08-22 | *"this needs to go in before we can finish this plan and branch"* | `TODO/cues-knows-about-lines.md` landed |
 | 2026-08-22 | the compositor itself | the lexer, the languages, the page and the census each did ONE job |
 | 2026-08-21 | *"This one is going to take serious thought before we can release it because it looks like it needs a look-ahead lexer"* | the lexer can see ahead |
 

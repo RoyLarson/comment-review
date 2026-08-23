@@ -88,7 +88,7 @@ class TestBothBucketsFire(unittest.TestCase):
 class TestANameHeldONLYByATestIsRaised(unittest.TestCase):
     """The question Roy asked and a grep answered wrongly.
 
-    !! `foliator.triggers` IS THE CASE. Called by one test and by no shipped
+    !! `addresser.triggers` IS THE CASE. Called by one test and by no shipped
     code, while its own docstring claims *"ONE LIST, SO THE THREE SERIES CANNOT
     DRIFT APART"* -- a guarantee documented, tested for shape, and not
     implemented. Two sweeps cleared it: one because a test calls it, one because

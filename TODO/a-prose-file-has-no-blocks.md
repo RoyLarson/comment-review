@@ -127,7 +127,7 @@ four roles do.
       context. ! No new role, no new remit.
 - [ ] !! A HEADER IS A DOCUMENTABLE DECLARATION, so the `a` series works unchanged
       -- `a0` the document, `a1..aN` its headers in source order, which is what
-      the `a` foliator already does once the reader states which lines declare. !
+      the `a` addresser already does once the reader states which lines declare. !
       `c` HAS NO ANALOGUE: there is no room beside a header, so a markdown page
       emits `a` and `b` only. The walk handles that (`c` simply never emits) but
       `attach`, `margins` and `intervals` assume three series -- the first

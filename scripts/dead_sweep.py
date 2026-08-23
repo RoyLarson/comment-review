@@ -14,7 +14,7 @@ Ruff flags an unused IMPORT and an unused LOCAL; a module-level constant nobody
 reads is invisible to it. `record.ANCHOR_SIDE` survived long enough to be found
 by a code-review agent READING the file, and `OPENER`, `CODE_CONCERNS` and
 `PATHISH` each died the moment their last reader was deleted --
-`foliator.line_address()` with them, 63 lines and zero callers anywhere.
+`addresser.line_address()` with them, 63 lines and zero callers anywhere.
 
 ! A DEAD NAME IS NOT TIDY-UP. Each was a CLAIM: the file still said what the
 constant was FOR, so a reader -- human or agent -- learned a rule the system no
@@ -33,7 +33,7 @@ place its four editorial roles cannot look.
 
 !! STEP 5 IS THE ONE THAT WAS BACKWARDS. An earlier version used the grep as
 CONFIRMATION: a name mentioned anywhere read as live. That is how
-`foliator.triggers` survived -- `page.py` names it once, in a docstring
+`addresser.triggers` survived -- `page.py` names it once, in a docstring
 describing a parameter, and a text scan called that a caller. Prose does not
 CLEAR a name; finding it there is a reason to look harder.
 
@@ -129,7 +129,7 @@ def referenced_names(path: Path) -> set[str]:
     """Every name a file's CODE reads -- not what its prose mentions.
 
     !! A TEXT SCAN CANNOT ANSWER THIS, and believing it could is what hid
-    `foliator.triggers` twice. `page.py` contains the word `triggers` once, in a
+    `addresser.triggers` twice. `page.py` contains the word `triggers` once, in a
     docstring describing a parameter, and a grep over the tree counted that as a
     caller. ! The AST sees names, so a word inside a comment or a docstring is
     not one.
@@ -183,7 +183,7 @@ def unread_names() -> tuple[list[tuple[Path, str]], list[tuple[Path, str, list[s
                          the agents file stating something that is possible
                          because it USED to be possible."*
 
-    !! THE TEST BUCKET WAS ADDED AFTER IT MISSED SOMETHING REAL. `foliator.triggers`
+    !! THE TEST BUCKET WAS ADDED AFTER IT MISSED SOMETHING REAL. `addresser.triggers`
     is called by exactly one test and by no shipped code, while its own docstring
     claims *"ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART"* -- the guarantee
     it was written to provide, documented, tested for SHAPE, and not implemented.

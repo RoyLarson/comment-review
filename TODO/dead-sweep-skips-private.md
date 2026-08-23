@@ -5,7 +5,7 @@ Status:   open
 Progress: 0 of 5 tasks done
 Owner:    comment-review
 Requires-Roy: false
-Raised:   2026-08-22 (found while collapsing the Foliation fields 2026-08-22:
+Raised:   2026-08-22 (found while collapsing the Cues fields 2026-08-22:
           page._SHEBANG and page._CODING are dead and neither gate reports them)
 ```
 
@@ -29,11 +29,11 @@ dead_sweep skips every _private name, so a dead module constant is invisible to 
       place by the change that noticed them
 - [ ] MEASURED 2026-08-22, a SECOND blind spot and the same cause: the sweep
       matches a name TEXTUALLY, so a name appearing inside an unrelated identifier
-      counts as a use. Foliation.first_code_line and Foliation.last_code_line
-      (foliator.py:623, :633) have NO caller in plugins/, scripts/ or tests/ --
+      counts as a use. Cues.first_code_line and Cues.last_code_line
+      (addresser.py:623, :633) have NO caller in plugins/, scripts/ or tests/ --
       the only hits are the test METHOD NAMES
       test_the_gap_ABOVE_the_first_code_line_inserts_above_it and
       test_the_gap_BELOW_the_last_code_line_appends, which are prose about a gap
       and never call either method. ! The sweep reports them as held by a test. !
-      Noticed while collapsing Foliation to three fields and LEFT IN PLACE; they
+      Noticed while collapsing Cues to three fields and LEFT IN PLACE; they
       were already dead before that change.

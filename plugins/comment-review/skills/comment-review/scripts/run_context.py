@@ -56,7 +56,7 @@ import exceptions  # noqa: E402  -- path shim must run first
 #: The sections whose answers are PATHS, checked against the filesystem.
 #:
 #: ! `LOOKUP CENSUS` IS ONE OF THEM. It is the census a reviewer runs
-#: `foliator.py --anchor` against, so an unresolvable path there fails at the
+#: `addresser.py --anchor` against, so an unresolvable path there fails at the
 #: moment a reviewer needs a place the filtered census collapsed.
 #: ! Everything else in `REQUIRED` is prose no check can settle.
 PATH_SECTIONS = ("REPO ROOT", "CENSUS", "LOOKUP CENSUS", "REVIEWER FILES")
@@ -103,11 +103,11 @@ HINTS = {
     # !! TWO CENSUS PATHS, because the reviewer READS one and QUERIES the other.
     # `CENSUS` is filtered: it collapses each run of empty intervals to a single
     # line, so the gaps inside a run are no longer numbered in front of the
-    # reviewer. `foliator.py --anchor` names those, and it answers from the FULL
+    # reviewer. `addresser.py --anchor` names those, and it answers from the FULL
     # census -- so a reviewer given only the filtered path can be told a lookup
     # exists and have no file to run it against.
     "LOOKUP CENSUS": (
-        "absolute path to the FULL census JSON -- what `foliator.py --anchor`"
+        "absolute path to the FULL census JSON -- what `addresser.py --anchor`"
         " reads to name a spot the filtered census collapsed"
     ),
     "REVIEWER FILES": (

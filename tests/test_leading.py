@@ -1,13 +1,13 @@
 """The `d` series: the empty space between two paragraphs.
 
 Roy, 2026-08-21, ruling it in: *"I like the leading solution even though it added
-another foliation and the anchors are empty."* And the rule: *"it covers all
+another cues and the anchors are empty."* And the rule: *"it covers all
 empty space between two different types of paragraphs. If the new line is
 internal to the paragraph then the two paragraphs + the newlines are in fact one
 paragraph."*
 
 !! WHY IT EXISTS. A `b` owned the blanks on BOTH sides of an `a`, which is exact
-covering and unsettable: a folio is ONE entry in the reading order, so its two
+covering and unsettable: a cue is ONE entry in the reading order, so its two
 lines emitted together and a file came back blank-blank-comment where it was
 blank-comment-blank. Every paragraph is CONTIGUOUS with leading, so the straddle
 cannot arise.
@@ -42,7 +42,7 @@ def built(name: str, text: str):
 
 
 def owner(page, line: int) -> str:
-    """The folio of the paragraph holding this line -- or a `d`'s SYMBOL.
+    """The cue of the paragraph holding this line -- or a `d`'s SYMBOL.
 
     ! Leading names no place, so it answers with the label it carries instead.
     Both are how a reader identifies what owns a line, which is what this asks.
@@ -75,7 +75,7 @@ class TestLeadingHoldsTheSpaceBetween(unittest.TestCase):
 
     def test_EVERY_paragraph_is_contiguous(self):
         # !! THE PROPERTY THAT MAKES THE STRADDLE IMPOSSIBLE. A place holding
-        # lines 2 and 4 but not 3 cannot be emitted as one block, and a folio is
+        # lines 2 and 4 but not 3 cannot be emitted as one block, and a cue is
         # one entry in the reading order.
         text = (
             "# licence\n\n'''Doc.'''\n\nimport os\n"
@@ -129,7 +129,7 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
     def test_the_reading_order_IS_THE_WALKS_AND_HOLDS_NO_d(self):
         # !! THIS TEST ASSERTED THE DEFECT UNTIL 2026-08-21. It read
         # `["f0", "d0", "a0", "d1", "c0"]` -- the order `page_for` built by
-        # sorting on `original_start`, which OVERWROTE the order `foliate`
+        # sorting on `original_start`, which OVERWROTE the order `cue`
         # emitted. Two modules stated opposite rules for one field and the later
         # write won; this test pinned the loser.
         #
@@ -141,7 +141,7 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
         # ! SO THE ORDER NOW HOLDS THE EMPTY PLACES AND NO `d`: leading is an
         # EDGE between two places, not a place in the sequence.
         self.assertEqual(
-            built("m.py", self.SRC).foliation.reading,
+            built("m.py", self.SRC).cues.reading,
             ["f0", "a0", "b0", "c0", "b1", "f1"],
         )
 
@@ -151,7 +151,7 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
         # ! `b0` is empty and sits between `a0` and `c0` in the walk's order, so
         # the tie skips it -- a place that sets nothing is not followed by
         # anything.
-        # ! IT IS THE PAGE'S, NOT THE FOLIATION'S. It sat on `Foliation` for one
+        # ! IT IS THE PAGE'S, NOT THE CUES'S. It sat on `Cues` for one
         # evening; the walk never filled it and never read it.
         # !! ONE KEY SINCE 2026-08-22. It was `(before, after)` and nothing read
         # `after`; Roy: *"so drop the second edge if it isn't necessary."*
@@ -172,7 +172,7 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
         self.assertIn("# a new comment", compositor.set_page(page))
 
     def test_a_DROP_keeps_the_leading_ABOVE_it_and_loses_its_own(self):
-        # !! ROY'S RULE, 2026-08-21: *"the live first key foliation lives, the
+        # !! ROY'S RULE, 2026-08-21: *"the live first key cues lives, the
         # drop first key dies."* An edge belongs to the place BEFORE it.
         #
         # ! Dropping the module docstring leaves the licence and the import with
@@ -203,7 +203,7 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
         # vacated by the same `_vacate` a `drop` uses -- the prose is no longer
         # there, so the space it introduced is no longer owed.
         #
-        # ! Roy, 2026-08-22: *"the place/foliation becomes the empty sentinel,
+        # ! Roy, 2026-08-22: *"the place/cues becomes the empty sentinel,
         # not that the place itself disappears."*
         page = built("m.py", self.SRC)
         moved = '"""What this is."""'
@@ -236,7 +236,7 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
     def test_a_DROP_in_the_MIDDLE_needs_no_RE_KEYING_of_the_survivor(self):
         """!! ROY'S RULE, WITHOUT THE REWRITE IT SOUNDS LIKE IT NEEDS.
 
-        2026-08-21: *"the live first key foliation lives, the drop first key
+        2026-08-21: *"the live first key cues lives, the drop first key
         dies. The live one gets a new key that takes the new end and
         beginning."* Dropping `b1` between `c0` and `c1` kills `b1`'s own edge
         and moves `c0`'s from *above the comment* to *above the code* -- and no

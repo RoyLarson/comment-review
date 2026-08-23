@@ -44,16 +44,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
 import exceptions  # noqa: E402  -- path shim must run first
-from annotate import (  # noqa: E402  -- path shim must run first
-    SYMBOLISH,
-    annotate,
-    prose_numbers,
-)
-from foliator import (  # noqa: E402  -- path shim must run first
+from addresser import (  # noqa: E402  -- path shim must run first
     COVERS,
     SEPARATOR,
     series_of,
     unaddressed,
+)
+from annotate import (  # noqa: E402  -- path shim must run first
+    SYMBOLISH,
+    annotate,
+    prose_numbers,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
     LANGUAGES,
@@ -425,7 +425,7 @@ def _report(args: argparse.Namespace) -> int:
         #
         # ! ASKED AT BOTH ENDS. This is the EMIT side, catching the census where it
         # is built; `verdicts.py` asks the same function on READ, for a file that
-        # reached it some other way. ONE implementation, in `foliator` -- Roy,
+        # reached it some other way. ONE implementation, in `addresser` -- Roy,
         # 2026-08-20: *"one source of truth, else something will parse that
         # something else will fail."*
         # ! SERIALISED ONCE. This list was built twice -- once to check and once

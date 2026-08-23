@@ -30,9 +30,9 @@ census.py walks the whole repo, runs git twice, and its run-flush never fires.
       exist
 - [ ] CENSUS LOADING IS WRITTEN FOUR TIMES AND THE FOURTH DIVERGES.
       verdicts.py:335 never unwraps the dict form the other three accept
-      (foliator.py, galley.py, record.py). ! Round 2 checked and NOTHING in the
+      (addresser.py, galley.py, record.py). ! Round 2 checked and NOTHING in the
       tree or the tests emits that dict form -- so three modules carry dead
-      defensive code and the fourth is inconsistent with them. foliator already
+      defensive code and the fourth is inconsistent with them. addresser already
       owns unaddressed() and is the vacant home for a load_census
 - [ ] census._report is 289 lines, with --languages wrapped in redirect_stdout for
       no reason

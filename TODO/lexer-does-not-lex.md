@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 7 tasks done
 Owner:    comment-review
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, on adding a token-type enum: the lexer is not
@@ -46,3 +46,23 @@ The lexer does not lex -- it reads a parse.
       moves to the lexical tier, the AST half goes and the name becomes true
       without anyone renaming anything. * Roy's call whether to rename now or let
       that TODO settle it.
+- [ ] `TYPECODER` IS THE CANDIDATE, AND IT NAMES THE PRODUCT RATHER THAN THE
+      METHOD. Typecoding is the copy-editing pass that marks every element with a
+      code -- A-head, extract, caption -- so the compositor knows which spec to
+      set. ! That is what `Kind` IS: nine codes, and `compact.md` ROUTES ON THE
+      CODE -- a `comment` is governed by LENGTH and may be cut to the cap, a
+      `docstring` by FORMAT and stands. A typecode exists to decide the treatment,
+      which is exactly what kind does here.
+- [ ] ! IT DISSOLVES THE NAMING HALF OF THIS FILE'S OWN TITLE. Two tiers read
+      differently -- characters, or CPython's parse -- but BOTH produce one thing:
+      a Kind per paragraph. Name the module for its product and "one module, two
+      jobs" stops being a naming problem and stays a structural one. ! And
+      `flag_structural_docs` is the tell: it marks a run whose KIND IS STILL AN
+      OPEN QUESTION, which is a typecoder declining to assign a code rather than
+      guessing -- what a copy editor does with an ambiguous element.
+- [ ] ! NOT THE ADDRESSER, WHICH WAS THE FIRST GUESS. `cue(code, documentable,
+      module_insert)` never sees prose -- *"a place is emitted because `cue`
+      reached its trigger, not because prose was found sitting there"* -- and
+      `test_the_addresser_knows_nothing_about_prose` enforces it. A typecoder reads
+      each element and says WHAT IT IS; the addresser says WHERE things sit, blind
+      to content.

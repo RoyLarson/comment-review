@@ -2,12 +2,12 @@
 
 !! THE PROPERTY, in Roy's words 2026-08-18: the census is a HASHED STATIC TABLE
 -- exact, constant, fully enumerated -- and without that this scheme falls apart
-rather than fails. Every foliator steps past every line of code, so a code line
+rather than fails. Every addresser steps past every line of code, so a code line
 missed anywhere above a place RENAMES that place, silently and consistently.
 These tests hold the naming to the enumeration.
 """
 
-import collections  # noqa: I001  -- path shim below must import before foliation
+import collections  # noqa: I001  -- path shim below must import before cues
 import contextlib
 import io
 import tempfile
@@ -15,8 +15,8 @@ import unittest
 from pathlib import Path
 
 from _paths import SCRIPTS  # noqa: F401
-import foliator
-from foliator import COVERS
+import addresser
+from addresser import COVERS
 import lexer
 import page
 
@@ -62,20 +62,20 @@ B = [
 
 
 def named(text, paragraphs):
-    """The folio each paragraph takes, through the page's own walk.
+    """The cue each paragraph takes, through the page's own walk.
 
-    ! `attach` returns the folio alone; the path is the page's and is added
+    ! `attach` returns the cue alone; the path is the page's and is added
     where the address is composed.
     """
-    foliation = page.places_on(text, paragraphs)
-    return [page.attach(b, foliation) for b in paragraphs]
+    cues = page.places_on(text, paragraphs)
+    return [page.attach(b, cues) for b in paragraphs]
 
 
 def addressed(text, paragraphs):
-    """`path@folio` for each, composed the way `page_for` composes it."""
-    foliation = page.places_on(text, paragraphs)
+    """`path@cue` for each, composed the way `page_for` composes it."""
+    cues = page.places_on(text, paragraphs)
     return [
-        f"{foliator.flatten(b['path'])}@{page.attach(b, foliation)}" for b in paragraphs
+        f"{addresser.flatten(b['path'])}@{page.attach(b, cues)}" for b in paragraphs
     ]
 
 
@@ -185,7 +185,7 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
             "original_start": 1,
         }
         self.assertNotEqual(
-            foliator.flatten(one["path"]), foliator.flatten(two["path"])
+            addresser.flatten(one["path"]), addresser.flatten(two["path"])
         )
 
     def test_a_windows_separator_is_normalised(self):
@@ -197,7 +197,7 @@ class TestTwoFilesOfTheSameName(unittest.TestCase):
             "kind": "interval",
             "original_start": 1,
         }
-        self.assertEqual(foliator.flatten(paragraph["path"]), "pkg:sub:a.py")
+        self.assertEqual(addresser.flatten(paragraph["path"]), "pkg:sub:a.py")
 
     def test_a_census_without_original_start_is_REFUSED_not_guessed(self):
         # !! The range alone cannot separate the two gaps of a one-line file,
@@ -246,8 +246,8 @@ class TestAOneLineInitFile(unittest.TestCase):
     def test_a_subpackage_of_the_same_name_is_a_different_place(self):
         sub = dict(self.PARAGRAPHS[0], path="package/subpackage/__init__.py")
         self.assertNotEqual(
-            foliator.flatten(sub["path"]),
-            foliator.flatten(self.PARAGRAPHS[0]["path"]),
+            addresser.flatten(sub["path"]),
+            addresser.flatten(self.PARAGRAPHS[0]["path"]),
         )
 
 
@@ -260,7 +260,7 @@ class TestTheInverse(unittest.TestCase):
 
     def test_a_flattened_path_resolves_against_the_census(self):
         self.assertEqual(
-            foliator.unflatten("pkg:sub:a.py", ["pkg/sub/a.py", "other/a.py"]),
+            addresser.unflatten("pkg:sub:a.py", ["pkg/sub/a.py", "other/a.py"]),
             "pkg/sub/a.py",
         )
 
@@ -269,16 +269,16 @@ class TestTheInverse(unittest.TestCase):
         # read `a.b.py`, and a dot in a FILE name is ordinary in most of the
         # eleven languages this census reads -- `app.test.js`, `types.d.ts`.
         # Picking one would answer a question nobody asked.
-        self.assertEqual(foliator.unflatten("a:b.py", ["a/b.py", "a:b.py"]), "")
+        self.assertEqual(addresser.unflatten("a:b.py", ["a/b.py", "a:b.py"]), "")
 
     def test_a_path_the_census_never_carried_resolves_to_nothing(self):
-        self.assertEqual(foliator.unflatten("nope.py", ["a/b.py"]), "")
+        self.assertEqual(addresser.unflatten("nope.py", ["a/b.py"]), "")
 
-    def test_an_address_splits_into_path_and_folio(self):
-        self.assertEqual(foliator.folio_of("pkg:mod.py@b4"), ("pkg:mod.py", "b4"))
+    def test_an_address_splits_into_path_and_cue(self):
+        self.assertEqual(addresser.cue_of("pkg:mod.py@b4"), ("pkg:mod.py", "b4"))
 
-    def test_a_string_with_no_folio_is_not_an_address(self):
-        self.assertEqual(foliator.folio_of("pkg:mod.py"), ("", ""))
+    def test_a_string_with_no_cue_is_not_an_address(self):
+        self.assertEqual(addresser.cue_of("pkg:mod.py"), ("", ""))
 
     def test_every_address_finds_its_own_entry_again(self):
         # ! STAMPED FIRST, because `resolve` READS the census's `place` rather
@@ -290,11 +290,11 @@ class TestTheInverse(unittest.TestCase):
         ]
         for i, paragraph in enumerate(stamped, 1):
             with self.subTest(entry=i):
-                self.assertEqual(foliator.resolve(paragraph["address"], stamped), [i])
+                self.assertEqual(addresser.resolve(paragraph["address"], stamped), [i])
 
     def test_an_address_nothing_carries_comes_back_empty(self):
 
-        self.assertEqual(foliator.resolve("b.py@b100", B), [])
+        self.assertEqual(addresser.resolve("b.py@b100", B), [])
 
 
 class TestAStaleCensusIsRefused(unittest.TestCase):
@@ -419,7 +419,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
 
     def test_an_empty_declaration_HOLDS_NO_LINE(self):
         # !! None on both ends. The docstring is not written yet, so no line
-        # of the file carries this foliation -- which is different from a
+        # of the file carries this cues -- which is different from a
         # range that happens to be empty. `(2, 1)` said it as arithmetic.
         got = self._census("def bare():\n    return 1\n")
         bare = next(b for b in got if b.anchor == "def bare():")
@@ -527,10 +527,10 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
             self.paragraphs = [vars(b) for b in got]
 
     def _at(self, anchor, series):
-        # ! The FOLIO only -- the temp path is noise here.
+        # ! The CUE only -- the temp path is noise here.
         return [
             b["address"].split("@")[-1]
-            for b in foliator.for_anchor(anchor, series, self.paragraphs)
+            for b in addresser.for_anchor(anchor, series, self.paragraphs)
         ]
 
     def test_a_declaration_has_a_place_in_every_series(self):
@@ -542,7 +542,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
 
     def test_the_MODULE_has_an_a_and_NEVER_a_c(self):
         # !! It has no line to open on, so nothing can sit beside it. That is
-        # the one trigger the `c` foliator steps past without emitting.
+        # the one trigger the `c` addresser steps past without emitting.
         self.assertEqual(self._at("<module>", "a"), ["a0"])
         self.assertEqual(self._at("<module>", "c"), [])
 
@@ -575,19 +575,19 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         # anchor is the trigger it was emitted at, so the two ends of the file
         # no longer answer with one string.
         self.assertEqual(self._at("<module>", COVERS), ["f0"])
-        self.assertEqual(self._at(foliator.EOF, COVERS), ["f1"])
+        self.assertEqual(self._at(addresser.EOF, COVERS), ["f1"])
 
         with_header = '# Copyright 2026 Roy.\n"""Module."""\n\nBUDGET = 3\n'
         path = Path("m.py")
         got = page.page_for(path, with_header, lexer.language_for(path))
         list(page.code_lines(with_header, [vars(b) for b in got]))
-        found = foliator.for_anchor("<module>", COVERS, [vars(b) for b in got])
+        found = addresser.for_anchor("<module>", COVERS, [vars(b) for b in got])
         self.assertEqual(
-            sorted(foliator.folio_of(b["address"]).folio for b in found), ["f0"]
+            sorted(addresser.cue_of(b["address"]).cue for b in found), ["f0"]
         )
-        found = foliator.for_anchor(foliator.EOF, COVERS, [vars(b) for b in got])
+        found = addresser.for_anchor(addresser.EOF, COVERS, [vars(b) for b in got])
         self.assertEqual(
-            sorted(foliator.folio_of(b["address"]).folio for b in found), ["f1"]
+            sorted(addresser.cue_of(b["address"]).cue for b in found), ["f1"]
         )
 
     def test_the_FILE_HAS_A_PLACE_AT_ITS_FOOT_TOO(self):
@@ -598,7 +598,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         # the same day as `b2` on a five-line file.
         path = Path("m.py")
         got = page.page_for(path, "import os\n\nx = 1\n", lexer.language_for(path))
-        self.assertEqual(got.foliation.file_places(), ["f0", "f1"])
+        self.assertEqual(got.cues.file_places(), ["f0", "f1"])
 
     def test_the_foot_place_is_bounded_by_NOTHING_as_the_head_one_is(self):
         # ! It is the FILE's, not the last gap's. A `b` is bounded by the code
@@ -606,8 +606,8 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         # a sweep that shares a gap out never reaches it.
         path = Path("m.py")
         got = page.page_for(path, "import os\n\nx = 1\n", lexer.language_for(path))
-        self.assertEqual(got.foliation.gap_bounds("f1"), (0, 0))
-        self.assertEqual(got.foliation.gap_bounds("f0"), (0, 0))
+        self.assertEqual(got.cues.gap_bounds("f1"), (0, 0))
+        self.assertEqual(got.cues.gap_bounds("f0"), (0, 0))
 
     def test_the_foot_place_exists_on_a_file_with_NO_CODE_AT_ALL(self):
         # ! The EOF trigger fires whether or not the walk stepped a line, so a
@@ -615,7 +615,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         path = Path("m.py")
         got = page.page_for(path, "# just a note\n", lexer.language_for(path))
         self.assertEqual(
-            sorted(f for f in got.foliation.places if f.startswith(COVERS)),
+            sorted(f for f in got.cues.places if f.startswith(COVERS)),
             ["f0", "f1"],
         )
 
@@ -626,7 +626,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         self.assertEqual(self._at("nosuchname", "b"), [])
 
     def test_the_c_it_names_is_the_DECLARATIONS_own_line(self):
-        found = foliator.for_anchor("def go(n):", "c", self.paragraphs)
+        found = addresser.for_anchor("def go(n):", "c", self.paragraphs)
         self.assertEqual([b["start"] for b in found], [6])
         # ! The one fact that decides it -- not a list of kinds. `SHARES_ITS_LINE`
         # was a second way to ask, and it disagreed with this one.
@@ -638,8 +638,8 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
 
     !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
     what an address exists to stop. Roy, 2026-08-19: *"not necessary for
-    foliation to do the staleness sweep as long as the original census is still
-    an available document ... In a small way it is the foliation stating the
+    cues to do the staleness sweep as long as the original census is still
+    an available document ... In a small way it is the cues stating the
     line numbers matter still."*
 
     ! A sweep was here and it refused a census built SECONDS earlier on every
@@ -653,7 +653,7 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
         import sys as _sys
 
         return subprocess.run(
-            [_sys.executable, str(SCRIPTS / "foliator.py"), *args],
+            [_sys.executable, str(SCRIPTS / "addresser.py"), *args],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -661,7 +661,7 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
         )
 
     def test_it_reads_no_file_but_the_census(self):
-        text = (SCRIPTS / "foliator.py").read_text(encoding="utf-8")
+        text = (SCRIPTS / "addresser.py").read_text(encoding="utf-8")
         body = text.split('"""', 2)[-1]
         self.assertEqual(body.count("read_text"), 1, "only the census is read")
         self.assertNotIn("from galley import", body)
@@ -702,7 +702,7 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
     !! IT WAS DECIDED TWICE AND THE TWO DISAGREED. `address()` read a list of
     KINDS; `code_lines_of` read the paragraph. A `comment` opened after a
     statement is in neither list and has a non-zero `original_column`, so it took a `b`
-    folio for a line it sits ON -- and that folio then named the comment AND the
+    cue for a line it sits ON -- and that cue then named the comment AND the
     gap. Measured 2026-08-19 on `let b = 2; /* opens` / `and closes */`: `@b2`
     resolved to an empty interval, so every text check on the comment read "".
 
@@ -731,7 +731,7 @@ class TestAMidLineCommentTakesTheLineItSitsOn(unittest.TestCase):
         # until 2026-08-20 while sitting at a `c` place.
         self.assertEqual(mid.kind, "trailing-comment")
         self.assertTrue(mid.original_column)
-        # ! The FOLIO, not the address -- the census composes `path@folio` now,
+        # ! The CUE, not the address -- the census composes `path@cue` now,
         # and the path is a temp directory here.
         self.assertTrue(mid.address.split("@")[-1].startswith("c"), mid.address)
 
@@ -775,28 +775,28 @@ class TestTheSeparatorIsAPathCannotHoldIt(unittest.TestCase):
     """
 
     def test_a_directory_and_a_dotted_filename_no_longer_collide(self):
-        self.assertNotEqual(foliator.flatten("a/b.py"), foliator.flatten("a.b.py"))
-        self.assertEqual(foliator.flatten("a/b.py"), "a:b.py")
-        self.assertEqual(foliator.flatten("a.b.py"), "a.b.py")
+        self.assertNotEqual(addresser.flatten("a/b.py"), addresser.flatten("a.b.py"))
+        self.assertEqual(addresser.flatten("a/b.py"), "a:b.py")
+        self.assertEqual(addresser.flatten("a.b.py"), "a.b.py")
 
     def test_it_is_invertible_where_the_dotted_form_was_not(self):
         paths = ["a/b.py", "a.b.py"]
-        self.assertEqual(foliator.unflatten("a:b.py", paths), "a/b.py")
-        self.assertEqual(foliator.unflatten("a.b.py", paths), "a.b.py")
+        self.assertEqual(addresser.unflatten("a:b.py", paths), "a/b.py")
+        self.assertEqual(addresser.unflatten("a.b.py", paths), "a.b.py")
 
     def test_a_windows_separator_flattens_the_same_way(self):
-        self.assertEqual(foliator.flatten(r"pkg\sub\a.py"), "pkg:sub:a.py")
+        self.assertEqual(addresser.flatten(r"pkg\sub\a.py"), "pkg:sub:a.py")
 
     def test_the_extension_keeps_its_dot(self):
         # ! Dropping it reintroduces the collision `b.py` / `b.rs` in a repo
         # this census supports by design -- eleven languages in one run.
-        self.assertTrue(foliator.flatten("pkg/mod.py").endswith(".py"))
+        self.assertTrue(addresser.flatten("pkg/mod.py").endswith(".py"))
 
     def test_no_separator_is_shell_special(self):
         # ! An address is passed as a bare CLI argument -- `--resolve <ADDRESS>`
         # in `review.md` and `reviewer-brief.md`. Every OTHER character Windows
         # forbids is a redirect, a pipe or a glob.
-        self.assertNotIn(foliator.flatten("a/b.py")[1], '<>|?*"')
+        self.assertNotIn(addresser.flatten("a/b.py")[1], '<>|?*"')
 
 
 class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
@@ -820,24 +820,24 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
         list(page.code_lines(self.SRC, [vars(b) for b in paragraphs]))
         self.paragraphs = [vars(b) for b in paragraphs]
 
-    def _folios(self, anchor, series):
-        found = foliator.for_anchor(anchor, series, self.paragraphs)
-        return sorted(foliator.folio_of(b["address"]).folio for b in found)
+    def _cues(self, anchor, series):
+        found = addresser.for_anchor(anchor, series, self.paragraphs)
+        return sorted(addresser.cue_of(b["address"]).cue for b in found)
 
     def test_the_LINE_reaches_all_three_series(self):
         # !! ONE ANCHOR, THREE ADDRESSES -- the declaration's own `a`, the `b`
         # above it and the `c` beside it. This is the one-to-many relationship
         # measured on one line of code.
-        self.assertEqual(self._folios("def f():", "a"), ["a1"])
-        self.assertEqual(self._folios("def f():", "b"), ["b0"])
-        self.assertEqual(self._folios("def f():", "c"), ["c0"])
+        self.assertEqual(self._cues("def f():", "a"), ["a1"])
+        self.assertEqual(self._cues("def f():", "b"), ["b0"])
+        self.assertEqual(self._cues("def f():", "c"), ["c0"])
 
     def test_the_NAME_no_longer_answers(self):
         # !! Roy ruled it 2026-08-19: *"drop it -- the line is the anchor."*
         # The census stopped carrying declaration names, so `f` names nothing.
         for series in "abc":
             with self.subTest(series=series):
-                self.assertEqual(self._folios("f", series), [])
+                self.assertEqual(self._cues("f", series), [])
 
 
 class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
@@ -878,12 +878,12 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         self.assertEqual(len(named), len(set(named)))
 
     def test_the_anchor_answers_with_BOTH_trailing_comments(self):
-        found = foliator.for_anchor("X=2", "c", self.paragraphs)
-        folios = sorted(foliator.folio_of(b["address"]).folio for b in found)
-        self.assertEqual(folios, ["c0", "c1"])
+        found = addresser.for_anchor("X=2", "c", self.paragraphs)
+        cues = sorted(addresser.cue_of(b["address"]).cue for b in found)
+        self.assertEqual(cues, ["c0", "c1"])
 
     def test_they_are_two_DIFFERENT_statements(self):
-        found = foliator.for_anchor("X=2", "c", self.paragraphs)
+        found = addresser.for_anchor("X=2", "c", self.paragraphs)
         self.assertEqual(sorted(b["start"] for b in found), [1, 5])
         self.assertEqual(sorted(b["text"] for b in found), ["initial", "reseting X"])
 
@@ -896,11 +896,11 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
     def test_the_b_series_answers_with_ALL_THREE_gaps(self):
         # !! The `b` half is WORSE, and this file is why: three gaps answer to
         # one spelling -- the gap above the opening statement, the gap holding
-        # `# stuff happens`, and the gap at the end of the file. ! The folios
+        # `# stuff happens`, and the gap at the end of the file. ! The cues
         # below are what THIS walk emits, not a rule anything may count out.
-        found = foliator.for_anchor("X=2", "b", self.paragraphs)
-        folios = sorted(foliator.folio_of(b["address"]).folio for b in found)
-        self.assertEqual(folios, ["b0", "b1"])
+        found = addresser.for_anchor("X=2", "b", self.paragraphs)
+        cues = sorted(addresser.cue_of(b["address"]).cue for b in found)
+        self.assertEqual(cues, ["b0", "b1"])
 
     def test_the_two_gaps_are_drawn_from_TWO_statements(self):
         """!! And the anchor STRING cannot tell you which.
@@ -921,9 +921,9 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         statement. Anchored to the EOF trigger it was emitted at, it leaves this
         question entirely.
         """
-        by_folio = {
-            foliator.folio_of(b["address"]).folio: b
-            for b in foliator.for_anchor("X=2", "b", self.paragraphs)
+        by_cue = {
+            addresser.cue_of(b["address"]).cue: b
+            for b in addresser.for_anchor("X=2", "b", self.paragraphs)
         }
         # ! Read from the ORIGINAL range, which is the gap's OWN LINES: the
         # first covers nothing above line 1, the second covers line 3 alone, and
@@ -937,7 +937,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # candidate.
         #
         # !! THE `d` SERIES IS THE BETTER CANDIDATE, and it is what a `b` owning
-        # both sides of an `a` could not do: a folio is ONE entry in the reading
+        # both sides of an `a` could not do: a cue is ONE entry in the reading
         # order, so a `b` holding lines 2 and 4 around prose at 3 emitted both
         # blanks together and the file came back blank-blank-comment. Every
         # paragraph is CONTIGUOUS now, and `# stuff happens` is line 3 alone.
@@ -946,18 +946,18 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # the edit process. What changed is which series holds them.
         # ! `b0` is the gap ABOVE line 1 on a file whose line 1 is code, so it
         # holds no line and says None.
-        self.assertIsNone(by_folio["b0"]["original_start"])
+        self.assertIsNone(by_cue["b0"]["original_start"])
         self.assertEqual(
-            (by_folio["b1"]["original_start"], by_folio["b1"]["original_end"]), (3, 3)
+            (by_cue["b1"]["original_start"], by_cue["b1"]["original_end"]), (3, 3)
         )
-        self.assertEqual(sorted(by_folio), ["b0", "b1"])
+        self.assertEqual(sorted(by_cue), ["b0", "b1"])
         # !! THE PROPERTY THIS CLASS IS NAMED FOR, and it was never asserted:
         # the two gaps answer DIFFERENT statements. Same spelling, different
         # trigger -- which is what makes `X=2` two anchors rather than one with
         # two places, and what no rule over the anchor TEXT can separate.
-        self.assertNotEqual(by_folio["b0"]["anchor_num"], by_folio["b1"]["anchor_num"])
-        for folio, paragraph in by_folio.items():
-            with self.subTest(folio=folio):
+        self.assertNotEqual(by_cue["b0"]["anchor_num"], by_cue["b1"]["anchor_num"])
+        for cue, paragraph in by_cue.items():
+            with self.subTest(cue=cue):
                 self.assertEqual(paragraph["anchor"], "X=2")
 
     def test_the_comment_between_them_is_anchored_to_the_code_BELOW(self):
@@ -965,7 +965,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # second, so its anchor is line 5's code -- not line 1's, which it
         # follows. The gap's prose is about what comes next.
         held = next(b for b in self.paragraphs if b["text"] == "stuff happens")
-        self.assertEqual(foliator.folio_of(held["address"]).folio, "b1")
+        self.assertEqual(addresser.cue_of(held["address"]).cue, "b1")
         self.assertEqual(held["anchor"], "X=2")
 
     def test_X_2_is_no_declaration_so_the_a_series_is_EMPTY(self):
@@ -973,7 +973,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # answers in `a`. ! The module's `a0` does not answer either: it keeps
         # `<module>`. Anchoring it to the FIRST LINE OF CODE was tried and made
         # a module's documentation answer to `X=2`.
-        self.assertEqual(foliator.for_anchor("X=2", "a", self.paragraphs), [])
+        self.assertEqual(addresser.for_anchor("X=2", "a", self.paragraphs), [])
 
     def test_the_CLI_says_the_answer_is_AMBIGUOUS_in_both_series(self):
         # !! What an agent actually sees. Without it a caller reads the first
@@ -985,19 +985,19 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
             with self.subTest(series=series):
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out):
-                    rc = foliator._for_anchor("X=2", series, self.paragraphs)
+                    rc = addresser._for_anchor("X=2", series, self.paragraphs)
                 self.assertEqual(rc, 0)
                 said = out.getvalue()
                 self.assertIn(f"{count} places answer", said)
                 self.assertIn("Choose by ADDRESS", said)
 
 
-class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
-    """Three foliators, three counters, and NO arithmetic between them.
+class TestEachAddresserCountsItsOwnSteps(unittest.TestCase):
+    """Three addressers, three counters, and NO arithmetic between them.
 
-    !! NOTHING MAY COMPUTE ONE FOLIO FROM ANOTHER, OR FROM A LINE ORDINAL.
+    !! NOTHING MAY COMPUTE ONE CUE FROM ANOTHER, OR FROM A LINE ORDINAL.
     Roy, 2026-08-19: *"remove any references that indicate anyone can expect
-    that the next line of code is guaranteed to have the next foliation index --
+    that the next line of code is guaranteed to have the next cues index --
     not in the examples, not in `CLAUDE.md`, not in the docs. It is a
     happenstance and may change at any point if it is determined that another
     system will work better."*
@@ -1009,7 +1009,7 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
     day's trigger list, and both would have FROZEN it: a test that asserts a
     coincidence turns it into a contract.
 
-    !! WHAT IS ACTUALLY GUARANTEED is that each foliator walks the triggers and
+    !! WHAT IS ACTUALLY GUARANTEED is that each addresser walks the triggers and
     takes a number at every one, emitting or not. Roy: *"each gets its own
     counter and each gets passed the lines of code and the module, and the `c`
     knows it is supposed to skip it."*
@@ -1032,14 +1032,14 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         # `c0` exists and is the first line of code -- what this holds is that
         # no `c` is anchored to the module, which is what it always meant.
         self.assertNotIn(
-            foliator.MODULE,
+            addresser.MODULE,
             [b.anchor for f, b in self.at.items() if f.startswith("c")],
         )
-        folios = sorted(self.at)
-        self.assertTrue(any(f.startswith("a") for f in folios), folios)
+        cues = sorted(self.at)
+        self.assertTrue(any(f.startswith("a") for f in cues), cues)
 
-    def test_every_place_still_gets_exactly_one_folio(self):
-        # ! What the foliators are FOR. The numbering may change; that each
+    def test_every_place_still_gets_exactly_one_cue(self):
+        # ! What the addressers are FOR. The numbering may change; that each
         # place has exactly one name may not.
         named = [b.address for b in self.at.values()]
         self.assertEqual(len(named), len(set(named)))
@@ -1098,7 +1098,7 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         )
         built = page.page_for(Path("m.py"), src, lexer.language_for(Path("m.py")))
         rows = [b for b in built if b.address and b.kind != lexer.Kind.LEADING]
-        folio = {b.address: b.address.split("@")[-1] for b in rows}
+        cue = {b.address: b.address.split("@")[-1] for b in rows}
         # !! WHICH PLACES HAVE A LINE IS ASKED, NOT LISTED. This named `b3` and
         # `f1` outright, which is a fixture's arithmetic wearing a test. A place
         # anchored to a SENTINEL answers `None` since 2026-08-22, so the three
@@ -1121,10 +1121,10 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         head = [b for b in sentinels if b.anchor_num == 0]
         foot = [b for b in sentinels if b.anchor_num > highest]
         self.assertEqual(len(head) + len(foot), len(sentinels))
-        self.assertTrue(head, folio)
-        self.assertTrue(foot, folio)
+        self.assertTrue(head, cue)
+        self.assertTrue(foot, cue)
 
-    def test_a_folio_is_never_DERIVED_from_another(self):
+    def test_a_cue_is_never_DERIVED_from_another(self):
         """!! The property the arithmetic destroyed and the walk restores.
 
         `b` used to be `sum(1 for n in code if n < at)`, `c` was
@@ -1139,12 +1139,12 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         # form the assertion cannot see.
         #
         # !! AND IT IS STATED WITHOUT A LINE NUMBER, WHICH IS THE POINT. Roy:
-        # *"be careful not to bake into the test_foliation the old system of
+        # *"be careful not to bake into the test_cues the old system of
         # lines and addresses. A passing test is more than worthless if the test
-        # is encoding the wrong behavior."* A first rewrite read `foliation.lines`
-        # and called `above(2)` -- a folio-to-LINE map and a line-keyed lookup --
-        # which says the property in the terms the foliation exists to replace.
-        # `places` maps a folio to its ANCHOR, and that is the whole relation.
+        # is encoding the wrong behavior."* A first rewrite read `cues.lines`
+        # and called `above(2)` -- a cue-to-LINE map and a line-keyed lookup --
+        # which says the property in the terms the cues exists to replace.
+        # `places` maps a cue to its ANCHOR, and that is the whole relation.
         src = (
             '"""Module doc."""\n'  # the module's own documentation
             "import os\n"
@@ -1154,14 +1154,14 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
             "    return os, sys\n"
         )
         built = page.page_for(Path("m.py"), src, lexer.language_for(Path("m.py")))
-        places = built.foliation.places
+        places = built.cues.places
 
         # !! ONE ANCHOR, MANY ADDRESSES -- and the count is read from the walk
         # rather than asserted between two literals. `a` numbers DECLARATIONS
         # and `c` numbers LINES OF CODE, so the declaring line answers to both
         # under different ordinals; a rule deriving either series from the
         # other's position collapses them onto one.
-        declaring = places[built.foliation.documents(1)]
+        declaring = places[built.cues.documents(1)]
         sharing = {f for f, anchor in places.items() if anchor == declaring}
         self.assertGreater(len(sharing), 1, sharing)
         self.assertTrue(any(f.startswith("a") for f in sharing), sharing)
@@ -1174,34 +1174,34 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         # discriminate at all -- the retired `code.index(start)` returns the
         # same ordinal the walk does. A `c` IS the code-line ordinal; what
         # drifted was three mechanisms answering one question, never the answer.
-        front = built.foliation.file_places()[0]
+        front = built.cues.file_places()[0]
         self.assertTrue(front.startswith(COVERS), front)
         self.assertNotIn(front, [f for f in places if not f.startswith(COVERS)])
 
         # ! Every place the page carries was emitted by the walk -- `places` is
-        # what `foliate` filled, and nothing else writes to it.
+        # what `cue` filled, and nothing else writes to it.
         for paragraph in built:
             if paragraph.address:
                 self.assertIn(paragraph.address.split("@")[-1], places)
 
-    def test_the_walk_is_one_list_and_foliate_READS_it(self):
+    def test_the_walk_is_one_list_and_cue_READS_it(self):
         """!! IT DID NOT, AND THIS TEST SAID IT DID. Measured 2026-08-21.
 
         `triggers` claimed *"ONE LIST, SO THE THREE SERIES CANNOT DRIFT APART"*
         and this test said *"both read it, so neither can drift from the other
-        by being edited alone"* -- while `foliate` wrote the walk out by hand and
+        by being edited alone"* -- while `cue` wrote the walk out by hand and
         `triggers` had exactly ONE caller: this test. The guarantee was
         documented, asserted for SHAPE, and not implemented. Roy: *"WHAT!!!"*
 
         ! So the shape assertion is not enough and never was. This reads the
         SOURCE for the call, which is the only thing that makes the claim true.
         """
-        walk = foliator.triggers(self.code)
-        self.assertEqual(walk[0], foliator.MODULE)
-        self.assertEqual(walk[-1], foliator.EOF)
+        walk = addresser.triggers(self.code)
+        self.assertEqual(walk[0], addresser.MODULE)
+        self.assertEqual(walk[-1], addresser.EOF)
         self.assertEqual(walk[1:-1], self.code)
-        source = (SCRIPTS / "foliator.py").read_text(encoding="utf-8")
-        body = source[source.index("def foliate(") :]
+        source = (SCRIPTS / "addresser.py").read_text(encoding="utf-8")
+        body = source[source.index("def cue(") :]
         self.assertIn("triggers(", body[: body.index("\ndef ")])
 
     def test_EOF_is_a_trigger_and_not_an_arithmetic(self):
@@ -1211,25 +1211,25 @@ class TestEachFoliatorCountsItsOwnSteps(unittest.TestCase):
         almost certainly get it, and so we might as well pick up both now -- that
         makes two conditions where you would have to understand to keep the code
         consistent, and why 1 gets a +1 and the other gets some other treatment,
-        which is the reason each foliator owns its own rules."*
+        which is the reason each addresser owns its own rules."*
 
         ! So the closing gap comes from a trigger every series meets, exactly as
         the MODULE does. `b` emits for it and the others skip; `f` taking a tail
         place later is a row at this step, not a second arithmetic.
         """
-        self.assertIn(foliator.EOF, foliator.triggers(self.code))
+        self.assertIn(addresser.EOF, addresser.triggers(self.code))
         # ! N lines of code, N+1 gaps -- the last of them from EOF.
         gaps = [f for f in self.at if f.startswith("b")]
         self.assertEqual(len(gaps), len(self.code) + 1)
 
 
-class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
-    """A place exists in ONE collection: the foliator that emitted it.
+class TestTheAddressersSurviveTheWalk(unittest.TestCase):
+    """A place exists in ONE collection: the addresser that emitted it.
 
     !! SIX FIELDS WERE SIX KEYINGS OF ONE FACT. Roy, 2026-08-21: *"`_above`,
     `_beside`, `_declared`, `_front`, `_back`, `_closing` are 1 object type
-    flattened into a special case with different names."* `foliate` built five
-    `Foliator`s, used them, flattened them into a `places` dict and DISCARDED
+    flattened into a special case with different names."* `cue` built five
+    `Addresser`s, used them, flattened them into a `places` dict and DISCARDED
     them -- so every accessor needed a table of its own, keyed by whatever it
     happened to be asked with. The walkers are kept now and each accessor asks
     the one that owns the series.
@@ -1244,18 +1244,18 @@ class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
     def setUp(self):
         path = Path("m.py")
         self.built = page.page_for(path, self.SRC, lexer.language_for(path))
-        self.foliation = self.built.foliation
+        self.cues = self.built.cues
 
-    def test_a_foliation_that_never_WALKED_names_no_place(self):
+    def test_a_cues_that_never_WALKED_names_no_place(self):
         """!! THE EMPTY ANSWER IS THE POINT, and it is what `at` buys.
 
-        Each accessor computes the folio a position WOULD have and then asks
+        Each accessor computes the cue a position WOULD have and then asks
         whether the walk emitted it. Computing it alone is not enough: a page
-        whose reader refused the source carries a foliation with no places at
+        whose reader refused the source carries a cues with no places at
         all, and every accessor must say so rather than name `b0`, `c0` or `f0`
         -- addresses that would resolve to nothing downstream.
         """
-        empty = foliator.Foliation()
+        empty = addresser.Cues()
         self.assertEqual(empty.places, {})
         self.assertEqual(empty.above(1), "")
         self.assertEqual(empty.above(10**6), "")
@@ -1268,31 +1268,31 @@ class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
 
         It was a field, and `page.py` numbered the `d` series by assigning into
         it -- a second way to make a place, with a counter of its own beside the
-        one every `Foliator` already carries. That write is silent now, which is
+        one every `Addresser` already carries. That write is silent now, which is
         why it was replaced rather than left to be discovered.
         """
-        self.foliation.places["zz9"] = "invented"
-        self.assertNotIn("zz9", self.foliation.places)
+        self.cues.places["zz9"] = "invented"
+        self.assertNotIn("zz9", self.cues.places)
 
     def test_every_accessor_answers_with_a_place_the_walk_EMITTED(self):
         """! Whatever an accessor names, `places` holds -- one collection, one
         set of names. The old shape allowed a side table and the flat dict to
         disagree, because the emitter that could have settled it was gone.
         """
-        places = self.foliation.places
+        places = self.cues.places
         answers = [
-            *self.foliation.file_places(),
-            *(self.foliation.above(n) for n in range(1, 12)),
-            *(self.foliation.beside(n) for n in range(1, 12)),
-            *(self.foliation.documents(k) for k in range(4)),
+            *self.cues.file_places(),
+            *(self.cues.above(n) for n in range(1, 12)),
+            *(self.cues.beside(n) for n in range(1, 12)),
+            *(self.cues.documents(k) for k in range(4)),
         ]
         named = [f for f in answers if f]
         self.assertTrue(named)
-        for folio in named:
-            self.assertIn(folio, places)
+        for cue in named:
+            self.assertIn(cue, places)
 
     def test_LEADING_is_NOT_a_series_and_the_walk_makes_no_d(self):
-        """!! IT WAS GIVEN ITS OWN FOLIATOR FOR ONE MORNING, and that was the
+        """!! IT WAS GIVEN ITS OWN ADDRESSER FOR ONE MORNING, and that was the
         wrong fix to a real problem.
 
         `emit` is what MAKES a place, and leading is not one: it names nothing a
@@ -1304,9 +1304,9 @@ class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
         ! SO IT CARRIES A SYMBOL AND NOT AN ADDRESS -- kept, on Roy's ruling,
         because the page/symbol map is what shows every line is covered.
         """
-        self.assertNotIn(foliator.LEAD, foliator.SERIES)
-        self.assertNotIn(foliator.LEAD, self.foliation.foliators)
-        self.assertEqual([f for f in self.foliation.places if f[:1] == "d"], [])
+        self.assertNotIn(addresser.LEAD, addresser.SERIES)
+        self.assertNotIn(addresser.LEAD, self.cues.addressers)
+        self.assertEqual([f for f in self.cues.places if f[:1] == "d"], [])
         leads = [b for b in self.built if b.symbol]
         self.assertEqual([b.symbol for b in leads], ["d0", "d1"])
         # !! THE SYMBOL IS NOT AN ADDRESS, which is the whole of the ruling.
@@ -1315,12 +1315,12 @@ class TestTheFoliatorsSurviveTheWalk(unittest.TestCase):
     def test_every_place_the_walk_MAKES_answers_with_an_anchor(self):
         """!! THE SUBSTITUTION `d` COULD NOT SATISFY, stated as the property.
 
-        `places` is `folio -> the line of code it is attached to`. Every member
+        `places` is `cue -> the line of code it is attached to`. Every member
         must answer it: a line of code, or `<module>` for the places that answer
         to the file. An empty string is the ABSENCE of an answer, and a series
         that gives one cannot be used where a place is expected.
         """
-        self.assertTrue(self.foliation.places)
-        for folio, anchor in self.foliation.places.items():
-            with self.subTest(folio=folio):
-                self.assertTrue(anchor, f"{folio} answers with no anchor")
+        self.assertTrue(self.cues.places)
+        for cue, anchor in self.cues.places.items():
+            with self.subTest(cue=cue):
+                self.assertTrue(anchor, f"{cue} answers with no anchor")

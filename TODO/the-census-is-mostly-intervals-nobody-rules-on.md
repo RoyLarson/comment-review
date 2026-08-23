@@ -182,7 +182,7 @@ not.** The change is to filter the census the same way and give the reviewer som
       -`**, one per code line, zero information, four times per run. ! The file's
       own cost table (1,120 blocks / 131,353 bytes) is a rotted measurement; re-
       measure with it. **Collapse on `HOLDS_NO_PROSE`, not on one kind.**
-- [ ] **A reviewer is told to run `&lt;skill&gt;/scripts/foliator.py` and nothing
+- [ ] **A reviewer is told to run `&lt;skill&gt;/scripts/addresser.py` and nothing
       resolves `&lt;skill&gt;`.** The packet carries REPO ROOT, CENSUS, LOOKUP
       CENSUS and REVIEWER FILES -- and REVIEWER FILES, the only section holding
       plugin paths, is explicitly withheld from reviewers. SKILL.md insists *"An
@@ -239,7 +239,7 @@ not.** The change is to filter the census the same way and give the reviewer som
       PLACE, MARGIN pays per LINE. Code-heavy files have an empty place between
       every pair of statements, each a row with its anchor repeated --
       listobject.c -50%, eslint.config.ts -51%. The three files the margin LOSES
-      on are prose-dense with little code: foliator.py +7%, desk.py +9%, page.py
+      on are prose-dense with little code: addresser.py +7%, desk.py +9%, page.py
       level.
 
 ## Related

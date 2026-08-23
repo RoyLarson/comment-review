@@ -37,7 +37,7 @@ Ten assertions gate a substring or an incidental field, not the property.
       -- rewriting it to *"names three sections below, measured over 10 runs"*
       passes. Its comment says it exists to stop *"quietly re-creating the same
       false claim"*.
-- [ ] `test_foliation.py:619` asserts `body.count("read_text") == 1` with the
+- [ ] `test_cues.py:619` asserts `body.count("read_text") == 1` with the
       message *"only the census is read"* -- adding a function that reads an
       arbitrary path with `open()` passes.
 - [ ] `test_todo_counts_agree.py:64-66` requires only `^Progress: `, so `Progress:
@@ -49,7 +49,7 @@ Ten assertions gate a substring or an incidental field, not the property.
       test, added 2026-08-20.
 - [ ] `TestTheTwoKindSetsAreNotInterchangeable` never tests non-
       interchangeability; it would pass if the two names were aliased.
-      `test_foliation.py:152-156` has two method names asserting the opposite of
+      `test_cues.py:152-156` has two method names asserting the opposite of
       what they say. `TestAStaleCensusIsRefused` says `--check` exits 2 --
       falsified by a passing sibling in the same file.
 - [ ] `test_verdicts.py:774-778` says `TestClaimAgainstTheCensus` *"is what

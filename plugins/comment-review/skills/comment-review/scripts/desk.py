@@ -33,7 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
 import exceptions  # noqa: E402  -- path shim must run first
-from foliator import flatten, folio_of  # noqa: E402  -- path shim must run first
+from addresser import cue_of, flatten  # noqa: E402  -- path shim must run first
 from lexer import block_text, language_for  # noqa: E402  -- path shim must run first
 from record import (  # noqa: E402  -- path shim must run first
     ANCHOR_NAME,
@@ -437,9 +437,9 @@ LINE_FORM = re.compile(r"[\w./\-]+\.\w+:\d+(?:-\d+)?")
 
 
 def _in_scope(path: str, paragraphs: list[dict]) -> bool:
-    """Did this run foliate that file?
+    """Did this run cue that file?
 
-    !! THE RUN ONLY FOLIATES WHAT IS IN SCOPE. `census.py` is handed the files a
+    !! THE RUN ONLY CUES WHAT IS IN SCOPE. `census.py` is handed the files a
     change touched, and everything else has no places at all -- so whether a
     destination is nameable as an address depends on which diff it landed in,
     not on whether the file exists.
@@ -456,7 +456,7 @@ def _in_scope(path: str, paragraphs: list[dict]) -> bool:
     # SHORTER but resolvable citation walk past the ban: the census carries
     # `redacted_pkg/billing/rates.py` and a reviewer writes `to: ... in rates.py:355`,
     # which matched nothing, counted as out of scope, and admitted a stale line
-    # address for a file this run DOES foliate and WILL edit. Measured
+    # address for a file this run DOES cue and WILL edit. Measured
     # 2026-08-21. ! The same hole took `./rates.py` and a Windows-separated
     # citation, whose backslash `LINE_FORM` does not carry -- so only the
     # basename survived to be compared.
@@ -512,7 +512,7 @@ def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     if not where:
         return None  # ! Absence is the PAYLOAD check's to report, and it does.
     # !! A LINE IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER, FOR A FILE THIS RUN
-    # FOLIATED. The retired form is refused by name rather than passed off as an
+    # CUED. The retired form is refused by name rather than passed off as an
     # out-of-code destination -- `m.py:3` is inside the code, and it is stale the
     # moment this run edits anything above it.
     stale = LINE_FORM.search(where)
@@ -521,7 +521,7 @@ def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
             f"move's destination names a LINE, {stale.group(0)!r} -- that form was"
             # ! `a|b|c` and not `a|b|c|f`: this message is read by a REVIEWER,
             # and the `f` series is not one it rules on -- see `reviewer-brief`.
-            " retired: ask `foliator.py --anchor LINE --series a|b|c` for the"
+            " retired: ask `addresser.py --anchor LINE --series a|b|c` for the"
             " address"
         )
     # !! AND THE BAN STOPS AT THE RUN'S EDGE. Roy, 2026-08-20: a `move` may name
@@ -541,13 +541,13 @@ def destination_problem(f: Finding, paragraphs: list[dict]) -> str | None:
         # !! TWO CAUSES HAD ONE MESSAGE -- a wrong address, and a RIGHT address
         # for a file nobody censused. A reviewer reading `not a place in the
         # census` about a correct citation goes looking for an error that is not
-        # there. The run only foliates what is in scope, so a file outside it has
+        # there. The run only cues what is in scope, so a file outside it has
         # no places at all and the address cannot be derived.
-        path = folio_of(named.group(0)).path
+        path = cue_of(named.group(0)).path
         if not _in_scope(path, paragraphs):
             return (
                 f"move's destination {named.group(0)} names {path}, which this run"
-                " never foliated -- it has no places. Cite the line instead"
+                " never cued -- it has no places. Cite the line instead"
             )
         return f"move's destination {named.group(0)} is not a place in the census"
     return None
