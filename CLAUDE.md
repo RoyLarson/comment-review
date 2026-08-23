@@ -78,8 +78,16 @@ uv run python evals/generator_split.py <corpus-dir> [paths...]
 # Survey GitHub for assistant-authored repos to extend the corpus
 uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
-# Run the test suite (stdlib unittest; there are no third-party test deps)
+# Run the test suite. BOTH RUNNERS WORK and neither is going away.
+uv run pytest -q                              # the one to reach for
 uv run python -m unittest discover -s tests -v
+
+# !! THE TESTS ARE NOT BEING REWRITTEN. Roy, 2026-08-22: *"since we have dev
+# dependencies PYTEST -- don't rewrite, but that is a big one for me."* pytest
+# collects `unittest.TestCase` natively, so all 795 cases and 690 subtests run
+# under it with no edit to any of them. ! A case written in the `unittest` style
+# is CORRECT here; do not convert one to bare asserts or fixtures because pytest
+# would allow it, and do not add a `conftest.py` a `unittest` run cannot see.
 
 # ONE file, one class, one test -- `-k` matches any of the three, and NOTHING
 # else runs a subset. There is no `python tests/test_x.py`: a `__main__` runner
@@ -166,10 +174,23 @@ uv run python scripts/render_page.py <paths...> [--show margin|prose|rows]
 claude plugin validate plugins/comment-review
 ```
 
-Tests are stdlib `unittest` with per-language fixtures under `tests/fixtures/`;
-there are no third-party test dependencies, matching the plugin's own
-stdlib-only rule. `evals/grade_hazards.py` remains the end-to-end grade, and
-`scripts/check_shipped_syntax.py` the shipped-syntax floor.
+Tests are written as stdlib `unittest` cases, with per-language fixtures under
+`tests/fixtures/` -- one short, ordinary file per language row, which is what
+`test_fixture_identity.py` runs the round trip over.
+
+!! **THE STDLIB-ONLY RULE IS ABOUT `plugins/`, AND THIS SAID OTHERWISE UNTIL
+2026-08-22.** It read *"there are no third-party test dependencies, matching the
+plugin's own stdlib-only rule"* -- treating one constraint as two. Only
+`plugins/` is copied into someone else's `.claude/`, and it imports nothing but
+the standard library; `tests/` never leaves this repo, and `pytest`, `ruff` and
+`ty` are pinned dev dependencies that run against it.
+
+! **What the rule actually forbids is a third-party import in a SHIPPED file**,
+and `tests/test_shipped_imports.py` is what enforces it -- including
+`TestTheCheckItselfFires`, which proves the check can fail. A dev tool that
+reads this tree is not that. `scripts/check_shipped_syntax.py` answers the
+neighbouring question, whether a shipped file still PARSES on the floor, and
+`evals/grade_hazards.py` remains the end-to-end grade.
 
 ## Architecture
 

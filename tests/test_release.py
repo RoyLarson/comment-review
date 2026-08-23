@@ -110,5 +110,10 @@ class TestTheVersionIsStatedOnce(unittest.TestCase):
         under a green run is what `docs/gates.md` is about.
         """
         dev = self.pyproject["dependency-groups"]["dev"]
-        pinned = {name.split("==")[0]: name for name in dev if "==" in name}
-        self.assertEqual(sorted(pinned), ["ruff", "ty"], dev)
+        # ! THE RULE, NOT A ROLL-CALL. A fixed list of names would fail the day a
+        # tool is ADDED, which is the one day nobody is thinking about pinning.
+        self.assertEqual([name for name in dev if "==" not in name], [], dev)
+        # ! And the three that are gates are named, so removing one is loud.
+        self.assertLessEqual(
+            {"pytest", "ruff", "ty"}, {name.split("==")[0] for name in dev}, dev
+        )

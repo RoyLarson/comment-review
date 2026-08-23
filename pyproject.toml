@@ -52,11 +52,29 @@ package = false
 #
 # ! `uv run` INSTALLS THIS GROUP BY DEFAULT, so `uv run ruff` and `uv run ty`
 # get these and not PATH. The commands in CLAUDE.md say `uv run` for that reason.
+#
+# !! `pytest` RUNS THE TESTS THAT ARE ALREADY HERE. Roy, 2026-08-22: *"since we
+# have dev dependencies PYTEST -- don't rewrite, but that is a big one for me."*
+# It collects `unittest.TestCase` natively, so all 795 cases run under it with
+# no edit to any of them, and `python -m unittest discover` keeps working.
+#
+# ! THE STDLIB-ONLY RULE IS NOT BROKEN BY THIS, and the distinction is what the
+# rule was always about: only `plugins/` ships into someone else's `.claude/`,
+# and it imports nothing but the standard library. `tests/` never leaves this
+# repo. The old wording said "no third-party test dependencies" as though the
+# two were the same constraint; CLAUDE.md now says which one is load-bearing.
 [dependency-groups]
 dev = [
+  "pytest==9.0.1",
   "ruff==0.16.1",
   "ty==0.0.68",
 ]
+
+# ! Bounded to `tests/`. `corpora/` holds other people's trees, several of which
+# carry their own `test_*.py`, and collecting those would run someone else's
+# suite as though it were this repo's gate.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ruff]
 target-version = "py311"
