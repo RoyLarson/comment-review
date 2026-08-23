@@ -169,6 +169,16 @@ uv run python scripts/dead_sweep.py [--names] [--links]
 # lies. Never a gate; always exits 0.
 uv run python scripts/render_page.py <paths...> [--show margin|prose|rows]
 
+# How much of a tree's prose says what the code does NOT do, AT A COMMIT rather than in the
+# working tree -- the measurement `TODO/the-shipped-python-does-not-pass-its-own-review.md`
+# is argued from. An INPUT, never a gate.
+# ! It reads history, which is what it is for: 2026-08-23 it identified the 2026-08-16 hand
+# pass as `5cb05ce..8c0cef6` by matching the recorded numbers against each candidate tree,
+# after a `--grep` over the same window returned nothing. ! Its numerators land within 2 of
+# the recorded table and its denominators run larger -- it counts a docstring's delimiter
+# lines, the hand count did not -- so it identifies a TREE and does not restate percentages.
+uv run python scripts/measure_negative_prose.py <commit> [<commit> ...] [--prefix plugins/]
+
 # Release gate no test replaces: the parser the RUNTIME uses on every frontmatter.
 # Run it before tagging -- see "Cutting a release" below.
 claude plugin validate plugins/comment-review
