@@ -136,6 +136,46 @@ judgement this whole system exists to replace.
       having one. Verify: the result lands in `evidence/`, names the snapshot ref, the START/END
       pair and the grader model, and says which of the six were caught.
 
+### E -- The rate nothing measures
+
+!! **`a-role-can-reverse-itself-between-runs` has been waiting for an instrument, and this is
+it.** Raised 2026-08-17, when one role returned opposite verdicts on the same block across two
+runs: *"it means the verdict is a SAMPLE, and nothing anywhere states its variance."* Its first
+task says *"establish the rate before designing anything"*, and its own caveat is *"two runs give
+a number with no error bar."* **`--runs-per-query` defaults to 3 and `aggregate_benchmark` reports
+mean +/- stddev** -- the error bar is a default of the instrument, not new work.
+
+- [ ] **E1 -- Measure the reversal RATE, with an error bar.** Works
+      `a-role-can-reverse-itself-between-runs` (its task 1). One role, one unchanged census,
+      repeated runs, verdicts diffed per paragraph. ! That TODO asks for the COST to be stated
+      before starting; run count, tokens and time all come out of `benchmark.json`, so state them
+      from the first run rather than estimating. Verify: a rate with a stddev and the run count it
+      came from, recorded in `evidence/`.
+
+- [ ] **E2 -- Separate variance from CHANGE SENSITIVITY using the pinned snapshot.** Works
+      `a-role-can-reverse-itself-between-runs` (its task 2). That file names the competing
+      explanation itself: the second run *"ran against a CHANGED skill"*, so a role told different
+      things may reasonably answer differently. **B1's snapshot is exactly that control.** Verify:
+      the reversal either reproduces at a fixed skill ref -- variance -- or does not, making this
+      change sensitivity, *"a different and more tractable problem"*, and the file says which.
+
+- [ ] **E3 -- Replace the UNMEASURED sentence with the measurement.** Works
+      `a-role-can-reverse-itself-between-runs` (its task 5). It asks `docs/limitations.md` to say
+      verdict stability across runs is unmeasured -- *"the honest state today"*. E1 makes that
+      sentence false. Verify: `docs/limitations.md` carries the measured rate and its conditions,
+      or still says UNMEASURED because E1 did not run.
+
+! **This plan does not close that TODO outright, and must not claim to.** It works its tasks 1, 2
+and 5, and it UNBLOCKS the two judgements that were waiting on a number -- task 3 (`*` Roy's:
+what a measured rate OBLIGES, *"because it decides whether a verdict is a claim or a vote"*) and
+task 4 (whether `correct` reversing to `query` is worse than the reverse). ! Task 6 is a standing
+prohibition -- **do not add a `confidence` field in response to any of this** -- and no
+measurement retires it.
+
+!! **AND THE GRADER INHERITS THE WHOLE PROBLEM.** A grader is a role, so all of the above applies
+to it: an A-F letter that moves between runs states less than the letter claims. C3 calibrates it
+against a known answer; E1's method is what measures its spread.
+
 ## Not in scope
 
 - **`findings.md` Parts I-III.** The commits exist (42 across 2026-08-11 in `redacted_corpus`)
