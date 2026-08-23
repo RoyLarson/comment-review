@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 28 tasks done
+Progress: 0 of 30 tasks done
 Owner:    session
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -204,3 +204,35 @@ The AST reader gets older every release while the files get newer.
       which is a narrower problem than the sentence in CLAUDE.md implies. ! Not a
       request for a Lisp row; there is none, and a `.el` file is named and refused
       today (verified 2026-08-22).
+- [ ] PEP 701 PUTS A COMMENT INSIDE AN F-STRING, and the lexical reader calls it
+      prose. MEASURED 2026-08-22 on a three-line file: a multi-line f-string whose
+      expression holds a `#` comment (legal since Python 3.12) censuses at the
+      LEXICAL tier as a `trailing-comment`, handed to four reviewers as text they
+      may rewrite -- into the middle of a string literal. ! NOT REACHABLE TODAY:
+      the AST tier owns Python, and on the 3.11 floor that file is a SyntaxError,
+      so it degrades to one `unparsed` paragraph and is refused. IT BECOMES LIVE
+      THE MOMENT THIS TODO LANDS, because moving Python to the lexical tier is the
+      whole proposal. ! AND IT IS WHY THE `python is hard to parse` FRAMING IS
+      BACKWARDS. Python's GRAMMAR is clean -- PEG since 3.9, widely re-
+      implemented, far easier than C++ or Perl. What is hard is LEXING it, which
+      is the only thing this tool does: indentation is semantic and needs a stack,
+      triple quotes span lines, and since 3.12 an f-string nests arbitrarily and
+      may contain both quotes of its own delimiter and comments. A per-line reader
+      with no state cannot see any of the three. ! Same root as the stateful
+      `_strip_strings` task above -- an f-string is the case where parity alone is
+      not enough, because the nesting is unbounded.
+- [ ] AND THE WRITE SIDE IS WORSE THAN THE READ SIDE, because a misread is visible
+      and a miswrite is not. Reading Python lexically means nothing knows WHERE A
+      BODY STARTS -- that is what `doc_inside` needs and what a wrapped signature
+      moves -- so the compositor cannot place an `a` paragraph from the foliation
+      alone. ! A `patch` to a docstring then sets prose at a position derived from
+      a reader that could not see the body, and an `add` to an empty `a` has no
+      position at all. ! THE FAILING SHAPE IS ALREADY KNOWN: a comment inside a
+      PEP 701 f-string reads as a `trailing-comment`, so its `c` place is BESIDE a
+      line that is really inside a literal, and setting it lays the text into the
+      string. ! `prove_unchanged` catches that one on Python only when it can
+      parse the file -- and the files where this arises are exactly the ones the
+      floor interpreter cannot parse, so the gate returns `unprovable` and the
+      check that would catch it is the check that abstains. ! WHATEVER REPLACES
+      THE AST MUST ANSWER `where does this body start`, or the `a` series has to
+      stop being settable for Python.
