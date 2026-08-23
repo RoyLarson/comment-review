@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 1 of 8 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 Measured: 2026-08-19 — the BOM case is worse than filed: the comment came back with

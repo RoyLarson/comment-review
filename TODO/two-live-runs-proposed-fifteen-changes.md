@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 5 of 16 tasks done
-Owner:    session * Roy (* 3 rulings)
+Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
           `evidence/redacted-corpus-full-v0_2/PROPOSALS.md` (10)

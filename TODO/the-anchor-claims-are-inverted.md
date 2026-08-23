@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 2 tasks done
-Owner:    session
+Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
 ```

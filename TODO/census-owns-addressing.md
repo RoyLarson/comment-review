@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 4 of 5 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (Roy, 2026-08-19: 'this is because the census is doing the
           cues's job')

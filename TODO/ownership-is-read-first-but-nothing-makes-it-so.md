@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 3 of 10 tasks done
-Owner:    session (serialisation and 4b ruled 2026-08-17; the rest is build)
+Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-16 (Roy: "Does this require a 4a, b, c -- 4a the ownership run,
           b the resolution and update to the pieces made by the reviewer so the

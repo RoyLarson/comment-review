@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 8 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-23 (Roy, 2026-08-23: "Every line is a place" -- measured false by 595
           lines, all leading, on the day leading was ruled a symbol rather than a place)

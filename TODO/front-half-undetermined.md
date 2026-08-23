@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 0 of 7 tasks done
-Owner:    comment-review
+Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: that whole system of from census to findings to
           verdicts is something that needs to be determined now that the backend part of

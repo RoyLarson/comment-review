@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 2 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, asking whether docstrings are separable per
           language)

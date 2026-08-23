@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 10 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, ruling on a `b` whose lines straddle an `a`: 'I
           like the leading solution even though it added another cues and the

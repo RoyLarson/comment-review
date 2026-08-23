@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 4 of 5 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 Measured: 2026-08-19 — tasks 1-4 verified done 2026-08-19: locator.py:96 matches

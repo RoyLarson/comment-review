@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 5 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17 (referrers.py's FIRST real exercise, the redacted_corpus
           builder run on 0.2.0 -- 24 files under review, ~490 files returned)

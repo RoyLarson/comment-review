@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 1 of 5 tasks done
-Owner:    session * Roy (* 1 ruling)
+Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, on a MISREADING that turned out to sharpen the task -- see below
 ```

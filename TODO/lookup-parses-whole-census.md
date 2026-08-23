@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 5 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-23 (Roy, 2026-08-23: if we pulled on a BIG project and had to do this
           a lot that would add up fast, and each invocation is a separate run)

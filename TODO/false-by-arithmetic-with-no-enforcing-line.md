@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 3 tasks done
-Owner:    session * Roy (* 1 ruling -- whose remit this is)
+Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18, finding 'the number to beat is zero blocks
           missed' in this repo's own docs)

@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 7 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
           round 3, 2026-08-22)

@@ -3,7 +3,7 @@
 ```
 Status:   blocked
 Progress: 0 of 5 tasks done
-Owner:    session
+Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-19 (Roy approving the desk names while the paragraph rename landed,
           2026-08-19)

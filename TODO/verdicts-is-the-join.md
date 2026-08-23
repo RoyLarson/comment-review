@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 4 of 11 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the join but
           the module is verdicts -- two separate things or one misnomer)

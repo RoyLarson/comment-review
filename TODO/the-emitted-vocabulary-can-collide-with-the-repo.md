@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 4 tasks done
-Owner:    session * Roy (* 1 ruling)
+Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (a run declared the collision in its style sheet without being asked:
           "block collides (training block / comment run) and stays collided")

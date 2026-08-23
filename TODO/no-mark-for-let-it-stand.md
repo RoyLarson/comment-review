@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 1 of 7 tasks done
-Owner:    comment-review
+Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories
           publishing already had: 'this is twice now that we have realized we were

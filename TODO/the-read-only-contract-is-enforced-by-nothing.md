@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 6 tasks done
-Owner:    session * Roy (* 1 ruling wanted -- task 1)
+Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (the 0.2.0 builder run: the operating session noticed scratch
           files left in the run directory by the reviewers themselves)

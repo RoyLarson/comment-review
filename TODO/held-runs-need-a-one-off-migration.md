@@ -3,7 +3,7 @@
 ```
 Status:   blocked
 Progress: 0 of 5 tasks done
-Owner:    session
+Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-19 (B4, after `convert` was made to refuse a 0.2.x report, 2026-08-19)
 Deferred: 2026-08-19 — Not worth doing now -- Roy, 2026-08-19: 'a one-off script thing

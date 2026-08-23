@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 1 of 4 tasks done
-Owner:    session
+Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
 Fixed:    2026-08-20 — 2026-08-20 -- the gate exits 0. Roy ruled the direction: the four

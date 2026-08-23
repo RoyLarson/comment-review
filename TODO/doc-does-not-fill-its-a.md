@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 5 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
           2026-08-20)

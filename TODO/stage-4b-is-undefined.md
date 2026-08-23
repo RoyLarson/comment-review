@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 5 tasks done
-Owner:    session
+Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
 ```

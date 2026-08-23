@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 7 of 10 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
 Narrowed: 2026-08-19 — the staleness symptom was the ADDRESSER's sweep, now removed --

@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 5 of 10 tasks done
-Owner:    session * Roy (* 1 ruling -- where the verdict table lives)
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
 Updated:  2026-08-18 — the cycle is gone and the claim is typed at the seam

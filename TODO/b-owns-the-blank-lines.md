@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 10 of 12 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'on the original every line belongs to 1
           paragraph and every paragraph belongs to 1 anchor')

@@ -3,7 +3,7 @@
 ```
 Status:   blocked
 Progress: 2 of 5 tasks done
-Owner:    session
+Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-19 (asking what was waiting on Roy for 0.2.4, 2026-08-19)
 Updated:  2026-08-19 — deferred until 0.2.4 closes -- Roy, 2026-08-19: 'this is work

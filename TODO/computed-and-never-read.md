@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 8 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
           not by dead_sweep.py, which is blind to unused parameters and tuple elements)

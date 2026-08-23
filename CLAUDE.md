@@ -722,3 +722,36 @@ a measurement: nothing in this repo tests it.
   found and ask rather than continuing to browse.
 - Prefer dispatching a Task agent for open-ended codebase exploration so the main context
   stays uncluttered by the subagent's intermediate output.
+
+## Lanes -- "You are the ..."
+
+**Four lanes own this repo, and a TODO's `Owner:` is one of them.** Roy runs sessions in
+parallel, each opened as *"You are the `backend` -- I need you to ..."*, and **the lane scopes
+what you may change.** If a task touches a file another lane owns, **name the lane and ask**.
+
+| lane | owns, in one line |
+| --- | --- |
+| `agents` | **What an agent is TOLD, and how the roles hand off** |
+| `backend` | **What the Python actually does** |
+| `testing` | **Whether any of it is true** |
+| `systems` | **Whether it installs, and whether the gates still bite** |
+
+!! **THE VOCABULARY IS SHARED AND CROSSING IS THE POINT.** Roy, 2026-08-23: *"any side can and
+should update the vocab on the other side as soon as a split or modification is noticed."* It is
+the ONE standing exception to *name the lane and ask*, and the cost of waiting is measured --
+`evidence/rename-left-history-in-the-comments/`.
+
+!! **AND A LANE THAT TRIPS A GATE FIXES ITS OWN CODE**, never the gate. A gate edited to pass is
+indistinguishable afterwards from one that always passed.
+
+The full roles, the crossing rules and the path map are in the two files loaded below.
+
+## Always resident -- loaded by the `@` lines below
+
+The two `@` lines at the end of this file are what put `conventions.md` and `lanes.md` in
+context, IN FULL. **An ordinary markdown link does not** -- it makes a file findable, not
+present. Keep both lines; if they are somehow not in context, read the two files before changing
+rules or crossing lanes.
+
+@docs/conventions.md
+@docs/lanes.md

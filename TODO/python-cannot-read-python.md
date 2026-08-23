@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 31 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
           parse: 'we can't use python to parse python files ... that means using the ast

@@ -3,7 +3,7 @@
 ```
 Status:   deferred
 Progress: 0 of 7 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (/simplify round 2, 2026-08-22, and Roy: probably (ii) but deferred
           because that whole system from census to findings to verdicts is something

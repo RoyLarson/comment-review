@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 5 tasks done
-Owner:    comment-review
+Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-22 (found while collapsing the Cues fields 2026-08-22:
           page._SHEBANG and page._CODING are dead and neither gate reports them)

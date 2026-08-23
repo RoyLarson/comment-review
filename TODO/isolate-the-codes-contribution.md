@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 6 tasks done
-Owner:    comment-review
+Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, after ruling out a history split: the
           orchestration improvements were 0.2.1-0.2.3, so hold them constant and vary

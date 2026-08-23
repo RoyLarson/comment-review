@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 9 tasks done
-Owner:    Roy (* 2 rulings) * session
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "both todo-tool and redacted_lane_a ended up in / six rules are
           attributed to CLAUDE.md while living in conventions.md / which tells me that the

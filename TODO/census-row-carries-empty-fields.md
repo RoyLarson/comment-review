@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 9 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, reading a census JSON: there are a lot of extra
           fields that have no information in them -- we should trim them to the things

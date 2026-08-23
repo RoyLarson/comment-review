@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 3 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
 Corroborated: 2026-08-21 — 2026-08-21 -- the xhigh review reached task 2 independently

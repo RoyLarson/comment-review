@@ -3,7 +3,7 @@
 ```
 Status:   blocked (python-cannot-read-python -- the lexical reader)
 Progress: 0 of 7 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, on adding a token-type enum: the lexer is not
           doing lexing, it is parsing a tokenized parser and that is different)

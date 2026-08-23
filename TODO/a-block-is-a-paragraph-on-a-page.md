@@ -3,7 +3,7 @@
 ```
 Status:   blocked
 Progress: 2 of 5 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (Roy's ruling while shipping the address vocabulary, 2026-08-19)
 Updated:  2026-08-19 — DEFERRED past 0.2.4, whose scope is what a reviewer is HANDED.

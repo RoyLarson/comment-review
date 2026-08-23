@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 1 of 9 tasks done
-Owner:    Roy (* 3 rulings, 2 made) * session
+Owner:    agents · Roy
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
           Its words: "the synthesis -- where four verdicts become one sentence -- is written

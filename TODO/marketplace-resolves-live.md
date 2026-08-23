@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 5 tasks done
-Owner:    comment-review
+Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: the installed plugin traced itself back up to the
           commit just finished, when he expected v0.2.3 -- the d records gave it away

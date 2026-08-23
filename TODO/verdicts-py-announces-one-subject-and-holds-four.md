@@ -3,8 +3,7 @@
 ```
 Status:   in-progress
 Progress: 7 of 8 tasks done
-Owner:    session * Roy (* 1 ruling -- the module names, which `docs/vocabulary.md`
-          constrains)
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-18, from the dev review of the file by its own editorial board
 Updated:  2026-08-18 — the module names are ruled -- three modules, verdicts.py keeps

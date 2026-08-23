@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 2 of 20 tasks done
-Owner:    session (Roy ruled the design 2026-08-18; the rest is build)
+Owner:    backend · Roy
 Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
 Reopened: 2026-08-19 — --filtered stopped filtering when the margin kind arrived: only

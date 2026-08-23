@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 5 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (C:/Program Files/Git/code-review high round 3 and /simplify round
           2, 2026-08-22 -- the write path, which is the one place a defect reaches disk)

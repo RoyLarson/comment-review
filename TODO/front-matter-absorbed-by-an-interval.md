@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 5 of 6 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-20 (both reviews of 2026-08-20, independently; verified in-session)
 Fixed:    2026-08-20 — 2026-08-20 -- fixed by giving front matter ITS OWN SERIES rather

@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 2 of 7 tasks done
-Owner:    session * Roy (2 rulings)
+Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-16 (Roy: "yes drop both lists / and lets create a todo to clean up
           those entries - because several of them do not follow this own skills rules")

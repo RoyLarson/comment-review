@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 4 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17, after three defects of one shape landed in a single day
 ```

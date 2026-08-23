@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 5 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (/simplify rounds 1 and 2, 2026-08-22, both rounds independently;
           round 2 measured it)

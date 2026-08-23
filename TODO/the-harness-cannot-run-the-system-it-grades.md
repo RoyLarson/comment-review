@@ -3,8 +3,7 @@
 ```
 Status:   open
 Progress: 6 of 21 tasks done
-Owner:    session * Roy (* 1 ruling left -- the suite layout. `plugin eval`
-          access is open and this file already says it is not a blocker)
+Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
 Corrected: 2026-08-20 — the fixtures in evidence/self-test-commits.md are FIVE module-

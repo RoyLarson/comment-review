@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 8 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'The lexer reads zero files - this is also a
           warning - how did the text get there when I stated that it was the lexers job

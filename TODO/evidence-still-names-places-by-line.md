@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 0 of 9 tasks done
-Owner:    session
+Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 ```

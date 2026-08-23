@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 6 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: since tomllib is available the language
           definitions should live in a toml file not in code)

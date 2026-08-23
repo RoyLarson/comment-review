@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 9 of 17 tasks done
-Owner:    session
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
           finished file)

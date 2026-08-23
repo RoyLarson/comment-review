@@ -3,7 +3,7 @@
 ```
 Status:   DEFERRED -- the model change waits for a pull request
 Progress: 1 of 5 tasks done
-Owner:    session * Roy (* 1 ruling, MADE)
+Owner:    backend · Roy
 Requires-Roy: false
 Raised:   2026-08-17 (Roy, on the fixture for the fix that landed the same day:
           "Is this actually possible in code? int x = /* why */ 5; That is crazy

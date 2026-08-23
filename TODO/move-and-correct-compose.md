@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 4 of 5 tasks done
-Owner:    session * Roy (1 ruling, made)
+Owner:    agents · Roy
 Raised:   2026-08-17 (the first full run of 0.1.7: 8 blocks flagged as contradictions,
           2 of them genuine)
 ```

@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 2 of 5 tasks done
-Owner:    session * Roy (raised it, 2026-08-17)
+Owner:    agents · Roy
 Raised:   2026-08-17, while ruling on what CLAIM and CHANGE each carry
 ```
 

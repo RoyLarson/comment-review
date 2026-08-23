@@ -3,7 +3,7 @@
 ```
 Status:   deferred
 Progress: 0 of 8 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (/code-review high round 3, 2026-08-22, and Roy: the record/verdict
           pieces have got a lot of work to do and need an independent review work

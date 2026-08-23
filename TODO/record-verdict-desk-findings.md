@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 9 tasks done
-Owner:    comment-review
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 4, 2026-08-22 -- the findings OUTSIDE the
           seven reader modules, filed rather than fixed because this system is due an
