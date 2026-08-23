@@ -104,6 +104,14 @@ judgement this whole system exists to replace.
       paragraph, fails `record.py --check`, or leaves a citation unresolved reports **VOID** and
       never reaches the grader.
 
+      !! **ONE OF THOSE FIVE GATES CANNOT CURRENTLY FAIL, and the plan must say so rather than
+      lean on it.** `evidence-still-names-places-by-line` task 1: `_resolve_lines` accepts an
+      unbounded range and `source_problem` windows the WHOLE range, so `file:1-868` reduces the
+      verbatim check to *"this string occurs somewhere in this file"* -- **a fabricated citation
+      to a real file passes today.** ! Until that is fixed, "every citation resolves" is a green
+      gate that shares the defect, and C1 must either record it as a KNOWN-WEAK gate or drop it
+      from the VOID set. **The fix itself is shipped-tree work and belongs to 0.2.4, not here.**
+
 - [ ] **C2 -- Derive the objective half of the rubric from what the role was HANDED.** Works
       `the-harness-cannot-run-the-system-it-grades`. `vocabulary.py --reviewer <role>` already
       emits it. Verify: every must-pass item cites the emitted term it comes from, and
@@ -187,3 +195,15 @@ against a known answer; E1's method is what measures its spread.
   lives is a separate decision.
 - **Anything under `plugins/`.** That is 0.2.4's, and this plan must not touch it -- a version
   changes the AGENTS or the MACHINERY, never both (`decision-log.md Process: #5`).
+
+- **`evidence-still-names-places-by-line`, except as a DEPENDENCY.** Eight of its nine tasks are
+  shipped-tree addressing work -- `SOURCES` in line form, code concerns carrying no place at all,
+  stage 8 with no citation form, stage 6 naming blocks by nothing, two agent files instructing a
+  refused `move` destination, `census.py` writing the line form into the census, and
+  `residue-check.md` keying by `file:start-end`. **All of it is under `plugins/` and belongs to
+  0.2.4.** ! Only its **task 1** touches this plan, and only as a precondition C1 names: the
+  citation gate cannot fail while a fabricated citation to a real file passes.
+
+  ! **Its two `*` rulings are not this plan's to ask for** -- what `address:lines` does with a
+  code RANGE, and what bounds a FREEFORM source. A case asserting at MARK level does not reach
+  either, which is one more reason the first case stops at the record file.
