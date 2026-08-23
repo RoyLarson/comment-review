@@ -32,7 +32,7 @@ SIBLINGS = {p.stem for p in SCRIPTS.glob("*.py")}
 # `text_lines`, the one definition of where a line of a FILE ends -- so taking it
 # acquires no subject and can carry no notion of anything. See `constants.py`,
 # which states that contract itself.
-LEAF = {"constants"}
+LEAF = {"constants", "exceptions"}
 
 
 def _imports(name: str) -> set[str]:

@@ -56,7 +56,8 @@ REPO_ROOT = Path(__file__).resolve().parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-import constants  # noqa: E402  -- path shim must run first
+import constants  # noqa: E402
+import exceptions  # noqa: E402  -- path shim must run first
 from foliator import ON, folio_of, series_of  # noqa: E402
 
 # !! THE OTHER IMPORTER OF THE ROWS -- see `language.py`. The lexer reads a file
@@ -67,7 +68,6 @@ from foliator import ON, folio_of, series_of  # noqa: E402
 from language import language_for  # noqa: E402
 from page import Page, page_for  # noqa: E402
 
-READ_ERRORS = (OSError, UnicodeDecodeError)
 CRLF = "\r\n"
 LF = "\n"
 
@@ -240,7 +240,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # ! REFUSING IS THE ONLY SAFE ANSWER. `draft()` writes what this returns,
         # and an empty draft approved by anyone not reading the diff is a deleted
         # file. See `TODO/python-cannot-read-python.md`.
-        raise ValueError(
+        raise exceptions.Refused(
             f"{page.path}: the page has no places -- its source was never read"
         )
     if not out:
@@ -297,14 +297,14 @@ def lossless(path: Path, rel: str | None = None) -> str | None:
     """
     try:
         text = path.read_text(encoding="utf-8")
-    except READ_ERRORS as exc:
+    except exceptions.READ_ERRORS as exc:
         return f"unread: {exc}"
     lang = language_for(path)
     if lang is None:
         return f"no language record for {path.suffix!r}"
     try:
         got = set_page(page_for(path, text, lang, rel=rel))
-    except ValueError as exc:
+    except exceptions.Refused as exc:
         return str(exc)
     if sorted(constants.text_lines(got)) == sorted(constants.text_lines(text)):
         return None
@@ -328,7 +328,7 @@ def identity(path: Path, rel: str | None = None) -> str | None:
     """
     try:
         text = path.read_text(encoding="utf-8")
-    except READ_ERRORS as exc:
+    except exceptions.READ_ERRORS as exc:
         return f"unread: {exc}"
     lang = language_for(path)
     if lang is None:
@@ -336,9 +336,11 @@ def identity(path: Path, rel: str | None = None) -> str | None:
     page = page_for(path, text, lang, rel=rel)
     try:
         got = set_page(page)
-    except ValueError as exc:
+    except exceptions.Refused as exc:
         # ! The page was never built -- see `set_page`. It is reported like any
         # other refusal rather than raised through a sweep over a whole tree.
+        # ! NARROWED from a bare `ValueError`, which also caught anything else
+        # that failed inside `page_for` and printed it as our own refusal.
         return str(exc)
     if got == text:
         return None

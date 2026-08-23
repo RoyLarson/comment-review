@@ -9,43 +9,9 @@ Imported by `census.py`, `annotate.py`, `referrers.py` and `prove_unchanged.py`.
 """
 
 import subprocess
-import tokenize
 from pathlib import Path
 
-# ! Bound to a NAME so no `except` clause here holds a tuple LITERAL. Under
-# `target-version = "py314"` a formatter rewrites `except (A, B):` into PEP
-# 758's unparenthesised form, a SyntaxError on every older interpreter. This
-# file ships into other repositories and is formatted by THEIR config, so the
-# floor in our own pyproject reaches it nowhere: code with nothing to rewrite
-# is the whole defence. A `noqa` silences the report, and the rewrite stands.
-READ_ERRORS = (OSError, UnicodeDecodeError)
-
-# ! ValueError included: `ast.parse` raises it (not SyntaxError) on a source
-# string containing a NUL byte -- a file that decoded as valid UTF-8 and so
-# passed `READ_ERRORS` cleanly. `code_names` walks the whole repo, so one such
-# file would crash the entire census rather than degrade one file's harvest.
-# !! `tokenize.TokenError` is included and is NOT a SyntaxError -- it derives
-# straight from Exception. `paragraphs_stdlib` calls `tokenize.generate_tokens`,
-# which raises it on an unterminated triple-quote or bracket, so one such file
-# anywhere in a corpus aborted a whole run with a traceback. Every caller here
-# already treats a parse failure as ONE file degrading, never as the run ending.
-PARSE_ERRORS = (
-    OSError,
-    UnicodeDecodeError,
-    SyntaxError,
-    ValueError,
-    tokenize.TokenError,
-)
-
-# ! UnicodeDecodeError included, deliberately: `git()` pins `encoding="utf-8"`
-# with the default `errors="strict"`, so a tracked path or a blob outside UTF-8
-# raises OUT OF `subprocess.run` itself, before any caller sees a return code.
-# Every caller of `git()` already reads `GIT_ERRORS` as "git could not produce
-# this" and degrades accordingly (`None`, or `(None, reason)` where a reason is
-# threaded through). A decode failure is the same kind of non-answer, so it is
-# declared here rather than crashing `git_ls_files` / `_grep` / `_show` on the
-# first non-UTF-8 path.
-GIT_ERRORS = (OSError, subprocess.SubprocessError, UnicodeDecodeError)
+import exceptions
 
 # A virtualenv in the tree POISONS the name corpus: every installed package's
 # methods become "known", so a real obituary is HIDDEN because some library
@@ -108,7 +74,8 @@ def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProces
     reached none of them. Routing every call through here makes the NEXT
     git-decoding hazard a one-place fix.
 
-    Exceptions are RAISED to the caller: `GIT_ERRORS` and a nonzero return code
+    Exceptions are RAISED to the caller -- `exceptions.GIT_ERRORS` -- and a
+    nonzero return code
     mean different things at each call site (None as a third state, a real
     zero-match search), and catching them here would erase that.
 
@@ -148,7 +115,7 @@ def git_ls_files(repo: Path) -> list[str] | None:
         return None
     try:
         listed = git(repo, "ls-files")
-    except GIT_ERRORS:
+    except exceptions.GIT_ERRORS:
         return None
     if listed.returncode != 0:
         return None

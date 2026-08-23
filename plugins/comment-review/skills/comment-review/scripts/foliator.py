@@ -164,7 +164,7 @@ from typing import NamedTuple
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
-from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 
 ON = "c"
 GAP = "b"
@@ -1168,7 +1168,7 @@ def main() -> int:
 
     try:
         loaded = json.loads(Path(args.census).read_text(encoding="utf-8"))
-    except READ_ERRORS as e:
+    except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ {args.census} ({type(e).__name__})")
         return 2
     except json.JSONDecodeError as e:

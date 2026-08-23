@@ -57,6 +57,7 @@ from typing import TypeGuard
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 from foliator import (  # noqa: E402  -- path shim must run first
     COVERS,
     flatten,
@@ -64,7 +65,6 @@ from foliator import (  # noqa: E402  -- path shim must run first
     series_of,
 )
 from lexer import Kind  # noqa: E402  -- path shim must run first
-from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,
 # and `allowed()` below is derived entirely from this table. It sat in
@@ -1118,7 +1118,7 @@ def main() -> int:
         return 2
     try:
         loaded = json.loads(Path(args.census).read_text(encoding="utf-8"))
-    except READ_ERRORS as e:
+    except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ {args.census} ({type(e).__name__})")
         return 2
     except json.JSONDecodeError as e:
@@ -1129,7 +1129,7 @@ def main() -> int:
     if args.check:
         try:
             report = json.loads(Path(args.check).read_text(encoding="utf-8"))
-        except READ_ERRORS as e:
+        except exceptions.READ_ERRORS as e:
             print(f"CANNOT READ {args.check} ({type(e).__name__})")
             return 2
         except json.JSONDecodeError as e:

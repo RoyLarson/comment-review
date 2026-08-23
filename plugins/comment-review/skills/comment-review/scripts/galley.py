@@ -61,6 +61,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import compositor  # noqa: E402  -- path shim must run first
 import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 
 # !! THE ONE `folio_of`, since 2026-08-22. This module had a second of its own --
 # `str(address).split("@")[-1]` -- and the two DISAGREED on a malformed address:
@@ -71,7 +72,7 @@ import constants  # noqa: E402  -- path shim must run first
 from foliator import ON, folio_of  # noqa: E402  -- path shim must run first
 from lexer import language_for  # noqa: E402  -- path shim must run first
 from page import page_for  # noqa: E402  -- path shim must run first
-from repo import READ_ERRORS, read_raw  # noqa: E402  -- path shim must run first
+from repo import read_raw  # noqa: E402  -- path shim must run first
 
 
 def reset(page, edits: dict[str, str]) -> list[str]:
@@ -347,7 +348,7 @@ def main() -> int:
     try:
         census = json.loads(Path(args.census).read_text(encoding="utf-8"))
         edits = json.loads(Path(args.edits).read_text(encoding="utf-8"))
-    except READ_ERRORS as e:
+    except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ ({type(e).__name__}) -- no galley written")
         return 2
     except json.JSONDecodeError as e:
@@ -404,7 +405,7 @@ def main() -> int:
             # galley would differ from its original by its ending -- which is
             # the whole thing this module is diffed for.
             text = read_raw(source)
-        except READ_ERRORS as e:
+        except exceptions.READ_ERRORS as e:
             print(f"REFUSED  {rel}: {type(e).__name__}")
             refused += len(file_edits)
             continue

@@ -61,6 +61,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 from foliator import (  # noqa: E402  -- path shim must run first
     COVERS,
     DECLARED,
@@ -511,7 +512,9 @@ def empty_places(
                 # place out of the reading order, which the compositor sets
                 # from, so the file would come back missing a line and every
                 # gate would still be green.
-                raise ValueError(f"{folio}: a `c` place whose anchor has no line")
+                raise exceptions.Refused(
+                    f"{folio}: a `c` place whose anchor has no line"
+                )
             code = lines[n - 1].rstrip()
             out.append(
                 Paragraph(
@@ -566,7 +569,7 @@ def empty_places(
             # `f0` behaved for its first hour. ! `census.py` turns a raise
             # here into a REPORTED per-file gap, which is loud; falling
             # through is silent.
-            raise ValueError(
+            raise exceptions.Refused(
                 f"no rule for the series of {folio!r} -- every series in"
                 " `foliator.SERIES` needs a branch here"
             )

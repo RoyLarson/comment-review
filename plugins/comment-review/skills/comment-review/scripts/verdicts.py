@@ -82,6 +82,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 from desk import (  # noqa: E402  -- path shim must run first
     _words,
     address_problem,
@@ -110,7 +111,6 @@ from record import (  # noqa: E402  -- path shim must run first
     claim_text,
     entry_for,
 )
-from repo import READ_ERRORS  # noqa: E402  -- path shim must run first
 from vocabulary import Reviewer  # noqa: E402  -- path shim must run first
 
 
@@ -322,7 +322,7 @@ def _report(args: argparse.Namespace) -> int:
     # why in one line.
     try:
         census_text = Path(args.census).read_text(encoding="utf-8")
-    except READ_ERRORS as e:
+    except exceptions.READ_ERRORS as e:
         print(
             f"CANNOT READ {args.census} ({type(e).__name__})"
             " -- no census to join against"
@@ -418,7 +418,7 @@ def _report(args: argparse.Namespace) -> int:
         reviewer = path.stem
         try:
             text = path.read_text(encoding="utf-8")
-        except READ_ERRORS as e:
+        except exceptions.READ_ERRORS as e:
             print(
                 f"  CANNOT READ {raw} ({type(e).__name__}) -- {reviewer} did not report"
             )

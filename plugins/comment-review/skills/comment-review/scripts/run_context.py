@@ -50,6 +50,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 # readers or printers are missing the guard."* ! `constants` imports nothing
 # from this package, so taking it acquires no other dependency.
 import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 
 REQUIRED = (
     "REPO ROOT",
@@ -128,7 +129,6 @@ COMMENT = re.compile(r"<!--.*?-->", re.S)
 # MEASURED 2026-08-22 on the floor interpreter, `Path("a\0b").exists()` returns
 # False and raises nothing. Both halves of the sentence were false: the guard
 # and the reason for it.
-READ_ERRORS = (OSError, UnicodeDecodeError)
 PATH_ERRORS = (OSError, ValueError)
 
 # A leading list marker, so `- /abs/path` and `1. /abs/path` name the path
@@ -313,7 +313,7 @@ def main() -> int:
 
     try:
         text = Path(args.check).read_text(encoding="utf-8")
-    except READ_ERRORS as e:
+    except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ {args.check} ({type(e).__name__}) -- no packet to check")
         return 1
 

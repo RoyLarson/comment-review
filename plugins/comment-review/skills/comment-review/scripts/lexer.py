@@ -41,6 +41,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 # `language.py`. Everything a language says about where its documentation sits is
 # stated there and read here; no module above this one asks a language anything.
 import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 from language import (  # noqa: E402  -- path shim must run first
     BY_EXT,
     LANGUAGES,
@@ -285,7 +286,6 @@ _NO_TRAILING = -2
 # exists: `ast.parse` raises the second and `generate_tokens` raises the first,
 # and a catch written for one never saw the other. `repo.PARSE_ERRORS` names
 # both; the lexer cannot import it, because it takes no sibling but `language`.
-TOKENIZE_ERRORS = (tokenize.TokenError, SyntaxError)
 
 
 class Kind(StrEnum):
@@ -1753,7 +1753,7 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
     # every line of it. A source file's tokens fit in memory.
     try:
         tokens = list(tokenize.generate_tokens(io.StringIO(text).readline))
-    except TOKENIZE_ERRORS as e:
+    except exceptions.TOKENIZE_ERRORS as e:
         # !! THE TWO EXCEPTIONS PUT DIFFERENT THINGS IN `args[1]`, and reading
         # them the same way put a STRING in `Paragraph.start`. `TokenError` cites
         # `(row, col)`, so `args[1][0]` is the line; `SyntaxError` cites

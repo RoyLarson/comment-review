@@ -40,8 +40,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 
-# ! `READ_ERRORS` is IMPORTED. It is bound to a NAME so no `except` clause here
+# ! THE TUPLE IS IMPORTED, never spelled here. It is bound to a NAME so no
+# `except` clause in this file holds a tuple LITERAL
 # holds a tuple literal; `repo.py` carries that reason once.
 from lexer import (  # noqa: E402  -- path shim must run first
     Language,
@@ -49,8 +51,6 @@ from lexer import (  # noqa: E402  -- path shim must run first
     paragraphs_lexical,
 )
 from repo import (  # noqa: E402  -- path shim must run first
-    GIT_ERRORS,
-    READ_ERRORS,
     git,
     git_ls_files,
     read_raw,
@@ -222,7 +222,7 @@ def _show(repo: Path, ref: str, rel: str) -> str | None:
     """`git show <ref>:./<rel>`, or None when git cannot produce it."""
     try:
         got = git(repo, "show", _spec(ref, rel))
-    except GIT_ERRORS:
+    except exceptions.GIT_ERRORS:
         return None
     return got.stdout if got.returncode == 0 else None
 
@@ -251,7 +251,7 @@ def _sibling(
             continue
         try:
             read_raw(cand)
-        except READ_ERRORS:
+        except exceptions.READ_ERRORS:
             continue
         return cand
     return None
@@ -292,7 +292,7 @@ def main() -> int:
             continue
         try:
             after = target.read_text(encoding="utf-8")
-        except READ_ERRORS as e:
+        except exceptions.READ_ERRORS as e:
             print(f"FAIL      {rel}: {type(e).__name__}")
             failures += 1
             continue

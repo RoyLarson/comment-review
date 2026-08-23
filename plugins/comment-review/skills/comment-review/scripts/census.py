@@ -43,6 +43,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 from annotate import (  # noqa: E402  -- path shim must run first
     SYMBOLISH,
     annotate,
@@ -68,8 +69,6 @@ from page import (  # noqa: E402  -- path shim must run first
 )
 from repo import (  # noqa: E402  -- path shim must run first
     EXCLUDED_DIRS,
-    PARSE_ERRORS,
-    READ_ERRORS,
     path_index,
     tracked_paths,
 )
@@ -176,7 +175,7 @@ def code_names(
                 continue
             try:
                 tree = ast.parse(p.read_text(encoding="utf-8"))
-            except PARSE_ERRORS as e:
+            except exceptions.PARSE_ERRORS as e:
                 unread.append(f"{p.as_posix()} ({type(e).__name__})")
                 continue
             names.add(p.stem)
@@ -337,7 +336,7 @@ def _report(args: argparse.Namespace) -> int:
     for path in files:
         try:
             text = path.read_text(encoding="utf-8")
-        except READ_ERRORS as e:
+        except exceptions.READ_ERRORS as e:
             unreadable.append(f"{path.as_posix()} ({type(e).__name__})")
             continue
         lang = language_for(path)

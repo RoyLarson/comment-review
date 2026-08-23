@@ -24,10 +24,8 @@ import constants  # noqa: E402  -- path shim must run first
 
 # ! The exception tuples are IMPORTED. Each is bound to a NAME so no `except`
 # clause here holds a tuple literal; `repo.py` carries that reason once.
+import exceptions  # noqa: E402  -- path shim must run first
 from repo import (  # noqa: E402  -- path shim must run first
-    GIT_ERRORS,
-    PARSE_ERRORS,
-    READ_ERRORS,
     git,
     git_ls_files,
 )
@@ -55,7 +53,7 @@ def tokens_for(path: Path, text: str) -> set[str]:
     if path.suffix.lower() in (".py", ".pyi"):
         try:
             tree = ast.parse(text)
-        except PARSE_ERRORS:
+        except exceptions.PARSE_ERRORS:
             # !! A file that will not parse yields its PATH and STEM only, and
             # must still reach the length filter below -- an earlier `return`
             # here skipped it, so a two-character stem went to `git grep -l -F`
@@ -85,7 +83,7 @@ def _grep(repo: Path, token: str) -> tuple[list[str] | None, str]:
     """
     try:
         got = git(repo, "grep", "-l", "-F", "--", token, timeout=60)
-    except GIT_ERRORS as e:
+    except exceptions.GIT_ERRORS as e:
         return None, type(e).__name__
     if got.returncode == 0:
         return got.stdout.splitlines(), ""
@@ -122,7 +120,7 @@ def main() -> int:
         target = repo / rel
         try:
             text = target.read_text(encoding="utf-8")
-        except READ_ERRORS as e:
+        except exceptions.READ_ERRORS as e:
             text = ""
             unreadable.append(f"{rel} ({type(e).__name__})")
         for token in sorted(tokens_for(Path(rel), text)):

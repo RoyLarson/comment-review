@@ -28,13 +28,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 # reason on the same ruling. This module's own copy of the guard was the one
 # carrying a comment true of it and false of the other nine.
 import constants  # noqa: E402  -- path shim must run first
+import exceptions  # noqa: E402  -- path shim must run first
 
 VOCABULARY = Path(__file__).resolve().parent.parent / "references" / "vocabulary.toml"
 
 # The key every role's list is extended with. A shared set, and no role's name.
 EVERY_AGENT = "all"
-
-READ_ERRORS = (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError)
 
 
 class Reviewer(StrEnum):
@@ -99,7 +98,7 @@ def main() -> int:
 
     try:
         definitions, roles = load()
-    except READ_ERRORS as e:
+    except exceptions.TOML_ERRORS as e:
         print(f"cannot read {VOCABULARY}: {type(e).__name__}: {e}", file=sys.stderr)
         return 1
 
