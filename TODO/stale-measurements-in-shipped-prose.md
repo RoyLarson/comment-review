@@ -25,7 +25,7 @@ Nine measurements in shipped prose no longer match the tree.
       *"`census.py` over itself is 1,607 paragraphs, 118 prose"*. Now 581 / 35.
       Its own commit message says it had *"rotted twice, in both places that
       record it"*.
-- [ ] `foliator.py:758-760`: *"12 such places in this repo's own 13 shipped
+- [ ] `addresser.py:758-760`: *"12 such places in this repo's own 13 shipped
       scripts"*, cause given as a docstring sharing a gap with the run beneath it.
       15 scripts; `--check` reports 0 shared; the `a` series removed that cause.
 - [ ] `census.py:422` says *"the 13 shipped scripts"* and `census.py:476` says
@@ -34,6 +34,6 @@ Nine measurements in shipped prose no longer match the tree.
       gives 5. `SKILL.md:346-348` cites `6,828 paragraphs: 397,685 -> 159,316`;
       now 7,375 / 646,337 / 163,921.
 - [ ] In tests: `test_page.py:163-166` cites the 16-of-16 figure; *"eleven
-      languages"* at `test_foliation.py:269,745`, `test_galley.py:655`,
-      `test_verdicts.py:1690`; `test_foliation.py:215` cites `census.address`,
+      languages"* at `test_cues.py:269,745`, `test_galley.py:655`,
+      `test_verdicts.py:1690`; `test_cues.py:215` cites `census.address`,
       which does not exist.

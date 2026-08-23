@@ -17,7 +17,7 @@ PARAMETER, an unused DATACLASS FIELD, an unread TUPLE ELEMENT and an unreachable
 in the shipped tree -- because it looks for names no module imports, and none of these is a name.
 
 !! **PYRIGHT FOUND THREE OF THEM, ON LINES THIS SESSION HAD JUST EDITED.** `_insert` in
-`lexer.py`, `_insert_at` in `foliator.py`, `rel` in `compositor.py`. ! Two of the three were
+`lexer.py`, `_insert_at` in `addresser.py`, `rel` in `compositor.py`. ! Two of the three were
 already spelled with a leading underscore, which is the convention for *deliberately ignored* --
 so the code was ANNOUNCING that a value it is handed is thrown away, at both consumers of the
 same tuple, and nothing asked why the tuple has three elements.
@@ -31,7 +31,7 @@ the citation, which is what exposed the tuple.
 
 !! **NONE OF THIS IS A COMMENT FIX, WHICH IS WHY IT IS HERE RATHER THAN IN THAT ROUND.** Each one
 changes a signature, a return type or a branch: the tuple loses an element at three sites, the
-`Foliation` would have to carry what `places_on` already computed so `page_for` stops recomputing
+`Cues` would have to carry what `places_on` already computed so `page_for` stops recomputing
 it, `attach`'s matter branch may have a test as its only caller, and `prose_paragraphs` loses the
 index that only a test reads.
 
@@ -45,7 +45,7 @@ about, and it is where the next false docstring attaches.
 - [ ] THE INSERT LINE IS COMPUTED FOR EVERY DECLARATION AND READ BY NOBODY.
       `page.documentable` returns `index -> (the LINE the doc occupies, the code
       index it is set before, WHICH SIDE)`. Both consumers throw the first away:
-      `foliator.py` unpacks `_insert_at, at_step, side` and `lexer.py`'s
+      `addresser.py` unpacks `_insert_at, at_step, side` and `lexer.py`'s
       `document_declarations` unpacks `(line, _insert, above)` and walks up from
       the DECLARING line instead. ! Pyright flags both, which is how it was found.
 - [ ] ! AND ITS PROSE CITED A FUNCTION THAT DOES NOT EXIST --
@@ -57,7 +57,7 @@ about, and it is where the next false docstring attaches.
       short-circuits every matter paragraph and reaches `attach` only in the
       `else` beneath it; the retype above converts a DECLARING matter run only. !
       The comment beside the branch records that it WAS dead once and was
-      repaired, so check the four `test_foliation.py` fixtures before cutting -- a
+      repaired, so check the four `test_cues.py` fixtures before cutting -- a
       test may be the only caller, which is a different finding.
 - [ ] `record.prose_paragraphs` RETURNS AN INDEX NOTHING PRODUCTION READS. Its
       type is `list[tuple[int, dict]]` and the sole production caller is `for _, b
@@ -66,9 +66,9 @@ about, and it is where the next false docstring attaches.
       document as gone.
 - [ ] TWO FULL-FILE SCANS ARE RUN TWICE PER PAGE. `places_on` computes
       `code_lines(text, prose)` and `declarations(text, lang, code)` and returns
-      only the `Foliation`; `page_for` then computes both again with identical
+      only the `Cues`; `page_for` then computes both again with identical
       arguments. ! NOT fixed in round 7 because the fix is a signature change and
-      `places_on` has four test callers that read the foliation alone. The
+      `places_on` has four test callers that read the cues alone. The
       duplicated `vars()` rebuild between them WAS hoisted.
 - [ ] ! MEASURED AND DELIBERATELY NOT COUNTED: `census.py`'s double
       `prose_numbers` pass is 21 ms over 6,429 paragraphs. Real duplication, too

@@ -8,14 +8,14 @@ Requires-Roy: true
 Raised:   2026-08-23 (Roy, 2026-08-23: "Every line is a place" -- measured false by 595
           lines, all leading, on the day leading was ruled a symbol rather than a place)
 Ruled:    2026-08-23 — leading does not get a place -- tried several ways and refused;
-          the sentence is narrowed, and folio still needs its word
+          the sentence is narrowed, and cue still needs its word
 ```
 
 ## Objective
 
 **595 real lines carry no address, every one of them `leading`, under a docstring stating that
 every line has exactly one.** MEASURED 2026-08-23 on the 19 shipped scripts: 8,746 paragraphs
-over 11,009 lines, 401 with no address. So `foliator.py:28` -- *"EVERY LINE HAS EXACTLY ONE
+over 11,009 lines, 401 with no address. So `addresser.py:28` -- *"EVERY LINE HAS EXACTLY ONE
 ADDRESS, AND A PARAGRAPH IS JUST THE LINES THAT SHARE ONE"* -- is false in its own directory.
 
 !! **RULED 2026-08-23: THE SENTENCE IS NARROWED. LEADING DOES NOT GET A PLACE.** Roy, closing it:
@@ -44,7 +44,7 @@ and an edit can target it, and then something has to CHOOSE the right blank. Not
 
 !! **SO THE OPPOSITE FIX IS CLOSED, AND THIS FILE HELD IT OPEN FOR THREE HOURS.** It was filed
 with *"do not correct the sentence before ruling"*, on the reading that if leading took a place the
-universal would become true and `path@folio` would become PAGE AND LINE, the way a proof is cited.
+universal would become true and `path@cue` would become PAGE AND LINE, the way a proof is cited.
 **It cannot.** ! The trade shape was real and the constraint beats it: this system cannot cite by
 line, because a prose edit moves every line below it, and it cannot make the slack citable either.
 **Both halves of the trade's own address are unavailable here**, which is why the `@` half is a
@@ -55,15 +55,15 @@ the lines that share one"* -- is TRUE and is the clause doing the work, refusing
 that three sessions in one day reached for. Only the universal is wrong. This is a `correct`, not
 a `drop`.
 
-! **AND `folio` STILL NEEDS ITS WORD**, so [[leaf-means-two-things]] stays live rather than
-dissolving. A folio numbers a page or a leaf; the `@` half numbers a place on a page, which the
+! **AND `cue` STILL NEEDS ITS WORD**, so [[leaf-means-two-things]] stays live rather than
+dissolving. A cue numbers a page or a leaf; the `@` half numbers a place on a page, which the
 trade never needed a word for.
 
 ## Tasks
 
 - [ ] MEASURED 2026-08-23 ON THE 19 SHIPPED SCRIPTS: 8,746 paragraphs over 11,009
       lines; 401 carry NO address, and 595 REAL LINES sit under them. Every one is
-      `leading`. ! So `foliator.py:28` -- *"EVERY LINE HAS EXACTLY ONE ADDRESS,
+      `leading`. ! So `addresser.py:28` -- *"EVERY LINE HAS EXACTLY ONE ADDRESS,
       AND A PARAGRAPH IS JUST THE LINES THAT SHARE ONE"* -- is false by 595 lines
       in its own directory.
 - [ ] ! THE SECOND CLAUSE IS STILL TRUE AND IS THE ONE DOING THE WORK. *"A
@@ -83,13 +83,13 @@ trade never needed a word for.
 - [ ] * AND THE OPPOSITE FIX IS ON THE TABLE, so do not correct the sentence
       before ruling. Roy, 2026-08-23: *"Every line is a place."* ! If leading
       takes a place, the universal becomes true rather than needing narrowing --
-      and `path@folio` becomes PAGE AND LINE, which is how a proof is cited in the
+      and `path@cue` becomes PAGE AND LINE, which is how a proof is cited in the
       trade (*"p. 12, l. 7"*), the only difference being that the second half is a
       stable name instead of a counted position. ! That would dissolve `leaf-
-      means-two-things` instead of settling it: there would be no folio in the
+      means-two-things` instead of settling it: there would be no cue in the
       system at all.
 - [ ] ! WHAT IT COSTS EITHER WAY. Narrow the sentence and leading stays a symbol,
-      the 2026-08-22 ruling stands, and `folio` still needs a word. Give leading a
+      the 2026-08-22 ruling stands, and `cue` still needs a word. Give leading a
       place and the ruling reverses, `emit` has to make something for a blank run,
       and `Kind.holds_no_prose` / `Kind.occupies_no_lines` -- which part on
       exactly leading -- stop differing.
@@ -100,7 +100,7 @@ trade never needed a word for.
       history shows in three commits -- `21ca92a` a fifth series, `6a7be73` the
       edge repair, `ef7079c` the retreat to a symbol. Recorded so a fourth attempt
       is not made.
-- [ ] ! PUT ROY'S TWO REASONS INTO `foliator.py` BESIDE THE NARROWED SENTENCE.
+- [ ] ! PUT ROY'S TWO REASONS INTO `addresser.py` BESIDE THE NARROWED SENTENCE.
       `ef7079c` already carries the substitution argument, the trigger-is-the-
       anchor cause and the measurement analogy; none of them says what breaks
       DOWNSTREAM. ! Make the slack addressable and neither the SHIFTING nor the

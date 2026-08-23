@@ -14,7 +14,7 @@ Six shipped docstrings contradict themselves or their own bodies.
 
 ## Tasks
 
-- [ ] `foliator.py:840-846` says *"SHARED IS NOW A FAULT TOO"*; `:849-851`, same
+- [ ] `addresser.py:840-846` says *"SHARED IS NOW A FAULT TOO"*; `:849-851`, same
       docstring, says *"A shared place does not fail the check"*; the code at
       `:890` is `return 1 if unaddressed else 0`. And `:880-884` prints advice to
       *"cite the census index alongside the address"* -- a field retired

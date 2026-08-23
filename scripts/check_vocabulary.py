@@ -55,6 +55,24 @@ RETIRED = {
     # isn't."* Naming the thing for a syntax tree invited an apology for not
     # being one, in every file that mentioned it.
     "pcst": "page",
+    # !! FOUR NAMES THAT WERE WRONG ABOUT THEIR OWN REFERENTS, retired
+    # 2026-08-23. A folio numbers a LEAF or a PAGE; the `@` half of an address
+    # names a position WITHIN a page, so `b3` was never any folio. The error
+    # shipped as a DEFINITION -- *"a leaf's number in publishing, which is what
+    # it is here"* -- and reviewers were given it.
+    "folio": "cue",
+    "folios": "cues",
+    "foliation": "cues",
+    "foliator": "addresser",
+    "foliate": "cue",
+    # !! `leaf` IS NOT HERE AND THAT IS DELIBERATE. The PAGE sense went with the
+    # rest -- one sheet carries TWO pages, so it was neither the page nor the
+    # cue, and a file has no verso. But the DEPENDENCY-GRAPH sense is live and
+    # correct: `constants.py`'s ULTIMATE LEAF, ruled by Roy 2026-08-22. Retiring
+    # the word would refuse that, and `leaves` is an ordinary English verb --
+    # measured 2026-08-23, it fired on 15 sentences reading *"leaves it
+    # unaccounted for"*. ! The two senses are declared polysemy; see
+    # `docs/vocabulary.md` and `TODO/leaf-means-two-things.md`.
 }
 
 # !! THE WAY OUT, AND IT IS PER FILE. Roy, 2026-08-19: *"let's give ourselves a
@@ -78,6 +96,38 @@ NOQA = "# noqa: vocabulary"
 # keeps a SUPERSEDED task checked rather than deleted. A sentence that USES the
 # word to mean the thing is what this catches.
 MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ", "`pCST`")
+
+# !! A QUOTED SPAN IS EXEMPT, AND NEVER IN A FILE AN AGENT IS HANDED. Ruled by
+# Roy, 2026-08-23: the exemption is for *"the specific doc files that could have
+# old references"*, and there is *"strict no mistakes even quoted in the agents
+# files."*
+#
+# ! WHY A QUOTE IS EXEMPT AT ALL: a ruling is quoted in the words it was made in.
+# `path@folio` was ruled 2026-08-20, three days before `cue` existed, so holding
+# the quotation to today's vocabulary would make it a paraphrase wearing
+# quotation marks.
+#
+# !! WHY AN AGENT FILE IS STRICT ANYWAY: quotation marks do not stop a word
+# reaching an LLM's attention. `README.md`'s *Why* records the mechanism -- a
+# dead term is a CONTEXT ANCHOR, and an agent pulls toward the most common
+# concept even when it is the wrong one. A human reads the marks and discounts
+# the word; that is exactly the imprecision an agent does not share.
+#
+# ! SO THE LINE IS WHAT AN AGENT IS GIVEN: every shipped `.md` and `.toml` is
+# prose an agent reads or is emitted from, and gets no exemption. A `.py` holds
+# the engineering record, is read by whoever changes it, and keeps its rulings
+# verbatim.
+#
+#
+# ! IT IS NOT THE LINE EXEMPTION ROY REFUSED. A line marker says *this line is
+# special*, which lets a word creep back one suppression at a time -- the reason
+# `NOQA` is per FILE and whole. This says *these are someone else's words*, and
+# it cannot accumulate into a file-wide pass.
+#
+# ! The convention is this repo's own and is one form: `*"..."*`, possibly
+# wrapped across lines.
+QUOTED = re.compile(r'\*"(?:.+?)"\*', re.S)
+AGENT_FACING = (".md", ".toml")
 
 # ! And these are not the retired term at all, by exact form:
 #   block-context   a ROLE NAME -- an agent id, a filename, a `--reviewers`
@@ -288,8 +338,12 @@ def check_retired() -> int:
         text = path.read_text(encoding="utf-8")
         if NOQA in text:
             continue
+        # ! A FILE AN AGENT IS HANDED KEEPS ITS QUOTATIONS IN THE HAYSTACK --
+        # see `QUOTED` and `AGENT_FACING`. Only a `.py` gets the exemption.
+        exempt = path.suffix not in AGENT_FACING
+        quoted_out = QUOTED.sub("", text) if exempt else text
         for word, instead in RETIRED.items():
-            hay = text
+            hay = quoted_out
             for allowed in (*MENTION, *NOT_THE_TERM):
                 hay = hay.replace(allowed, "")
             hits = len(re.findall(rf"(?<![\w-]){word}(?![\w-])", hay, re.I))

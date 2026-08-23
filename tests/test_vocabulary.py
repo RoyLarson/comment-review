@@ -236,3 +236,79 @@ class TestTheRetiredWordsStayRetired(unittest.TestCase):
             and cv.NOQA in f.read_text(encoding="utf-8")
         ]
         self.assertEqual(claimed, [])
+
+
+class TestAQuotedSpanIsExemptAndAnAgentFileIsNot(unittest.TestCase):
+    """Ruled by Roy, 2026-08-23, in two halves that pull opposite ways.
+
+    !! A RULING IS QUOTED IN THE WORDS IT WAS MADE IN. `path@folio` was ruled
+    2026-08-20, three days before `cue` existed, so holding the quotation to
+    today's vocabulary makes it a paraphrase wearing quotation marks. Without
+    the exemption `folio` could not be retired at all: five shipped modules
+    quote rulings that used it.
+
+    !! AND AN AGENT FILE IS STRICT ANYWAY -- *"strict no mistakes even quoted in
+    the agents files."* Quotation marks do not stop a word reaching an LLM's
+    attention; `README.md`'s *Why* records that a dead term is a CONTEXT ANCHOR.
+    A human reads the marks and discounts the word, which is the imprecision an
+    agent does not share.
+
+    ! THE RULE DOES NOT REST ON WHAT IT COSTS. A count of how many agent-facing
+    files hold a retired word today is a fact about today; tying the rule to it
+    gives a later reader a stated reason to relax it the moment the count moves.
+    The measurement taken when this was adopted is in `docs/decision-log.md`
+    Vocabulary: #8, where a dated fact belongs.
+    """
+
+    RETIRED_WORD = "folio"
+
+    def _hits(self, text: str, suffix: str) -> int:
+        """What `check_retired` would count, for a file of this suffix."""
+        exempt = suffix not in cv.AGENT_FACING
+        hay = cv.QUOTED.sub("", text) if exempt else text
+        for allowed in (*cv.MENTION, *cv.NOT_THE_TERM):
+            hay = hay.replace(allowed, "")
+        import re
+
+        return len(re.findall(rf"(?<![\w-]){self.RETIRED_WORD}(?![\w-])", hay, re.I))
+
+    def test_a_quoted_ruling_passes_in_a_script(self):
+        quoted = 'Roy: *"An ADDRESS is `path@folio`, and it is composed on the PAGE."*'
+        self.assertEqual(self._hits(quoted, ".py"), 0)
+
+    def test_the_same_ruling_FAILS_in_a_file_an_agent_is_handed(self):
+        # !! THE HALF THAT MAKES THIS A GATE RATHER THAN A PREFERENCE.
+        quoted = 'Roy: *"An ADDRESS is `path@folio`, and it is composed on the PAGE."*'
+        for suffix in cv.AGENT_FACING:
+            with self.subTest(suffix=suffix):
+                self.assertEqual(self._hits(quoted, suffix), 1)
+
+    def test_the_word_OUTSIDE_a_quote_fails_even_in_a_script(self):
+        # ! The check can fail where it matters most -- see `docs/gates.md`:
+        # "does the check pass" is not the question, "could the check fail" is.
+        self.assertEqual(self._hits("the folio half of an address", ".py"), 1)
+
+    def test_a_quote_cannot_accumulate_into_a_file_wide_pass(self):
+        """! It is not the LINE exemption Roy refused, which creeps."""
+        body = 'ok *"folio"* ok *"folio"* -- but here is a bare folio'
+        self.assertEqual(self._hits(body, ".py"), 1)
+
+    def test_portfolio_is_not_a_folio(self):
+        # ! `folio` is a substring of `portfolio`, and the word boundary is what
+        # stops six backlog sites reading as a defect.
+        self.assertEqual(self._hits("a portfolio of prints", ".py"), 0)
+
+    def test_the_gate_holds_the_family_rather_than_this_test(self):
+        for word in ("folio", "foliation", "foliator", "foliate"):
+            with self.subTest(word=word):
+                self.assertIn(word, cv.RETIRED)
+
+    def test_leaf_is_NOT_retired_because_the_graph_sense_is_live(self):
+        """! Roy, 2026-08-22: *"Constants.py is the ultimate leaf."*
+
+        The PAGE sense is retired -- one sheet carries two pages, so it was
+        neither the page nor the cue. The DEPENDENCY-GRAPH sense is his own
+        term, and `leaves` is an ordinary English verb besides.
+        """
+        self.assertNotIn("leaf", cv.RETIRED)
+        self.assertNotIn("leaves", cv.RETIRED)

@@ -14,8 +14,8 @@ Ruled:    2026-08-20 — 2026-08-20 -- ONE SERIES FOR THIS LABEL TYPE. Roy: fron
           so keep the code generic in how it picks it up even if we don't know the
           shape. That is how we got into the bind of trying to pick up the matter -- we
           kept trying to push it in instead of considering it was its own thing."* Acted
-          on: `foliator.SERIES` is now the only list of them, `foliate` counts the
-          foliators rather than naming them, `--series` offers whatever is in the list,
+          on: `addresser.SERIES` is now the only list of them, `cue` counts the
+          addressers rather than naming them, `--series` offers whatever is in the list,
           and `page.empty_places` RAISES on a series it has no branch for rather than
           dropping the place silently. Five tests guard it. ! What is still open here is
           the RECOGNITION half -- nothing looks for matter at the bottom of a file.
@@ -24,8 +24,8 @@ Narrowed: 2026-08-20 — 2026-08-20 -- the NAMING half is done and back matter i
           footnotes"* -- which is the publishing definition of back matter, and lands
           hardest on DOCUMENTATION files. Renamed so nothing encodes an end:
           `mark_front_matter` -> `mark_matter`, `FRONT_MATTER` -> `MATTER`, the
-          annotation value `front-matter` -> `matter`, `Foliation.front_matter()` ->
-          `Foliation.matter()`, and the CLI flag `--include-front-matter` -> `--include-
+          annotation value `front-matter` -> `matter`, `Cues.front_matter()` ->
+          `Cues.matter()`, and the CLI flag `--include-front-matter` -> `--include-
           matter`. ! What remains is the RECOGNITION half only: `mark_matter` still asks
           one positional question about the TOP of the file. ! It meets `a-prose-file-
           has-no-blocks`, since an index or a glossary is a documentation-file shape.
@@ -75,7 +75,7 @@ Back matter has the same problem front matter had, and lands in the closing gap.
       or a docstring, is the back matter. ! No module docstring need EXIST for
       either, which is what made the old rule Python-only.
 - [ ] !! THERE IS NO PLACE FOR BACK MATTER TO BE WRITTEN INTO YET. MEASURED
-      2026-08-21: `foliate` emits `f` exactly ONCE, at the MODULE trigger
+      2026-08-21: `cue` emits `f` exactly ONCE, at the MODULE trigger
       (`out._front = f.emit(MODULE)`), so a file ending in a licence gives `f
       places emitted: ['f0']` and the licence lands in `b2`, the closing gap. The
       `f` series needs a second emission at the EOF trigger -- which exists and

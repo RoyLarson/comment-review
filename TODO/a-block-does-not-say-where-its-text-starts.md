@@ -104,7 +104,7 @@ which `whole_lines` now answers, but WHERE the block's text sits on that line --
       `REFUSED sample.rs: 1 range(s) no longer match the census: 6-7`.
       ! **SCOPE CORRECTED 2026-08-19.** This was filed as *"a FRESH census reads as STALE"*, which
       it no longer does: it reached `--check`, `--resolve` and `--anchor` only through a staleness
-      sweep the foliation had no business running, and that sweep is gone (task above). **What
+      sweep the cues had no business running, and that sweep is gone (task above). **What
       remains is the galley**, where comparing stored text against the file is exactly right and
       the stored text is wrong. ! It also masked the mid-line collision, which is why that one
       survived the first measurement.

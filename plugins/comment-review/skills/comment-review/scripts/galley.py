@@ -24,7 +24,7 @@ hold. Every address carries its own path, so nothing downstream depends on which
 page precedes which. MEASURED 2026-08-22: three files censused forward and
 reversed gave 179 paragraphs whose address, kind, text and anchor were identical
 in both orders. ! Order is load-bearing WITHIN a page -- that is what an
-address's folio counts -- and free between them.
+address's cue counts -- and free between them.
 
 !! IT RENDERS; IT DOES NOT RULE. A stage that both produced the galley and
 judged it would be MARK and APPLY in one actor, which is the separation the
@@ -79,13 +79,13 @@ import compositor  # noqa: E402  -- path shim must run first
 import constants  # noqa: E402  -- path shim must run first
 import exceptions  # noqa: E402  -- path shim must run first
 
-# !! THE ONE `folio_of`, since 2026-08-22. This module had a second of its own --
+# !! THE ONE `cue_of`, since 2026-08-22. This module had a second of its own --
 # `str(address).split("@")[-1]` -- and the two DISAGREED on a malformed address:
-# a bare `b3` with no `@` came back as the folio `b3` here and as *not an
-# address* from `foliator`, which returns two blanks when there is no separator.
-# Both were live in one process. ! The shared one answers `(path, folio)`, so
+# a bare `b3` with no `@` came back as the cue `b3` here and as *not an
+# address* from `addresser`, which returns two blanks when there is no separator.
+# Both were live in one process. ! The shared one answers `(path, cue)`, so
 # every site here takes `[1]`.
-from foliator import ON, folio_of  # noqa: E402  -- path shim must run first
+from addresser import ON, cue_of  # noqa: E402  -- path shim must run first
 from lexer import language_for  # noqa: E402  -- path shim must run first
 from page import page_for  # noqa: E402  -- path shim must run first
 from repo import read_raw  # noqa: E402  -- path shim must run first
@@ -142,14 +142,14 @@ def reset(page, edits: dict[str, str]) -> list[str]:
     by_place: dict[str, list] = {}
     # ! The `d` a place owns, so a `drop` can empty it too. Leading carries a
     # SYMBOL and never an address -- it names no place -- so it is found here by
-    # that symbol and nowhere by a folio.
+    # that symbol and nowhere by a cue.
     by_symbol = {b.symbol: b for b in page if b.symbol}
     for b in page:
         if b.address:
-            by_place.setdefault(folio_of(b.address).folio, []).append(b)
+            by_place.setdefault(cue_of(b.address).cue, []).append(b)
     refused = []
     for address, replacement in edits.items():
-        found = by_place.get(folio_of(address).folio)
+        found = by_place.get(cue_of(address).cue)
         if not found:
             refused.append(f"{address}: this page carries no such place")
             continue
@@ -195,7 +195,7 @@ def reset(page, edits: dict[str, str]) -> list[str]:
         # blank below it separates that CODE from what follows and was never the
         # comment's to lose. ! `prove_unchanged` cannot see the difference --
         # the AST is identical either way -- so it would land silently at 7b.
-        where = folio_of(address).folio
+        where = cue_of(address).cue
         owns_leading = not where.startswith(ON)
         _vacate(
             found[0],
@@ -279,9 +279,9 @@ def drifted(page, census: list[dict]) -> list[str]:
     prose_now: dict[str, list[str]] = {}
     for b in page:
         if b.address and b.anchor:
-            now[folio_of(b.address).folio] = b.anchor
+            now[cue_of(b.address).cue] = b.anchor
         if b.address:
-            prose_now[folio_of(b.address).folio] = list(b.raw_lines)
+            prose_now[cue_of(b.address).cue] = list(b.raw_lines)
     out = []
     for b in census:
         address = str(b.get("address", ""))
@@ -313,7 +313,7 @@ def drifted(page, census: list[dict]) -> list[str]:
             continue
         stored = b.get("raw_lines")
         if isinstance(stored, list):
-            here_lines = prose_now.get(folio_of(address).folio)
+            here_lines = prose_now.get(cue_of(address).cue)
             if here_lines is not None and here_lines != stored:
                 out.append(
                     f"{address}: the prose here changed since the census"
@@ -322,7 +322,7 @@ def drifted(page, census: list[dict]) -> list[str]:
         was = str(b.get("anchor", ""))
         if not was:
             continue
-        here = now.get(folio_of(address).folio)
+        here = now.get(cue_of(address).cue)
         if here is not None and here != was:
             out.append(
                 f"{address}: the census read {was!r}, the file now reads {here!r}"

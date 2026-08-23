@@ -40,7 +40,7 @@ The AST reader gets older every release while the files get newer.
       **P](...)`. ! 0.17% today and one-directional.
 - [ ] !! AN UNPARSED PAGE SETS AS AN EMPTY FILE, which is the sharp edge of it.
       `page_for` skips the walk when any paragraph is `unparsed`, so
-      `foliation.reading` is empty and `compositor.set_page` returns `""`.
+      `cues.reading` is empty and `compositor.set_page` returns `""`.
       MEASURED on `sentry/src/sentry/api/paginator.py`: 884 lines in, 0 characters
       out. ! `draft()` would write that empty file. Roy's *"no editing on the real
       file until approved"* is what stands between it and the tree. * THE GUARD IS
@@ -88,7 +88,7 @@ The AST reader gets older every release while the files get newer.
 - [ ] !! `prove_unchanged` CARRIES THE SAME DEPENDENCY AND IS NOT IN THE LEXER. It
       fingerprints Python as `ast.dump(_blank_docstrings(ast.parse(text)))` and
       everything else as stripped text. That is the CODE CHECK -- what
-      `foliator.py` calls the thing that *"MAKES it constant across this tool's
+      `addresser.py` calls the thing that *"MAKES it constant across this tool's
       own work"* -- so the whole addressing scheme rests on it. Dropping the AST
       from the reader leaves it standing there unanswered. ! A candidate answer
       arrived the same day: the compositor sets code from the `c` places' anchors,
@@ -127,12 +127,12 @@ The AST reader gets older every release while the files get newer.
       so the name corpus a reviewer checks a cited symbol against exists for one
       language of seventeen -- and vanishes for a Python file the floor cannot
       parse.
-- [ ] !! THE FOLIATOR DESCRIBES A MECHANISM IT NEVER TOUCHES. It has NO `import
+- [ ] !! THE ADDRESSER DESCRIBES A MECHANISM IT NEVER TOUCHES. It has NO `import
       ast` and no call; two paragraphs of its module docstring explain `ast.dump`
       and `_blank_docstrings`, which live in `prove_unchanged`. ! Roy, 2026-08-21,
       on why: *"when it was addresser a long time ago that kind of made sense."*
       Addressing was the subject then, and the code check is what makes an address
-      constant. The rename to `foliator` left prose two modules from the code it
+      constant. The rename to `addresser` left prose two modules from the code it
       describes, with nothing able to check it -- which is the obituary class
       `block-context` is chartered to catch, shipping inside the tool that catches
       it.
@@ -150,12 +150,12 @@ The AST reader gets older every release while the files get newer.
       is unchanged* becomes *every `c` anchor is unchanged*. No parser, one rule
       for seventeen languages, and stronger than an `ast.dump`, which compares
       statements and their order rather than the characters.
-- [ ] ! AND IT PUTS THE PROSE BACK BESIDE THE CODE IT DESCRIBES. `foliator.py`
+- [ ] ! AND IT PUTS THE PROSE BACK BESIDE THE CODE IT DESCRIBES. `addresser.py`
       carries two paragraphs explaining `ast.dump` and `_blank_docstrings` and
       imports neither -- Roy: *"when it was addresser a long time ago that kind of
       made sense."* Addressing was the subject then and the code check is what
       makes an address constant. Moving the check to the compositor leaves the
-      foliator free to say what it does, and the explanation lands where a reader
+      addresser free to say what it does, and the explanation lands where a reader
       can check it.
 - [ ] ! IT CARRIES `a-closing-quote-with-a-comment` WITH IT, FOR FREE. CHECKED
       2026-08-21: read through `paragraphs_lexical` with `"""` as a delimiter, the
@@ -237,7 +237,7 @@ The AST reader gets older every release while the files get newer.
 - [ ] AND THE WRITE SIDE IS WORSE THAN THE READ SIDE, because a misread is visible
       and a miswrite is not. Reading Python lexically means nothing knows WHERE A
       BODY STARTS -- that is what `doc_inside` needs and what a wrapped signature
-      moves -- so the compositor cannot place an `a` paragraph from the foliation
+      moves -- so the compositor cannot place an `a` paragraph from the cues
       alone. ! A `patch` to a docstring then sets prose at a position derived from
       a reader that could not see the body, and an `add` to an empty `a` has no
       position at all. ! THE FAILING SHAPE IS ALREADY KNOWN: a comment inside a

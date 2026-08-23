@@ -356,7 +356,7 @@ narrowed.
 
 !! **DO NOT SHIP THE FILTER WITHOUT A WAY TO NAME WHAT IT COLLAPSED.** A reviewer handed the
 filtered census can still see every gap, but the intervals inside a run are no longer numbered
-individually in front of it. A run NAMES ITS ENDS -- `@b7..b12` -- and `foliator.py --anchor`
+individually in front of it. A run NAMES ITS ENDS -- `@b7..b12` -- and `addresser.py --anchor`
 resolves any place in between, so every collapsed interval is still citable. Filtering without
 that is worse than not filtering.
 
@@ -375,13 +375,13 @@ pkg:core.py@c3    the room BESIDE a line of code
 The path is flattened on `:`, a character no path may hold, so `a/b.py` and `a.b.py` cannot
 collide. `docs/addressing.md` is the settled definition.
 
-!! **YOU CANNOT WORK A FOLIO OUT. ASK.** The three series are counted by three separate
-foliators, and no number in one tells you a number in another -- nor does a line's position tell
+!! **YOU CANNOT WORK A CUE OUT. ASK.** The three series are counted by three separate
+addressers, and no number in one tells you a number in another -- nor does a line's position tell
 you either.
 
 ```bash
-python <skill>/scripts/foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c|f
-python <skill>/scripts/foliator.py --census <CENSUS> --resolve <ADDRESS>
+python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c|f
+python <skill>/scripts/addresser.py --census <CENSUS> --resolve <ADDRESS>
 ```
 
 ! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many

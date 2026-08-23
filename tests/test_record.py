@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 from _paths import FIXTURES, SCRIPTS  # noqa: F401
-import foliator
+import addresser
 import lexer
 import page
 import record
@@ -707,6 +707,6 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
             for b in self.census
             if not lexer.Kind.holds_no_prose(str(b.get("kind", "")))
             and b.get("address")
-            and foliator.series_of(b) != foliator.COVERS
+            and addresser.series_of(b) != addresser.COVERS
         }
         self.assertEqual(seeded, accountable)

@@ -20,7 +20,7 @@ knows where prose is MISSING. ! What this reports instead is
 `declarations()`: which lines declare something documentable, and where its
 doc would go. The page turns that into `a` places.
 
-! A LEAF: it imports no sibling. `foliator` is the other one, and neither knows
+! A LEAF: it imports no sibling. `addresser` is the other one, and neither knows
 anything of the other -- a place has no prose in it and prose has no place until
 a page puts the two together.
 """
@@ -129,7 +129,7 @@ class Paragraph:
     #
     # !! STATED HERE BECAUSE ONLY A PARSER KNOWS IT. Python's docstring sits
     # AFTER its `def` and Rust's `///` sits BEFORE its `fn`, so position cannot
-    # answer which declaration a doc belongs to and the foliation must not
+    # answer which declaration a doc belongs to and the addresser must not
     # guess. It reads this and names it `@aN`.
     declares: int = -1
     # !! THE LINE THIS PLACE'S ANCHOR SITS ON, so an anchor's OTHER places can
@@ -165,7 +165,7 @@ class Paragraph:
     # sees both, which is the whole drift question in two fields.
     anchor_num: int = 0
     tier: str = "lexical"  # which question set this file's census can answer
-    # !! WHICH PLACE THIS IS, as against where it sits -- see `foliation.address`.
+    # !! WHICH PLACE THIS IS, as against where it sits -- see `cues.address`.
     # Stamped in the path-normalising loop, the only place holding the file
     # text, the finished paragraph list and the repo-relative path at once.
     address: str = ""
@@ -187,7 +187,7 @@ class Paragraph:
     # ! WHICH FOLLOWS FROM WHERE IT COMES FROM. Every other place exists because
     # the WALK reached a trigger -- and the trigger IS the anchor. A `d` exists
     # because the LEXER found blank lines, so there was never a trigger for it
-    # to be anchored to. `foliator.SERIES` holds four series; `LEAD` is a symbol.
+    # to be anchored to. `addresser.SERIES` holds four series; `LEAD` is a symbol.
     symbol: str = ""
     annotations: set[str] = field(default_factory=set)
     notes: list[str] = field(default_factory=list)
@@ -360,7 +360,7 @@ class Kind(StrEnum):
 
     ! `leading` HAS A PRESENT AND NO ABSENT, and squaring the table would be
     the error. An empty one could not be cited -- Roy: *"there is no information
-    to rule on"* -- which is the same reason `d` is not in `foliator.SERIES`.
+    to rule on"* -- which is the same reason `d` is not in `addresser.SERIES`.
     It is a kind with no series, and `ABSENT` below leaves it out.
     """
 
@@ -375,7 +375,7 @@ class Kind(StrEnum):
     # opening/closing line is a comment then the matter continues down/up until
     # there is an empty line or the start/end of a docstring"*, and *"It is a
     # matter designator, the anchor is the module."* One type for both ends --
-    # which end a run sits at is the ORDER the `f` foliator emits, not a fact
+    # which end a run sits at is the ORDER the `f` addresser emits, not a fact
     # about the run.
     #
     # ! IT IS STATED WHERE THE LEXER READS THE FILE. It was an ANNOTATION the
@@ -403,7 +403,7 @@ class Kind(StrEnum):
     # nothing.
     #
     # ! WHY IT EXISTS: a `b` owned the blanks on BOTH sides of an `a`, and a
-    # folio is one entry in the reading order, so its two lines emitted together
+    # cue is one entry in the reading order, so its two lines emitted together
     # and a file came back blank-blank-comment where it was blank-comment-blank.
     # With leading, every paragraph is CONTIGUOUS and the straddle cannot arise.
     LEADING = "leading"
@@ -413,7 +413,7 @@ class Kind(StrEnum):
         """Is there nothing here for a reviewer to read?
 
         !! EVERY ABSENCE, AND `leading`, WHICH IS NOT ONE. An absence is a place
-        `foliate` emitted and no prose filled; `leading` is not a place at all
+        `cue` emitted and no prose filled; `leading` is not a place at all
         and holds no prose for a different reason -- there was never anything to
         hold. Both answer YES here, because holding no prose is what this is
         NAMED for.
@@ -462,21 +462,21 @@ class Pair(NamedTuple):
 
 
 class Series(Enum):
-    """Every series `foliate` emits, each member its own `Pair`.
+    """Every series `cue` emits, each member its own `Pair`.
 
     !! AN ENUM AND NOT A MAPPING. Roy, 2026-08-22: *"each foliation gets its
     positive and its negative"*, and *"they are enums not a list."* The value IS
     the `Pair`, so the shape is readable in the declaration rather than assembled
     somewhere else, and `ABSENT` below is derived from these four.
 
-    !! THE LETTER IS NOT IN HERE. `foliator` owns the letters -- `COVERS = "f"`
+    !! THE LETTER IS NOT IN HERE. `addresser` owns the letters -- `COVERS = "f"`
     and its three siblings -- and this module cannot import it, so spelling them
     again here would be two sources for one fact. ! What ties them is the MEMBER
-    NAME: every name here is a constant in `foliator`, and `tests/test_page.py`
+    NAME: every name here is a constant in `addresser`, and `tests/test_page.py`
     holds the sets equal, so a letter that moves fails a test instead of leaving
     two spellings quietly disagreeing.
 
-    ! `LEAD` IS NOT A MEMBER, the same exclusion `foliator.SERIES` makes:
+    ! `LEAD` IS NOT A MEMBER, the same exclusion `addresser.SERIES` makes:
     leading has a present and no absent, so it cannot belong to a type whose
     whole shape is the pair. An empty one could not be cited -- Roy: *"there is
     no information to rule on"* -- so there is nothing for `absent` to mean.
@@ -494,7 +494,7 @@ class Series(Enum):
 #: `page.py` holding the same four strings in different orders, each with a
 #: comment claiming it answered a different question.
 ABSENT = frozenset(s.value.absent for s in Series)
-# ! The anchor a run about the FILE answers to. The same string the foliator
+# ! The anchor a run about the FILE answers to. The same string the addresser
 # uses for the module trigger; it is spelled here rather than imported because
 # the lexer imports no sibling but `language`.
 MODULE_ANCHOR = "<module>"
@@ -1136,7 +1136,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # !! ONE TYPE, NOT TWO. Roy, 2026-08-21: *"It is a matter designator, the
         # anchor is the module ... front-matter, back-matter are paragraph type
         # matter."* Which END it sits at is not a fact about the paragraph -- it
-        # falls out of the order the `f` foliator emits, exactly as `a1` and `a2`
+        # falls out of the order the `f` addresser emits, exactly as `a1` and `a2`
         # fall out of the order declarations are met. Naming the two ends here
         # would state the same fact twice and let them disagree.
         if kind == "comment" and (run[0][0] == 1 or run[-1][0] == len(lines)):

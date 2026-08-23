@@ -109,6 +109,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `sequence`, `ordinal` fail it. ! `b3` passes despite being the fourth gap, because it is
   assigned by walking CODE, and code does not move when prose is edited.
 
+- **#8.** **A quoted span is exempt from the retired-word gate, and never in a file an agent is
+  handed** (Roy, 2026-08-23: the exemption is for *"the specific doc files that could have old
+  references"*, and there is *"strict no mistakes even quoted in the agents files"*). A ruling is
+  quoted in the words it was made in; quotation marks do not stop a word reaching an LLM's
+  attention. The line is the file suffix: `.md` and `.toml` are read by agents or emitted from
+  and get no exemption, `.py` holds the engineering record. **Measured at adoption:** 31 `foli*`
+  uses remained in the shipped tree, all in `scripts/*.py`, all inside quotations, none in
+  `agents/`, `SKILL.md` or `references/`. ! That count is a fact about the day, not a reason the
+  rule holds -- the gate's own comment said *"which is why strict costs nothing"* and was cut for
+  giving a later reader grounds to relax the rule as soon as the number moved.
+
+- **#9.** **`leaf` is retired in its PAGE sense and kept in its IMPORT-GRAPH sense** (Roy,
+  2026-08-23). One sheet carries two pages, so it was neither the page nor the cue. The graph
+  sense is Roy's own term from 2026-08-22 -- *"Constants.py is the ultimate leaf"* -- and
+  `leaves` is an ordinary English verb besides. Declared as polysemy in `vocabulary.md`.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**

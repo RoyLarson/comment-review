@@ -74,6 +74,6 @@ going to work."*
 - **Break it on purpose once.** A check that has never been observed failing has not been
   observed at all. Every measurement in this file came from one that could.
 - **Prefer a check whose input the subject cannot reach.** The identity works now because a page
-  is set from the foliation while the file is read by the lexer -- two sources that must be made
+  is set from the cues while the file is read by the lexer -- two sources that must be made
   to agree rather than one consulted twice.
 - **A green run is not a report.** State what the check would have caught, not that it passed.

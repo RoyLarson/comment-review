@@ -175,7 +175,7 @@ comment-syntax record plus a lexer:
 
 - **where prose sits** -- comment runs, docstrings, trailing comments
 - **where prose is MISSING** -- the intervals between two lines of code
-- **which lines are CODE**, which is what `foliator.py` numbers a place against
+- **which lines are CODE**, which is what `addresser.py` numbers a place against
 
 ! None of those needs a grammar. What a grammar would add is OWNERSHIP -- which
 declaration a comment belongs to -- and that is a REVIEWER's judgement in every

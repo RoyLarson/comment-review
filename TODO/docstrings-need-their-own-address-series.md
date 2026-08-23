@@ -139,12 +139,12 @@ rather than handed nothing. See
       `add` on an empty interval does.
 
 - [x] **The census STATES which declaration a docstring belongs to**, rather
-      than the foliation inferring it from position or tier. The direction is
+      than the cues inferring it from position or tier. The direction is
       language-dependent -- Python's subject is the code line ABOVE, Rust's is
       BELOW -- and inference here is the defect this release has spent itself
       removing.
 
-- [x] **Add the `a` form to `foliator.stable`**, and hold it to the same rule
+- [x] **Add the `a` form to `addresser.stable`**, and hold it to the same rule
       `--check` applies to `b` and `c`: every address resolves back to the block
       that carries it.
 

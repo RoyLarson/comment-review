@@ -91,7 +91,7 @@ Outside Python the `a` place is emitted and never filled.
       nothing ever fills, which is the cost the round-trip test measures directly.
 - [ ] ! RECONSTRUCTION IS NOT WHAT A SHARED ADDRESS BREAKS -- VERIFICATION IS.
       WRITE works from `start`/`end` spans, so prose returns where it came from
-      whatever folio it carries. What fails is `record.entry_for`, which resolves
+      whatever cue it carries. What fails is `record.entry_for`, which resolves
       by address and returns the FIRST match: a correct edit to the second
       paragraph is checked against the first and `verdicts.py` exits 1. So the
       round-trip test must exercise the JOIN, not just the write -- a test that

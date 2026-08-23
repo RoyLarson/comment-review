@@ -35,7 +35,7 @@ Front matter is absorbed by an interval, and the galley then deletes it.
       Demonstrated end to end by one review: the shebang, copyright and module
       docstring were gone from the galley output with 0 edits refused.
 - [x] CAUSE, `page.py` `fill_the_gaps`: `here` collects every paragraph whose
-      folio starts with `b` AND whose `start` falls in the gap. Front matter
+      cue starts with `b` AND whose `start` falls in the gap. Front matter
       carries `b0`, a place that is NOT that gap -- `attach` gives it `b0`
       wherever it sits -- so `b0` and the gap's own `bN` are re-cut against each
       other.
@@ -48,6 +48,6 @@ Front matter is absorbed by an interval, and the galley then deletes it.
       Roy ruled *"a's and c's own their lines exactly, b's own all the other
       lines."* The code three lines below that comment does not do it.
 - [ ] * RULING WANTED: front matter is a `b` that is NOT its gap's `b`. Either
-      `fill_the_gaps` must exclude a paragraph whose folio is not the gap's own,
+      `fill_the_gaps` must exclude a paragraph whose cue is not the gap's own,
       or `b0` needs to stop being in the `b` series for this purpose. The first is
       a one-line fix and the second is a design change; which one is Roy's.

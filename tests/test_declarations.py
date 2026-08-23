@@ -1,7 +1,7 @@
 """Which languages have an `a` series, and which lines declare one.
 
-Roy, 2026-08-20: *"we need to be able to distinguish `a` foliations for as many
-languages as there are `a` possible foliations. yaml, toml are not ones. The
+Roy, 2026-08-20: *"we need to be able to distinguish `a` cues for as many
+languages as there are `a` possible cues. yaml, toml are not ones. The
 easy way to do that is to supply the lexer with the list of keywords that a
 language/practice uses to say this can get a docstring."*
 """
@@ -22,20 +22,20 @@ import page  # noqa: E402
 
 
 def places(name: str, text: str) -> list[str]:
-    """The folios on this file, in series order."""
+    """The cues on this file, in series order."""
     p = Path(name)
     pg = page.page_for(p, text, lexer.language_for(p))
-    return sorted(pg.foliation.places, key=lambda f: (f[0], int(f[1:])))
+    return sorted(pg.cues.places, key=lambda f: (f[0], int(f[1:])))
 
 
 def a_places(name: str, text: str) -> list[tuple[str, str]]:
-    """`(folio, anchor)` for every `a` on this file, in SERIES order.
+    """`(cue, anchor)` for every `a` on this file, in SERIES order.
 
-    ! SORTED ON THE FOLIO'S OWN NUMBER, which is what the walk counted. Iterating
+    ! SORTED ON THE CUE'S OWN NUMBER, which is what the walk counted. Iterating
     the page gives the order its PARAGRAPHS are listed in -- `Page.paragraphs` is
     sorted on the lines a paragraph covers -- and an empty place covers none, so
     it sorts ahead of every filled one. That is a fact about the prose list and
-    not about the foliation, which never reads a line number to number a place.
+    not about the cues, which never reads a line number to number a place.
     The two orders agreed only while no `a` outside Python was ever filled.
     """
     p = Path(name)
@@ -105,8 +105,8 @@ class TestTheKeywordListResolvesDeclarations(unittest.TestCase):
         self.assertEqual(got[1], ("a1", "pub fn wrapped("))
 
 
-def folio_of(name: str, text: str, line: int) -> str:
-    """The folio the paragraph STARTING on this line was tied to."""
+def cue_of(name: str, text: str, line: int) -> str:
+    """The cue the paragraph STARTING on this line was tied to."""
     p = Path(name)
     for b in page.page_for(p, text, lexer.language_for(p)):
         if b.original_start == line:
@@ -123,7 +123,7 @@ class TestTheAPlaceIsFilledOutsidePython(unittest.TestCase):
     """
 
     def test_a_doc_comment_flush_against_the_declaration_takes_its_a(self):
-        self.assertEqual(folio_of("z.rs", "/// The name.\npub fn f() {}\n", 1), "a1")
+        self.assertEqual(cue_of("z.rs", "/// The name.\npub fn f() {}\n", 1), "a1")
 
     def test_a_BLANK_LINE_between_does_not_break_the_tie(self):
         # !! MEASURED on CPython v3.13.1: 1,124 of 2,987 documented declarations
@@ -132,13 +132,13 @@ class TestTheAPlaceIsFilledOutsidePython(unittest.TestCase):
         # ! `package thing` opens the file so the doc comment is not on LINE 1,
         # where a run is the file's own matter since 2026-08-21.
         text = "package thing\n\n// One does it.\n\nfunc One() {}\n"
-        self.assertEqual(folio_of("g.go", text, 3), "a1")
+        self.assertEqual(cue_of("g.go", text, 3), "a1")
 
     def test_prose_above_a_line_of_CODE_documents_the_code_not_the_next_one(self):
         # ! The walk back stops at code: this comment sits above `func One`, and
         # `func Two` two lines below has no documentation at all.
         text = "package thing\n\n// One does it.\nfunc One() {}\nfunc Two() {}\n"
-        self.assertEqual(folio_of("g.go", text, 3), "a1")
+        self.assertEqual(cue_of("g.go", text, 3), "a1")
 
     def test_the_NEAREST_paragraph_above_takes_it_and_the_header_keeps_its_gap(self):
         # !! THE COLLISION THIS CLOSES. Both paragraphs used to answer to `b0`,
@@ -151,12 +151,12 @@ class TestTheAPlaceIsFilledOutsidePython(unittest.TestCase):
         text = (
             "// Copyright 2001.\npackage thing\n\n// Name returns it.\nfunc Name() {}\n"
         )
-        self.assertEqual(folio_of("g.go", text, 1), "f0")
-        self.assertEqual(folio_of("g.go", text, 4), "a1")
+        self.assertEqual(cue_of("g.go", text, 1), "f0")
+        self.assertEqual(cue_of("g.go", text, 4), "a1")
 
     def test_a_TRAILING_comment_is_beside_its_line_and_never_documents(self):
         # ! It states a column, and its line is a line of code.
-        self.assertEqual(folio_of("g.go", "func One() {} // note\n", 1), "c0")
+        self.assertEqual(cue_of("g.go", "func One() {} // note\n", 1), "c0")
 
     def test_a_language_with_no_keyword_list_ties_nothing(self):
         # ! C is deliberately empty -- see `test_c_and_cpp_are_left_out...`. The
@@ -165,7 +165,7 @@ class TestTheAPlaceIsFilledOutsidePython(unittest.TestCase):
         # own matter. ! That is the C licence-header case working for the first
         # time: it took `b0` and was editable work until 2026-08-21.
         self.assertEqual(
-            folio_of("m.c", "/* Adds. */\nint add(int a) { return a; }\n", 1), "f0"
+            cue_of("m.c", "/* Adds. */\nint add(int a) { return a; }\n", 1), "f0"
         )
 
     def test_a_SECOND_run_is_not_matter_even_when_the_first_is(self):
@@ -173,8 +173,8 @@ class TestTheAPlaceIsFilledOutsidePython(unittest.TestCase):
         # comment: the second documents the declaration below it and takes its
         # `a`, which is the collision `two-paragraphs-one-address` measured.
         text = "// Copyright 2001.\n\n/// The name.\npub fn name() {}\n"
-        self.assertEqual(folio_of("z.rs", text, 1), "f0")
-        self.assertEqual(folio_of("z.rs", text, 3), "a1")
+        self.assertEqual(cue_of("z.rs", text, 1), "f0")
+        self.assertEqual(cue_of("z.rs", text, 3), "a1")
 
 
 class TestTheMatchIsOnTheFIRSTWORDNeverASubstring(unittest.TestCase):

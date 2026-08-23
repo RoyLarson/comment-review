@@ -6,7 +6,7 @@ superseded rulings into your context beside the live ones, where nothing tells t
 
 !! **THE OFFICIAL DEFINITIONS ARE IN
 `plugins/comment-review/skills/comment-review/references/vocabulary.toml`**, emitted by
-`scripts/vocabulary.py`; `foliator.py` is the code that owns the naming.
+`scripts/vocabulary.py`; `addresser.py` is the code that owns the naming.
 
 **A place is where prose sits, or where prose could sit.** Every finding, every record, every
 edit and every re-review names one.
@@ -67,18 +67,18 @@ is some specific reason to split them or make them act different"*.
 `c` at 1, and no test held either, so the two series began at 1 for no reason a reader could
 derive.
 
-!! **NO FOLIO CAN BE COMPUTED FROM ANOTHER, OR FROM A LINE'S ORDINAL.** Roy, 2026-08-19:
+!! **NO CUE CAN BE COMPUTED FROM ANOTHER, OR FROM A LINE'S ORDINAL.** Roy, 2026-08-19:
 *"remove any references that indicate anyone can expect that the next line of code is guaranteed
 to have the next foliation index. It is a happenstance and may change at any point if it is
 determined that another system will work better."*
 
-**Three FOLIATORS, three counters, one trigger list.** Each walks the MODULE and then every line
+**Three ADDRESSERS, three counters, one trigger list.** Each walks the MODULE and then every line
 of code, takes a number at every trigger, and emits or does not: `a` and `b` emit for the module,
 `c` steps past it. That any two series line up on a given file is an OUTCOME of that walk, not a
-rule -- and nothing in this system reads one folio to derive another.
+rule -- and nothing in this system reads one cue to derive another.
 
-! **ASK. DO NOT COUNT.** `foliator.py --anchor LINE --series a|b|c`, or `locator.py --at
-path:LINE`. The only supported way to learn a folio is to be told it.
+! **ASK. DO NOT COUNT.** `addresser.py --anchor LINE --series a|b|c`, or `locator.py --at
+path:LINE`. The only supported way to learn a cue is to be told it.
 
 !! **The `a` series counts DECLARATIONS, not code lines, and that is a ruling.** Numbering each
 declaration by the `c` of its own `def` would put all three series on one count, and was
@@ -142,9 +142,9 @@ X=2  # reseting X
 Every ADDRESS is unique -- measured `a0 b1 b2 b3 c1 c2` -- and that is the direction a record
 cites. But `X=2` is TWO anchors spelled alike, so it answers with **two `c` places and three `b`
 places**, drawn from two different statements: the first gap is anchored to line 1, the other two
-to line 5. ! Those folios are what THIS walk emits on THIS file. Nothing may count them out from
+to line 5. ! Those cues are what THIS walk emits on THIS file. Nothing may count them out from
 the lines -- see the ruling above.
-`foliator.py --anchor` prints every match and says how many; the CALLER chooses by address.
+`addresser.py --anchor` prints every match and says how many; the CALLER chooses by address.
 Taking the first rules on the wrong statement.
 
 ! **An anchor has ONE spelling: the line of code.** A declaration's `a`, the `b` above it and the
@@ -263,7 +263,7 @@ Measured on this repo's own shipped scripts, 2026-08-18 and 2026-08-19:
 
 **After, re-measured 2026-08-19 over 18 files in four languages -- `.py`, `.go`, `.rs`, `.rb`:
 7,436 lines, each with exactly ONE address. 0 with none, 0 with more than one, 0 shared.**
-`foliator.py --check` re-reads that claim on every run.
+`addresser.py --check` re-reads that claim on every run.
 
 ! **The first measurement was PYTHON-ONLY and overstated.** It read 6,873 lines, 0 shared -- true
 of Python, where a comment cannot open after a statement and run on. In every C-family language
@@ -280,7 +280,7 @@ differently wherever a consumer had guessed.
 | file | owns |
 | --- | --- |
 | `scripts/page.py` | what a PAGE is -- `Paragraph`, the kind sets over it, and `page_for()`, which builds one |
-| `scripts/foliator.py` | the ONE naming. It carried the deprecated `line_address()` beside it until 2026-08-20; see `docs/history.md` |
+| `scripts/addresser.py` | the ONE naming. It carried the deprecated `line_address()` beside it until 2026-08-20; see `docs/history.md` |
 | `scripts/census.py` | STAMPS the address on every block. It is the producer, and consumers read it |
 | `scripts/record.py` | `entry_for(address, blocks)` -- the one lookup from an address to a census entry |
 
@@ -296,13 +296,13 @@ inside one is how a citation lands a place off.
 
 ```bash
 # by ANCHOR -- which place of this declaration
-foliator.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
 
 # by LINE, when what you have is a line of the original document
 locator.py --census <FULL CENSUS> --at path:LINE
 
 # an address in, the lines THIS CENSUS says it names out
-foliator.py --census <CENSUS> --resolve <ADDRESS>
+addresser.py --census <CENSUS> --resolve <ADDRESS>
 ```
 
 !! **THE ADDRESSER READS THE CENSUS, NEVER THE TREE.** It takes no `--repo`: every question it

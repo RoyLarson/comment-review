@@ -26,9 +26,9 @@ Six mutations to shipped code survive the whole suite.
       landing on a licence header -- leaves 720 tests OK. The phrase occurs in
       tests only in a class DOCSTRING; no assertion anywhere that a verdict
       becomes `query`.
-- [ ] Replacing `beside = c.emit(line)` in `foliate` with the `c` folio COMPUTED
-      FROM the `b` folio -- the exact prohibition
-      `test_a_folio_is_never_DERIVED_from_another` is named for -- leaves 720
+- [ ] Replacing `beside = c.emit(line)` in `cue` with the `c` cue COMPUTED
+      FROM the `b` cue -- the exact prohibition
+      `test_a_cue_is_never_DERIVED_from_another` is named for -- leaves 720
       tests OK. That test asserts the absence of two deleted source strings.
 - [ ] Forcing `hits = 0` in `check_vocabulary.py:295`, so the retired-word
       detector can never fire, leaves 720 tests OK.
