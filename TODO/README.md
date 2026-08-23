@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (83)
+### open  (84)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -258,6 +258,7 @@ that changed a published name or rule:
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | comment-review | yes | 0/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | comment-review | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [exception-hierarchy](exception-hierarchy.md) | comment-review | — | 0/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
+| [language-rows-in-toml](language-rows-in-toml.md) | comment-review | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 
 ### in-progress  (5)
 
