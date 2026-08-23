@@ -73,6 +73,12 @@ evidence/*
 # the work.
 .tmp/
 
+# `todo_tool` writes `TODO/.<name>.md.tmp<pid>` and renames it into place. A run
+# that dies mid-write leaves one behind, and `git add -A` commits it -- measured
+# 2026-08-23, a 284-line temp copy of a TODO landed in a commit. ! `.tmp/` above
+# does not cover this: that is a directory, this is a dotted suffix.
+TODO/.*.md.tmp*
+
 # Session worktrees. Roy, 2026-08-23: two sessions committing on one branch
 # collide, so a second session works in a worktree and fast-forwards to pick the
 # branch up -- which means the worktree itself must never be tracked.
