@@ -29,8 +29,8 @@ for a syntax tree invited an apology for not being one, and everything the
 apology defended is correct for a page.
 
 ! Nothing here asks a tree question either. Measured 2026-08-18 across the
-shipped scripts: ZERO containment tests, and every consumer is a flat scan by
-path, a lookup by line, an ordered walk or a range splice. A tree would be
+shipped scripts: ZERO containment tests, and every consumer is a flat ITERATION
+by path, a lookup by line, an ordered walk or a range splice. A tree would be
 flattened again at each of them.
 
 ! Where hierarchy IS wanted it arrives as a stamped FACT, not a structure: a

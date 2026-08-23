@@ -385,10 +385,13 @@ class Foliation:
     understand what they are looking at right now in the code -- they need to
     search it anyways."*
 
-    ! Reading back is a LOOKUP, never arithmetic. `above` scans the code lines
+    ! Reading back is a LOOKUP, never arithmetic. `above` ITERATES the triggers
     the walk stepped and returns the folio it EMITTED there; it does not count
     anything. That is the difference between line order driving the walk and a
     line number computing a number.
+    ! It ITERATES rather than SCANS, and the word matters here: scanning is what
+    the LEXER does, over characters, looking at what they are. Nothing in this
+    module reads a character -- it steps a sequence it was handed.
 
     !! IT KEEPS ITS FOLIATORS RATHER THAN FLATTENING THEM. Roy, 2026-08-21:
     *"`_above`, `_beside`, `_declared`, `_front`, `_back`, `_closing` are 1
@@ -411,16 +414,29 @@ class Foliation:
     foliators: dict[str, Foliator] = field(
         default_factory=lambda: {name: Foliator(name) for name in SERIES}
     )
-    # !! THE WALK ITSELF, kept -- what `triggers()` returned: `[MODULE, *code,
-    # EOF]`. Every position a place reports indexes THIS, so holding it is what
-    # makes those positions mean something without arithmetic.
+    # !! WHAT THE WALK STEPS THROUGH, kept -- what `triggers()` returned:
+    # `[MODULE, *code, EOF]`. Every position a place reports indexes THIS, so
+    # holding it is what makes those positions mean something without arithmetic.
+    #
+    # !! IT WAS CALLED `walk`, AND THAT WORD ALREADY MEANT SOMETHING ELSE. Roy,
+    # 2026-08-22: *"because `Path.walk` is the common term, I feel that we should
+    # use a separate term for the lexing part."* `census._walk` enumerates the
+    # FILESYSTEM, which is what a Python reader expects `walk` to mean, and this
+    # field held the foliator's traversal -- one word, two meanings, in one
+    # package. ! The field takes its PRODUCER's name rather than a coinage: it
+    # is literally what `triggers()` returns.
+    #
+    # ! THE VERB IS STILL A WALK, and that is not the collision. This module
+    # walks the triggers and says so; nothing here enumerates a directory, and
+    # `census.py` never means anything but the filesystem. What was wrong was a
+    # NOUN naming the thing walked after the walking.
     #
     # !! IT REPLACED TWO FIELDS, and both were views of it. `lines` was
     # folio -> the line its anchor sits on, filled for `a` and `c` alone; `_code`
     # was the code lines the walk stepped, which is this list without its two
     # sentinels. Neither was a fact of its own: a place's line is the line of the
     # trigger it fired at, and the walk already knew both halves.
-    walk: list[int | str] = field(default_factory=list)
+    triggers: list[int | str] = field(default_factory=list)
     # !! EVERY PLACE IN READING ORDER, TOP TO BOTTOM, recorded by the walk that
     # emitted them. It is what a compositor sets from: a page IS its places in
     # sequence, and the sequence is a fact the walk knows rather than an
@@ -488,19 +504,19 @@ class Foliation:
         the file whose `anchor_of` twenty lines below records fixing exactly that
         quadratic. The property is deleted; the walk is the list.
         """
-        for step, trigger in enumerate(self.walk):
+        for step, trigger in enumerate(self.triggers):
             if isinstance(trigger, int) and line <= trigger:
                 return self.foliators[GAP].at(step - 1)
-        return self.foliators[GAP].at(len(self.walk) - 2)
+        return self.foliators[GAP].at(len(self.triggers) - 2)
 
     def beside(self, line: int) -> str:
         """The `c` on this line of code, or "" if the line holds no code.
 
-        ! ONE SCAN. It asked `line not in self._code` and then `.index(line)`,
-        which rebuilt the list twice to answer one question.
+        ! ONE ITERATION. It asked `line not in self._code` and then
+        `.index(line)`, which walked the list twice to answer one question.
         """
         try:
-            return self.foliators[ON].at(self.walk.index(line) - 1)
+            return self.foliators[ON].at(self.triggers.index(line) - 1)
         except ValueError:
             # ! A line the walk never stepped holds no code, which is a real
             # answer -- the sentinels are strings, so no line can match one.
@@ -543,9 +559,9 @@ class Foliation:
         because a consumer READING A FILE needs a line to slice it, which is a
         different job from naming or ordering a place.
         """
-        if not self.walk:
+        if not self.triggers:
             return None
-        trigger = self.walk[self.anchor_num(folio)]
+        trigger = self.triggers[self.anchor_num(folio)]
         return trigger if isinstance(trigger, int) else None
 
     def anchor_num(self, folio: str) -> int:
@@ -623,9 +639,9 @@ class Foliation:
         if not folio.startswith(GAP):
             return (0, 0)
         at = self.anchor_num(folio)
-        if not 0 < at < len(self.walk):
+        if not 0 < at < len(self.triggers):
             return (0, 0)
-        previous, following = self.walk[at - 1], self.walk[at]
+        previous, following = self.triggers[at - 1], self.triggers[at]
         return (
             previous if isinstance(previous, int) else 0,
             following if isinstance(following, int) else 0,
@@ -733,7 +749,7 @@ def foliate(
     # the walk fills the object it returns rather than a set of side tables.
     # ! THE FOLIATION KEEPS THE WALK IT MADE, so every position a place reports
     # indexes something the object still holds.
-    out = Foliation(walk=triggers(list(code)))
+    out = Foliation(triggers=triggers(list(code)))
     a, b, c, f = (out.foliators[s] for s in (DECLARED, GAP, ON, COVERS))
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. Roy, 2026-08-20: *"we need to be able to distinguish `a`
@@ -761,12 +777,12 @@ def foliate(
     # ! It cannot be recovered from the anchor: the closing gap fires at EOF and
     # records the LAST LINE OF CODE, and both `f` places record `<module>` from
     # opposite ends of the file.
-    # ! THE FOLIATION'S OWN LIST, not a second call. `out.walk` IS what
+    # ! THE FOLIATION'S OWN LIST, not a second call. `out.triggers` IS what
     # `triggers()` returned above, and building it twice is the drift the
     # function's own docstring forbids -- *"ONE LIST, SO THE THREE SERIES CANNOT
     # DRIFT APART."* Two calls agree today and are two things that can stop
     # agreeing, which is the whole reason the list exists.
-    for at, trigger in enumerate(out.walk):
+    for at, trigger in enumerate(out.triggers):
         # ! A SENTINEL IS A STRING AND A LINE IS AN INT. Neither sentinel is a
         # line, which is what makes them sentinels.
         if isinstance(trigger, str):
@@ -1353,17 +1369,31 @@ def unaddressed(paragraphs: list[dict]) -> list[str]:
     for path in sorted({str(b.get("path", "")) for b in paragraphs}):
         mine = [b for b in paragraphs if str(b.get("path", "")) == path]
         for i, paragraph in enumerate(mine, 1):
-            # !! A PARAGRAPH CARRYING A SYMBOL OWES NO ADDRESS, since 2026-08-22.
-            # Leading is the only kind that does: it names no place -- see
-            # `SERIES` -- so demanding one of it asks for something that cannot
-            # exist. ! The test is the SYMBOL and not the kind, so this stays a
-            # leaf: `foliator` never learns what the lexer calls a blank run.
-            if not stable(paragraph) and not paragraph.get("symbol"):
+            if owes_address(paragraph) and not stable(paragraph):
                 out.append(
                     f"{path} entry {i}: lines"
                     f" {paragraph.get('start')}-{paragraph.get('end')}"
                 )
     return out
+
+
+def owes_address(paragraph: dict) -> bool:
+    """Is this a paragraph an address is REQUIRED of?
+
+    !! A PARAGRAPH CARRYING A SYMBOL OWES NONE, since 2026-08-22. Leading is the
+    only kind that does: it names no place -- see `SERIES` -- so demanding one of
+    it asks for something that cannot exist. ! The test is the SYMBOL and not the
+    kind, so this stays a leaf: `foliator` never learns what the lexer calls a
+    blank run.
+
+    !! IT IS A FUNCTION BECAUSE TWO CALLERS DISAGREED ABOUT IT. `unaddressed`
+    exempted leading; `_check`'s HEADLINE counted it in both the numerator and
+    the denominator, so a census of this repo's own scripts printed `8542 of 8542
+    paragraphs addressed` while 392 of them carried no address at all. MEASURED
+    2026-08-22. Neither number was wrong about what it counted; they counted
+    different populations and were printed as one sentence.
+    """
+    return not paragraph.get("symbol")
 
 
 def _check(paragraphs: list[dict]) -> int:
@@ -1415,9 +1445,19 @@ def _check(paragraphs: list[dict]) -> int:
         print(f"UNADDRESSED  {line}")
     for where, rows in sorted(shared.items()):
         print(f"SHARED       {where}  <- {' | '.join(rows)}")
-    named = len(paragraphs) - len(missing)
+    # ! THE SAME POPULATION `unaddressed` ASKED ABOUT, via the same predicate.
+    # Counting every paragraph here and only the owing ones there is what made
+    # the sentence false.
+    owed = [b for b in paragraphs if owes_address(b)]
+    exempt = len(paragraphs) - len(owed)
+    named = len(owed) - len(missing)
     files = len({str(b.get("path", "")) for b in paragraphs})
-    print(f"\n{named} of {len(paragraphs)} paragraphs addressed over {files} files.")
+    print(f"\n{named} of {len(owed)} paragraphs addressed over {files} files.")
+    if exempt:
+        # ! SAID, NOT SILENTLY DROPPED. A reader comparing this against the
+        # census's own total needs to know why the two differ, and `leading` is
+        # the whole of the difference.
+        print(f"{exempt} carry a symbol instead, and are owed no address.")
     if shared:
         # ! Advice only where it applies. Printing it against zero shared places
         # tells a reader to guard something that did not happen.

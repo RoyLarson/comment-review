@@ -55,7 +55,6 @@ from foliator import (  # noqa: E402  -- path shim must run first
     unaddressed,
 )
 from lexer import (  # noqa: E402  -- path shim must run first
-    BY_EXT,
     LANGUAGES,
     NAMED_DEFS,
     TIER_ANSWERS,
@@ -77,18 +76,31 @@ from repo import (  # noqa: E402  -- path shim must run first
 
 
 def _walk(root: Path):
-    """Every file under `root` this script has a language record for.
+    """Every file under `root`. It ENUMERATES; it classifies nothing.
 
-    ! Filters on `BY_EXT`, so every language `--languages` advertises is walked.
-    Hardcoded to `*.py`, the scan went Python-only, and a file the walk skips is
-    absent from the NOT CHECKED list too -- the run then reports a full census of
-    a fraction of the tree.
+    !! IT FILTERED ON `BY_EXT` AND THAT WAS A SECOND POLICY. `main` already asks
+    `language_for(path) is None` and REFUSES at exit 1 -- the caller asked for
+    that file -- so the same question was answered in two places with two
+    different consequences, and the silent one won for a directory. MEASURED
+    2026-08-22 on a two-file directory: an unsupported file NAMED exits 1, the
+    same file WALKED vanished at exit 0. `every file handed in is censused or
+    this errors` was true of explicit paths and false of directories.
+
+    ! SO THE WALK STOPPED DECIDING. Whether a file with no language record is a
+    refusal or a note is the CENSUS's call, and it turns on something only the
+    census knows: whether the path was NAMED or merely FOUND. A directory holds
+    READMEs, images and lockfiles; refusing on those makes the form unusable,
+    and skipping them in silence is the false completeness this warns about.
+
+    ! `EXCLUDED_DIRS` STAYS, because it is not the same question. It is about
+    where the walk may GO -- a vendored tree is not this repo's code at all --
+    rather than about what a file is once found.
     """
     if root.is_file():
         yield root
         return
     for p in sorted(root.rglob("*")):
-        if p.is_file() and p.suffix.lower() in BY_EXT:
+        if p.is_file():
             # !! RELATIVE to the root being walked. Matched against `p.parts`
             # this tested every ANCESTOR too, so a checkout living anywhere
             # under a directory called `venv`, `.venv`, `node_modules`,
@@ -296,7 +308,21 @@ def _report(args: argparse.Namespace) -> int:
 
     repo = Path(args.repo).resolve()
     targets = [Path(p) for p in args.paths]
-    files = sorted({f for t in targets for f in _walk(t)})
+    # ! WALKED ONCE PER TARGET. The emptiness test below re-walked every tree a
+    # second time to ask `not any(_walk(t))`, which this already knows.
+    by_target = {t: sorted(_walk(t)) for t in targets}
+    # !! NAMED, AS AGAINST FOUND -- the distinction the walk is no longer making.
+    # A file the caller NAMED is refused when nothing can read it; a file the
+    # walk came across is reported and skipped, because a directory holds
+    # READMEs and lockfiles and refusing on those makes the form unusable.
+    named = {t.resolve() for t in targets if t.is_file()}
+    no_record: list[str] = []
+    files = []
+    for path in sorted({f for found in by_target.values() for f in found}):
+        if language_for(path) is None and path.resolve() not in named:
+            no_record.append(path.as_posix())
+        else:
+            files.append(path)
     known, unread = code_names([repo], tracked_paths(repo))
     paths = path_index(repo)
 
@@ -304,7 +330,9 @@ def _report(args: argparse.Namespace) -> int:
     # A path argument that matched no file joins `unreadable`, so a typo errors
     # on the same rule every other gap does.
     unreadable: list[str] = [
-        f"{t.as_posix()} (matched no files)" for t in targets if not any(_walk(t))
+        f"{t.as_posix()} (matched no files)"
+        for t, found in by_target.items()
+        if not found
     ]
     for path in files:
         try:
@@ -585,6 +613,27 @@ def _report(args: argparse.Namespace) -> int:
         "CANDIDATES a reviewer confirms; a resolved path is a fact about the\n"
         "filesystem, already settled. The whole list is printed every run."
     )
+    if no_record:
+        # !! SAID, NOT REFUSED, and it used to be neither. A file the walk came
+        # across with no language record simply vanished, so a directory target
+        # reported a complete census of whatever it happened to understand --
+        # the false completeness this script's own contract exists to prevent.
+        # ! A NAMED file still ERRORS: the caller asked for that one. This is the
+        # other half, where the caller asked for a tree and cannot know what was
+        # in it. MEASURED 2026-08-22 on a two-file directory: named, exit 1;
+        # walked, gone at exit 0.
+        print(
+            f"\nPASSED OVER -- {len(no_record)} file(s) under a directory target"
+            " have no language record, so nothing read them:"
+        )
+        for row in no_record[:20]:
+            print(f"    {row}")
+        if len(no_record) > 20:
+            print(f"    ... and {len(no_record) - 20} more")
+        print(
+            "  ! Name one on the command line to make it an ERROR instead --"
+            " `--languages` lists what is known."
+        )
     # The reviewers are handed the CENSUS, so a file missing from it is paragraphs
     # nobody reviews and there is nothing downstream that notices. Exit on it.
     if unreadable:
