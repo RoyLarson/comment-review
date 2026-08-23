@@ -218,7 +218,7 @@ that changed a published name or rule:
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | session | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 | [b-owns-the-blank-lines](b-owns-the-blank-lines.md) | session | — | 10/12 | b must own a gap's blank lines on the ORIGINAL range, not just the addressing one |
 | [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | session | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
-| [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | session | — | 1/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
+| [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | session | — | 1/5 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | session | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | session | — | 1/6 | 720 tests green against six deliberate defects in shipped code |
 | [the-xfails-never-reach-the-galley](the-xfails-never-reach-the-galley.md) | session | — | 0/3 | they fail in the test helper on a retired lookup, not in splice_range |

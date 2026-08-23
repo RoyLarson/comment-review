@@ -424,7 +424,19 @@ only which side of the network each commit is on.
       `evals/generator_split.py` already splits a corpus's prose defects by whether the
       introducing commit carries an assistant trailer, so the search tooling half exists.
 
-- [x] * **RULED 2026-08-23 by Roy: A SECOND SUITE, with its own layout.** Role cases and
+- [x] !! **SUPERSEDED THE SAME DAY BY WHAT LANDED: NO SECOND SUITE.** `e31b438` extended
+      `evals/evals.json` instead -- case 3 `rename-left-history-in-the-comments` carries `start`
+      and `end` beside `prompt`, `hazards` and `evidence`, and the file's own `notes` states the
+      rule: *"a fixture is a checkout at a hash, and a fix commit is an answer key. A case that
+      carries `start`/`end` is graded over that RANGE."*
+
+      ! **The ruling below was sound and its PREMISE expired.** It chose a second suite because
+      `evals.json` had *"nowhere to put"* a hash. Two new keys is where. ! The keys were written
+      `base`/`fixed` and were overwritten to `start`/`end` (`decision-log.md Vocabulary: #10`),
+      because `base` already meant a planted hazard's unmodified text in `grade_hazards.py` and a
+      merge-base in `prove_unchanged.py`.
+
+      **RULED 2026-08-23 by Roy: A SECOND SUITE, with its own layout.** Role cases and
       hash-pinned fixtures live there; `evals/evals.json` is untouched and the shipped runner
       keeps covering whole-skill cases only. So the corpus is a case per file, and a case
       carries `(address, hash, files, role)` -- the shape `evals.json` has nowhere to put.

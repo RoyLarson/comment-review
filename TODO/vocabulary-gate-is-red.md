@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks done
+Progress: 1 of 5 tasks done
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
@@ -37,3 +37,11 @@ The vocabulary gate is red, and the test that would say so does not exist.
       `block_problem`, `block_text` and `as_block` -- live functions in
       `desk.py`/`lexer.py` -- are invisible to it and the gate prints a false *"0
       uses in the shipped tree"*.
+- [ ] !! IT IS TWO CHECKS WITH NO TEST, NOT ONE, and the strict rewrite did not
+      add either. Measured 2026-08-23 after `e31b438` rewrote 82 lines of
+      `tests/test_vocabulary.py`: the gate exposes `check_complete`,
+      `check_drift`, `check_duplicate` and `check_retired`, and the suite asserts
+      only the last two. So `check_complete` -- the "0 holes" line -- is
+      unasserted as well as `check_drift`. ! The commit that made this gate STRICT
+      is the one that rewrote the test file, which is the moment the assertion was
+      most likely to be added and was not.
