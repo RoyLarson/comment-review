@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (82)
+### open  (81)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -243,7 +243,6 @@ that changed a published name or rule:
 | [python-cannot-read-python](python-cannot-read-python.md) | backend | — | 31/33 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | backend | yes | 9/11 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
-| [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | — | 0/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | systems | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | yes | 0/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | backend | yes | 0/7 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
@@ -258,7 +257,7 @@ that changed a published name or rule:
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | yes | 0/6 | Two graded arms, orchestration held constant; the rewording is the confound |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | yes | 4/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
-| [computed-and-never-read](computed-and-never-read.md) | backend | — | 0/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
+| [computed-and-never-read](computed-and-never-read.md) | backend | — | 2/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [not-every-line-has-an-address](not-every-line-has-an-address.md) | backend | yes | 0/8 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | yes | 0/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [retired-word-in-a-quote](retired-word-in-a-quote.md) | systems | yes | 0/5 | folio cannot join RETIRED without exempting the five core modules whole, because each quotes a ruling made when the word was current |
@@ -274,7 +273,7 @@ that changed a published name or rule:
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | yes | 5/10 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
-### decision-needed  (6)
+### decision-needed  (7)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -284,6 +283,7 @@ other tasks can proceed without them._
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | agents | yes | 1/7 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 | [front-half-undetermined](front-half-undetermined.md) | testing | yes | 0/7 | The census to findings to verdicts path has never been determined against a backend that works |
 | [a-role-with-no-code-out-damages-the-prose](a-role-with-no-code-out-damages-the-prose.md) | agents | yes | 0/5 | `code_concerns` is defined in the shared brief that every role reads, but named in only ONE of the four reviewer files -- `function-context`. It is absent from `module-context`, whose whole remit is whether a module announces ONE subject, which is the finding that most needs a code out. MEASURED in the harness: `module-context-widens-a-two-subject-docstring` detected that `verdicts.py` holds four subjects, had no verdict for 'split this module', and emitted a prose `patch` widening the docstring to announce TWO -- the exact defect its own trigger is named for. `code_concerns` came back empty. |
+| [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | yes | 4/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 
 ### in flight  (0)
 

@@ -2,11 +2,22 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks done
+Progress: 2 of 8 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
           not by dead_sweep.py, which is blind to unused parameters and tuple elements)
+RE-CHECKED: 2026-08-23 — 2026-08-23. Task 6 is a measurement the file itself says is
+            deliberately not counted -- a record, not a task. Task 8 is done: front-
+            matter-protection-is-python-only is SUPERSEDED in completed/, and dead-
+            sweep-skips-private's stale citations are resolved (page._SHEBANG,
+            page._CODING and Cues.first_code_line/last_code_line are all deleted). !
+            STILL LIVE, verified in place: documentable() still returns dict[int,
+            tuple[int, int, str]] with the insert line thrown away by both consumers
+            (tasks 1 and 2 name the same work); record.prose_paragraphs still returns an
+            index only tests read; code_lines and declarations are still computed twice
+            per page (page.py:419-420 then :725-726); and language_for is still imported
+            from language by compositor.py:68 and from lexer by galley.py:89.
 ```
 
 ## Objective
@@ -70,7 +81,7 @@ about, and it is where the next false docstring attaches.
       arguments. ! NOT fixed in round 7 because the fix is a signature change and
       `places_on` has four test callers that read the cues alone. The
       duplicated `vars()` rebuild between them WAS hoisted.
-- [ ] ! MEASURED AND DELIBERATELY NOT COUNTED: `census.py`'s double
+- [x] ! MEASURED AND DELIBERATELY NOT COUNTED: `census.py`'s double
       `prose_numbers` pass is 21 ms over 6,429 paragraphs. Real duplication, too
       cheap to sell as efficiency -- recorded so nobody re-measures it.
 - [ ] `language_for` IS TAKEN FROM TWO DIFFERENT MODULES. `compositor.py` imports
@@ -79,7 +90,7 @@ about, and it is where the next false docstring attaches.
       direct importers were *"the only two that may ask a language anything"* --
       false, seven other sites call it -- but which import a module SHOULD take is
       unruled.
-- [ ] TWO TODOs DESCRIBE A FUNCTION THAT NO LONGER EXISTS. `front-matter-
+- [x] TWO TODOs DESCRIBE A FUNCTION THAT NO LONGER EXISTS. `front-matter-
       protection-is-python-only.md` is written throughout as though `mark_matter`
       were live; it was removed and its five comment citations were cut in round
       7. `dead-sweep-skips-private.md` cites `page.py:793-794` for
