@@ -1,7 +1,7 @@
 # The lexer does not lex -- it reads a parse
 
 ```
-Status:   open
+Status:   blocked (python-cannot-read-python -- the lexical reader)
 Progress: 0 of 7 tasks done
 Owner:    comment-review
 Requires-Roy: true
@@ -17,6 +17,9 @@ Known:    2026-08-22 — IT MOSTLY WORKS, AND THE EXCEPTION IS NAMED. Roy, 2026-
           and their adjacency has to be reconstructed. ! A lexical reader has the
           opposite problem and not this one: it sees both as runs of characters in
           order.
+Updated:  2026-08-23 — CLAUDE.md states the dependency: the tier name test has nothing
+          to answer once Python is read lexically, so the module lexes and the two-jobs
+          split disappears rather than being worked
 ```
 
 ## Objective

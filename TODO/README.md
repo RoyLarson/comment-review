@@ -171,7 +171,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (85)
+### open  (83)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -238,7 +238,6 @@ that changed a published name or rule:
 | [python-cannot-read-python](python-cannot-read-python.md) | session | yes | 0/31 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | session | yes | 0/10 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | session | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
-| [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | session | — | 0/11 | the closing quote and the comment beside it are both stored, so the file gains a line |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | comment-review | — | 0/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | comment-review | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | comment-review | yes | 0/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
@@ -253,7 +252,6 @@ that changed a published name or rule:
 | [exception-hierarchy](exception-hierarchy.md) | comment-review | — | 0/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | comment-review | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | comment-review | yes | 0/6 | Two graded arms, orchestration held constant; the rewording is the confound |
-| [lexer-does-not-lex](lexer-does-not-lex.md) | comment-review | yes | 0/7 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | comment-review | yes | 4/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [computed-and-never-read](computed-and-never-read.md) | session | — | 0/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [not-every-line-has-an-address](not-every-line-has-an-address.md) | comment-review | yes | 0/8 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
@@ -286,7 +284,7 @@ other tasks can proceed without them._
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 
-### blocked  (5)
+### blocked  (7)
 
 _None._
 
@@ -295,6 +293,8 @@ _None._
 | [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | session | — | 2/5 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | session | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [drop-the-column](drop-the-column.md) | session | — | 0/6 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
+| [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | session | — | 0/11 | the closing quote and the comment beside it are both stored, so the file gains a line |
+| [lexer-does-not-lex](lexer-does-not-lex.md) | comment-review | yes | 0/7 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
 ---
 
 ## Completed

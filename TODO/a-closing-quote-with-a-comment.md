@@ -1,7 +1,7 @@
 # A docstring whose closing `"""` carries a trailing comment is owned twice
 
 ```
-Status:   open
+Status:   blocked (python-cannot-read-python -- the lexical reader)
 Progress: 0 of 11 tasks done
 Owner:    session
 Requires-Roy: false
@@ -20,6 +20,9 @@ Evidence: 2026-08-22 — THE ONE FILE THAT WILL NOT ROUND TRIP IS THE ARGUMENT F
           check in this tree fails on precisely the shape the AST tier creates and the
           lexical tier does not -- which is evidence for the rework rather than a defect
           beside it.
+Updated:  2026-08-23 — its own last two tasks say it needs nothing of its own, and Roy
+          ruled 2026-08-21 that the numpy case falls out automatically with the Python
+          branch. Blocked, not closed: deferred is not done
 ```
 
 ## Objective
