@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 12 tasks done
+Progress: 5 of 14 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 4, 2026-08-22 -- the findings OUTSIDE the
@@ -34,6 +34,16 @@ SPLIT:    2026-08-23 -- one failure per box, with the evidence moved to the Obje
           two, so 9 findings sit in 10 boxes. A second pass split the `patch` box into the
           gate and the generated instruction, and the at-sign box into its two rejected
           cases -- 10 boxes became 12. Nothing was re-measured.
+Fixed:    2026-08-24 — T1, T2 and T9 landed, all three verified by RUNNING them. T1/T2
+          resolved toward the BRIEF rather than the gate: the patch row now sets
+          owes_sources False, so the shipped sentence and desk.py agree and a sourceless
+          patch is ADMITTED while a sourceless correct is still refused. ! T9 was TWO
+          sites, not one -- the membership test in record_problems AND a dict lookup in
+          claim_problems at :957, which .get hashes the same way; record_problems now
+          reports the shape and returns before both. ! NEITHER FIX MOVED THE SUITE: 820
+          tests passed before and after, so nothing covered either one. T13 and T14 are
+          those tests, and they are testing lane in a backend-owned file -- systems to
+          split if it wants.
 ```
 
 ## Objective
@@ -46,10 +56,13 @@ finishes when the failure stops reproducing.
 
 ### The evidence, per finding
 
-**The `patch` payload and `owes_sources` disagree, in the shipped tree.** `record.py`'s `patch`
+**The `patch` payload and `owes_sources` disagreed, in the shipped tree.** `record.py`'s `patch`
 row says a patch needs no source and that sentence is generated VERBATIM into the shipped
-reviewer-brief, but `owes_sources` stays True -- only `clean` clears it -- so `desk.py` fatally
-refuses every `patch` a compliant reviewer files. ! RE-CONFIRMED BY RUNNING IT, 2026-08-23.
+reviewer-brief, but `owes_sources` stayed True -- only `clean` cleared it -- so `desk.py` fatally
+refused every `patch` a compliant reviewer filed. ! RE-CONFIRMED BY RUNNING IT, 2026-08-23.
+**FIXED 2026-08-24, toward the BRIEF**: the row sets `owes_sources=False`, because a `patch` rules
+on wording the paragraph itself settles, so a source would be evidence for a claim nobody made.
+Measured after: a sourceless `patch` is ADMITTED, a sourceless `correct` is still REFUSED.
 
 **A non-reviewer role name passes the UNKNOWN-reviewer check.** `published` is built from
 `vocabulary.Reviewer` (`verdicts.py:403`), which also holds `compact` and `review`
@@ -73,9 +86,14 @@ pattern matches only a series letter and digits -- so both a prose destination n
 accessor and a real front-matter address are rejected as `not an address`. ! NOT RE-RUN
 2026-08-23.
 
-**`verdict not in VERDICTS` is asked of unvalidated JSON** in `record.py`, so a verdict written as
-a LIST raises `TypeError` and takes the pre-flight down. ! RE-CONFIRMED BY RUNNING IT, 2026-08-23:
+**`verdict not in VERDICTS` was asked of unvalidated JSON** in `record.py`, so a verdict written as
+a LIST raised `TypeError` and took the pre-flight down. ! RE-CONFIRMED BY RUNNING IT, 2026-08-23:
 `record_problems({"verdict": ["patch"]}, None)` gives `TypeError: unhashable type: list`.
+**FIXED 2026-08-24, and it was TWO sites rather than one** -- guarding the membership test alone
+still raised, from `ALLOWED["claim"].get(verdict)` in `claim_problems`, because `.get` hashes its
+argument exactly as `in` does. `record_problems` now reports the shape and returns before both
+verdict-keyed helpers. ! A NUMBER never raised: it hashes, so only the two JSON container types
+reached it.
 
 **`compositor.draft` writes `set_page(page)` with no losslessness check.** ! The obvious fix does
 NOT work and the reason matters: `lossless()` rebuilds the page FROM DISK, so it cannot be asked
@@ -83,7 +101,7 @@ of a drafted page -- the whole point of a draft is that lines changed. The guard
 is an identity check on the page BEFORE any verdict is applied, so a later difference is
 attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
 
-### The two that are fixed
+### The two that arrived already fixed
 
 - **`record.py:1074`** now guards with `isinstance(report.get("pages"), list)` and returns *not a
   seeded report*, where passing a census in place of a report died with `AttributeError` instead
@@ -95,9 +113,9 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
 
 ## Tasks
 
-- [ ] T1 -- `desk.py` -- stop `owes_sources` fatally refusing a `patch` filed with no
+- [x] T1 -- `desk.py` -- stop `owes_sources` fatally refusing a `patch` filed with no
       source. Verify: such a `patch` is admitted.
-- [ ] T2 -- `record.py` -- make the generated `patch` row say what `desk.py`'s gate
+- [x] T2 -- `record.py` -- make the generated `patch` row say what `desk.py`'s gate
       enforces. Verify: the shipped brief's sentence and `owes_sources` agree.
 - [ ] T3 -- `verdicts.py` -- stop `vocabulary.Reviewer` admitting non-reviewer role names.
       Verify: a report named `review.json` is refused as an unknown reviewer.
@@ -111,7 +129,7 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
       address claim. Verify: such a `move` is admitted.
 - [ ] T8 -- `desk.py` -- accept a real front-matter address in a `move`'s `to:`. Verify:
       it passes the address check instead of being rejected.
-- [ ] T9 -- `record.py` -- validate the verdict's shape before the `not in VERDICTS` test.
+- [x] T9 -- `record.py` -- validate the verdict's shape before the `not in VERDICTS` test.
       Verify: `record_problems({"verdict": ["patch"]}, None)` returns a problem.
 - [ ] T10 -- `compositor.draft` -- identity-check the page BEFORE any verdict is applied.
       Verify: `draft` refuses a page that does not set back identically.
@@ -119,3 +137,7 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
       with `isinstance(..., list)`. In the Objective.
 - [x] T12 -- FIXED, found 2026-08-23. `run_context.py` derives both numbers from
       `PATH_SECTIONS`, which holds four. In the Objective.
+- [ ] T13 -- `testing` -- a sourceless `patch` is admitted, and the brief's sentence is
+      pinned to its row. Verify: it fails if `owes_sources` goes back to True on `patch`.
+- [ ] T14 -- `testing` -- a list, dict or number verdict returns a shape diagnostic.
+      Verify: it fails if `record_problems`'s isinstance guard is removed.

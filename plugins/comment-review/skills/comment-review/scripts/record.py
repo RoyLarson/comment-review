@@ -115,7 +115,11 @@ class Verdict:
             downstream reads. Measured 2026-08-17.
         owes_address: `clean` is exempt because a role returns it on most of the
             census; transcribing each would be the bulk of a report.
-        owes_sources: `clean` cites no claim, so it cites no place.
+        owes_sources: TWO are exempt, for two different reasons. `clean` cites
+            no claim, so it cites no place. `patch` makes a claim about the
+            WORDING alone -- `from:` is checked against the paragraph itself,
+            and nothing outside it settles whether a sentence reads better --
+            so a source would be evidence for a claim nobody made.
         diffable: `BLOCK`-against-`CHANGE` names the edited sentence. False
             where there is nothing to diff -- no text proposed, no original, or
             a `CHANGE` holding two paragraphs rather than one.
@@ -244,6 +248,13 @@ VERDICTS: dict[str, Verdict] = {
         claim_help="patch needs `claim.from` and `claim.to`, both filled",
         quotes_original="from:",
         quotes_until="/ to:",
+        # !! SET FROM THE PAYLOAD ABOVE, WHICH SHIPS. That sentence is
+        # generated verbatim into `reviewer-brief.md` and said a patch needs no
+        # source while this stayed True, so `desk.py` fatally refused every
+        # `patch` a compliant reviewer filed. Measured 2026-08-22, re-confirmed
+        # 2026-08-23 and again 2026-08-24. ! The gate and the instruction now
+        # read off the same row, which is what the row is for.
+        owes_sources=False,
         rules_on_text=True,
     ),
     "add": Verdict(
@@ -1033,8 +1044,19 @@ def version_problem(report: dict) -> str | None:
 def record_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
     """Everything wrong with the SHAPE of one record."""
     out = seeded_problems(where, rec, paragraph)
+    # !! THE SHAPE BEFORE THE MEMBERSHIP, BECAUSE `in` HASHES ITS LEFT SIDE.
+    # `verdict not in VERDICTS` was asked of unvalidated JSON, so a verdict
+    # written as a LIST or a DICT raised `TypeError: unhashable type` and took
+    # the whole pre-flight down -- a malformed report crashing the one function
+    # whose job is to say what is malformed about it. Measured 2026-08-24:
+    # `record_problems("r", {"verdict": ["patch"]}, None)` raised. ! A NUMBER
+    # never did, because a number hashes -- so the crash was reachable only
+    # from the two JSON types nothing else here rejects first.
     verdict = rec.get("verdict")
-    if verdict is not None and verdict not in VERDICTS:
+    unhashable_verdict = verdict is not None and not isinstance(verdict, str)
+    if unhashable_verdict:
+        out.append(f"{where}: `verdict` is {type(verdict).__name__}, not str")
+    elif verdict is not None and verdict not in VERDICTS:
         out.append(f"{where}: verdict {verdict!r} is not one of {sorted(VERDICTS)}")
     for field, want in SHAPES.items():
         if field not in rec:
@@ -1056,6 +1078,13 @@ def record_problems(where: str, rec: dict, paragraph: dict | None) -> list[str]:
                 f"{where}: source {i} is not `{{cite, verbatim}}` -- it reads"
                 f" {source!r}"
             )
+    # !! AND IT STOPS HERE, BECAUSE BOTH OF THESE KEY A TABLE BY THE VERDICT --
+    # `claim_problems` reads `ALLOWED["claim"].get(verdict)` and
+    # `value_problems` reads `VERDICTS.get(verdict)`, and `.get` hashes its
+    # argument exactly as `in` does. The shape is already reported above; every
+    # field check that does NOT depend on the verdict has already run.
+    if unhashable_verdict:
+        return out
     out += claim_problems(where, rec)
     out += value_problems(where, rec)
     return out

@@ -305,8 +305,13 @@ def source_problem(f: Finding, repo: Path) -> str | None:
     "requires `SOURCES`, by construction -- this is where you looked", and
     this script waived it; Roy ruled the brief right on
     2026-08-16. Where you looked is a real line in the checkout on all three
-    query shapes, so it resolves like any other citation. Only `clean` is
-    exempt, because a `clean` reports no claim to cite.
+    query shapes, so it resolves like any other citation. TWO are exempt, and
+    the row says which: `clean` reports no claim to cite, and `patch` rules on
+    the WORDING of a sentence already true, which the paragraph itself settles.
+    ! The exemption is read from `Verdict.owes_sources` and is not a branch
+    here -- the `patch` row said in its shipped payload that it needed no
+    source while the flag stayed True, and this gate refused every compliant
+    `patch` for it.
 
     !! SEVERAL CITATIONS, comma-separated, and EVERY one must resolve. The
     brief has always asked for "`file(s):line(s)` you opened", and this took one
