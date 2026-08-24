@@ -235,3 +235,25 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   hole in its functionality that made it unshippable."* That whole plan was written, worked and
   closed while the sentence it contradicted stood unchanged. **A scope stated as a claim that
   nothing re-checks collects its corrections beside it rather than into it.**
+
+- **#8.** **A piece is missing between the collated proof and the galley, and it composes rather
+  than chooses** (Roy, 2026-08-24): *"the system assumes that verdicts and records are what is
+  used to write from the galley, but the galley only really needs this address gets this
+  paragraph ... So we have a missing piece in the chain."* The galley's contract was always
+  right -- `{address: text}` -- and **nothing in the tree produces that file.**
+
+  ! **TWO SHIPPED SENTENCES DESCRIBED THE HOLE DIFFERENTLY**: `SKILL.md:925` says *"nothing
+  between stage 5 and the galley converts"*, and `galley.py:173` says `--edits` is
+  *"machine-written from approved text"*. Neither is a producer.
+
+  !! **IT COMPOSES MECHANICALLY IN THE SYNTHESIS ORDER; ONLY A CONTRADICTION STOPS IT.** Roy:
+  *"multiple answers can be true, not just either this or that ... where things do not conflict
+  and come back clean that is probably a single transform."* The copy chief writes text only
+  where two marks genuinely contradict.
+
+  !! **AND EVERY MARK IS NAMED OR THE RUN REFUSES.** The artifact carries address -> text -> the
+  marks it answers. ! Without that, the step between the proof and the galley is where a finding
+  can vanish with nothing to show it was raised.
+
+  ! The name is unsettled and is Roy's: `TODO/nothing-makes-the-fair-copy.md` T1 uses **fair
+  copy** as a working candidate only, on `CLAUDE.md`'s rule that the name comes last.
