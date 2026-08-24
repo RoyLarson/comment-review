@@ -211,3 +211,27 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **SUPERSEDES the flat `tests/** -> testing` row** in [`lanes.md`](lanes.md), which sent a
   `record.py` regression test to the lane that owns the grader. `testing` owns the GRADER and the
   GRADES, and its work lives on the harness branch.
+
+- **#6.** **It works correctly first; the design is made correct after** (Roy, 2026-08-24): *"It
+  is make things work correctly, make the software design 'correct' after it works correctly.
+  Design, then refactor."* ! **The design may be WRITTEN first** -- the two 2026-08-23 specs were
+  -- but the code does not move onto it until the code is right. ! Same instinct as `#1`: that
+  refuses a fix written against wrong inputs because the fix is shaped by them; this refuses a
+  restructure of code that does not yet do its job, because the shape would be chosen against
+  behaviour nobody has established.
+
+- **#7.** **0.2.4's premise failed, and the scope is the whole backend round trip** (Roy,
+  2026-08-24): *"the plan's scope assumed it was going to be a minor modification to the backend
+  to accomplish what it started. It wasn't, because the system was too broken. And shipping the
+  minor modification on a broken thing is not okay."* The release is READ, CENSUS, GIVE, TAKE,
+  RESOLVE, PROVE -- not the handout alone.
+
+  ! **A RETRACTION OF A PREMISE, NOT A WIDENING OF AMBITION.** The original scope -- *the release
+  is the ADDRESS* -- is kept at the top of that plan verbatim, because it is what was believed
+  when sixteen boxes were ticked under it.
+
+  !! **AND IT WAS DISCOVERED ONCE ALREADY, THREE DAYS EARLIER, WITHOUT REACHING THE PLAN.** Roy,
+  2026-08-21, on why a second plan was branched off this one: *"the 0.2.4 plan had the gaping
+  hole in its functionality that made it unshippable."* That whole plan was written, worked and
+  closed while the sentence it contradicted stood unchanged. **A scope stated as a claim that
+  nothing re-checks collects its corrections beside it rather than into it.**
