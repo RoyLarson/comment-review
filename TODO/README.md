@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (79)
+### open  (78)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -245,7 +245,6 @@ that changed a published name or rule:
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | systems | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
 | [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | backend | yes | 6/7 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
-| [tier-dispatched-on-name](tier-dispatched-on-name.md) | backend | yes | 0/5 | The tier is dispatched on the language NAME, so a second tokenized language is not a data row |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | yes | 1/15 | Ten findings in lexer.py and language.py, from three review rounds |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | — | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 1/5 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
@@ -253,7 +252,7 @@ that changed a published name or rule:
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | yes | 2/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | — | 1/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [exception-hierarchy](exception-hierarchy.md) | backend | — | 2/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
-| [language-rows-in-toml](language-rows-in-toml.md) | backend | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
+| [language-rows-in-toml](language-rows-in-toml.md) | backend | — | 6/8 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | yes | 0/6 | Two graded arms, orchestration held constant; the rewording is the confound |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | yes | 4/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [computed-and-never-read](computed-and-never-read.md) | backend | — | 2/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
@@ -271,7 +270,7 @@ that changed a published name or rule:
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | yes | 5/10 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
-### decision-needed  (10)
+### decision-needed  (11)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -285,13 +284,14 @@ other tasks can proceed without them._
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 1/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | yes | 3/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | yes | 6/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
+| [lexer-does-not-lex](lexer-does-not-lex.md) | backend | yes | 7/9 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
 
 ### in flight  (0)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 
-### blocked  (8)
+### blocked  (7)
 
 _None._
 
@@ -301,7 +301,6 @@ _None._
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [drop-the-column](drop-the-column.md) | backend | — | 0/6 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | backend | — | 0/11 | the closing quote and the comment beside it are both stored, so the file gains a line |
-| [lexer-does-not-lex](lexer-does-not-lex.md) | backend | yes | 0/7 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
 | [code-concerns-cannot-carry-a-proposed-change](code-concerns-cannot-carry-a-proposed-change.md) | backend | — | 0/6 | code_concerns is a bare list of strings, so a code problem reaches no gate |
 ---
 
@@ -358,3 +357,4 @@ the reason is inside the file.
 | [verdicts-py-announces-one-subject-and-holds-four](completed/verdicts-py-announces-one-subject-and-holds-four.md) | The four subjects are separated -- desk.py, record.py, verdicts.py and held.py -- and the two dev-review findings inside the split are fixed and tested. Verified 2026-08-23 rather than assumed: record.check() guards a non-object report and a non-object record, and claim_keys is the one source with no hardcoded key names left. |
 | [b-owns-the-blank-lines-SUPERSEDED](completed/b-owns-the-blank-lines-SUPERSEDED.md) | SUPERSEDED 2026-08-23. Roy: 'b doesn't own the blank lines any more.' The blanks went to LEADING, which is its own kind, holds the run the lexer found, and has given up its address -- the census prints it as '@  2-2  leading'. So the premise in the title is no longer true of the system. ! Task 8 WAS fixed on the way and is verified: page.recut takes only the free lines and tests/test_compositor.py:162 pins the cpython/Include/floatobject.h case. Task 7, the galley half, goes with the premise. What leading owes is TODO/leading-owns-the-space-between.md. |
 | [the-rename-corrupted-live-prose](completed/the-rename-corrupted-live-prose.md) | All five sites restored 2026-08-23, and the CAUSE is fixed with them. The rename replaced a live sense of 'block' with 'paragraph' in four places the vocabulary gate flagged: the VERB in SKILL.md's verdict table and twice in compact.md, a PYTHON code block in module-context, and a JAVA TEXT BLOCK in prove_unchanged -- a language feature that does not exist under the new name. The agent file also told block-context its own role was PARAGRAPH-CONTEXT. ! Restoring the correct words trips the gate, which is why they were corrupted, so the four live senses are now declared in check_vocabulary.NOT_THE_TERM. Verified the gate still FAILS on a planted retired use. |
+| [tier-dispatched-on-name-SUPERSEDED](completed/tier-dispatched-on-name-SUPERSEDED.md) | SUPERSEDED 2026-08-23 by language-rows-in-toml. Roy: "tier-dispatch-on-name actually falls under TODO/language-rows-in-toml.md -- once the languages.toml goes in the Python special case falls." Its measurements are folded into that file: the literal name test at language.py:394, the reader/label split between page.py:694 and :815/825 that can read a file at one tier and label it at the other, and the three further sites deciding is-this-Python their own way. ! Its proposed fix -- tier becomes a FIELD on the row -- is now part of task 7 there, and its re-measure criterion is task 8: no module outside language.py tests lang.name, and no module re-spells a suffix tuple. |
