@@ -188,5 +188,22 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
     retiring the word fired on 15 sentences reading *"leaves it unaccounted for"*.
   - ! **It is confined to `.py` and is checked there**: 10 uses, none in `agents/`, `SKILL.md` or
     `references/`, so nothing an agent is handed carries the ambiguity.
+  - !! **`settle` IS THE ONE WHERE THE CONTEXTS DO OVERLAP, AND IT IS OPEN.** Raised by Roy the
+    moment `taken in` was ruled, 2026-08-24: *"now we have a polysemy of the word settled and
+    that has to get resolved."* Two senses, and they are not confined:
+
+    | sense | what it is about | where |
+    | --- | --- | --- |
+    | **a CLAIM settled by evidence** | `query` names *what would settle* it; an unsettled claim is an open one | SHIPPED -- `record.py`'s `needs_settles`, the brief's `settles` key, `SKILL.md:68`'s `unsettled` |
+    | **a DECISION settled by a ruling** | a term, a definition or a design that is agreed and not reopened | this file, `CLAUDE.md`, `docs/` prose, and 54 shipped uses |
+
+    ! **MEASURED 2026-08-24: 94 uses across 19 shipped files, 35 more in `docs/`.** Of the
+    shipped, 40 are the claim sense (`settles` 32, `needs_settles` 6, `unsettled` 2). **43 are
+    in what an agent is HANDED** -- `SKILL.md` 15, `reviewer-brief.md` 16, the four role files 7,
+    `compact`/`write`/`re-review` 5 -- so this fails the confinement test `leaf` passes.
+
+    ! **AND A THIRD USE IS ALREADY RETIRED BY `stet`**: `re-review.md:139` writes *"a paragraph
+    stage 5 settled"*, which is the copy chief's ruling and now has its own word.
+
 - **`clean` is reserved.** It is one of the seven verdicts and is never a loose adjective for
   code, prose, a grep result or a run.
