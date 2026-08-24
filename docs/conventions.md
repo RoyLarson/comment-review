@@ -145,6 +145,44 @@ wrapping it in a P does not make it one.
 
 ---
 
+## How a `P` gets written, and when
+
+Roy, 2026-08-24, porting this from `job_board` deliberately: *"put the planning process
+into their conventions.md"*, and the reason is his own -- **it is a guardrail against
+jumping into the work before the scope exists.** It is here rather than in a TODO because
+a rule that only exists where you would go looking after the fact is not a guardrail.
+
+!! **A BRANCH STARTS WITH A PLAN, NOT WITH CODE.** A `docs/plans/*.md` entry names the `T`
+tasks it works, and it is what says when the branch is finished. A plan assembled
+AFTERWARDS is a description of what happened -- it cannot tell anyone whether the work is
+done, because it was written from what got done.
+
+1. **Roy suggests the scope of work.** A sentence or two naming the release or the problem.
+2. **The scope is worked out together** -- what it entails, what "done" means, and what is
+   outside it.
+3. **An agent drafts the `P` steps** for review.
+4. **Roy requests modifications until he approves.**
+5. **The agent writes the plan file.**
+6. **Branch, commit the plan, then start the work.**
+
+!! **STEP 4 IS THE AUTHORING; THE DRAFTING IS STENOGRAPHY.** Roy, 2026-08-24: *"I can't
+write it I am not there at all ... I suggest the scope of work. We work together to figure
+out what the scope of work entails. You draft the steps in the plan for me to review. I
+request modifications until I approve the plan."* ! What cannot be delegated is naming the
+scope and approving the result. Those are what make a plan a contract instead of a
+suggestion, and neither depends on who types it.
+
+! **A "DONE" THAT CANNOT BE CHECKED IS NOT A GATE.** *"The reviewer works"* is a feeling;
+*"a compound citation is either rejected or fully resolved"* is a claim a stranger can
+test. This is the same standard the `P` section above sets for naming the `T` tasks a plan
+works -- a box a stranger cannot re-derive is not finished, it is asserted.
+
+! **Where a design deliberately reaches into territory that will later belong somewhere
+else, mark it provisional in the code AND in the records.** Necessary now is not correct
+forever, and a boundary never written down as temporary calcifies by silence.
+
+---
+
 ## Working agreements
 
 - **Name the lane and ask.** A one-line question costs less than a change the owning lane has to
