@@ -90,6 +90,43 @@ cheap and editing in passing is how a change nobody reviewed reaches a file nobo
 
 ---
 
+## T, P and SP -- what references what, and in which direction
+
+Roy, 2026-08-23. Three kinds of checkbox exist and they are not interchangeable.
+
+| | lives in | is | references |
+| --- | --- | --- | --- |
+| **T** | `TODO/*.md` | **the goal.** One verifiable checkpoint of work that is wanted | nothing |
+| **P** | `docs/plans/*.md` | **a step along the way** to accomplishing one or more Ts | the T tasks it works |
+| **SP** | `docs/superpowers/plans/*.md` | **a subplan of a P** -- exact files, TDD steps, a commit per task | the P steps it accomplishes |
+
+!! **THE ARROWS GO ONE WAY: `SP -> P -> T`.** A plan cites the TODOs it works; a superpowers
+plan cites the plan steps it delivers. **A TODO takes no DEPENDENCY on a plan** -- nothing in
+`TODO/` may wait on a plan, be closed by one, or read its state from one, so a closed plan
+leaves the backlog intact.
+
+! **CITING A PLAN AS EVIDENCE IS NOT A DEPENDENCY.** *"14 dead links live in
+`docs/plans/0.2.4-*`"* and *"the token appears only at `...md:423`"* are MEASUREMENTS that
+happen to land on a plan file, and they are fine. What is forbidden is a T whose state a P
+decides. ! The test is whether deleting every plan would leave the TODO still answerable: a
+measurement survives it, a dependency does not.
+
+!! **A `P` NAMES THE `T` TASKS IT WORKS, NOT JUST THE FILE.** *"Closes
+`some-todo.md` (0/4)"* is not checkable -- a reader cannot tell which of the four it
+delivers, and the box cannot be verified by anyone who did not write it. Name the tasks:
+*"works tasks 1, 2 and 4 of ..."*. That is what makes a ticked box re-derivable by a
+stranger, which is the standard `CLAUDE.md` sets for the release gate.
+
+! **BOTH ARE ADDED AS THE WORK IS FIGURED OUT.** A T appears whenever a finding is made; a P
+appears whenever a step towards one becomes clear. Neither list is settled at the start, and
+neither is closed by the other being written.
+
+! **AND A `T` IS STILL A VERIFIABLE CHECKPOINT** -- see `CLAUDE.md`, *A box is a claim about
+whether work remains*. A ruling, a measurement or a piece of reasoning is not a T, and
+wrapping it in a P does not make it one.
+
+---
+
 ## Working agreements
 
 - **Name the lane and ask.** A one-line question costs less than a change the owning lane has to
