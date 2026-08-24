@@ -246,10 +246,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   between stage 5 and the galley converts"*, and `galley.py:173` says `--edits` is
   *"machine-written from approved text"*. Neither is a producer.
 
-  !! **IT COMPOSES MECHANICALLY IN THE SYNTHESIS ORDER; ONLY A CONTRADICTION STOPS IT.** Roy:
+  !! **IT COMPOSES MECHANICALLY IN THE SYNTHESIS ORDER; A CONTRADICTION GOES TO REVISE.** Roy:
   *"multiple answers can be true, not just either this or that ... where things do not conflict
-  and come back clean that is probably a single transform."* The copy chief writes text only
-  where two marks genuinely contradict.
+  and come back clean that is probably a single transform."* ! **CORRECTED same day**: this read
+  *"only a contradiction STOPS it"*. A contradiction does not stop anything -- it goes back to
+  the roles, twice, and returns as a `stet`. See `#9`.
 
   !! **AND EVERY MARK IS NAMED OR THE RUN REFUSES.** The artifact carries address -> text -> the
   marks it answers. ! Without that, the step between the proof and the galley is where a finding
@@ -257,3 +258,34 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   ! The name is unsettled and is Roy's: `TODO/nothing-makes-the-fair-copy.md` T1 uses **fair
   copy** as a working candidate only, on `CLAUDE.md`'s rule that the name comes last.
+
+- **#9.** **`stet` is the COPY CHIEF's declaration after two roles failed to agree, not a role's
+  verdict and not a per-mark disposition** (Roy, 2026-08-24): *"my understanding of stet is that
+  it is the declaration that the copy chief emits when two editorial roles couldn't agree. It
+  emits on the one that it chose, or it overrules both, but the goal is revise (currently
+  re-review) gives the editorial roles two chances to figure out the compromise with reasons."*
+  And: *"stet -- let this stand. That is what I understood when it was proposed."*
+
+  ! **THE POINTING IS THE WHOLE OF IT.** The copy chief points at what stands, and **that may be
+  the original or one role's mark**. *The original stands* is one of the two things `stet` can
+  point at, not the meaning of the word.
+
+  !! **A ROLE CANNOT EMIT ONE**, which contradicts `TODO/no-mark-for-let-it-stand.md` as written:
+  its T3 adds `stet` to `VERDICTS` as an eighth verdict and its T13-T16 ask what each ROLE's own
+  `stet` asserts. `stet` presupposes two roles that disagreed and a copy chief that ruled, so no
+  single role is ever in a position to file one. ! That file is `agents`' and `decision-needed`;
+  this entry records the correction rather than rewriting its boxes.
+
+  ! **THE TWO CHANCES WERE ALREADY RULED AND BUILT.** `references/re-review.md:128`, 2026-08-17:
+  *"AT MOST TWO re-review rounds, and then the APPLIER judges ... If it is still split after the
+  second, stage 5 rules on it."* **What was missing is the NAME for what stage 5 then emits** --
+  a ruling nothing names cannot be recorded, re-read, or refused a second time.
+
+- **#10.** **The trade's word for a round after the first is `revise`, and the shipped tree still
+  says `re-review`** (Roy, 2026-08-24: *"revise (currently rereview)"*).
+  [`vocabulary.md`](vocabulary.md) already carries **revise** -- *the second proof, pulled after
+  the marked corrections have been set* -- against *"a re-review round"*, so the translation was
+  recorded and never carried into the code. ! **First revise, second revise, then to press: the
+  two-round bound IS the trade's practice**, which is why the bound and the word arrive together.
+  MEASURED 2026-08-24: **13 files, 41 occurrences; 7 files and 23 occurrences shipped** under
+  `plugins/`. `TODO/nothing-makes-the-fair-copy.md` T11 carries the rename.

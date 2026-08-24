@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 9 tasks done
+Progress: 0 of 11 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-24 (Roy: the galley only really needs this address gets this paragraph,
@@ -45,13 +45,15 @@ arrives as `null`"* -- reasoning about a serialiser nobody wrote.
 paragraph answers.** It carries no reasoning, no role and no verdict onward -- those stay on the
 proof.
 
-!! **RULED 2026-08-24: IT COMPOSES MECHANICALLY, AND ONLY A CONTRADICTION STOPS IT.** Roy:
+!! **RULED 2026-08-24: IT COMPOSES MECHANICALLY, AND A CONTRADICTION GOES TO REVISE.** Roy:
 *"multiple answers can be true, not just either this or that ... where things do not conflict and
 come back clean that is probably a single transform from verdict in to something to be written."*
 So the marks on one address are applied in the synthesis order `SKILL.md` already states --
 `query`, then `move`/`drop`, then `correct`, then `patch`, then `add` -- and several true answers
-compose without anyone choosing between them. **The copy chief writes text only where two marks
-genuinely contradict.**
+compose without anyone choosing between them.
+
+! **CORRECTED SAME DAY: this said *only a contradiction STOPS it*.** A contradiction stops
+nothing. It goes back to the roles, at most twice, and returns as a `stet` -- see below.
 
 ! **THE UNCONTESTED CASE IS NEARLY IDENTITY.** A record already carries `change`, the full-length
 replacement text, so one mark on one address needs no composition at all. That is why this looked
@@ -67,7 +69,7 @@ with nothing to show it was ever raised -- which is the residue problem one stag
 ! **IT DECIDES NOTHING, AND NEITHER DOES THE COLLATOR.** `collating` is *transferring every hand's
 marks onto ONE proof ... it decides nothing* (`docs/vocabulary.md`). Ruling belongs to the copy
 chief (`decision-log.md Vocabulary: #11`). This piece EXECUTES the ruling; where there is no
-ruling to execute, it composes, and where it cannot, it refuses.
+ruling to execute it composes, and where it cannot compose it sends the paragraph to revise.
 
 !! **THE NAME IS ROY'S AND IS NOT SETTLED -- T1.** The slug uses **fair copy**, the trade's term
 for the clean corrected text written out for the compositor, as a working candidate ONLY. ! Per
@@ -75,38 +77,59 @@ for the clean corrected text written out for the compositor, as a working candid
 that job is what gets ratified -- the way `compositor` was, in two words, after `page-setter`
 carried the whole diagnosis.
 
-### !! EVERY MARK GETS A DISPOSITION, AND ONLY ONE OF THE TWO HAS A NAME
+### !! EVERY MARK GETS A DISPOSITION, AND `stet` IS NOT ONE OF THEM
 
 Roy, 2026-08-24: *"Marks also compose so multiple patch/add/drop/correct all have to be marked in
-some way. Stet is one, I don't know the other."*
+some way. Stet is one, I don't know the other."* -- then, correcting what `stet` is: *"my
+understanding of stet is that it is the declaration that the copy chief emits when two editorial
+roles couldn't agree. It emits on the one that it chose, or it overrules both, but the goal is
+revise (currently re-review) gives the editorial roles two chances to figure out the compromise
+with reasons."*
 
-**What the job IS:** after N marks are composed onto one paragraph, each mark has ended up in one
-of two states, and the proof has to say which.
+!! **SO `stet` SITS ONE LEVEL UP, AND THIS FILE SAID OTHERWISE FOR AN HOUR.** It was written here
+as *the mark was proposed and the original stands* -- a per-mark refusal. **It is not a
+disposition at all.** It is what the COPY CHIEF declares after the roles have failed to converge,
+and what it names is **what stands**: the mark it chose, or neither.
 
-| the state | what happened | the word |
-| --- | --- | --- |
-| the mark is IN the text | the composition carried it | **UNNAMED -- T8** |
-| the mark was proposed and the original stands | it was refused, and the refusal stays visible | **`stet`** |
+!! **`stet` IS *LET THIS STAND*, AND THE POINTING IS THE WHOLE OF IT.** Roy, 2026-08-24:
+*"stet -- let this stand. That is what I understood when it was proposed."* The copy chief points
+at something and declares it stands; **what it points at may be the original or it may be one
+role's mark**, and the declaration is the same either way. ! That is why *the original stands* was
+too narrow: it is one of the two things `stet` can point at, not the meaning of the word.
 
-! **A CONTRADICTION IS NOT A THIRD STATE.** Two marks that cannot both be true stop the run (T3)
-and go back to their filers at stage 5b. Nothing is disposed of; the composition did not happen.
+| | who emits it | when | what it says |
+| --- | --- | --- | --- |
+| **disposition** | this piece, mechanically | every mark, every time | the mark is in the text, or it is not |
+| **`stet`** | the **copy chief** | only where two roles could not agree | **let THIS stand** -- the mark it chose, or neither |
 
-! **AND TWO MARKS PROPOSING THE SAME FIX ARE BOTH IN.** The text satisfies both, so both are
-carried -- there is no *redundant* state, which is what makes the pair exhaustive.
+!! **AND THE TWO CHANCES ARE ALREADY RULED AND ALREADY BUILT.**
+`references/re-review.md:128`, ruled 2026-08-17: *"AT MOST TWO re-review rounds, and then the
+APPLIER judges ... A paragraph may go back twice. If it is still split after the second, stage 5
+rules on it."* ! **What is missing is not the bound -- it is the NAME for what stage 5 then
+emits.** That file says only *"stage 5 rules on it"*, and a ruling nothing names is a ruling
+nothing can record, re-read, or refuse to raise again.
+
+! **AND THE TRADE ALREADY NAMES THE TWO CHANCES.** `docs/vocabulary.md:63` carries **revise** --
+*the second proof, pulled after the marked corrections have been set* -- against *"a re-review
+round"*. First revise, second revise, then it goes to press: **Roy's two chances ARE the trade's
+practice**, and the tree still says `re-review` in **13 files, 41 times** -- measured 2026-08-24,
+of which **7 files and 23 occurrences are shipped** under `plugins/`. That split is T11.
+
+**So the per-mark question is still open, and it is smaller than it looked.** After composition a
+mark is IN the text or it is NOT; a contradiction is not a third state because it does not reach
+this piece at all -- it goes to revise, twice, and comes back as a `stet`.
 
 !! **THE CANDIDATE FOR THE UNNAMED ONE IS `taken in`**, offered for ratification and not asserted:
 *taking in corrections* is the compositor's own phrase for making the marked changes on a proof.
-! It is put forward on `CLAUDE.md`'s method -- the JOB is stated above and the trade's word is
-looked for afterwards -- and it is checked against the register first: `set` is already the
-compositor's word for putting the page into type, so it cannot carry this too.
+! Checked against the register first, per `CLAUDE.md`'s method: `set` is already the compositor's
+word for putting a page into type, so it cannot carry this too.
 
-!! **AND THIS RAISES A QUESTION THAT FILE DOES NOT ASK.**
-[`no-mark-for-let-it-stand`](no-mark-for-let-it-stand.md) treats `stet` as an eighth VERDICT --
-its T13-T16 ask what each ROLE's own `stet` asserts. **Here `stet` is a DISPOSITION the composing
-piece records about a mark it did not carry in.** ! A role proposes; it does not answer its own
-proposal, and a disposition presupposes a mark to dispose of. **Whether those are one concept or
-two is unsettled and is Roy's** -- T8 asks it, because the answer decides whether `stet` belongs
-in `VERDICTS` at all or only on this artifact.
+!! **AND [`no-mark-for-let-it-stand`](no-mark-for-let-it-stand.md) IS BUILT ON THE OTHER READING.**
+Its T3 adds `stet` to `record.py`'s `VERDICTS` as an eighth, and its T13-T16 ask what each ROLE's
+own `stet` asserts. **A role cannot emit one**: `stet` presupposes two roles that disagreed and a
+copy chief that ruled, so no single role is ever in a position to file it. ! That file is
+`agents`' and `decision-needed`; the correction is recorded here and in
+`decision-log.md`, not written into its boxes from this lane.
 
 ## Tasks
 
@@ -114,8 +137,8 @@ in `VERDICTS` at all or only on this artifact.
       `docs/vocabulary.md` and the file is renamed to it.
 - [ ] T2 -- Compose the marks on one address in the synthesis order. Verify: two
       non-conflicting marks on one paragraph produce one text carrying both.
-- [ ] T3 -- Refuse a contradiction instead of composing it. Verify: `correct` against
-      `patch` on one sentence stops the run and names both marks.
+- [ ] T3 -- Send a contradiction to revise instead of composing it. Verify: `correct`
+      against `patch` on one sentence goes back to its filers and composes nothing.
 - [ ] T4 -- Carry the marks each paragraph answers. Verify: a mark that reaches the
       collator and is named by no paragraph refuses the run.
 - [ ] T5 -- Emit what the galley already takes. Verify: the output is `{address: text}`
@@ -124,10 +147,14 @@ in `VERDICTS` at all or only on this artifact.
       the sentence describes what exists.
 - [ ] T7 -- `agents` -- correct `SKILL.md:925`, *nothing between stage 5 and the galley
       converts*. Verify: it names the piece that does.
-- [ ] T8 -- * Name the disposition of a mark that was carried in, `stet` being the other,
-      and rule whether `stet` is a verdict or only a disposition. Verify: in the log.
+- [ ] T8 -- * Name the disposition of a mark that was carried into the text. Verify: the
+      name is defined in `docs/vocabulary.md`.
 - [ ] T9 -- Record a disposition for every mark on the artifact. Verify: a composed
-      paragraph names each mark as carried in or `stet`, and an unmarked one refuses.
+      paragraph names each mark as carried or not, and a mark with neither refuses.
+- [ ] T10 -- Carry a `stet` onto the artifact. Verify: a paragraph the copy chief ruled
+      says so and names the marks that ruling settled.
+- [ ] T11 -- Rename `re-review` to `revise` in the 7 shipped files, 23 sites. Verify:
+      `grep -rc re-review plugins/` returns nothing.
 
 ## Related
 
