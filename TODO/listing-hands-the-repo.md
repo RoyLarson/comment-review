@@ -7,12 +7,23 @@ Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (measuring what a reviewer is actually charged for, while scoping
           the binder trim)
+Demoted:  2026-08-24 — this is a LISTING defect and the JSON carries none
+          of it. Measured the same day: census.py --json returns 115 rows and 73,792
+          bytes with or without --filtered, byte-identical, and holds no NOT CHECKED
+          block at all. So a reviewer handed the JSON pays nothing for these 279 lines.
+          ! The plan works them LAST for that reason -- they are real and they are not
+          what the reviewer is charged for.
 ```
 
 ## Objective
 
-**92% of what a reviewer reads is a list of files it is not reviewing.** MEASURED 2026-08-24,
+**92% of the LISTING is a list of files it is not reviewing.** MEASURED 2026-08-24,
 `census.py --repo . --filtered <one file>`:
+
+! **THE HEADLINE SAID *what a reviewer reads* UNTIL THE SAME DAY**, which presumed the listing is
+what a reviewer is handed. It may not be: `--json` carries none of this block, and the reviewer's
+artifact is undecided -- the plan's P8. **The percentage is about the listing and is not a claim
+about anyone's prompt.**
 
 | file under review | the census part | the `NOT CHECKED` tail | tail's share |
 | --- | --- | --- | --- |

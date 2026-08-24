@@ -13,6 +13,26 @@ Triaged:  2026-08-23 -- the filter SHIPPED and is what stage 4 hands a reviewer.
 Split:    2026-08-23 -- boxes cut to two lines. The round-1 grow held one place and every
           role, the census-reader box held a survey and its cross-check, and the
           placeholder box held one placeholder and all of them; 22 boxes became 25
+Measured: 2026-08-24 — the two-artifact design ruled here on 2026-08-18
+          was already BUILT BY HAND once. A full v0.2 dogfooding run produced a full
+          census for the machine and a prose-only one for the reviewer, 171 of 3333
+          blocks -- 5.1 percent -- and split the dispatch packet the same way. ! It
+          never reached the tool. ! And the cost of not having it, measured today on the
+          JSON: one page of page.py is 429,239 bytes, 1,716,956 across four roles; prose
+          rows carrying only the fields that carry information is 2 percent of that. !
+          T19 is now a plan box, sequenced AFTER the field cut on Roys ruling: deciding
+          the form while the content is still wrong would rule on fields the cut
+          removes.
+Re-asked: 2026-08-24 — the 2026-08-18 filtered-view ruling is RE-OPENED
+          rather than carried forward. Roy: this was ruled when I could not trust the
+          system to work period. It may not be necessary now, because page loading and
+          address querying should be able to return the record correctly without messing
+          up the rest of the system. ! A pre-filtered file is what you build when you
+          CANNOT ASK -- a binder that answers give me this page, or what is the address
+          of this line, makes the copy unnecessary rather than smaller. See decision-log
+          Addressing 9. ! And the field cut may answer it on its own: prose rows
+          carrying only the fields that carry information are 2 percent of the full
+          census, and a view exists to make a large thing small.
 ```
 
 ## Objective
