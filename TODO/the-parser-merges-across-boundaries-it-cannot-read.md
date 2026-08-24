@@ -1,18 +1,19 @@
 # The join merges across a boundary it cannot read, and blames the neighbour
 
 ```
-Status:   open
-Progress: 0 of 4 tasks done
+Status:   in-progress
+Progress: 2 of 4 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17, after three defects of one shape landed in a single day
+Triaged:  2026-08-23 -- the text reader is retired, so D7 and D8's entry point no longer
+          exists; D9's does. The corroboration rule is in the shipped tree
 ```
 
 ## Objective
 
-**When `verdicts.py` cannot recognise a boundary it silently merges across it, and the
-diagnostic then points at the correct work on the other side.** Roy named the class after the
-third instance:
+**When the join cannot recognise a boundary it silently merges across it, and the diagnostic then
+points at the correct work on the other side.** Roy named the class after the third instance:
 
 | | what merged | what the error blamed |
 | --- | --- | --- |
@@ -40,50 +41,65 @@ record before the tool was suspected at all.
 That is the reason this file exists rather than three closed entries: each fix was correct and
 none of them addressed the shape.
 
-## Why it keeps happening
+## Where the two boundary decisions live now, measured 2026-08-23
 
-Two places decide a boundary, and both decide it by ELIMINATION -- if a thing is not recognised
-as X, it is assumed to be a continuation of the last X:
+Both places decided a boundary by ELIMINATION -- if a thing is not recognised as X, it is assumed
+to be a continuation of the last X. **Elimination has no failure state:** there is no answer that
+means *I do not know what this is*, so every unrecognised thing becomes its neighbour's problem.
 
-- `parse_report`'s continuation branch. A line that is not a field label and not a new citation
-  is appended to whatever came last. D7 and D8 both entered here.
-- `removed_spans`' token diff. Tokens that cannot be aligned are absorbed into the surrounding
-  span. D9 entered here.
-
-**Elimination has no failure state.** There is no answer that means *I do not know what this
-is*, so every unrecognised thing becomes its neighbour's problem.
+- **`parse_report`'s continuation branch is GONE.** The text reader was retired; `docs/history.md:178`
+  records `held.parse_report`, `held.convert`, `held.code_concerns` and `held.claim_object` as
+  removed. `held.py:10-14` states the rule that removed it: *"IT READS ONE SHAPE. A reader kept for
+  an older one is a shim."* A record is JSON, so there is no line to append to a previous line, and
+  D7's and D8's entry point cannot recur in that form.
+- **`removed_spans`' token diff is LIVE**, and it moved to `desk.py:775-837`. It aligns two token
+  lists with `difflib.SequenceMatcher` and returns every `delete` and `replace` opcode as a removed
+  span. **A token it cannot align is still absorbed into the surrounding span**; there is no
+  opcode, and no return value, that means "cannot align".
 
 ## ! What is NOT established
 
 - **That the shape can be changed cheaply.** A parser that names what it cannot read has to
-  have somewhere to put it -- a fourth outcome alongside field, citation and continuation --
-  and every caller has to handle it.
+  have somewhere to put it -- an outcome alongside the ones it already has -- and every caller has
+  to handle it.
 - **That three is enough to act on.** Three instances in one file in one day is a count, not a
-  proof that a fourth is coming. The rule recorded in `verdicts.py` is deliberately conditional:
-  a fourth is a reason to change the shape.
+  proof that a fourth is coming. The rule recorded in `verdicts.py:57-60` is deliberately
+  conditional: *"A fourth is a reason to change the SHAPE of the boundary decision, not to add a
+  fourth case."*
 
 ## Tasks
 
-- [ ] **Give the continuation branch a fourth outcome: UNRECOGNISED.** A line that is neither a
-      label, nor a citation, nor a plausible continuation is collected and REPORTED with its
-      line, rather than appended. ! The bar is what makes this hard -- a wrapped verbatim half
-      is a legitimate unrecognisable line, so the rule cannot be "anything I cannot parse".
+- [x] T1 -- SUPERSEDED. "Give the continuation branch a fourth outcome: UNRECOGNISED" names a
+      branch that no longer exists: `parse_report` was retired with the text record format
+      (`docs/history.md:178`), and `held.load_report` reads JSON only. ! The task was right about
+      the shape and is closed by removal rather than by fix -- which is worth keeping legible,
+      because the same argument still applies to T2, where the elimination is still there.
 
-- [ ] **Say what `removed_spans` does with a token it cannot align.** Today it absorbs it. The
-      alternative is to report the span as unreliable and let `edit_problem` refuse with a
-      message that names the alignment failure instead of the innocent word.
+- [ ] T2 -- **Say what `removed_spans` does with a token it cannot align.** Today `desk.py:831-837`
+      absorbs it into the surrounding `delete`/`replace` span. The alternative is to report the
+      span as unreliable and let `edit_problem` refuse with a message that names the alignment
+      failure instead of the innocent word. ! `removed_spans` already has a "cannot compare"
+      channel -- it returns `None`, and `desk.py:793-796` tells callers to treat that as "cannot
+      compare", never as "nothing removed" -- so the outcome exists and the alignment failure does
+      not reach it. Verify: a record whose `CHANGE` cannot be aligned to its `original` produces a
+      message naming the alignment, not a word.
 
-- [ ] **Add a test that asserts the ERROR NAMES THE RIGHT THING**, not merely that an error
+- [ ] T3 -- **Add a test that asserts the ERROR NAMES THE RIGHT THING**, not merely that an error
       occurred. All three defects passed their existing tests: something was refused, and the
-      tests checked that it was. ! This is the check that would have caught the class.
+      tests checked that it was. ! This is the check that would have caught the class. Verify: at
+      least one test in `tests/test_verdicts.py` asserts on the SUBJECT named in the message and
+      fails if the message names a neighbouring span instead.
 
-- [ ] **Record the corroboration rule.** What separated D9 from reviewer error was that
-      `block-context` had implemented its own single-edit checker and PASSED the record this
-      gate refused. Two implementations of one question disagreeing is worth running down; a
-      reviewer disagreeing with the gate alone is not. ! Nothing in the shipped tree says this,
-      and it is how a tool defect is told from sloppiness.
+- [x] T4 -- FINISHED. The corroboration rule is in the shipped tree at `verdicts.py:62-65`:
+      *"What separated D9 from reviewer error was CORROBORATION: `block-context` had implemented
+      its own single-edit checker and passed the record this gate refused. Two implementations of
+      'did the edit match the claim' disagreeing is worth running down."* ! That is how a tool
+      defect is told from sloppiness, and a reviewer disagreeing with the gate ALONE is not it.
 
 ## Related
 
 - [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)
-  -- a refused record is what sends a block back, so a wrong refusal spends a whole round.
+  -- a refused record is what sends a paragraph back, so a wrong refusal spends a whole round.
+- [`the-bridge-landed-and-the-rewrite-did-not`](the-bridge-landed-and-the-rewrite-did-not.md)
+  -- the generate-then-reparse that is still inside one module, which is the same class one level
+  in.

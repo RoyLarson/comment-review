@@ -1,21 +1,28 @@
 # A claim can be false by arithmetic with no enforcing line to check it against
 
 ```
-Status:   open
-Progress: 0 of 3 tasks done
+Status:   decision-needed
+Progress: 1 of 3 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18, finding 'the number to beat is zero blocks
           missed' in this repo's own docs)
+Triaged:  2026-08-23 — the two prose statements that carried the defect have SINCE BEEN
+          CORRECTED, so the example is historical and the gap in the role file is not.
+          MEASURED: `evidence/tier-measurement.md:79` now reads *"Stated as a REQUIREMENT
+          and not as a number to beat, because blocks are"* and `docs/parsing.md:146`
+          reads *"A REQUIREMENT, not a number to beat."* ! And the "must displace a rule"
+          claim this file carried is FALSE -- `docs/limitations.md:46` says *"A new rule
+          does not have to displace another."*
 ```
 
 ## Objective
 
 !! **`block-context` COULD NOT HAVE CAUGHT THE DEFECT ROY FOUND IN THIS REPO'S OWN
-DOCS**, and the reason is precise rather than an oversight. Its constraint check
-reads: *"Find the line that enforces the bound and compare four things: the
-VALUE, the DIRECTION (`>` vs `>=`), the UNITS, and what happens at the
-boundary."* That needs an ENFORCING LINE. The claim had none.
+DOCS**, and the reason is precise rather than an oversight. Its constraint check, verbatim at
+`plugins/comment-review/agents/comment-review-block-context.md:82-83`, reads: *"Find the line
+that enforces the bound and compare four things: the VALUE, the DIRECTION (`>` vs `>=`), the
+UNITS, and what happens at the boundary."* That needs an ENFORCING LINE. The claim had none.
 
 **The claim:** *"The number to beat is zero blocks missed."* Blocks are counted
 in whole numbers, so nothing lies below zero and there is nothing to beat. Roy,
@@ -23,7 +30,8 @@ in whole numbers, so nothing lies below zero and there is nothing to beat. Roy,
 only not real number counts."*
 
 ! It was in `evidence/tier-measurement.md` and repeated in `docs/parsing.md`, and
-every gate this repo runs was green over both.
+every gate this repo runs was green over both. ! **Both sentences have since been rewritten by
+hand** -- see the `Triaged:` note -- so the instance is closed and the CLASS is what is left.
 
 ## Why the shape is worth naming
 
@@ -56,32 +64,46 @@ Roy has said a fifth is unlikely. If this belongs anywhere it is `block-context`
 whose remit already says CONSTRAINTS -- what is missing is that its check assumes
 a line to compare against.
 
-! **Not free.** `docs/limitations.md` governs prose added to a role file: the
-budget is fixed, and a new rule should REPLACE one rather than accumulate. A rule
-that cannot be checked without opening another file does not earn its place.
+! **Not free, but it does NOT have to displace a rule.** This file previously said a new rule
+*"should REPLACE one rather than accumulate"*, and `docs/limitations.md:44-65` says the
+opposite: *"A new rule does not have to displace another. It has to earn the context it costs,
+and there are exactly two ways"* -- it CATCHES something, or it SAVES A SEARCH.
+
+! **WHICH CURRENCY THIS ONE PAYS IN IS CURRENCY 2.** A claim false by arithmetic needs no file
+opened to settle, so the rule replaces a search rather than adding one. ! That is stated here
+rather than carried as a box, because it is an argument and nobody ticks it -- what a box can
+say is whether the register entry states it.
 
 ! **A rule proposed for a role file goes to**
   [`role-rule-register`](role-rule-register.md) **and is decided with the others.**
-  Role prose is budget-fixed, so a candidate is judged against what it displaces.
+  Role prose is budget-fixed, and every candidate is judged against the same two currencies.
 
 ## Tasks
 
-- [ ] * **Rule whose remit this is.** `block-context` is the closest --
-      constraints are already its -- but its check is written around an ENFORCING
-      LINE, and this class has none. ! Do not add a fifth role for it: the four
-      mimic real-world editorial roles and Roy has said a fifth is unlikely. The
-      question is whether block-context's constraint paragraph gains a second
-      half, or whether this is out of scope and stays a human's catch.
-- [ ] **Write the shape down, with the measured example.** A quantity that is a
-      COUNT -- whole, non-negative -- stated with comparative framing that assumes
-      room below it. `the number to beat is zero blocks missed` was in
-      `evidence/tier-measurement.md` and repeated in `docs/parsing.md`, and no
-      gate could fire on it because there is no code to resolve it against. !
-      Sibling shapes to name: a percentage over 100, a bound stated in the wrong
-      direction for its own units, an interval whose lower bound exceeds its
-      upper.
-- [ ] **Say which CURRENCY it pays in.** `docs/limitations.md` rules that a rule
-      pays for its own lines by what it CATCHES or by the search it SAVES.
-      This one is currency 2: a claim false by arithmetic needs no file opened
-      to settle, so the rule replaces a search rather than adding one. Verify:
-      the addition names a check a reviewer runs without opening another file.
+- [ ] T1 -- * **RULE whose remit this is.** `block-context` is the closest --
+      constraints are already its -- but its check at
+      `comment-review-block-context.md:82-83` is written around an ENFORCING LINE, and this
+      class has none. ! Do not add a fifth role for it: the four mimic real-world editorial
+      roles and Roy has said a fifth is unlikely. The question is whether block-context's
+      constraint paragraph gains a second half, or whether this is out of scope and stays a
+      human's catch. Finishes the day Roy answers.
+- [ ] T2 -- **FILE THE CANDIDATE IN `role-rule-register.md`, with the shape, the
+      measured example and the currency.** The shape: a quantity that is a COUNT
+      -- whole, non-negative -- stated with comparative framing that assumes room
+      below it. The example: `the number to beat is zero blocks missed`, which was
+      in `evidence/tier-measurement.md` and repeated in `docs/parsing.md` and which no gate
+      could fire on, because there is no code to resolve it against. The siblings to name: a
+      percentage over 100, a bound stated in the wrong direction for its own units, an
+      interval whose lower bound exceeds its upper. The currency: 2, it SAVES A SEARCH.
+      Verify: `grep -n "arithmetic" TODO/role-rule-register.md` returns the entry, the entry
+      names a check a reviewer runs WITHOUT opening another file, and it names one of the two
+      currencies `docs/limitations.md:44` defines.
+- [x] T3 -- NOT A TASK, restated under *What this is NOT*. **Which CURRENCY it
+      pays in is settled and nobody ticks it.** `docs/limitations.md:44` rules that
+      a rule pays for its own lines by what it CATCHES or by the search it SAVES,
+      and *"A new rule does not have to displace another"* -- which is the opposite
+      of what this file said until 2026-08-23. This one is currency 2: a claim
+      false by arithmetic needs no file opened to settle, so the rule replaces a
+      search rather than adding one. ! The checkable half of the old box -- that
+      the addition names a check a reviewer runs without opening another file --
+      is now T2's verify clause.

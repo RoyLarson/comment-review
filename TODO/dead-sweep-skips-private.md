@@ -12,35 +12,53 @@ RE-CHECKED: 2026-08-23 — 2026-08-23. Tasks 2, 4 and 5 were resolved by other w
             last_code_line are gone from the scripts -- the only surviving hits are the
             two test METHOD NAMES the task itself identified as prose about a gap rather
             than callers. Task 1 is a measurement and still true (dead_sweep.py:217
-            skips every _private name); it belongs to the Objective, which already
-            states it. ! WHAT IS LEFT IS THE RULING in task 3, and nothing else.
+            skips every _private name); it belongs to the Objective, which now states
+            it. ! WHAT IS LEFT IS THE RULING in task 3, and nothing else.
+RE-CHECKED: 2026-08-23 — 2026-08-23, second pass. Re-ran the greps rather than trusting
+            the note: `grep -rn "_SHEBANG\|_CODING" --include=*.py plugins/ scripts/
+            tests/` returns NOTHING, and `first_code_line`/`last_code_line` return only
+            `tests/test_galley.py:210` and `:217`, both method NAMES. `dead_sweep.py:217`
+            still reads exactly as measured. The file is well formed; only the T labels
+            changed.
 ```
 
 ## Objective
 
-dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff.
+`dead_sweep` skips every `_private` name, so a dead module constant is invisible to it and to
+ruff.
+
+MEASURED 2026-08-22 and RE-CHECKED 2026-08-23: `dead_sweep.py:217` reads
+`if name.startswith("_") or name == "main": continue`, documented at `:194-196` as deliberate --
+*"`main` and any `_private` name are skipped: the first is an entry point every CLI defines and
+nothing imports, the second is ruff's to see within its own file."* So no `_private` name is
+ever reported by the sweep, and ruff does not see a module-level constant either -- which is
+the exact gap `CLAUDE.md` cites the sweep as covering.
+
+! **A SECOND BLIND SPOT, SAME CAUSE.** The sweep matches a name TEXTUALLY, so a name appearing
+inside an unrelated identifier counts as a use. Measured 2026-08-22 on
+`Cues.first_code_line` / `Cues.last_code_line`: their only hits were the test method names
+`test_the_gap_ABOVE_the_first_code_line_inserts_above_it` and
+`test_the_gap_BELOW_the_last_code_line_appends`, which are prose about a gap and never call
+either method -- and the sweep reported them as held by a test. ! Both methods have since been
+deleted; the two test names survive (`tests/test_galley.py:210`, `:217`) and the sweep behaviour
+that mis-read them has not changed.
 
 ## Tasks
 
-- [x] MEASURED 2026-08-22: dead_sweep.py:217 reads if name.startswith("_") or name
-      == "main": continue, documented at :194 as deliberate -- so no _private name
-      is ever reported
-- [x] page._SHEBANG and page._CODING (page.py:793-794) are defined and read
-      nowhere; git show HEAD~1 gives 2 occurrences, both the definitions. Ruff
-      does not see a module-level constant either, which is the exact gap
-      CLAUDE.md cites the sweep as covering
-- [ ] * RULING: is the skip right? A _private name is by definition read only
-      inside its own module, which is what makes it CHEAPER to check, not harder
-      -- the opposite of the reason given for skipping main
-- [x] Decide whether the two constants are deleted or wanted; they were left in
-      place by the change that noticed them
-- [x] MEASURED 2026-08-22, a SECOND blind spot and the same cause: the sweep
-      matches a name TEXTUALLY, so a name appearing inside an unrelated identifier
-      counts as a use. Cues.first_code_line and Cues.last_code_line
-      (addresser.py:623, :633) have NO caller in plugins/, scripts/ or tests/ --
-      the only hits are the test METHOD NAMES
-      test_the_gap_ABOVE_the_first_code_line_inserts_above_it and
-      test_the_gap_BELOW_the_last_code_line_appends, which are prose about a gap
-      and never call either method. ! The sweep reports them as held by a test. !
-      Noticed while collapsing Cues to three fields and LEFT IN PLACE; they
-      were already dead before that change.
+- [x] T1 -- MEASURED 2026-08-22, re-checked 2026-08-23. Moved to the Objective: `dead_sweep.py:217`
+      skips every `_private` name and `main`, documented at `:194`. A measurement is not work.
+
+- [x] T2 -- FINISHED. `page._SHEBANG` and `page._CODING` are deleted; `grep -rn "_SHEBANG\|_CODING"
+      over `plugins/`, `scripts/` and `tests/` returns nothing (2026-08-23).
+
+- [ ] * T3 -- RULING OWED: is the skip right? A `_private` name is by definition read only inside
+      its own module, which is what makes it CHEAPER to check, not harder -- the opposite of the
+      reason given for skipping `main`. It finishes when the answer is written into
+      `dead_sweep.py:194-196`, either as a narrowed skip or as the reason the skip stands.
+
+- [x] T4 -- FINISHED. The two constants were deleted rather than kept; see T2.
+
+- [x] T5 -- MEASURED 2026-08-22, moved to the Objective: the sweep matches a name TEXTUALLY, so a
+      test METHOD NAME containing the name holds it. `Cues.first_code_line` and
+      `Cues.last_code_line` are now deleted, so the instance is gone; the sweep behaviour that
+      produced it is unchanged and is stated above.

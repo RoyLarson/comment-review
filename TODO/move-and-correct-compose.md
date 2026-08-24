@@ -3,9 +3,17 @@
 ```
 Status:   open
 Progress: 4 of 5 tasks done
-Owner:    agents · Roy
+Owner:    agents
 Raised:   2026-08-17 (the first full run of 0.1.7: 8 blocks flagged as contradictions,
           2 of them genuine)
+VERIFIED: 2026-08-23 — all four landed changes re-read in the tree and all four hold.
+          `verdicts.py:250-252` states *"`move` is absent by ruling"*;
+          `verdicts.py:234-238` keys the check on the TEXT, not the paragraph index;
+          `verdicts.py:240-245` takes the text from the BLOCK/CHANGE diff rather than
+          `CLAIM`; and `SKILL.md:825` carries both the destination rule and the vacuous
+          -comment rule in one sentence. ! Nothing prints a per-block COMPOSES line,
+          which is what task 1 chose; the word survives only as prose at SKILL.md:854.
+          ! ONE TASK LEFT and it needs a live run.
 ```
 
 ## Objective
@@ -53,30 +61,36 @@ is silent.
 
 ## Tasks
 
-- [x] Change `contradictions()` so `move` against `correct`/`patch` is not fatal and not a
-      re-review. ! Decide what it becomes: silent, or a distinct printed line (`COMPOSES --
-      relocation and a truth fix on the same block; apply the move first`). Recommendation: the
-      printed line, because the ORDER matters and this is the one place the run can state it
-      per block.
-      ! **DONE by group A, 2026-08-17.** `move` left the set. ! SILENT rather than a printed
-      `COMPOSES` line -- the ordering is stated where the ordering happens, in the synthesis
-      order, and a per-block line would restate it 40 times a run.
+- [x] T1 -- Change `contradictions()` so `move` against `correct`/`patch` is not fatal
+      and not a re-review.
+      ! **DONE by group A, 2026-08-17.** `move` left the set. ! SILENT rather than a
+      printed `COMPOSES` line -- the ordering is stated where the ordering happens, in
+      the synthesis order, and a per-block line would restate it 40 times a run.
+      ! VERIFIED 2026-08-23: `verdicts.py:250-252` states the ruling, and
+      `contradictions()` emits nothing at all for a `move`/`correct` pair -- the word
+      COMPOSES appears only as prose at `SKILL.md:854`, never as a printed line.
 
-- [x] Keep `drop` against `correct`/`patch` exactly as it is. It is the real contradiction and
-      it is what the check was built for.
+- [x] T2 -- Keep `drop` against `correct`/`patch` exactly as it is. It is the real
+      contradiction and it is what the check was built for.
       ! **DONE by group A, 2026-08-17.** Kept, and narrowed to the SAME SENTENCE.
+      ! VERIFIED 2026-08-23: `verdicts.py:234-245` keys on the BLOCK/CHANGE diff text,
+      not the paragraph index and not `CLAIM`.
 
-- [x] Say in ONE file that a `correct` travelling with a `move` is applied AT THE DESTINATION.
-      `SKILL.md` step 3 says *"at the anchor it now sits on"*, which is correct and easy to read
-      past. The 2026-08-17 run read past it.
-      ! **DONE by group A, 2026-08-17.** `SKILL.md` synthesis step 3.
+- [x] T3 -- Say in ONE file that a `correct` travelling with a `move` is applied AT THE
+      DESTINATION. `SKILL.md` step 3 said *"at the anchor it now sits on"*, which is
+      correct and easy to read past. The 2026-08-17 run read past it.
+      ! **DONE by group A, 2026-08-17.** ! VERIFIED 2026-08-23 at `SKILL.md:825`.
 
-- [x] State that a `correct` applied after the move may leave a VACUOUS comment, and that this
-      is the accepted outcome. Roy ruled it: another pass drops it, and that is cheaper than a
-      correction that was true only where the prose used to be. ! Without this the next agent
-      re-derives the inversion, because leaving a vacuous comment feels like a defect.
-      ! **DONE by group A, 2026-08-17.** Same sentence, `SKILL.md` step 3.
+- [x] T4 -- State that a `correct` applied after the move may leave a VACUOUS comment,
+      and that this is the accepted outcome. Roy ruled it: another pass drops it, and
+      that is cheaper than a correction that was true only where the prose used to be.
+      ! Without this the next agent re-derives the inversion, because leaving a vacuous
+      comment feels like a defect.
+      ! **DONE by group A, 2026-08-17.** ! VERIFIED 2026-08-23: same sentence,
+      `SKILL.md:825`.
 
-- [ ] Re-measure after the change. The run's 8 re-reviews should fall to 2, and the count
-      belongs in [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)
+- [ ] T5 -- Re-measure on a live run. Verify: a full `/comment-review` run over a tree
+      with `move` and `correct` on the same blocks reports 2 re-reviews where the
+      2026-08-17 run reported 8, and the count is written into
+      [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)
       as the load that procedure actually carries.

@@ -13,48 +13,71 @@ RE-VERIFIED: 2026-08-23 — 2026-08-23, verified in place. THREE FIXED and ticke
              the git-cannot-answer fallback; task 2, `git ls-files` is ONE site now at
              repo.py:117, not two in census.py; task 3, `flush_run` fires -- the path
              check runs BEFORE both continues, and the comment above it records the old
-             defect and the constants.py row that measured it. ! STILL LIVE: task 4, the
-             fourth loader still diverges -- addresser.py:1137 unwraps the dict form and
-             verdicts.py:332 assigns the parse straight through; task 5 is HALF,
-             redirect_stdout is gone but `_report` grew from 289 lines to 354, so the
-             size half is worse than filed; task 6, referrers.py:53 still re-spells the
-             suffix tuple language.py:99 owns; task 7, referrers.py:85 still spawns one
-             git grep per token.
+             defect and the constants.py row that measured it.
+RE-CHECKED: 2026-08-23 — 2026-08-23, re-read against the tree rather than trusted.
+            T1-T3 confirmed fixed: census.py:125-127 is `code_names(roots, tracked=None)`
+            and census.py:323 passes `tracked_paths(repo)`; `ls-files` appears once, at
+            repo.py:117; `flush_run()` is called at census.py:567, :574, :579 and :592,
+            so both continues reach it. ! FOUR STILL LIVE, with corrected citations:
+            T4 (addresser.py:1137 unwraps the dict form, verdicts.py:332 does not),
+            T5 (`_report` is census.py:296-649 = 354 lines, up from the 289 filed),
+            T6 (referrers.py:53 -- and prove_unchanged.py:176 is a THIRD site), and
+            T7 (referrers.py:126-127 loops `_grep` per token; `_grep` is at :71).
 ```
 
 ## Objective
 
 census.py walks the whole repo, runs git twice, and its run-flush never fires.
 
+! **THE THREE DEFECTS THE TITLE NAMES ARE ALL FIXED** (T1, T2, T3, re-verified
+2026-08-23). What remains under this file is the four neighbouring findings the same
+rounds raised, and the title no longer describes them -- it is left as filed so the
+record stays readable, and the remaining work is what the unticked boxes say.
+
 ## Tasks
 
-- [x] MEASURED 2026-08-22: code_names walks and resolves the WHOLE tree to harvest
-      60 files -- 53% of a census run. 3,152 paths walked, 3,021 of them in
-      corpora/, 66 tracked -- and resolve() runs BEFORE the tracked test. When
-      tracked is not None the answer is already in hand as repo-relative strings.
-      ! corpora/ is only partly fetched here; after fetch_corpora.py the first row
-      becomes tens of thousands of paths rglobbed and resolved PER RUN
-- [x] git ls-files is spawned TWICE per run (census.py:301-302), two full index
-      dumps for one answer
-- [x] census.py:501 -- flush_run() never fires on a b.path change and BOTH
-      continues bypass it. VERIFIED: constants.py, 43 lines, carries a row reading
-      15-72 @c2..b58 41-0 -- another file intervals attributed to it, a NEGATIVE
-      span, and any add composed from that row cites an address that does not
-      exist
-- [ ] CENSUS LOADING IS WRITTEN FOUR TIMES AND THE FOURTH DIVERGES.
-      verdicts.py:335 never unwraps the dict form the other three accept
-      (addresser.py, galley.py, record.py). ! Round 2 checked and NOTHING in the
+- [x] T1 -- FINISHED. MEASURED 2026-08-22: code_names walked and resolved the
+      WHOLE tree to harvest 60 files -- 53% of a census run. 3,152 paths walked,
+      3,021 of them in corpora/, 66 tracked -- and resolve() ran BEFORE the tracked
+      test. FIXED: census.py:125-127 takes `tracked`, and census.py:323 passes
+      `tracked_paths(repo)`; the walk survives only as the git-cannot-answer
+      fallback.
+- [x] T2 -- FINISHED. git ls-files was spawned TWICE per run (census.py:301-302),
+      two full index dumps for one answer. FIXED: one site, repo.py:117.
+- [x] T3 -- FINISHED. census.py:501 -- flush_run() never fired on a b.path change
+      and BOTH continues bypassed it. VERIFIED at the time: constants.py, 43 lines,
+      carried a row reading 15-72 @c2..b58 41-0 -- another file intervals attributed
+      to it, a NEGATIVE span, and any add composed from that row cited an address
+      that does not exist. FIXED: flush_run() is called at census.py:567, :574,
+      :579 and :592, so both continues reach it.
+- [ ] T4 -- CENSUS LOADING IS WRITTEN FOUR TIMES AND THE FOURTH DIVERGES.
+      addresser.py:1137 unwraps the dict form (`loaded.get("paragraphs", []) if
+      isinstance(loaded, dict) else loaded`); verdicts.py:332 assigns
+      `json.loads(census_text)` straight through and never unwraps it. galley.py
+      and record.py accept the dict form too. ! Round 2 checked and NOTHING in the
       tree or the tests emits that dict form -- so three modules carry dead
       defensive code and the fourth is inconsistent with them. addresser already
-      owns unaddressed() and is the vacant home for a load_census
-- [ ] census._report is 289 lines, with --languages wrapped in redirect_stdout for
-      no reason
-- [ ] referrers.py:53 re-spells the (.py, .pyi) suffix tuple that language.py:99
-      already owns -- the same defect as tier-dispatched-on-name, in a fourth
-      place
-- [ ] referrers.py:128 SPAWNS ONE git grep PER TOKEN -- about 200 subprocesses for
-      a 17-file review, each one a full tree scan. MEASURED 2026-08-22: 37 tokens
-      took 2.288s one at a time against 0.074s batched, a 31x difference. git grep
-      takes repeated -e, and -o preserves the per-token attribution the report
-      prints. ! Filed here on Roy ruling 2026-08-22 -- referrers supports the
-      whole thing and is not part of the front half that will shift
+      owns unaddressed() and is the vacant home for a load_census. Verify: one
+      loader, four callers, and a test that fails without it.
+- [ ] T5 -- SPLIT `_report`. It is census.py:296-649, 354 lines -- it was filed at
+      289 and has grown. Verify: `--languages`, `--json`, `--filtered` and the
+      default listing are each their own function and `_report` only dispatches.
+      ! SUPERSEDED IN PART: the "--languages wrapped in redirect_stdout for no
+      reason" half is wrong now. `redirect_stdout` wraps the whole of `_report` for
+      `--out` (census.py:289-292) and census.py:285-288 states the reason -- a
+      shell redirect is refused outright by a worktree-isolated harness. Only the
+      size half remains.
+- [ ] T6 -- referrers.py:53 re-spells the `(".py", ".pyi")` suffix tuple that
+      language.py:99 already owns -- the same defect as tier-dispatched-on-name.
+      ! WORSE THAN FILED: prove_unchanged.py:176 spells it a THIRD time, so there
+      are two re-spellings against one owner. Verify: `grep -n "\.pyi"` over
+      `plugins/comment-review/skills/comment-review/scripts/` returns only
+      language.py.
+- [ ] T7 -- referrers.py:126-127 SPAWNS ONE git grep PER TOKEN -- the loop at :126
+      calls `_grep` (defined at :71, running `git grep -l -F` at :85) once per
+      token, about 200 subprocesses for a 17-file review, each one a full tree
+      scan. MEASURED 2026-08-22: 37 tokens took 2.288s one at a time against 0.074s
+      batched, a 31x difference. git grep takes repeated -e, and -o preserves the
+      per-token attribution the report prints. ! Filed here on Roy ruling
+      2026-08-22 -- referrers supports the whole thing and is not part of the front
+      half that will shift.

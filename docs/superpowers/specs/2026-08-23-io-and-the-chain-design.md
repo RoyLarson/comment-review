@@ -14,8 +14,8 @@ Measured 2026-08-23 over the shipped scripts:
 
 | symptom | where |
 | --- | --- |
-| the newline-safe reader has ZERO callers | `repo.read_raw` |
-| three modules read source directly, through the TRANSLATING path | `desk.py:277`, `prove_unchanged.py:293`, `referrers.py:122` |
+| the newline-safe reader is reached by TWO modules; nine source reads go around it | `repo.read_raw` -- called at `galley.py:430`, `prove_unchanged.py:254`, `:324`, `:325` |
+| nine modules read source directly, through the TRANSLATING path | `census.py:177`, `:336`, `compositor.py:304`, `:335`, `desk.py:277`, `prove_unchanged.py:293`, `referrers.py:122`, `run_context.py:314`, `verdicts.py:420` |
 | the lexer opens nothing at all | `lexer.py`, 0 read sites |
 | `code_lines` and `declarations` computed twice per page | `page.py:419-420`, `:725-726` |
 | census loading written four times, the fourth diverges | `addresser`, `galley`, `record` unwrap the dict form; `verdicts.py:332` does not |
@@ -24,7 +24,15 @@ Measured 2026-08-23 over the shipped scripts:
 
 !! **THEY ARE ONE SYMPTOM.** `page_for(path, text, lang, rel)` takes TEXT, so by the time
 anyone reaches the reading code somebody else has already read the file. `read_raw` is
-correct and uncalled because there is nowhere for it to live that everyone goes through.
+correct and REACHED BY TWO of the eleven modules that read source, because there is nowhere
+for it to live that everyone goes through.
+
+! **THIS ROW READ "ZERO CALLERS" UNTIL A TRIAGE AGENT MEASURED IT, 2026-08-23.** It has four
+call sites in the two modules its own docstring names. **The argument is unharmed and the
+number was the whole evidence for it** -- an uncalled function says the door was never fitted;
+a function two modules use while nine go around it says the door exists and is optional, which
+is the weaker claim and the true one. ! Recorded rather than corrected away, because a spec
+that quietly gains a better number teaches nobody where the first one came from.
 
 !! **AND IT EXPLAINS A FAILURE THAT IS NOT A BUG.** Roy, 2026-08-23: *"The fact that claude
 stated it made something happen and then didn't tells me there is a design problem because it

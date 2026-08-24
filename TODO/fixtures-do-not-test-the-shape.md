@@ -7,6 +7,11 @@ Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, triaging matter-misses-two-languages: censusing the
           fixtures reported a PASS on a defect that is fully live)
+Triaged:  2026-08-23 — ALREADY WELL FORMED. Every box is a verifiable checkpoint, so
+          nothing changed but the T labels. ! Re-verified in place: `tests/fixtures/`
+          holds 18 `sample.*` files, so "the other sixteen" is exact;
+          `tests/fixtures/sample.ts` line 1 is `// fx.ts -- one small module.` and
+          `tests/fixtures/sample.rs` line 1 is `//! A module-level doc comment.`
 ```
 
 ## Objective
@@ -34,18 +39,18 @@ the corpus is where the defect is found instead -- late, and by hand.
 
 ## Tasks
 
-- [ ] Make `sample.ts` and `sample.rs` exercise the matter case, or add fixtures
-      that do. MEASURED: `sample.ts` opens with a LINE comment and `sample.rs`
-      with `//!`, so neither opens the way a licence header does. Censusing them
-      types TS `f0` as `matter` -- a pass -- while a `.ts` opening `/**` types
-      `dark-matter`. Verify: the fixture reproduces what `matter-misses-two-
-      languages` measures.
-- [ ] AUDIT THE OTHER SIXTEEN the same way. For each language row, name the shape
-      its open TODOs are about and check the fixture opens that way. Verify: a
-      list of language -> shape -> does the fixture exercise it.
-- [ ] * RULE what a per-language fixture is FOR. `test_fixture_identity.py` runs
-      the round trip over them, which wants an ORDINARY file; a defect probe wants
-      the awkward one. If it is both, one file cannot serve and the suite needs a
-      second set.
-- [ ] Say in `tests/fixtures/` what each file is a fixture OF, so the next reader
-      can tell coverage from resemblance.
+- [ ] T1 -- Make `sample.ts` and `sample.rs` exercise the matter case, or add
+      fixtures that do. MEASURED: `sample.ts` opens with a LINE comment and
+      `sample.rs` with `//!`, so neither opens the way a licence header does.
+      Censusing them types TS `f0` as `matter` -- a pass -- while a `.ts` opening
+      `/**` types `dark-matter`. Verify: the fixture reproduces what
+      `matter-misses-two-languages` measures.
+- [ ] T2 -- AUDIT THE OTHER SIXTEEN the same way. For each language row, name the
+      shape its open TODOs are about and check the fixture opens that way. Verify:
+      a list of language -> shape -> does the fixture exercise it.
+- [ ] T3 -- * RULE what a per-language fixture is FOR. `test_fixture_identity.py`
+      runs the round trip over them, which wants an ORDINARY file; a defect probe
+      wants the awkward one. If it is both, one file cannot serve and the suite
+      needs a second set.
+- [ ] T4 -- Say in `tests/fixtures/` what each file is a fixture OF, so the next
+      reader can tell coverage from resemblance.

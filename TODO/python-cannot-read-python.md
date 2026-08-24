@@ -32,6 +32,13 @@ SCOPED:   2026-08-23 — 2026-08-23, Roy: 'The task is simple. Make the lexer be
           every line of code verbatim -- that is what answers it rather than moving it.
           Not filed as a task here because it is not the lexer; it belongs to whatever
           works the compositor half.
+TRIAGED:  2026-08-23 -- LABELS ONLY. The 2026-08-23 restructure is accepted as it stands:
+          31 records ticked, two tasks open, and nothing here is reworked. T1..T33 are
+          added in file order. ! BOTH TASKS RE-VERIFIED AS STILL LIVE: `grep -rn 'import
+          ast' plugins/` returns FOUR hits -- lexer.py:28, census.py:36,
+          prove_unchanged.py:36, referrers.py:16 -- so neither T32's read path nor T33's
+          proof has been changed. ! Status stays `open`, not `in-progress`: every ticked
+          box is a record, and no lexer work has started.
 ```
 
 ## Objective
@@ -57,7 +64,7 @@ python code."***
 
 ## Tasks
 
-- [x] !! THE FLOOR IS A HARD CONSTRAINT AND THE LANGUAGE KEEPS MOVING. `.python-
+- [x] T1 -- !! THE FLOOR IS A HARD CONSTRAINT AND THE LANGUAGE KEEPS MOVING. `.python-
       version` pins 3.11 because that is what `plugins/` ships against -- Roy:
       *"the floor will not fail if we are using the floor to evaluate the code."*
       So `ast.parse` reads the syntax of 2023 forever, while the files under
@@ -65,7 +72,7 @@ python code."***
       `corpora/` do not parse on 3.11, every one of them PEP 695 -- `class
       SequencePaginator[T]:`, `type QueryOp = Literal[...]`, `def sudo_required[T,
       **P](...)`. ! 0.17% today and one-directional.
-- [x] !! AN UNPARSED PAGE SETS AS AN EMPTY FILE, which is the sharp edge of it.
+- [x] T2 -- !! AN UNPARSED PAGE SETS AS AN EMPTY FILE, which is the sharp edge of it.
       `page_for` skips the walk when any paragraph is `unparsed`, so
       `cues.reading` is empty and `compositor.set_page` returns `""`.
       MEASURED on `sentry/src/sentry/api/paginator.py`: 884 lines in, 0 characters
@@ -73,46 +80,46 @@ python code."***
       file until approved"* is what stands between it and the tree. * THE GUARD IS
       SMALL AND SHOULD LAND FIRST: the compositor must REFUSE a page with no
       places, never set one.
-- [x] !! TWO READERS MEANS EVERY RULE IS WRITTEN TWICE, AND ONE WRITTEN ONCE IS
+- [x] T3 -- !! TWO READERS MEANS EVERY RULE IS WRITTEN TWICE, AND ONE WRITTEN ONCE IS
       SILENTLY WRONG ON THE OTHER TIER. Roy: *"which is certainly hiding a lot of
       bugs."* THREE instances in a single day, 2026-08-21:
-- [x]   ! THE MATTER TYPE was written in `paragraphs_lexical` alone, so every
+- [x]   T4 -- ! THE MATTER TYPE was written in `paragraphs_lexical` alone, so every
       `.py` file reported NO front matter at all while `.c` reported it correctly.
       Caught only because a test fixture happened to be Python.
-- [x]   !! THE DELIMITER FLUSH is the one that matters: `paragraphs_lexical` ended
+- [x]   T5 -- !! THE DELIMITER FLUSH is the one that matters: `paragraphs_lexical` ended
       a paragraph at a comment's opener AND its closer, so `/* one */`, a blank
       and `/* two */` shared one address. MEASURED: 157 shared addresses in the
       lexical languages and ZERO in Python, whose reader merged runs correctly all
       along. **PYTHON'S CORRECTNESS HID THE LEXICAL DEFECT FOR AS LONG AS THE TREE
       EXISTED** -- every Python test passed over it.
-- [x]   ! `_is_doc` was computed INLINE in `flush` and re-derived differently in
+- [x]   T6 -- ! `_is_doc` was computed INLINE in `flush` and re-derived differently in
       `carry`, so a `/** */` at the head of a file was documentation to one and an
       ordinary comment to the other.
-- [x] MEASURED, the surface: FOUR structural branch points -- `census.py:160`,
+- [x] T7 -- MEASURED, the surface: FOUR structural branch points -- `census.py:160`,
       `language.tier_for`, `lexer.declarations` on `doc_inside`, and `page_for`
       choosing a reader -- plus `paragraphs_stdlib` at 159 lines doing what
       `paragraphs_lexical` does in 375. ! `prove_unchanged` carries the SAME
       dependency: `ast.dump(_blank_docstrings(ast.parse(text)))` for Python and
       stripped text for everything else.
-- [x] ! WHAT THE AST ACTUALLY BUYS, stated so the trade is not one-sided. (1) A
+- [x] T8 -- ! WHAT THE AST ACTUALLY BUYS, stated so the trade is not one-sided. (1) A
       triple-quoted string at the head of a body IS a docstring and one elsewhere
       is a bare expression -- position alone cannot tell them apart. (2) WHERE THE
       BODY STARTS, which a wrapped signature moves several lines down. (3)
       `prove_unchanged`'s statement-order fingerprint, which ignores docstring
       CONTENT while keeping its PRESENCE. Each has to be answered lexically or
       knowingly given up.
-- [x] * RULING WANTED ON THE TRADE. Dropping the AST puts Python on the lexical
+- [x] T9 -- * RULING WANTED ON THE TRADE. Dropping the AST puts Python on the lexical
       tier beside the other sixteen -- one reader, every rule written once, and
       the `tokenized` tier either empties or disappears. It also gives up the
       three answers above, and `a` placement for Python becomes a keyword-and-
       position question like every other language's.
-- [x] ! A THIRD MEASURE OF CORRECTNESS ARRIVED WITH THIS, ruled by Roy the same
+- [x] T10 -- ! A THIRD MEASURE OF CORRECTNESS ARRIVED WITH THIS, ruled by Roy the same
       day: *"out ~= in if out.replace('\\n', '') == in.replace('\\n', '')"* -- a
       run of the project's own formatter settles the rest. MEASURED over 3,082
       files: 3,049 byte-identical, 3,075 identical ignoring newlines, and 7
       differing in more than newlines. It is what separates a spacing question
       from a defect.
-- [x] !! `prove_unchanged` CARRIES THE SAME DEPENDENCY AND IS NOT IN THE LEXER. It
+- [x] T11 -- !! `prove_unchanged` CARRIES THE SAME DEPENDENCY AND IS NOT IN THE LEXER. It
       fingerprints Python as `ast.dump(_blank_docstrings(ast.parse(text)))` and
       everything else as stripped text. That is the CODE CHECK -- what
       `addresser.py` calls the thing that *"MAKES it constant across this tool's
@@ -121,40 +128,40 @@ python code."***
       arrived the same day: the compositor sets code from the `c` places' anchors,
       so "the code is unchanged" could become "every `c` anchor is unchanged" --
       stronger than an `ast.dump`, and language-independent.
-- [x] !! THE TEST SUITE IS 4:1 PYTHON, so it barely covers the path Python would
+- [x] T12 -- !! THE TEST SUITE IS 4:1 PYTHON, so it barely covers the path Python would
       move ONTO. MEASURED 2026-08-21: 456 references to a `.py` path against 115
       to a lexical language, and one fixture each for `.go`, `.rb` and `.rs`.
       ! THAT IS BOTH THE RISK AND THE PAYOFF -- the suite today exercises the
       reader that works and not the one where 157 collisions lived, and the moment
       Python moves, all 456 assertions become coverage of the path that has the
       bugs.
-- [x] ! NO HOLE IN THE LEXER CONTRACT, checked 2026-08-21 when Roy asked. Its
+- [x] T13 -- ! NO HOLE IN THE LEXER CONTRACT, checked 2026-08-21 when Roy asked. Its
       output shape is pinned and the ORACLE now exists: `compositor.identity` over
       2,399 Python files, plus `lossless` and the newline-insensitive measure. A
       replacement reader has to reproduce 2,368 byte-identical round trips.
       ! Before this day there was no way to check that a reader change preserved
       anything at all.
-- [x] * SCOPE, ruled by Roy 2026-08-21: *"the python thing ends up with its own
+- [x] T14 -- * SCOPE, ruled by Roy 2026-08-21: *"the python thing ends up with its own
       branch once we merge this branch back to the 0.2.4 branch. It doesn't depend
       on the folio system being correct or the lexer or page or census."* It may
       touch the lexer only to document edge cases.
-- [x] !! FOUR AST DEPENDENCIES, AND THREE ARE OUTSIDE THE LEXER. MEASURED
+- [x] T15 -- !! FOUR AST DEPENDENCIES, AND THREE ARE OUTSIDE THE LEXER. MEASURED
       2026-08-21: `lexer` (paragraphs and declarations), `prove_unchanged` (the
       CODE CHECK fingerprint), `census` (the name corpus, `ast.parse` at line
       165), and `referrers` (which files name a symbol). Every one of them fails
       on syntax newer than the floor, so the same four files break all four.
-- [x] ! ONLY THE LEXER AND THE COMPOSITOR MAY INTERPRET A FILE, and three of these
+- [x] T16 -- ! ONLY THE LEXER AND THE COMPOSITOR MAY INTERPRET A FILE, and three of these
       do it anyway. Roy, 2026-08-21: *"lexer and compositor are the things that
       are reading files."* ! THE TEST IS NOT `read_text` -- the LEXER READS ZERO
       FILES, it takes `text` as a parameter, and `census` is what hands it one.
       The line is who INTERPRETS the content, and `ast.parse` outside the lexer is
       interpretation.
-- [x] ! `census.py` NAMES ITS OWN GAP ALREADY: *"Liveness in these languages needs
+- [x] T17 -- ! `census.py` NAMES ITS OWN GAP ALREADY: *"Liveness in these languages needs
       its own harvester; the gap until there is one."* Its harvest is Python-only,
       so the name corpus a reviewer checks a cited symbol against exists for one
       language of seventeen -- and vanishes for a Python file the floor cannot
       parse.
-- [x] !! THE ADDRESSER DESCRIBES A MECHANISM IT NEVER TOUCHES. It has NO `import
+- [x] T18 -- !! THE ADDRESSER DESCRIBES A MECHANISM IT NEVER TOUCHES. It has NO `import
       ast` and no call; two paragraphs of its module docstring explain `ast.dump`
       and `_blank_docstrings`, which live in `prove_unchanged`. ! Roy, 2026-08-21,
       on why: *"when it was addresser a long time ago that kind of made sense."*
@@ -163,41 +170,41 @@ python code."***
       describes, with nothing able to check it -- which is the obituary class
       `block-context` is chartered to catch, shipping inside the tool that catches
       it.
-- [x] * RULED 2026-08-21 -- THE CODE CHECK BELONGS TO THE COMPOSITOR. Roy: *"that
+- [x] T19 -- * RULED 2026-08-21 -- THE CODE CHECK BELONGS TO THE COMPOSITOR. Roy: *"that
       check if it was actually possible should live in compositor since before and
       after are in some ways its job to verify."* The compositor PRODUCES the
       after, and every question it already answers is a before/after one --
       `identity` asks whether an unchanged page sets back byte for byte,
       `lossless` whether any line was lost. *Did the code survive* is the same
       question at the same seam.
-- [x] ! IT ALSO ANSWERS THE AST PROBLEM RATHER THAN MOVING IT. `prove_unchanged`
+- [x] T20 -- ! IT ALSO ANSWERS THE AST PROBLEM RATHER THAN MOVING IT. `prove_unchanged`
       fingerprints Python with `ast.dump(_blank_docstrings(ast.parse(text)))`,
       which fails on syntax newer than the floor. In the compositor the check has
       the PAGE, whose `c` places hold every line of code verbatim -- so *the code
       is unchanged* becomes *every `c` anchor is unchanged*. No parser, one rule
       for seventeen languages, and stronger than an `ast.dump`, which compares
       statements and their order rather than the characters.
-- [x] ! AND IT PUTS THE PROSE BACK BESIDE THE CODE IT DESCRIBES. `addresser.py`
+- [x] T21 -- ! AND IT PUTS THE PROSE BACK BESIDE THE CODE IT DESCRIBES. `addresser.py`
       carries two paragraphs explaining `ast.dump` and `_blank_docstrings` and
       imports neither -- Roy: *"when it was addresser a long time ago that kind of
       made sense."* Addressing was the subject then and the code check is what
       makes an address constant. Moving the check to the compositor leaves the
       addresser free to say what it does, and the explanation lands where a reader
       can check it.
-- [x] ! IT CARRIES `a-closing-quote-with-a-comment` WITH IT, FOR FREE. CHECKED
+- [x] T22 -- ! IT CARRIES `a-closing-quote-with-a-comment` WITH IT, FOR FREE. CHECKED
       2026-08-21: read through `paragraphs_lexical` with `"""` as a delimiter, the
       numpy shape yields ONE paragraph and line 5 is owned ONCE -- the `# NOQA`
       rides along on the closing line as part of the run. A reader that cuts at
       the delimiter has no second half to reconcile, so that defect is gone by
       construction rather than fixed.
-- [x] !! WHAT THIS BRANCH ACTUALLY OWES IS THE POSITION RULE, and it is the third
+- [x] T23 -- !! WHAT THIS BRANCH ACTUALLY OWES IS THE POSITION RULE, and it is the third
       of the three things listed above. `"""` is BOTH Python's string quote and
       its doc delimiter: the row lists it under `spanning_quotes`, and
       `_strip_strings` blanks a spanning quote BEFORE the comment-opener test --
       by design, so a `//` inside a string cannot open a comment. So a docstring
       is a STRING IN A PARTICULAR POSITION, and stating that position is what
       replaces the parser.
-- [x] * PROPOSED 2026-08-22 (Roy): THE ANCHORS MAY NEED THEIR DEPTH. The position
+- [x] T24 -- * PROPOSED 2026-08-22 (Roy): THE ANCHORS MAY NEED THEIR DEPTH. The position
       rule this branch owes -- a docstring is a STRING IN A PARTICULAR POSITION --
       is a rule about DEPTH once there is no parser. MEASURED 2026-08-22: an
       anchor already holds its line VERBATIM WITH ITS INDENTATION (a2 is "    def
@@ -209,13 +216,13 @@ python code."***
       same fixture y = """not a docstring""" sits at depth 8 like every other line
       of that body, so depth says WHICH BODY and the walk order says FIRST -- the
       pair replaces ast.get_docstring, not depth alone.
-- [x] * DEFERRED HERE BY TRANSITIVITY, Roy 2026-08-22: *"to make python capable of
+- [x] T25 -- * DEFERRED HERE BY TRANSITIVITY, Roy 2026-08-22: *"to make python capable of
       being read correctly we are going to have to do this ... the fix to one will
       fix the other."* MAKE _strip_strings STATEFUL -- carry open-quote state
       across lines instead of reading each line alone. It is the same reader:
       triple-quote is Pythons doc delimiter AND a spanning quote, so whatever
       computes parity for one computes it for the other
-- [x] THE COST OF NOT HAVING IT, MEASURED 2026-08-22 by a code review and
+- [x] T26 -- THE COST OF NOT HAVING IT, MEASURED 2026-08-22 by a code review and
       reproduced here: prove_unchanged refuses a file on the PRESENCE of a
       spanning delimiter, because parity is what a per-line reader cannot compute
       -- its own words, *a proof that refuses costs a report; a proof that lies
@@ -223,14 +230,14 @@ python code."***
       and the gate LIED instead: an edit made INSIDE a Rust string literal
       reported PROVEN at exit 0, fingerprints identical. That is the stage 7b gate
       failing open
-- [x] ! FOUR ROWS WERE FIXED THE SAME DAY AND FOUR WERE NOT, and the split is why
+- [x] T27 -- ! FOUR ROWS WERE FIXED THE SAME DAY AND FOUR WERE NOT, and the split is why
       this task exists. Go raw-string backtick, Ruby heredoc, Lua long-bracket and
       TOML triple-quote are DISTINCTIVE delimiters, so declaring them costs almost
       nothing. rust, shell, sql and the C++ raw string use the ordinary double and
       single quote, which appear in nearly every file -- declaring those is
       CORRECT by the rule and makes Rust effectively unprovable. A stateful reader
       is what removes the choice between refusing everything and lying sometimes
-- [x] RECORD THE ARGUMENT LISP MAKES, because it separates two properties this
+- [x] T28 -- RECORD THE ARGUMENT LISP MAKES, because it separates two properties this
       repo has been treating as one. CLAUDE.md says *only Python's doc sits INSIDE
       the declaration, so Python alone needs a parser to say WHERE the prose
       goes*. Emacs Lisp has the SAME shape -- the docstring is a string member of
@@ -244,7 +251,7 @@ python code."***
       which is a narrower problem than the sentence in CLAUDE.md implies. ! Not a
       request for a Lisp row; there is none, and a `.el` file is named and refused
       today (verified 2026-08-22).
-- [x] PEP 701 PUTS A COMMENT INSIDE AN F-STRING, and the lexical reader calls it
+- [x] T29 -- PEP 701 PUTS A COMMENT INSIDE AN F-STRING, and the lexical reader calls it
       prose. MEASURED 2026-08-22 on a three-line file: a multi-line f-string whose
       expression holds a `#` comment (legal since Python 3.12) censuses at the
       LEXICAL tier as a `trailing-comment`, handed to four reviewers as text they
@@ -261,7 +268,7 @@ python code."***
       with no state cannot see any of the three. ! Same root as the stateful
       `_strip_strings` task above -- an f-string is the case where parity alone is
       not enough, because the nesting is unbounded.
-- [x] AND THE WRITE SIDE IS WORSE THAN THE READ SIDE, because a misread is visible
+- [x] T30 -- AND THE WRITE SIDE IS WORSE THAN THE READ SIDE, because a misread is visible
       and a miswrite is not. Reading Python lexically means nothing knows WHERE A
       BODY STARTS -- that is what `doc_inside` needs and what a wrapped signature
       moves -- so the compositor cannot place an `a` paragraph from the cues
@@ -276,7 +283,7 @@ python code."***
       check that would catch it is the check that abstains. ! WHATEVER REPLACES
       THE AST MUST ANSWER `where does this body start`, or the `a` series has to
       stop being settable for Python.
-- [x] THE CHECK FOR THE STATEFUL READER, so the fix has something to be measured
+- [x] T31 -- THE CHECK FOR THE STATEFUL READER, so the fix has something to be measured
       against rather than reasoned about. `_strip_strings` re-initialises its
       quote state on EVERY PHYSICAL LINE, so no literal crosses a newline and the
       INTERIOR of a multi-line literal is censused as prose. MEASURED 2026-08-22,
@@ -292,12 +299,14 @@ python code."***
       consumer, `prove_unchanged`, which REFUSES such a file -- so the 7b proof is
       safe and the CENSUS is not. The refusal protects the proof, never the
       review, and nothing today protects the review.
-- [ ] MAKE THE LEXER PARSE PYTHON. No `import ast` in the read path; Python reads
+- [ ] T32 -- MAKE THE LEXER PARSE PYTHON. No `import ast` in the read path; Python reads
       on the lexical tier like the other sixteen languages. Verify: (a) the round-
       trip identity holds over the Python corpora, (b) a file using syntax NEWER
       than the floor still censuses instead of setting as an empty file, (c) `grep
       -rn 'import ast' plugins/` returns nothing in the read path.
-- [ ] PROVE_UNCHANGED PROVES A LEXED LANGUAGE, PYTHON INCLUDED. The `stripped`
+      ! STILL LIVE 2026-08-23: that grep returns lexer.py:28, census.py:36,
+      prove_unchanged.py:36 and referrers.py:16.
+- [ ] T33 -- PROVE_UNCHANGED PROVES A LEXED LANGUAGE, PYTHON INCLUDED. The `stripped`
       proof already does this for the other sixteen -- delete every comment the
       lexer finds, compare the remaining lines right-stripped with blanks dropped.
       Drop the `ast` proof and run `stripped` for every language. ! STATE THE
@@ -307,3 +316,4 @@ python code."***
       non-comment lines are the same lines in the same order. Verify: (a) no
       `import ast` in prove_unchanged.py, (b) the Python fixtures still pass, (c)
       the docstring says what the proof does NOT cover.
+      ! STILL LIVE 2026-08-23: prove_unchanged.py:36 still reads `import ast`.

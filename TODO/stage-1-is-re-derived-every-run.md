@@ -9,6 +9,11 @@ Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was es
           from scratch both times and both style sheets were left in a session scratchpad)
 Sharpened: 2026-08-17 (Roy: "Figure out why twice / LSP state and name corpus -- twice /
           One pass should have been enough. / Besides lsps there is also codegraph")
+Re-checked: 2026-08-23 -- 1.7 (`SKILL.md:286`) and 1.8 (`:319`) are unchanged. CodeGraph
+          is no longer absent from the tree: zero occurrences under `plugins/`, three
+          files under `docs/`, and THIS repo now carries a `.codegraph/` index, so the
+          "ships unexercised" caveat no longer holds here. The ruled sheet home
+          `.claude/comment-review/` appears nowhere in the shipped skill.
 ```
 
 ## Objective
@@ -25,17 +30,19 @@ available, and the name-corpus source.
 `SKILL.md` 1.5 says the STYLE SHEET *"is the only thing in this skill that PERSISTS between
 runs"*. Two problems with that as it stands:
 
-- **It has no home.** It reaches a run through the `style` argument, so the human has to
-  remember a path and type it. Both sheets written on 2026-08-17 went to a session scratchpad,
-  which is deleted with the session. Nothing in the skill says where a sheet should live.
+- **It has no home.** It reaches a run through the `style` argument (`SKILL.md:157`), so the
+  human has to remember a path and type it. Both sheets written on 2026-08-17 went to a session
+  scratchpad, which is deleted with the session. ! The location was RULED on 2026-08-17 and the
+  shipped skill still does not name it -- measured 2026-08-23, `.claude/comment-review` has zero
+  occurrences under `plugins/`.
 - **It carries the templates and the rulings, and none of the other stage-1 facts.** The cap,
   the width, whether the guard exists, the destination tree and the marker exemptions are
   re-derived every time and appear only in the run's proposal.
 
 ### 2. !! 1.8 IS NOT A QUESTION -- it is 1.7's answer restated
 
-`1.7` probes for a language server. `1.8` "decides where the name corpus comes from", and every
-branch of it is a lookup on `1.7`:
+`SKILL.md:286` probes for a language server. `:319` "decides where the name corpus comes from",
+and every branch of it is a lookup on 1.7:
 
 | 1.8 says | its only input |
 | --- | --- |
@@ -55,10 +62,11 @@ rows, writing **derived from** and still counting it as a separate answer.
 With only LSP in view, *"is a server there?"* and *"so where do names come from?"* read as two
 questions. They are one: **what structure is available here, and from where.**
 
-**CodeGraph is a second source and the shipped tree does not mention it -- zero occurrences
-across `plugins/` and `docs/`.** It answers both halves at once: symbols for a block's ANCHOR,
-call paths for liveness. Landing on 1.7 and 1.8 simultaneously is itself the evidence that they
-are one substep.
+**CodeGraph is a second source and the shipped skill still does not mention it.** MEASURED
+2026-08-23: zero occurrences under `plugins/`; three files under `docs/` name it
+(`docs/addressing.md:164`, `docs/history.md:56`, and one spec). It answers both halves at once:
+symbols for a paragraph's ANCHOR, call paths for liveness. Landing on 1.7 and 1.8 simultaneously
+is itself the evidence that they are one substep.
 
 !! **And it breaks the persistence split**, which is the reason it belongs in this file:
 
@@ -68,7 +76,8 @@ are one substep.
 | CodeGraph | the **repo** -- a `.codegraph/` directory in the tree | **yes** |
 
 CodeGraph is the first structure source whose presence is discoverable from the checkout alone,
-which is the property that makes it recordable at all.
+which is the property that makes it recordable at all. ! And it is exercisable here now: this
+repo carries a `.codegraph/` directory, which it did not on 2026-08-17.
 
 ## !! Persistence has to be SELECTIVE
 
@@ -99,42 +108,52 @@ all; it is whatever the structure sources say, computed at dispatch.
 
 ## Tasks
 
-- [ ] * **Collapse 1.7 and 1.8 into ONE substep**, and name it for what it does: find what
-      structure is available. The name corpus stops being a decision and becomes the output.
-      ! Roy's ruling, because it renumbers a stage's substeps and the numbers are cited from
-      `run_context.py`, `census.py` and elsewhere in `SKILL.md`.
+- [ ] T1 -- * Collapse 1.7 and 1.8 into ONE substep, and name it for what it does:
+      find what structure is available. The name corpus stops being a decision and
+      becomes the output. ! Roy's ruling, because it renumbers a stage's substeps
+      and the numbers are cited from `run_context.py`, `census.py` and elsewhere in
+      `SKILL.md`. Verify: one substep in `SKILL.md`, and every citation of the old
+      numbers re-resolved -- `grep -rn "1\.8" plugins/` comes back empty or points
+      at the new number.
 
-- [ ] * **Rule on CodeGraph**: does the skill probe for `.codegraph/` alongside the LSP probe,
-      and does `codegraph_explore` become a sanctioned way to settle an anchor and a liveness
-      claim? ! Check the register before naming anything new. ! Neither repo in this session is
-      indexed, so anything written for it ships unexercised -- say so where it is written.
+- [ ] T2 -- * Rule on CodeGraph: does the skill probe for `.codegraph/` alongside
+      the LSP probe, and does `codegraph_explore` become a sanctioned way to settle
+      an anchor and a liveness claim? ! Check the register before naming anything
+      new. ! This repo now carries a `.codegraph/` index, so whatever is written
+      can be exercised here rather than shipping unrun. Verify: the answer is in
+      `SKILL.md` with the probe, or this file records the refusal and why.
 
-- [ ] State the THREE structure states per source, not per run, once 1.7/1.8 collapse. Today
-      1.7's three-state table (`answered` / `no server for this language` / `no LSP tool at
-      all`) is written for LSP alone, and the third state -- the tool is absent so no probe is
-      possible -- applies to CodeGraph identically.
+- [ ] T3 -- State the THREE structure states per SOURCE, not per run, once 1.7/1.8
+      collapse. Today 1.7's three-state table (`answered` / `no server for this
+      language` / `no LSP tool at all`) is written for LSP alone, and the third
+      state -- the tool is absent so no probe is possible -- applies to CodeGraph
+      identically. Verify: the table in `SKILL.md` names the source in each row.
 
-- [x] * **RULED 2026-08-17: `.claude/comment-review/` in the repo under review.** Roy's words.
-      A per-repo location beside the other `.claude` configuration, so the sheet is found without
-      the human typing a path and travels with the repo it describes. ! It is still written only
-      after approval, like everything else -- this does not make stage 1 a writing stage.
+- [x] T4 -- * RULED 2026-08-17: `.claude/comment-review/` in the repo under review.
+      Roy's words. A per-repo location beside the other `.claude` configuration, so
+      the sheet is found without the human typing a path and travels with the repo
+      it describes. ! It is still written only after approval, like everything else
+      -- this does not make stage 1 a writing stage. ! The ruling is MADE and
+      UNIMPLEMENTED: the path is in no shipped file, which is what T5 carries.
 
-      Was: Rule on WHERE a style sheet lives when the repo does not name one. Candidates: a
-      conventional path the skill looks for, a path the human passes and the skill writes back
-      to, or the skill continuing to hand the sheet over every run. ! It writes to the repo only
-      after approval, like everything else -- this must not become a stage that writes before 7b.
+- [ ] T5 -- Widen the sheet to carry the REPO-side rows of the table above, and say
+      in the sheet itself which rows are repo facts. A sheet that mixes them invites
+      the next run to read a machine fact back. Verify: `SKILL.md` 1.5 names
+      `.claude/comment-review/` as where a sheet is found and written, and the
+      sheet's own format lists the repo rows.
 
-- [ ] Widen the sheet to carry the REPO-side rows of the table above, and say in the sheet
-      itself which rows are repo facts. A sheet that mixes them invites the next run to read a
-      machine fact back.
+- [ ] T6 -- State explicitly, in the sheet's own format, that LSP state and agent
+      resolution are NEVER recorded, ! with the REASON beside each -- or a later
+      pass "completes" the sheet by adding them. Verify: the two exclusions and
+      their reasons are in the format, not only in this file.
 
-- [ ] State explicitly, in the sheet's own format, that LSP state and agent resolution are NEVER
-      recorded, ! with the REASON beside each -- or a later pass "completes" the sheet by adding
-      them.
+- [ ] T7 -- Decide what happens when a persisted answer is now WRONG -- a cap
+      published since the last run, a deleted `docs/` tree. ! Recommendation: the
+      sheet records the ref it was measured at, and stage 1 re-measures only what
+      the diff since that ref touched. Verify: the sheet format carries the ref,
+      and `SKILL.md` says what stage 1 does with it.
 
-- [ ] Decide what happens when a persisted answer is now WRONG -- a cap published since the last
-      run, a deleted `docs/` tree. ! Recommendation: the sheet records the ref it was measured
-      at, and stage 1 re-measures only what the diff since that ref touched.
-
-- [ ] Re-measure the stage-1 cost after the change and record it. Today: ~25 tool calls,
-      measured on both 2026-08-17 runs. ! Record it as a fact, not as a budget question.
+- [ ] T8 -- Re-measure the stage-1 cost after the change and record it here. Today:
+      ~25 tool calls, measured on both 2026-08-17 runs. ! Record it as a fact, not
+      as a budget question. Verify: a dated count in this file taken from a run
+      after the collapse.

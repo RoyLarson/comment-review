@@ -2,16 +2,22 @@
 
 ```
 Status:   open
-Progress: 1 of 9 tasks done
-Owner:    agents · Roy
+Progress: 6 of 9 tasks done
+Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
           Its words: "the synthesis -- where four verdicts become one sentence -- is written
           by the same agent that then decides it's correct."
-Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads '* 3 rulings, 2
+Unblocked: 2026-08-19 -- Requires-Roy cleared: its own Owner field read '* 3 rulings, 2
            made'; the remaining one is named in the file and is not what the flag is
            for. The flag means a DECISION is owed; work still remaining is what the
            unchecked boxes already say.
+Delivered: 2026-08-23 -- 5b and 6b SHIP. `SKILL.md:905` and `:972` define them and
+           `references/re-review.md` (161 lines) carries the payload, the three
+           questions, the return shape, the channel and the stop rule.
+           `re-review-is-ordered-everywhere-and-defined-nowhere` is in `completed/`.
+           Owner was `agents / Roy`; set to the lane, since `Requires-Roy` carries the
+           other half and `docs/lanes.md` says an Owner is one of the four lanes.
 ```
 
 ## !! INDEPENDENT is not FRESH, and only two readers are fresh
@@ -23,31 +29,37 @@ Two different properties, and this file conflated them until he separated them:
 | | means | who has it |
 | --- | --- | --- |
 | **independent** | did not write the text it is reading | the join, the compact agent, the filers at 5b/6b, stage 8, the human |
-| **FRESH** | formed no prior view of this block | **stage 8 and the human, and nobody else** |
+| **FRESH** | formed no prior view of this paragraph | **stage 8 and the human, and nobody else** |
 
-A filer confirming at 5b already read the block and already ruled on it. That is worth having --
-it is the only participant who knows what its finding meant -- but it is **not a fresh read**, and
-a design that leans on it must not claim one. Stage 8 reads the finished page and never sees a
-report; the human sees the proposal and nothing before it.
+A filer confirming at 5b already read the paragraph and already ruled on it. That is worth having
+-- it is the only participant who knows what its finding meant -- but it is **not a fresh read**,
+and a design that leans on it must not claim one. Stage 8 reads the finished page and never sees
+a report; the human sees the proposal and nothing before it.
 
 ## Objective
 
-**Every stage but one is read by somebody who did not write it.**
+**Every stage but one was read by somebody who did not write it, and the exception now has two
+readers.**
 
 | stage | who checks it |
 | --- | --- |
 | 4 MARK | `verdicts.py` -- the join, mechanically |
-| 6 COMPACT | a separate agent reads stage 5's work -- but ! **nothing reads the compact agent's own output** until stage 8, after the write |
+| **5 APPLY** | **5b RE-REVIEW** -- the roles that ruled, asked *is this what you meant?* |
+| 6 COMPACT | **6b RE-REVIEW** -- `re-review.md:59` calls it stage 6's only reader before the author |
 | 7b WRITE | the CODE CHECK, against the pre-edit ref |
 | 8 REVIEW | a separate agent, reading the finished page |
-| **5 APPLY** | **itself** |
 
-!! `compact.md` already makes the argument, for its own stage: *"An agent that never saw the
+!! `compact.md` already made the argument, for its own stage: *"An agent that never saw the
 argument cannot keep a sentence because it remembers writing it -- which is what makes this pass
-safe... **The contract only buys anything if the reader is not the writer.**"*
+safe... **The contract only buys anything if the reader is not the writer.**"* That reasoning
+applied to stage 5 verbatim and was not applied there: stage 5 wrote the replacement text and
+then ran the residue check on its own output.
 
-That reasoning applies to stage 5 verbatim and is not applied there. Stage 5 writes the
-replacement text and then runs the residue check on its own output.
+! **What shipped is (e), the recommendation below.** `SKILL.md:39`: *"5b and 6b are the same
+mechanism asking DIFFERENT questions"*; `:101-104` says they are what make every stage's output
+read by somebody who did not write it, and records that APPLY still runs the residue check on
+its own output as well. ! `re-review.md:145`: **nothing has yet reached a second round**, so
+none of it is measured in a live run.
 
 ## ! Measured: the self-administered rails were read and not run
 
@@ -55,11 +67,12 @@ A run reached stage 8 with `ruff` clean, the formatter clean, the AST **PROVEN**
 green -- and stage 8 returned twelve findings, enough that the operator rolled the whole pass
 back to `REDACTED_SHA_D`. Three of the twelve were the same rail failing:
 
-- **`write.md` requires re-deriving a claim before touching its block.** Three findings were a
-  reviewer's `correct` applied without re-derivation. The operator: *"I read that rail and
+- **`write.md` requires re-deriving a claim before touching its paragraph.** Three findings were
+  a reviewer's `correct` applied without re-derivation. The operator: *"I read that rail and
   didn't run it."*
 - **The residue check's four refusals** were answered once instead of four times, which is how
-  the `_salvage_row` laundering passed. Filed separately and since fixed in shape.
+  the `_salvage_row` laundering passed. Filed separately and since fixed in shape --
+  `references/residue-check.md:39` now heads them *"The four refusals"* and requires all four.
 - **A `drop` was applied whose own `FINDING` named an owner** -- `move`'s payload wearing
   `drop`'s label.
 
@@ -77,37 +90,10 @@ finding today reaches:
 
 - **That a second reader would have caught them.** Stage 8 did, which is the design working
   one stage later than it could have.
-- **That stage 5 can be split at all.** It holds four verdicts per block, the census, the style
-  sheet and the originals; the narrow contract that makes stage 6 safe may not exist here.
-- **Whether the cost is payable.** A per-block second reader on 43 blocks is 43 dispatches.
-
-## Tasks
-
-- [ ] * Rule on whether stage 5 gains an independent reader, and what it is given. ! The
-      candidates differ in what they can catch:
-      **(a) nothing -- stage 8 is the reader**, one stage late and after the write;
-      **(b) a residue-check agent** handed only the ORIGINAL and the REPLACEMENT, and asked the
-      four refusals -- the narrowest contract, and it is the check that failed;
-      **(c) a re-derivation agent** handed the claim and the code, asked only "is this true",
-      which is the failure that produced both worse-than-before findings;
-      **(d) stage 8 moves BEFORE the write**;
-      **(e) * ROY, 2026-08-17 -- send the PATCH BACK TO THE REVIEWERS: "is this what you mean?"**
-      !! **(e) is the recommendation.** See the section below; the others are kept for the
-      record and (d) remains worth weighing because stage 8 catches things no filer would.
-
-      !! **RULED, later the same day, and it is (e) with the question sharpened.** Roy:
-      *"Sending the joined resolved block back to the reviewers that had comments does help
-      because each can say yes my edits made it and are correct and the other edits do not
-      negate that or cause mine to be wrong."* Not *"is this what you mean"* -- which a reviewer
-      can answer from memory -- but three questions about the JOINED block: did my edit survive,
-      is it still correct there, and do the other edits break it.
-
-      ! This is the SAME mechanism as round two of a re-review, and it is written up there
-      rather than twice:
-      [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md).
-      ! Stage 5's independent reader and re-review round two turn out to be one thing, so this
-      task closes when that file's shape is settled -- including the blocker it names, that
-      `verdicts.py` cannot admit a round-2 record at all.
+- **Whether the cost is payable.** A per-paragraph second reader on 43 paragraphs would be 43
+  dispatches; what shipped is four messages instead, one per role.
+- **That the mechanism works in a run.** `re-review.md:145` records that nothing has reached a
+  second round yet.
 
 ## * (e) -- send the patch back to the reviewers
 
@@ -120,31 +106,14 @@ unanswerable -- nothing changed. *"Is this the text your finding asked for?"* is
 question with a hold/revise answer, and **the filer is the only participant who knows.** Stage 5
 turns four verdicts into one sentence; when it misreads one, no other reader can tell.
 
-! **It catches precisely the two failures that ended the measured run.** A reviewer would
-recognise its own claim replaced with a checkably false one, and the reviewer whose `correct`
-dropped a qualifier carrying a true sentence would see the qualifier gone.
+!! **RULED 2026-08-17, and sharpened.** Roy: *"Sending the joined resolved block back to the
+reviewers that had comments does help because each can say yes my edits made it and are correct
+and the other edits do not negate that or cause mine to be wrong."* Not *"is this what you
+mean"* -- which a reviewer can answer from memory -- but three questions about the JOINED
+paragraph: did my edit survive, is it still correct there, and do the other edits break it.
+`re-review.md:22-32` carries exactly those three.
 
-**Cheap, because the mechanism already exists.** It is the re-review channel: `SendMessage` to
-roles that still hold their reads, measured at ~2 minutes and ZERO tool calls. Each reviewer
-sees only the blocks it filed on, so a 43-block run is FOUR messages.
-
-**It needs no new contract.** The reviewer already holds the census, the code and its own
-reasoning; it is given its own record and the resulting text. That is the narrowest contract in
-the system, and it resolves the objection above that stage 6's narrow contract may not exist
-here -- it does, and it is narrower.
-
-! **MARK/APPLY separation is not broken.** The finding is already filed and already read by the
-join; the reviewer is not fixing, it is confirming the fix matches what it filed. Same argument
-Roy made for showing the competing verdict at re-review: blindness protects the FIRST read and
-that is banked.
-
-### ! The two things to get right
-
-**Confirmation bias.** A reviewer shown a patch may wave it through. The question must be
-specific -- *does the replacement still carry the claim your `EVIDENCE` settles, and is anything
-from your `QUOTE` gone?* -- not *is this OK*.
-
-**WHERE it sits -- * RULED 2026-08-17: BOTH, and they ask DIFFERENT questions.** Roy: *"I think
+**WHERE IT SITS -- * RULED 2026-08-17: BOTH, and they ask DIFFERENT questions.** Roy: *"I think
 it can run before and after stage 6. Stage 5 - is this what you meant. Stage 6 - is this still
 correct after my edits. The 4 editor roles i think are well verified roles at this point."*
 
@@ -153,71 +122,61 @@ correct after my edits. The 4 editor roles i think are well verified roles at th
 | **5b** | APPLY | *is this what you meant?* | a synthesis that misread a finding |
 | **6b** | COMPACT | *is this still correct after my edits?* | compaction that cut what the finding rested on |
 
-!! **6b gives stage 6 a checker, which it did not have.** The table at the top of this file
-credits stage 6 with an independent reader -- and that is the compact agent reading stage 5's
-work. **Nothing read the compact agent's own output** until stage 8, after the write. On the
-measured run it reached the cap by writing 98-column lines and flagged that itself; nothing
-would have caught it if it had not.
-
-! Roy's stated basis for leaning on the reviewers for both: *"the 4 editor roles i think are
-well verified roles at this point."* Recorded as the reason, not as a measurement.
-
-### * RULED: a block stage 6 must edit that NO ROLE ruled on goes to all four
+### * RULED: a paragraph stage 6 must edit that NO ROLE ruled on goes to all four
 
 Roy: *"If stage 6 has to edit a block not in the specific review results it sends it back to all
-of them for a response/verdict."*
+of them for a response/verdict."* Shipped at `re-review.md:67`. It is the only path by which
+stage 6 originates work, and it inverts the usual direction: every other finding travels 4 -> 5,
+this one travels 6 -> 4.
 
-A block every role returned `clean` on can still be over the cap. Compacting it is an edit with
-no verdict behind it, and neither 5b nor 6b reaches it -- there is no filer to ask. So it is
-dispatched to all four as a fresh block, and comes back with verdicts.
+## Tasks
 
-! It is the only path by which stage 6 originates work, and it inverts the usual direction:
-every other finding travels 4 -> 5, this one travels 6 -> 4.
-
-## Tasks (continued)
-
-- [x] * **RULED: (e) runs BEFORE and AFTER stage 6**, asking a different question each time,
-      and a block stage 6 must edit that no role ruled on goes to all four. See above.
-
-- [ ] Write the two questions as input contracts. ! They are not interchangeable: 5b asks
-      whether the synthesis carried the finding, 6b asks whether compaction broke it. A single
-      "is this still right" prompt collapses them and answers neither.
-
-- [ ] Say where they live. `compact.md` owns stage 6 and would own 6b; 5b has no reference file
-      because stage 5 has none. ! That absence is itself a finding -- stages 1, 2-3 and 5 are the
-      only stages with no `references/` file, and 5 is the one this whole task is about.
-
-- [ ] Consider (d) -- stage 8 before the write -- with the objection Roy raised against it.
-      Stage 8 already exists, already reads fresh, and already caught all of this; what it
-      cannot do today is stop the write. ! Against it, `review.md` reads a FINISHED PAGE and a
-      proposal is not a page.
-
-      !! **And a pre-write read is only valid under BLANKET approval.** Roy, on the measured
-      run: *"all of the changes should be read before the proposal to the human -- that was an
-      artifact of my blanket yes statement. If I had stated apply this one not that one would
-      nullify that effort."* A whole-page reader reads the 43 blocks as a SET. Approve 30 of
-      them and it read a page that never exists -- the interactions it checked are between edits
-      that will not sit together.
-
-      ! That is not fatal, because the absentee-author principle already assumes the blanket
-      case: *"They approve almost everything, quickly, unaudited"*, and *"every proposal must be
-      safe to approve blindly."* So the rule follows: **a pre-write whole-page read is valid for
-      an all-or-nothing approval, and a SELECTIVE approval invalidates it and needs a re-read.**
-      Say which, rather than letting a subset ship against a read of the whole.
-
-- [ ] Count how many of stage 8's twelve findings a pre-write reader could have caught, from
-      that run's preserved artifacts. ! That number decides whether this is worth paying for,
-      and it is available now rather than by argument.
-
-- [ ] Make the `write.md` re-derivation rail answerable, the way the residue check's four
-      refusals now are. A rail read and not run is a shape problem, and it has now been measured
-      twice in one day.
-
-- [ ] ! Record that the mechanical stages held. The join gated correctly, the interval exemption
-      removed the 65-refusal class, `compact` respected the docstring exemption and flagged its
-      own width trade rather than hiding it, and the CODE CHECK stopped the run on a real AST
-      change. The failure is specific to the stage with no second reader.
-
-- [ ] ! Record the rollback as the system working. Twelve findings, tree returned to
-      `REDACTED_SHA_D`, 0 modified files. A pass that makes the page worse and says so is the outcome
-      stage 8 exists for.
+- [x] T1 -- FINISHED. * The ruling on whether stage 5 gains an independent reader
+      arrived 2026-08-17 and it is (e): send the patch back to the reviewers that
+      filed. The alternatives are kept above for the record -- (a) stage 8 alone,
+      (b) a residue-check agent, (c) a re-derivation agent, (d) stage 8 before the
+      write, which stays live as T5.
+- [x] T2 -- FINISHED. * RULED: (e) runs BEFORE and AFTER stage 6, asking a
+      different question each time, and a paragraph stage 6 must edit that no role
+      ruled on goes to all four.
+- [x] T3 -- FINISHED. The two questions are written as input contracts:
+      `references/re-review.md:52-53` gives the pair and `:56` states why one
+      prompt answers neither, with the payload, return shape, channel and stop rule
+      in the same file.
+- [x] T4 -- FINISHED. Where they live is settled: `SKILL.md:905` is stage 5b and
+      `:972` is stage 6b, both deferring to `references/re-review.md` rather than
+      restating it. ! The observation that stages 1, 2-3 and 5 had no `references/`
+      file is answered for 5.
+- [ ] T5 -- Consider (d) -- stage 8 before the write -- with the objection Roy
+      raised against it. Stage 8 already exists, already reads fresh, and already
+      caught all of this; what it cannot do today is stop the write. ! Against it,
+      `review.md` reads a FINISHED PAGE and a proposal is not a page.
+      !! And a pre-write read is only valid under BLANKET approval. Roy, on the
+      measured run: *"all of the changes should be read before the proposal to the
+      human -- that was an artifact of my blanket yes statement. If I had stated
+      apply this one not that one would nullify that effort."* Approve 30 of 43 and
+      it read a page that never exists. ! Not fatal: the absentee-author principle
+      already assumes the blanket case. Verify: `SKILL.md` states whether a
+      pre-write whole-page read runs and, if it does, that a SELECTIVE approval
+      invalidates it and needs a re-read -- MEASURED 2026-08-23: it says neither,
+      zero matches for `blanket` or `pre-write`.
+- [ ] T6 -- Count how many of stage 8's twelve findings a pre-write reader could
+      have caught, from that run's preserved artifacts. ! That number decides
+      whether T5 is worth paying for, and it is available now rather than by
+      argument. Verify: the number is written in this file with the artifact it was
+      taken from.
+- [ ] T7 -- Make the `write.md` re-derivation rail ANSWERABLE, the way the residue
+      check's four refusals now are. MEASURED 2026-08-23: `write.md:113` states
+      *"Touching a paragraph obliges re-deriving its claim"* as prose, while
+      `residue-check.md:39` heads its four as refusals that must each be answered.
+      A rail read and not run is a shape problem, and it was measured twice in one
+      day. Verify: the rail is a question the writer must answer per paragraph, and
+      the stage-7b report has somewhere to put the answer.
+- [x] T8 -- A RECORD, not a task: the mechanical stages held. The join gated
+      correctly, the interval exemption removed the 65-refusal class, `compact`
+      respected the docstring exemption and flagged its own width trade rather than
+      hiding it, and the CODE CHECK stopped the run on a real AST change. The
+      failure is specific to the stage that had no second reader.
+- [x] T9 -- A RECORD, not a task: the rollback is the system working. Twelve
+      findings, tree returned to `REDACTED_SHA_D`, 0 modified files. A pass that
+      makes the page worse and says so is the outcome stage 8 exists for.

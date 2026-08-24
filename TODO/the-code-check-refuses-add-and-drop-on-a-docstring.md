@@ -54,21 +54,21 @@ stop; a delta that matches one is the edit landing.
 
 ## Tasks
 
-- [ ] * Rule on whether 7b compares against the approved SET or against nothing-changed. ! It
+- [ ] T1 -- * Rule on whether 7b compares against the approved SET or against nothing-changed. ! It
       decides whether the CODE CHECK stays a blanket proof -- simple, and unable to admit two
       verdicts -- or becomes a diff against an expectation, which is stronger and needs the
       approved list to reach it. Roy's, because it changes what the proof asserts.
 
-- [ ] Report docstring-presence deltas SEPARATELY from executable ones whichever way that goes.
+- [ ] T2 -- Report docstring-presence deltas SEPARATELY from executable ones whichever way that goes.
       Today one line says `executable code DIFFERS (ast proof)` for a change that is entirely
       prose, and the operator had to diagnose it by hand with a second AST comparison.
 
-- [ ] Say in `write.md` what a docstring `add` does today, until this is settled. ! An operator
+- [ ] T3 -- Say in `write.md` what a docstring `add` does today, until this is settled. ! An operator
       following the rails loses the edit and has no way to know that was the rule working.
 
-- [ ] Check the LEXICAL side. Non-Python files compare `stripped` text, which removes comments --
+- [ ] T4 -- Check the LEXICAL side. Non-Python files compare `stripped` text, which removes comments --
       so a docstring has no meaning there, but `///` and `/**` doc comments do. ! Unmeasured;
       this file must not claim which way it goes.
 
-- [ ] Add both cases to `tests/test_prove_unchanged.py`. ! Nothing there covers a docstring
+- [ ] T5 -- Add both cases to `tests/test_prove_unchanged.py`. ! Nothing there covers a docstring
       being ADDED or REMOVED -- only rewritten, which is the case that passes.
