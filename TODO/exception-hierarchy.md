@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 2 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, on the exceptions.py layer: a human would have
@@ -28,6 +28,13 @@ Deferral: 2026-08-22 — AND THE DEFERRAL ALWAYS LOOKS CHEAP, WHICH IS HOW IT GE
           holds the future cost flat. Where there is no seam, the same reasoning argues
           for paying NOW, because the per-encounter share will never rise enough to
           force it later.
+TRIAGED:  2026-08-23 — 2026-08-23. Tasks 2 and 3 are reasoning -- the cost of the
+          boundary, and why deferring is safe because exceptions.py's named tuples are
+          the SEAM. Neither can be finished. What is left is task 1 (design the
+          hierarchy), task 4 (audit the 22 unexamined bare raise ValueError, deferred
+          until it lands) and task 5, which names a choice rather than a measurement:
+          the five dev scripts under scripts/ either take the shipped leaf through the
+          path shim or state the duplication as deliberate.
 ```
 
 ## Objective
@@ -46,13 +53,13 @@ The exception tuples are a surface, not a hierarchy.
       exceptions.Unreadable` replaces `except exceptions.READ_ERRORS`, and a
       caller catches OUR concept rather than a list of stdlib classes that happen
       to co-occur.
-- [ ] THE COST IS THE BOUNDARY, and it is why this is a TODO rather than a patch.
+- [x] THE COST IS THE BOUNDARY, and it is why this is a TODO rather than a patch.
       Python raises `OSError`, not `Unreadable`, so every read, parse and git site
       has to catch the stdlib tuple and re-raise as ours with `from e` -- roughly
       30 sites across 14 modules. It changes what escapes `page_for`, `identity`,
       `code_names` and the census, and it makes the tuples INTERNAL to the
       wrappers rather than the public surface they are today.
-- [ ] WHY DEFERRING IS SAFE, which is the whole reason this can wait: the named
+- [x] WHY DEFERRING IS SAFE, which is the whole reason this can wait: the named
       tuples in `exceptions.py` are the SEAM. Roy: *"we have the surface, we
       understand the problem. The constants in that file will allow us to get past
       this without too much risk of this being unrefactorable later."* Every call

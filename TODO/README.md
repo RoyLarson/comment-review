@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (81)
+### open  (80)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -224,7 +224,7 @@ that changed a published name or rule:
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | — | 1/6 | 720 tests green against six deliberate defects in shipped code |
 | [the-xfails-never-reach-the-galley](the-xfails-never-reach-the-galley.md) | testing | — | 0/3 | they fail in the test helper on a retired lookup, not in splice_range |
 | [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | agents | — | 0/2 | shipped prose says an anchor is often empty; it is never empty |
-| [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | backend | — | 0/6 | each states a rule and then denies it, in the same file |
+| [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | backend | — | 1/6 | each states a rule and then denies it, in the same file |
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | backend | — | 0/6 | every one re-derivable by a command, and every one wrong |
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | testing | — | 0/10 | each passes in the buggy state its own comment forbids |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | backend | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
@@ -253,13 +253,12 @@ that changed a published name or rule:
 | [page-and-addresser-scans](page-and-addresser-scans.md) | backend | — | 0/7 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | yes | 0/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
-| [exception-hierarchy](exception-hierarchy.md) | backend | — | 0/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
+| [exception-hierarchy](exception-hierarchy.md) | backend | — | 2/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | yes | 0/6 | Two graded arms, orchestration held constant; the rewording is the confound |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | yes | 4/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [computed-and-never-read](computed-and-never-read.md) | backend | — | 2/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [not-every-line-has-an-address](not-every-line-has-an-address.md) | backend | yes | 0/8 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
-| [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | yes | 0/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [retired-word-in-a-quote](retired-word-in-a-quote.md) | systems | yes | 0/5 | folio cannot join RETIRED without exempting the five core modules whole, because each quotes a ruling made when the word was current |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | — | 0/5 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | — | 0/4 | A per-language fixture can pass without exercising the shape its language is measured on |
@@ -273,7 +272,7 @@ that changed a published name or rule:
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | yes | 5/10 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
-### decision-needed  (8)
+### decision-needed  (9)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -285,6 +284,7 @@ other tasks can proceed without them._
 | [a-role-with-no-code-out-damages-the-prose](a-role-with-no-code-out-damages-the-prose.md) | agents | yes | 0/5 | `code_concerns` is defined in the shared brief that every role reads, but named in only ONE of the four reviewer files -- `function-context`. It is absent from `module-context`, whose whole remit is whether a module announces ONE subject, which is the finding that most needs a code out. MEASURED in the harness: `module-context-widens-a-two-subject-docstring` detected that `verdicts.py` holds four subjects, had no verdict for 'split this module', and emitted a prose `patch` widening the docstring to announce TWO -- the exact defect its own trigger is named for. `code_concerns` came back empty. |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | yes | 4/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 1/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
+| [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | yes | 3/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 
 ### in flight  (0)
 
