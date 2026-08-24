@@ -84,13 +84,13 @@ system has a different problem with each.
 | --- | --- | --- |
 | **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | `verdicts.py`, which the shipped tree calls **the join** at 43 sites and which rules on nothing by design. `join` is a database word |
 | **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **unnamed.** It is what `verdicts.py` prints |
-| **editor** | who reads the master proof and decides what stands | **unnamed, and there is no module.** Stage 5 APPLY, performed by the task agent |
+| **editor** | who reads the master proof and decides what stands | **the COPY CHIEF**, ruled 2026-08-23. Stage 5 APPLY, performed by the task agent today and getting an agent file of its own |
 
 ! **THE THREE ARE NOT ONE JOB, WHICH IS WHY ONE WORD WOULD NOT FIT.** Collating is mechanical and
 answerable by a program; ruling is not. `verdicts.py` checks citations, reports contradictions and
 names coverage gaps, and hands every conflict up -- so whatever it is called, it is not the editor.
 
-!! **BOTH CANDIDATE WORDS ARE ALREADY SPOKEN FOR HERE, AND THAT IS THE RULING NEEDED FIRST:**
+!! **BOTH CANDIDATE WORDS WERE ALREADY SPOKEN FOR, WHICH IS WHY A RULING WAS NEEDED FIRST:**
 
 - **`collate` is FREE.** Stage 2 was `COLLATE` and is **GATHER** since 2026-08-23, because what
   it does is find every file in scope and put a page for each in the binder -- gathering is the
@@ -100,8 +100,23 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
   different jobs one syllable apart. In the trade the four are the hands that MARK -- a copy
   editor, a proofreader -- and only one hand rules.
 
-! Tracked in [`TODO/verdicts-is-the-join.md`](../TODO/verdicts-is-the-join.md). Nothing is
-renamed until those two are settled.
+!! **RULED 2026-08-23: THE ONE WHO RULES IS THE `copy chief`.** Roy: *"copy chief works. We will
+want to have a specific agent file for that separate from the task agent."* In the trade the copy
+chief rules over the copy editors' marks -- one level above the four hands, which is exactly the
+relation here -- so it names the job without landing a syllable from `editorial role`.
+
+!! **AND THE RULING CARRIES A SHAPE, NOT ONLY A WORD.** The copy chief becomes **its own agent
+file**, separate from the task agent. Today stage 5 APPLY is the task agent deciding, which is
+why the row above read *"unnamed, and there is no module"* -- the job had no artifact, so nothing
+could be given to it, told to it, or checked of it. ! This is the same finding
+[`TODO/stage-5-is-the-only-stage-with-no-independent-reader.md`](../TODO/stage-5-is-the-only-stage-with-no-independent-reader.md)
+records from the other direction.
+
+! **Do not add `copy chief` to `vocabulary.toml` until that agent file exists** -- the drift check
+refuses a term no role uses, and the rule two sections down applies to a term arriving as much as
+to one leaving.
+
+! Tracked in [`TODO/verdicts-is-the-join.md`](../TODO/verdicts-is-the-join.md).
 
 ## ownership -- settled, and deliberately not emitted
 

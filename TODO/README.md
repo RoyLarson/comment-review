@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (45)
+### open  (46)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -227,6 +227,7 @@ that changed a published name or rule:
 | [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | systems | — | 2/5 | nothing recomputes it or prompts the clearing; 6 cleared, 26 left to read |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | — | 0/4 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | — | 4/10 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
+| [verdicts-is-the-join](verdicts-is-the-join.md) | backend | — | 6/8 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 
 ### in-progress  (18)
 
@@ -251,7 +252,7 @@ that changed a published name or rule:
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/6 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/9 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
 
-### decision-needed  (26)
+### decision-needed  (25)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -280,7 +281,6 @@ other tasks can proceed without them._
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | agents | yes | 2/4 | The role with verdict precedence has the least mechanical support |
 | [the-two-lists-were-tuned-to-one-diff](the-two-lists-were-tuned-to-one-diff.md) | agents | yes | 3/7 | **Both lists are DELETED from the brief; this holds what was inside them.** The acquittal list matched a prose SHAPE and claimed to be *"the ONLY reasons to pass a block over"* -- but what decides `clean` is stated per role and is a TRUTH assertion at that role's scope, so the two disagreed outright. Its measurement was `evidence/ga/`: ten candidates over SIX `redacted_pkg` files, scored on F1 against what one later commit rewrote -- and the search itself concluded *"the acquittal RATE is the trait; the acquittal LIST is just vocabulary."* The suppression list had no provenance at all. ! Three entries were CHECKS wearing an exemption's name, one CONTRADICTS `function-context`, and `detector` -- a settled term -- lost its only definition |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | yes | 11/16 | Two live runs proposed fifteen changes |
-| [verdicts-is-the-join](verdicts-is-the-join.md) | backend | yes | 5/7 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 
 ### in flight  (0)
 

@@ -127,6 +127,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   own word for collecting sheets into sequence, and every other stage name is an act. ! It frees
   `collate` for its trade meaning -- transferring every hand's marks onto one proof.
 
+- **#11.** **The one who rules on the collated marks is the `copy chief`, and it gets its own
+  agent file** (Roy, 2026-08-23: *"copy chief works. We will want to have a specific agent file
+  for that separate from the task agent."*). `editor` was the obvious word and collides with
+  `editorial role`, which `vocabulary.toml:54` already defines as one of the four reviewers; in
+  the trade the copy chief rules over the copy editors' marks, one level above the four hands.
+  !! **THE RULING CARRIES A SHAPE AND NOT ONLY A WORD.** Stage 5 APPLY is the task agent deciding
+  today, which is why `vocabulary.md` recorded the role as *"unnamed, and there is no module"* --
+  a job with no artifact can be given nothing, told nothing and checked for nothing. ! `verdicts.py`
+  is NOT the copy chief: it collates and rules on nothing by design, so its own rename goes to
+  `collator.py`.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
