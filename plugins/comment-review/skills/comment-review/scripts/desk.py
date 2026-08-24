@@ -381,7 +381,7 @@ def as_block(text: str, entry: dict) -> str:
     # ! `doc_is_structural` decides how a `docstring` is READ: Python's is a
     # string inside a declaration's body, where a `///` or `/**` run is a
     # comment like any other. Reading the second as the first leaves the marker
-    # in the prose and refuses every doc comment in ten of the eleven languages.
+    # in the prose and refuses every doc comment in seventeen of the eighteen languages.
     structural = lang.doc_is_structural if lang else True
     return block_text(str(entry.get("kind", "")), text.split("\n"), markers, structural)
 

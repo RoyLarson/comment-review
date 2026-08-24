@@ -1,9 +1,9 @@
 # `ownership-context` is read FIRST, and nothing in the run makes that true
 
 ```
-Status:   open
-Progress: 3 of 10 tasks done
-Owner:    session (serialisation and 4b ruled 2026-08-17; the rest is build)
+Status:   in-progress
+Progress: 3 of 14 tasks done
+Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-16 (Roy: "Does this require a 4a, b, c -- 4a the ownership run,
           b the resolution and update to the pieces made by the reviewer so the
@@ -13,30 +13,48 @@ Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads 'seria
            ownership-context is the 1 required role, the other 3 optional and only after
            it has had its say. The flag means a DECISION is owed; work still remaining
            is what the unchecked boxes already say.
+TRIAGED:  2026-08-23 -- RE-VERIFIED, AND THE FIRST ROW OF THE OBJECTIVE'S TABLE TURNED
+          OVER. `SKILL.md` NO LONGER DISPATCHES IN PARALLEL: SKILL.md:30 reads *"4
+          reviewers, SERIAL"*, :161-162 says `ownership-context` runs at 4a alone and
+          first, and :546-551 gives the two rounds. The table below is corrected to what
+          the file says today. !! AND A SECOND CONTRADICTION FELL OUT OF THE RE-READ:
+          `run_context.py:348` still prints *"Dispatch all four in ONE message, so no role
+          sees another's findings"* on every successful packet check -- the stage-4 gate
+          instructing the parallel dispatch SKILL.md stopped asking for. Filed into the
+          packet task, which already owned `run_context.py`.
+          ! ONE BOX WAS NOT A TASK (a re-reading) and is ticked; TWO TICKED BOXES ARE
+          RULINGS, relabelled as such and left ticked. The `SKILL.md` box is SUPERSEDED IN
+          PART -- the stage-4 split landed, what 4b may touch has not been written -- and
+          tracks the remainder. ! `Status: open` -> `in-progress`: the role-file task is
+          real work and it is done.
+Split:    2026-08-23 -- every box cut to two lines; the six open boxes became ten, one
+          artifact per task, and the displaced reasoning is in the Objective
+Re-split: 2026-08-23 -- the seven boxes still over two lines were cut again. The 4b gate
+          held TWO refusals -- an index no 4a record named, and a field the verdict does
+          not licence -- and is now two boxes. The rest were duplicates of the Objective
 ```
 
 ## Objective
 
 **SKILL.md says `ownership-context` is read FIRST because a claim attached to the wrong scope
 is measured against the wrong code and `correct`ed into a falsehood. Three mechanisms could
-deliver that, and none did.**
+deliver that, and the one that prevents the misreading is still missing.**
 
-| mechanism | what it does today |
+| mechanism | what it does today, MEASURED 2026-08-23 |
 | --- | --- |
-| dispatch order | **parallel.** *"Dispatch all four in ONE message so they run concurrently."* Ownership does not run first in time |
-| synthesis order | in-code `move` was applied **LAST**, after `correct` and `patch` -- the text was corrected at the old anchor, then relocated |
-| the join | `contradictions()` keyed on `drop` alone, so `move` + `correct` passed in silence |
+| dispatch order | **serial, as INSTRUCTION.** SKILL.md:30, :161-162, :546-551 -- 4a alone, then the three at 4c. ! But `run_context.py:348` still tells the packet's reader to *"Dispatch all four in ONE message"* |
+| synthesis order | in-code `move` was applied **LAST**, after `correct` and `patch` -- the text was corrected at the old anchor, then relocated. Ruled *"moves first"*; placement now settles at step 2 |
+| the join | `contradictions()` keyed on `drop` alone, so `move` + `correct` passed in silence. It now flags `move` against `correct`/`patch` |
 
-! **Two of the three are fixed; the first is not.** Roy ruled *"moves first"* -- the synthesis
-order now settles placement at step 2, before `correct` at step 3 -- and ruled the join should
-flag `move` against `correct`/`patch`, which it now does. **Both act AFTER the reviewers have
-read.** They catch a claim measured at the wrong anchor; they do not stop it being measured
-there.
+! **Two of the three act AFTER the reviewers have read.** They catch a claim measured at the
+wrong anchor; they do not stop it being measured there.
 
-! **What is left is the reading itself.** All four reviewers read the same census concurrently,
-so `block-context` measures a misplaced claim against whatever code it sits with, and spends a
-verdict on it, before anything knows the placement is wrong. The join now sends that block back
--- which is a round trip, not a prevention.
+! **What is left is 4b -- the middle step that has no definition.** The order is now written
+down, but nothing carries `ownership-context`'s resolved placement into what the other three
+read: there is no PROPOSED tag, and `census.py` has nowhere to put one. So `block-context` still
+measures a misplaced claim against whatever code it sits with, and spends a verdict on it, before
+anything knows the placement is wrong. The join sends that block back -- which is a round trip,
+not a prevention.
 
 ## !! WHY 4a/b/c EXISTS AT ALL, stated 2026-08-18 with the consequences known
 
@@ -73,6 +91,16 @@ project-wide and names documentation, so the role file now says the right place 
 the PROJECT. That changes a verdict: prose about nothing in the project is a `drop`, prose
 about something elsewhere in it is a `move`, and reaching for `drop` because the subject is not
 in THIS file is how a true sentence gets deleted.
+
+### What landed 2026-08-18 -- the role file at full width
+
+**DONE:** two propositions named, anchoring-truth distinguished from assertion-truth, the
+never-dropped rule stated, and the right place widened from the file to the project. The
+frontmatter `description` carries it too, because that is what a dispatcher reads.
+
+! **The frontmatter gate earned its place on the way in**: the first draft put a colon-space in
+`description`, which ends a plain YAML scalar, and `claude plugin validate` plus
+`tests/test_frontmatter.py` both refused it before it shipped.
 
 ## The shape Roy sketched
 
@@ -234,63 +262,64 @@ Permissions has no counterpart, and needs none -- nobody clears rights on a comm
 2026-08-17 there is one of each and both are accounted for above, so the fit is reported as
 four-for-four with one function automated. Re-check it when a fifth role is proposed.
 
+### Why the PROPOSED tag is a second module, and what the open work has to satisfy
+
+! **Nothing in `census.py` has a place to put a proposal**, and it is a second SUBJECT, so it is
+a second module rather than a flag on the census: `module-context` asks of any module that it
+announce one thing.
+
+! **4c has to be able to MEASURE against the proposed owner while still reading the text where it
+sits** -- that is the entire point of the serialisation, and a tag that only says "something is
+proposed here" does not deliver it. **The tag therefore carries at minimum the verdict, the
+RESOLVED OWNER -- which may be another file, or out of the code entirely -- and the proposing
+role.**
+
+! **4b is gated the way 7b is.** `prove_unchanged.py` exists because an edit that claims to touch
+only prose has to be checked; the same shape applies here -- **census B may differ from census A
+only at the indices `ownership-context`'s report named**, and only in the fields its verdict
+licenses. A 4b that quietly re-anchors a block nobody ruled on is the failure this whole file is
+about, one layer up.
+
+! **The packet is written once per run and handed to four agents.** A 4a/4c split needs either two
+packets or one that says which pass it is; 4c's packet names census B and 4a's names census A,
+which is the only field that differs, so one packet with a PASS line is likely enough.
+
+! **Coverage is the specific risk at the join.** `verdicts.py` reads one census: an interval that
+gained text is now a block a reviewer owes a record for, and one nobody told 4c about is a
+coverage gap the run manufactured for itself.
+
+! **A RE-READING, kept as a note.** `ownership-context`'s own line reads *"Your verdict settles
+which code every later reading measures the claim against."* Under the parallel design that was
+false -- there was no later reading, only a later ruling. **Under the serialisation it is exactly
+true**, and it is the sentence the whole split exists to make good on.
+
 ## Tasks
 
-- [x] **DONE 2026-08-18 -- the role file states its remit at full width.** Two propositions
-      named, anchoring-truth distinguished from assertion-truth, the never-dropped rule stated,
-      and the right place widened from the file to the project. The frontmatter `description`
-      carries it too, because that is what a dispatcher reads. ! The frontmatter gate earned
-      its place on the way in: the first draft put a colon-space in `description`, which ends a
-      plain YAML scalar, and `claude plugin validate` plus `tests/test_frontmatter.py` both
-      refused it before it shipped.
-
-- [x] * **RULED 2026-08-17: stage 4 SERIALISES.** Roy, on the desk mapping above: *"I guess
-      that means we go back to 4A - ownership runs 4B - marks are applied 4C - the other
-      contexts are run."* The rejected alternative was to let the other three spend a verdict on
-      a misplaced block and have the widened join catch it.
-
-- [x] * **RULED 2026-08-17, then SUPERSEDED the same day: 4b PROPOSES, it does not apply.**
-      The first ruling was *"takes the pCST adds- moves - deletes where the ownership context
-      states"*, with `drop` alone held back. It was withdrawn once `move` was seen to decompose
-      into a drop and an add: **every removing verdict forecloses 4c, and `add` is the only
-      purely additive one.** 4b now tags every ownership verdict PROPOSED and applies none.
-      Both rulings are written out above, the superseded one kept legible.
-
-- [ ] **The pCST needs to carry a PROPOSAL.** A node today holds what the file says; it needs
-      to also hold what a role proposes for it -- the resolved owner, proposed text, or a
-      proposed removal -- without either being applied. ! **Nothing in `census.py` has a place
-      to put this**, and it is a second SUBJECT, so it is a second module rather than a flag on
-      the census: `module-context` asks of any module that it announce one thing.
-
-- [ ] **Decide what a PROPOSED tag carries, since 4c must act on it.** At minimum the verdict,
-      the resolved owner (which may be another file, or out of the code), and the proposing
-      role. ! 4c has to be able to MEASURE against the proposed owner while still reading the
-      text where it sits -- that is the entire point of the serialisation, and a tag that only
-      says "something is proposed here" does not deliver it.
-
-- [ ] **Gate 4b the way 7b is gated.** `prove_unchanged.py` exists because an edit that claims
-      to touch only prose has to be checked. The same shape applies here: **census B may differ
-      from census A only at the indices `ownership-context`'s report named**, and only in the
-      fields its verdict licenses. A 4b that quietly re-anchors a block nobody ruled on is the
-      failure this whole file is about, one layer up.
-
-- [ ] **Split stage 4 in `SKILL.md`, and say what 4b may touch.** ! *"Nothing is on disk yet"*
-      is stated at stage 6 and must stay true at 4b -- under this ruling it is, and the file
-      should say so rather than leave a reader to work it out.
-
-- [ ] **`run_context.py`'s packet is written once per run and handed to four agents.** A
-      4a/4c split needs either two packets or one that says which pass it is. ! 4c's packet
-      names census B; 4a's names census A. That is the only field that differs, so one packet
-      with a PASS line is likely enough -- but `--check` must then refuse a 4c packet pointing
-      at census A.
-
-- [ ] **Teach the join the three flags.** `verdicts.py` reads one census and must not treat a
-      PROPOSED-drop node as ordinary prose, nor an `add`'s filled interval as a block 4c failed
-      to account for. ! Coverage is the specific risk: an interval that gained text is now a
-      block a reviewer owes a record for, and one nobody told 4c about is a coverage gap the run
-      manufactured for itself.
-
-- [ ] **Re-read `ownership-context`'s own line:** *"Your verdict settles which code every later
-      reading measures the claim against."* Under the parallel design that was false -- there
-      was no later reading, only a later ruling. **Under this ruling it is exactly true**, and
-      it is the sentence the whole serialisation exists to make good on.
+- [x] T1 -- DONE 2026-08-18: the role file states its remit at full width, frontmatter
+      included. What it says is in the Objective.
+- [x] T2 -- NOT A TASK. RULING, 2026-08-17: stage 4 SERIALISES -- *"4A - ownership runs 4B
+      - marks are applied 4C - the other contexts are run."* Stated in the Objective.
+- [x] T3 -- NOT A TASK. RULING, 2026-08-17, SUPERSEDED the same day: 4b PROPOSES and
+      applies nothing. Both rulings are in the Objective.
+- [ ] T4 -- **Create the module that carries a PROPOSAL on a node.** Verify: the module
+      exists, and `census.py` gains no proposal field.
+- [ ] T5 -- **Write down the fields a PROPOSED tag carries**: verdict, resolved owner,
+      proposing role. Verify: the list is in exactly one file.
+- [ ] T6 -- **Make T4's module implement every field T5 names.** Verify: a 4a report
+      round-trips into the module and back with each named field preserved.
+- [ ] T7 -- **Gate 4b's INDICES: census B may differ from census A only where a 4a record
+      names.** Verify: the gate refuses a census B changed at an unnamed index.
+- [ ] T8 -- **Gate 4b's FIELDS: a changed field must be one the verdict licences.**
+      Verify: the gate refuses a census B changed in an unlicensed field.
+- [ ] T9 -- **Say in `SKILL.md` which fields 4b may change.** Verify: `## Stage 4` names
+      4b and lists them.
+- [ ] T10 -- **Say in `SKILL.md` that *"Nothing is on disk yet"* holds at 4b.** Verify:
+      `## Stage 4` states it, and adds no numbered rule elsewhere.
+- [ ] T11 -- **Give `run_context.py`'s packet a PASS line naming 4a or 4c.** Verify:
+      `--check` refuses a 4c packet that names census A.
+- [ ] T12 -- **Fix the packet's success message at `run_context.py:348`**, which still
+      instructs the parallel dispatch. Verify: the success message names 4a and 4c.
+- [ ] T13 -- **Teach the join not to read a PROPOSED-drop node as ordinary prose.**
+      Verify: a census carrying a PROPOSED drop owes no verdict on that node.
+- [ ] T14 -- **Teach the join what an `add`'s filled interval is.** Verify: a census whose
+      interval gained proposed text joins without a manufactured coverage gap.

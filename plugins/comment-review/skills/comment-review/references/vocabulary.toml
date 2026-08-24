@@ -31,7 +31,7 @@ sentence = "The unit a verdict rules on. A container of six sentences can hold s
 clause = "A part of a sentence. `correct` carries a false clause and a true one; `REASON` is one clause."
 statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a clause."
 expression = "A piece of CODE that evaluates to a value."
-declaration = "Something that can carry DOCUMENTATION -- a module, class, function, method, struct -- and so what an `a` place is about. ! NOT every line that introduces a name: `x = 1` and `let x = 1;` get no `a`. Which kinds a language offers is whatever its tier can resolve, and five of the eleven offer none."
+declaration = "Something that can carry DOCUMENTATION -- a module, class, function, method, struct -- and so what an `a` place is about. ! NOT every line that introduces a name: `x = 1` and `let x = 1;` get no `a`. Which kinds a language offers is whatever its tier can resolve. Four of the eighteen have no docstring practice at all -- sql, toml, ini, yaml. ! c and cpp carry an EMPTY LIST TODAY because the matcher reads a line FIRST word and a C declaration opens with its return type -- a matcher that looks for the keyword anywhere in the line resolves it, so this is deferred and not a property of the languages."
 assignment = "A piece of CODE that binds a value to a name."
 mark = "What stage 4 emits: one role's ruling on one paragraph. Editorial. The census's own observations are ANNOTATIONS, not marks."
 annotation = "A mechanical observation the census attaches to a paragraph -- `names-a-symbol`, `cites-a-path`, `counted`. A CANDIDATE you confirm by reading, never a settled fact."

@@ -21,35 +21,14 @@
 #   expect  low | medium | high  findings per block.
 #   style   the docstring convention the corpus should exercise in stage 1.3.
 
-[[corpus]]
-name = "redacted_corpus"
-kind = "local"
-source = "C:/Users/Roy/projects/redacted_corpus"
-ref = "REDACTED_SHA_A"
-style = "google"
-expect = "high"
-note = """
-The reference corpus, and the one every rule was derived from -- so it is the
-LEAST useful evidence that a rule generalises. Pinned at the commit carrying the
-twelve planted hazards in `evals/discriminators.md`. Solo project, no doc-hygiene
-guard in the tree at this commit, which the runs measured as the cause of a high
-citation-rot rate.
-"""
-
-[[corpus]]
-name = "redacted_corpus_b"
-kind = "local"
-source = "C:/Users/Roy/projects/redacted_corpus_b"
-ref = "a4bc6ec"
-style = "unknown"
-expect = "high"
-note = """
-Second solo project by the same author, 16 tracked .py files. Small, but it is
-the cheapest available test of whether a finding is about editing or about one
-project: same author, same habits, different domain. A rule that fires here and
-nowhere else is about the author; one that fires here and in django is about
-prose.
-"""
+# -- There is no over-fitting control, and every corpus below is PUBLIC --------
+# !! WHAT IS MISSING IS A CONTROL, NOT A CORPUS. Answering "is this finding about
+# EDITING, or about one person's habits?" needs two corpora by the SAME author.
+# Nothing below can distinguish those two cases: a rule that fires on one public
+# repo and not another tells you about the repo, not about the author.
+#
+# ! It cannot be restored with a local checkout. Only corpora that can be FETCHED
+# belong here -- a path on one machine is not a pin anyone else can resolve.
 
 # -- Public corpora ------------------------------------------------------------
 # Chosen for VARIETY OF PROSE CONVENTION, not popularity. Curation level is the

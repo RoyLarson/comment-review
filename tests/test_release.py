@@ -30,7 +30,7 @@ class TestTheVersionIsStatedOnce(unittest.TestCase):
 
     !! The THIRD copy is `plugin.json`'s, and it is the only one a running
     installation can read. Without it the plugin cache names its directory for
-    the COMMIT -- `roy-local/comment-review/7a0945ad3f40/` where an official
+    the COMMIT -- `roy-local/comment-review/bb3281769298/` where an official
     plugin has `code-simplifier/1.0.0/` -- and `claude plugin list` reports the
     hash. Measured 2026-08-17: an evidence package taken over two runs could
     not attribute its numbers to a release, because nothing the installation

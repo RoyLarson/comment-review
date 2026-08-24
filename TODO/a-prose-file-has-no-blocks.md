@@ -1,11 +1,11 @@
 # A prose file has no blocks, so the system cannot review documentation
 
 ```
-Status:   open
-Progress: 0 of 9 tasks done
-Owner:    Roy (* 2 rulings) * session
+Status:   decision-needed
+Progress: 4 of 9 tasks done
+Owner:    backend
 Requires-Roy: true
-Raised:   2026-08-17 (Roy: "both todo-tool and redacted_lane_a ended up in / six rules are
+Raised:   2026-08-17 (Roy: "both todo-tool and another project ended up in / six rules are
           attributed to CLAUDE.md while living in conventions.md / which tells me that the
           system does need to figure out how to work with .md, .rst, .txt files")
 Unblocked: 2026-08-20 — the lexer is its own module as of 2026-08-20 and is the
@@ -13,6 +13,15 @@ Unblocked: 2026-08-20 — the lexer is its own module as of 2026-08-20 and is th
            row plus a reader, and the page assembles the result the same way. That is a
            far smaller job than when this was filed, when the blocker was that `block`
            meant 'the interval between two lines of CODE'.
+TRIAGED:  2026-08-23 — TWO of nine were rulings ALREADY MADE by Roy on 2026-08-20 -- the
+           four desks transfer, and a header is a documentable declaration -- so the box
+           asking WHICH ROLES read a prose file is answered and ticked. One more is
+           SUPERSEDED: the eight dangling `CLAUDE.md stage N` pointers no longer exist in
+           this tree, measured today. FOUR RULINGS REMAIN OWED and they gate the build,
+           which is what `decision-needed` says.
+SPLIT:    2026-08-23 -- every box cut to two lines. T1's four candidate answers were an
+           enumeration inside a box; they are in the Objective, where a ruling can read
+           them. Every open box now carries a Verify clause; T1 and T3 had none.
 ```
 
 ## Objective
@@ -25,12 +34,13 @@ docstring AND in `.claude/skills/todo-tool/SKILL.md`. The `.md` is REFERENCE ONL
 could target it -- **the pair is still drifted.** A prose file being uncensusable is not only a
 coverage gap; it makes the copy that a reviewer CAN see unfixable in the copy it cannot.
 
-**`.md`, `.rst` and `.txt` have no `LANGUAGES` record, so a documentation file cannot be
-reviewed at all** -- handing one in is fatal: *"1 of 1 files handed in were not censused."* They
-reach a run only as REFERENCE ONLY, which is read-to-settle and never ruled on.
+**`.md`, `.rst` and `.txt` have no `LANGUAGES` record**, verified 2026-08-23 -- no row in
+`language.py` names any of the three -- **so a documentation file cannot be reviewed at all**:
+handing one in is fatal, *"1 of 1 files handed in were not censused."* They reach a run only as
+REFERENCE ONLY, which is read-to-settle and never ruled on.
 
-! The gap is already listed in `README.md` -- *"Markdown and reStructuredText | no record at all
-| prose files are where cited documentation actually lives"* -- with no owner and no plan.
+! The gap is already listed in `README.md:348` -- *"Markdown and reStructuredText | no record at
+all | prose files are where cited documentation actually lives"* -- with no owner and no plan.
 **Two independent repos hit the same consequence on 2026-08-17**, each with a run that found
 code prose attributing rules to `CLAUDE.md` that live in `conventions.md`. Six rules in one of
 them. The reviewers caught the citation from the CODE side; nothing can look at the documents.
@@ -60,75 +70,88 @@ functions claiming production callers they do not have and a documented `None` r
 cannot produce. **The guard checks length and format; it has never checked whether a claim is
 true.** So "the guard is live" says nothing about the defect class this TODO is about.
 
-## !! It is not a missing `LANGUAGES` row, and that is the whole difficulty
+## What Roy has already RULED, 2026-08-20
 
-**A block is the interval between two lines of CODE. A prose file has no code lines.** Adding a
-comment-syntax record gives the census nothing to bound a block with, and the interval model
-returns either one block per file or none.
+!! **THE FOUR DESKS ALREADY ASK THE MARKDOWN QUESTIONS, so there is no fifth role.** Roy: a prose
+file *"does have a title, headers, prose, and references, all map pretty cleanly to the editorial
+desks we have identified"*. title -> `module-context` (does it announce ONE subject); headers ->
+`function-context` (a header is a promise the way a signature is, so: does the section deliver
+what its header says); prose and references -> `block-context` (claims, and whether a cited thing
+says that); placement under a header -> `ownership-context`. **No new role, no new remit.**
+! That is a constraint on T1 rather than an open question: do not add a fifth reviewer.
 
-!! **And the four remits do not transfer.** They are built on prose sitting BESIDE the code it
-describes:
+!! **A HEADER IS A DOCUMENTABLE DECLARATION, so the `a` series works unchanged** -- `a0` the
+document, `a1..aN` its headers in source order, which is what the `a` addresser already does once
+the reader states which lines declare. ! **`c` HAS NO ANALOGUE**: there is no room beside a
+header, so a markdown page emits `a` and `b` only. The walk handles that (`c` simply never emits)
+but `attach`, `margins` and `intervals` assume three series -- markdown would be the first
+language whose tier reaches two, and that is a cost T1's answer has to price.
 
-| role | on a `.py` file | on a `.md` file |
-| --- | --- | --- |
-| `ownership-context` | does this belong to the ANCHOR it sits on | there is no declaration; the nearest thing is a heading |
-| `block-context` | is every claim true of the code it sits with | **there is no code it sits with** |
-| `function-context` | does the commentary match what the function is for | there is no function |
-| `module-context` | do the comments say this is ONE module | there is no module surface to account for |
+! **This does NOT settle what bounds a paragraph.** Headers give the `a` places; the prose
+BETWEEN two headers still has to be cut into paragraphs by something, and that is T1.
 
-!! **In a documentation file every claim is about code SOMEWHERE ELSE.** That inverts the model:
-the system verifies prose against adjacent code, and a document verifies against distant code.
-It is closer to what `referrers.py` already computes -- who names whom -- than to anything the
-four roles do.
+## !! Why it was never a missing `LANGUAGES` row alone
+
+**A block was the interval between two lines of CODE. A prose file has no code lines.** Adding a
+comment-syntax record gives the census nothing to bound a paragraph with, and the interval model
+returns either one paragraph per file or none. ! The lexer/page split of 2026-08-20 is what makes
+this tractable: the reader states the paragraphs and the page assembles them, so a markdown
+reader is a row plus a reader rather than a change to the model.
+
+!! **AND IN A DOCUMENTATION FILE EVERY CLAIM IS ABOUT CODE SOMEWHERE ELSE.** That inverts the
+model: the system verifies prose against adjacent code, and a document verifies against distant
+code. It is closer to what `referrers.py` already computes -- who names whom -- than to anything
+the four roles do against a `.py` file. ! That is also the machinery T3's ruling may reach for:
+`referrers.py` answers the inverse question already -- which tracked files NAME a given file.
+
+## The four candidates for T1, so the ruling reads them rather than re-deriving them
+
+- **(a) headings** -- each section is a paragraph, which is how an editor works a manuscript, and
+  a heading is a `banner` in the term this system already has;
+- **(b) fenced code blocks** -- the fences are the "code lines" and the prose between them is the
+  interval, which keeps the existing definition literally intact but makes a document with no
+  fences one paragraph;
+- **(c) paragraphs**;
+- **(d) nothing -- prose files stay REFERENCE ONLY, and the system says so on purpose.**
+
+! **(d) is a legitimate answer and should be RULED rather than defaulted into**, which is what is
+happening today. ! Roy's header ruling above settles the `a` series, not this.
+
+## What the CAP means here, and what `docs/limitations.md` does not say
+
+! The cap is measured in lines of a `#` run; a markdown section has no such unit, so stage 6
+would have nothing to apply. That is T4.
+
+! MEASURED 2026-08-23: `docs/limitations.md` says nothing about markdown or prose files. The
+ASYMMETRY exists today whatever T1 answers -- code prose citing a document is checkable by a
+reviewer opening it, and the document's own drift is invisible -- and that asymmetry is the
+measured defect: six rules attributed to the wrong file.
+
+## What has already been ruled out as a second defect
+
+! SUPERSEDED 2026-08-23. The eight dangling `CLAUDE.md stage N` pointers are not in this tree:
+`grep -rn "CLAUDE\.md.*[Ss]tage [0-9]"` over `plugins/`, `docs/*.md` and `README.md` returns
+nothing. Relative links that resolve nowhere are counted and owned by
+[`dangling-links-resolve-nowhere`](dangling-links-resolve-nowhere.md), which is a different
+defect -- a tool measures it.
 
 ## Tasks
 
-- [ ] * Rule on what BOUNDS a block in a prose file. Candidates:
-      **(a) headings** -- each section is a block, which is how an editor works a manuscript, and
-      a heading is a `banner` in the term this system already has;
-      **(b) fenced code blocks** -- the fences are the "code lines" and the prose between them is
-      the interval, which keeps the existing definition literally intact but makes a document
-      with no fences one block;
-      **(c) paragraphs**;
-      **(d) nothing -- prose files stay REFERENCE ONLY, and the system says so on purpose.**
-      ! (d) is a legitimate answer and should be ruled rather than defaulted into, which is what
-      is happening today.
-
-- [ ] * Rule on WHICH ROLES read a prose file, if any do. The table above says none of the four
-      transfers unchanged. ! Do not add a fifth role to solve this without ruling on it: the
-      skill states there is deliberately no fifth reviewer for consistency, and the same
-      argument may or may not apply here.
-
-- [ ] Decide what a claim in a document is checked AGAINST. A rule stated in `conventions.md`
-      is true or false about a tree, not about the line below it. ! `referrers.py` already
-      answers the inverse -- which tracked files NAME a given file -- and may be the machinery.
-
-- [ ] Say what happens to the CAP. It is measured in lines of a `#` run; a markdown section has
-      no such unit, and stage 6 would have nothing to apply.
-
-- [ ] Handle the ASYMMETRY that exists today even without any of the above: code prose citing a
-      document is checkable by a reviewer opening it, and the document's own drift is invisible.
-      ! That asymmetry is the measured defect -- six rules attributed to the wrong file -- and it
-      may be worth naming in `docs/limitations.md` before any of this is built.
-
-- [ ] Check whether the eight dangling `CLAUDE.md stage N` pointers are the same defect or a second
-      one. A run reported them as ONE question needing one ruling rather than thirty near-
-      identical findings, which is a judgement worth examining on its own.
-
-- [ ] Re-measure after any change. `README.md`'s gap row is the current statement and must move
-      with the answer, including if the answer is (d).
-- [ ] !! THE FOUR DESKS ALREADY ASK THE MARKDOWN QUESTIONS. Roy, 2026-08-20: a
-      prose file 'does have a title, headers, prose, and references, all map
-      pretty cleanly to the editorial desks we have identified'. title -> module-
-      context (does it announce ONE subject); headers -> function-context (a
-      header is a promise the way a signature is, so: does the section deliver
-      what its header says); prose and references -> block-context (claims, and
-      whether a cited thing says that); placement under a header -> ownership-
-      context. ! No new role, no new remit.
-- [ ] !! A HEADER IS A DOCUMENTABLE DECLARATION, so the `a` series works unchanged
-      -- `a0` the document, `a1..aN` its headers in source order, which is what
-      the `a` addresser already does once the reader states which lines declare. !
-      `c` HAS NO ANALOGUE: there is no room beside a header, so a markdown page
-      emits `a` and `b` only. The walk handles that (`c` simply never emits) but
-      `attach`, `margins` and `intervals` assume three series -- the first
-      language whose tier reaches two.
+- [ ] T1 -- * RULE what BOUNDS a paragraph in a prose file, from the four candidates in
+      the Objective. Verify: the ruling is recorded in `docs/decision-log.md`.
+- [x] T2 -- RULED 2026-08-20: the four existing desks read a prose file, and no fifth. The
+      mapping is in the Objective.
+- [ ] T3 -- * RULE what a claim in a document is checked AGAINST. Verify: the answer names
+      the input a `block-context` reviewer is handed for a `.md` page.
+- [ ] T4 -- * RULE what happens to the CAP on a prose page. Verify: `SKILL.md`'s cap rule
+      states what it means there, including if the answer is "no cap applies".
+- [ ] T5 -- Name the prose-file asymmetry in `docs/limitations.md`: code prose citing a
+      document is checkable, the document's drift is not. Verify: the file carries it.
+- [x] T6 -- SUPERSEDED 2026-08-23. The eight dangling `CLAUDE.md stage N` pointers are not
+      in this tree. Measurement in the Objective.
+- [ ] T7 -- Move `README.md:348`'s gap row when T1's answer lands, including if the answer
+      is (d). Verify: the row states the ruled position and cites where it was ruled.
+- [x] T8 -- RULING, MADE 2026-08-20: the four desks already ask the markdown questions.
+      Kept in the Objective as the record of Roy's words.
+- [x] T9 -- REASONING, kept in the Objective: a header is a documentable declaration, so
+      `a` works and `c` never emits -- and markdown is the first tier to reach two series.

@@ -1236,7 +1236,7 @@
     "from": "the report was read twice and JSON-parsed twice, once here and once in `report_concerns`.",
     "to": "the report was read twice and JSON-parsed twice, once here and once in the separate concerns reader this call replaced."
    },
-   "reason": "`report_concerns` exists nowhere in the tree -- this sentence is the only match for the name. Git records it added in fd1d300 and removed in e852020, the commit that made this one read per report, so the claim is true of the code that was and the pointer resolves to nothing for a reader today. The surviving reader is `code_concerns`, which parses no JSON.",
+   "reason": "`report_concerns` exists nowhere in the tree -- this sentence is the only match for the name. Git records it added in 1e17146 and removed in 4f0a2ac, the commit that made this one read per report, so the claim is true of the code that was and the pointer resolves to nothing for a reader today. The surviving reader is `code_concerns`, which parses no JSON.",
    "sources": [
     {
      "cite": "plugins/comment-review/skills/comment-review/scripts/verdicts.py:643",

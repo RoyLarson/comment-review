@@ -74,7 +74,7 @@ prose says WHY it sits there rather than inside the one function that reads it, 
 anything outside that function reads it at all. The missing why is `add`; a constant the module
 does not need at module level is a **CODE CONCERN**, because moving it is a code change.
 
-! **What the module RUNS is yours** -- an `if __name__ == "__main__":` paragraph, an import-time
+! **What the module RUNS is yours** -- an `if __name__ == "__main__":` block, an import-time
 side effect, a registration call. It is behaviour the file performs on being loaded or invoked,
 and a docstring that describes only what the module DEFINES leaves it unaccounted for.
 

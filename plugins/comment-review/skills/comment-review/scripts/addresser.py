@@ -847,7 +847,7 @@ def flatten(path: str) -> str:
 
     !! THE EXTENSION STAYS. Dropping it reads better and reintroduces collisions
     the moment a repo holds `b.py` beside `b.rs` -- which this census supports by
-    design, eleven languages in one run. Roy ruled it 2026-08-18: "we could have
+    design, eighteen languages in one run. Roy ruled it 2026-08-18: "we could have
     mixed languages in the system with the same names that without that we are
     back to collisions."
 
@@ -1358,8 +1358,8 @@ def owes_address(paragraph: dict) -> bool:
     blank run sits BETWEEN two places and is attached to neither, so the
     ownership question has no answer rather than an unknown one.
 
-    ! IT WAS TRIED AND REFUSED THREE TIMES -- `21ca92a` made it a fifth series,
-    `6a7be73` repaired it as an edge, `ef7079c` retreated to a symbol. Roy,
+    ! IT WAS TRIED AND REFUSED THREE TIMES -- `875b0d4` made it a fifth series,
+    `b998a60` repaired it as an edge, `c27ea1d` retreated to a symbol. Roy,
     closing it: *"We tried leading getting a place. We tried several different
     ways. The constraints of coding AND editing do not allow it."* Two things stop
     being determinable the moment the slack is addressable: WHERE everything below

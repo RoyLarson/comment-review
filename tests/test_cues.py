@@ -267,7 +267,7 @@ class TestTheInverse(unittest.TestCase):
     def test_two_paths_that_FLATTEN_alike_are_REFUSED(self):
         # !! THE DOTTED FORM IS NOT SELF-INVERTIBLE. `a/b.py` and `a.b.py` both
         # read `a.b.py`, and a dot in a FILE name is ordinary in most of the
-        # eleven languages this census reads -- `app.test.js`, `types.d.ts`.
+        # eighteen languages this census reads -- `app.test.js`, `types.d.ts`.
         # Picking one would answer a question nobody asked.
         self.assertEqual(addresser.unflatten("a:b.py", ["a/b.py", "a:b.py"]), "")
 
@@ -789,7 +789,7 @@ class TestTheSeparatorIsAPathCannotHoldIt(unittest.TestCase):
 
     def test_the_extension_keeps_its_dot(self):
         # ! Dropping it reintroduces the collision `b.py` / `b.rs` in a repo
-        # this census supports by design -- eleven languages in one run.
+        # this census supports by design -- eighteen languages in one run.
         self.assertTrue(addresser.flatten("pkg/mod.py").endswith(".py"))
 
     def test_no_separator_is_shell_special(self):

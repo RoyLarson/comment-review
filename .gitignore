@@ -58,8 +58,6 @@ Thumbs.db
 # nothing.
 evidence/*
 !evidence/ga/
-!evidence/probes/
-!evidence/todo-tool-full-run/
 !evidence/cycle-0.2.3/
 !evidence/comment-review-skill-023-dev-review/
 !evidence/rename-left-history-in-the-comments/
@@ -74,6 +72,12 @@ evidence/*
 # which would have committed another agent's working notes as though they were
 # the work.
 .tmp/
+
+# `todo_tool` writes `TODO/.<name>.md.tmp<pid>` and renames it into place. A run
+# that dies mid-write leaves one behind, and `git add -A` commits it -- measured
+# 2026-08-23, a 284-line temp copy of a TODO landed in a commit. ! `.tmp/` above
+# does not cover this: that is a directory, this is a dotted suffix.
+TODO/.*.md.tmp*
 
 # Session worktrees. Roy, 2026-08-23: two sessions committing on one branch
 # collide, so a second session works in a worktree and fast-forwards to pick the

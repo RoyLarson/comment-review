@@ -44,7 +44,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
 - **#5.** **Leading will not be given a place, and the attempt is closed** (Roy, 2026-08-23: *"We
   tried leading getting a place. We tried several different ways. The constraints of coding AND
-  editing do not allow it."*). Tried three times -- `21ca92a`, `6a7be73`, `ef7079c`. Two things
+  editing do not allow it."*). Tried three times -- `875b0d4`, `b998a60`, `c27ea1d`. Two things
   stop being determinable: where everything below an edit shifted to, and how much blank belongs
   where afterwards. ! **Unaddressed is not unrecorded**: `Page.leading` keys the fence on the
   place it follows, and the compositor puts it back exactly.
@@ -60,6 +60,42 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
 - **#8.** **`foliator.py`'s docstring said "every line has exactly one address" and now says NO
   LINE HAS MORE THAN ONE** (2026-08-23). False by 595 lines in its own directory, every one a `d`.
+
+- **#9.** **The census is a BINDER you ask, not a CLI that builds everything first** (Roy,
+  2026-08-23: *"the census returns a binder -- a cli and ask for the census the page or some
+  answer to some subpart of the page. It is silly to make the census be the cli it breaks things
+  like this option"*). Asked as *shard the census per file, or not*, and ruled neither: the
+  on-disk shape was never the problem. A lookup answers at one of three grains -- the whole
+  census, one page, a subpart of a page -- and the chain stops as soon as the addresser can
+  answer, *"No parse everything"*. ! While `census.py` IS the CLI, the only way to ask a small
+  question is to run the thing that builds every page, so every question costs the whole project.
+  MEASURED first: one address cost 0.28 s over 19 files, extrapolating to ~1.1 s and 250 MB read
+  per lookup at 500k lines.
+
+- **#10.** **A same-line docstring gets an `a`, becomes a `c` when Python goes lexical, and is
+  set back on its own line** (Roy, 2026-08-23: *"gets an a but when the lexer type thing gets it
+  in python it will end up as a c"*, and *"also on rewrite it will end up below the function def
+  and that as fine"*). `def g(): """d."""` is legal Python and IS `g.__doc__`; today it censuses
+  with an EMPTY address and `census.py` exits 1 on the whole file. ! **THE RULING NAMES A
+  DESTINATION, NOT ONLY AN ANSWER.** A lexical reader sees a string beside code with no AST to
+  say it is documentation, so the address moves `a1` -> `c` -- expected, not a regression.
+  !! **AND SETTING IT BACK REWRITES A DECLARING LINE**, which is precisely what
+  `prove_unchanged` exists to refuse; the move is ruled ALLOWED, which is not the same as
+  invisible, so the proof needs a rule admitting this one transformation and nothing near it.
+
+- **#11.** **A doc run is a docstring when a documentable declaration follows it, and a comment
+  when nothing does** (Roy, 2026-08-23: *"That seems reasonable and likely that it will be
+  generic."*). Raised on Lua's `---`, where 2,505 of 2,741 neovim declarations carry one and all
+  read as undocumented; adding `---` to `doc_line` was tried and turned 4,230 comments into
+  docstrings, breaking 8 files, because LuaLS writes `@class`/`@field` runs that document nothing.
+  ! The alternative -- an exclude-list of `@`-tags -- fails on a run of `@param`/`@return` ABOVE a
+  declaration, which carries no prose and is still that function's documentation.
+  !! **IT MOVES THE LEXER FROM STRINGS TO PLACEMENT, WHICH IS ASSUMED TODAY AND NOT CHECKED**
+  (Roy: *"The lexer looks at the strings and maybe some closing strings currently. It could/should
+  look at placement but we have assumed placement currently."*) -- `_is_doc` reads the opener and
+  the character after it and nothing else. ! **AND IT NEEDS OUTER AND INNER DOC OPENERS SPLIT PER
+  ROW FIRST**: Rust declares `("///", "//!")` undifferentiated, and `//!` documents the ENCLOSING
+  item, so a bare placement rule demotes a module's own doc to a comment.
 
 ## Vocabulary
 
@@ -115,6 +151,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   -- it is what finds all of the files and puts them in the binder."*). Gathering is the binder's
   own word for collecting sheets into sequence, and every other stage name is an act. ! It frees
   `collate` for its trade meaning -- transferring every hand's marks onto one proof.
+
+- **#11.** **The one who rules on the collated marks is the `copy chief`, and it gets its own
+  agent file** (Roy, 2026-08-23: *"copy chief works. We will want to have a specific agent file
+  for that separate from the task agent."*). `editor` was the obvious word and collides with
+  `editorial role`, which `vocabulary.toml:54` already defines as one of the four reviewers; in
+  the trade the copy chief rules over the copy editors' marks, one level above the four hands.
+  !! **THE RULING CARRIES A SHAPE AND NOT ONLY A WORD.** Stage 5 APPLY is the task agent deciding
+  today, which is why `vocabulary.md` recorded the role as *"unnamed, and there is no module"* --
+  a job with no artifact can be given nothing, told nothing and checked for nothing. ! `verdicts.py`
+  is NOT the copy chief: it collates and rules on nothing by design, so its own rename goes to
+  `collator.py`.
 
 ## Metaphor and its limits
 

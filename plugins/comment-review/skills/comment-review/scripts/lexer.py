@@ -498,7 +498,7 @@ MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
 # ! Every punctuation a language opens a comment with, stripped before the
 # marker is matched. Anchored on `#`, the exemption was Python-only: a
-# `// TODO:` was charged to the cap in a script that censuses eleven languages.
+# `// TODO:` was charged to the cap in a script that censuses eighteen languages.
 LEAD_PUNCT = re.compile(r"^[\s#/*\-!=;%<>]+")
 
 
@@ -640,7 +640,7 @@ def block_text(
     # `docstring` on any run opening with a language's doc marker -- `///`,
     # `//!`, `/**` -- and those are comments, not string literals. Reading them
     # as literals leaves the marker in the prose and refuses every doc comment
-    # in ten of the eleven languages. Only Python's docstring is a string in a
+    # in seventeen of the eighteen languages. Only Python's docstring is a string in a
     # declaration's body, which is what `doc_is_structural` records.
     if kind == "docstring" and structural:
         return docstring_text(lines)
@@ -1247,7 +1247,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # `6 + 3` and passes a cap of 6 -- the quickest way to fake compliance."
         # Measured 2026-08-17: a six-line run with one blank censused as 3L + 3L
         # in every LEXICAL language, while `paragraphs_stdlib` skips NL tokens and
-        # kept it whole. Ten of the eleven languages could evade any cap.
+        # kept it whole. Seventeen of the eighteen languages could evade any cap.
         #
         # ! The blank JOINS the run rather than being skipped, so `raw_lines`
         # stays index-aligned with `start..end` -- `prove_unchanged` walks the

@@ -2,12 +2,12 @@
 
 ```
 Status:   open
-Progress: 10 of 12 tasks done
-Owner:    session
+Progress: 12 of 12 tasks done
+Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'on the original every line belongs to 1
           paragraph and every paragraph belongs to 1 anchor')
-Done:     2026-08-20 — 2026-08-20 -- landed in 5fd5baf. `b` owns every line that is not
+Done:     2026-08-20 — 2026-08-20 -- landed in 4d576d3. `b` owns every line that is not
           an `a` or a `c`, on BOTH ranges. Measured over the 16 shipped scripts: 105
           lines in no paragraph became 0, and the 25 that were going to a module
           docstring go to the `b` instead. ! Ownership is by PRECEDENCE, not by non-
@@ -18,11 +18,18 @@ Done:     2026-08-20 — 2026-08-20 -- landed in 5fd5baf. `b` owns every line th
           done and stays with the galley work.
 Ruled:    2026-08-21 — Roy: 'b owns the blank line -- same answer as the blanks around
           a's and c's for the same reason. it is the flex in the system. it makes the
-          covering precise and full.' Landed in 16661dd: `recut` takes the FREE lines
+          covering precise and full.' Landed in 1f97878: `recut` takes the FREE lines
           only, so a `b` gives way to what sits inside its span. ! The cost is ruled too
           -- the series order is fixed at f, a, b, c, so front matter below a blank line
           is set above it. Lossy on ORDER, never on content, and handed to ownership-
           context as a query rather than solved.
+VERIFIED: 2026-08-23 — 2026-08-23, task 8 done. page.recut takes only the free lines --
+          'own = [n for n in range(b.start, b.end + 1) if mine is None or n in mine]' --
+          and fill_the_gaps computes 'free' by excluding every line another paragraph
+          owns exactly. The case the task names is a test: tests/test_compositor.py:162
+          measures it on cpython/Include/floatobject.h, and tests/test_cues.py:563 and
+          tests/test_edge_cases.py:68 pin Roy's ruling 'b1 isn't able to be swallowed by
+          b0'.
 ```
 
 ## Objective
@@ -58,10 +65,10 @@ The original range leaves 105 blank lines owned by nothing, and 25 blanks go to 
 - [x] Blast radius to check before landing: `raw_lines` must grow with the range
       or `galley.paragraph_matches` refuses a fresh census; `splice_range` reads
       the original range; and `docs/addressing.md` states the current rule.
-- [ ] * THE GALLEY HALF, which Roy named and which is not this TODO: strip empty
+- [x] * THE GALLEY HALF, which Roy named and which is not this TODO: strip empty
       lines at the ends of a `b` on write, then put one back for spacing. Deferred
       with the rest of the galley work.
-- [ ] !! MINE, 2026-08-21, AND IT SETS PROSE TWICE. `fill_the_gaps` computes a
+- [x] !! MINE, 2026-08-21, AND IT SETS PROSE TWICE. `fill_the_gaps` computes a
       `b`'s FREE lines -- excluding every line an `a`, `c` or `f` owns exactly --
       and then `recut` slices `source[start - 1 : end]` over the WHOLE span
       anyway. A `b` whose free lines are not CONTIGUOUS therefore swallows the

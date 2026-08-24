@@ -27,7 +27,7 @@ because it is the one that looks most like success.
 !! **MEASURED 2026-08-21.** `compositor.set_page(page_for(text)) == text` is the strongest check
 this system has: it asks whether the model of a page is LOSSLESS, byte for byte, and nothing here
 could ask that before it existed. **Its first run scored 699 of 699 across ten languages**
-(`18b0796`, 12:44).
+(`8c39da9`, 12:44).
 
 !! **157 ADDRESSES WERE HELD BY TWO PARAGRAPHS EACH AT THAT MOMENT, AND IT REPORTED NONE OF
 THEM.**
@@ -37,7 +37,7 @@ each paragraph's recorded line position -- so it reconstructed the text out of n
 just read from that text. The check and its subject shared a source, so agreement was guaranteed.
 A tautology with a green light on it.
 
-! **It became an instrument at `e3ae738`, 13:56**, when it was made to set from the FOLIATION
+! **It became an instrument at `7c9ad96`, 13:56**, when it was made to set from the FOLIATION
 instead -- every place named, in the order the walk emitted them, with no line consulted. Within
 the hour it had surfaced the collisions and the non-contiguous `b`. **Same module, same
 assertion, opposite value**; the only difference was whether it could reach a fact belonging to
@@ -49,13 +49,13 @@ Each concern returned to its owner made the same assertion sharper. Measured ove
 
 | | the move | found by |
 | --- | --- | --- |
-| `e3ae738` | the compositor sets from the reading order, not from line numbers | Roy, reading |
-| `8d88ac5` | the LANGUAGE ROW states which side its documentation goes on | Roy, reading |
-| `997be5f` | the language rows become a LEAF, read by the lexer and compositor alone | Roy, reading |
-| `8b4d8ed` | the LEXER types a paragraph `matter`; the page only maps it | the identity, silent on every `.py` |
-| `21ca92a` | `leading` takes the blanks a `b` owned on both sides | the identity, 16 of 185 files |
-| `6a7be73` | the reading order is the WALK'S; `page.py` had overwritten it | reading, after an `add` vanished |
-| `578d7fe` | the galley stops splicing; a change is an assignment | the split, once the order was right |
+| `7c9ad96` | the compositor sets from the reading order, not from line numbers | Roy, reading |
+| `ee42920` | the LANGUAGE ROW states which side its documentation goes on | Roy, reading |
+| `f411b76` | the language rows become a LEAF, read by the lexer and compositor alone | Roy, reading |
+| `3ddf7b1` | the LEXER types a paragraph `matter`; the page only maps it | the identity, silent on every `.py` |
+| `875b0d4` | `leading` takes the blanks a `b` owned on both sides | the identity, 16 of 185 files |
+| `b998a60` | the reading order is the WALK'S; `page.py` had overwritten it | reading, after an `add` vanished |
+| `97359c2` | the galley stops splicing; a change is an assignment | the split, once the order was right |
 
 !! **SO THE ORDER IS NOT "BUILD THE DETECTOR, THEN IT FINDS THINGS."** The detector worked only
 to the degree the separation had already happened, and each increment of separation made it
@@ -67,6 +67,32 @@ the page and the census was doing the work each needed to do individually. So fr
 finish the old system was insufficient and mixed up concerns in so many places that it was never
 going to work."*
 
+## A measurement across two moving parts attributes to neither
+
+!! **THE MECHANISM MUST WORK END TO END BEFORE THE INSTRUCTIONS ARE TOUCHED**, and this is a
+measurement rule rather than a tidiness one. Change the machinery and the agent prose in one
+step and a movement in the output could be either -- nothing separates them afterwards, so the
+question *did the change help* cannot be asked at all, however carefully the run was graded.
+
+!! **MEASURED, AND IT COST EVERY RELEASE TO DATE.** Roy, 2026-08-23: *"v0.1.0, 0.2.0, 0.2.1,
+0.2.2, 0.2.3 are all conflated about how well the system works because the mechanics of the
+system didn't work and we changed both at the same time."* The 0.1.x line and 0.2.0 through
+0.2.3 each moved the census, the addressing or the join AND the four role files together. Every
+number in their evidence is real; none of it answers how well the SYSTEM works, because no run
+holds one side still.
+
+! **A CONFOUNDED RUN IS NOT A WEAKER MEASUREMENT, IT IS A DIFFERENT KIND OF THING.** A green
+gate that shares its subject's defect (above) still reports on something. This reports on a
+compound nobody will build again -- that mechanism with those instructions -- so the finding
+does not carry to the next version even when the numbers look good.
+
+! **WHAT IT ASKS OF A CHANGE THAT TOUCHES BOTH:** land the mechanism first with no agent file
+edited, and require that effectiveness does NOT move -- the machinery is a CONTROL, and a move
+there is the finding. Only then change what a role is told, against a baseline that now exists.
+The worked instance is
+[`code-concerns-cannot-carry-a-proposed-change`](../TODO/code-concerns-cannot-carry-a-proposed-change.md)
+then [`a-role-with-no-code-out-damages-the-prose`](../TODO/a-role-with-no-code-out-damages-the-prose.md).
+
 ## What to do with a new check
 
 - **Name the two sources.** What does the check read, and what does the subject read? If the
@@ -77,3 +103,6 @@ going to work."*
   is set from the cues while the file is read by the lexer -- two sources that must be made
   to agree rather than one consulted twice.
 - **A green run is not a report.** State what the check would have caught, not that it passed.
+- **Move one side at a time.** If the change touches the machinery AND what an agent is told,
+  the measurement attributes to neither. Land the mechanism first and require that nothing
+  moves; that null result is what makes the second step readable.

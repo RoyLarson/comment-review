@@ -120,6 +120,27 @@ MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ", "`pCST`")
 #   block: int      the DEPRECATED 0.2.x record index on `Finding`, which names
 #                   a field in reports already written. `.block` and `block=`
 #                   are the same field read and written.
+#
+# !! FOUR MORE LIVE SENSES, DECLARED 2026-08-23 AFTER THE GATE BOUGHT ITS GREEN
+# WITH THEM. `block` is polysemous and only the NOUN meaning *paragraph* was
+# retired; the verb, a Python code block and a Java text block are current
+# English and current terms of art. Undeclared, the gate flagged all four, and
+# the rename that followed replaced the live senses instead of the dead one:
+# SKILL.md's verdict table read *"it PARAGRAPHS every other verdict"*, the
+# `block-context` agent was told its own role was `PARAGRAPH-CONTEXT`, and
+# `prove_unchanged` described *"a Java text PARAGRAPH"* -- a language feature
+# that does not exist. Five sites, filed as `the-rename-corrupted-live-prose`.
+#
+# ! THIS IS THE FAILURE `docs/gates.md` NAMES FROM THE OTHER SIDE: the run was
+# green because the SUBJECT was bent to the check. A word with several senses
+# needs each one declared, or the gate reads correct prose as a defect and the
+# cheapest way to satisfy it is to make the prose wrong.
+#
+#   blocks every other verdict / does not block this pass / unresolved blocks
+#                   the VERB, to obstruct -- what an escalated `query` does
+#   __main__":` block
+#                   a PYTHON code block, the language's own term
+#   Java text block the same feature as TEXT BLOCK above, in lower case
 NOT_THE_TERM = (
     "block-context",
     "TEXT BLOCK",
@@ -128,6 +149,11 @@ NOT_THE_TERM = (
     ".block",
     "block=",
     '"BLOCK"',
+    "blocks every other verdict",
+    "does not block this pass",
+    "unresolved blocks stage 6",
+    '__main__":` block',
+    "Java text block",
 )
 REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
 EMITTED = REFERENCES / "vocabulary.toml"

@@ -2,13 +2,20 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 8 tasks done
-Owner:    session * Roy (* 1 ruling -- the module names, which `docs/vocabulary.md`
-          constrains)
-Requires-Roy: true
+Progress: 8 of 8 tasks done
+Owner:    backend
+Requires-Roy: false
 Raised:   2026-08-18, from the dev review of the file by its own editorial board
 Updated:  2026-08-18 — the module names are ruled -- three modules, verdicts.py keeps
           its name
+Updated:  2026-08-23 — Verified in place 2026-08-23. record.check() guards both cases: a
+          report whose 'pages' is not a list returns 'not a seeded report'
+          (tests/test_record.py:276), and a non-object record reports 'a record is a
+          <type>, not an object' (tests/test_verdicts.py:2365). claim_keys is the single
+          source -- three call sites, and a grep for hardcoded claim-key names returns
+          nothing. ! The split landed as desk.py / record.py / verdicts.py / held.py,
+          not the proposed join.py / checks.py: the subjects separated, the filenames
+          differed.
 ```
 
 ## Objective
@@ -17,20 +24,20 @@ Updated:  2026-08-18 — the module names are ruled -- three modules, verdicts.p
 gate: join four reviewers' reports against the census."*
 
 !! **`module-context` FOUND THIS AND THEN GOT IT WRONG, which is why it is filed rather than
-merely fixed.** Reviewing the file at `4fd8384` it quoted its own role file's trigger almost
+merely fixed.** Reviewing the file at `d3aa065` it quoted its own role file's trigger almost
 verbatim -- a summary line describing one half of what the file contains -- and then emitted a
 `patch` WIDENING the docstring to announce two subjects. That is the defect the trigger is named
 for, applied as the remedy. It filed no `code_concerns` entry, though the same role file says a
 misplaced module constant is a code concern, so the pattern exists and was not reached for.
 
 ! Recorded as the run's one miss in [`evals/test-cases.jsonl`](../evals/test-cases.jsonl), case
-`module-context-widens-a-two-subject-docstring`, pinned at `4fd8384`. **Splitting the file does
+`module-context-widens-a-two-subject-docstring`, pinned at `d3aa065`. **Splitting the file does
 not delete that case** -- the fixture is a checkout at a hash, and the hash is an ancestor of
 `main`, reachable from `origin/main` and contained in `v0.2.3`.
 
 ## The four subjects
 
-| subject | what it answers | lines, at `4fd8384` |
+| subject | what it answers | lines, at `d3aa065` |
 | --- | --- | ---: |
 | the verdict table | what each of the seven marks means, and what payload it requires | 95-340, 595-670 |
 | the report reader | what a reviewer handed in, read into `Finding`s | 285-340, 670-915 |
@@ -84,21 +91,21 @@ per-finding checker each need a name that states their one subject.
 
 - [x] * **RULED 2026-08-18: three modules, and `verdicts.py` KEEPS ITS NAME.** Neither A nor B: `record.py` already announced "what a RECORD is" and derived `allowed()` from the verdict table, so the table went there and needed no new name. The checks became `desk.py` -- the copy desk, where a submitted mark is checked before anyone acts on it, and free in the register where `checks.py` would collide with CODE CHECK and PROSE CHECK. `docs/vocabulary.md` needed no edit.
 
-- [x] **DONE `b4c8cef`.** 232 lines into `record.py` -- `Verdict`, `VERDICTS`, `OUT_OF_ROLE`, `QUERY_SHAPES`, the two claim regexes and `claim_keys`. ! It was a true leaf: 190 lines referencing nothing but `re.compile`, `@dataclass` and `str.join`, which is why it moved in one piece.
+- [x] **DONE `0bbc3fa`.** 232 lines into `record.py` -- `Verdict`, `VERDICTS`, `OUT_OF_ROLE`, `QUERY_SHAPES`, the two claim regexes and `claim_keys`. ! It was a true leaf: 190 lines referencing nothing but `re.compile`, `@dataclass` and `str.join`, which is why it moved in one piece.
 
-- [x] **DONE `7fab8c6`.** `parse_report` types a 0.2.x claim through `claim_object` at the seam, and `ruled_text` reads the field with the marker scan as fallback. ! It was a local call only because the cycle was gone.
+- [x] **DONE `3645aad`.** `parse_report` types a 0.2.x claim through `claim_object` at the seam, and `ruled_text` reads the field with the marker scan as fallback. ! It was a local call only because the cycle was gone.
 
-- [x] **DONE `6fdcd59`.** 315 lines to `record.py` -- reading a record file is the third verb on the noun it already writes and checks. ! The boundary-merge fix did NOT ride along; it stays with `the-parser-merges-across-boundaries-it-cannot-read`.
+- [x] **DONE `aa01e61`.** 315 lines to `record.py` -- reading a record file is the third verb on the noun it already writes and checks. ! The boundary-merge fix did NOT ride along; it stays with `the-parser-merges-across-boundaries-it-cannot-read`.
 
-- [x] **DONE `6fe323c`.** 754 lines to `desk.py`. Verified before cutting: the checks call no join function, the reader calls no check, and every mention of a moving name outside `verdicts.py` is PROSE.
+- [x] **DONE `4fc5974`.** 754 lines to `desk.py`. Verified before cutting: the checks call no join function, the reader calls no check, and every mention of a moving name outside `verdicts.py` is PROSE.
 
 - [x] **DONE.** `verdicts.py` 2,084 -> 603 lines and is the only one of the three with a `main`. Dependencies run one way: verdicts -> desk -> record.
 
-- [ ] **Fix the two dev-review findings inside the split**: `claim_keys` reaching two of four
+- [x] **Fix the two dev-review findings inside the split**: `claim_keys` reaching two of four
       sites, and `record.check()` raising `AttributeError` on a non-object report where
       `load_report` guards. Verify: a test reproduces each against the pre-split behaviour.
 
-- [x] **DONE, and the method had to be fixed first.** With `--repo .` the output moved by one line -- a report citing `verdicts.py:1320` in a file the cut shortened -- because SOURCES resolves against the working tree. Re-run with BOTH pinned, a worktree at `7850bbc` as subject and `cc596b1` as the pre-cut tool: BYTE-IDENTICAL, 24 problems. ! `evidence/redacted-corpus-full-v0_2/VERSIONS.md` already said "replay needs the TREE pinned as well as the census".
+- [x] **DONE, and the method had to be fixed first.** With `--repo .` the output moved by one line -- a report citing `verdicts.py:1320` in a file the cut shortened -- because SOURCES resolves against the working tree. Re-run with BOTH pinned, a worktree at `3e1fedf` as subject and `1015469` as the pre-cut tool: BYTE-IDENTICAL, 24 problems. ! `evidence/redacted-corpus-full-v0_2/VERSIONS.md` already said "replay needs the TREE pinned as well as the census".
 
 
 ## Related

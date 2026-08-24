@@ -11,7 +11,7 @@ Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines?
           and becoming a property that it shouldn't be')
 Updated:  2026-08-21 — anchor_num started 2026-08-21; the field collapse it enables is a
           separate step
-Narrowed: 2026-08-22 — the walkers survive the walk (6912fbe); Foliation is 4 fields --
+Narrowed: 2026-08-22 — the walkers survive the walk (b90aaac); Foliation is 4 fields --
           walk, reading, lines, _code
 ```
 

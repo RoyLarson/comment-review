@@ -944,7 +944,9 @@ class TestBlockCarriesItsAddressAndOriginal(unittest.TestCase):
         self.assertIsNone(self._at(address="redacted_pkg.rates.py@b1"))
 
     def test_an_address_naming_the_wrong_file_is_refused(self):
-        self.assertIn("is not in the census", self._at(address="redacted_pkg.other.py@b0"))
+        self.assertIn(
+            "is not in the census", self._at(address="redacted_pkg.other.py@b0")
+        )
 
     def test_the_retired_LINE_form_is_no_longer_accepted(self):
         # !! BOTH TOLERANCES WENT WITH THE FORM THEY FORGAVE. A line address is
@@ -1411,7 +1413,7 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
         # !! The lexical tier stamps `docstring` on any run opening with a
         # language's doc marker. Reading `///` as a quoted literal leaves the
         # marker in the prose and refuses every doc comment in ten of the
-        # eleven languages -- everything but Python.
+        # seventeen languages -- everything but Python.
         rust = ["/// Returns the budget.", "/// Callers round separately."]
         self.assertEqual(
             lexer.block_text("docstring", rust, ("///", "//!", "//"), structural=False),
@@ -2105,7 +2107,8 @@ class TestAFindingStatedOnlyInReason(unittest.TestCase):
             self._run(
                 "correct",
                 'false: "callers round separately" / true: "31 callers"',
-                'the definition reads "def compute(plan, period)" so the count is stale',
+                'the definition reads "def compute(plan, period)" so the count is'
+                " stale",
             ),
             [],
         )

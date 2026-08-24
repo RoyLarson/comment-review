@@ -2,11 +2,26 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
-Owner:    session
+Progress: 0 of 6 tasks done
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17 (referrers.py's FIRST real exercise, the redacted_corpus
           builder run on 0.2.0 -- 24 files under review, ~490 files returned)
+TRIAGED:  2026-08-23 — 2026-08-23. NOTHING TO RECLASSIFY -- all five boxes are already
+          verifiable tasks with their own gates, which is what the rest of this backlog
+          is being rewritten towards. Left open as filed. ! Task 5 states the standard
+          the others are held to: take the number from a run, not from a prediction,
+          because this file exists because the tool first real exercise disagreed with
+          how it was expected to behave.
+RE-READ:  2026-08-23 -- second triage pass, T labels added and NOTHING ELSE CHANGED. The
+          mechanism the Objective describes is unchanged: `tokens_for` is
+          referrers.py:36, it still adds the stem, every trailing suffix of the posix
+          path and every PUBLIC top-level definition of a `.py` file, and the only guard
+          is still the length filter.
+SPLIT:    2026-08-23 -- the boxes were cut to two lines each and every one was given the
+          Verify clause it had been carrying only as prose. Old T4 held two rules -- a
+          sanctioned response AND a recording requirement -- and became T4 and T5, so
+          five tasks became six
 ```
 
 ## Objective
@@ -35,7 +50,7 @@ hand-filtered has moved the decision out of the tool and into a place nothing re
 
 ## Where it comes from
 
-`tokens_for` (`referrers.py:38`) collects, for each file under review: its stem, its posix path
+`tokens_for` (`referrers.py:36`) collects, for each file under review: its stem, its posix path
 and every trailing suffix of that path, and **every PUBLIC top-level definition** when the file
 is Python. Each token is then grepped across the tree.
 
@@ -58,41 +73,50 @@ held the CORRECT text while the code was backwards. Any narrowing that drops tho
 has made the tool worse than the 490-file version, because the noise was at least filterable
 and a missing mirror doc is invisible.
 
+## ! What the boxes carried
+
+! **T1 -- how the threshold is derived.** Compute every token's match count first, then drop the
+ones above a threshold -- and derive the threshold from the run (a token matching more than some
+fraction of tracked files) rather than hard-coding a number that fits one repo. !! **Never a
+stopword list.** `run` is generic in that repo and load-bearing in this one, where the word names
+a single invocation of the skill.
+
+! **T2 -- what a citation looks like.** The brief already rules how prose cites: by symbol or
+path, in backticks. A `` `run` ``, `run()` or `module.run` match is a reference; the word *run*
+in a sentence is not. ! Path tokens keep matching as plain substrings -- a path is already
+specific.
+
+! **T3 -- no silent caps.** A tool that quietly narrows reads as "these are all the referrers"
+when it is not, so the packet must record the narrowing instead of an operator remembering it.
+
+! **T4 and T5 were ONE box holding two rules.** The rule today is that referrers' output IS the
+`REFERENCE ONLY` list; this run shows that can be unusable, and the skill offers no sanctioned
+response. ! Whatever it becomes, hand-selection must be RECORDED in the packet -- the current
+wording lets a run substitute judgement for the tool with nothing written down.
+
+! **T6 -- the standard the others are held to.** Take the number from a run, not from a
+prediction: this whole file exists because the tool's first real exercise disagreed with how it
+was expected to behave.
+
 ## Tasks
 
-- [ ] **Drop a token by its MEASURED match count, not by a wordlist.** A token matching several
-      hundred files is not a citation of one file, and that is observable without anyone
-      curating English. ! Recommendation: compute every token's match count first, then drop
-      the ones above a threshold -- and derive the threshold from the run (a token matching more
-      than some fraction of tracked files) rather than hard-coding a number that fits one repo.
-      !! **Never a stopword list.** `run` is generic in that repo and load-bearing in this one,
-      where the word names a single invocation of the skill.
-
-- [ ] **Require the match to look like a CITATION for bare NAME tokens.** The brief already
-      rules how prose cites: by symbol or path, in backticks. A `` `run` ``, `run()` or
-      `module.run` match is a reference; the word *run* in a sentence is not. ! Path tokens
-      keep matching as plain substrings -- a path is already specific.
-
-- [ ] **PRINT what was dropped and why.** *No silent caps*: a tool that quietly narrows reads as
-      "these are all the referrers" when it is not. One line per dropped token with its count,
-      so the packet records the narrowing instead of an operator remembering it.
-
-- [ ] **Say in `SKILL.md` what to do when the output is still too large.** The rule today is
-      that its output IS the `REFERENCE ONLY` list; this run shows that can be unusable, and the
-      skill offers no sanctioned response. ! Whatever it becomes, hand-selection must be
-      RECORDED in the packet -- the current wording lets a run substitute judgement for the tool
-      with nothing written down.
-
-- [ ] **Re-run against the same 24 files and compare.** The gate is that the two mirror docs
-      above still appear and the count is workable. ! Take the number from a run, not from a
-      prediction -- this whole file exists because the tool's first real exercise disagreed with
-      how it was expected to behave.
-
+- [ ] T1 -- Drop a token by its MEASURED match count, with the threshold derived from the
+      run, not hard-coded. Verify: a token matching several hundred files is dropped.
+- [ ] T2 -- Require a bare NAME token to match as a CITATION -- `` `run` ``, `run()` or
+      `module.run`, not the word in a sentence. Verify: a prose `run` no longer matches.
+- [ ] T3 -- Print what was dropped and why -- one line per dropped token with its count.
+      Verify: the packet records the narrowing; no token is dropped silently.
+- [ ] T4 -- Say in `SKILL.md` what to do when referrers' output is too large to hand over
+      as-is. Verify: `SKILL.md` names a sanctioned response; today it offers none.
+- [ ] T5 -- Require hand-selection of the referrers list to be RECORDED in the stage-4
+      packet. Verify: `SKILL.md` says so, and the packet has a place for it.
+- [ ] T6 -- Re-run referrers against the same 24 files and compare. Verify: the two mirror
+      docs still appear and the returned count is workable, taken from the run.
 ## Related
 
 - [`ownership-is-read-first`](ownership-is-read-first-but-nothing-makes-it-so.md) -- carries the
   four editorial roles written out as editorial desks. `referrers.py` is the INDEX in that
-  mapping, and the first task above is the indexer's own rule: **an index whose entries point at
+  mapping, and T1 above is the indexer's own rule: **an index whose entries point at
   every page is not an index**, so a term is dropped by how many pages it lands on. The rule was
   written here first and the desk agrees with it; nothing in that mapping is evidence for the
   threshold, which still has to come from a run.

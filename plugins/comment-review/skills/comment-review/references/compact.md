@@ -27,8 +27,8 @@ successful edit.
 ! **If any paragraph is still marked incorrect or misplaced, stage 6 has not started yet.** Finish
 stage 5.
 
-!! **An ESCALATED `query` does not paragraph this pass, and must not.** Its destination is the
-author, who is first reached at 7a -- *after* this stage. Read as "unresolved paragraphs stage 6", a
+!! **An ESCALATED `query` does not block this pass, and must not.** Its destination is the
+author, who is first reached at 7a -- *after* this stage. Read as "unresolved blocks stage 6", a
 capped run holding one externally-unsettleable query could never legally reach approval.
 Measured on a real run: two such queries, both settleable only inside a dependency outside the
 checkout. **Compact the paragraphs whose verdicts are closed; carry an escalated query's paragraph at
