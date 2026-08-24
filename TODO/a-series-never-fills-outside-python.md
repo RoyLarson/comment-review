@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 17 tasks done
+Progress: 0 of 18 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -144,3 +144,11 @@ Outside Python the `a` place is emitted and never filled.
       sets `Paragraph.declares` from what `page.documentable()` computes, so no
       `a` place fills for any lexical language. Both halves land together or
       neither is observable.
+- [ ] MATCH THE KEYWORD ANYWHERE IN THE LINE, NOT ONLY AS THE FIRST WORD. That
+      single assumption is why `c` and `cpp` carry an empty keyword list: a C
+      declaration opens with its RETURN TYPE, so no keyword is ever the first
+      word. Roy, 2026-08-23: 'a slightly smarter parser that looks for the correct
+      keyword in the line instead of just the first word ... It is a simple fix.'
+      Verify: `struct`, `enum`, `union` and a function definition resolve an `a`
+      place in a `.c` file, and no line gains a SPURIOUS `a` -- one would renumber
+      every `a` below it.

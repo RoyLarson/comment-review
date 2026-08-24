@@ -375,8 +375,19 @@ commit that first recorded it is the source, and `git log -S` finds it.
 
 ! **AN EMPTY LIST MEANS THE LANGUAGE HAS NO `a` SERIES AT ALL** -- not an empty one. `yaml`,
 `toml`, `ini` and `sql` have no docstring practice, and carried an `a0` no verdict could fill until
-this landed. **C and C++ are deliberately in that group**: a C function opens with its RETURN
-TYPE, so the list could never be complete, and a spurious `a` renumbers every `a` below it.
+this landed.
+
+!! **C AND C++ SIT IN THAT GROUP FOR A DIFFERENT REASON, AND IT IS DEFERRAL RATHER THAN
+IMPOSSIBILITY.** A C declaration opens with its RETURN TYPE, and the matcher reads a line's FIRST
+word -- so no keyword ever matches and a spurious `a` would renumber every `a` below it. ! **That
+is a fact about the MATCHER, not about C.** Roy, 2026-08-23: *"assumes you don't create a slightly
+smarter parser that looks for the correct keyword in the line instead of just the 'first' word. It
+is a simple fix."* Both languages plainly have documentable declarations; the list is empty until
+that lands.
+
+! **THIS SENTENCE PREVIOUSLY READ *"the list could never be complete"***, which is the shape this
+file warns about two sections up -- a claim about the COST of a change, which invites someone to
+make the change and discover the cost.
 
 ! Only Python's doc sits INSIDE the declaration, so Python alone needs a parser to say WHERE the
 prose goes; everywhere else it goes on the declaring line's own line. An LSP `documentSymbol`

@@ -232,7 +232,7 @@ that changed a published name or rule:
 | [closing-line-deletes-code](closing-line-deletes-code.md) | backend | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | systems · Roy | — | 0/4 | v1.x wants a concrete versioning system on everything that ships |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | backend | — | 0/3 | addresser --check prints SHARED and exits 0 |
-| [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | yes | 0/17 | Outside Python the `a` place is emitted and never filled |
+| [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | yes | 0/18 | Outside Python the `a` place is emitted and never filled |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | backend | — | 0/3 | A UTF-8 BOM is censused as a line of code |
 | [strip-strings-runs-before-the-opener](strip-strings-runs-before-the-opener.md) | backend | — | 0/4 | A quote inside a block comment blanks the comment's own closer |
 | [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | backend | — | 0/5 | A licence header and a doc comment become one paragraph with one address |
