@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 11 tasks done
+Progress: 1 of 11 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-24 (Roy: the galley only really needs this address gets this paragraph,
@@ -77,7 +77,7 @@ for the clean corrected text written out for the compositor, as a working candid
 that job is what gets ratified -- the way `compositor` was, in two words, after `page-setter`
 carried the whole diagnosis.
 
-### !! EVERY MARK GETS A DISPOSITION, AND `stet` IS NOT ONE OF THEM
+### !! EVERY MARK IS `taken in` OR IT IS NOT -- AND `stet` IS NEITHER OF THOSE
 
 Roy, 2026-08-24: *"Marks also compose so multiple patch/add/drop/correct all have to be marked in
 some way. Stet is one, I don't know the other."* -- then, correcting what `stet` is: *"my
@@ -99,7 +99,7 @@ too narrow: it is one of the two things `stet` can point at, not the meaning of 
 
 | | who emits it | when | what it says |
 | --- | --- | --- | --- |
-| **disposition** | this piece, mechanically | every mark, every time | the mark is in the text, or it is not |
+| **`taken in`** | this piece, mechanically | every mark, every time | the mark was carried into the text |
 | **`stet`** | the **copy chief** | only where two roles could not agree | **let THIS stand** -- the mark it chose, or neither |
 
 !! **AND THE TWO CHANCES ARE ALREADY RULED AND ALREADY BUILT.**
@@ -115,14 +115,21 @@ round"*. First revise, second revise, then it goes to press: **Roy's two chances
 practice**, and the tree still says `re-review` in **13 files, 41 times** -- measured 2026-08-24,
 of which **7 files and 23 occurrences are shipped** under `plugins/`. That split is T11.
 
-**So the per-mark question is still open, and it is smaller than it looked.** After composition a
-mark is IN the text or it is NOT; a contradiction is not a third state because it does not reach
-this piece at all -- it goes to revise, twice, and comes back as a `stet`.
+**And the per-mark question turned out smaller than it looked.** After composition a mark is in
+the text or it is not; **a contradiction is not a third state**, because it never reaches this
+piece -- it goes to revise, twice, and comes back as a `stet`.
 
-!! **THE CANDIDATE FOR THE UNNAMED ONE IS `taken in`**, offered for ratification and not asserted:
-*taking in corrections* is the compositor's own phrase for making the marked changes on a proof.
-! Checked against the register first, per `CLAUDE.md`'s method: `set` is already the compositor's
-word for putting a page into type, so it cannot carry this too.
+!! **RULED 2026-08-24: THE OTHER ONE IS `taken in`.** *Taking in corrections* is the compositor's
+own phrase for making the marked changes on a proof, and ordinary English *take in* is to absorb
+-- Roy, ratifying it: *"also fits the common use of the word."* It reads correctly with or without
+the trade, and a two-word phrase cannot drift into general use the way `set` did.
+
+! **`settled` WAS PROPOSED AND MEASURED OUT**, on Roy's own second criterion -- *"close to set but
+not confused with set"*, and *"not overly generic like set."* MEASURED the same day: `settle`
+appears **94 times across 19 shipped files and 35 more in `docs/`**, and two are collisions with
+the neighbour -- `re-review.md:139` already writes *"a paragraph stage 5 settled"*, which is the
+`stet` case, and `SKILL.md:68` lists `query` as **unsettled**. **`taken in` returns zero.**
+`decision-log.md Vocabulary: #12`.
 
 !! **AND [`no-mark-for-let-it-stand`](no-mark-for-let-it-stand.md) IS BUILT ON THE OTHER READING.**
 Its T3 adds `stet` to `record.py`'s `VERDICTS` as an eighth, and its T13-T16 ask what each ROLE's
@@ -147,10 +154,10 @@ copy chief that ruled, so no single role is ever in a position to file it. ! Tha
       the sentence describes what exists.
 - [ ] T7 -- `agents` -- correct `SKILL.md:925`, *nothing between stage 5 and the galley
       converts*. Verify: it names the piece that does.
-- [ ] T8 -- * Name the disposition of a mark that was carried into the text. Verify: the
-      name is defined in `docs/vocabulary.md`.
-- [ ] T9 -- Record a disposition for every mark on the artifact. Verify: a composed
-      paragraph names each mark as carried or not, and a mark with neither refuses.
+- [x] T8 -- NAMED 2026-08-24: a mark carried into the text is `taken in`. In
+      `docs/vocabulary.md` and `decision-log.md Vocabulary: #12`.
+- [ ] T9 -- Record `taken in` or not, for every mark on the artifact. Verify: a mark that
+      is neither taken in nor covered by a `stet` refuses the run.
 - [ ] T10 -- Carry a `stet` onto the artifact. Verify: a paragraph the copy chief ruled
       says so and names the marks that ruling settled.
 - [ ] T11 -- Rename `re-review` to `revise` in the 7 shipped files, 23 sites. Verify:

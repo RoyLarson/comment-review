@@ -118,6 +118,42 @@ to one leaving.
 
 ! Tracked in [`TODO/verdicts-is-the-join.md`](../TODO/verdicts-is-the-join.md).
 
+## What becomes of a mark -- `taken in`, and `stet`
+
+**Two words, and they answer different questions.** Ruled 2026-08-24, and both are ADOPTED rather
+than held in reserve.
+
+| the word | what it names | who says it |
+| --- | --- | --- |
+| **`taken in`** | the mark was carried into the text. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the piece that composes, mechanically, about every mark |
+| **`stet`** | *let this stand.* Emitted where two roles could not agree, and it points at what stands -- the mark it chose, or neither | the **copy chief**, and no one else |
+
+!! **A ROLE CANNOT EMIT A `stet`.** It presupposes two roles that disagreed and a copy chief that
+ruled, so no single hand is ever in a position to file one. Roy, 2026-08-24: *"it is the
+declaration that the copy chief emits when two editorial roles couldn't agree. It emits on the
+one that it chose, or it overrules both."*
+
+! **`the original stands` IS TOO NARROW A GLOSS.** Roy: *"stet -- let this stand."* What it points
+at may be the original OR one role's mark; the pointing is the whole of it, and the original is
+one of the two things it can point at.
+
+!! **`settled` WAS PROPOSED FOR `taken in` AND MEASURED OUT.** Roy, 2026-08-24: *"close to set but
+not confused with set"*, and *"not overly generic like set"* -- the shape is right and the word
+fails the second test. MEASURED the same day: `settle` appears **94 times across 19 shipped files
+and 35 more in `docs/`**. ! Two of those are collisions with the neighbour: `re-review.md:139`
+already writes *"a paragraph stage 5 **settled**"*, which is the `stet` case, and `SKILL.md:68`
+lists `query` as **unsettled**, an axis about whether a QUESTION is open rather than whether a
+mark reached the text. **`taken in` returns zero occurrences.**
+
+! **And it reads without the trade.** Roy: *"also fits the common use of the word"* -- ordinary
+English *take in* is to absorb or incorporate, so a reader who does not know a compositor's
+marginal marks still reads it correctly. ! A two-word phrase also cannot drift into general use
+the way `set` did.
+
+! Tracked in [`TODO/nothing-makes-the-fair-copy.md`](../TODO/nothing-makes-the-fair-copy.md), and
+`stet`'s own build is [`TODO/no-mark-for-let-it-stand.md`](../TODO/no-mark-for-let-it-stand.md) --
+which is written on the reading this ruling corrects.
+
 ## ownership -- settled, and deliberately not emitted
 
 **The relation: which anchor best justifies holding a comment.** `anchor` is the code position,

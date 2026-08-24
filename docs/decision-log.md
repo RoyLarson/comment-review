@@ -163,6 +163,25 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   is NOT the copy chief: it collates and rules on nothing by design, so its own rename goes to
   `collator.py`.
 
+- **#12.** **A mark carried into the text is `taken in`** (Roy, 2026-08-24, ratifying it: *"also
+  fits the common use of the word"*). *Taking in corrections* is the compositor's own phrase for
+  making the marked changes on a proof, and ordinary English *take in* is to absorb -- so it reads
+  correctly with or without the trade. It is the counterpart to `stet`, and the two answer
+  different questions: `taken in` is mechanical and per-mark, `stet` is the copy chief's and only
+  where two roles disagreed.
+
+  !! **`settled` WAS PROPOSED AND MEASURED OUT.** Roy's criteria were *"close to set but not
+  confused with set"* and *"not overly generic like set"*; the shape is right and the word fails
+  the second. MEASURED 2026-08-24: `settle` appears **94 times across 19 shipped files, and 35
+  more in `docs/`**. ! Two are collisions with the neighbouring concept -- `re-review.md:139`
+  already writes *"a paragraph stage 5 settled"*, which is the `stet` case, and `SKILL.md:68`
+  lists `query` as **unsettled**, an axis about whether a QUESTION is open. **`taken in` returns
+  zero.**
+
+  ! **The measurement is the point, not the verdict.** The register rule asks that a candidate be
+  checked BEFORE it is proposed; this is what that check returns when it is run, and it took one
+  `grep`.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
