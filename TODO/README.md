@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (44)
+### open  (45)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -226,6 +226,7 @@ that changed a published name or rule:
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | testing | — | 2/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 | [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | systems | — | 2/5 | nothing recomputes it or prompts the clearing; 6 cleared, 26 left to read |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | — | 0/4 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
+| [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | — | 4/10 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 
 ### in-progress  (18)
 
@@ -250,7 +251,7 @@ that changed a published name or rule:
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/6 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/9 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
 
-### decision-needed  (27)
+### decision-needed  (26)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -262,7 +263,6 @@ other tasks can proceed without them._
 | [a-role-with-no-code-out-damages-the-prose](a-role-with-no-code-out-damages-the-prose.md) | agents | yes | 1/5 | `code_concerns` is defined in the shared brief that every role reads, but named in only ONE of the four reviewer files -- `function-context`. It is absent from `module-context`, whose whole remit is whether a module announces ONE subject, which is the finding that most needs a code out. MEASURED in the harness: `module-context-widens-a-two-subject-docstring` detected that `verdicts.py` holds four subjects, had no verdict for 'split this module', and emitted a prose `patch` widening the docstring to announce TWO -- the exact defect its own trigger is named for. `code_concerns` came back empty. |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | yes | 4/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 2/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
-| [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | yes | 3/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | yes | 6/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [lexer-does-not-lex](lexer-does-not-lex.md) | backend | yes | 7/9 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
 | [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | backend | yes | 4/5 | A licence header and a doc comment become one paragraph with one address |

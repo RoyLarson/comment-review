@@ -61,6 +61,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 - **#8.** **`foliator.py`'s docstring said "every line has exactly one address" and now says NO
   LINE HAS MORE THAN ONE** (2026-08-23). False by 595 lines in its own directory, every one a `d`.
 
+- **#9.** **The census is a BINDER you ask, not a CLI that builds everything first** (Roy,
+  2026-08-23: *"the census returns a binder -- a cli and ask for the census the page or some
+  answer to some subpart of the page. It is silly to make the census be the cli it breaks things
+  like this option"*). Asked as *shard the census per file, or not*, and ruled neither: the
+  on-disk shape was never the problem. A lookup answers at one of three grains -- the whole
+  census, one page, a subpart of a page -- and the chain stops as soon as the addresser can
+  answer, *"No parse everything"*. ! While `census.py` IS the CLI, the only way to ask a small
+  question is to run the thing that builds every page, so every question costs the whole project.
+  MEASURED first: one address cost 0.28 s over 19 files, extrapolating to ~1.1 s and 250 MB read
+  per lookup at 500k lines.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is

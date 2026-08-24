@@ -1,10 +1,10 @@
 # Every address lookup parses the whole census, so query cost scales with the project
 
 ```
-Status:   decision-needed
-Progress: 3 of 5 tasks done
+Status:   open
+Progress: 4 of 10 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-23 (Roy, 2026-08-23: if we pulled on a BIG project and had to do this
           a lot that would add up fast, and each invocation is a separate run)
 TRIAGED:  2026-08-23 — 2026-08-23. Tasks 1-3 are measurements: the 0.28 s lookup and its
@@ -29,9 +29,14 @@ MEASURED 2026-08-23 on the 19 shipped scripts: producing the census costs 2.48 s
 run; querying ONE address costs 0.28 s, of which 0.17 s is interpreter startup and 25 ms is
 parsing a 5.5 MB census to answer about one file.
 
-! **The cheap half and the ruled half are independent.** Batching (task 5) needs no decision
-and recovers the 0.17 s; sharding (task 4) is the only option that keeps the census's
-contract, and it changes an on-disk shape four consumers read.
+! **The cheap half and the ruled half are independent.** Batching (T5) needs no decision and
+recovers the 0.17 s.
+
+!! **THE RULING CAME BACK NEITHER WAY IT WAS ASKED, 2026-08-23.** T4 offered *shard the census
+per file, or not* -- both answers about an on-disk SHAPE. Roy ruled the shape was never the
+problem: **the census is a BINDER you ask, and making it the CLI is what forecloses asking
+anything small.** A caller names its grain -- the whole census, one page, a subpart of a page --
+and the chain stops as soon as the addresser can answer. `decision-log.md Addressing: #9`.
 
 ## Tasks
 
@@ -54,14 +59,47 @@ contract, and it changes an on-disk shape four consumers read.
       the scheme *"rests entirely on the census being a HASHED STATIC TABLE --
       exact, constant, FULLY ENUMERATED."* Speed would be bought with staleness
       detection.
-- [ ] T4 -- * RULING WANTED: SHARD THE CENSUS PER FILE, or not. It is the option
-      that keeps the contract -- a lookup parses one file's shard, a few hundred KB
-      whatever the project size, and it is still the authoritative table. Unruled
-      because it changes the census's on-disk shape, which `--filtered`, `galley`,
-      `verdicts` and `record` all read. Verify: the ruling is recorded in
-      `docs/decision-log.md`.
+- [x] T4 -- RULED 2026-08-23, AND NEITHER WAY IT WAS ASKED. It offered SHARD or
+      DO NOT, both of which change or keep an on-disk SHAPE. Roy ruled that the
+      shape is not the problem: *"they shouldn't have to go through the whole
+      census to get an address ... No parse everything"*, and then named the cause
+      -- *"It is silly to make the census be the cli it breaks things like this
+      option."* ! **`census.py` BEING the CLI is what forecloses stopping early**:
+      if the only way to ask a question is to run the thing that builds
+      everything, every question costs the whole project. The census is a BINDER
+      you ask; the CLI is what asks it. Tasks T6-T9 are that ruling.
 - [ ] T5 -- BATCH THE LOOKUPS. It is the cheap half and independent of the ruling:
       `addresser.py:1110-1126` declares `--anchor` and `--resolve` with no `nargs`,
       so each invocation answers ONE address and 0.17 s of every 0.28 s call is
       interpreter startup. Verify: one invocation answers N addresses, and N=10
       costs measurably less than 10 separate calls.
+- [ ] T6 -- Give the binder a CLI that is not the census builder. It answers three
+      grains -- the whole census, ONE page, or a subpart of one page -- so a
+      caller states what it wants rather than taking everything. Verify: a command
+      exists that returns one page without building the census for the other
+      files, and `census.py --help` no longer advertises address lookup.
+- [ ] T7 -- STOP THE CHAIN AT THE ANSWER. Roy: *"an intermediate cli that is able
+      to run the chain of command to that point and once the addresser is able to
+      answer the line number stops."* Verify: resolving one address in a 19-file
+      scope reads fewer than 19 files, proven by counting reads rather than by
+      timing.
+- [ ] T8 -- SUBSTEP THE LEXER AND THE ADDRESSER so a lookup stops at the requested
+      spot inside a file, not merely at the file. Roy: *"some refinements to this
+      could also substep the lexer and the addresser until it gets to the requested
+      spot and stops."* ! Depends on T7 and is the refinement, not the ruling.
+      Verify: resolving an address near the top of a 987-line file lexes fewer
+      lines than resolving one near the bottom.
+- [ ] T9 -- HAND THE REVIEWERS THEIR RECORDS IN TWO STEPS. Roy: *"get the whole
+      address list for the page then filter the records back down to hand to the
+      reviewers."* ! The address list is cheap and total; the records are what
+      cost, so the filter belongs AFTER the list rather than inside the walk.
+      Verify: the page's full address list is produced by one call, and what
+      reaches a reviewer is a filtered subset of it.
+- [ ] T10 -- SAY WHAT HAPPENS WHEN THE EARLY CHAIN DISAGREES WITH THE CENSUS. T3
+      measured the reason this is not free: the census answers about the file AS
+      THE REVIEWERS WERE GIVEN IT, and anything that re-runs the chain answers
+      about it AS IT IS NOW. Those differ exactly when a file changed mid-run --
+      the case the census exists to catch -- so an early-stopping lookup needs a
+      stated answer rather than an assumed one. Verify: the rule is written where
+      `addresser.py` states the hashed-static-table dependency, and a test changes
+      a file between census and lookup and asserts the stated behaviour.
