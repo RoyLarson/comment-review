@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 7 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (scoping the 0.2.4 round trip: every stage has tests and no test
@@ -38,6 +38,36 @@ The two answer different questions and neither substitutes for the other.
 check pass" is not the question; "could the check fail" is.* A chain run assembled from stages
 that already pass will pass on its first run; what it must do is go red when one of them breaks.
 
+## !! IT IS NOT ONE CHAIN RUN. IT IS SEVEN, PLUS THE CASES WHERE MARKS MEET
+
+Roy, 2026-08-24: *"before we can get to Phase B we have to complete the round trip for every
+verdict type and ... determine and test the process of collation on different verdict types with
+tests to show that the process can work."* ! **Required, not preferred** -- Roy, correcting his
+own word the same minute: *"preferably sounds optional. They are not optional, it has to be able
+to do it."*
+
+!! **THE SEVEN DO NOT EXERCISE THE SAME CODE.** `drop` removes, `correct` and `patch` rule on
+text, `add` writes where nothing was, `move` relocates across the page, `query` proposes no text
+and `clean` proposes nothing at all. **A chain proven on `correct` says nothing about `move`**,
+which is why T5 is one row per verdict rather than one run.
+
+!! **AND COLLATION IS THE HALF NOTHING HERE HAS EVER RUN.** `collating` is settled vocabulary:
+*transferring every hand's marks onto ONE proof; where two marks conflict, both go down and the
+conflict is left visible; it decides nothing.* `verdicts.py` is the collator and groups by
+address at `:149-151`, so the machinery exists -- **what is untested is whether it collates
+correctly when the marks on one address are DIFFERENT KINDS,** which is the only case collation
+exists for.
+
+! **THE PAIRS WITH A STATED RULE ARE THE TEST LIST**, and there are few enough to name: `correct`
+against `patch` (a conflict the gate does not flag --
+[`correct-against-patch-is-a-conflict-and-is-not-flagged`](correct-against-patch-is-a-conflict-and-is-not-flagged.md));
+`drop` against `correct` (a contradiction, returned to its filers); two `move`s naming different
+destinations (`ownership-context` governs); and three `clean`s beside one substantive verdict.
+
+!! **WHAT T7 MAY NOT DO IS DECIDE.** The collator puts both marks down and says they disagree;
+ruling between them is the copy chief's, a later stage and a different lane. A collator that
+picked a winner would be the defect the vocabulary entry is written against.
+
 ## Tasks
 
 - [ ] T1 -- Build a fixture run: census, seed, record, join, galley, compositor, prove.
@@ -47,6 +77,12 @@ that already pass will pass on its first run; what it must do is go red when one
 - [ ] T3 -- Run it over every language fixture, not Python alone. Verify: one row per
       language in `tests/fixtures/`.
 - [ ] T4 -- Prove it can FAIL. Verify: reverting a known defect in any stage turns it red.
+- [ ] T5 -- Run the chain once per verdict: `clean`, `query`, `drop`, `correct`, `patch`,
+      `add`, `move`. Verify: seven rows, each reaching PROVE.
+- [ ] T6 -- Collate several marks on ONE paragraph from different roles. Verify: every
+      mark reaches the proof and none is dropped.
+- [ ] T7 -- Collate each conflicting PAIR named above. Verify: both marks reach the proof,
+      the disagreement is stated, and nothing is decided.
 
 ## Related
 

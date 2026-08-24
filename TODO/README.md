@@ -230,7 +230,7 @@ that changed a published name or rule:
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | — | 6/12 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | — | 6/10 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | — | 2/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
-| [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | — | 0/4 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
+| [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | — | 0/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
 
 ### in-progress  (19)
 
