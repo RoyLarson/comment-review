@@ -229,7 +229,7 @@ that changed a published name or rule:
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | testing | — | 0/10 | each passes in the buggy state its own comment forbids |
 | [a-code-less-file-leaves-lines-unowned](a-code-less-file-leaves-lines-unowned.md) | backend | — | 0/3 | the same one-address-per-line invariant, on a file with no code |
 | [move-across-an-uncued-file](move-across-an-uncued-file.md) | backend | — | 4/6 | the address form spans files; the census does not |
-| [closing-line-deletes-code](closing-line-deletes-code.md) | backend | — | 0/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
+| [closing-line-deletes-code](closing-line-deletes-code.md) | backend | — | 5/6 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | systems · Roy | — | 0/4 | v1.x wants a concrete versioning system on everything that ships |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | backend | — | 0/3 | addresser --check prints SHARED and exits 0 |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | yes | 0/18 | Outside Python the `a` place is emitted and never filled |
@@ -251,13 +251,13 @@ that changed a published name or rule:
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 1/5 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [page-and-addresser-scans](page-and-addresser-scans.md) | backend | — | 2/7 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | yes | 2/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
-| [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
+| [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | — | 1/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [exception-hierarchy](exception-hierarchy.md) | backend | — | 2/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | yes | 0/6 | Two graded arms, orchestration held constant; the rewording is the confound |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | yes | 4/11 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [computed-and-never-read](computed-and-never-read.md) | backend | — | 2/8 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
-| [not-every-line-has-an-address](not-every-line-has-an-address.md) | backend | yes | 0/8 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
+| [not-every-line-has-an-address](not-every-line-has-an-address.md) | backend | yes | 7/8 | 595 real lines carry no address, all leading -- and whether that is a false sentence or a missing place is unruled |
 | [retired-word-in-a-quote](retired-word-in-a-quote.md) | systems | yes | 0/5 | folio cannot join RETIRED without exempting the five core modules whole, because each quotes a ruling made when the word was current |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | — | 0/5 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | — | 0/4 | A per-language fixture can pass without exercising the shape its language is measured on |

@@ -7,6 +7,12 @@ Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17 (referrers.py's FIRST real exercise, the redacted_corpus
           builder run on 0.2.0 -- 24 files under review, ~490 files returned)
+TRIAGED:  2026-08-23 — 2026-08-23. NOTHING TO RECLASSIFY -- all five boxes are already
+          verifiable tasks with their own gates, which is what the rest of this backlog
+          is being rewritten towards. Left open as filed. ! Task 5 states the standard
+          the others are held to: take the number from a run, not from a prediction,
+          because this file exists because the tool first real exercise disagreed with
+          how it was expected to behave.
 ```
 
 ## Objective

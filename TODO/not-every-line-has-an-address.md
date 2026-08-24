@@ -2,13 +2,24 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks done
+Progress: 7 of 8 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-23 (Roy, 2026-08-23: "Every line is a place" -- measured false by 595
           lines, all leading, on the day leading was ruled a symbol rather than a place)
 Ruled:    2026-08-23 — leading does not get a place -- tried several ways and refused;
           the sentence is narrowed, and cue still needs its word
+TRIAGED:  2026-08-23 — 2026-08-23. Seven of eight are records: the measurement, why only
+          the UNIVERSAL is wrong and not the second clause, that it was true when
+          written and a later ruling broke it, that owes_address already exists because
+          of this gap, the cost either way, and the ruling itself -- which task 7 says
+          CLOSES the starred task 5, so that one is ticked as answered rather than
+          outstanding. ! The narrowing has LANDED: the old universal is gone from
+          addresser.py and line 30 states the d-series exception immediately after,
+          pointing at owes_address. ! TASK 8 IS THE ONE THING LEFT and it is still true
+          -- nothing in addresser.py says what breaks DOWNSTREAM if leading were
+          addressable, which is the reason a reader most needs and the one the git
+          history does not carry.
 ```
 
 ## Objective
@@ -61,26 +72,26 @@ trade never needed a word for.
 
 ## Tasks
 
-- [ ] MEASURED 2026-08-23 ON THE 19 SHIPPED SCRIPTS: 8,746 paragraphs over 11,009
+- [x] MEASURED 2026-08-23 ON THE 19 SHIPPED SCRIPTS: 8,746 paragraphs over 11,009
       lines; 401 carry NO address, and 595 REAL LINES sit under them. Every one is
       `leading`. ! So `addresser.py:28` -- *"EVERY LINE HAS EXACTLY ONE ADDRESS,
       AND A PARAGRAPH IS JUST THE LINES THAT SHARE ONE"* -- is false by 595 lines
       in its own directory.
-- [ ] ! THE SECOND CLAUSE IS STILL TRUE AND IS THE ONE DOING THE WORK. *"A
+- [x] ! THE SECOND CLAUSE IS STILL TRUE AND IS THE ONE DOING THE WORK. *"A
       paragraph is just the lines that share one"* refuses the range reading,
       which is what the paragraph exists to refuse -- three sessions in one day
       reached for a range after it was settled. ! Only the UNIVERSAL is wrong, so
       this is a `correct`, not a `drop`.
-- [ ] ! IT WAS TRUE WHEN WRITTEN AND A LATER RULING BROKE IT. Roy, 2026-08-22:
+- [x] ! IT WAS TRUE WHEN WRITTEN AND A LATER RULING BROKE IT. Roy, 2026-08-22:
       *"LEADING TAKES A SYMBOL AND NOT A PLACE"* -- `emit` is what MAKES a place
       and a blank run is not one. ! Nothing re-read the addressing docstring
       afterward, which is the shape this whole repo exists to catch: a ruling
       lands in one module and the sentence stating the invariant sits in another.
-- [ ] ! `owes_address` ALREADY EXISTS BECAUSE OF THIS EXACT GAP, and its docstring
+- [x] ! `owes_address` ALREADY EXISTS BECAUSE OF THIS EXACT GAP, and its docstring
       carries the measurement: two callers disagreed, and a census printed *"8542
       of 8542 paragraphs addressed"* while 392 carried none. ! So the CODE was
       reconciled 2026-08-22 and the PROSE forty lines up was not.
-- [ ] * AND THE OPPOSITE FIX IS ON THE TABLE, so do not correct the sentence
+- [x] * AND THE OPPOSITE FIX IS ON THE TABLE, so do not correct the sentence
       before ruling. Roy, 2026-08-23: *"Every line is a place."* ! If leading
       takes a place, the universal becomes true rather than needing narrowing --
       and `path@cue` becomes PAGE AND LINE, which is how a proof is cited in the
@@ -88,12 +99,12 @@ trade never needed a word for.
       stable name instead of a counted position. ! That would dissolve `leaf-
       means-two-things` instead of settling it: there would be no cue in the
       system at all.
-- [ ] ! WHAT IT COSTS EITHER WAY. Narrow the sentence and leading stays a symbol,
+- [x] ! WHAT IT COSTS EITHER WAY. Narrow the sentence and leading stays a symbol,
       the 2026-08-22 ruling stands, and `cue` still needs a word. Give leading a
       place and the ruling reverses, `emit` has to make something for a blank run,
       and `Kind.holds_no_prose` / `Kind.occupies_no_lines` -- which part on
       exactly leading -- stop differing.
-- [ ] RULED 2026-08-23, AND IT CLOSES THE STARRED TASK ABOVE: leading does not get
+- [x] RULED 2026-08-23, AND IT CLOSES THE STARRED TASK ABOVE: leading does not get
       a place, so the sentence is NARROWED rather than made true. Roy: *"We tried
       leading getting a place. We tried several different ways. The constraints of
       coding AND editing do not allow it."* ! It was ATTEMPTED, which the git

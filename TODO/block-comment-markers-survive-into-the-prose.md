@@ -13,6 +13,11 @@ Renamed:  2026-08-20 — 2026-08-20 -- the language rows measured here were SPLI
           `java`, `csharp`, `swift` and `kotlin`; `js-family` became `javascript` and
           `typescript`. The measurements stand as taken -- the `.java` sample is now the
           `java` row and the `.js` sample the `javascript` row.
+TRIAGED:  2026-08-23 — 2026-08-23. NOTHING TO RECLASSIFY -- all six boxes are verifiable
+          tasks. ! Kept open and noted here because the staleness sweep ranked this file
+          second-highest on retired-word count, which was a FALSE POSITIVE: every
+          "block" in it is the LANGUAGE sense, a block comment, and not the retired
+          noun. The file is about /* */ reaching reviewers as prose.
 ```
 
 ## Objective

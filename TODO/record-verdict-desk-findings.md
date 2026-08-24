@@ -2,12 +2,23 @@
 
 ```
 Status:   open
-Progress: 0 of 9 tasks done
+Progress: 1 of 9 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 4, 2026-08-22 -- the findings OUTSIDE the
           seven reader modules, filed rather than fixed because this system is due an
           independent review session and the reader modules shift under it)
+RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 6 is FIXED and ticked: record.py:1074 now
+             guards with isinstance(report.get("pages"), list) and returns "not a seeded
+             report" instead of dying with AttributeError. ! TWO RE-CONFIRMED BY RUNNING
+             THEM, not by reading: task 7 still raises -- record_problems({"verdict":
+             ["patch"]}, None) gives TypeError: unhashable type: list, because the
+             membership test is asked of unvalidated JSON; and task 1 still contradicts
+             itself -- the patch row payload generates "A patch needs no source"
+             verbatim into the shipped brief while owes_sources stays True by default,
+             so desk.py fatally refuses every compliant patch. The shipped instruction
+             and the shipped gate still disagree. Tasks 2, 3, 4, 5, 8 and 9 were not re-
+             run.
 ```
 
 ## Objective
@@ -38,7 +49,7 @@ Nine findings in the record, verdict and desk system, from review round 4.
       but the address pattern matches only a series letter and digits, so both a
       prose destination naming a decorated accessor and a real front-matter
       address are rejected as `not an address`.
-- [ ] record.py -- `report.get('pages')` has no type guard, so passing a census
+- [x] record.py -- `report.get('pages')` has no type guard, so passing a census
       where a report is expected dies with AttributeError instead of the shape
       diagnostic held.py documents guarding for.
 - [ ] record.py -- `verdict not in VERDICTS` is asked of unvalidated JSON, so a
