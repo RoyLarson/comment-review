@@ -271,7 +271,7 @@ other tasks can proceed without them._
 | [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | backend | yes | 4/9 | A prose file has no blocks, so the system cannot review documentation |
 | [correcting-one-copy-strands-the-reference-copy](correcting-one-copy-strands-the-reference-copy.md) | agents | yes | 0/6 | Correcting one copy strands the copy in a REFERENCE ONLY file |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | agents | yes | 1/3 | A claim can be false by arithmetic with no enforcing line to check it against |
-| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | yes | 2/15 | Ten findings in lexer.py and language.py, from three review rounds |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | yes | 2/17 | Ten findings in lexer.py and language.py, from three review rounds |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | systems | yes | 3/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
 | [nothing-checks-that-four-reviewers-were-launched](nothing-checks-that-four-reviewers-were-launched.md) | agents | yes | 1/5 | Nothing checks that four reviewers were LAUNCHED |
 | [reference-only-misses-the-documentation](reference-only-misses-the-documentation.md) | agents | yes | 0/4 | REFERENCE ONLY misses the project's own documentation |

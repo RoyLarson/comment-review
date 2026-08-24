@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 15 tasks done
+Progress: 2 of 17 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -20,8 +20,21 @@ RE-MEASURED: 2026-08-23 — every box re-checked against the tree. TWO ARE NOW F
 ## Objective
 
 Fifteen findings in `lexer.py` and `language.py`, raised by three review rounds on
-2026-08-22 and re-measured 2026-08-23. Two are fixed. Two need a RULING from Roy before
-any code can be written -- Lua's `---` (task 15) and a same-line docstring (task 14).
+2026-08-22 and re-measured 2026-08-23. Two are fixed. **One ruling is still owed** --
+Lua's `---` (T15).
+
+!! **T14 IS RULED, AND IT PRODUCED TWO TASKS RATHER THAN ONE FIX.** A same-line docstring
+-- `def g(): """d."""` -- gets an `a`. Roy, 2026-08-23: *"gets an a but when the lexer
+type thing gets it in python it will end up as a c"* and *"also on rewrite it will end up
+below the function def and that as fine."*
+
+! **The ruling reaches past the census in both directions**, which is why T16 and T17
+exist. Backwards: when Python goes lexical the same construct becomes a `c`, because a
+lexer sees a string beside code and has no AST saying it is documentation -- so the
+address MOVES and someone will read that as a regression. Forwards: setting it back
+places the docstring on its own line below the `def`, which rewrites a declaring line --
+the one thing `prove_unchanged` exists to refuse. **Ruled ALLOWED, which is not the same
+as invisible.**
 
 ! **The two modules were chosen because they are settled.** They do not shift under
 `front-half-undetermined`, so a finding filed against them stays addressable.
@@ -117,14 +130,16 @@ any code can be written -- Lua's `---` (task 15) and a same-line docstring (task
       compositor identity CANNOT catch this -- prose read as code sets back
       byte-identical -- so the sentence test in `test_fixture_identity.py` is the only
       gate that would. Verify: a fixture with `--[===[` fails before the fix.
-- [ ] T14 -- * NEEDS A RULING, then a fix: what happens to a declaration whose
-      docstring shares its LINE. MEASURED 2026-08-23 on legal Python -- `def g():
-      """Same line doc."""` yields a paragraph at `5-5 kind=docstring anchor=g` with
-      an EMPTY address, and `census.py` exits 1 on the WHOLE FILE with *"1 paragraph
-      carry NO ADDRESS"* and the advice *"Re-run census.py"*, which never helps. !
-      The ruling: does a same-line docstring get an `a`, is it intermediate and
-      ignored (the 2026-08-19 intermediate-comment ruling), or is it refused with a
-      message naming the cause? The advice cannot be written before the answer.
+- [ ] T14 -- RULED 2026-08-23 -- A SAME-LINE DOCSTRING GETS AN `a`. Roy: *"gets an
+      a but when the lexer type thing gets it in python it will end up as a c."*
+      MEASURED 2026-08-23 on legal Python -- `def g(): """Same line doc."""` yields
+      a paragraph at `5-5 kind=docstring anchor=g` with an EMPTY address, and
+      `census.py` exits 1 on the WHOLE FILE with *"1 paragraph carry NO ADDRESS"*
+      and the advice *"Re-run census.py"*, which never helps. ! It is the
+      function's docstring by every measure that decides one -- the interpreter
+      returns it as `g.__doc__` -- so ignoring it hides a real docstring from every
+      reviewer, and refusing the file refuses legal Python. Verify: `def g():
+      """d."""` censuses at `a1 kind=docstring anchor=g`, and `census.py` exits 0.
 - [ ] T15 -- * NEEDS A RULING or a new field: Lua's `---`. The row at
       language.py:455-470 records the measurement and does not fix it, so every
       documented Lua declaration reads as `undocumented`. MEASURED 2026-08-22 on
@@ -138,3 +153,28 @@ any code can be written -- Lua's `---` (task 15) and a same-line docstring (task
       that is not there cannot be set back where it was read. ! The ruling: is a doc
       run above no declaration a comment, a docstring anchored to the module, or its
       own thing?
+- [ ] T16 -- WRITE DOWN THAT THIS ADDRESS CHANGES WHEN PYTHON GOES LEXICAL, before
+      the rebuild lands. Roy ruled the `a` **and** named where it ends up: *"when
+      the lexer type thing gets it in python it will end up as a c."* !! **UNDER A
+      LEXICAL READER THE SAME CONSTRUCT IS A `c`** -- the room beside a line of code
+      -- because a lexer sees a string sitting beside code on one line and has no
+      AST to tell it that string is the declaration's documentation. ! **SO THE
+      ADDRESS MOVES `a1` -> `c` AND NOTHING IN THE TREE WOULD SAY WHY.** A session
+      re-censusing this file after
+      [`python-cannot-read-python`](python-cannot-read-python.md) lands reads the
+      changed address as a regression and reverts it. Verify: the move is recorded
+      in `docs/history.md` with the ruling that predicted it, and a test asserts the
+      address the CURRENT tier produces, so the change arrives as a failing test
+      rather than as a surprise.
+- [ ] T17 -- LET THE REWRITE PUT A SAME-LINE DOCSTRING ON ITS OWN LINE, and make
+      `prove_unchanged` accept that one move. Roy, 2026-08-23: *"also on rewrite it
+      will end up below the function def and that as fine."* !! **THIS IS A CODE
+      LINE CHANGING, WHICH IS THE ONE THING THE PROOF EXISTS TO REFUSE.** Setting
+      `def g(): """d."""` back as `def g():` + an indented `"""d."""` rewrites the
+      declaring line itself, so the check that proves WRITE touched no executable
+      code sees exactly what it is built to catch. ! The ruling makes it ALLOWED,
+      not invisible: the move is normalisation with a stated shape, so the proof
+      needs a rule that admits this one transformation and nothing near it.
+      Verify: `def g(): """d."""` round-trips to the two-line form, `prove_unchanged`
+      returns PROVEN on it, and a test shows the proof still FAILS when any other
+      token on that line moves.

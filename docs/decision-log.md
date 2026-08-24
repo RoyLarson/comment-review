@@ -72,6 +72,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   MEASURED first: one address cost 0.28 s over 19 files, extrapolating to ~1.1 s and 250 MB read
   per lookup at 500k lines.
 
+- **#10.** **A same-line docstring gets an `a`, becomes a `c` when Python goes lexical, and is
+  set back on its own line** (Roy, 2026-08-23: *"gets an a but when the lexer type thing gets it
+  in python it will end up as a c"*, and *"also on rewrite it will end up below the function def
+  and that as fine"*). `def g(): """d."""` is legal Python and IS `g.__doc__`; today it censuses
+  with an EMPTY address and `census.py` exits 1 on the whole file. ! **THE RULING NAMES A
+  DESTINATION, NOT ONLY AN ANSWER.** A lexical reader sees a string beside code with no AST to
+  say it is documentation, so the address moves `a1` -> `c` -- expected, not a regression.
+  !! **AND SETTING IT BACK REWRITES A DECLARING LINE**, which is precisely what
+  `prove_unchanged` exists to refuse; the move is ruled ALLOWED, which is not the same as
+  invisible, so the proof needs a rule admitting this one transformation and nothing near it.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
