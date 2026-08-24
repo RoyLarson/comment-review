@@ -35,21 +35,40 @@ The I/O spec threads a frozen `Doc` through a list of steps. **Here the steps ar
 the record lives on disk**: each stage reads named artifacts and writes named artifacts, and
 the handoff is a file rather than a message.
 
+### !! IT IS A LOG, NOT A LIST, AND THAT IS THE DIFFERENCE FROM THE OTHER TWO
+
+Roy, 2026-08-23: *"the chain of custody steps must be more flexible than what the other steps
+need. The reason is that we don't KNOW the number of steps or the order of the steps. We know
+we need to pick it up from when the first agent does the gather, and drop it off when the
+review is ready for the human."*
+
+| chain | shape | why |
+| --- | --- | --- |
+| read, write | a KNOWN LIST | the steps are fixed and the order IS the design |
+| custody | a LOG | the steps vary by run -- a reduced role set, a re-run of one role, a second compact pass |
+
+**What is fixed is the two ENDPOINTS and the preconditions, not the sequence.** Custody opens
+when the first agent gathers and closes when the review is ready for a human. Between them the
+log records what was received, what was produced, by whom and when; it does not prescribe how
+many entries there are.
+
+! **WHICH IS WHY A FIXED STAGE TABLE WOULD BE WRONG HERE.** `SKILL.md` already supports a
+reduced role set -- three of the four are OPTIONAL, `ownership-context` is not -- so a run with
+three reports is valid and a run with five entries for one role is a re-run, not a fault. A
+list cannot express that; a log can.
+
+A typical run's artifacts, as an ILLUSTRATION and not a schema:
+
 ```
-1  project    ->  style-sheet.md, context.md
-2  gather     ->  census.json, census.txt
-3  refs       ->  referrers.txt
-4a ownership  ->  ownership-context.md
-4c three      ->  block-context.md, function-context.md, module-context.md
-5  apply      ->  join.txt, record.json
-6  compact    ->  compacted.json
-7a approve    ->  approved.md            <- the human gate
-7b write      ->  applied.patch, proof.txt
-8  review     ->  review.md
+style-sheet.md, context.md        census.json, census.txt      referrers.txt
+ownership-context.md              block-context.md ...          join.txt, record.json
+compacted.json                    approved.md   <- human        applied.patch, proof.txt
+review.md
 ```
 
-Each stage declares what it CONSUMES and what it PRODUCES. A stage does not start until its
-inputs are present and valid.
+Each entry declares what it CONSUMED and what it PRODUCED. A step does not start until the
+inputs it names are present and valid -- **the precondition is per-step and declared by the
+step, not read off a global order.**
 
 ## What it buys
 
@@ -75,6 +94,34 @@ inputs are present and valid.
 failure in `only-census-got-out...`: *"the current wording lets a run substitute judgement for
 the tool's output."* A missing artifact is a stop with a name, never a gap the next stage
 reasons around.
+
+## !! THE WRITE-BACK IS A SECOND CUSTODY, AND IT NEEDS TO BE TRANSACTIONAL
+
+Roy, 2026-08-23: *"the write of the reviewed text to the original file is another chain of
+custody because it needs to be solid. It would suck to have it start the write and fail on
+half of the pages and not know. Git is there for recovery but recovery of the entire system
+can be expensive when just another retry is necessary or a complete rewind."*
+
+! **THIS IS NOT THE COMPOSITOR'S WRITE.** That one sets ONE page and the I/O spec's write chain
+covers it. This is 7b putting MANY approved pages onto the real files, and its failure mode is
+different in kind: **a partial write leaves the tree in a state no page describes.**
+
+**What it needs that the other chains do not:**
+
+| property | why |
+| --- | --- |
+| **per-page state** | `pending`, `written`, `verified`, `failed` -- so the run knows WHICH half succeeded |
+| **resumable** | a retry re-attempts the failed pages only |
+| **a rewind that is a choice** | git is the floor, not the plan. Rewinding the whole tree to fix one page is the expensive answer to a cheap problem |
+
+! **THE MANIFEST IS THE CUSTODY RECORD.** One entry per page: its address, its approved text,
+its state, and the proof that ran on it. A crash leaves a manifest that says exactly where it
+stopped, so the next run resumes rather than re-deciding.
+
+!! **AND A HALF-WRITE MUST BE LOUD.** The current failure is silent: `draft` writes and the
+proof arrives afterwards. Under a manifest, the run that stops mid-way leaves `written` pages
+with no `verified` beside them -- which is a state a person can read and a check can refuse,
+rather than a tree that merely looks finished.
 
 ## What must be true for this to work
 
