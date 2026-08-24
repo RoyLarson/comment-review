@@ -802,7 +802,7 @@ what you may change.** If a task touches a file another lane owns, **name the la
 | --- | --- |
 | `agents` | **What an agent is TOLD, and how the roles hand off** |
 | `backend` | **What the Python actually does** |
-| `testing` | **Whether any of it is true** |
+| `testing` | **How well the running system does, and what that is scored against** |
 | `systems` | **Whether it installs, and whether the gates still bite** |
 
 !! **THE VOCABULARY IS SHARED AND CROSSING IS THE POINT.** Roy, 2026-08-23: *"any side can and

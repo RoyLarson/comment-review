@@ -637,6 +637,32 @@ class TestSource(unittest.TestCase):
         f = _finding(verdict="clean", sources=[], reason="", change="")
         self.assertIsNone(desk.source_problem(f, self.repo))
 
+    def test_patch_owes_no_source(self):
+        """!! The shipped brief says so, and this gate said otherwise.
+
+        `record.py`'s `patch` row generates *"A `patch` needs no source"*
+        verbatim into `reviewer-brief.md`, while `owes_sources` stayed True --
+        so every `patch` written to the shipped instruction was fatally
+        refused. Measured 2026-08-22, re-confirmed 2026-08-23 and 2026-08-24.
+
+        ! It is exempt for a different reason from `clean`'s: a `patch` rules
+        on WORDING, and `from:` is checked against the paragraph itself, so a
+        source would be evidence for a claim nobody made.
+        """
+        f = _finding(verdict="patch", sources=[], claim='from: "a" / to: "b"')
+        self.assertIsNone(desk.source_problem(f, self.repo))
+
+    def test_a_patch_that_cites_anyway_is_not_punished(self):
+        # ! Exempt means NOT OWED, not forbidden. A reviewer that looked
+        # somewhere and said so is filing more evidence, not a malformed one.
+        f = _finding(verdict="patch", claim='from: "a" / to: "b"')
+        self.assertIsNone(desk.source_problem(f, self.repo))
+
+    def test_correct_with_no_source_is_still_refused(self):
+        # !! What keeps the exemption from being a hole. Only the two rows that
+        # declare it are exempt; every other verdict cites where it looked.
+        self.assertIn("SOURCES", desk.source_problem(_finding(sources=[]), self.repo))
+
     def test_a_query_carries_a_source_like_any_other_verdict(self):
         # Ruled 2026-08-16: "It must contain everything to say it was looked at
         # and this is why it is query." Where you LOOKED is a real line on all

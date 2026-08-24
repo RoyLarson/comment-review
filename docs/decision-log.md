@@ -194,3 +194,20 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 - **#4.** **This decision log exists, and history holds the commentary** (Roy, 2026-08-23). Format
   borrowed from `redacted_corpus/docs/redacted_pkg/decision-log.md`, including per-section numbering
   and the reason for it.
+
+- **#5.** **A test belongs to the lane that owns what it tests, not to `tests/`** (Roy,
+  2026-08-24): *"testing's lane is specifically about building and testing the running agent
+  system that is in the testing harness branch. If it is backend testing that is on you. If it is
+  vocabulary and system gating tests that is systems. Running the tests for the agents is the
+  agents responsibility, it is testing's lane to make the grader and keep the grades."*
+
+  | the test asks | lane |
+  | --- | --- |
+  | does this Python do what it says | `backend` |
+  | does a gate still bite -- vocabulary, floor syntax, release | `systems` |
+  | does a role behave when run | `agents` |
+  | how well did the whole system do, and what is that scored against | `testing` |
+
+  ! **SUPERSEDES the flat `tests/** -> testing` row** in [`lanes.md`](lanes.md), which sent a
+  `record.py` regression test to the lane that owns the grader. `testing` owns the GRADER and the
+  GRADES, and its work lives on the harness branch.

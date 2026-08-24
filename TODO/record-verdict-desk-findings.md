@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 14 tasks done
+Progress: 7 of 14 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 4, 2026-08-22 -- the findings OUTSIDE the
@@ -42,8 +42,16 @@ Fixed:    2026-08-24 — T1, T2 and T9 landed, all three verified by RUNNING the
           claim_problems at :957, which .get hashes the same way; record_problems now
           reports the shape and returns before both. ! NEITHER FIX MOVED THE SUITE: 820
           tests passed before and after, so nothing covered either one. T13 and T14 are
-          those tests, and they are testing lane in a backend-owned file -- systems to
-          split if it wants.
+          those tests. SUPERSEDED SAME DAY: that sentence filed them to testing.
+Tested:   2026-08-24 — T13 and T14 landed, and both were PROVEN ABLE TO FAIL: each
+          defect was put back, the test refused it, and the file was restored and
+          compared byte for byte. ! RE-OWNED THE SAME DAY -- Roy ruled a test belongs
+          to the lane that owns what it TESTS, so a record.py regression test is
+          backend and never was testing's. See decision-log.md Process: 5. ! The
+          brief-row check is the GENERAL form rather than a patch special case: no
+          payload may waive a source its own row still owes, plus a second case naming
+          the row that must match, because a reword would otherwise leave the loop
+          running zero times and reporting success.
 ```
 
 ## Objective
@@ -137,7 +145,7 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
       with `isinstance(..., list)`. In the Objective.
 - [x] T12 -- FIXED, found 2026-08-23. `run_context.py` derives both numbers from
       `PATH_SECTIONS`, which holds four. In the Objective.
-- [ ] T13 -- `testing` -- a sourceless `patch` is admitted, and the brief's sentence is
-      pinned to its row. Verify: it fails if `owes_sources` goes back to True on `patch`.
-- [ ] T14 -- `testing` -- a list, dict or number verdict returns a shape diagnostic.
-      Verify: it fails if `record_problems`'s isinstance guard is removed.
+- [x] T13 -- A sourceless `patch` is admitted, and the brief's sentence is pinned to its
+      row. Verify: it fails if `owes_sources` goes back to True on `patch`.
+- [x] T14 -- A list, dict or number verdict returns a shape diagnostic. Verify: it fails
+      if `record_problems`'s isinstance guard is removed.

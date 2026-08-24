@@ -258,6 +258,52 @@ class TestCheckNamesTheRightThing(unittest.TestCase):
         self.assertIn("`reason` is list, not str", problems)
 
 
+class TestAVerdictOfTheWrongShapeIsReportedNotRaised(unittest.TestCase):
+    """The reader of malformed reports must survive a malformed report.
+
+    !! MEASURED 2026-08-23, re-confirmed 2026-08-24: `verdict not in VERDICTS`
+    was asked of unvalidated JSON, and `in` hashes its left side -- so a
+    verdict written as a LIST or a DICT raised `TypeError: unhashable type`
+    out of the one function whose job is saying what is malformed.
+
+    ! It was TWO sites. Guarding the membership test alone still raised, from
+    `ALLOWED["claim"].get(verdict)` in `claim_problems`, because `.get` hashes
+    exactly as `in` does. ! A NUMBER never raised at all -- a number hashes --
+    so the crash was reachable only from the two JSON container types, and a
+    test that used only an int would have passed throughout.
+    """
+
+    def _at(self, verdict):
+        rec = record.slot(CENSUS[0])
+        rec.update(verdict=verdict)
+        return record.record_problems("paragraph 1", rec, CENSUS[0])
+
+    def test_each_wrong_shape_names_the_field_and_its_type(self):
+        for bad, want in (
+            (["patch"], "list"),
+            ({"patch": 1}, "dict"),
+            (3, "int"),
+        ):
+            with self.subTest(verdict=bad):
+                problems = " ".join(self._at(bad))
+                self.assertIn(f"`verdict` is {want}, not str", problems)
+
+    def test_a_report_holding_one_survives_the_whole_pre_flight(self):
+        # ! `check` walks every record and calls both verdict-keyed helpers.
+        # This is the path `record.py --check` takes, and the path that died.
+        report = record.seed(CENSUS, "block-context")
+        all_records(report)[0].update(verdict=["patch"])
+        problems, _ = record.check(report, CENSUS)
+        self.assertIn("`verdict` is list, not str", " ".join(problems))
+
+    def test_a_string_that_is_not_a_verdict_still_gets_the_MEMBERSHIP_message(self):
+        # !! What keeps the shape guard from swallowing the check it precedes:
+        # a misspelled verdict is a different defect and must read differently.
+        problems = " ".join(self._at("corrct"))
+        self.assertIn("is not one of", problems)
+        self.assertNotIn("not str", problems)
+
+
 class TestUnruledIsCountedNotRefused(unittest.TestCase):
     def test_an_empty_report_is_not_malformed(self):
         report = record.seed(CENSUS, "block-context")

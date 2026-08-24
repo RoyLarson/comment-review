@@ -72,6 +72,42 @@ class TestTheBriefMatchesTheVerdictRow(unittest.TestCase):
                 self.assertNotIn(marker, table)
 
 
+class TestARowAgreesWithItself(unittest.TestCase):
+    """The generator keeps the brief equal to the row. Nothing kept the row
+    equal to itself.
+
+    !! MEASURED 2026-08-22, re-confirmed 2026-08-23 and 2026-08-24: `patch`'s
+    payload said *"A `patch` needs no source"* and shipped that sentence
+    verbatim to four reviewers, while the same row's `owes_sources` stayed
+    True -- so `desk.py` fatally refused every `patch` a compliant reviewer
+    filed. Both halves passed every check there was, because each was only
+    ever asked about on its own.
+
+    ! So this asks the question neither the generator nor the gate could: does
+    the sentence a reviewer is INSTRUCTED with match the flag that JUDGES it.
+    """
+
+    WAIVER = "needs no source"
+
+    def test_no_payload_waives_a_source_its_own_row_still_owes(self):
+        for name, spec in VERDICTS.items():
+            if self.WAIVER in spec.payload:
+                with self.subTest(verdict=name):
+                    self.assertFalse(
+                        spec.owes_sources,
+                        f"`{name}` ships {self.WAIVER!r} to four reviewers and"
+                        " its row owes one anyway",
+                    )
+
+    def test_a_row_still_exercises_the_rule(self):
+        # !! THE VACUOUS PASS IS THE FAILURE MODE HERE, and it is one reword
+        # away: with no payload matching, the loop above runs zero times and
+        # reports success. Naming the row that must match is what makes the
+        # check able to fail -- see `docs/gates.md`.
+        waivers = sorted(n for n, s in VERDICTS.items() if self.WAIVER in s.payload)
+        self.assertEqual(waivers, ["patch"])
+
+
 class TestTheGeneratorItselfFires(unittest.TestCase):
     """A generator that cannot detect drift would pass over any edit."""
 

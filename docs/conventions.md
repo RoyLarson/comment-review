@@ -31,16 +31,34 @@ setting and the checking -- and `docs/addressing.md` and `docs/parsing.md`, whic
 ! **It does not own the agent's instructions.** Changing what the census EMITS is `backend`;
 changing what a reviewer is told to DO with it is `agents`.
 
-### `testing` -- whether any of it is true
+! **AND IT OWNS ITS OWN TESTS.** A case in `tests/` asking whether this Python does what it says
+is `backend`'s to write and to keep green -- see [`lanes.md`](lanes.md), *`tests/**` -> the lane
+that owns what the test ASKS*. Landing a behaviour change with nothing able to notice it regress
+is this lane's defect.
 
-`tests/`, `evals/`, `evidence/`, `corpora/`. The suite, the planted hazards and their pass
-criteria, the test cases, the grader, and the pinned corpora.
+### `testing` -- how well the running system does, and what that is scored against
 
-!! **A test that cannot fail is this lane's defect, not a pass.** See [`gates.md`](gates.md):
-*"does the check pass" is not the question; "could the check fail" is.*
+`evals/`, `evidence/`, `corpora/`. The planted hazards and their pass criteria, the test cases,
+**the grader**, the grades it keeps, and the pinned corpora. Its work lives on the harness
+branch.
 
-! It does not own the gates that run in CI -- those are `systems`. The line is that `testing`
-asks *is this true*, and `systems` asks *does this still run and refuse*.
+!! **IT DOES NOT OWN `tests/`, AND THIS FILE SAID IT DID UNTIL 2026-08-24.** Roy: *"testing's
+lane is specifically about building and testing the running agent system that is in the testing
+harness branch. If it is backend testing that is on you. If it is vocabulary and system gating
+tests that is systems. Running the tests for the agents is the agents responsibility, it is
+testing's lane to make the grader and keep the grades."* **A test is owned by the lane that owns
+what it makes a claim about** -- the table is in [`lanes.md`](lanes.md), the ruling is
+`decision-log.md Process: #5`.
+
+! **THE COST OF THE OLD ROW IS THE ONE IT WAS MEASURED ON.** Two `record.py` regressions were
+filed to `testing` on 2026-08-24 because they landed in `tests/` -- shipping a backend fix with
+nothing able to notice it regress, and parking the test on a lane whose work is a grader on
+another branch.
+
+!! **A test that cannot fail is a defect wherever it lives, not a pass.** See
+[`gates.md`](gates.md): *"does the check pass" is not the question; "could the check fail" is.*
+
+! It does not own the gates that run in CI -- those are `systems`.
 
 ### `systems` -- whether it installs, and whether the gates bite
 

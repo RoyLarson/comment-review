@@ -22,7 +22,8 @@ Landed:   2026-08-24 — T1, T2 and T4. `run_context.py` and `referrers.py` each
           `run_context.py`'s OWN usage line, at the top of the module, wrote the
           redirect too -- a fifth site the table below never named, and the one a
           reader of that script would copy. REMAINS: T3 is `SKILL.md` (`agents`), T5
-          is the grep test (`testing`).
+          is the grep test -- `systems`, not `testing`, per `decision-log.md Process: #5`:
+          a gate over a shipped file is a system gating test.
 ```
 
 ## Objective
