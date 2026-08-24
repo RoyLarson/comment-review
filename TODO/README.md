@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (48)
+### open  (49)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -230,6 +230,7 @@ that changed a published name or rule:
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | — | 6/12 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | — | 6/10 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | — | 2/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
+| [backlog-claims-it-cannot-mean](backlog-claims-it-cannot-mean.md) | systems | yes | 0/6 | The backlog claims things it cannot mean, and nothing was checking |
 
 ### in-progress  (19)
 

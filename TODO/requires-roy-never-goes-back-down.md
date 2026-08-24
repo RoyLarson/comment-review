@@ -101,9 +101,9 @@ shorten.
       the commits. Verify: `list --requires-roy` and the `*` boxes agree.
 - [ ] T4 -- Record the count that clearing leaves. Verify: `grep -l "Requires-Roy: true"
       TODO/*.md | wc -l` is written into this file with its date.
-- [x] T5 -- SUPERSEDED: the upstream read is `job_board`'s, which owns `todo_tool.py` now.
-      Verify: this repo vendors the tool and does not maintain it -- `scripts/todo_tool.py`.
+- [x] T5 -- SUPERSEDED: the upstream read is `job_board`'s, which owns the tool now.
+      Verify: this repo vendors `scripts/todo_tool.py` and does not maintain it.
 - [x] T6 -- SUPERSEDED: the recompute is `requires-roy-never-clears` in `job_board`.
       Verify: no recompute is added to the vendored copy here.
-- [x] T7 -- SUPERSEDED: `.claude/skills/todo-tool/SKILL.md` documents the vendored tool, so
-      the correction goes upstream. Verify: this repo's copy is not hand-edited.
+- [x] T7 -- SUPERSEDED: the todo-tool SKILL.md documents the vendored tool, so the
+      correction goes upstream. Verify: this repo's copy is not hand-edited.
