@@ -1,8 +1,8 @@
 # A census row carries 19 fields and an empty place fills 7, with three different spellings of absent
 
 ```
-Status:   open (T6's ruling deferred to the cleanup; T7 and T9 do not wait on it)
-Progress: 6 of 10 tasks done
+Status:   open
+Progress: 6 of 12 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, reading a census JSON: there are a lot of extra
@@ -21,6 +21,15 @@ RE-TRIAGED: 2026-08-23 — 2026-08-23, every measurement re-run rather than trus
             len(raw_lines) on 18 of 34. ! The start/end READERS are still there --
             addresser.py:1046, :1242, :1264, :1339, :1432 and census.py:401, :406, :498,
             :587 -- so T4 stays answered and ticked.
+Unblocked: 2026-08-24 — the deferral lifts. T6 waited on the cleanup
+           because ruling on the field list would rule on fields the cleanup was about
+           to remove. Roy 2026-08-24: the page, the cues and the addresses are fixed, so
+           the list is stable enough to rule on. ! TWO RULINGS ARRIVED WITH IT: tier is
+           DELETED rather than trimmed -- not necessary, and the parser tier is not long
+           for this world once python-cannot-read-python lands -- and path moves to a
+           page envelope. T11 and T12. ! And one field is ADDED: the page records its
+           source SHA, see a-page-carries-no-identity. The minimal set is the FUNCTIONAL
+           one, not the smallest.
 ```
 
 ## Objective
@@ -79,7 +88,7 @@ original span on 13 of 135 (`repo.py`, 2026-08-22), and equal to `len(raw_lines)
 (`constants.py`, 2026-08-23). The field may be a third fact or may be stale, and a trim cannot
 tell the two apart -- which is why it is settled before anything is removed.
 
-## !! The ruling is DEFERRED, and it was ASKED AND DECLINED FOR A REASON
+## !! The ruling WAS deferred, and it was ASKED AND DECLINED FOR A REASON
 
 Roy, 2026-08-23: *"this is the next actual work to be done so deferring the decision until we get
 the current code cleaned up to a point that it isn't fluff we are deciding."*
@@ -88,11 +97,16 @@ the current code cleaned up to a point that it isn't fluff we are deciding."*
 answer would be obsolete on arrival and would have to be re-asked -- the same shape as
 `CLAUDE.md`'s *a thing whose dependencies are broken is refused, not worked on*.
 
-! **What it waits on**: the binder CLI and the read chain --
-[`lookup-parses-whole-census`](lookup-parses-whole-census.md) T6-T9 and
-[`the-lexer-reads-no-files`](the-lexer-reads-no-files.md).
+!! **LIFTED 2026-08-24.** Roy: the page, the cues and the addresses are fixed, so the list is
+stable enough to rule on. ! **The deferral was correct and is kept**: two of the nineteen were
+settled by the ruling that lifted it rather than by the trim -- `tier` is DELETED, not trimmed,
+because the parser tier is not long for this world; `path` moves to a page envelope. Neither
+answer would have survived being given a day earlier.
 
-! **Deferred is not done**: the box stays unchecked because the ruling is still owed.
+! **AND THE TRIM ADDS A FIELD, which is why the box says MINIMAL rather than SMALLEST.** The page
+records its source SHA -- [`a-page-carries-no-identity`](a-page-carries-no-identity.md) -- so the
+galley and the compositor can answer *did the file shift* in one comparison instead of a
+re-parse. A set chosen for size alone would have refused it.
 
 ## Tasks
 
@@ -115,3 +129,7 @@ answer would be obsolete on arrival and would have to be re-asked -- the same sh
       definition is written at the build site and names its derivation.
 - [ ] T10 -- Check every census row against T9's definition. Verify: a named `census.py
       --json` run over a real file has no row that violates it. ! Lands before any trim.
+- [ ] T11 -- Delete `tier` outright: the field, the `Counter` at `census.py:466`, and
+      the preamble line. Verify: no shipped script emits or reads it.
+- [ ] T12 -- Move `path` to a page envelope, stated once. Verify: no census row carries
+      a `path`.
