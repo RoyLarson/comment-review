@@ -316,7 +316,7 @@ other**. Three more sites decide *is this Python* three more ways.
 
 ! **IT IS A CLAIM ABOUT THE COST OF A CHANGE, which is the kind that invites someone to make the
 change and discover the cost.** Filed as
-[`tier-dispatched-on-name`](TODO/tier-dispatched-on-name.md).
+[`tier-dispatched-on-name`](TODO/completed/tier-dispatched-on-name-SUPERSEDED.md).
 
 !! **THE ROW BECOMES TRUE AGAIN WHEN THE AST GOES.** Roy, 2026-08-22: *"as much because we are
 going to remove the ast system from python coming up as it is not an accurate statement."* With
