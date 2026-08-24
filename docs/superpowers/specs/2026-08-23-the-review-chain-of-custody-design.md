@@ -95,6 +95,37 @@ failure in `only-census-got-out...`: *"the current wording lets a run substitute
 the tool's output."* A missing artifact is a stop with a name, never a gap the next stage
 reasons around.
 
+## !! THE PATTERN IS ALREADY PROVEN HERE, ON THE WORK ITSELF
+
+**This repo's own tracking system is a chain of custody, and it works.** The design below is
+that board applied to artifacts instead of tasks -- not a new invention.
+
+| tracking (`conventions.md`) | this design |
+| --- | --- |
+| **T** -- the goal, one verifiable checkpoint | the artifact that must exist |
+| **P** -- a step towards it | a step in the chain |
+| **SP** -- a subplan of a step | a sub-chain |
+| arrows one way, `SP -> P -> T` | a step declares its inputs and never reaches forward |
+| *"re-derivable by a stranger"* | the order is DATA you can print |
+| the boxes ARE the state | the manifest IS the custody record |
+
+!! **AND THE SHAPE MATCHES, WHICH IS THE PART THAT SETTLES IT.** `TODO/` is a LOG -- open
+ended, entries added as work is figured out, state per entry, endpoints that matter.
+`docs/plans/` is a LIST, because a release scope IS a fixed set of steps. That is exactly the
+read/write-versus-custody split above, and it was arrived at independently.
+
+! **SO THE RULES THAT WILL HOLD ARE PREDICTABLE**, because their tracking equivalents are the
+load-bearing ones: *name the T tasks, not the file*; *a box is a verifiable checkpoint*;
+*counts are recomputed, never written by hand*. Their chain forms are **assert the chain IS
+the list**, **a refusal names its step**, and **the manifest is recomputed from the pages
+rather than asserted**.
+
+!! **THE FAILURE MODE TRANSFERS TOO, AND IT WAS MEASURED ALL DAY 2026-08-23.** A box that is
+not a checkpoint makes the count lie -- `leading-owns-the-space-between` read `0 of 10` with
+nine settled, `python-cannot-read-python` `0 of 31` with no task in it. **The code form is a
+step that is not in the chain**: `lossless` exists, nothing calls it, and the run reports
+success. Same defect, same invisibility, one level down.
+
 ## !! THE WRITE-BACK IS A SECOND CUSTODY, AND IT NEEDS TO BE TRANSACTIONAL
 
 Roy, 2026-08-23: *"the write of the reviewed text to the original file is another chain of
