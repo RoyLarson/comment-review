@@ -1,107 +1,49 @@
 # The harness cannot run the system it grades, and the cheap fix is the unsafe one
 
 ```
-Status:   open
-Progress: 8 of 28 tasks done
-Owner:    session * Roy (* 1 ruling left -- what CLOSE TO HERE measures. The suite
-          layout and the `plugin eval` question were both settled 2026-08-23)
+Status:   decision-needed
+Progress: 14 of 42 tasks done
+Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
-Corrected: 2026-08-20 — the fixtures in evidence/self-test-commits.md are FIVE module-
-           context cases, not the twenty-one commits first recorded. Roy, 2026-08-20: a
-           false plan tick, an expectedFailure firing and a hand-written fixture are
-           'specifically not useful test cases for comment-review' -- they are process
-           defects, and this system reads comments and docstrings against the code they
-           sit with. The useful ones are the modules whose docstring announced one
-           subject while the module held several.
-Located:  2026-08-23 — the 2026-08-16 hand pass is a RUN of four commits,
-          5cb05ce..8c0cef6, recorded by e3fd99d -- not one commit, which is why a single
-          --grep or a single -S search kept landing on a fragment of it. The case
-          fixture is its parent 3ce610c, on main, reachable from origin/main, contained
-          in v0.1.6 through v0.2.3. Making it a case still waits on the suite-layout
-          ruling.
-Amended:  2026-08-23 — a case pins a START and an END hash, not one. Roy, 2026-08-23:
-          each set of recommendations can take many commits to implement properly, so
-          the intermediate commits are not necessarily useful. Confirmed on the
-          2026-08-16 hand pass, whose fix is four commits. ! Part IV of
-          evidence/findings.md is already a START/END pair -- fix/folio-placement-is-
-          not-where-the-anchor-is, 7850bbc to 1a0d41f; Parts I-III cite files and no
-          commits.
-Measured: 2026-08-23 — the findings.md Parts I-III commits DO exist in redacted_corpus
-          -- 42 subjects carrying comment-review across 2026-08-11, found by searching
-          the corrected TEXT rather than the messages. What does NOT exist is a clean
-          repo-level pair: aba2b42a to 99f71bde holds 203 commits, 71 on first-parent
-          and 109 touching tests/, while findings.md records the burn-down as ~37. So
-          roughly 160 commits of unrelated work sit inside any range that spans it, and
-          an END tree scored against START would credit or blame the reviewers for
-          refactors they never saw. ! Part IV does not have this problem, which is what
-          Roy meant by almost every commit belongs in there. Candidate remedy: a PER-
-          FILE pair, since every findings.md entry already cites a file -- START blob at
-          aba2b42a, END blob at the last burn-down commit touching that file.
-Ruled:    2026-08-23 — 2026-08-23 by Roy: there is never going to be an oracle that can
-          be exact, so an AGENT grades the run A-F, the way an english language teacher
-          rules that this was well done prose and that was not. ! Two halves and only
-          one is subjective -- the rules we HAND the reviewers are objective and must
-          pass; whether the prose reads well is a letter. !! And the confound is named:
-          what we must NOT measure is how good the python machinery under all of this
-          is.
-Ruled:    2026-08-23 — 2026-08-23 by Roy: a version changes the AGENTS or the MACHINERY,
-          never both, so a test can say whether the python tools got better or the agent
-          reviews did. Recorded as `decision-log.md Process: #5` and
-          `decision-log.md Process: #6`. ! It does NOT
-          hold retroactively -- the current work changed both -- so every score taken
-          before it is uncomparable and the baseline has to be retaken. !! PREDICTION,
-          not a ruling, and dated so it can be checked: Roy expects the python side to
-          mostly resolve itself by being implemented and tested correctly, with the
-          split becoming usability rather than correctness AFTER 0.2.4 lands. If
-          correctness defects are still the majority after that, the prediction was
-          wrong and the split needs re-arguing.
-Measured: 2026-08-23 — the OLD agent workflow is NOT a checkout of the old agent files.
-          Measured 2026-08-23, v0.2.3 to HEAD: the six agent files change by 29
-          insertions and 29 deletions, and that is TWO things -- `block` renamed to
-          `paragraph` (a declared synonym, harmless) and four PARALLEL reviewers
-          becoming three dispatched at stage 4c after ownership-context settles
-          placement at 4a. Only the second is agent workflow; the first tracks the
-          machinery. ! The real drift is elsewhere: SKILL.md and reviewer-brief.md carry
-          626 insertions and 292 deletions between them, and vocabulary.toml 131. So the
-          patch has to be SELECTIVE -- restore the old dispatch shape, keep the new
-          vocabulary -- or the baseline mixes the two variables the split exists to
-          separate.
-Amended:  2026-08-23 — 2026-08-23 by Roy, completing Process #5: vocabulary terms MAY
-          cross the agent/machinery split in both directions, because those items have
-          to be kept in sync else vocabulary drift is a problem that several pieces have
-          missed and caused problems. ! So the `block` to `paragraph` rename arriving
-          with a machinery release was CORRECT, not a violation, and the selective patch
-          this file already describes -- restore the old dispatch shape, keep the new
-          vocabulary -- is what the amended rule requires rather than a workaround.
-          `check_vocabulary.py` is the gate: 59 definitions across 6 roles, 0 holes, 0
-          drifted, verified 2026-08-23.
-Located:  2026-08-23 — 2026-08-23, the HOW: the skill tester is `skill-creator`, not
-          `claude plugin eval`. Roy: the plugin/agent system is about agents working on
-          their own for corporations, routing and deciding; this is an isolated skill
-          that reviews a codebase and stays local. ! The previous session had already
-          recorded this and I read past it -- the plugin-eval task ends *"Not a blocker
-          -- skill-creator covers isolation, the baseline and assertions today."*
-          Confirmed 2026-08-23: `claude plugin eval` and `eval init` both still exit 1
-          with "currently in early access". !! skill-creator ships
-          `scripts/run_eval.py`, `scripts/aggregate_benchmark.py`, `agents/grader.md`,
-          `agents/analyzer.md`, `agents/comparator.md` and `references/schemas.md` under
-          its cache dir, and SKILL.md section "Running and evaluating test cases" is a
-          five-step procedure that answers all four unknowns.
+Triaged:  2026-08-23 -- the grader, the twelve hazards and the two `todo-tool` evidence
+          packages were REMOVED from the tree: they described a corpus this repo cannot
+          publish. Four tasks named files that no longer exist and were re-ruled; the
+          fixture inventory below is what a `find` returns today
+Split:    2026-08-23 -- 22 boxes became 29. The rulings and measurements that carried a
+          box are stated below and their boxes now say only what was settled
+Merged:   2026-08-24 -- two divergent copies of this file reconciled. From the 0.2.4
+          branch: the header fields, the two-line task shape, and every box the
+          2026-08-23 history purge superseded -- that side is NEWER on what is on disk.
+          From the harness branch: the START/END amendment, the A-F versus pass-or-void
+          rubric split, the `claude plugin eval` decision, the Part IV case, the one
+          variable per release ruling and the baseline patch -- that side is NEWER on
+          what was ruled after the fork. Where the two disagreed on a file, `ls` decided
 ```
 
 ## Objective
 
-`evals/evals.json` is the documented skill-eval format and nothing in this repo runs it.
-`grade_hazards.py` scores worktrees a person produced by hand, from a base hardcoded to
-another repository, against twelve planted defects -- so a new question cannot be asked
-without planting it there, and no measurement exists that a human did not perform.
+**Nothing in this repo runs a case against this repo's own system.** `evals/` holds
+`test-cases.jsonl` -- six cases, each a repo URL, a commit, a file list, a role, an outcome, a
+stated `expected` and the `observed` run that produced it -- and `generator_split.py`. There is no
+runner, no assertion mechanism and no score.
 
-The fix is per-role cases: one role, one fixture, one assertion, and an answer known in
-advance. Ruled 2026-08-18: a reduced set is supported and `ownership-context` is never
-dropped, so a case is a legal run rather than a test-only shape. **What remains is that the
-prose does not say so** -- stage 4 dispatches four by name and stage 5 is written as a
-negotiation between them, so a run of two reads as a run missing two.
+!! **AND THE OLD APPARATUS IS GONE, NOT BROKEN.** `evals/evals.json`, `evals/discriminators.md`
+and the hazard grader are absent from the tree as of 2026-08-23. They were tied to a corpus this
+repo cannot ship, so they went with it. **What that costs is the only mechanical scoring this
+system had**, and rebuilding it by RESTATEMENT on a public corpus is T38 to T41.
+
+! **AN EMPTY `git log` PROVES NOTHING HERE, AND NEITHER DOES A HASH.** The history was rewritten
+on 2026-08-23, so absence is settled by looking on disk and by nothing else. The same rewrite
+retired the hashes: of the commits the harness branch cites, `d96b10d`, `d3aa065` and `1ad4ba72`
+resolve in this checkout and the rest do not. **Every pre-rewrite hash in a task has to be
+re-located before its Verify can be run.**
+
+The fix is per-role cases: one role, one fixture, one assertion, and an answer known in advance.
+Ruled 2026-08-18: a reduced set is supported and `ownership-context` is never dropped, so a case
+is a legal run rather than a test-only shape. **What remains is that the prose does not say so**
+-- `SKILL.md` stage 4 dispatches four by name and stage 5 is written as a negotiation between
+them, so a run of two reads as a run missing two.
 
 ## ! The confound is ASYMMETRIC, and only half of it was recorded
 
@@ -120,7 +62,7 @@ So the two confounds pull opposite ways, and they measure different things:
 
 ! **A finding that survives a test-aware run is therefore STRONGER on skill quality, not
 weaker.** What such a run cannot measure is whether the gates hold for someone who needs to
-finish. The existing note should be corrected rather than deleted.
+finish. **The existing note should be corrected rather than deleted.**
 
 ## !! WHERE DOES A CASE STOP? -- and the second question dissolves the first
 
@@ -134,14 +76,17 @@ this as a code concern"* reads that file and needs no synthesis, no galley, no a
 write. A case asking *"is the final text correct"* needs 5, 6 and 7b, and grades the diff. Two
 kinds of case, two artifacts, no stop mechanism.
 
-! That also decides the fixture question one row down: a MARK-level case never writes to the
-tree, so it needs no worktree to throw away -- only somewhere to put the record file.
+! That also decides the fixture question: a MARK-level case never writes to the tree, so it needs
+no worktree to throw away -- only somewhere to put the record file.
 
-**AND THE JOIN ALREADY TAKES ANY SET.** `verdicts.py --reviewers` is a comma-separated list
-matched against report stems; it does not know the number four. `coverage_gaps` counts against
-the declared population and the summary already carries a NOT ACCOUNTED FOR line. So a one-role
-run is machinery this repo has -- what hardcodes four is `SKILL.md`'s stage 4, which dispatches
-by name, and the skill's arguments (`cap`, `target`, `style`) carry no role set.
+**AND THE JOIN ALREADY TAKES ANY SET.** `verdicts.py:296` takes `--reviewers` as a
+comma-separated list matched against report stems; it does not know the number four.
+`coverage_gaps` counts against the declared population and `verdicts.py:645` prints a NOT
+ACCOUNTED FOR line. ! Verified 2026-08-23 that the absence of `--reviewers` is ANNOUNCED rather
+than assumed: `verdicts.py:514-518` prints *"! --reviewers not given: whether every expected
+reviewer reported was NOT checked."* So a one-role run is machinery this repo has -- what
+hardcodes four is `SKILL.md`'s stage 4, which dispatches by name, and the skill's arguments
+(`cap`, `target`, `style`) carry no role set.
 
 ! **So the reduced-set question is smaller than it looks: a ruling, an argument, and a line of
 report.** It is not a re-architecture, and if N roles is a supported configuration then role
@@ -152,49 +97,44 @@ CASES stop being a test-only hack -- they are the same thing a user gets by aski
 Roy, 2026-08-18: *"SKILL.md also states that step 5 is expected to negotiate the result between
 the agents. If one editorial role ran that can create confusion."*
 
-Correct, and the confusion is specific. What breaks at N=1:
+Correct, and the confusion is specific. Verified 2026-08-23, all three still present:
 
-- **The premise is stated as a fact.** *"Four reviewers rule on the same block, so you hold
-  several recommendations and must emit ONE replacement."* An agent holding one report reads
-  that and has to decide whether it is missing three.
-- **A count is used as an argument.** *"Any `correct` outranks every `clean`. THREE ROLES
-  finding nothing does not soften one role finding a falsehood."*
-- **A precedence names a role that may be absent.** *"Two placement verdicts on one block,
-  naming different destinations: `ownership-context`'s destination governs."* If
-  `ownership-context` is not in the set, that rule points at nobody and nothing says who
-  governs instead.
-- **The re-review it sends a contradiction to becomes SELF-review.** `drop` against `correct`
-  on one sentence is ruled a contradiction and goes back -- to its filers, which at N=1 is the
-  role that filed both.
+- **The premise is stated as a fact.** `SKILL.md:813`: *"Four reviewers rule on the same
+  paragraph, so you hold several recommendations and must emit one replacement."* An agent
+  holding one report reads that and has to decide whether it is missing three.
+- **A count is used as an argument.** `SKILL.md:847`: *"Any `correct` outranks every `clean`.
+  Three roles finding nothing does not soften one role finding a falsehood."*
+- **A precedence names a role that may be absent.** `SKILL.md:843-844`: two placement verdicts
+  naming different destinations, and *"`ownership-context`'s destination governs."* That role is
+  in every legal set, so the rule always points at somebody -- but the sentence does not say why.
+- **The re-review it sends a contradiction to becomes SELF-review.** `drop` against `correct` on
+  one sentence is ruled a contradiction and goes back -- to its filers, which at N=1 is the role
+  that filed both.
 
-!! **AND THE ROLES ARE NOT A SET, THEY ARE A LATTICE.** `SKILL.md` reads
-`ownership-context` FIRST because the other three measure a claim against the code at their own
-scope, and a misplaced claim gets measured against the wrong code. So a run without
-`ownership-context` is not a smaller run -- it is a run whose remaining verdicts rest on an
-unchecked assumption. Dropping `module-context` costs coverage; dropping `ownership-context`
-costs correctness. **"1..N roles" is not one configuration and must not be ruled on as one.**
+!! **AND THE ROLES ARE NOT A SET, THEY ARE A LATTICE.** `SKILL.md` reads `ownership-context`
+FIRST because the other three measure a claim against the code at their own scope, and a
+misplaced claim gets measured against the wrong code. So a run without `ownership-context` is not
+a smaller run -- it is a run whose remaining verdicts rest on an unchecked assumption. Dropping
+`module-context` costs coverage; dropping `ownership-context` costs correctness. **"1..N roles"
+is not one configuration and must not be ruled on as one.**
 
-! **What SURVIVES N=1 is more than it looks, and worth saying so the ruling is not overbroad.**
-The synthesis ORDER -- `query`, then `move`/`drop`, then `correct`, then `patch`, then `add` --
-is about VERDICT KINDS and not about roles. One role files several marks on one block routinely:
-measured 2026-08-18, `block-context` filed two `correct`s on one docstring and stage 5 composed
-three marks into one replacement. The residue check, the verification duty and step 6's already
-set-agnostic wording (*"every reviewer that ran"*) all hold unchanged.
+! **What SURVIVES N=1 is more than it looks.** The synthesis ORDER -- `query`, then `move`/`drop`,
+then `correct`, then `patch`, then `add` -- is about VERDICT KINDS and not about roles
+(`SKILL.md:817-829`). One role files several marks on one paragraph routinely: measured
+2026-08-18, `block-context` filed two `correct`s on one docstring and stage 5 composed three marks
+into one replacement. The residue check, the verification duty and step 6's set-agnostic wording
+(*"every reviewer that ran"*) all hold unchanged.
 
-! So stage 5 at N=1 is not empty -- it is MIS-DESCRIBED, and the hazard is an agent reading a
+! **So stage 5 at N=1 is not empty -- it is MIS-DESCRIBED**, and the hazard is an agent reading a
 negotiation it does not have and inferring that a single uncorroborated finding needs less
 scrutiny, in the one stage whose own text says a single-role run ratifies falsehoods.
 
 ## !! OUR OWN HISTORY IS A FIXTURE SOURCE, and the three kinds of case are not equal
 
-Roy, 2026-08-18: previous commits on this repo's history are valid test cases. They are, and
-saying WHAT EACH IS EVIDENCE OF decides which cases go where -- two of the three are enough for
-the work in hand and the third is a different question wearing the same shape.
-
 | kind | the question | strength | answer key |
 | --- | --- | --- | --- |
-| REGRESSION | does the system still catch what it caught at `882635ba`? | strong | a commit we wrote |
-| KNOWN MISS | did it stop emitting the two-subject `patch` at `4fd8384`? | strong | the role file's own trigger |
+| REGRESSION | does the system still catch what it caught at `1ad4ba72`? | strong | a commit we wrote |
+| KNOWN MISS | did it stop emitting the two-subject `patch` at `d3aa065`? | strong | the role file's own trigger |
 | DISCOVERY | does it find a defect class nobody has shown it? | weak from our history | none -- the point is that there is none |
 
 !! **The KNOWN MISS is the only kind that can prove a fix to the SYSTEM rather than to the
@@ -202,405 +142,402 @@ code.** A regression case says the tool still works; a discovery case says nothi
 pinned miss, re-run after the role file changes, distinguishes a role that was taught something
 from a role that got a different draw.
 
-!! **And DISCOVERY from our own history is the over-fitting risk `corpora.toml` already keeps
-two personal projects as a control for.** Every defect in this history was found either by this
-system or by somebody reviewing it, so a case built from one measures RECALL on a class already
-known. That is what the public-history survey one task down answers, and it stays separate --
-not because it is less important, but because it is not the same measurement and must not be
-reported as though it were.
+!! **And DISCOVERY from our own history is the over-fitting risk `corpora.toml` keeps a control
+for.** Every defect in this history was found either by this system or by somebody reviewing it,
+so a case built from one measures RECALL on a class already known. That is what the
+public-history survey at T17 answers, and it stays separate -- not because it is less important,
+but because it is not the same measurement and must not be reported as though it were.
 
-! The two strong kinds need no network, no third-party tree, and no planting: the defect is at
-the parent, the fix is the key, and both are commits on a branch that is already pushed.
+! The two strong kinds need no network and no planting: the defect is at the parent, the fix is
+the key, and both are commits on a branch that is already pushed.
 
-## !! THE RICHEST FIXTURE IS ALREADY ON DISK, PINNED, AND EXTERNAL
+## !! A CASE PINS TWO HASHES -- A START AND AN END
 
-Roy, 2026-08-18: the `todo_tool` runs were made against
-`REDACTED_SHA_D`, so `evidence/` already holds what a case needs.
+Amended 2026-08-23 by Roy: *"the evals need to have the start/end commits the intermediate
+commits are not necessarily useful because each set of recommendations can take many commits to
+implement properly. The goal would be to have this was the starting point and after the work is
+done the comment-reviewers would have got it close to here."*
 
-**Two complete packages, same subject, same hash** -- `redacted_corpus` branch
-`todo-requires-roy` at `REDACTED_SHA_D`, three files, 3,333 census blocks, **171 holding prose** (88
-docstring, 75 comment, 8 trailing):
+! **A single hash cannot name the answer key, because a fix is not a commit.** Measured
+2026-08-23 on the 2026-08-16 hand pass: the fix is FOUR commits, so under the one-hash reading
+there is no commit to point at -- picking any one of the four names a tree where some files are
+corrected and others are not. A START and an END name it exactly, and the commits between them
+stop mattering.
 
-| package | what it holds |
-| --- | --- |
-| [`evidence/todo-tool-full-run/`](../evidence/todo-tool-full-run/) | the first run -- one blocked, one complete, plus `tool-findings.md` |
-| [`evidence/todo-tool-full-v0_2/`](../evidence/todo-tool-full-v0_2/) | the second: census, all four reviewer reports, four joins, stage 5, 6, 7a and 8 artifacts, `applied.patch`, and two miss analyses |
+! **The two keys are `start` and `end`, not `base` and `fixed`** -- `decision-log.md
+Vocabulary: #12`, because `base` already meant a planted hazard's unmodified text in
+`grade_hazards.py` and a merge-base in `prove_unchanged.py`. ! The harness branch cited that
+ruling as `Vocabulary: #10`, which on the current tree is *"Stage 2 is GATHER"*; the numbering
+moved with the purge and the citation was re-derived.
 
-! Its own README already says what this file wants: *"kept as a documented test case for the
-next iteration of the tool."*
+!! **THE RULING SURVIVED ITS VEHICLE.** It landed by extending `evals/evals.json`, whose case 3
+carried `start` and `end` beside `prompt`, `hazards` and `evidence`, with the file's own `notes`
+stating *"a fixture is a checkout at a hash, and a fix commit is an answer key. A case that
+carries `start`/`end` is graded over that RANGE."* **That file was removed on 2026-08-23**, and
+the surviving row format, `evals/test-cases.jsonl`, pins a single `commit` -- so the shape the
+amendment requires is on no row today. That is T15.
 
-!! **THIS IS THE THIRD KIND OF CASE, and the one our own history cannot supply.** The subject is
-ANOTHER REPOSITORY, so a finding here is not a defect this system already knew about -- which is
-exactly the DISCOVERY axis the taxonomy above marks weak for our own commits. It also carries
-what a synthetic case cannot: 171 prose blocks, four roles, and a stage 8 that ROLLED A RUN BACK.
+! **The superseded argument is kept so the error stays legible.** Before `evals.json` was
+extended, a SECOND SUITE was ruled -- role cases and hash-pinned fixtures in their own layout,
+because a case of `(address, hash, files, role)` had *"nowhere to put"* the hash in the
+documented schema. Two new keys is where. The premise expired the same day the ruling was made.
 
-!! **A CASE MUST CHECK OUT `REDACTED_SHA_D`; IT MUST NOT READ `scripts/todo_tool.py`.** The vendored
-copy in this repo is no longer the fixture -- it carries a local stdout-encoding patch and is
-1,646 lines against the fixture's 1,638. Reading the convenient copy would grade the system
-against a file the run never saw.
+! **And the assertion the amendment implies is APPROXIMATE, not identity.** *"got it close to
+here"* -- the END tree is a target the run is scored against, not an output it must reproduce.
+What counts as close is unruled, and is T31.
 
-! **One number in the evidence is off and is NOT corrected here**, because a captured run is a
-record: `todo-tool-full-v0_2/README.md` states `todo_tool.py` at 1640 lines where `REDACTED_SHA_D` has
-1638. The run edited these files and restored them, so the count was most likely taken after its
-own edits. ! Anything keying on a line number in that package should re-derive it from the hash.
+## !! THE RESULT IS TWO HALVES, AND ONLY ONE OF THEM IS A LETTER
 
-## !! A CASE IS TWO PINS, AND HALF OF THEM LIVE ON ONE DISK
+Ruled 2026-08-23 by Roy: there is never going to be an oracle that can be exact, so an AGENT
+grades the run A-F, the way an english language teacher rules that this was well done prose and
+that was not. ! **Two halves and only one is subjective** -- the rules we HAND the reviewers are
+objective and must pass; whether the prose reads well is a letter.
 
-**A run is only reproducible if BOTH the tool version and the subject tree are pinned.** Roy
-supplied both halves 2026-08-18; verified the same day:
+!! **AND THE CONFOUND IS NAMED**: what must NOT be measured is how good the python machinery
+under all of this is. So a machinery defect VOIDS a case rather than grading the reviewer for it
+-- T32.
 
-| pin | commit | where | durable |
-| --- | --- | --- | --- |
-| comment-review `v0.2.0` | `4621569cf370` | `origin/main`, annotated tag | yes |
-| comment-review `v0.2.1` | `7a0945ad3f40` | `origin/main`, annotated tag | yes |
-| comment-review `v0.2.2` | `5e0b0f75105b` | `origin/main`, annotated tag | yes |
-| redacted_corpus BASE | `REDACTED_SHA_E` | `origin/master` | yes |
-| redacted_corpus RUN | `REDACTED_SHA_F` | `origin/redacted-branch-b` (tip) | yes |
-| redacted_corpus todo-tool | `REDACTED_SHA_D` | `origin/todo-requires-roy`, 1 behind tip | yes |
+! **Five things are checkable before the grader reads anything, and ALL FIVE HAVE ALREADY BEEN
+WRONG IN THIS TREE** -- T33:
 
-!! **CORRECTED 2026-08-18: ALL SIX ARE ON A REMOTE. The durability problem does not exist,
-and the way it was mis-measured is worth more than the scare.**
+1. the round trip sets the START page back byte-identical
+2. no address is held by two paragraphs (157 were)
+3. every prose paragraph is censused exactly once
+4. `record.py --check` passes
+5. every citation resolves in the join
 
-The first reading said the two SUBJECT commits were local-only. It came from
-`git branch -r --contains <sha>`, which searches `refs/remotes` -- and this clone had never
-FETCHED those two branches, so there was nothing there to find. The commits were on `origin` the
-whole time. `git ls-remote --heads origin` is the authoritative check and disagreed immediately.
+! **The objective floor is DERIVED, not written by hand** -- T34. Roy, 2026-08-23: we do know a
+bunch of the rules that must pass because we tell the reviewers those. `vocabulary.py --reviewer
+<role>` already emits the 42 to 46 terms one role is given, and several are rules with a
+checkable failure: `laundering` forbids a `patch` on a claim that is false, `move` carries a
+DESTINATION or it is not a `move`, and `clean` is wrong where the role did not READ the
+paragraph and should be `query`.
 
-!! **A HARNESS MUST ASK THE REMOTE, NOT THE CLONE.** Every fixture claim of the form *"this
-commit is safe"* has to come from `git ls-remote` or an explicit fetch. A stale or absent
-tracking ref reads exactly like a commit that was never pushed, and the failure is silent in
-the direction that matters -- it says a durable fixture is at risk, and it would equally say a
-lost one is fine if a tracking ref were stale the other way.
+! **The grader itself is a role, so it can reverse itself.** The END tree is the human answer
+key, so the same grader on the same rubric must score it at the top; a grader that hands the
+answer key a middling letter is what is broken, not the tree. That is `docs/gates.md` applied to
+the grader -- could the check FAIL, not does it pass -- and it is T35.
 
-- **DURABILITY -- not a problem.** All six are reachable from a branch on `origin`. `REDACTED_SHA_D`
-  sits one commit behind `origin/todo-requires-roy`'s tip `REDACTED_SHA_G` and is still an ancestor
-  of it.
-- **ACCESS -- not fixable, and not a defect.** Roy, 2026-08-18: *"None because they are
-  private."* Both repositories are private, so no commit here is fetchable without his
-  credentials, INCLUDING the four that are durable. **A case runs against a local clone or an
-  authenticated fetch, and public CI is out of scope until a repository is public.**
+## !! ONE VARIABLE PER RELEASE, AND THE BASELINE HAS TO BE RETAKEN
 
-! **Durable does not mean available.** Durable means it survives a deleted branch or a lost
-disk; a runner still cannot get it. A case should say which of the two it needs.
+Ruled 2026-08-23 by Roy, recorded as `decision-log.md Process: #5` and `Process: #6`: a version
+changes the AGENTS or the MACHINERY, never both, so a test can say whether the python tools got
+better or the agent reviews did. ! **It does NOT hold retroactively** -- the current work changed
+both -- so every score taken before it is uncomparable and the baseline has to be retaken.
 
-! **The comment-review self-history cases differ on ONE axis only.** Their commits are ancestors
-of `main` and contained in `v0.2.3`, so they are durable -- and that repository is private too,
-so they are no more publicly fetchable than these. Durability is the whole difference.
+!! **PREDICTION, not a ruling, and dated so it can be checked**: Roy expects the python side to
+mostly resolve itself by being implemented and tested correctly, with the split becoming
+usability rather than correctness AFTER 0.2.4 lands. If correctness defects are still the
+majority after that, the prediction was wrong and the split needs re-arguing.
 
-! **The tags are ANNOTATED**, so `git rev-parse v0.2.2` returns the tag object. Use `v0.2.2^{}`
-wherever a commit is wanted. The two whose tag object could be mistaken for the commit are
-recorded in that package's `VERSIONS.md`.
+! **VOCABULARY TERMS CROSS THE SPLIT IN BOTH DIRECTIONS**, amended 2026-08-23 by Roy completing
+Process #5: those items have to be kept in sync else vocabulary drift is a problem that several
+pieces have missed and caused problems. So the `block` to `paragraph` rename arriving with a
+machinery release was CORRECT, not a violation. `check_vocabulary.py` is the gate: 59 definitions
+across 6 roles, 0 holes, 0 drifted, verified 2026-08-23.
 
-! `evidence/redacted-corpus-full-v0_2/VERSIONS.md` is already the authoritative pin for that
-package and states all of this except reachability. It is not restated there; this table adds
-only which side of the network each commit is on.
+!! **THE OLD AGENT WORKFLOW IS NOT A CHECKOUT OF THE OLD AGENT FILES.** Measured 2026-08-23,
+`v0.2.3` to HEAD: the six agent files change by 29 insertions and 29 deletions, and that is TWO
+things -- `block` renamed to `paragraph` (a declared synonym, harmless) and four PARALLEL
+reviewers becoming three dispatched at stage 4c after `ownership-context` settles placement at
+4a. Only the second is agent workflow. ! The real drift is elsewhere: `SKILL.md` and
+`reviewer-brief.md` carry 626 insertions and 292 deletions between them, and `vocabulary.toml`
+131. **So the patch has to be SELECTIVE** -- restore the old dispatch shape, keep the new
+vocabulary -- or the baseline mixes the two variables the split exists to separate. That is T36
+and T37, and Roy, 2026-08-23: the old results are conflated by the machinery more than how well
+the agents did, so patch the agent workflow from the old into the new just to get the baseline.
+
+## !! WHAT IS ACTUALLY ON DISK, MEASURED 2026-08-23
+
+| fixture | where | state |
+| --- | --- | --- |
+| six cases with `expected` and `observed` | `evals/test-cases.jsonl` | present, no runner |
+| the self-test commit range, all four roles | `evidence/self-test-commits.md` | present, never run |
+| ten public corpora, materialised | `corpora/` and `corpora.toml` | present |
+| the two `todo-tool` run packages | `evidence/` | **REMOVED 2026-08-23** |
+| `redacted-corpus-full-v0_2/VERSIONS.md`, the pin | `evidence/` | **REMOVED 2026-08-23** |
+| `findings.md`, Parts I-IV | `evidence/` | **REMOVED 2026-08-23** |
+| `evals.json`, `discriminators.md` | `evals/` | **REMOVED 2026-08-23** |
+| the twelve planted hazards and their grader | -- | **REMOVED 2026-08-23** |
+
+!! **WHAT THE REMOVAL COST IS THE THIRD KIND OF CASE.** The `todo-tool` packages were the only
+fixture whose SUBJECT was another repository, which is exactly the DISCOVERY axis our own commits
+are weak on, and they carried what a synthetic case cannot: 171 prose paragraphs, four roles, and
+a stage 8 that rolled a run back. **The replacement has to come from the public corpora, and that
+is T17 and T38 to T41.**
+
+! **WHAT THE `findings.md` PARTS I-III MEASUREMENT LEFT BEHIND.** Measured 2026-08-23 before the
+removal: the Parts I-III commits did exist in the redacted corpus -- 42 subjects carrying
+comment-review across 2026-08-11, found by searching the corrected TEXT rather than the messages
+-- but **no clean repo-level pair exists.** The range that spans the burn-down holds 203 commits,
+71 on first-parent and 109 touching `tests/`, against a burn-down of roughly 37, so around 160
+commits of unrelated work sit inside it and an END tree scored against START would credit or
+blame the reviewers for refactors they never saw. ! The candidate remedy was a PER-FILE pair,
+since every entry cited a file. ! Part IV did not have this problem, which is what Roy meant by
+almost every commit belongs in there. **The pins themselves are not restated here: they name a
+private repository and went with the purge.** That is T30, and the discovery measurement falls
+to T17.
+
+! **PART IV IS ALREADY A START/END PAIR and needs no commit hunt** -- the branch
+`fix/folio-placement-is-not-where-the-anchor-is`, 235 commits over five days, 198 files,
++56k/-5.4k. Roy, 2026-08-22: this branch is the manual review version of what it takes to get
+this correct. ! Its recorded hashes are pre-rewrite and do not resolve in this checkout, so the
+pair has to be re-derived from the branch. That is T29.
+
+!! **A HARNESS MUST ASK THE REMOTE, NOT THE CLONE.** This survives the removal and is the most
+reusable thing the exercise produced. The first durability reading came from
+`git branch -r --contains <sha>`, which searches `refs/remotes` -- and the clone had never FETCHED
+those branches, so there was nothing to find and two safe commits read as local-only.
+`git ls-remote --heads origin` is the authoritative check. ! The failure is silent in the
+direction that matters: a stale tracking ref says a durable fixture is at risk, and would equally
+say a lost one is fine.
+
+! **AND A CASE GRADES THE TREE AT THE HASH, NEVER A CONVENIENT LOCAL COPY.** The rule was
+measured on the vendored `scripts/todo_tool.py`, which carries a local stdout-encoding patch and
+was eight lines longer than the fixture it was mistaken for. ! A captured run's own line counts
+are a record and are not corrected; anything keying on one re-derives it from the hash.
+
+! **The comment-review pins are annotated tags and still resolve.** Verified 2026-08-23:
+`v0.2.0` -> `a0801d49e5c8`, `v0.2.1` -> `bb3281769298`, `v0.2.2` -> `ccb2404cb250`,
+`v0.2.3` -> `3e1fedfe20f0`. Use `v0.2.2^{}` wherever a commit is wanted; `git rev-parse v0.2.2`
+returns the tag object.
+
+! **Durable does not mean available.** This repository is private, so no commit here is fetchable
+without Roy's credentials. A case runs against a local clone or an authenticated fetch, and public
+CI is out of scope until a repository is public. **The public corpora are the only fixtures with
+no such condition.**
+
+## What the settled boxes recorded
+
+!! **THE LEGAL SETS, RULED 2026-08-18 by Roy** (T1). A reduced set is SUPPORTED and
+`ownership-context` is NON-NEGOTIABLE: every run carries it, the other three flex, so the legal
+sets are `{ownership-context}` plus any subset of
+`{block-context, function-context, module-context}`. ! It is the right role to pin because the
+truth it rules on is PRIOR to the others', not because it rules on none: it settles *"is this
+statement specifically about this piece of code"* and *"is this statement about any specific
+piece of code or documentation in this project"*. What it does NOT rule on is the truth of what
+the sentence ASSERTS -- the count, the bound, the worked example -- which is the other three's.
+! Every other role's verdict PRESUPPOSES that ruling: a comment about `parse()` sitting above
+`render()` is read against `render()`, found false, and CORRECTED into a falsehood -- so dropping
+`ownership-context` leaves the remaining checks resting on an assumption nobody made, where
+dropping any other removes a remit and nothing else. ! **`ownership-context` ALONE is therefore a
+coherent run.** ! The upper bound is left OPEN deliberately -- `1..N`, not `1..4`. Roy,
+2026-08-18: a fifth editorial role might be found, *"though the fact the editorial roles mimic
+real-world roles makes me think it is unlikely."* The four are a copy desk; `compact` and
+`review` are stages rather than members of the board.
+
+! **WHAT SHIPPED FOR IT, 2026-08-18 in `d3aa065`** (T2). The agent file now reads *"the truth of
+the ANCHORING, as against the truth of the ASSERTION -- the count, the bound, the worked example
+-- which belongs to the other three"*, and its frontmatter carries the same sentence. Verified
+2026-08-23 in `agents/comment-review-ownership-context.md`. It replaced *"You do not rule on
+whether the claim is TRUE -- that is outside your remit. You rule on whether truth is assessable
+here at all."* Roy, 2026-08-18: the assessability ruling IS a truth ruling -- it settles a
+proposition about the statement's relation to the code, and that proposition can be false. ! It
+matters beyond wording: the role that is never dropped should state its remit at full width, or a
+reader deciding a set will under-rate it.
+
+! **THE SCOPE IS THE PROJECT, RULED 2026-08-18 by Roy** (T3), shipped in `d3aa065`. The role file
+asks whether the paragraph is about any specific piece of code or documentation IN THIS PROJECT,
+and says so twice -- the second question itself, and *"the right place is anywhere in the
+PROJECT, not only this file -- another module, or the documentation tree the run named"*. So
+prose about nothing in the project is a `drop` and prose about something elsewhere in it is a
+`move`, and the documentation tree stage 1.4 resolves is in scope. ! The question as it was put
+was file-scoped (*"equally useful anywhere in the FILE"*); Roy states it wider, and the
+difference decides a verdict.
+
+! **AND BECAUSE `ownership-context` IS NEVER OPTIONAL** (T8), the "who governs instead" question
+does not arise. The placement precedence stays as written; what T5 to T7 owe is saying that it
+may assume its own presence.
+
+! **A FIXTURE IS A CHECKOUT AT A HASH, RULED 2026-08-18 by Roy** (T12), and THIS REPO'S OWN
+HISTORY is a valid source of them. Give the harness an address and a hash, check it out, focus on
+the files for the test, drop everything after reporting. That answers "how much context do we
+copy" by copying none -- the tree is real and complete. ! The mechanism ships: `corpora.toml`
+supports a `local` corpus as a `git worktree` and a `public` one as a sparse clone at a tag, and
+`scripts/fetch_corpora.py` builds both. ! The amendment that pins TWO hashes rather than one is
+T13, and its own section is above.
+
+! **WHAT THE REMOVALS SUPERSEDED.** (T20) "Add `assertions` to `evals/evals.json`" names a file
+no longer in the tree, and the field it wanted exists under another name: every row of
+`evals/test-cases.jsonl` carries `expected`, `observed` and `outcome`; what is missing is
+something that READS them, which is T18 and T19. (T22) "Keep `grade_hazards.py` as the
+verification SCRIPT" names a file that is not in this tree and is not coming back in that form --
+the GUIDANCE it carried survives and belongs to T38 to T41: mechanical assertions belong in a
+script rather than an LLM judge. (T26) "Parse the two `todo-tool` packages into cases" cannot be
+done: both were removed from `evidence/` on 2026-08-23 with the corpus they described, and the
+subject repository is private, so the discovery measurement falls to T17. (T14) "No second suite"
+and (T30) "Tie `findings.md` Parts I-III to a pair" name files removed the same day.
+
+! **THE FIRST ROLE CASE IS WRITTEN AND HAS ITS ANSWER KEY** (T23): `evals/test-cases.jsonl` row
+`module-context-widens-a-two-subject-docstring`, role `module-context`, outcome `miss`, at
+`d3aa0655b963`. Its `expected` is *"a `code_concerns` entry naming the split, and at most a
+`query` on the summary line"*; its `observed` is the `patch` that widened the docstring to
+announce both subjects -- the defect its own role file names as the trigger, applied as the
+remedy. ! Its role file lists three triggers for a module announcing more than one subject and
+never says what verdict one earns, while the same file does say a misplaced module constant is a
+CODE CONCERN -- so the pattern exists and was not applied here. ! What is still missing is a
+runner, which is T18 and T19, not a second case.
+
+! **THE DURABILITY SCARE WAS MOOT, 2026-08-18** (T27): both subject commits were already on
+`origin`. It was filed on a reading of `git branch -r --contains`, which searches only the
+tracking refs this clone had fetched -- and it had fetched neither branch. What it leaves behind
+is the rule stated above: ask the remote, not the clone.
+
+! **`claude plugin eval` IS DECIDED, AND IT IS A FIT JUDGEMENT RATHER THAN AN AVAILABILITY ONE**
+(T25). Decided 2026-08-23 by Roy: NO. *"the plugin/agent testing system was much more about
+testing agents working on their own for corporations and routing things or making decisions.
+This is supposed to be an isolated skill that reviews code bases and stays local -- which is much
+closer to the skill tester setup requirements and doesn't cost money."* ! What it is, verified
+2026-08-18 and re-verified 2026-08-23: separate, newer, CLI-driven -- `evals/**/case.yaml` or
+`prompt.md` plus `graders/*.md`, `--ablation with-without`, `--json`, `--threshold`, built for
+CI. `--help` works and lists the full option set; `plugin eval` and `eval init` both exit 1 with
+*"currently in early access"*. No public documentation and no self-serve request route;
+enablement is an organisation-level environment variable issued by Anthropic. **Availability
+stopped being the question.**
+
+! **WHAT `skill-creator` SUPPLIES, verified 2026-08-23**: it is installed, from
+`claude-plugins-official` in `~/.claude/plugins/installed_plugins.json`, and gives this repo what
+it has none of -- a subagent per case with clean context, a WITHOUT-SKILL baseline arm, and a
+blind A/B between two skill versions. ! It ships `scripts/run_eval.py`,
+`scripts/aggregate_benchmark.py`, `agents/grader.md`, `agents/analyzer.md`,
+`agents/comparator.md` and `references/schemas.md` under its cache dir, and its SKILL.md section
+*"Running and evaluating test cases"* is a five-step procedure that answers all four unknowns.
+
+! **WHAT THE 2026-08-16 HAND PASS MEASURED.**
+`the-shipped-python-does-not-pass-its-own-review.md` records the before and after -- `census.py`
+55 negative-prose lines of 286 down to 2 of 206, and five more files -- so the defect is MEASURED
+at the parent and MEASURED as fixed by the commit. ! It bears most directly on the claim that
+file exists to make, because a human found those by hand and the question is whether the system
+finds them. ! The pass is a RUN of four commits, not one, which is why a single `--grep` or `-S`
+search kept landing on a fragment of it -- and the hashes recorded for it are pre-rewrite and no
+longer resolve, so T24 has to re-locate them.
+
+!! **AND THREE OF THAT FILE'S OWN HASHES NO LONGER RESOLVE.** MEASURED 2026-08-24 over every
+hash in `evidence/self-test-commits.md`: `4286833`, `9293806` and **`7026646`** are gone, while
+`d96b10d`, `4cb63f5`, `64ed7a4`, `7cbfa96`, `afeba7b` and `d09b0c1` still answer. `7026646` is
+the END of the range below, so **the range as written cannot be checked out** and every Verify
+resting on it is unrunnable until the end is re-located. ! They died in the 2026-08-23 history
+rewrite, not in any edit to the file -- which is why nothing flagged them: a stale hash reads
+exactly like a good one until someone runs it. T42 tracks the repair.
+
+! **WHAT THE SELF-TEST RANGE HOLDS.** `evidence/self-test-commits.md` pins `d96b10d..7026646` on
+the branch `fix/folio-placement-is-not-where-the-anchor-is`, with cases written up for ALL FOUR
+roles -- five `module-context`, plus `function-context`, `block-context` and `ownership-context`
+sections. Each is a PROSE defect a person found by reading, with the fix commit as its answer
+key, and **not one broke a test**: the suite was green through all of them, 672 to 713 passing.
+That file's own closing section says so: *"None of these was found by `/comment-review`."*
+! Roy, 2026-08-20: *"put the commit range in the evidence files or wherever we can remember that
+these specific commits are good test cases for the system to test itself against."* ! The range
+was once recorded as twenty-one commits; corrected 2026-08-20, the useful ones are the modules
+whose docstring announced one subject while the module held several, and the file on disk names
+the range above. ! It also records what is NOT a case -- a false plan tick, an `expectedFailure`
+firing, a hand-written fixture, which Roy, 2026-08-20, called *"specifically not useful test
+cases for comment-review"* because they are process defects this system has no remit over.
+
+! **WHY TWO OF THE TWELVE HAZARDS NEED A REFUSAL RATHER THAN A CLEAN.** Two were positional or
+left true prose standing, so no text probe separated a correct repair from an ignored one; those
+reported NEEDS-EYES, and the replacement owes the same refusal.
 
 ## Tasks
 
-- [x] * **RULED 2026-08-18 by Roy: a reduced set is SUPPORTED, and
-      `ownership-context` is NON-NEGOTIABLE.** Every run carries it; the other three flex. So
-      the legal sets are `{ownership-context}` plus any subset of `{block-context,
-      function-context, module-context}`.
-
-      !! **It is the right role to pin because the truth it rules on is PRIOR to the others',
-      not because it rules on none.** Roy, 2026-08-18: it settles *"is this statement
-      specifically about this piece of code"* and *"is this statement about any specific piece
-      of code or documentation in this project"*. Both are propositions that can be false and
-      are settled by evidence. What it does NOT rule on is the truth of what the sentence
-      ASSERTS -- the count, the bound, the worked example -- which is the other three's.
-
-      !! **Every other role's verdict PRESUPPOSES that ruling.** A claim attached to the wrong
-      scope is checked against the wrong code: a comment about `parse()` sitting above
-      `render()` is read against `render()`, found false, and CORRECTED into a falsehood. So
-      dropping `ownership-context` does not remove a check, it leaves the remaining checks
-      resting on an assumption nobody made. Dropping any other removes a remit and nothing
-      else.
-
-      ! **`ownership-context` ALONE is therefore a coherent run**: it answers whether the prose
-      is about this code, or about anything in the project, and emits no findings about what
-      the prose asserts.
-
-      ! **The upper bound is left OPEN deliberately** -- `1..N`, not `1..4`. Roy, 2026-08-18: a
-      fifth editorial role might be found, *"though the fact the editorial roles mimic
-      real-world roles makes me think it is unlikely."* The four are a copy desk; `compact` and
-      `review` are stages rather than members of the board.
-
-- [x] **Corrected 2026-08-18, `4fd8384`.** The agent file now reads *"the truth of the
-      ANCHORING, as against the truth of the ASSERTION -- the count, the bound, the worked
-      example -- which belongs to the other three"*, and its frontmatter carries the same
-      sentence. The text it replaced:
-      *"You do not rule on whether the claim is TRUE -- that is outside your remit. You rule on
-      whether truth is assessable here at all."* Roy, 2026-08-18: the assessability ruling IS a
-      truth ruling -- it settles a proposition about the statement's relation to the code, and
-      that proposition can be false. The distinction the sentence wants is between the truth of
-      the ANCHORING and the truth of the ASSERTION, and it should say that. ! It matters beyond
-      wording: the role that is never dropped should state its remit at full width, or a reader
-      deciding a set will under-rate it.
-
-- [x] * **RULED 2026-08-18 by Roy: the PROJECT, and it shipped in `4fd8384`.** The role file
-      now asks whether the block is about any specific piece of code or documentation IN THIS
-      PROJECT, and says so twice -- the second question itself, and *"the right place is
-      anywhere in the PROJECT, not only this file -- another module, or the documentation tree
-      the run named"*. So prose about nothing in the project is a `drop` and prose about
-      something elsewhere in it is a `move`, and the documentation tree stage 1.4 resolves is
-      in scope for that ruling. The question as it was put:
-      whether a block would be truthy where it sits, and whether it would be truthy *"in the
-      right place"* -- with the surrounding text file-scoped (*"equally useful anywhere in the
-      FILE"*). Roy states it wider: *"about any specific piece of code or documentation in this
-      project"*. The difference decides a verdict -- prose about nothing in the project is a
-      `drop`, prose about something elsewhere in it is a `move` -- and the wider reading pulls
-      in the documentation tree stage 1.4 resolves.
-
-- [ ] **State the RESIDUAL cost, which this ruling does not remove.** Pinning
-      `ownership-context` fixes SCOPE -- a claim measured against the code it belongs to. It
-      does not supply CORROBORATION, and those are different: `SKILL.md` says a single-role run
-      ratifies falsehoods because one role reading a false absence claim writes that it is
-      true where another refutes it by grep. A run carrying one truth-ruling role has every
-      truth finding uncorroborated. ! Say it where the findings are read, not only in the
-      arguments.
-
-- [ ] **Rewrite stage 5's synthesis section so it does not state the population as a fact.**
-      The premise sentence, the "three roles finding nothing" argument and the
-      `ownership-context` placement precedence each assume four. ! Say what the ORDER is about
-      -- verdict kinds, not roles -- so it reads correctly whether one role filed three marks
-      or three roles filed one each. Verify: the section names no count, and every rule that
-      needs a role says what happens when that role did not run.
-
-- [x] * **RULED 2026-08-18: it is never optional, so the question does not arise.**
-      `ownership-context`'s destination governs two placement verdicts, and that role is in
-      every legal set. ! The rule stays as written; what needs saying is that it may now
-      assume its own presence.
-
-- [ ] **Then make the tool say which it was.** A run with fewer than four roles produces a
-      report that reads like any other today. Whatever is ruled above, the join's output has to
-      carry it, because the report is what a reader grades from -- and the corroboration a
-      missing role would have supplied is exactly what an absence claim needs.
-
-- [ ] **Give a MARK-level case its terminus in writing.** Stage 4's record file is the artifact,
-      `record.py --check` is its gate, and nothing downstream runs. Verify: a case asserts on a
-      record file and the tree is unmodified afterwards.
-
-- [x] * **RULED 2026-08-18 by Roy: a checkout at a hash, and THIS REPO'S OWN HISTORY is a
-      valid source of them.** Give the harness an address and a hash, check it out, focus on
-      the files for the test, drop everything after reporting. That answers "how much context
-      do we copy" by copying none -- the tree is real and complete.
-
-      !! **The second half is what settled it.** Roy, 2026-08-18: previous commits on this
-      repo's own history are valid test cases. `evals/test-cases.jsonl` is already built that
-      way, and the two commits it pins were verified 2026-08-18 as ancestors of `main`,
-      reachable from `origin/main`, and contained in `v0.2.3` -- so the fixtures cannot be
-      collected and cannot drift. The network dependency this task was weighing does not
-      arise for them.
-
-      ! **The mechanism ships already.** `corpora.toml` supports a `local` corpus as a
-      `git worktree` of a repo on the machine and a `public` one as a sparse clone at a tag;
-      `scripts/fetch_corpora.py` builds both. Nothing new is needed to check out a fixture.
-
-      !! **AMENDED 2026-08-23 by Roy: a case pins TWO hashes, a START and an END.** *"the
-      evals need to have the start/end commits the intermediate commits are not necessarily
-      useful because each set of recommendations can take many commits to implement properly.
-      The goal would be to have this was the starting point and after the work is done the
-      comment-reviewers would have got it close to here."*
-
-      ! **A single hash cannot name the answer key, because a fix is not a commit.** Measured
-      2026-08-23 on the 2026-08-16 hand pass: the fix is FOUR commits, `5cb05ce..8c0cef6`, so
-      under the one-hash reading there is no commit to point at -- picking any one of the four
-      names a tree where some files are corrected and others are not. START `3ce610c` and END
-      `8c0cef6` name it exactly, and the two commits between them stop mattering.
-
-      ! **And the assertion it implies is APPROXIMATE, not identity.** *"got it close to
-      here"* -- the END tree is a target the run is scored against, not an output it must
-      reproduce. What counts as close is unruled and is the next question this file owes.
-
-- [ ] **Answer "how much context" for the extracted case, since it is the fallback either way.**
-      A reviewer is given a census, a packet, a brief and a vocabulary; the packet names
-      REFERENCE ONLY files whose whole purpose is settling claims that the file under review
-      cannot. A fixture that copies only the file under review makes every cross-file claim
-      unsettleable and turns `query` into the correct answer for most of them. Verify by
-      re-running a known case with the reference set removed and comparing the verdict mix.
-
-- [ ] **Survey public histories for cases with a known answer.** The property wanted is a commit
-      where prose and code disagree and a later commit fixes it -- the fix is the answer key.
-      `evals/generator_split.py` already splits a corpus's prose defects by whether the
-      introducing commit carries an assistant trailer, so the search tooling half exists.
-
-- [x] !! **SUPERSEDED THE SAME DAY BY WHAT LANDED: NO SECOND SUITE.** `e31b438` extended
-      `evals/evals.json` instead -- case 3 `rename-left-history-in-the-comments` carries `start`
-      and `end` beside `prompt`, `hazards` and `evidence`, and the file's own `notes` states the
-      rule: *"a fixture is a checkout at a hash, and a fix commit is an answer key. A case that
-      carries `start`/`end` is graded over that RANGE."*
-
-      ! **The ruling below was sound and its PREMISE expired.** It chose a second suite because
-      `evals.json` had *"nowhere to put"* a hash. Two new keys is where. ! The keys were written
-      `base`/`fixed` and were overwritten to `start`/`end` (`decision-log.md Vocabulary: #10`),
-      because `base` already meant a planted hazard's unmodified text in `grade_hazards.py` and a
-      merge-base in `prove_unchanged.py`.
-
-      **RULED 2026-08-23 by Roy: A SECOND SUITE, with its own layout.** Role cases and
-      hash-pinned fixtures live there; `evals/evals.json` is untouched and the shipped runner
-      keeps covering whole-skill cases only. So the corpus is a case per file, and a case
-      carries `(address, hash, files, role)` -- the shape `evals.json` has nowhere to put.
-      The question as it was put:
-
-      **Rule the suite layout, because roles are not skills.** The documented format is
-      `evals/evals.json` inside a SKILL directory, and the four reviewers are AGENTS. Either
-      role cases live in the skill's suite with a prompt that dispatches one role, or they are
-      a second suite with its own layout and the shipped runner covers only whole-skill cases.
-      This decides whether the corpus is one file or five, so it comes before writing cases.
-
-      ! **The fixture ruling above narrows this to one option, and the ruling should say so
-      rather than arrive at it twice.** The documented schema takes `files: [...]` -- a list
-      copied INTO the case -- and neither it nor `claude plugin eval` pins a repository state.
-      A case whose fixture is `(address, hash, files)` has nowhere to put the hash in that
-      format. So the choice is not between two shapes of equal cost: it is a second suite, or
-      it is abandoning hash fixtures.
-
-      ! **What the ruling costs is a runner this repo writes and maintains**, which is the
-      half `evals.json` would have supplied. It buys the fixture ruling intact: the tree is
-      real and complete at a commit that cannot drift, rather than copied into the case.
-
-- [ ] **Add `assertions` to `evals/evals.json`.** The documented schema is `id`, `prompt`,
-      `expected_output`, `files`, `assertions`; this repo's three cases carry every field but
-      that one, plus a local `hazards`. `assertions` is the field that states a known result,
-      which is the whole point of the upgrade.
-
-- [ ] **Install `skill-creator` and run the existing three cases through it.** It is generally
-      available -- `/plugin marketplace add anthropics/claude-plugins-official` then
-      `/plugin install skill-creator@claude-plugins-official` -- and it supplies what this repo
-      has none of: a subagent per case with clean context, a WITHOUT-SKILL baseline arm, and a
-      blind A/B between two skill versions. Verify: `benchmark.json` reports a delta.
-
-- [ ] **Keep `grade_hazards.py` as the verification SCRIPT, not the harness.** The guidance is
-      explicit that mechanical assertions belong in a script rather than an LLM judge. Its base
-      is hardcoded to another repository, which the fixture ruling above will move.
-
-- [ ] **Write the first role case, which already has a known answer.** Given `verdicts.py`,
-      `module-context` should raise the two-subject finding as a `code_concerns` entry and at
-      most `query` the summary line. Measured 2026-08-18: it emitted a `patch` widening the
-      docstring to announce both subjects -- the defect its own role file names as the trigger,
-      applied as the remedy. ! Its role file lists three triggers for "a module announcing more
-      than one subject" and never says what verdict one earns; the same file does say a
-      misplaced module constant is a CODE CONCERN, so the pattern exists and was not applied
-      here.
-
-- [ ] **Locate the 2026-08-16 hand pass over the shipped Python, and make its parent a case.**
-      `the-shipped-python-does-not-pass-its-own-review.md` records the before and after --
-      `census.py` 55 negative-prose lines of 286 down to 2 of 206, and five more files -- so the
-      defect is MEASURED at the parent and MEASURED as fixed by the commit. ! It is the case
-      that bears most directly on the claim that file exists to make, because a human found
-      those by hand and the question is whether the system finds them.
-
-- [x] * **DECIDED 2026-08-23 by Roy: NO. We do not want it, and access is not worth asking
-      for.** *"the plugin/agent testing system was much more about testing agents working on
-      their own for corporations and routing things or making decisions. This is supposed to
-      be an isolated skill that reviews code bases and stays local -- which is much closer to
-      the skill tester setup requirements and doesn't cost money."*
-
-      ! **It is a fit judgement, not an availability one.** Re-verified 2026-08-23: `claude
-      plugin eval` and `plugin eval init` both still exit 1 with *"currently in early
-      access"*, and the full option set is still listed by `--help`. **Availability stopped
-      being the question** -- `skill-creator` is the right instrument for a local skill, and
-      the plugin harness is built for a different subject.
-
-      ! **`skill-creator` is what the harness is built on**, and it is already on this
-      machine: `scripts/run_eval.py`, `scripts/aggregate_benchmark.py`, `agents/grader.md`,
-      `agents/analyzer.md`, `agents/comparator.md`, `references/schemas.md`, and a five-step
-      procedure under SKILL.md's *"Running and evaluating test cases"*. The question as it
-      was put:
-
-      **Decide whether to ask for `claude plugin eval` early access.** Separate, newer,
-      CLI-driven -- `evals/**/case.yaml` or `prompt.md` plus `graders/*.md`, `--ablation
-      with-without`, `--json`, `--threshold`, built for CI. Verified 2026-08-18: `--help`
-      works and lists the full option set; running it prints `plugin eval is currently in early
-      access` and exits 1, and `eval init` is gated too. No public documentation was found and
-      no self-serve request route; enablement is an organisation-level environment variable
-      issued by Anthropic. ! Not a blocker -- `skill-creator` covers isolation, the baseline
-      and assertions today.
-- [ ] **Parse the two `todo-tool` packages into cases.** Subject
-      `redacted_corpus@REDACTED_SHA_D`, three files, 171 prose blocks, four reviewer
-      reports and stage 5-8 artifacts per run. ! Check the hash out; do NOT read
-      this repo's vendored `scripts/todo_tool.py`, which carries a local patch and
-      is eight lines longer than the fixture.
-- [x] **MOOT 2026-08-18: both were already on `origin`.** Filed on a reading of
-      `git branch -r --contains`, which searches only the tracking refs this clone
-      had fetched -- and it had fetched neither branch. `git push` reported
-      *"Everything up-to-date"* and `git ls-remote` confirmed both. ! What the task
-      leaves behind is the RULE above: ask the remote, not the clone.
-- [ ] !! TWENTY-ONE COMMITS ARE RECORDED AS FIXTURES -- `evidence/self-test-
-      commits.md`, range `3af9752..93cc4b0`. Each is a PROSE defect a person found
-      by reading, with the fix commit as its answer key, and NOT ONE broke a test:
-      the suite was green through all of them, 672 to 713 passing. ! Roy,
-      2026-08-20: 'put the commit range in the evidence files or wherever we can
-      remember that these specific commits are good test cases for the system to
-      test itself against.' ! Running `/comment-review` over them is the
-      measurement this file exists to make possible, and it has not been done.
-- [ ] Write the Part IV case -- the branch that is ALREADY the answer key, and
-      needs no commit hunt. `fix/folio-placement-is-not-where-the-anchor-is`,
-      START `7850bbc` to END `1a0d41f`: 235 commits over five days, 198 files,
-      +56k/-5.4k. Roy, 2026-08-22: this branch is the manual review version of
-      what it takes to get this correct. Verify: the case pins both hashes and
-      `git rev-parse` resolves each in this checkout.
-- [ ] Tie `evidence/findings.md` Parts I-III to a START/END pair, or record that
-      no such pair exists. Roy, 2026-08-23: those cases unfortunately do not have
-      commits tied to them. The burn-down ran 2026-08-11 over another repo under
-      `tests/`; every entry cites a file and none cites a commit. ! Part IV is NOT
-      in this task -- it already names its own answer key branch. Verify: each
-      case names two hashes that resolve in the repo it came from, or this file
-      states why Parts I-III cannot become cases.
-- [ ] * Rule what CLOSE TO HERE measures, since a START/END case scores a run
-      against a target tree rather than matching it. Roy, 2026-08-23: the goal is
-      that after the work is done the comment-reviewers would have got it close to
-      here. ! An identity test would fail every real run and a bare count would
-      pass a run that found different things; neither is the measure. Verify: the
-      rule names the artifact compared, the unit, and a threshold anyone can re-
-      derive without having done the work.
-- [ ] Split every case result in TWO -- MACHINERY pass-or-void, and EDITORIAL A-F
-      -- so a machinery defect VOIDS a case instead of grading the reviewer for
-      it. Roy, 2026-08-23: what we need to make certain we are not measuring is
-      how good the python machinery under all of this. ! Five things are checkable
-      before the grader reads anything, and all five have already been WRONG in
-      this tree: the round trip sets the START page back byte-identical, no
-      address is held by two paragraphs (157 were), every prose paragraph is
-      censused exactly once, `record.py --check` passes, and every citation
-      resolves in the join. Verify: a case failing any of the five reports VOID,
-      files a machinery defect, and never reaches the grader.
-- [ ] Derive the OBJECTIVE floor of the rubric from what the role was HANDED,
-      rather than writing it by hand. Roy, 2026-08-23: we do know a bunch of the
-      rules that must pass because we tell the reviewers those. ! `vocabulary.py
-      --reviewer <role>` already emits the 42 to 46 terms one role is given, and
-      several are rules with a checkable failure -- `laundering` forbids a `patch`
-      on a claim that is false, `move` carries a DESTINATION or it is not a
-      `move`, `clean` is wrong where the role did not READ the paragraph and
-      should be `query`. Verify: every must-pass rubric item cites the emitted
-      term it comes from, and `check_vocabulary.py` still passes afterward.
-- [ ] Calibrate the GRADER against the END tree, which the START/END model
-      supplies for free. The END prose is the human answer key, so the same grader
-      on the same rubric must score it at the top; a grader that hands the answer
-      key a middling letter is what is broken, not the tree. ! This is
-      docs/gates.md applied to the grader itself -- could the check FAIL, not does
-      it pass -- and a grader is a role, so `a-role-can-reverse-itself-between-
-      runs.md` applies to it too. Verify: the END tree is graded and its letter
-      recorded beside every run it calibrates.
-- [ ] Take the BASELINE by running the OLD agent workflow on the NEW machinery.
-      Roy, 2026-08-23: the old results are conflated by the machinery more than
-      how well the agents did, so patch the agent workflow from the old into the
-      new just to get the baseline. ! Recorded as `decision-log.md Process: #6`.
-      The candidate old set is the agent files at `v0.2.3`, the last tag cut
-      before the machinery rewrite -- use `v0.2.3^{}` for the commit, since the
-      tag is annotated. Verify: the run pins which agent files came from which
-      ref, the machinery is HEAD, and the score is recorded as the first number
-      any later agent change is measured against.
+- [x] T1 -- RULED 2026-08-18 by Roy: a reduced set is SUPPORTED and `ownership-context` is
+      NON-NEGOTIABLE. Verify: the legal sets are stated in the Objective.
+- [x] T2 -- FINISHED 2026-08-18 in `d3aa065`: the ANCHORING-against-ASSERTION sentence
+      ships. Verify: it is in `agents/comment-review-ownership-context.md`.
+- [x] T3 -- RULED 2026-08-18 by Roy: the scope is the PROJECT, shipped in `d3aa065`.
+      Verify: the role file asks about code or documentation in this project.
+- [ ] T4 -- State the residual cost of a reduced run -- every truth finding
+      uncorroborated. Verify: the join's report says so, not only this file.
+- [ ] T5 -- Rewrite stage 5's synthesis so it states no population count; `SKILL.md:813`,
+      `:847` and `:843-844` each assume four. Verify: the section names no count.
+- [ ] T6 -- Say in stage 5 that the synthesis ORDER is about verdict kinds, not roles.
+      Verify: it reads correctly for one role filing three marks.
+- [ ] T7 -- Make every stage-5 rule that names a role say what happens when that role did
+      not run. Verify: no rule naming a role is silent on its absence.
+- [x] T8 -- RULED 2026-08-18: `ownership-context` is never optional, so "who governs
+      instead" does not arise. Verify: the placement precedence stays as written.
+- [ ] T9 -- Make the join name the reporting set even with no `--reviewers`. Verify: a run
+      without it prints which roles reported.
+- [ ] T10 -- Where the set is short of four, make the join name whose corroboration is
+      absent. Verify: a three-role report names it.
+- [ ] T11 -- Give a MARK-level case its terminus in writing: stage 4's record file.
+      Verify: a case asserts on one and `git status --short` is empty.
+- [x] T12 -- RULED 2026-08-18 by Roy: a fixture is a CHECKOUT AT A HASH and this repo's
+      own history is a source. Verify: `scripts/fetch_corpora.py` builds both kinds.
+- [x] T13 -- AMENDED 2026-08-23 by Roy: a case pins a START and an END hash, not one, and
+      the commits between them do not matter. Verify: the ruling is in the Objective.
+- [x] T14 -- SUPERSEDED: the NO-SECOND-SUITE resolution landed in `evals/evals.json`,
+      removed 2026-08-23; the `start`/`end` naming survives it. Verify: `ls evals/`.
+- [ ] T15 -- Carry `start` and `end` onto `evals/test-cases.jsonl` rows, which today pin
+      one `commit`. Verify: every row naming a range carries both keys.
+- [ ] T16 -- Answer how much context an extracted case copies, given the packet's
+      REFERENCE ONLY files. Verify: re-run a case without them, compare verdicts.
+- [ ] T17 -- Survey public histories for a commit whose prose and code disagree, and its
+      later fix. Verify: one such pair is a row in `evals/test-cases.jsonl`.
+- [ ] T18 -- * Rule what executes a `test-cases.jsonl` row: a script in this repo or
+      `skill-creator`. Verify: the answer is written into this file.
+- [ ] T19 -- Build that runner. Verify: one command runs one row by `id` and exits nonzero
+      on a miss.
+- [x] T20 -- SUPERSEDED: `evals/evals.json` is gone and the `assertions` field it wanted
+      exists as `expected`, `observed` and `outcome`. Verify: `ls evals/`.
+- [ ] T21 -- Run the six `evals/test-cases.jsonl` cases through `skill-creator`. Verify: a
+      `benchmark.json` exists and reports a delta; today none does.
+- [x] T22 -- SUPERSEDED: `grade_hazards.py` is not in this tree and is not returning in
+      that form; the guidance it carried belongs to T38 to T41. Verify: `ls evals/`.
+- [x] T23 -- FINISHED: the first role case is `evals/test-cases.jsonl` row
+      `module-context-widens-a-two-subject-docstring`. Verify: the row carries `expected`.
+- [ ] T24 -- Make the parent of the 2026-08-16 hand pass a case; its recorded hashes are
+      pre-rewrite. Verify: a row pins a parent commit `git rev-parse` resolves.
+- [x] T25 -- DECIDED 2026-08-23 by Roy: NO, we do not want `claude plugin eval`, and its
+      access is not worth asking for. Verify: the reason is in the Objective.
+- [x] T26 -- SUPERSEDED: both `todo-tool` packages were removed 2026-08-23 and the subject
+      repo is private, so the DISCOVERY measurement falls to T17. Verify: `ls evidence/`.
+- [x] T27 -- MOOT 2026-08-18: both subject commits were already on `origin`. Verify: the
+      rule it leaves -- ask the remote, not the clone -- is in the Objective.
+- [ ] T28 -- Run `/comment-review` over the self-test range `d96b10d..7026646`. Verify:
+      one row has a run, with its verdicts beside the answer-key diff.
+- [ ] T29 -- Write the Part IV case, on the branch named in the Objective, from its START
+      hash to its END hash. Verify: the case pins two hashes `git rev-parse` resolves.
+- [x] T30 -- SUPERSEDED: `evidence/findings.md` was removed with the corpus it described,
+      so Parts I-III cannot become cases and that falls to T17. Verify: `ls evidence/`.
+- [ ] T31 -- * Rule what CLOSE TO HERE measures, since a START/END case scores against a
+      target tree. Verify: the rule names an artifact, a unit and a threshold.
+- [ ] T32 -- Split every case result in two -- MACHINERY pass-or-void and EDITORIAL A-F.
+      Verify: a machinery defect reports VOID and never reaches the grader.
+- [ ] T33 -- Make the five machinery checks in the Objective the void gate, run before the
+      grader. Verify: failing any one reports VOID and files a machinery defect.
+- [ ] T34 -- Derive the rubric's must-pass floor from `vocabulary.py --reviewer <role>`.
+      Verify: every item cites an emitted term and `check_vocabulary.py` still passes.
+- [ ] T35 -- Calibrate the grader against the END tree, which is the human answer key.
+      Verify: the END tree scores at the top and its letter is recorded beside each run.
+- [ ] T36 -- Patch the `v0.2.3` dispatch shape onto HEAD's machinery, keeping the new
+      vocabulary. Verify: the diff touches dispatch only and `check_vocabulary.py` passes.
+- [ ] T37 -- Run that patched set and record its score as the baseline. Verify: the record
+      names which agent files came from which ref, and that the machinery is HEAD.
+- [ ] T38 -- Restate the twelve hazards, each named precisely enough to score without the
+      code it was found in. Verify: twelve restatements, none quoting.
+- [ ] T39 -- Plant the restated set on a corpus `corpora/corpora.toml` materialises.
+      Verify: the base is a manifest row rather than a hardcoded path.
+- [ ] T40 -- Write the scorer for the restated set. Verify: one script scores a worktree
+      against the twelve and exits nonzero on a miss.
+- [ ] T41 -- Make the two hazards no text probe separates report NEEDS-EYES rather than a
+      pass. Verify: scoring a worktree that ignored either returns NEEDS-EYES.
+- [ ] T42 -- Re-locate the three hashes in `evidence/self-test-commits.md` the 2026-08-23
+      rewrite killed. Verify: every hash in that file resolves with `git cat-file -e`.
 
 ## What this costs today
 
-One run over two files, 154 prose blocks, four roles: **~870,000 subagent tokens** -- 186k
+One run over two files, 154 prose paragraphs, four roles: **~870,000 subagent tokens** -- 186k
 ownership, 184k module, 253k function, 247k block. The question being asked needed one role.
+! Measured before `--filtered` collapsed the prose-less places; re-take it against
+[`the-census-is-mostly-intervals-nobody-rules-on`](the-census-is-mostly-intervals-nobody-rules-on.md),
+which owns that measurement.
 
 ## Sources
 
 - [Extend Claude with skills](https://code.claude.com/docs/en/skills) -- the skill-creator loop
 - [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills) --
-  the `evals.json` schema, `grading.json`, `benchmark.json`, and the with/without pattern
+  `grading.json`, `benchmark.json`, and the with/without pattern
 
 ## Related
 

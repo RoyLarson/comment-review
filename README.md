@@ -1,12 +1,40 @@
 # comment-review
 
-A Claude Code plugin: an **editorial board** for the comments and docstrings a change
-touched. Four read-only reviewers walk one page, an editor writes the replacement
-text, it is cut to fit, **then** the author approves the exact text that will be written --
-and WRITE puts it on disk and proves the executable code byte-identical.
+A Claude Code plugin that brings **professional editorial practice** to the prose in a
+codebase. Comments and docstrings are claims about code, and no test checks them: a suite
+says the code runs, never that the sentence beside it is true, or that a reader would learn
+why the thing is the way it is.
+
+Four read-only reviewers walk one page, an editor writes the replacement text, it is cut to
+fit, **then** the author approves the exact text that will be written -- and WRITE puts it on
+disk and proves the executable code byte-identical.
+
+!! **AND IT READS ON THE DESIGN, NOT ONLY THE WORDING.** A comment says what code is FOR, so
+checking it against what the code DOES is a check on the structure. Where the two disagree and
+the code is right, the comment is corrected. Where the code is what is wrong, the reviewer
+files a **code concern** and does not bend the prose to fit -- a module whose docstring
+announces one subject while the file holds four is an architecture finding that arrived
+through its prose.
+
+! **THE OTHER HALF IS NOT BUILT.** A role can today only DESCRIBE a code problem; it cannot
+propose the change. That gap has a measured cost: a reviewer that finds a structural problem
+and has no way to resolve it reaches for the only verdict it has and edits the prose --
+`module-context` did exactly that, widening a two-subject docstring to announce two subjects,
+which is the defect its own trigger is named for.
+
+!! **IT IS TWO JOBS, AND THEY LAND IN ORDER FOR A MEASUREMENT REASON.** First
+[what the record can CARRY](TODO/code-concerns-cannot-carry-a-proposed-change.md) (`backend`),
+with no agent file touched -- its pass criterion is that **effectiveness does not change**,
+because the machinery is the control. Only then
+[what a role is TOLD it may do](TODO/a-role-with-no-code-out-damages-the-prose.md) (`agents`),
+whose pass criterion is that **the recommendations improve** against the baseline the first
+step established.
+
+! Shipped together they cannot be told apart: a change in the output could be the shape or the
+instruction, and the question *did telling the roles help* has no answer.
 
 ```
-project -> collate -> find refs -> mark -> apply -> compact -> APPROVAL -> review
+project -> gather -> find refs -> mark -> apply -> compact -> APPROVAL -> review
                                          |                   ^
                                          +----- no cap ------+
 ```
@@ -174,7 +202,7 @@ claim attached to the wrong scope gets measured against the wrong code.
 The skill is broken up into eight phases to cover an editorial system.
 
 1) PROJECT DETERMINATION - Language, documentation style, project rules
-2) COLLATE - Gather every interval between two lines of code into one numbered tree, and locate the comments and documentation on it.
+2) GATHER - Find every file in scope, build a page from each, and put them in the binder -- every place prose can sit, numbered, with the comments and documentation located on it.
 3) FIND REFERENCES - Determine external links to the code comments that might also need updating
 4) MARK - Provide appropriate editorial marks to the Annotated comments and documentation to determine what to do
 
@@ -285,13 +313,15 @@ fabricated five of its seven reviewer reports and did not notice until asked to 
 itself; self-certified `CONFIRMED` ran at 97% across 298 findings -- a label that two runs
 in three thousand disagree with does not discriminate.
 
-```
-python evals/grade_hazards.py <worktree> [<worktree> ...]
-```
+!! **THERE IS NO GRADER IN THIS REPO.** The twelve planted hazards and the script that
+scored a worktree against them were tied to a corpus this repo cannot ship, so the rule
+above currently has nothing to run it.
 
-! It reports `NEEDS-EYES` where it has no signal. Two of the twelve hazards are positional
-or leave true prose standing, so no text probe can separate a correct repair from an
-ignored one -- and a check that cannot see a defect must not report it clean.
+! **What has to be rebuilt is the HAZARDS, not the script.** Each one has to be RESTATED --
+naming the failure precisely enough to score, without reproducing the code it was found in
+-- and planted on one of the public corpora. Two of the twelve were positional or left true
+prose standing, so no text probe could separate a correct repair from an ignored one; those
+two reported `NEEDS-EYES` rather than clean, and any replacement owes the same refusal.
 
 ## Known gaps
 

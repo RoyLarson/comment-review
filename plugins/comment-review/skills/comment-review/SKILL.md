@@ -13,7 +13,7 @@ them to fit, the author approves **that** text, and the page is proofed. Structu
 first, then truth, then fit, then the page.
 
 ```
-1 PROJECT      2 COLLATE   3 FIND       4 MARK   5 APPLY   6 COMPACT   7a PRESENT   8 REVIEW
+1 PROJECT      2 GATHER    3 FIND       4 MARK   5 APPLY   6 COMPACT   7a PRESENT   8 REVIEW
   DETERMINATION            REFERENCES      ^       5b RE-    6b RE-        7b WRITE
                                            |       REVIEW    REVIEW            ^
                                            |         |         |               |
@@ -25,7 +25,7 @@ first, then truth, then fit, then the page.
 | # | stage | who acts | what exists at the end of it |
 |---|---|---|---|
 | 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
-| 2 | **COLLATE** | `census.py` | every place prose can sit gathered into one numbered tree, each comment run and docstring a node on it |
+| 2 | **GATHER** | `census.py` | every place prose can sit gathered into one numbered tree, each comment run and docstring a node on it |
 | 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved -- paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers, SERIAL | `ownership-context` alone at 4a; the other three at 4c against its resolved placement. Read-only, nothing written |
 | 5 | **APPLY** | task agent | one verdict per paragraph and the **full-length** replacement text |
@@ -65,7 +65,7 @@ pass stage 8 rolled back.
 | verdict | the claim is | what you do with it |
 |---|---|---|
 | `clean` | nothing to report **from this role**, on a paragraph that role READ | nothing. Not a pass, and not a claim the paragraph is correct -- one role having no finding. A paragraph outside what the role reads is `query` |
-| `query` | unsettled | resolve it or escalate it. It paragraphs every other verdict on that sentence |
+| `query` | unsettled | resolve it or escalate it. It blocks every other verdict on that sentence |
 | `drop` | true but not worth keeping | delete the sentence |
 | `correct` | **FALSE** | apply the true/false pair. **Always before any `patch`** |
 | `patch` | **TRUE**, badly worded | apply the rewrite |
@@ -329,7 +329,7 @@ skip directories holding `pyvenv.cfg`; never harvest string constants from tests
 (`assert "x" not in y` makes a dead name read alive); exclude `.md`/`.txt`; resolve a dotted
 name on its **head** segment only.
 
-## Stages 2-3 -- COLLATE, then FIND REFERENCES
+## Stages 2-3 -- GATHER, then FIND REFERENCES
 
 ! `<skill>` below is the directory holding this SKILL.md -- take it from the absolute path you
 were given. A relative one resolves against whatever directory you are in, which is not

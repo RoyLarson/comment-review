@@ -1,4 +1,4 @@
-"""Stage 2, COLLATE: every PAGE in scope, formatted for the agents.
+"""Stage 2, GATHER: every PAGE in scope, formatted for the agents.
 
     python census.py [--repo D] [--census-only] [--json] [--out PATH] <paths>
 

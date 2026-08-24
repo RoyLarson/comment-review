@@ -10,16 +10,49 @@ read-only reviewer agents walk one page, a task agent (the `/comment-review` ski
 synthesizes verdicts, the human approves the exact replacement text, and WRITE puts it on disk and
 proves the executable code byte-identical.
 
+!! **AND THE SUBJECT IS THE DESIGN AS MUCH AS THE WORDING.** A comment says what code is FOR,
+so checking it against what the code DOES is a check on the structure. Where the two disagree
+and the code is right, the comment is corrected; where the CODE is what is wrong, the role
+raises a code concern and does not bend the prose to fit.
+
+! **A ROLE CANNOT PROPOSE THE CODE CHANGE, AND THAT COSTS SOMETHING MEASURED.** Roy,
+2026-08-23: *"we can't tell the agents to review all of this and not give them an out for
+properly resolving the issues. Several times they were overly restricted by what they could do
+and that caused tension in the recommendations."* The harness records the shape:
+`module-context` found a module announcing one subject while holding four, had no verdict for
+*split this module*, and widened the docstring to announce TWO -- the defect its own trigger is
+named for.
+
+!! **TWO LANES, AND THEY ARE SEQUENCED BECAUSE OF THE MEASUREMENT, NOT THE FILING.** Roy,
+2026-08-23: *"it has to be landed in the code, tested that the effectiveness didn't change, and
+then change the agents to tell them they can use it. Verify that it improved the
+recommendations."*
+
+| order | file | lane | pass criterion |
+| --- | --- | --- | --- |
+| 1 | [`code-concerns-cannot-carry-a-proposed-change`](TODO/code-concerns-cannot-carry-a-proposed-change.md) | `backend` | effectiveness **unchanged** -- the machinery is the CONTROL and no agent file is touched |
+| 2 | [`a-role-with-no-code-out-damages-the-prose`](TODO/a-role-with-no-code-out-damages-the-prose.md) | `agents` | recommendations **improve** against the baseline step 1 established |
+
+! **SHIPPING BOTH AT ONCE DESTROYS THE ATTRIBUTION.** A movement in the output could be the
+SHAPE or the INSTRUCTION, and nothing separates them after the fact -- so the question the
+second half exists to answer cannot be asked. ! Both comparisons need a grader, which is why
+step 1 is blocked on [`the-harness-cannot-run-the-system-it-grades`](TODO/the-harness-cannot-run-the-system-it-grades.md).
+
 ### !! WHY IT EXISTS: A GREEN GATE IS NOT EVIDENCE OF A GOOD RESULT
 
 Roy, 2026-08-18: *"Just because the code passes -- even if it has gone through multiple rounds of
 simplify and code-review -- doesn't mean that the code is good, that it has the right structure,
 the right documentation and the right reasons why things are the way they are."*
 
-!! **MEASURED, on a real run.** `evidence/redacted-corpus-full-v0_2/` records a tree carrying **31
-reader-visible defects** while every mechanical gate was green: `prove_unchanged` 23/23, the
-hygiene guard 19/19, **2,413 tests passing**, every citation resolving, the residue check clean.
-Stage 8 -- a reader, not a checker -- is what found them.
+!! **MEASURED, on a real run.** A tree carrying **31 reader-visible defects** while every
+mechanical gate was green: `prove_unchanged` 23/23, the hygiene guard 19/19, **2,413 tests
+passing**, every citation resolving, the residue check clean. Stage 8 -- a reader, not a checker
+-- is what found them.
+
+! **THE PACKAGE THAT RECORDED THAT RUN IS NOT IN THIS TREE**, so the numbers above are a
+measurement you cannot re-derive here. They are kept because they are specific enough to be
+checked against a NEW run, which is the only thing that would settle them either way -- and
+because the corroborating case below was measured on this repo and can still be read.
 
 ! **The gates were not wrong; they were answering a different question.** Each says the code still
 parses, still runs, still says what it said. None can say whether the prose beside it is TRUE, or
@@ -38,7 +71,7 @@ a different question, and the one that looks most like success. **MEASURED 2026-
 round-trip identity, the strongest check in this tree, scored **699 of 699 across ten languages
 on its first run while 157 addresses were held by two paragraphs each**. It rebuilt each file
 from the line positions it had just read out of that file, so it could not disagree. It began
-finding things one commit later (`e3ae738`), when it was made to set from the CUES instead.
+finding things one commit later (`7c9ad96`), when it was made to set from the CUES instead.
 
 ! **[`docs/gates.md`](docs/gates.md) holds that case and the rule it produced**: *"does the check
 pass" is not the question; "could the check fail" is* -- plus the three ways a green run means
@@ -69,8 +102,17 @@ uv run python scripts/fetch_corpora.py --list          # print the manifest only
 uv run python scripts/fetch_corpora.py --only numpy pymc
 uv run python scripts/fetch_corpora.py --clean sentry --only sentry   # refetch one
 
-# Grade a comment-review run against the twelve planted hazards, from the diff (never the report)
-uv run python evals/grade_hazards.py <worktree> [<worktree> ...]
+# !! THERE IS NO END-TO-END GRADE. `grade_hazards.py` and the twelve planted
+# hazards are not in this tree: they were tied to a corpus this repo cannot ship.
+#
+# ! The rule they enforced stands and has nowhere to run: GRADE FROM THE DIFF,
+# NEVER FROM THE RUN'S OWN REPORT -- self-reported confidence was measured not to
+# discriminate a real finding from a fabricated one.
+#
+# ! Rebuilding it means RESTATING each hazard -- naming the failure precisely
+# without copying the code it was found in -- and planting the set on one of the
+# public corpora below. Tracked in
+# `TODO/the-harness-cannot-run-the-system-it-grades.md`.
 
 # Split a corpus's prose defects by whether the introducing commit carries an assistant trailer
 uv run python evals/generator_split.py <corpus-dir> [paths...]
@@ -199,8 +241,8 @@ the standard library; `tests/` never leaves this repo, and `pytest`, `ruff` and
 and `tests/test_shipped_imports.py` is what enforces it -- including
 `TestTheCheckItselfFires`, which proves the check can fail. A dev tool that
 reads this tree is not that. `scripts/check_shipped_syntax.py` answers the
-neighbouring question, whether a shipped file still PARSES on the floor, and
-`evals/grade_hazards.py` remains the end-to-end grade.
+neighbouring question, whether a shipped file still PARSES on the floor. ! There
+is NO end-to-end grade behind those two -- see the note under Commands.
 
 ## Architecture
 
@@ -210,7 +252,7 @@ neighbouring question, whether a shipped file still PARSES on the floor, and
 read it before touching the skill. The pipeline:
 
 ```
-1 PROJECT      2 COLLATE    3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
+1 PROJECT      2 GATHER     3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
   DETERMINATION             REFERENCES               |                    7b WRITE
                                                       +---- no cap --------^
 ```
@@ -218,7 +260,7 @@ read it before touching the skill. The pipeline:
 1. **PROJECT DETERMINATION** (task agent) -- scope from the merge base, find the repo's cap/width
    conventions, doc style, `move` destination, style sheet, verify reviewer agents resolve, probe
    for a language server, decide the name-corpus source.
-2. **COLLATE** (`page.py` builds each page, `census.py` stacks them) -- every line classified, in order -- code, part-code, comment, docstring. Each paragraph is addressed by the subject its prose answers to: a gap between two lines of code, a declaration's documentation, or the room beside a line.
+2. **GATHER** (`page.py` builds each page, `census.py` stacks them) -- every line classified, in order -- code, part-code, comment, docstring. Each paragraph is addressed by the subject its prose answers to: a gap between two lines of code, a declaration's documentation, or the room beside a line.
 3. **FIND REFERENCES** (`census.py`) -- every reference each node makes, resolved (paths, symbols,
    counts).
 4. **MARK** (4 reviewer agents, read-only) -- findings on the nodes. **SERIAL in two rounds:
@@ -323,7 +365,7 @@ same shape broke a real declaration. **A row is wrong the moment its justificati
 row**, whether or not the value it lands on happens to be correct.
 
 !! **AND THE RULE WAS ALREADY HERE, WITH ITS OPERATIVE SENTENCE CUT OFF.** This file carried
-two-thirds of the 2026-08-20 ruling. The full quotation, recovered from `560422a`:
+two-thirds of the 2026-08-20 ruling. The full quotation, recovered from `9ee38ea`:
 
 > *"don't try to make the list generic -- that is a failure of the single responsibility
 > principle. Each language could change on a new version invalidating the list for all of them.
@@ -343,8 +385,19 @@ commit that first recorded it is the source, and `git log -S` finds it.
 
 ! **AN EMPTY LIST MEANS THE LANGUAGE HAS NO `a` SERIES AT ALL** -- not an empty one. `yaml`,
 `toml`, `ini` and `sql` have no docstring practice, and carried an `a0` no verdict could fill until
-this landed. **C and C++ are deliberately in that group**: a C function opens with its RETURN
-TYPE, so the list could never be complete, and a spurious `a` renumbers every `a` below it.
+this landed.
+
+!! **C AND C++ SIT IN THAT GROUP FOR A DIFFERENT REASON, AND IT IS DEFERRAL RATHER THAN
+IMPOSSIBILITY.** A C declaration opens with its RETURN TYPE, and the matcher reads a line's FIRST
+word -- so no keyword ever matches and a spurious `a` would renumber every `a` below it. ! **That
+is a fact about the MATCHER, not about C.** Roy, 2026-08-23: *"assumes you don't create a slightly
+smarter parser that looks for the correct keyword in the line instead of just the 'first' word. It
+is a simple fix."* Both languages plainly have documentable declarations; the list is empty until
+that lands.
+
+! **THIS SENTENCE PREVIOUSLY READ *"the list could never be complete"***, which is the shape this
+file warns about two sections up -- a claim about the COST of a change, which invites someone to
+make the change and discover the cost.
 
 ! Only Python's doc sits INSIDE the declaration, so Python alone needs a parser to say WHERE the
 prose goes; everywhere else it goes on the declaring line's own line. An LSP `documentSymbol`
@@ -364,7 +417,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read), `decision-log.md` (WHAT was decided and WHEN -- the dated chain of rulings, retractions and supersessions; the commentary on WHY is `history.md`'s. Cited as `decision-log.md TOPIC: #N`) |
 | `docs/plans/`                     | RELEASE SCOPES -- what one version ships, what it does not, and which TODOs it works. !! **NOT `docs/superpowers/plans/`**, and the split is deliberate: Roy, 2026-08-19, *"I don't want to conflate the rigorous one for the less rigorous one."* A superpowers plan is written for an engineer with no context -- exact files, TDD steps, a commit per task. ! **A PLAN IS NOT A TODO**: *"Todos can remain open an indefinite amount of time and make progress as we see fit. Plans are scopes of work to be complete in one run."* Anything in a plan that does not get done is filed in `TODO/` before the plan closes |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ! Nothing here describes this system's own behavior -- that is `docs/`                                                    |
-| `evals/`                          | the twelve planted hazards (`evals.json`, `discriminators.md`), `grade_hazards.py`, and `generator_split.py` (the authorship split)                                        |
+| `evals/`                          | `generator_split.py` (the authorship split) and `test-cases.jsonl`. ! The twelve planted hazards and their grader are NOT here -- there is no end-to-end grade, see Commands |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |
 | `scripts/`                        | `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` -- none of this ships with the plugin                                                                    |
 | `.claude-plugin/marketplace.json` | lets this checkout be installed as a plugin marketplace in the same session (`claude plugin marketplace add <path>` then `claude plugin install comment-review`)           |
@@ -545,6 +598,22 @@ status; the prose inside a file is still written by hand. Do not spend a session
 them.
 
 #### A box is a claim about whether work remains
+
+!! **A BOX IS A VERIFIABLE CHECKPOINT AND NOTHING ELSE GETS ONE.** A task names something a
+stranger can look at and call done or not done -- a command that must come back empty, a file
+that must exist, a test that must fail first. **A ruling, a measurement, a naming decision or a
+line of reasoning is not a task**, however much it matters: it belongs in the **Objective**, or
+in a dated `note`.
+
+! **THE TELL IS THAT IT CANNOT BE FINISHED.** *"The trade word is `leading`"* is true the day it
+is written and every day after -- there is no state in which someone ticks it. If ticking would
+be a JUDGEMENT rather than an observation, it is not a task.
+
+!! **AND A BOX ON A RULING MAKES THE COUNT LIE TOWARDS MORE WORK.** MEASURED 2026-08-23:
+`leading-owns-the-space-between` read **0 of 10** while nine of the ten were rulings and
+measurements already settled, and the one real defect was not among them. `Progress:` is
+computed from boxes, so the file advertised that nothing had been done on work that was
+finished -- and no gate can see it, because a box is well-formed whatever is written in it.
 
 !! **AN UNCHECKED BOX SAYS THE WORK IS STILL TO DO, and something automated now reads it.** Roy,
 2026-08-18: *"a check box not-marked is left as something todo, even if it was superseded and no
@@ -732,3 +801,36 @@ a measurement: nothing in this repo tests it.
   found and ask rather than continuing to browse.
 - Prefer dispatching a Task agent for open-ended codebase exploration so the main context
   stays uncluttered by the subagent's intermediate output.
+
+## Lanes -- "You are the ..."
+
+**Four lanes own this repo, and a TODO's `Owner:` is one of them.** Roy runs sessions in
+parallel, each opened as *"You are the `backend` -- I need you to ..."*, and **the lane scopes
+what you may change.** If a task touches a file another lane owns, **name the lane and ask**.
+
+| lane | owns, in one line |
+| --- | --- |
+| `agents` | **What an agent is TOLD, and how the roles hand off** |
+| `backend` | **What the Python actually does** |
+| `testing` | **Whether any of it is true** |
+| `systems` | **Whether it installs, and whether the gates still bite** |
+
+!! **THE VOCABULARY IS SHARED AND CROSSING IS THE POINT.** Roy, 2026-08-23: *"any side can and
+should update the vocab on the other side as soon as a split or modification is noticed."* It is
+the ONE standing exception to *name the lane and ask*, and the cost of waiting is measured --
+`evidence/rename-left-history-in-the-comments/`.
+
+!! **AND A LANE THAT TRIPS A GATE FIXES ITS OWN CODE**, never the gate. A gate edited to pass is
+indistinguishable afterwards from one that always passed.
+
+The full roles, the crossing rules and the path map are in the two files loaded below.
+
+## Always resident -- loaded by the `@` lines below
+
+The two `@` lines at the end of this file are what put `conventions.md` and `lanes.md` in
+context, IN FULL. **An ordinary markdown link does not** -- it makes a file findable, not
+present. Keep both lines; if they are somehow not in context, read the two files before changing
+rules or crossing lanes.
+
+@docs/conventions.md
+@docs/lanes.md

@@ -3,10 +3,12 @@
 ```
 Status:   open
 Progress: 0 of 5 tasks done
-Owner:    session * Roy (* 1 ruling)
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
           CODE CHECK, the rail said restore, and an approved edit was reverted.
+Split:    2026-08-23 -- boxes cut to two lines each, a Verify written for every open one,
+          and the reasoning each carried moved into the Objective
 ```
 
 ## Objective
@@ -52,23 +54,35 @@ identical, and docstring-presence deltas listed separately with the declaration 
 operator matches them against the approved set. A delta with no matching approval is still a
 stop; a delta that matches one is the edit landing.
 
+## What the boxes used to carry, and why each is wanted
+
+! **T1 is Roy's** because it changes what the proof ASSERTS. It decides whether the CODE CHECK
+stays a blanket proof -- simple, and unable to admit two verdicts -- or becomes a diff against an
+expectation, which is stronger and needs the approved list to reach it.
+
+! **T2 stands whichever way T1 goes.** Today ONE line says `executable code DIFFERS (ast proof)`
+for a change that is entirely prose, and the operator had to diagnose it by hand with a second
+AST comparison.
+
+! **T3 is the interim rail.** Until this is settled, an operator following `write.md` loses the
+edit and has no way to know that was the rule working.
+
+! **T4 is UNMEASURED and this file must not claim which way it goes.** Non-Python files compare
+`stripped` text, which removes comments -- so a docstring has no meaning there, but `///` and
+`/**` doc comments do.
+
+! **T5 is the gap in the suite.** Nothing in `tests/test_prove_unchanged.py` covers a docstring
+being ADDED or REMOVED -- only rewritten, which is the case that passes.
+
 ## Tasks
 
-- [ ] * Rule on whether 7b compares against the approved SET or against nothing-changed. ! It
-      decides whether the CODE CHECK stays a blanket proof -- simple, and unable to admit two
-      verdicts -- or becomes a diff against an expectation, which is stronger and needs the
-      approved list to reach it. Roy's, because it changes what the proof asserts.
-
-- [ ] Report docstring-presence deltas SEPARATELY from executable ones whichever way that goes.
-      Today one line says `executable code DIFFERS (ast proof)` for a change that is entirely
-      prose, and the operator had to diagnose it by hand with a second AST comparison.
-
-- [ ] Say in `write.md` what a docstring `add` does today, until this is settled. ! An operator
-      following the rails loses the edit and has no way to know that was the rule working.
-
-- [ ] Check the LEXICAL side. Non-Python files compare `stripped` text, which removes comments --
-      so a docstring has no meaning there, but `///` and `/**` doc comments do. ! Unmeasured;
-      this file must not claim which way it goes.
-
-- [ ] Add both cases to `tests/test_prove_unchanged.py`. ! Nothing there covers a docstring
-      being ADDED or REMOVED -- only rewritten, which is the case that passes.
+- [ ] T1 -- * Rule whether 7b compares against the approved SET or nothing-changed.
+      Verify: `docs/decision-log.md` records the answer and `write.md` states it.
+- [ ] T2 -- Report docstring-presence deltas SEPARATELY from executable ones. Verify:
+      `prove_unchanged.py` prints them under their own heading with each declaration.
+- [ ] T3 -- Say in `write.md` what a docstring `add` does today, until T1 is settled.
+      Verify: `write.md` states that it fails the CODE CHECK and that the rail restores.
+- [ ] T4 -- Measure the LEXICAL side: a `///` or `/**` doc comment ADDED and REMOVED,
+      against the `stripped` comparison. Verify: this file records which way each goes.
+- [ ] T5 -- Add a docstring-ADDED case and a docstring-REMOVED case to
+      `tests/test_prove_unchanged.py`. Verify: both cases run and the suite is green.

@@ -57,7 +57,7 @@ Blocked:  2026-08-20 — 2026-08-20 -- THE GALLEY NOW CANNOT SPLICE AN EMPTY PLA
           report an UNEXPECTED SUCCESS the moment this is rebuilt. ! They are gated OUT
           by box R7 of docs/plans/0.2.5: no expectedFailure survives the plan.
 Superseded: 2026-08-21 — the MECHANISM this file is about was deleted 2026-08-21 in
-            578d7fe -- splice, its sort key, overlaps, and the insert-vs-replace
+            97359c2 -- splice, its sort key, overlaps, and the insert-vs-replace
             ordering are all gone. A change is now an assignment to an ADDRESS and the
             compositor sets the page from the walk's order, so there is no tie for a
             sort key to break

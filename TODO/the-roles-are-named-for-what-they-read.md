@@ -1,15 +1,18 @@
 # The four roles are named for what they read, not for the desk they sit at
 
 ```
-Status:   blocked
+Status:   deferred
 Progress: 0 of 5 tasks done
-Owner:    session
+Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-19 (Roy approving the desk names while the paragraph rename landed,
           2026-08-19)
-Updated:  2026-08-19 — DEFERRED past 0.2.4 -- Roy, 2026-08-19: 'I agree though on that
+Updated:  2026-08-19 -- DEFERRED past 0.2.4 -- Roy, 2026-08-19: 'I agree though on that
           we can wait.' Its scope is what a reviewer is HANDED; a role's NAME is what
           dispatches it.
+Triaged:  2026-08-23 -- the fifth box was a citation instruction, not a checkpoint; it is
+          ticked and its content is in the Objective. Status corrected from `blocked` to
+          `deferred`: nothing external blocks it, Roy ruled it waits
 ```
 
 ## Objective
@@ -23,9 +26,10 @@ even a term this system uses any more, ruled 2026-08-19 and replaced by `paragra
 mark edits if it finds incorrect facts."* All four are EDITORS that emit edit marks; a
 *fact-checker* verifies and hands back.
 
-! **The desks were already recorded**, reconstructed 2026-08-17 after a compaction dropped them
-and confirmed by Roy then, in
-[`ownership-is-read-first-but-nothing-makes-it-so`](ownership-is-read-first-but-nothing-makes-it-so.md):
+! **The desk table this works from is in
+[`ownership-is-read-first-but-nothing-makes-it-so`](ownership-is-read-first-but-nothing-makes-it-so.md)**,
+reconstructed 2026-08-17 after a compaction dropped it and confirmed by Roy then. **Cite it
+rather than re-deriving it** -- it has already been rebuilt once from nothing:
 
 | role | the desk | what that desk does |
 | --- | --- | --- |
@@ -40,33 +44,38 @@ A role name is different, and it is load-bearing in five places at once:
 
 - the **plugin agent id**, `comment-review:comment-review-block-context`, which the skill
   dispatches by name and which resolves only if the plugin was installed before the session began
-- the **file name** under `plugins/comment-review/agents/`
+- the **file name** under `plugins/comment-review/agents/` -- verified 2026-08-23, all four are
+  still `comment-review-<role>.md`
 - the `--reviewers` value, and `verdicts.py` takes the role from the report file's STEM
-- `[roles]` keys in `vocabulary.toml`, and the AGENTS glob `check_vocabulary.py` walks
-- the key **every held report in `evidence/` is filed under**
+- `[roles]` keys in `references/vocabulary.toml` -- verified 2026-08-23 at `:108` and `:148` --
+  and the AGENTS glob `check_vocabulary.py` walks
+- the key **every held report in `evidence/` is filed under**. Verified 2026-08-23: two packages
+  survive in the tree, `evidence/cycle-0.2.3/records/` and
+  `evidence/comment-review-skill-023-dev-review/records/`, each holding
+  `ownership-context.json`, `block-context.json`, `function-context.json` and
+  `module-context.json`
 
 ! **So it is a version-bumping change to the installed plugin**, and every held run's reports keep
 the old names. A conversion is not needed -- the reports are read by stem -- but a run replayed
 against renamed agents will not match, and that is the thing to decide before starting.
 
+! **THE FOUR AGENT FILES RENAME IN ONE BOX, ON PURPOSE.** `check_vocabulary.py` refuses the
+half-state -- it did exactly that during the paragraph rename -- so a per-role box could not be
+verified green on its own, and a box a stranger cannot check is not a checkpoint.
+
 ! **Roy, 2026-08-19: *"I agree though on that we can wait."*** Not in 0.2.4, whose scope is what a
-reviewer is HANDED.
+reviewer is HANDED. **Deferred is not done** -- the tasks below are unstarted work waiting on
+that scope closing, not work overtaken.
 
 ## Tasks
 
-- [ ] !! DECIDE FIRST what happens to the held runs in `evidence/`, whose reports
-      are filed under the old stems and which `verdicts.py` reads BY STEM. Nothing
-      needs converting to keep them readable; what breaks is replaying one against
-      renamed agents.
-- [ ] Rename the four agent files under `plugins/comment-review/agents/` and the
-      ids inside them. ! The id is `comment-review:comment-review-<role>` and
-      resolves only if the plugin was installed before the session began, so this
-      is a version bump, not a hot edit.
-- [ ] `[roles]` keys in `vocabulary.toml`, and the AGENTS glob
-      `check_vocabulary.py` walks. ! The checker will refuse the half-state, which
-      is a feature: it did exactly that during the paragraph rename.
-- [ ] `SKILL.md`'s dispatch list, `--reviewers` examples, and every place a role
-      is named in the shipped prose and in `docs/`.
-- [ ] ! `ownership-is-read-first-but-nothing-makes-it-so` holds the desk table
-      this works from. Cite it rather than re-deriving; it was reconstructed once
-      already after a compaction dropped it.
+- [ ] T1 -- * !! DECIDE FIRST what happens to the two held runs in `evidence/`, filed by
+      the OLD stems. Verify: the ruling is recorded in `docs/decision-log.md`.
+- [ ] T2 -- Rename the four agent files under `agents/` and the ids inside them. Verify:
+      `claude plugin validate plugins/comment-review` exits 0 and no old id is left.
+- [ ] T3 -- Move the `[roles]` keys in `references/vocabulary.toml` to the new names.
+      Verify: `uv run python scripts/check_vocabulary.py` exits 0.
+- [ ] T4 -- Rename the role in the shipped prose: `SKILL.md`'s 4a/4c dispatch table and
+      the `--reviewers` examples. Verify: no old role name is left in `plugins/`.
+- [ ] T5 -- Rename the role in `docs/` and `CLAUDE.md`'s command block. Verify: only the
+      held-run paths T1 ruled on keep an old name in `docs/` and `CLAUDE.md`.

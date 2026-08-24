@@ -2,93 +2,109 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 10 tasks done
-Owner:    session * Roy (* 1 ruling -- where the verdict table lives)
+Progress: 8 of 11 tasks done
+Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
-Updated:  2026-08-18 — the cycle is gone and the claim is typed at the seam
-Corrected: 2026-08-19 — the census-shape split is FIVE readers and four idioms, not
-           three -- and verdicts.py has no dict handling at all, so a {blocks: [...]}
-           census gives a traceback
+Updated:  2026-08-18 -- the cycle is gone and the claim is typed at the seam
+Triaged:  2026-08-23 -- the modules moved. `load_report` is now `held.py`, the checks
+          are `desk.py`, and `ruled_text` reads the FIELD first with the string scan
+          as fallback. Two boxes restated the same task; the census-reader count was
+          re-taken and is four, not five
+Split:    2026-08-23 -- the census-reader box held a mechanical change AND the
+          behaviour it buys, and is now two; every finished box is cut to what it
+          finished, with its evidence in the Objective
 ```
 
 ## Objective
 
-`claim_text` renders a record's typed `claim` OBJECT back into the marker STRING the 0.2.x
-checks read, and its own docstring calls that a bridge, kept *"before anything is rewritten to
-read the object directly."* The bridge shipped; the rewrite did not. Four checks were then
-found reading the generated string where the field was sitting beside them, and each was wrong
-in a different way -- two had stopped firing, one fired on the wrong records, one disagreed
-with `record.py --check` about the same record. Those four are fixed. **The pattern is not**:
-`ruled_text` still marker-searches `false:` / `drop:` / `from:` back out of a string this
-module generated, and it feeds `block_problem`, `edit_problem`, `contradictions` and
-`unrecorded_findings`.
+`claim_text` renders a record's typed `claim` OBJECT back into the marker STRING the checks read,
+and its own docstring calls that a bridge, kept *"before anything is rewritten to read the object
+directly."* **The bridge shipped; the rewrite is half done.**
 
-! **Generate-then-reparse is the defect class the record change exists to end** -- D7, D8 and
-D9, all three of them a boundary guessed wrong. It now happens inside one module instead of
-between a reviewer and a parser, which is better and is not the same as fixed.
+! **Generate-then-reparse is the defect class the record change exists to end** -- D7, D8 and D9,
+all three of them a boundary guessed wrong. It happening inside one module instead of between a
+reviewer and a parser is better, and is not the same as fixed.
 
-!! **THE IMPORT ARROW IS WHY THE FALLBACK STAYED AT THE READERS.** `record.py` imports
-`VERDICTS`, the three claim regexes and the deprecated parser FROM `verdicts.py`, and
-`verdicts.py` imports nothing back -- so `record.claim_object`, the one function that turns a
-0.2.x claim into fields, cannot be called from `load_report` without a cycle. That is not a
-tidiness problem: it is the reason each new check written in `verdicts.py` gets its own policy,
-and there are seven sites with five policies today. Ruling where the table lives is the
-PREREQUISITE for normalising once.
+**What has landed since this was filed.** The cycle is inverted: `record.py` imports from
+`addresser` and `lexer` and NOTHING from `verdicts.py`, while `verdicts.py` imports from
+`record`, `desk` and `held`. The reader moved out of the join into `held.py`, whose own docstring
+says why -- *"Reading a record file back -- the third verb on the noun `record.py` owns"*.
+`ruled_text` (now `desk.py:721`) reads the field first: `desk.py:743-745`, *"THE FIELD FIRST, and
+the scan below is now the FALLBACK."*
 
-! Measured 2026-08-18, the five policies: `_said` returns "" and lets the caller decide;
-`_claim_values` falls back to the whole rendered claim; `_answered` falls back to a regex;
-`payload_problem`'s anchor branch tests `claim_fields` explicitly because `or` would read a
-present-but-empty field as absent; `declares_scope` uses exactly the `or`-shaped test that
-comment warns against. `ruled_text` has no branch at all and still marker-searches the string
-this module generated, feeding `block_problem`, `edit_problem`, `contradictions` and
-`unrecorded_findings`.
+**What has not.** `held.py:161` still builds `Finding.claim` by calling `claim_text(verdict,
+claim)` -- a rendered string -- and `desk.py:754-762` still marker-searches it when the field is
+absent, feeding `block_problem`, `edit_problem`, `contradictions` and `unrecorded_findings`.
+`held.py:172-176` still flattens `{cite, verbatim}` into `"cite | verbatim"` and `desk.py:326`
+partitions it back.
+
+!! **MEASURED 2026-08-23: FOUR READERS OF A CENSUS FILE, AND ONE CRASHES.** `addresser.py:1137`,
+`galley.py:381` and `record.py:1121` each carry their own `census["paragraphs"] if
+isinstance(census, dict) else census`; `verdicts.py:332` does not. Run against a
+`{"paragraphs": [...]}` census, `verdicts.py` raises `AttributeError: 'str' object has no
+attribute 'get'` from `addresser._by_path`. ! The key is `paragraphs`, not `blocks` -- the
+2026-08-19 reading named five readers and the wrong key, and two of the modules it named
+(`cues`, `locator`) no longer exist. `census.py:439` and `:290` emit a bare list unconditionally,
+so nothing in this tree exercises the other branch either way.
+
+! **`galley.unanswerable` is already half of the seam** the census reader wants.
+
+## What the flattened `sources` cost, and what remains
+
+!! **IT WAS A LIVE DEFECT.** A source carrying `"verbatim": null` rendered the word "None" and
+PASSED, because the cited line contained it. Fixed 2026-08-18 by putting both halves through
+`_half`, so what remains is the ROUND TRIP itself -- a cite containing `|` still splits wrong.
+! Blast radius is ~20 test call sites that use the string form as a literal.
+
+## What the finished boxes finished, kept as their evidence
+
+- **T1/T2 (`3645aad`)** landed in the reader where the two formats met. Both formats arrived
+  typed; a text record used to leave `claim_fields` empty and every check fell back to searching
+  a rendered string. Verified on the case the task named:
+  `false: "the cap is 5 / true: not really"` returns the whole value from the field and truncates
+  to `the cap is 5` under the scan. ! `ruled_text` is what `block_problem`, `edit_problem` and
+  `contradictions` compare on, so a truncated original is a finding checked against the wrong
+  sentence.
+- **T3 (RULED 2026-08-18)**: the verdict table lives in `record.py`, which already derived
+  `allowed()` from it and imported six names back.
+- **T4**: `held.py` holds `load_report` and `held_records` and imports `Finding`, `_half`,
+  `address_for`, `claim_text` and `every_record` from `record.py`; `verdicts.py:103` now does
+  `from held import load_report`. `record.SHAPES` (`record.py:890`) is the declaration of the
+  field names and types.
+- **T5 (`e32c12b`)**: all five `claim_help` rows name `claim.<key>` instead of the retired marker
+  form, and four tests that asserted the old phrasing now assert the KEY.
+- **T7 (`0599091`)**: `ANCHOR_EXAMPLE` is one string -- published in the form and run against the
+  pattern -- and two tests hold them equal. ! Verified by MUTATION: loosening the pattern to `.*`
+  fails three tests.
+- **T11** was the measurement *"IT IS FIVE READERS, NOT THREE"*, and it was overtaken: the census
+  key is `paragraphs`, two of the five modules it named are gone, and the count re-taken
+  2026-08-23 is four. The crash it recorded is real and is what T8 and T9 close.
 
 ## Tasks
 
-- [x] **DONE `7fab8c6`**, in `parse_report` where the two formats meet. Both formats now arrive typed; a text record used to leave `claim_fields` empty and every check fell back to searching a rendered string.
-
-- [x] **DONE `7fab8c6`.** Verified on the case the task named: `false: "the cap is 5 / true: not really"` returns the whole value from the field and truncates to `the cap is 5` under the scan. ! `ruled_text` is what `block_problem`, `edit_problem` and `contradictions` compare on, so a truncated original is a finding checked against the wrong sentence.
-
-- [x] * **RULED 2026-08-18: `record.py`**, which already derived `allowed()` from the table and imported six names back. Moving it inverted the cycle that blocked the task above.
-
-- [ ] **`verdicts.load_report` knows the record's field names, and `record.py` declares them.**
-      `records`, `block`, `verdict`, `claim`, `sources` as `{cite, verbatim}`, `change` as a
-      line array, `code_concerns` -- all of it restated in a module that does not own it. A
-      `record.load(path, text)` is the seam, and it is where the task above belongs.
-
-- [x] **DONE `a6f86b5`.** All five `claim_help` rows name `claim.<key>` instead of the retired marker form, and four tests that asserted the old phrasing now assert the KEY, which is what the record carries.
-
-- [ ] **`sources` is a typed pair round-tripped through a string.** `load_report` flattens
-      `{cite, verbatim}` into `"cite | verbatim"` and `citation_problem` partitions it back.
-      Not a live defect -- the first-pipe partition holds -- but it is the same shape and it
-      goes away with the task above.
-
-- [x] **DONE `386ed42`.** `ANCHOR_EXAMPLE` is one string -- published in the form and run against the pattern -- and two tests hold them equal. ! Verified by MUTATION: loosening the pattern to `.*` fails three tests.
-
-- [ ] **Three readers of a census file, and the two new ones unwrap a shape `census.py` cannot
-      emit.** `galley.py` and `record.py` both carry
-      `census["blocks"] if isinstance(census, dict) else census`; `verdicts.py` does not. The
-      only `--json` emitter writes a bare list unconditionally, so the branch defends against
-      nothing this tree produces -- and if the dict shape ever did arrive, two readers would
-      succeed and the third would take `len(dict)` as the block count. A `census.load_blocks`
-      in the module that owns the format is the seam, and `galley.unanswerable` is already
-      half of it.
-- [ ] **Make `Finding.sources` a typed pair instead of a flattened string.**
-      `load_report` renders `{cite, verbatim}` into `"cite | verbatim"` and
-      `source_problem` partitions it back. ! The TODO called this "not a live
-      defect" and it WAS one: a source carrying `"verbatim": null` rendered the
-      word "None" and PASSED, because the cited line contained it. Fixed
-      2026-08-18 by putting both halves through `filled`, so what remains is the
-      round-trip itself -- a cite containing `|` still splits wrong. ! Blast
-      radius is ~20 test call sites that use the string form as a literal.
-- [ ] !! **IT IS FIVE READERS, NOT THREE, AND ONE CRASHES.** Measured 2026-08-19:
-      `cues` uses `.get("blocks", [])`, `galley` `census["blocks"]`,
-      `locator` an `entries()` helper, `record` `loaded["blocks"]`, and
-      **`verdicts.py` has no dict handling at all** -- a `{"blocks": [...]}`
-      census gives an `AttributeError` traceback. `census.py` emits a bare list
-      unconditionally, so nothing exercises the other branch.
-
+- [x] T1 -- FINISHED `3645aad`, in the reader where the two formats met. Evidence in the
+      Objective.
+- [x] T2 -- FINISHED `3645aad`, verified on the case the task named. Evidence in the
+      Objective.
+- [x] T3 -- * RULED 2026-08-18: the verdict table lives in `record.py`. The inversion
+      holds, verified 2026-08-23.
+- [x] T4 -- FINISHED. The reader left the module that does not own the format; it is
+      `held.py` now. Evidence in the Objective.
+- [x] T5 -- FINISHED `e32c12b`. All five `claim_help` rows name `claim.<key>`, and four
+      tests assert the KEY.
+- [x] T6 -- SUPERSEDED. This box and T10 were the same task filed twice, three lines
+      apart. T10 carries the correction this one got wrong, so T10 is the copy that stays.
+- [x] T7 -- FINISHED `0599091`. `ANCHOR_EXAMPLE` is one string, held equal by two tests
+      and verified by mutation.
+- [ ] T8 -- Move the census dict-unwrap into `census.py`, the module that owns the format.
+      Verify: no module outside `census.py` spells `isinstance(..., dict)` on a census.
+- [ ] T9 -- Make all four census readers agree on a `{"paragraphs": [...]}` census.
+      Verify: all four load it, or all four refuse it with one message.
+- [ ] T10 -- Make `Finding.sources` a typed pair instead of a flattened string. Verify:
+      nothing splits on `|`, and a cite containing `|` round-trips.
+- [x] T11 -- Not a task, and its content is now in the Objective above: "IT IS FIVE
+      READERS, NOT THREE" was a MEASUREMENT, and it was overtaken by the count of four.
 ## Related
 
 - [`the-parser-merges-across-boundaries-it-cannot-read`](the-parser-merges-across-boundaries-it-cannot-read.md)

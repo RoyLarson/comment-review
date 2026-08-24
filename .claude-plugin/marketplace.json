@@ -9,7 +9,7 @@
     {
       "name": "comment-review",
       "source": "./plugins/comment-review",
-      "description": "An editorial board for the comments and docstrings a change touched: four read-only reviewers over one prose tree, verdicts the human approves, then a WRITE stage that puts them on disk and proves the code untouched."
+      "description": "Professional editorial practice for a codebase's prose: four read-only reviewers ask whether each comment is still true of the code it sits on, and where prose and code disagree the disagreement is often about the design. Where the code is right the comment is corrected; where it is not, a code concern is filed rather than the prose bent to fit. The author approves every replacement, and WRITE proves the executable code byte-identical."
     }
   ]
 }

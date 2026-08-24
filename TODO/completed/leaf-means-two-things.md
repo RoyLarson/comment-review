@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 19 tasks done
+Progress: 19 of 19 tasks done
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves
@@ -88,7 +88,7 @@ changes.**
       `leaf` definitions are inside OTHER terms' definition strings, where nothing
       reads them as definitions at all. ! Whatever check is added has to be able
       to fail -- see `docs/gates.md`.
-- [ ] RAISED BY THE SENTENCE THAT USED IT. Roy, 2026-08-22, on what stage 2 does:
+- [x] RAISED BY THE SENTENCE THAT USED IT. Roy, 2026-08-22, on what stage 2 does:
       *"it calls census to get the pages and the references and stacks them
       together into leafs I think is the correct term."* ! That is the
       `vocabulary.toml` sense, and it is the sense `addresser.py` contradicts -- so
@@ -108,29 +108,29 @@ changes.**
       the stated reason is not a reason. Rule the word again with the trade split
       in view -- foliation numbers leaves, pagination numbers pages, and this
       numbers positions within a page.
-- [ ] ! AND IT IS THE SAME QUESTION AS THE STAGE NAME. Roy, 2026-08-22: *"I think
+- [x] ! AND IT IS THE SAME QUESTION AS THE STAGE NAME. Roy, 2026-08-22: *"I think
       the collate step now is actually a paginate step."* `addresser.py:17` is the
       only thing in the tree that rules against `pagination`, and it does so on
       the false premise. ! Settle the two together or the stage takes a word the
       module refuses.
-- [ ] ! WHAT IS NOT IN QUESTION: `page` and `place`. A file has one continuous
+- [x] ! WHAT IS NOT IN QUESTION: `page` and `place`. A file has one continuous
       side and no verso, so it is a page and there is no leaf in the model at all.
       The numbering of PLACES has no trade word because a proof is marked by
       margin and line -- a coinage is correct here, which is what the register
       rule allows.
-- [ ] `PAGINATE` IS OUT FOR STAGE 2, AND THE REASON IS THE SENSE OF THE WORD. Roy,
+- [x] `PAGINATE` IS OUT FOR STAGE 2, AND THE REASON IS THE SENSE OF THE WORD. Roy,
       2026-08-23: *"the way I have used in the past is by taking something that
       can print infinitely and split it into pages."* ! Stage 2 splits nothing --
       the division arrives from the filesystem, one file, one page -- so
       pagination names an act it does not perform. Recorded because it was
       PROPOSED the same day and will read as open otherwise.
-- [ ] ! WHAT IS LEFT IS THE NUMBERING, WHICH IS THE ONLY THING STAGE 2 CREATES.
+- [x] ! WHAT IS LEFT IS THE NUMBERING, WHICH IS THE ONLY THING STAGE 2 CREATES.
       The division arrives done, the lexing happens on the way, and the stacking
       is MEASURED order-free -- see `galley.py`, 179 paragraphs identical forward
       and reversed. ! So the candidate that needs no new vocabulary is `CUE`:
       already the function, the module and the result type, and an act like MARK,
       APPLY, COMPACT and REVIEW. * Unruled.
-- [ ] ! AND `collate` IS FREED WHATEVER STAGE 2 BECOMES, which is the first
+- [x] ! AND `collate` IS FREED WHATEVER STAGE 2 BECOMES, which is the first
       starred blocker on `verdicts-is-the-join` -- collating would then mean what
       the trade means: transferring every hand's marks onto one proof.
 - [x] `PORTFOLIO` IS PROPOSED FOR WHAT THE CENSUS PRODUCES. Roy, 2026-08-23: *"The
@@ -155,7 +155,7 @@ changes.**
       TAKEN TWICE (48 uses: the linguistic sense this repo's method runs on, plus
       `printing register`, where out-of-register is a press defect). `registrar`,
       `cadastre`, `plat`, `cue sheet` and `address space` are all free.
-- [ ] ! THE TEST FOR LINE-NUMBER CREEP, which is what Roy asked to guard against:
+- [x] ! THE TEST FOR LINE-NUMBER CREEP, which is what Roy asked to guard against:
       a name reinvents line numbers if it implies POSITION MEASURED FROM A START.
       `index`, `sequence`, `ordinal` fail it. `cadastre`, `register`, `plat` pass
       -- they enumerate IDENTIFIED PARCELS, and the identifier belongs to the
@@ -163,7 +163,7 @@ changes.**
       NOT A LINE NUMBER even though it is the fourth gap: it is assigned once by
       walking CODE, and code does not move when prose is edited. Line numbers fail
       because the thing they count is the thing the edit changes.
-- [ ] ! WHAT REMAINS IS MECHANICAL, NOT A RULING: 278 `folio` sites become `cue`,
+- [x] ! WHAT REMAINS IS MECHANICAL, NOT A RULING: 278 `folio` sites become `cue`,
       and `Foliation`/`foliate`/`foliator` follow the addresser rename. ! HISTORY
       KEEPS THE OLD NAMES -- `docs/history.md`, `TODO/completed/`, `CHANGELOG.md`
       and `evidence/` record what the system WAS, and renaming inside them is what
