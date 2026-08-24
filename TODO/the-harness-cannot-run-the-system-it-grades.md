@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 10 of 29 tasks done
+Progress: 10 of 31 tasks done
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -12,6 +12,13 @@ Triaged:  2026-08-23 -- the grader, the twelve hazards and the two `todo-tool` e
           fixture inventory below is what a `find` returns today
 Split:    2026-08-23 -- 22 boxes became 29. The rulings and measurements that carried a
           box are stated below and their boxes now say only what was settled
+Absorbed: 2026-08-24 — P5 of the 0.2.4 foliator plan came here as T30 and T31. Roy:
+          supersede P5 to that todo because it is testing work anyways. Both halves were
+          missing an instrument this file owns -- the recall figure that justifies the
+          filtered view is in run history and nowhere a reader can find it, and the
+          scorer that would settle the dominance claim is T28. ! The plan closed at 25
+          of 25 on that supersession, not on the work: what P5 asked for is unbuilt and
+          now waits here, which is what a backlog is for.
 ```
 
 ## Objective
@@ -256,6 +263,38 @@ hand-written fixture -- which are process defects this system has no remit over.
 left true prose standing, so no text probe separated a correct repair from an ignored one; those
 reported NEEDS-EYES, and the replacement owes the same refusal.
 
+## !! P5 CAME HERE 2026-08-24, AND IT IS THE PAGE'S OWN PASS CRITERION
+
+Roy, 2026-08-24: *"supersede P5 to that todo because it is testing's work anyways."* It was the
+last open box on the `0.2.4-rework-the-foliator-owns-the-address` plan, and it could not be
+worked there: **both of its halves are missing an instrument, and both instruments are this
+file's.** T30 and T31 carry it.
+
+! **NAMED, NOT LINKED, AND THAT IS THE RULE.** A `T` takes no dependency on a `P` -- see
+`docs/conventions.md`, *T, P and SP*. What arrived here is the WORK; the plan that used to hold
+it can be deleted tomorrow and T30 and T31 stay answerable, which is the test.
+
+!! **THE PAGE CLAIMS TO DOMINATE BOTH PRIOR FORMATS, WHICH IS NOT A PREFERENCE.** Roy,
+2026-08-20: the page is *"partially to get the best of both worlds."* It fails if either half
+fails:
+
+| | information | tokens | recall |
+| --- | --- | --- | --- |
+| unfiltered, v0.1.0 | all | high | **worse** |
+| filtered, v0.2.0 | less | low | baseline |
+| the page | MORE than filtered | LESS than unfiltered | AT LEAST filtered |
+
+!! **AND THE PRIOR IS ALREADY MEASURED AND WRITTEN DOWN NOWHERE.** Roy, 2026-08-20, on the
+v0.1.0 -> v0.2.0 split: going unfiltered, *"the agents got a lot more tokens and used a lot more
+tokens on effectively the same level of output. They did miss a lot in the difference."*
+! Nothing in `evidence/` records it and the shipped tree carries only the byte figures -- 39% of
+the listing was repeated paths, `--filtered` saved 61%. **The measurement that justifies the
+single most consequential thing about what a reviewer sees exists in run history and nowhere a
+reader can find it**, which is T30.
+
+! **T31 IS DOWNSTREAM OF THE SCORER**, T28: a hand-run comparison is the thing this file exists
+to end, so the dominance claim waits on something that can disagree with it.
+
 ## Tasks
 
 - [x] T1 -- RULED 2026-08-18 by Roy: a reduced set is SUPPORTED and `ownership-context` is
@@ -316,6 +355,11 @@ reported NEEDS-EYES, and the replacement owes the same refusal.
       against the twelve and exits nonzero on a miss.
 - [ ] T29 -- Make the two hazards no text probe separates report NEEDS-EYES rather than a
       pass. Verify: scoring a worktree that ignored either returns NEEDS-EYES.
+- [ ] T30 -- Recover the v0.1.0-vs-v0.2.0 recall figure into `evidence/`, or record it
+      lost. Verify: a reader finds it without reading a run transcript.
+- [ ] T31 -- Score the page against BOTH prior formats, on the dominance criterion.
+      Verify: more info than filtered, fewer tokens than unfiltered, recall >= filtered.
+
 ## What this costs today
 
 One run over two files, 154 prose paragraphs, four roles: **~870,000 subagent tokens** -- 186k
