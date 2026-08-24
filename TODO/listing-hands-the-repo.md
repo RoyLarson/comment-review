@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 1 of 4 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (measuring what a reviewer is actually charged for, while scoping
@@ -25,11 +25,18 @@ what a reviewer is handed. It may not be: `--json` carries none of this block, a
 artifact is undecided -- the plan's P8. **The percentage is about the listing and is not a claim
 about anyone's prompt.**
 
+**Re-run whenever this is argued from:**
+
+```
+uv run python scripts/measure_binder.py --listing-only \
+  plugins/comment-review/skills/comment-review/scripts/{constants,repo,page}.py
+```
+
 | file under review | the census part | the `NOT CHECKED` tail | tail's share |
 | --- | --- | --- | --- |
-| `repo.py` | 41 lines, 2,716 b | 279 lines, 31,434 b | **92%** |
-| `page.py` | 204 lines, 17,371 b | 279 lines, 31,434 b | **64%** |
-| `constants.py` | 27 lines, 1,686 b | 279 lines, 31,433 b | **94%** |
+| `constants.py` | 27 lines, 1,686 b | 282 lines, 31,771 b | **94%** |
+| `repo.py` | 41 lines, 2,716 b | 282 lines, 31,772 b | **92%** |
+| `page.py` | 204 lines, 17,371 b | 282 lines, 31,772 b | **64%** |
 
 !! **IT IS BYTE-IDENTICAL ACROSS ALL THREE, BECAUSE IT IS A FACT ABOUT THE REPO.** Every tracked
 file the name harvester cannot read, one per line, at an ABSOLUTE path:
@@ -40,9 +47,10 @@ NOT CHECKED -- these are gaps, not passes:
     C:/Users/Roy/projects/comment-review/CLAUDE.md (no name harvester for unknown)
 ```
 
-!! **AND IT IS CHARGED FOUR TIMES A PAGE.** Stage 4 pastes this listing to four roles, so one
-page costs **31,434 x 4 = 125,736 bytes** of the same sentence. It grows with the REPO and not
-with the work: reviewing a 43-line file, 94% of what each role reads is this list.
+!! **AND IT IS CHARGED FOUR TIMES A PAGE, IF THE LISTING IS WHAT A ROLE READS.** Stage 4 pastes
+this listing to four roles, so one page costs **31,772 x 4 = 127,088 bytes** of the same
+sentence. It grows with the REPO and not with the work: reviewing a 43-line file, 94% of the
+listing is this list. ! **Whether a role reads the listing at all is the plan's P8**, undecided.
 
 ! **THE GAP REPORT IS REAL AND MUST NOT SIMPLY BE DELETED.** A reviewer that does not know name
 resolution was partial will read an UNRESOLVED annotation as a finding rather than as a gap --
@@ -62,7 +70,7 @@ thing.
 
 ## Tasks
 
-- [ ] T1 -- Record what each part of the listing costs, per page. Verify: the split above
+- [x] T1 -- Record what each part of the listing costs, per page. Verify: the split above
       is re-derivable from one named command.
 - [ ] T2 -- State `NOT CHECKED` once per run rather than once per page. Verify: a second
       page's listing does not repeat it.

@@ -234,7 +234,7 @@ that changed a published name or rule:
 | [nothing-makes-the-fair-copy](nothing-makes-the-fair-copy.md) | backend | yes | 1/11 | Nothing turns the collated marks into the paragraph the galley writes |
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
 | [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | systems | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
-| [listing-hands-the-repo](listing-hands-the-repo.md) | backend | — | 0/4 | The listing hands every reviewer the whole repo, four times a page |
+| [listing-hands-the-repo](listing-hands-the-repo.md) | backend | — | 1/4 | The listing hands every reviewer the whole repo, four times a page |
 | [a-page-carries-no-identity](a-page-carries-no-identity.md) | backend | — | 0/4 | A page carries no identity, so staleness is checked by re-parsing and comparing |
 
 ### in-progress  (19)

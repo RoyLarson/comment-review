@@ -30,6 +30,12 @@ Unblocked: 2026-08-24 — the deferral lifts. T6 waited on the cleanup
            page envelope. T11 and T12. ! And one field is ADDED: the page records its
            source SHA, see a-page-carries-no-identity. The minimal set is the FUNCTIONAL
            one, not the smallest.
+Baseline: 2026-08-24 — P1 landed. scripts/measure_binder.py is the
+          instrument and the numbers are in the Objective, re-derivable from one named
+          command. ! The headline moved: the JSON census is the cost, not the listing.
+          --json ignores --filtered, so 115 rows and 73,792 bytes ship either way, and
+          one page of page.py is 1,716,956 bytes across four roles. Both cuts together
+          take it to 2 percent.
 ```
 
 ## Objective
@@ -71,6 +77,39 @@ a guess.
   8,247 (11.2%) which is the same prose joined; `tier` 2,565 (3.5%) one value 135 times;
   `annotations`, `notes`, `declares` and `symbol` 8,944 together (12.2%) and empty on 125 to
   130 of 135 rows.
+
+## The BASELINE, 2026-08-24 -- and it is the JSON, not the listing
+
+**Re-run whenever this is argued from:**
+
+```
+uv run python scripts/measure_binder.py \
+  plugins/comment-review/skills/comment-review/scripts/{constants,repo,page}.py --fields
+```
+
+!! **`--json` IGNORES `--filtered` ENTIRELY.** MEASURED: 115 rows and 73,792 bytes either way,
+byte-identical. Everything the listing does to collapse no-prose rows is absent from the artifact
+the join parses -- **so every figure taken from a filtered listing says nothing about this one.**
+
+| page | rows | hold prose | as it ships | x4 roles |
+| --- | --- | --- | --- | --- |
+| `constants.py` | 34 | 4 | 25,630 | 102,520 |
+| `repo.py` | 115 | 10 | 71,099 | 284,396 |
+| **`page.py`** | **659** | **60** | **429,239** | **1,716,956** |
+
+**What each candidate cut takes off it** -- candidates, because T6 is still owed:
+
+| | `constants.py` | `repo.py` | `page.py` |
+| --- | --- | --- | --- |
+| carrying fields only | 38% | **46%** | **45%** |
+| `path`+`tier` to an envelope | 86% | 84% | 85% |
+| prose rows only | 40% | 24% | 27% |
+| **both cuts together** | **3%** | **2%** | **2%** |
+
+! **ONE PAGE OF `page.py` IS 1.7 MB ACROSS FOUR ROLES**, and 12,651 bytes after both cuts.
+
+! **Key names alone are 23,000 bytes over `repo.py`, 32% of the file** -- 19 keys restated on
+every row, which no field-by-field trim reaches and only the envelope does.
 
 ## `start`/`end` has readers, and is a duplicate rather than dead
 
