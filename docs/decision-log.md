@@ -83,6 +83,20 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `prove_unchanged` exists to refuse; the move is ruled ALLOWED, which is not the same as
   invisible, so the proof needs a rule admitting this one transformation and nothing near it.
 
+- **#11.** **A doc run is a docstring when a documentable declaration follows it, and a comment
+  when nothing does** (Roy, 2026-08-23: *"That seems reasonable and likely that it will be
+  generic."*). Raised on Lua's `---`, where 2,505 of 2,741 neovim declarations carry one and all
+  read as undocumented; adding `---` to `doc_line` was tried and turned 4,230 comments into
+  docstrings, breaking 8 files, because LuaLS writes `@class`/`@field` runs that document nothing.
+  ! The alternative -- an exclude-list of `@`-tags -- fails on a run of `@param`/`@return` ABOVE a
+  declaration, which carries no prose and is still that function's documentation.
+  !! **IT MOVES THE LEXER FROM STRINGS TO PLACEMENT, WHICH IS ASSUMED TODAY AND NOT CHECKED**
+  (Roy: *"The lexer looks at the strings and maybe some closing strings currently. It could/should
+  look at placement but we have assumed placement currently."*) -- `_is_doc` reads the opener and
+  the character after it and nothing else. ! **AND IT NEEDS OUTER AND INNER DOC OPENERS SPLIT PER
+  ROW FIRST**: Rust declares `("///", "//!")` undifferentiated, and `//!` documents the ENCLOSING
+  item, so a bare placement rule demotes a module's own doc to a comment.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is

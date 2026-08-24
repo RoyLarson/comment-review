@@ -231,7 +231,7 @@ that changed a published name or rule:
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | — | 6/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | — | 2/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 
-### in-progress  (18)
+### in-progress  (19)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -253,8 +253,9 @@ that changed a published name or rule:
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | backend | yes | 2/4 | The join merges across a boundary it cannot read, and blames the neighbour |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/6 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/9 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | — | 3/19 | Ten findings in lexer.py and language.py, from three review rounds |
 
-### decision-needed  (23)
+### decision-needed  (22)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -271,7 +272,6 @@ other tasks can proceed without them._
 | [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | backend | yes | 4/9 | A prose file has no blocks, so the system cannot review documentation |
 | [correcting-one-copy-strands-the-reference-copy](correcting-one-copy-strands-the-reference-copy.md) | agents | yes | 0/6 | Correcting one copy strands the copy in a REFERENCE ONLY file |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | agents | yes | 1/3 | A claim can be false by arithmetic with no enforcing line to check it against |
-| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | yes | 2/17 | Ten findings in lexer.py and language.py, from three review rounds |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | systems | yes | 3/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
 | [nothing-checks-that-four-reviewers-were-launched](nothing-checks-that-four-reviewers-were-launched.md) | agents | yes | 1/5 | Nothing checks that four reviewers were LAUNCHED |
 | [reference-only-misses-the-documentation](reference-only-misses-the-documentation.md) | agents | yes | 0/4 | REFERENCE ONLY misses the project's own documentation |
