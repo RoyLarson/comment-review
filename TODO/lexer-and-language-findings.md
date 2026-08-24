@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 19 tasks done
+Progress: 3 of 23 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -25,32 +25,48 @@ waiting on are made** -- T14 and T15, 2026-08-23. Neither produced a single fix.
 
 !! **T15 IS RULED: PLACEMENT DECIDES.** A doc run is a DOCSTRING when a documentable
 declaration follows it and a COMMENT when nothing does. Roy: *"That seems reasonable and
-likely that it will be generic."* MEASURED on `corpora/neovim`, the three shapes it has to
-separate -- prose plus `@param` above a declaration; `@param` ALONE above a declaration,
-which is still that function's documentation; and `@class`/`@field` above nothing, in a
-file that raises on import. ! An exclude-list of `@`-tags was the alternative and gets the
-middle shape wrong.
+likely that it will be generic."*
 
-! **AND IT COSTS AN INTERNALS CHANGE, WHICH IS T18.** Roy: *"it changes some of the
+MEASURED on `corpora/neovim`, the first real Lua censused here: **2,505 of 2,741
+declarations (91%) carry a `---` run above them and ALL came back undocumented**; 43,563 of
+92,578 lines open with `---`, 11,987 of them LuaLS annotations. ! **THE ONE-LINE FIX WAS
+TRIED AND IS WRONG**: adding `---` to `line_comment` and `doc_line` turned 4,230 comments
+into docstrings and 0 differing files into 8, because a docstring tied to a declaration
+that is not there cannot be set back where it was read.
+
+The three shapes the rule has to separate, `language.py:455-470` recording the first
+measurement:
+
+| where | shape | is |
+| --- | --- | --- |
+| `vim/glob.lua:89-93` | prose + `@param`/`@return` above `local function end_seg(t)` | docstring |
+| `vim/glob.lua:67-69` | `@param`/`@return` ALONE above `local function start_seg(p)` | docstring |
+| `vim/lsp/_meta/protocol.lua:24-28` | `@class`/`@field` above NOTHING, in a file whose line 12 reads `error('Cannot require a meta file')` | comment |
+
+! **AN EXCLUDE-LIST OF `@`-TAGS GETS THE MIDDLE ROW WRONG** -- the only thing in it is
+annotations and it is still that function's documentation. That was the alternative.
+
+! **AND IT COSTS AN INTERNALS CHANGE, WHICH IS T20.** Roy: *"it changes some of the
 internals for the lexer. The lexer looks at the strings and maybe some closing strings
 currently. It could/should look at placement but we have assumed placement currently."*
 `_is_doc` at lexer.py:945-955 reads the opener characters and the character after them,
 and nothing else.
 
-!! **T19 IS THE TRAP THE RULING WALKS INTO.** `language.py:122` declares Rust
+!! **T21-T22 ARE THE TRAP THE RULING WALKS INTO.** `language.py:122` declares Rust
 `doc_line=("///", "//!")` with the two undifferentiated, and they point OPPOSITE ways:
 `///` documents what FOLLOWS, `//!` documents the ENCLOSING item and correctly has nothing
 under it. *Does a declaration follow* is the right question for an outer opener and the
 wrong one for an inner one, and no row says which it has. ! Roy raised the Rust connection
 himself -- *"This is also rusts Docstring fix a little even though rust has /// for
-docstrings instead of comments."*
+docstrings instead of comments."* ! **The field is shared and each row's answer is its
+own** -- T21 adds it, T22 is RUST'S decision, T23 is LUA'S.
 
 !! **T14 IS RULED, AND IT PRODUCED TWO TASKS RATHER THAN ONE FIX.** A same-line docstring
 -- `def g(): """d."""` -- gets an `a`. Roy, 2026-08-23: *"gets an a but when the lexer
 type thing gets it in python it will end up as a c"* and *"also on rewrite it will end up
 below the function def and that as fine."*
 
-! **The ruling reaches past the census in both directions**, which is why T16 and T17
+! **The ruling reaches past the census in both directions**, which is why T16-T19
 exist. Backwards: when Python goes lexical the same construct becomes a `c`, because a
 lexer sees a string beside code and has no AST saying it is documentation -- so the
 address MOVES and someone will read that as a regression. Forwards: setting it back
@@ -152,84 +168,23 @@ as invisible.**
       compositor identity CANNOT catch this -- prose read as code sets back
       byte-identical -- so the sentence test in `test_fixture_identity.py` is the only
       gate that would. Verify: a fixture with `--[===[` fails before the fix.
-- [ ] T14 -- RULED 2026-08-23 -- A SAME-LINE DOCSTRING GETS AN `a`. Roy: *"gets an
-      a but when the lexer type thing gets it in python it will end up as a c."*
-      MEASURED 2026-08-23 on legal Python -- `def g(): """Same line doc."""` yields
-      a paragraph at `5-5 kind=docstring anchor=g` with an EMPTY address, and
-      `census.py` exits 1 on the WHOLE FILE with *"1 paragraph carry NO ADDRESS"*
-      and the advice *"Re-run census.py"*, which never helps. ! It is the
-      function's docstring by every measure that decides one -- the interpreter
-      returns it as `g.__doc__` -- so ignoring it hides a real docstring from every
-      reviewer, and refusing the file refuses legal Python. Verify: `def g():
-      """d."""` censuses at `a1 kind=docstring anchor=g`, and `census.py` exits 0.
-- [x] T15 -- RULED 2026-08-23: PLACEMENT DECIDES. A doc run is a DOCSTRING when a
-      documentable declaration follows it and a COMMENT when nothing does. Roy:
-      *"That seems reasonable and likely that it will be generic."* ! It is
-      checkable from the row and tracks no other tool's vocabulary. ! The FIX is
-      T18 and T19; this box is the ruling. The row at
-      language.py:455-470 records the measurement and does not fix it, so every
-      documented Lua declaration reads as `undocumented`. MEASURED 2026-08-22 on
-      `corpora/neovim`, the first real Lua ever censused here: 2,505 of 2,741
-      declarations carry a `---` run above them (91%) and ALL came back undocumented;
-      43,563 of 92,578 lines open with `---`, of which 11,987 are LuaLS annotations.
-      ! THE ONE-LINE FIX IS WRONG AND WAS TRIED: adding `---` to `line_comment` and
-      `doc_line` turned 4,230 comments into docstrings and 0 differing files into 8.
-      LuaLS writes `--- @class` and `--- @field` runs that document NO declaration --
-      whole type-stub files are nothing else -- and a docstring tied to a declaration
-      that is not there cannot be set back where it was read. ! MEASURED on
-      `corpora/neovim` 2026-08-23, the three shapes the rule has to separate:
-      `vim/glob.lua:89-93` is prose plus `@param`/`@return` above `local function
-      end_seg(t)`; `:67-69` is `@param`/`@return` ALONE above `local function
-      start_seg(p)` -- still that function's documentation; and
-      `vim/lsp/_meta/protocol.lua:24-28` is `@class`/`@field` with NO declaration
-      under it, in a file whose line 12 reads `error('Cannot require a meta file')`.
-      ! **AN EXCLUDE-LIST OF `@`-TAGS GETS THE MIDDLE ONE WRONG**, because the only
-      thing in it is annotations and it is real documentation.
-- [ ] T16 -- WRITE DOWN THAT THIS ADDRESS CHANGES WHEN PYTHON GOES LEXICAL, before
-      the rebuild lands. Roy ruled the `a` **and** named where it ends up: *"when
-      the lexer type thing gets it in python it will end up as a c."* !! **UNDER A
-      LEXICAL READER THE SAME CONSTRUCT IS A `c`** -- the room beside a line of code
-      -- because a lexer sees a string sitting beside code on one line and has no
-      AST to tell it that string is the declaration's documentation. ! **SO THE
-      ADDRESS MOVES `a1` -> `c` AND NOTHING IN THE TREE WOULD SAY WHY.** A session
-      re-censusing this file after
-      [`python-cannot-read-python`](python-cannot-read-python.md) lands reads the
-      changed address as a regression and reverts it. Verify: the move is recorded
-      in `docs/history.md` with the ruling that predicted it, and a test asserts the
-      address the CURRENT tier produces, so the change arrives as a failing test
-      rather than as a surprise.
-- [ ] T17 -- LET THE REWRITE PUT A SAME-LINE DOCSTRING ON ITS OWN LINE, and make
-      `prove_unchanged` accept that one move. Roy, 2026-08-23: *"also on rewrite it
-      will end up below the function def and that as fine."* !! **THIS IS A CODE
-      LINE CHANGING, WHICH IS THE ONE THING THE PROOF EXISTS TO REFUSE.** Setting
-      `def g(): """d."""` back as `def g():` + an indented `"""d."""` rewrites the
-      declaring line itself, so the check that proves WRITE touched no executable
-      code sees exactly what it is built to catch. ! The ruling makes it ALLOWED,
-      not invisible: the move is normalisation with a stated shape, so the proof
-      needs a rule that admits this one transformation and nothing near it.
-      Verify: `def g(): """d."""` round-trips to the two-line form, `prove_unchanged`
-      returns PROVEN on it, and a test shows the proof still FAILS when any other
-      token on that line moves.
-- [ ] T18 -- TEACH THE LEXER TO ASK ABOUT PLACEMENT, not only about the opener
-      string. Roy, 2026-08-23: *"it changes some of the internals for the lexer. The
-      lexer looks at the strings and maybe some closing strings currently. It
-      could/should look at placement but we have assumed placement currently."*
-      MEASURED: `_is_doc` at lexer.py:945-955 returns `_opens_doc(opens,
-      lang.doc_line) or _opens_doc(opens, lang.doc_block)` -- the opener characters
-      and the character after them, and nothing else. ! **PLACEMENT IS ASSUMED
-      TODAY, NOT CHECKED**, which is why every `---` run in Lua reads the same way
-      whether or not anything follows it. Verify: a Lua `---` run above `local
-      function f()` types `docstring` anchored to it, the same run above nothing
-      types `comment`, and `_is_doc`'s docstring says what it now consults.
-- [ ] T19 -- SPLIT OUTER DOC OPENERS FROM INNER ONES, per language row, before T18
-      lands. !! **A BARE PLACEMENT RULE DEMOTES RUST'S `//!`.** language.py:122
-      declares `doc_line=("///", "//!")` with the two undifferentiated, and they
-      point opposite ways: `///` documents what FOLLOWS, `//!` documents the
-      ENCLOSING item and legitimately has no declaration under it -- a module's own
-      doc at the head of a file is nothing but `//!`. ! So *does a declaration
-      follow* is the right question for an OUTER opener and the wrong one for an
-      INNER opener, and no row currently says which it has. ! Each row states its
-      own from its own grammar -- Lua's `---` is outer because LUA'S convention says
-      so, Rust's split is RUST'S; neither is evidence about the other. Verify: a
-      `.rs` file opening `//!` above nothing types `docstring`, a `///` run above
-      nothing types `comment`, and the Rust row records which openers are inner.
+- [ ] T14 -- Make `def g(): """d."""` census instead of failing the file. Verify: it
+      types `a1 kind=docstring anchor=g` and `census.py` exits 0.
+- [x] T15 -- RULED 2026-08-23: placement decides -- a doc run is a docstring when a
+      declaration follows it, a comment when nothing does. Evidence in the Objective.
+- [ ] T16 -- Record the `a1` -> `c` move in `docs/history.md` with the ruling that
+      predicted it. Verify: the entry names both tiers and the ruling's date.
+- [ ] T17 -- Pin the address the CURRENT tier produces, so the move arrives as a failing
+      test. Verify: a test asserts `a1` for a same-line docstring today.
+- [ ] T18 -- Set a same-line docstring on its own line below the declaration. Verify:
+      `def g(): """d."""` round-trips to the two-line form.
+- [ ] T19 -- Make `prove_unchanged` admit that one move. Verify: PROVEN on the two-line
+      form, and still FAILS when any other token on that line moves.
+- [ ] T20 -- Make `_is_doc` consult placement, not only the opener string. Verify: a Lua
+      `---` run above `local function f()` types `docstring`, above nothing `comment`.
+- [ ] T21 -- Give the `Language` row an `inner_doc` field, defaulting empty so every
+      existing opener stays outer. Verify: the field exists and no row's typing changes.
+- [ ] T22 -- Declare Rust's `//!` inner; `///` stays outer. Verify: a `.rs` opening `//!`
+      above nothing types `docstring`, and `///` above nothing types `comment`.
+- [ ] T23 -- Add `---` to Lua's `doc_line`, which T15's ruling authorises. Verify: `--- x`
+      above `local function f()` types `docstring` anchored to it.
