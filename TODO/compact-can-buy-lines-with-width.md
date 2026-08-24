@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 6 tasks done
+Progress: 2 of 7 tasks done
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST exercise of stage 6 -- it returned two blocks at
@@ -20,6 +20,10 @@ RE-VERIFIED: 2026-08-23 — 2026-08-23. The defect is unchanged in the shipped t
              **0**. So T2, T3 and T5 all still have nothing written against them, and T4
              has nothing in the style sheet to read. The 2026-08-17 ruling has not
              reached the file it rules on.
+SPLIT:    2026-08-23 -- the KIND box held a PROHIBITION and the TEST that separates a
+          legitimate `move` from cap-dodging; they are two sentences a stranger ticks
+          separately, so they are two boxes. Every box cut to two lines. ! The TRIAGED
+          and RE-VERIFIED notes above name the PRE-SPLIT labels.
 ```
 
 ## Objective
@@ -54,7 +58,7 @@ reach the cap under the tighter bound has an existing answer in `compact.md` -- 
 the owner, do not cut.
 
 ! **THE RULING HAS NOT REACHED `compact.md`.** It was made 2026-08-17 and the file still holds
-zero occurrences of `width`, `column` or `character` (2026-08-23). T2 through T5 are what would
+zero occurrences of `width`, `column` or `character` (2026-08-23). T2 through T6 are what would
 put it there.
 
 ## ! SECOND MEASUREMENT 2026-08-17: giving it the PUBLISHED width bounds the damage, not the move
@@ -90,6 +94,9 @@ a measured width passed as a flag.
 from 1.3 the same way. An observed wrap is that kind of fact, and the style sheet is already in
 the input contract of stage 6. What is missing is any instruction to read it.
 
+! **AND IT MUST NOT BECOME A FLAG.** `census.py` takes no width, and 1.2 refuses an invented
+number.
+
 ## !! WIDTH is not the only free move -- KIND is the other one
 
 A `#` run has a cap. A docstring does not: *"A `#` comment is governed by LENGTH; a docstring by
@@ -99,6 +106,10 @@ exactly as widening does. Two escape hatches, same shape, neither named anywhere
 ! The line between legitimate and dodging is thin and has to be written down: relocating prose
 into a docstring is a real `move` **when a declaration genuinely owns the rule**, and is
 cap-dodging when the docstring is the nearest place the cap cannot reach.
+
+! **STAGE 6 CANNOT MAKE THAT CALL ITSELF** -- it holds one block and its kind -- so the rule may
+have to be that stage 6 REPORTS the conflict and never re-kinds anything, which is what it
+already does for every other conflict.
 
 ## ! What the 2026-08-17 run got RIGHT, so a later pass does not rewrite the good part
 
@@ -114,41 +125,24 @@ change, so it went to `CODE CONCERNS` and not to a verdict. `compact.md` had pre
 diagnosis in those words: *"usually a rule with no owning function, so every site performing
 part of it re-explains the whole."*
 
+! **THAT IS ALSO THE ANSWER T6 SHOULD WRITE DOWN.** On the measured run the block was 7 lines at
+the wrap of the file and 6 at 98 columns, and the operator took the code finding. `compact.md`
+already gives that answer and it worked; what is missing is the sentence saying it is the rule
+for this case.
+
 ## Tasks
 
-- [x] T1 -- RULING ALREADY MADE, not a task. * RULED 2026-08-17: WHICHEVER IS LESS.
-      Roy, verbatim. Both the published width and the observed wrap bind stage 6,
-      and the tighter one wins. Kept in full in the Objective above, because nobody
-      ticks a ruling and there is no state in which it becomes done. ! What is NOT
-      done is writing it into `compact.md` -- that is T3.
-
-- [ ] T2 -- Say in `compact.md` that a block may not change KIND to escape the cap,
-      and state the test: a `move` into a docstring is legitimate when the
-      declaration OWNS the rule, and is cap-dodging when the docstring is merely
-      where the cap does not reach. ! Stage 6 cannot make that call itself -- it
-      holds one block and its kind -- so the rule may have to be that stage 6
-      REPORTS the conflict and never re-kinds anything, which is what it already
-      does for every other conflict. Verify: the words are in `compact.md`, and
-      `uv run python scripts/check_vocabulary.py` still passes.
-
-- [ ] T3 -- Say in `compact.md` that lines may not be widened to buy a line, under
-      the T1 ruling. ! The file currently argues against every alternative while
-      leaving this one unnamed: 0 occurrences of `width`, `column` or `character`,
-      measured 2026-08-23. Verify: that count is no longer 0, and the sentence
-      states WHICHEVER IS LESS.
-
-- [ ] T4 -- Add the observed comment wrap to the measured section of the STYLE
-      SHEET, beside the templates, and state it is measured rather than published.
-      ! It must not become a flag: `census.py` takes no width and 1.2 refuses an
-      invented number. Verify: the style sheet carries the number and says how it
-      was measured.
-
-- [ ] T5 -- Write the rule for what stage 6 reports when in-cap and at-habit
-      conflict. On the measured run the block was 7 lines at the wrap of the file
-      and 6 at 98 columns, and the operator took the code finding -- a rule with no
-      owning function, three rules stacked at one call site. That is the answer
-      `compact.md` already gives and it worked; it should be written as the rule for
-      this case. Verify: `compact.md` names the case and says what stage 6 emits.
-
-- [x] T6 -- RECORD, not a task. What the 2026-08-17 run got RIGHT, kept in the
-      Objective above so a later pass does not rewrite the good part.
+- [x] T1 -- RULING, MADE 2026-08-17: WHICHEVER IS LESS. Both the published width and the
+      observed wrap bind stage 6, and the tighter wins. Kept in full in the Objective.
+- [ ] T2 -- Say in `compact.md` that a block may not change KIND to escape the cap.
+      Verify: the words are there and `scripts/check_vocabulary.py` still passes.
+- [ ] T3 -- State in `compact.md` the test that separates a legitimate `move` into a
+      docstring from cap-dodging. Verify: the file names both sides of that line.
+- [ ] T4 -- Say in `compact.md` that lines may not be widened to buy a line, under T1.
+      Verify: `width` occurs in the file and the sentence states WHICHEVER IS LESS.
+- [ ] T5 -- Add the observed comment wrap to the measured section of the STYLE SHEET.
+      Verify: the style sheet carries the number and says it was measured, not published.
+- [ ] T6 -- Write the rule for what stage 6 reports when in-cap and at-habit conflict.
+      Verify: `compact.md` names the case and says what stage 6 emits.
+- [x] T7 -- RECORD, not a task. What the 2026-08-17 run got RIGHT, kept in the Objective
+      so a later pass does not rewrite the good part.

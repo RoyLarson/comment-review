@@ -12,6 +12,9 @@ Re-verified: 2026-08-23 -- the ANCHOR half of this file is out of date. `census.
           at both tiers", and `page.py:681` says a page returns a census "addressed and
           anchored". Two tasks that rested on "no anchor exists" are superseded; the
           finding itself survives, restated below
+SPLIT:    2026-08-23 -- no box held two tasks. Every box is cut to two lines, the ruling's
+          three candidate answers moved into the Objective, and the ruling gained the
+          Verify clause it had never carried.
 ```
 
 ## Objective
@@ -40,6 +43,10 @@ corpus, no anchors at all, and `ownership-context` still held the precedence. **
 carry an anchor on every address.** What the anchor does NOT settle is whether the prose beside
 it is ABOUT it, and that is the judgement the precedence rests on.
 
+! **THE LSP `documentSymbol` ENRICHMENT IS A SEPARATE QUESTION.** It was named by the superseded
+anchor task, and `SKILL.md` describes it as the task agent's by hand; it is not what that box
+asked for.
+
 ## ! What the precedence is FOR, and why removing it is not the answer
 
 The rule exists because a claim measured at the wrong anchor is measured against the wrong code,
@@ -52,30 +59,31 @@ whatever anchor won, which is the failure the precedence exists to prevent. The 
 file asks is whether anything can raise the CONFIDENCE of the input the precedence rests on --
 not whether the precedence should stand.
 
+## The candidates for the ruling
+
+- **nothing**, and the census disclosure stands;
+- **a second role's agreement** required before a `move` OUT of a paragraph;
+- **the task agent re-deriving the placement itself** before applying it, which is what
+  `write.md` already asks for claims.
+
+! It is the same shape as
+[`stage-5-is-the-only-stage-with-no-independent-reader`](stage-5-is-the-only-stage-with-no-independent-reader.md)
+and may have the same answer.
+
+## Corroboration is computed nowhere
+
+VERIFIED 2026-08-23: `verdicts.contradictions` at `verdicts.py:225` compares `drop` against
+`correct`/`patch` only, and its docstring says *"`move` is absent by ruling"* -- so two roles
+agreeing on a destination produces no output at all. MEASURED 2026-08-17: `function-context` and
+`ownership-context` agreed on a destination and only the task agent noticed.
+
 ## Tasks
 
-- [ ] T1 -- * Rule on whether a placement verdict needs a second reader. ! It is the same
-      shape as
-      [`stage-5-is-the-only-stage-with-no-independent-reader`](stage-5-is-the-only-stage-with-no-independent-reader.md)
-      and may have the same answer. Candidates: nothing, and the census disclosure stands;
-      a second role's agreement required before a `move` OUT of a paragraph; or the task
-      agent re-deriving the placement itself before applying it, which is what `write.md`
-      already asks for claims. Finishes the day Roy answers.
-
-- [x] T2 -- SUPERSEDED. It read *"Give the census an anchor wherever one is available and it
-      currently emits none."* Verified 2026-08-23: the census emits an anchor on every address
-      at both tiers -- `census.py:454-458` prints it and `page.py:681` states it. ! The LSP
-      `documentSymbol` enrichment named here is a separate question and is described in
-      `SKILL.md` as the task agent's by hand; it is not what this box asked for.
-
-- [x] T3 -- SUPERSEDED. It read *"Say what a placement verdict is worth at the `lexical` tier,
-      where no anchor exists in any language."* The premise is false as of 2026-08-23 -- the
-      lexical tier carries anchors. What survives is T1's question, which does not vary by tier.
-
-- [ ] T4 -- Make the join report when two roles independently name the SAME destination for one
-      paragraph. Verified 2026-08-23: `verdicts.contradictions` at `verdicts.py:225` compares
-      `drop` against `correct`/`patch` only, and its docstring says *"`move` is absent by
-      ruling"* -- so agreement on a destination is computed nowhere and corroboration is lost.
-      Measured 2026-08-17: `function-context` and `ownership-context` agreed on a destination
-      and only the task agent noticed. Verify: a test that hands the join two reports naming one
-      destination for one address and asserts the agreement appears in the output.
+- [ ] T1 -- * RULE whether a placement verdict needs a second reader -- candidates in the
+      Objective. Verify: the ruling is recorded in `docs/decision-log.md`.
+- [x] T2 -- SUPERSEDED. It asked for an anchor the census now emits on every address at
+      both tiers -- `census.py:454-458` and `page.py:681`. Detail in the Objective.
+- [x] T3 -- SUPERSEDED. Its premise -- no anchor at the `lexical` tier -- is false as of
+      2026-08-23. What survives is T1's question, which does not vary by tier.
+- [ ] T4 -- Make the join report when two roles independently name the SAME destination
+      for one paragraph. Verify: a test hands it two such reports and asserts it appears.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 5 tasks done
+Progress: 2 of 10 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, on the exceptions.py layer: a human would have
@@ -14,6 +14,9 @@ TRIAGED:  2026-08-23 — 2026-08-23. Tasks 2 and 3 are REASONING -- the cost of 
           unexamined bare `raise ValueError`, waiting on task 1) and task 5, which names
           a choice the dev scripts have not made. ! Two counts were re-measured today
           and one of them had drifted -- see task 5.
+SPLIT:    2026-08-23 -- "design and land the hierarchy" was one box over five tuples and
+          roughly 30 sites in 14 modules, each retired by its own grep at its own time.
+          It became the class definitions plus one box per tuple: six boxes, five greps.
 ```
 
 ## Objective
@@ -22,6 +25,13 @@ The exception tuples are a surface, not a hierarchy. `exceptions.py` holds one c
 `Refused(ValueError)`, and five tuples of stdlib classes -- `READ_ERRORS`, `TOML_ERRORS`,
 `TOKENIZE_ERRORS`, `PARSE_ERRORS`, `GIT_ERRORS`. A caller catches a list of stdlib classes that
 happen to co-occur, not one of our concepts.
+
+**THE SHAPE ROY ASKED FOR**, 2026-08-22: *"a human would not have just moved the tuples, they
+would have properly created the exception hierarchy and used that to catch the expected
+exceptions."* A `CommentReviewError(Exception)` root over `Refused` (we declined this page),
+`Unreadable` (the bytes could not be got), `Undecodable` (the bytes came, the TOML would not
+decode), `Unparsable` (the source came, it would not parse) and `GitSilent` (git could not
+answer).
 
 ## Why this is a TODO and not a patch
 
@@ -57,40 +67,42 @@ costs nothing visible, and the bill only lands when two of them disagree. ! So a
 not free, and this one is filed on a specific ground rather than by default. Where there is no
 seam, the same reasoning argues for paying NOW.
 
+## The two measurements the last two tasks rest on
+
+**THE `raise` SIDE, RE-MEASURED 2026-08-23: 22 bare `raise ValueError`** across `plugins/` and
+`scripts/` -- the same 22 the 2026-08-22 measurement left unexamined after three deliberate
+refusals became `exceptions.Refused`. `ValueError` is a member of `PARSE_ERRORS`
+(`exceptions.py:82`), because `ast.parse` raises it on a NUL byte, so each of the 22 is either
+something the hierarchy should name or a genuinely bad argument that should stay a `ValueError`.
+! There is nothing to re-classify to until the classes exist.
+
+**THE DEVELOPMENT SCRIPTS, MEASURED 2026-08-23: five** files under `scripts/` define their own
+`READ_ERRORS` -- `check_shipped_syntax.py:39`, `check_vocabulary.py:200`, `render_brief.py:48`,
+`render_page.py:65`, `vocabulary_sweep.py:89` -- and **one** of them is the TOML variant, not two
+as previously recorded (`check_vocabulary.py:200` adds `tomllib.TOMLDecodeError`). They cannot
+import the shipped leaf without coupling the dev tree to `plugins/`, which ships alone -- so
+either they take it through the path shim two of them already use (`render_brief.py:39`,
+`render_page.py:60`), or the duplication is stated as deliberate in each file.
+
 ## Tasks
 
-- [ ] T1 -- DESIGN AND LAND THE HIERARCHY. Roy, 2026-08-22: *"a human would not have just moved
-      the tuples, they would have properly created the exception hierarchy and used that to catch
-      the expected exceptions."* The shape: a `CommentReviewError(Exception)` root over `Refused`
-      (we declined this page), `Unreadable` (the bytes could not be got), `Undecodable` (the bytes
-      came, the TOML would not decode), `Unparsable` (the source came, it would not parse) and
-      `GitSilent` (git could not answer). Verify: `grep -rn "exceptions.READ_ERRORS\|
-      exceptions.PARSE_ERRORS\|exceptions.GIT_ERRORS\|exceptions.TOML_ERRORS\|
-      exceptions.TOKENIZE_ERRORS" plugins/` comes back empty, every `except` names one of our
-      classes, and `uv run pytest -q` passes.
-
-- [x] T2 -- Reasoning, moved to the Objective: the cost is the boundary -- roughly 30 sites across
-      14 modules must catch the stdlib tuple and re-raise with `from e`.
-
-- [x] T3 -- Reasoning, moved to the Objective: deferring is safe because the named tuples are the
-      seam, and every call site already names a QUESTION rather than spelling a tuple.
-
-- [ ] T4 -- AUDIT THE `raise` SIDE ONCE T1 LANDS. RE-MEASURED 2026-08-23: **22** bare
-      `raise ValueError` across `plugins/` and `scripts/` -- the same 22 the 2026-08-22
-      measurement left unexamined after three deliberate refusals became `exceptions.Refused`.
-      `ValueError` is a member of `PARSE_ERRORS` (`exceptions.py:82`), because `ast.parse` raises
-      it on a NUL byte, so each of the 22 is either something the hierarchy should name or a
-      genuinely bad argument that should stay a `ValueError`. Verify: every remaining bare
-      `raise ValueError` sits beside a comment saying it is a bad argument and not a refusal.
-      ! Waits on T1; there is nothing to re-classify to until the classes exist.
-
-- [ ] T5 -- SETTLE THE DEVELOPMENT SCRIPTS, which are currently neither joined nor declared
-      separate. MEASURED 2026-08-23: **five** files under `scripts/` define their own
-      `READ_ERRORS` -- `check_shipped_syntax.py:39`, `check_vocabulary.py:200`,
-      `render_brief.py:48`, `render_page.py:65`, `vocabulary_sweep.py:89` -- and **one** of them
-      is the TOML variant, not two as previously recorded (`check_vocabulary.py:200` adds
-      `tomllib.TOMLDecodeError`). They cannot import the shipped leaf without coupling the dev
-      tree to `plugins/`, which ships alone -- so either they take it through the path shim two
-      of them already use (`render_brief.py:39`, `render_page.py:60`), or the duplication is
-      stated as deliberate in each file. Verify: either `grep -rn "^READ_ERRORS" scripts/` is
-      empty, or each of the five carries a comment saying why it holds its own.
+- [ ] T1 -- Define `CommentReviewError` in `exceptions.py` over `Refused`, `Unreadable`,
+      `Undecodable`, `Unparsable` and `GitSilent`. Verify: each subclasses the root.
+- [ ] T2 -- Retire `READ_ERRORS` -- each read site re-raises `Unreadable` with `from e`.
+      Verify: `grep -rn exceptions.READ_ERRORS plugins/` is empty and pytest is green.
+- [ ] T3 -- Retire `TOML_ERRORS` -- each decode site re-raises `Undecodable` from `e`.
+      Verify: `grep -rn exceptions.TOML_ERRORS plugins/` is empty and pytest is green.
+- [ ] T4 -- Retire `TOKENIZE_ERRORS` -- each site re-raises `Unparsable` with `from e`.
+      Verify: `grep -rn exceptions.TOKENIZE_ERRORS plugins/` is empty and pytest is green.
+- [ ] T5 -- Retire `PARSE_ERRORS` -- each parse site re-raises `Unparsable` with `from e`.
+      Verify: `grep -rn exceptions.PARSE_ERRORS plugins/` is empty and pytest is green.
+- [ ] T6 -- Retire `GIT_ERRORS` -- each git site re-raises `GitSilent` with `from e`.
+      Verify: `grep -rn exceptions.GIT_ERRORS plugins/` is empty and pytest is green.
+- [x] T7 -- Reasoning, moved to the Objective: the cost is the boundary -- some 30 sites
+      across 14 modules must catch the stdlib tuple and re-raise with `from e`.
+- [x] T8 -- Reasoning, moved to the Objective: deferring is safe because the named tuples
+      are the seam, and every call site already names a QUESTION rather than a tuple.
+- [ ] T9 -- Audit the 22 bare `raise ValueError` once T1..T6 land: each is a refusal or a
+      bad argument. Verify: every one left carries a comment saying which.
+- [ ] T10 -- Settle the five `scripts/` files holding their own `READ_ERRORS` -- shim or
+      declare. Verify: `grep -rn ^READ_ERRORS scripts/` is empty, or all five say why.

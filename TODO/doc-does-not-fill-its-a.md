@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 6 tasks done
+Progress: 4 of 8 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
@@ -42,6 +42,13 @@ m.rs@c0  margin        declares=-1  fn one() {}
 
 The doc LEFT the `b` series, which is what `a` was introduced for, and no place is shared.
 
+! **WHAT THE ORIGINAL MEASUREMENT READ, 2026-08-20**: on `/// The one doc.` above `fn one() {}`
+the doc was a `b1` with `declares=-1` while `a1` reported `undocumented`. Re-run 2026-08-23, it
+is `a1` with `declares=1`. The keyword list is what made the join computable, and it is built.
+
+! **Python is unaffected**: `paragraphs_stdlib` has always carried `declares` from the AST. This
+is the lexical tier only, and that is a statement of SCOPE rather than remaining work.
+
 ## !! What is left: two functions ask the same question and answer it differently
 
 `lexer.document_declarations` (`:1541-1563`) joins by NEARNESS: *"PROSE BELONGS TO WHICHEVER SIDE
@@ -70,36 +77,30 @@ arguable, the blank-separated join, is the one left unmarked and charged to the 
 human to confirm a fact the census emitted two fields earlier, and does not ask about the one it
 guessed.
 
-! Python is unaffected: `paragraphs_stdlib` has always carried `declares` from the AST. This is
-the lexical tier only.
+! **Ordering is the only obstacle to reading `declares` instead of re-deriving it, and it is
+`page_for`'s to change**: both functions already run inside `page_for` (`page.py:698` then
+`:726`).
+
+! **THE ADJACENCY RULING IS PER-LANGUAGE, SO GO AND RUBY GET A BOX EACH.** Fixing the annotation
+by reading `declares` adopts NEARNESS wholesale: `document_declarations` joins across one blank
+line on a corpus measurement (`:1559-1563`, 23 ties), while `flag_structural_docs` states that
+both languages require the doc to TOUCH. Both cannot be the language's rule, and `CLAUDE.md`'s
+rule is that a language takes its definition from its own grammar and never from a neighbour's.
 
 ## Tasks
 
-- [x] T1 -- MEASURED 2026-08-20, moved to the Objective: on `/// The one doc.` above
-      `fn one() {}` the doc was a `b1` with `declares=-1` while `a1` reported `undocumented`.
-      Re-run 2026-08-23, it is `a1` with `declares=1`.
-
-- [x] T2 -- FINISHED. The keyword list made the join computable and it is built: `declarations()`
-      reports the declaring lines and `document_declarations()` sets `declares` on the run that
-      documents each one.
-
-- [x] T3 -- FINISHED. The doc LEAVES the `b` series when it joins. Verified 2026-08-23: the Rust
-      `///` is `a1` and the gap above `fn one() {}` is `b0` -- different addresses, no place
-      shared.
-
-- [x] T4 -- Python is unaffected -- its docstrings already carry `declares` from the AST. A
-      statement of scope, moved to the Objective.
-
-- [ ] T5 -- MAKE `flag_structural_docs` READ `declares` INSTEAD OF RE-DERIVING IT. The two
-      functions use different rules (nearness vs adjacency) and produce the inverted table above.
-      Verify, all three through `page_for` on go: a run with `declares >= 0` carries NO
-      `doc-kind-unresolved`; a run with `declares == -1` above a non-declaring line carries none
-      either; and whatever remains genuinely unresolved is named in `compact.md:113`. ! Both
-      functions run inside `page_for` (`page.py:698` then `:726`), so ordering is the only
-      obstacle and it is `page_for`'s to change.
-
-- [ ] * T6 -- RULE which adjacency rule is right for go and ruby, since fixing T5 by reading
-      `declares` adopts NEARNESS wholesale. `document_declarations` joins across one blank line
-      on a corpus measurement (`:1559-1563`, 23 ties); `flag_structural_docs` states that both
-      languages require the doc to TOUCH. Both cannot be the language's rule. It finishes when
-      one of the two comments is corrected to cite the other.
+- [x] T1 -- MEASURED 2026-08-20 and re-run 2026-08-23. In the Objective.
+- [x] T2 -- FINISHED. The keyword list made the join computable and it is built --
+      `declarations()` reports the declaring lines, `document_declarations()` joins them.
+- [x] T3 -- FINISHED. The doc LEAVES the `b` series when it joins -- verified 2026-08-23,
+      the Rust `///` is `a1` and the gap above is `b0`. In the Objective.
+- [x] T4 -- SCOPE, not a task. Python is unaffected; its docstrings carry `declares` from
+      the AST. In the Objective.
+- [ ] T5 -- Make `flag_structural_docs` read `declares` instead of re-deriving it. Verify:
+      on go, a `declares >= 0` run and a `declares == -1` run both stamp nothing.
+- [ ] T6 -- Name in `compact.md:113` whatever remains genuinely unresolved after T5.
+      Verify: the stamp's explanation at :113 names the case that still fires.
+- [ ] T7 -- * RULE go's adjacency: must a doc comment TOUCH its declaration, or is
+      nearest-above enough? Verify: one of the two comments cites the other, for go.
+- [ ] T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from go's. Verify:
+      one of the two comments is corrected to cite the other, for ruby.

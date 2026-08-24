@@ -17,6 +17,8 @@ TRIAGED:  2026-08-23 — 2026-08-23. RE-MEASURED with `uv run python scripts/dea
           `completed/`. That is mechanism (b) happening while this file sat open. ! The old
           task 4 was the VERIFICATION METHOD rather than work and is folded into the tasks
           that use it.
+SPLIT:    2026-08-23 -- the boxes were cut to two lines each and the `*` marker moved
+          inside the task prose. The task count is unchanged at five
 ```
 
 ## Objective
@@ -39,7 +41,8 @@ links `../evidence/todo-tool-full-run/` and `../evidence/todo-tool-full-v0_2/` a
 and 152, both removed 2026-08-23. That TODO describes them as the first and second complete
 packages -- the evidence a graded case was to be built from -- so the links are load-bearing
 rather than decorative. ! And `TODO/the-census-is-mostly-intervals-nobody-rules-on.md` links
-`verdicts-py-announces-one-subject-and-holds-four.md`, which is now under `completed/`.
+`verdicts-py-announces-one-subject-and-holds-four.md`, which is now under `completed/`. ! That
+TODO's line 168 also quotes a number out of one of the two removed packages.
 
 ! **THE OTHER 38 ARE PRE-EXISTING AND ARCHIVAL.** None was caused by the purge.
 
@@ -50,7 +53,9 @@ completed TODO citing a sibling that later moved is not WRONG about anything; th
 
 ! **SO THE QUESTION IS NOT "FIX 41 LINKS".** It is whether the stance still holds, and what
 replaces the two that the purge broke. Repairing an archived file to keep a link green is the
-failure this repo names elsewhere -- editing the record so a check passes.
+failure this repo names elsewhere -- editing the record so a check passes. ! A rule that
+rewrites the record to keep a link green is what T4 has to avoid, and T4 is only reachable if
+T3 narrows the stance.
 
 ! `dead_sweep.py --links` is an INPUT and always exits 0 (confirmed 2026-08-23). The pass
 criterion is a person reading the list, not a green run -- so every task below names what the
@@ -69,28 +74,13 @@ archival pattern the stance already covers, and it is what produced the third li
 
 ## Tasks
 
-- [ ] T1 -- SAY what replaces the two evidence packages, or say they are gone.
-      `TODO/the-harness-cannot-run-the-system-it-grades.md:151-152` links
-      `../evidence/todo-tool-full-run/` and `../evidence/todo-tool-full-v0_2/`, both removed
-      2026-08-23, and the file's line 168 quotes a number out of one of them. Verify:
-      `uv run python scripts/dead_sweep.py --links` names no path under
-      `TODO/the-harness-cannot-run-the-system-it-grades.md`.
-
-- [ ] T2 -- FIX the third live link. `TODO/the-census-is-mostly-intervals-nobody-rules-on.md`
-      cites `verdicts-py-announces-one-subject-and-holds-four.md`, now in `completed/`. It is a
-      LIVE file citing a moved one, which the stance does not cover. Verify: `--links` names no
-      path under a live `TODO/*.md`.
-
-- [ ] * T3 -- RULE (systems) whether the stance in `dead_sweep.py:288-289` still holds for the
-      38 archival links, or narrows. It finishes the day the answer is written into
-      `dead_sweep.py` beside the sentence it revises.
-
-- [ ] * T4 -- IF archived links ARE to be repaired, rule HOW. A completed TODO citing a sibling
-      that was completed later is not wrong about anything -- the file moved. A rule that
-      rewrites the record to keep a link green is the failure this repo names elsewhere. ! Only
-      reachable if T3 narrows the stance.
-
-- [ ] T5 -- MAKE `complete_todo` REWRITE the moved file's own relative links.
-      `scripts/todo_tool.py:1021` renames and adjusts nothing, so each closure manufactures new
-      dangling links from inside `completed/`. Verify: close a TODO that cites a live sibling,
-      then `--links` reports no new path under `TODO/completed/<that file>`.
+- [ ] T1 -- Say what replaces the two removed evidence packages, or say they are gone.
+      Verify: `uv run python scripts/dead_sweep.py --links` names no path in that TODO.
+- [ ] T2 -- Fix `the-census-is-mostly-intervals-nobody-rules-on.md`'s link to a sibling
+      now in `completed/`. Verify: `--links` names no path under a live `TODO/*.md`.
+- [ ] T3 -- * Rule whether `dead_sweep.py:288-289`'s stance still holds for the 38 links,
+      or narrows. Verify: the answer is written into `dead_sweep.py` beside that sentence.
+- [ ] T4 -- * If archived links are to be repaired, rule HOW; only if T3 narrows the
+      stance. Verify: the rule is written into `dead_sweep.py` beside what it revises.
+- [ ] T5 -- Make `complete_todo` (todo_tool.py:1021) rewrite the moved file's own links.
+      Verify: close a TODO citing a live sibling; `--links` reports no new path from it.

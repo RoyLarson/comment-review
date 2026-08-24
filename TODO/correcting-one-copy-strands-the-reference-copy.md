@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 6 tasks done
+Progress: 0 of 9 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "This shouldn't happen - As much as FOR REFERENCE only might make
@@ -16,6 +16,11 @@ TRIAGED:  2026-08-23 — 2026-08-23. The measured pair STILL AGREES, so the dive
           `REFERENCE CONCERNS` appears in NO shipped file, so landing it is work and is now a
           task. ! One claim in this file was stale and is corrected below: `contradictions()`
           keys on the ADDRESS, not the census block index.
+Split:    2026-08-23 -- every box cut to two lines. The `drop`/`move` ruling was two
+          rulings and the landing box was two files, so six boxes became eight
+Split:    2026-08-24 -- second pass, eight boxes to nine. The stage-5 detection box held a
+          `SKILL.md` change AND a demonstration run on the measured case, which are two
+          artifacts nobody ticks at the same time
 ```
 
 ## Objective
@@ -64,6 +69,22 @@ tree, or name another destination. ! The difference here is timing: 1.4 settles 
 this cannot be known until stage 5, when the correction lands on a claim whose twin is out of
 scope.
 
+### The candidates the first ruling chooses between
+
+**(a) withhold the correction** -- leave both copies wrong and agreeing, and report the pair;
+**(b) apply it and mark the proposal INCOMPLETE**, naming the stranded copy as work the author
+must do; **(c) offer to widen scope**, 1.4's move -- present the reference file and let the
+author add it to FILES UNDER REVIEW.
+
+! **Recommendation: (c), falling back to (b)** when the author does not answer. (a) makes an
+out-of-scope file able to veto a correction, which is worse than the disagreement.
+
+### And whether it reaches `drop` and `move` is not obvious in either direction
+
+Dropping a sentence whose twin survives in a reference file leaves the reference as the only
+copy -- which may be the right outcome, or may strand it. ! It is asked rather than assumed, and
+`move` is asked separately for the same reason.
+
 ## RULED 2026-08-17 -- `REFERENCE CONCERNS`, a sibling to `CODE CONCERNS`
 
 Roy: *"Gets a sibling - REFERENCE CONCERNS"*. `CODE CONCERNS` does not widen to carry a defect
@@ -77,7 +98,7 @@ verdicts.
 ! **THE RULING IS NOT IN THE SYSTEM.** MEASURED 2026-08-23: `REFERENCE CONCERNS` occurs once in
 the repo, in `docs/superpowers/specs/2026-08-17-review-process-coherence-design.md:337`. It is
 in no shipped file -- not `SKILL.md`, not `reviewer-brief.md`, not `verdicts.py`, all three of
-which carry `CODE CONCERNS`.
+which carry `CODE CONCERNS` (`verdicts.py:694`, `reviewer-brief.md:453,471`).
 
 ## Where a widened scope runs out
 
@@ -87,39 +108,33 @@ measured case is a `.md` file, so adding it to FILES UNDER REVIEW does not make 
 today. See [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) -- the two may have one
 answer.
 
+! **AND THE LIMITATION IS UNWRITTEN.** MEASURED 2026-08-24: `grep -n "REFERENCE ONLY"
+docs/limitations.md` is EMPTY, so nothing tells a reader that a run can strand a copy it may not
+touch. ! Extending `SKILL.md:800-804` is preferred to writing a second numbered rule, because
+`docs/limitations.md` says a rule belongs in exactly one file.
+
+! **DETECTION CANNOT BE THE JOIN'S.** `contradictions()` keys on the address
+(`verdicts.py:225-238`) and a reference file has no census, so it can never relate two copies.
+The task agent, which holds the reference file list and the replacement text, is where the check
+is available.
+
 ## Tasks
 
-- [ ] * T1 -- RULE on what the run DOES, Roy having ruled that shipping the divergence is not
-      it. Candidates: **(a) withhold the correction** -- leave both copies wrong and agreeing,
-      and report the pair; **(b) apply it and mark the proposal INCOMPLETE**, naming the
-      stranded copy as work the author must do; **(c) offer to widen scope**, 1.4's move --
-      present the reference file and let the author add it to FILES UNDER REVIEW. !
-      Recommendation: **(c), falling back to (b)** when the author does not answer. (a) makes an
-      out-of-scope file able to veto a correction, which is worse than the disagreement.
-
-- [ ] * T2 -- RULE whether this applies to `drop` and `move` as well as `correct`. Dropping a
-      sentence whose twin survives in a reference file leaves the reference as the only copy --
-      which may be the right outcome, or may strand it. ! Not obvious in either direction, so it
-      is asked rather than assumed.
-
-- [ ] T3 -- LAND `REFERENCE CONCERNS` in the shipped files, the 2026-08-17 ruling having reached
-      only a spec. Verify: `grep -rn "REFERENCE CONCERNS" plugins/` returns the section in
-      `reviewer-brief.md` and its emission in `verdicts.py`, alongside the `CODE CONCERNS` lines
-      already there (`verdicts.py:694`, `reviewer-brief.md:453,471`).
-
-- [ ] T4 -- DETECT the stranding at stage 5. Nothing does today. The task agent holds the
-      reference file list and the replacement text, so the check is available: grep the FALSE
-      clause of every `correct` across the REFERENCE ONLY files before applying. ! It cannot be
-      the join's -- `contradictions()` keys on the address (`verdicts.py:225-238`) and a
-      reference file has no census, so it can never relate two copies. Verify: a run over
-      `scripts/todo_tool.py` that corrects the `:1129` sentence reports
-      `.claude/skills/todo-tool/SKILL.md:253` before applying.
-
-- [ ] T5 -- EXTEND the existing `SKILL.md:800-804` rule rather than writing a second one. It
-      already names the failure; what it lacks is the branch where the second copy cannot carry
-      a verdict. Verify: the paragraph at `SKILL.md:800` states what happens when the twin is
-      REFERENCE ONLY, and no new numbered rule is added.
-
-- [ ] T6 -- SAY in `docs/limitations.md` that a run can strand a copy it may not touch, until
-      this is settled. Verify: `grep -n "REFERENCE ONLY" docs/limitations.md` is non-empty. It is
-      empty today, and a reader of a proposal has no way to know it.
+- [ ] T1 -- * **RULE what the run DOES with a `correct` whose twin is REFERENCE ONLY.**
+      Verify: the ruling names (a), (b) or (c) from the Objective and is recorded here.
+- [ ] T2 -- * **RULE whether that applies to `drop`**, where the reference copy becomes
+      the only copy. Verify: the ruling is recorded in this file.
+- [ ] T3 -- * **RULE whether that applies to `move`.** Verify: the ruling is recorded in
+      this file.
+- [ ] T4 -- **Land the `REFERENCE CONCERNS` section in `reviewer-brief.md`.** Verify:
+      `grep -n "REFERENCE CONCERNS" reviewer-brief.md` returns the section.
+- [ ] T5 -- **Emit `REFERENCE CONCERNS` from `verdicts.py`.** Verify: `grep -n "REFERENCE
+      CONCERNS" verdicts.py` returns the emission.
+- [ ] T6 -- **Land the stage-5 stranding check in `SKILL.md`**: grep each `correct`'s
+      FALSE clause across the REFERENCE ONLY files first. Verify: `SKILL.md` says so.
+- [ ] T7 -- **Prove that check on the measured case.** Verify: a run correcting
+      `todo_tool.py:1129` reports the stranded copy at `todo-tool/SKILL.md:253`.
+- [ ] T8 -- **Extend the existing `SKILL.md:800-804` rule** rather than writing a second
+      one. Verify: that paragraph states what happens when the twin is REFERENCE ONLY.
+- [ ] T9 -- **Say in `docs/limitations.md` that a run can strand a copy it may not
+      touch.** Verify: `grep -n "REFERENCE ONLY" docs/limitations.md` is non-empty.

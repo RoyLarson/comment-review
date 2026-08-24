@@ -19,6 +19,9 @@ TRIAGED:  2026-08-23 — TWO of nine were rulings ALREADY MADE by Roy on 2026-08
            SUPERSEDED: the eight dangling `CLAUDE.md stage N` pointers no longer exist in
            this tree, measured today. FOUR RULINGS REMAIN OWED and they gate the build,
            which is what `decision-needed` says.
+SPLIT:    2026-08-23 -- every box cut to two lines. T1's four candidate answers were an
+           enumeration inside a box; they are in the Objective, where a ruling can read
+           them. Every open box now carries a Verify clause; T1 and T3 had none.
 ```
 
 ## Objective
@@ -75,6 +78,7 @@ desks we have identified"*. title -> `module-context` (does it announce ONE subj
 `function-context` (a header is a promise the way a signature is, so: does the section deliver
 what its header says); prose and references -> `block-context` (claims, and whether a cited thing
 says that); placement under a header -> `ownership-context`. **No new role, no new remit.**
+! That is a constraint on T1 rather than an open question: do not add a fifth reviewer.
 
 !! **A HEADER IS A DOCUMENTABLE DECLARATION, so the `a` series works unchanged** -- `a0` the
 document, `a1..aN` its headers in source order, which is what the `a` addresser already does once
@@ -97,61 +101,57 @@ reader is a row plus a reader rather than a change to the model.
 !! **AND IN A DOCUMENTATION FILE EVERY CLAIM IS ABOUT CODE SOMEWHERE ELSE.** That inverts the
 model: the system verifies prose against adjacent code, and a document verifies against distant
 code. It is closer to what `referrers.py` already computes -- who names whom -- than to anything
-the four roles do against a `.py` file.
+the four roles do against a `.py` file. ! That is also the machinery T3's ruling may reach for:
+`referrers.py` answers the inverse question already -- which tracked files NAME a given file.
+
+## The four candidates for T1, so the ruling reads them rather than re-deriving them
+
+- **(a) headings** -- each section is a paragraph, which is how an editor works a manuscript, and
+  a heading is a `banner` in the term this system already has;
+- **(b) fenced code blocks** -- the fences are the "code lines" and the prose between them is the
+  interval, which keeps the existing definition literally intact but makes a document with no
+  fences one paragraph;
+- **(c) paragraphs**;
+- **(d) nothing -- prose files stay REFERENCE ONLY, and the system says so on purpose.**
+
+! **(d) is a legitimate answer and should be RULED rather than defaulted into**, which is what is
+happening today. ! Roy's header ruling above settles the `a` series, not this.
+
+## What the CAP means here, and what `docs/limitations.md` does not say
+
+! The cap is measured in lines of a `#` run; a markdown section has no such unit, so stage 6
+would have nothing to apply. That is T4.
+
+! MEASURED 2026-08-23: `docs/limitations.md` says nothing about markdown or prose files. The
+ASYMMETRY exists today whatever T1 answers -- code prose citing a document is checkable by a
+reviewer opening it, and the document's own drift is invisible -- and that asymmetry is the
+measured defect: six rules attributed to the wrong file.
+
+## What has already been ruled out as a second defect
+
+! SUPERSEDED 2026-08-23. The eight dangling `CLAUDE.md stage N` pointers are not in this tree:
+`grep -rn "CLAUDE\.md.*[Ss]tage [0-9]"` over `plugins/`, `docs/*.md` and `README.md` returns
+nothing. Relative links that resolve nowhere are counted and owned by
+[`dangling-links-resolve-nowhere`](dangling-links-resolve-nowhere.md), which is a different
+defect -- a tool measures it.
 
 ## Tasks
 
-- [ ] * **T1 -- RULE what BOUNDS a paragraph in a prose file.** Candidates:
-      **(a) headings** -- each section is a paragraph, which is how an editor works a manuscript,
-      and a heading is a `banner` in the term this system already has;
-      **(b) fenced code blocks** -- the fences are the "code lines" and the prose between them is
-      the interval, which keeps the existing definition literally intact but makes a document
-      with no fences one paragraph;
-      **(c) paragraphs**;
-      **(d) nothing -- prose files stay REFERENCE ONLY, and the system says so on purpose.**
-      ! (d) is a legitimate answer and should be ruled rather than defaulted into, which is what
-      is happening today. ! Roy's header ruling above settles the `a` series, not this.
-
-- [x] **T2 -- RULED 2026-08-20: the four existing desks, and no fifth.** Filed as *"rule WHICH
-      ROLES read a prose file, if any do"*. Roy answered it the same week and the mapping is
-      recorded in the objective above. ! The warning the box carried still stands and is now a
-      constraint on T1 rather than an open question: do not add a fifth reviewer.
-
-- [ ] * **T3 -- RULE what a claim in a document is checked AGAINST.** A rule stated in
-      `conventions.md` is true or false about a tree, not about the line below it. ! `referrers.py`
-      already answers the inverse -- which tracked files NAME a given file -- and may be the
-      machinery. Verify: the answer names the input a `block-context` reviewer is handed for a
-      `.md` page.
-
-- [ ] * **T4 -- RULE what happens to the CAP.** It is measured in lines of a `#` run; a markdown
-      section has no such unit, and stage 6 would have nothing to apply. Verify: `SKILL.md`'s cap
-      rule states what it means for a prose page, including if the answer is "no cap applies".
-
-- [ ] **T5 -- Name the ASYMMETRY in `docs/limitations.md`.** It exists today whatever T1 answers:
-      code prose citing a document is checkable by a reviewer opening it, and the document's own
-      drift is invisible. MEASURED 2026-08-23: `docs/limitations.md` says nothing about markdown
-      or prose files. ! That asymmetry is the measured defect -- six rules attributed to the wrong
-      file. Verify: the file carries the limitation, in the same terms `README.md:348` uses.
-
-- [x] **T6 -- SUPERSEDED 2026-08-23. The eight dangling `CLAUDE.md stage N` pointers are not in
-      this tree.** Filed as *"check whether they are the same defect or a second one"*. MEASURED:
-      `grep -rn "CLAUDE\.md.*[Ss]tage [0-9]"` over `plugins/`, `docs/*.md` and `README.md` returns
-      nothing. ! Relative links that resolve nowhere are counted and owned by
-      [`dangling-links-resolve-nowhere`](dangling-links-resolve-nowhere.md), which is a different
-      defect -- a tool measures it.
-
-- [ ] **T7 -- Move `README.md:348` when the answer lands.** Its gap row is the current public
-      statement -- *"Markdown and reStructuredText | no record at all"* -- and it must move with
-      T1's answer, **including if the answer is (d)**, in which case the row says so deliberately
-      rather than by omission. Verify: the row states the ruled position and cites where it was
-      ruled.
-
-- [x] **T8 -- RULING, MADE 2026-08-20: the four desks already ask the markdown questions.** Kept
-      as the record of Roy's words, moved into the objective where T1 and T3 can read it. It is
-      true the day it was written and every day after; there is no state in which it is ticked as
-      work.
-
-- [x] **T9 -- REASONING, kept: a header is a documentable declaration, so `a` works and `c` never
-      emits.** Moved into the objective. ! The one consequence a builder must price is there with
-      it: `attach`, `margins` and `intervals` assume three series, and markdown would be the first
-      tier to reach two.
+- [ ] T1 -- * RULE what BOUNDS a paragraph in a prose file, from the four candidates in
+      the Objective. Verify: the ruling is recorded in `docs/decision-log.md`.
+- [x] T2 -- RULED 2026-08-20: the four existing desks read a prose file, and no fifth. The
+      mapping is in the Objective.
+- [ ] T3 -- * RULE what a claim in a document is checked AGAINST. Verify: the answer names
+      the input a `block-context` reviewer is handed for a `.md` page.
+- [ ] T4 -- * RULE what happens to the CAP on a prose page. Verify: `SKILL.md`'s cap rule
+      states what it means there, including if the answer is "no cap applies".
+- [ ] T5 -- Name the prose-file asymmetry in `docs/limitations.md`: code prose citing a
+      document is checkable, the document's drift is not. Verify: the file carries it.
+- [x] T6 -- SUPERSEDED 2026-08-23. The eight dangling `CLAUDE.md stage N` pointers are not
+      in this tree. Measurement in the Objective.
+- [ ] T7 -- Move `README.md:348`'s gap row when T1's answer lands, including if the answer
+      is (d). Verify: the row states the ruled position and cites where it was ruled.
+- [x] T8 -- RULING, MADE 2026-08-20: the four desks already ask the markdown questions.
+      Kept in the Objective as the record of Roy's words.
+- [x] T9 -- REASONING, kept in the Objective: a header is a documentable declaration, so
+      `a` works and `c` never emits -- and markdown is the first tier to reach two series.

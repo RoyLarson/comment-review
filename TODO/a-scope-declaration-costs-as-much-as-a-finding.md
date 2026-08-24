@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks done
+Progress: 1 of 5 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, the day the query contract landed. `module-context`'s report on a
@@ -39,6 +39,9 @@ the block otherwise leaves the report certified by nobody (`reviewer-brief.md:42
 `module-context` files the fewest substantive findings and writes the largest report, because
 roughly a thousand blocks are outside its remit and each one now costs a full record.
 
+! **THE 1.1 MB FIGURE IS A FILE SIZE, and attributing it to out-of-role queries is an inference
+this file has not earned** -- which is what the measurement below is for.
+
 !! **It pulls against the change made the same day.** The interval exemption freed budget by
 removing records a role did not owe -- measured, `function-context` went from 11 findings to 68
 because *"the role spent its budget reading instead of accounting."* The query contract spends
@@ -56,6 +59,22 @@ and they are pulling on the same rope.
   as the heaviest role, and its remit is every claim in every block -- that is a different cause
   from this one and must not be folded into it.
 
+## ! The argument on both sides of the owed ruling
+
+**For a lighter payload:** the three shapes already route differently -- the first says which
+scope owns the block and asks nothing of the author, the other two are work
+(`reviewer-brief.md:407-409` says exactly that). A payload that follows the routing is
+consistent with it.
+
+**Against it:** `SOURCES` is what proves the block was read, and dropping it on the shape a
+reviewer reaches for when it has nothing to say is dropping it exactly where the fabrication
+risk is highest.
+
+! **IF THE RULING IS THAT IT STAYS, THE COST GETS SAID WHERE IT LANDS** -- a paragraph in the
+brief's `outside my role` section stating that a role whose remit covers a small fraction of a
+repo will write mostly scope declarations, **and that this is the contract working.** Today
+nothing there says it.
+
 ## ! The one solution that is ruled out, and it carries no box
 
 **Do not solve this by exempting a role from blocks outside its remit.** That is the
@@ -67,23 +86,13 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
 
 ## Tasks
 
-- [ ] T1 -- Measure it before changing anything: what fraction of `module-context`'s report is
-      out-of-role queries, by bytes and by record count. ! The 1.1 MB figure is a file size and
-      attributing it is an inference this file has not earned.
-
-- [ ] T2 -- * Rule on whether an `outside my role` query may carry a LIGHTER payload than the
-      other two shapes. ! The three shapes already route differently -- the first says which
-      scope owns the block and asks nothing of the author, the other two are work
-      (`reviewer-brief.md:407-409` says exactly that). A payload that follows the routing is
-      consistent with it. **Against it:** `SOURCES` is what proves the block was read, and
-      dropping it on the shape a reviewer reaches for when it has nothing to say is dropping it
-      exactly where the fabrication risk is highest.
-
-- [ ] T3 -- If T2 rules that it stays as it is, say so where the cost lands: a paragraph in the
-      brief's `outside my role` section (`reviewer-brief.md:425`) stating that a role whose
-      remit covers a small fraction of a repo will write mostly scope declarations, and that
-      this is the contract working. Verify: that section names the cost; today nothing does.
-
-- [x] T4 -- NOT A TASK. *"Do not solve this by exempting a role from blocks outside its
-      remit"* is a standing prohibition and cannot be finished. Kept in full in the
-      Objective, under *The one solution that is ruled out*.
+- [ ] T1 -- Measure `module-context`'s out-of-role queries by BYTES, before any change.
+      Verify: the fraction of the report they occupy is written into this file.
+- [ ] T2 -- Measure them by RECORD COUNT on the same report. Verify: the count and the
+      total record count are written into this file.
+- [ ] T3 -- * RULE whether an `outside my role` query may carry a LIGHTER payload than the
+      other two shapes. Verify: the ruling is recorded in `docs/decision-log.md`.
+- [ ] T4 -- If T3 rules it stays, say at `reviewer-brief.md:425` that a small-remit role
+      writes mostly scope declarations. Verify: that section names the cost.
+- [x] T5 -- NOT A TASK. *"Do not solve this by exempting a role from blocks outside its
+      remit"* is a standing prohibition. Kept in full in the Objective.

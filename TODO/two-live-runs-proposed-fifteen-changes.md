@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 11 of 16 tasks done
+Progress: 11 of 21 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
@@ -14,6 +14,9 @@ Re-verified: 2026-08-23 -- BOTH SOURCE PACKAGES ARE GONE FROM THE TREE, so every
           in this file to `evidence/todo-tool-full-v0_2/` or
           `evidence/redacted-corpus-full-v0_2/` resolves nowhere. Four proposals were
           re-checked against the shipped code and are landed or superseded
+Split:    2026-08-23 -- P6 named FOUR defects in one box and is now four; P4 held a
+          record key AND the desk refusal; P8 held a section AND its test. Every
+          measurement and premise correction moved into the Objective
 ```
 
 ## Objective
@@ -61,6 +64,30 @@ gave **78 "SOURCES not found" against HEAD** and **903 findings / 35 STANDS / 46
 14 CODE CONCERNS, exit 0** against a worktree at their commit. The tree had moved 197 lines in one
 file. ! This SUPERSEDES the note that pinning the census is enough.
 
+## P6 -- the applier's four defects, and the premise that no longer holds
+
+P6 called itself *"the deepest finding here"* and named four: **placeholder handling, drop
+scoping, comment prefixes, indent framing.** Each is now its own box because each is closed or
+filed separately.
+
+! **Its premise is no longer true.** It said *"the step that actually edits files is not
+shipped"*; `galley.py` and `compositor.py` both ship, the galley refuses overlapping and stale
+ranges, and it refuses a destructive `--out` (`galley.py:365`). So the four are RE-READS against
+shipped code, not designs.
+
+## P10 -- a reviewer cannot report an ABSENCE or a COUNT
+
+`SOURCES` requires `file:line | verbatim` -- verified 2026-08-23 at `record.py:609` and `:620`,
+which still parse each entry as `file:line` or `file:start-end` plus prose. That form cannot
+express *"this phrase appears nowhere in CLAUDE.md"*, and that absence was **the single best
+finding of the run: 213 citations resolving to nothing.** Reviewers coped by citing where they
+looked and putting the absence in prose, which works only because a human reads it.
+
+Typed sources are checkable BY MACHINE, and these are the two shapes the ruling picks over:
+`{"kind": "absence", "searched": ..., "pattern": ..., "hits": 0}` and
+`{"kind": "count", "population": ..., "scope": ..., "n": 30}`. ! Re-running the search is
+strictly better than trusting the prose.
+
 ## The measurement behind P1's placeholder case
 
 Measured 2026-08-17 on the pinned 3.11:
@@ -77,101 +104,98 @@ syntax and are already caught -- `proof kind changed (ast -> stripped) -- likely
 syntax`, exit 1 -- by a guard present in `v0.2.0`. **So the placeholder routes to P4, and
 parse-after-write earns its place only for the non-Python cases the kind guard cannot reach.**
 
+## P4 -- what is already enforced, and what is still inferred
+
+A whole-paragraph drop was expressed as the English sentence `<empty - the whole block is
+deleted>` in `CHANGE`, and landed in seven files. ! The fix is not "every drop is empty": a `drop`
+naming ONE sentence carries the REMAINING paragraph.
+
+Verified 2026-08-23: `may_empty` (`record.py:150`, enforced at `desk.py:233` and `:810`) admits a
+blank `CHANGE` only where `CLAIM` names the whole paragraph, **so the SCOPE is still inferred
+rather than stated -- there is no `scope` key on a `drop`.**
+
+## P8 -- a repo-level tension has nowhere to go
+
+Two arose on that run: a citation form the style sheet demands and the width forbids, and a
+convention the reviewers deliberately worked against. ! `NEEDS A RULING` already exists
+(`verdicts.py:640`, `SKILL.md:771`) but it counts PARAGRAPHS carrying a substantive verdict -- a
+repo-level tension is attached to no paragraph and still has nowhere to go, so both had to be
+raised in conversation.
+
+## What the superseded boxes carried, kept because the errors stay legible
+
+- **P5 (T6)** has landed on both halves. `references/residue-check.md:59` makes *"What remains is
+  STILL A PROPOSITION -- subject, referent, and a claim"* a conjunct of the check APPLY runs on
+  its own output, and `SKILL.md:104` records that it runs there; **stage 5b RE-REVIEW is built**
+  (`SKILL.md:905`, `references/re-review.md`), which is where P5 said its questions belonged.
+  ! Stage 8 was kept, as P5 asked: it is the only pass that sees paragraphs INTERACTING, and the
+  31-defect measurement is the reason.
+- **P7 (T9)** proposed `{"op": "insert", "anchor": ..., "side": "above"}` because a range replace
+  over the two code lines bounding a gap deletes both. Both halves are gone. **There is no
+  range**: a page has a PLACE for the gap and the compositor sets places in order
+  (`tests/test_galley.py:184-185`). And `side` was RULED OUT at `record.py:327-332`: *"NO `side`.
+  The ADDRESS carries it: an `a` is a declaration's documentation, a `b` is a gap, a `c` is the
+  room beside a line of code"* -- measured 2026-08-19, an `add` on a `c` address passed the gate
+  carrying `side: above`, and there was no `beside` to write instead.
+- **P3, the indent contract (T10)** is the same fact stated from the producer's side, filed at
+  [`a-block-does-not-say-where-its-text-starts`](a-block-does-not-say-where-its-text-starts.md).
+  A second box here makes two counts of one job. ! The measurement stays: a reviewer's `CHANGE`
+  carried the RECORD's presentation indent, not the file's, and a six-line paragraph landed
+  inside an `if ...: continue` body, annotating an unreachable position.
+- **P2, the WIDTH (T11)** is filed at
+  [`compact-can-buy-lines-with-width`](compact-can-buy-lines-with-width.md). ! Still true
+  2026-08-23: `grep -ci "width\|column" references/compact.md` returns **0**. The measurement
+  stays -- re-wrapping twelve over-width lines pushed a paragraph from 33 to 34 against a cap of
+  33, and the repo's own guard caught what the pipeline had not.
+- **P1, todo-tool (T12)**: the checker ships. `verdicts.py:170-191` returns *"Phrases a `REASON`
+  quotes from its own paragraph that no `CLAIM` names"*, and its docstring records the rule P1
+  asked for -- **REPORTED, NEVER FATAL**, because `REASON` legitimately discusses context.
+- **The stage-4 release requirement (T16)**. Roy, 2026-08-19: *"1 required -- ownership-context
+  has to run else verdicts are made on statements that are not in the 'right' place. The other 3
+  are optional and only run after ownership-context has had its say."* !! **The SKILL.md
+  contradiction this box was filed against is GONE**, verified 2026-08-23: `SKILL.md:30` gives
+  4a/4c, `:161-162` states *"ONE ROLE IS REQUIRED AND THREE ARE OPTIONAL"*, and `:550-551`
+  dispatches `ownership-context` alone at 4a and the other three in one message at 4c. The build
+  is
+  [`ownership-is-read-first-but-nothing-makes-it-so`](ownership-is-read-first-but-nothing-makes-it-so.md),
+  which is where the remaining tasks are counted.
+
 ## Tasks
 
 ! In the order the evidence argues for.
 
-- [ ] T1 -- * **P6 -- RE-READ THE APPLIER'S FOUR DEFECTS AGAINST THE SHIPPED GALLEY, then size
-      what is left.** P6 called itself *"the deepest finding here"* and named four: placeholder
-      handling, drop scoping, comment prefixes, indent framing. ! Its premise -- *"the step that
-      actually edits files is not shipped"* -- is no longer true: `galley.py` and `compositor.py`
-      both ship, the galley refuses overlapping and stale ranges and refuses a destructive `--out`
-      (`galley.py:365`), and the compositor sets the page. Verify: each of the four named against
-      `galley.py`/`compositor.py` with a file:line, and each either closed here or filed against
-      [`galley-and-compositor-write-path`](galley-and-compositor-write-path.md) (1/5).
-
-- [ ] T2 -- * **P10 -- a reviewer cannot report an ABSENCE or a COUNT.** `SOURCES` requires
-      `file:line | verbatim` -- verified 2026-08-23 at `record.py:609` and `:620`, which still
-      parse each entry as `file:line` or `file:start-end` plus prose. That form cannot express
-      *"this phrase appears nowhere in CLAUDE.md"*, and that absence was **the single best finding
-      of the run: 213 citations resolving to nothing.** Reviewers coped by citing where they
-      looked and putting the absence in prose, which works only because a human reads it. Typed
-      sources are checkable BY MACHINE:
-      `{"kind": "absence", "searched": ..., "pattern": ..., "hits": 0}` and
-      `{"kind": "count", "population": ..., "scope": ..., "n": 30}`. ! Re-running the search is
-      strictly better than trusting the prose. Ruling owed on the two shapes before the build.
-
-- [x] T3 -- SUPERSEDED. **P5 -- run the is-it-still-a-proposition check BEFORE the write.** It has
-      landed on both halves. `references/residue-check.md:59` makes *"What remains is STILL A
-      PROPOSITION -- subject, referent, and a claim"* a conjunct of the check APPLY runs on its
-      own output, and `SKILL.md:104` records that it runs there; **stage 5b RE-REVIEW is built**
-      (`SKILL.md:905`, `references/re-review.md`), which is where P5 said its questions belonged.
-      ! Stage 8 was kept, as P5 asked: it is the only pass that sees paragraphs INTERACTING.
-      The 31-defect measurement stays in the Objective as the reason.
-
-- [ ] T4 -- **P4 -- type the deletion, and separate WHOLE from PARTIAL.** A whole-paragraph drop
-      was expressed as the English sentence `<empty - the whole block is deleted>` in `CHANGE`,
-      and landed in seven files. ! The fix is not "every drop is empty": a `drop` naming ONE
-      sentence carries the REMAINING paragraph. Verified 2026-08-23: `may_empty` (`record.py:150`,
-      enforced at `desk.py:233` and `:810`) admits a blank `CHANGE` only where `CLAIM` names the
-      whole paragraph, so the SCOPE is still inferred rather than stated -- there is no `scope`
-      key on a `drop`. Verify: a `drop` record carries `"scope": "block"` or `"scope": "sentence"`
-      and the desk refuses one that does not.
-
-- [x] T5 -- SUPERSEDED. **P7 -- an `add` on an empty interval is an INSERTION.** The proposal was
-      `{"op": "insert", "anchor": ..., "side": "above"}` because a range replace over the two code
-      lines bounding a gap deletes both. Both halves are gone. **There is no range**: a page has a
-      PLACE for the gap and the compositor sets places in order (`tests/test_galley.py:184-185`).
-      And `side` was RULED OUT at `record.py:327-332`: *"NO `side`. The ADDRESS carries it: an `a`
-      is a declaration's documentation, a `b` is a gap, a `c` is the room beside a line of code"*
-      -- measured 2026-08-19, an `add` on a `c` address passed the gate carrying `side: above`,
-      and there was no `beside` to write instead.
-
-- [x] T6 -- SUPERSEDED HERE, tracked in its own file. **P3 -- the indent contract.** It is the
-      same fact stated from the producer's side and it is filed at
-      [`a-block-does-not-say-where-its-text-starts`](a-block-does-not-say-where-its-text-starts.md)
-      (7/10, open). A second box here makes two counts of one job. ! The measurement it carries
-      stays: a reviewer's `CHANGE` carried the RECORD's presentation indent, not the file's, and a
-      six-line paragraph landed inside an `if ...: continue` body, annotating an unreachable
-      position.
-
-- [x] T7 -- SUPERSEDED HERE, tracked in its own file. **P2 -- give the WIDTH a stage, or fold it
-      into stage 6.** Filed at
-      [`compact-can-buy-lines-with-width`](compact-can-buy-lines-with-width.md) (1/6,
-      in-progress). ! Still true 2026-08-23: `grep -ci "width\|column" references/compact.md`
-      returns **0**. The measurement stays -- re-wrapping twelve over-width lines pushed a
-      paragraph from 33 to 34 against a cap of 33, and the repo's own guard caught what the
-      pipeline had not.
-
-- [x] T8 -- FINISHED. **P1 (todo-tool) -- a `REASON` naming a sentence no `CLAIM` names.** The
-      checker ships: `verdicts.py:170-191` returns *"Phrases a `REASON` quotes from its own
-      paragraph that no `CLAIM` names"*, and its docstring records the rule P1 asked for --
-      **REPORTED, NEVER FATAL**, because `REASON` legitimately discusses context.
-
-- [ ] T9 -- **P8 -- somewhere to put a REPO-LEVEL tension no verdict can settle.** Two arose on
-      that run: a citation form the style sheet demands and the width forbids, and a convention
-      the reviewers deliberately worked against. ! `NEEDS A RULING` already exists
-      (`verdicts.py:640`, `SKILL.md:771`) but it counts PARAGRAPHS carrying a substantive verdict
-      -- a repo-level tension is attached to no paragraph and still has nowhere to go, so both had
-      to be raised in conversation. Verify: the join's output carries a section a tension with no
-      address can be written into, and a test that a record with no address reaches it.
-
-- [ ] T10 -- **P1 (redacted-corpus) -- parse after every write, for the NON-PYTHON cases.**
-      SUPERSEDED for the placeholder case (see the measurement above); the remainder is every
-      language where the `proof kind changed (ast -> stripped)` guard cannot reach, because there
-      is no parser. Verify: name what stands in for a parse at the `lexical` tier, or record that
-      nothing can and close this.
-
-- [x] T11 -- SUPERSEDED HERE, tracked in its own file. **RELEASE REQUIREMENT -- STAGE 4
-      SERIALISES.** Roy, 2026-08-19: *"1 required -- ownership-context has to run else verdicts
-      are made on statements that are not in the 'right' place. The other 3 are optional and only
-      run after ownership-context has had its say."* !! **The SKILL.md contradiction this box was
-      filed against is GONE**, verified 2026-08-23: `SKILL.md:30` gives 4a/4c, `:161-162` states
-      *"ONE ROLE IS REQUIRED AND THREE ARE OPTIONAL"*, and `:550-551` dispatches
-      `ownership-context` alone at 4a and the other three in one message at 4c. The build is
-      [`ownership-is-read-first-but-nothing-makes-it-so`](ownership-is-read-first-but-nothing-makes-it-so.md)
-      (3/10), which is where the remaining seven tasks are counted.
-
+- [ ] T1 -- * Re-read P6's PLACEHOLDER HANDLING against the shipped galley. Verify: a
+      file:line here, and it is closed or filed to `galley-and-compositor-write-path`.
+- [ ] T2 -- * Re-read P6's DROP SCOPING against the shipped galley. Verify: a file:line
+      here, and it is closed or filed to `galley-and-compositor-write-path`.
+- [ ] T3 -- * Re-read P6's COMMENT PREFIXES against the shipped compositor. Verify: a
+      file:line here, and it is closed or filed to `galley-and-compositor-write-path`.
+- [ ] T4 -- * Re-read P6's INDENT FRAMING against the shipped compositor. Verify: a
+      file:line here, and it is closed or filed to `galley-and-compositor-write-path`.
+- [ ] T5 -- * Rule the two typed SOURCE shapes, `absence` and `count`, before the build.
+      Verify: `docs/decision-log.md` records both shapes, key by key.
+- [x] T6 -- SUPERSEDED. **P5 -- run the is-it-still-a-proposition check BEFORE the
+      write.** It landed on both halves; the citations are in the Objective.
+- [ ] T7 -- Add a `scope` key to a `drop` record. Verify: `record.SHAPES` declares it and
+      a `drop` carries `"scope": "block"` or `"scope": "sentence"`.
+- [ ] T8 -- Make the desk refuse a `drop` carrying no `scope`. Verify: a test asserts the
+      refusal and fails on today's code first.
+- [x] T9 -- SUPERSEDED. **P7 -- an `add` on an empty interval is an INSERTION.** The
+      ruling and the measurement are in the Objective.
+- [x] T10 -- SUPERSEDED HERE, tracked in its own file. **P3 -- the indent contract**, at
+      `a-block-does-not-say-where-its-text-starts.md`.
+- [x] T11 -- SUPERSEDED HERE, tracked in its own file. **P2 -- give the WIDTH a stage**,
+      at [`compact-can-buy-lines-with-width`](compact-can-buy-lines-with-width.md).
+- [x] T12 -- FINISHED. **P1 (todo-tool) -- a `REASON` naming a sentence no `CLAIM`
+      names.** The checker ships at `verdicts.py:170-191`.
+- [ ] T13 -- Give the join's output a section for a tension with no address. Verify:
+      `verdicts.py` prints that section.
+- [ ] T14 -- Test that a record with no address reaches that section. Verify: the test
+      fails on today's code first.
+- [ ] T15 -- P1 (redacted-corpus) -- parse after every write, for the NON-PYTHON cases.
+      Verify: name what stands in for a parse at the `lexical` tier, or close this.
+- [x] T16 -- SUPERSEDED HERE, tracked in its own file. **RELEASE REQUIREMENT -- STAGE 4
+      SERIALISES**, at `ownership-is-read-first-but-nothing-makes-it-so.md`.
 ## Resolved -- do not redo
 
 !! **These carry CHECKED boxes because an unchecked one is a claim that work remains.** Roy,
@@ -179,23 +203,16 @@ parse-after-write earns its place only for the non-Python cases the kind guard c
 longer necessary."* Held as prose in a table, these five were invisible to any recount -- the
 README row read `0/9` while five were done.
 
-- [x] T12 -- FINISHED. **P2, both reports -- the work list is withheld on a refusal.** Printed on
-      a refusal now, labelled PROVISIONAL, exit unchanged.
-
-- [x] T13 -- FINISHED. **P2, todo-tool -- N coordinated edits.** `reviewer-brief.md` says N
-      records each read oddly alone, and that this is the format working rather than failing.
-
-- [x] T14 -- FINISHED. **P1, todo-tool -- altitude.** A third question after checkable/necessary
-      in the brief, and `compact.md` hands an over-specified paragraph back rather than cutting it.
-
-- [x] T15 -- FINISHED. **P9, redacted-corpus -- `verdicts.py --out`.** Verified 2026-08-23 at
-      `verdicts.py:293`. The stage-5 gate was unrunnable in the session type the skill is written
-      for.
-
-- [x] T16 -- FINISHED. **P3, todo-tool -- a prose file has no blocks.** Filed as
-      [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md); the measurement is what this
-      adds -- **190 of 196 files** in one merge-base diff were `TODO/*.md`.
-
+- [x] T17 -- FINISHED. **P2, both reports -- the work list is withheld on a refusal.**
+      Printed on a refusal now, labelled PROVISIONAL, exit unchanged.
+- [x] T18 -- FINISHED. **P2, todo-tool -- N coordinated edits.** `reviewer-brief.md` says
+      N records each read oddly alone, and that this is the format working, not failing.
+- [x] T19 -- FINISHED. **P1, todo-tool -- altitude.** A third brief question after
+      checkable/necessary; `compact.md` returns the paragraph uncut.
+- [x] T20 -- FINISHED. **P9, redacted-corpus -- `verdicts.py --out`.** Verified at
+      `verdicts.py:293`; the stage-5 gate had been unrunnable.
+- [x] T21 -- FINISHED. **P3, a prose file has no blocks.** Filed separately; **190 of 196
+      files** in one diff were `TODO/*.md`.
 ## Related
 
 !! **LINKAGE AUDITED 2026-08-19, and it was ABSENT.** None of the fifteen tasks named the TODO it
@@ -215,7 +232,7 @@ an omission to fix by inventing one.
 ! **P5 had two candidates and neither was a clean fit** --
 [`the-author-approves-blocks-and-never-sees-the-page`](the-author-approves-blocks-and-never-sees-the-page.md)
 and [`7a-can-prove-the-change-by-applying-it-to-a-copy`](7a-can-prove-the-change-by-applying-it-to-a-copy.md).
-It is closed at T3 rather than linked.
+It is closed at T6 rather than linked.
 
 - [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)
   -- P4 and P10 are record-shape changes and belong to that build.

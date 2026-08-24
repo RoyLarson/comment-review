@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks done
+Progress: 1 of 6 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -10,6 +10,9 @@ Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-
 Re-checked: 2026-08-23 -- one of the four is fixed: `addresser.py` no longer names
           `--repo` anywhere. The other three are live, and every line number in the
           file had moved.
+SPLIT:    2026-08-23 -- the boxes were cut to two lines each. Old T1 held the record
+          format AND the `--seed` self-contradiction, and old T3 held the re-take AND
+          naming the command that produced the cues; four tasks became six
 ```
 
 ## Objective
@@ -18,38 +21,44 @@ Re-checked: 2026-08-23 -- one of the four is fixed: `addresser.py` no longer nam
 class `block-context` is chartered to catch, shipping inside the tool that catches it. Re-taken
 2026-08-23; the citations below are today's.
 
+### What the boxes carried -- the citations, moved out of the tasks
+
+! **T1 -- the second record format, four sites in `record.py`.** `:6-11` says a record *"used to
+travel as prose that `verdicts.py` reconstructed a table from by guessing where each field
+ended"*; `:518` returns *"the rendered claim for a text record"*; `:573-584` explains *"the
+marker form the text record carried"* and what *"the old format carried"*. ! The fifth site,
+said to be in `desk.py`, was NOT found on re-read: its history lines (`:130`, `:207`) are about
+`desk`'s own behaviour, not a second record format. ! `uv run pytest -q` must stay green.
+
+! **T2 -- the same paragraph contradicts itself.** `record.py:14` says `--seed` writes a slot
+with *"`paragraph` and `address` already in it"*, while `record.SEEDED` is `("place", "anchor")`
+and `:699` reads *"THE ADDRESS AND NOTHING ELSE"*.
+
+! **T3.** `addresser.py`'s module usage line named `--repo`, which argparse rejects.
+
+! **T4 and T5 -- the uniqueness example.** `docs/addressing.md:142` states *"Every ADDRESS is
+unique -- measured `a0 b1 b2 b3 c1 c2`"* over the five-line example directly above it. MEASURED
+2026-08-23: `addresser.py:85` rules that **every series starts at 0**, and `f0` -- the file's own
+matter -- is a fourth series that the cue emits at the module (`:78`, `:176`), so the cited
+spelling cannot be what that example yields. ! `CLAUDE.md` calls this file the crux, and the
+command that produced the cues has to be named beside them.
+
+! **T6 -- the record envelope.** `reviewer-brief.md:93-107` shows a bare `{page, records}` while
+`record.seed()` writes `{record_version, reviewer, allowed, pages, code_concerns}`
+(`record.py:873-883`), with the pages under `pages` -- and the brief is a reviewer's only spec
+for the shape this branch changed.
+
 ## Tasks
 
-- [ ] T1 -- Take the second record format out of `record.py`'s prose. It describes
-      a shape that no longer exists: `:6-11` says a record *"used to travel as
-      prose that `verdicts.py` reconstructed a table from by guessing where each
-      field ended"*; `:518` returns *"the rendered claim for a text record"*;
-      `:573-584` explains *"the marker form the text record carried"* and what
-      *"the old format carried"*. ! While there, `:14` says `--seed` writes a slot
-      with *"`paragraph` and `address` already in it"*, and `record.SEEDED` is
-      `("place", "anchor")` with `:699` reading *"THE ADDRESS AND NOTHING ELSE"* --
-      the same paragraph contradicts itself. ! The fifth site, said to be in
-      `desk.py`, was NOT found on re-read: its history lines (`:130`, `:207`) are
-      about `desk`'s own behaviour, not a second record format. Verify: no shipped
-      script describes a record format the code cannot read, and
-      `uv run pytest -q` stays green.
-- [x] T2 -- FINISHED. `addresser.py`'s module usage line named `--repo`, which
-      argparse rejects. RE-MEASURED 2026-08-23: `--repo` has zero occurrences in
-      the file, the usage line at `:3` reads
-      `python addresser.py --census census.json --anchor "def f():" --series a`,
-      and `addresser.py --repo .` now fails on the missing required `--census`.
-- [ ] T3 -- Re-take the uniqueness example in `docs/addressing.md:142`. It states
-      *"Every ADDRESS is unique -- measured `a0 b1 b2 b3 c1 c2`"* over the
-      five-line example directly above it. MEASURED 2026-08-23: `addresser.py:85`
-      rules that **every series starts at 0**, and `f0` -- the file's own matter --
-      is a fourth series that the cue emits at the module (`:78`, `:176`), so the
-      cited spelling cannot be what that example yields. ! `CLAUDE.md` calls this
-      file the crux. Verify: the cues in that sentence are the ones a census of the
-      example prints, and the command that produced them is named beside it.
-- [ ] T4 -- Give the record shape in `reviewer-brief.md:93-107` its envelope. The
-      brief shows a bare `{page, records}` while `record.seed()` writes
-      `{record_version, reviewer, allowed, pages, code_concerns}`
-      (`record.py:873-883`), with the pages under `pages` -- and the brief is a
-      reviewer's only spec for the shape this branch changed. Verify: the JSON in
-      the brief is the shape `record.py --seed` writes, and `record.py --check`
-      accepts a file filled to match it.
+- [ ] T1 -- Take the second record format out of `record.py`'s prose -- :6-11, :518 and
+      :573-584. Verify: no shipped script describes a record format the code cannot read.
+- [ ] T2 -- Settle what `--seed` writes: `record.py:14` says `paragraph` and `address`,
+      `record.SEEDED` and :699 say the address alone. Verify: the two agree.
+- [x] T3 -- FINISHED. `addresser.py`'s usage line no longer names `--repo`. RE-MEASURED
+      2026-08-23: zero occurrences, and `:3` reads the `--census --anchor --series` form.
+- [ ] T4 -- Re-take the uniqueness cues at `docs/addressing.md:142`; `a0 b1 b2 b3 c1 c2`
+      cannot be what that example yields. Verify: the cues are what a census prints.
+- [ ] T5 -- Name the command that produces those cues beside the sentence at
+      `docs/addressing.md:142`. Verify: running it prints the cues the sentence states.
+- [ ] T6 -- Give the record shape in `reviewer-brief.md:93-107` its envelope. Verify:
+      `record.py --check` accepts a file filled to match the brief's JSON.

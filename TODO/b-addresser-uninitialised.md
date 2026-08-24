@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 17 tasks done
+Progress: 13 of 18 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
@@ -25,6 +25,8 @@ TRIAGED:  2026-08-23 — four of the eight open boxes are RULINGS ALREADY MADE, 
           evidence. Four boxes remain, all verified live today. ! `Requires-Roy` is set
           TRUE, from `false`: T15 is a change to Roy's own marks document and the box
           says so -- *"shifting them is his call, not a mechanical fix."*
+SPLIT:    2026-08-23 -- every box cut to two lines and the evidence each carried moved
+          into the Objective. One box held TWO test functions and became two boxes.
 ```
 
 ## Objective
@@ -42,7 +44,7 @@ HAD A LICENCE.** Measured 2026-08-19 over five file shapes:
 
 So the gap above the first line of code was called `b1` on one file and `b0` on another, and
 **adding a module docstring flipped it mid-run**. ! That is fixed -- see T1 to T7 -- and what is
-left is the wake: Roy's marks, and two tests that survived the renumbering.
+left is the wake: Roy's marks, and the tests that survived the renumbering.
 
 ## What it cost, end to end
 
@@ -121,6 +123,61 @@ rather than defining it.
   WELL-FOUNDED, NOT ARBITRARY: only `a` and `b` ever want one insertion point, and a `c` carries
   a COLUMN on a line that already exists, so it can contend with nothing.
 
+## What the ticked boxes carried
+
+! **T2 -- FRONT MATTER GOT ITS OWN SERIES, 2026-08-20.** Roy: *"we should have just made the
+frontmatter its own cues, then the rule that b owns all the lines that are not another cues's
+lines would explicitly stay true."* So the file's own matter is `f0`, `b` skips the module
+trigger, and nothing is emitted there for `b` at all. ! What that task WANTED still holds: the
+place exists whether or not prose sits in it, which is what `f0` on a file with no licence
+header now proves.
+
+! **T1 -- EACH SERIES OWNS ITS SKIP RULE**, ruled 2026-08-20: `Addresser.emit` emits at every
+trigger THAT IS ITS OWN.
+
+! **T7 -- MEASURED 2026-08-23** on the edge-case original: 7 code lines, `b0..b7`, the last
+anchored `<eof>`.
+
+! **T9 -- `SERIES` reads `(COVERS, DECLARED, GAP, ON)`** today -- `FRONT` was renamed `COVERS` --
+and `addresser.py:230` is the only place the four letters are spelled. ! SUPERSEDED IN ITS
+COUNT, not its point. Roy, 2026-08-19: *"a b and c all get addressers - the other session decided
+a short-cut was okay even though I had just told it that it was not okay."*
+
+!! **T10 -- THE TEST THAT CLAIMED TO HOLD THIS ASSERTED THE F-STRING PACKAGING, NOT THE
+MECHANISM.** `test_a_cue_is_never_DERIVED_from_another` forbade `f"{path}@c{code.index(start)}"`
+and `sum(1 for n in code if n < at)}"` -- both ending in the f-string closer. The expressions
+survived VERBATIM, lifted out of the f-string with `+ 1` appended, so all three assertions
+passed. Measured 2026-08-19. It now reads `addresser.py`'s CODE lines, skipping prose, so the
+three retired expressions stay quoted in the docstrings where they keep the error legible.
+
+! **T14 -- `galley.overlaps()` could not see two edits at one insertion point.** For two empty
+ranges the test was `b_start <= a_end`, `4 <= 3`, False. The box asked for the check to be
+deleted or for what it still guards to be stated once write-by-series landed; it landed, and the
+check is gone.
+
+## The wake the renumbering left, measured 2026-08-23
+
+! **ROY'S MARKS ON `tests/fixtures/python_edge_cases.md` NAME THE OLD NUMBERING.** Verified by
+censusing the fixture's own `## Original` block: `b0` anchors `N = 0` and `c0` is the room beside
+it, so the marks reading `b1` ... `b4` and `c1` ... `c4` are each one too high -- `b1` now anchors
+`def wrapper(fn):`. `a0`, `a1`, `a2` and `f0` are unchanged. ! It is Roy's document -- each mark
+says what he wants said at that place -- so it is a ruling, not a mechanical fix.
+
+! **AN EXISTENCE CHECK CANNOT CATCH A RENUMBERING**, which is the one thing it is there to catch.
+`test_every_b_the_marks_name_exists` and `test_every_a_and_c_the_marks_name_exists`
+(`tests/test_edge_cases.py:81`, `:106`) ask only that the cue EXISTS, and `b1`..`b4` all still do
+-- they name different places now. The assertion wanted is the ANCHOR, since a mark names a place
+and a place is a line of code.
+
+! **`test_b1_is_the_gap_above_the_first_line_of_code` (`tests/test_edge_cases.py:86`) is FALSE OF
+ITS OWN NAME** -- it asserts `b1` is in the cues, and the gap above the first line of code is
+`b0`. On that fixture `b1`'s anchor is `def wrapper(fn):`, the SECOND line of code.
+
+! **`evidence/` is a separate sentence, not a migration.**
+[`held-runs-need-a-one-off-migration`](held-runs-need-a-one-off-migration.md) is about the retired
+REPORT FORMAT and is deferred; T8 is one sentence about numbering, and a reader of `evidence/`
+has nothing today.
+
 ## Not in scope
 
 The front-matter misclassification itself -- adding a module docstring below an existing comment
@@ -128,84 +185,39 @@ run restamps that run as a licence header -- is the same run's second defect and
 
 ## Tasks
 
-- [x] T1 -- DONE. `Addresser.emit` takes the anchor, records `places[cue] = anchor`
-      and returns the cue -- one step states both facts, so they cannot
-      disagree. ! It emits at every trigger THAT IS ITS OWN: each series owns its
-      skip rule, ruled 2026-08-20.
-- [x] T2 -- !! SUPERSEDED 2026-08-20 -- FRONT MATTER GOT ITS OWN SERIES. Roy: 'we
-      should have just made the frontmatter its own cues, then the rule that
-      b owns all the lines that are not another cues's lines would explicitly
-      stay true.' So the file's own matter is `f0`, `b` skips the module entirely,
-      and nothing is emitted at that trigger for `b` at all. ! What this task
-      WANTED still holds: the place exists whether or not prose sits in it, which
-      is what `f0` on a file with no licence header now proves.
-- [x] T3 -- !! SUPERSEDED 2026-08-20 BY THE NAME, NOT THE PROPERTY. The gap above the
-      first line of code is `b0`, since every series was ruled to start at 0 and a
-      skipped trigger takes no number.
-- [x] T4 -- DONE 2026-08-20. `gap_step`, `on_step` and `address` are DELETED --
-      `grep -c 'def address\|def gap_step\|def on_step' addresser.py` answers 0.
-      Every cue comes from `Addresser.emit`.
-- [x] T5 -- DONE. `anchor_every_address` is deleted -- `grep -c` answers 0 in
-      `census.py`. `Addresser.emit` records `places[cue] = anchor` in the step
-      that issues the cue.
-- [x] T6 -- DONE. `page.attach` says which place a paragraph sits in and `record.seed`
-      lays one slot per accountable address, grouped under the page that names
-      the file once.
-- [x] T7 -- RULED 2026-08-21: the CLOSING trigger is EOF, and `triggers()` is the walk
-      every series reads. ! MEASURED 2026-08-23 on the edge-case original: 7 code lines,
-      `b0..b7`, the last anchored `<eof>`.
-- [ ] T8 -- Every `b` cue in `evidence/` names the pre-2026-08-20 numbering. State which
-      scheme the held runs use, in `evidence/README.md`, and whether they are migrated or
-      pinned. Verify: `evidence/README.md` says which. ! Related but not the same work:
-      [`held-runs-need-a-one-off-migration`](held-runs-need-a-one-off-migration.md) is
-      about the retired REPORT FORMAT and is deferred; this is one sentence about
-      numbering, and a reader of `evidence/` has nothing today.
-- [x] T9 -- DONE. One list, one walker per name. ! `SERIES` reads
-      `(COVERS, DECLARED, GAP, ON)` today -- `FRONT` was renamed `COVERS` -- and
-      `addresser.py:230` is the only place the four letters are spelled.
-      ! SUPERSEDED IN ITS COUNT, not its point. Roy, 2026-08-19: 'a b and
-      c all get addressers - the other session decided a short-cut was okay even
-      though I had just told it that it was not okay.'
-- [x] T10 -- !! THE TEST THAT CLAIMED TO HOLD THIS ASSERTED THE F-STRING PACKAGING, NOT
-      THE MECHANISM. `test_a_cue_is_never_DERIVED_from_another` forbade
-      `f"{path}@c{code.index(start)}"` and `sum(1 for n in code if n < at)}"` --
-      both ending in the f-string closer. The expressions survived VERBATIM, lifted
-      out of the f-string with `+ 1` appended, so all three assertions passed.
-      Measured 2026-08-19. ! DONE: it now reads `addresser.py`'s CODE lines, skipping
-      prose, so the three retired expressions stay quoted in the docstrings where they
-      keep the error legible and cannot pass the assertion.
-- [x] T11 -- RULING, MADE 2026-08-19 and renamed 2026-08-20: the top-of-file order is
-      f0, a0, b0, and all three are emitted on every file. Kept in the Objective, under
-      *The rulings on ORDER*. Not a checkpoint -- there is no state in which someone
-      ticks a ruling.
-- [x] T12 -- RULING, MADE 2026-08-19 -- write by series, never by line number -- and
-      IMPLEMENTED. `galley.py` contains no line arithmetic and no `splice`; `reset` is
-      an assignment to a paragraph and `compositor.set_page` walks the reading order.
-      Quoted in the Objective.
-- [x] T13 -- RULING, MADE 2026-08-19 -- the application order is f0, a0, then a -> b ->
-      c -- and IMPLEMENTED: `compositor.set_page`'s docstring quotes it and the walk
-      follows `addresser.SERIES`. Quoted in the Objective.
-- [x] T14 -- DONE, by deletion. `galley.overlaps()` could not see two edits at one
-      insertion point -- for two empty ranges the test was `b_start <= a_end`, `4 <= 3`,
-      False. The box asked for the check to be deleted or for what it still guards to be
-      stated once write-by-series landed. It landed, and the check is gone: `grep -n
-      overlaps galley.py` finds only the `--out`/`--repo` path check.
-- [ ] T15 -- * ROY'S MARKS ON `tests/fixtures/python_edge_cases.md` NAME THE OLD
-      NUMBERING, and shifting them is his call. VERIFIED 2026-08-23 by censusing the
-      fixture's own `## Original` block: `b0` anchors `N = 0` and `c0` is the room beside
-      it, so the marks reading `b1` ... `b4` and `c1` ... `c4` are each one too high --
-      `b1` now anchors `def wrapper(fn):`. `a0`, `a1`, `a2` and `f0` are unchanged. ! It
-      is Roy's document -- each mark says what he wants said at that place -- so it is a
-      ruling, not a mechanical fix.
-- [ ] T16 -- `test_every_b_the_marks_name_exists` and
-      `test_every_a_and_c_the_marks_name_exists` (`tests/test_edge_cases.py:81`, `:106`)
-      ask only that the cue EXISTS, and `b1`..`b4` all still do -- they name different
-      places now. ! An existence check cannot catch a renumbering, which is the one thing
-      it is there to catch: assert the ANCHOR instead, since a mark names a place and a
-      place is a line of code. Verify: shift every mark by one and the class must go red;
-      today it stays green.
-- [ ] T17 -- `test_b1_is_the_gap_above_the_first_line_of_code`
-      (`tests/test_edge_cases.py:86`) is FALSE OF ITS OWN NAME -- it asserts `b1` is in
-      the cues, and the gap above the first line of code is `b0`. MEASURED 2026-08-23: on
-      that fixture `b1`'s anchor is `def wrapper(fn):`, the SECOND line of code. Verify:
-      the test asserts the anchor of the cue it names.
+- [x] T1 -- DONE. `Addresser.emit` takes the anchor and records `places[cue] = anchor`, so
+      one step states both facts and they cannot disagree.
+- [x] T2 -- SUPERSEDED 2026-08-20 -- front matter got its own series, so the file's own
+      matter is `f0` and `b` skips the module trigger. Roy's words are in the Objective.
+- [x] T3 -- SUPERSEDED 2026-08-20 by the NAME, not the property: the gap above the first
+      line of code is `b0`.
+- [x] T4 -- DONE 2026-08-20. `gap_step`, `on_step` and `address` are deleted; every cue
+      comes from `Addresser.emit`.
+- [x] T5 -- DONE. `anchor_every_address` is deleted from `census.py`; the cue and the
+      anchor are recorded in the one step.
+- [x] T6 -- DONE. `page.attach` says which place a paragraph sits in, and `record.seed`
+      lays one slot per accountable address.
+- [x] T7 -- RULED 2026-08-21: the closing trigger is EOF, and `triggers()` is the walk
+      every series reads. The measurement is in the Objective.
+- [ ] T8 -- State in `evidence/README.md` which `b` numbering the held runs use, and
+      whether they are migrated or pinned. Verify: `evidence/README.md` says which.
+- [x] T9 -- DONE. One list, one walker per name -- `SERIES` is spelled once, at
+      `addresser.py:230`. Roy's words are in the Objective.
+- [x] T10 -- DONE. `test_a_cue_is_never_DERIVED_from_another` reads `addresser.py`'s CODE
+      lines, so the retired expressions cannot pass it from a docstring.
+- [x] T11 -- RULING, MADE 2026-08-19 and renamed 2026-08-20: the top-of-file order is f0,
+      a0, b0. Kept in the Objective.
+- [x] T12 -- RULING, MADE 2026-08-19 and IMPLEMENTED: write by series, never by line
+      number. Kept in the Objective.
+- [x] T13 -- RULING, MADE 2026-08-19 and IMPLEMENTED: the application order is f0, a0,
+      then a -> b -> c. Kept in the Objective.
+- [x] T14 -- DONE, by deletion. `grep -n overlaps galley.py` finds only the `--out`/
+      `--repo` path check.
+- [ ] T15 -- * RULE whether the marks in `tests/fixtures/python_edge_cases.md` shift to
+      the current numbering. Verify: the ruling is recorded in `docs/decision-log.md`.
+- [ ] T16 -- Make `test_every_b_the_marks_name_exists` (`tests/test_edge_cases.py:81`)
+      assert each mark's ANCHOR. Verify: shift every `b` mark by one and it goes red.
+- [ ] T17 -- Make `test_every_a_and_c_the_marks_name_exists`
+      (`tests/test_edge_cases.py:106`) assert the ANCHOR. Verify: shift a `c` mark, red.
+- [ ] T18 -- Make `test_b1_is_the_gap_above_the_first_line_of_code` assert the ANCHOR of
+      the cue it names. Verify: it goes red today -- `b1` anchors the SECOND line of code.

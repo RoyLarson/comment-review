@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 6 of 11 tasks done
+Progress: 6 of 15 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, reading a census entry: 'in a system that is a
@@ -22,6 +22,12 @@ TRIAGED:  2026-08-23 -- NINE OF THE ELEVEN BOXES WERE NOT TASKS. They were the
           `record.py:158`. ! STATUS CHANGED open -> deferred, on the ruling already in
           this file: Roy, 2026-08-21, *"one-stem-four-jobs can be its own branch after
           the python branch."* Deferred is not done; the boxes still say the work remains.
+SPLIT:    2026-08-23 -- one action per box. The five tasks the triage left became eight:
+          each rename is its own box, and the pre-rename check split from the gate it ends
+          with. The citations moved to *The sites* below so no box carries a line of them.
+SPLIT:    2026-08-24 -- second pass, fourteen boxes to fifteen. The `Language.declares`
+          rename verified against TWO artifacts, a grep and the suite; the suite guard is
+          the same guard for every rename in the file, so it is one box of its own.
 ```
 
 ## Objective
@@ -55,13 +61,25 @@ outside publishing, checked for collisions and never for register. `remit` is wh
 `jurisdiction` for this reason, and it is the word this predicate wants. CLAUDE.md's rule is to
 check the register BEFORE proposing.
 
+## The sites
+
+Kept here so no box carries a line of citations.
+
+| what | where |
+| --- | --- |
+| `Paragraph.declares` | `lexer.py:134`, set at `:1617` and `:1899`, read at `page.py:316-318` |
+| `Language.declares` | `language.py:61`, `:89`, and every row that populates it |
+| `lexer._declares_here` | `lexer.py:1503` -- the private reader named after that field |
+| `desk.declares_scope` | `desk.py:701`, `:708` |
+| `record.can_declare_scope` | `record.py:129`, `:158`, `:212`; `verdicts.py:95`, `:622-623`, `:684` |
+
 ## Why the sweep does not see it
 
 !! **`scripts/vocabulary_sweep.py` emits ZERO rows matching `declar`.** It lists terms of art the
 inventory does not hold, and `declaration` IS in the inventory -- so every relative of the stem
 passes. **The defect is not an unlisted word; it is a listed word doing three jobs**, and a word
 match cannot express that. ! POLYSEMY IS INVISIBLE TO A WORD MATCH, which is a finding about the
-instrument and not about this rename.
+instrument and not about this rename -- so it belongs to whoever works the sweep, not here.
 
 ## The rename shrinks if the field stops being external first
 
@@ -84,6 +102,14 @@ field, no inference from kind."* The `a` branch is the one that uses a second fi
 `declared_at` needs nothing -- it is already dead, surviving only in comments recording that it
 became `anchor_line`.
 
+## Whether this is a vocabulary change as well as a rename
+
+The files to check are the five under `plugins/comment-review/agents/` and
+`references/reviewer-brief.md`. **If a role is given the term `declares`, the renames are a
+VOCABULARY change** and `scripts/check_vocabulary.py` is the gate that says so; if no role holds
+it, the renames are internal and the gate is only a regression guard. ! `references/` and
+`docs/vocabulary.md` belong to no lane, so `backend` updates both sides in the same change.
+
 ## Sequencing
 
 * **RULED by Roy, 2026-08-21: *"one-stem-four-jobs can be its own branch after the python
@@ -94,47 +120,33 @@ ruling is why this file is `deferred` and what it waits on:
 
 ## Tasks
 
-- [ ] T1 -- Rename `Paragraph.declares` to `documents` (`lexer.py:134`, set at `:1617` and
-      `:1899`, read at `page.py:316-318`). Verify: `grep -rn 'declares' plugins/` returns no
-      paragraph-field use, `page.py` asks `cues.documents(...)` with a field of the same name,
-      and the census round trip is unchanged on the fixture corpus.
-
-- [ ] T2 -- Rename `Language.declares` to `introduces` (`language.py:61`, `:89`, and every row
-      that populates it, plus `lexer._declares_here` at `lexer.py:1503`). Verify: `grep -rn
-      'declares' plugins/.../language.py plugins/.../lexer.py` returns nothing, and
-      `uv run pytest -q` is green.
-
-- [ ] T3 -- Rename `desk.declares_scope` to `reports_remit`, and `record.can_declare_scope` with
-      it (`desk.py:701`, `:708`; `record.py:129`, `:158`, `:212`; `verdicts.py:95`, `:622-623`,
-      `:684`). Verify: `grep -rn 'declares_scope\|can_declare_scope' plugins/` returns nothing.
-
-- [ ] T4 -- Make `declares` internal to the lexer, so the rename is a one-hop change rather than
-      a field seventeen consumers can read. Verify: the field does not appear in `census.py`'s
-      emitted paragraph JSON, and every consumer keys on the stamped address instead.
-
-- [ ] T5 -- * CHECK BEFORE RENAMING whether any shipped agent file or `references/reviewer-
-      brief.md` tells a role to read `declares`. If a role is given the term, this is a
-      vocabulary change as well as a field rename and `scripts/check_vocabulary.py` gates it.
-      Verify: `grep -rn 'declares' plugins/comment-review/agents/ plugins/comment-review/skills/comment-review/references/`
-      and record the answer here; then `uv run python scripts/check_vocabulary.py` exits 0 after
-      T1 to T4.
-
-- [x] T6 -- NOT A TASK. MEASUREMENT, moved to the Objective: THIRTEEN spellings on the stem
+- [ ] T1 -- Rename `Paragraph.declares` to `documents` at the sites above. Verify: `grep
+      -rn declares plugins/` shows no paragraph-field use; the round trip holds.
+- [ ] T2 -- Rename `Language.declares` to `introduces`, on the field and on every row.
+      Verify: `grep -n declares` over `language.py` returns nothing.
+- [ ] T3 -- Rename `lexer._declares_here` to match `introduces`. Verify: `grep -n
+      declares` over `lexer.py` returns no use of the language keyword tuple.
+- [ ] T4 -- Rename `desk.declares_scope` to `reports_remit`. Verify: `grep -rn
+      declares_scope plugins/` returns nothing.
+- [ ] T5 -- Rename `record.can_declare_scope` to match, at its `verdicts.py` call sites
+      too. Verify: `grep -rn can_declare_scope plugins/` returns nothing.
+- [ ] T6 -- Make `declares` internal to the lexer. Verify: it is absent from the paragraph
+      JSON `census.py` emits.
+- [ ] T7 -- * Check whether any shipped agent file or reference gives a role the term
+      `declares`. Verify: the grep over `agents/` and `references/` is recorded here.
+- [ ] T8 -- Keep the vocabulary gate green across the renames in T1 to T6. Verify: `uv run
+      python scripts/check_vocabulary.py` exits 0.
+- [ ] T9 -- Keep the suite green across the renames in T1 to T6. Verify: `uv run pytest
+      -q` exits 0 after the last of them lands.
+- [x] T10 -- NOT A TASK. MEASUREMENT, in the Objective: THIRTEEN spellings on the stem
       across the shipped tree, and the vocabulary defines exactly ONE of them.
-
-- [x] T7 -- NOT A TASK. The SETTLED DEFINITION, moved to the Objective: `references/
-      vocabulary.toml` settles `declaration` and that definition is correct and stays.
-
-- [x] T8 -- NOT A TASK. The ARGUMENT that `Paragraph.declares` states the relationship
-      backwards, and the PROPOSED name `documents`. Moved to the Objective; the rename is T1.
-
-- [x] T9 -- NOT A TASK. The finding that `scripts/vocabulary_sweep.py` FINDS NONE OF THIS, and
-      why -- polysemy is invisible to a word match. Moved to *Why the sweep does not see it*.
-      ! It is a finding about the instrument, and belongs to whoever works the sweep.
-
-- [x] T10 -- NOT A TASK. The REDUNDANCY ARGUMENT (`page.py:487` derives the field from the cue;
-      `addresser.for_anchor` reads it twice against the module's own stated rule) and the note
-      that `declared_at` is already dead. Moved to the Objective; the work is T4.
-
-- [x] T11 -- NOT A TASK. RULING, already made and moved to *Sequencing*: Roy, 2026-08-21,
+- [x] T11 -- NOT A TASK. The SETTLED DEFINITION is in the Objective:
+      `references/vocabulary.toml` settles `declaration`, and that definition stays.
+- [x] T12 -- NOT A TASK. The ARGUMENT that `Paragraph.declares` states the relationship
+      backwards, and the PROPOSED name `documents`. In the Objective; the rename is T1.
+- [x] T13 -- NOT A TASK. The finding that `scripts/vocabulary_sweep.py` finds none of
+      this, and why, is in *Why the sweep does not see it*.
+- [x] T14 -- NOT A TASK. The REDUNDANCY ARGUMENT and the note that `declared_at` is
+      already dead. In *The rename shrinks...* and *Not in scope*; the work is T6.
+- [x] T15 -- NOT A TASK. RULING, already made and in *Sequencing*: Roy, 2026-08-21,
       *"one-stem-four-jobs can be its own branch after the python branch."*

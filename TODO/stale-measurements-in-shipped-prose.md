@@ -16,6 +16,9 @@ Re-taken: 2026-08-23 -- the language count IS FIXED: `vocabulary.toml:34` reads 
           the eighteen', `desk.py:384` reads 'seventeen of the eighteen', and no test
           docstring says 'eleven languages'. Every other site is live and every line
           number in this file had moved; the inventory below is today's.
+SPLIT:    2026-08-23 -- no box held two tasks; six boxes stay six. What moved is the
+          reasoning inside them -- the corrected language count and the rule against
+          hand-correcting first now sit in the Objective.
 ```
 
 ## Objective
@@ -29,7 +32,12 @@ them can be graded rather than trusted.
 rather than a sweep.** `census.py --languages` prints **18** rows; `vocabulary.toml:34` now reads
 *"Four of the eighteen have no docstring practice at all -- sql, toml, ini, yaml"* and
 `desk.py:384` *"seventeen of the eighteen languages"*. The tests that carried *"eleven
-languages"* no longer do.
+languages"* no longer do. `vocabulary.toml` is read by all four roles, and `grep -ri eleven
+tests/` no longer returns a language claim in `test_cues.py`, `test_galley.py` or
+`test_verdicts.py`.
+
+!! **DO NOT HAND-CORRECT THE NUMBERS FIRST.** Correcting them destroys the only graded case
+this repo has for the state class -- the run has to meet the sites while they are still wrong.
 
 **THE INVENTORY, re-taken 2026-08-23. Each line is a site, the claim, and what re-derives it:**
 
@@ -47,39 +55,27 @@ languages"* no longer do.
 | `test_cues.py:216` | cites `census.address` | `grep -n "def address" census.py` -- no such name |
 
 ! **Two of the ten are in `tests/`,** which a run over the shipped scripts does not reach. That
-is T6, and it is a decision about the run's scope rather than a defect in the prose.
+is the last task below, and it is a decision about the run's scope rather than a defect in the
+prose. The second of the two cites `census.address`, which does not exist.
 
 ! **`SKILL.md:936` is not a plain stale count** -- the sentence's subject is that this section
 *"was wrong about the set for two releases"*, so correcting the number without keeping the point
 loses the reason the sentence exists.
 
+! **Five shipped files hold the sites a run can reach**: `page.py`, `verdicts.py`,
+`addresser.py`, `census.py` and `SKILL.md`.
+
 ## Tasks
 
-- [x] T1 -- FINISHED. The language count is corrected everywhere it shipped:
-      `vocabulary.toml:34` (read by all four roles) and `desk.py:384` now say
-      eighteen, `census.py --languages` prints 18 rows, and `grep -ri eleven
-      tests/` no longer returns a language claim in `test_cues.py`,
-      `test_galley.py` or `test_verdicts.py`.
-- [ ] T2 -- Freeze this file as the SCORING KEY before the run: every site carries
-      its file:line, the claim verbatim, and the command that re-derives the true
-      number. Verify: each row of the inventory above names a command, and each
-      command is one a stranger can run from the repo root.
-- [ ] T3 -- Run the shipped review over the files holding these sites once v0.2.4
-      ships -- `page.py`, `verdicts.py`, `addresser.py`, `census.py`, `SKILL.md` --
-      and keep the records. ! Do NOT hand-correct the numbers first: correcting
-      them destroys the only graded case this repo has for the state class. Verify:
-      a run directory exists with one record per role and the files under review
-      named in its packet.
-- [ ] T4 -- Score that run against T2's key: how many of the sites `block-context`
-      flagged, how many it missed, and what it flagged that is not in the key.
-      Verify: the three numbers are written in this file, with the run they came
-      from named.
-- [ ] T5 -- Apply what the run proposes and the human approves, through the normal
-      stages. Verify: at each site in the key, the number in the prose equals what
-      its re-derivation command prints, and `uv run pytest -q` is green.
-- [ ] T6 -- Decide whether the dogfood run covers `tests/`. Two of the ten sites
-      are test prose -- `test_page.py:244` and `test_cues.py:216`, the second
-      citing `census.address`, which does not exist. Verify: either `tests/` is in
-      the run's FILES UNDER REVIEW and the two sites are scored with the rest, or
-      they are corrected by hand and `grep -rn "census.address" tests/` comes back
-      empty.
+- [x] T1 -- FINISHED. The language count is corrected everywhere it shipped --
+      `vocabulary.toml:34`, `desk.py:384`, the tests. Kept in the Objective.
+- [ ] T2 -- Freeze the inventory above as the SCORING KEY before the run. Verify: each row
+      names its file:line, the claim verbatim, and a command runnable from the repo root.
+- [ ] T3 -- Once v0.2.4 ships, run the shipped review over the five shipped files holding
+      the inventory's sites. Verify: a run dir holds a record per role, naming those five.
+- [ ] T4 -- Score that run against T2's key -- sites flagged, sites missed, and flags not
+      in the key. Verify: the three numbers are written in this file, with the run named.
+- [ ] T5 -- Apply what the run proposes and the human approves, through the normal stages.
+      Verify: each key site matches its command's output, and `uv run pytest -q` is green.
+- [ ] T6 -- Decide whether the dogfood run covers `tests/`, holding two of the ten sites.
+      Verify: `tests/` is under review, or `grep -rn census.address tests/` is empty.

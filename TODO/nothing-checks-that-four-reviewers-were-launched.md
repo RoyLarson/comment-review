@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 5 tasks done
+Progress: 1 of 6 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, on a MISREADING that turned out to sharpen the task -- see below
@@ -15,6 +15,9 @@ TRIAGED:  2026-08-23 -- RE-VERIFIED against the shipped tree, and ONE PREMISE MO
           --out <run-dir>/$role.json`), so a four-named-file artifact in the run directory
           already exists -- which is most of candidate (d) and is stated in T1 rather
           than left for the ruling to rediscover.
+Split:    2026-08-23 -- the box making `--reviewers` default to four carried a rider
+          asking what that does to a DELIBERATE single-role run; that rider is its own
+          ruling and is now T3
 ```
 
 ## Objective
@@ -22,7 +25,7 @@ TRIAGED:  2026-08-23 -- RE-VERIFIED against the shipped tree, and ONE PREMISE MO
 **`!! Every verdict is available on every run, and all four roles run every time`** is stated in
 `SKILL.md` and enforced by nothing at the moment it matters.
 
-! The gap is real; the incident that raised it was not. See T5.
+! The gap is real; the incident that raised it was not. See the record at T6.
 
 What exists today, and where each check sits:
 
@@ -41,13 +44,38 @@ cannot inspect: `run_context.py` runs before it and `verdicts.py` runs after.
 dispatch is detected only once three reviewers have read the census and written their reports --
 on a large run that is several hundred thousand tokens and twenty minutes before the run learns it
 was invalid. And it is only caught at all if the task agent passes `--reviewers`, which is
-optional.
+optional. MEASURED 2026-08-23: still optional (verdicts.py:296), and its absence is still only
+announced -- *"whether every expected reviewer reported was NOT checked"* (verdicts.py:516) -- and
+an announcement in a wall of output is not a gate.
 
 ! Why the invariant is not a formality: `SKILL.md` records that **a single-role run ratifies
 falsehoods** -- one role reading a false absence claim writes that it is true, where another
 refutes it by grep. A three-role run is the same defect, weaker. And the missing role's blocks
 are not gaps the join can see: it computes coverage from the reviewers that REPORTED, so three
 complete reports read as complete coverage unless `--reviewers` names the fourth.
+
+## The four candidates for WHERE the check goes, and the recommendation
+
+There is no artifact between the packet and the reports that records a DISPATCH, so the candidates
+for T1 are: (a) the task agent states the four agent names in the PROPOSAL and the human sees a
+short list, (b) `--reviewers` stops being optional and defaults to the four editorial roles, (c) a
+stage-4 line in `SKILL.md` requiring the dispatch be re-read and the count stated before waiting on
+results, (d) the task agent WRITES the four role names to the run directory at dispatch time, and
+stage 5 reads that file rather than a flag the human typed.
+
+! Recommendation: **(b) and (d). Not (c)** -- the section below says why.
+
+! MEASURED 2026-08-23, and it shortens (d): stage 4 ALREADY writes four files named for the four
+roles, at SKILL.md:658-664, by seeding each reviewer's report before dispatch. What those files do
+not carry is a statement that a dispatch was MADE, so (d) is a field on an existing artifact rather
+than a new one.
+
+! The sentence T4 asks for must name the failure: a short dispatch is not detected until stage 5,
+after the reviewers that did run have spent everything.
+
+! T5's question is fatal today via `--reviewers`, and fatal is probably right -- the alternative is a proposal
+that reads like a four-role run and is not -- but the ruling should be written down rather than
+inherited from an implementation detail.
 
 ## Why a stage-4 INSTRUCTION TO OBSERVE is the wrong shape
 
@@ -72,42 +100,23 @@ rendering, so it cannot lag. **A declaration is therefore not "invent a record" 
 the one you were already given."** Say that in whatever lands, or an agent will reach for the
 display again -- it is the thing in front of it.
 
+!! **The record kept at T6: on 2026-08-17 FOUR were dispatched, and the fourth took time to
+register in the display.** This file was raised on a transcript reading "3 background agents
+launched", which was a UI lag read as an event. No run short-dispatched. ! Left in rather than
+deleted: the only signal available at dispatch time is one that lags, and it misled a reader who
+was looking straight at it.
+
 ## Tasks
 
-- [ ] T1 -- * Rule on WHERE the check goes. There is no artifact between the packet and the
-      reports that records a DISPATCH, so the candidates are: (a) the task agent states the four
-      agent names in the PROPOSAL and the human sees a short list, (b) `--reviewers` stops being
-      optional and defaults to the four editorial roles, (c) a stage-4 line in `SKILL.md`
-      requiring the dispatch be re-read and the count stated before waiting on results, (d) the
-      task agent WRITES the four role names to the run directory at dispatch time, and stage 5
-      reads that file rather than a flag the human typed.
-      ! Recommendation: **(b) and (d). Not (c)** -- the section above says why.
-      ! MEASURED 2026-08-23, and it shortens (d): stage 4 ALREADY writes four files named for
-      the four roles, at SKILL.md:658-664, by seeding each reviewer's report before dispatch.
-      What those files do not carry is a statement that a dispatch was MADE, so (d) is a field
-      on an existing artifact rather than a new one.
-
+- [ ] T1 -- * Rule on WHERE the check goes, from the four candidates in the Objective.
+      Verify: the ruling names the candidate and is written in `docs/decision-log.md`.
 - [ ] T2 -- Make `--reviewers` default to the four editorial roles rather than to `""`.
-      MEASURED 2026-08-23: it is still optional (verdicts.py:296) and its absence is still only
-      announced -- *"whether every expected reviewer reported was NOT checked"* (verdicts.py:516)
-      -- and an announcement in a wall of output is not a gate. ! Check what this does to a
-      deliberate single-role run; if that is a thing anyone does, it needs an explicit way to say
-      so. Verify: `verdicts.py` with no `--reviewers` over three report files exits nonzero and
-      names the fourth role.
-
-- [ ] T3 -- Say in `SKILL.md` stage 4 that the dispatch is COUNTED, and that four is the number.
-      ! It must name the failure: a short dispatch is not detected until stage 5, after the
-      reviewers that did run have spent everything. Verify: the sentence exists under
-      `## Stage 4` (SKILL.md:544) and names the count.
-
-- [ ] T4 -- * Rule on whether a missing role is FATAL at stage 5 or a stated degradation. It is
-      fatal today via `--reviewers`. ! Fatal is probably right -- the alternative is a proposal
-      that reads like a four-role run and is not -- but the ruling should be written down rather
-      than inherited from an implementation detail.
-
-- [x] T5 -- NOT A TASK. RECORD, kept because it is the evidence for the section above:
-      !! **on 2026-08-17 FOUR were dispatched, and the fourth took time to register in the
-      display.** This file was raised on a transcript reading "3 background agents launched",
-      which was a UI lag read as an event. No run short-dispatched. ! Left in rather than
-      deleted: the only signal available at dispatch time is one that lags, and it misled a
-      reader who was looking straight at it.
+      Verify: three reports and no `--reviewers` exits nonzero, naming the fourth role.
+- [ ] T3 -- * Rule on whether a DELIBERATE single-role run survives `--reviewers`
+      defaulting to four, and how it is declared. Verify: the answer is in `SKILL.md`.
+- [ ] T4 -- In `SKILL.md` stage 4, say the dispatch is COUNTED and four is the number.
+      Verify: the sentence sits under `## Stage 4` (SKILL.md:544) and names the count.
+- [ ] T5 -- * Rule on whether a missing role is FATAL at stage 5 or a stated degradation.
+      Verify: the ruling is written in `docs/decision-log.md`.
+- [x] T6 -- NOT A TASK. RECORD that four WERE dispatched on 2026-08-17 and the display
+      lagged; the evidence is in the Objective.

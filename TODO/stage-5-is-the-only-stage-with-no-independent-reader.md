@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 9 tasks done
+Progress: 6 of 11 tasks done
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
@@ -18,6 +18,8 @@ Delivered: 2026-08-23 -- 5b and 6b SHIP. `SKILL.md:905` and `:972` define them a
            `re-review-is-ordered-everywhere-and-defined-nowhere` is in `completed/`.
            Owner was `agents / Roy`; set to the lane, since `Requires-Roy` carries the
            other half and `docs/lanes.md` says an Owner is one of the four lanes.
+Split:    2026-08-23 -- 9 boxes became 11; the pre-write read and the `write.md` rail each
+           held two artifacts, and the two RECORD boxes are stated in the Objective
 ```
 
 ## !! INDEPENDENT is not FRESH, and only two readers are fresh
@@ -61,6 +63,10 @@ read by somebody who did not write it, and records that APPLY still runs the res
 its own output as well. ! `re-review.md:145`: **nothing has yet reached a second round**, so
 none of it is measured in a live run.
 
+! **THE ALTERNATIVES ARE KEPT FOR THE RECORD**, since the ruling that chose (e) arrived
+2026-08-17 and the losers explain the shape: (a) stage 8 alone, (b) a residue-check agent, (c) a
+re-derivation agent, (d) stage 8 before the write -- which stays live as T5 and T6.
+
 ## ! Measured: the self-administered rails were read and not run
 
 A run reached stage 8 with `ruff` clean, the formatter clean, the AST **PROVEN**, and 1103 tests
@@ -85,6 +91,16 @@ finding today reaches:
   named groups at all.
 - A reviewer's `correct` dropped a qualifier that was carrying a true sentence, and the result
   is falsified by the test it annotates.
+
+!! **AND THE MECHANICAL STAGES HELD, WHICH IS THE OTHER HALF OF THAT MEASUREMENT.** The join
+gated correctly, the interval exemption removed the 65-refusal class, `compact` respected the
+docstring exemption and flagged its own width trade rather than hiding it, and the CODE CHECK
+stopped the run on a real AST change. **The failure is specific to the stage that had no second
+reader.**
+
+!! **AND THE ROLLBACK IS THE SYSTEM WORKING.** Twelve findings, tree returned to
+`REDACTED_SHA_D`, 0 modified files. A pass that makes the page worse and says so is the outcome
+stage 8 exists for.
 
 ## ! What is NOT established
 
@@ -129,54 +145,46 @@ of them for a response/verdict."* Shipped at `re-review.md:67`. It is the only p
 stage 6 originates work, and it inverts the usual direction: every other finding travels 4 -> 5,
 this one travels 6 -> 4.
 
+## ! The case for and against (d), a pre-write whole-page read
+
+Stage 8 already exists, already reads fresh, and already caught all of this; what it cannot do
+today is stop the write. ! Against it, `review.md` reads a FINISHED PAGE and a proposal is not a
+page.
+
+!! **AND A PRE-WRITE READ IS ONLY VALID UNDER BLANKET APPROVAL.** Roy, on the measured run:
+*"all of the changes should be read before the proposal to the human -- that was an artifact of
+my blanket yes statement. If I had stated apply this one not that one would nullify that
+effort."* Approve 30 of 43 and it read a page that never exists. ! Not fatal: the
+absentee-author principle already assumes the blanket case. MEASURED 2026-08-23: `SKILL.md` says
+neither half -- zero matches for `blanket` or for `pre-write`.
+
+## ! The `write.md` rail is prose where the residue check's is a refusal
+
+MEASURED 2026-08-23: `write.md:113` states *"Touching a paragraph obliges re-deriving its
+claim"* as prose, while `residue-check.md:39` heads its four as refusals that must each be
+answered. A rail read and not run is a shape problem, and it was measured twice in one day.
+
 ## Tasks
 
-- [x] T1 -- FINISHED. * The ruling on whether stage 5 gains an independent reader
-      arrived 2026-08-17 and it is (e): send the patch back to the reviewers that
-      filed. The alternatives are kept above for the record -- (a) stage 8 alone,
-      (b) a residue-check agent, (c) a re-derivation agent, (d) stage 8 before the
-      write, which stays live as T5.
-- [x] T2 -- FINISHED. * RULED: (e) runs BEFORE and AFTER stage 6, asking a
-      different question each time, and a paragraph stage 6 must edit that no role
-      ruled on goes to all four.
-- [x] T3 -- FINISHED. The two questions are written as input contracts:
-      `references/re-review.md:52-53` gives the pair and `:56` states why one
-      prompt answers neither, with the payload, return shape, channel and stop rule
-      in the same file.
-- [x] T4 -- FINISHED. Where they live is settled: `SKILL.md:905` is stage 5b and
-      `:972` is stage 6b, both deferring to `references/re-review.md` rather than
-      restating it. ! The observation that stages 1, 2-3 and 5 had no `references/`
-      file is answered for 5.
-- [ ] T5 -- Consider (d) -- stage 8 before the write -- with the objection Roy
-      raised against it. Stage 8 already exists, already reads fresh, and already
-      caught all of this; what it cannot do today is stop the write. ! Against it,
-      `review.md` reads a FINISHED PAGE and a proposal is not a page.
-      !! And a pre-write read is only valid under BLANKET approval. Roy, on the
-      measured run: *"all of the changes should be read before the proposal to the
-      human -- that was an artifact of my blanket yes statement. If I had stated
-      apply this one not that one would nullify that effort."* Approve 30 of 43 and
-      it read a page that never exists. ! Not fatal: the absentee-author principle
-      already assumes the blanket case. Verify: `SKILL.md` states whether a
-      pre-write whole-page read runs and, if it does, that a SELECTIVE approval
-      invalidates it and needs a re-read -- MEASURED 2026-08-23: it says neither,
-      zero matches for `blanket` or `pre-write`.
-- [ ] T6 -- Count how many of stage 8's twelve findings a pre-write reader could
-      have caught, from that run's preserved artifacts. ! That number decides
-      whether T5 is worth paying for, and it is available now rather than by
-      argument. Verify: the number is written in this file with the artifact it was
-      taken from.
-- [ ] T7 -- Make the `write.md` re-derivation rail ANSWERABLE, the way the residue
-      check's four refusals now are. MEASURED 2026-08-23: `write.md:113` states
-      *"Touching a paragraph obliges re-deriving its claim"* as prose, while
-      `residue-check.md:39` heads its four as refusals that must each be answered.
-      A rail read and not run is a shape problem, and it was measured twice in one
-      day. Verify: the rail is a question the writer must answer per paragraph, and
-      the stage-7b report has somewhere to put the answer.
-- [x] T8 -- A RECORD, not a task: the mechanical stages held. The join gated
-      correctly, the interval exemption removed the 65-refusal class, `compact`
-      respected the docstring exemption and flagged its own width trade rather than
-      hiding it, and the CODE CHECK stopped the run on a real AST change. The
-      failure is specific to the stage that had no second reader.
-- [x] T9 -- A RECORD, not a task: the rollback is the system working. Twelve
-      findings, tree returned to `REDACTED_SHA_D`, 0 modified files. A pass that
-      makes the page worse and says so is the outcome stage 8 exists for.
+- [x] T1 -- FINISHED. * The ruling on whether stage 5 gains an independent reader arrived
+      2026-08-17 and it is (e): send the patch back to the reviewers that filed.
+- [x] T2 -- FINISHED. * RULED: (e) runs BEFORE and AFTER stage 6, asking a different
+      question each time; the stage-6 case is in the Objective.
+- [x] T3 -- FINISHED. The two questions are written as input contracts at
+      `references/re-review.md:52-53`, with `:56` stating why one prompt answers neither.
+- [x] T4 -- FINISHED. `SKILL.md:905` is stage 5b and `:972` is stage 6b, both deferring to
+      `references/re-review.md` rather than restating it.
+- [ ] T5 -- Decide (d): does a whole-page read run before the write? Verify: `SKILL.md`
+      states whether it runs; there are zero matches for `pre-write` today.
+- [ ] T6 -- If it runs, state that a SELECTIVE approval invalidates it and needs a
+      re-read. Verify: `SKILL.md` says so; there are zero matches for `blanket` today.
+- [ ] T7 -- Count how many of stage 8's twelve findings a pre-write reader could have
+      caught. Verify: the number is in this file with its artifact.
+- [ ] T8 -- Make the `write.md` re-derivation rail a question the writer answers per
+      paragraph, as `residue-check.md:39` does. Verify: the rail is answerable, not prose.
+- [ ] T9 -- Give the stage-7b report somewhere to put that per-paragraph answer. Verify:
+      the report has a field for it and an unanswered paragraph shows.
+- [x] T10 -- A RECORD, not a task: the mechanical stages held; the failure is specific to
+      the stage that had no second reader. Stated in the Objective.
+- [x] T11 -- A RECORD, not a task: the rollback is the system working -- twelve findings,
+      tree returned to `REDACTED_SHA_D`, 0 modified files. Stated in the Objective.

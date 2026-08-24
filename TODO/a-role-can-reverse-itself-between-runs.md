@@ -18,6 +18,9 @@ TRIAGED:  2026-08-23 — five of six boxes are tasks; the sixth was a standing
           after a history rewrite proves nothing about whether a file existed -- it is
           the one measurement a purge silently inverts, and the inference it invites is
           the strongest available evidence pointing the wrong way.
+SPLIT:    2026-08-23 -- the boxes were cut to two lines each and every open one now
+          carries a Verify clause. The reasoning they held is in the Objective; the
+          task count is unchanged at six
 ```
 
 ## Objective
@@ -109,37 +112,40 @@ repo has already measured as worthless. ! That file is DONE; the argument it mad
 stays a `do NOT`. It carried a box until 2026-08-23 and there is no state in which anyone ticks
 it, so it is recorded here instead.
 
+## ! What the boxes carried
+
+! **T1 -- establish the rate before designing anything.** Two runs give a number with no error
+bar; decide how many are worth paying for before starting, and state the cost.
+
+! **T2 -- separate the two explanations.** If the reversal does not reproduce against r1's exact
+skill version, the cause is the skill change and this file is about CHANGE SENSITIVITY, which is
+a different and more tractable problem.
+
+! **T3 -- what a measured reversal rate would OBLIGE.** Candidates: nothing, and it is recorded
+as a known bound; a rule that a `clean` from one role never certifies alone; or the join
+reporting agreement across roles as a confidence signal it currently computes and discards.
+! Roy's, because it decides whether a verdict is a claim or a vote.
+
+! **T4 -- whether a `correct` reversing to `query` is WORSE than the reverse.** Going from
+"here is the true clause" to "nobody can settle this" retracts something already relayed; going
+the other way adds.
+
+! **T5.** MEASURED 2026-08-23: `docs/limitations.md`'s two sections are *Notes for Changes* and
+*A RULE PAYS FOR ITS OWN LINES* -- it is about what a rule costs, not a list of what is
+unmeasured, so whoever writes the sentence is opening a third section rather than adding to a
+list. `grep -n "stability" docs/limitations.md` returns nothing today.
+
 ## Tasks
 
-- [ ] T1 -- Establish the rate before designing anything. Run one role twice over an UNCHANGED
-      skill and an unchanged census, and diff the verdicts per block. Verify: a recorded
-      per-block diff of two runs, and a stated number of reversals over a stated number of
-      blocks. ! Two runs give a number with no error bar; decide how many are worth paying for
-      before starting, and state the cost.
-
-- [ ] T2 -- Separate the two explanations. Re-run r1's exact skill version against the same
-      census and see whether the reversal reproduces. Verify: the two `module-context` verdicts
-      on the *"Six call sites"* block, recorded side by side. If it does not reproduce, the
-      cause is the skill change and this file is about CHANGE SENSITIVITY, which is a different
-      and more tractable problem.
-
-- [ ] T3 -- * Rule on what a measured reversal rate would OBLIGE. Candidates: nothing, and it is
-      recorded as a known bound; a rule that a `clean` from one role never certifies alone; or
-      the join reporting agreement across roles as a confidence signal it currently computes
-      and discards. ! Roy's, because it decides whether a verdict is a claim or a vote.
-
-- [ ] T4 -- * Rule whether a `correct` reversing to `query` is WORSE than the reverse. Going
-      from "here is the true clause" to "nobody can settle this" retracts something already
-      relayed; going the other way adds. The verdict table treats them as peers.
-
+- [ ] T1 -- Run one role twice over an unchanged skill and census, and diff the verdicts
+      per block. Verify: a per-block diff recorded, with reversals counted over blocks.
+- [ ] T2 -- Re-run r1's exact skill version against the same census to see whether the
+      reversal reproduces. Verify: both `module-context` verdicts recorded side by side.
+- [ ] T3 -- * Rule what a measured reversal rate would OBLIGE: nothing, a bar on a lone
+      `clean`, or agreement across roles. Verify: `docs/decision-log.md` records it.
+- [ ] T4 -- * Rule whether a `correct` reversing to `query` is WORSE than the reverse. The
+      verdict table treats them as peers. Verify: `docs/decision-log.md` records it.
 - [ ] T5 -- Say in `docs/limitations.md` that verdict stability across runs is UNMEASURED.
-      Verify: `grep -n "stability" docs/limitations.md` returns a line; today it returns
-      nothing. ! MEASURED 2026-08-23: that file's two sections are *Notes for Changes* and
-      *A RULE PAYS FOR ITS OWN LINES* -- it is about what a rule costs, not a list of what is
-      unmeasured, so whoever writes the sentence is opening a third section rather than adding
-      to a list.
-
-- [x] T6 -- NOT A TASK. *"Do NOT add a `confidence` field to the record in response to
-      this"* is a standing prohibition -- true the day it was written and every day
-      after, with no state in which anyone ticks it. The argument is kept in full in the
-      Objective, under *A "confidence" field is not the answer*.
+      Verify: `grep -n "stability" docs/limitations.md` returns a line.
+- [x] T6 -- NOT A TASK. The standing prohibition on adding a `confidence` field is kept in
+      the Objective, under *A "confidence" field is not the answer*.

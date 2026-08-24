@@ -2,27 +2,30 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 10 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
           for each of the languages so we can verify that the lexers work for the
           11 languages we claim")
-Renamed:  2026-08-20 — the language rows measured here were SPLIT, so the names in the
+Renamed:  2026-08-20 -- the language rows measured here were SPLIT, so the names in the
           tables below no longer resolve. `c-family` became `c`, `cpp`, `java`,
           `csharp`, `swift` and `kotlin`; `js-family` became `javascript` and
           `typescript`. The measurements stand as taken -- the `.java` sample is now the
           `java` row and the `.js` sample the `javascript` row.
-TRIAGED:  2026-08-23 — NOTHING TO RECLASSIFY -- all six boxes are verifiable tasks, and
+TRIAGED:  2026-08-23 -- NOTHING TO RECLASSIFY -- all six boxes are verifiable tasks, and
           the defect was RE-MEASURED live today (see the Objective). ! Kept open and
           noted here because the staleness sweep ranked this file second-highest on
           retired-word count, which was a FALSE POSITIVE: every "block" in it is the
           LANGUAGE sense, a block comment, and not the retired noun. The file is about
           /* */ reaching reviewers as prose.
-Moved:    2026-08-23 — the two halves left `census.py` for `lexer.py` in the lexer/page
+Moved:    2026-08-23 -- the two halves left `census.py` for `lexer.py` in the lexer/page
           split, so the line citations are restated: `_join` is `lexer.py:532`,
           `block_text` is `lexer.py:609`, and the openers are built at `lexer.py:999`
           and passed at `:1145`. The code is unchanged.
+Split:    2026-08-23 -- 6 boxes became 10. The stripping box held the opener and the
+          continuation; the fixture box held a source rule and a missing fixture; the
+          last box held two languages, which this repo never allows in one row.
 ```
 
 ## Objective
@@ -76,14 +79,22 @@ rust, go, c-family, js-family, sql `/* */`; ruby `=begin/=end`; lua `--[[ ]]`. T
 FINDS these runs correctly -- the blocks and their line ranges are right -- and only the prose
 extraction leaves the markers in.
 
-! The continuation `*` is the larger half. A Javadoc block is `/**` once and ` * ` on every
-line after it, so a 20-line doc comment reaches a reviewer with twenty asterisks in the middle
-of its sentences.
+! The continuation `*` is the larger half, and it is the part a naive fix misses: a Javadoc
+block is `/**` once and ` * ` on every line after it, so stripping the opener and closer still
+leaves a 20-line doc comment reaching a reviewer with twenty asterisks in the middle of its
+sentences.
 
 ! **AND THE CODE ALREADY SAYS SO.** `block_text`'s own `Args:` (`lexer.py:630-633`) reads: *"The
 language's LINE comments only, because that is what the census passed -- a set that also
-stripped `/**` would produce prose the census never stored."* That sentence is the reason T2
-exists.
+stripped `/**` would produce prose the census never stored."* That sentence is the reason the
+two halves must move together.
+
+## Why the two halves move in one commit
+
+`_join` (`lexer.py:532`) and `block_text` (`lexer.py:609`) are the two halves of the block
+protocol and they agree today. **A fix to one alone refuses every c-family and js-family block
+instead of merely polluting it** -- which is the exact shape of the defect that refused 73% of a
+run on 2026-08-17.
 
 ## What it costs
 
@@ -106,7 +117,14 @@ recorded below is the ADDRESS, which is a fact about where to look, not their te
 ! This is why `corpora/` fetches and never vendors, and the reason is not only tree size. The
 manifest names a repository and a ref; the fetch is the reader's, on their machine, under the
 upstream licence. Adding these eleven there keeps that property -- pasting them into `tests/`
-would not.
+would not. Every ref below is a tag, so the fetch is reproducible.
+
+! **The corpus and the unit fixtures answer different questions, from different sources.** The
+corpus answers *does this hold on real code*; a unit test asserting an exact string would paste
+third-party prose into `tests/`, which `docs/limitations.md` already forbids for its own reason.
+! And a test that fails for want of a third-party checkout is a test that gets deleted, which is
+why the corpus test skips rather than fails when nothing has been fetched. ! The in-tree round
+trip covers Python only -- the one language that cannot exercise a block comment at all.
 
 One heavily-documented file per record, each at a pinned tag. ! None of them is in
 `corpora/corpora.toml` today -- MEASURED 2026-08-23, 18 `[[corpus]]` entries and no hit for
@@ -126,39 +144,35 @@ One heavily-documented file per record, each at a pinned tag. ! None of them is 
 | toml-ini | `rust-lang/cargo@0.83.0` `Cargo.toml` |
 | yaml | `actions/checkout@v4.2.2` `.github/workflows/test.yml` |
 
+## Why Ruby and Lua are decided separately
+
+Both declare a block form -- `=begin`/`=end` and `--[[ ]]` -- and **neither appeared in the
+sampled files**, so the measurement says nothing about them. ! An unmeasured fix is how this
+defect got here, and this repo's rule is that a language row takes its definition from its own
+grammar and never from a neighbour's, so the two are decided one at a time.
+
 ## Tasks
 
-- [ ] T1 -- **Strip `block_comment` and `doc_block` openers, their closers, and the
-      continuation marker.** ! The continuation is the part a naive fix misses: stripping `/**`
-      and `*/` still leaves a ` * ` on every interior line.
-
-- [ ] T2 -- !! **Change `_join` (`lexer.py:532`) and `block_text` (`lexer.py:609`) in ONE
-      commit, and re-run the round-trip.** They are the two halves of the block protocol and
-      they agree today. A fix to one alone refuses every c-family and js-family block instead of
-      merely polluting it -- which is the exact shape of the defect that refused 73% of a run on
-      2026-08-17.
-
-- [ ] T3 -- **Add these eleven files to `corpora/corpora.toml`** as a `public` corpus, so the
-      lexer claim has a fixture instead of a one-off measurement. !! Corpora are FETCHED, never
-      vendored, and here that is a LICENCE property before it is a size one -- the manifest
-      names a repo and a ref, and the copy is made on the reader's machine under the upstream
-      terms. Every ref above is a tag, so the fetch is reproducible.
-
-- [ ] T4 -- **Make the round-trip a test over that corpus**, per language, SKIPPING when the
-      corpus has not been fetched. ! The in-tree version covers Python only, which is the one
-      language that cannot exercise a block comment -- and a test that fails for want of a
-      third-party checkout is a test that gets deleted.
-
-- [ ] T5 -- ! **Write the fixtures for the FIX from invented text, not from the corpus.** The
-      corpus answers "does this hold on real code"; a unit test asserting an exact string would
-      paste third-party prose into `tests/`, which `docs/limitations.md` already forbids for its
-      own reason. Two different jobs, two different sources. ! Include a MULTI-LINE Javadoc:
-      `tests/fixtures/sample.java` has none, so nothing in tree exercises the continuation `*`.
-
-- [ ] T6 -- ! Decide whether a `=begin`/`=end` Ruby block and a `--[[ ]]` Lua block are worth
-      the same treatment. Both are declared and neither appeared in the sampled files, so the
-      measurement says nothing about them -- and an unmeasured fix is how this defect got here.
-
+- [ ] T1 -- Strip the `block_comment` and `doc_block` opener and closer in `_join`.
+      Verify: a `.java` docstring's census `text` holds no `/**` and no `*/`.
+- [ ] T2 -- Strip the interior continuation marker as well. Verify: a multi-line Javadoc's
+      census `text` carries no leading `*` on any line after the first.
+- [ ] T3 -- Change `block_text` (`lexer.py:609`) in the SAME commit as each `_join`
+      change. Verify: the round trip is green on that commit.
+- [ ] T4 -- Add the eleven pinned files above to `corpora/corpora.toml` as a `public`
+      corpus. Verify: `fetch_corpora.py` materialises all eleven.
+- [ ] T5 -- Make the round trip a test over that corpus, one case per language record.
+      Verify: it fails while a marker survives into `text` and passes once T1 to T3 land.
+- [ ] T6 -- Make that test SKIP when the corpus has not been fetched. Verify: with the
+      corpus directory absent, `uv run pytest -q` reports a skip and no failure.
+- [ ] T7 -- Write the unit fixtures for the fix from INVENTED text, not from the corpus.
+      Verify: no assertion under `tests/` quotes a line from any file in the table above.
+- [ ] T8 -- Add a multi-line Javadoc to `tests/fixtures/sample.java`. Verify: the fixture
+      carries a continuation `*` on three or more lines.
+- [ ] T9 -- Decide whether a Ruby `=begin`/`=end` block gets the same stripping. Verify:
+      the answer and its measurement are written into this file.
+- [ ] T10 -- Decide the same for a Lua `--[[ ]]` block, from Lua's own grammar and not
+      Ruby's. Verify: the answer and its measurement are written into this file.
 ## Related
 
 - [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) -- the other half of "what this

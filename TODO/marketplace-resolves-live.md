@@ -18,6 +18,9 @@ TRIAGED:  2026-08-23 — the first three boxes are MEASUREMENTS and a reading of
           none can be ticked by doing anything, so they are ticked as recorded and their
           content is in the Objective. TWO REAL TASKS remain: the ruling, and the
           re-check of every version-named measurement.
+SPLIT:    2026-08-23 -- no box held two tasks; every box is cut to two lines and the
+          ruling's three candidate answers moved into the Objective, where a ruling can
+          read them without the box carrying them.
 ```
 
 ## Objective
@@ -42,25 +45,25 @@ number overwrites the first*. That describes the cache half only. It does not sa
 directory-source marketplace resolves LIVE -- which means **any measurement believed to be
 pinned to a tag was against whatever the tree held at run time.**
 
+## The three candidates for the ruling
+
+- **the INSTALL** -- a marketplace that copies, or installing from a tag rather than a path;
+- **the DOCS** -- say plainly that `roy-local` is live and no local measurement is pinned;
+- **both.**
+
+! **AND ONE POINTER IS DEAD.** The box carrying this ruling cited *"findings.md section 33"*;
+MEASURED 2026-08-23, `find . -name findings.md` outside `corpora/` returns nothing, so that
+citation resolves nowhere. It is recorded here rather than repeated as a pointer.
+
 ## Tasks
 
-- [x] T1 -- MEASURED 2026-08-22, re-measured 2026-08-23. Recorded in the Objective:
-      `known_marketplaces.json` has `roy-local` as `source=directory` with
-      `installLocation = C:\Users\Roy\projects\comment-review`, the working tree.
-- [x] T2 -- MEASURED 2026-08-22, re-measured 2026-08-23. Recorded in the Objective:
-      the cached 0.2.3 holds ten modules and none of the nine the address system is
-      built from, so the `d` series is unreachable from that cache.
-- [x] T3 -- READ 2026-08-22. Recorded in the Objective: CLAUDE.md's release section
-      describes the cache half only and never says a directory-source marketplace
-      resolves live.
-- [ ] T4 -- * RULING: is the fix to the INSTALL (a marketplace that copies, or
-      installing from a tag rather than a path), to the DOCS (say plainly that
-      `roy-local` is live and no local measurement is pinned), or to both? ! The
-      original box cited *"findings.md section 33"*; MEASURED 2026-08-23, `find . -name
-      findings.md` outside `corpora/` returns nothing, so that citation resolves
-      nowhere and is not repeated as a pointer. Verify: the ruling is recorded in
-      `docs/decision-log.md`.
-- [ ] T5 -- Re-check every measurement in `docs/` and `evidence/` that names a
-      VERSION rather than a commit -- each one needs to say which TREE it ran
-      against, because the tag did not fix that. Verify: no measurement in `docs/`
-      or `evidence/` cites a `vX.Y.Z` without also citing a commit SHA.
+- [x] T1 -- MEASURED 2026-08-22, re-measured 2026-08-23: `known_marketplaces.json` has
+      `roy-local` as `source=directory` on the working tree. Recorded in the Objective.
+- [x] T2 -- MEASURED 2026-08-22, re-measured 2026-08-23: the cached 0.2.3 holds ten
+      modules and none of the nine the address system is built from. In the Objective.
+- [x] T3 -- READ 2026-08-22. CLAUDE.md's release section describes the cache half only,
+      and never says a directory-source marketplace resolves live. In the Objective.
+- [ ] T4 -- * RULE whether the fix is to the INSTALL, to the DOCS, or to both --
+      candidates in the Objective. Verify: the ruling is in `docs/decision-log.md`.
+- [ ] T5 -- Give every measurement in `docs/` and `evidence/` that names a VERSION the
+      TREE it ran against. Verify: no such measurement cites a `vX.Y.Z` without a SHA.

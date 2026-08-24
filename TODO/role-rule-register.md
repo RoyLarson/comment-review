@@ -13,6 +13,9 @@ Re-measured: 2026-08-23 -- the cost table was measured 2026-08-18 and every row 
           section and its Related list TWICE, and the two copies disagreed: the older
           asked what a candidate REPLACES, which Roy superseded the same day it was
           written. One copy of each is kept.
+SPLIT:    2026-08-23 -- each of the four `*` boxes carried the measurement that justifies
+          it. The measurements moved into "The four entries" below; the boxes are the
+          ruling and how to check it was made. Five boxes stay five.
 ```
 
 ## Objective
@@ -80,6 +83,34 @@ Each candidate should carry three things before it is ruled on:
 - **what a reviewer DOES with it**: a check runnable without opening another
   file, or it does not go in
 
+## The four entries, and the evidence behind each
+
+**1. `block-context` -- a constraint can be false by ARITHMETIC with no enforcing line.** Its
+check is written around finding the line that enforces a bound and comparing value, direction,
+units and boundary, so a claim with no code to resolve against cannot be checked at all.
+MEASURED 2026-08-23: `comment-review-block-context.md` says nothing about arithmetic -- zero
+matches for `arithmetic`. Evidence and siblings in
+[`false-by-arithmetic-with-no-enforcing-line`](false-by-arithmetic-with-no-enforcing-line.md).
+
+**2. `module-context` -- what VERDICT a module announcing more than one subject earns.**
+MEASURED 2026-08-23: `comment-review-module-context.md:25-29` still lists the three triggers and
+names no verdict. At `d3aa065` the role detected the two-subject module, quoted its own trigger,
+then emitted a patch WIDENING the docstring to announce both -- the defect the trigger names,
+applied as the remedy. The same file already calls a misplaced module constant a CODE CONCERN,
+so the pattern exists and was not reached for; the miss is filed as
+`module-context-widens-a-two-subject-docstring` in `evals/test-cases.jsonl`.
+
+**3. Every role -- what to do with a paragraph the census marks `doc-kind-unresolved`.** Go and
+Ruby attach docs by POSITION, so the census stamps `comment`, annotates the paragraph, and says
+it may be governed by FORMAT rather than LENGTH and is not charged to the cap. MEASURED
+2026-08-23: the token appears only in `references/compact.md:99` and `:113`, which is stage 6
+routing -- no role file says who CONFIRMS the kind or how.
+
+**4. `function-context` and `module-context` -- where they START now the a-series has landed.**
+Ordering, never filtering -- Roy, 2026-08-18: they do have to review all `b`s and `c`s but the
+focus for them gets a lot easier. ! The dependency is discharged: `cue` emits four series and
+`addresser.py --series` accepts `f,a,b,c`, so this is takeable now.
+
 ## Related
 
 - [`false-by-arithmetic-with-no-enforcing-line`](false-by-arithmetic-with-no-enforcing-line.md)
@@ -93,40 +124,13 @@ Each candidate should carry three things before it is ruled on:
 
 ## Tasks
 
-- [ ] T1 -- * RULE ON THE block-context ENTRY: a constraint can be false by
-      ARITHMETIC with no enforcing line. Its check is written around finding the
-      line that enforces a bound and comparing value, direction, units and
-      boundary, so a claim with no code to resolve against cannot be checked at
-      all. Evidence and siblings in `false-by-arithmetic-with-no-enforcing-line`.
-      MEASURED 2026-08-23: `comment-review-block-context.md` says nothing about
-      arithmetic -- zero matches for `arithmetic`. Verify: the rule is in the role
-      file with its currency named, or this entry is closed as refused.
-- [ ] T2 -- * RULE ON THE module-context ENTRY: what VERDICT a module announcing
-      more than one subject earns. MEASURED 2026-08-23:
-      `comment-review-module-context.md:25-29` still lists the three triggers and
-      names no verdict. At `d3aa065` the role detected the two-subject module,
-      quoted its own trigger, then emitted a patch WIDENING the docstring to
-      announce both -- the defect the trigger names, applied as the remedy. The
-      same file already calls a misplaced module constant a CODE CONCERN, so the
-      pattern exists and was not reached for; the miss is filed as
-      `module-context-widens-a-two-subject-docstring` in `evals/test-cases.jsonl`.
-      Verify: the role file names the verdict, and the eval case passes.
-- [ ] T3 -- * RULE ON THE every-role ENTRY: what to do with a paragraph the census
-      marks `doc-kind-unresolved`. Go and Ruby attach docs by POSITION, so the
-      census stamps `comment`, annotates the paragraph, and says it may be governed
-      by FORMAT rather than LENGTH and is not charged to the cap. MEASURED
-      2026-08-23: the token appears only in `references/compact.md:99` and `:113`,
-      which is stage 6 routing -- no role file says who CONFIRMS the kind or how.
-      Verify: the answer is in the four role files or in the brief, with the
-      currency named for whichever it lands in.
-- [ ] T4 -- * RULE ON THE function-context and module-context ENTRY: where they
-      START now the a-series has landed. Ordering, never filtering -- Roy,
-      2026-08-18: they do have to review all bs and cs but the focus for them gets
-      a lot easier. ! The dependency is discharged: `cue` emits four series and
-      `addresser.py --series` accepts `f,a,b,c`, so this is takeable now. Verify:
-      each role file states its starting series and that it is an ORDER, not a
-      filter.
-- [ ] T5 -- Record which currency each candidate above pays in -- what it CATCHES,
-      or the search it SAVES -- so the batch is decided on value rather than on
-      size. Verify: T1 through T4 each carry a line naming CATCHES or SAVES, and
-      the budget line in this file cites the measured cost table above.
+- [ ] T1 -- * RULE ON THE `block-context` ENTRY -- a constraint false by ARITHMETIC with
+      no enforcing line. Verify: it is in the role file with its currency, or refused.
+- [ ] T2 -- * RULE ON THE `module-context` ENTRY -- the VERDICT a module announcing more
+      than one subject earns. Verify: the role file names it and the eval case passes.
+- [ ] T3 -- * RULE ON THE every-role ENTRY -- what to do with a paragraph marked
+      `doc-kind-unresolved`. Verify: it is in the role files or the brief, currency named.
+- [ ] T4 -- * RULE where `function-context` and `module-context` START now the a-series
+      has landed. Verify: each names its starting series, and says ORDER not filter.
+- [ ] T5 -- Record which currency each candidate above pays in -- CATCHES, or the search
+      it SAVES. Verify: T1..T4 each carry that line, citing the measured cost table.

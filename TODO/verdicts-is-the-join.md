@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 8 tasks done
+Progress: 6 of 12 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the join but
@@ -15,6 +15,8 @@ Narrowed: 2026-08-23 -- stage 2 is GATHER, so collate is free for the marks -- t
 Triaged:  2026-08-23 -- six of the eleven boxes were measurements or rulings already made.
           They are ticked and stated in the Objective; two tasks remain, one of them a
           ruling owed
+Split:    2026-08-23 -- the two remaining boxes held seven artifacts between them: the
+          rename names four sites, the copy-chief box names three
 ```
 
 ## Objective
@@ -61,8 +63,8 @@ agent, is the only thing here that reads every mark and decides what stands. Nam
 *"copy chief works. We will want to have a specific agent file for that separate from the task
 agent."* `editor` collides with `editorial role` -- one of the four reviewers -- and the trade's
 copy chief rules over the copy editors' marks, one level above the four hands. ! **The ruling
-does not rename this module**: the collator still rules on nothing, so T2 goes to `collator.py`
-and T8 tracks the agent file.
+does not rename this module**: the collator still rules on nothing, so the rename goes to
+`collator.py` and the agent file is tracked separately.
 
 ! **`COLLATE` IS NO LONGER TAKEN.** Stage 2 is **GATHER**, verified 2026-08-23 at `SKILL.md:16`,
 `:28` and `:332`, so the first collision is gone and `collate` is free for the marks.
@@ -70,48 +72,41 @@ and T8 tracks the agent file.
 ! **RECORDED IN `docs/vocabulary.md:76-88`** under *Bringing the marks together*, with what each
 word would name and both collisions, and now the ruling that settled them.
 
+## What the rename costs, and what it does not
+
+**The cost is mechanical and it lands on four sites**: the imports in the modules that take it,
+the command lines in `SKILL.md` and `CLAUDE.md`, `tests/test_verdicts.py`, and `docs/`.
+! **Nothing about the CONTENT moves** -- the collator does exactly what it does today under a
+name that says so.
+
+!! **TODAY STAGE 5 APPLY IS THE TASK AGENT DECIDING**, which is why `docs/vocabulary.md` recorded
+the copy chief as *"unnamed, and there is no module"* -- the job had no artifact, so nothing could
+be GIVEN to it, TOLD to it, or CHECKED of it. ! The `agents` lane owns the agent file itself;
+the boxes below track that it is owed.
+
 ## Tasks
 
-- [x] T1 -- RULED 2026-08-23: THE ONE WHO RULES IS THE `copy chief`. Roy: *"copy chief works.
-      We will want to have a specific agent file for that separate from the task agent."* In the
-      trade the copy chief rules over the copy editors' marks, one level above the four hands,
-      so it names the job without landing a syllable from `editorial role`. ! The collision it
-      was raised against is real and is now avoided rather than accepted. Recorded in
-      `docs/vocabulary.md` and `decision-log.md Vocabulary: #11`.
-
-- [ ] T2 -- Rename the module for what it DOES, which the ruling leaves unchanged: it collates
-      and rules on nothing. `collate` is free since stage 2 became GATHER, so `collator.py` is
-      the name the register supplies -- NOT `copy chief`, which names the agent that rules on
-      what this module hands up. The cost is mechanical: the imports in the modules that take
-      it, the command lines in `SKILL.md` and `CLAUDE.md`, `tests/test_verdicts.py`, and
-      `docs/`. ! Nothing about the CONTENT moves. Verify: `uv run pytest -q` green, `uv run ty
-      check plugins/comment-review/skills/comment-review/scripts/` clean, and `grep -rn
-      "verdicts.py" plugins/ docs/ CLAUDE.md` returns nothing.
-
-- [x] T3 -- FINISHED 2026-08-22. The register was asked first, per `CLAUDE.md`'s rule that a new
-      term comes from publishing before anywhere else. `join` is a database word; the trade's
-      answer is in the Objective.
-
-- [x] T4 -- SUPERSEDED. This box held the collating / master proof / editor finding. It is a
-      MEASUREMENT of what the trade says, not a checkpoint; it is stated in the Objective and the
-      record stays.
-
-- [x] T5 -- SUPERSEDED. The `COLLATE`-is-stage-2 collision. Stage 2 is GATHER, so the two senses
-      no longer operate on the same word and there is nothing to declare. Verified 2026-08-23 at
-      `SKILL.md:16`.
-
-- [x] T6 -- FINISHED. Recorded in `docs/vocabulary.md` under *Bringing the marks together*, with
-      what each word would name and both collisions.
-
-- [x] T7 -- SUPERSEDED. The `VERDICTS`-lives-in-`record.py` measurement, the 43-site count, the
-      `desk.py:18` sentence and the `lexer.py` pairing each carried a box and none can be ticked
-      by an observation of work. All four are in the Objective, with the command that re-derives
-      the count.
-
-- [ ] T8 -- GIVE THE COPY CHIEF ITS OWN AGENT FILE, separate from the task agent. Roy ruled the
-      shape along with the word, 2026-08-23. !! **TODAY STAGE 5 APPLY IS THE TASK AGENT
-      DECIDING**, which is why `docs/vocabulary.md` recorded this role as *"unnamed, and there is
-      no module"* -- the job had no artifact, so nothing could be GIVEN to it, TOLD to it, or
-      CHECKED of it. ! `agents` lane owns the file itself; this box tracks that it is owed.
-      Verify: `plugins/comment-review/agents/` holds a copy-chief agent, `check_vocabulary.py`
-      passes with `copy chief` defined and used, and `SKILL.md` names it at stage 5.
+- [x] T1 -- RULED 2026-08-23: the one who rules is the `copy chief`, not the collator;
+      Roy's ruling is quoted in the Objective.
+- [ ] T2 -- Rename `verdicts.py` to `collator.py` and fix its importers. Verify: `uv run
+      pytest -q` green and `uv run ty check` on the scripts clean.
+- [ ] T3 -- Rename `tests/test_verdicts.py` to match. Verify: discovery collects it under
+      the new name and no file named `test_verdicts.py` remains.
+- [ ] T4 -- Update the command lines and citations in `SKILL.md`, `CLAUDE.md` and `docs/`.
+      Verify: `grep -rn "verdicts.py" plugins/ docs/ CLAUDE.md` returns nothing.
+- [x] T5 -- FINISHED 2026-08-22. The register was asked first, per `CLAUDE.md`'s rule that
+      a new term comes from publishing before anywhere else; `join` is a database word.
+- [x] T6 -- SUPERSEDED. The collating / master proof / editor finding is a MEASUREMENT of
+      what the trade says, not a checkpoint; it is stated in the Objective.
+- [x] T7 -- SUPERSEDED. The `COLLATE`-is-stage-2 collision is gone: stage 2 is GATHER,
+      verified 2026-08-23 at `SKILL.md:16`, so there is nothing to declare.
+- [x] T8 -- FINISHED. Recorded in `docs/vocabulary.md` under *Bringing the marks
+      together*, with what each word would name and both collisions.
+- [x] T9 -- SUPERSEDED. The `VERDICTS`-in-`record.py` measurement, the site count, the
+      `desk.py:18` sentence and the `lexer.py` pairing are in the Objective.
+- [ ] T10 -- Give the copy chief its own agent file, separate from the task agent. Verify:
+      `plugins/comment-review/agents/` holds a copy-chief agent.
+- [ ] T11 -- Define `copy chief` in the shipped vocabulary. Verify: `uv run python
+      scripts/check_vocabulary.py` passes with the term defined and used.
+- [ ] T12 -- Name the copy chief at stage 5 in `SKILL.md`. Verify: stage 5 names it as the
+      role that rules on what the collator hands up.

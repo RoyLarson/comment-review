@@ -35,6 +35,8 @@ UNBLOCKED: 2026-08-23 — THE GALLEY QUESTION THE `add` HALF WAITED ON IS ANSWER
            text>"}` -- the same address the record carries, so nothing between stage 5
            and the galley has to convert"*, and `galley.py:341-344` still requires it.
            ! So the caution is spent and the `add` half is ordinary work.
+SPLIT:     2026-08-23 -- the boxes were cut to two lines each. The arguments they held
+           are in the Objective; the task count is unchanged at six
 ```
 
 ## Objective
@@ -50,33 +52,47 @@ page -- which `address_problem` (`desk.py:556`, `entry_for(...) is None`) refuse
 galley could not apply. That was deferred behind a question about whether the galley would keep
 taking addresses at all. It kept them.
 
+### What the boxes carried -- the arguments, moved out of the tasks
+
+!! **T1 -- THE ADDRESS FORM SURVIVES FOR EXACTLY ONE REASON: a `move` may name ANOTHER FILE.**
+`reviewer-brief.md`: *'down, another file, or out of the code entirely -- all move'*. A page
+envelope makes a record's OWN place a bare cue, but a cross-page destination cannot be one.
+
+!! **T2 -- AND THE RUN ONLY CUES WHAT IS IN SCOPE.** `census.py` is handed the files a change
+touched; everything else has no places at all. So a correct address for a real file is
+unresolvable whenever that file was not in the same diff.
+
+! **T3.** `desk.py` returned `move's destination {addr} is not a place in the census` for BOTH
+causes -- a wrong address, and a right address for a file nobody censused. FIXED 2026-08-20 and
+verified 2026-08-23 at `desk.py:547-552`.
+
+! **T4 -- the ruling.** What a `move` to an uncued file MEANS was RULED and implemented as
+shape (a) -- refuse, but say WHY, so the reviewer knows the citation was right and the scope
+was short.
+
+! **T5 -- superseded.** *'Do NOT over-build the address form for this yet'* rested on Roy's
+2026-08-20 caution that *'galley is still up in the air on how it is going to work, so that may
+lose the address again.'* VERIFIED 2026-08-23: it did not. `galley.py:5` and `galley.py:341-344`
+still key `--edits` on the same address the record carries, after the galley/compositor split.
+Both reasons the address form exists are intact.
+
+! **T6.** Roy's ruling names `move` AND `add`, but an `add`'s target is the RECORD'S OWN
+address, so citing an uncued file means a record under no page -- refused by `address_problem`
+at `desk.py:556` because `entry_for` returns None. The two acceptable outcomes are a
+line-numbered destination, or the same message `_in_scope` gives a `move` -- never the shared
+*"not a place in the census"*.
+
 ## Tasks
 
-- [x] T1 -- !! THE ADDRESS FORM SURVIVES FOR EXACTLY ONE REASON -- a `move` may name
-      ANOTHER FILE. `reviewer-brief.md`: *'down, another file, or out of the code
-      entirely -- all move'*. A page envelope makes a record's OWN place a bare
-      cue, but a cross-page destination cannot be one.
-- [x] T2 -- !! AND THE RUN ONLY CUES WHAT IS IN SCOPE. `census.py` is handed the
-      files a change touched; everything else has no places at all. So a correct
-      address for a real file is unresolvable whenever that file was not in the
-      same diff.
-- [x] T3 -- `desk.py` returned `move's destination {addr} is not a place in the
-      census` for BOTH causes -- a wrong address, and a right address for a file
-      nobody censused. ! FIXED 2026-08-20 and verified 2026-08-23 at
-      `desk.py:547-552`: `_in_scope` splits them and the uncued case says so.
-- [x] T4 -- * RULING WANTED: what a `move` to an uncued file MEANS. RULED and
-      implemented as shape (a) -- refuse, but say WHY, so the reviewer knows the
-      citation was right and the scope was short.
-- [x] T5 -- SUPERSEDED. *'Do NOT over-build the address form for this yet'* rested
-      on Roy's 2026-08-20 caution that *'galley is still up in the air on how it is
-      going to work, so that may lose the address again.'* VERIFIED 2026-08-23: it
-      did not. `galley.py:5` and `galley.py:341-344` still key `--edits` on the same
-      address the record carries, after the galley/compositor split. Both reasons the
-      address form exists are intact.
-- [ ] T6 -- DO THE `add` HALF. Roy's ruling names `move` AND `add`, but an `add`'s
-      target is the RECORD'S OWN address, so citing an uncued file means a record
-      under no page -- refused by `address_problem` at `desk.py:556` because
-      `entry_for` returns None. Verify: an `add` whose address names a file the run
-      never censused is either accepted with a line-numbered destination, or refused
-      with the same message `_in_scope` gives a `move` -- not the shared
-      *"not a place in the census"* -- and a test pins which.
+- [x] T1 -- NOT A TASK. The address form survives because a `move` may name another file;
+      the argument is in the Objective.
+- [x] T2 -- NOT A TASK. The run cues only what is in scope, so a correct address for an
+      uncensused file is unresolvable. The argument is in the Objective.
+- [x] T3 -- FINISHED 2026-08-20. `desk.py:547-552` splits the two causes; the uncued case
+      says *"never cued -- it has no places. Cite the line instead"*.
+- [x] T4 -- RULED. A `move` to an uncued file is refused, but with a message saying WHY,
+      so the reviewer knows the citation was right and the scope was short.
+- [x] T5 -- SUPERSEDED. The caution that held the address form back is spent, verified
+      2026-08-23 at `galley.py:5` and `galley.py:341-344`. Evidence in the Objective.
+- [ ] T6 -- Do the `add` half; `address_problem` refuses an `add` naming an uncued file.
+      Verify: a test pins it accepted with a line destination, or refused as `move` is.

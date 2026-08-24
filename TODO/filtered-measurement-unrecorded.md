@@ -20,6 +20,8 @@ Triaged:  2026-08-23 — commit counts RE-MEASURED with `git rev-list --count`: 
            statements of WHY the measurement matters, which nobody ticks; they are
            ticked here and restated in the Objective, per `CLAUDE.md`, *A box is a claim
            about whether work remains*.
+Split:    2026-08-23 -- boxes cut to two lines each; the Roy quotations and the
+           `evidence/` listing moved into the Objective
 ```
 
 ## Objective
@@ -44,6 +46,10 @@ once: more information than filtered, fewer tokens than unfiltered, recall at le
 Roy: the page is *"partially to get the best of both worlds."* Without the prior recorded there
 is nothing to hold that to.
 
+! **NEITHER ARM IS ON DISK.** MEASURED 2026-08-23: `evidence/` holds four directories --
+`comment-review-skill-023-dev-review`, `cycle-0.2.3`, `ga`,
+`rename-left-history-in-the-comments` -- and none of them is this.
+
 ## It is not lost -- it is REPRODUCIBLE
 
 Roy: *"we can always rerun it by checking out the 0.1.x tag and the 0.2.1 tag."* That is the
@@ -64,6 +70,9 @@ released in **v0.1.7**, and the last release without it is **v0.1.6** -- verifie
 
 ! `census.py` goes 754 -> 854 lines across the narrow one.
 
+! **Roy remembered it as a v0.1.0 -> v0.2.0 split and offered v0.1.x -> v0.2.1.** That bracket
+holds 85 commits and confounds the variable. **The narrow one is the experiment.**
+
 ! **The tags are ANNOTATED, so `git rev-parse v0.1.6` returns the TAG OBJECT.** Use `v0.1.6^{}`
 wherever a commit is wanted -- the trap anyone re-deriving which code produced a measurement hits
 first, and `CLAUDE.md` records it.
@@ -75,35 +84,18 @@ already retired: `acquittal rate` went because it was *"a measured quantity whos
 site stated."* Say what was compared, over which files, and what a miss is counted against --
 findings, planted hazards, or something else.
 
+! **The standard the write-up has to meet**: a reader who ran NEITHER arm can say which arm won
+and by how much.
+
 ## Tasks
 
-- [ ] T1 -- !! RE-RUN IT ACROSS `v0.1.6^{}` -> `v0.1.7^{}`, the 11 commits that
-      isolate `d5ad782` -- *"every interval between two lines of code is a
-      block"*. ! Roy remembered it as a v0.1.0 -> v0.2.0 split and offered
-      v0.1.x -> v0.2.1; that bracket holds 85 commits and confounds the
-      variable. The narrow one is the experiment. Roy on the result: *"the agents
-      got a lot more tokens and used a lot more tokens on effectively the same
-      level of output. They did miss a lot in the difference."* Verify: a directory
-      under `evidence/` holds both arms and the commit each was produced at.
-      MEASURED 2026-08-23: `evidence/` holds four directories --
-      `comment-review-skill-023-dev-review`, `cycle-0.2.3`, `ga`,
-      `rename-left-history-in-the-comments` -- and none of them is this.
-- [x] T2 -- NOT A TASK, restated in the Objective. ! It is the justification for
-      `--filtered`, which is the single most consequential thing about what a
-      reviewer sees -- it REMOVES information from the census a role reads. The
-      only numbers written down measure how much SMALLER it made the prompt: 39%
-      of the listing was repeated paths, `--filtered` saved 61%. Those are the
-      cost, not the benefit. Nobody ticks a reason.
-- [ ] T3 -- STATE WHAT WAS COMPARED, over what, and what "missed a lot" counts --
-      findings, hazards, or something else. A recall claim with no denominator is
-      the shape this repo already retired once, as `acquittal rate`. Verify: the
-      evidence README states a numerator, a denominator and the file set, and a
-      reader who ran neither arm can say which arm won and by how much.
-- [x] T4 -- NOT A TASK, restated in the Objective. ! It is the baseline the PAGE
-      has to beat, and the page claims to beat BOTH formats at once -- more
-      information than filtered, fewer tokens than unfiltered. Without the prior
-      recorded there is nothing to hold it to.
-- [x] T5 -- * RULING ALREADY MADE, and it is the `Unblocked:` line above. Roy,
-      2026-08-20: *"we can always rerun it by checking out the 0.1.x tag and the
-      0.2.1 tag."* Nobody's history is needed, only a checkout, so the comparison
-      is re-run rather than recovered.
+- [ ] T1 -- Re-run the filtered/unfiltered comparison across the 11 commits `v0.1.6^{}` ->
+      `v0.1.7^{}`. Verify: a new `evidence/` directory holds both arms and their commits.
+- [x] T2 -- RECORD, not a task: the justification for `--filtered`, and why the recorded
+      39% and 61% are the cost rather than the benefit. Restated in the Objective.
+- [ ] T3 -- State the denominator the recall claim needs, as set out in the Objective.
+      Verify: the evidence README names a numerator, a denominator and the file set.
+- [x] T4 -- RECORD, not a task: this is the baseline the PAGE has to beat, at both ends at
+      once. Restated in the Objective.
+- [x] T5 -- * RULING ALREADY MADE, and it is the `Unblocked:` line above: the comparison
+      is re-run from a checkout rather than recovered. Restated in the Objective.

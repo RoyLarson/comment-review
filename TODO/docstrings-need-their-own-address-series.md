@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 7 tasks done
+Progress: 5 of 9 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, on splitting the census by editorial role)
@@ -17,6 +17,9 @@ TRIAGED:  2026-08-23 — 2026-08-23. The `a` series SHIPS: measured over the 19 
           still absent. ! The Objective carried the same section twice, with two copies
           of one measurement; they are merged, and the counts are re-measured. ! The
           language counts were stale: 18 records now, not 11.
+SPLIT:    2026-08-23 -- the two open boxes each held two artifacts. ORDERING split from
+          the gate that stops an ordering becoming a filter; TELLING a role split from
+          correcting the two shipped sentences that say "The three series".
 ```
 
 ## Objective
@@ -56,6 +59,9 @@ that Python's docstring sits after its `def` and Rust's `///` sits before its `f
 2026-08-18, subject ABOVE in one and BELOW in the other, and neither reading is needed once the
 series counts declarations.
 
+! `ast.walk` is breadth first, so a nested `def` comes back out of position; the declarations are
+ordered by `lineno` instead, which is what T2 closed.
+
 ## What the series buys, and what it does NOT
 
 !! **FOCUS, NOT A SMALLER JOB.** Roy, 2026-08-18: *"I don't want to make it too easy and they do
@@ -65,7 +71,11 @@ START -- the prose that is about a declaration is the prose their remit is writt
 an orientation for everything they read afterwards.
 
 ! So this is an ORDERING of the dispatched census, never a filter of it. A role handed only its
-own series would stop being a review of the file.
+own series would stop being a review of the file. **That is why T6 and T7 are two boxes**: the
+ordering is one artifact and the gate that stops it quietly becoming a filter is another.
+
+! **MEASURED 2026-08-23: the census emits in WALK ORDER, not series order.** `sample.rs` comes
+back `f0 f1 a0 a2 b0 b2 b3 b4 a1 c0 b1 c1 c2 c3`.
 
 **RE-MEASURED 2026-08-23**, 19 shipped scripts, 8,738 census rows:
 
@@ -96,35 +106,25 @@ A repo in any of those has an empty or partial `a` series, and a role must be TO
 than handed nothing. ! Python builds it from the AST; every other language needs a declaration
 list, which stage 1.7's `documentSymbol` is exactly.
 
+! **AND THE TWO SHIPPED SENTENCES SAY OTHERWISE.** `SKILL.md:378` and `reviewer-brief.md:69` both
+still read *"The three series"*, and neither mentions an empty one.
+
 ## Tasks
 
-- [x] T1 -- RULED 2026-08-18 by Roy: the series counts DECLARATIONS, and an empty one is still
-      assigned. `a0` is the module, `a1..an` its declarations in source order, whether or not
-      each holds a docstring. A ruling, moved to the Objective.
-
-- [x] T2 -- FINISHED. The declarations are enumerated in SOURCE order. `ast.walk` is breadth
-      first, so a nested `def` comes back out of position; they are ordered by `lineno`.
-
-- [x] T3 -- FINISHED. An `a` entry is emitted for a declaration with NO docstring. Re-measured
-      2026-08-23: 206 `a` places over 19 files, 203 holding prose -- the three empty ones are
-      citable.
-
-- [x] T4 -- FINISHED. The census STATES which declaration a docstring belongs to, via `declares`,
-      rather than the cues inferring it from position or tier.
-
-- [x] T5 -- FINISHED. The `a` form is in `addresser.stable` and `--check` holds it to the same
-      rule as `b` and `c`.
-
-- [ ] T6 -- ORDER the dispatched census by series -- do NOT filter it. Roy, 2026-08-18: *"I don't
-      want to make it too easy and they do have to review all bs and cs but the focus for them
-      gets a lot easier."* MEASURED 2026-08-23: the census emits in walk order, not series order
-      -- `sample.rs` comes back `f0 f1 a0 a2 b0 b2 b3 b4 a1 c0 b1 c1 c2 c3`. Verify: a dispatched
-      census reads `a` first, then `b`, then `c`, AND `verdicts.py`'s coverage gate still counts
-      the whole prose population per role, so an ordering cannot quietly become a filter.
-
-- [ ] T7 -- SAY what a repo with NO `a` series gets. MEASURED 2026-08-23: six of eighteen
-      languages have no docstring notion, and `c`/`cpp` produce no `a` place at all. Nothing tells
-      a role this -- `SKILL.md:378` and `reviewer-brief.md:69` both still say *"The three
-      series"*, and neither mentions an empty one. Verify: a run over a `.c` or `.sh` file hands
-      the role a sentence naming the empty series and why, and the two "three series" sentences
-      are corrected.
+- [x] T1 -- RULED 2026-08-18 by Roy: the series counts DECLARATIONS, and an empty one is
+      still assigned. A ruling, kept in the Objective.
+- [x] T2 -- FINISHED. The declarations are enumerated in SOURCE order, by `lineno`.
+- [x] T3 -- FINISHED. An `a` entry is emitted for a declaration with NO docstring; the
+      three undocumented ones over the shipped scripts are citable.
+- [x] T4 -- FINISHED. The census STATES which declaration a docstring belongs to, via
+      `declares`, rather than the cues inferring it from position or tier.
+- [x] T5 -- FINISHED. The `a` form is in `addresser.stable`, and `--check` holds it to the
+      same rule as `b` and `c`.
+- [ ] T6 -- ORDER the dispatched census by series -- `a`, then `b`, then `c` -- and do NOT
+      filter it. Verify: a dispatched census reads `a` first, then `b`, then `c`.
+- [ ] T7 -- Hold the ordering to not becoming a filter. Verify: `verdicts.py`'s coverage
+      gate still counts the whole prose population per role after T6 lands.
+- [ ] T8 -- Tell a role when its `a` series is empty, and why. Verify: a run over a `.sh`
+      file hands the role that sentence.
+- [ ] T9 -- Correct the two "The three series" sentences at `SKILL.md:378` and
+      `reviewer-brief.md:69`. Verify: neither states three series unconditionally.

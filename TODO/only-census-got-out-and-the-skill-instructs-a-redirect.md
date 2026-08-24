@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 5 tasks done
 Owner:    agents
 Raised:   2026-08-17 (the 0.2.0 builder run, at the join: "verdicts.py has no --out
           (the census scripts do) -- and this session refuses shell redirects")
@@ -39,30 +39,33 @@ been acted on for two of the four. MEASURED 2026-08-23:
 
 ! `vocabulary.py` is pasted into a prompt rather than saved, so it is outside this.
 
+!! **THE FLAG IS COPIED FROM `census.py:276` EXACTLY** -- same flag name, same help, same
+behaviour -- so there is one thing to remember rather than three.
+
+!! **SUPERSEDED IN PART.** `verdicts.py` was the third script named in the original box and
+gained the flag at `verdicts.py:293`; the remainder is `run_context.py` and `referrers.py`.
+
+!! **NOT WHILE A RUN IS IN FLIGHT.** Two runs were mid-join when this was raised, and one of them
+was being diagnosed for a refusal -- editing the script under a diagnosis makes the measurement
+worthless.
+
+! **`verdicts.py --out` as it landed is EXCLUSIVE**, because the help was copied: it reads
+*"write the report to PATH, not stdout"*. The join is read by a human at the terminal as often as
+it is captured, and `census.py --out` is silent by comparison because nobody reads a census by
+eye.
+
+! **The missing test is a grep.** This defect is a doc and a script disagreeing, which is the
+class this repo already tests for elsewhere, and it would have caught this the day it shipped.
+
 ## Tasks
 
-- [ ] T1 -- Add `--out` to `run_context.py` and `referrers.py`, matching `census.py:276`
-      exactly: same flag name, same help, same behaviour, so there is one thing to remember.
-      Verify: `--out` appears in each script's argparse, and `run_context.py --template --out
-      F` leaves the packet in `F`.
-      ! **SUPERSEDED IN PART.** `verdicts.py` was the third script named here and gained the
-      flag at verdicts.py:293; the remainder is the two above.
-      !! **Not while a run is in flight.** Two runs were mid-join when this was raised, and one
-      of them was being diagnosed for a refusal -- editing the script under a diagnosis makes the
-      measurement worthless.
-
-- [ ] T2 -- Fix `SKILL.md:617` to use the flag once it exists. Verify: no `python
+- [ ] T1 -- Add `--out` to `run_context.py`, copied from `census.py:276`. Verify:
+      `run_context.py --template --out F` leaves the packet in `F`.
+- [ ] T2 -- Add `--out` to `referrers.py`, copied from `census.py:276`. Verify: it appears
+      in the argparse, and the `REFERENCE ONLY` candidates land in the named file.
+- [ ] T3 -- Fix `SKILL.md:617` to use the flag once it exists. Verify: no `python
       <skill>/scripts/...` line in `SKILL.md` carries a `>`.
-
-- [ ] T3 -- Keep `verdicts.py` writing its report to **stdout as well as** `--out`. MEASURED
-      2026-08-23: the flag as it landed reads *"write the report to PATH, not stdout"*
-      (verdicts.py:293), copied from `census.py`, so it is EXCLUSIVE. The join is read by a
-      human at the terminal as often as it is captured, and `census.py --out` is silent by
-      comparison because nobody reads a census by eye. Verify: with `--out` given, the file is
-      written and stdout is non-empty.
-
-- [ ] T4 -- Add a test that no `python <skill>/scripts/...` line in `SKILL.md` carries a `>`.
-      ! This defect is a doc and a script disagreeing, which is the class this repo already
-      tests for elsewhere -- the check is a grep, and it would have caught it the day it
-      shipped. Verify: the test fails against SKILL.md:617 as it reads today, then passes
-      after T2.
+- [ ] T4 -- Keep `verdicts.py` writing its report to stdout AS WELL AS `--out`. Verify:
+      with `--out` given, the file is written and stdout is non-empty.
+- [ ] T5 -- Test that no `python <skill>/scripts/...` line in `SKILL.md` carries a `>`.
+      Verify: it fails on `SKILL.md:617` today and passes after T3.

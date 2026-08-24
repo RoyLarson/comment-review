@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 5 of 7 tasks done
+Progress: 5 of 8 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21; measured in-session)
@@ -29,6 +29,9 @@ RE-VERIFIED: 2026-08-23 — 2026-08-23. `prove_unchanged._delimiter_shares_the_l
              answering it once settles which note stands. Status set to `deferred`,
              because T6 and the Reassigned note agree on what it waits on: the galley's
              whole-file composition step.
+SPLIT:    2026-08-23 -- the ruling box carried its whole history and the deferred box
+          carried a change AND its test. The ruling's evidence moved into the Objective;
+          the deferred box became the write-path change and the test that pins it.
 ```
 
 ## Objective
@@ -55,36 +58,41 @@ the way `prove_unchanged` already does, BEFORE the write rather than after.
 
 !! **CLOSE THIS WITH THE GALLEY, not before.** The composition step sees the whole file,
 so a splice that would drop a line of code is checkable there -- and prove_unchanged
-already knows how to spot it, just too late. See `galley-is-still-index-keyed` and
+already knows how to spot it, just too late. **A repair to a splice that is about to be
+replaced is shaped by the thing being replaced.** See `galley-is-still-index-keyed` and
 `the-author-approves-blocks-and-never-sees-the-page`, which is where the whole-document
 read before approval is being designed.
 
+## What the re-ruling is about, and why the file disagrees with itself
+
+Roy accepted this residue on 2026-08-20 when it was described to him as *"the line leaves
+code_lines, so interval boundaries below it move"*. **That description was incomplete: the cost
+is DELETED CODE, not a moved boundary.**
+
+! The measurement that justified accepting still stands -- the shape occurs **0 times in
+180,821 lines** of C and JS/TS and the style guides discourage it -- so the answer may well be
+the same. It should be made with the deletion on the table.
+
+!! **AND IT IS OWED OR IT IS NOT, and this file says both.** The 2026-08-21 `Reassigned` note
+cleared `Requires-Roy` on the ground that *"the re-ruling is not needed, the galley design
+absorbs it"*, while the ruling task below says one is wanted. Answering it once settles which
+of the two notes stands.
+
 ## Tasks
 
-- [x] T1 -- RECORD, not a task. !! MEASURED 2026-08-21, the deletion, on the four-
-      line C input above. Kept in the Objective.
-- [x] T2 -- RECORD, not a task. ! THE CAUSE IS A HALF-CUT -- text trimmed at the
-      closer, raw_lines holding the whole physical span.
-- [x] T3 -- RECORD, not a task. ! prove_unchanged catches it (prove_unchanged.py:79,
-      called at :153) but only AFTER stage 7b has written to disk. Re-verified
-      2026-08-23.
-- [ ] T4 -- * RE-RULING WANTED. Roy accepted this residue on 2026-08-20 when it was
-      described to him as *"the line leaves code_lines, so interval boundaries below
-      it move"*. That description was incomplete: the cost is DELETED CODE, not a
-      moved boundary. ! The measurement that justified accepting still stands -- the
-      shape occurs 0 times in 180,821 lines of C and JS/TS and the style guides
-      discourage it -- so the answer may well be the same. It should be made with
-      the deletion on the table. !! AND IT IS OWED OR IT IS NOT, and this file says
-      both: the 2026-08-21 Reassigned note cleared Requires-Roy on the ground that
-      *"the re-ruling is not needed, the galley design absorbs it"*. Answering this
-      box once settles which of the two notes stands.
-- [x] T5 -- RECORD, not a task. ! THE OPTIONS ARE UNCHANGED, and they are named in
-      the Objective.
-- [x] T6 -- RECORD, not a task. ! CLOSE THIS WITH THE GALLEY, not before -- the
-      sequencing reason, kept in the Objective.
-- [ ] T7 -- WHEN THE GALLEY'S COMPOSITION STEP LANDS, take whichever option T4
-      leaves standing. Verify: on the four-line C input in the Objective, a `patch`
-      through the write path either REFUSES the file before writing or preserves
-      `int x = 5;`, and a test asserts it and fails without the change. ! DEFERRED
-      on the galley -- a repair to a splice that is about to be replaced is shaped
-      by the thing being replaced.
+- [x] T1 -- RECORD, not a task. The deletion, MEASURED 2026-08-21 on the four-line C
+      input. Kept in the Objective.
+- [x] T2 -- RECORD, not a task. The cause is a half-cut -- text trimmed at the closer,
+      `raw_lines` holding the whole physical span. Kept in the Objective.
+- [x] T3 -- RECORD, not a task. `prove_unchanged` catches it (:79, called at :153) only
+      AFTER stage 7b has written. Re-verified 2026-08-23.
+- [ ] T4 -- * RE-RULE the 2026-08-20 acceptance with the DELETED CODE on the table, and
+      say which of the two contradicting notes stands. Verify: the answer is in this file.
+- [x] T5 -- RECORD, not a task. The three options are unchanged and are named in the
+      Objective.
+- [x] T6 -- RECORD, not a task. Close this with the galley, not before -- the sequencing
+      reason, kept in the Objective.
+- [ ] T7 -- When the galley's composition step lands, take whichever option T4 leaves
+      standing. Verify: the Objective's C input refuses, or keeps `int x = 5;`.
+- [ ] T8 -- Pin T7 with a test on that same four-line C input. Verify: the test fails on
+      the pre-change tree and passes after it.

@@ -2,7 +2,7 @@
 
 ```
 Status:   blocked (python-cannot-read-python -- the lexical Python reader)
-Progress: 0 of 1 tasks done
+Progress: 0 of 2 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the compositor round trip over `corpora/`, 2026-08-21 -- one of 7
@@ -19,6 +19,9 @@ TRIAGED:  2026-08-23 — ALL ELEVEN BOXES WERE RECORDS -- one measurement, three
           They are ticked as the record of how the ruling was reached and moved into the
           objective. ONE TASK REMAINS and it is this file's own: the re-measurement that
           closes it. ! RE-VERIFIED LIVE the same day -- see below.
+SPLIT:    2026-08-23 -- the remaining box carried TWO ARTIFACTS in its Verify -- the
+          compositor's round-trip identity and the census's tiling -- so it is two boxes.
+          Neither fits in two lines while carrying the other.
 ```
 
 ## Objective
@@ -41,6 +44,9 @@ and `compositor.lossless(Path("corpora/numpy/numpy/exceptions.py"))` returns
 place what it holds, so line 246 is emitted twice: 247 lines in, 248 out. That is a line
 INVENTED, which breaks the invariant `lossless` exists to hold -- and `lossless` is what found it.
 
+! **BOTH HALVES CURRENTLY FAIL**, which is what makes ticking either box an observation rather
+than a judgement.
+
 ! **IT BREAKS THE TILING**, which is the property everything else rests on: every line belongs to
 exactly ONE place. Same class as the `f0`-inside-`b0` overlap fixed the same day, but between an
 `a` and a `c`, and with the text stored twice rather than the range merely overlapping.
@@ -53,7 +59,7 @@ keeps its closing line whole and lets the `c` claim the same line's comment half
 3 of the 7 files that failed `lossless` over 3,082 are this shape:
 `numpy/numpy/exceptions.py`, `numpy/.venv/Lib/site-packages/_virtualenv.py` and
 `numpy/.venv/Scripts/activate_this.py`. The other 4 are the unparsed-page case, guarded in
-`3ce4e4c`.
+`3ce4e4c`. **Those three files are what T1 re-runs.**
 
 ## Which one owns it -- ANSWERED, and by the reader that does not have the seam
 
@@ -72,6 +78,8 @@ to figure out how to attach those back."*
 reason this defect survives it: Python's language row has no `"""` delimiter, and `_strip_strings`
 blanks the spanning quote before the comment-opener test. Both must be answered for a lexical
 Python reader -- and once one works, this defect is gone by construction rather than fixed.
+**That reader is [`python-cannot-read-python`](python-cannot-read-python.md), and it is the only
+thing this file waits on; the re-measurement is all this file owns.**
 
 !! **`"""` IS BOTH PYTHON'S STRING QUOTE AND ITS DOC DELIMITER, which is the real work in
 `python-cannot-read-python` and not in this TODO.** Its row lists `('"""', "'''")` under
@@ -87,11 +95,7 @@ settles it without a guard: the run owns the whole closing line.**
 
 ## Tasks
 
-- [ ] **T1 -- RE-MEASURE when the lexical Python reader lands, and close this file.** It is the
-      only thing this TODO owns; the reader itself is
-      [`python-cannot-read-python`](python-cannot-read-python.md). Verify, in this order:
-      `compositor.lossless(Path("corpora/numpy/numpy/exceptions.py"))` returns `None`; the census
-      of that file gives line 246 exactly ONE address; and the same holds for
-      `numpy/.venv/Lib/site-packages/_virtualenv.py` and `numpy/.venv/Scripts/activate_this.py`.
-      ! Both halves currently FAIL -- re-verified 2026-08-23, output in the objective -- so this
-      box can fail today, which is what makes ticking it an observation.
+- [ ] T1 -- Re-run `compositor.lossless` over the three numpy files named in the Objective
+      once the lexical Python reader lands. Verify: it returns `None` for all three.
+- [ ] T2 -- Re-census `corpora/numpy/numpy/exceptions.py` and close this file. Verify:
+      line 246 carries exactly ONE address.

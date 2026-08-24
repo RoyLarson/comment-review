@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 20 tasks done
+Progress: 13 of 25 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -10,6 +10,9 @@ Triaged:  2026-08-23 -- the filter SHIPPED and is what stage 4 hands a reviewer.
           of the twenty boxes were rulings, measurements or reasoning, or had landed;
           the destination check and the operation question were both settled, the second
           the opposite way from the box that proposed it
+Split:    2026-08-23 -- boxes cut to two lines. The round-1 grow held one place and every
+          role, the census-reader box held a survey and its cross-check, and the
+          placeholder box held one placeholder and all of them; 22 boxes became 25
 ```
 
 ## Objective
@@ -54,12 +57,38 @@ rows reached each reviewer -- is closed.
 *"DO NOT SHIP THE FILTER WITHOUT A WAY TO NAME WHAT IT COLLAPSED ... A run NAMES ITS ENDS --
 `@b7..b12` -- and `addresser.py --anchor` resolves any place in between."* The collapsed row also
 counts what it swallowed (`47-intervals`, `3-leadings, 3-margins`), so a reviewer can still see
-that a gap exists.
+that a gap exists. A collapsed row reads
+`227-234  @c1..b7  122-129  no-prose  0L  2-intervals, 6-margins`, and `SKILL.md:357-361` states
+why the naming is not optional: without it a reviewer cannot cite what was collapsed, and
+*"filtering without that is worse than not filtering."*
 
 **The projection is documented and the citation is the ADDRESS, not the index.**
 `SKILL.md:350-355`: *"Every paragraph keeps the ADDRESS it holds in the FULL census ... The index
 in the first column is a READING AID for a human scanning the listing, and nothing cites it."*
-! That is a stronger property than the box asked for, and nothing tests it -- see T5.
+! That is a stronger property than the box asked for, and nothing tests it.
+
+## What the finished boxes settled
+
+**The lookup is `scripts/addresser.py`.** In goes a line, out comes the address of the place
+there: `addresser.py --census <CENSUS> --anchor LINE --series a|b|c`. ! It stayed narrow, which
+was the instruction -- every extra question is a second way to name a place, and one way to name
+a place is the property this design buys.
+
+**A destination that is not an address is refused, which is rule 4.** `desk.py:508-553`: a `move`
+naming a LINE inside a file this run cued is refused with *"that form was retired: ask
+`addresser.py --anchor LINE --series a|b|c` for the address"*; a `move` naming an address
+resolves through `entry_for` and is refused by name when the census has no such place. ! It also
+distinguishes a wrong address from a right address for an uncued file, which two causes used to
+share one message.
+
+**The record carries NO `side`, which is the OPPOSITE of what the box proposed.** The box wanted
+`{"op": "insert", "anchor": ..., "side": "above"}`. `record.py:327-332` refuses that and says
+why: *"NO `side`. The ADDRESS carries it: an `a` is a declaration's documentation, a `b` is a
+gap, a `c` is the room beside a line of code ... A second statement of one fact can disagree with
+the first, and this one did -- measured 2026-08-19, an `add` on a `c` address passed the gate
+carrying `side: above`, and there was no `beside` to write instead."* ! The consumers stopped
+inferring too: `galley.reset` works by CUE (`galley.py:141-153`), not by branching on
+`kind == "interval"`.
 
 ## ! Why the filter is safe: empty places serve CITATION, not DISCOVERY
 
@@ -73,8 +102,35 @@ empty place, and its reason is drawn entirely from the code -- two enforcement s
 constraint, prose at one of them.
 
 !! **So filtering costs the CITATION and nothing else, and a lookup restores exactly that.**
-That is the argument the ruling rests on; if it is wrong, the filter is wrong. **T9 is what tests
-it.**
+That is the argument the ruling rests on; if it is wrong, the filter is wrong. **T11 is what tests
+it**, and the cycle run on disk in `evidence/cycle-0.2.3/` carries the record files that are its
+answer key.
+
+## What else reads the census, and where the four readers disagree
+
+`verdicts.py`, `galley.py`, `record.py` and `addresser.py` all take the census, and only the
+REVIEWER's copy is filtered: the filter is a view for dispatch, not a change to the artifact on
+disk. ! Measured 2026-08-23, this is not only a survey -- three of the four unwrap a dict census
+with their own copy of the same expression and `verdicts.py:332` does not, so the same file loads
+in three readers and gives an `AttributeError` in the fourth.
+[`the-bridge-landed-and-the-rewrite-did-not`](the-bridge-landed-and-the-rewrite-did-not.md) owns
+that seam.
+
+## What a reviewer is told to run, and cannot resolve
+
+`reviewer-brief.md:210` tells a reviewer to run
+`python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c`.
+`run_context.PATH_SECTIONS` is `("REPO ROOT", "CENSUS", "LOOKUP CENSUS", "REVIEWER FILES")`, and
+`REVIEWER FILES` -- the only section holding plugin paths -- is in `TASK_AGENT_ONLY` and withheld
+from reviewers, while `SKILL.md` insists *"An agent is GIVEN what it needs, and is never sent
+looking."* ! `<FULL CENSUS>` names no section either; the field is `LOOKUP CENSUS`.
+
+**And the `kind` column has no legend anywhere a reviewer reads.** Measured 2026-08-23, the
+listing prints `docstring`, `comment`, `trailing-comment`, `margin`, `interval`, `leading`,
+`dark-matter`, `undocumented` and `no-prose` (the collapsed run). `reviewer-brief.md` names
+`interval`, `undocumented` and `margin` and never names `leading`, `dark-matter` or `no-prose` --
+which between them are most of the rows. ! The only legend in the tree is in `SKILL.md`, which
+reviewers never see.
 
 ## What it cost, per reviewer, before any work is done
 
@@ -91,13 +147,14 @@ it.**
 !! **THIS TABLE IS A ROTTED MEASUREMENT and is kept as the baseline the filter is scored
 against, not as a current fact.** It was taken 2026-08-18, before `margin` and `leading` existed
 and before the filter shipped; the same two files census to 3,359 paragraphs today. Re-take it
-with T7's successor measurement rather than quoting it.
+with a successor measurement rather than quoting it.
 
 ## ! The page rendering -- PROPOSED 2026-08-21, DEFERRED, not ruled
 
 Roy, 2026-08-21: *"I might be convinced that the addressing per anchor/line would be useful for
 the agents ... I think this is a valuable concept."* He also deferred it: *"this doesn't need my
-attention just yet"*, so `Requires-Roy` stays FALSE.
+attention just yet"*, so `Requires-Roy` stays FALSE -- it was cleared 2026-08-19 for a stated
+reason, and a proposal awaiting a look is not a decision owed today.
 
 **The renderer is in the tree as `scripts/render_page.py`** so nobody re-derives the numbers.
 MEASURED 2026-08-21 over 26 files -- every shipped script, this repo's `scripts/`, plus
@@ -108,18 +165,21 @@ bytes, margin 1,088,304 (-33%, smaller on 23 of 26), prose-only 1,029,443 (-37%)
 PLACE, MARGIN pays per LINE. Code-heavy files have an empty place between every pair of
 statements, each a row with its anchor repeated -- `listobject.c` -50%, `eslint.config.ts` -51%.
 The three files the margin LOSES on are prose-dense with little code: `addresser.py` +7%,
-`desk.py` +9%, `page.py` level. ! This supersedes the single-file number
-(`scripts/check_vocabulary.py`, 25,950 bytes of rows against 21,535 of margin) which was one
-Python file that is 40% docstring.
+`desk.py` +9%, `page.py` level. ! **The ratio tracks CODE DENSITY, not language**, which is what
+a one-Python-file measurement could not have shown. ! This supersedes the single-file number
+(`scripts/check_vocabulary.py`: 25,950 bytes of rows, 21,535 of margin, 19,242 prose-only,
+15,076 the file itself), which was one Python file that is 40% docstring.
 
 **It composes with the filtered handout rather than replacing it.** Roy, 2026-08-18: *"a tool
 retrieves the correct spot from the enumerated spots ... and they call the tool when they need a
-place outside the filter."* The margin rendering is a candidate for what that TOOL RETURNS.
+place outside the filter."* The margin rendering is a candidate for what that TOOL RETURNS -- a
+display a reviewer calls up, which is the tool this TODO already ruled.
 
 **And the records belong on it.** Roy, 2026-08-21: *"the records though also need to be
 potentially explicitly shown or retrievable. Because they are supposed to mark on the records
 what is supposed to happen."* A reviewer MARKS a manuscript; a page showing addresses but not the
-marks against them is a proof with no editorial marks on it. That half does not exist.
+marks against them is a proof with no editorial marks on it. That half does not exist, and it is
+a requirement ON the deferred proposal rather than work today.
 
 **What is still open in the proposal, none of it ruled:** whether an EMPTY place gets a row in
 position (its value is entirely positional -- an `add` cites it) or is listed under the page;
@@ -128,125 +188,56 @@ mock-up and matches nothing in the tree.
 
 ## Tasks
 
-- [x] T1 -- * RULED 2026-08-18 by Roy: the filter ships, and the reviewer is handed the TOOL. Not
-      the whole census. The tool answers one question -- *what is the ADDRESS of this line of
-      code* -- and that is the whole of what a reviewer needs to place prose it cannot already
-      cite.
-
-- [x] T2 -- FINISHED. The lookup is `scripts/addresser.py`. In goes a line, out comes the address
-      of the place there: `addresser.py --census <CENSUS> --anchor LINE --series a|b|c`.
-      ! It stayed narrow, which was the instruction -- every extra question is a second way to
-      name a place, and one way to name a place is the property this design buys.
-
-- [x] T3 -- FINISHED. A destination that is not an address is refused, which is rule 4.
-      `desk.py:508-553`: a `move` naming a LINE inside a file this run cued is refused with
-      *"that form was retired: ask `addresser.py --anchor LINE --series a|b|c` for the address"*;
-      a `move` naming an address resolves through `entry_for` and is refused by name when the
-      census has no such place. ! It also distinguishes a wrong address from a right address for
-      an uncued file, which two causes used to share one message.
-
-- [ ] T4 -- **Grow the filtered table between rounds, for every role.** Rule 5: a spot one role
-      looked up is in everyone's view at 5b, because a re-review rules on the JOINED paragraph and
-      must see where a neighbour sent things. ! 5b already sets a galley and censuses it
-      (`SKILL.md:913-922`), and `re-review.md:80,87` tells the reviewer to cite the galley census
-      -- so the mechanism exists. What is unverified is whether the round-2 handout is filtered at
-      all and whether a place a round-1 role looked up is in it. Verify: a place cited by one role
-      in round 1 appears in every role's round-2 handout.
-
-- [ ] T5 -- **Test the projection, because it is asserted in three places and checked in none.**
-      `census.py:468-472` and `SKILL.md:350-355` both state that a filtered census carries the
-      same ADDRESS for every prose paragraph as the full one. Observed true today; no test asserts
-      it, and `grep -rn "filtered" tests/` finds one test, which checks only that front matter is
-      dropped. Verify: a test compares filtered and full over a multi-file census and fails if any
-      prose paragraph's address differs.
-
-- [x] T6 -- FINISHED, and the answer was neither "drop them" nor "keep them". A run of prose-less
-      places collapses to ONE row that names its addressed ends and counts what it swallowed --
-      `227-234  @c1..b7  122-129  no-prose  0L  2-intervals, 6-margins`. `SKILL.md:357-361` states
-      why the naming is not optional: without it a reviewer cannot cite what was collapsed, and
-      *"filtering without that is worse than not filtering."*
-
-- [x] T7 -- FINISHED for the byte half. Re-measured 2026-08-19 over 6,828 paragraphs: 397,685
-      bytes to 159,316 per reviewer, 953,476 over a four-role run (`SKILL.md:346-348`). ! The
-      other half of the claim -- *without a verdict changing* -- is T9's, and is not measured.
-
-- [ ] T8 -- **Check what else reads the census in full.** `verdicts.py`, `galley.py`, `record.py`
-      and `addresser.py` all take it, and only the REVIEWER's copy is filtered: the filter is a
-      view for dispatch, not a change to the artifact on disk. ! Measured 2026-08-23, this is not
-      only a survey -- three of the four unwrap a dict census with their own copy of the same
-      expression and `verdicts.py:332` does not, so the same file loads in three readers and gives
-      an `AttributeError` in the fourth. Verify with T8 of
-      [`the-bridge-landed-and-the-rewrite-did-not`](the-bridge-landed-and-the-rewrite-did-not.md),
-      which owns that seam.
-
-- [ ] T9 -- **Re-run a known case both ways and diff the verdicts.** This is the test of the
-      argument the whole filter rests on -- that filtering costs the CITATION and nothing else.
-      The cycle run is on disk in `evidence/cycle-0.2.3/` with its record files, so the comparison
-      has an answer key. Verify: the verdict mix over a filtered handout and a full one differs
-      only in which places were cited, or the filter is wrong.
-
-- [x] T10 -- FINISHED, and settled the OPPOSITE way from the box that proposed it. The box wanted
-      the record to carry `{"op": "insert", "anchor": ..., "side": "above"}`. `record.py:327-332`
-      refuses that and says why: *"NO `side`. The ADDRESS carries it: an `a` is a declaration's
-      documentation, a `b` is a gap, a `c` is the room beside a line of code ... A second statement
-      of one fact can disagree with the first, and this one did -- measured 2026-08-19, an `add`
-      on a `c` address passed the gate carrying `side: above`, and there was no `beside` to write
-      instead."* ! The consumers stopped inferring too: `galley.reset` works by CUE
-      (`galley.py:141-153`), not by branching on `kind == "interval"`.
-
-- [x] T11 -- FINISHED. `--filtered` collapses on `Kind.holds_no_prose` (`census.py:576`), not on
-      one kind, so `margin`, `undocumented` and `leading` collapse with `interval`. Verified
-      2026-08-23: 0 bare `margin` rows in a filtered listing over two shipped scripts.
-
-- [ ] T12 -- **Resolve `<skill>` and `<FULL CENSUS>` in what a reviewer reads.**
-      `reviewer-brief.md:210` tells a reviewer to run
-      `python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c`.
-      `run_context.PATH_SECTIONS` is `("REPO ROOT", "CENSUS", "LOOKUP CENSUS", "REVIEWER FILES")`,
-      and `REVIEWER FILES` -- the only section holding plugin paths -- is in `TASK_AGENT_ONLY` and
-      withheld from reviewers. `SKILL.md` insists *"An agent is GIVEN what it needs, and is never
-      sent looking."* ! `<FULL CENSUS>` names no section either; the field is `LOOKUP CENSUS`.
-      Verify: every placeholder in `reviewer-brief.md` names a packet section a reviewer receives.
-
-- [ ] T13 -- **Tell a reviewer what the census `kind` column means, and ship a legend with the
-      listing.** Measured 2026-08-23, the listing prints `docstring`, `comment`,
-      `trailing-comment`, `margin`, `interval`, `leading`, `dark-matter`, `undocumented` and
-      `no-prose` (the collapsed run). `reviewer-brief.md` names `interval`, `undocumented` and
-      `margin` and never names `leading`, `dark-matter` or `no-prose` -- which between them are
-      most of the rows. ! The listing ships no column legend at all; the only one is in `SKILL.md`,
-      which reviewers never see. Verify: every kind the listing can print is defined somewhere a
-      reviewer reads.
-
-- [ ] T14 -- * **Rule the page rendering**, DEFERRED by Roy 2026-08-21 -- *"this doesn't need my
-      attention just yet"*. The proposal, its 26-file measurement, the records-on-the-page half
-      and the four questions it leaves open are in the Objective above. ! `Requires-Roy` stays
-      FALSE: it was cleared 2026-08-19 for a stated reason and a proposal awaiting a look is not a
-      decision owed today. This box tracks that the ruling is still owed, and it finishes the day
-      Roy answers.
-
-- [x] T15 -- Not a task. The single-file number (`check_vocabulary.py`: 25,950 rows / 21,535
-      margin / 19,242 prose-only / 15,076 the file itself) was a MEASUREMENT, and it is superseded
-      by the 26-file run. Both are in the Objective.
-
-- [x] T16 -- FINISHED. "Re-measure across languages before any of these numbers is used to decide"
-      was done on 2026-08-21: the 26-file run includes `corpora/cpython/Objects/listobject.c` and
-      `corpora/sentry/eslint.config.ts`, and those two are where the margin wins hardest (-50% and
-      -51%). ! The finding is that the ratio tracks CODE DENSITY, not language, which is what the
-      original one-Python-file measurement could not have shown.
-
-- [x] T17 -- Not a task as written. "THE RECORDS BELONG ON THE PAGE" is a requirement ON the
-      deferred proposal, and it is in the Objective with Roy's words. It becomes work the day T14
-      is ruled.
-
-- [x] T18 -- Not a task. "IT IS A DISPLAY THEY CALL UP, WHICH IS THE TOOL THIS TODO ALREADY RULED"
-      is the argument that the rendering composes with the filtered handout rather than replacing
-      it. Kept in the Objective.
-
-- [x] T19 -- Not a task. "WHAT IS STILL OPEN in the proposal" enumerates three unruled questions;
-      they are what T14 rules on and they are listed in the Objective.
-
-- [x] T20 -- Not a task. The 26-file measurement is a MEASUREMENT, and `scripts/render_page.py` is
-      in the tree so it can be re-taken rather than re-derived. In the Objective.
-
+- [x] T1 -- RULED 2026-08-18: the filter ships and the reviewer is handed the TOOL, not
+      the whole census. The ruling and what follows from it are in the Objective.
+- [x] T2 -- FINISHED. The lookup is `scripts/addresser.py --census <CENSUS> --anchor LINE
+      --series a|b|c`. Why it stayed that narrow is in the Objective.
+- [x] T3 -- FINISHED. A `move` destination that is not an address is refused, which is
+      rule 4. The two refusal messages are quoted in the Objective.
+- [ ] T4 -- Grow the filtered table between rounds so rule 5 holds at 5b. Verify: a place
+      cited in round 1 appears in the round-2 handout.
+- [ ] T5 -- Grow it for EVERY role, not only the role that cited. Verify: all four round-2
+      handouts carry that place.
+- [ ] T6 -- Test that a filtered census carries every prose paragraph's ADDRESS unchanged
+      from the full one. Verify: a multi-file census test fails if any address differs.
+- [x] T7 -- FINISHED, and neither "drop them" nor "keep them": a run of prose-less places
+      collapses to ONE row that names its ends. Example in the Objective.
+- [x] T8 -- FINISHED for the byte half, re-measured 2026-08-19 (`SKILL.md:346-348`). ! The
+      other half of the claim -- *without a verdict changing* -- is T11's.
+- [ ] T9 -- Record which of `verdicts.py`, `galley.py`, `record.py` and `addresser.py`
+      read the census in full. Verify: each of the four is named here as full or filtered.
+- [ ] T10 -- Check that survey against T8 of `the-bridge-landed-and-the-rewrite-did-not`.
+      Verify: both name the same set of full-census readers.
+- [ ] T11 -- Re-run `evidence/cycle-0.2.3/` filtered and full and diff the verdicts.
+      Verify: the mix differs only in which places were cited, or the filter is wrong.
+- [x] T12 -- FINISHED, and the OPPOSITE of what the box proposed: the record carries no
+      `side`, because the address carries it. `record.py:327-332`, in the Objective.
+- [x] T13 -- FINISHED. `--filtered` collapses on `Kind.holds_no_prose` (`census.py:576`),
+      not on one kind. Verified 2026-08-23: 0 bare `margin` rows over two shipped scripts.
+- [ ] T14 -- Resolve `<skill>` in `reviewer-brief.md:210` to a path a reviewer is given.
+      Verify: it comes from a packet section not in `TASK_AGENT_ONLY`.
+- [ ] T15 -- Resolve `<FULL CENSUS>` in `reviewer-brief.md:210`; the packet field is
+      `LOOKUP CENSUS`. Verify: the file names that field instead.
+- [ ] T16 -- Check every other placeholder in `reviewer-brief.md`. Verify: each names a
+      packet section a reviewer is given.
+- [ ] T17 -- Define every `kind` the census listing can print where a reviewer reads it.
+      Verify: each of the nine kinds measured 2026-08-23 is in `reviewer-brief.md`.
+- [ ] T18 -- Ship a column legend with the census listing itself. Verify: a filtered
+      listing handed to a reviewer carries a legend, without reading `SKILL.md`.
+- [ ] T19 -- * Rule the page rendering, deferred by Roy 2026-08-21; the open questions are
+      in the Objective. Verify: the ruling is in `docs/decision-log.md`.
+- [x] T20 -- Not a task. The single-file rendering number was a MEASUREMENT and is
+      superseded by the 26-file run. Both are in the Objective.
+- [x] T21 -- FINISHED. "Re-measure across languages" was done 2026-08-21: the 26-file run
+      includes a `.c` and a `.ts`, and those are where the margin wins hardest.
+- [x] T22 -- Not a task. "THE RECORDS BELONG ON THE PAGE" is a requirement ON the deferred
+      proposal and is in the Objective. It becomes work the day T19 is ruled.
+- [x] T23 -- Not a task. "IT IS A DISPLAY THEY CALL UP" is the argument that the rendering
+      composes with the filtered handout rather than replacing it. Kept in the Objective.
+- [x] T24 -- Not a task. "WHAT IS STILL OPEN in the proposal" enumerates three unruled
+      questions; they are what T19 rules on, and they are listed in the Objective.
+- [x] T25 -- Not a task. The 26-file measurement is a MEASUREMENT, and
+      `scripts/render_page.py` is in the tree so it can be re-taken. In the Objective.
 ## Related
 
 - [`verdicts-py-announces-one-subject-and-holds-four`](completed/verdicts-py-announces-one-subject-and-holds-four.md)

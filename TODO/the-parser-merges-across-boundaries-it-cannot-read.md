@@ -8,6 +8,8 @@ Requires-Roy: true
 Raised:   2026-08-17, after three defects of one shape landed in a single day
 Triaged:  2026-08-23 -- the text reader is retired, so D7 and D8's entry point no longer
           exists; D9's does. The corroboration rule is in the shipped tree
+SPLIT:    2026-08-23 -- no box held two tasks; four boxes stay four. The two closed boxes
+          carried the reasoning that keeps them legible, and it moved into the Objective.
 ```
 
 ## Objective
@@ -57,6 +59,12 @@ means *I do not know what this is*, so every unrecognised thing becomes its neig
   span. **A token it cannot align is still absorbed into the surrounding span**; there is no
   opcode, and no return value, that means "cannot align".
 
+! **THE OUTCOME ALREADY EXISTS AND THE ALIGNMENT FAILURE DOES NOT REACH IT.** `removed_spans`
+has a "cannot compare" channel -- it returns `None`, and `desk.py:793-796` tells callers to
+treat that as *cannot compare*, never as *nothing removed*. The alternative to absorbing the
+token is to report the span as unreliable and let `edit_problem` refuse with a message that
+names the alignment failure instead of the innocent word.
+
 ## ! What is NOT established
 
 - **That the shape can be changed cheaply.** A parser that names what it cannot read has to
@@ -67,35 +75,30 @@ means *I do not know what this is*, so every unrecognised thing becomes its neig
   conditional: *"A fourth is a reason to change the SHAPE of the boundary decision, not to add a
   fourth case."*
 
+## What the two closed boxes recorded
+
+**SUPERSEDED, and worth keeping legible.** *"Give the continuation branch a fourth outcome:
+UNRECOGNISED"* named a branch that no longer exists -- `parse_report` was retired with the text
+record format (`docs/history.md:178`), and `held.load_report` reads JSON only. The task was
+right about the SHAPE and is closed by removal rather than by fix, **which matters because the
+same argument still applies to `removed_spans`, where the elimination is still there.**
+
+**FINISHED: the corroboration rule is in the shipped tree at `verdicts.py:62-65`:** *"What
+separated D9 from reviewer error was CORROBORATION: `block-context` had implemented its own
+single-edit checker and passed the record this gate refused. Two implementations of 'did the
+edit match the claim' disagreeing is worth running down."* ! That is how a tool defect is told
+from sloppiness, and a reviewer disagreeing with the gate ALONE is not it.
+
 ## Tasks
 
-- [x] T1 -- SUPERSEDED. "Give the continuation branch a fourth outcome: UNRECOGNISED" names a
-      branch that no longer exists: `parse_report` was retired with the text record format
-      (`docs/history.md:178`), and `held.load_report` reads JSON only. ! The task was right about
-      the shape and is closed by removal rather than by fix -- which is worth keeping legible,
-      because the same argument still applies to T2, where the elimination is still there.
-
-- [ ] T2 -- **Say what `removed_spans` does with a token it cannot align.** Today `desk.py:831-837`
-      absorbs it into the surrounding `delete`/`replace` span. The alternative is to report the
-      span as unreliable and let `edit_problem` refuse with a message that names the alignment
-      failure instead of the innocent word. ! `removed_spans` already has a "cannot compare"
-      channel -- it returns `None`, and `desk.py:793-796` tells callers to treat that as "cannot
-      compare", never as "nothing removed" -- so the outcome exists and the alignment failure does
-      not reach it. Verify: a record whose `CHANGE` cannot be aligned to its `original` produces a
-      message naming the alignment, not a word.
-
-- [ ] T3 -- **Add a test that asserts the ERROR NAMES THE RIGHT THING**, not merely that an error
-      occurred. All three defects passed their existing tests: something was refused, and the
-      tests checked that it was. ! This is the check that would have caught the class. Verify: at
-      least one test in `tests/test_verdicts.py` asserts on the SUBJECT named in the message and
-      fails if the message names a neighbouring span instead.
-
-- [x] T4 -- FINISHED. The corroboration rule is in the shipped tree at `verdicts.py:62-65`:
-      *"What separated D9 from reviewer error was CORROBORATION: `block-context` had implemented
-      its own single-edit checker and passed the record this gate refused. Two implementations of
-      'did the edit match the claim' disagreeing is worth running down."* ! That is how a tool
-      defect is told from sloppiness, and a reviewer disagreeing with the gate ALONE is not it.
-
+- [x] T1 -- SUPERSEDED, not a task. The continuation branch it named was retired with the
+      text record format. Kept in the Objective.
+- [ ] T2 -- Say what `removed_spans` does with a token it cannot align; today
+      `desk.py:831-837` absorbs it. Verify: the message names the alignment, not a word.
+- [ ] T3 -- Add a test asserting the ERROR NAMES THE RIGHT THING, not merely that one
+      occurred. Verify: a test in `tests/test_verdicts.py` fails if a neighbour is named.
+- [x] T4 -- FINISHED. The corroboration rule ships at `verdicts.py:62-65`. Kept in the
+      Objective.
 ## Related
 
 - [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)

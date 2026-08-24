@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 1 of 8 tasks done
+Progress: 1 of 14 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established
@@ -14,6 +14,13 @@ Re-checked: 2026-08-23 -- 1.7 (`SKILL.md:286`) and 1.8 (`:319`) are unchanged. C
           files under `docs/`, and THIS repo now carries a `.codegraph/` index, so the
           "ships unexercised" caveat no longer holds here. The ruled sheet home
           `.claude/comment-review/` appears nowhere in the shipped skill.
+SPLIT:    2026-08-23 -- one action per box. Eight boxes became twelve: the collapse split
+          from re-resolving the citations that name 1.8, the CodeGraph ruling split into
+          the probe and the sanctioned use, widening the sheet split from naming its home,
+          and the staleness rule split from the ref that makes it computable.
+SPLIT:    2026-08-24 -- second pass, twelve boxes to fourteen. The `codegraph_explore`
+          ruling was two rulings (anchor, liveness) and the sheet's exclusions were two
+          exclusions with two different reasons (a machine fact, a session fact).
 ```
 
 ## Objective
@@ -38,6 +45,11 @@ runs"*. Two problems with that as it stands:
 - **It carries the templates and the rulings, and none of the other stage-1 facts.** The cap,
   the width, whether the guard exists, the destination tree and the marker exemptions are
   re-derived every time and appear only in the run's proposal.
+
+!! **THE HOME IS RULED AND UNIMPLEMENTED.** Roy, 2026-08-17: `.claude/comment-review/` in the
+repo under review -- a per-repo location beside the other `.claude` configuration, so the sheet is
+found without the human typing a path and travels with the repo it describes. ! It is still
+written only after approval, like everything else; this does not make stage 1 a writing stage.
 
 ### 2. !! 1.8 IS NOT A QUESTION -- it is 1.7's answer restated
 
@@ -106,54 +118,42 @@ mid-session.
 ! The name corpus is deliberately absent from that table. Under defect 2 it is not an answer at
 all; it is whatever the structure sources say, computed at dispatch.
 
+! **Recommendation for the staleness question**, kept here rather than in a box: the sheet records
+the ref it was measured at, and stage 1 re-measures only what the diff since that ref touched.
+
+! **Four things the boxes below no longer carry.** The 1.7/1.8 collapse is Roy's because it
+RENUMBERS substeps. Any name proposed for a structure source is checked against the editorial
+register BEFORE it is proposed, per `CLAUDE.md`. The three structure states are `answered`, `no
+server for this language` and `no tool at all`. And a persisted answer goes wrong the ordinary
+ways -- a cap published since the last run, a `docs/` tree deleted since.
+
 ## Tasks
 
-- [ ] T1 -- * Collapse 1.7 and 1.8 into ONE substep, and name it for what it does:
-      find what structure is available. The name corpus stops being a decision and
-      becomes the output. ! Roy's ruling, because it renumbers a stage's substeps
-      and the numbers are cited from `run_context.py`, `census.py` and elsewhere in
-      `SKILL.md`. Verify: one substep in `SKILL.md`, and every citation of the old
-      numbers re-resolved -- `grep -rn "1\.8" plugins/` comes back empty or points
-      at the new number.
-
-- [ ] T2 -- * Rule on CodeGraph: does the skill probe for `.codegraph/` alongside
-      the LSP probe, and does `codegraph_explore` become a sanctioned way to settle
-      an anchor and a liveness claim? ! Check the register before naming anything
-      new. ! This repo now carries a `.codegraph/` index, so whatever is written
-      can be exercised here rather than shipping unrun. Verify: the answer is in
-      `SKILL.md` with the probe, or this file records the refusal and why.
-
-- [ ] T3 -- State the THREE structure states per SOURCE, not per run, once 1.7/1.8
-      collapse. Today 1.7's three-state table (`answered` / `no server for this
-      language` / `no LSP tool at all`) is written for LSP alone, and the third
-      state -- the tool is absent so no probe is possible -- applies to CodeGraph
-      identically. Verify: the table in `SKILL.md` names the source in each row.
-
-- [x] T4 -- * RULED 2026-08-17: `.claude/comment-review/` in the repo under review.
-      Roy's words. A per-repo location beside the other `.claude` configuration, so
-      the sheet is found without the human typing a path and travels with the repo
-      it describes. ! It is still written only after approval, like everything else
-      -- this does not make stage 1 a writing stage. ! The ruling is MADE and
-      UNIMPLEMENTED: the path is in no shipped file, which is what T5 carries.
-
-- [ ] T5 -- Widen the sheet to carry the REPO-side rows of the table above, and say
-      in the sheet itself which rows are repo facts. A sheet that mixes them invites
-      the next run to read a machine fact back. Verify: `SKILL.md` 1.5 names
-      `.claude/comment-review/` as where a sheet is found and written, and the
-      sheet's own format lists the repo rows.
-
-- [ ] T6 -- State explicitly, in the sheet's own format, that LSP state and agent
-      resolution are NEVER recorded, ! with the REASON beside each -- or a later
-      pass "completes" the sheet by adding them. Verify: the two exclusions and
-      their reasons are in the format, not only in this file.
-
-- [ ] T7 -- Decide what happens when a persisted answer is now WRONG -- a cap
-      published since the last run, a deleted `docs/` tree. ! Recommendation: the
-      sheet records the ref it was measured at, and stage 1 re-measures only what
-      the diff since that ref touched. Verify: the sheet format carries the ref,
-      and `SKILL.md` says what stage 1 does with it.
-
-- [ ] T8 -- Re-measure the stage-1 cost after the change and record it here. Today:
-      ~25 tool calls, measured on both 2026-08-17 runs. ! Record it as a fact, not
-      as a budget question. Verify: a dated count in this file taken from a run
-      after the collapse.
+- [ ] T1 -- * Collapse 1.7 and 1.8 into ONE substep named for what it does: find what
+      structure is available. Verify: `SKILL.md` has one substep there, not two.
+- [ ] T2 -- Re-resolve every citation of the old substep numbers once T1 lands. Verify:
+      `grep -rn "1\.8" plugins/` is empty or points at the new number.
+- [ ] T3 -- * Rule whether the skill probes for `.codegraph/` alongside the LSP probe.
+      Verify: the probe is in `SKILL.md`, or this file records the refusal and why.
+- [ ] T4 -- * Rule whether `codegraph_explore` is a sanctioned way to settle a paragraph's
+      ANCHOR. Verify: the answer is recorded in `SKILL.md` or in this file.
+- [ ] T5 -- * Rule whether `codegraph_explore` is a sanctioned way to settle a LIVENESS
+      claim. Verify: the answer is recorded in `SKILL.md` or in this file.
+- [ ] T6 -- State the three structure states PER SOURCE rather than per run. Verify: every
+      row of the `SKILL.md` structure table names the source it is about.
+- [ ] T7 -- Name `.claude/comment-review/` in `SKILL.md` 1.5 as where a sheet is found and
+      written. Verify: `grep -rn "\.claude/comment-review" plugins/` returns that line.
+- [ ] T8 -- Widen the sheet's own format to carry the REPO-side rows of the table above,
+      marked as repo facts. Verify: the format lists them and says which are repo facts.
+- [ ] T9 -- State in the sheet's format that LSP state is NEVER recorded, with the reason.
+      Verify: the exclusion and its reason are both in the format.
+- [ ] T10 -- State in the sheet's format that agent resolution is NEVER recorded, with the
+      reason. Verify: the exclusion and its reason are both in the format.
+- [ ] T11 -- Decide what stage 1 does when a persisted answer is now WRONG. Verify:
+      `SKILL.md` states what a run does with a stale answer.
+- [ ] T12 -- Record in the sheet the ref it was measured at, so T11's rule is computable.
+      Verify: the sheet format carries the ref.
+- [ ] T13 -- Re-measure the stage-1 tool-call cost after the collapse. Verify: a dated
+      count in this file, taken from a run made after the collapse landed.
+- [x] T14 -- RULED 2026-08-17, in the Objective: `.claude/comment-review/` in the repo
+      under review, Roy's words. The ruling is made; implementing it is T7.

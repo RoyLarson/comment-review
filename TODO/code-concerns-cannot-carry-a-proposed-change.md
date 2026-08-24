@@ -5,7 +5,7 @@ Status:   blocked (on the * ruling in a-role-with-no-code-out-damages-the-prose,
           decides the shape this must carry; and on a working grader -- 'effectiveness
           unchanged' is a comparison and the-harness-cannot-run-the-system-it-grades is
           open)
-Progress: 0 of 6 tasks done
+Progress: 0 of 9 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, splitting a-role-with-no-code-out-damages-the-prose:
@@ -20,6 +20,9 @@ TRIAGED:  2026-08-23 — 2026-08-23, every claim in the Objective re-read agains
           nothing joins or gates it. ! T2, T3 and T5 were statements of fact rather than
           checkpoints and are rewritten with a verification each. Status unchanged: this
           is step 1 of the two-lane sequence in CLAUDE.md and both its gates are open.
+SPLIT:    2026-08-23 -- the shape box held three artifacts (a definition, a validator and
+          the brief) and the stage-5 box held the reading AND the proof that the gate can
+          fail. Six boxes became nine; nothing changed meaning.
 ```
 
 ## Objective
@@ -64,32 +67,32 @@ currently grades a run --
 Building this against no baseline produces a claim nobody can check, which is the practice
 `CLAUDE.md` names: a thing whose dependencies are broken is not worked on, it is refused.
 
+## What stage 8 has to be told, and why the ruling on an address is separate
+
+Stage 8 reads the finished page, and **a code concern is by definition not on the page** --
+so `references/review.md` has to say what becomes of one, and today it says nothing.
+
+! **The address question is a ruling, not a design.** A finding gets its address from the
+census; a concern has none, and whether it should is a decision about what a concern IS. It
+is carried below as a `*` box because it finishes the day it is answered.
+
 ## Tasks
 
-- [ ] T1 -- Give a code concern a SHAPE that can carry a located proposal -- where,
-      what and why -- instead of one string. Today the brief publishes it at
-      `reviewer-brief.md:255` as *"a list of strings, one line each, no verdict"*.
-      Verify: the shape is defined in one place, `record.py --check` validates it,
-      and the brief says the same thing the validator enforces.
-- [ ] T2 -- Remove the `str(c)` coercion at held.py:190, which flattens a
-      structured entry to its repr and is what makes a richer shape impossible
-      today. Verify: a report carrying the T1 shape in `code_concerns` comes back
-      out of `held.parse_report` unflattened, with a test that fails without the
-      change.
-- [ ] T3 -- MAKE STAGE 5 READ IT. `verdicts.py` -- the gate that checks every prose
-      finding against the census and resolves every citation -- never reads
-      `code_concerns` (verified 2026-08-23: the name does not occur in the file).
-      Verify: `verdicts.py` reports every concern it was handed, a test proves the
-      gate CAN fail on one, and no concern is dropped silently.
-- [ ] T4 -- * RULE whether a code concern gets an ADDRESS from the census the way a
-      finding does. It has none today, so it cannot be re-run, deduplicated across
-      roles, or checked for staleness.
-- [ ] T5 -- Write into `review.md` what stage 8 does with a code concern. It reads
-      the finished page, and a code concern is by definition not on the page.
-      Verify: `review.md` names the handling, and `check_vocabulary.py` still
-      passes.
-- [ ] T6 -- !! PASS CRITERION: EFFECTIVENESS UNCHANGED. Run the graded set before
-      and after this lands, with NO agent file touched, and show the findings and
-      verdicts are the same. A move here means the machinery changed behaviour it
-      was not asked to change. ! BLOCKED: there is no grader --
-      `the-harness-cannot-run-the-system-it-grades`.
+- [ ] T1 -- Define a code-concern SHAPE that carries a located proposal -- where, what and
+      why. Verify: the shape is defined in exactly one file and nothing else redefines it.
+- [ ] T2 -- Make `record.py --check` validate that shape. Verify: a malformed
+      `code_concerns` entry is refused and a well-formed one passes.
+- [ ] T3 -- Publish the same shape in the brief, where `reviewer-brief.md:255` today says
+      *"a list of strings, one line each, no verdict"*. Verify: the brief matches T2.
+- [ ] T4 -- Remove the `str(c)` coercion at `held.py:190`, which flattens an entry to its
+      repr. Verify: a T1-shaped concern leaves `held.parse_report` unflattened.
+- [ ] T5 -- Make `verdicts.py` read `code_concerns` and report every one it was handed.
+      Verify: two concerns in, two reported, and none dropped silently.
+- [ ] T6 -- Prove the stage-5 gate CAN fail on a code concern. Verify: a test refuses a
+      bad concern, and fails when the new check is removed.
+- [ ] T7 -- * RULE whether a code concern gets an ADDRESS from the census the way a
+      finding does. Verify: the answer is here -- addressed, or deliberately not.
+- [ ] T8 -- Write into `references/review.md` what stage 8 does with a code concern.
+      Verify: `review.md` names the handling, and `check_vocabulary.py` still passes.
+- [ ] T9 -- PASS CRITERION: run the graded set before and after this lands, with NO agent
+      file touched. Verify: the findings and verdicts are the same in both runs.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 7 tasks done
+Progress: 6 of 9 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'the edit_column is an idea that can be dropped
@@ -18,6 +18,9 @@ UNBLOCKED: 2026-08-23 — 2026-08-23. THE GALLEY REWRITE LANDED AND THE BLOCKER 
            code that no longer exists and are SUPERSEDED. ! Five of six boxes were a
            measurement or an argument; the WORK -- delete the field -- was never
            written down, and is now the one open task.
+Split:    2026-08-23 -- the one open box held three jobs (the reads, the writes and the
+           docs) and is now three; the site citations and the standing checks moved
+           into the Objective
 ```
 
 ## Objective
@@ -49,6 +52,9 @@ test.
 | `lexer.py:1148`, `:1743`, `page.py:524` | WRITE it, as `len(code) + 1` |
 | `lexer.py:1583`, `page.py:276`, `:287`, `:334` | READ it -- **all four as a BOOLEAN** |
 
+! **The whole-tree count is 64 occurrences today, 14 of them in `plugins/`.** That is what the
+three boxes below have to drive to zero, across the code and then the docs.
+
 ! **THERE IS NO NUMERIC READ LEFT IN THE SHIPPED SCRIPTS.** The two the original filing named --
 `galley.paragraph_matches` splitting the stored halves at `column - 1`, and `splice` keeping
 `line[: column - 1]` as the head -- went with the galley rewrite. Roy, 2026-08-20: *"I think the
@@ -62,34 +68,31 @@ too."*
 
 ! **The docs did not follow the galley.** `docs/addressing.md:179` still says *"`galley.splice`
 keeps `line[:original_column - 1]` and replaces the rest"* about a function that no longer
-exists.
+exists, and `:114` is the same shape.
+
+! **THE DEFERRAL THAT IS NOW SPENT.** It was on the galley rewrite -- Roy, 2026-08-20: *"the
+decision on ordering is all galley work coming up on how it resets the paragraphs ... it can
+wait"*. It landed.
+
+! **Every box below also carries this repo's standing check**: `uv run pytest -q` green.
 
 ## Tasks
 
-- [x] T1 -- MEASURED, moved to the Objective: `original_column == len(anchor) + 1` for every
-      paragraph carrying one. Re-measured 2026-08-23, 12,601 of 12,601 over this repo's python
-      and 107 of 107 across all 18 fixture languages, 0 disagreeing.
-
-- [x] T2 -- MEASURED, moved to the Objective: kind answers what the column was for, so every
-      surviving read becomes a membership test. Re-measured 2026-08-23 -- all four reads left in
-      the shipped scripts are boolean.
-
-- [x] T3 -- SUPERSEDED. `addresser._series_of` no longer exists, and the stale reasoning it
-      carried has already been corrected in `series_of` (`addresser.py:1069-1071`).
-
-- [x] T4 -- SUPERSEDED. Both numeric uses were `galley.paragraph_matches` and `splice`; neither
-      exists. No numeric read of the column survives in `plugins/`.
-
-- [x] T5 -- SUPERSEDED. `galley.unanswerable` does not exist; nothing requires the field to be
-      present.
-
-- [x] T6 -- SUPERSEDED. The deferral was on the galley rewrite -- *"the decision on ordering is
-      all galley work coming up on how it resets the paragraphs ... it can wait"*. It landed.
-
-- [ ] T7 -- DELETE THE FIELD. Replace the four boolean reads (`lexer.py:1583`, `page.py:276`,
-      `:287`, `:334`) with a kind or series membership test, remove the three writes and the
-      declaration, and correct `docs/addressing.md:114`, `:178-179`, which still describe
-      `galley.splice`. Verify: `grep -rn "original_column" plugins/ scripts/ tests/ docs/` comes
-      back EMPTY (64 occurrences today, 14 of them in `plugins/`), `uv run pytest -q` passes, and
-      `addresser.py --check` over this repo's census reports the same UNADDRESSED and SHARED
-      counts as before the change.
+- [x] T1 -- MEASURED, moved to the Objective: `original_column == len(anchor) + 1` for
+      every paragraph carrying one, 12,601 of 12,601 and 107 of 107, 0 disagreeing.
+- [x] T2 -- MEASURED, moved to the Objective: kind answers what the column was for, so all
+      four surviving reads in the shipped scripts are boolean.
+- [x] T3 -- SUPERSEDED. `addresser._series_of` no longer exists, and the stale reasoning
+      it carried has already been corrected in `series_of` (`addresser.py:1069-1071`).
+- [x] T4 -- SUPERSEDED. Both numeric uses were `galley.paragraph_matches` and `splice`;
+      neither exists. No numeric read of the column survives in `plugins/`.
+- [x] T5 -- SUPERSEDED. `galley.unanswerable` does not exist; nothing requires the field
+      to be present.
+- [x] T6 -- SUPERSEDED. The deferral was on the galley rewrite, quoted in the Objective.
+      It landed.
+- [ ] T7 -- Replace the four boolean reads with a kind or series membership test. Verify:
+      `addresser.py --check` reports UNADDRESSED and SHARED counts unchanged.
+- [ ] T8 -- Remove the three writes of `original_column` and its field declaration.
+      Verify: `grep -rn original_column plugins/ scripts/ tests/` comes back empty.
+- [ ] T9 -- Correct `docs/addressing.md:114` and `:178-179`, which still describe
+      `galley.splice` and `original_column`. Verify: neither name occurs in `docs/`.

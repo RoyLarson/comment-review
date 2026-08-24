@@ -21,6 +21,8 @@ RE-VERIFIED: 2026-08-23 — 2026-08-23, read against the tree. STILL LIVE and ci
              record.py:541-544, not :538. The fallback readers are record.py:525-544
              (`_answered`) and desk.py:171-172, :218 and :511, each branching on
              `if f.claim_fields ... else f.claim`.
+Split:    2026-08-23 -- the six record boxes are cut to one line each and their content
+             reads from the Objective, which already carried all of it verbatim
 ```
 
 ## Objective
@@ -55,37 +57,36 @@ other 70 take the helper default. So it is one helper plus seven sites, not ~150
 helper can build BOTH `claim` and `claim_fields` from the marker string and every call
 site stays as written while starting to test a producible shape.
 
+!! **THE QUESTION IS NOT *"is the old format retired"*.** It already is: record.py writes and
+validates an object, and `claim_text` GENERATES the string. The question is what happens when a
+claim is not an object.
+
+!! **AND THE TWO SHAPES THE RULING PICKS BETWEEN.** Under **(ii)**: held.py reports a non-dict
+claim MALFORMED -- which held.py:142-145 already does two lines earlier for a bad place -- and
+record.py:525-544 plus desk.py:171-172, :218 and :511 lose the fallback and the sentences that
+describe it. Under **(i)**: held.py:152 stops emptying the claim, and a test builds the
+preserved-words shape so the fallback has a caller.
+
 !! **WHY IT IS DEFERRED, and what it waits on**: the determination of the whole census ->
 findings -> verdicts path, now that the backend round-trips. Roy: *"that whole system ...
 needs to be determined now that the backend part of the system works"*. Deleting 60 lines
-of a layer whose replacement is about to be designed is work done twice.
+of a layer whose replacement is about to be designed is work done twice. ! T8 is deferred with
+T4 -- it waits on the same determination.
 
 ## Tasks
 
-- [x] T1 -- RECORD, not a task. MEASURED 2026-08-22, by construction and not by
-      inspection: held.py:187 is the ONLY producer of claim_fields and it sets it
-      from the same dict held.py:152 emptied. The pair -- empty claim_fields with a
-      non-empty claim -- CANNOT BE PRODUCED. Re-verified in place 2026-08-23.
-- [x] T2 -- RECORD, not a task. AND A COMMENT 380 LINES AWAY SAYS THE OPPOSITE,
-      at record.py:541-544. About 60 lines across record.py:525-544 and
-      desk.py:171-172, :218 and :511 have a stated purpose that is false.
-- [x] T3 -- RECORD, not a task. IT STAYS GREEN BECAUSE THE TESTS BUILD AN
-      UNPRODUCIBLE SHAPE -- tests/test_verdicts.py:79.
-- [ ] T4 -- * THE RULING. It is NOT *"is the old format retired"* -- it already is,
-      record.py writes and validates an object and claim_text GENERATES the string.
-      It is: when a claim is not an object, do we (i) PRESERVE the reviewer words so
-      the fallbacks become live, or (ii) report it MALFORMED, which held.py already
-      does two lines earlier (held.py:142-145) for a bad place, and delete the 60
-      lines.
-- [x] T5 -- RECORD, not a task. ROY LEANS (ii), 2026-08-22.
-- [x] T6 -- RECORD, not a task. THE COST OF (ii) IS SMALLER THAN THE REVIEW
-      ESTIMATED -- one helper plus seven sites, not ~150.
-- [x] T7 -- RECORD, not a task. DEFERRED, and this is what it waits on: the
-      determination of the whole census -> findings -> verdicts path.
-- [ ] T8 -- WHEN T4 IS RULED, MAKE THE CODE AND THE PROSE AGREE. Under (ii):
-      held.py reports a non-dict claim MALFORMED, and record.py:525-544 plus
-      desk.py:171-172, :218 and :511 lose the fallback and the sentences that
-      describe it. Under (i): held.py:152 stops emptying the claim, and a test
-      builds the preserved-words shape so the fallback has a caller. Verify: no
-      shipped comment describes a branch nothing can reach, and the test suite is
-      green. ! DEFERRED with T4 -- it waits on the same determination.
+- [x] T1 -- RECORD, not a task. The by-construction measurement, restated in the
+      Objective: the pair `claim_fields` empty with `claim` non-empty CANNOT BE PRODUCED.
+- [x] T2 -- RECORD, not a task. The contradicting comment at record.py:541-544 and the ~60
+      lines whose stated purpose is false, restated in the Objective.
+- [x] T3 -- RECORD, not a task. The suite stays green because tests/test_verdicts.py:79
+      builds an unproducible shape. Restated in the Objective.
+- [ ] T4 -- * Rule whether a non-object `claim` (i) preserves the reviewer words or (ii)
+      is reported MALFORMED. Verify: `docs/decision-log.md` records the ruling.
+- [x] T5 -- RECORD, not a task. ROY LEANS (ii), 2026-08-22. Restated in the Objective.
+- [x] T6 -- RECORD, not a task. The cost of (ii) is one helper plus seven sites, not ~150.
+      Restated in the Objective.
+- [x] T7 -- RECORD, not a task. What the deferral waits on -- the determination of the
+      whole census -> findings -> verdicts path. Restated in the Objective.
+- [ ] T8 -- Make code and prose agree in the shape T4 rules. Verify: no shipped comment
+      describes an unreachable branch, and `uv run pytest -q` is green.

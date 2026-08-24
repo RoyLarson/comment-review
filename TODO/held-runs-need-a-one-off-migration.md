@@ -51,8 +51,9 @@ A held report names a place by LINE RANGE and today's reader wants a CUE.
 
 ! **`cycle-0.2.3` is not merely the cheap first case, it is the only one here**: `1ad4ba7` is in
 this repo's own history -- `git log --oneline -1 1ad4ba7` resolves -- so it needs no clone and the
-answer can be checked by reading. The other two rows are kept because a held run may be brought
-back; they are not work this tree can start.
+answer can be checked by reading. MEASURED 2026-08-23: it holds four reports, one per role, in
+`records/`. The other two rows are kept because a held run may be brought back; they are not work
+this tree can start.
 
 **The recipe, which is why this is a script and not a feature:**
 
@@ -70,6 +71,12 @@ versions -- the held census has no `margin` and no `undocumented` -- so a held r
 correspond to one of today's places. The obvious rule is *the place whose EDIT range contains the
 held start line*, and it is a guess until something checks it against a run whose answer is known.
 
+! **SUPERSEDED, and kept so the error stays legible.** This file used to say the script must read
+the held report's RAW text because `record.parse_report` discards `LOCATION`. Neither half
+survives: MEASURED 2026-08-23, `parse_report` and `convert` exist nowhere in `plugins/`,
+`scripts/` or `tests/`, and the held reports are already JSON -- `records[*]` each carrying
+`"address": "path:start-end"`. The reading problem is now the ENVELOPE and the address FORM.
+
 !! **NOT WORTH DOING NOW, AND THE REASON IS THAT NOTHING DEPENDS ON IT.** Replay was the cheap way
 to validate a change; 0.2.4 onward holds addressed reports, so the cheapness returns without this.
 This buys back the runs already in `evidence/`, and only those.
@@ -80,28 +87,13 @@ it is a constraint on the work and not a checkpoint of its own.
 
 ## Tasks
 
-- [ ] T1 -- !! RULE STEP 4 FIRST: which of today's PLACES a held `path:start-end`
-      maps to. The obvious rule is the place whose EDIT range contains the held
-      start line, and it is a guess until it is checked against a run whose answer
-      is known. Block boundaries moved between census versions -- the held census
-      has no `margin` and no `undocumented`. Verify: the rule is written down and
-      a run whose answer is known agrees with it on every record.
-- [ ] T2 -- START WITH `evidence/cycle-0.2.3/` -- its subject is THIS repo at
-      `1ad4ba7`, so it needs no clone and the result can be checked by reading.
-      MEASURED 2026-08-23: it is the ONLY held run present in this tree, and it
-      holds four reports, one per role, in `records/`.
-- [x] T3 -- SUPERSEDED. It said the script must read the held report's RAW text
-      because `record.parse_report` discards `LOCATION`. Neither half survives:
-      MEASURED 2026-08-23, `parse_report` and `convert` exist nowhere in `plugins/`,
-      `scripts/` or `tests/`, and the held reports are already JSON -- `records[*]`
-      each carrying `"address": "path:start-end"`. The reading problem is now the
-      ENVELOPE and the address FORM, which T1 and T4 carry.
-- [ ] T4 -- RUN THE SHIPPED SHAPE CHECK over whatever it emits --
-      `record.record_problems` (`record.py:1033`) and the join -- so a migrated
-      report is held to the same contract as a fresh one. Verify: `verdicts.py`
-      joins the migrated report against a census of the subject at `1ad4ba7` with
-      every citation resolving.
-- [x] T5 -- NOT A TASK, restated in the Objective. It lives in `scripts/`, not
-      `plugins/`: nothing a user installs should carry it, and it runs once per
-      held run rather than once per review. That is a constraint on the work, not
-      a checkpoint anyone ticks on its own.
+- [ ] T1 -- !! RULE STEP 4 FIRST: which PLACE a held `path:start-end` maps to. Verify: the
+      rule is written down, and a run whose answer is known agrees on every record.
+- [ ] T2 -- Migrate `evidence/cycle-0.2.3/` first -- its subject is this repo at
+      `1ad4ba7`. Verify: its four role reports re-emit under a `pages` envelope with cues.
+- [x] T3 -- SUPERSEDED. The raw-text requirement and the `parse_report` claim it rested on
+      are both false; the record of why is in the Objective.
+- [ ] T4 -- Run the shipped shape check, `record.record_problems` (`record.py:1033`), over
+      what T2 emits. Verify: `verdicts.py` joins it at `1ad4ba7`, all citations resolving.
+- [x] T5 -- NOT A TASK. It lives in `scripts/`, not `plugins/` -- a constraint on the
+      work, restated in the Objective.

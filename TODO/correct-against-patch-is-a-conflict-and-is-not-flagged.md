@@ -43,27 +43,29 @@ not a fix. Widening the flagged set costs rounds, and Roy ruled the set narrow *
 exactly that trade: 51 of 150 blocks had two or more roles converge against 8 flagged as
 conflicts.
 
+## The three answers T1 chooses between
+
+| option | the set it flags | what it costs |
+| --- | --- | --- |
+| flag the pair | every `correct` + `patch` on one sentence | a round per occurrence |
+| flag on OVERLAP | only where the two roles' EDITED SPANS coincide -- which `contradictions()` already computes | narrower than "same block", and needs no new measurement |
+| leave it | nothing new; the ordering rule resolves silently | free, and keeps the silent drop |
+
+## Why T3 is not part of that trade
+
+**A role whose `patch` lost to a `correct` is told nothing today**, and the output of stage 5
+names only the verdict it applied. ! That half is not a cost decision -- it is a SILENT DROP,
+and it is the same shape as the `CODE CONCERNS` that vanished in a conversion while every
+finding total matched. It is owed whichever way T1 is ruled.
+
 ## Tasks
 
-- [ ] T1 -- * **Rule whether `correct` + `patch` on ONE SENTENCE enters the
-      `RE-REVIEW` set.** The three options: flag it (a round per occurrence); flag
-      it only where the EDITED SPANS of the two roles coincide, which is what
-      `contradictions()` already computes and would be a narrower set than "same
-      block"; or leave it and rely on the ordering rule.
-
-- [ ] T2 -- Measure the rate before ruling. `contradictions()` keys on the span
-      diff already, so the count is a one-line change to a held report set -- how
-      many blocks in the captured runs carry `correct` and `patch` over overlapping
-      spans, against the 8 the current rule flags. Verify: the two numbers written
-      into this file, naming the run they came from.
-
-- [ ] T3 -- Whatever is ruled, **the report must say when the ordering rule
-      discarded an edit.** A role whose `patch` lost to a `correct` is told nothing
-      today, and the output of stage 5 names only the verdict it applied. That half
-      is not a cost trade -- it is a silent drop, and it is the same shape as the
-      `CODE CONCERNS` that vanished in a conversion while every finding total
-      matched. Verify: the join prints the discarded edit and its role, with a test
-      that fails without it.
+- [ ] T1 -- * Rule whether `correct` + `patch` on ONE SENTENCE enters the `RE-REVIEW` set;
+      the three answers are in the Objective. Verify: recorded in `docs/decision-log.md`.
+- [ ] T2 -- Count blocks where `correct` and `patch` overlap, against the 8 the current
+      rule flags. Verify: both numbers written here, naming the run.
+- [ ] T3 -- Make the join print a discarded edit and the role that lost it. Verify: the
+      report names the dropped edit, with a test that fails without it.
 
 ## Related
 

@@ -2,19 +2,21 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 5 tasks done
+Progress: 4 of 8 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (Roy, 2026-08-19: 'this is because the census is doing the
           cues's job')
-Narrowed: 2026-08-23 — the census owns no addressing; what remained was that an address
+Narrowed: 2026-08-23 -- the census owns no addressing; what remained was that an address
           was COMPOSED in page.py and record.py, not in the addresser
-Closed:   2026-08-23 — that residual has LANDED. `addresser.address_for` is the only
+Closed:   2026-08-23 -- that residual has LANDED. `addresser.address_for` is the only
           site that joins the two halves, and `page.py:792`, `page.py:804`,
           `record.py:1085` and `held.py:63` all call it. `grep -rn 'f"{flatten' scripts/`
           returns nothing outside `addresser.py:895`.
-TRIAGED:  2026-08-23 — four boxes were already ticked and stay ticked. One box remains,
+TRIAGED:  2026-08-23 -- four boxes were already ticked and stay ticked. One box remains,
           and it is a real task: nothing has run `module-context` over the four modules.
+Split:    2026-08-23 -- that one box named four modules, and this repo takes each module
+          as its own task; it is now four, one report per module
 ```
 
 ## Objective
@@ -47,34 +49,46 @@ back together' while `page.py` composed its own with an f-string at two sites. R
 2026-08-23."*
 
 ! **What is left is the module-subject task, and it is unfinished for a plain reason**: the four
-modules were separated and each announces one subject, but `module-context` has never been run
-over them to verify it, which is what the task asks for.
+modules were separated and each announces one subject -- `cues` names places, `page` says what a
+page and a paragraph are, `census` says which prose occupies which address, `galley` sets the
+proposed text -- but `module-context` has never been run over them to verify it. **It is the
+verification that is missing, not the docstrings**: each of the four announces one subject today
+and nothing has checked that claim from outside.
+
+## What the ticked boxes recorded
+
+**T1.** !! THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE. Roy: *'make certain that
+the cues is the only and official spot that converts the galley artifact into an address through
+the addresser assigning the cues, and the cues being able to take the cues and convert those into
+which address does this line belong to right now.'* ! COMPLETE as of 2026-08-23: the JOIN was the
+last half outside, and `addresser.address_for` holds it.
+
+**T2.** `census.py` set an anchor in FIVE places -- `paragraphs_lexical`:522,
+`paragraphs_stdlib`:747, and :851/:906 which wrote `getattr(node, 'name', '<module>')`, the NAME,
+later overwritten by `anchor_every_address`. The census produced a wrong value and a second pass
+corrected it. All five are gone.
+
+**T3.** `census.py`'s run loop called `cues.address(vars(b), lines)` per paragraph, so the
+PARAGRAPH produced the address. Inverted: the addresser emits the address and the census ties
+prose to it.
+
+**T4.** BOTH DIRECTIONS LIVE IN THE ADDRESSER: cues out (walk anchors, emit addresses) and lookup
+back (which address does THIS line belong to right now). ! The second is what an agent needs while
+reading code it must search anyway.
 
 ## Tasks
 
-- [x] T1 -- !! THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE. Roy: 'make
-      certain that the cues is the only and official spot that converts the
-      galley artifact into an address through the addresser assigning the
-      cues, and the cues being able to take the cues and convert
-      those into which address does this line belong to right now.'
-      ! COMPLETE as of 2026-08-23: the JOIN was the last half outside, and
-      `addresser.address_for` holds it.
-- [x] T2 -- `census.py` set an anchor in FIVE places -- `paragraphs_lexical`:522,
-      `paragraphs_stdlib`:747, and :851/:906 which wrote `getattr(node, 'name',
-      '<module>')`, the NAME, later overwritten by `anchor_every_address`. The census
-      produced a wrong value and a second pass corrected it. All five are gone.
-- [x] T3 -- `census.py`'s run loop called `cues.address(vars(b), lines)` per
-      paragraph, so the PARAGRAPH produced the address. Inverted: the addresser
-      emits the address and the census ties prose to it.
-- [x] T4 -- BOTH DIRECTIONS LIVE IN THE ADDRESSER: cues out (walk anchors, emit
-      addresses) and lookup back (which address does THIS line belong to right
-      now). ! The second is what an agent needs while reading code it must search
-      anyway.
-- [ ] T5 -- State each module's ONE subject, now that they are separated -- `cues` names
-      places, `page` says what a page and a paragraph are, `census` says which prose
-      occupies which address, `galley` sets the proposed text -- and verify with
-      `module-context` over all four. Verify: a `module-context` report on
-      `addresser.py`, `page.py`, `census.py` and `galley.py` that returns no
-      more-than-one-subject finding. ! It is the verification that is missing, not the
-      docstrings: each of the four announces one subject today and nothing has checked
-      that claim from outside.
+- [x] T1 -- THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE; the JOIN was the
+      last half outside and `addresser.address_for` holds it.
+- [x] T2 -- The five sites where `census.py` set an anchor are gone.
+- [x] T3 -- `census.py`'s run loop no longer calls `cues.address(...)` per paragraph; the
+      addresser emits the address and the census ties prose to it.
+- [x] T4 -- BOTH DIRECTIONS LIVE IN THE ADDRESSER: cues out, and lookup back.
+- [ ] T5 -- Run `module-context` over `addresser.py`, which names places. Verify: the
+      report returns no more-than-one-subject finding for that module.
+- [ ] T6 -- Run `module-context` over `page.py`, which says what a page and a paragraph
+      are. Verify: the report returns no more-than-one-subject finding for that module.
+- [ ] T7 -- Run `module-context` over `census.py` -- which prose occupies which address.
+      Verify: the report returns no more-than-one-subject finding for that module.
+- [ ] T8 -- Run `module-context` over `galley.py`, which sets the proposed text. Verify:
+      the report returns no more-than-one-subject finding for that module.

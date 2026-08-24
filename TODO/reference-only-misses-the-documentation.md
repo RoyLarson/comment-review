@@ -15,6 +15,9 @@ TRIAGED:  2026-08-23 -- RE-VERIFIED, both mechanisms unchanged. `SKILL.md:649-65
           nothing still matches nothing. ! ALL FOUR BOXES ARE TASKS, and three of them are
           OWED RULINGS (marked `*`), which is why the Status is `decision-needed` rather
           than `open`: nothing here can be built until the selection rule is chosen.
+SPLIT:    2026-08-23 -- no box split; each was already one decision or one edit. What
+          moved is the candidate list, the cost measurement and the recommendation, which
+          are now in the Objective, and every box gained a Verify clause.
 ```
 
 ## Objective
@@ -39,28 +42,30 @@ docstring saying *"the lexical tier cannot answer a comment's owner"* is checkab
 `docs/parsing.md`; a reviewer that never received it has to rule from the code alone, and the
 `clean` it returns certifies less than it appears to.
 
+### What the three rulings have in front of them
+
+- **What SELECTS a documentation file.** Candidates, and they are not exclusive: every tracked
+  `.md` outside the diff scope; a named documentation ROOT the way 1.4 finds the `move`
+  destination tree; or a fourth category in `SKILL.md`'s REFERENCE ONLY paragraph. ! The cost is
+  real -- this run's packet already listed 25 reference files, and every one of them is a file
+  four reviewers may open.
+- **Whether the DESTINATION TREE found at 1.4 is automatically REFERENCE ONLY.** They are the
+  same tree in this repo (`docs/`), and the coincidence is not obviously an accident: a repo that
+  stages prose OUT of code has, by construction, put prose there that the code no longer states.
+  Roy's ruling, because it decides whether 1.4 gains a second output or the two stay separate
+  questions.
+- **Whether `referrers.py` widens or stays a NAME matcher.** ! Recommendation: stay. It answers
+  one question -- who names these files -- and a doc found by SUBJECT rather than by name is a
+  different question with a different failure mode. Widening it would make its output
+  unfalsifiable, which is the defect `check the CLAIM, not the CITATION` names.
+
 ## Tasks
 
-- [ ] T1 -- * Rule on what SELECTS a documentation file. Candidates, and they are not exclusive:
-      every tracked `.md` outside the diff scope; a named documentation ROOT the way 1.4 finds
-      the `move` destination tree; or a fourth category in `SKILL.md`'s REFERENCE ONLY
-      paragraph. ! The cost is real -- this run's packet already listed 25 reference files, and
-      every one of them is a file four reviewers may open. Finishes the day the rule is written
-      down; the build is T4.
-
-- [ ] T2 -- * Rule on whether the DESTINATION TREE found at 1.4 is automatically REFERENCE ONLY.
-      They are the same tree in this repo (`docs/`), and the coincidence is not obviously an
-      accident: a repo that stages prose OUT of code has, by construction, put prose there that
-      the code no longer states. Roy's ruling, because it decides whether 1.4 gains a second
-      output or the two stay separate questions.
-
-- [ ] T3 -- * Rule on whether `referrers.py` widens or stays a NAME matcher. ! Recommendation:
-      stay. It answers one question -- who names these files -- and a doc found by SUBJECT
-      rather than by name is a different question with a different failure mode. Widening it
-      would make its output unfalsifiable, which is the defect `check the CLAIM, not the
-      CITATION` names.
-
-- [ ] T4 -- State whatever T1 to T3 decide in ONE file, and in the file where the selection is
-      performed. `SKILL.md`'s stage-4 REFERENCE ONLY paragraph (SKILL.md:649) is the candidate,
-      since the three existing categories already live there. Verify: the rule appears in
-      exactly one tracked file -- `grep -rn` for its distinguishing phrase returns one path.
+- [ ] T1 -- * Rule on what SELECTS a documentation file, from the candidates in the
+      Objective. Verify: the rule is written down; T4 is where it lands.
+- [ ] T2 -- * Rule whether 1.4's destination tree is automatically REFERENCE ONLY. Verify:
+      the ruling is recorded here and says whether 1.4 gains a second output.
+- [ ] T3 -- * Rule on whether `referrers.py` widens or stays a NAME matcher. Verify: the
+      answer is recorded here, with the reason it was decided that way.
+- [ ] T4 -- State what T1 to T3 decide in ONE file, `SKILL.md:649` being the candidate.
+      Verify: `grep -rn` for its phrase returns one path.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks done
+Progress: 0 of 4 tasks done
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
@@ -35,18 +35,25 @@ include `        return`, `        continue` and `    try:`.
 unconditionally, on every run. The two files below contradict a line the reviewer's own tool
 emits, which is why this is worth fixing rather than tolerating.
 
+## The three false sentences
+
+- `SKILL.md:430` puts *"a **comment's** anchor"* in the `tokenized` tier's CANNOT ANSWER column.
+- `SKILL.md:433-435` says the census *"prints that no comment carries an anchor at either tier"*
+  and builds the CANDIDATE argument on it. The census prints the opposite. ! **Keep the CANDIDATE
+  conclusion** -- it is correct and `census.py:456-458` states it -- and drop the false premise
+  under it.
+- `reviewer-brief.md:126-127`, read verbatim by every reviewer: *"The `anchor` is there to be
+  GREPPED -- it names the declaration the census resolved, and is empty where none was."* Two
+  errors in one sentence: it is a line of code rather than a declaration, and it is never empty
+  in a slot a reviewer receives.
+
 ## Tasks
 
-- [ ] T1 -- Correct the two anchor claims in `SKILL.md`. `SKILL.md:430` puts *"a **comment's**
-      anchor"* in the `tokenized` tier's CANNOT ANSWER column, and `SKILL.md:433-435` says the
-      census *"prints that no comment carries an anchor at either tier"* and builds the CANDIDATE
-      argument on it. The census prints the opposite. ! Keep the CANDIDATE conclusion -- it is
-      correct and `census.py:456-458` states it -- and drop the false premise under it. Verify:
-      `census.py --repo . <a file with a comment run>` shows an anchor on every `comment` row,
-      and no sentence in `SKILL.md` says a comment has none.
-
-- [ ] T2 -- Correct `reviewer-brief.md:126-127`, which every reviewer reads verbatim: *"The
-      `anchor` is there to be GREPPED -- it names the declaration the census resolved, and is
-      empty where none was."* Two errors in one sentence: it is a line of code rather than a
-      declaration, and it is never empty in a slot a reviewer receives. Verify: the sentence
-      names a LINE OF CODE, and `grep -rn "empty where none was" plugins/` comes back empty.
+- [ ] T1 -- Take *"a comment's anchor"* out of the `tokenized` CANNOT ANSWER column at
+      `SKILL.md:430`. Verify: no row of that table says a comment has no anchor.
+- [ ] T2 -- Drop the false premise at `SKILL.md:433-435`, keeping the CANDIDATE
+      conclusion. Verify: no sentence in `SKILL.md` says a comment carries no anchor.
+- [ ] T3 -- Correct `reviewer-brief.md:126-127` to say a LINE OF CODE, not a declaration.
+      Verify: `grep -rn "names the declaration" plugins/` comes back empty.
+- [ ] T4 -- Drop *"and is empty where none was"* from the same sentence -- a reviewer's
+      slot never is. Verify: `grep -rn "empty where none was" plugins/` comes back empty.

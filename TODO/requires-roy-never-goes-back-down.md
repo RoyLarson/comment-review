@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 2 of 5 tasks done
+Progress: 2 of 7 tasks done
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-19 (asking what was waiting on Roy for 0.2.4, 2026-08-19)
@@ -17,6 +17,8 @@ Narrowed: 2026-08-19 -- Six cleared from evidence in their own files, 32 -> 26.
 Re-measured: 2026-08-23 -- 47 of the 101 files in TODO/ carry 'Requires-Roy: true',
           against 26 after the 2026-08-19 clearing. The count rose by 21 in four days
           and nothing lowered one, which is this file's claim measured again.
+Split:    2026-08-23 -- 5 boxes became 7. The audit box held the clearing and the count
+          it produces; the recompute box held an upstream read and the build after it
 ```
 
 ## Objective
@@ -30,7 +32,8 @@ carried `Requires-Roy: true`, and six cleared by hand the same day took it to 26
 `.claude/skills/todo-tool/SKILL.md:55` and `:132`. This file first said the flag "has no way
 down" and named only `complete` and `reopen` -- wrong, and the skill's own instruction is the
 opposite: *"set it as soon as you hit one ... and clear it when he answers."* Roy: *"the tool
-should have a method of clearing my name already."* It does.
+should have a method of clearing my name already."* It does. **What is still missing is anything
+that PROMPTS or RECOMPUTES the clearing**, which is the remainder that box left behind.
 
 !! **SO THE DEFECT IS THE DISCIPLINE, NOT THE COMMAND.** The flag is set when a wall is hit and
 nobody runs the clearing command when the ruling arrives, because nothing prompts it and nothing
@@ -60,7 +63,7 @@ is a derived fact too -- *is a decision still owed* -- and nothing recomputes it
 
 ! **The rest cannot be classified from the file alone.** Several say `* 1 ruling` in `Owner:`
 without saying whether it arrived; settling each needs the commit or the transcript that carries
-it.
+it. **That is the part that is work rather than cleanup.**
 
 !! **DEFERRED UNTIL 0.2.4 CLOSES.** Roy, 2026-08-19: *"I think this is work waiting on this
 release of this project to finish."* Nothing in the 0.2.4 plan is blocked on it.
@@ -76,33 +79,17 @@ shorten.
 
 ## Tasks
 
-- [x] T1 -- FINISHED. Cleared the flag on the FIVE whose own `Owner:` line records
-      the ruling: `a-comment-inside-a-line-makes-the-file-unprovable`,
-      `ownership-is-read-first-but-nothing-makes-it-so`, `the-census-is-mostly-
-      intervals-nobody-rules-on`, `correct-against-patch-is-a-conflict-and-is-not-
-      flagged`, `stage-5-is-the-only-stage-with-no-independent-reader`. VERIFIED
-      2026-08-23: each header reads `Requires-Roy: false`.
-- [x] T2 -- FINISHED. Cleared the two that went stale during 0.2.4 and did not say
-      so: `docstrings-need-their-own-address-series` (the `a0..aN` numbering, ruled
-      2026-08-19) and the interior-comment half of `a-comment-inside-a-line-makes-
-      the-file-unprovable`. VERIFIED 2026-08-23: both read `Requires-Roy: false`.
-- [ ] T3 -- Read each still-flagged file against the commits and transcripts that
-      would carry its ruling, and clear the flag where one landed. This is the part
-      that is work rather than cleanup: `Owner:` says `* 1 ruling` without saying
-      whether it arrived. Verify: every file still reading `Requires-Roy: true`
-      carries at least one `*` box naming the decision that is owed, so
-      `list --requires-roy` and the `*` boxes agree; and the count from
-      `grep -l "Requires-Roy: true" TODO/*.md | wc -l` is recorded here with its
-      date.
-- [ ] T4 -- * SUPERSEDED IN PART, and this is the remainder. `set-requires-roy`
-      exists, so the box that said the flag has no way down was wrong; what is
-      still missing is anything that PROMPTS or RECOMPUTES the clearing, since the
-      only automatic lowering fires as a file leaves `TODO/`. Check the upstream
-      vendor at `redacted_corpus` `todo-requires-roy` REDACTED_SHA_D FIRST -- the
-      tool is re-grabbed, not maintained here. Verify: either `todo_tool.py` gains
-      the recompute with a test that fails without it, or this file records the sha
-      read and that upstream has none.
-- [ ] T5 -- `.claude/skills/todo-tool/SKILL.md:309` calls `list --requires-roy`
-      *"how Roy pulls his own queue: everything waiting on"* him. Correct it or make
-      it true. Verify: either that line says the list is unfiltered by whether the
-      ruling arrived, or the command grows a filter and the SKILL text names it.
+- [x] T1 -- FINISHED. Cleared the flag on the five whose own `Owner:` line records the
+      ruling; the five are named in the Objective.
+- [x] T2 -- FINISHED. Cleared the two that went stale during 0.2.4 and did not say so;
+      both now read `Requires-Roy: false`.
+- [ ] T3 -- Clear the flag on each still-flagged file whose ruling has landed, read from
+      the commits. Verify: `list --requires-roy` and the `*` boxes agree.
+- [ ] T4 -- Record the count that clearing leaves. Verify: `grep -l "Requires-Roy: true"
+      TODO/*.md | wc -l` is written into this file with its date.
+- [ ] T5 -- Read the upstream vendor at `redacted_corpus` `todo-requires-roy` for an
+      existing recompute. Verify: this file records the sha and the answer.
+- [ ] T6 -- If upstream has none, give `todo_tool.py` the recompute or the prompt to
+      clear. Verify: a test fails without it and passes with it.
+- [ ] T7 -- Correct `.claude/skills/todo-tool/SKILL.md:309` or make it true. Verify: the
+      line says the list is unfiltered, or a filter exists and it names it.

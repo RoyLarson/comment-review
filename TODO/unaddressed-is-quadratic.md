@@ -9,6 +9,8 @@ Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-
           census route)
 Triaged:  2026-08-23 -- three of the four boxes were MEASUREMENTS, not checkpoints; the
           work they describe is now stated as four tasks a stranger can call done
+Split:    2026-08-23 -- boxes cut to two lines each; the `entry N` ordinal caveat moved
+          into the Objective
 ```
 
 ## Objective
@@ -22,6 +24,11 @@ MEASURED 2026-08-21 on this repo's own census -- 24,804 paragraphs over 52 files
 **0.086s against 0.002s for a flat pass**, 43x. ! That measurement predates the
 `owes_address` / `stable` split of 2026-08-22, so it has to be re-taken before and after
 any change rather than quoted.
+
+!! **THE FLAT PASS STILL OWES A PER-PATH COUNTER.** The `entry N` ordinal in
+`unaddressed()`'s output counts WITHIN a file, so dropping `_by_path` without keeping a
+per-path counter changes what every sentence it emits means -- which is why the check on
+that change is byte-identity of the sentences, not merely a green suite.
 
 ! **Three call sites ask this question**, verified 2026-08-23: `census.py:435` on the JSON
 path, `census.py:639` on the text path, and `verdicts.py:354` on read. The text path
@@ -39,22 +46,11 @@ tests for the file is misled.
 
 ## Tasks
 
-- [ ] T1 -- Flatten `unaddressed()` in `addresser.py` to one pass over `paragraphs`,
-      dropping `_by_path` and the sort from it. ! The `entry N` ordinal in its output
-      counts within a file, so the flat pass has to keep a per-path counter or the
-      sentences it emits change meaning. Verify: `uv run pytest -q` green, and the
-      sentences `unaddressed()` returns for this repo's census are byte-identical before
-      and after.
-
-- [ ] T2 -- Re-take the timing on the CURRENT code, before and after T1, and record both
-      numbers in this file. ! The 0.086s/0.002s pair above was measured before the
-      `owes_address`/`stable` split, so it is not the baseline. Verify: two numbers in
-      this file, each with the command that produced it.
-
-- [ ] T3 -- Build the census row list ONCE on the text path. `census.py:639` rebuilds
-      `vars(b) | {"annotations": sorted(b.annotations)}` that `census.py:434` already
-      builds on the JSON path. Verify: `grep -c "vars(b) | {" census.py` returns 1.
-
-- [ ] T4 -- `census.py --out` must not leave an empty file behind on a refusal. Verify: a
-      test that runs `census.py --out <path>` on input the gate refuses, asserts exit 1,
-      and asserts `<path>` does not exist -- and that fails on the current code first.
+- [ ] T1 -- Flatten `unaddressed()` to one pass, dropping `_by_path` and the sort. Verify:
+      `uv run pytest -q` green and its census sentences byte-identical before and after.
+- [ ] T2 -- Re-take the `unaddressed()` timing on the current code, before and after T1.
+      Verify: two numbers in this file, each with the command that produced it.
+- [ ] T3 -- Build the census row list ONCE on the text path, reusing what `census.py:434`
+      already builds. Verify: `grep -c "vars(b) | {" census.py` returns 1.
+- [ ] T4 -- Stop `census.py --out` leaving an empty file behind on a refusal. Verify: a
+      test asserting exit 1 and no `<path>` fails today and passes after.

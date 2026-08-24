@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 5 tasks done
+Progress: 3 of 11 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (Roy's ruling while shipping the address vocabulary, 2026-08-19)
@@ -25,6 +25,9 @@ TRIAGED:  2026-08-23 — Status was `blocked` and its own header said nothing bl
           `references/vocabulary.toml` defines only `paragraph` and the ROLE NAME
           `block-context`. RE-MEASURED, and the two open counts were both stale -- see
           the objective.
+Split:    2026-08-23 -- every box cut to two lines. The tests box was four files and the
+          live-docs box three, so five boxes became ten. Second pass: the file-rename box
+          held a rename and a path sweep, so ten became eleven
 ```
 
 ## Objective
@@ -35,6 +38,11 @@ eight count nouns in `verdicts.py`'s report, and the census listing's own header
 Done since: the shipped CODE, where `Block` is `Paragraph` and the two readers are
 `paragraphs_stdlib` (`lexer.py:1699`) and `paragraphs_lexical` (`lexer.py:984`).
 **What remains is the TESTS and the LIVE DOCS.**
+
+! **Three stale references to the RETIRED index went with the prose pass**: the brief's worked
+record opened `{ "block": 17,` (a seeded slot has no such key), it told reviewers to file two
+records *"with the same `block`"* where it is the same ADDRESS, and `SKILL.md` described a slot
+as carrying *"the census `block` index and the `address`"*.
 
 !! **RE-MEASURED 2026-08-23**, `grep -oi block <files> | wc -l`, which counts every sense:
 
@@ -47,6 +55,13 @@ Done since: the shipped CODE, where `Block` is `Paragraph` and the two readers a
 | `docs/history.md`, `docs/vocabulary.md` | 7 | the RECORD and the retired-terms table. Leave both |
 | `docs/superpowers/`, `docs/plans/` | 426 | dated design records. Leave |
 
+!! **LEAVE `docs/history.md`, `docs/vocabulary.md`'s retired table, and the 426 uses under
+`docs/superpowers/` and `docs/plans/`**: those are a RECORD of what was decided then, and
+correcting them stops it being one.
+
+! **`docs/limitations.md` is the `agents` lane's file**, so its 3 uses are a crossing to name
+and ask about rather than an edit in passing.
+
 !! **ONLY THE NOUN WAS RETIRED, and forgetting that corrupted live prose once.** `d8ccef3`:
 the VERB, a PYTHON code block and a JAVA TEXT BLOCK are current English and current terms of art.
 Undeclared, the gate flagged all four and the cheapest way to satisfy it was to make the prose
@@ -55,7 +70,8 @@ described *"a Java text PARAGRAPH"*, a language feature that does not exist unde
 **Any pass over the tests or the docs must leave those four senses alone.**
 
 !! **FOUR TRAPS, EACH FOUND BY BREAKING THE SUITE. THIS IS THE EXPENSIVE PART AND IT IS NOW
-KNOWN.** A bulk rename that does not guard all four leaves 60-152 tests red:
+KNOWN. READ THEM BEFORE ANY OF THE PASSES BELOW.** A bulk rename that does not guard all four
+leaves 60-152 tests red:
 
 | trap | why it bites |
 | --- | --- |
@@ -72,34 +88,31 @@ to their editorial desks separately, `fact-check-editor` among them; that is its
 does a record slot. The only load-bearing uses are `Finding.block` and the `BLOCK` marker, both
 the deprecated 0.2.x record index.
 
+! **THE REASON IS RECORDED AT `docs/vocabulary.md:20`** -- *"`block` -> paragraph. The register is
+EDITORIAL ... Its definition -- the interval between two lines of CODE -- is also untrue of a
+prose file"* -- with `pCST` beside it at `:23`.
+
 ## Tasks
 
-- [x] **T1 -- DONE 2026-08-19 -- shipped PROSE, 285 renames across 13 files**, plus `block` retired
-      from `vocabulary.toml` and the eight count nouns in `verdicts.py`'s report and the census
-      listing's header and tier table. Everything a human or an agent READS says paragraph.
-      ! Three stale references to the RETIRED index went with it: the brief's worked record
-      opened `{ "block": 17,` (a seeded slot has no such key), it told reviewers to file two
-      records *"with the same `block`"* where it is the same ADDRESS, and `SKILL.md` described a
-      slot as carrying *"the census `block` index and the `address`"*.
-
-- [x] **T2 -- DONE -- shipped CODE.** `Block` -> `Paragraph`, `pcst.py` -> the page module,
-      `blocks_stdlib`/`blocks_lexical` -> `paragraphs_stdlib`/`paragraphs_lexical`. VERIFIED
-      2026-08-23: the 68 remaining lowercase hits in `scripts/*.py` are the four declared live
-      senses, not the retired noun. ! **READ THE FOUR TRAPS IN THE OBJECTIVE FIRST** before the
-      two passes below; each was found by breaking the suite.
-
-- [ ] **T3 -- Tests.** MEASURED 2026-08-23: **205** uses across 11 files, `test_verdicts.py` (117)
-      and `test_census_blocks.py` (34) the bulk -- and that filename is itself the word. Verify:
-      `uv run pytest -q` green after the pass, and the four live senses untouched.
-
-- [ ] **T4 -- Live `docs/`.** MEASURED 2026-08-23: **34** uses -- `addressing.md` 16,
-      `parsing.md` 15, `limitations.md` 3. ! LEAVE `docs/history.md`, `docs/vocabulary.md`'s
-      retired table, and the 426 uses under `docs/superpowers/` and `docs/plans/`: those are a
-      RECORD of what was decided then, and correcting them stops it being one. Verify: those three
-      files hold no use of the retired NOUN, and `check_vocabulary.py` passes.
-
-- [x] **T5 -- DONE. `block` is retired and the reason is recorded.** VERIFIED 2026-08-23:
-      `references/vocabulary.toml` defines `paragraph` and the role `block-context` and no `block`
-      noun; `docs/vocabulary.md:20` carries the retired row -- *"`block` -> paragraph. The register
-      is EDITORIAL ... Its definition -- the interval between two lines of CODE -- is also untrue
-      of a prose file"* -- with `pCST` beside it at `:23`.
+- [x] T1 -- DONE 2026-08-19: shipped PROSE, 285 renames across 13 files, plus the three
+      stale references to the retired index. What went with it is in the Objective.
+- [x] T2 -- DONE: shipped CODE -- `Block` -> `Paragraph`, `pcst.py` -> the page module,
+      both readers renamed. VERIFIED 2026-08-23: the 68 hits are the four live senses.
+- [ ] T3 -- **`tests/test_verdicts.py` -- 117 uses.** Verify: `grep -oi block` over it
+      returns only the declared live senses, and `uv run pytest -q` is green.
+- [ ] T4 -- **`tests/test_census_blocks.py` -- 34 uses.** Verify: `grep -oi block` over it
+      returns only the declared live senses, and `uv run pytest -q` is green.
+- [ ] T5 -- **Rename the file `tests/test_census_blocks.py`.** Verify: `uv run python -m
+      unittest discover -s tests` collects the same case count as before.
+- [ ] T6 -- Sweep the retired noun out of every path under `tests/`. Verify: `git ls-files
+      tests/ | grep -i block` returns nothing.
+- [ ] T7 -- **The remaining nine test files -- 54 uses.** Verify: `grep -oil block tests/`
+      returns nothing but the declared live senses, and `uv run pytest -q` is green.
+- [ ] T8 -- **`docs/addressing.md` -- 16 uses.** Verify: the file holds no use of the
+      retired NOUN, and `uv run python scripts/check_vocabulary.py` exits 0.
+- [ ] T9 -- **`docs/parsing.md` -- 15 uses.** Verify: the file holds no use of the retired
+      NOUN, and `uv run python scripts/check_vocabulary.py` exits 0.
+- [ ] T10 -- **`docs/limitations.md` -- 3 uses.** Verify: the file holds no use of the
+      retired NOUN, and `uv run python scripts/check_vocabulary.py` exits 0.
+- [x] T11 -- DONE: `block` is retired. VERIFIED 2026-08-23 -- `vocabulary.toml` defines
+      `paragraph` and the role name only; `docs/vocabulary.md:20` carries the retired row.

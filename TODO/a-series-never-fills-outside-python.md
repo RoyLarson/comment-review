@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 18 tasks done
+Progress: 17 of 20 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -50,6 +50,15 @@ MEASURED today by censusing the fixtures, one per language:
 `declares` tuple (`language.py:185-209`), because `_declares_here` reads a line's FIRST word or
 its first two, and a C declaration opens with its RETURN TYPE.
 
+! **THE CAUSE IS THE MATCHER, AND ROY AUTHORISED THE FIX 2026-08-23**: *"a slightly smarter
+parser that looks for the correct keyword in the line instead of just the first word ... It is a
+simple fix."*
+
+! **THE HALF OF THE WIRE THAT IS STILL NOT THERE, recorded so nobody re-derives it**:
+`paragraphs_lexical` itself still does not set `Paragraph.declares`. `lexer.document_declarations`
+does, and `page.py:726` is what calls it -- which is why the wire works today by composition
+rather than at the paragraph builder.
+
 ## The measurement this file was opened on, and what it now reads
 
 - **2026-08-21.** `/// The name.` above `pub fn f()` in Rust censused `a1 undocumented
@@ -63,6 +72,17 @@ its first two, and a C declaration opens with its RETURN TYPE.
   true of EMITTING the place and not of filling it. It is true of both now for 16 of 18
   languages; `c` and `cpp` are the two that are not, and four more -- `sql`, `toml`, `ini`,
   `yaml` -- have no `a` series by design.
+
+## What has landed, and where the evidence is
+
+- **THE WIRE, 2026-08-23** (was T7). `page.py:726` calls `document_declarations(got,
+  declarations(text, lang, code), code)` and `lexer.py:1617` sets `held.declares = ordinal`.
+  MEASURED over the fixtures: `sample.rs`, `.go`, `.java`, `.ts`, `.kt`, `.swift`, `.cs` and
+  `.rb` all fill `@a1` and above with the doc comment that was in `b` before.
+- **THE C TEXT, 2026-08-23, commit `5cc4645`** (was T12). `CLAUDE.md:380-390` no longer says a C
+  keyword list *"could never be complete"*; it says the empty list is **a fact about the MATCHER,
+  not about C**, and `references/vocabulary.toml:34` says the same to all four roles. ! That box
+  asked for the C text to be updated or reaffirmed either way, and it was updated.
 
 ## The rulings, all made
 
@@ -101,7 +121,8 @@ EMPTY PLACE that nothing ever fills, which is the cost the round-trip test measu
 it came from whatever cue it carries. What fails is `record.entry_for`, which resolves by address
 and returns the FIRST match: a correct edit to the second paragraph is checked against the first
 and `verdicts.py` exits 1. So a round trip that only proves bytes come back will pass while the
-gate still refuses the edit -- which is why T18's verify names the SPURIOUS `a`, not the bytes.
+gate still refuses the edit -- which is why the per-language boxes below verify against the
+SPURIOUS `a`, not against the bytes.
 
 ## The match rule, stated and already tried
 
@@ -136,57 +157,43 @@ existing cases are compatible, not in conflict -- and the added cases resolved c
 stopped it as scope creep on the folio-placement branch: *"that is definitely a todo and I want
 to finish this branch."*
 
+! **THE MATCHER CHANGE AND THE TWO KEYWORD LISTS ARE SEPARATE BOXES ON PURPOSE.** `c` and `cpp`
+each take their list from their OWN grammar and never from the other's -- `CLAUDE.md`'s rule that
+a row is wrong the moment its justification cites another row.
+
 ## Tasks
 
-- [x] T1 -- MEASUREMENT, 2026-08-21, and FALSIFIED 2026-08-23. The Rust/Go/Java/TS/C#
-      symptom is in the Objective, with today's re-measurement beside it.
-- [x] T2 -- MEASUREMENT of the cause. `paragraphs_lexical` still does not set
-      `Paragraph.declares`; `lexer.document_declarations` does, and `page.py:726` calls
-      it. Recorded in the Objective.
+- [x] T1 -- MEASUREMENT, 2026-08-21, FALSIFIED 2026-08-23. In the Objective, with today's
+      re-measurement beside it.
+- [x] T2 -- MEASUREMENT of the cause. In the Objective, under *the half of the wire that
+      is still not there*.
 - [x] T3 -- ARGUMENT, not work: the consequence of T1 for `function-context` and
-      `ownership-context`. Recorded in the Objective.
-- [x] T4 -- MEASUREMENT about `CLAUDE.md`'s eleven-language claim. Recorded in the
-      Objective.
+      `ownership-context`. In the Objective.
+- [x] T4 -- MEASUREMENT about `CLAUDE.md`'s eleven-language claim. In the Objective.
 - [x] T5 -- RULING, made 2026-08-21 and quoted in full in the Objective: the acceptance
       test is a round trip.
-- [x] T6 -- RULING/ARGUMENT: a language opting out is a supported state. Recorded in the
+- [x] T6 -- RULING/ARGUMENT: a language opting out is a supported state. In the Objective.
+- [x] T7 -- DONE. The wire, `page.py:726` plus `lexer.py:1617`; the fixture measurement is
+      in the Objective under *What has landed*.
+- [x] T8 -- RULING plus MEASUREMENT: nearest-above, and the 62/38 CPython split. In the
       Objective.
-- [x] T7 -- DONE. **The wire.** `page.py:726` calls `document_declarations(got,
-      declarations(text, lang, code), code)` and `lexer.py:1617` sets
-      `held.declares = ordinal`. MEASURED 2026-08-23 over the fixtures: `sample.rs`,
-      `.go`, `.java`, `.ts`, `.kt`, `.swift`, `.cs` and `.rb` all fill `@a1` and above
-      with the doc comment that was in `b` before.
-- [x] T8 -- RULING plus MEASUREMENT: nearest-above, and the 62/38 CPython split.
-      Implemented in `lexer.document_declarations`. Recorded in the Objective.
-- [x] T9 -- RULING SETTLED 2026-08-21 -- the anchor is the keyword's line. Quoted in the
+- [x] T9 -- RULING SETTLED 2026-08-21 -- the anchor is the keyword's line. In the
       Objective.
-- [x] T10 -- MEASUREMENT: 81.1% of the false positives are undocumented lines. Recorded
-      in the Objective.
-- [x] T11 -- ARGUMENT: a shared address breaks VERIFICATION, not reconstruction. Its
-      operative half is now T18's verify. Recorded in the Objective.
-- [x] T12 -- DONE 2026-08-23, commit `5cc4645`. `CLAUDE.md:380-390` no longer says a C
-      keyword list *"could never be complete"*; it says the empty list is **a fact about
-      the MATCHER, not about C**, and `references/vocabulary.toml:34` says the same to
-      all four roles. ! That was the box asking for the C text to be updated or
-      reaffirmed either way, and it was updated.
-- [x] T13 -- THE MATCH RULE, quoted from Roy 2026-08-22. A specification, not a
-      checkpoint; it is T18's content and is kept in the Objective.
-- [x] T14 -- HISTORY: tried and reverted on purpose, 2026-08-22. Recorded in the
+- [x] T10 -- MEASUREMENT: 81.1% of the false positives are undocumented lines. In the
       Objective.
-- [x] T15 -- THE BODY THAT PASSED. A patch to paste, not a checkpoint; kept in the
+- [x] T11 -- ARGUMENT: a shared address breaks VERIFICATION, not reconstruction. In the
+      Objective, and its operative half is the per-language verifies below.
+- [x] T12 -- DONE 2026-08-23, commit `5cc4645`. In the Objective under *What has landed*.
+- [x] T13 -- THE MATCH RULE, quoted from Roy 2026-08-22. A specification, kept in the
       Objective.
-- [x] T16 -- THE TEN CASES it was checked against. Evidence for T18, kept in the
-      Objective.
-- [x] T17 -- ARGUMENT: the match rule alone changes nothing a reviewer sees without the
-      wire. SUPERSEDED by T7 landing -- the wire is in, so T18 lands alone.
-- [ ] T18 -- **Match the keyword ANYWHERE in the line, and give `c` and `cpp` a keyword
-      list.** That single assumption is why they carry an empty one: a C declaration
-      opens with its RETURN TYPE, so no keyword is ever the first word. Roy, 2026-08-23:
-      *"a slightly smarter parser that looks for the correct keyword in the line instead
-      of just the first word ... It is a simple fix."* Verify, all four:
-      `_declares_here` answers correctly on the ten cases in the Objective;
-      `grep -c _FIRST_WORD plugins/comment-review/skills/comment-review/scripts/lexer.py`
-      answers 0; a `.c` file resolves an `a` place for `struct`, `enum`, `union` and a
-      function definition; and no line gains a SPURIOUS `a` -- one would renumber every
-      `a` below it, and the shared-address note above says why renumbering is caught by
-      `record.entry_for` and not by the bytes.
+- [x] T14 -- HISTORY: tried and reverted on purpose, 2026-08-22. In the Objective.
+- [x] T15 -- THE BODY THAT PASSED. A patch to paste, kept in the Objective.
+- [x] T16 -- THE TEN CASES it was checked against. Evidence, kept in the Objective.
+- [x] T17 -- ARGUMENT: SUPERSEDED by T7 landing -- the wire is in, so the matcher change
+      lands alone.
+- [ ] T18 -- Match a `declares` keyword ANYWHERE in the line, per the Objective's body.
+      Verify: the ten cases in the Objective answer correctly, and `_FIRST_WORD` is gone.
+- [ ] T19 -- Give `c` a `declares` keyword list. Verify: a `.c` file resolves an `a` place
+      for `struct`, `enum`, `union` and a function definition, and gains no SPURIOUS `a`.
+- [ ] T20 -- Give `cpp` a `declares` keyword list, from C++'s own grammar. Verify: a
+      `.cpp` file resolves an `a` for a class and a function, and gains no SPURIOUS `a`.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks done
+Progress: 0 of 3 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, asking whether docstrings are separable per
@@ -14,6 +14,9 @@ RE-CHECKED: 2026-08-23 — 2026-08-23. Both tasks are still live and both are no
             unchanged -- python, go, ruby -- and go and ruby still declare no doc
             marker, so the failure is still LATENT. ! The latent case was reproduced
             directly against `lexer.block_text`, so it is no longer a forecast.
+SPLIT:     2026-08-23 -- the first box held a CODE change (which reader reads which
+           property) AND a DOCSTRING correction at two line ranges: two artifacts, two
+           ticks, so two boxes. Two boxes became three; nothing changed meaning.
 ```
 
 ## Objective
@@ -35,6 +38,10 @@ same flag for.
 | python | yes | -- |
 | go | **no** | yes |
 | ruby | **no** | yes |
+
+! The two readers are `grep -n "doc_is_structural"
+plugins/comment-review/skills/comment-review/scripts/*.py`, and each is reading the flag for a
+different one of the two properties.
 
 ## Not live, and one row away from being live
 
@@ -88,15 +95,9 @@ census emits.
 
 ## Tasks
 
-- [ ] T1 -- SPLIT the field, or rename it and correct the docstring. `lexer.py:634-635` and
-      `:643-644` document it as "a STRING IN A DECLARATION'S BODY (Python)" and say only Python
-      is one, while `go` and `ruby` set it for a different property -- docs attach BY POSITION,
-      which is what `flag_structural_docs` reads it for. Verify: `grep -n "doc_is_structural"
-      plugins/comment-review/skills/comment-review/scripts/*.py` shows each reader naming the
-      property it uses, and no comment claims Python is the only language that sets it.
-
-- [ ] T2 -- REFUSE OR ROUTE the latent case, which reproduces today. Verify: a language record
-      carrying both `doc_line` (or `doc_block`) and `doc_is_structural=True` is refused where
-      the record is built, OR `block_text` routes on a property that separates the two -- and
-      `block_text("docstring", ["/// x"], ("///", "//"), True)` no longer returns text with
-      `///` still in it. ! The guard today is that no shipped row sets both; nothing enforces it.
+- [ ] T1 -- Split or rename `doc_is_structural` so each reader names the property it uses.
+      Verify: `grep -n doc_is_structural scripts/*.py` shows each reader's property.
+- [ ] T2 -- Correct `lexer.block_text`'s docstring at `:634-635` and `:643-644`, which
+      call it a string in a body. Verify: no comment says only Python sets the flag.
+- [ ] T3 -- Refuse or route the latent case -- a record with both `doc_line` and
+      `doc_is_structural=True`. Verify: a `///` run through `block_text` keeps no marker.
