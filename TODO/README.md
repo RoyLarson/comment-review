@@ -217,7 +217,7 @@ that changed a published name or rule:
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | — | 9/17 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [census-owns-addressing](census-owns-addressing.md) | backend | — | 4/5 | The census owns addressing, and four modules share one subject between them |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | testing | — | 1/5 | The filtered-census measurement exists only in run history |
-| [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | backend | — | 0/5 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
+| [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | backend | — | 2/6 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 | [front-matter-absorbed-by-an-interval](front-matter-absorbed-by-an-interval.md) | backend | yes | 5/6 | an interval owns the licence header and the module docstring; an add on it destroys them |
 | [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | systems | — | 1/4 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | yes | 0/5 | the 4a/4c split promises a resolved placement that nothing produces |
@@ -235,7 +235,7 @@ that changed a published name or rule:
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | yes | 0/18 | Outside Python the `a` place is emitted and never filled |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | backend | — | 0/3 | A UTF-8 BOM is censused as a line of code |
 | [strip-strings-runs-before-the-opener](strip-strings-runs-before-the-opener.md) | backend | — | 0/4 | A quote inside a block comment blanks the comment's own closer |
-| [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | backend | — | 0/5 | A licence header and a doc comment become one paragraph with one address |
+| [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | backend | — | 4/5 | A licence header and a doc comment become one paragraph with one address |
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | backend | — | 0/3 | A page entry that is not an object loses every record under it, silently |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | — | 0/4 | Shipped prose still describes formats and flags this branch deleted |
@@ -244,13 +244,13 @@ that changed a published name or rule:
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | backend | yes | 9/11 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | systems | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
-| [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | backend | yes | 0/7 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
+| [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | backend | yes | 6/7 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
 | [tier-dispatched-on-name](tier-dispatched-on-name.md) | backend | yes | 0/5 | The tier is dispatched on the language NAME, so a second tokenized language is not a data row |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | yes | 1/15 | Ten findings in lexer.py and language.py, from three review rounds |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | — | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 0/5 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 1/5 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [page-and-addresser-scans](page-and-addresser-scans.md) | backend | — | 2/7 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
-| [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | yes | 0/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
+| [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | yes | 2/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [exception-hierarchy](exception-hierarchy.md) | backend | — | 2/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | — | 0/6 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |

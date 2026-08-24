@@ -2,11 +2,22 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 1 of 5 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (C:/Program Files/Git/code-review high round 3 and /simplify round
           2, 2026-08-22 -- the write path, which is the one place a defect reaches disk)
+RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
+             is refused: galley.py:365 checks out.is_relative_to(repo) or
+             repo.is_relative_to(out) and prints REFUSED, with the comment above it
+             recording that is_relative_to is true of a path and itself, which is why
+             the old containment test passed on an overlap. ! Tasks 2, 4 and 5 all still
+             exist in the code -- _vacate is still there with the c-sits-beside-code
+             hazard noted at galley.py:192, lossless and identity are still separate at
+             compositor.py:290 and :327, and compositor.py still infers the source was
+             never read from an empty list. Task 3 is a measurement that already answers
+             itself: reading BYTES, 3,015 of 3,020 corpus files are identical, so the
+             mechanism is right and only the read path translates newlines.
 ```
 
 ## Objective
@@ -15,7 +26,7 @@ The galley can overwrite the file under review, and the compositor reads through
 
 ## Tasks
 
-- [ ] !! galley.py:316 IS DESTRUCTIVE AND EXITS 0. Containment asks only whether
+- [x] !! galley.py:316 IS DESTRUCTIVE AND EXITS 0. Containment asks only whether
       target is_relative_to(out); NOTHING asks whether --out is disjoint from
       --repo. On overlap the target IS the source file, the guard passes, and
       compositor.draft OVERWRITES the file under review, printing 1 page(s) set. !

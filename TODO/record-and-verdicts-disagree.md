@@ -2,12 +2,18 @@
 
 ```
 Status:   deferred
-Progress: 0 of 8 tasks done
+Progress: 2 of 8 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (/code-review high round 3, 2026-08-22, and Roy: the record/verdict
           pieces have got a lot of work to do and need an independent review work
           session)
+TRIAGED:  2026-08-23 — 2026-08-23. Tasks 1 and 2 are records -- the deferral to its own
+          session, and the framing that all of these are ONE class: record.py --check
+          refuses what verdicts.py admits, and the admitting one is the gate that
+          certifies a review. Tasks 3 to 8 are six specific findings and each is work. !
+          Left deferred as filed: it waits on front-half-undetermined, where what a
+          RECORD IS gets settled.
 ```
 
 ## Objective
@@ -16,11 +22,11 @@ record.py and verdicts.py disagree about what a valid record is, in four places.
 
 ## Tasks
 
-- [ ] DEFERRED TO ITS OWN SESSION, and this file exists so the findings survive
+- [x] DEFERRED TO ITS OWN SESSION, and this file exists so the findings survive
       the wait. Roy, 2026-08-22: *particularly the record/verdict pieces ... needs
       an independent review work session*. ! It also waits on front-half-
       undetermined, which is where what a RECORD IS gets settled
-- [ ] !! ALL FOUR ARE ONE CLASS: record.py --check REFUSES a record that
+- [x] !! ALL FOUR ARE ONE CLASS: record.py --check REFUSES a record that
       verdicts.py ADMITS. Two gates over one file, disagreeing about whether it is
       valid -- and the admitting one is the gate that certifies a review
 - [ ] verdicts.py:559 with held.py:172 -- load_report filters sources to DICTS, so
