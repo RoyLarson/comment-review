@@ -515,7 +515,7 @@ def _report(args: argparse.Namespace) -> int:
                 f.change = ""
                 f.verdict = "query"
             if not f.original:
-                f.original = "\n".join(held.get("raw_lines") or [])
+                f.original = str(held.get("raw_text") or "")
         found.extend(records)
         malformed.extend((reviewer, why) for why in unattributable)
         for line in code_lines_flagged:

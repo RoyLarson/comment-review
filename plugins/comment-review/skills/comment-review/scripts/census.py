@@ -76,6 +76,37 @@ from repo import (  # noqa: E402  -- path shim must run first
 )
 
 
+def emitted_row(b: Paragraph) -> dict:
+    """One paragraph as the census EMITS it, which is not how it is held.
+
+    !! THE PROSE LEAVES AS ONE STRING, NOT AS LINES. Ruled 2026-08-24 -- Roy:
+    *"LLMs and the token parsers read this as a complete and coherent statement.
+    They do not read this as the same thing: ['LLMs and the token', 'parsers
+    read this as a', 'complete and coherent', 'statement']. It took my phone,
+    which runs a token parser, to the last word to realise I was duplicating the
+    sentence."* The four reviewers ARE token parsers and prose is what they
+    judge, so fragments make every role reassemble the sentence before it can
+    ask whether the sentence is TRUE -- paid four times a page.
+
+    !! AND IT IS A CHANGE TO THE EMIT ALONE. `Paragraph.raw_lines` stays a list
+    in memory and nothing on the write path moves. **How an agent's answer
+    reaches the page is UNDECIDED** -- see `TODO/nothing-makes-the-fair-copy.md`
+    -- and a field rename that reshaped the galley would be deciding it by
+    accident. ! Attempted the other way 2026-08-24 and reverted: changing the
+    stored field forced `_vacate` to clear a span, which is a ruling about what
+    a `drop` DOES, made to keep tests green.
+
+    ! `annotations` is a set and JSON has none, so it leaves sorted. Same
+    reason, one line up: what a row IS on disk is stated here and nowhere else.
+    """
+    row = vars(b) | {
+        "annotations": sorted(b.annotations),
+        "raw_text": "\n".join(b.raw_lines),
+    }
+    row.pop("raw_lines", None)
+    return row
+
+
 def _walk(root: Path):
     """Every file under `root`. It ENUMERATES; it classifies nothing.
 
@@ -454,7 +485,7 @@ def _report(args: argparse.Namespace) -> int:
         # ! SERIALISED ONCE. This list was built twice -- once to check and once
         # to print -- which is two full dict copies and a re-sort of every
         # annotation set over a census that runs to thousands of paragraphs.
-        rows = [vars(b) | {"annotations": sorted(b.annotations)} for b in census]
+        rows = [emitted_row(b) for b in census]
         missing = unaddressed(rows)
         if missing:
             print(_unaddressed(missing), file=sys.stderr)
@@ -659,9 +690,7 @@ def _report(args: argparse.Namespace) -> int:
         return 1
     # ! The same refusal on the text path. It is the one a person reads, and a
     # census that cannot be cited is no more usable for being legible.
-    missing = unaddressed(
-        [vars(b) | {"annotations": sorted(b.annotations)} for b in census]
-    )
+    missing = unaddressed([emitted_row(b) for b in census])
     if missing:
         print("\n" + _unaddressed(missing))
         return 1

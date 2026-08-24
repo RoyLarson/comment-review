@@ -159,15 +159,20 @@ is TRUE. **The split is paid for at the one place this system exists to do well*
 paid four times a page. ! **Argued, not measured**: the demonstration is one instance, and
 whether a role finds more when handed text belongs to the grader.
 
-!! **AND IT WAS LOSSY, NOT MERELY MISNAMED.** MEASURED the same day:
-`text_lines("one\r\ntwo\r\n")` returns `["one", "two"]` -- **the split destroys the line
-ending**, which is why `compositor.line_endings` exists to put it back. One string keeps it, and
-it is the axis [`galley-and-compositor-write-path`](galley-and-compositor-write-path.md) T5 says
-the gates never saw.
+!! **A FIDELITY ARGUMENT WAS MADE FOR THIS AND RETRACTED THE SAME DAY, KEPT HERE BECAUSE IT
+SHIPPED IN A COMMIT.** It ran: `text_lines("one\r\ntwo\r\n")` returns `["one", "two"]`, so the
+split destroys the line ending and a string keeps it.
 
-! **THREE REASONS, WEAKEST LAST**: the reading, the fidelity, then 3-5% of bytes. **The byte
-figure is how this ruling was reached and is the least of the three** -- which is worth knowing
-next time a field is argued about on size alone.
+! **IT DOES NOT HOLD.** `compositor.line_endings` already rules that *"the first ending wins and
+mixed files are normalised. A file holding both is already inconsistent... `galley.py` has
+answered it this way since it was written."* The ending is restored at SET time, so **a
+per-paragraph ending would preserve a fact the compositor discards on purpose** -- and the CRLF
+round trip works today through `set_page`, not through the stored lines.
+
+! **TWO REASONS, NOT THREE**: the reading, and 3-5% of bytes. **The byte figure is how this
+ruling was reached and is the lesser of them.** ! And the retraction is the useful part: the
+argument was reached for because it sounded like the kind this repo respects, and it was checked
+against the code before it was relied on rather than after.
 
 ! **T9 AND T10 ARE SUPERSEDED BY THE DELETION, NOT COMPLETED.** They asked what `lines` MEANS and
 that every row obey the answer. Roy ruled it out instead: *"it is ambiguous."* **You do not define

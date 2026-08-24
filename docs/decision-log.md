@@ -141,12 +141,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   exists to do well. ! **Argued, not measured**: the demonstration above is one, and whether a
   role finds more when handed text is a question for the grader.
 
-  !! **AND IT WAS LOSSY, NOT MERELY MISNAMED.** MEASURED 2026-08-24:
-  `text_lines("one\r\ntwo\r\n")` returns `["one", "two"]` -- **the line ending is destroyed by the
-  split**, which is why `compositor.line_endings` exists to recover it. One string keeps it.
+  !! **A FIDELITY ARGUMENT WAS MADE FOR THIS AND RETRACTED THE SAME DAY.** It ran: the split
+  destroys the line ending -- `text_lines("one\r\ntwo\r\n")` returns `["one", "two"]` -- so one
+  string keeps what a list threw away. ! **It does not hold.** `compositor.line_endings` already
+  rules that *"the first ending wins and mixed files are normalised"*, and puts one back at SET
+  time; a per-paragraph ending would preserve a fact the compositor discards on purpose. The
+  CRLF round trip works today through `set_page`, not through the stored lines.
 
-  ! **THREE REASONS, WEAKEST LAST**: the reading, then the fidelity, then 3-5% of bytes. The
-  byte figure is what this ruling was reached through and is the least of them.
+  ! **SO THERE ARE TWO REASONS, NOT THREE**: the reading, and 3-5% of bytes. **The byte figure
+  is what this ruling was reached through and is the lesser of them** -- and the retracted
+  middle reason is kept here because it was in the commit that landed the ruling.
 
   ! **MEASURED, on the full census of one 659-row page**: 429,239 bytes to **158,543, 36%** on
   every row, and 54,793 -- **12%** -- on the rows that hold prose. Re-derive with

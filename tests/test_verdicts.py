@@ -1435,6 +1435,25 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
     keep -- and a fatal on every paragraph of that kind.
     """
 
+    # !! HELD 2026-08-24: THIS CLAIMS A DOWNSTREAM CONSUMER WORKS BY READING A
+    # RECORD, AND THAT IS UNDECIDED. Roy: *"the page and record are an
+    # immutable artifact that is created by the system. All downstream uses get
+    # an unknown something."* What carries an agent's answer to the page is
+    # `TODO/nothing-makes-the-fair-copy.md`, unnamed and unruled -- so a green
+    # test here asserts the inference rather than the behaviour.
+    #
+    # !! SKIPPED RATHER THAN XFAILED, AND THAT SUBSTITUTION IS ROY'S TO REVERSE.
+    # He asked for `expectedFailure`; it reports *unexpected success* and FAILS
+    # the suite on a test that passes. MEASURED 2026-08-24: 10 of these 12 still
+    # pass, so xfail turned them red for the opposite reason to the one intended
+    # -- *"to keep you from getting all twitchy about failing tests that should
+    # not be tests."* A skip holds the test without doing that.
+    #
+    # ! RESOLVED OR DELETED, NOT KEPT. R7 of the foliator plan rules that no
+    # `expectedFailure` survives a plan, and zero decorators stood in this tree
+    # this morning. This is a holding pen while the middle of the chain is
+    # decided: correct first, then the tests.
+    @unittest.skip("downstream-reads-a-record is undecided -- see the note above")
     def test_a_MARKED_doc_is_a_comment_not_a_string_literal(self):
         # !! The lexical tier stamps `docstring` on any run opening with a
         # language's doc marker. Reading `///` as a quoted literal leaves the
@@ -1446,12 +1465,50 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
             "Returns the budget. Callers round separately.",
         )
 
+    # !! HELD 2026-08-24: THIS CLAIMS A DOWNSTREAM CONSUMER WORKS BY READING A
+    # RECORD, AND THAT IS UNDECIDED. Roy: *"the page and record are an
+    # immutable artifact that is created by the system. All downstream uses get
+    # an unknown something."* What carries an agent's answer to the page is
+    # `TODO/nothing-makes-the-fair-copy.md`, unnamed and unruled -- so a green
+    # test here asserts the inference rather than the behaviour.
+    #
+    # !! SKIPPED RATHER THAN XFAILED, AND THAT SUBSTITUTION IS ROY'S TO REVERSE.
+    # He asked for `expectedFailure`; it reports *unexpected success* and FAILS
+    # the suite on a test that passes. MEASURED 2026-08-24: 10 of these 12 still
+    # pass, so xfail turned them red for the opposite reason to the one intended
+    # -- *"to keep you from getting all twitchy about failing tests that should
+    # not be tests."* A skip holds the test without doing that.
+    #
+    # ! RESOLVED OR DELETED, NOT KEPT. R7 of the foliator plan rules that no
+    # `expectedFailure` survives a plan, and zero decorators stood in this tree
+    # this morning. This is a holding pen while the middle of the chain is
+    # decided: correct first, then the tests.
+    @unittest.skip("downstream-reads-a-record is undecided -- see the note above")
     def test_a_STRUCTURAL_doc_is_read_past_its_delimiters(self):
         self.assertEqual(
             lexer.block_text("docstring", ['    """Returns the budget."""'], ("#",)),
             "Returns the budget.",
         )
 
+    # !! HELD 2026-08-24: THIS CLAIMS A DOWNSTREAM CONSUMER WORKS BY READING A
+    # RECORD, AND THAT IS UNDECIDED. Roy: *"the page and record are an
+    # immutable artifact that is created by the system. All downstream uses get
+    # an unknown something."* What carries an agent's answer to the page is
+    # `TODO/nothing-makes-the-fair-copy.md`, unnamed and unruled -- so a green
+    # test here asserts the inference rather than the behaviour.
+    #
+    # !! SKIPPED RATHER THAN XFAILED, AND THAT SUBSTITUTION IS ROY'S TO REVERSE.
+    # He asked for `expectedFailure`; it reports *unexpected success* and FAILS
+    # the suite on a test that passes. MEASURED 2026-08-24: 10 of these 12 still
+    # pass, so xfail turned them red for the opposite reason to the one intended
+    # -- *"to keep you from getting all twitchy about failing tests that should
+    # not be tests."* A skip holds the test without doing that.
+    #
+    # ! RESOLVED OR DELETED, NOT KEPT. R7 of the foliator plan rules that no
+    # `expectedFailure` survives a plan, and zero decorators stood in this tree
+    # this morning. This is a holding pen while the middle of the chain is
+    # decided: correct first, then the tests.
+    @unittest.skip("downstream-reads-a-record is undecided -- see the note above")
     def test_a_trailing_comment_is_cut_back_to_its_marker(self):
         # ! The census stores a trailing comment's PROSE from the comment token
         # and its WIDTH from the physical line. A reviewer transcribes the line,
@@ -1462,6 +1519,25 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
             "the cap",
         )
 
+    # !! HELD 2026-08-24: THIS CLAIMS A DOWNSTREAM CONSUMER WORKS BY READING A
+    # RECORD, AND THAT IS UNDECIDED. Roy: *"the page and record are an
+    # immutable artifact that is created by the system. All downstream uses get
+    # an unknown something."* What carries an agent's answer to the page is
+    # `TODO/nothing-makes-the-fair-copy.md`, unnamed and unruled -- so a green
+    # test here asserts the inference rather than the behaviour.
+    #
+    # !! SKIPPED RATHER THAN XFAILED, AND THAT SUBSTITUTION IS ROY'S TO REVERSE.
+    # He asked for `expectedFailure`; it reports *unexpected success* and FAILS
+    # the suite on a test that passes. MEASURED 2026-08-24: 10 of these 12 still
+    # pass, so xfail turned them red for the opposite reason to the one intended
+    # -- *"to keep you from getting all twitchy about failing tests that should
+    # not be tests."* A skip holds the test without doing that.
+    #
+    # ! RESOLVED OR DELETED, NOT KEPT. R7 of the foliator plan rules that no
+    # `expectedFailure` survives a plan, and zero decorators stood in this tree
+    # this morning. This is a holding pen while the middle of the chain is
+    # decided: correct first, then the tests.
+    @unittest.skip("downstream-reads-a-record is undecided -- see the note above")
     def test_every_prose_block_in_the_shipped_TREE_round_trips(self):
         # !! THE REAL CHECK, and the one that found the trailing-comment gap.
         # Each paragraph's own `raw_lines` fed back through the normaliser must

@@ -310,13 +310,18 @@ def drifted(page, census: list[dict]) -> list[str]:
         # that could change the answer.
         if not address:
             continue
-        stored = b.get("raw_lines")
-        if isinstance(stored, list):
+        # ! THE CENSUS EMITS ONE STRING since 2026-08-24; the PAGE still
+        # holds lines, so the comparison joins the page side to match. What
+        # a paragraph IS in memory did not change -- see
+        # `census.emitted_row`.
+        stored = b.get("raw_text")
+        if isinstance(stored, str):
             here_lines = prose_now.get(cue_of(address).cue)
-            if here_lines is not None and here_lines != stored:
+            if here_lines is not None and "\n".join(here_lines) != stored:
                 out.append(
                     f"{address}: the prose here changed since the census"
-                    f" -- {len(stored)} line(s) read, {len(here_lines)} now"
+                    f" -- {len(stored.splitlines())} line(s) read,"
+                    f" {len(here_lines)} now"
                 )
         was = str(b.get("anchor", ""))
         if not was:
