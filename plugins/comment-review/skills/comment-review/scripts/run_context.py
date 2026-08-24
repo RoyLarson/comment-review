@@ -1,6 +1,6 @@
 """The packet four reviewers are dispatched with, and its gate.
 
-    python run_context.py --template > run-<id>/context.md
+    python run_context.py --template --out run-<id>/context.md
     python run_context.py --check run-<id>/context.md
 
 `REQUIRED` names 10 sections below, and stage 4 hands each reviewer all of them
@@ -41,6 +41,7 @@ them.
 import argparse
 import re
 import sys
+from contextlib import redirect_stdout
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -302,13 +303,32 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--template", action="store_true")
     ap.add_argument("--check", metavar="FILE")
+    ap.add_argument(
+        "--out", metavar="PATH", help="write the report to PATH, not stdout"
+    )
     args = ap.parse_args()
+    # ! REFUSED BEFORE `--out` OPENS ANYTHING, so a usage error leaves no empty
+    # packet behind for the next stage to read as an answered one.
+    if not args.template and not args.check:
+        ap.error("one of --template or --check is required")
 
+    # ! WRITES ITS OWN FILE, for the reason `census.py:276` carries: a
+    # worktree-isolated harness REFUSES a command carrying a shell redirect,
+    # and the packet is what stage 4 dispatches from -- so the only documented
+    # route to it was unrunnable there. This module's own usage line said
+    # `--template > run-<id>/context.md` until this landed.
+    if args.out:
+        with open(args.out, "w", encoding="utf-8", newline="") as fh:
+            with redirect_stdout(fh):
+                return _report(args)
+    return _report(args)
+
+
+def _report(args: argparse.Namespace) -> int:
+    """Everything the run prints, so `--out` can wrap it in one place."""
     if args.template:
         print(template())
         return 0
-    if not args.check:
-        ap.error("one of --template or --check is required")
 
     try:
         text = Path(args.check).read_text(encoding="utf-8")

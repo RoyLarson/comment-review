@@ -1,6 +1,6 @@
 """Stage 3, inbound: which tracked files NAME the files under review.
 
-    python referrers.py --repo D <targets...>
+    python referrers.py --repo D [--out PATH] <targets...>
 
 The census resolves what a comment CITES. This resolves the other direction --
 who cites the code being edited -- and it is the half that decides the
@@ -16,6 +16,7 @@ import argparse
 import ast
 import sys
 from collections import defaultdict
+from contextlib import redirect_stdout
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -98,8 +99,24 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("targets", nargs="+")
     ap.add_argument("--repo", default=".", help="repo root")
+    ap.add_argument(
+        "--out", metavar="PATH", help="write the report to PATH, not stdout"
+    )
     args = ap.parse_args()
 
+    # ! WRITES ITS OWN FILE, for the reason `census.py:276` carries: a
+    # worktree-isolated harness REFUSES a command carrying a shell redirect,
+    # and the REFERENCE ONLY list is what stage 3 keeps -- so the only route to
+    # holding it was unrunnable in the session type the skill is written for.
+    if args.out:
+        with open(args.out, "w", encoding="utf-8", newline="") as fh:
+            with redirect_stdout(fh):
+                return _report(args)
+    return _report(args)
+
+
+def _report(args: argparse.Namespace) -> int:
+    """Everything the run prints, so `--out` can wrap it in one place."""
     repo = Path(args.repo).resolve()
     if git_ls_files(repo) is None:
         print("NO GIT INDEX -- cannot resolve referrers. Say so in the stage 3 report.")

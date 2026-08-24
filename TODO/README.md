@@ -187,7 +187,7 @@ that changed a published name or rule:
 | [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | agents | yes | 1/5 | A scope declaration costs as much as a finding |
 | [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | backend | yes | 0/10 | Block-comment markers survive into the prose the reviewers read |
 | [move-and-correct-compose](move-and-correct-compose.md) | agents | — | 4/6 | `move` and `correct` COMPOSE, and the gate calls them a contradiction |
-| [only-census-got-out-and-the-skill-instructs-a-redirect](only-census-got-out-and-the-skill-instructs-a-redirect.md) | agents | — | 0/5 | Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids |
+| [only-census-got-out-and-the-skill-instructs-a-redirect](only-census-got-out-and-the-skill-instructs-a-redirect.md) | agents | — | 3/5 | Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids |
 | [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | backend | yes | 0/6 | `referrers.py` matches on any public name, and surfaced the whole repo |
 | [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | agents | — | 6/11 | Stage 5 is the only stage whose writer is also its checker |
 | [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | backend | yes | 0/5 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |

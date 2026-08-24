@@ -66,6 +66,7 @@ worth running down.
 """
 
 import argparse
+import io
 import json
 import re
 import sys
@@ -290,7 +291,7 @@ def main() -> int:
     ap.add_argument("--census", required=True, help="census.py --json output")
     ap.add_argument("--repo", default=".", help="repo root for evidence resolution")
     ap.add_argument(
-        "--out", metavar="PATH", help="write the report to PATH, not stdout"
+        "--out", metavar="PATH", help="write the report to PATH, and print it too"
     )
     ap.add_argument(
         "--reviewers",
@@ -308,10 +309,19 @@ def main() -> int:
     # what stage 5 works from, so the only route to keeping it was unrunnable
     # in the session type the skill is written for. `census.py` carries the
     # same flag for the same reason; this is the one that was missed.
+    # !! AND IT PRINTS AS WELL, WHICH IS WHERE THIS DIVERGES FROM `census.py`.
+    # Nobody reads a census by eye, so there `--out` is exclusive; the join is
+    # read at the terminal as often as it is captured, and a gate that goes
+    # silent when its output is kept makes "saw nothing" and "found nothing"
+    # the same event at the one stage that decides what reaches a human.
     if args.out:
-        with open(args.out, "w", encoding="utf-8", newline="") as fh:
-            with redirect_stdout(fh):
-                return _report(args)
+        captured = io.StringIO()
+        with redirect_stdout(captured):
+            code = _report(args)
+        report = captured.getvalue()
+        Path(args.out).write_text(report, encoding="utf-8", newline="")
+        print(report, end="")
+        return code
     return _report(args)
 
 
