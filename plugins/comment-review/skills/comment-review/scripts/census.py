@@ -282,6 +282,27 @@ def main() -> int:
     )
     args = ap.parse_args()
 
+    # !! NO PATHS IS A REFUSAL, NOT AN EMPTY CENSUS. `paths` is `nargs="*"` so
+    # `--languages` can run without one, and everything else with none produced
+    # `[]` at exit 0 -- which the join then reads as a complete census and
+    # certifies. Measured 2026-08-24: `census.py --repo . --json` printed `[]`
+    # and returned 0, and `verdicts.py` over it printed "Every finding is
+    # admissible. Stage 5 may rule."
+    #
+    # ! REACHABLE WITHOUT ANYONE TYPING IT: stage 1 takes its paths from a
+    # merge-base diff, and a diff that touches no reviewable file hands this
+    # nothing. The run then reads as complete BECAUSE there was nothing to be
+    # incomplete about -- the failure `verdicts.py` states the rule against, one
+    # stage earlier. ! Refused BEFORE `--out` opens anything, so a usage error
+    # leaves no empty census behind for the next stage to read as an answered one.
+    if not args.languages and not args.paths:
+        print(
+            "REFUSED: no paths. A census over nothing is not an empty census --"
+            " it is a run with no scope, and every check downstream would pass"
+            " on it. Name the files, or pass --languages to list what is known."
+        )
+        return 2
+
     # ! WRITES ITS OWN FILE. A shell redirect is refused outright by a
     # worktree-isolated harness -- "too complex to verify that it stays inside
     # the worktree" -- and the JSON census is what the stage-5 join parses, so

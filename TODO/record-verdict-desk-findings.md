@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 14 tasks done
+Progress: 9 of 14 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 4, 2026-08-22 -- the findings OUTSIDE the
@@ -52,6 +52,14 @@ Tested:   2026-08-24 — T13 and T14 landed, and both were PROVEN ABLE TO FAIL: 
           payload may waive a source its own row still owes, plus a second case naming
           the row that must match, because a reword would otherwise leave the loop
           running zero times and reporting success.
+Fixed2:   2026-08-24 — T4 and T5. census.py refuses a run with no paths
+          (exit 2, --languages still exempt); verdicts.py refuses a census holding no
+          paragraphs (exit 1) instead of printing "Every finding is admissible. Stage 5
+          may rule." ! Both were RE-RUN before and after, and three tests joined the
+          class that already covers the unaddressed case at both ends -- the same pair
+          of ends, one input short. ! PROVEN ABLE TO FAIL: each guard was disabled in
+          turn and the class went red both times, then the files were restored and
+          compared byte for byte. 831 tests, up 3.
 ```
 
 ## Objective
@@ -78,11 +86,24 @@ Measured after: a sourceless `patch` is ADMITTED, a sourceless `correct` is stil
 never ran certifies *Every finding is admissible* at exit 0 and never names the absence.
 ! RE-CONFIRMED 2026-08-23 by reading both files.
 
-**Zero path arguments certify completeness.** `census.py` emits `[]` at exit 0, and the join's
-emptiness guard is satisfied by an empty list, so `verdicts.py` certifies *0 findings over 0 prose
+**Zero path arguments certified completeness.** `census.py` emitted `[]` at exit 0, and the join's
+emptiness guard was satisfied by an empty list, so `verdicts.py` certified *0 findings over 0 prose
 paragraphs* as COMPLETE. Reachable whenever stage 1's merge-base diff yields no paths -- the exact
 complete-because-nothing-was-incomplete failure that guard exists to stop, one step out.
-! NOT RE-RUN 2026-08-23.
+! NOT RE-RUN 2026-08-23. **RE-RUN AND FIXED 2026-08-24**, both halves.
+
+! **THE JOIN'S HALF IS THE SAME DEFECT ONE INPUT SHORT, and it sat beside its own reasoning.**
+`verdicts.py` already refuses a census carrying no ADDRESSES, with a comment saying *"the run then
+reads as complete because there was nothing to be incomplete about."* An EMPTY census passes that
+check **vacuously** -- `unaddressed([])` is empty because there is nothing that could be
+unaddressed -- so the guard was answering a question the input had removed. ! A guard that reads a
+collection has to say what an empty one means, or it reports *passed every question it could not
+ask* as success.
+
+! **AND `--languages` IS WHY THE CENSUS TAKES `nargs="*"`.** It is the one caller that
+legitimately passes no paths, so the refusal is conditioned on it rather than on the argparse
+shape -- and a test pins that it still runs, because a refusal that also refused it would be
+written to the defect's shape instead of to the defect.
 
 **A blank line inside `desk.py`'s SOURCE window collapses to an empty string** and emits two
 spaces where the needle has one, so any honest verbatim quote SPANNING a blank line is fatally
@@ -127,9 +148,9 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
       enforces. Verify: the shipped brief's sentence and `owes_sources` agree.
 - [ ] T3 -- `verdicts.py` -- stop `vocabulary.Reviewer` admitting non-reviewer role names.
       Verify: a report named `review.json` is refused as an unknown reviewer.
-- [ ] T4 -- `census.py` -- refuse a run given zero path arguments instead of emitting
+- [x] T4 -- `census.py` -- refuse a run given zero path arguments instead of emitting
       `[]`. Verify: a zero-path census run exits nonzero.
-- [ ] T5 -- `verdicts.py` -- refuse an empty census instead of certifying it COMPLETE.
+- [x] T5 -- `verdicts.py` -- refuse an empty census instead of certifying it COMPLETE.
       Verify: the join over an empty census exits nonzero and says what was missing.
 - [ ] T6 -- `desk.py` -- keep a blank line inside the SOURCE window from collapsing to two
       spaces. Verify: an honest verbatim quote spanning a blank line is admitted.

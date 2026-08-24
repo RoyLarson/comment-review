@@ -361,6 +361,26 @@ def _report(args: argparse.Namespace) -> int:
     # parses, so nothing else stands between a stale census and a certified
     # review. ! ONE implementation, in `addresser`. Roy, 2026-08-20: *"one source
     # of truth, else something will parse that something else will fail."*
+    # !! AND AN EMPTY CENSUS PASSES THAT CHECK VACUOUSLY, WHICH IS THE SAME
+    # DEFECT ONE INPUT SHORT. `unaddressed([])` is empty because there is
+    # nothing that COULD be unaddressed, so a census holding no paragraphs
+    # reached the certification below. Measured 2026-08-24 against `[]` and a
+    # report ruling on nothing: `0 findings from 1 reviewer over 0 prose
+    # paragraphs`, then **"Every finding is admissible. Stage 5 may rule."** at
+    # exit 0 -- word for word the outcome the guard beneath this exists to stop.
+    #
+    # ! A GUARD THAT READS A COLLECTION MUST SAY WHAT AN EMPTY ONE MEANS. Every
+    # question this gate asks is asked OF the paragraphs, so with none there is
+    # no question it can fail -- and passing every question it cannot ask is
+    # what it reports as success.
+    if not paragraphs:
+        print(
+            f"{args.census} holds NO PARAGRAPHS. There is nothing here to have"
+            " found anything in, so there is nothing this gate can certify --"
+            " a run whose scope resolved to no files is one that should not"
+            " have started. Re-run census.py against the paths under review."
+        )
+        return 1
     missing = unaddressed(paragraphs)
     if missing:
         rows = "\n".join(f"  {line}" for line in missing)

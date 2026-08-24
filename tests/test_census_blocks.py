@@ -1455,3 +1455,58 @@ class TestAnUnaddressedCensusIsREFUSEDAtBothEnds(unittest.TestCase):
                         "census.py", "--repo", str(root), *extra, str(root / "m.py")
                     )
                     self.assertEqual(got.returncode, 0, got.stderr or got.stdout)
+
+    def test_the_census_REFUSES_a_run_with_NO_PATHS(self):
+        """!! The same failure as above with one input fewer, and it is reachable.
+
+        Stage 1 takes its paths from a merge-base diff, so a diff touching no
+        reviewable file hands the census nothing. Measured 2026-08-24: it
+        printed `[]` and returned 0.
+        """
+        got = self._run("census.py", "--repo", str(SCRIPTS), "--json")
+        self.assertEqual(got.returncode, 2)
+        self.assertIn("no paths", got.stdout)
+        # !! WHAT IT USED TO PRINT. An empty list is the shape the join reads as
+        # a complete census, so this is the sentence that has to stop appearing.
+        self.assertNotEqual(got.stdout.strip(), "[]")
+
+    def test_LANGUAGES_still_runs_with_no_paths(self):
+        # ! The one caller that legitimately passes none. A refusal that also
+        # refused this would be the check written to the test rather than to
+        # the defect.
+        got = self._run("census.py", "--languages")
+        self.assertEqual(got.returncode, 0, got.stderr or got.stdout)
+        self.assertIn("tokenized", got.stdout)
+
+    def test_the_gate_REFUSES_an_EMPTY_census(self):
+        """!! `unaddressed([])` is empty for the wrong reason, so the check
+        above it passes vacuously and the run reaches the certification.
+
+        Measured 2026-08-24 over `[]` and a report ruling on nothing: `0
+        findings from 1 reviewer over 0 prose paragraphs`, then **"Every
+        finding is admissible. Stage 5 may rule."** at exit 0.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            census = root / "c.json"
+            census.write_text("[]", encoding="utf-8")
+            report = root / "block-context.json"
+            report.write_text(
+                json.dumps(
+                    {"reviewer": "block-context", "pages": [], "code_concerns": []}
+                ),
+                encoding="utf-8",
+            )
+            got = self._run(
+                "verdicts.py",
+                "--census",
+                str(census),
+                "--repo",
+                str(root),
+                "--reviewers",
+                "block-context",
+                str(report),
+            )
+            self.assertEqual(got.returncode, 1)
+            self.assertIn("NO PARAGRAPHS", got.stdout)
+            self.assertNotIn("Stage 5 may rule", got.stdout)
