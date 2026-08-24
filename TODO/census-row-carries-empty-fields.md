@@ -1,10 +1,10 @@
 # A census row carries 19 fields and an empty place fills 7, with three different spellings of absent
 
 ```
-Status:   decision-needed
+Status:   open (T6's ruling deferred to the cleanup; T7 and T9 do not wait on it)
 Progress: 6 of 9 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, reading a census JSON: there are a lot of extra
           fields that have no information in them -- we should trim them to the things
           that are true and are necessary now)
@@ -67,6 +67,16 @@ trim cannot tell a third fact from a stale field, so removing it either way is a
 - [ ] T6 -- * RULING: which fields does a reviewer actually need? The answer
       decides the shape, and the shape is what stage 4 pastes into four prompts --
       so an unused field is paid for four times per page.
+      !! **DEFERRED 2026-08-23, ASKED AND DECLINED FOR A REASON.** Roy: *"this is
+      the next actual work to be done so deferring the decision until we get the
+      current code cleaned up to a point that it isn't fluff we are deciding."*
+      ! **RULING ON TODAY'S FIELD LIST WOULD RULE ON FIELDS THE CLEANUP IS ABOUT TO
+      REMOVE**, so the answer would be obsolete on arrival and would have to be
+      re-asked -- the same shape as `CLAUDE.md`'s *a thing whose dependencies are
+      broken is refused, not worked on*. ! Waits on the binder CLI and the read
+      chain -- [`lookup-parses-whole-census`](lookup-parses-whole-census.md) T6-T9
+      and [`the-lexer-reads-no-files`](the-lexer-reads-no-files.md). ! Deferred is
+      not done: the box stays unchecked because the ruling is still owed.
 - [ ] T7 -- MEASURE THE COST BEFORE AND AFTER on a real census, in bytes and in
       the filtered listing, so the trim is reported as a number rather than as
       tidiness. Verify: both numbers written into this file, from a named

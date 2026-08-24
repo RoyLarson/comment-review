@@ -1,10 +1,11 @@
 # A licence header is unprotected in Rust and TypeScript
 
 ```
-Status:   decision-needed
+Status:   open (T5's ruling deferred to a prose classifier; T2, the Rust half, does not
+          wait on it)
 Progress: 2 of 5 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, re-measuring `front-matter-protection-is-python-only`
           during a backlog audit -- its title was false and the surviving defect is a
           different one)
@@ -84,3 +85,15 @@ so nothing here is a Python-only mechanism to be generalised.
       docstring is never matter, which is right for a module docstring and wrong for
       a licence written in `/** */`. The two cannot both hold on one clause. Verify:
       the ruling is recorded in `docs/decision-log.md`.
+      !! **DEFERRED 2026-08-23, AND THE POSITION MOVED FROM NO TO NOT NOW.** Roy,
+      asked with three candidate rules -- blank line decides, position wins, kind
+      wins: *"Ruled several times - We would need a prose classifier to catch the
+      edge cases and while I stated that as a no previously, I think it is more of a
+      Not Now."*
+      ! **WHAT BLOCKS IT IS A CAPABILITY, NOT A PREFERENCE.** Every candidate rule
+      decides from SHAPE -- the opener's characters, the blank line, the position --
+      and the cases that separate a licence from a module docstring are decided by
+      what the prose SAYS. No rule available to the lexer today reads that, so any
+      of the three would be right in the common case and silently wrong in the ones
+      the ruling exists to settle. ! Waits on a prose classifier. ! Deferred is not
+      done: the box stays unchecked because the ruling is still owed.
