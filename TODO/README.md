@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (54)
+### open  (55)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -228,7 +228,7 @@ that changed a published name or rule:
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | — | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | — | 4/14 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | — | 6/12 | The VERDICTS table lives in record.py; verdicts.py is the join and 43 sites say so |
-| [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | — | 6/12 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
+| [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | — | 9/16 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | — | 2/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 | [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | — | 0/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
 | [nothing-makes-the-fair-copy](nothing-makes-the-fair-copy.md) | backend | yes | 1/11 | Nothing turns the collated marks into the paragraph the galley writes |
@@ -236,6 +236,7 @@ that changed a published name or rule:
 | [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | systems | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
 | [listing-hands-the-repo](listing-hands-the-repo.md) | backend | — | 1/4 | The listing hands every reviewer the whole repo, four times a page |
 | [a-page-carries-no-identity](a-page-carries-no-identity.md) | backend | — | 0/4 | A page carries no identity, so staleness is checked by re-parsing and comparing |
+| [the-cue-legend-and-its-round-trip](the-cue-legend-and-its-round-trip.md) | backend | — | 0/5 | The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it |
 
 ### in-progress  (19)
 

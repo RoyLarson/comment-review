@@ -97,6 +97,44 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ROW FIRST**: Rust declares `("///", "//!")` undifferentiated, and `//!` documents the ENCLOSING
   item, so a bare placement rule demotes a module's own doc to a comment.
 
+- **#12.** **A census row carries SIX fields, and the page carries the rest** (Roy, 2026-08-24,
+  field by field). The nineteen become `cue`, `anchor`, `anchor_num`, `original_start`,
+  `original_end`, `raw_text`, under a page envelope naming `path` and the source SHA.
+
+  | | ruling |
+  | --- | --- |
+  | `original_start`, `original_end` | **stay** -- *"they are the line numbers and the term original is defined intentionally"* |
+  | `start`, `end` | **go.** A duplicate, and *"original has the definition and that makes it worth the extra tokens"* |
+  | `anchor_num`, `anchor` | **stay.** Already ruled 2026-08-21, *"anchor_num along with anchor"* |
+  | `anchor_line` | **goes.** `anchor_num` replaced it as the order in 2026-08-21 |
+  | `raw_lines` -> `raw_text` | **stays, renamed, and becomes ONE STRING** -- *"the full thing not broken into separate lines, else it isn't raw text"* |
+  | `text` | **goes.** A duplicate of the same prose in a second shape |
+  | `address` -> `cue` | **reduced.** The page names the file, so the row need not |
+  | `path` | **moves to the page envelope** |
+  | `tier` | **goes.** Not necessary, and *"the parser tier isn't long for this world"* |
+  | `lines` | **goes.** *"It is ambiguous"* |
+  | `kind`, `annotations`, `notes` | **go** |
+  | `symbol`, `declares`, `original_column` | **go** |
+
+  !! **THE LAST THREE GO FOR A REASON THAT IS NOT SIZE.** Roy: *"they are stating something that
+  the cue letter states. So we just give the agents the legend for the cue letters and let them
+  run with it."* **The answer is a legend, not a field** -- and the check that makes it safe is
+  a round trip: *"a little bit of pattern matching to ensure that they followed the cue letters
+  in the final version as well, using a round trip by the lexer to verify that the cues come
+  back with the same content (except the front matter headache)."*
+
+  ! **THAT IS A DIFFERENT QUESTION FROM THE PAGE SHA** (`#8` of Process): the SHA asks *did the
+  file shift under us*, the cue round trip asks *did the edits land where the cues said*.
+
+  !! **AND `raw_lines` WAS LOSSY, NOT MERELY MISNAMED.** MEASURED 2026-08-24:
+  `text_lines("one\r\ntwo\r\n")` returns `["one", "two"]` -- **the line ending is destroyed by the
+  split**, which is why `compositor.line_endings` exists to recover it. One string keeps it. ! The
+  byte saving is 3-5%; the fidelity is the argument.
+
+  ! **MEASURED, on the full census of one 659-row page**: 429,239 bytes to **158,543, 36%** on
+  every row, and 54,793 -- **12%** -- on the rows that hold prose. Re-derive with
+  `scripts/measure_binder.py`.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
