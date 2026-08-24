@@ -3,10 +3,15 @@
 ```
 Status:   open
 Progress: 0 of 6 tasks done
-Owner:    agents
+Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-24 (the moment `taken in` was ruled -- Roy: 'now we have a polysemy of
           the word settled and that has to get resolved')
+Reassigned: 2026-08-24 — Filed `agents`, reassigned `systems` the same day, with
+          `no-stage-agrees-the-terms`. Roy: *"that is a todo list for the systems lane."*
+          ! T2-T4 are edits in `agents`-owned files and T5 in `backend`-owned scripts:
+          the OWNER ticks the boxes, and the lane owning each file makes the edit. ! The
+          vocabulary belongs to NO lane, which is why any lane could have filed this.
 ```
 
 ## Objective

@@ -232,8 +232,8 @@ that changed a published name or rule:
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | — | 2/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 | [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | — | 0/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
 | [nothing-makes-the-fair-copy](nothing-makes-the-fair-copy.md) | backend | yes | 1/11 | Nothing turns the collated marks into the paragraph the galley writes |
-| [settle-carries-two-meanings](settle-carries-two-meanings.md) | agents | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
-| [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | agents | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
+| [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
+| [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | systems | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
 
 ### in-progress  (19)
 

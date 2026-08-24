@@ -3,10 +3,17 @@
 ```
 Status:   open
 Progress: 0 of 7 tasks done
-Owner:    agents
+Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-24 (Roy: most of our back and forth is making certain we and the system
           are clear on what the words mean, and there is no stage for that specific thing)
+Reassigned: 2026-08-24 — Filed `agents`, reassigned `systems` the same day. Roy: *"that
+          is a todo list for the systems lane."* ! It READS as agents work because of the
+          word *stage*; it IS systems because of the MACHINERY -- `vocabulary_sweep.py`
+          and `check_vocabulary.py` are systems scripts, T6 is a gate, and systems
+          already owns the vocabulary gates. ! Still `agents` to WORK: T1 and T2 once
+          ruled, since where a stage sits among the eight is what an agent is TOLD, and
+          T5 needs a role able to report a term. Named on those boxes.
 ```
 
 ## Objective
