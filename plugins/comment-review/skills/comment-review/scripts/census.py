@@ -27,9 +27,12 @@ reviews.
 Read-only. It calls `annotate.py` on each paragraph for stage 3, and `repo.py`
 for the facts about the checkout that both need.
 
-! Tier counts are AGGREGATED over the run, because a tier is per FILE and a
-polyglot run mixes them. Read the per-file tier stamp to see which file reached
-which; `--languages` lists the languages known and the tier each reaches.
+! NO TIER IS REPORTED PER RUN OR STAMPED ON A PLACE, since 2026-08-24. This
+counted a `tier` field on every paragraph and printed one line from it; the
+field is gone -- Roy: *"their level gets dropped entirely. Not necessary and the
+parser tier isn't long for this world."* ! `--languages` still lists which tier
+each LANGUAGE reaches, which is a fact about the language rather than a fact
+about a place, and is where to look when a file's reader could not answer.
 """
 
 import argparse
@@ -58,7 +61,6 @@ from annotate import (  # noqa: E402  -- path shim must run first
 from lexer import (  # noqa: E402  -- path shim must run first
     LANGUAGES,
     NAMED_DEFS,
-    TIER_ANSWERS,
     Kind,
     Paragraph,
     language_for,
@@ -460,18 +462,18 @@ def _report(args: argparse.Namespace) -> int:
         print(json.dumps(rows, indent=1, default=str))
         return 0
 
-    # ! A tier is per FILE: a polyglot repo mixes them in one census. Reported
-    # as one global mode, a finding from the lexical floor read like one from
-    # the tokenized tier.
-    tiers = Counter(b.tier for b in census)
+    # !! NO TIER COUNTS, AND NO `tier` ON A ROW. Ruled 2026-08-24 -- Roy: *"their
+    # level gets dropped entirely. Not necessary and the parser tier isn't long
+    # for this world."* ! The field stamped one of two words onto every
+    # paragraph of a file and this counter was its ONLY reader, so what it bought
+    # was a line of preamble about a distinction `python-cannot-read-python` is
+    # about to erase. ! `--languages` still reports which tier a LANGUAGE
+    # reaches, because that is a fact about the language and not about a place.
     langs = Counter(lang.name for f in files if (lang := language_for(f)) is not None)
     deferred = [b for b in census if "doc-kind-unresolved" in b.annotations]
 
     print(f"comment-review stages 2-3 - {len(files)} files, {len(census)} paragraphs")
     print(f"  languages: {', '.join(f'{k} {v}' for k, v in sorted(langs.items()))}")
-    for name in ("tokenized", "lexical"):
-        if tiers.get(name):
-            print(f"  tier {name}: {tiers[name]} paragraphs - {TIER_ANSWERS[name]}")
     print(
         "  ! EVERY address carries an anchor -- the LINE OF CODE it attaches\n"
         "    to, at both tiers. What still needs READING is whether the prose\n"

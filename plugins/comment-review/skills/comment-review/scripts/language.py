@@ -523,15 +523,10 @@ LANGUAGES: tuple[Language, ...] = (
 
 BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 
+
 # The ladder is named by the QUESTION each rung answers, not by the library
 # that happens to answer it. Only the top rung knows which declaration a paragraph
 # belongs to.
-TIER_ANSWERS = {
-    "tokenized": "paragraphs, annotations, and DOCSTRING anchors",
-    "lexical": "paragraphs and annotations only",
-}
-
-
 def language_for(path: Path) -> Language | None:
     """The language record for a path, or None when the suffix is unknown."""
     return BY_EXT.get(path.suffix.lower())

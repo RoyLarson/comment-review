@@ -82,7 +82,6 @@ from lexer import (  # noqa: E402  -- path shim must run first
     leading_between,
     paragraphs_lexical,
     paragraphs_stdlib,
-    tier_for,
 )
 
 # !! EVERY LINE HAS AN ADDRESS, AND SO DOES EVERY POTENTIAL LINE. Roy,
@@ -125,10 +124,15 @@ class Page:
     """ONE FILE: its paragraphs in order, among the code they sit with.
 
     !! IT CARRIES WHAT IT WAS BUILT FROM, and that is the whole reason it is a
-    type. `page_for` returned a bare list and dropped the text, the cues,
-    the tier and the path -- so every consumer that needed one of them either
-    re-derived it from the file, which is a chance to read a file the page no
-    longer describes, or asked the caller to carry it alongside.
+    type. `page_for` returned a bare list and dropped the text, the cues and
+    the path -- so every consumer that needed one of them either re-derived it
+    from the file, which is a chance to read a file the page no longer
+    describes, or asked the caller to carry it alongside.
+
+    ! It carried a `tier` too until 2026-08-24, when the field was deleted at
+    both levels: nothing read the page's, and the paragraph's had one reader
+    printing one line of preamble. `language.tier_for` still answers which tier
+    a LANGUAGE reaches.
 
     ! A page IS its paragraphs in order, so it iterates and indexes as one. That
     is not a convenience: a reviewer reads a page top to bottom, and a consumer
@@ -140,7 +144,6 @@ class Page:
         paragraphs: in order down the page, prose and empty places alike.
         cues: EVERY place on the page, filled or not -- see
             `addresser.cue`. It is what makes an `add` citable.
-        tier: which questions this file's reader could answer.
         leading: the space below a place, keyed by the place it FOLLOWS --
             `f0 -> d0`. An absent key means nothing blank follows that place,
             which is what most boundaries do.
@@ -150,7 +153,6 @@ class Page:
     text: str
     paragraphs: list[Paragraph]
     cues: Cues
-    tier: str
     # !! IT IS THE PAGE'S, NOT `cue`'S, and it sat on `Cues` for one
     # evening. Roy, 2026-08-21, reading the field list: *"I kind of expected that
     # to be the pages job."* MEASURED: `cue` never filled it and never read it
@@ -844,7 +846,6 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     where = rel if rel is not None else path.as_posix()
     for b in got:
         b.path = where
-        b.tier = tier_for(lang)
     # ! An UNPARSED file never reached `cue`, so it has no cues. An empty
     # one is the honest answer: the page carries no places, and a consumer that
     # asks gets nothing rather than a table built over code lines that were
@@ -854,7 +855,6 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         text=text,
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         cues=cues,
-        tier=tier_for(lang),
         leading=edges,
     )
 

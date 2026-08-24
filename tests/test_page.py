@@ -175,8 +175,21 @@ class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):
     def test_it_carries_the_text_a_splice_is_checked_against(self):
         self.assertEqual(self.page.text, self.SRC)
 
-    def test_it_knows_which_questions_its_reader_could_answer(self):
-        self.assertEqual(self.page.tier, "tokenized")
+    def test_it_carries_NO_tier(self):
+        """!! DELETED 2026-08-24, and the absence is asserted rather than left.
+
+        Roy: *"their level gets dropped entirely. Not necessary and the parser
+        tier isn't long for this world."* The field stamped one of two words
+        onto every paragraph of a file, and its only reader was a census
+        counter printing one line of preamble about a distinction
+        `python-cannot-read-python` is about to erase.
+
+        ! `tier_for(lang)` SURVIVES and answers `--languages`: which tier a
+        LANGUAGE reaches is a fact about the language. What went is the stamp
+        on a place.
+        """
+        self.assertFalse(hasattr(self.page, "tier"))
+        self.assertFalse(any(hasattr(b, "tier") for b in self.page))
 
     def test_a_page_IS_its_paragraphs_in_order(self):
         # ! A reviewer reads a page top to bottom, so it iterates and indexes as

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 16 tasks done
+Progress: 10 of 16 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, reading a census JSON: there are a lot of extra
@@ -211,7 +211,7 @@ re-parse. A set chosen for size alone would have refused it.
 - [x] T9 -- SUPERSEDED: `lines` is deleted, not defined. Roy 2026-08-24, *"it is
       ambiguous"*. You do not define a field you are removing.
 - [x] T10 -- SUPERSEDED with T9: there is no definition left for a row to violate.
-- [ ] T11 -- Delete `tier` outright: the field, the `Counter` at `census.py:466`, and
+- [x] T11 -- Delete `tier` outright: the field, the `Counter` at `census.py:466`, and
       the preamble line. Verify: no shipped script emits or reads it.
 - [ ] T12 -- Move `path` to a page envelope, stated once. Verify: no census row carries
       a `path`.

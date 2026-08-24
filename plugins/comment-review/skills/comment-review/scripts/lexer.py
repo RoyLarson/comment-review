@@ -45,7 +45,6 @@ import exceptions  # noqa: E402  -- path shim must run first
 from language import (  # noqa: E402  -- path shim must run first
     BY_EXT,
     LANGUAGES,
-    TIER_ANSWERS,
     Language,
     language_for,
     tier_for,
@@ -54,7 +53,6 @@ from language import (  # noqa: E402  -- path shim must run first
 __all__ = [
     "BY_EXT",
     "LANGUAGES",
-    "TIER_ANSWERS",
     "Language",
     "language_for",
     "tier_for",
@@ -164,7 +162,6 @@ class Paragraph:
     # rename in place and the text cannot cheaply see an insertion; the pair
     # sees both, which is the whole drift question in two fields.
     anchor_num: int = 0
-    tier: str = "lexical"  # which question set this file's census can answer
     # !! WHICH PLACE THIS IS, as against where it sits -- see `cues.address`.
     # Stamped in the path-normalising loop, the only place holding the file
     # text, the finished paragraph list and the repo-relative path at once.
@@ -938,7 +935,6 @@ def _leading(
         lines=0,
         text="",
         raw_lines=[lines[n - 1] for n in run],
-        tier=paragraphs[0].tier if paragraphs else "lexical",
     )
 
 
@@ -1144,7 +1140,6 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             lines=counted_lines(raw),
             text=_join(raw, openers),
             raw_lines=span,
-            tier="lexical",
             original_column=partial_first[0],
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in
             # order to cut there, so the characters before it were known one
