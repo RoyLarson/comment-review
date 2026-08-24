@@ -55,10 +55,17 @@ fails its own stage-4 gate.
       pass they wait on. Verify: either the three at 4c are handed a named artifact
       that 4a produced, or `grep -n "resolved placement" SKILL.md` returns nothing
       and `:555-558` no longer claims the ordering prevents a misfiled verification.
-- [ ] T3 -- Correct the parallelism claim in the skill's own description.
-      `SKILL.md:3` advertises *"parallel read-only subagents"*; `:30` says stage 4
-      is `4 reviewers, SERIAL`. Verify: the description and the stage table agree,
-      and the brief's half stays fixed -- `grep -n "overlap" reviewer-brief.md`
+- [ ] T3 -- Say WHICH CONFIGURATION a run used, rather than making the two
+      sentences agree. `SKILL.md:3` advertises *"parallel read-only subagents"*;
+      `:30` says stage 4 is `4 reviewers, SERIAL`. ! **THESE ARE NOT A
+      CONTRADICTION TO RESOLVE BY DELETION.** Roy, 2026-08-23: *"That was the
+      original setup and I want to be able to figure out how well that setup does
+      compared to any other expansion of the process because the expansion has to
+      pay for itself in tokens."* The parallel form is the BASELINE, and correcting
+      `:3` to match `:30` destroys the only written record of what the comparison
+      is against. Verify: a run's artifacts name the configuration that produced
+      them, and `grep -n "parallel" SKILL.md` still finds the baseline described as
+      a configuration rather than as the current behaviour.
       stays empty.
 - [ ] T4 -- Make `SKILL.md` name every section `run_context.py --check` refuses.
       `run_context.py:62` has four `PATH_SECTIONS`; `SKILL.md:624` says three and
