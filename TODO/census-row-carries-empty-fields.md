@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 16 tasks done
+Progress: 10 of 17 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, reading a census JSON: there are a lot of extra
@@ -141,13 +141,33 @@ every row, which no field-by-field trim reaches and only the envelope does.
 agents the legend for the cue letters and let them run with it."* **The answer is a legend, not a
 field.**
 
-!! **AND `raw_lines` WAS LOSSY, NOT MERELY MISNAMED.** Roy: *"the raw_text is the full thing not
-broken into separate lines, else it isn't raw text."* MEASURED the same day:
+!! **`raw_lines` BECOMES `raw_text`, ONE STRING, AND THE FIRST REASON IS THE READER.** Roy,
+2026-08-24: *"the raw_text is the full thing not broken into separate lines, else it isn't raw
+text"* -- and then the reason that matters most: *"LLMs and the token parsers read this as a
+complete and coherent statement. They do not read this as the same thing:*
+
+```
+["LLMs and the token", "parsers read this as a", "complete and coherent", "statement"]
+```
+
+*It took my phone, which runs a token parser, to the last word to realise I was duplicating the
+sentence and supply a suggestion."*
+
+! **THE FOUR REVIEWERS ARE TOKEN PARSERS, AND PROSE IS WHAT THEY JUDGE.** A paragraph handed over
+as line fragments makes each role reassemble the sentence before it can ask whether the sentence
+is TRUE. **The split is paid for at the one place this system exists to do well** -- and it is
+paid four times a page. ! **Argued, not measured**: the demonstration is one instance, and
+whether a role finds more when handed text belongs to the grader.
+
+!! **AND IT WAS LOSSY, NOT MERELY MISNAMED.** MEASURED the same day:
 `text_lines("one\r\ntwo\r\n")` returns `["one", "two"]` -- **the split destroys the line
-ending**, which is why `compositor.line_endings` exists to put it back. One string keeps it. ! The
-bytes are 3-5%; the fidelity is the argument, and it is the axis
-[`galley-and-compositor-write-path`](galley-and-compositor-write-path.md) T5 says the gates never
-saw.
+ending**, which is why `compositor.line_endings` exists to put it back. One string keeps it, and
+it is the axis [`galley-and-compositor-write-path`](galley-and-compositor-write-path.md) T5 says
+the gates never saw.
+
+! **THREE REASONS, WEAKEST LAST**: the reading, the fidelity, then 3-5% of bytes. **The byte
+figure is how this ruling was reached and is the least of the three** -- which is worth knowing
+next time a field is argued about on size alone.
 
 ! **T9 AND T10 ARE SUPERSEDED BY THE DELETION, NOT COMPLETED.** They asked what `lines` MEANS and
 that every row obey the answer. Roy ruled it out instead: *"it is ambiguous."* **You do not define
@@ -219,6 +239,8 @@ re-parse. A set chosen for size alone would have refused it.
       `cue`, `anchor`, `anchor_num`, `original_start`, `original_end`, `raw_text`.
 - [ ] T14 -- Rename `raw_lines` to `raw_text` and make it ONE STRING. Verify: a CRLF
       fixture keeps its line endings through a census and back.
+- [ ] T17 -- Assert no shipped emit hands a reviewer a paragraph as fragments. Verify:
+      no field a role reads holds a list of lines.
 - [ ] T15 -- Reduce `address` to the cue. Verify: no row repeats the file the page
       envelope already names.
 - [ ] T16 -- Move `compositor`'s five `text` readers onto `raw_text`. Verify: no shipped

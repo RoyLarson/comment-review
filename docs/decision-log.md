@@ -126,10 +126,27 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THAT IS A DIFFERENT QUESTION FROM THE PAGE SHA** (`#8` of Process): the SHA asks *did the
   file shift under us*, the cue round trip asks *did the edits land where the cues said*.
 
-  !! **AND `raw_lines` WAS LOSSY, NOT MERELY MISNAMED.** MEASURED 2026-08-24:
+  !! **AND THE FIRST REASON IS THE READER, NOT THE BYTES.** Roy, 2026-08-24: *"LLMs and the
+  token parsers read this as a complete and coherent statement. They do not read this as the same
+  thing:*
+
+      ["LLMs and the token", "parsers read this as a", "complete and coherent", "statement"]
+
+  *It took my phone, which runs a token parser, to the last word to realise I was duplicating
+  the sentence and supply a suggestion."*
+
+  ! **THE FOUR REVIEWERS ARE TOKEN PARSERS, AND PROSE IS WHAT THEY ARE ASKED TO JUDGE.** A
+  paragraph handed over as line fragments makes each role reassemble the sentence before it can
+  ask whether the sentence is true -- so the split is paid for at the one place this system
+  exists to do well. ! **Argued, not measured**: the demonstration above is one, and whether a
+  role finds more when handed text is a question for the grader.
+
+  !! **AND IT WAS LOSSY, NOT MERELY MISNAMED.** MEASURED 2026-08-24:
   `text_lines("one\r\ntwo\r\n")` returns `["one", "two"]` -- **the line ending is destroyed by the
-  split**, which is why `compositor.line_endings` exists to recover it. One string keeps it. ! The
-  byte saving is 3-5%; the fidelity is the argument.
+  split**, which is why `compositor.line_endings` exists to recover it. One string keeps it.
+
+  ! **THREE REASONS, WEAKEST LAST**: the reading, then the fidelity, then 3-5% of bytes. The
+  byte figure is what this ruling was reached through and is the least of them.
 
   ! **MEASURED, on the full census of one 659-row page**: 429,239 bytes to **158,543, 36%** on
   every row, and 54,793 -- **12%** -- on the rows that hold prose. Re-derive with
