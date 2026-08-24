@@ -16,6 +16,14 @@ RE-CHECKED: 2026-08-23 — 2026-08-23. Task 4 is RESOLVED: page.OCCUPIES_NOTHING
             and record.py text that no longer matches. ! Every line number in this file
             is stale; the remaining work is a READ of each pair, not a grep, and that
             read is the task itself.
+DOGFOOD:  2026-08-23 — 2026-08-23, Roy: 'if we can finally get to the finish of v0.2.4
+          we have the tool to get this correct.' This file is the tool's own remit --
+          block-context asks whether every claim in a paragraph is true of the code it
+          sits with, and function-context asks whether name, signature, docstring and
+          body disagree. Six docstrings contradicting themselves is exactly that, in
+          this repo's own shipped scripts. ! So do NOT hand-read these six pairs: they
+          are the subject of the first real dogfood run, and hand-fixing them destroys
+          the finding the run would be graded on.
 ```
 
 ## Objective

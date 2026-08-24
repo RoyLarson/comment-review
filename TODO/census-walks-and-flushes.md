@@ -2,11 +2,24 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 3 of 7 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
           2026-08-22; round 2 measured the walk at 53% of a run)
+RE-VERIFIED: 2026-08-23 — 2026-08-23, verified in place. THREE FIXED and ticked: task 1,
+             `code_names` no longer walks the tree -- it takes `tracked` and
+             census.py:323 passes `tracked_paths(repo)`, with the walk surviving only as
+             the git-cannot-answer fallback; task 2, `git ls-files` is ONE site now at
+             repo.py:117, not two in census.py; task 3, `flush_run` fires -- the path
+             check runs BEFORE both continues, and the comment above it records the old
+             defect and the constants.py row that measured it. ! STILL LIVE: task 4, the
+             fourth loader still diverges -- addresser.py:1137 unwraps the dict form and
+             verdicts.py:332 assigns the parse straight through; task 5 is HALF,
+             redirect_stdout is gone but `_report` grew from 289 lines to 354, so the
+             size half is worse than filed; task 6, referrers.py:53 still re-spells the
+             suffix tuple language.py:99 owns; task 7, referrers.py:85 still spawns one
+             git grep per token.
 ```
 
 ## Objective
@@ -15,15 +28,15 @@ census.py walks the whole repo, runs git twice, and its run-flush never fires.
 
 ## Tasks
 
-- [ ] MEASURED 2026-08-22: code_names walks and resolves the WHOLE tree to harvest
+- [x] MEASURED 2026-08-22: code_names walks and resolves the WHOLE tree to harvest
       60 files -- 53% of a census run. 3,152 paths walked, 3,021 of them in
       corpora/, 66 tracked -- and resolve() runs BEFORE the tracked test. When
       tracked is not None the answer is already in hand as repo-relative strings.
       ! corpora/ is only partly fetched here; after fetch_corpora.py the first row
       becomes tens of thousands of paths rglobbed and resolved PER RUN
-- [ ] git ls-files is spawned TWICE per run (census.py:301-302), two full index
+- [x] git ls-files is spawned TWICE per run (census.py:301-302), two full index
       dumps for one answer
-- [ ] census.py:501 -- flush_run() never fires on a b.path change and BOTH
+- [x] census.py:501 -- flush_run() never fires on a b.path change and BOTH
       continues bypass it. VERIFIED: constants.py, 43 lines, carries a row reading
       15-72 @c2..b58 41-0 -- another file intervals attributed to it, a NEGATIVE
       span, and any add composed from that row cites an address that does not

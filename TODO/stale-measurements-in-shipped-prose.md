@@ -10,6 +10,11 @@ RE-CHECKED: 2026-08-23 — 2026-08-23, still live. census.py --languages lists 1
             vocabulary.toml:34 still reads 'five of the eleven' and is shipped to all
             four roles. Not triaged further -- every box here is real work (re-measure
             and edit shipped prose), not a record.
+DOGFOOD:  2026-08-23 — 2026-08-23. Same cluster as docstrings-that-contradict-
+          themselves. A stale COUNT in shipped prose is block-context's state case by
+          name -- a claim about the tree that no longer holds. ! Fifteen-odd numbers
+          across shipped prose is a graded run's output, not a hand pass, and the
+          numbers are already known so the run can be scored against them.
 ```
 
 ## Objective

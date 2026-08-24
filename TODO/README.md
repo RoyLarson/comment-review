@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (80)
+### open  (79)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -244,13 +244,12 @@ that changed a published name or rule:
 | [leading-owns-the-space-between](leading-owns-the-space-between.md) | backend | yes | 9/11 | a fifth series for the space between paragraphs -- ruled, designed, two questions open |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | — | 0/8 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | systems | yes | 0/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
-| [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | yes | 0/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | backend | yes | 0/7 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
 | [tier-dispatched-on-name](tier-dispatched-on-name.md) | backend | yes | 0/5 | The tier is dispatched on the language NAME, so a second tokenized language is not a data row |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | yes | 1/15 | Ten findings in lexer.py and language.py, from three review rounds |
-| [census-walks-and-flushes](census-walks-and-flushes.md) | backend | — | 0/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
+| [census-walks-and-flushes](census-walks-and-flushes.md) | backend | — | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 0/5 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
-| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | — | 0/7 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
+| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | — | 2/7 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | yes | 0/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | — | 0/9 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [exception-hierarchy](exception-hierarchy.md) | backend | — | 2/5 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
@@ -272,7 +271,7 @@ that changed a published name or rule:
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | yes | 5/10 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | — | 2/6 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 
-### decision-needed  (9)
+### decision-needed  (10)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -285,6 +284,7 @@ other tasks can proceed without them._
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | yes | 4/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 1/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | yes | 3/5 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
+| [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | yes | 6/9 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 
 ### in flight  (0)
 
