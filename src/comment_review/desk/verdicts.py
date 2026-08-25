@@ -171,6 +171,9 @@ def unrecorded_findings(
         held = entry_for(paragraph, paragraphs)
         if held is None:
             continue
+        # ! `raw_text`, NOT `text` -- the same rename `desk.py` carries the
+        # reason for. A working guard is swapped, never dropped, when the field
+        # it reads is only renamed.
         prose = _words(held.get("raw_text") or "")
         if not prose:
             continue

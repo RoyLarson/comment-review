@@ -690,6 +690,18 @@ def block_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     # which drops per-token quotes and trailing punctuation; a haystack that
     # was only whitespace-collapsed still holds them, so any comma, colon or
     # backtick inside a quoted sentence refused a correct finding.
+    # !! `raw_text`, NOT `text` -- A RENAME, NOT A REPRIEVE. The field cut of
+    # 2026-08-24 dropped `text` as a duplicate of the prose in a second shape,
+    # and this check went on reading it: it matched nothing, and reported *"the
+    # sentence ruled on is not in <place>"* for EVERY finding. The fixtures
+    # carried the old field, so the suite stayed green over it.
+    #
+    # ! IT WAS SWAPPED RATHER THAN DELETED, and Roy ruled that the correct
+    # answer on 2026-08-25. The standing rule for the other side of the system
+    # is *"assume it doesn't need it and so those accesses and tests can be
+    # deleted"* -- this is the exception, because the prose is still here under
+    # another name and the guard still works. **Deleting a working check over a
+    # rename is not a deletion, it is a loss.**
     haystack = _words(str(entry.get("raw_text", "")))
     # ! Same rule as SOURCES: compare all of it, truncate only the message. A
     # fabricated tail here made `edit_problem` MORE permissive, because it
