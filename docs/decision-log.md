@@ -207,6 +207,30 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   14,136.** The three exceptions are `go`, `ruby` and `lua`, where the kind DISAGREES with the
   cue -- `TODO/a-doc-comment-is-cued-a-and-typed-b.md`, a defect rather than information.
 
+- **#16.** **`anchor_num` LEAVES THE ROW, and comes back only if it is shown to be needed**
+  (Roy, 2026-08-25: *"The anchor num lets drop it and add it back if it actually becomes
+  necessary. That is safe now."*). It was kept on 2026-08-21 because the galley and compositor
+  were thought to need an order the cues could not be trusted to carry. **The chain ruled since
+  (`Process: #14`) has the write path RELOAD the page from disk**, so it takes the anchor order
+  from the page and never from a row. ! MEASURED before removing it: NOTHING read it from a row --
+  `page` stamps it and `addresser` computes it, both on the page side. **The row is FIVE fields.**
+
+  ! **IT IS THE ONE CUT MADE ON AN EXPECTATION RATHER THAN A MEASUREMENT**, and it is recorded
+  that way: if a consumer turns out to need it, the field returns. What makes that safe is that
+  nothing silently depends on it -- a caller that needs the order and cannot find it fails loudly.
+
+- **#17.** **THE PAGE SHA IS THE VERIFICATION STEP'S, and an unread field is a step that does not
+  exist yet** (Roy, 2026-08-25: *"The sha is carried to the verification step to verify that the
+  edits that the agents were running against are the same files that the galley and compositor are
+  going to copy and write over."*).
+
+  ! **RECORDED BECAUSE IT WAS NEARLY CUT AS DEAD.** An audit on 2026-08-25 found `sha` emitted
+  with no reader and listed it beside `anchor_num` as a candidate. It is not the same case: the
+  chain (`Process: #14`) reads the page TWICE -- once into the binder an agent rules on, once
+  again on the way out -- and this is the only thing that can say the two reads saw the same file.
+  **A field with no reader YET is not a field with no purpose**, and the difference is whether a
+  named step is waiting for it.
+
   ! **A RENAME IS STILL OPEN.** Roy proposed *"code names becomes references"* and withdrew it
   the same minute -- *"Don't act on that actually, continue with the split will determine
   later."* The module is `concordance/code_names.py` until he rules.

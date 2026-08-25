@@ -51,7 +51,7 @@ VERSION = "1"
 def page_row(paragraph: Paragraph) -> dict:
     """One paragraph as an agent receives it.
 
-    !! SIX FIELDS, RULED ONE BY ONE -- `decision-log.md Addressing: #12`. The
+    !! FIVE FIELDS, RULED ONE BY ONE -- `decision-log.md Addressing: #12`. The
     row carried nineteen until 2026-08-24; eleven went, and `path` moved to the
     page that holds the row rather than being repeated on every one of them.
 
@@ -76,7 +76,16 @@ def page_row(paragraph: Paragraph) -> dict:
         # `go`, `ruby` and `lua`, where the kind DISAGREES with the cue -- a
         # defect, filed, and not information.
         "anchor": paragraph.anchor,
-        "anchor_num": paragraph.anchor_num,
+        # !! `anchor_num` LEFT ON 2026-08-25, and it is the one cut made on the
+        # expectation that it MIGHT come back. Roy: *"lets drop it and add it
+        # back if it actually becomes necessary. That is safe now."* It was kept
+        # in 2026-08-21 because the galley and compositor were thought to need
+        # an order the cues could not be trusted to carry -- and the chain ruled
+        # since (`Process: #14`) has the write path RELOAD the page from disk,
+        # so it takes the anchor order from the page and never from a row.
+        #
+        # ! MEASURED before removing it: NOTHING read it from a row. `page`
+        # stamps it and `addresser` computes it, both on the page side.
         "original_start": paragraph.original_start,
         "original_end": paragraph.original_end,
         "raw_text": "\n".join(paragraph.raw_lines),
@@ -86,9 +95,18 @@ def page_row(paragraph: Paragraph) -> dict:
 def sha_of(text: str) -> str:
     """The page's identity: a hash of the bytes it was read from.
 
-    ! IT ANSWERS ONE QUESTION -- *did this file move under us* -- and it is the
-    galley's, which is handed updates against a page it did not read. A hash of
-    the SOURCE, so a page rebuilt from the same file answers the same.
+    !! IT IS THE VERIFICATION STEP'S, and that is why nothing reads it yet. Roy,
+    2026-08-25: *"The sha is carried to the verification step to verify that the
+    edits that the agents were running against are the same files that the
+    galley and compositor are going to copy and write over."*
+
+    ! SO AN UNREAD FIELD HERE IS A STEP THAT DOES NOT EXIST, not a field with no
+    purpose. The chain (`Process: #14`) reads the page TWICE -- once into the
+    binder an agent rules on, once again on the way out -- and this is what lets
+    the second read say the two were the same file.
+
+    ! A hash of the SOURCE, so a page rebuilt from the same bytes answers the
+    same.
     """
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 

@@ -12,13 +12,15 @@ from conftest import SAMPLE, build, by_cue
 from comment_review.binder.binder import VERSION, bind, page_row, read, rows_of, sha_of
 from comment_review.flows.census import carried
 
-#: The fields ruled onto a row. `decision-log.md Addressing: #12` cut eleven,
-#: and `#14` put `kind` back -- the cue's letter names the SERIES while the kind
-#: names which half of its pair, so a letter cannot state it.
+#: The fields ruled onto a row -- FIVE, after three rulings.
+#: `Addressing: #12` cut eleven of nineteen. `#14` put `kind` back, and `#15`
+#: took it away again: once ABSENT places stopped being sent, every row holds
+#: prose, so its kind is its series' `present` and the cue letter states it
+#: after all. `anchor_num` went with it -- nothing read it from a row, and the
+#: write path reloads the page.
 ROW_FIELDS = {
     "cue",
     "anchor",
-    "anchor_num",
     "original_start",
     "original_end",
     "raw_text",
