@@ -22,6 +22,7 @@ This tool says what each cut would cost, not which cut to make.
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -34,10 +35,14 @@ if callable(reconfigure):
     reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS = ROOT / "plugins/comment-review/skills/comment-review/scripts"
-sys.path.insert(0, str(SCRIPTS))
+# ! THE SOURCE, since the move on 2026-08-24. `plugins/` holds a built copy.
+SRC = ROOT / "src"
+sys.path.insert(0, str(SRC))
+# ! AND ON `PYTHONPATH`, because the census below runs as a CHILD and a child
+# inherits the environment rather than this process's `sys.path`.
+os.environ["PYTHONPATH"] = str(SRC)
 
-from lexer import Kind  # noqa: E402  -- path shim must run first
+from comment_review.reading.lexer import Kind  # noqa: E402
 
 # The four roles stage 4 dispatches. Every per-page figure is paid once each.
 ROLES = 4
@@ -56,7 +61,9 @@ def census(target: Path, *flags: str) -> str:
     return subprocess.run(
         [
             sys.executable,
-            str(SCRIPTS / "census.py"),
+            "-m",
+            "comment_review",
+            "census",
             "--repo",
             str(ROOT),
             *flags,

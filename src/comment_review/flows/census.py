@@ -61,15 +61,41 @@ def emitted_row(b: Paragraph) -> dict:
     stored field forced `_vacate` to clear a span, which is a ruling about what
     a `drop` DOES, made to keep tests green.
 
-    ! `annotations` is a set and JSON has none, so it leaves sorted. Same
-    reason, one line up: what a row IS on disk is stated here and nowhere else.
+    !! THE ROW IS WRITTEN OUT, NOT DERIVED FROM THE DATACLASS. It was
+    `vars(b)` minus a couple of keys, so every field `Paragraph` happened to
+    carry became part of the wire format -- the internals WERE the protocol, and
+    the two could never diverge without breaking silently. Naming the fields is
+    what makes the cut below a decision rather than an accident.
+
+    !! ELEVEN FIELDS LEFT ON 2026-08-24 -- `decision-log.md Addressing: #12`,
+    ruled by Roy field by field: `kind`, `annotations`, `notes`, `symbol`,
+    `declares`, `original_column`, `start`, `end`, `anchor_line`, `lines`,
+    `text`. ! `start`/`end` duplicate `original_*`, which keeps the pair because
+    *"original has the definition and that makes it worth the extra tokens"*;
+    `text` duplicates the prose in a second shape.
+
+    ! THE LAST THREE WENT FOR A REASON THAT IS NOT SIZE. Roy: *"they are stating
+    something that the cue letter states. So we just give the agents the legend
+    for the cue letters and let them run with it."* The answer is a LEGEND, not
+    a field.
+
+    ! `symbol` WAS ALREADY DEAD when the cut came: it names a fence, and fences
+    stopped being emitted an hour earlier. MEASURED over `repo.py` -- 124 rows,
+    `symbol` carrying a value in ZERO of them.
+
+    ! `path` AND `address` STAY UNTIL THE PAGE ENVELOPE EXISTS. The ruling puts
+    the file on the page and reduces the row to a `cue`; until there is a page
+    to put it on, dropping either leaves a row nothing can resolve.
     """
-    row = vars(b) | {
-        "annotations": sorted(b.annotations),
+    return {
+        "path": b.path,
+        "address": b.address,
+        "anchor": b.anchor,
+        "anchor_num": b.anchor_num,
+        "original_start": b.original_start,
+        "original_end": b.original_end,
         "raw_text": "\n".join(b.raw_lines),
     }
-    row.pop("raw_lines", None)
-    return row
 
 
 def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
