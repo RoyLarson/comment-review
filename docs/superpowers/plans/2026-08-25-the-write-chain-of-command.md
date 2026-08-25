@@ -80,11 +80,11 @@ thing `CLAUDE.md` calls *a judgement wearing a checkbox*.
 | 5 | P1.3 | -- |
 | 6 | P3.1 | -- |
 | 7 | P3.2 | -- |
-| 8 | **P1.1**, P2.4, P4.1, P6.1 | -- |
-| 9 | P2.5, P2.6 | `check a-page-carries-no-identity.md 2`; `... 3`; `... 4` |
+| 8 | P1.1, P4.1, P4.2, P6.1 | -- |
+| 9 | P2.4, P2.5, P2.6 | `check a-page-carries-no-identity.md 2`; `... 3`; `... 4` |
 | 10 | P5.1, P5.2 | -- |
 | 11 | P5.3 | -- |
-| 12 | P4.2 | **note** `the-flow-lives-in-the-command` -- task 5 is answered for the galley half only, and names verdicts and record too |
+| 12 | P4.3 | **note** `the-flow-lives-in-the-command` -- task 5 is answered for the galley half only, and names verdicts and record too |
 | 13 | P7.1 | -- |
 
 ! **P2 HAS SIX BOXES AND P5 HAS FOUR.** Count them in the file before ticking; the numbering
@@ -1033,7 +1033,9 @@ Message: *"galley: drifted retired -- the sha answers it in one comparison"*.
 
 ### Task 8: A flow owns the order, and it is data
 
-**Delivers:** spec P4 boxes 1 and 2, P6 box 1, and **P2 box 4** -- the `recorded` dict below is where the sha is read OUT of the saved binder rather than recomputed from a file.
+**Delivers:** spec **P1 box 1** (the write chain now reads the notations shape where it is stated), **P4 boxes 1 and 2**, and **P6 box 1**.
+
+! **P2 box 4 does NOT land here.** The sha `verify` step and its `recorded` dict moved to Task 9 so that task's test can fail before the code exists.
 
 !! **BUILD `flows/page_for.py` FIRST, AND HAVE `flows/proof_setter.py` USE IT.** Roy, 2026-08-25: *"you
 only have a step that produces a binder but you need a step here that produces a page so you
