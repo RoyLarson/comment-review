@@ -17,6 +17,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ..reading.lexer import SYMBOLISH
+
 # !! `Paragraph` exists for TYPING ONLY -- `census.py` imports this module, so a
 # real import would be circular -- and it is therefore NOT BOUND AT RUNTIME.
 # Every annotation naming it is QUOTED for that reason. Measured 2026-08-17:
@@ -38,7 +40,6 @@ TICKED = re.compile(r"`([^`\s]+)`")
 # exists to avoid, and `...` beside it means three dots, which the pattern
 # already matches on its own.
 CALLFORM = re.compile(r"\(\s*(?:\.\.\.|\u2026)?\s*\)$")
-SYMBOLISH = re.compile(r"^[A-Za-z_][\w.]*$")
 NOT_A_SYMBOL = frozenset(
     {"true", "false", "none", "null", "and", "or", "not", "if", "in", "is"}
 )

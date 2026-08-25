@@ -162,7 +162,7 @@ def path_index(repo: Path) -> set[str]:
             p.relative_to(repo).as_posix()
             for p in repo.rglob("*")
             # ! RELATIVE to the repo, not absolute: an ancestor named `venv`
-            # excluded the whole checkout. See `census._walk`.
+            # excluded the whole checkout. See `walk_files` below.
             if p.is_file() and not EXCLUDED_DIRS.intersection(p.relative_to(repo).parts)
         ]
     for rel in rels:
@@ -170,3 +170,43 @@ def path_index(repo: Path) -> set[str]:
         for i in range(len(parts)):
             out.add("/".join(parts[i:]))
     return out
+
+
+def walk_files(root: Path):
+    """Every file under `root`. It ENUMERATES; it classifies nothing.
+
+    !! IT FILTERED ON `BY_EXT` AND THAT WAS A SECOND POLICY. `main` already asks
+    `language_for(path) is None` and REFUSES at exit 1 -- the caller asked for
+    that file -- so the same question was answered in two places with two
+    different consequences, and the silent one won for a directory. MEASURED
+    2026-08-22 on a two-file directory: an unsupported file NAMED exits 1, the
+    same file WALKED vanished at exit 0. `every file handed in is censused or
+    this errors` was true of explicit paths and false of directories.
+
+    ! SO THE WALK STOPPED DECIDING. Whether a file with no language record is a
+    refusal or a note is the CENSUS's call, and it turns on something only the
+    census knows: whether the path was NAMED or merely FOUND. A directory holds
+    READMEs, images and lockfiles; refusing on those makes the form unusable,
+    and skipping them in silence is the false completeness this warns about.
+
+    ! `EXCLUDED_DIRS` IS THIS MODULE'S, which is why the walk sits here rather
+    than in the census that used to hold it. It is not the same question. It is about
+    where the walk may GO -- a vendored tree is not this repo's code at all --
+    rather than about what a file is once found.
+    """
+    if root.is_file():
+        yield root
+        return
+    for p in sorted(root.rglob("*")):
+        if p.is_file():
+            # !! RELATIVE to the root being walked. Matched against `p.parts`
+            # this tested every ANCESTOR too, so a checkout living anywhere
+            # under a directory called `venv`, `.venv`, `node_modules`,
+            # `site-packages`, `__pycache__` or `.git` excluded ITSELF.
+            # Measured 2026-08-17: `code_names` harvested 0 names from a repo
+            # under `.../venv/myproject`, and nothing joined `unread`, so the
+            # NOT CHECKED list stayed empty and the run read as complete --
+            # every `names-a-symbol` a false obituary, handed to four reviewers
+            # as settled fact.
+            if not EXCLUDED_DIRS.intersection(p.relative_to(root).parts):
+                yield p

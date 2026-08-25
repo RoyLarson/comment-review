@@ -11,9 +11,9 @@ from collections import defaultdict
 from contextlib import redirect_stdout
 from pathlib import Path
 
+from ..concordance.referrers import _grep, tokens_for
 from ..machine import exceptions
 from ..machine.repo import git_ls_files
-from ..referrers import _grep, tokens_for
 
 
 def main() -> int:

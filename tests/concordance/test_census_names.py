@@ -7,9 +7,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 from _paths import FIXTURES  # noqa: F401
-from comment_review.flows import census
+from comment_review.concordance import code_names as names_mod
+from comment_review.concordance import referrers
 from comment_review.machine import repo
-from comment_review import referrers
 
 
 class TestNameCorpusScope(unittest.TestCase):
@@ -48,12 +48,12 @@ class TestNameCorpusScope(unittest.TestCase):
 
     def test_a_tracked_name_is_alive(self):
         tracked = repo.tracked_paths(self.repo)
-        names, _ = census.code_names([self.repo], tracked)
+        names, _ = names_mod.code_names([self.repo], tracked)
         self.assertIn("tracked_name", names)
 
     def test_an_untracked_name_does_not_mask_an_obituary(self):
         tracked = repo.tracked_paths(self.repo)
-        names, _ = census.code_names([self.repo], tracked)
+        names, _ = names_mod.code_names([self.repo], tracked)
         self.assertNotIn("vendored_name", names)
 
     def test_no_git_falls_back_and_says_so(self):
@@ -61,7 +61,7 @@ class TestNameCorpusScope(unittest.TestCase):
         plain.mkdir()
         (plain / "a.py").write_text("def only_name():\n    pass\n")
         self.assertIsNone(repo.git_ls_files(plain))
-        names, unread = census.code_names([plain], repo.tracked_paths(plain))
+        names, unread = names_mod.code_names([plain], repo.tracked_paths(plain))
         self.assertIn("only_name", names)
         self.assertTrue(
             any("not a git" in u.lower() or "untracked" in u.lower() for u in unread)
@@ -114,13 +114,13 @@ class TestNonAsciiTrackedPath(unittest.TestCase):
         self.assertEqual(repo.git_ls_files(self.repo), [self.NAME])
 
     def test_a_symbol_defined_there_is_alive(self):
-        names, unread = census.code_names([self.repo], repo.tracked_paths(self.repo))
+        names, unread = names_mod.code_names([self.repo], repo.tracked_paths(self.repo))
         self.assertIn("helper_name", names, unread)
 
     def test_it_is_never_dropped_silently(self):
         # The one-sided failure: a file absent from the corpus AND absent from
         # `unread` is a coverage hole nothing reports.
-        _, unread = census.code_names([self.repo], repo.tracked_paths(self.repo))
+        _, unread = names_mod.code_names([self.repo], repo.tracked_paths(self.repo))
         tracked = repo.tracked_paths(self.repo)
         self.assertIn((self.repo / self.NAME).resolve(), tracked)
         self.assertEqual(unread, [])

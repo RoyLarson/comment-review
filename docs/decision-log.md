@@ -156,6 +156,36 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   every row, and 54,793 -- **12%** -- on the rows that hold prose. Re-derive with
   `scripts/measure_binder.py`.
 
+- **#13.** **`code_names` and `referrers` are a CONCORDANCE** (Roy, 2026-08-24: *"concordance
+  -- for the two."*). They are INVERSES -- what the tree DEFINES, and who NAMES a file --
+  and both exist because **a page cannot corroborate itself**: a corpus built from the text
+  under review contains the comments being checked, so every obituary resolves against itself
+  and the check always passes. Both read the WHOLE CHECKOUT and never the pages under review.
+
+  !! **THEY WERE UNPLACED FOR A REASON WORTH KEEPING.** Neither performs an operation ON the
+  machine and neither knows what a page is, so `machine` and `binder` each had to stretch past
+  its own door to hold them. Roy ruled the neighbouring half first -- *"there was the git stuff
+  which is io"* -- and left these: *"the code_names and referrers we actually need to settle."*
+  They sat at the package root, where root MEANT unplaced, until this.
+
+  ! **A CONCORDANCE is the trade's index of every word in a text and where each occurs**, which
+  is what the two build between them. ! The name was reached the way `compositor` was, and in
+  that order: ask what the thing IS, find the job in the answer, name the job by what it DOES,
+  and only then take the trade's word for it.
+
+  ! **`code_names` WAS A FUNCTION INSIDE `census.py`**, so this was an extraction. Two things
+  could not travel with it: **`walk_files`** (was `census._walk`), which `commands/census.py`
+  also uses and which is a plain filesystem walk over the checkout -- it went to
+  `machine/repo.py`, beside the `EXCLUDED_DIRS` it already reads, and lost the leading
+  underscore it should never have carried across a module boundary; and **`SYMBOLISH`**, a
+  one-line identifier regex whose only reader had been `binder/annotate.py` -- importing it
+  from there would have made `concordance` depend on `binder` for a regex, so it went to
+  `reading/lexer.py`, which `code_names` already imports from, adding no edge.
+
+  ! **A RENAME IS STILL OPEN.** Roy proposed *"code names becomes references"* and withdrew it
+  the same minute -- *"Don't act on that actually, continue with the split will determine
+  later."* The module is `concordance/code_names.py` until he rules.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is

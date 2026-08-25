@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest import mock
 
 from _paths import cli
-from comment_review import referrers
+from comment_review.concordance import referrers
 from comment_review.commands import referrers as referrers_cmd
 
 

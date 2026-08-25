@@ -15,16 +15,15 @@ from pathlib import Path
 
 from ..binder.annotate import annotate, prose_numbers
 from ..binder.page import page_for
+from ..concordance.code_names import code_names
 from ..flows.census import (
     _not_censused,
     _repo_relative,
     _unaddressed,
-    _walk,
-    code_names,
     emitted_row,
 )
 from ..machine import exceptions
-from ..machine.repo import path_index, tracked_paths
+from ..machine.repo import path_index, tracked_paths, walk_files
 from ..reading.addresser import COVERS, SEPARATOR, series_of, unaddressed
 from ..reading.lexer import (
     LANGUAGES,
@@ -109,8 +108,8 @@ def _report(args: argparse.Namespace) -> int:
     repo = Path(args.repo).resolve()
     targets = [Path(p) for p in args.paths]
     # ! WALKED ONCE PER TARGET. The emptiness test below re-walked every tree a
-    # second time to ask `not any(_walk(t))`, which this already knows.
-    by_target = {t: sorted(_walk(t)) for t in targets}
+    # second time to ask `not any(walk_files(t))`, which this already knows.
+    by_target = {t: sorted(walk_files(t)) for t in targets}
     # !! NAMED, AS AGAINST FOUND -- the distinction the walk is no longer making.
     # A file the caller NAMED is refused when nothing can read it; a file the
     # walk came across is reported and skipped, because a directory holds

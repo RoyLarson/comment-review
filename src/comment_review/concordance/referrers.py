@@ -1,6 +1,6 @@
 """Stage 3, inbound: which tracked files NAME the files under review.
 
-    python referrers.py --repo D [--out PATH] <targets...>
+    python -m comment_review referrers --repo D [--out PATH] <targets...>
 
 The census resolves what a comment CITES. This resolves the other direction --
 who cites the code being edited -- and it is the half that decides the
@@ -17,8 +17,8 @@ from pathlib import Path
 
 # ! The exception tuples are IMPORTED. Each is bound to a NAME so no `except`
 # clause here holds a tuple literal; `exceptions.py` carries that reason once.
-from .machine import exceptions
-from .machine.repo import (
+from ..machine import exceptions
+from ..machine.repo import (
     git,
 )
 
