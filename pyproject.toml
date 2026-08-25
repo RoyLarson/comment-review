@@ -125,3 +125,7 @@ exclude = ["**/*.md"]
 # Test names are the documentation here; a docstring per case restates the
 # name and rots separately from it.
 "tests/**" = ["D"]
+# ! The shadow suite, same rule and same reason. It is not collected by
+# `testpaths` and runs only when named -- `uv run pytest shadow/` -- so it
+# earns its place before it joins the gate. See `shadow/README.md`.
+"shadow/**" = ["D"]
