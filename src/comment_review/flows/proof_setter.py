@@ -30,8 +30,13 @@ check is a missing element rather than a forgotten call.
 from pathlib import Path
 from typing import NamedTuple
 
+from comment_review.binder.page import page_for
 from comment_review.desk import notations as notations_mod
 from comment_review.flows.page_for import page_of
+from comment_review.machine import constants
+from comment_review.machine.repo import read_source
+from comment_review.reading.addresser import cue_of
+from comment_review.reading.lexer import language_for
 from comment_review.results import compositor, galley
 
 #: The chain, as data. ! A test asserts this tuple, so removing a check is a
@@ -141,4 +146,36 @@ def _one(
     text = compositor.set_page(page)
     target = into / Path(rel).name
     target.write_text(text, encoding="utf-8", newline="")
+
+    off = _reread(rel, target, edits)
+    if off is not None:
+        target.unlink(missing_ok=True)
+        return None, off
     return Drafted(rel, target, page.sha), None
+
+
+def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | None:
+    """Read the draft back as a page: is each notation at the cue it was given?
+
+    !! IT IS READ FROM DISK, NOT FROM THE PAGE IN HAND. Roy, 2026-08-24: the
+    workflow *"Sends that through the page system again to make certain that
+    the agents put the right comments in the right places."* A page still in
+    memory would be agreeing with itself -- the shape `docs/gates.md` records
+    the round trip scoring 699 of 699 on.
+    """
+    source = read_source(target)
+    lang = language_for(target)
+    if lang is None:
+        return Refusal("reread", rel, "the draft has no language record")
+    page = page_for(target, source.text, lang, rel=rel, sha=source.sha)
+    placed = {cue_of(b.address).cue: b for b in page if b.address}
+    for where, replacement in edits.items():
+        got = placed.get(where)
+        if got is None:
+            return Refusal("reread", rel, f"{where}: the draft carries no such place")
+        want = [] if replacement is None else constants.text_lines(replacement)
+        if got.raw_lines != want:
+            return Refusal(
+                "reread", rel, f"{where}: holds {got.raw_lines!r}, was given {want!r}"
+            )
+    return None

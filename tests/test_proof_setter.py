@@ -108,3 +108,14 @@ class TestTheFileMustBeTheONEThatWasReviewed:
             {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
         )
         assert refused == [] and len(drafted) == 1
+
+
+def test_the_drafted_FILE_holds_each_notation_at_its_cue(tmp_path):
+    repo, binder, page = _tree(tmp_path)
+    cue = next(c for c in by_cue(page) if c.startswith("b"))
+    drafted, refused = proof_setter.run(
+        {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
+    )
+    assert refused == []
+    again = build(drafted[0].draft.read_text(encoding="utf-8"))
+    assert by_cue(again)[cue].raw_lines == ["# REPLACED"]

@@ -161,7 +161,9 @@ class TestAnEditedPageStillComposes:
     """The write path end to end: read, change, set -- then read the result and
     confirm the change is where it was put."""
 
-    def test_the_composed_file_re_reads_to_the_same_prose(self, sample):
+    def test_the_composed_file_re_reads_with_the_text_AT_ITS_CUE(self, sample):
+        """! `any` OVER THE PAGE WAS THE ASSERTION UNTIL 2026-08-25, so text
+        landing at the WRONG cue passed. The cue is the whole claim."""
         from comment_review.results.galley import reset
 
         cue = next(
@@ -170,9 +172,8 @@ class TestAnEditedPageStillComposes:
             if c.startswith("b") and any(x.strip() for x in b.raw_lines)
         )
         reset(sample, {cue: "# REPLACED"})
-        out = set_page(sample)
-        again = build(out)
-        assert any(b.raw_lines == ["# REPLACED"] for b in again.paragraphs if b.address)
+        again = build(set_page(sample))
+        assert by_cue(again)[cue].raw_lines == ["# REPLACED"]
 
     def test_an_edited_page_is_still_a_fixed_point(self, sample):
         from comment_review.results.galley import reset
