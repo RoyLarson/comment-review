@@ -84,3 +84,11 @@ TODO/.*.md.tmp*
 # branch up -- which means the worktree itself must never be tracked.
 .claude/.worktrees/
 .claude/worktrees/
+
+# Coverage's own scratch. ! THE DATA FILE, NOT THE PIN: `coverage==7.15.4` is in
+# `pyproject.toml` and `uv.lock` is tracked, so what a run MEASURES is
+# reproducible. `.coverage` is a binary SQLite file rewritten by every run, and
+# `.coverage.*` is what parallel runs leave behind.
+.coverage
+.coverage.*
+htmlcov/
