@@ -20,6 +20,18 @@
 - **No heredocs and no `sed`, ever.** A `PreToolUse` hook refuses both. Use `Edit`/`Write`, or write a `.py` script and run it. For a commit message: `Write` it to a file, then `git commit -F <file>`.
 - **`plugins/` is BUILT, not edited.** Run `uv run python scripts/build_plugin.py` and commit what it writes.
 - **Lane:** this is all `backend`. Do not edit `plugins/comment-review/agents/**`, `SKILL.md`, or `scripts/**`.
+- **A CUT TAKES ITS TESTS WITH IT.** Roy, 2026-08-25: *"If the test doesn't test the behavior we want from the system, it locks in behavior we don't want in the system. Every place we cut gets to take its useless tests with it."*
+
+  !! **THE LOGIC, IN FOUR STEPS, BECAUSE THE RULE IS EASY TO MISPRICE AS TIDINESS:**
+
+  1. **A test asserts a RELATIONSHIP, not a value.** `assert sha_of(x) == sha_of(x)` is not really about hashing; sitting in `test_binder.py` it says *the binder owns text identity*.
+  2. **Its LOCATION is part of that assertion.** A test file's name is a claim about ownership. Move the function without moving the test and a false ownership claim stays behind.
+  3. **A passing test is an ARGUMENT FOR the structure it asserts.** So a test orphaned by a cut argues for the thing the cut removed -- and argues invisibly, because green reads as health and nobody audits what is passing.
+  4. **It would go green again if someone restored the cut.** That is the real cost: the suite does not merely fail to notice a regression, it REWARDS one. The next person to re-add the deleted coupling sees a green suite endorsing it.
+
+  ! **I MISPRICED EXACTLY THIS, 2026-08-25**, and the mistake is instructive: I read it as duplicate coverage, weighed the duplicate against the cost of a dispatch, and deferred it. **Duplication was the wrong quantity.** The question is never how much the leftover test costs to keep -- it is what the leftover test SAYS.
+
+  ! **And add nothing in its place:** *"You just can't put more tests back to prove something cut is gone."* There are infinite absences; pin what the code DOES.
 
 ## The gate for every task
 
@@ -961,6 +973,11 @@ Record what you find before deleting anything.
 
 Remove `drifted` from `galley.py`. Remove its invocation from `commands/galley.py`, and any now-unused imports YOUR change orphaned (ruff will name them).
 
+!! **AND EVERY TEST OF `drifted` GOES WITH IT** -- see the Global Constraint. A surviving
+`drifted` test asserts the per-paragraph staleness check this branch replaced with the sha, and
+would go GREEN if someone restored it, so the suite would argue for the structure this branch
+decided against. **Add nothing in its place.**
+
 - [ ] **Step 3: Prove no binder or census row is read on the write side**
 
 Run: `grep -rn "census\|rows_of\|binder" src/comment_review/results/`
@@ -1679,7 +1696,32 @@ Message: *"commands: write exposes the chain and orchestrates nothing"*.
 - Modify: `docs/plans/0.2.4-the-write-chain-of-command.md` -- tick every box
 - Modify: `plugins/` -- via the build
 
-- [ ] **Step 1: Record the rulings**
+- [ ] **Step 1: Sweep for tests this branch's cuts left behind**
+
+Roy, 2026-08-25, reaffirming: *"If the test doesn't test the behavior we want from the system,
+it locks in behavior we don't want in the system. Every place we cut gets to take its useless
+tests with it."* ! **It can land here rather than in the task that made the cut** -- what
+matters is that it lands.
+
+This branch cuts four things. For each, the tests go with it:
+
+| cut | where its tests would linger |
+| --- | --- |
+| `binder.sha_of` (Task 3) | `tests/test_binder.py` |
+| `galley.drifted` (Task 7) | wherever drift was asserted |
+| the address-keyed `reset` (Task 6) | any case still asserting an `@` key |
+| `census`-shaped edits reaching `results/` (Task 7) | any test building a census row for the write side |
+
+```bash
+grep -rn "drifted\|sha_of\|m\.py@" tests/
+```
+
+**Judge each hit by the file it sits in, not only by whether it passes.** A test file's NAME is
+part of what it asserts: a check in `test_binder.py` exercising `sha_of` claims the BINDER owns
+text identity -- the ownership this branch deleted -- and it goes green if someone restores it.
+**Delete those. Add nothing in their place.**
+
+- [ ] **Step 2: Record the rulings**
 
 Add the ten dated 2026-08-24 / 2026-08-25 rulings from the spec's table to `docs/decision-log.md`, each findable by date and subject. Cite as `decision-log.md TOPIC: #N`.
 
