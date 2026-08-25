@@ -30,8 +30,9 @@ format once -- the internals as protocol, unable to diverge without breaking
 silently -- and a `.to_dict()` puts that decision back inside the object in a
 politer form. What an agent sees is an EDITORIAL ruling (`decision-log.md
 Addressing: #12`), not a fact about what a `Paragraph` is. ! And one page serves
-two audiences that disagree: an agent gets seven fields and no fences, the
-compositor needs everything including them.
+two audiences that disagree: an agent gets SIX fields, no fences and no empty
+places, while the compositor needs every one of them or the file cannot be set
+back.
 """
 
 import hashlib
@@ -40,6 +41,7 @@ import json
 from comment_review.binder.page import Page
 from comment_review.reading.addresser import address_for
 from comment_review.reading.lexer import Paragraph
+from comment_review.reading.series import Kind
 
 # ! The shape's own version, so a reader can say WHICH format it refused rather
 # than only that it could not read one.
@@ -49,7 +51,7 @@ VERSION = "1"
 def page_row(paragraph: Paragraph) -> dict:
     """One paragraph as an agent receives it.
 
-    !! SEVEN FIELDS, RULED ONE BY ONE -- `decision-log.md Addressing: #12`. The
+    !! SIX FIELDS, RULED ONE BY ONE -- `decision-log.md Addressing: #12`. The
     row carried nineteen until 2026-08-24; eleven went, and `path` moved to the
     page that holds the row rather than being repeated on every one of them.
 
@@ -61,16 +63,18 @@ def page_row(paragraph: Paragraph) -> dict:
     """
     return {
         "cue": paragraph.address.split("@")[-1],
-        # !! THE KIND STAYED, AND THE CUT'S REASON FOR DROPPING IT WAS HALF
-        # TRUE. It read *"they are stating something that the cue letter
-        # states"* -- and the letter states the SERIES, while the kind states
-        # WHICH HALF OF THE PAIR: `b` is GAP, and `comment` against `interval`
-        # is whether any prose is there. A letter cannot answer that.
+        # !! `kind` IS GONE AGAIN, AND THE ORIGINAL RULING WAS RIGHT. It read
+        # *"they are stating something that the cue letter states"*; I put it
+        # back on 2026-08-25 arguing the letter gives the SERIES while the kind
+        # gives which half of the pair. Both are true, and the second stopped
+        # mattering the moment ABSENT PLACES STOPPED BEING SENT: every row a
+        # reviewer receives holds prose, so its kind is its series' `present`
+        # and the letter states it after all.
         #
-        # ! IT IS ONE OF A PAIR, WHICH IS WHY IT IS CHEAP TO SAY. `Series` gives
-        # each letter its `present` and its `absent`, so a row carrying `b` and
-        # `interval` is stating one bit the letter does not hold.
-        "kind": paragraph.kind,
+        # ! MEASURED before the cut, over 14,139 rows: `kind` equalled
+        # `derive(cue, raw_text)` in 14,136 of them. The three exceptions are
+        # `go`, `ruby` and `lua`, where the kind DISAGREES with the cue -- a
+        # defect, filed, and not information.
         "anchor": paragraph.anchor,
         "anchor_num": paragraph.anchor_num,
         "original_start": paragraph.original_start,
@@ -89,15 +93,33 @@ def sha_of(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 
 
-def bind(pages: list[Page]) -> dict:
+def bind(pages: list[Page], absent: bool = False) -> dict:
     """Every page in scope, as the binder that is handed over.
 
-    ! THE FILE IS NAMED ONCE PER PAGE. It was on every row, which is the same
-    string repeated as many times as the file has paragraphs -- 4,464 bytes of
-    one path over 124 rows in a file measured 2026-08-24.
+    !! AN ABSENT PLACE IS NOT SENT UNLESS IT IS ASKED FOR. Roy, 2026-08-25:
+    *"The absent kinds are not supposed to be sent to the agents unless
+    specifically asked for."* MEASURED over this repo's own source before the
+    cut: **5,201 of 5,685 rows -- 91% -- held no prose.** 2,692 `margin` and
+    2,437 `interval`, which is roughly one empty place per line of code, against
+    2 `undocumented` in the whole tree. 850KB, and four roles read it.
 
-    ! A FENCE IS NOT CARRIED. Leading names no place and there is nothing to
-    rule on; see `flows.census.carried`.
+    !! AND AN EMPTY PLACE IS STILL ADDRESSED, WHICH IS WHAT MAKES THIS SAFE. The
+    walk emits every place, filled or not, so a reviewer that wants to `add`
+    ASKS for the one it means:
+
+        comment_review addresser --census C --anchor "<line of code>" --series b
+
+    -- which answers `m.py@b1`. The place is citable without being carried, so
+    `add` stays expressible and nothing pays for the other 5,201.
+
+    ! A FENCE IS NEVER CARRIED, asked for or not. It names no place, so there is
+    nothing to cite and nothing to rule on.
+
+    Args:
+        pages: the pages in scope.
+        absent: carry the empty places too. For the caller that specifically
+            asks -- a reviewer surveying where prose COULD go rather than
+            ruling on prose that is there.
     """
     return {
         "version": VERSION,
@@ -105,7 +127,11 @@ def bind(pages: list[Page]) -> dict:
             {
                 "path": page.path,
                 "sha": sha_of(page.text),
-                "rows": [page_row(b) for b in page.paragraphs if b.address],
+                "rows": [
+                    page_row(b)
+                    for b in page.paragraphs
+                    if b.address and (absent or not Kind.holds_no_prose(b.kind))
+                ],
             }
             for page in pages
         ],

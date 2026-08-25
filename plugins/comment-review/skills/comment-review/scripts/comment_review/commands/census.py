@@ -52,6 +52,13 @@ def main() -> int:
         " unfiltered run or on --json, which never drop it",
     )
     ap.add_argument(
+        "--include-absent",
+        action="store_true",
+        help="carry the EMPTY places too -- a place where prose could go but does"
+        " not. Dropped by default: they are 91%% of the rows and a reviewer rules"
+        " on prose that is there. Ask the addresser for one instead, by its anchor",
+    )
+    ap.add_argument(
         "--out", metavar="PATH", help="write the report to PATH, not stdout"
     )
     ap.add_argument(
@@ -243,7 +250,7 @@ def _report(args: argparse.Namespace) -> int:
         # so a shape it cannot read is caught HERE -- at the one moment the
         # writer and the reader are both present -- instead of at whichever
         # command opens the file next.
-        binder = bind(pages)
+        binder = bind(pages, absent=args.include_absent)
         missing = unaddressed(rows_of(binder))
         if missing:
             print(_unaddressed(missing), file=sys.stderr)

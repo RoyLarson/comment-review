@@ -182,6 +182,31 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   from there would have made `concordance` depend on `binder` for a regex, so it went to
   `reading/lexer.py`, which `code_names` already imports from, adding no edge.
 
+- **#15.** **AN ABSENT PLACE IS NOT SENT TO AN AGENT UNLESS IT IS ASKED FOR** (Roy, 2026-08-25:
+  *"The absent kinds are not supposed to be sent to the agents unless specifically asked for."*).
+
+  !! **MEASURED over this repo the moment the ruling landed: 5,223 of 5,707 rows -- 91% -- held
+  no prose.** 2,692 `margin` and 2,437 `interval`, which is roughly ONE EMPTY PLACE PER LINE OF
+  CODE, against **2** `undocumented` in the whole tree. The binder falls from **1,147,232 bytes
+  to 391,763 -- a 66% cut**, and four roles read it: 3.0 MB.
+
+  ! **AN EMPTY PLACE IS STILL ADDRESSED, WHICH IS WHAT MAKES IT SAFE.** The walk emits every
+  place, filled or not, so `add` stays expressible -- a reviewer asks for the one it means:
+  `addresser --census C --anchor "<line of code>" --series b` answers `m.py@b1`. The place is
+  CITABLE without being CARRIED. ! `census --include-absent` is the flag for a caller that wants
+  them all.
+
+  !! **AND IT MAKES `#12` RIGHT AND `#14` HALF-WRONG, WHICH IS WORTH KEEPING VISIBLE.** `#12`
+  cut `kind` because *"the cue letter states it"*; `#14` put it back, arguing the letter gives
+  the SERIES while the kind gives which half of the pair. Both were true, and the second stopped
+  mattering here: **every row a reviewer now receives holds prose**, so its kind is its series'
+  `present` and the letter does state it. `kind` is gone again and the row is SIX fields --
+  the number `#12` ruled.
+
+  ! **MEASURED before removing it, over 14,139 rows: `kind` equalled `derive(cue, raw_text)` in
+  14,136.** The three exceptions are `go`, `ruby` and `lua`, where the kind DISAGREES with the
+  cue -- `TODO/a-doc-comment-is-cued-a-and-typed-b.md`, a defect rather than information.
+
   ! **A RENAME IS STILL OPEN.** Roy proposed *"code names becomes references"* and withdrew it
   the same minute -- *"Don't act on that actually, continue with the split will determine
   later."* The module is `concordance/code_names.py` until he rules.

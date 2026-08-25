@@ -11,14 +11,12 @@ from conftest import SAMPLE, build, by_cue
 
 from comment_review.binder.binder import VERSION, bind, page_row, read, rows_of, sha_of
 from comment_review.flows.census import carried
-from comment_review.reading.series import Kind
 
 #: The fields ruled onto a row. `decision-log.md Addressing: #12` cut eleven,
 #: and `#14` put `kind` back -- the cue's letter names the SERIES while the kind
 #: names which half of its pair, so a letter cannot state it.
 ROW_FIELDS = {
     "cue",
-    "kind",
     "anchor",
     "anchor_num",
     "original_start",
@@ -63,9 +61,12 @@ def test_the_path_is_not_repeated_on_every_row(binder):
 
 def test_no_fence_is_carried(binder):
     """A fence divides two places and is not one. Roy: *"The leading is not
-    something that will be passed to the agents ... It is for white space."*"""
+    something that will be passed to the agents ... It is for white space."*
+
+    ! ASKED OF THE CUE, because the row no longer carries a kind -- and `d` is
+    the one series a cue can never name, asked for or not.
+    """
     for row in binder["pages"][0]["rows"]:
-        assert row["kind"] != Kind.LEADING
         assert row["cue"][:1] != "d"
 
 
@@ -89,14 +90,50 @@ def test_a_row_holds_every_line_its_paragraph_held(binder):
     page = build(SAMPLE)
     rows = {r["cue"]: r for r in binder["pages"][0]["rows"]}
     for c, paragraph in by_cue(page).items():
-        assert rows[c]["raw_text"] == "\n".join(paragraph.raw_lines)
+        if c in rows:
+            assert rows[c]["raw_text"] == "\n".join(paragraph.raw_lines)
 
 
-def test_the_binder_carries_every_place_the_page_can_cite(binder):
-    """An empty place is citable -- an `add` names one -- so dropping it would
-    make `add` inexpressible."""
+def test_the_binder_carries_ONLY_the_places_holding_prose(binder):
+    """Roy, 2026-08-25: *"The absent kinds are not supposed to be sent to the
+    agents unless specifically asked for."*
+
+    !! MEASURED over this repo before the cut: 5,201 of 5,685 rows -- 91% --
+    held no prose, and 2 of those were `undocumented`. The rest were one empty
+    place per line of code.
+    """
     page = build(SAMPLE)
-    assert {r["cue"] for r in binder["pages"][0]["rows"]} == set(by_cue(page))
+    holding = {
+        c
+        for c, b in by_cue(page).items()
+        if any(x.strip() for x in b.raw_lines)
+    }
+    assert {r["cue"] for r in binder["pages"][0]["rows"]} == holding
+
+
+def test_an_absent_place_is_carried_WHEN_ASKED_FOR():
+    """It is dropped by default, not made unreachable."""
+    page = build(SAMPLE)
+    asked = {r["cue"] for r in bind([page], absent=True)["pages"][0]["rows"]}
+    assert asked == set(by_cue(page))
+    assert len(asked) > len(bind([page])["pages"][0]["rows"])
+
+
+def test_a_file_with_no_prose_at_all_carries_NO_ROWS():
+    """Nothing to rule on is an empty page, not an error -- and not a page of
+    empty places either."""
+    binder = bind([build("x = 1\ny = 2\n")])
+    assert binder["pages"][0]["rows"] == []
+    assert binder["pages"][0]["path"]
+
+
+def test_an_empty_place_is_still_ADDRESSED_on_the_page(binder):
+    """What makes dropping it safe: the walk emits every place, so a reviewer
+    that wants to `add` asks the addresser for the one it means."""
+    page = build(SAMPLE)
+    empty = [b for b in page.paragraphs if b.address and not b.raw_lines]
+    assert empty
+    assert all(b.address for b in empty)
 
 
 def test_carried_drops_fences_and_keeps_everything_else():
@@ -127,7 +164,12 @@ class TestRowsOfPutsBackWhatThePageEnvelopeTookOut:
         compositor was measured disagreeing with itself for re-deriving it."""
         page = build(SAMPLE)
         got = {r["address"] for r in rows_of(binder)}
-        assert got == {b.address for b in page.paragraphs if b.address}
+        holding = {
+            b.address
+            for b in page.paragraphs
+            if b.address and any(x.strip() for x in b.raw_lines)
+        }
+        assert got == holding
 
     def test_a_row_with_no_cue_composes_no_address(self):
         """`address_for` answers "" when either half is missing, which is what
@@ -139,7 +181,9 @@ class TestRowsOfPutsBackWhatThePageEnvelopeTookOut:
         assert rows_of(binder)[0]["address"] == ""
 
     def test_rows_from_several_pages_keep_their_own_paths(self):
-        binder = bind([build("x = 1\n", "a.py"), build("y = 2\n", "b/c.py")])
+        binder = bind(
+            [build("# one\nx = 1\n", "a.py"), build("# two\ny = 2\n", "b/c.py")]
+        )
         paths = {r["path"] for r in rows_of(binder)}
         assert paths == {"a.py", "b/c.py"}
 
