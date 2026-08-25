@@ -4,6 +4,15 @@ The work is `results.galley`; this is only the console face of it.
 
 !! A LIBRARY MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS LIBRARIES;
 A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
+
+!! DEPRECATED FOR THIS FLOW. Roy, 2026-08-25: *"commands/galley.py can be
+considered deprecated for this flow."* `commands/proof.py` is the replacement
+-- it runs the full chain in `flows/proof_setter.py` (reload, verify the
+binder's recorded sha, edit, set, draft, reread, prove) from a BINDER, while
+this module resolves an address to a path through `rows_of(census)`, the
+binder-row coupling that chain was ruled out of. That coupling is correct
+here, because this file IS the old path. NOT DELETED: it still runs, and
+`SKILL.md` still names it -- rewiring the skill is `agents` lane work.
 """
 
 import argparse

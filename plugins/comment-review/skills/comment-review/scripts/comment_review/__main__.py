@@ -25,6 +25,7 @@ COMMANDS = (
     "census",
     "compositor",
     "galley",
+    "proof",
     "prove_unchanged",
     "referrers",
 )

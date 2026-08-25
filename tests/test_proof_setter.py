@@ -7,7 +7,7 @@ sequence cannot show you.
 
 from pathlib import Path
 
-from conftest import SAMPLE, build, by_cue
+from conftest import SAMPLE, SRC, build, by_cue
 
 from comment_review.binder.binder import bind
 from comment_review.flows import proof_setter
@@ -184,3 +184,51 @@ class TestOnlyCommentsChange:
         refused = proof_setter._prove("m.c", before, after, Path("m.c"))
         assert refused is not None
         assert refused.step == "prove"
+
+
+class TestTheCommand:
+    """`commands/proof.py` exposes this flow and orchestrates nothing --
+    `commands/galley.py` resolves an address through `rows_of(census)`, the
+    binder-row coupling this chain was ruled out of; `proof.py` takes a
+    binder and hands it straight to `proof_setter.run`."""
+
+    def test_the_command_holds_no_orchestration(self):
+        """! A COMMAND EXPOSES A FLOW; IT IS NOT ONE. `commands/census.py` took
+        446 lines calling page_for directly while flows/census.py kept 261 of
+        helpers. See TODO/the-flow-lives-in-the-command.md."""
+        text = (SRC / "comment_review" / "commands" / "proof.py").read_text(
+            encoding="utf-8"
+        )
+        for forbidden in ("page_for", "galley.reset", "set_page", "code_fingerprint"):
+            assert forbidden not in text
+
+    def test_proof_is_a_named_command(self):
+        from comment_review.__main__ import COMMANDS
+
+        assert "proof" in COMMANDS
+
+    def test_an_out_that_overlaps_the_repo_is_REFUSED(
+        self, tmp_path, capsys, monkeypatch
+    ):
+        """!! THE DESTRUCTIVE CASE, MEASURED 2026-08-22 on the galley: on an
+        overlap the per-file guard is satisfied by the SOURCE FILE ITSELF, so
+        the draft was written over the file under review at exit 0."""
+        from comment_review.commands import proof as cmd
+
+        repo, _, _ = _tree(tmp_path)
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "proof",
+                "--repo",
+                str(repo),
+                "--binder",
+                "b.json",
+                "--notations",
+                "n.json",
+                "--out",
+                str(repo / "inside"),
+            ],
+        )
+        assert cmd.main() == 2
+        assert "REFUSED" in capsys.readouterr().out

@@ -6,6 +6,10 @@ Progress: 0 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
+Narrowed: 2026-08-25 — commands/proof.py exposes flows/proof_setter.py, the galley half
+          of task 5: the command parses arguments, reads two files and calls the flow
+          once, holding no orchestration. census, verdicts and record remain untouched
+          -- task 5 is not closed.
 ```
 
 ## Objective
