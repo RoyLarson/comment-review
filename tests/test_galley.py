@@ -1,391 +1,270 @@
-"""The galley is the proposal SET AS PAGES, and it refuses what it cannot place.
+"""page -> galley: every cue type, every operation, and what must NOT change.
 
-!! IT HELD 686 LINES OF LINE ARITHMETIC UNTIL 2026-08-21 -- a splice over
-`(start, end, column)` ranges applied in descending order, and a staleness check
-comparing stored text against the file's lines with a case for every kind. Roy:
-*"how do I get you to stop thinking in line numbers?"* A page addresses its
-paragraphs, so a replacement is an ASSIGNMENT and the arithmetic has nothing
-left to be wrong about.
+The second chain, and it starts from a PAGE read fresh -- never from a binder.
+Roy, 2026-08-25: the workflow *"will take something and determine that and then
+roll forward re getting the page because it needs the full page."*
 
-! WHAT THE DELETED TESTS PINNED IS KEPT HERE, measured through the new
-mechanism: a replacement landing where it was addressed, a longer one not eating
-the line below, a `c` keeping its code, CRLF surviving, a file with no final
-newline keeping none. Those are facts about the RESULT and they still hold; the
-tests that pinned `splice`, `overlaps` and `splice_range` went with the
-functions -- see `docs/history.md`.
+!! COMPLETENESS IS THE HALF THAT IS EASY TO MISS. "The edit landed" is half an
+assertion; the other half is that NOTHING ELSE MOVED. Every case below states
+the exact set of places allowed to differ, so a change that also disturbed a
+neighbour fails even though its own place is right.
 """
 
-import json  # noqa: I001  -- path shim below must import before galley
-import subprocess
-import sys
-import tempfile
-import unittest
-from pathlib import Path
+import pytest
+from conftest import SAMPLE, build, by_cue
 
-from _paths import SCRIPTS  # noqa: F401
-import compositor
-import galley
-import lexer
-import page
+from comment_review.results.compositor import set_page
+from comment_review.results.galley import reset
 
-ORIGINAL = "def f():\n    # old note\n    # second line\n    return 1\n"
-
-
-def built(text: str, name: str = "m.py"):
-    """The page for this text."""
-    p = Path(name)
-    return page.page_for(p, text, lexer.language_for(p), rel=name)
+#: A replacement that is legal in each series. A `c` carries its own separator
+#: -- the compositor joins it to the code -- and an `a` carries its indentation.
+REPLACEMENT = {
+    "a": '    """REPLACED."""',
+    "b": "# REPLACED",
+    "c": "  # REPLACED",
+    "f": "#!/usr/bin/env REPLACED",
+}
 
 
-def place(pg, kind: str) -> str:
-    """The address of the first paragraph of this kind."""
-    for b in pg:
-        if b.kind == kind and b.address:
-            return b.address
-    raise AssertionError(f"no {kind} on this page")
+def places(page):
+    """`(filled, absent)` -- one cue per series in each state, discovered.
 
-
-class TestAReplacementIsPlacedByItsAddress(unittest.TestCase):
-    def test_it_lands_where_it_was_addressed(self):
-        pg = built(ORIGINAL)
-        self.assertEqual(galley.reset(pg, {place(pg, "comment"): "    # new note"}), [])
-        self.assertEqual(
-            compositor.set_page(pg), "def f():\n    # new note\n    return 1\n"
-        )
-
-    def test_a_LONGER_replacement_does_not_eat_the_line_below(self):
-        # !! THE CASE THAT MADE DESCENDING ORDER LOAD-BEARING in the splice: a
-        # replacement with more lines than it replaces used to shift every range
-        # below it. A paragraph just hands back its lines and the next place is
-        # set next, so there is no order to get right.
-        pg = built(ORIGINAL)
-        galley.reset(pg, {place(pg, "comment"): "    # a\n    # b\n    # c"})
-        out = compositor.set_page(pg)
-        self.assertIn("    return 1", out)
-        self.assertNotIn("old note", out)
-        self.assertEqual(out.count("# "), 3)
-
-    def test_an_EMPTY_replacement_is_a_drop_and_needs_no_case(self):
-        pg = built(ORIGINAL)
-        galley.reset(pg, {place(pg, "comment"): ""})
-        self.assertEqual(compositor.set_page(pg), "def f():\n    return 1\n")
-
-    def test_an_ADDRESS_THE_PAGE_DOES_NOT_CARRY_is_refused(self):
-        pg = built(ORIGINAL)
-        problems = galley.reset(pg, {"m.py@b99": "# nowhere"})
-        self.assertEqual(len(problems), 1)
-        self.assertIn("no such place", problems[0])
-
-    def test_CRLF_survives(self):
-        pg = built(ORIGINAL.replace("\n", "\r\n"))
-        galley.reset(pg, {place(pg, "comment"): "    # new note"})
-        out = compositor.set_page(pg)
-        self.assertIn("\r\n", out)
-        # ! NO LONE LF SURVIVES: strip every CRLF and nothing ending a line is
-        # left. A rewrite that normalised endings would show every line as
-        # changed in the `git diff --no-index` a galley exists for.
-        self.assertNotIn("\n", out.replace("\r\n", ""))
-
-    def test_a_file_with_no_final_newline_keeps_none(self):
-        pg = built(ORIGINAL.rstrip("\n"))
-        galley.reset(pg, {place(pg, "comment"): "    # new note"})
-        self.assertFalse(compositor.set_page(pg).endswith("\n"))
-
-
-class TestACIsWritableWithoutAColumn(unittest.TestCase):
-    """Roy, 2026-08-19: *"c needs to be writeable. It is the reason c is not an
-    extension of b."*"""
-
-    SRC = "z = 3  # trailing\n"
-
-    def test_the_replacement_keeps_the_code_and_takes_ONLY_the_prose(self):
-        # !! THE DEFECT THE COLUMN EXISTED FOR. A splice replaced whole lines, so
-        # a `patch` on a trailing comment wrote `# reworded` OVER the statement
-        # -- measured 2026-08-18, in the galley a human is asked to approve. The
-        # compositor sets the code and joins what sits beside it, so the column
-        # is not a field any more: there is nothing to get wrong.
-        pg = built(self.SRC)
-        galley.reset(pg, {place(pg, "trailing-comment"): "  # reworded"})
-        self.assertEqual(compositor.set_page(pg), "z = 3  # reworded\n")
-
-    def test_the_REPLACEMENT_CARRIES_ITS_OWN_SEPARATOR(self):
-        # ! Two spaces before the hash are the author's, not the tool's.
-        pg = built(self.SRC)
-        galley.reset(pg, {place(pg, "trailing-comment"): "    # far out"})
-        self.assertEqual(compositor.set_page(pg), "z = 3    # far out\n")
-
-    def test_dropping_it_leaves_the_statement(self):
-        pg = built(self.SRC)
-        galley.reset(pg, {place(pg, "trailing-comment"): ""})
-        self.assertEqual(compositor.set_page(pg), "z = 3\n")
-
-
-class TestTheAnchorIsTheWholeStalenessCheck(unittest.TestCase):
-    """Roy, 2026-08-21: *"the reset should only check if the address is tied to
-    the anchor line of code - like they claim."*"""
-
-    def test_a_census_whose_anchor_still_reads_the_same_is_not_drifted(self):
-        pg = built(ORIGINAL)
-        self.assertEqual(galley.drifted(pg, [vars(b) for b in built(ORIGINAL)]), [])
-
-    def test_an_anchor_that_MOVED_is_caught(self):
-        # ! The code under the address changed since the reviewers read it, so a
-        # replacement written there would land against a statement nobody
-        # reviewed.
-        census = [vars(b) for b in built(ORIGINAL)]
-        moved = galley.drifted(
-            built("def g():\n    # old note\n    return 1\n"), census
-        )
-        self.assertTrue(moved)
-        self.assertIn("def f():", moved[0])
-
-    def test_RENAMING_THE_ENCLOSING_DECLARATION_drifts(self):
-        # !! THE CASE A PER-ADDRESS CHECK WOULD ALLOW, and the reason the check
-        # asks the whole file. The comment being edited sits inside `def f():`
-        # and is anchored to `    return 1`, which does not move when the
-        # declaration is renamed -- so checking only the address being written
-        # says "fine" and the approved text describing `f` is set against
-        # `RENAMED`. The paragraph did not move; the thing it is ABOUT did.
-        census = [vars(b) for b in built(ORIGINAL)]
-        moved = galley.drifted(
-            built(ORIGINAL.replace("def f():", "def RENAMED():")), census
-        )
-        self.assertTrue(moved)
-
-    def test_AN_UNRELATED_APPEND_AT_THE_FOOT_drifts_TOO(self):
-        # !! BY RULING, NOT BY ACCIDENT. Roy, 2026-08-21: *"If the file shifted
-        # at all it is dead and so are the edits. There is no way we can know if
-        # we are setting things correctly ... IT failing loudly is the 'right'
-        # call on any modification to the anchors."* Appending below everything
-        # moves the closing gap's anchor, and that refuses the page.
-        census = [vars(b) for b in built(ORIGINAL)]
-        self.assertTrue(galley.drifted(built(ORIGINAL + "\n\nX = 1\n"), census))
-
-    def test_a_series_with_NO_anchor_is_not_checked(self):
-        # ! Leading answers to nothing by ruling, so it cannot drift against a
-        # line of code. Its absence from the report is a fact, not a gap.
-        pg = built('# licence\n\n"""Doc."""\n\nimport os\n')
-        census = [vars(b) for b in pg]
-        self.assertEqual(
-            [b for b in census if b["kind"] == lexer.Kind.LEADING and b["anchor"]], []
-        )
-
-
-class TestAnAddIntoAnEmptyGap(unittest.TestCase):
-    """!! EIGHT OF THESE WERE `@unittest.expectedFailure` UNTIL 2026-08-21.
-
-    Every one is an `add`, and the splice could not do any of them: an empty gap
-    has no lines, so its range was `n+1 .. n` -- an empty slice -- and the
-    arithmetic that made an insertion land BETWEEN two code lines instead of
-    replacing one of them was never got right. At the file's edges both bounds
-    clamped to 1, so the address could not say which side of line 1 a gap was on
-    and an `add` landed BELOW its anchor.
-
-    ! A page has a place for the gap, and the compositor sets the places in
-    order. There is no range, so there is nothing to clamp.
+    ! DISCOVERED, NOT HARDCODED. A hardcoded cue is a fixture asserting what the
+    walk emitted last time someone looked; this asks the page.
     """
-
-    FILE = "a = 1\nb = 2\nc = 3\n"
-
-    def _gap(self, pg, cue: str) -> str:
-        for b in pg:
-            if b.address.split("@")[-1] == cue:
-                return b.address
-        raise AssertionError(f"no {cue} on this page")
-
-    def test_the_insertion_lands_BETWEEN_the_two_code_lines(self):
-        pg = built(self.FILE)
-        galley.reset(pg, {self._gap(pg, "b1"): "# note"})
-        self.assertEqual(compositor.set_page(pg), "a = 1\n# note\nb = 2\nc = 3\n")
-
-    def test_it_deletes_no_code(self):
-        # !! THE FAILURE THE RANGE EXISTED TO AVOID: `(1, 2)` replaced BOTH
-        # bounding lines with the new prose.
-        pg = built(self.FILE)
-        galley.reset(pg, {self._gap(pg, "b1"): "# note"})
-        out = compositor.set_page(pg)
-        for line in ("a = 1", "b = 2", "c = 3"):
-            self.assertIn(line, out)
-
-    def test_the_gap_ABOVE_the_first_code_line_inserts_above_it(self):
-        # !! THE FILE BOUNDARY. Measured 2026-08-17: an `add` here landed BELOW
-        # its anchor, because `start` and `end` both clamped to 1.
-        pg = built(self.FILE)
-        galley.reset(pg, {self._gap(pg, "b0"): "# header"})
-        self.assertEqual(compositor.set_page(pg), "# header\na = 1\nb = 2\nc = 3\n")
-
-    def test_the_gap_BELOW_the_last_code_line_appends(self):
-        pg = built(self.FILE)
-        galley.reset(pg, {self._gap(pg, "b3"): "# footer"})
-        self.assertEqual(compositor.set_page(pg), "a = 1\nb = 2\nc = 3\n# footer\n")
-
-    def test_the_two_boundary_gaps_of_a_ONE_LINE_file_DIFFER(self):
-        # ! Above and below the only line of code are two places, and a range
-        # over a one-line file could not tell them apart.
-        above = built("a = 1\n")
-        galley.reset(above, {self._gap(above, "b0"): "# over"})
-        below = built("a = 1\n")
-        galley.reset(below, {self._gap(below, "b1"): "# under"})
-        self.assertEqual(compositor.set_page(above), "# over\na = 1\n")
-        self.assertEqual(compositor.set_page(below), "a = 1\n# under\n")
+    filled: dict[str, str] = {}
+    absent: dict[str, str] = {}
+    for c, b in by_cue(page).items():
+        table = filled if any(x.strip() for x in b.raw_lines) else absent
+        table.setdefault(c[0], c)
+    return filled, absent
 
 
-class TestCLI(unittest.TestCase):
-    """End to end: the exit code and the tree it writes."""
+def lines_by_cue(page) -> dict[str, list[str]]:
+    return {c: list(b.raw_lines) for c, b in by_cue(page).items()}
 
-    def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.root = Path(self.tmp.name)
-        self.repo = self.root / "repo"
-        (self.repo / "pkg").mkdir(parents=True)
-        (self.repo / "pkg" / "m.py").write_text(ORIGINAL, encoding="utf-8")
-        # !! FROM `page_for`, STAMPED as `census.py`'s run loop stamps it. A
-        # hand-built census drifts from what the tool emits, which is how a
-        # trailing comment once passed here while the shipped path deleted code.
-        self.census = self.root / "census.json"
-        made = page.page_for(
-            Path("pkg/m.py"), ORIGINAL, lexer.language_for(Path("m.py"))
+
+def leading_by_symbol(page) -> dict[str, list[str]]:
+    return {b.symbol: list(b.raw_lines) for b in page.paragraphs if b.symbol}
+
+
+FILLED, ABSENT = places(build(SAMPLE))
+SERIES = sorted(REPLACEMENT)
+
+
+def test_the_sample_offers_a_filled_and_an_absent_place_in_every_series():
+    """Every case below is parametrised over these, so an empty one would make
+    a whole column of the matrix vacuous."""
+    assert set(FILLED) == set(SERIES)
+    assert set(ABSENT) == set(SERIES)
+
+
+class TestModify:
+    @pytest.mark.parametrize("series", SERIES)
+    def test_the_place_takes_the_new_text(self, sample, series):
+        cue = FILLED[series]
+        assert reset(sample, {f"m.py@{cue}": REPLACEMENT[series]}) == []
+        assert by_cue(sample)[cue].raw_lines == [REPLACEMENT[series]]
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_NOTHING_ELSE_on_the_page_moves(self, sample, series):
+        cue = FILLED[series]
+        before = lines_by_cue(build(SAMPLE))
+        reset(sample, {f"m.py@{cue}": REPLACEMENT[series]})
+        after = lines_by_cue(sample)
+        assert {c for c in after if after[c] != before[c]} == {cue}
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_no_fence_moves(self, sample, series):
+        before = leading_by_symbol(build(SAMPLE))
+        reset(sample, {f"m.py@{FILLED[series]}": REPLACEMENT[series]})
+        assert leading_by_symbol(sample) == before
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_the_new_text_reaches_the_composed_file(self, sample, series):
+        reset(sample, {f"m.py@{FILLED[series]}": REPLACEMENT[series]})
+        assert "REPLACED" in set_page(sample)
+
+    def test_a_multi_line_replacement_does_not_eat_the_line_below(self, sample):
+        """A paragraph hands back its lines and the next place is set NEXT, so
+        growing one moves nothing -- the property that made the line-arithmetic
+        splice unnecessary."""
+        cue = FILLED["b"]
+        reset(sample, {f"m.py@{cue}": "# one\n# two\n# three"})
+        out = set_page(sample)
+        assert "# one\n# two\n# three\n" in out
+        assert "def f(x):" in out
+
+
+class TestDrop:
+    """An empty string is the ONLY vacation -- `galley.reset` refuses any other
+    falsy value, because a `null` from a failed serialisation upstream would
+    otherwise read as "the author asked to delete this"."""
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_the_place_is_emptied(self, sample, series):
+        cue = FILLED[series]
+        assert reset(sample, {f"m.py@{cue}": ""}) == []
+        assert by_cue(sample)[cue].raw_lines == []
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_the_place_still_EXISTS_and_keeps_its_address(self, sample, series):
+        """Places are involatile. Roy: *"having an empty sentinel is the key,
+        not that the place disappears."* An `add` can fill what a `drop`
+        emptied, which needs the place to still be citable."""
+        cue = FILLED[series]
+        before = by_cue(sample)[cue]
+        anchor, address = before.anchor, before.address
+        reset(sample, {f"m.py@{cue}": ""})
+        after = by_cue(sample)[cue]
+        assert after.address == address
+        assert after.anchor == anchor
+        assert cue in sample.cues.reading
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_only_the_place_and_the_fence_it_OWNS_change(self, sample, series):
+        """The blank below a dropped paragraph goes with it -- otherwise the
+        space it introduced stands over whatever follows.
+
+        ! A `c` OWNS NONE. It sits beside code, so the blank below separates
+        that CODE from what follows and was never the comment's to lose.
+        """
+        cue = FILLED[series]
+        fresh = build(SAMPLE)
+        before, before_d = lines_by_cue(fresh), leading_by_symbol(fresh)
+        reset(sample, {f"m.py@{cue}": ""})
+        after, after_d = lines_by_cue(sample), leading_by_symbol(sample)
+
+        assert {c for c in after if after[c] != before[c]} == {cue}
+        moved = {s for s in after_d if after_d[s] != before_d[s]}
+        owned = sample.leading.get(cue, "")
+        expected = {owned} if owned and not cue.startswith("c") else set()
+        assert moved == expected
+
+    def test_a_c_keeps_the_blank_below_its_code(self, sample):
+        """Stated separately because `prove_unchanged` cannot see the
+        difference -- the AST is identical either way -- so getting it wrong
+        would land silently."""
+        cue = FILLED["c"]
+        before = leading_by_symbol(build(SAMPLE))
+        reset(sample, {f"m.py@{cue}": ""})
+        assert leading_by_symbol(sample) == before
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_the_prose_is_gone_from_the_composed_file(self, sample, series):
+        cue = FILLED[series]
+        was = "\n".join(by_cue(build(SAMPLE))[cue].raw_lines).strip()
+        reset(sample, {f"m.py@{cue}": ""})
+        assert was
+        assert was not in set_page(sample)
+
+
+class TestAddToAnAbsentPlace:
+    """The reason every place is addressed, filled or not: an `add` cites the
+    place where prose BELONGS and does not yet exist."""
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_the_absent_place_takes_the_text(self, sample, series):
+        cue = ABSENT[series]
+        assert reset(sample, {f"m.py@{cue}": REPLACEMENT[series]}) == []
+        assert by_cue(sample)[cue].raw_lines == [REPLACEMENT[series]]
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_NOTHING_ELSE_on_the_page_moves(self, sample, series):
+        cue = ABSENT[series]
+        before = lines_by_cue(build(SAMPLE))
+        reset(sample, {f"m.py@{cue}": REPLACEMENT[series]})
+        after = lines_by_cue(sample)
+        assert {c for c in after if after[c] != before[c]} == {cue}
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_the_added_prose_reaches_the_composed_file(self, sample, series):
+        cue = ABSENT[series]
+        before = set_page(build(SAMPLE))
+        reset(sample, {f"m.py@{cue}": REPLACEMENT[series]})
+        after = set_page(sample)
+        assert "REPLACED" in after
+        assert after != before
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_the_file_grows_by_exactly_what_was_added(self, sample, series):
+        """An `a`, `b` or `f` adds its own line; a `c` joins the code line that
+        is already there, so it adds none."""
+        cue = ABSENT[series]
+        before = len(set_page(build(SAMPLE)).splitlines())
+        reset(sample, {f"m.py@{cue}": REPLACEMENT[series]})
+        after = len(set_page(sample).splitlines())
+        assert after - before == (0 if series == "c" else 1)
+
+
+class TestDropThenAddIsAFullCycle:
+    """The two halves compose: a place emptied is a place that can be filled
+    again, which is what makes `move` two edits rather than a special case."""
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_a_dropped_place_can_be_filled_again(self, sample, series):
+        cue = FILLED[series]
+        reset(sample, {f"m.py@{cue}": ""})
+        assert reset(sample, {f"m.py@{cue}": REPLACEMENT[series]}) == []
+        assert by_cue(sample)[cue].raw_lines == [REPLACEMENT[series]]
+
+    @pytest.mark.parametrize("series", SERIES)
+    def test_restoring_the_ORIGINAL_text_restores_the_file(self, sample, series):
+        """The strongest form: out and back leaves the page where it started.
+
+        ! `c` AND ANY OWNER OF A FENCE ARE EXCLUDED FROM THE FILE COMPARISON --
+        a drop vacates the fence too, and putting the prose back does not put
+        the blank back. That is the ruled behaviour, not a defect, so the
+        assertion here is about the PLACE rather than the whole file.
+        """
+        cue = FILLED[series]
+        original = list(by_cue(build(SAMPLE))[cue].raw_lines)
+        reset(sample, {f"m.py@{cue}": ""})
+        reset(sample, {f"m.py@{cue}": "\n".join(original)})
+        assert by_cue(sample)[cue].raw_lines == original
+
+
+class TestWhatTheGalleyRefuses:
+    def test_an_address_the_page_does_not_carry(self, sample):
+        problems = reset(sample, {"m.py@b99": "# nowhere"})
+        assert len(problems) == 1
+        assert "no such place" in problems[0]
+
+    @pytest.mark.parametrize("value", [None, 0, 123, [], {}, ["# a line"], True])
+    def test_a_replacement_that_is_not_TEXT(self, sample, value):
+        """Only an empty string is a drop. A `null` arriving from a key that
+        failed to serialise would otherwise be read as a deletion, at exit 0."""
+        problems = reset(sample, {f"m.py@{FILLED['b']}": value})
+        assert len(problems) == 1
+        assert "must be text" in problems[0]
+
+    @pytest.mark.parametrize("value", [None, 0, 123, [], {}])
+    def test_a_refused_replacement_changes_NOTHING(self, sample, value):
+        before = lines_by_cue(build(SAMPLE))
+        reset(sample, {f"m.py@{FILLED['b']}": value})
+        assert lines_by_cue(sample) == before
+
+    def test_one_bad_edit_does_not_stop_a_good_one(self, sample):
+        """Each edit is placed on its own; the return value names what could
+        not be placed rather than abandoning the batch."""
+        problems = reset(
+            sample,
+            {"m.py@b99": "# nowhere", f"m.py@{FILLED['b']}": "# REPLACED"},
         )
-        self.census.write_text(
-            json.dumps([vars(b) for b in made], default=list), encoding="utf-8"
-        )
-        self.paragraphs = json.loads(self.census.read_text(encoding="utf-8"))
-        self.note = next(
-            b["address"] for b in self.paragraphs if b["kind"] == "comment"
-        )
-        self.out = self.root / "galley"
-
-    def tearDown(self):
-        self.tmp.cleanup()
-
-    def _run(self, edits):
-        path = self.root / "edits.json"
-        path.write_text(json.dumps(edits), encoding="utf-8")
-        return subprocess.run(
-            [
-                sys.executable,
-                str(SCRIPTS / "galley.py"),
-                "--repo",
-                str(self.repo),
-                "--census",
-                str(self.census),
-                "--edits",
-                str(path),
-                "--out",
-                str(self.out),
-            ],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            check=False,
-        )
-
-    def test_it_writes_a_mirror_and_leaves_the_source_alone(self):
-        result = self._run({str(self.note): "    # new note"})
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        written = self.out / "pkg" / "m.py"
-        self.assertTrue(written.exists(), result.stdout)
-        self.assertIn("# new note", written.read_text(encoding="utf-8"))
-        # !! NOTHING UNDER `--repo` IS TOUCHED. The galley is a trial impression;
-        # the real file is not written until 7b approves the draft.
-        self.assertEqual(
-            (self.repo / "pkg" / "m.py").read_text(encoding="utf-8"), ORIGINAL
-        )
-
-    def test_an_ADDRESS_the_census_does_not_carry_is_refused(self):
-        result = self._run({"pkg!m.py@b99": "    # nowhere"})
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("no paragraph in this census", result.stdout)
-
-    def test_a_MOVED_anchor_refuses_the_file_and_writes_nothing(self):
-        (self.repo / "pkg" / "m.py").write_text(
-            "def RENAMED():\n    # old note\n    # second line\n    return 1\n",
-            encoding="utf-8",
-        )
-        result = self._run({str(self.note): "    # new note"})
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("moved since the census", result.stdout)
-        self.assertFalse((self.out / "pkg" / "m.py").exists())
-
-    def test_an_UNADDRESSED_census_is_refused_whole(self):
-        bare = [dict(b, address="") for b in self.paragraphs]
-        self.census.write_text(json.dumps(bare, default=list), encoding="utf-8")
-        result = self._run({"m.py@b0": "    # anything"})
-        self.assertEqual(result.returncode, 2)
-        self.assertIn("carries no addresses", result.stdout)
+        assert len(problems) == 1
+        assert by_cue(sample)[FILLED["b"]].raw_lines == ["# REPLACED"]
 
 
-SRC = '"""Doc."""\n\n# introduces N\nN = 0\n'
+class TestSeveralEditsAtOnce:
+    def test_every_series_can_be_edited_in_one_pass(self, sample):
+        edits = {f"m.py@{FILLED[s]}": REPLACEMENT[s] for s in SERIES}
+        assert reset(sample, edits) == []
+        for s in SERIES:
+            assert by_cue(sample)[FILLED[s]].raw_lines == [REPLACEMENT[s]]
 
-
-def introduces(pg):
-    """The paragraph holding the comment, on a page built from `SRC`."""
-    return next(b for b in pg if "introduces N" in b.text)
-
-
-class TestAReplacementIsTEXT(unittest.TestCase):
-    """Only an empty string is a drop; anything not text is refused.
-
-    !! IT ASKED WHETHER THE VALUE WAS TRUTHY, so every falsy value took the drop
-    path and every non-string truthy one reached `.splitlines()`. MEASURED
-    2026-08-22 against a scratch checkout: a null value exited 0 reporting
-    `1 page(s) set, 0 edit(s) refused` with the comment GONE, and an int died on
-    an uncaught `AttributeError`.
-
-    ! A NULL IS NOT A DECISION. `--edits` is machine-written from approved text,
-    so a key whose value failed to serialise arrives as `null` -- and reading
-    that as "the author asked to delete this" turns a bug upstream into a
-    deletion here, at exit 0.
-    """
-
-    def test_a_non_string_is_refused_and_the_prose_is_untouched(self):
-        for value in (None, 123, [], {}, True):
-            with self.subTest(value=value):
-                pg = built(SRC)
-                held = introduces(pg)
-                refused = galley.reset(pg, {held.address: value})
-                self.assertEqual(len(refused), 1, refused)
-                self.assertIn("must be text", refused[0])
-                self.assertEqual(held.raw_lines, ["# introduces N"])
-
-    def test_an_EMPTY_STRING_is_still_the_drop(self):
-        pg = built(SRC)
-        held = introduces(pg)
-        self.assertEqual(galley.reset(pg, {held.address: ""}), [])
-        self.assertEqual(held.raw_lines, [])
-
-    def test_real_text_is_still_applied(self):
-        pg = built(SRC)
-        held = introduces(pg)
-        self.assertEqual(galley.reset(pg, {held.address: "# new"}), [])
-        self.assertEqual(held.raw_lines, ["# new"])
-
-
-class TestDriftIsPROSEAsWellAsANCHOR(unittest.TestCase):
-    """A comment edited since the census is the file shifting.
-
-    !! THE ANCHOR IS A LINE OF CODE, so a prose edit moves nothing it can see,
-    and the galley wrote approved text over prose nobody had read. MEASURED
-    2026-08-22 on one census: a code change refused at exit 1 naming three moved
-    anchors, while replacing one comment with two unreviewed lines gave exit 0
-    and overwrote both.
-
-    ! IT IS THE RULE `drifted` ALREADY QUOTES. Roy: *"If the file shifted at all
-    it is dead and so are the edits."*
-    """
-
-    def _census(self):
-        return [vars(b) for b in built(SRC)]
-
-    def test_an_unchanged_file_does_not_drift(self):
-        self.assertEqual(galley.drifted(built(SRC), self._census()), [])
-
-    def test_PROSE_edited_since_the_census_is_drift(self):
-        edited = SRC.replace("# introduces N", "# introduces N\n# a second line")
-        got = galley.drifted(built(edited), self._census())
-        self.assertTrue(got)
-        self.assertIn("the prose here changed", got[0])
-
-    def test_CODE_moved_since_the_census_is_still_drift(self):
-        moved = SRC.replace("N = 0", "RENAMED = 0")
-        self.assertTrue(galley.drifted(built(moved), self._census()))
+    def test_editing_every_place_leaves_the_page_still_composable(self, sample):
+        edits = {f"m.py@{FILLED[s]}": REPLACEMENT[s] for s in SERIES}
+        edits |= {f"m.py@{ABSENT[s]}": REPLACEMENT[s] for s in SERIES}
+        assert reset(sample, edits) == []
+        out = set_page(sample)
+        assert out.count("REPLACED") == len(edits)

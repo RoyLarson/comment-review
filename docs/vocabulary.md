@@ -93,9 +93,17 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
 !! **BOTH CANDIDATE WORDS WERE ALREADY SPOKEN FOR, WHICH IS WHY A RULING WAS NEEDED FIRST:**
 
 - **`collate` is FREE.** Stage 2 was `COLLATE` and is **GATHER** since 2026-08-23, because what
-  it does is find every file in scope and put a page for each in the binder -- gathering is the
-  binder's own word for collecting sheets into sequence. ! So `collate` is available for its
-  trade meaning, transferring every hand's marks onto one proof.
+  it does is find every file in scope and put a page for each in the binder. ! So `collate` is
+  available for its trade meaning, transferring every hand's marks onto one proof.
+
+  !! **A BINDER HERE IS THE OBJECT, NOT THE TRADE.** Roy, 2026-08-24: *"The gatherer/census hands
+  over the binder as in a 3-ring binder full of stuff not binder as the person who bounds
+  books."* ! **He has used it that way throughout** -- *"a binder with sticky notes"*, and the
+  annotations ruling earlier the same day put the sticky notes ON the pages IN it. ! This
+  sentence had justified `GATHER` by calling gathering *"the binder's own word for collecting
+  sheets into sequence"*, which is the BOOKBINDER's word -- two senses one clause apart, in the
+  file that exists to keep senses apart. The justification is cut rather than repaired: what
+  stage 2 does is put a page for each file in the binder, and that reads the same either way.
 - **`editorial role` is one of the four reviewers.** Calling the joiner `editor` puts two
   different jobs one syllable apart. In the trade the four are the hands that MARK -- a copy
   editor, a proofreader -- and only one hand rules.
@@ -117,6 +125,28 @@ refuses a term no role uses, and the rule two sections down applies to a term ar
 to one leaving.
 
 ! Tracked in [`TODO/verdicts-is-the-join.md`](../TODO/verdicts-is-the-join.md).
+
+## `binder` -- the object, and the one sense it carries
+
+**Ruled 2026-08-24.** Roy: *"The gatherer/census hands over the binder as in a 3-ring binder full
+of stuff not binder as the person who bounds books."*
+
+| | |
+| --- | --- |
+| **binder** | **the ARTIFACT the gatherer hands over** -- a folder of pages, with sticky notes on them |
+| NOT | the bookbinder, the trade that sews and cases a book |
+
+! **IT HAS BEEN USED THIS WAY THROUGHOUT** -- *"a binder with sticky notes"* -- and the
+`annotation` ruling of the same day put those notes on the pages IN it, which only reads one way.
+
+!! **THE SENSE MATTERS BECAUSE IT DECIDES WHAT THE THING IS FOR.** A bookbinder is a ROLE, and a
+role does work; a binder is a CONTAINER, and a container is handed over. Read as the role, the
+package looks like a stage that acts on pages -- and every question about it becomes *what does
+the binder DO*. Read as the object, the question is the right one: **what is in it, and who is
+handed it.** That is what the field cut of 2026-08-24 was answering.
+
+! **NOTHING SHIPPED CARRIES THE WORD.** It appears in package docstrings and in this file, and in
+no agent's prose -- so the sense was declared before an agent could learn the wrong one.
 
 ## What becomes of a mark -- `taken in`, and `stet`
 

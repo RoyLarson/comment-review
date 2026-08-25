@@ -97,6 +97,174 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ROW FIRST**: Rust declares `("///", "//!")` undifferentiated, and `//!` documents the ENCLOSING
   item, so a bare placement rule demotes a module's own doc to a comment.
 
+- **#12.** **A census row carries SIX fields, and the page carries the rest** (Roy, 2026-08-24,
+  field by field). The nineteen become `cue`, `anchor`, `anchor_num`, `original_start`,
+  `original_end`, `raw_text`, under a page envelope naming `path` and the source SHA.
+
+  | | ruling |
+  | --- | --- |
+  | `original_start`, `original_end` | **stay** -- *"they are the line numbers and the term original is defined intentionally"* |
+  | `start`, `end` | **go.** A duplicate, and *"original has the definition and that makes it worth the extra tokens"* |
+  | `anchor_num`, `anchor` | **stay.** Already ruled 2026-08-21, *"anchor_num along with anchor"* |
+  | `anchor_line` | **goes.** `anchor_num` replaced it as the order in 2026-08-21 |
+  | `raw_lines` -> `raw_text` | **stays, renamed, and becomes ONE STRING** -- *"the full thing not broken into separate lines, else it isn't raw text"* |
+  | `text` | **goes.** A duplicate of the same prose in a second shape |
+  | `address` -> `cue` | **reduced.** The page names the file, so the row need not |
+  | `path` | **moves to the page envelope** |
+  | `tier` | **goes.** Not necessary, and *"the parser tier isn't long for this world"* |
+  | `lines` | **goes.** *"It is ambiguous"* |
+  | `kind`, `annotations`, `notes` | **go** |
+  | `symbol`, `declares`, `original_column` | **go** |
+
+  !! **THE LAST THREE GO FOR A REASON THAT IS NOT SIZE.** Roy: *"they are stating something that
+  the cue letter states. So we just give the agents the legend for the cue letters and let them
+  run with it."* **The answer is a legend, not a field** -- and the check that makes it safe is
+  a round trip: *"a little bit of pattern matching to ensure that they followed the cue letters
+  in the final version as well, using a round trip by the lexer to verify that the cues come
+  back with the same content (except the front matter headache)."*
+
+  ! **THAT IS A DIFFERENT QUESTION FROM THE PAGE SHA** (`#8` of Process): the SHA asks *did the
+  file shift under us*, the cue round trip asks *did the edits land where the cues said*.
+
+  !! **AND THE FIRST REASON IS THE READER, NOT THE BYTES.** Roy, 2026-08-24: *"LLMs and the
+  token parsers read this as a complete and coherent statement. They do not read this as the same
+  thing:*
+
+      ["LLMs and the token", "parsers read this as a", "complete and coherent", "statement"]
+
+  *It took my phone, which runs a token parser, to the last word to realise I was duplicating
+  the sentence and supply a suggestion."*
+
+  ! **THE FOUR REVIEWERS ARE TOKEN PARSERS, AND PROSE IS WHAT THEY ARE ASKED TO JUDGE.** A
+  paragraph handed over as line fragments makes each role reassemble the sentence before it can
+  ask whether the sentence is true -- so the split is paid for at the one place this system
+  exists to do well. ! **Argued, not measured**: the demonstration above is one, and whether a
+  role finds more when handed text is a question for the grader.
+
+  !! **A FIDELITY ARGUMENT WAS MADE FOR THIS AND RETRACTED THE SAME DAY.** It ran: the split
+  destroys the line ending -- `text_lines("one\r\ntwo\r\n")` returns `["one", "two"]` -- so one
+  string keeps what a list threw away. ! **It does not hold.** `compositor.line_endings` already
+  rules that *"the first ending wins and mixed files are normalised"*, and puts one back at SET
+  time; a per-paragraph ending would preserve a fact the compositor discards on purpose. The
+  CRLF round trip works today through `set_page`, not through the stored lines.
+
+  ! **SO THERE ARE TWO REASONS, NOT THREE**: the reading, and 3-5% of bytes. **The byte figure
+  is what this ruling was reached through and is the lesser of them** -- and the retracted
+  middle reason is kept here because it was in the commit that landed the ruling.
+
+  ! **MEASURED, on the full census of one 659-row page**: 429,239 bytes to **158,543, 36%** on
+  every row, and 54,793 -- **12%** -- on the rows that hold prose. Re-derive with
+  `scripts/measure_binder.py`.
+
+- **#13.** **`code_names` and `referrers` are a CONCORDANCE** (Roy, 2026-08-24: *"concordance
+  -- for the two."*). They are INVERSES -- what the tree DEFINES, and who NAMES a file --
+  and both exist because **a page cannot corroborate itself**: a corpus built from the text
+  under review contains the comments being checked, so every obituary resolves against itself
+  and the check always passes. Both read the WHOLE CHECKOUT and never the pages under review.
+
+  !! **THEY WERE UNPLACED FOR A REASON WORTH KEEPING.** Neither performs an operation ON the
+  machine and neither knows what a page is, so `machine` and `binder` each had to stretch past
+  its own door to hold them. Roy ruled the neighbouring half first -- *"there was the git stuff
+  which is io"* -- and left these: *"the code_names and referrers we actually need to settle."*
+  They sat at the package root, where root MEANT unplaced, until this.
+
+  ! **A CONCORDANCE is the trade's index of every word in a text and where each occurs**, which
+  is what the two build between them. ! The name was reached the way `compositor` was, and in
+  that order: ask what the thing IS, find the job in the answer, name the job by what it DOES,
+  and only then take the trade's word for it.
+
+  ! **`code_names` WAS A FUNCTION INSIDE `census.py`**, so this was an extraction. Two things
+  could not travel with it: **`walk_files`** (was `census._walk`), which `commands/census.py`
+  also uses and which is a plain filesystem walk over the checkout -- it went to
+  `machine/repo.py`, beside the `EXCLUDED_DIRS` it already reads, and lost the leading
+  underscore it should never have carried across a module boundary; and **`SYMBOLISH`**, a
+  one-line identifier regex whose only reader had been `binder/annotate.py` -- importing it
+  from there would have made `concordance` depend on `binder` for a regex, so it went to
+  `reading/lexer.py`, which `code_names` already imports from, adding no edge.
+
+- **#15.** **AN ABSENT PLACE IS NOT SENT TO AN AGENT UNLESS IT IS ASKED FOR** (Roy, 2026-08-25:
+  *"The absent kinds are not supposed to be sent to the agents unless specifically asked for."*).
+
+  !! **MEASURED over this repo the moment the ruling landed: 5,223 of 5,707 rows -- 91% -- held
+  no prose.** 2,692 `margin` and 2,437 `interval`, which is roughly ONE EMPTY PLACE PER LINE OF
+  CODE, against **2** `undocumented` in the whole tree. The binder falls from **1,147,232 bytes
+  to 391,763 -- a 66% cut**, and four roles read it: 3.0 MB.
+
+  ! **AN EMPTY PLACE IS STILL ADDRESSED, WHICH IS WHAT MAKES IT SAFE.** The walk emits every
+  place, filled or not, so `add` stays expressible -- a reviewer asks for the one it means:
+  `addresser --census C --anchor "<line of code>" --series b` answers `m.py@b1`. The place is
+  CITABLE without being CARRIED. ! `census --include-absent` is the flag for a caller that wants
+  them all.
+
+  !! **AND IT MAKES `#12` RIGHT AND `#14` HALF-WRONG, WHICH IS WORTH KEEPING VISIBLE.** `#12`
+  cut `kind` because *"the cue letter states it"*; `#14` put it back, arguing the letter gives
+  the SERIES while the kind gives which half of the pair. Both were true, and the second stopped
+  mattering here: **every row a reviewer now receives holds prose**, so its kind is its series'
+  `present` and the letter does state it. `kind` is gone again and the row is SIX fields --
+  the number `#12` ruled.
+
+  ! **MEASURED before removing it, over 14,139 rows: `kind` equalled `derive(cue, raw_text)` in
+  14,136.** The three exceptions are `go`, `ruby` and `lua`, where the kind DISAGREES with the
+  cue -- `TODO/a-doc-comment-is-cued-a-and-typed-b.md`, a defect rather than information.
+
+- **#16.** **`anchor_num` LEAVES THE ROW, and comes back only if it is shown to be needed**
+  (Roy, 2026-08-25: *"The anchor num lets drop it and add it back if it actually becomes
+  necessary. That is safe now."*). It was kept on 2026-08-21 because the galley and compositor
+  were thought to need an order the cues could not be trusted to carry. **The chain ruled since
+  (`Process: #14`) has the write path RELOAD the page from disk**, so it takes the anchor order
+  from the page and never from a row. ! MEASURED before removing it: NOTHING read it from a row --
+  `page` stamps it and `addresser` computes it, both on the page side. **The row is FIVE fields.**
+
+  ! **IT IS THE ONE CUT MADE ON AN EXPECTATION RATHER THAN A MEASUREMENT**, and it is recorded
+  that way: if a consumer turns out to need it, the field returns. What makes that safe is that
+  nothing silently depends on it -- a caller that needs the order and cannot find it fails loudly.
+
+- **#17.** **THE PAGE SHA IS THE VERIFICATION STEP'S, and an unread field is a step that does not
+  exist yet** (Roy, 2026-08-25: *"The sha is carried to the verification step to verify that the
+  edits that the agents were running against are the same files that the galley and compositor are
+  going to copy and write over."*).
+
+  ! **RECORDED BECAUSE IT WAS NEARLY CUT AS DEAD.** An audit on 2026-08-25 found `sha` emitted
+  with no reader and listed it beside `anchor_num` as a candidate. It is not the same case: the
+  chain (`Process: #14`) reads the page TWICE -- once into the binder an agent rules on, once
+  again on the way out -- and this is the only thing that can say the two reads saw the same file.
+  **A field with no reader YET is not a field with no purpose**, and the difference is whether a
+  named step is waiting for it.
+
+  ! **A RENAME IS STILL OPEN.** Roy proposed *"code names becomes references"* and withdrew it
+  the same minute -- *"Don't act on that actually, continue with the split will determine
+  later."* The module is `concordance/code_names.py` until he rules.
+
+- **#14.** **THE LETTER LIVES WITH THE PAIR, AND `d` IS A SERIES** (Roy, 2026-08-25, reversing
+  his own earlier decision: *"I feel I messed up ... when I made the decision not pairing cue
+  letter and the present absent pairings together. The present absent pairings is effectively
+  what defines the series and the identifier we give it should be right there with them. This
+  goes for those and then the remaining Kind.LEADING gets its own series d separately which I
+  think it already kind of does but the logic should be where that is defined not a layer
+  removed."*).
+
+  ! **WHAT THE SPLIT COST:** the letters were `addresser`'s constants and the pairs were
+  `lexer`'s enum -- two modules that cannot import each other -- tied only by MEMBER NAME and
+  held equal by a test. **That test existed because there were two sources.** `Kind`'s own
+  docstring drew the `a`/`b`/`c`/`f` table in PROSE beside code that knew no letter.
+
+  ! **`reading/series.py` IS THE LEAF THAT HOLDS BOTH.** `Definition(letter, present, absent)`,
+  and `Series` carries one per series. `ADDRESSED` (the citable letters) and `ABSENT` (the empty
+  kinds) are both DERIVED from it. ! `d` is a member whose `absent` is `None` -- a fence has a
+  present and no absence, and saying so where the series is defined replaces an exclusion that
+  had been written into three other modules.
+
+  !! **AND IT CORRECTS PART OF `#12`.** That ruling cut `kind` from the row because *"they are
+  stating something that the cue letter states"* -- **half true.** The LETTER states the series;
+  the KIND states which half of the pair, `comment` against `interval`. A letter cannot say
+  whether prose is there, so `kind` is not restatable from it and is back in the row. ! The
+  other ten fields of that cut stand.
+
+  ! **A `raw_text` EMPTINESS TEST WAS TRIED AS A SUBSTITUTE AND REFUSED.** Roy: *"No the lexer
+  answers this with the appropriate Enum pair or Kind enum."* It invents a predicate beside one
+  that exists, and an empty string is a fact about a VALUE where the kind is a fact about the
+  PLACE.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
@@ -181,6 +349,30 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **The measurement is the point, not the verdict.** The register rule asks that a candidate be
   checked BEFORE it is proposed; this is what that check returns when it is run, and it took one
   `grep`.
+
+- **#13.** **`annotation` is the BINDER's sticky note, and only one thing in this system may
+  carry the word** (Roy, 2026-08-24: *"Sticky notes for making the pages pages for important
+  information. Directly relevant. May need a different term than annotations though or the other
+  annotations get different terms"*, then: *"Only one is allowed"*). It goes to the binder.
+
+  !! **IT WAS SETTLED BY EXPERIMENT RATHER THAN BY ARGUMENT, which is new here.** Roy: *"Can you
+  give a couple of subagents a record and then split one and give it one annotation labeled as
+  annotation and one labeled as sticky_note and ask it to use it to determine something about
+  the record? Looking temporarily for what gets the concept across best while it is easy."*
+  MEASURED 2026-08-24, **3 agents per arm on identical records differing only in the key**:
+  `annotation` was read as a fact ABOUT the record by all three; `sticky_note` was read by two of
+  three as something a HUMAN had left, and one discounted it as informal. ! Roy: *"I am glad we
+  tested it first."*
+
+  ! **A TERM THAT AN AGENT READS IS TESTABLE ON AGENTS**, and the test cost one message. The
+  register rule says check a candidate before proposing it; this is a second check, for a word
+  whose whole job is to be understood by a reader that can be asked.
+
+  !! **AND IT LEAVES A DEBT: the three OTHER users of the word need names.** The lexer's three
+  are **errors**, not notes -- Roy: *"if it is errored now we already have a broken system"* --
+  and go to `TODO/exception-hierarchy.md`. **The collate-step message is UNNAMED**, deliberately:
+  Roy asked for *"a name, don't need what it looks like yet. Because it isn't an annotation"*,
+  and nothing has been ruled.
 
 ## Metaphor and its limits
 
@@ -308,3 +500,114 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   two-round bound IS the trade's practice**, which is why the bound and the word arrive together.
   MEASURED 2026-08-24: **13 files, 41 occurrences; 7 files and 23 occurrences shipped** under
   `plugins/`. `TODO/nothing-makes-the-fair-copy.md` T11 carries the rename.
+
+- **#11.** **A one-for-one substitution is not a lane crossing** (Roy, 2026-08-24: *"This doesn't
+  land in the other lane just like a vocabulary change doesn't land in the other lane. A one for
+  one swap is allowed."*). A lane may make a MECHANICAL swap in another lane's file when its own
+  change forces it -- a command's spelling, a renamed symbol, a moved path -- and may not change
+  what the instruction MEANS. **The test is whether a reader's BEHAVIOUR changes.** Written up in
+  [`conventions.md`](conventions.md); it is the SECOND standing exception to *name the lane and
+  ask*, and that file's claim to have only one was corrected in the same change.
+
+- **#12.** **A library module does one job and has no CLI; a flow calls libraries; a command
+  exposes a flow** (Roy, 2026-08-24, ordering the move to `src/comment_review/`: *"The entry
+  points get an actual entry point .py file and the commands run through it not through the
+  scripts that are doing double or triple duty."*). MEASURED the same day: **10 of 19 shipped
+  modules have a `main()`**, four of them imported by others while also being CLIs -- `addresser`
+  is imported by **7**. ! The console guard is written into **eleven** files as a consequence.
+  Scoped by [`docs/plans/0.2.4-rework-the-boundaries-are-not-real.md`](plans/0.2.4-rework-the-boundaries-are-not-real.md).
+
+  ! **THE SHIPPED TREE TAKES THE SAME STRUCTURE, WHOLESALE** -- Roy: *"It is definitely not
+  flattening them out again. I said wholesale I meant it. Whatever structure we end up with ends
+  up there."* And `tests/` follows it too: *"The tests folder layout follows the move layout."*
+
+  ! **`repo`'s git calls, filesystem reads and exception tuples are `io`** (Roy, 2026-08-24:
+  *"there was the git stuff which is io"*). **`code_names` and `referrers`' library half are
+  NOT ruled** -- *"the code_names and referrers we actually need to settle"*. Both ask a
+  question ABOUT the checkout rather than performing an operation ON it, so neither is io's and
+  neither is a page's. Open as P11 of that plan.
+
+- **#13.** **CORRECT is not a green suite** (Roy, 2026-08-24: *"correct isn't passing green tests
+  -- correct is passing the human comment review and having it come back looks good and
+  correct"*, and *"it is ultimately that I am satisfied with the way the code operates, not just
+  that it can accomplish its goals but that I agree that the way it gets from point A to B to ...
+  Z is what I would write if I had the time"*). ! **It is the standard this tool applies to
+  everyone else's code**, which is why stage 8 is a reader rather than a checker and why
+  [`gates.md`](gates.md) exists. A ticked box is necessary and is not the claim.
+
+- **#14.** **THE CHAIN FROM BINDER TO HUMAN, ruled end to end** (Roy, 2026-08-24). This is the
+  answer to the question [`nothing-makes-the-fair-copy`](../TODO/nothing-makes-the-fair-copy.md)
+  was opened for, and the piece that was missing when he said *"we have a missing piece in the
+  chain."* Verbatim:
+
+  > *"The binder goes to the agents the agents make there marks on something (I am think
+  > notations) the desk system takes the notations and the binder and emits an update {address:
+  > new paragraph}. The galley gets a list of the updates (list is loose here it needs more like
+  > the page sha). The workflow reloads the page sends the page through the galley with the
+  > updates. Then after the updates finished sends that to the compositor. Sends that through
+  > the page system again to make certain that the agents put the right comments in the right
+  > places. The that gets shown to the human ..."*
+
+  | step | who | in | out |
+  | --- | --- | --- | --- |
+  | 1 | the binder | the pages | what the agents read |
+  | 2 | the agents | the binder | **notations** -- their marks |
+  | 3 | the **desk** | notations + binder | **`{address: new paragraph}`** |
+  | 4 | the workflow | | RELOADS the page |
+  | 5 | the **galley** | page + updates + a page SHA | the updated page |
+  | 6 | the **compositor** | that page | the text |
+  | 7 | the **page** again | that text | proof the marks landed where they were meant to |
+  | 8 | the human | | the proof |
+
+  !! **THE UPDATE IS `{address: new paragraph}` AND NOTHING ELSE**, which settles what a verdict
+  and a record are NOT. Roy, earlier the same day: *"the galley only really needs this address
+  gets this paragraph and that replaces the current page paragraph."* ! Inferring that the
+  RECORD carries it was ruled **WRONG**; twelve tests are held rather than patched because of it.
+
+  ! **`notations` IS PROPOSED, NOT SETTLED** -- *"I am think notations"*. The name for what an
+  agent emits is still open; the SHAPE it becomes is not.
+
+  !! **THE PAGE IS READ TWICE, AND THE SECOND READ IS THE CHECK.** Step 7 sends the composed text
+  back through the page system to confirm the marks landed where they were meant to -- so the
+  system verifies its own output by the same reader that produced its input, rather than by
+  trusting the write. ! That is [`gates.md`](gates.md)'s rule satisfied by construction, and it
+  needs the page SHA of step 5 to be worth anything.
+
+  !! **NOTHING TRANSFERS FROM THE BINDER TO THE END.** Roy, 2026-08-24, stating it as flatly as
+  it can be stated. The binder is what the agents READ, and step 4 RELOADS the page from disk --
+  so **not one binder row reaches the galley, the compositor or the output.** The only thing that
+  crosses from the reading side to the writing side is the ADDRESS, which is a key, not data.
+
+  ! **THAT IS WHY THE BINDER CAN BE TRIMMED WITHOUT TOUCHING THE WRITE PATH**, which is the
+  premise the field cut was working from before this branch paused it -- and why a census row
+  must never be treated as a source of truth for writing. Roy: *"Nothing builds from census rows
+  because nothing has to and nothing should have to."* MEASURED 2026-08-24: the galley already
+  re-reads the file (`read_raw`, then `page_for`) and uses the census only for the addresses an
+  edit cites, so the rule describes the code as it stands rather than asking it to change.
+
+- **#15.** **LEADING IS A FENCE, AND A FENCE TAKES NO ADDRESS** (Roy, 2026-08-24: *"Series d are
+  walked because they have to be but they are not cues"*, and *"You don't put an address on a
+  fence because it is what divides properties. The only thing we can do is say well there was a
+  fence here before we did this there should be a fence here after we did this."*).
+
+  ! **IT IS NOT PASSED TO THE AGENTS** -- *"The leading is not something that will be passed to
+  the agents. The same as the extra record attributes. It gets dropped because there is nothing
+  to rule on. It is for white space."* ! MEASURED 2026-08-24, BEFORE the fix: `census --json`
+  over a 10-line file emitted **3 rows carrying no address**, every one `kind='leading'`; over
+  this repo's own `src/`, **422 of 9,459 paragraphs** were addressless and every one was leading.
+
+  !! **AND THE ADDRESS IS A POSTAL ADDRESS, WHICH IS WHERE THE FENCE FOLLOWS FROM.** Roy: *"the
+  analogy for the address is a real address. Street name street number, city, state, [country --
+  assumed]. The cue is the street name and number, the file is the city, and the rest is the
+  folder structure and computer."*
+
+  | postal | here |
+  | --- | --- |
+  | street name and number | the **cue** -- `b3` |
+  | city | the **file** |
+  | state | the folder structure |
+  | country | the machine, assumed |
+
+  ! **A fence between two properties has no street number**, which is why `d` carries a SYMBOL
+  and never an address -- and why asking one for its series is a category error rather than a
+  case to absorb. The blank return that let it pretend otherwise is gone.
