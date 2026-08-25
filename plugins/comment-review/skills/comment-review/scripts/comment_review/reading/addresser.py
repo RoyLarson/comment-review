@@ -149,9 +149,20 @@ drift from.
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
-ON = "c"
-GAP = "b"
-DECLARED = "a"
+from comment_review.reading.series import ADDRESSED, Series
+
+# !! THE LETTERS COME FROM THE SERIES DEFINITION, since 2026-08-25. Roy: *"The
+# present absent pairings is effectively what defines the series and the
+# identifier we give it should be right there with them."* They were spelled
+# here and the pairs were spelled in `lexer` -- two modules that cannot import
+# each other, tied only by MEMBER NAME and held equal by a test. That test
+# existed because there were two sources; there is one now.
+#
+# ! `series` IS A LEAF and holds no notion of a place, so taking the letters
+# from it acquires no subject: this module still knows nothing about prose.
+ON = Series.ON.value.letter
+GAP = Series.GAP.value.letter
+DECLARED = Series.DECLARED.value.letter
 # !! THE FILE'S OWN PROSE, IN ITS OWN SERIES. `b` owns every line that is not
 # another series' lines, and typing the file's own matter as an ordinary comment
 # breaks that: it would take a `b` cue wherever it sits, making it the one
@@ -166,7 +177,7 @@ DECLARED = "a"
 # a singleton -- a copyright or another piece in a docs file would want one.
 # `f0` today, because `cue` emits it at the module and nowhere else; `f1..fN`
 # the day a second front-matter place is emitted.
-COVERS = "f"
+COVERS = Series.COVERS.value.letter
 
 # !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row here
 # -- the same rule `lexer.LANGUAGES` follows. Roy, 2026-08-20: *"we may find
@@ -193,7 +204,7 @@ COVERS = "f"
 # `Page.prose` and out of record seeding, and NO EMPTY `d` IS EMITTED -- the
 # other four series exist wherever prose COULD go, because an `add` cites them;
 # a place no verdict can name has no reason to exist unfilled.
-LEAD = "d"
+LEAD = Series.LEAD.value.letter
 #: The four series `cue` emits. **`LEAD` IS NOT ONE OF THEM**, since 2026-08-22.
 #:
 #: !! IT FAILED THE SUBSTITUTION THE OTHER FOUR SATISFY. Roy: *"it has no
@@ -218,7 +229,10 @@ LEAD = "d"
 #:
 #: ! `LEAD` SURVIVES AS A SYMBOL, on Roy's ruling that the page/symbol map is
 #: what shows every line is covered -- see `lexer.Paragraph.symbol`.
-SERIES = (COVERS, DECLARED, GAP, ON)
+# ! DERIVED, NOT LISTED. Every series whose absence can be CITED -- which is
+# every series but `d`, and the definition says so by giving `d` no `absent`
+# rather than by an exclusion written here.
+SERIES = ADDRESSED
 
 
 #: The FIRST TRIGGER every addresser steps past: the file itself, before any line

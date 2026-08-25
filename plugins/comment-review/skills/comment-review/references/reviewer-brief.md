@@ -275,7 +275,7 @@ refuses a brief that has drifted from it. ! It had drifted: the hand-written tab
 an older marker form under a JSON worked example, and ten of the eleven keys a reviewer
 must type appeared nowhere here as keys.
 
-<!-- BEGIN GENERATED: verdict table -- scripts/render_brief.py -->
+<!-- BEGIN GENERATED: verdict table -- prototype/render_brief.py -->
 
 | verdict | `claim` keys | what they carry |
 | --- | --- | --- |

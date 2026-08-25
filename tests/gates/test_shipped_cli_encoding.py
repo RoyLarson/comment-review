@@ -14,7 +14,7 @@ have been visible.
 import re
 import unittest
 
-from _paths import PKG, ROOT
+from conftest import PKG, ROOT
 
 ROOT = ROOT
 

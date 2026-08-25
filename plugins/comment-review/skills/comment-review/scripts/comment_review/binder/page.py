@@ -69,7 +69,6 @@ from comment_review.reading.addresser import (
     cue_of,
 )
 from comment_review.reading.lexer import (
-    Kind,
     Language,
     Paragraph,
     declarations,
@@ -79,6 +78,7 @@ from comment_review.reading.lexer import (
     paragraphs_lexical,
     paragraphs_stdlib,
 )
+from comment_review.reading.series import Kind
 
 # !! EVERY LINE HAS AN ADDRESS, AND SO DOES EVERY POTENTIAL LINE. Roy,
 # 2026-08-19: without an empty `c` "you can't specify that the comment belongs
@@ -97,7 +97,7 @@ from comment_review.reading.lexer import (
 # `code_lines` asks. ! They part on exactly `leading`, which holds no prose and
 # DOES stand on real lines -- so answering the second with the first takes a
 # blank run out of `occupied`, reads it as CODE, and renumbers every `b` and
-# `c` below it. Neither is listed; both derive from `lexer.Series`.
+# `c` below it. Neither is listed; both derive from `Series`.
 
 # !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE LEXER STATES IT -- see
 # `lexer.MATTER`. Stamping it HERE would put a positioning rule in a module that
@@ -445,7 +445,7 @@ def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
     only which of them prose is sitting in, and gives the rest a paragraph.
 
     ! An empty place occupies no lines -- that is what the ABSENT half of a series
-    means, see `lexer.Series` -- and it is why emitting one cannot move a code
+    means, see `Series` -- and it is why emitting one cannot move a code
     line or renumber anything below it.
 
     Args:

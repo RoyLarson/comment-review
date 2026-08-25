@@ -36,12 +36,8 @@ import ast
 import sys
 import unittest
 
-from _paths import ROOT
+from conftest import ROOT
 
-# ! No `_paths` import. Every other test module takes it to put the shipped
-# scripts on `sys.path`; this one READS them and imports none, so taking it
-# would be a shim for nothing.
-ROOT = ROOT
 # !! THE SOURCE, NOT THE BUILT COPY. `plugins/` holds whatever the last build
 # put there, so a gate reading it answers "was the build run" rather than "is
 # the code clean" -- and it reads as PASSING on a tree the build has not

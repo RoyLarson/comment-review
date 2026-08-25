@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from _paths import ROOT  # noqa: F401  -- puts the shipped scripts on the path
+from conftest import ROOT  # noqa: F401  -- puts the shipped scripts on the path
 
 # ! `dead_sweep.py` is a development tool, not a shipped one, so it is not on
 # the path `_paths` sets up for the plugin's own modules.

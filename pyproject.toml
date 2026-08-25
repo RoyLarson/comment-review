@@ -98,7 +98,19 @@ line-length = 88
 # forks it, so the next grab arrives as a conflict in every file -- the same
 # argument the evidence exclude makes, one repository over. ! A local patch to a
 # vendored file says so at the patch.
-extend-exclude = ["evidence/*-full-*", "scripts/todo_tool.py"]
+#
+# !! `prototype/` IS A RECORD OF HOW IT WORKED, NOT SOURCE. Roy, 2026-08-25:
+# *"all of the old code in the agent section are prototypes ... moving it into a
+# prototype/folder cleans the old code out once immediately but leaves us
+# appropriate references for how the system could work."* Nothing imports it,
+# nothing ships it, and it does not run -- its imports name modules that moved
+# out from under it. Linting it to this repo's config would ask a reference to
+# keep up with a codebase it is no longer part of.
+extend-exclude = [
+    "evidence/*-full-*",
+    "scripts/todo_tool.py",
+    "prototype",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "D"]
@@ -125,7 +137,3 @@ exclude = ["**/*.md"]
 # Test names are the documentation here; a docstring per case restates the
 # name and rots separately from it.
 "tests/**" = ["D"]
-# ! The shadow suite, same rule and same reason. It is not collected by
-# `testpaths` and runs only when named -- `uv run pytest shadow/` -- so it
-# earns its place before it joins the gate. See `shadow/README.md`.
-"shadow/**" = ["D"]

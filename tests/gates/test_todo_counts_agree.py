@@ -18,7 +18,7 @@ which the two field reports number separately, so its total is not its boxes.
 import re
 import unittest
 
-from _paths import ROOT
+from conftest import ROOT
 
 TODO = ROOT / "TODO"
 

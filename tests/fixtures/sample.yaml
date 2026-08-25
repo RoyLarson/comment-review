@@ -1,9 +1,0 @@
-# fx.yaml -- one small document.
-# YAML has no docstring practice, so this file mints no `a` series.
-
-server:
-  host: localhost
-  port: 8080  # a trailing comment
-
-client:
-  url: "http://example.com/not-a-comment"

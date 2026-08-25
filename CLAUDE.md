@@ -127,30 +127,43 @@ uv run python evals/generator_split.py <corpus-dir> [paths...]
 # Survey GitHub for assistant-authored repos to extend the corpus
 uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
-# Run the test suite. BOTH RUNNERS WORK and neither is going away.
-uv run pytest -q                              # the one to reach for
-uv run python -m unittest discover -s tests -v
+# Run the test suite. PYTEST, and only pytest.
+uv run pytest -q                    # 779 passed, 3 xfailed, ~1.5s
+uv run pytest -q -k galley          # one file, one class or one test
 
-# !! THE TESTS ARE NOT BEING REWRITTEN. Roy, 2026-08-22: *"since we have dev
-# dependencies PYTEST -- don't rewrite, but that is a big one for me."* pytest
-# collects `unittest.TestCase` natively, so all 795 cases and 690 subtests run
-# under it with no edit to any of them. ! A case written in the `unittest` style
-# is CORRECT here; do not convert one to bare asserts or fixtures because pytest
-# would allow it, and do not add a `conftest.py` a `unittest` run cannot see.
-
-# ONE file, one class, one test -- `-k` matches any of the three, and NOTHING
-# else runs a subset. There is no `python tests/test_x.py`: a `__main__` runner
-# adds nothing discovery cannot do, and its POSITION is load-bearing in a way
-# nothing checks. Measured 2026-08-19, after a class was cut from above one:
-# `test_addresser.py` ran 18 tests directly and 67 under discovery, and five
-# more files had the same shape. 20 runners deleted, 184 lines with them.
-uv run python -m unittest discover -s tests -k test_addresser
-uv run python -m unittest discover -s tests -k TestEachAddresserCountsItsOwnSteps
-uv run python -m unittest discover -s tests -k test_the_MODULE_has_an_a_and_NEVER_a_c
+# !! THE SUITE WAS REPLACED WHOLESALE ON 2026-08-25, and the rule above it --
+# *"BOTH RUNNERS WORK and neither is going away"* -- went with it. Roy: *"Delete
+# the old test suit put in the new one."* The new suite is written in plain
+# pytest, so `unittest discover` now finds only `tests/gates/`, which are still
+# `TestCase` classes. ! THAT IS A CONSEQUENCE OF THE INSTRUCTION, not a decision
+# taken alongside it: Roy asked for *"standard pytest stuff"*.
+#
+# !! WHY THE OLD ONE WENT: 866 tests, and THREE changes on 2026-08-24 that each
+# broke something real were noticed by ZERO of them -- fences reaching agents,
+# eleven fields leaving the row, and a rename that made every finding report
+# "the sentence ruled on is not in <place>". One mechanism each time: the
+# fixtures were hand-authored in the shape the code expected, so they could only
+# CONFIRM, and when the contract moved they went on asserting the old one.
+#
+# ! WHAT REPLACED IT: 94 test functions over ~780 executions, derived from the
+# code without reading the suite they replaced. Pages come from `page_for` over
+# real source, binders from `bind`; a literal appears only where malformed IS
+# the input. MEASURED by mutation: three defect classes the old suite could not
+# see at all. See `tests/README.md`.
+#
+# ! `tests/gates/` SURVIVED, because it asks a different question -- whether a
+# GATE still bites, over `scripts/` and the release rather than over the code
+# under redesign.
 
 # Stage 3 inbound: which tracked files NAME the files under review
 uv run python src/comment-review.py referrers --repo . <paths...>
 
+# !! THE FOUR COMMANDS BELOW MOVED TO `prototype/` ON 2026-08-25 and no longer
+# run. Roy: *"all of the old code in the agent section are prototypes."* They
+# are left here, marked, because the commands that replace them are not designed
+# yet -- see `prototype/README.md` and
+# `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
+#
 # Stage 5 gate: join reviewer reports against the census, check every citation.
 # Each report file is NAMED FOR ITS ROLE -- the tool takes the role name from
 # the file stem, and --reviewers compares against those stems.
@@ -425,6 +438,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | `evals/`                          | `generator_split.py` (the authorship split) and `test-cases.jsonl`. ! The twelve planted hazards and their grader are NOT here -- there is no end-to-end grade, see Commands |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |
 | `scripts/`                        | `build_plugin.py` (which makes `plugins/`), `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` -- none of this ships with the plugin                        |
+| `prototype/`                      | **REFERENCE, NOT SOURCE.** The middle of the chain -- the desk, the join, the record -- moved here 2026-08-25. Nothing imports it, nothing ships it, it does not run. Kept because the replacement is not designed yet; see `prototype/README.md` |
 | `.claude-plugin/marketplace.json` | lets this checkout be installed as a plugin marketplace in the same session (`claude plugin marketplace add <path>` then `claude plugin install comment-review`)           |
 
 ### Shipped-code constraint that shapes how every `plugins/` script is written

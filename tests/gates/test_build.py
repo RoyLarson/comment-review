@@ -13,7 +13,7 @@ import shutil
 import sys
 import unittest
 
-from _paths import ROOT
+from conftest import ROOT
 
 sys.path.insert(0, str(ROOT / "scripts"))
 import build_plugin as bp  # noqa: E402

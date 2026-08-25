@@ -19,7 +19,7 @@ does not, in any position.
 import re
 import unittest
 
-from _paths import ROOT
+from conftest import ROOT
 
 ROOT = ROOT
 SHIPPED = ROOT / "plugins" / "comment-review"

@@ -5,7 +5,7 @@ import re
 import tomllib
 import unittest
 
-from _paths import ROOT
+from conftest import ROOT
 
 ROOT = ROOT
 # The newest release heading. `[Unreleased]` is skipped: it carries no number,

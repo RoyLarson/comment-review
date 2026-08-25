@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (62)
+### open  (63)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -244,6 +244,7 @@ that changed a published name or rule:
 | [stage-7b-cannot-be-run](stage-7b-cannot-be-run.md) | backend | — | 0/3 | SKILL.md stage 7b says the compositor puts the approved draft over the real file wholesale, and compositor.approve(drafted, real) implements exactly that. NOTHING CALLS IT: no shipped code, and the compositor command takes only positional paths -- no --approve, no --draft. The galley command writes a directory and stops. So the one step that puts approved text on disk is documented, implemented, and unreachable. PRE-EXISTING: approve was equally uncalled at b3d79d2, before the package move. dead_sweep has reported it as held-by-prose-only; it always exits 0, so nothing was failing. |
 | [a-doc-comment-is-cued-a-and-typed-b](a-doc-comment-is-cued-a-and-typed-b.md) | backend | — | 0/3 | MEASURED across thirteen languages: go, ruby and lua place a declaration's documentation at an a cue and type it comment -- which is the b series' kind. Rust, Java, C#, Kotlin, Swift, TS and JS all answer docstring, and they are the ones with a DISTINCT doc marker (/// or /** */). The three that break it use an ordinary line-comment marker as their doc form, so the lexer cannot tell the two apart by token and types it comment while the walk still cues it a. One row makes two claims about itself, and every consumer pairing them sees a contradiction: record.prose_paragraphs filters on the KIND while series_of reads the CUE. |
 | [two-filters-for-one-fence-rule](two-filters-for-one-fence-rule.md) | backend | — | 0/2 | binder.bind() filters fences with 'if b.address' and flows.census.carried() filters them with the same predicate. Two statements of one rule: removing either leaves the binder correct, which is how a mutation removing carried() changed nothing an agent receives. One of them owns the rule; the other should call it or go. |
+| [the-skill-names-commands-that-moved-to-prototype](the-skill-names-commands-that-moved-to-prototype.md) | agents | yes | 0/3 | Stages 4-7 of the shipped skill cannot be followed as written: SKILL.md invokes record (x2), run_context (x2), verdicts and vocabulary, and all four moved to prototype/ on 2026-08-25. The dispatcher lists six commands now, not ten. This is deliberate rather than an oversight -- the agent-facing design is what is being reconsidered, and rewriting the stages before deciding the new one would be inventing the answer. It is filed so the breakage is a known state and not a discovery. |
 
 ### in-progress  (19)
 

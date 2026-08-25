@@ -13,12 +13,17 @@ below was derived by reading the modules and by running them over real input to
 see what they actually do. Where an assertion states a value, that value was
 OBSERVED first.
 
-!! IT IS NOT COLLECTED BY DEFAULT. `pyproject.toml` sets `testpaths = ["tests"]`,
-so this runs only when named:
+!! IT IS THE SUITE NOW. It was built beside the old one as `shadow/`, run for a
+night, and then swapped in -- Roy, 2026-08-25: *"Delete the old test suit put in
+the new one."* The old suite is gone; `gates/` beside this is the part that
+survived, because it asks a different question -- whether a GATE still bites,
+over `scripts/` and the release rather than over the code under redesign.
 
-    uv run pytest shadow/
+    uv run pytest            779 passed, 3 xfailed, ~1.5s
 
-That is deliberate -- it earns its place before it joins the gate.
+! IT RUNS IN A TENTH OF THE TIME the old suite took, which is a consequence
+rather than a goal: nothing here starts a subprocess to ask a question that can
+be asked in-process.
 
 === WHAT IS IN SCOPE, AND WHAT IS DELIBERATELY NOT
 
@@ -44,7 +49,13 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+SRC = ROOT / "src"
+#: The package itself. `gates/` sweeps it -- the files that ship are the files
+#: in `src/`, and `plugins/` is a built copy checked separately by the build
+#: gate.
+PKG = SRC / "comment_review"
+
+sys.path.insert(0, str(SRC))
 
 from comment_review.binder.page import page_for  # noqa: E402
 from comment_review.reading.lexer import language_for  # noqa: E402

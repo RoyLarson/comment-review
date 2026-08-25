@@ -26,11 +26,7 @@ COMMANDS = (
     "compositor",
     "galley",
     "prove_unchanged",
-    "record",
     "referrers",
-    "run_context",
-    "verdicts",
-    "vocabulary",
 )
 
 
