@@ -22,13 +22,10 @@ import tomllib
 from enum import StrEnum
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
 # ! ITS FIRST SIBLING IMPORT -- see `run_context.py`, which took one for the same
 # reason on the same ruling. This module's own copy of the guard was the one
 # carrying a comment true of it and false of the other nine.
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
+from ..machine import constants, exceptions
 
 VOCABULARY = Path(__file__).resolve().parent.parent / "references" / "vocabulary.toml"
 

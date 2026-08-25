@@ -49,24 +49,18 @@ rewrite every line of a Windows checkout.
 import argparse
 import collections
 import shutil
-import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-import constants  # noqa: E402
-import exceptions  # noqa: E402  -- path shim must run first
-from addresser import ON, cue_of  # noqa: E402
+from ..binder.page import Page, page_for
+from ..machine import constants, exceptions
+from ..reading.addresser import ON, cue_of
 
 # !! THE OTHER DIRECT IMPORTER OF THE ROWS -- see `language.py`. The lexer reads
 # a file into paragraphs and this sets a page back into one, so these two are
 # where a language's own grammar is applied to text. ! Everywhere else reaches
 # `language_for` through the lexer's re-export, which is a lookup rather than a
 # reading; taking it from `language` here says which of the two this is.
-from language import language_for  # noqa: E402
-from page import Page, page_for  # noqa: E402
+from ..reading.language import language_for
 
 CRLF = "\r\n"
 LF = "\n"

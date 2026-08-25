@@ -51,17 +51,13 @@ that READ paragraphs could not import the definition of one -- 21 untyped
 it was the deepest module all three could reach.
 """
 
-import sys
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from itertools import pairwise
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
-from addresser import (  # noqa: E402  -- path shim must run first
+from ..machine import constants, exceptions
+from ..reading.addresser import (
     COVERS,
     DECLARED,
     GAP,
@@ -72,7 +68,7 @@ from addresser import (  # noqa: E402  -- path shim must run first
     cue,
     series_of,
 )
-from lexer import (  # noqa: E402  -- path shim must run first
+from ..reading.lexer import (
     Kind,
     Language,
     Paragraph,

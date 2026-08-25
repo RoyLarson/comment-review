@@ -73,11 +73,9 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-import compositor  # noqa: E402  -- path shim must run first
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
+from ..binder.page import page_for
+from ..machine import constants, exceptions
+from ..machine.repo import read_raw
 
 # !! THE ONE `cue_of`, since 2026-08-22. This module had a second of its own --
 # `str(address).split("@")[-1]` -- and the two DISAGREED on a malformed address:
@@ -85,10 +83,9 @@ import exceptions  # noqa: E402  -- path shim must run first
 # address* from `addresser`, which returns two blanks when there is no separator.
 # Both were live in one process. ! The shared one answers `(path, cue)`, so
 # every site here takes `[1]`.
-from addresser import ON, cue_of  # noqa: E402  -- path shim must run first
-from lexer import language_for  # noqa: E402  -- path shim must run first
-from page import page_for  # noqa: E402  -- path shim must run first
-from repo import read_raw  # noqa: E402  -- path shim must run first
+from ..reading.addresser import ON, cue_of
+from ..reading.lexer import language_for
+from . import compositor
 
 
 def reset(page, edits: dict[str, str]) -> list[str]:

@@ -153,10 +153,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import NamedTuple
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
+from ..machine import constants, exceptions
 
 ON = "c"
 GAP = "b"

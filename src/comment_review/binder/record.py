@@ -54,17 +54,14 @@ from dataclasses import field as dataclass_field
 from pathlib import Path
 from typing import TypeGuard
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
-from addresser import (  # noqa: E402  -- path shim must run first
+from ..machine import constants, exceptions
+from ..reading.addresser import (
     COVERS,
     address_for,
     cue_of,
     series_of,
 )
-from lexer import Kind  # noqa: E402  -- path shim must run first
+from ..reading.lexer import Kind
 
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,
 # and `allowed()` below is derived entirely from this table. It sat in

@@ -26,16 +26,9 @@ means it found nothing to say, which is not a claim the finding is correct.
 import difflib
 import re
 import string
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
-from addresser import cue_of, flatten  # noqa: E402  -- path shim must run first
-from lexer import block_text, language_for  # noqa: E402  -- path shim must run first
-from record import (  # noqa: E402  -- path shim must run first
+from ..binder.record import (
     ANCHOR_NAME,
     CITE,
     OUT_OF_ROLE,
@@ -50,6 +43,9 @@ from record import (  # noqa: E402  -- path shim must run first
     entry_for,
     filled,
 )
+from ..machine import constants, exceptions
+from ..reading.addresser import cue_of, flatten
+from ..reading.lexer import block_text, language_for
 
 # !! WHAT COMES OFF A WORD'S EDGES: ALL PUNCTUATION, not a list of it. `_words`
 # strips it from a quoted CLAIM and `removed_spans` from the tokens it diffs,

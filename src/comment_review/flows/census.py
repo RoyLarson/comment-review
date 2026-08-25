@@ -43,36 +43,33 @@ from collections import Counter, defaultdict
 from contextlib import redirect_stdout
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
-from addresser import (  # noqa: E402  -- path shim must run first
+from ..binder.annotate import (
+    SYMBOLISH,
+    annotate,
+    prose_numbers,
+)
+from ..binder.page import (
+    page_for,
+)
+from ..machine import constants, exceptions
+from ..machine.repo import (
+    EXCLUDED_DIRS,
+    path_index,
+    tracked_paths,
+)
+from ..reading.addresser import (
     COVERS,
     SEPARATOR,
     series_of,
     unaddressed,
 )
-from annotate import (  # noqa: E402  -- path shim must run first
-    SYMBOLISH,
-    annotate,
-    prose_numbers,
-)
-from lexer import (  # noqa: E402  -- path shim must run first
+from ..reading.lexer import (
     LANGUAGES,
     NAMED_DEFS,
     Kind,
     Paragraph,
     language_for,
     tier_for,
-)
-from page import (  # noqa: E402  -- path shim must run first
-    page_for,
-)
-from repo import (  # noqa: E402  -- path shim must run first
-    EXCLUDED_DIRS,
-    path_index,
-    tracked_paths,
 )
 
 

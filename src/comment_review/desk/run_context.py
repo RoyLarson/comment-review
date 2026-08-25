@@ -44,15 +44,12 @@ import sys
 from contextlib import redirect_stdout
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
 # !! ITS FIRST SIBLING IMPORT, and the ruling that permitted it. This module was
 # stdlib-only, which made the console guard a copy it could not share. Roy,
 # 2026-08-22: *"the guard lives in a constants.py file. The test verifies no
 # readers or printers are missing the guard."* ! `constants` imports nothing
 # from this package, so taking it acquires no other dependency.
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
+from ..machine import constants, exceptions
 
 #: The sections whose answers are PATHS, checked against the filesystem.
 #:

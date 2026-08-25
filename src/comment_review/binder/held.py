@@ -20,12 +20,9 @@ filled slot into a `Finding`.
 """
 
 import json
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from record import (  # noqa: E402  -- path shim must run first
+from .record import (
     Finding,
     _half,
     address_for,

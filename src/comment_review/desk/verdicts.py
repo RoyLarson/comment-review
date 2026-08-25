@@ -74,22 +74,31 @@ from collections import Counter, defaultdict
 from contextlib import redirect_stdout
 from pathlib import Path
 
+from ..binder.held import load_report
+from ..binder.record import (
+    VERDICTS,
+    Finding,
+    _is,
+    _n,
+    _substantive,
+    claim_text,
+    entry_for,
+)
+
 # ! The shim its three sibling importers carry. Run as a program this file
 # resolves without it -- Python puts the script's own directory on `sys.path`
 # -- so the gap was invisible from the documented invocation and appeared only
 # on IMPORT, where a test or another script reaches in. `census.py`,
 # `referrers.py` and `prove_unchanged.py` all insert it; this was the one
 # sibling importer that did not.
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
-from addresser import (  # noqa: E402  -- path shim first
+from ..machine import constants, exceptions
+from ..reading.addresser import (
     COVERS,
     series_of,
     unaddressed,
 )
-from desk import (  # noqa: E402  -- path shim must run first
+from ..reading.lexer import Kind
+from .desk import (
     _words,
     address_problem,
     block_problem,
@@ -101,18 +110,7 @@ from desk import (  # noqa: E402  -- path shim must run first
     ruled_text,
     source_problem,
 )
-from held import load_report  # noqa: E402  -- path shim must run first
-from lexer import Kind  # noqa: E402  -- path shim must run first
-from record import (  # noqa: E402  -- path shim must run first
-    VERDICTS,
-    Finding,
-    _is,
-    _n,
-    _substantive,
-    claim_text,
-    entry_for,
-)
-from vocabulary import Reviewer  # noqa: E402  -- path shim must run first
+from .vocabulary import Reviewer
 
 
 def coverage_gaps(

@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING
 # at import on Python 3.13 and on the 3.11 floor, while passing on the 3.14
 # dev machine where PEP 649 makes annotations lazy.
 if TYPE_CHECKING:
-    from lexer import Paragraph
+    from ..reading.lexer import Paragraph
 
 PATH_CITE = re.compile(r"`?([\w./-]+\.(?:py|md|toml|txt|json|ya?ml))(?:::(\w+))?`?")
 TICKED = re.compile(r"`([^`\s]+)`")

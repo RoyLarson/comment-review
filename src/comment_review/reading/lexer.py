@@ -28,21 +28,17 @@ a page puts the two together.
 import ast
 import io
 import re
-import sys
 import tokenize
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum, StrEnum
 from pathlib import Path
 from typing import NamedTuple
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
 # !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS TWO IMPORTERS -- see
 # `language.py`. Everything a language says about where its documentation sits is
 # stated there and read here; no module above this one asks a language anything.
-import constants  # noqa: E402  -- path shim must run first
-import exceptions  # noqa: E402  -- path shim must run first
-from language import (  # noqa: E402  -- path shim must run first
+from ..machine import constants, exceptions
+from .language import (
     BY_EXT,
     LANGUAGES,
     Language,
