@@ -980,6 +980,19 @@ Record what you find before deleting anything.
 
 Remove `drifted` from `galley.py`. Remove its invocation from `commands/galley.py`, and any now-unused imports YOUR change orphaned (ruff will name them).
 
+!! **AND FIX WHAT TASK 6 LEFT BROKEN IN THE SAME FILE.** `commands/galley.py:104` keys `by_path`
+by the FULL ADDRESS and hands that dict to `reset` at `:153`, which since Task 6 expects bare
+CUES. Every edit would be refused as *"this page carries no such place"* -- the CLI runs, exits,
+and changes nothing.
+
+! **A TYPE ANNOTATION WAS WIDENED TO KEEP `ty` GREEN OVER IT.** That silenced a checker which
+was telling the truth. Key by the cue instead -- `cue_of(address).cue` -- and narrow the
+annotation back to what the code actually holds.
+
+! **NOTHING CAUGHT THIS**, and the reason is measured: `commands/` runs at **0.0% coverage**,
+all six modules, 537 statements. The implementer reported it because it read its own change,
+not because a gate objected.
+
 !! **AND EVERY TEST OF `drifted` GOES WITH IT** -- see the Global Constraint. A surviving
 `drifted` test asserts the per-paragraph staleness check this branch replaced with the sha, and
 would go GREEN if someone restored it, so the suite would argue for the structure this branch
@@ -1733,18 +1746,46 @@ keyed by ADDRESS, because the address is what the saved binder resolves to a fil
 GALLEY takes bare cues. The two look identical to a grep and mean opposite things -- deleting
 the notations cases would cut the tests for the very resolution step this branch added.
 
-- [ ] **Step 2: Record the rulings**
+- [ ] **Step 2: Run coverage per SLICE, not as one number**
+
+Roy, 2026-08-25: *"run the clip on different parts and see what actually sticks."*
+
+!! **ONE AGGREGATE NUMBER CANNOT SHOW WHERE A TEST LIVES, WHICH IS PART OF WHAT IT ASSERTS.**
+Run each test file ALONE and record which source modules it lights up:
+
+```bash
+for t in tests/test_*.py; do
+  uv run coverage run -m pytest "$t" -q > /dev/null
+  echo "== $t"; uv run coverage report --precision=0 | grep -v " 0%"
+done
+```
+
+**The diagonal is expected; the OFF-DIAGONAL is the finding.** A test file lighting up a module
+it is not named for is an ownership question -- exactly the `sha_of` case this branch already
+hit by hand, where `test_binder.py` covered `machine/repo.py` and thereby claimed the binder
+owned text identity. As a matrix it is data rather than something someone has to notice.
+
+! **AND READ THE UNCOVERED SET AS STATEMENTS, NOT AS A PERCENTAGE.** The number is a pointer;
+the reading is the work. Start with `binder/annotate.py` -- 58 statements, zero executed, and
+the chain ruled in `decision-log.md Process: #14` does not obviously reach it. **Ask whether
+each uncovered block is WANTED before asking whether it is tested**; writing a test for code
+nobody wants is how a suite grows around dead weight.
+
+! **The baseline to compare against** is on `TODO/coverage-is-not-measured.md`: 43.0% of 1864
+statements, taken 2026-08-25 over 789 tests.
+
+- [ ] **Step 3: Record the rulings**
 
 Add the ten dated 2026-08-24 / 2026-08-25 rulings from the spec's table to `docs/decision-log.md`, each findable by date and subject. Cite as `decision-log.md TOPIC: #N`.
 
-- [ ] **Step 2: Build the plugin**
+- [ ] **Step 4: Build the plugin**
 
 ```bash
 uv run python scripts/build_plugin.py
 uv run python scripts/build_plugin.py --check
 ```
 
-- [ ] **Step 3: Prove every box was ticked as it was earned**
+- [ ] **Step 5: Prove every box was ticked as it was earned**
 
 Each task ticked its own -- see *Marking off `P` and `T`*. This step VERIFIES that, it does not
 do it in bulk:
@@ -1763,7 +1804,7 @@ answered in part.
 !! **A BOX STILL OPEN IS WORK THAT WAS NOT DONE.** File it in `TODO/` before this plan closes.
 *"Anything in a plan that does not get done is filed in `TODO/` before the plan closes."*
 
-- [ ] **Step 4: Full gate, including the ones only a release runs**
+- [ ] **Step 6: Full gate, including the ones only a release runs**
 
 ```bash
 uv run pytest -q
@@ -1776,7 +1817,7 @@ uv run python scripts/todo_tool.py resync
 claude plugin validate plugins/comment-review
 ```
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 7: Commit**
 
 Message: *"docs: the write chain's rulings, recorded"*.
 
