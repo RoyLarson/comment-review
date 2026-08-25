@@ -41,63 +41,6 @@ from pathlib import Path
 from comment_review.reading.lexer import Paragraph
 
 
-def emitted_row(b: Paragraph) -> dict:
-    """One paragraph as the census EMITS it, which is not how it is held.
-
-    !! THE PROSE LEAVES AS ONE STRING, NOT AS LINES. Ruled 2026-08-24 -- Roy:
-    *"LLMs and the token parsers read this as a complete and coherent statement.
-    They do not read this as the same thing: ['LLMs and the token', 'parsers
-    read this as a', 'complete and coherent', 'statement']. It took my phone,
-    which runs a token parser, to the last word to realise I was duplicating the
-    sentence."* The four reviewers ARE token parsers and prose is what they
-    judge, so fragments make every role reassemble the sentence before it can
-    ask whether the sentence is TRUE -- paid four times a page.
-
-    !! AND IT IS A CHANGE TO THE EMIT ALONE. `Paragraph.raw_lines` stays a list
-    in memory and nothing on the write path moves. **How an agent's answer
-    reaches the page is UNDECIDED** -- see `TODO/nothing-makes-the-fair-copy.md`
-    -- and a field rename that reshaped the galley would be deciding it by
-    accident. ! Attempted the other way 2026-08-24 and reverted: changing the
-    stored field forced `_vacate` to clear a span, which is a ruling about what
-    a `drop` DOES, made to keep tests green.
-
-    !! THE ROW IS WRITTEN OUT, NOT DERIVED FROM THE DATACLASS. It was
-    `vars(b)` minus a couple of keys, so every field `Paragraph` happened to
-    carry became part of the wire format -- the internals WERE the protocol, and
-    the two could never diverge without breaking silently. Naming the fields is
-    what makes the cut below a decision rather than an accident.
-
-    !! ELEVEN FIELDS LEFT ON 2026-08-24 -- `decision-log.md Addressing: #12`,
-    ruled by Roy field by field: `kind`, `annotations`, `notes`, `symbol`,
-    `declares`, `original_column`, `start`, `end`, `anchor_line`, `lines`,
-    `text`. ! `start`/`end` duplicate `original_*`, which keeps the pair because
-    *"original has the definition and that makes it worth the extra tokens"*;
-    `text` duplicates the prose in a second shape.
-
-    ! THE LAST THREE WENT FOR A REASON THAT IS NOT SIZE. Roy: *"they are stating
-    something that the cue letter states. So we just give the agents the legend
-    for the cue letters and let them run with it."* The answer is a LEGEND, not
-    a field.
-
-    ! `symbol` WAS ALREADY DEAD when the cut came: it names a fence, and fences
-    stopped being emitted an hour earlier. MEASURED over `repo.py` -- 124 rows,
-    `symbol` carrying a value in ZERO of them.
-
-    ! `path` AND `address` STAY UNTIL THE PAGE ENVELOPE EXISTS. The ruling puts
-    the file on the page and reduces the row to a `cue`; until there is a page
-    to put it on, dropping either leaves a row nothing can resolve.
-    """
-    return {
-        "path": b.path,
-        "address": b.address,
-        "anchor": b.anchor,
-        "anchor_num": b.anchor_num,
-        "original_start": b.original_start,
-        "original_end": b.original_end,
-        "raw_text": "\n".join(b.raw_lines),
-    }
-
-
 def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
     """The paragraphs a census HANDS OVER. A fence is not one of them.
 

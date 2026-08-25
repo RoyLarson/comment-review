@@ -23,7 +23,6 @@ from comment_review.flows.census import (
     _repo_relative,
     _unaddressed,
     carried,
-    emitted_row,
 )
 from comment_review.machine import exceptions
 from comment_review.machine.repo import path_index, tracked_paths, walk_files
@@ -458,7 +457,12 @@ def _report(args: argparse.Namespace) -> int:
         return 1
     # ! The same refusal on the text path. It is the one a person reads, and a
     # census that cannot be cited is no more usable for being legible.
-    missing = unaddressed([emitted_row(b) for b in census])
+    # ! ASKED OF THE PARAGRAPHS, NOT OF AN EMIT. This built a row per paragraph
+    # to hand `unaddressed` something dict-shaped -- a second statement of what
+    # a row is, kept in `flows.census` beside the real one in `binder`. The
+    # question is page-side (which paragraph OWES an address and lacks one) and
+    # the paragraphs are already here, so the detour bought nothing.
+    missing = unaddressed([vars(b) for b in census])
     if missing:
         print("\n" + _unaddressed(missing))
         return 1
