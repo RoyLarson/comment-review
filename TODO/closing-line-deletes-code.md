@@ -32,6 +32,22 @@ RE-VERIFIED: 2026-08-23 — 2026-08-23. `prove_unchanged._delimiter_shares_the_l
 SPLIT:    2026-08-23 -- the ruling box carried its whole history and the deferred box
           carried a change AND its test. The ruling's evidence moved into the Objective;
           the deferred box became the write-path change and the test that pins it.
+Updated:  2026-08-25 — MEASURED 2026-08-25 on the write-chain branch, and it narrows
+          this file. An attempt to reproduce the hazard end to end through
+          flows/proof_setter.run -- a C fixture whose one-line block comment is replaced
+          by an unterminated opener, so the composed file swallows the code line after
+          it -- was intercepted by the chain's _reread step, NOT by prove_unchanged.
+          Reason: the swallowed line gets reclassified under a different address on the
+          re-read, so the edited cue no longer holds what it was given and the run
+          refuses at reread. THAT IS THE CHECK ROY NAMED ARRIVING EARLIER THAN EXPECTED.
+          His re-ruling here said the whole-file composition is where a write that would
+          drop code becomes visible before it happens, and where prove_unchanged moves
+          from after the write to before it. The composition does catch it -- but via
+          the per-cue re-read rather than the fingerprint. _prove still guards the
+          residual case where a swallow leaves every edited cue intact, which is why it
+          reads the whole file rather than the edited places. ! NOT A CLAIM THAT THE
+          HAZARD IS FIXED: this measured ONE construction in ONE language, and the lexer
+          half of this file is untouched.
 ```
 
 ## Objective
