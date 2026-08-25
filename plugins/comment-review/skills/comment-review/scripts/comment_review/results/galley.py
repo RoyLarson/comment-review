@@ -79,8 +79,18 @@ from comment_review.machine import constants
 from comment_review.reading.addresser import ON, cue_of
 
 
-def reset(page, edits: dict[str, str]) -> list[str]:
-    """Put each replacement on the page, at the address it names.
+def reset(page, edits: dict[str, str | None]) -> list[str]:
+    """Put each replacement on the page, at the place its cue names.
+
+    !! IT IS HANDED A PAGE AND CUES, AND RESOLVES NEITHER. Roy, 2026-08-25:
+    *"the galley shouldn't be resolving the page ... it should get handed the
+    page, the cues-new text or a delete."* A page names its own file, so the
+    path half of an address is a fact the caller already had.
+
+    !! `None` IS THE DELETE AND `""` IS REFUSED. Roy, 2026-08-25: *"None is
+    explicit enough."* ! An empty string was the vacation signal until then,
+    which made a failed serialisation upstream indistinguishable from a
+    deliberate deletion.
 
     !! THE ADDRESS IS THE WHOLE OF THE PLACEMENT. A paragraph knows which place
     it sits in, and the compositor sets the places in order, so a replacement is
@@ -120,7 +130,7 @@ def reset(page, edits: dict[str, str]) -> list[str]:
 
     Args:
         page: the page to change, built from the file as it reads NOW.
-        edits: address -> the replacement paragraph, as text.
+        edits: cue -> the replacement paragraph as text, or None to vacate.
 
     Returns:
         One sentence per edit that could not be placed. Empty means every one
@@ -135,10 +145,10 @@ def reset(page, edits: dict[str, str]) -> list[str]:
         if b.address:
             by_place.setdefault(cue_of(b.address).cue, []).append(b)
     refused = []
-    for address, replacement in edits.items():
-        found = by_place.get(cue_of(address).cue)
+    for where, replacement in edits.items():
+        found = by_place.get(where)
         if not found:
-            refused.append(f"{address}: this page carries no such place")
+            refused.append(f"{where}: this page carries no such place")
             continue
         # !! ONE PLACE, ONE PARAGRAPH. Two paragraphs sharing an address was a
         # real defect until 2026-08-21 -- 157 of them in one tree -- and it is
@@ -147,47 +157,24 @@ def reset(page, edits: dict[str, str]) -> list[str]:
         # approved text over prose nobody looked at.
         if len(found) > 1:
             refused.append(
-                f"{address}: {len(found)} paragraphs share this place, so no"
+                f"{where}: {len(found)} paragraphs share this place, so no"
                 " replacement can be placed against it"
             )
             continue
-        # !! A REPLACEMENT IS TEXT, AND ONLY AN EMPTY STRING IS A VACATION. This
-        # asked whether the value was TRUTHY, so every falsy value took the drop
-        # path below and every non-string truthy one reached the SPLITTER.
-        # MEASURED 2026-08-22 against a scratch checkout: `{"m.py@b1": null}`
-        # exited 0 reporting `1 page(s) set, 0 edit(s) refused` with the comment
-        # GONE, and `{"m.py@b1": 123}` died on an uncaught `AttributeError`, on a
-        # value with no lines to take.
-        # ! A NULL IS NOT A DECISION. `--edits` is machine-written from approved
-        # text; a key whose value failed to serialise arrives as `null`, and
-        # reading that as "the author asked to delete this" turns a bug upstream
-        # into a deletion here, at exit 0.
-        if not isinstance(replacement, str):
-            refused.append(
-                f"{address}: a replacement must be text, not"
-                f" {type(replacement).__name__} -- an empty string is the only drop"
+        if replacement is None:
+            owns_leading = not where.startswith(ON)
+            _vacate(
+                found[0],
+                by_symbol.get(page.leading.get(where, "")) if owns_leading else None,
             )
             continue
-        if replacement:
-            found[0].raw_lines = constants.text_lines(replacement)
+        if not isinstance(replacement, str) or not replacement:
+            refused.append(
+                f"{where}: a replacement must be non-empty text, or None to"
+                f" delete -- not {type(replacement).__name__}"
+            )
             continue
-        # ! AN EMPTY REPLACEMENT IS A VACATION -- a `drop`, or the source half
-        # of a `move`. Anything else leaves the space below untouched, because
-        # the separation a reader saw is not the author's to lose by editing the
-        # text above it.
-        #
-        # !! A `c` GIVES UP NO LEADING, and this vacated it unconditionally when
-        # `_vacate` was written on 2026-08-22. A `c` sits BESIDE code: dropping
-        # the trailing comment leaves the statement exactly where it was, so the
-        # blank below it separates that CODE from what follows and was never the
-        # comment's to lose. ! `prove_unchanged` cannot see the difference --
-        # the AST is identical either way -- so it would land silently at 7b.
-        where = cue_of(address).cue
-        owns_leading = not where.startswith(ON)
-        _vacate(
-            found[0],
-            by_symbol.get(page.leading.get(where, "")) if owns_leading else None,
-        )
+        found[0].raw_lines = constants.text_lines(replacement)
     return refused
 
 

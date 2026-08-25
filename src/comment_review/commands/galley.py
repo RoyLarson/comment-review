@@ -90,7 +90,7 @@ def main() -> int:
     # thing that knows -- an address names a place, and the page it sits on is
     # the record's to state.
     where = {str(b.get("address", "")): str(b.get("path", "")) for b in paragraphs}
-    by_path: dict[str, dict[str, str]] = {}
+    by_path: dict[str, dict[str, str | None]] = {}
     refused = 0
     for address, replacement in edits.items():
         rel = where.get(str(address), "")

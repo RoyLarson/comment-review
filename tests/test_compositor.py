@@ -169,7 +169,7 @@ class TestAnEditedPageStillComposes:
             for c, b in by_cue(sample).items()
             if c.startswith("b") and any(x.strip() for x in b.raw_lines)
         )
-        reset(sample, {f"m.py@{cue}": "# REPLACED"})
+        reset(sample, {cue: "# REPLACED"})
         out = set_page(sample)
         again = build(out)
         assert any(b.raw_lines == ["# REPLACED"] for b in again.paragraphs if b.address)
@@ -177,7 +177,7 @@ class TestAnEditedPageStillComposes:
     def test_an_edited_page_is_still_a_fixed_point(self, sample):
         from comment_review.results.galley import reset
 
-        reset(sample, {f"m.py@{next(iter(by_cue(sample)))}": ""})
+        reset(sample, {next(iter(by_cue(sample))): None})
         out = set_page(sample)
         assert set_page(build(out)) == out
 

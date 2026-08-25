@@ -63,26 +63,26 @@ class TestModify:
     @pytest.mark.parametrize("series", SERIES)
     def test_the_place_takes_the_new_text(self, sample, series):
         cue = FILLED[series]
-        assert reset(sample, {f"m.py@{cue}": REPLACEMENT[series]}) == []
+        assert reset(sample, {cue: REPLACEMENT[series]}) == []
         assert by_cue(sample)[cue].raw_lines == [REPLACEMENT[series]]
 
     @pytest.mark.parametrize("series", SERIES)
     def test_NOTHING_ELSE_on_the_page_moves(self, sample, series):
         cue = FILLED[series]
         before = lines_by_cue(build(SAMPLE))
-        reset(sample, {f"m.py@{cue}": REPLACEMENT[series]})
+        reset(sample, {cue: REPLACEMENT[series]})
         after = lines_by_cue(sample)
         assert {c for c in after if after[c] != before[c]} == {cue}
 
     @pytest.mark.parametrize("series", SERIES)
     def test_no_fence_moves(self, sample, series):
         before = leading_by_symbol(build(SAMPLE))
-        reset(sample, {f"m.py@{FILLED[series]}": REPLACEMENT[series]})
+        reset(sample, {FILLED[series]: REPLACEMENT[series]})
         assert leading_by_symbol(sample) == before
 
     @pytest.mark.parametrize("series", SERIES)
     def test_the_new_text_reaches_the_composed_file(self, sample, series):
-        reset(sample, {f"m.py@{FILLED[series]}": REPLACEMENT[series]})
+        reset(sample, {FILLED[series]: REPLACEMENT[series]})
         assert "REPLACED" in set_page(sample)
 
     def test_a_multi_line_replacement_does_not_eat_the_line_below(self, sample):
@@ -90,21 +90,22 @@ class TestModify:
         growing one moves nothing -- the property that made the line-arithmetic
         splice unnecessary."""
         cue = FILLED["b"]
-        reset(sample, {f"m.py@{cue}": "# one\n# two\n# three"})
+        reset(sample, {cue: "# one\n# two\n# three"})
         out = set_page(sample)
         assert "# one\n# two\n# three\n" in out
         assert "def f(x):" in out
 
 
 class TestDrop:
-    """An empty string is the ONLY vacation -- `galley.reset` refuses any other
-    falsy value, because a `null` from a failed serialisation upstream would
-    otherwise read as "the author asked to delete this"."""
+    """`None` is the ONLY vacation -- `galley.reset` refuses any other value,
+    including an empty string, because a `""` from a failed serialisation
+    upstream would otherwise be indistinguishable from a deliberate
+    deletion."""
 
     @pytest.mark.parametrize("series", SERIES)
     def test_the_place_is_emptied(self, sample, series):
         cue = FILLED[series]
-        assert reset(sample, {f"m.py@{cue}": ""}) == []
+        assert reset(sample, {cue: None}) == []
         assert by_cue(sample)[cue].raw_lines == []
 
     @pytest.mark.parametrize("series", SERIES)
@@ -115,7 +116,7 @@ class TestDrop:
         cue = FILLED[series]
         before = by_cue(sample)[cue]
         anchor, address = before.anchor, before.address
-        reset(sample, {f"m.py@{cue}": ""})
+        reset(sample, {cue: None})
         after = by_cue(sample)[cue]
         assert after.address == address
         assert after.anchor == anchor
@@ -132,7 +133,7 @@ class TestDrop:
         cue = FILLED[series]
         fresh = build(SAMPLE)
         before, before_d = lines_by_cue(fresh), leading_by_symbol(fresh)
-        reset(sample, {f"m.py@{cue}": ""})
+        reset(sample, {cue: None})
         after, after_d = lines_by_cue(sample), leading_by_symbol(sample)
 
         assert {c for c in after if after[c] != before[c]} == {cue}
@@ -147,14 +148,14 @@ class TestDrop:
         would land silently."""
         cue = FILLED["c"]
         before = leading_by_symbol(build(SAMPLE))
-        reset(sample, {f"m.py@{cue}": ""})
+        reset(sample, {cue: None})
         assert leading_by_symbol(sample) == before
 
     @pytest.mark.parametrize("series", SERIES)
     def test_the_prose_is_gone_from_the_composed_file(self, sample, series):
         cue = FILLED[series]
         was = "\n".join(by_cue(build(SAMPLE))[cue].raw_lines).strip()
-        reset(sample, {f"m.py@{cue}": ""})
+        reset(sample, {cue: None})
         assert was
         assert was not in set_page(sample)
 
@@ -166,14 +167,14 @@ class TestAddToAnAbsentPlace:
     @pytest.mark.parametrize("series", SERIES)
     def test_the_absent_place_takes_the_text(self, sample, series):
         cue = ABSENT[series]
-        assert reset(sample, {f"m.py@{cue}": REPLACEMENT[series]}) == []
+        assert reset(sample, {cue: REPLACEMENT[series]}) == []
         assert by_cue(sample)[cue].raw_lines == [REPLACEMENT[series]]
 
     @pytest.mark.parametrize("series", SERIES)
     def test_NOTHING_ELSE_on_the_page_moves(self, sample, series):
         cue = ABSENT[series]
         before = lines_by_cue(build(SAMPLE))
-        reset(sample, {f"m.py@{cue}": REPLACEMENT[series]})
+        reset(sample, {cue: REPLACEMENT[series]})
         after = lines_by_cue(sample)
         assert {c for c in after if after[c] != before[c]} == {cue}
 
@@ -181,7 +182,7 @@ class TestAddToAnAbsentPlace:
     def test_the_added_prose_reaches_the_composed_file(self, sample, series):
         cue = ABSENT[series]
         before = set_page(build(SAMPLE))
-        reset(sample, {f"m.py@{cue}": REPLACEMENT[series]})
+        reset(sample, {cue: REPLACEMENT[series]})
         after = set_page(sample)
         assert "REPLACED" in after
         assert after != before
@@ -192,7 +193,7 @@ class TestAddToAnAbsentPlace:
         is already there, so it adds none."""
         cue = ABSENT[series]
         before = len(set_page(build(SAMPLE)).splitlines())
-        reset(sample, {f"m.py@{cue}": REPLACEMENT[series]})
+        reset(sample, {cue: REPLACEMENT[series]})
         after = len(set_page(sample).splitlines())
         assert after - before == (0 if series == "c" else 1)
 
@@ -204,8 +205,8 @@ class TestDropThenAddIsAFullCycle:
     @pytest.mark.parametrize("series", SERIES)
     def test_a_dropped_place_can_be_filled_again(self, sample, series):
         cue = FILLED[series]
-        reset(sample, {f"m.py@{cue}": ""})
-        assert reset(sample, {f"m.py@{cue}": REPLACEMENT[series]}) == []
+        reset(sample, {cue: None})
+        assert reset(sample, {cue: REPLACEMENT[series]}) == []
         assert by_cue(sample)[cue].raw_lines == [REPLACEMENT[series]]
 
     @pytest.mark.parametrize("series", SERIES)
@@ -219,29 +220,29 @@ class TestDropThenAddIsAFullCycle:
         """
         cue = FILLED[series]
         original = list(by_cue(build(SAMPLE))[cue].raw_lines)
-        reset(sample, {f"m.py@{cue}": ""})
-        reset(sample, {f"m.py@{cue}": "\n".join(original)})
+        reset(sample, {cue: None})
+        reset(sample, {cue: "\n".join(original)})
         assert by_cue(sample)[cue].raw_lines == original
 
 
 class TestWhatTheGalleyRefuses:
     def test_an_address_the_page_does_not_carry(self, sample):
-        problems = reset(sample, {"m.py@b99": "# nowhere"})
+        problems = reset(sample, {"b99": "# nowhere"})
         assert len(problems) == 1
         assert "no such place" in problems[0]
 
-    @pytest.mark.parametrize("value", [None, 0, 123, [], {}, ["# a line"], True])
+    @pytest.mark.parametrize("value", [0, 123, [], {}, ["# a line"], True, ""])
     def test_a_replacement_that_is_not_TEXT(self, sample, value):
-        """Only an empty string is a drop. A `null` arriving from a key that
-        failed to serialise would otherwise be read as a deletion, at exit 0."""
-        problems = reset(sample, {f"m.py@{FILLED['b']}": value})
+        """Only `None` is a drop. A `""` arriving from a key that failed to
+        serialise would otherwise be read as a deletion, at exit 0."""
+        problems = reset(sample, {FILLED["b"]: value})
         assert len(problems) == 1
-        assert "must be text" in problems[0]
+        assert "must be non-empty text" in problems[0]
 
-    @pytest.mark.parametrize("value", [None, 0, 123, [], {}])
+    @pytest.mark.parametrize("value", [0, 123, [], {}, ""])
     def test_a_refused_replacement_changes_NOTHING(self, sample, value):
         before = lines_by_cue(build(SAMPLE))
-        reset(sample, {f"m.py@{FILLED['b']}": value})
+        reset(sample, {FILLED["b"]: value})
         assert lines_by_cue(sample) == before
 
     def test_one_bad_edit_does_not_stop_a_good_one(self, sample):
@@ -249,7 +250,7 @@ class TestWhatTheGalleyRefuses:
         not be placed rather than abandoning the batch."""
         problems = reset(
             sample,
-            {"m.py@b99": "# nowhere", f"m.py@{FILLED['b']}": "# REPLACED"},
+            {"b99": "# nowhere", FILLED["b"]: "# REPLACED"},
         )
         assert len(problems) == 1
         assert by_cue(sample)[FILLED["b"]].raw_lines == ["# REPLACED"]
@@ -257,14 +258,14 @@ class TestWhatTheGalleyRefuses:
 
 class TestSeveralEditsAtOnce:
     def test_every_series_can_be_edited_in_one_pass(self, sample):
-        edits = {f"m.py@{FILLED[s]}": REPLACEMENT[s] for s in SERIES}
+        edits = {FILLED[s]: REPLACEMENT[s] for s in SERIES}
         assert reset(sample, edits) == []
         for s in SERIES:
             assert by_cue(sample)[FILLED[s]].raw_lines == [REPLACEMENT[s]]
 
     def test_editing_every_place_leaves_the_page_still_composable(self, sample):
-        edits = {f"m.py@{FILLED[s]}": REPLACEMENT[s] for s in SERIES}
-        edits |= {f"m.py@{ABSENT[s]}": REPLACEMENT[s] for s in SERIES}
+        edits = {FILLED[s]: REPLACEMENT[s] for s in SERIES}
+        edits |= {ABSENT[s]: REPLACEMENT[s] for s in SERIES}
         assert reset(sample, edits) == []
         out = set_page(sample)
         assert out.count("REPLACED") == len(edits)
