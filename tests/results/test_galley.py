@@ -23,10 +23,12 @@ from pathlib import Path
 
 # ! `_paths` FIRST: importing it is what puts `src/` on the path.
 from _paths import cli
+from _fixtures import as_binder
+from comment_review.reading.series import Kind
 from comment_review.results import compositor
 from comment_review.results import galley
 from comment_review.reading import lexer
-from comment_review.binder import page
+from comment_review.binder import binder, page
 
 ORIGINAL = "def f():\n    # old note\n    # second line\n    return 1\n"
 
@@ -262,7 +264,7 @@ class TestTheAnchorIsTheWholeStalenessCheck(unittest.TestCase):
         pg = built('# licence\n\n"""Doc."""\n\nimport os\n')
         census = [vars(b) for b in pg]
         self.assertEqual(
-            [b for b in census if b["kind"] == lexer.Kind.LEADING and b["anchor"]], []
+            [b for b in census if b["kind"] == Kind.LEADING and b["anchor"]], []
         )
 
 
@@ -341,13 +343,19 @@ class TestCLI(unittest.TestCase):
         made = page.page_for(
             Path("pkg/m.py"), ORIGINAL, lexer.language_for(Path("m.py"))
         )
+        # ! WRITTEN AND READ BY THE REAL PAIR. A hand-built binder drifts from
+        # what the tool emits, which is how a trailing comment once passed here
+        # while the shipped path deleted code.
         self.census.write_text(
-            json.dumps([vars(b) for b in made], default=list), encoding="utf-8"
+            json.dumps(binder.bind([made]), default=list), encoding="utf-8"
         )
-        self.paragraphs = json.loads(self.census.read_text(encoding="utf-8"))
-        self.note = next(
-            b["address"] for b in self.paragraphs if b["kind"] == "comment"
+        self.paragraphs = binder.rows_of(
+            json.loads(self.census.read_text(encoding="utf-8"))
         )
+        # ! THE KIND COMES FROM THE PAGE, which is where it lives. A row stopped
+        # carrying `kind` on 2026-08-24 -- the cue letter states what a place is
+        # and an agent is given the legend for it.
+        self.note = next(b.address for b in made if b.kind == "comment")
         self.out = self.root / "galley"
 
     def tearDown(self):
@@ -401,8 +409,15 @@ class TestCLI(unittest.TestCase):
         self.assertFalse((self.out / "pkg" / "m.py").exists())
 
     def test_an_UNADDRESSED_census_is_refused_whole(self):
-        bare = [dict(b, address="") for b in self.paragraphs]
-        self.census.write_text(json.dumps(bare, default=list), encoding="utf-8")
+        # ! THE CUE IS BLANKED, NOT THE ADDRESS. Since the binder envelope the
+        # row carries a `cue` and the page carries the `path`; `rows_of`
+        # composes the address from the two, so clearing the composed field
+        # just has it composed again. `address_for` answers "" when either half
+        # is missing, which is what an unaddressed row now means.
+        bare = [dict(b, cue="") for b in self.paragraphs]
+        self.census.write_text(
+            json.dumps(as_binder(bare), default=list), encoding="utf-8"
+        )
         result = self._run({"m.py@b0": "    # anything"})
         self.assertEqual(result.returncode, 2)
         self.assertIn("carries no addresses", result.stdout)

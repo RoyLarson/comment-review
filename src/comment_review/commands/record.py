@@ -10,6 +10,8 @@ import argparse
 import json
 from pathlib import Path
 
+from comment_review.binder.binder import read as read_binder
+from comment_review.binder.binder import rows_of
 from comment_review.binder.record import (
     ANSWERED,
     SEEDED,
@@ -35,14 +37,17 @@ def main() -> int:
         print("nothing to do: pass --seed or --check")
         return 2
     try:
-        loaded = json.loads(Path(args.census).read_text(encoding="utf-8"))
+        census_text = Path(args.census).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ {args.census} ({type(e).__name__})")
         return 2
-    except json.JSONDecodeError as e:
-        print(f"CANNOT PARSE {args.census} as JSON ({e})")
+    # ! REFUSED BY NAME. A binder this cannot read would otherwise seed a report
+    # with NO slots, which reads downstream as a page with nothing to rule on.
+    loaded, why = read_binder(census_text)
+    if why:
+        print(f"CANNOT USE {args.census}: {why}")
         return 2
-    census = loaded["paragraphs"] if isinstance(loaded, dict) else loaded
+    census = rows_of(loaded)
 
     if args.check:
         try:

@@ -8,12 +8,13 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 
 import argparse
 import io
-import json
 from collections import Counter
 from contextlib import redirect_stdout
 from pathlib import Path
 
 from comment_review.binder.addresses import series_of, unaddressed
+from comment_review.binder.binder import read as read_binder
+from comment_review.binder.binder import rows_of
 from comment_review.binder.held import load_report
 from comment_review.binder.record import (
     VERDICTS,
@@ -42,7 +43,7 @@ from comment_review.desk.verdicts import (
 from comment_review.desk.vocabulary import Reviewer
 from comment_review.machine import exceptions
 from comment_review.reading.addresser import COVERS
-from comment_review.reading.lexer import Kind
+from comment_review.reading.series import Kind
 
 
 def main() -> int:
@@ -107,14 +108,18 @@ def _report(args: argparse.Namespace) -> int:
             " -- no census to join against"
         )
         return 1
-    try:
-        paragraphs = json.loads(census_text)
-    except json.JSONDecodeError as e:
+    # !! IT READ THE FILE AS A BARE LIST and had no envelope handling at all, so
+    # a binder reached it as a dict whose KEYS it would then iterate. The other
+    # three commands each guessed the shape a different way; this one did not
+    # guess, which is worse. One reader now, and it refuses by name.
+    binder, why = read_binder(census_text)
+    if why:
         print(
-            f"CANNOT PARSE {args.census} as JSON ({e})"
-            " -- is this census.py --json output?"
+            f"CANNOT USE {args.census}: {why}"
+            " -- is this the output of `census --json`?"
         )
         return 1
+    paragraphs = rows_of(binder)
     # !! A CENSUS THIS GATE CANNOT CITE IS ONE IT MUST NOT CERTIFY. Accountability
     # below is built from the ADDRESSES, so a paragraph carrying none is not
     # accountable -- and the run then reads as complete because there was nothing

@@ -30,13 +30,9 @@ import io
 import re
 import tokenize
 from dataclasses import dataclass, field
-from enum import Enum, IntEnum, StrEnum
+from enum import IntEnum
 from pathlib import Path
-from typing import NamedTuple
 
-# !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS TWO IMPORTERS -- see
-# `language.py`. Everything a language says about where its documentation sits is
-# stated there and read here; no module above this one asks a language anything.
 from comment_review.machine import constants, exceptions
 from comment_review.reading.language import (
     BY_EXT,
@@ -45,6 +41,11 @@ from comment_review.reading.language import (
     language_for,
     tier_for,
 )
+
+# !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS TWO IMPORTERS -- see
+# `language.py`. Everything a language says about where its documentation sits is
+# stated there and read here; no module above this one asks a language anything.
+from comment_review.reading.series import Kind
 
 __all__ = [
     "BY_EXT",
@@ -332,166 +333,14 @@ def declared_in_source_order(tree: ast.AST) -> list:
 _NO_TRAILING = -2
 
 
-class Kind(StrEnum):
-    """Every kind a paragraph can be, paired with the series it belongs to.
+# !! `Kind`, `Series` AND THE PAIRS MOVED TO `series.py` ON 2026-08-25, and
+# the letters went WITH them. Roy: *"The present absent pairings is
+# effectively what defines the series and the identifier we give it should be
+# right there with them."* They were here, and the letters were in
+# `addresser` -- two modules that cannot import each other, tied by member
+# name and held equal by a test. The leaf is what lets both take one
+# declaration. ! This module still owns everything about READING PROSE.
 
-    !! EACH SERIES HAS A PRESENT AND AN ABSENT, and that is the whole shape.
-
-        a   docstring          undocumented
-        b   comment            interval
-        c   trailing-comment   margin
-        f   matter             dark-matter
-
-    !! THE TWO HALVES WERE SET IN DIFFERENT MODULES AND NOTHING TIED THEM. The
-    lexer writes a positive because it found prose; `page.py` writes a negative
-    because the walk emitted a place nothing filled. Which strings paired up was
-    known only to a hand-kept tuple in a third file -- so when
-    `trailing-comment` left one of those tuples on 2026-08-20, nothing
-    structural noticed, and the two tuples drifted into holding the same four
-    kinds while claiming to answer different questions.
-
-    ! A `StrEnum` MEMBER IS ITS STRING, so every `paragraph.kind == "docstring"`
-    already written keeps working and nothing had to migrate.
-
-    ! `leading` HAS A PRESENT AND NO ABSENT, and squaring the table would be
-    the error. An empty one could not be cited -- Roy: *"there is no information
-    to rule on"* -- which is the same reason `d` is not in `addresser.SERIES`.
-    It is a kind with no series, and `ABSENT` below leaves it out.
-    """
-
-    DOCSTRING = "docstring"
-    UNDOCUMENTED = "undocumented"
-    COMMENT = "comment"
-    INTERVAL = "interval"
-    TRAILING = "trailing-comment"
-    MARGIN = "margin"
-
-    # !! THE FILE'S OWN PROSE, AS A PARAGRAPH TYPE. Roy, 2026-08-21: *"if the
-    # opening/closing line is a comment then the matter continues down/up until
-    # there is an empty line or the start/end of a docstring"*, and *"It is a
-    # matter designator, the anchor is the module."* One type for both ends --
-    # which end a run sits at is the ORDER the `f` addresser emits, not a fact
-    # about the run.
-    #
-    # ! IT IS STATED WHERE THE LEXER READS THE FILE. It was an ANNOTATION the
-    # page stamped afterwards, which meant a positioning rule lived in a module
-    # that may hold none, and the page had to reconstruct what "top of the file"
-    # meant from a paragraph already typed `comment`.
-    MATTER = "matter"
-    DARK_MATTER = "dark-matter"
-
-    # !! THE EMPTY SPACE BETWEEN TWO PARAGRAPHS, as a paragraph of its own. Roy,
-    # 2026-08-21: *"it covers all empty space between two different types of
-    # paragraphs. If the new line is internal to the paragraph then the two
-    # paragraphs + the newlines are in fact one paragraph."* So a blank run the
-    # lexer does NOT merge into a run is leading, and one it does merge is prose.
-    #
-    # !! IT IS THE TRADE WORD. Leading is the strip of lead a compositor puts
-    # BETWEEN lines of type to space them -- what a compositor inserts and never
-    # what an author writes, which is exactly this. ! A LEADER is the row of dots
-    # carrying the eye across a table of contents, a different thing.
-    #
-    # !! IT CARRIES NO INFORMATION AND IS NEVER RULED ON. Roy: *"there is no
-    # information to rule on. It is just there for document preservation."* So it
-    # is kept out of `Page.prose` and out of record seeding, and its anchor is
-    # EMPTY -- every other series answers to a line of code; this answers to
-    # nothing.
-    #
-    # ! WHY IT EXISTS: a `b` owned the blanks on BOTH sides of an `a`, and a
-    # cue is one entry in the reading order, so its two lines emitted together
-    # and a file came back blank-blank-comment where it was blank-comment-blank.
-    # With leading, every paragraph is CONTIGUOUS and the straddle cannot arise.
-    LEADING = "leading"
-
-    @classmethod
-    def holds_no_prose(cls, kind: str) -> bool:
-        """Is there nothing here for a reviewer to read?
-
-        !! EVERY ABSENCE, AND `leading`, WHICH IS NOT ONE. An absence is a place
-        `cue` emitted and no prose filled; `leading` is not a place at all
-        and holds no prose for a different reason -- there was never anything to
-        hold. Both answer YES here, because holding no prose is what this is
-        NAMED for.
-
-        ! ASK THIS WHEREVER A READER IS SHOWN PROSE -- a listing, a count, a
-        record. `census.py --filtered` is the command SKILL.md hands a reviewer,
-        and a blank run counted as prose puts a row with no address in front of
-        them and splits two no-prose runs that should collapse into one.
-
-        Args:
-            kind: a paragraph's kind. A plain `str` is accepted because a census
-                read back from JSON holds strings, not members.
-        """
-        return kind in ABSENT or kind == cls.LEADING
-
-    @classmethod
-    def occupies_no_lines(cls, kind: str) -> bool:
-        """Does this paragraph stand on no line of the file?
-
-        !! `leading` IS THE WHOLE REASON THIS IS NOT THE SAME QUESTION AS ABOVE.
-        The two were merged 2026-08-22 -- correctly, on the members they then
-        held: an empty PLACE holds no prose and occupies no lines, for the one
-        reason that nothing is there. `leading` breaks that equivalence, because
-        it holds no prose and DOES stand on real blank lines.
-
-        ! WHAT THE MERGE WOULD COST HERE: `code_lines` skips a paragraph that
-        occupies nothing. Answering YES for `leading` takes its blanks out of
-        `occupied`, so they are read as CODE and every `b` and `c` below them
-        renumbers -- the same class of break the merge itself was measured
-        against. ! So the two names are back, and neither is hand-kept: both are
-        derived from `Series`, and they differ by exactly one member.
-        """
-        return kind in ABSENT
-
-
-class Pair(NamedTuple):
-    """What prose looks like in a series, and what its absence looks like.
-
-    ! NAMED because `pair[0]` and `pair[1]` say nothing, and every reader of
-    this had to know which way round the two kinds went. Roy, 2026-08-22, on the
-    shape: *"NamedTuples(present, absent)."*
-    """
-
-    present: Kind
-    absent: Kind
-
-
-class Series(Enum):
-    """Every series `cue` emits, each member its own `Pair`.
-
-    !! AN ENUM AND NOT A MAPPING, one member per series, each carrying its
-    positive and its negative. The value IS the `Pair`, so the shape is readable
-    in the declaration rather than assembled somewhere else, and `ABSENT` below
-    is derived from these four.
-
-    !! THE LETTER IS NOT IN HERE. `addresser` owns the letters -- `COVERS = "f"`
-    and its three siblings -- and this module cannot import it, so spelling them
-    again here would be two sources for one fact. ! What ties them is the MEMBER
-    NAME: every name here is a constant in `addresser`, and `tests/test_page.py`
-    holds the sets equal, so a letter that moves fails a test instead of leaving
-    two spellings quietly disagreeing.
-
-    ! `LEAD` IS NOT A MEMBER, the same exclusion `addresser.SERIES` makes:
-    leading has a present and no absent, so it cannot belong to a type whose
-    whole shape is the pair. An empty one could not be cited -- Roy: *"there is
-    no information to rule on"* -- so there is nothing for `absent` to mean.
-    """
-
-    COVERS = Pair(Kind.MATTER, Kind.DARK_MATTER)
-    DECLARED = Pair(Kind.DOCSTRING, Kind.UNDOCUMENTED)
-    GAP = Pair(Kind.COMMENT, Kind.INTERVAL)
-    ON = Pair(Kind.TRAILING, Kind.MARGIN)
-
-
-#: Every kind that is a place holding no prose -- the `absent` of each series.
-#:
-#: !! DERIVED FROM `Series`, NEVER LISTED. It was two hand-kept tuples in
-#: `page.py` holding the same four strings in different orders, each with a
-#: comment claiming it answered a different question.
-ABSENT = frozenset(s.value.absent for s in Series)
-# ! The anchor a run about the FILE answers to. The same string the addresser
-# uses for the module trigger; it is spelled here rather than imported because
-# the lexer imports no sibling but `language`.
 MODULE_ANCHOR = "<module>"
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")

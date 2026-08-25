@@ -690,7 +690,7 @@ def block_problem(f: Finding, paragraphs: list[dict]) -> str | None:
     # which drops per-token quotes and trailing punctuation; a haystack that
     # was only whitespace-collapsed still holds them, so any comma, colon or
     # backtick inside a quoted sentence refused a correct finding.
-    haystack = _words(str(entry.get("text", "")))
+    haystack = _words(str(entry.get("raw_text", "")))
     # ! Same rule as SOURCES: compare all of it, truncate only the message. A
     # fabricated tail here made `edit_problem` MORE permissive, because it
     # widened the string every removed span is checked against.

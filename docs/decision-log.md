@@ -186,6 +186,36 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the same minute -- *"Don't act on that actually, continue with the split will determine
   later."* The module is `concordance/code_names.py` until he rules.
 
+- **#14.** **THE LETTER LIVES WITH THE PAIR, AND `d` IS A SERIES** (Roy, 2026-08-25, reversing
+  his own earlier decision: *"I feel I messed up ... when I made the decision not pairing cue
+  letter and the present absent pairings together. The present absent pairings is effectively
+  what defines the series and the identifier we give it should be right there with them. This
+  goes for those and then the remaining Kind.LEADING gets its own series d separately which I
+  think it already kind of does but the logic should be where that is defined not a layer
+  removed."*).
+
+  ! **WHAT THE SPLIT COST:** the letters were `addresser`'s constants and the pairs were
+  `lexer`'s enum -- two modules that cannot import each other -- tied only by MEMBER NAME and
+  held equal by a test. **That test existed because there were two sources.** `Kind`'s own
+  docstring drew the `a`/`b`/`c`/`f` table in PROSE beside code that knew no letter.
+
+  ! **`reading/series.py` IS THE LEAF THAT HOLDS BOTH.** `Definition(letter, present, absent)`,
+  and `Series` carries one per series. `ADDRESSED` (the citable letters) and `ABSENT` (the empty
+  kinds) are both DERIVED from it. ! `d` is a member whose `absent` is `None` -- a fence has a
+  present and no absence, and saying so where the series is defined replaces an exclusion that
+  had been written into three other modules.
+
+  !! **AND IT CORRECTS PART OF `#12`.** That ruling cut `kind` from the row because *"they are
+  stating something that the cue letter states"* -- **half true.** The LETTER states the series;
+  the KIND states which half of the pair, `comment` against `interval`. A letter cannot say
+  whether prose is there, so `kind` is not restatable from it and is back in the row. ! The
+  other ten fields of that cut stand.
+
+  ! **A `raw_text` EMPTINESS TEST WAS TRIED AS A SUBSTITUTE AND REFUSED.** Roy: *"No the lexer
+  answers this with the appropriate Enum pair or Kind enum."* It invents a predicate beside one
+  that exists, and an empty string is a fact about a VALUE where the kind is a fact about the
+  PLACE.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is

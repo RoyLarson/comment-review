@@ -171,7 +171,7 @@ def unrecorded_findings(
         held = entry_for(paragraph, paragraphs)
         if held is None:
             continue
-        prose = _words(held.get("text") or "")
+        prose = _words(held.get("raw_text") or "")
         if not prose:
             continue
         for f in fs:

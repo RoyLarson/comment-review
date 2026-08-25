@@ -10,6 +10,8 @@ import argparse
 import json
 from pathlib import Path
 
+from comment_review.binder.binder import read as read_binder
+from comment_review.binder.binder import rows_of
 from comment_review.binder.page import page_for
 from comment_review.machine import exceptions
 from comment_review.machine.repo import read_raw
@@ -55,7 +57,7 @@ def main() -> int:
         )
         return 2
     try:
-        census = json.loads(Path(args.census).read_text(encoding="utf-8"))
+        census_text = Path(args.census).read_text(encoding="utf-8")
         edits = json.loads(Path(args.edits).read_text(encoding="utf-8"))
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ ({type(e).__name__}) -- no galley written")
@@ -63,8 +65,15 @@ def main() -> int:
     except json.JSONDecodeError as e:
         print(f"CANNOT PARSE as JSON ({e}) -- no galley written")
         return 2
+    # ! REFUSED BY NAME. `rows_of` alone answers `[]` for a binder it cannot
+    # read, and the check below would then report "carries no addresses" about
+    # a file whose real problem is its shape.
+    census, why = read_binder(census_text)
+    if why:
+        print(f"CANNOT USE {args.census}: {why} -- no galley written")
+        return 2
 
-    paragraphs = census["paragraphs"] if isinstance(census, dict) else census
+    paragraphs = rows_of(census)
     # !! AN UNADDRESSED CENSUS MATCHES NOTHING. `--edits` is keyed by address, so
     # every edit would be refused one at a time with a message about the EDIT
     # rather than about the census. ! `page_for` does not stamp addresses -- the

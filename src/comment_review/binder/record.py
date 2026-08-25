@@ -52,7 +52,7 @@ from typing import TypeGuard
 
 from comment_review.binder.addresses import series_of
 from comment_review.reading.addresser import COVERS, address_for, cue_of
-from comment_review.reading.lexer import Kind
+from comment_review.reading.series import Kind
 
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,
 # and `allowed()` below is derived entirely from this table. It sat in
@@ -657,11 +657,16 @@ def prose_paragraphs(census: list[dict]) -> list[tuple[int, dict]]:
     already excludes it from the set it counts coverage against; this is the
     other half, and without it the report says INCOMPLETE forever.
 
-    !! NOR IS ANYTHING THAT NAMES NO PLACE, which is leading and only leading.
-    A record CITES an address; a run of blank lines has none -- see
-    `addresser.SERIES` -- so a slot for one could not be written down. ! Without
-    the `address` test this passed a `d` through on an empty string, because
-    `series_of` reads the address and answers `""` for a paragraph without one.
+    !! IT ASKS THE KIND, which is the lexer's own answer to this. Each series
+    pairs a `present` with an `absent` -- `b` is `comment` against `interval` --
+    and `Kind.holds_no_prose` reads that pairing rather than restating it.
+    ! A RAW-TEXT TEST WAS TRIED ON 2026-08-24 AND IS WRONG: it invents a
+    predicate beside one that already exists, and an empty string is a fact
+    about the value where the kind is a fact about the PLACE.
+
+    ! LEADING IS NOT IN THE POPULATION AT ALL any more. It names no place, so a
+    slot for one could not be written down; the census stopped carrying fences
+    on 2026-08-24, so the case this once guarded against cannot arrive.
     """
     return [
         (i, b)

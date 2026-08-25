@@ -16,6 +16,7 @@ from pathlib import Path
 
 # ! `_paths` FIRST: importing it is what puts `src/` on the path.
 from _paths import cli, command_source, source_of
+from comment_review.reading.series import Kind
 from comment_review.binder import addresses
 from comment_review.commands import addresser as addresser_cmd
 from comment_review.reading import addresser
@@ -523,7 +524,7 @@ class TestTheDeclarationSeries(unittest.TestCase):
         prose = [
             b
             for b in got
-            if not lexer.Kind.holds_no_prose(b.kind) and b.kind != lexer.Kind.LEADING
+            if not Kind.holds_no_prose(b.kind) and b.kind != Kind.LEADING
         ]
         self.assertEqual(
             [b.anchor for b in prose],
@@ -1137,7 +1138,7 @@ class TestEachAddresserCountsItsOwnSteps(unittest.TestCase):
             '# licence\n"""Doc."""\nimport os\n\ndef f():\n    """D."""\n    return 1\n'
         )
         built = page.page_for(Path("m.py"), src, lexer.language_for(Path("m.py")))
-        rows = [b for b in built if b.address and b.kind != lexer.Kind.LEADING]
+        rows = [b for b in built if b.address and b.kind != Kind.LEADING]
         cue = {b.address: b.address.split("@")[-1] for b in rows}
         # !! WHICH PLACES HAVE A LINE IS ASKED, NOT LISTED. This named `b3` and
         # `f1` outright, which is a fixture's arithmetic wearing a test. A place

@@ -7,7 +7,6 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 """
 
 import argparse
-import json
 from pathlib import Path
 
 from comment_review.binder.addresses import (
@@ -18,6 +17,8 @@ from comment_review.binder.addresses import (
     stable,
     unaddressed,
 )
+from comment_review.binder.binder import read as read_binder
+from comment_review.binder.binder import rows_of
 from comment_review.machine import exceptions
 from comment_review.reading.addresser import SERIES, cue_of, unflatten
 
@@ -60,15 +61,19 @@ def main() -> int:
     args = ap.parse_args()
 
     try:
-        loaded = json.loads(Path(args.census).read_text(encoding="utf-8"))
+        text = Path(args.census).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ {args.census} ({type(e).__name__})")
         return 2
-    except json.JSONDecodeError as e:
-        print(f"{args.census} is not JSON ({e})")
+    # ! REFUSED BY NAME, not read as empty. `rows_of` alone answers `[]` for a
+    # file it cannot understand, and an empty binder is indistinguishable
+    # downstream from a run with nothing in scope.
+    binder, why = read_binder(text)
+    if why:
+        print(f"{args.census}: {why}")
         return 2
-    raw = loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded
-    if not isinstance(raw, list) or not raw:
+    raw = rows_of(binder)
+    if not raw:
         print(f"{args.census} carries no paragraphs")
         return 2
     # !! EVERY ENTRY IS CHECKED, not just the list around them. A census row that

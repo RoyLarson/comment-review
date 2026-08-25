@@ -23,7 +23,8 @@ from pathlib import Path
 from _paths import MODULES, command_source, source_of  # noqa: I001
 
 from comment_review.binder import page
-from comment_review.reading import addresser, lexer
+from comment_review.reading import lexer
+from comment_review.reading.series import ABSENT, Kind, Series
 
 SIBLINGS = set(MODULES)
 
@@ -33,7 +34,16 @@ SIBLINGS = set(MODULES)
 # `text_lines`, the one definition of where a line of a FILE ends -- so taking it
 # acquires no subject and can carry no notion of anything. See `constants.py`,
 # which states that contract itself.
-LEAF = {"constants", "exceptions"}
+LEAF = {"constants", "exceptions", "series"}
+# !! `series` JOINED THE LEAVES ON 2026-08-25. It declares what a series IS --
+# its letter, and the kinds a place in it takes -- and imports nothing. Roy:
+# *"The present absent pairings is effectively what defines the series and the
+# identifier we give it should be right there with them."* The letters had been
+# `addresser`'s and the pairs `lexer`'s, in two modules that cannot import each
+# other; a leaf both may take is what lets there be ONE declaration.
+#
+# ! TAKING IT ACQUIRES NO SUBJECT, which is the test for a leaf here. The
+# addresser reads only letters from it and still knows nothing about prose.
 
 
 def _imports(name: str) -> set[str]:
@@ -167,13 +177,13 @@ class TestTheTwoLeaves(unittest.TestCase):
         # !! `record` IMPORTED NOTHING ELSE FROM `page`, and what it imported was
         # a re-export: `page.HOLDS_NO_PROSE` was `lexer`'s tuple under a second
         # name. So the edge existed to carry a constant that was never the
-        # page's, and asking `lexer.Kind` directly removed the edge entirely.
+        # page's, and asking `Kind` directly removed the edge entirely.
         #
         # ! THE OLD TEST COULD NOT SEE THIS. It asserted the STRING
         # `"from page import"` appeared, which a pass-through satisfies exactly
         # as well as a real dependency does.
         text = source_of("record")
-        self.assertIn("from comment_review.reading.lexer import Kind", text)
+        self.assertIn("from comment_review.reading.series import Kind", text)
         self.assertNotIn("from comment_review.binder.page import", text)
 
 
@@ -350,7 +360,7 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
         path = Path("m.py")
         pg = page.page_for(path, text, lexer.language_for(path))
         owner = next(b for b in pg if 2 in covers(b))
-        self.assertEqual(owner.kind, lexer.Kind.LEADING, owner.symbol)
+        self.assertEqual(owner.kind, Kind.LEADING, owner.symbol)
         # ! ITS `d` IS A SYMBOL, NOT AN ADDRESS, since 2026-08-22 -- leading
         # names no place, so it carries a label and cites nothing.
         self.assertTrue(owner.symbol.startswith("d"), owner.symbol)
@@ -366,7 +376,7 @@ class TestEveryLineBelongsToExactlyOneParagraph(unittest.TestCase):
             with self.subTest(shape=name):
                 path = Path("m.py")
                 for b in page.page_for(path, text, lexer.language_for(path)):
-                    if b.kind == lexer.Kind.LEADING:
+                    if b.kind == Kind.LEADING:
                         continue
                     self.assertTrue(b.anchor, f"{name}: {b.address} has no anchor")
 
@@ -491,7 +501,7 @@ class TestAnEmptyPlaceHoldsNoProse(unittest.TestCase):
             with self.subTest(shape=name):
                 path = Path("m.py")
                 for b in page.page_for(path, text, lexer.language_for(path)):
-                    if lexer.Kind.holds_no_prose(b.kind) or not b.text.strip():
+                    if Kind.holds_no_prose(b.kind) or not b.text.strip():
                         continue
                     self.assertTrue(
                         covers(b),
@@ -510,47 +520,39 @@ class TestEverySeriesHasAPositiveAndANegative(unittest.TestCase):
     list."*
     """
 
-    def test_each_series_pairs_prose_with_its_absence(self):
+    def test_each_series_pairs_its_LETTER_with_prose_and_its_absence(self):
+        # !! THE LETTER IS PART OF THE DEFINITION SINCE 2026-08-25. Roy: *"The
+        # present absent pairings is effectively what defines the series and the
+        # identifier we give it should be right there with them."* It was a
+        # constant in `addresser` while the pair was an enum in `lexer`, and a
+        # test held the two equal -- which is what a second source costs.
+        #
+        # ! `d` IS A SERIES HERE, with a present and NO absent. Roy, same
+        # ruling. An empty fence could not be cited, so there is nothing for
+        # `absent` to mean -- and saying that with `None` says it where the
+        # series is defined, rather than as an exclusion in three other modules.
         self.assertEqual(
-            {s.name: (s.value.present, s.value.absent) for s in lexer.Series},
+            {s.name: tuple(s.value) for s in Series},
             {
-                "DECLARED": ("docstring", "undocumented"),
-                "GAP": ("comment", "interval"),
-                "ON": ("trailing-comment", "margin"),
-                "COVERS": ("matter", "dark-matter"),
+                "DECLARED": ("a", "docstring", "undocumented"),
+                "GAP": ("b", "comment", "interval"),
+                "ON": ("c", "trailing-comment", "margin"),
+                "LEAD": ("d", "leading", None),
+                "COVERS": ("f", "matter", "dark-matter"),
             },
         )
 
     def test_the_pair_is_NAMED_and_not_positional(self):
         # ! `pair[0]` and `pair[1]` said nothing, so every reader had to know
         # which way round they went. Roy: *"NamedTuples(present, absent)."*
-        self.assertEqual(lexer.Series.ON.value.present, "trailing-comment")
-        self.assertEqual(lexer.Series.ON.value.absent, "margin")
+        self.assertEqual(Series.ON.value.present, "trailing-comment")
+        self.assertEqual(Series.ON.value.absent, "margin")
 
     def test_the_absences_are_DERIVED_and_not_listed(self):
         # ! The thing a hand-kept tuple could get wrong, and did.
-        self.assertEqual(lexer.ABSENT, {s.value.absent for s in lexer.Series})
-
-    def test_every_series_NAME_is_a_addresser_constant(self):
-        # !! WHAT TIES THE TWO MODULES, now that the letters are spelled in only
-        # ONE of them. `lexer` cannot import `addresser` -- it takes no sibling
-        # but `language` -- so a letter it duplicated could drift in silence.
-        # The member NAME carries the link instead, and this fails if either
-        # side renames a series without the other.
+        # ! `d` CONTRIBUTES NOTHING, because it has no absence to contribute.
         self.assertEqual(
-            sorted(getattr(addresser, s.name) for s in lexer.Series),
-            sorted(addresser.SERIES),
-        )
-
-    def test_LEADING_IS_A_KIND_WITH_NO_SERIES(self):
-        # !! SQUARING THE TABLE WOULD BE THE ERROR. An empty leading run could
-        # not be cited -- Roy: *"there is no information to rule on"* -- which
-        # is the same reason `d` is not in `addresser.SERIES`. So `Kind` keeps
-        # nine members and `Series` covers the eight that pair.
-        self.assertIn(lexer.Kind.LEADING, set(lexer.Kind))
-        self.assertNotIn(
-            lexer.Kind.LEADING,
-            {k for s in lexer.Series for k in s.value},
+            ABSENT, {s.value.absent for s in Series if s.value.absent is not None}
         )
 
     def test_leading_HOLDS_NO_PROSE_BUT_OCCUPIES_LINES(self):
@@ -559,17 +561,17 @@ class TestEverySeriesHasAPositiveAndANegative(unittest.TestCase):
         # real lines; answering the second with the first takes those lines out
         # of `occupied` in `code_lines`, so they read as CODE and every `b` and
         # `c` below them renumbers.
-        self.assertTrue(lexer.Kind.holds_no_prose(lexer.Kind.LEADING))
-        self.assertFalse(lexer.Kind.occupies_no_lines(lexer.Kind.LEADING))
+        self.assertTrue(Kind.holds_no_prose(Kind.LEADING))
+        self.assertFalse(Kind.occupies_no_lines(Kind.LEADING))
 
     def test_the_two_questions_agree_on_every_OTHER_kind(self):
         # ! Leading is the ONLY member they part on -- so the merge was right
         # about the four negatives and wrong about the ninth kind.
         parted = [
             k
-            for k in lexer.Kind
-            if k is not lexer.Kind.LEADING
-            and lexer.Kind.holds_no_prose(k) != lexer.Kind.occupies_no_lines(k)
+            for k in Kind
+            if k is not Kind.LEADING
+            and Kind.holds_no_prose(k) != Kind.occupies_no_lines(k)
         ]
         self.assertEqual(parted, [])
 
@@ -584,7 +586,7 @@ class TestEverySeriesHasAPositiveAndANegative(unittest.TestCase):
         self.assertEqual(got[2], "int b = 2;")
 
     def test_every_absence_belongs_to_exactly_ONE_series(self):
-        for kind in lexer.ABSENT:
+        for kind in ABSENT:
             with self.subTest(kind=kind):
-                owner = [s.name for s in lexer.Series if s.value.absent == kind]
+                owner = [s.name for s in Series if s.value.absent == kind]
                 self.assertEqual(len(owner), 1, f"{kind} belongs to {owner}")

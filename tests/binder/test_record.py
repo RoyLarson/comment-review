@@ -7,6 +7,8 @@ import unittest
 from pathlib import Path
 
 from _paths import cli
+from _fixtures import as_binder
+from comment_review.reading.series import Kind
 from comment_review.binder import addresses
 from comment_review.reading import addresser
 from comment_review.reading import lexer
@@ -326,7 +328,7 @@ class TestCLI(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         self.census = self.root / "census.json"
-        self.census.write_text(json.dumps(CENSUS), encoding="utf-8")
+        self.census.write_text(json.dumps(as_binder(CENSUS)), encoding="utf-8")
         self.out = self.root / "nested" / "block-context.json"
 
     def tearDown(self):
@@ -706,7 +708,7 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
         self.census = [vars(b) for b in paragraphs]
         # ! THE KIND, NOT AN ANNOTATION, since 2026-08-21 -- the lexer types a
         # run `matter` and the page no longer stamps it afterwards.
-        self.marked = [b for b in self.census if b["kind"] == lexer.Kind.MATTER]
+        self.marked = [b for b in self.census if b["kind"] == Kind.MATTER]
 
     def test_the_fixture_really_has_front_matter(self):
         # ! Guards the guard: a fixture whose header stopped being marked would
@@ -728,7 +730,7 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
                 or {}
             )
             with self.subTest(place=s["place"]):
-                self.assertNotIn(lexer.Kind.MATTER, held.get("annotations") or ())
+                self.assertNotIn(Kind.MATTER, held.get("annotations") or ())
 
     def test_the_JOIN_and_the_SEED_agree_on_what_is_accountable(self):
         """!! They disagreed, which is how the gap reached nobody.
@@ -746,7 +748,7 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
         accountable = {
             str(b.get("address", ""))
             for b in self.census
-            if not lexer.Kind.holds_no_prose(str(b.get("kind", "")))
+            if not Kind.holds_no_prose(str(b.get("kind", "")))
             and b.get("address")
             and addresses.series_of(b) != addresser.COVERS
         }

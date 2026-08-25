@@ -15,7 +15,8 @@ from pathlib import Path
 
 from comment_review.binder.addresses import series_of, unaddressed
 from comment_review.binder.annotate import annotate, prose_numbers
-from comment_review.binder.page import page_for
+from comment_review.binder.binder import bind, rows_of
+from comment_review.binder.page import Page, page_for
 from comment_review.concordance.code_names import code_names
 from comment_review.flows.census import (
     _not_censused,
@@ -27,13 +28,8 @@ from comment_review.flows.census import (
 from comment_review.machine import exceptions
 from comment_review.machine.repo import path_index, tracked_paths, walk_files
 from comment_review.reading.addresser import COVERS, SEPARATOR
-from comment_review.reading.lexer import (
-    LANGUAGES,
-    Kind,
-    Paragraph,
-    language_for,
-    tier_for,
-)
+from comment_review.reading.lexer import LANGUAGES, Paragraph, language_for, tier_for
+from comment_review.reading.series import Kind
 
 
 def main() -> int:
@@ -128,6 +124,12 @@ def _report(args: argparse.Namespace) -> int:
     paths = path_index(repo)
 
     census: list[Paragraph] = []
+    # !! THE PAGES ARE KEPT, NOT ONLY THEIR PARAGRAPHS. A binder names the file
+    # ONCE PER PAGE and the rows sit under it, so the emit needs the page --
+    # while the LISTING still numbers one flat run. Both are built from this
+    # same walk, which is what stops the two disagreeing about what was
+    # censused.
+    pages: list[Page] = []
     # A path argument that matched no file joins `unreadable`, so a typo errors
     # on the same rule every other gap does.
     unreadable: list[str] = [
@@ -189,6 +191,7 @@ def _report(args: argparse.Namespace) -> int:
         except Exception as e:  # a parse failure is REPORTED, as a gap
             unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
             continue
+        pages.append(got)
         census.extend(carried(got))
 
     for b in census:
@@ -235,12 +238,17 @@ def _report(args: argparse.Namespace) -> int:
         # ! SERIALISED ONCE. This list was built twice -- once to check and once
         # to print -- which is two full dict copies and a re-sort of every
         # annotation set over a census that runs to thousands of paragraphs.
-        rows = [emitted_row(b) for b in census]
-        missing = unaddressed(rows)
+        # !! THE GATE READS THE BINDER BACK, rather than checking the list that
+        # was about to be written. `rows_of` is what every consumer will call,
+        # so a shape it cannot read is caught HERE -- at the one moment the
+        # writer and the reader are both present -- instead of at whichever
+        # command opens the file next.
+        binder = bind(pages)
+        missing = unaddressed(rows_of(binder))
         if missing:
             print(_unaddressed(missing), file=sys.stderr)
             return 1
-        print(json.dumps(rows, indent=1, default=str))
+        print(json.dumps(binder, indent=1, default=str))
         return 0
 
     # !! NO TIER COUNTS, AND NO `tier` ON A ROW. Ruled 2026-08-24 -- Roy: *"their

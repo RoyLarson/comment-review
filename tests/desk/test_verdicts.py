@@ -8,7 +8,9 @@ import unittest
 from pathlib import Path
 
 from _paths import MODULES, REFERENCES, cli, source_of
+from _fixtures import as_binder, row
 from comment_review.reading import lexer
+from comment_review.binder import binder
 from comment_review.binder import page
 from comment_review.binder import held
 from comment_review.binder import record
@@ -1761,35 +1763,15 @@ class TestCLI(unittest.TestCase):
         )
         self.census = Path(self.tmp.name) / "census.json"
         self.census.write_text(
+            # ! THE PROSE IS NOT OPTIONAL. `block_problem` matches the sentence
+            # a finding rules on against the paragraph it cites, so a fixture
+            # without it refuses every finding -- which is the check working.
             json.dumps(
-                # ! `text` is not optional. `block_problem` matches the sentence
-                # a finding rules on against the paragraph it cites, so a fixture
-                # without
-                # it refuses every finding -- which is the check working, and
-                # the real census has carried `text` since it was written.
-                [
-                    {
-                        "path": "a.py",
-                        "start": 1,
-                        "end": 2,
-                        "text": "x",
-                        "address": "a.py@b0",
-                    },
-                    {
-                        "path": "a.py",
-                        "start": 3,
-                        "end": 4,
-                        "text": "x",
-                        "address": "a.py@b1",
-                    },
-                    {
-                        "path": "a.py",
-                        "start": 5,
-                        "end": 6,
-                        "text": "x",
-                        "address": "a.py@b2",
-                    },
-                ]
+                as_binder(
+                    [row("b0", start=1, end=2), row("b1", start=3, end=4),
+                     row("b2", start=5, end=6)],
+                    path="a.py",
+                )
             ),
             encoding="utf-8",
         )
@@ -2754,15 +2736,19 @@ class TestAnEditOnFrontMatterBecomesAQuery(unittest.TestCase):
             (root / "m.py").write_text(source, encoding="utf-8")
             path = Path("m.py")
             got = page.page_for(path, source, lexer.language_for(path), "m.py")
-            entries = [vars(b) for b in got]
-            for e in entries:
-                e["annotations"] = sorted(e["annotations"])
+            # ! WRITTEN BY THE REAL WRITER, which is what the docstring above
+            # asks for. It had flattened the page with `vars(b)` and sorted the
+            # annotations by hand -- reproducing the emit, and drifting from it
+            # the moment the emit changed. `bind` IS the emit.
             census_path = root / "c.json"
-            census_path.write_text(json.dumps(entries), encoding="utf-8")
+            census_path.write_text(
+                json.dumps(binder.bind([got]), default=str), encoding="utf-8"
+            )
+            entries = binder.rows_of(
+                json.loads(census_path.read_text(encoding="utf-8"))
+            )
             place = next(
-                i
-                for i, e in enumerate(entries, 1)
-                if str(e["address"]).split("@")[-1].startswith("f")
+                i for i, e in enumerate(entries, 1) if str(e["cue"]).startswith("f")
             )
             address = entries[place - 1]["address"]
             report = root / "ownership-context.json"

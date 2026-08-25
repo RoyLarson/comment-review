@@ -25,6 +25,7 @@ from _paths import PKG, ROOT  # noqa: F401  -- puts `src/` on the path
 
 from comment_review.binder import page as page_mod
 from comment_review.reading import lexer  # noqa: E402
+from comment_review.reading.series import Kind
 from comment_review.results import (
     compositor,  # noqa: E402
     galley,  # noqa: E402
@@ -93,20 +94,20 @@ class TestLeadingIsNotCitable(unittest.TestCase):
 
     def test_it_carries_no_anchor(self):
         # ! Every other series answers to a line of code. This answers to nothing.
-        leads = [b for b in built("m.py", self.SRC) if b.kind == lexer.Kind.LEADING]
+        leads = [b for b in built("m.py", self.SRC) if b.kind == Kind.LEADING]
         self.assertTrue(leads)
         self.assertEqual([b.anchor for b in leads], [""] * len(leads))
 
     def test_it_is_not_prose_a_reviewer_owes_a_record_on(self):
         page = built("m.py", self.SRC)
-        self.assertNotIn(lexer.Kind.LEADING, {b.kind for b in page.prose})
+        self.assertNotIn(Kind.LEADING, {b.kind for b in page.prose})
 
     def test_NO_EMPTY_d_IS_EMITTED(self):
         # !! THE OTHER FOUR SERIES EXIST WHEREVER PROSE COULD GO, because an
         # `add` cites them. A place no verdict can name has no reason to exist
         # unfilled -- so a `d` exists only where the lexer found a blank run.
         page = built("m.py", "import os\nimport sys\n")
-        self.assertEqual([b for b in page if b.kind == lexer.Kind.LEADING], [])
+        self.assertEqual([b for b in page if b.kind == Kind.LEADING], [])
 
 
 class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
@@ -273,7 +274,7 @@ class TestTheShapeThatCouldNotBeSetBack(unittest.TestCase):
     def test_the_run_is_still_ONE_paragraph_however_it_is_spelled(self):
         """Carrying the characters must not split the run into one per line."""
         page = built("ws.py", "x = 1\n\t\n   \ny = 2\n")
-        leads = [b for b in page if b.kind == lexer.Kind.LEADING]
+        leads = [b for b in page if b.kind == Kind.LEADING]
         self.assertEqual([(b.start, b.end) for b in leads], [(2, 3)])
 
     def test_a_doc_comment_one_blank_above_its_declaration_is_STILL_tied(self):

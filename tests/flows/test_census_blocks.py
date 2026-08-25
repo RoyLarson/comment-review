@@ -6,6 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from _fixtures import as_binder
+
 # ! `_paths` FIRST: importing it is what puts `src/` on the path.
 from _paths import FIXTURES, PKG, ROOT, cli
 from _transcription import transcribes
@@ -13,6 +15,7 @@ from _transcription import transcribes
 from comment_review.binder import annotate, page
 from comment_review.reading import lexer
 from comment_review.reading.addresser import COVERS, EOF
+from comment_review.reading.series import Kind
 from comment_review.results import prove_unchanged as pu
 
 
@@ -247,7 +250,7 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         self.assertTrue(got, "three code lines must enumerate as intervals")
         # ! The module's own `a0` is here too -- a file with no module docstring
         # still has the PLACE for one. Neither kind holds prose.
-        self.assertTrue(all(lexer.Kind.holds_no_prose(b.kind) for b in got), got)
+        self.assertTrue(all(Kind.holds_no_prose(b.kind) for b in got), got)
         # ! FOUR INTERVALS: one gap above each of the three code lines, and the
         # gap after the last. ! The file's own places are NOT among them since
         # 2026-08-20 -- they are `dark-matter`, in their own series.
@@ -318,14 +321,14 @@ class TestEveryIntervalIsABlock(unittest.TestCase):
         # census says so rather than re-cutting -- merging would renumber every
         # census and invalidate every measurement taken against one.
         got = self._census("x = 1  # a claim that\n       # wraps onto it\ny = 2\n")
-        prose = [b for b in got if not lexer.Kind.holds_no_prose(b.kind)]
+        prose = [b for b in got if not Kind.holds_no_prose(b.kind)]
         self.assertEqual([b.kind for b in prose], ["trailing-comment", "comment"])
         self.assertIn("continues-a-trailing-comment", prose[1].annotations)
         self.assertIn("trailing comment", " ".join(prose[1].notes))
 
     def test_an_ordinary_comment_after_CODE_is_not_stamped(self):
         got = self._census("x = 1\n# a fresh note\ny = 2\n")
-        prose = [b for b in got if not lexer.Kind.holds_no_prose(b.kind)]
+        prose = [b for b in got if not Kind.holds_no_prose(b.kind)]
         self.assertEqual([b.kind for b in prose], ["comment"])
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
@@ -378,13 +381,13 @@ class TestTheLexicalTierStampsToo(unittest.TestCase):
         got = self._census(
             "a.go", "x := 1  // a claim that\n        // wraps onto it\ny := 2\n"
         )
-        prose = [b for b in got if not lexer.Kind.holds_no_prose(b.kind)]
+        prose = [b for b in got if not Kind.holds_no_prose(b.kind)]
         self.assertEqual([b.kind for b in prose], ["trailing-comment", "comment"])
         self.assertIn("continues-a-trailing-comment", prose[1].annotations)
 
     def test_go_does_not_stamp_an_ordinary_comment(self):
         got = self._census("a.go", "x := 1\n// a fresh note\ny := 2\n")
-        prose = [b for b in got if not lexer.Kind.holds_no_prose(b.kind)]
+        prose = [b for b in got if not Kind.holds_no_prose(b.kind)]
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 
 
@@ -409,7 +412,7 @@ class TestAQuoteThatHoldsONECHARACTER(unittest.TestCase):
             path = Path(tmp) / name
             path.write_text(text, encoding="utf-8")
             got = page.page_for(path, text, lexer.language_for(path))
-        return [b for b in got if not lexer.Kind.holds_no_prose(b.kind)]
+        return [b for b in got if not Kind.holds_no_prose(b.kind)]
 
     def test_a_rust_lifetime_does_not_eat_the_comment(self):
         prose = self._prose(
@@ -498,7 +501,7 @@ class TestALineWhosePrefixIsAStringIsSTILLCode(unittest.TestCase):
             path = Path(tmp) / name
             path.write_text(text, encoding="utf-8")
             got = page.page_for(path, text, lexer.language_for(path))
-        return [b for b in got if not lexer.Kind.holds_no_prose(b.kind)]
+        return [b for b in got if not Kind.holds_no_prose(b.kind)]
 
     def _code(self, name, text):
         with tempfile.TemporaryDirectory() as tmp:
@@ -575,7 +578,7 @@ class TestARunsCLOSINGLineIsCutAtTheCloser(unittest.TestCase):
 
     def test_the_statement_is_not_in_the_prose(self):
         _, got = self._page(self.SRC)
-        prose = [b for b in got if not lexer.Kind.holds_no_prose(b.kind)]
+        prose = [b for b in got if not Kind.holds_no_prose(b.kind)]
         self.assertEqual([b.text for b in prose], ["/* note more */"])
         self.assertNotIn("int x = 5;", prose[0].text)
 
@@ -588,7 +591,7 @@ class TestARunsCLOSINGLineIsCutAtTheCloser(unittest.TestCase):
         lines of C and JS/TS.
         """
         text, got = self._page("int a = 1;\n/* note */ int x = 5;\nint b = 2;\n")
-        self.assertEqual([b for b in got if not lexer.Kind.holds_no_prose(b.kind)], [])
+        self.assertEqual([b for b in got if not Kind.holds_no_prose(b.kind)], [])
         self.assertEqual(
             sorted(page.code_lines(text, [vars(b) for b in got])), [1, 2, 3]
         )
@@ -612,7 +615,7 @@ class TestARunsCLOSINGLineIsCutAtTheCloser(unittest.TestCase):
 
     def test_a_run_that_does_NOT_close_on_the_line_is_unchanged(self):
         text, got = self._page("/* one\n   two\n   three */\nint a = 1;\n")
-        prose = [b for b in got if not lexer.Kind.holds_no_prose(b.kind)]
+        prose = [b for b in got if not Kind.holds_no_prose(b.kind)]
         self.assertEqual([b.text for b in prose], ["/* one two three */"])
         self.assertEqual((prose[0].start, prose[0].end), (1, 3))
 
@@ -643,7 +646,7 @@ class TestANESTEDBlockCommentClosesWhenEVERYLayerDoes(unittest.TestCase):
             path = Path(tmp) / name
             path.write_text(text, encoding="utf-8")
             got = page.page_for(path, text, lexer.language_for(path))
-        return [b for b in got if not lexer.Kind.holds_no_prose(b.kind)]
+        return [b for b in got if not Kind.holds_no_prose(b.kind)]
 
     NESTED = "let a = 1; /* outer /* inner */ still comment */\nlet b = 2;\n"
 
@@ -868,7 +871,7 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
             [
                 b.kind
                 for b in self.paragraphs
-                if not b.anchor and b.kind != lexer.Kind.LEADING
+                if not b.anchor and b.kind != Kind.LEADING
             ],
             [],
         )
@@ -901,7 +904,7 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
             body = src.read_text(encoding="utf-8")
             for b in page.page_for(src, body, lexer.language_for(src)):
                 # ! LEADING answers to nothing, ruled 2026-08-21.
-                if b.kind == lexer.Kind.LEADING:
+                if b.kind == Kind.LEADING:
                     continue
                 if not b.anchor:
                     holes.append(f"{src.name} {b.address or b.start} {b.kind}")
@@ -930,7 +933,7 @@ class TestFrontMatterIsMarked(unittest.TestCase):
         # ! THE KIND, NOT AN ANNOTATION, since 2026-08-21. The lexer types a run
         # `matter`; the page used to stamp it afterwards, which put a positioning
         # rule in a module that may hold none.
-        return [b.start for b in self._census(text) if b.kind == lexer.Kind.MATTER]
+        return [b.start for b in self._census(text) if b.kind == Kind.MATTER]
 
     LICENCE = '# Copyright 2024\n# Apache 2.0\n\n"""What this is."""\n\nimport os\n'
     SHEBANG = '#!/usr/bin/env python3\n\n"""What this is."""\n\nimport os\n'
@@ -1220,7 +1223,7 @@ class TestBothTiersStoreRawLinesTheSameWay(unittest.TestCase):
             refused += [
                 f"{src.name}:{b.start} {b.kind}"
                 for b in paragraphs
-                if not lexer.Kind.holds_no_prose(b.kind)
+                if not Kind.holds_no_prose(b.kind)
                 and not transcribes(vars(b), lines)
             ]
         self.assertEqual(refused, [])
@@ -1416,7 +1419,7 @@ class TestAnUnaddressedCensusIsREFUSEDAtBothEnds(unittest.TestCase):
             self.assertEqual(good.returncode, 0, good.stderr)
             stripped = [b | {"address": ""} for b in json.loads(good.stdout)]
             census = root / "c.json"
-            census.write_text(json.dumps(stripped), encoding="utf-8")
+            census.write_text(json.dumps(as_binder(stripped)), encoding="utf-8")
             report = root / "block-context.json"
             report.write_text(
                 json.dumps(
