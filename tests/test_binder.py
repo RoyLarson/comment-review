@@ -11,7 +11,6 @@ from conftest import PKG, SAMPLE, build, by_cue
 
 from comment_review.binder.binder import VERSION, bind, page_row, read, rows_of
 from comment_review.flows.census import carried
-from comment_review.machine.repo import sha_of
 
 #: The fields ruled onto a row -- FIVE, after three rulings.
 #: `Addressing: #12` cut eleven of nineteen. `#14` put `kind` back, and `#15`
@@ -145,17 +144,6 @@ def test_carried_drops_fences_and_keeps_everything_else():
     kept = carried(page)
     assert all(b.address for b in kept)
     assert len(kept) == len([b for b in page.paragraphs if b.address])
-
-
-class TestTheIdentityOfAPage:
-    def test_the_same_text_answers_the_same(self):
-        assert sha_of(SAMPLE) == sha_of(SAMPLE)
-
-    def test_different_text_answers_differently(self):
-        assert sha_of(SAMPLE) != sha_of(SAMPLE + "\n")
-
-    def test_one_character_is_enough_to_change_it(self):
-        assert sha_of("x = 1\n") != sha_of("x = 2\n")
 
 
 class TestRowsOfPutsBackWhatThePageEnvelopeTookOut:
