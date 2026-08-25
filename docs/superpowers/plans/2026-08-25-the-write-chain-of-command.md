@@ -135,6 +135,7 @@ is the failure that makes a backlog lie towards LESS work, which no gate can see
 | `src/comment_review/binder/binder.py` | MODIFY -- reports `page.sha`; loses `sha_of` and `hashlib` | 3 |
 | `src/comment_review/desk/notations.py` | CREATE -- the stand-in shape the middle will emit, and its refusal | 4, 5 |
 | `src/comment_review/results/galley.py` | MODIFY -- `reset` takes cues and `None`; `drifted` is retired | 6, 7 |
+| `src/comment_review/flows/page.py` | CREATE -- the missing step: a PATH becomes a PAGE, or a reason | 8 |
 | `src/comment_review/flows/write.py` | CREATE -- owns the ORDER, as data | 8, 9, 10, 11 |
 | `src/comment_review/commands/write.py` | CREATE -- parses arguments, calls the flow, holds no orchestration | 12 |
 | `tests/test_machine.py` | CREATE -- `machine/` has no tests today | 1 |
@@ -1017,7 +1018,44 @@ Message: *"galley: drifted retired -- the sha answers it in one comparison"*.
 
 ### Task 8: A flow owns the order, and it is data
 
-**Delivers:** spec P4 box 1, P6 box 1, and **P2 box 4** -- the `recorded` dict below is where the sha is read OUT of the saved binder rather than recomputed from a file.
+**Delivers:** spec P4 boxes 1 and 2, P6 box 1, and **P2 box 4** -- the `recorded` dict below is where the sha is read OUT of the saved binder rather than recomputed from a file.
+
+!! **BUILD `flows/page.py` FIRST, AND HAVE `flows/write.py` USE IT.** Roy, 2026-08-25: *"you
+only have a step that produces a binder but you need a step here that produces a page so you
+can use it which is one piece of the binder."* MEASURED: five sites re-run the same four calls
+inline (read, language, `page_for`, sha) and none of them is a named step.
+
+```python
+# src/comment_review/flows/page.py
+
+def page_of(path: Path, rel: str | None = None) -> tuple[Page | None, str]:
+    """The page for one file, or the reason there is none.
+
+    !! IT IS THE STEP THAT WAS MISSING. Roy, 2026-08-25: the tree had *"only a
+    step that produces a binder"*, so anything wanting a PAGE either rebuilt one
+    inline -- MEASURED at five sites -- or reached for the binder. Reaching for
+    the binder is what pulled `rows_of` into `desk/notations.py` and had to be
+    undone.
+
+    ! A REFUSAL IS RETURNED, NOT RAISED, in the shape `binder.read` and
+    `notations.read` already use: `(page, "")` or `(None, reason)`.
+
+    Args:
+        path: the file to read.
+        rel: how the repo names it. `page_for` stamps addresses from this, so a
+            page built without one carries none.
+
+    Returns:
+        The page and an empty reason, or `None` and why there is no page.
+    """
+```
+
+Its body is the four calls the five sites duplicate: `read_source`, `language_for`, a `None`
+language refusing by name, then `page_for(path, source.text, lang, rel=rel, sha=source.sha)`.
+Catch `exceptions.READ_ERRORS` on the read and return the reason.
+
+! **REPOINTING THE OTHER FOUR SITES IS NOT THIS BRANCH'S** -- it touches the census, the galley
+CLI and both compositor gates. File it rather than widen here.
 
 **Files:**
 - Create: `src/comment_review/flows/write.py`
