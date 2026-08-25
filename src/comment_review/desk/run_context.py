@@ -38,10 +38,7 @@ complete. The rest carry prose no oracle settles, and this reports nothing about
 them.
 """
 
-import argparse
 import re
-import sys
-from contextlib import redirect_stdout
 from pathlib import Path
 
 # !! ITS FIRST SIBLING IMPORT, and the ruling that permitted it. This module was
@@ -49,7 +46,6 @@ from pathlib import Path
 # 2026-08-22: *"the guard lives in a constants.py file. The test verifies no
 # readers or printers are missing the guard."* ! `constants` imports nothing
 # from this package, so taking it acquires no other dependency.
-from ..machine import constants, exceptions
 
 #: The sections whose answers are PATHS, checked against the filesystem.
 #:
@@ -292,82 +288,3 @@ def invalid_answers(text: str) -> list[str]:
                 if not any(_resolves(c) for c in _path_candidates(line)):
                     bad.append(f"{name}: {line!r} is not an absolute path that exists")
     return bad
-
-
-def main() -> int:
-    """Print the template, or check a filled packet."""
-    constants.utf8_console()
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--template", action="store_true")
-    ap.add_argument("--check", metavar="FILE")
-    ap.add_argument(
-        "--out", metavar="PATH", help="write the report to PATH, not stdout"
-    )
-    args = ap.parse_args()
-    # ! REFUSED BEFORE `--out` OPENS ANYTHING, so a usage error leaves no empty
-    # packet behind for the next stage to read as an answered one.
-    if not args.template and not args.check:
-        ap.error("one of --template or --check is required")
-
-    # ! WRITES ITS OWN FILE, for the reason `census.py:276` carries: a
-    # worktree-isolated harness REFUSES a command carrying a shell redirect,
-    # and the packet is what stage 4 dispatches from -- so the only documented
-    # route to it was unrunnable there. This module's own usage line said
-    # `--template > run-<id>/context.md` until this landed.
-    if args.out:
-        with open(args.out, "w", encoding="utf-8", newline="") as fh:
-            with redirect_stdout(fh):
-                return _report(args)
-    return _report(args)
-
-
-def _report(args: argparse.Namespace) -> int:
-    """Everything the run prints, so `--out` can wrap it in one place."""
-    if args.template:
-        print(template())
-        return 0
-
-    try:
-        text = Path(args.check).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as e:
-        print(f"CANNOT READ {args.check} ({type(e).__name__}) -- no packet to check")
-        return 1
-
-    bad = missing_sections(text)
-    if bad:
-        print(f"INCOMPLETE -- {len(bad)} section(s) would dispatch unanswered:")
-        for name in bad:
-            print(f"  {name}: {HINTS[name]}")
-        print(
-            "\nDo not dispatch. A reviewer cannot report a context it never received."
-        )
-        return 1
-
-    invalid = invalid_answers(text)
-    if invalid:
-        print(f"UNUSABLE -- {len(invalid)} answer(s) a reviewer cannot act on:")
-        for problem in invalid:
-            print(f"  {problem}")
-        print(
-            "\nDo not dispatch. An answer that does not resolve is the same"
-            " dispatch failure as a blank one, arriving later."
-        )
-        return 1
-
-    # ! BOTH NUMBERS ARE DERIVED. The message named three sections and
-    # subtracted three while FOUR were checked -- `LOOKUP CENSUS` joined them
-    # and the sentence did not, so the line under-reported what it had
-    # verified and over-reported what it had not.
-    checked = ", ".join(PATH_SECTIONS)
-    print(
-        f"Complete: all {len(REQUIRED)} sections answered, and {checked}"
-        f" check out.\n! The other {len(REQUIRED) - len(PATH_SECTIONS)} are"
-        " prose nothing here can settle. Dispatch all four in ONE message, so no"
-        " role sees another's findings.\n! Withhold every TASK AGENT ONLY"
-        f" section: {', '.join(sorted(TASK_AGENT_ONLY))}."
-    )
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

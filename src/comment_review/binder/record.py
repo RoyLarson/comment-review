@@ -45,16 +45,11 @@ seeded slots turned 228 findings into 226, losing both of its `add`s in
 silence.
 """
 
-import argparse
-import json
 import re
-import sys
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
-from pathlib import Path
 from typing import TypeGuard
 
-from ..machine import constants, exceptions
 from ..reading.addresser import (
     COVERS,
     address_for,
@@ -1118,85 +1113,3 @@ def check(report: dict, census: list[dict]) -> tuple[list[str], int]:
             continue
         problems += record_problems(where, rec, paragraph)
     return (problems, unruled)
-
-
-def main() -> int:
-    """Seed a reviewer's record file from the census."""
-    # A Windows console is cp1252; one non-ASCII glyph in a report kills the run.
-    constants.utf8_console()
-
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--seed", action="store_true", help="write an empty record file")
-    ap.add_argument("--check", metavar="PATH", help="check a filled record file")
-    ap.add_argument("--census", required=True, help="census.py --json output")
-    ap.add_argument("--reviewer", help="the editorial role's name (--seed only)")
-    ap.add_argument("--out", help="the file to write (--seed only)")
-    args = ap.parse_args()
-
-    if not args.seed and not args.check:
-        print("nothing to do: pass --seed or --check")
-        return 2
-    try:
-        loaded = json.loads(Path(args.census).read_text(encoding="utf-8"))
-    except exceptions.READ_ERRORS as e:
-        print(f"CANNOT READ {args.census} ({type(e).__name__})")
-        return 2
-    except json.JSONDecodeError as e:
-        print(f"CANNOT PARSE {args.census} as JSON ({e})")
-        return 2
-    census = loaded["paragraphs"] if isinstance(loaded, dict) else loaded
-
-    if args.check:
-        try:
-            report = json.loads(Path(args.check).read_text(encoding="utf-8"))
-        except exceptions.READ_ERRORS as e:
-            print(f"CANNOT READ {args.check} ({type(e).__name__})")
-            return 2
-        except json.JSONDecodeError as e:
-            # !! THE ONE FAILURE THIS FORMAT ADDS, and it names its own
-            # position where a merged field never could.
-            print(f"CANNOT PARSE {args.check} as JSON ({e})")
-            return 2
-        problems, unruled = check(report, census)
-        # ! The version first, because every message below it assumes this
-        # reader and that file agree about what a record is.
-        stale = version_problem(report)
-        if stale:
-            print(f"  {stale}")
-        for problem in problems:
-            print(f"  {problem}")
-        total = sum(1 for _ in every_record(report))
-        print(f"\n{total - unruled} of {total} records ruled; {unruled} still empty.")
-        # ! The VERSION counts as one. It is reported above and it is not in
-        # `problems`, so a file whose only fault was a missing version printed
-        # "0 problem(s)" and exited 1 -- a count contradicting the line above it
-        # and the exit code below it.
-        counted = len(problems) + bool(stale)
-        if counted:
-            print(f"{counted} problem(s). The shape is wrong, not the finding.")
-            return 1
-        # ! An unfilled report is INCOMPLETE, not malformed, and the two exit
-        # differently: a reviewer part-way through is not in error.
-        print("Every filled record is well formed." if total else "No records.")
-        return 0
-
-    if not args.reviewer or not args.out:
-        print("--seed needs --reviewer and --out")
-        return 2
-    report = seed(census, args.reviewer)
-    out = Path(args.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(report, indent=1), encoding="utf-8")
-
-    prose = sum(1 for _ in every_record(report))
-    print(
-        f"{args.reviewer}: {prose} records seeded"
-        f" from {len(census)} paragraphs -> {out}"
-    )
-    print(f"  the reviewer fills {', '.join(ANSWERED)}")
-    print(f"  {', '.join(SEEDED)} are already there")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

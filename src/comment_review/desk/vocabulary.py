@@ -16,8 +16,6 @@ syntax-only gate, so the floor is stated in `scripts/check_shipped_syntax.py`
 and enforced by parsing every shipped file at it.
 """
 
-import argparse
-import sys
 import tomllib
 from enum import StrEnum
 from pathlib import Path
@@ -25,7 +23,6 @@ from pathlib import Path
 # ! ITS FIRST SIBLING IMPORT -- see `run_context.py`, which took one for the same
 # reason on the same ruling. This module's own copy of the guard was the one
 # carrying a comment true of it and false of the other nine.
-from ..machine import constants, exceptions
 
 VOCABULARY = Path(__file__).resolve().parent.parent / "references" / "vocabulary.toml"
 
@@ -72,43 +69,3 @@ def render(role: str, definitions: dict[str, str], roles: dict[str, list[str]]) 
     ]
     lines += [f"- **{term}** -- {definitions[term]}" for term in wanted]
     return "\n".join(lines) + "\n"
-
-
-def main() -> int:
-    """Print one role's vocabulary, or the roles that have one."""
-    # !! UTF-8 with replacement, because this output is PASTED VERBATIM into a
-    # reviewer's prompt: corruption here reaches an agent as instruction.
-    # Measured 2026-08-17 on a live run -- without this, a `cp1252` console
-    # corrupted every dash and exited 0, and a PowerShell redirect wrote UTF-16
-    # that read as a binary file. The dispatch went out with three roles
-    # instead of four.
-    constants.utf8_console()
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--reviewer", choices=[r.value for r in Reviewer])
-    ap.add_argument("--roles", action="store_true", help="list the roles and exit")
-    args = ap.parse_args()
-
-    try:
-        definitions, roles = load()
-    except exceptions.TOML_ERRORS as e:
-        print(f"cannot read {VOCABULARY}: {type(e).__name__}: {e}", file=sys.stderr)
-        return 1
-
-    if args.roles:
-        for role in Reviewer:
-            print(f"{role.value:<20} {len(terms_for(role.value, roles))} terms")
-        return 0
-
-    if not args.reviewer:
-        ap.error("one of --reviewer or --roles is required")
-
-    try:
-        print(render(args.reviewer, definitions, roles), end="")
-    except KeyError as e:
-        print(e.args[0], file=sys.stderr)
-        return 1
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

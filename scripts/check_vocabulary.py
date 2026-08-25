@@ -156,7 +156,13 @@ NOT_THE_TERM = (
     "Java text block",
 )
 REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
-EMITTED = REFERENCES / "vocabulary.toml"
+# !! THE TOML IS PACKAGE DATA AND NO LONGER SITS BESIDE THE `.md` REFERENCES.
+# `vocabulary.py` reads it relative to its own `__file__`, so it has to travel
+# with the code; the `.md` files beside it are read by AGENTS, not by any
+# script, and stay in the skill. Moved 2026-08-24 with the package -- a source
+# tree that reached into `plugins/` for its own data would depend on the tree
+# that is BUILT FROM it.
+EMITTED = REPO / "src/comment_review/references/vocabulary.toml"
 
 # The record of what CHANGED -- never a second place to look a live term up.
 DOC = REPO / "docs/vocabulary.md"
