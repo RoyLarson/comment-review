@@ -1728,6 +1728,11 @@ part of what it asserts: a check in `test_binder.py` exercising `sha_of` claims 
 text identity -- the ownership this branch deleted -- and it goes green if someone restores it.
 **Delete those. Add nothing in their place.**
 
+!! **`m.py@` IS CORRECT IN `tests/test_notations.py` AND MUST SURVIVE THE GREP.** Notations are
+keyed by ADDRESS, because the address is what the saved binder resolves to a file; only the
+GALLEY takes bare cues. The two look identical to a grep and mean opposite things -- deleting
+the notations cases would cut the tests for the very resolution step this branch added.
+
 - [ ] **Step 2: Record the rulings**
 
 Add the ten dated 2026-08-24 / 2026-08-25 rulings from the spec's table to `docs/decision-log.md`, each findable by date and subject. Cite as `decision-log.md TOPIC: #N`.
