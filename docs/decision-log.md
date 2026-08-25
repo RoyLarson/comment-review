@@ -241,6 +241,30 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   checked BEFORE it is proposed; this is what that check returns when it is run, and it took one
   `grep`.
 
+- **#13.** **`annotation` is the BINDER's sticky note, and only one thing in this system may
+  carry the word** (Roy, 2026-08-24: *"Sticky notes for making the pages pages for important
+  information. Directly relevant. May need a different term than annotations though or the other
+  annotations get different terms"*, then: *"Only one is allowed"*). It goes to the binder.
+
+  !! **IT WAS SETTLED BY EXPERIMENT RATHER THAN BY ARGUMENT, which is new here.** Roy: *"Can you
+  give a couple of subagents a record and then split one and give it one annotation labeled as
+  annotation and one labeled as sticky_note and ask it to use it to determine something about
+  the record? Looking temporarily for what gets the concept across best while it is easy."*
+  MEASURED 2026-08-24, **3 agents per arm on identical records differing only in the key**:
+  `annotation` was read as a fact ABOUT the record by all three; `sticky_note` was read by two of
+  three as something a HUMAN had left, and one discounted it as informal. ! Roy: *"I am glad we
+  tested it first."*
+
+  ! **A TERM THAT AN AGENT READS IS TESTABLE ON AGENTS**, and the test cost one message. The
+  register rule says check a candidate before proposing it; this is a second check, for a word
+  whose whole job is to be understood by a reader that can be asked.
+
+  !! **AND IT LEAVES A DEBT: the three OTHER users of the word need names.** The lexer's three
+  are **errors**, not notes -- Roy: *"if it is errored now we already have a broken system"* --
+  and go to `TODO/exception-hierarchy.md`. **The collate-step message is UNNAMED**, deliberately:
+  Roy asked for *"a name, don't need what it looks like yet. Because it isn't an annotation"*,
+  and nothing has been ruled.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
@@ -367,3 +391,37 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   two-round bound IS the trade's practice**, which is why the bound and the word arrive together.
   MEASURED 2026-08-24: **13 files, 41 occurrences; 7 files and 23 occurrences shipped** under
   `plugins/`. `TODO/nothing-makes-the-fair-copy.md` T11 carries the rename.
+
+- **#11.** **A one-for-one substitution is not a lane crossing** (Roy, 2026-08-24: *"This doesn't
+  land in the other lane just like a vocabulary change doesn't land in the other lane. A one for
+  one swap is allowed."*). A lane may make a MECHANICAL swap in another lane's file when its own
+  change forces it -- a command's spelling, a renamed symbol, a moved path -- and may not change
+  what the instruction MEANS. **The test is whether a reader's BEHAVIOUR changes.** Written up in
+  [`conventions.md`](conventions.md); it is the SECOND standing exception to *name the lane and
+  ask*, and that file's claim to have only one was corrected in the same change.
+
+- **#12.** **A library module does one job and has no CLI; a flow calls libraries; a command
+  exposes a flow** (Roy, 2026-08-24, ordering the move to `src/comment_review/`: *"The entry
+  points get an actual entry point .py file and the commands run through it not through the
+  scripts that are doing double or triple duty."*). MEASURED the same day: **10 of 19 shipped
+  modules have a `main()`**, four of them imported by others while also being CLIs -- `addresser`
+  is imported by **7**. ! The console guard is written into **eleven** files as a consequence.
+  Scoped by [`docs/plans/0.2.4-rework-the-boundaries-are-not-real.md`](plans/0.2.4-rework-the-boundaries-are-not-real.md).
+
+  ! **THE SHIPPED TREE TAKES THE SAME STRUCTURE, WHOLESALE** -- Roy: *"It is definitely not
+  flattening them out again. I said wholesale I meant it. Whatever structure we end up with ends
+  up there."* And `tests/` follows it too: *"The tests folder layout follows the move layout."*
+
+  ! **`repo`'s git calls, filesystem reads and exception tuples are `io`** (Roy, 2026-08-24:
+  *"there was the git stuff which is io"*). **`code_names` and `referrers`' library half are
+  NOT ruled** -- *"the code_names and referrers we actually need to settle"*. Both ask a
+  question ABOUT the checkout rather than performing an operation ON it, so neither is io's and
+  neither is a page's. Open as P11 of that plan.
+
+- **#13.** **CORRECT is not a green suite** (Roy, 2026-08-24: *"correct isn't passing green tests
+  -- correct is passing the human comment review and having it come back looks good and
+  correct"*, and *"it is ultimately that I am satisfied with the way the code operates, not just
+  that it can accomplish its goals but that I agree that the way it gets from point A to B to ...
+  Z is what I would write if I had the time"*). ! **It is the standard this tool applies to
+  everyone else's code**, which is why stage 8 is a reader rather than a checker and why
+  [`gates.md`](gates.md) exists. A ticked box is necessary and is not the claim.
