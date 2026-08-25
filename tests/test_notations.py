@@ -77,8 +77,6 @@ def test_ONE_bad_address_refuses_the_WHOLE_set():
         for c, b in by_cue(page).items()
         if c.startswith("b") and any(x.strip() for x in b.raw_lines)
     )
-    grouped, refused = by_page(
-        {f"m.py@{cue}": "# good", "malformed": "# bad"}
-    )
+    grouped, refused = by_page({f"m.py@{cue}": "# good", "malformed": "# bad"})
     assert grouped == {}
     assert len(refused) == 1
