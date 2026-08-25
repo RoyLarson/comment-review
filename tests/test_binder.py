@@ -7,10 +7,11 @@ The first of the two chains. Nothing here goes near the galley -- Roy,
 import json
 
 import pytest
-from conftest import SAMPLE, build, by_cue
+from conftest import PKG, SAMPLE, build, by_cue
 
-from comment_review.binder.binder import VERSION, bind, page_row, read, rows_of, sha_of
+from comment_review.binder.binder import VERSION, bind, page_row, read, rows_of
 from comment_review.flows.census import carried
+from comment_review.machine.repo import sha_of
 
 #: The fields ruled onto a row -- FIVE, after three rulings.
 #: `Addressing: #12` cut eleven of nineteen. `#14` put `kind` back, and `#15`
@@ -223,3 +224,20 @@ class TestAReaderRefusesRatherThanCoping:
         got, why = read(old)
         assert got == {}
         assert why
+
+
+def test_the_binder_reports_the_page_s_sha_rather_than_taking_one():
+    page = build(SAMPLE)
+    page.sha = "notarealsha"
+    assert bind([page])["pages"][0]["sha"] == "notarealsha"
+
+
+def test_only_machine_imports_hashlib():
+    """! `machine/` OWNS THE QUERY. Roy, 2026-08-25: the querying of io/git
+    software *"should not have left the machine/ modules."*"""
+    offenders = [
+        p.relative_to(PKG).as_posix()
+        for p in PKG.rglob("*.py")
+        if "hashlib" in p.read_text(encoding="utf-8") and p.parent.name != "machine"
+    ]
+    assert offenders == []

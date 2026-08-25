@@ -35,7 +35,6 @@ places, while the compositor needs every one of them or the file cannot be set
 back.
 """
 
-import hashlib
 import json
 
 from comment_review.binder.page import Page
@@ -92,27 +91,13 @@ def page_row(paragraph: Paragraph) -> dict:
     }
 
 
-def sha_of(text: str) -> str:
-    """The page's identity: a hash of the bytes it was read from.
-
-    !! IT IS THE VERIFICATION STEP'S, and that is why nothing reads it yet. Roy,
-    2026-08-25: *"The sha is carried to the verification step to verify that the
-    edits that the agents were running against are the same files that the
-    galley and compositor are going to copy and write over."*
-
-    ! SO AN UNREAD FIELD HERE IS A STEP THAT DOES NOT EXIST, not a field with no
-    purpose. The chain (`Process: #14`) reads the page TWICE -- once into the
-    binder an agent rules on, once again on the way out -- and this is what lets
-    the second read say the two were the same file.
-
-    ! A hash of the SOURCE, so a page rebuilt from the same bytes answers the
-    same.
-    """
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
-
-
 def bind(pages: list[Page], absent: bool = False) -> dict:
     """Every page in scope, as the binder that is handed over.
+
+    ! THE SHA IS REPORTED, NOT TAKEN. It arrives on the page from
+    `repo.read_source`; this module hashes nothing. Roy, 2026-08-25: *"It is
+    information received by page and binder, not something requested by
+    page/binder."*
 
     !! AN ABSENT PLACE IS NOT SENT UNLESS IT IS ASKED FOR. Roy, 2026-08-25:
     *"The absent kinds are not supposed to be sent to the agents unless
@@ -144,7 +129,7 @@ def bind(pages: list[Page], absent: bool = False) -> dict:
         "pages": [
             {
                 "path": page.path,
-                "sha": sha_of(page.text),
+                "sha": page.sha,
                 "rows": [
                     page_row(b)
                     for b in page.paragraphs
