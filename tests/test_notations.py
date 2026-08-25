@@ -50,13 +50,19 @@ def test_a_refusal_is_never_an_empty_result():
 
 
 def _binder():
-    return bind([build(SAMPLE)], absent=True)
+    return bind([build(SAMPLE)])
 
 
 def test_an_address_the_binder_carries_resolves_to_its_page_and_cue():
     page = build(SAMPLE)
-    cue = next(c for c in by_cue(page) if c.startswith("b"))
-    grouped, refused = by_page({f"m.py@{cue}": "# new"}, bind([page], absent=True))
+    # A default binder carries only places holding prose. Pick a cue that holds
+    # prose, not an empty place the reviewer was never given.
+    cue = next(
+        c
+        for c, b in by_cue(page).items()
+        if c.startswith("b") and any(x.strip() for x in b.raw_lines)
+    )
+    grouped, refused = by_page({f"m.py@{cue}": "# new"}, bind([page]))
     assert refused == []
     assert grouped == {"m.py": {cue: "# new"}}
 
@@ -77,9 +83,15 @@ def test_ONE_bad_address_refuses_the_WHOLE_set():
     """!! ABORT-WHOLE. Roy, 2026-08-25: *"fails loud amd stops is the right
     answer for now."* A partial group is a state no page describes."""
     page = build(SAMPLE)
-    cue = next(c for c in by_cue(page) if c.startswith("b"))
+    # A default binder carries only places holding prose. Pick a cue that holds
+    # prose, not an empty place the reviewer was never given.
+    cue = next(
+        c
+        for c, b in by_cue(page).items()
+        if c.startswith("b") and any(x.strip() for x in b.raw_lines)
+    )
     grouped, refused = by_page(
-        {f"m.py@{cue}": "# good", "m.py@b99": "# bad"}, bind([page], absent=True)
+        {f"m.py@{cue}": "# good", "m.py@b99": "# bad"}, bind([page])
     )
     assert grouped == {}
     assert len(refused) == 1
