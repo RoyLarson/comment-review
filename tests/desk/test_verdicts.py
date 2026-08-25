@@ -3,22 +3,22 @@
 import json  # noqa: I001  -- path shim below must import before verdicts
 import re
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from _paths import FIXTURES, SCRIPTS  # noqa: F401
-import lexer
-import page
-import held
-import record
-import desk
-import verdicts
+from _paths import MODULES, REFERENCES, cli, source_of
+from comment_review.reading import lexer
+from comment_review.binder import page
+from comment_review.binder import held
+from comment_review.binder import record
+from comment_review.desk import desk
+from comment_review.desk import verdicts
 
-BRIEF = (
-    Path(verdicts.__file__).resolve().parent.parent / "references" / "reviewer-brief.md"
-)
+# ! ASKED, NOT WALKED. This derived the brief's path from `verdicts.__file__`,
+# which worked only while the code and the agents' references sat in one tree.
+# `reviewer-brief.md` is read by an AGENT and stays in the skill.
+BRIEF = REFERENCES / "reviewer-brief.md"
 
 
 def stamped(paragraphs):
@@ -1285,16 +1285,16 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
 
     # ! Read off the shipped source, not restated. A list here would be a
     # ninth place to update, which is the defect.
-    SOURCE = (SCRIPTS / "verdicts.py").read_text(encoding="utf-8")
+    SOURCE = source_of("verdicts")
 
     def test_the_seven_verdicts_are_the_table(self):
         self.assertEqual(
-            set(verdicts.VERDICTS),
+            set(record.VERDICTS),
             {"clean", "query", "drop", "correct", "patch", "add", "move"},
         )
 
     def test_reanchor_collapsed_into_move(self):
-        self.assertNotIn("reanchor", verdicts.VERDICTS)
+        self.assertNotIn("reanchor", record.VERDICTS)
 
     def test_no_check_branches_on_a_VERDICT_NAME(self):
         # !! THE POINT OF THE TABLE. A comparison against a verdict name is a
@@ -1310,7 +1310,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
         # also means a check cannot escape by moving to a new module.
         picks_a_name = re.compile(r"""f\.verdict\s*(==|!=|in)\s*[("']""")
         offenders = []
-        for script in sorted(SCRIPTS.glob("*.py")):
+        for script in sorted(MODULES.values()):
             for line in script.read_text(encoding="utf-8").splitlines():
                 if "f.verdict" in line and picks_a_name.search(line):
                     offenders.append(f"{script.name}: {line.strip()}")
@@ -1320,7 +1320,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
         # ! A row nothing consults is a rule that does not apply. Each verdict
         # is given an EMPTY claim; every row that requires one must say so in
         # its own words.
-        for name, spec in verdicts.VERDICTS.items():
+        for name, spec in record.VERDICTS.items():
             f = _finding(verdict=name, claim="", reason="why", change="x")
             problem = desk.payload_problem(f)
             if spec.owes_claim:
@@ -1332,7 +1332,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
         # ! `block_problem` no longer lists its own exemptions; it relies on
         # this. If a row gained `quotes_original` without a matching CLAIM
         # marker, findings would be checked against a sentence nobody wrote.
-        for name, spec in verdicts.VERDICTS.items():
+        for name, spec in record.VERDICTS.items():
             if spec.quotes_original:
                 self.assertIn(
                     spec.quotes_original,
@@ -1341,7 +1341,7 @@ class TestTheVerdictTableIsTheOnlySource(unittest.TestCase):
                 )
 
     def test_every_row_that_can_fail_a_shape_says_what_it_wants(self):
-        for name, spec in verdicts.VERDICTS.items():
+        for name, spec in record.VERDICTS.items():
             if spec.claim_all or spec.claim_any:
                 self.assertTrue(spec.claim_help, f"{name} refuses without saying why")
             if spec.change_all:
@@ -1556,9 +1556,7 @@ class TestBlockTextReadsEveryKindTheCensusEmits(unittest.TestCase):
                 check=True,
             ).stdout.split()
             subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPTS / "census.py"),
+                [*cli("census"),
                     "--json",
                     "--repo",
                     ".",
@@ -1613,9 +1611,7 @@ class TestTheJSONCensusGatesLikeTheTextOne(unittest.TestCase):
             bad = Path(tmp) / "a.unknownext"
             bad.write_text("x\n", encoding="utf-8")
             return subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPTS / "census.py"),
+                [*cli("census"),
                     "--repo",
                     tmp,
                     *args,
@@ -1820,9 +1816,7 @@ class TestCLI(unittest.TestCase):
         return path
 
     def _run(self, *reports, reviewers=None, census=None):
-        cmd = [
-            sys.executable,
-            str(SCRIPTS / "verdicts.py"),
+        cmd = [*cli("verdicts"),
             "--census",
             str(census if census is not None else self.census),
             "--repo",
@@ -2800,9 +2794,7 @@ class TestAnEditOnFrontMatterBecomesAQuery(unittest.TestCase):
                 encoding="utf-8",
             )
             return subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPTS / "verdicts.py"),
+                [*cli("verdicts"),
                     "--census",
                     str(census_path),
                     "--repo",

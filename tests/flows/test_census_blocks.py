@@ -2,18 +2,18 @@
 
 import json
 import subprocess  # noqa: I001  -- path shim below must import before census
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-import annotate
-import lexer
-import page
-import prove_unchanged as pu
-from _paths import FIXTURES, SCRIPTS
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import FIXTURES, PKG, ROOT, cli
 from _transcription import transcribes
-from addresser import COVERS, EOF
+
+from comment_review.binder import annotate, page
+from comment_review.reading import lexer
+from comment_review.reading.addresser import COVERS, EOF
+from comment_review.results import prove_unchanged as pu
 
 
 def blocks_for(name):
@@ -198,7 +198,7 @@ class TestEveryFileIsCensusedOrItErrors(unittest.TestCase):
             (root / "ok.py").write_text("# a note\nx = 1\n", encoding="utf-8")
             (root / "weird.zzz").write_text("x\n", encoding="utf-8")
             return subprocess.run(
-                [sys.executable, str(SCRIPTS / "census.py"), "--repo", str(root)]
+                [*cli("census"), "--repo", str(root)]
                 + [str(root / n) for n in names],
                 capture_output=True,
                 text=True,
@@ -749,11 +749,13 @@ class TestACPlaceCarriesItsAnchor(unittest.TestCase):
     def test_no_c_place_in_this_repos_own_scripts_lacks_one(self):
         # !! The measurement that showed the hole, run as a gate. Every paragraph
         # with a column has the characters that precede it.
-        root = Path(__file__).resolve().parent.parent
-        scripts = root / "plugins/comment-review/skills/comment-review/scripts"
+        root = ROOT
+        scripts = root / "src/comment_review"
         holes = 0
         seen = 0
-        for src in sorted(scripts.glob("*.py")):
+        # ! RGLOB: the modules sit in seven sub-packages since 2026-08-24, and
+        # a flat glob of the package root finds only `__init__.py`.
+        for src in sorted(scripts.rglob("*.py")):
             body = src.read_text(encoding="utf-8")
             for b in lexer.paragraphs_stdlib(src, body):
                 if not b.original_column:
@@ -890,10 +892,12 @@ class TestEveryAddressCarriesAnAnchor(unittest.TestCase):
     def test_no_block_in_this_repos_own_scripts_lacks_one(self):
         # !! The hole, run as a gate: 6,376 of 6,531 paragraphs carried an empty
         # anchor before 2026-08-19 -- 98% of this repo's own census.
-        root = Path(__file__).resolve().parent.parent
-        scripts = root / "plugins/comment-review/skills/comment-review/scripts"
+        root = ROOT
+        scripts = root / "src/comment_review"
         holes = []
-        for src in sorted(scripts.glob("*.py")):
+        # ! RGLOB: the modules sit in seven sub-packages since 2026-08-24, and
+        # a flat glob of the package root finds only `__init__.py`.
+        for src in sorted(scripts.rglob("*.py")):
             body = src.read_text(encoding="utf-8")
             for b in page.page_for(src, body, lexer.language_for(src)):
                 # ! LEADING answers to nothing, ruled 2026-08-21.
@@ -1010,9 +1014,7 @@ class TestFrontMatterIsMarked(unittest.TestCase):
             path = Path(tmp) / "a.py"
             path.write_text(self.LICENCE, encoding="utf-8")
             out = subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPTS / "census.py"),
+                [*cli("census"),
                     "--repo",
                     tmp,
                     "--filtered",
@@ -1049,9 +1051,7 @@ class TestAPathThatCannotBeAddressedIsAGap(unittest.TestCase):
             except OSError:
                 self.skipTest("this filesystem will not create the path")
             result = subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPTS / "census.py"),
+                [*cli("census"),
                     "--repo",
                     str(root),
                     str(root / "a:b.py"),
@@ -1071,9 +1071,7 @@ class TestAPathThatCannotBeAddressedIsAGap(unittest.TestCase):
             root = Path(tmp)
             (root / "ok.py").write_text("# a note\nx = 1\n", encoding="utf-8")
             result = subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPTS / "census.py"),
+                [*cli("census"),
                     "--repo",
                     str(root),
                     str(root / "ok.py"),
@@ -1345,7 +1343,7 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
 
     def test_no_interval_overlaps_prose_anywhere_in_the_shipped_tree(self):
         files = subprocess.run(
-            ["git", "ls-files", "plugins/**/*.py"],
+            ["git", "ls-files", "src/**/*.py"],
             capture_output=True,
             text=True,
             check=True,
@@ -1401,7 +1399,7 @@ class TestAnUnaddressedCensusIsREFUSEDAtBothEnds(unittest.TestCase):
 
     def _run(self, script, *args):
         return subprocess.run(
-            [sys.executable, str(SCRIPTS / script), *args],
+            [*cli(script), *args],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -1463,7 +1461,7 @@ class TestAnUnaddressedCensusIsREFUSEDAtBothEnds(unittest.TestCase):
         reviewable file hands the census nothing. Measured 2026-08-24: it
         printed `[]` and returned 0.
         """
-        got = self._run("census.py", "--repo", str(SCRIPTS), "--json")
+        got = self._run("census.py", "--repo", str(PKG), "--json")
         self.assertEqual(got.returncode, 2)
         self.assertIn("no paths", got.stdout)
         # !! WHAT IT USED TO PRINT. An empty list is the shape the join reads as

@@ -17,16 +17,16 @@ functions -- see `docs/history.md`.
 
 import json  # noqa: I001  -- path shim below must import before galley
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from _paths import SCRIPTS  # noqa: F401
-import compositor
-import galley
-import lexer
-import page
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import cli
+from comment_review.results import compositor
+from comment_review.results import galley
+from comment_review.reading import lexer
+from comment_review.binder import page
 
 ORIGINAL = "def f():\n    # old note\n    # second line\n    return 1\n"
 
@@ -357,9 +357,7 @@ class TestCLI(unittest.TestCase):
         path = self.root / "edits.json"
         path.write_text(json.dumps(edits), encoding="utf-8")
         return subprocess.run(
-            [
-                sys.executable,
-                str(SCRIPTS / "galley.py"),
+            [*cli("galley"),
                 "--repo",
                 str(self.repo),
                 "--census",

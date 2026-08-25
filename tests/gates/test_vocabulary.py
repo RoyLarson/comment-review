@@ -3,13 +3,13 @@
 import re
 import sys
 import unittest  # noqa: I001  -- path shim below must import before vocabulary
-from pathlib import Path
 
-import vocabulary as vocab
-from _paths import SCRIPTS  # noqa: F401
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import ROOT, VOCABULARY
 
-REPO = Path(__file__).resolve().parent.parent
-REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
+from comment_review.desk import vocabulary as vocab
+
+REPO = ROOT
 
 # ! `check_vocabulary.py` is a development script, not a shipped one, so it is
 # not on the path `_paths` sets up for the plugin's own modules.
@@ -103,7 +103,7 @@ class TestTheThingIsAPage(unittest.TestCase):
     of why, and that the retired table still says so.
     """
 
-    ROOT = Path(__file__).resolve().parent.parent
+    ROOT = ROOT
 
     def test_no_shipped_file_says_either_older_name(self):
         """! A retired word NAMED is not a retired word USED.
@@ -210,7 +210,7 @@ class TestTheRetiredWordsStayRetired(unittest.TestCase):
         # error legible rather than erasing it -- the same rule that keeps a
         # SUPERSEDED task checked instead of deleted.
         self.assertIn("`block`", cv.MENTION)
-        toml = (REFERENCES / "vocabulary.toml").read_text(encoding="utf-8")
+        toml = VOCABULARY.read_text(encoding="utf-8")
         self.assertIn("`block` is the older word", toml)
 
     def test_the_EXEMPTION_is_CLAIMED_BY_NOTHING_that_ships(self):

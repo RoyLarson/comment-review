@@ -4,8 +4,8 @@ import unittest  # noqa: I001  -- path shim must import first
 from pathlib import Path
 
 from _paths import FIXTURES
-import lexer
-import page
+from comment_review.reading import lexer
+from comment_review.binder import page
 
 
 def blocks_for(name):

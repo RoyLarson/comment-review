@@ -5,23 +5,17 @@ in, comments removed, page out no comments ... No ambiguity about how the page
 gets written. No this got lost this wasn't done right."*
 """
 
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(
-    0,
-    str(
-        Path(__file__).resolve().parents[1]
-        / "plugins/comment-review/skills/comment-review/scripts"
-    ),
-)
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import PKG, ROOT  # noqa: F401  -- puts `src/` on the path
 
-import compositor  # noqa: E402
-import constants  # noqa: E402
-import lexer  # noqa: E402
-import page as page_mod  # noqa: E402
+from comment_review.binder import page as page_mod
+from comment_review.machine import constants  # noqa: E402
+from comment_review.reading import lexer  # noqa: E402
+from comment_review.results import compositor  # noqa: E402
 
 
 def set_from(name: str, text: str) -> str:
@@ -239,8 +233,8 @@ class TestTheShippedTreeSetsBackToItself(unittest.TestCase):
 
     def test_every_shipped_script_sets_back_to_itself(self):
         root = (
-            Path(__file__).resolve().parents[1]
-            / "plugins/comment-review/skills/comment-review/scripts"
+            ROOT
+            / "src/comment_review"
         )
         broken = {}
         for path in sorted(root.glob("*.py")):

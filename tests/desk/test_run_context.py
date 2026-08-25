@@ -1,13 +1,12 @@
 """The dispatch packet is validated before four agents fire in parallel."""
 
 import subprocess  # noqa: I001  -- path shim below must import before run_context
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from _paths import FIXTURES, SCRIPTS  # noqa: F401  -- path shim must import first
-import run_context
+from _paths import cli
+from comment_review.desk import run_context
 
 
 FULL = """
@@ -259,7 +258,7 @@ class TestCLI(unittest.TestCase):
         self.tmp.cleanup()
 
     def _run(self, *args):
-        cmd = [sys.executable, str(SCRIPTS / "run_context.py"), *args]
+        cmd = [*cli("run_context"), *args]
         return subprocess.run(
             cmd, capture_output=True, text=True, encoding="utf-8", check=False
         )

@@ -31,14 +31,17 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS = ROOT / "plugins/comment-review/skills/comment-review/scripts"
+# ! THE SOURCE, NOT THE BUILT COPY. The table is generated from the row that
+# DEFINES it, and `plugins/` holds whatever the last build put there.
+SRC = ROOT / "src"
 BRIEF = (
     ROOT / "plugins/comment-review/skills/comment-review/references/reviewer-brief.md"
 )
 
-sys.path.insert(0, str(SCRIPTS))
+sys.path.insert(0, str(SRC))
 
-from record import VERDICTS, claim_keys  # noqa: E402  -- path shim must run first
+# noqa: E402 -- the path above must be set before the package is importable
+from comment_review.binder.record import VERDICTS, claim_keys  # noqa: E402
 
 # ! The markers are HTML comments so they render as nothing and survive a
 # formatter. `ruff format` excludes `**/*.md`, but a future tool might not.

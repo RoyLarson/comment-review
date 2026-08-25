@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (55)
+### open  (57)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -237,6 +237,8 @@ that changed a published name or rule:
 | [listing-hands-the-repo](listing-hands-the-repo.md) | backend | — | 1/4 | The listing hands every reviewer the whole repo, four times a page |
 | [a-page-carries-no-identity](a-page-carries-no-identity.md) | backend | — | 0/4 | A page carries no identity, so staleness is checked by re-parsing and comparing |
 | [the-cue-legend-and-its-round-trip](the-cue-legend-and-its-round-trip.md) | backend | — | 0/5 | The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it |
+| [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | — | 0/5 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
+| [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | — | 0/4 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
 
 ### in-progress  (19)
 

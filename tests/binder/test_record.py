@@ -2,17 +2,15 @@
 
 import json  # noqa: I001  -- path shim below must import before record
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from _paths import FIXTURES, SCRIPTS  # noqa: F401
-import addresser
-import lexer
-import page
-import record
-import verdicts
+from _paths import cli
+from comment_review.reading import addresser
+from comment_review.reading import lexer
+from comment_review.binder import page
+from comment_review.binder import record
 
 CENSUS = [
     {
@@ -149,10 +147,10 @@ class TestTheTemplateStatesWhatIsAllowed(unittest.TestCase):
         self.allowed = record.allowed()
 
     def test_every_verdict_the_gate_knows_is_offered(self):
-        self.assertEqual(set(self.allowed["verdict"]), set(verdicts.VERDICTS))
+        self.assertEqual(set(self.allowed["verdict"]), set(record.VERDICTS))
 
     def test_a_claim_key_is_the_gates_marker_without_its_colon(self):
-        for name, spec in verdicts.VERDICTS.items():
+        for name, spec in record.VERDICTS.items():
             for marker in spec.claim_all:
                 with self.subTest(verdict=name, marker=marker):
                     self.assertIn(marker.rstrip(":"), self.allowed["claim"][name])
@@ -335,9 +333,7 @@ class TestCLI(unittest.TestCase):
 
     def _run(self, *extra):
         return subprocess.run(
-            [
-                sys.executable,
-                str(SCRIPTS / "record.py"),
+            [*cli("record"),
                 "--census",
                 str(self.census),
                 "--reviewer",
@@ -376,9 +372,7 @@ class TestCLI(unittest.TestCase):
 
     def _check(self, path):
         return subprocess.run(
-            [
-                sys.executable,
-                str(SCRIPTS / "record.py"),
+            [*cli("record"),
                 "--check",
                 str(path),
                 "--census",

@@ -7,18 +7,15 @@ language/practice uses to say this can get a docstring."*
 """
 
 import ast
-import sys
 import unittest
 from pathlib import Path
 
-SCRIPTS = (
-    Path(__file__).resolve().parents[1]
-    / "plugins/comment-review/skills/comment-review/scripts"
-)
-sys.path.insert(0, str(SCRIPTS))
+# ! `_paths` FIRST: importing it is what puts `src/` on the path, so every
+# `comment_review` import below depends on this line having run.
+from _paths import source_of  # noqa: I001
 
-import lexer  # noqa: E402
-import page  # noqa: E402
+from comment_review.binder import page
+from comment_review.reading import lexer
 
 
 def places(name: str, text: str) -> list[str]:
@@ -256,7 +253,7 @@ class TestEachLanguageCarriesItsOwnList(unittest.TestCase):
         attribute is populated at runtime whether it was stated or defaulted, so
         only the text can tell a decision from an inheritance.
         """
-        source = (SCRIPTS / "language.py").read_text(encoding="utf-8")
+        source = source_of("language")
         rows = [
             node
             for node in ast.walk(ast.parse(source))

@@ -14,17 +14,18 @@ guard: every module that READS a paragraph can import the definition of one.
 up in `galley` because it was the deepest module all three could reach.
 """
 
-import ast  # noqa: I001  -- path shim below must import before page
+import ast
 import collections
 import unittest
 from pathlib import Path
 
-from _paths import SCRIPTS  # noqa: F401
-import addresser
-import lexer
-import page
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import MODULES, command_source, source_of  # noqa: I001
 
-SIBLINGS = {p.stem for p in SCRIPTS.glob("*.py")}
+from comment_review.binder import page
+from comment_review.reading import addresser, lexer
+
+SIBLINGS = set(MODULES)
 
 
 # !! A LEAF IS NOT A DEPENDENCY, and every rule below is about dependencies.
@@ -36,12 +37,23 @@ LEAF = {"constants", "exceptions"}
 
 
 def _imports(name: str) -> set[str]:
-    """The sibling modules `name` imports, LEAVES excluded."""
-    tree = ast.parse((SCRIPTS / f"{name}.py").read_text(encoding="utf-8"))
+    """The sibling modules `name` imports, LEAVES excluded.
+
+    !! A RELATIVE IMPORT NAMES ITS MODULE IN ONE OF TWO PLACES, and which one
+    depends on whether the target is a module or a package. `from ..reading.lexer
+    import Kind` names `lexer` in the MODULE path; `from ..machine import
+    constants` names `constants` in the ALIAS list, because `machine` is the
+    package. ! Both are read and the intersection with `SIBLINGS` decides which
+    half was the module -- taking `node.module` alone returns the PACKAGE and
+    matches no sibling, so every rule below would pass on an empty set.
+    """
+    tree = ast.parse(source_of(name))
     got = set()
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module:
-            got.add(node.module.split(".")[0])
+        if isinstance(node, ast.ImportFrom):
+            if node.module:
+                got.update(node.module.split("."))
+            got.update(a.name for a in node.names)
         elif isinstance(node, ast.Import):
             got.update(a.name.split(".")[0] for a in node.names)
     return got & (SIBLINGS - {name} - LEAF)
@@ -99,10 +111,18 @@ class TestTheTwoLeaves(unittest.TestCase):
         # than the type: galley's staleness check keys on whether text was
         # stored, and record asks one question about a KIND. Either joins this
         # list when it takes the type itself.
-        for name in ("census",):
-            with self.subTest(module=name):
-                text = (SCRIPTS / f"{name}.py").read_text(encoding="utf-8")
-                self.assertIn("from page import", text)
+        #
+        # !! IT IS THE COMMAND THAT BUILDS PAGES, NOT THE FLOW, AND THAT IS A
+        # DEFECT THIS ASSERTION IS RECORDING RATHER THAN BLESSING. Lifting the
+        # entry points out on 2026-08-24 showed that `census`'s orchestration
+        # lived inside `main`/`_report` all along: `flows/census.py` kept 261
+        # lines of helpers and `commands/census.py` took 446 lines that call
+        # `page_for`. A command is supposed to EXPOSE a flow, not be one --
+        # `decision-log.md Process: #12`.
+        #
+        # ! WHEN THE FLOW IS PUT BACK, THIS READS `source_of` AGAIN. Tracked in
+        # `TODO/the-flow-lives-in-the-command.md`.
+        self.assertIn("from ..binder.page import", command_source("census"))
 
     def test_the_ULTIMATE_LEAF_is_only_ever_imported_WHOLE(self):
         """`import constants`, never `from constants import`.
@@ -123,7 +143,7 @@ class TestTheTwoLeaves(unittest.TestCase):
         """
         offenders = [
             p.name
-            for p in sorted(SCRIPTS.glob("*.py"))
+            for p in sorted(MODULES.values())
             if "from constants import" in p.read_text(encoding="utf-8")
         ]
         self.assertEqual(offenders, [])
@@ -131,7 +151,7 @@ class TestTheTwoLeaves(unittest.TestCase):
     def test_the_ULTIMATE_LEAF_IMPORTS_NOTHING_FROM_THIS_PACKAGE(self):
         # ! The other half of the contract, and what makes it safe for anything
         # to take: `constants` cannot pull a sibling in behind it.
-        tree = ast.parse((SCRIPTS / "constants.py").read_text(encoding="utf-8"))
+        tree = ast.parse(source_of("constants"))
         taken = set()
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom) and node.module:
@@ -149,9 +169,9 @@ class TestTheTwoLeaves(unittest.TestCase):
         # ! THE OLD TEST COULD NOT SEE THIS. It asserted the STRING
         # `"from page import"` appeared, which a pass-through satisfies exactly
         # as well as a real dependency does.
-        text = (SCRIPTS / "record.py").read_text(encoding="utf-8")
-        self.assertIn("from lexer import Kind", text)
-        self.assertNotIn("from page import", text)
+        text = source_of("record")
+        self.assertIn("from ..reading.lexer import Kind", text)
+        self.assertNotIn("from ..binder.page import", text)
 
 
 class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):

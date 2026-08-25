@@ -1,13 +1,13 @@
 """Code identity is proven by a script, not asserted by an agent."""
 
 import subprocess  # noqa: I001  -- path shim below must import before prove_unchanged
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from _paths import FIXTURES, SCRIPTS  # noqa: F401
-import prove_unchanged as pu
+from _paths import cli
+from comment_review.machine.repo import git_ls_files
+from comment_review.results import prove_unchanged as pu
 
 
 def _write(path: Path, text: str) -> None:
@@ -281,7 +281,7 @@ class TestSiblingSkipsUnreadable(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_an_unreadable_candidate_is_skipped_for_a_readable_one(self):
-        tracked = pu.git_ls_files(self.repo) or []
+        tracked = git_ls_files(self.repo) or []
         sib = pu._sibling(self.repo, self.target, {self.target.resolve()}, tracked)
         self.assertEqual(sib, self.good_sibling.resolve())
 
@@ -325,9 +325,7 @@ class TestCLI(unittest.TestCase):
         self.tmp.cleanup()
 
     def _run(self, *paths):
-        cmd = [
-            sys.executable,
-            str(SCRIPTS / "prove_unchanged.py"),
+        cmd = [*cli("prove_unchanged"),
             "--base",
             "HEAD",
             "--repo",

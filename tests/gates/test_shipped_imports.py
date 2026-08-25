@@ -35,22 +35,30 @@ a careful one.
 import ast
 import sys
 import unittest
-from pathlib import Path
+
+from _paths import ROOT
 
 # ! No `_paths` import. Every other test module takes it to put the shipped
 # scripts on `sys.path`; this one READS them and imports none, so taking it
 # would be a shim for nothing.
-ROOT = Path(__file__).resolve().parents[1]
-SHIPPED = ROOT / "plugins"
+ROOT = ROOT
+# !! THE SOURCE, NOT THE BUILT COPY. `plugins/` holds whatever the last build
+# put there, so a gate reading it answers "was the build run" rather than "is
+# the code clean" -- and it reads as PASSING on a tree the build has not
+# touched, because zero files import nothing foreign. That the build's output
+# MATCHES this source is a separate question with its own gate.
+SHIPPED = ROOT / "src" / "comment_review"
 
 
 def shipped_files():
-    """Every .py under `plugins/`, wherever it sits.
+    """Every .py that ships, wherever it sits in the package.
 
     ! RGLOB, not a glob of the one directory that holds them today. The sibling
     gate `test_shipped_cli_encoding.py` records what a narrow glob costs: it
     globbed a single directory, and files the docstring claimed were covered sat
-    outside it for a release.
+    outside it for a release. ! Since 2026-08-24 the files sit in SEVEN
+    directories rather than one, so the rglob is now load-bearing rather than
+    merely prudent.
     """
     return sorted(SHIPPED.rglob("*.py"))
 

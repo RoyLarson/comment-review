@@ -19,12 +19,13 @@ documentation defect -- it is an instruction to write the wrong thing.
 import subprocess
 import sys
 import unittest
-from pathlib import Path
 
-from _paths import SCRIPTS  # noqa: F401
-from record import VERDICTS, claim_keys
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import PKG, ROOT  # noqa: F401  -- puts `src/` on the path
 
-ROOT = Path(__file__).resolve().parents[1]
+from comment_review.binder.record import VERDICTS, claim_keys
+
+ROOT = ROOT
 RENDER = ROOT / "scripts" / "render_brief.py"
 
 # ! `_paths` puts the SHIPPED scripts on the path; the generator is a dev script

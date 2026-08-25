@@ -13,11 +13,10 @@ have been visible.
 
 import re
 import unittest
-from pathlib import Path
 
-from _paths import SCRIPTS  # noqa: F401
+from _paths import PKG, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = ROOT
 
 # A shipped CLI is a script under `scripts/` that argparse's and runs itself.
 # The library modules -- `repo.py`, `annotate.py` -- write nothing and are
@@ -59,7 +58,7 @@ def shipped_clis():
     write results through `unittest` to stderr, which this guard does not
     reconfigure -- including them would gate a stream nothing here protects.
     """
-    roots = (SCRIPTS, ROOT / "scripts", ROOT / "evals", ROOT / "evidence" / "ga")
+    roots = (PKG, ROOT / "scripts", ROOT / "evals", ROOT / "evidence" / "ga")
     return sorted(
         p
         for root in roots

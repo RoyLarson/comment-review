@@ -16,8 +16,9 @@ numbers count documentable declarations and nothing else.
 
 import unittest  # noqa: I001  -- path shim below must import before cues
 
-from _paths import SCRIPTS  # noqa: F401
-import addresser
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import command_source
+from comment_review.reading import addresser
 
 # Roy's `python_edge_cases.md`, as the walk sees it: the ordered mapping from
 # each line to the code on it, and which of them declare something
@@ -318,8 +319,12 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
     def test_the_CLI_offers_every_series_the_walk_can_emit(self):
         # ! The gap this closes: `--series` listed three of four, so the only
         # sanctioned way to ask for the file's own place was an argparse error.
-        source = (SCRIPTS / "addresser.py").read_text(encoding="utf-8")
-        self.assertIn("choices=SERIES,", source)
+        # ! THE CLI IS ITS OWN MODULE since 2026-08-24, so this reads the
+        # COMMAND rather than the addresser -- which is where `--series` has
+        # been declared ever since. Reading the library here would assert on a
+        # file that no longer contains an argument parser, and pass the day
+        # someone deleted the option.
+        self.assertIn("choices=SERIES,", command_source("addresser"))
 
     def test_every_place_the_walk_emits_carries_an_anchor(self):
         # !! THE PROPERTY THAT BROKE. A place absent from `places` has no anchor

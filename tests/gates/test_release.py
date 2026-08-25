@@ -4,9 +4,10 @@ import json
 import re
 import tomllib
 import unittest
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from _paths import ROOT
+
+ROOT = ROOT
 # The newest release heading. `[Unreleased]` is skipped: it carries no number,
 # which is what makes it unreleased.
 #

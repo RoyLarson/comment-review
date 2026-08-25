@@ -18,9 +18,10 @@ does not, in any position.
 
 import re
 import unittest
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from _paths import ROOT
+
+ROOT = ROOT
 SHIPPED = ROOT / "plugins" / "comment-review"
 # A frontmatter paragraph is the first `---` fenced region of the file.
 FENCE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.S)

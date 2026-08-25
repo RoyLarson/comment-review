@@ -16,11 +16,12 @@ import re
 import unittest
 from pathlib import Path
 
-from _paths import SCRIPTS  # noqa: F401
-import lexer
-import page
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import FIXTURES, PKG  # noqa: F401  -- puts `src/` on the path
+from comment_review.reading import lexer
+from comment_review.binder import page
 
-FIXTURE = Path(__file__).resolve().parent / "fixtures" / "python_edge_cases.md"
+FIXTURE = FIXTURES / "python_edge_cases.md"
 
 # ```python ... ``` -- the ORIGINAL is the first such block in the document.
 BLOCK = re.compile(r"```python\n(.*?)```", re.S)

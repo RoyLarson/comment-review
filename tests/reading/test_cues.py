@@ -14,11 +14,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from _paths import SCRIPTS  # noqa: F401
-import addresser
-from addresser import COVERS
-import lexer
-import page
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import cli, command_source, source_of
+from comment_review.commands import addresser as addresser_cmd
+from comment_review.reading import addresser
+from comment_review.reading.addresser import COVERS
+from comment_review.reading import lexer
+from comment_review.binder import page
 
 # Roy's two files: the same two statements, one with comments and one without.
 WITH_PROSE = (
@@ -650,10 +652,9 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
 
     def _run(self, *args):
         import subprocess
-        import sys as _sys
 
         return subprocess.run(
-            [_sys.executable, str(SCRIPTS / "addresser.py"), *args],
+            [*cli("addresser"), *args],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -661,10 +662,17 @@ class TestTheAddresserReadsTheCensusNeverTheTree(unittest.TestCase):
         )
 
     def test_it_reads_no_file_but_the_census(self):
-        text = (SCRIPTS / "addresser.py").read_text(encoding="utf-8")
-        body = text.split('"""', 2)[-1]
-        self.assertEqual(body.count("read_text"), 1, "only the census is read")
-        self.assertNotIn("from galley import", body)
+        # !! THE LIBRARY NOW READS NO FILE AT ALL, which is STRONGER than what
+        # this asserted. The one `read_text` was the CLI opening the census,
+        # and it left with `main` when the commands were lifted out on
+        # 2026-08-24 -- so the addresser is handed paragraphs and touches no
+        # disk. ! The census read still exists and is still the only one; it is
+        # checked below, where it now lives.
+        body = source_of("addresser").split('"""', 2)[-1]
+        self.assertEqual(body.count("read_text"), 0, "the addresser reads nothing")
+        self.assertNotIn("from ..results.galley import", body)
+        command = command_source("addresser").split('"""', 2)[-1]
+        self.assertEqual(command.count("read_text"), 1, "only the census is read")
 
     def test_it_takes_no_repo(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -985,7 +993,10 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
             with self.subTest(series=series):
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out):
-                    rc = addresser._for_anchor("X=2", series, self.paragraphs)
+                    # ! `_for_anchor` IS THE COMMAND'S: it resolves an
+                    # `--anchor` argument and returns an exit code, so it left
+                    # with `main` on 2026-08-24.
+                    rc = addresser_cmd._for_anchor("X=2", series, self.paragraphs)
                 self.assertEqual(rc, 0)
                 said = out.getvalue()
                 self.assertIn(f"{count} places answer", said)
@@ -1200,7 +1211,7 @@ class TestEachAddresserCountsItsOwnSteps(unittest.TestCase):
         self.assertEqual(walk[0], addresser.MODULE)
         self.assertEqual(walk[-1], addresser.EOF)
         self.assertEqual(walk[1:-1], self.code)
-        source = (SCRIPTS / "addresser.py").read_text(encoding="utf-8")
+        source = source_of("addresser")
         body = source[source.index("def cue(") :]
         self.assertIn("triggers(", body[: body.index("\ndef ")])
 

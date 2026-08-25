@@ -3,7 +3,7 @@
 import unittest  # noqa: I001  -- path shim below must import before annotate
 
 from _paths import FIXTURES  # noqa: F401
-import annotate
+from comment_review.binder import annotate
 
 
 class TestProseNumbersFindsValues(unittest.TestCase):

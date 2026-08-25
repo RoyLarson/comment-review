@@ -14,23 +14,17 @@ literal form the row calls out. An edge case belongs in the test that argues
 about it; this file argues only that the model does not lose the ordinary case.
 """
 
-import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(
-    0,
-    str(
-        Path(__file__).resolve().parents[1]
-        / "plugins/comment-review/skills/comment-review/scripts"
-    ),
-)
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import FIXTURES
 
-import compositor  # noqa: E402
-import language  # noqa: E402
-import page as page_mod  # noqa: E402
+from comment_review.binder import page as page_mod
+from comment_review.reading import language  # noqa: E402
+from comment_review.results import compositor  # noqa: E402
 
-FIXTURES = Path(__file__).resolve().parent / "fixtures"
+FIXTURES = FIXTURES
 
 # !! EVERY FIXTURE PUTS THIS INSIDE A STRING LITERAL, never inside a comment.
 # It is the one word whose position is a whole classification claim: a literal

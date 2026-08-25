@@ -9,8 +9,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from _paths import FIXTURES, SCRIPTS  # noqa: F401
-import referrers
+from _paths import cli
+from comment_review import referrers
+from comment_review.commands import referrers as referrers_cmd
 
 
 PY = '''"""A module."""
@@ -88,9 +89,7 @@ class TestCLI(unittest.TestCase):
         self.tmp.cleanup()
 
     def _run(self, *paths):
-        cmd = [
-            sys.executable,
-            str(SCRIPTS / "referrers.py"),
+        cmd = [*cli("referrers"),
             "--repo",
             str(self.repo),
             *[str(p) for p in paths],
@@ -192,12 +191,17 @@ class TestEmptyHitsFromFailedSearches(unittest.TestCase):
         out = io.StringIO()
         with (
             mock.patch.object(sys, "argv", argv),
+            # !! PATCHED WHERE IT IS USED, NOT WHERE IT IS DEFINED. The command
+            # binds `_grep` into its own namespace at import, so replacing the
+            # attribute on the library module leaves that binding untouched --
+            # the patch applied, the real `git grep` ran, and the assertion
+            # below failed on output that was CORRECT for a search that worked.
             mock.patch.object(
-                referrers, "_grep", return_value=(None, "simulated failure")
+                referrers_cmd, "_grep", return_value=(None, "simulated failure")
             ),
             contextlib.redirect_stdout(out),
         ):
-            code = referrers.main()
+            code = referrers_cmd.main()
         output = out.getvalue()
         self.assertEqual(code, 0)
         self.assertNotIn("none -- nothing tracked names these files.", output)
@@ -213,9 +217,7 @@ class TestNoGitIndex(unittest.TestCase):
             target = Path(tmp) / "solo.py"
             target.write_text("x = 1\n", encoding="utf-8")
             result = subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPTS / "referrers.py"),
+                [*cli("referrers"),
                     "--repo",
                     tmp,
                     str(target),
@@ -276,9 +278,7 @@ class TestNothingIsWithheld(unittest.TestCase):
         self.tmp.cleanup()
 
     def _run(self):
-        cmd = [
-            sys.executable,
-            str(SCRIPTS / "referrers.py"),
+        cmd = [*cli("referrers"),
             "--repo",
             str(self.repo),
             str(self.target),

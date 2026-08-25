@@ -7,9 +7,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 from _paths import FIXTURES  # noqa: F401
-import census
-import repo
-import referrers
+from comment_review.flows import census
+from comment_review.machine import repo
+from comment_review import referrers
 
 
 class TestNameCorpusScope(unittest.TestCase):
@@ -157,17 +157,17 @@ class TestGitOutputNotValidUtf8(unittest.TestCase):
     # every caller -- referrers.py and prove_unchanged.py hold a reference to
     # the same function object, not a copy.
     def test_git_ls_files_degrades_instead_of_raising(self):
-        with patch("repo.subprocess.run", side_effect=self.err):
+        with patch("comment_review.machine.repo.subprocess.run", side_effect=self.err):
             self.assertIsNone(repo.git_ls_files(self.repo))
 
     def test_grep_names_the_reason_instead_of_raising(self):
-        with patch("repo.subprocess.run", side_effect=self.err):
+        with patch("comment_review.machine.repo.subprocess.run", side_effect=self.err):
             found, reason = referrers._grep(self.repo, "token")
         self.assertIsNone(found)
         self.assertEqual(reason, "UnicodeDecodeError")
 
     def test_show_degrades_instead_of_raising(self):
-        import prove_unchanged
+        from comment_review.results import prove_unchanged
 
-        with patch("repo.subprocess.run", side_effect=self.err):
+        with patch("comment_review.machine.repo.subprocess.run", side_effect=self.err):
             self.assertIsNone(prove_unchanged._show(self.repo, "HEAD", "a.py"))

@@ -17,22 +17,18 @@ module docstring, a blank, the first import -- which is why 16 of 185 files in
 `corpora/meta-package-manager` failed to set back before this.
 """
 
-import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(
-    0,
-    str(
-        Path(__file__).resolve().parents[1]
-        / "plugins/comment-review/skills/comment-review/scripts"
-    ),
-)
+# ! `_paths` FIRST: importing it is what puts `src/` on the path.
+from _paths import PKG, ROOT  # noqa: F401  -- puts `src/` on the path
 
-import compositor  # noqa: E402
-import galley  # noqa: E402
-import lexer  # noqa: E402
-import page as page_mod  # noqa: E402
+from comment_review.binder import page as page_mod
+from comment_review.reading import lexer  # noqa: E402
+from comment_review.results import (
+    compositor,  # noqa: E402
+    galley,  # noqa: E402
+)
 
 
 def built(name: str, text: str):

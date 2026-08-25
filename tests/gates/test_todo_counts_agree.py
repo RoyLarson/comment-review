@@ -17,9 +17,10 @@ which the two field reports number separately, so its total is not its boxes.
 
 import re
 import unittest
-from pathlib import Path
 
-TODO = Path(__file__).resolve().parent.parent / "TODO"
+from _paths import ROOT
+
+TODO = ROOT / "TODO"
 
 BOX_DONE = re.compile(r"^- \[x\]", re.M)
 BOX_OPEN = re.compile(r"^- \[ \]", re.M)
