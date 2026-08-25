@@ -207,7 +207,7 @@ tool prints how many answered; read that line.
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+python <skill>/scripts/comment-review.py addresser --census <FULL CENSUS> --anchor LINE --series a|b|c
 ```
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
@@ -275,7 +275,7 @@ refuses a brief that has drifted from it. ! It had drifted: the hand-written tab
 an older marker form under a JSON worked example, and ten of the eleven keys a reviewer
 must type appeared nowhere here as keys.
 
-<!-- BEGIN GENERATED: verdict table -- scripts/render_brief.py -->
+<!-- BEGIN GENERATED: verdict table -- prototype/render_brief.py -->
 
 | verdict | `claim` keys | what they carry |
 | --- | --- | --- |

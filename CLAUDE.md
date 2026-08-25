@@ -81,6 +81,13 @@ The repo root is **not** the plugin. Only `plugins/comment-review/` ships to a u
 `.claude/`; everything else (`docs/`, `evidence/`, `evals/`, `corpora/`, `scripts/`) is
 development and measurement tooling that stays behind.
 
+!! **AND `plugins/` IS BUILT, NOT WRITTEN, since 2026-08-24.** The Python lives in
+**`src/comment_review/`** and `scripts/build_plugin.py` copies it WHOLESALE into the skill --
+sub-packages intact, because Roy ruled the shipped tree takes the same shape as the source.
+**Edit `src/`; `plugins/*.py` is output.** What does NOT come from `src/` is the prose an agent
+reads: `agents/*.md`, `SKILL.md` and `references/*.md` are written in place, and only
+`references/vocabulary.toml` moved into the package, because code reads it.
+
 ## Commands
 
 !! **RUN EVERYTHING THROUGH `uv run`.** The project is pinned to **Python 3.11**, the floor
@@ -93,8 +100,8 @@ exactly that gap.
 
 ```bash
 # Run the census (stages 2-3 of the skill) over one or more files
-uv run python plugins/comment-review/skills/comment-review/scripts/census.py --repo . <paths...>
-uv run python plugins/comment-review/skills/comment-review/scripts/census.py --languages   # list known languages
+uv run python src/comment-review.py census --repo . <paths...>
+uv run python src/comment-review.py census --languages   # list known languages
 
 # Materialise the pinned corpora (git worktrees / clones into corpora/<name>/, gitignored)
 uv run python scripts/fetch_corpora.py                 # fetch everything missing
@@ -120,44 +127,57 @@ uv run python evals/generator_split.py <corpus-dir> [paths...]
 # Survey GitHub for assistant-authored repos to extend the corpus
 uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
-# Run the test suite. BOTH RUNNERS WORK and neither is going away.
-uv run pytest -q                              # the one to reach for
-uv run python -m unittest discover -s tests -v
+# Run the test suite. PYTEST, and only pytest.
+uv run pytest -q                    # 779 passed, 3 xfailed, ~1.5s
+uv run pytest -q -k galley          # one file, one class or one test
 
-# !! THE TESTS ARE NOT BEING REWRITTEN. Roy, 2026-08-22: *"since we have dev
-# dependencies PYTEST -- don't rewrite, but that is a big one for me."* pytest
-# collects `unittest.TestCase` natively, so all 795 cases and 690 subtests run
-# under it with no edit to any of them. ! A case written in the `unittest` style
-# is CORRECT here; do not convert one to bare asserts or fixtures because pytest
-# would allow it, and do not add a `conftest.py` a `unittest` run cannot see.
-
-# ONE file, one class, one test -- `-k` matches any of the three, and NOTHING
-# else runs a subset. There is no `python tests/test_x.py`: a `__main__` runner
-# adds nothing discovery cannot do, and its POSITION is load-bearing in a way
-# nothing checks. Measured 2026-08-19, after a class was cut from above one:
-# `test_addresser.py` ran 18 tests directly and 67 under discovery, and five
-# more files had the same shape. 20 runners deleted, 184 lines with them.
-uv run python -m unittest discover -s tests -k test_addresser
-uv run python -m unittest discover -s tests -k TestEachAddresserCountsItsOwnSteps
-uv run python -m unittest discover -s tests -k test_the_MODULE_has_an_a_and_NEVER_a_c
+# !! THE SUITE WAS REPLACED WHOLESALE ON 2026-08-25, and the rule above it --
+# *"BOTH RUNNERS WORK and neither is going away"* -- went with it. Roy: *"Delete
+# the old test suit put in the new one."* The new suite is written in plain
+# pytest, so `unittest discover` now finds only `tests/gates/`, which are still
+# `TestCase` classes. ! THAT IS A CONSEQUENCE OF THE INSTRUCTION, not a decision
+# taken alongside it: Roy asked for *"standard pytest stuff"*.
+#
+# !! WHY THE OLD ONE WENT: 866 tests, and THREE changes on 2026-08-24 that each
+# broke something real were noticed by ZERO of them -- fences reaching agents,
+# eleven fields leaving the row, and a rename that made every finding report
+# "the sentence ruled on is not in <place>". One mechanism each time: the
+# fixtures were hand-authored in the shape the code expected, so they could only
+# CONFIRM, and when the contract moved they went on asserting the old one.
+#
+# ! WHAT REPLACED IT: 94 test functions over ~780 executions, derived from the
+# code without reading the suite they replaced. Pages come from `page_for` over
+# real source, binders from `bind`; a literal appears only where malformed IS
+# the input. MEASURED by mutation: three defect classes the old suite could not
+# see at all. See `tests/README.md`.
+#
+# ! `tests/gates/` SURVIVED, because it asks a different question -- whether a
+# GATE still bites, over `scripts/` and the release rather than over the code
+# under redesign.
 
 # Stage 3 inbound: which tracked files NAME the files under review
-uv run python plugins/comment-review/skills/comment-review/scripts/referrers.py --repo . <paths...>
+uv run python src/comment-review.py referrers --repo . <paths...>
 
+# !! THE FOUR COMMANDS BELOW MOVED TO `prototype/` ON 2026-08-25 and no longer
+# run. Roy: *"all of the old code in the agent section are prototypes."* They
+# are left here, marked, because the commands that replace them are not designed
+# yet -- see `prototype/README.md` and
+# `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
+#
 # Stage 5 gate: join reviewer reports against the census, check every citation.
 # Each report file is NAMED FOR ITS ROLE -- the tool takes the role name from
 # the file stem, and --reviewers compares against those stems.
-uv run python plugins/comment-review/skills/comment-review/scripts/verdicts.py \
+uv run python src/comment-review.py verdicts \
   --census <census>.json --repo . \
   --reviewers ownership-context,block-context,function-context,module-context \
   ownership-context.md block-context.md function-context.md module-context.md
 
 # Stage 4 gate: the dispatch packet
-uv run python plugins/comment-review/skills/comment-review/scripts/run_context.py --template
-uv run python plugins/comment-review/skills/comment-review/scripts/run_context.py --check <file>
+uv run python src/comment-review.py run_context --template
+uv run python src/comment-review.py run_context --check <file>
 
 # Stage 7b gate: prove WRITE changed no executable code
-uv run python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
+uv run python src/comment-review.py prove_unchanged \
   --base <merge-base> --repo . <paths...>
 
 # The TODO backlog is WRITTEN BY A TOOL, not by hand -- see "The TODO backlog" below.
@@ -179,10 +199,17 @@ uv run ruff format .
 # parameter its own body unpacks as a 3-tuple, so anyone honouring the signature
 # crashed; and a `SyntaxError` put the string `<unknown>` into `Paragraph.start`,
 # because two exception types were read as though `args[1]` meant one thing.
-uv run ty check plugins/comment-review/skills/comment-review/scripts/
+uv run ty check src/comment_review/
 
-# Gate check: refuse to ship a plugins/ file that won't parse on the floor interpreter (py3.11).
-# Run AFTER `ruff format`.
+# !! `plugins/` IS BUILT FROM `src/`, NOT EDITED, since 2026-08-24. The Python
+# lives in `src/comment_review/` and is copied WHOLESALE into the skill; edit
+# `src/`, run the build, commit both.
+uv run python scripts/build_plugin.py           # copy src/ -> plugins/
+uv run python scripts/build_plugin.py --check   # exit 1 if they disagree
+
+# Gate check: refuse a file that won't parse on the floor interpreter (py3.11).
+# Run AFTER `ruff format`. ! It reads `src/`, because that is what the formatter
+# rewrites; that `plugins/` MATCHES is the build gate's question, not this one.
 uv run python scripts/check_shipped_syntax.py
 
 # The SHIPPED vocabulary holds: every key a role is given has a definition, no definition is
@@ -191,8 +218,8 @@ uv run python scripts/check_shipped_syntax.py
 uv run python scripts/check_vocabulary.py
 
 # What one agent is GIVEN. The task agent runs this at stage 4 and pastes the output verbatim.
-uv run python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --reviewer block-context
-uv run python plugins/comment-review/skills/comment-review/scripts/vocabulary.py --roles
+uv run python src/comment-review.py vocabulary --reviewer block-context
+uv run python src/comment-review.py vocabulary --roles
 
 # Terms of art in the shipped tree the inventory does not list. An INPUT, not a gate:
 # every row needs a human to say whether it is a term.
@@ -403,13 +430,15 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 
 | path                              | what                                                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `plugins/comment-review/`         | the shipped plugin -- `skills/`, `agents/`, manifests                                                                                                                       |
+| `src/comment_review/`             | **THE PYTHON, and the only place to edit it.** Seven areas -- `machine`, `reading`, `binder`, `concordance`, `desk`, `results`, `flows` -- plus `commands/`, which holds every `main()` and argparse, and `__main__.py`, the dispatcher. `src/comment-review.py` beside it is the launcher, the one file allowed to touch `sys.path` |
+| `plugins/comment-review/`         | the shipped plugin -- `agents/`, `SKILL.md` and `references/*.md` are WRITTEN here; `skills/*/scripts/` is BUILT from `src/` and is output                                  |
 | `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read), `decision-log.md` (WHAT was decided and WHEN -- the dated chain of rulings, retractions and supersessions; the commentary on WHY is `history.md`'s. Cited as `decision-log.md TOPIC: #N`) |
 | `docs/plans/`                     | RELEASE SCOPES -- what one version ships, what it does not, and which TODOs it works. !! **NOT `docs/superpowers/plans/`**, and the split is deliberate: Roy, 2026-08-19, *"I don't want to conflate the rigorous one for the less rigorous one."* A superpowers plan is written for an engineer with no context -- exact files, TDD steps, a commit per task. ! **A PLAN IS NOT A TODO**: *"Todos can remain open an indefinite amount of time and make progress as we see fit. Plans are scopes of work to be complete in one run."* Anything in a plan that does not get done is filed in `TODO/` before the plan closes |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. ! Nothing here describes this system's own behavior -- that is `docs/`                                                    |
 | `evals/`                          | `generator_split.py` (the authorship split) and `test-cases.jsonl`. ! The twelve planted hazards and their grader are NOT here -- there is no end-to-end grade, see Commands |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |
-| `scripts/`                        | `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` -- none of this ships with the plugin                                                                    |
+| `scripts/`                        | `build_plugin.py` (which makes `plugins/`), `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` -- none of this ships with the plugin                        |
+| `prototype/`                      | **REFERENCE, NOT SOURCE.** The middle of the chain -- the desk, the join, the record -- moved here 2026-08-25. Nothing imports it, nothing ships it, it does not run. Kept because the replacement is not designed yet; see `prototype/README.md` |
 | `.claude-plugin/marketplace.json` | lets this checkout be installed as a plugin marketplace in the same session (`claude plugin marketplace add <path>` then `claude plugin install comment-review`)           |
 
 ### Shipped-code constraint that shapes how every `plugins/` script is written
@@ -675,6 +704,20 @@ field was added to end.
 Use `vX.Y.Z^{}` wherever a commit is wanted -- `git diff "v0.2.1^{}" HEAD`, `git show
 "v0.2.0^{}:<path>"`. This is the trap anyone re-deriving which code produced a measurement hits
 first.
+
+!! **RUN THE BUILD BEFORE TAGGING, AND COMMIT WHAT IT WRITES.** Since 2026-08-24 the shipped
+Python is a COPY of `src/comment_review/`, so a release cut without `uv run python
+scripts/build_plugin.py` ships whatever the last build left behind -- and every gate reading
+`plugins/` passes on it, because a stale copy is still a valid one.
+
+| | |
+| --- | --- |
+| build | `uv run python scripts/build_plugin.py` |
+| prove it took | `uv run python scripts/build_plugin.py --check` |
+| then commit | `plugins/` STAYS TRACKED -- the marketplace install reads committed state |
+
+! **`tests/gates/test_build.py` is what proves that check can fail**, over a hand-edited file,
+a file never built, a file the source dropped, and an empty tree.
 
 ! **Run `claude plugin validate plugins/comment-review` before tagging.** No test replaces it:
 it is the parser the runtime actually uses, and it caught a YAML frontmatter failure that had

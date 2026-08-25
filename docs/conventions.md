@@ -24,7 +24,7 @@ is a `backend` request; the agent file may not describe an output the census doe
 
 ### `backend` -- what the Python actually does
 
-`skills/comment-review/scripts/*.py`: the lexer, the page, the addresser, the census, the
+`src/comment_review/**`: the lexer, the page, the addresser, the census, the
 compositor, the galley, the record, the desk, the join. It owns the reading, the addressing, the
 setting and the checking -- and `docs/addressing.md` and `docs/parsing.md`, which describe them.
 
@@ -103,8 +103,37 @@ floor gate, the vocabulary gate and the corpus round trip -- see
 Every gate answered a different question, and the only thing that could have caught it was the
 lane that did the renaming saying so on the other side.
 
-! **This is the ONLY standing exception to *name the lane and ask*.** Everywhere else, asking is
-cheap and editing in passing is how a change nobody reviewed reaches a file nobody owns.
+! **This is ONE OF TWO standing exceptions to *name the lane and ask*** -- the other is below,
+and it is the same principle. Everywhere else, asking is cheap and editing in passing is how a
+change nobody reviewed reaches a file nobody owns.
+
+---
+
+## A one-for-one substitution is not a crossing
+
+Roy, 2026-08-24, on a `backend` change that forces every command in `SKILL.md` to be spelled
+differently: *"This doesn't land in the other lane just like a vocabulary change doesn't land
+in the other lane. A one for one swap is allowed."*
+
+**A lane may make a MECHANICAL one-for-one swap in another lane's file when its own change
+forces it. What it may not do is change what the instruction MEANS.**
+
+| | allowed | not allowed |
+| --- | --- | --- |
+| a command's spelling | `python x/y.py` -> `python -m pkg.y` | adding a flag, changing an argument |
+| a renamed symbol | the new name at every site | rewording the sentence around it |
+| a moved file | the new path | changing WHEN the stage runs it |
+
+!! **THE TEST IS WHETHER A READER'S BEHAVIOUR CHANGES.** If the agent does the same thing for
+the same reason and only types something different, it is a substitution. If it would now do
+something different, decide differently, or refuse where it did not -- that is the owning
+lane's, and the answer is *name the lane and ask*.
+
+! **IT IS THE SAME PRINCIPLE AS THE VOCABULARY RULE, arriving from the other side.** There, a
+lane must update the other side because leaving it stale rots. Here, a lane may update the
+other side because leaving it stale BREAKS -- a command that names a path that no longer
+exists is not a stylistic lag, it is an instruction that cannot be followed. **In both, the
+alternative is filing a TODO and shipping a file that is wrong in the meantime.**
 
 ---
 

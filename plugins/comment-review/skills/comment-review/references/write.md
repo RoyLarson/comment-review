@@ -50,7 +50,7 @@ literal is REPORTED, never applied** -- hand it to the human as a code concern.
 **Prove the code says the same; do not assert it.** Run the CODE CHECK -- do not perform it:
 
 ```bash
-python <skill>/scripts/prove_unchanged.py --base <pre-edit-ref> --repo . <paths...>
+python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit-ref> --repo . <paths...>
 ```
 
 !! **`--base` is the PRE-EDIT REF 1.1 recorded -- NOT the merge base.** This proves what WRITE

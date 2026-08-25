@@ -70,8 +70,8 @@ To read at one, resolve against a census of the file as it now stands. ! The add
 about the CENSUS, never the tree -- so census the file first and the two agree by construction:
 
 ```bash
-python <skill>/scripts/census.py --json --repo . --out <run-dir>/after.json <paths...>
-python <skill>/scripts/addresser.py --census <run-dir>/after.json --resolve <ADDRESS>
+python <skill>/scripts/comment-review.py census --json --repo . --out <run-dir>/after.json <paths...>
+python <skill>/scripts/comment-review.py addresser --census <run-dir>/after.json --resolve <ADDRESS>
 ```
 
 ! More than one range can come back -- a docstring and the comment run beneath

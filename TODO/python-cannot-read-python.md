@@ -44,6 +44,13 @@ SPLIT:    2026-08-23 -- the two open boxes each carried a three-part `Verify`, a
           read path, the round-trip over the corpora, and the newer-than-floor file;
           T33 became the proof, the fixtures and the docstring. The 31 records keep
           their boxes as ticked labels and their text moved into the Objective below.
+Updated:  2026-08-24 — The TRIAGED note above names FOUR ast importers and this file
+          scopes ONE. Where the other three now sit: prove_unchanged is handed to the
+          compositor half by the SCOPED note; code_names (then in census.py, now
+          concordance/) and referrers are filed as TODO/name-corpus-sees-one-
+          language.md, with the measurement that 278 of 369 tracked files contribute no
+          names to the corpus. Recorded as a cross-reference, NOT as scope -- 'The task
+          is simple. Make the lexer be able to parse python code.' stands.
 ```
 
 ## Objective

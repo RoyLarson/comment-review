@@ -7,6 +7,20 @@ Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-24 (Roy: the galley only really needs this address gets this paragraph,
           and the system assumes verdicts and records are what it writes from)
+Updated:  2026-08-24 — THE CHAIN IS RULED END TO END -- decision-log.md Process: #14.
+          Roy, 2026-08-24: 'The binder goes to the agents the agents make there marks on
+          something (I am think notations) the desk system takes the notations and the
+          binder and emits an update {address: new paragraph}. The galley gets a list of
+          the updates (list is loose here it needs more like the page sha). The workflow
+          reloads the page sends the page through the galley with the updates. Then
+          after the updates finished sends that to the compositor. Sends that through
+          the page system again to make certain that the agents put the right comments
+          in the right places. The that gets shown to the human.' So what carries an
+          answer IS {address: new paragraph}, emitted by the DESK, and the galley needs
+          the page SHA beside it. The name for what an agent emits -- 'notations' -- is
+          proposed, not settled. NOTHING TRANSFERS FROM THE BINDER TO THE END: the write
+          path reloads the page from disk and takes only the address, which is a key
+          rather than data.
 ```
 
 ## Objective
