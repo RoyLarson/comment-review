@@ -118,10 +118,13 @@ def main() -> int:
             continue
         source_path = repo / rel
         try:
-            # !! READ RAW. `read_text` collapses every `\r\n` to `\n`, so the
-            # compositor would never see a CRLF file and every line of the
-            # galley would differ from its original by its ending -- which is
-            # the whole thing this module is diffed for.
+            # !! READ THROUGH `read_source`. It reads with `read_raw`, whose
+            # `newline=""` leaves `\r\n` untranslated -- `read_text` collapses
+            # every `\r\n` to `\n`, so the compositor would never see a CRLF
+            # file and every line of the galley would differ from its
+            # original by its ending, which is the whole thing this module is
+            # diffed for. This call is also where `source.sha` comes from,
+            # passed to `page_for` below.
             source = read_source(source_path)
         except exceptions.READ_ERRORS as e:
             print(f"REFUSED  {rel}: {type(e).__name__}")
