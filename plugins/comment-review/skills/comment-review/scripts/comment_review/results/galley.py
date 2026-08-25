@@ -59,11 +59,17 @@ the only writer, and it decides nothing.
 !! NO LINE NUMBER APPEARS IN THIS FILE. Until 2026-08-21 the whole module was
 line arithmetic -- a splice over `(start, end, column)` ranges applied in
 descending order so that earlier edits did not shift later ones, with a
-staleness check comparing stored text against the file's lines. Roy: *"how do I
-get you to stop thinking in line numbers? You keep defaulting to that and it
-makes a mess."* A page addresses its paragraphs, so a replacement is an
-assignment and the arithmetic has nothing left to be wrong about. See
-`docs/history.md` for the mechanism that was removed.
+staleness check comparing stored text, paragraph by paragraph, against the
+file's lines. Roy: *"how do I get you to stop thinking in line numbers? You
+keep defaulting to that and it makes a mess."* A page addresses its
+paragraphs, so a replacement is an assignment and the arithmetic has nothing
+left to be wrong about. See `docs/history.md` for the mechanism that was
+removed.
+
+! DID THE FILE SHIFT IS NOT ANSWERED HERE, PARAGRAPH BY PARAGRAPH, ANY MORE.
+`proof_setter.run` answers it in one comparison, before anything is parsed --
+the sha the binder recorded against the sha the file reads at now. See
+`docs/history.md` for `drifted`, the last mechanism that asked this module.
 
 ! A CHANGE THAT CANNOT BE MADE IS REPORTED, NEVER GUESSED. An address no page
 carries stops that file rather than writing a galley nobody can trust.

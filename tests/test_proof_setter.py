@@ -75,3 +75,36 @@ def test_ONE_FILES_REFUSAL_DRAFTS_NOTHING_FOR_ANY_FILE(tmp_path):
     assert len(refused) == 1
     assert refused[0].path == "n.py"
     assert list(into.iterdir()) == []
+
+
+class TestTheFileMustBeTheONEThatWasReviewed:
+    """!! THE CHECK THE READ-ONLY ROLES HAVE NEVER HAD. No agent file declares
+    `tools:`, so all six inherit Edit and Write -- read-only is prose. This is
+    what catches a reviewer that edited the file it was reading.
+    See TODO/reviewers-are-not-read-only.md."""
+
+    def test_a_ONE_BYTE_edit_since_the_binder_refuses(self, tmp_path):
+        repo, binder, page = _tree(tmp_path)
+        cue = next(c for c in by_cue(page) if c.startswith("b"))
+        (repo / "m.py").write_text(SAMPLE + "\n", encoding="utf-8", newline="")
+        drafted, refused = proof_setter.run(
+            {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
+        )
+        assert drafted == []
+        assert refused[0].step == "verify"
+
+    def test_NO_DRAFT_is_written_when_the_sha_disagrees(self, tmp_path):
+        repo, binder, page = _tree(tmp_path)
+        cue = next(c for c in by_cue(page) if c.startswith("b"))
+        (repo / "m.py").write_text(SAMPLE + "\n", encoding="utf-8", newline="")
+        into = tmp_path / "out"
+        proof_setter.run({f"m.py@{cue}": "# REPLACED"}, binder, repo, into)
+        assert list(into.iterdir()) == []
+
+    def test_an_UNCHANGED_file_passes(self, tmp_path):
+        repo, binder, page = _tree(tmp_path)
+        cue = next(c for c in by_cue(page) if c.startswith("b"))
+        drafted, refused = proof_setter.run(
+            {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
+        )
+        assert refused == [] and len(drafted) == 1

@@ -84,10 +84,15 @@ def run(
     if unresolved:
         return [], [Refusal("read", "", why) for why in unresolved]
 
-    # ! THE `verify` STEP IS ADDED IN TASK 9, test-first. `recorded` and the
-    # comparison that reads it arrive there together; leaving them out here is
-    # what lets Task 9's test fail before it passes.
-    recorded: dict[str, str] = {}
+    # ! THE SHA IS READ OUT OF THE SAVED BINDER, NEVER RECOMPUTED FROM THE FILE.
+    # Roy, 2026-08-25: "we can't assume that the file didn't change between
+    # original read and loading to write and so getting it out of the json
+    # blob is important." A sha derived from the file at write time would only
+    # ask whether the file equals itself, which cannot fail.
+    recorded = {
+        str(page.get("path", "")): str(page.get("sha", ""))
+        for page in binder.get("pages", [])
+    }
     into.mkdir(parents=True, exist_ok=True)
     drafted: list[Drafted] = []
     refusals: list[Refusal] = []
@@ -114,7 +119,20 @@ def _one(
     if page is None:
         return None, Refusal("read", rel, why)
 
-    # ! THE `verify` STEP LANDS HERE IN TASK 9, test-first.
+    # !! AN ABSENT RECORDED SHA REFUSES; IT DOES NOT PASS. `not recorded` is
+    # the first clause on purpose -- a binder page carrying no sha would
+    # otherwise compare "" against a real hash, and a future shape that
+    # dropped the field would turn this gate off silently rather than loudly.
+    # This is also the only check in the tree that catches a reviewer editing
+    # the file it was reading: no agent file declares `tools:`, so all six
+    # inherit Edit and Write, and "read-only" is prose until this compares.
+    if not recorded or page.sha != recorded:
+        return None, Refusal(
+            "verify",
+            rel,
+            "the file has changed since it was reviewed -- reviewed at"
+            f" {recorded or '<nothing recorded>'}, reads now as {page.sha}",
+        )
 
     placed = galley.reset(page, edits)
     if placed:
