@@ -986,9 +986,24 @@ by the FULL ADDRESS and hands that dict to `reset` at `:153`, which since Task 6
 CUES. Every edit would be refused as *"this page carries no such place"* -- the CLI runs, exits,
 and changes nothing.
 
-! **A TYPE ANNOTATION WAS WIDENED TO KEEP `ty` GREEN OVER IT.** That silenced a checker which
-was telling the truth. Key by the cue instead -- `cue_of(address).cue` -- and narrow the
-annotation back to what the code actually holds.
+! **KEY BY THE CUE INSTEAD** -- `cue_of(address).cue`.
+
+!! **AND DO NOT NARROW THE `by_path` ANNOTATION, WHICH THIS PLAN ORIGINALLY DEMANDED.** It read
+*"a type annotation was widened to keep `ty` green over it -- that silenced a checker which was
+telling the truth."* **That was wrong, and the Task 7 implementer refused the instruction and
+measured why.** `reset` takes `dict[str, str | None]` because `None` is the delete, so
+`dict[str, str]` is a hard type error:
+
+    Type parameter "_VT@dict" is invariant, but "str" is not the same as "str | None"
+
+! **THE WIDENING WAS A CONSEQUENCE OF THE `None` RULING, NOT A MASK OVER THE BUG.** A type
+checker cannot distinguish `"m.py@b1"` from `"b1"` -- both are `str` -- so it was never able to
+see the address/cue defect at all, and silencing it was not what happened. **The checker was
+complaining about `None`, and it was right about `None`.**
+
+! **RECORDED RATHER THAN QUIETLY CORRECTED**, because the instruction was mine and the refusal
+was the process working: an implementer that had obeyed would have broken the gate to satisfy a
+sentence.
 
 ! **NOTHING CAUGHT THIS**, and the reason is measured: `commands/` runs at **0.0% coverage**,
 all six modules, 537 statements. The implementer reported it because it read its own change,
