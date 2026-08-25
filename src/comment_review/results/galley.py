@@ -4,7 +4,7 @@
 
 `--edits` is `{"<address>": "<the replacement text>"}` -- the address the
 record carries. `reset` below does not take that address: resolving it to
-`(path, cue)` happens upstream, against the saved binder, before a cue and
+`(path, cue)` happens upstream, from the address itself, before a cue and
 its replacement ever reach this module.
 
 A galley is the trial impression: the text set, but not yet made into pages, so

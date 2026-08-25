@@ -23,7 +23,7 @@ a deletion downstream at exit 0.
 
 import json
 
-from comment_review.binder.binder import rows_of
+from comment_review.reading.addresser import cue_of
 
 
 def read(text: str) -> tuple[dict[str, str | None], str]:
@@ -66,14 +66,15 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
 
 
 def by_page(
-    notations: dict[str, str | None], binder: dict
+    notations: dict[str, str | None],
 ) -> tuple[dict[str, dict[str, str | None]], list[str]]:
-    """Group notations by the file they land on, refusing any the binder lacks.
+    """Group notations by the file they land on, refusing malformed addresses.
 
-    !! THE SAVED BINDER IS WHAT SAYS WHICH FILE TO RELOAD. Roy, 2026-08-25:
-    *"We also have to grab the binder address from the saved material."* An
-    address is a key rather than data, and the binder is where the key was
-    minted -- so an address it never carried names a place nobody reviewed.
+    !! THE ADDRESS ITSELF DETERMINES THE PATH AND CUE. Roy, 2026-08-25:
+    *"besides reading the sha and file path/name you should not be assuming
+    any binder things make it this far."* Split each address using `cue_of`
+    from the addresser. Validation of whether a place exists on the page
+    happens in `galley.reset` when the page is read.
 
     !! ONE REFUSAL REFUSES THE WHOLE SET, by ruling. Roy, 2026-08-25: *"fails
     loud amd stops is the right answer for now."* PROVISIONAL -- the
@@ -81,17 +82,19 @@ def by_page(
 
     Args:
         notations: address -> replacement text, or None to delete.
-        binder: as `binder.read` returned it.
 
     Returns:
         `({path: {cue: replacement}}, [])`, or `({}, refusals)`.
     """
-    known = {row["address"]: row for row in rows_of(binder)}
-    refused = [a for a in notations if a not in known]
+    refused = []
+    for address in notations:
+        addr = cue_of(address)
+        if not addr.path or not addr.cue:
+            refused.append(address)
     if refused:
-        return {}, [f"{a}: no binder row carries this address" for a in sorted(refused)]
+        return {}, [f"{a}: malformed address" for a in sorted(refused)]
     grouped: dict[str, dict[str, str | None]] = {}
     for address, replacement in notations.items():
-        row = known[address]
-        grouped.setdefault(str(row["path"]), {})[str(row["cue"])] = replacement
+        addr = cue_of(address)
+        grouped.setdefault(str(addr.path), {})[str(addr.cue)] = replacement
     return grouped, []

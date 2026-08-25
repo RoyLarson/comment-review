@@ -10,7 +10,6 @@ import json
 import pytest
 from conftest import SAMPLE, build, by_cue
 
-from comment_review.binder.binder import bind
 from comment_review.desk.notations import by_page, read
 
 
@@ -49,49 +48,37 @@ def test_a_refusal_is_never_an_empty_result():
     assert got == {} and why != ""
 
 
-def _binder():
-    return bind([build(SAMPLE)])
-
-
-def test_an_address_the_binder_carries_resolves_to_its_page_and_cue():
+def test_an_address_the_address_itself_resolves():
     page = build(SAMPLE)
-    # A default binder carries only places holding prose. Pick a cue that holds
-    # prose, not an empty place the reviewer was never given.
+    # Pick a cue that holds prose.
     cue = next(
         c
         for c, b in by_cue(page).items()
         if c.startswith("b") and any(x.strip() for x in b.raw_lines)
     )
-    grouped, refused = by_page({f"m.py@{cue}": "# new"}, bind([page]))
+    grouped, refused = by_page({f"m.py@{cue}": "# new"})
     assert refused == []
     assert grouped == {"m.py": {cue: "# new"}}
 
 
-def test_an_address_no_binder_row_names_is_REFUSED_and_named():
-    grouped, refused = by_page({"m.py@b99": "# new"}, _binder())
+def test_a_malformed_address_is_REFUSED_and_named():
+    grouped, refused = by_page({"malformed": "# new"})
     assert grouped == {}
-    assert any("m.py@b99" in r for r in refused)
-
-
-def test_a_file_the_binder_never_saw_is_REFUSED():
-    grouped, refused = by_page({"other.py@b1": "# new"}, _binder())
-    assert grouped == {}
-    assert any("other.py@b1" in r for r in refused)
+    assert any("malformed" in r for r in refused)
 
 
 def test_ONE_bad_address_refuses_the_WHOLE_set():
     """!! ABORT-WHOLE. Roy, 2026-08-25: *"fails loud amd stops is the right
     answer for now."* A partial group is a state no page describes."""
     page = build(SAMPLE)
-    # A default binder carries only places holding prose. Pick a cue that holds
-    # prose, not an empty place the reviewer was never given.
+    # Pick a cue that holds prose.
     cue = next(
         c
         for c, b in by_cue(page).items()
         if c.startswith("b") and any(x.strip() for x in b.raw_lines)
     )
     grouped, refused = by_page(
-        {f"m.py@{cue}": "# good", "m.py@b99": "# bad"}, bind([page])
+        {f"m.py@{cue}": "# good", "malformed": "# bad"}
     )
     assert grouped == {}
     assert len(refused) == 1
