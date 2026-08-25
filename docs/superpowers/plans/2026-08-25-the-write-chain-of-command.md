@@ -1650,10 +1650,10 @@ def test_the_command_holds_no_orchestration():
         assert forbidden not in text
 
 
-def test_write_is_a_named_command():
+def test_proof_is_a_named_command():
     from comment_review.__main__ import COMMANDS
 
-    assert "write" in COMMANDS
+    assert "proof" in COMMANDS
 
 
 def test_an_out_that_overlaps_the_repo_is_REFUSED(tmp_path, capsys, monkeypatch):
@@ -1665,7 +1665,7 @@ def test_an_out_that_overlaps_the_repo_is_REFUSED(tmp_path, capsys, monkeypatch)
     repo, _, _ = _tree(tmp_path)
     monkeypatch.setattr(
         "sys.argv",
-        ["write", "--repo", str(repo), "--binder", "b.json",
+        ["proof", "--repo", str(repo), "--binder", "b.json",
          "--notations", "n.json", "--out", str(repo / "inside")],
     )
     assert cmd.main() == 2
