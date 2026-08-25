@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 1 of 4 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy: the page should record its sha, so the galley and the compositor
@@ -46,7 +46,7 @@ than inside it.
 
 ## Tasks
 
-- [ ] T1 -- Record the source SHA on the page, beside `path`. Verify: two censuses of an
+- [x] T1 -- Record the source SHA on the page, beside `path`. Verify: two censuses of an
       unchanged file carry the same SHA, and one edit changes it.
 - [ ] T2 -- Make the galley refuse a changed file on the SHA, before any re-parse. Verify:
       a one-byte edit is refused and no page is built.

@@ -4,9 +4,14 @@ Derived from `binder/page.py` and `reading/lexer.py` by reading them and by
 running them over real sources.
 """
 
+from pathlib import Path
+
 import pytest
 from conftest import SAMPLE, build, by_cue, occupied
 
+from comment_review.binder.page import page_for
+from comment_review.machine.repo import sha_of
+from comment_review.reading.lexer import language_for
 from comment_review.reading.series import ADDRESSED, Kind, Series
 
 #: Sources chosen to reach a different shape each, across the tiers and
@@ -213,3 +218,24 @@ def test_a_file_with_every_series_filled_reads_them_all():
         if any(x.strip() for x in b.raw_lines)
     }
     assert filled == {"a", "b", "c", "f"}
+
+
+class TestAPageCarriesTheShaItWasGiven:
+    """The page RECEIVES a sha. Roy, 2026-08-25: *"It is information received by
+    page and binder, not something requested by page/binder."*"""
+
+    def test_the_page_carries_it(self):
+        page = build(SAMPLE)
+        assert page.sha == sha_of(SAMPLE)
+
+    def test_page_for_computes_no_sha_of_its_own(self):
+        # A page built with a sha that does not describe its text keeps the sha
+        # it was HANDED. If page.py hashed anything, this would disagree.
+        path = Path("m.py")
+        page = page_for(path, SAMPLE, language_for(path), rel="m.py", sha="deadbeef")
+        assert page.sha == "deadbeef"
+
+    def test_the_sha_is_required(self):
+        path = Path("m.py")
+        with pytest.raises(TypeError):
+            page_for(path, SAMPLE, language_for(path), rel="m.py")

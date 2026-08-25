@@ -52,6 +52,7 @@ from pathlib import Path
 
 from comment_review.binder.page import Page, page_for
 from comment_review.machine import constants, exceptions
+from comment_review.machine.repo import read_source
 from comment_review.reading.addresser import ON, cue_of
 
 # !! THE OTHER DIRECT IMPORTER OF THE ROWS -- see `language.py`. The lexer reads
@@ -299,14 +300,15 @@ def lossless(path: Path) -> str | None:
     a real one -- would land among them unnoticed.
     """
     try:
-        text = path.read_text(encoding="utf-8")
+        source = read_source(path)
     except exceptions.READ_ERRORS as exc:
         return f"unread: {exc}"
+    text = source.text
     lang = language_for(path)
     if lang is None:
         return f"no language record for {path.suffix!r}"
     try:
-        got = set_page(page_for(path, text, lang))
+        got = set_page(page_for(path, text, lang, sha=source.sha))
     except exceptions.Refused as exc:
         return str(exc)
     if sorted(constants.text_lines(got)) == sorted(constants.text_lines(text)):
@@ -330,13 +332,14 @@ def identity(path: Path) -> str | None:
         the FIRST line that differs, which is what a reader needs to look at.
     """
     try:
-        text = path.read_text(encoding="utf-8")
+        source = read_source(path)
     except exceptions.READ_ERRORS as exc:
         return f"unread: {exc}"
+    text = source.text
     lang = language_for(path)
     if lang is None:
         return f"no language record for {path.suffix!r}"
-    page = page_for(path, text, lang)
+    page = page_for(path, text, lang, sha=source.sha)
     try:
         got = set_page(page)
     except exceptions.Refused as exc:

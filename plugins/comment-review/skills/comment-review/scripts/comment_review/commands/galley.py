@@ -14,7 +14,7 @@ from comment_review.binder.binder import read as read_binder
 from comment_review.binder.binder import rows_of
 from comment_review.binder.page import page_for
 from comment_review.machine import exceptions
-from comment_review.machine.repo import read_raw
+from comment_review.machine.repo import read_source
 from comment_review.reading.lexer import language_for
 from comment_review.results import compositor
 from comment_review.results.galley import drifted, reset
@@ -116,24 +116,25 @@ def main() -> int:
             print(f"REFUSED  {rel}: would be written outside --out")
             refused += len(file_edits)
             continue
-        source = repo / rel
+        source_path = repo / rel
         try:
             # !! READ RAW. `read_text` collapses every `\r\n` to `\n`, so the
             # compositor would never see a CRLF file and every line of the
             # galley would differ from its original by its ending -- which is
             # the whole thing this module is diffed for.
-            text = read_raw(source)
+            source = read_source(source_path)
         except exceptions.READ_ERRORS as e:
             print(f"REFUSED  {rel}: {type(e).__name__}")
             refused += len(file_edits)
             continue
+        text = source.text
 
-        lang = language_for(source)
+        lang = language_for(source_path)
         if lang is None:
             print(f"REFUSED  {rel}: no language record, so it has no page")
             refused += len(file_edits)
             continue
-        page = page_for(source, text, lang, rel=rel)
+        page = page_for(source_path, text, lang, rel=rel, sha=source.sha)
 
         # ! The CHEAPER refusal first, and the one that is about the FILE rather
         # than about any one edit: a census taken before the code moved names
