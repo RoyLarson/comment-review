@@ -1147,7 +1147,7 @@ def test_a_refusal_NAMES_ITS_STEP(tmp_path):
 - [ ] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest tests/test_proof_setter.py -q`
-Expected: FAIL -- `ModuleNotFoundError: comment_review.flows.write`.
+Expected: FAIL -- `ModuleNotFoundError: comment_review.flows.proof_setter`.
 
 - [ ] **Step 3: Implement**
 
@@ -1636,7 +1636,7 @@ is how a reader learns the wrong shape.
 - Test: `tests/test_proof_setter.py`
 
 **Interfaces:**
-- Produces: `commands/proof.py::main(argv) -> int`. **It parses arguments and calls `flows.write.run`. It holds no orchestration** -- that is the whole point of the task.
+- Produces: `commands/proof.py::main(argv) -> int`. **It parses arguments and calls `flows.proof_setter.run`. It holds no orchestration** -- that is the whole point of the task.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1645,7 +1645,7 @@ def test_the_command_holds_no_orchestration():
     """! A COMMAND EXPOSES A FLOW; IT IS NOT ONE. `commands/census.py` took 446
     lines calling page_for directly while flows/census.py kept 261 of helpers.
     See TODO/the-flow-lives-in-the-command.md."""
-    text = (SRC / "comment_review" / "commands" / "write.py").read_text(
+    text = (SRC / "comment_review" / "commands" / "proof.py").read_text(
         encoding="utf-8"
     )
     for forbidden in ("page_for", "galley.reset", "set_page", "code_fingerprint"):
@@ -1662,7 +1662,7 @@ def test_an_out_that_overlaps_the_repo_is_REFUSED(tmp_path, capsys, monkeypatch)
     """!! THE DESTRUCTIVE CASE, MEASURED 2026-08-22 on the galley: on an
     overlap the per-file guard is satisfied by the SOURCE FILE ITSELF, so the
     draft was written over the file under review at exit 0."""
-    from comment_review.commands import write as cmd
+    from comment_review.commands import proof as cmd
 
     repo, _, _ = _tree(tmp_path)
     monkeypatch.setattr(
@@ -1686,7 +1686,7 @@ Create `src/comment_review/commands/proof.py`:
 ```python
 """Draft every page the notations touch, for a human to read.
 
-    comment_review write --binder B.json --notations N.json --repo . --out DIR
+    comment_review proof --binder B.json --notations N.json --repo . --out DIR
 
 ! IT EXPOSES `flows.proof_setter`; IT ORCHESTRATES NOTHING. The order of the chain
 lives in the flow, so this file parses arguments, reads two files and prints.
@@ -1764,12 +1764,12 @@ def main() -> int:
 
 ```bash
 uv run pytest tests/test_proof_setter.py -q
-uv run python src/comment-review.py write --help
+uv run python src/comment-review.py proof --help
 ```
 
 - [ ] **Step 5: Full gate and commit**
 
-Message: *"commands: write exposes the chain and orchestrates nothing"*.
+Message: *"commands: proof exposes the chain and orchestrates nothing"*.
 
 ---
 
