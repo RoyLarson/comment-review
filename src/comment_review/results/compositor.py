@@ -26,8 +26,8 @@ original; `approve()` copies that over the real file wholesale, once. Roy: *"No
 editing on the 'real' file until the draft is fully approved."*
 
 !! AND THE ROUND TRIP IS A TEST BECAUSE THIS IS THE ONLY WRITER.
-`set_page(page_for(path, text, lang, sha=sha_of(text))) == text`, byte for byte,
-in any language.
+`set_page(page_for(path, text, lang, sha=read_source(path).sha)) == text`,
+byte for byte, in any language.
 ! `prove_unchanged.py` is strictly weaker and answers a different question: it
 proves the EXECUTABLE CODE survived an edit, not that the model of a page is
 lossless.

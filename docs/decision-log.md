@@ -665,6 +665,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 - **#27.** **A DELETE IS `None`, NOT AN EMPTY STRING** (Roy, 2026-08-25: *"None is explicit
   enough"*).
 
-- **#28.** **`prove_unchanged` RUNS AT EACH PROPOSED FINAL STATE** (Roy, 2026-08-25: *"just before
-  the human review and just after the human review edit piece"*). Once before the human is shown
-  the draft, and once again after a human edit, before it is taken as final.
+- **#28.** **`prove_unchanged` IS RULED TO RUN AT EACH PROPOSED FINAL STATE, AND ONLY THE FIRST
+  RUN IS BUILT** (Roy, 2026-08-25: *"just before the human review and just after the human review
+  edit piece"*). This branch built the first: `_prove` runs once, before the draft is shown to a
+  human. **PROVISIONAL**: the second run -- after a human edit, before it is taken as final --
+  belongs to the human-review/human-edit/machine-review/machine-copy workflow this branch does
+  not build; see `flows/proof_setter.py`'s own docstring: *"IT STOPS AT THE TEMPORARY FILE."*

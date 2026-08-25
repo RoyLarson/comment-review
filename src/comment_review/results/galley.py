@@ -1,6 +1,10 @@
 """The proposed text, SET AS FILES, so it can be read and censused like any tree.
 
-    python galley.py --repo D --census census.json --edits edits.json --out DIR
+! THIS MODULE HAS NO CLI OF ITS OWN. Ruled 2026-08-24 -- `decision-log.md
+Process: #12`: *"A library module does one job and has no CLI; a flow calls
+libraries; a command exposes a flow."* `commands/galley.py`'s `main()` is the
+console face: it resolves `--census`/`--edits` to `(path, cue)` and then calls
+`reset` below, followed by `compositor.set_page`.
 
 `--edits` is `{"<address>": "<the replacement text>"}` -- the address the
 record carries. `reset` below does not take that address: resolving it to
@@ -32,14 +36,16 @@ address's cue counts -- and free between them.
 judged it would be MARK and APPLY in one actor, which is the separation the
 pipeline exists to keep.
 
-Two things need it, and they needed the same thing:
+Two things needed it:
 
-  round 2   A re-review rules on the SYNTHESISED paragraph -- text on no disk and
-            in no census -- so `address_problem` refuses it and `edit_problem`
-            measures one claim against one edit where the paragraph now holds
-            several. Censusing the galley gives that text a real address and a
-            real transcription, so every check in `verdicts.py` works on it
-            UNCHANGED.
+  round 2   A re-review ruled on the SYNTHESISED paragraph -- text on no disk
+            and in no census -- so `address_problem` refused it and
+            `edit_problem` measured one claim against one edit where the
+            paragraph held several. Censusing the galley gave that text a real
+            address and a real transcription, so every check in `verdicts.py`
+            worked on it UNCHANGED. ! `address_problem`, `edit_problem` and
+            `verdicts.py` moved to `prototype/` on 2026-08-25 and do not run
+            from this tree -- see `prototype/README.md`.
   stage 7a  What lands at 7b is a paragraph set into a page, and the galley is
             the first time anyone sees the two together. `git diff --no-index`
             over it shows the author what will land, including whether a

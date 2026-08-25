@@ -99,9 +99,9 @@ e1a6baf:plugins/comment-review/skills/comment-review/scripts/galley.py`.
 ## `galley.drifted` -- the anchor and prose staleness check
 
 **Deleted 2026-08-25.** `drifted(page, census)` compared, for every addressed paragraph, the
-anchor and `raw_lines` the census recorded against a freshly re-parsed `page` built by reading the
+anchor and `raw_text` the census recorded against a freshly re-parsed `page` built by reading the
 file again and running it through the full lexer -- an anchor that no longer matched refused the
-whole file, and (since 2026-08-22) so did prose whose `raw_lines` had changed since the census.
+whole file, and (since 2026-08-22) so did prose whose `raw_text` had changed since the census.
 
 ! **Why it went**: a sha comparison over the file's text answers the same question -- has this
 file changed since the census was taken -- in one comparison, before anything is parsed. Rebuilding

@@ -3,9 +3,11 @@
 ! FIVE SITES ran the same four calls inline -- `read_source`, `language_for`,
 `page_for`, carrying the sha -- and none of them was a named step:
 `commands/census.py`, `commands/galley.py`, `results/compositor.py` twice
-(`lossless` and `identity`), and `flows/proof_setter.py` would have been the
-sixth. This is that step, for the sixth site only -- see `page_of` for why the
-other five are not repointed here.
+(`lossless` and `identity`), and `scripts/render_page.py:184`.
+`flows/proof_setter.py` would have been the sixth. This is that step, for
+`proof_setter._one`'s read only -- `_reread`, in the same file, still inlines
+its own copy of the same four calls; see `page_of` for why the other five
+sites are not repointed here.
 """
 
 from pathlib import Path
@@ -28,9 +30,9 @@ def page_of(path: Path, rel: str | None = None) -> tuple[Page | None, str]:
     ! A REFUSAL IS RETURNED, NOT RAISED, in the shape `binder.read` and
     `notations.read` already use: `(page, "")` or `(None, reason)`.
 
-    ! REPOINTING THE OTHER FOUR SITES IS NOT THIS BRANCH'S -- it touches the
-    census, the galley CLI and both compositor gates. Filed as
-    `TODO/no-step-produces-a-page.md` rather than widened here.
+    ! REPOINTING THE OTHER FIVE SITES IS NOT THIS BRANCH'S -- it touches the
+    census, the galley CLI, both compositor gates and `render_page.py`. Filed
+    as `TODO/no-step-produces-a-page.md` rather than widened here.
 
     Args:
         path: the file to read.

@@ -7,6 +7,7 @@ sequence cannot show you.
 
 from pathlib import Path
 
+import pytest
 from conftest import SAMPLE, SRC, build, by_cue
 
 from comment_review.binder.binder import bind
@@ -78,6 +79,74 @@ def test_ONE_FILES_REFUSAL_DRAFTS_NOTHING_FOR_ANY_FILE(tmp_path):
     assert drafted == []
     assert len(refused) == 1
     assert refused[0].path == "n.py"
+    assert list(into.iterdir()) == []
+
+
+def test_TWO_PAGES_SHARING_A_BASENAME_do_not_collide(tmp_path):
+    """CRITICAL, measured 2026-08-25: `into / Path(rel).name` flattened
+    `pkg/a/util.py` and `pkg/b/util.py` to the same `<into>/util.py`, so the
+    second page's draft silently overwrote the first's -- a human reviewing
+    `pkg/a/util.py`'s approved text would have read `pkg/b`'s instead, at
+    exit 0. `commands/galley.py:124` keeps the repo-relative path under its
+    output directory; this pins the same shape here."""
+    repo = tmp_path / "repo"
+    (repo / "pkg" / "a").mkdir(parents=True)
+    (repo / "pkg" / "b").mkdir(parents=True)
+    (repo / "pkg" / "a" / "util.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    (repo / "pkg" / "b" / "util.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    page_a = build(SAMPLE, "pkg/a/util.py")
+    page_b = build(SAMPLE, "pkg/b/util.py")
+    binder = bind([page_a, page_b])
+    cue_a = next(c for c in by_cue(page_a) if c.startswith("b"))
+    cue_b = next(c for c in by_cue(page_b) if c.startswith("b"))
+    into = tmp_path / "out"
+    notations = {
+        f"pkg/a/util.py@{cue_a}": "# FROM A",
+        f"pkg/b/util.py@{cue_b}": "# FROM B",
+    }
+    drafted, refused = proof_setter.run(notations, binder, repo, into)
+    assert refused == []
+    assert len(drafted) == 2
+    by_path = {d.path: d for d in drafted}
+    assert by_path["pkg/a/util.py"].draft != by_path["pkg/b/util.py"].draft
+    assert "# FROM A" in by_path["pkg/a/util.py"].draft.read_text(encoding="utf-8")
+    assert "# FROM B" in by_path["pkg/b/util.py"].draft.read_text(encoding="utf-8")
+
+
+def test_an_EXCEPTION_removes_earlier_drafts_and_still_propagates(
+    tmp_path, monkeypatch
+):
+    """CRITICAL, measured 2026-08-25: with `out/beta.py` pre-occupied, a
+    `PermissionError` from `write_text` escaped `run()` as a raw traceback
+    and `out/alpha.py` was left behind -- the cleanup below only ran on the
+    `refusals` branch, never on an exception. The docstring's claim ("Every
+    draft this run wrote is removed") must hold for either kind of stop."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    (repo / "n.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    page_m = build(SAMPLE, "m.py")
+    page_n = build(SAMPLE, "n.py")
+    binder = bind([page_m, page_n])
+    cue_m = next(c for c in by_cue(page_m) if c.startswith("b"))
+    cue_n = next(c for c in by_cue(page_n) if c.startswith("b"))
+    into = tmp_path / "out"
+
+    real_write_text = Path.write_text
+
+    def failing_write_text(self, *args, **kwargs):
+        if self.name == "n.py":
+            raise PermissionError("simulated: target pre-occupied")
+        return real_write_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", failing_write_text)
+
+    # "m.py" sorts before "n.py", so it drafts first and succeeds before the
+    # second page's write raises.
+    notations = {f"m.py@{cue_m}": "# REPLACED", f"n.py@{cue_n}": "# REPLACED"}
+    with pytest.raises(PermissionError):
+        proof_setter.run(notations, binder, repo, into)
+
     assert list(into.iterdir()) == []
 
 

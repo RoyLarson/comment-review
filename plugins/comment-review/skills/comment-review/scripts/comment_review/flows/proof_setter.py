@@ -23,8 +23,10 @@ crosses as a key, and the SHA crosses as the thing the verification compares.
 No paragraph text, kind or anchor does -- the page is read again from disk.
 
 ! THE ORDER LIVES HERE AND NOWHERE ELSE. The galley edits, the compositor sets,
-and neither knows what runs next. `STEPS` is the sequence as DATA so a missing
-check is a missing element rather than a forgotten call.
+and neither knows what runs next. `STEPS` names that sequence as DATA; nothing
+in `run()` reads it back -- `test_the_chain_IS_this_list` pins it against a
+second literal, so a step dropped from the tuple shows up as a diff against
+that pin, not as a call somebody forgot to make.
 """
 
 from pathlib import Path
@@ -40,17 +42,20 @@ from comment_review.reading.lexer import language_for
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
 
-#: The chain, as data. ! A test asserts this tuple, so removing a check is a
-#: visible deletion rather than a call somebody forgot to make.
+#: The chain, as data -- read only by `test_the_chain_IS_this_list`, which
+#: pins it against a second literal; `run()` itself never consults `STEPS`.
+#: ! "set" and "draft" name pipeline stages with no `Refusal` of their own: no
+#: site in this module builds a `Refusal("set", ...)` or `Refusal("draft", ...)`.
 STEPS = ("read", "verify", "edit", "set", "draft", "reread", "prove")
 
 
 class Refusal(NamedTuple):
     """One reason the run stopped, and where.
 
-    ! A REFUSAL NAMES ITS STEP. `census.py` was measured catching bare
-    `Exception` and printing a type name, which tells a reader that something
-    went wrong and nothing about where to look.
+    ! A REFUSAL NAMES ITS STEP. `census.py:204` catches a bare `Exception`
+    too, and prints the path, the exception type and its message -- but
+    nothing that says which of several steps failed. `step` is what a caller
+    of this chain gets that a caller of `census.py` does not.
     """
 
     step: str
@@ -73,9 +78,10 @@ def run(
 
     !! A REFUSAL ABORTS THE RUN WHOLE, by ruling. Roy, 2026-08-25: *"fails loud
     amd stops is the right answer for now."* Every draft this run wrote is
-    removed, so a stopped run leaves no half-set of files that no page
-    describes. ! PROVISIONAL: the resumable per-page form belongs to the
-    workflow that writes over the real files.
+    removed on a refusal AND on an exception escaping a page's own step, so a
+    stopped run leaves no half-set of files that no page describes. !
+    PROVISIONAL: the resumable per-page form belongs to the workflow that
+    writes over the real files.
 
     Args:
         notations: address -> replacement text, or None to delete.
@@ -104,7 +110,19 @@ def run(
     refusals: list[Refusal] = []
 
     for rel, edits in sorted(grouped.items()):
-        made, why = _one(rel, edits, recorded.get(rel, ""), repo, into)
+        try:
+            made, why = _one(rel, edits, recorded.get(rel, ""), repo, into)
+        except Exception:
+            # !! THE CLEANUP COVERS AN EXCEPTION, NOT ONLY A REFUSAL. Measured
+            # 2026-08-25: with a later page's draft path pre-occupied, a
+            # `PermissionError` from `write_text` escaped as a raw traceback
+            # and an earlier page's draft was left on disk -- only the
+            # `refusals` branch below unlinked what had been written. The
+            # exception still propagates; this removes what the run had
+            # already drafted first.
+            for made in drafted:
+                made.draft.unlink(missing_ok=True)
+            raise
         if why is not None:
             refusals.append(why)
         elif made is not None:
@@ -145,7 +163,14 @@ def _one(
         return None, Refusal("edit", rel, "; ".join(placed))
 
     text = compositor.set_page(page)
-    target = into / Path(rel).name
+    # !! THE FULL REPO-RELATIVE PATH, NOT JUST THE BASENAME. Measured
+    # 2026-08-25: `into / Path(rel).name` flattened `pkg/a/util.py` and
+    # `pkg/b/util.py` to the same `<into>/util.py`, so the second page's
+    # draft silently overwrote the first's approved text at exit 0.
+    # `commands/galley.py:124` already keeps `rel` under its output
+    # directory this way -- mirrored here.
+    target = (into / rel).resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8", newline="")
 
     off = _reread(rel, target, edits)
