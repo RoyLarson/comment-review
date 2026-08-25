@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from _paths import cli
+from comment_review.binder import addresses
 from comment_review.reading import addresser
 from comment_review.reading import lexer
 from comment_review.binder import page
@@ -747,6 +748,6 @@ class TestFrontMatterIsNotSEEDED(unittest.TestCase):
             for b in self.census
             if not lexer.Kind.holds_no_prose(str(b.get("kind", "")))
             and b.get("address")
-            and addresser.series_of(b) != addresser.COVERS
+            and addresses.series_of(b) != addresser.COVERS
         }
         self.assertEqual(seeded, accountable)

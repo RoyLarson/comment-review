@@ -50,13 +50,9 @@ from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from typing import TypeGuard
 
-from ..reading.addresser import (
-    COVERS,
-    address_for,
-    cue_of,
-    series_of,
-)
-from ..reading.lexer import Kind
+from comment_review.binder.addresses import series_of
+from comment_review.reading.addresser import COVERS, address_for, cue_of
+from comment_review.reading.lexer import Kind
 
 # !! THE VERDICT TABLE LIVES HERE because a record IS a verdict and its payload,
 # and `allowed()` below is derived entirely from this table. It sat in

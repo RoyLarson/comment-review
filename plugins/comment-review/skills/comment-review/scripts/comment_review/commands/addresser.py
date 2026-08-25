@@ -10,18 +10,16 @@ import argparse
 import json
 from pathlib import Path
 
-from ..machine import exceptions
-from ..reading.addresser import (
-    SERIES,
+from comment_review.binder.addresses import (
     _by_path,
-    cue_of,
     for_anchor,
     owes_address,
     resolve,
     stable,
     unaddressed,
-    unflatten,
 )
+from comment_review.machine import exceptions
+from comment_review.reading.addresser import SERIES, cue_of, unflatten
 
 
 def main() -> int:

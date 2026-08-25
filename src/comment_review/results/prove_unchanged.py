@@ -35,15 +35,12 @@ hides that.
 import ast
 from pathlib import Path
 
-from ..machine import constants, exceptions
-from ..machine.repo import (
-    git,
-    read_raw,
-)
+from comment_review.machine import constants, exceptions
+from comment_review.machine.repo import git, read_raw
 
 # ! THE TUPLE IS IMPORTED, never spelled here, so no `except` clause in this
 # file holds a tuple LITERAL. `exceptions.py` carries the reason once.
-from ..reading.lexer import (
+from comment_review.reading.lexer import (
     DOC_ANCHORS,
     Language,
     language_for,

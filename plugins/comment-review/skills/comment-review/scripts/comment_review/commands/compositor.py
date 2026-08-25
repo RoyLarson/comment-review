@@ -9,7 +9,7 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 import argparse
 from pathlib import Path
 
-from ..results.compositor import identity, lossless
+from comment_review.results.compositor import identity, lossless
 
 
 def main(argv: list[str] | None = None) -> int:

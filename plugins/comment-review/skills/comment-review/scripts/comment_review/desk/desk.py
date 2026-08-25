@@ -28,7 +28,7 @@ import re
 import string
 from pathlib import Path
 
-from ..binder.record import (
+from comment_review.binder.record import (
     ANCHOR_NAME,
     CITE,
     OUT_OF_ROLE,
@@ -43,9 +43,9 @@ from ..binder.record import (
     entry_for,
     filled,
 )
-from ..machine import constants, exceptions
-from ..reading.addresser import cue_of, flatten
-from ..reading.lexer import block_text, language_for
+from comment_review.machine import constants, exceptions
+from comment_review.reading.addresser import cue_of, flatten
+from comment_review.reading.lexer import block_text, language_for
 
 # !! WHAT COMES OFF A WORD'S EDGES: ALL PUNCTUATION, not a list of it. `_words`
 # strips it from a quoted CLAIM and `removed_spans` from the tokens it diffs,

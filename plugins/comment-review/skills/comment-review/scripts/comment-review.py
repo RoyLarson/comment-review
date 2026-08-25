@@ -2,9 +2,11 @@
 
 !! THE ONE FILE IN THIS TREE THAT MAY TOUCH `sys.path`, and it is not an
 exception to the rule so much as the place the rule stops applying: everything
-below it is a package that imports its siblings RELATIVELY, and a package has to
-be reachable before any of that can resolve. Every other shim was a loose script
-making its neighbours importable, which is what the move on 2026-08-24 deleted.
+below it imports by the package's own name -- `from comment_review.x import y`
+-- and the package has to be REACHABLE BY THAT NAME before any of it resolves.
+Putting its parent on the path is what makes that true, and it can only be done
+from outside. Every other shim was a loose script making its neighbours
+importable, which is what the move on 2026-08-24 deleted.
 
 ! HYPHENATED ON PURPOSE. `comment-review.py` cannot be imported, only run --
 so nothing can take it for part of the package, and the package cannot come to

@@ -9,9 +9,9 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 import argparse
 from pathlib import Path
 
-from ..machine import exceptions
-from ..machine.repo import git_ls_files, read_raw
-from ..results.prove_unchanged import (
+from comment_review.machine import exceptions
+from comment_review.machine.repo import git_ls_files, read_raw
+from comment_review.results.prove_unchanged import (
     _show,
     _sibling,
     _spec,

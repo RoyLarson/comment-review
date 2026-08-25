@@ -13,8 +13,9 @@ from collections import Counter
 from contextlib import redirect_stdout
 from pathlib import Path
 
-from ..binder.held import load_report
-from ..binder.record import (
+from comment_review.binder.addresses import series_of, unaddressed
+from comment_review.binder.held import load_report
+from comment_review.binder.record import (
     VERDICTS,
     Finding,
     _is,
@@ -23,7 +24,7 @@ from ..binder.record import (
     claim_text,
     entry_for,
 )
-from ..desk.desk import (
+from comment_review.desk.desk import (
     address_problem,
     block_problem,
     declares_scope,
@@ -32,16 +33,16 @@ from ..desk.desk import (
     payload_problem,
     source_problem,
 )
-from ..desk.verdicts import (
+from comment_review.desk.verdicts import (
     by_paragraph,
     contradictions,
     coverage_gaps,
     unrecorded_findings,
 )
-from ..desk.vocabulary import Reviewer
-from ..machine import exceptions
-from ..reading.addresser import COVERS, series_of, unaddressed
-from ..reading.lexer import Kind
+from comment_review.desk.vocabulary import Reviewer
+from comment_review.machine import exceptions
+from comment_review.reading.addresser import COVERS
+from comment_review.reading.lexer import Kind
 
 
 def main() -> int:

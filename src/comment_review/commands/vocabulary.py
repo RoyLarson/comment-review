@@ -9,8 +9,8 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 import argparse
 import sys
 
-from ..desk.vocabulary import VOCABULARY, Reviewer, load, render, terms_for
-from ..machine import exceptions
+from comment_review.desk.vocabulary import VOCABULARY, Reviewer, load, render, terms_for
+from comment_review.machine import exceptions
 
 
 def main() -> int:

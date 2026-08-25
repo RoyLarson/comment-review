@@ -40,8 +40,9 @@ def _imports(name: str) -> set[str]:
     """The sibling modules `name` imports, LEAVES excluded.
 
     !! A RELATIVE IMPORT NAMES ITS MODULE IN ONE OF TWO PLACES, and which one
-    depends on whether the target is a module or a package. `from ..reading.lexer
-    import Kind` names `lexer` in the MODULE path; `from ..machine import
+    depends on whether the target is a module or a package. `from
+    comment_review.reading.lexer import Kind` names `lexer` in the MODULE path;
+    `from comment_review.machine import
     constants` names `constants` in the ALIAS list, because `machine` is the
     package. ! Both are read and the intersection with `SIBLINGS` decides which
     half was the module -- taking `node.module` alone returns the PACKAGE and
@@ -122,7 +123,9 @@ class TestTheTwoLeaves(unittest.TestCase):
         #
         # ! WHEN THE FLOW IS PUT BACK, THIS READS `source_of` AGAIN. Tracked in
         # `TODO/the-flow-lives-in-the-command.md`.
-        self.assertIn("from ..binder.page import", command_source("census"))
+        self.assertIn(
+            "from comment_review.binder.page import", command_source("census")
+        )
 
     def test_the_ULTIMATE_LEAF_is_only_ever_imported_WHOLE(self):
         """`import constants`, never `from constants import`.
@@ -170,8 +173,8 @@ class TestTheTwoLeaves(unittest.TestCase):
         # `"from page import"` appeared, which a pass-through satisfies exactly
         # as well as a real dependency does.
         text = source_of("record")
-        self.assertIn("from ..reading.lexer import Kind", text)
-        self.assertNotIn("from ..binder.page import", text)
+        self.assertIn("from comment_review.reading.lexer import Kind", text)
+        self.assertNotIn("from comment_review.binder.page import", text)
 
 
 class TestAPageCarriesWhatItWasBuiltFrom(unittest.TestCase):

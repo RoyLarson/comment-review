@@ -56,8 +56,8 @@ from dataclasses import field as dataclass_field
 from itertools import pairwise
 from pathlib import Path
 
-from ..machine import constants, exceptions
-from ..reading.addresser import (
+from comment_review.machine import constants, exceptions
+from comment_review.reading.addresser import (
     COVERS,
     DECLARED,
     GAP,
@@ -66,9 +66,9 @@ from ..reading.addresser import (
     Cues,
     address_for,
     cue,
-    series_of,
+    cue_of,
 )
-from ..reading.lexer import (
+from comment_review.reading.lexer import (
     Kind,
     Language,
     Paragraph,
@@ -209,7 +209,13 @@ class Page:
             for b in self.paragraphs
             if b.address
             and not Kind.holds_no_prose(b.kind)
-            and series_of(vars(b)) != COVERS
+            # ! ASKED OF THE ADDRESS DIRECTLY. This read `series_of(vars(b))`,
+            # which is a dict accessor over `cue_of` -- so a Paragraph was
+            # flattened into a dict to read ONE field the object already has,
+            # and the page took a dependency on the module that reads census
+            # rows. `cue_of` is the addresser's, which this module already
+            # imports, and the answer is identical.
+            and cue_of(b.address).cue[:1] != COVERS
         ]
 
 

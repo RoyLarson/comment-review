@@ -37,8 +37,8 @@ from typing import NamedTuple
 # !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS TWO IMPORTERS -- see
 # `language.py`. Everything a language says about where its documentation sits is
 # stated there and read here; no module above this one asks a language anything.
-from ..machine import constants, exceptions
-from .language import (
+from comment_review.machine import constants, exceptions
+from comment_review.reading.language import (
     BY_EXT,
     LANGUAGES,
     Language,

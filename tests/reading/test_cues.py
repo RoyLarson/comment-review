@@ -16,6 +16,7 @@ from pathlib import Path
 
 # ! `_paths` FIRST: importing it is what puts `src/` on the path.
 from _paths import cli, command_source, source_of
+from comment_review.binder import addresses
 from comment_review.commands import addresser as addresser_cmd
 from comment_review.reading import addresser
 from comment_review.reading.addresser import COVERS
@@ -292,11 +293,11 @@ class TestTheInverse(unittest.TestCase):
         ]
         for i, paragraph in enumerate(stamped, 1):
             with self.subTest(entry=i):
-                self.assertEqual(addresser.resolve(paragraph["address"], stamped), [i])
+                self.assertEqual(addresses.resolve(paragraph["address"], stamped), [i])
 
     def test_an_address_nothing_carries_comes_back_empty(self):
 
-        self.assertEqual(addresser.resolve("b.py@b100", B), [])
+        self.assertEqual(addresses.resolve("b.py@b100", B), [])
 
 
 class TestAStaleCensusIsRefused(unittest.TestCase):
@@ -532,7 +533,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         # ! The CUE only -- the temp path is noise here.
         return [
             b["address"].split("@")[-1]
-            for b in addresser.for_anchor(anchor, series, self.paragraphs)
+            for b in addresses.for_anchor(anchor, series, self.paragraphs)
         ]
 
     def test_a_declaration_has_a_place_in_every_series(self):
@@ -583,11 +584,11 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         path = Path("m.py")
         got = page.page_for(path, with_header, lexer.language_for(path))
         list(page.code_lines(with_header, [vars(b) for b in got]))
-        found = addresser.for_anchor("<module>", COVERS, [vars(b) for b in got])
+        found = addresses.for_anchor("<module>", COVERS, [vars(b) for b in got])
         self.assertEqual(
             sorted(addresser.cue_of(b["address"]).cue for b in found), ["f0"]
         )
-        found = addresser.for_anchor(addresser.EOF, COVERS, [vars(b) for b in got])
+        found = addresses.for_anchor(addresser.EOF, COVERS, [vars(b) for b in got])
         self.assertEqual(
             sorted(addresser.cue_of(b["address"]).cue for b in found), ["f1"]
         )
@@ -628,7 +629,7 @@ class TestAnAnchorsPlacesAreASKED_FOR(unittest.TestCase):
         self.assertEqual(self._at("nosuchname", "b"), [])
 
     def test_the_c_it_names_is_the_DECLARATIONS_own_line(self):
-        found = addresser.for_anchor("def go(n):", "c", self.paragraphs)
+        found = addresses.for_anchor("def go(n):", "c", self.paragraphs)
         self.assertEqual([b["start"] for b in found], [6])
         # ! The one fact that decides it -- not a list of kinds. `SHARES_ITS_LINE`
         # was a second way to ask, and it disagreed with this one.
@@ -829,7 +830,7 @@ class TestOneAnchorReachesEveryOneOfItsAddresses(unittest.TestCase):
         self.paragraphs = [vars(b) for b in paragraphs]
 
     def _cues(self, anchor, series):
-        found = addresser.for_anchor(anchor, series, self.paragraphs)
+        found = addresses.for_anchor(anchor, series, self.paragraphs)
         return sorted(addresser.cue_of(b["address"]).cue for b in found)
 
     def test_the_LINE_reaches_all_three_series(self):
@@ -886,12 +887,12 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         self.assertEqual(len(named), len(set(named)))
 
     def test_the_anchor_answers_with_BOTH_trailing_comments(self):
-        found = addresser.for_anchor("X=2", "c", self.paragraphs)
+        found = addresses.for_anchor("X=2", "c", self.paragraphs)
         cues = sorted(addresser.cue_of(b["address"]).cue for b in found)
         self.assertEqual(cues, ["c0", "c1"])
 
     def test_they_are_two_DIFFERENT_statements(self):
-        found = addresser.for_anchor("X=2", "c", self.paragraphs)
+        found = addresses.for_anchor("X=2", "c", self.paragraphs)
         self.assertEqual(sorted(b["start"] for b in found), [1, 5])
         self.assertEqual(sorted(b["text"] for b in found), ["initial", "reseting X"])
 
@@ -906,7 +907,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # one spelling -- the gap above the opening statement, the gap holding
         # `# stuff happens`, and the gap at the end of the file. ! The cues
         # below are what THIS walk emits, not a rule anything may count out.
-        found = addresser.for_anchor("X=2", "b", self.paragraphs)
+        found = addresses.for_anchor("X=2", "b", self.paragraphs)
         cues = sorted(addresser.cue_of(b["address"]).cue for b in found)
         self.assertEqual(cues, ["b0", "b1"])
 
@@ -931,7 +932,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         """
         by_cue = {
             addresser.cue_of(b["address"]).cue: b
-            for b in addresser.for_anchor("X=2", "b", self.paragraphs)
+            for b in addresses.for_anchor("X=2", "b", self.paragraphs)
         }
         # ! Read from the ORIGINAL range, which is the gap's OWN LINES: the
         # first covers nothing above line 1, the second covers line 3 alone, and
@@ -981,7 +982,7 @@ class TestTwoIdenticalStatementsAreTwoAnchorsSpelledAlike(unittest.TestCase):
         # answers in `a`. ! The module's `a0` does not answer either: it keeps
         # `<module>`. Anchoring it to the FIRST LINE OF CODE was tried and made
         # a module's documentation answer to `X=2`.
-        self.assertEqual(addresser.for_anchor("X=2", "a", self.paragraphs), [])
+        self.assertEqual(addresses.for_anchor("X=2", "a", self.paragraphs), [])
 
     def test_the_CLI_says_the_answer_is_AMBIGUOUS_in_both_series(self):
         # !! What an agent actually sees. Without it a caller reads the first

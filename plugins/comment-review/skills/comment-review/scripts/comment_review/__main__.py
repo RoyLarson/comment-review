@@ -1,8 +1,9 @@
 """The one entry point. `python -m comment_review <command> [args...]`.
 
 !! A FILE INSIDE A PACKAGE CANNOT BE RUN BY PATH, which is what forces this.
-The modules import each other relatively, so `python .../census.py` fails at the
-first import -- there is no package context to resolve `..binder` against. Roy,
+The modules import each other by the package name, so `python .../census.py`
+fails at the first import: run by path, the file's own directory goes on
+`sys.path` and `comment_review` is not on it. Roy,
 2026-08-24: *"The entry points get an actual entry point .py file and the
 commands run through it not through the scripts that are doing double or triple
 duty."*
@@ -16,7 +17,7 @@ the `SKILL.md` rewrite a one-for-one substitution rather than a new instruction.
 import importlib
 import sys
 
-from .machine import constants
+from comment_review.machine import constants
 
 # The command modules, by the name typed on the console.
 COMMANDS = (

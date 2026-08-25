@@ -17,10 +17,8 @@ from pathlib import Path
 
 # ! The exception tuples are IMPORTED. Each is bound to a NAME so no `except`
 # clause here holds a tuple literal; `exceptions.py` carries that reason once.
-from ..machine import exceptions
-from ..machine.repo import (
-    git,
-)
+from comment_review.machine import exceptions
+from comment_review.machine.repo import git
 
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 

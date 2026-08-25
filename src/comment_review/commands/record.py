@@ -10,8 +10,15 @@ import argparse
 import json
 from pathlib import Path
 
-from ..binder.record import ANSWERED, SEEDED, check, every_record, seed, version_problem
-from ..machine import exceptions
+from comment_review.binder.record import (
+    ANSWERED,
+    SEEDED,
+    check,
+    every_record,
+    seed,
+    version_problem,
+)
+from comment_review.machine import exceptions
 
 
 def main() -> int:

@@ -22,7 +22,7 @@ filled slot into a `Finding`.
 import json
 from pathlib import Path
 
-from .record import (
+from comment_review.binder.record import (
     Finding,
     _half,
     address_for,

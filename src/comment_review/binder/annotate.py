@@ -17,7 +17,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ..reading.lexer import SYMBOLISH
+from comment_review.reading.lexer import SYMBOLISH
 
 # !! `Paragraph` exists for TYPING ONLY -- `census.py` imports this module, so a
 # real import would be circular -- and it is therefore NOT BOUND AT RUNTIME.
@@ -27,7 +27,7 @@ from ..reading.lexer import SYMBOLISH
 # at import on Python 3.13 and on the 3.11 floor, while passing on the 3.14
 # dev machine where PEP 649 makes annotations lazy.
 if TYPE_CHECKING:
-    from ..reading.lexer import Paragraph
+    from comment_review.reading.lexer import Paragraph
 
 PATH_CITE = re.compile(r"`?([\w./-]+\.(?:py|md|toml|txt|json|ya?ml))(?:::(\w+))?`?")
 TICKED = re.compile(r"`([^`\s]+)`")

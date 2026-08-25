@@ -68,11 +68,7 @@ worth running down.
 import re
 from collections import defaultdict
 
-from ..binder.record import (
-    Finding,
-    _is,
-    entry_for,
-)
+from comment_review.binder.record import Finding, _is, entry_for
 
 # ! The shim its three sibling importers carry. Run as a program this file
 # resolves without it -- Python puts the script's own directory on `sys.path`
@@ -80,11 +76,7 @@ from ..binder.record import (
 # on IMPORT, where a test or another script reaches in. `census.py`,
 # `referrers.py` and `prove_unchanged.py` all insert it; this was the one
 # sibling importer that did not.
-from .desk import (
-    _words,
-    removed_spans,
-    ruled_text,
-)
+from comment_review.desk.desk import _words, removed_spans, ruled_text
 
 
 def coverage_gaps(

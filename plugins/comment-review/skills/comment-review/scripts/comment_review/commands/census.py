@@ -13,19 +13,20 @@ from collections import Counter, defaultdict
 from contextlib import redirect_stdout
 from pathlib import Path
 
-from ..binder.annotate import annotate, prose_numbers
-from ..binder.page import page_for
-from ..concordance.code_names import code_names
-from ..flows.census import (
+from comment_review.binder.addresses import series_of, unaddressed
+from comment_review.binder.annotate import annotate, prose_numbers
+from comment_review.binder.page import page_for
+from comment_review.concordance.code_names import code_names
+from comment_review.flows.census import (
     _not_censused,
     _repo_relative,
     _unaddressed,
     emitted_row,
 )
-from ..machine import exceptions
-from ..machine.repo import path_index, tracked_paths, walk_files
-from ..reading.addresser import COVERS, SEPARATOR, series_of, unaddressed
-from ..reading.lexer import (
+from comment_review.machine import exceptions
+from comment_review.machine.repo import path_index, tracked_paths, walk_files
+from comment_review.reading.addresser import COVERS, SEPARATOR
+from comment_review.reading.lexer import (
     LANGUAGES,
     Kind,
     Paragraph,

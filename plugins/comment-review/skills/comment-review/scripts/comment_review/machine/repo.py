@@ -11,7 +11,7 @@ Imported by `census.py`, `galley.py`, `referrers.py` and `prove_unchanged.py`.
 import subprocess
 from pathlib import Path
 
-from . import exceptions
+from comment_review.machine import exceptions
 
 # A virtualenv in the tree POISONS the name corpus: every installed package's
 # methods become "known", so a real obituary is HIDDEN because some library

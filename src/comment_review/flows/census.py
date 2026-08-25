@@ -37,9 +37,7 @@ about a place, and is where to look when a file's reader could not answer.
 
 from pathlib import Path
 
-from ..reading.lexer import (
-    Paragraph,
-)
+from comment_review.reading.lexer import Paragraph
 
 
 def emitted_row(b: Paragraph) -> dict:

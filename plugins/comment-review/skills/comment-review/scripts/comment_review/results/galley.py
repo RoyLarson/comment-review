@@ -69,7 +69,7 @@ writing a galley nobody can trust.
 """
 
 
-from ..machine import constants
+from comment_review.machine import constants
 
 # !! THE ONE `cue_of`, since 2026-08-22. This module had a second of its own --
 # `str(address).split("@")[-1]` -- and the two DISAGREED on a malformed address:
@@ -77,7 +77,7 @@ from ..machine import constants
 # address* from `addresser`, which returns two blanks when there is no separator.
 # Both were live in one process. ! The shared one answers `(path, cue)`, so
 # every site here takes `[1]`.
-from ..reading.addresser import ON, cue_of
+from comment_review.reading.addresser import ON, cue_of
 
 
 def reset(page, edits: dict[str, str]) -> list[str]:

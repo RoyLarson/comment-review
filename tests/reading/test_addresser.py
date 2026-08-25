@@ -18,6 +18,7 @@ import unittest  # noqa: I001  -- path shim below must import before cues
 
 # ! `_paths` FIRST: importing it is what puts `src/` on the path.
 from _paths import command_source
+from comment_review.binder import addresses
 from comment_review.reading import addresser
 
 # Roy's `python_edge_cases.md`, as the walk sees it: the ordered mapping from
@@ -382,11 +383,11 @@ class TestAFifthSeriesWouldNotNeedFindingFourTimes(unittest.TestCase):
         # ! Inferred from `declares`/`original_column`, a series that is neither
         # comes back `b`. Read off the address, a new one answers as itself.
         made_up = {"address": "m.py@z7", "declares": -1, "original_column": 0}
-        self.assertEqual(addresser.series_of(made_up), "z")
+        self.assertEqual(addresses.series_of(made_up), "z")
 
 
 class TestOneCheckAnswersWhoIsUnaddressed(unittest.TestCase):
-    """`addresser.unaddressed` is the ONE implementation, and two gates ask it.
+    """`addresses.unaddressed` is the ONE implementation, and two gates ask it.
 
     !! IT FAILED SILENTLY, WHICH IS WHY IT IS ASKED AT BOTH ENDS. `verdicts.py`
     builds accountability from the ADDRESSES, so a paragraph carrying none is
@@ -402,7 +403,7 @@ class TestOneCheckAnswersWhoIsUnaddressed(unittest.TestCase):
 
     def test_an_addressed_census_reports_nothing(self):
         self.assertEqual(
-            addresser.unaddressed(
+            addresses.unaddressed(
                 [{"path": "a.py", "start": 1, "end": 1, "address": "a.py@b0"}]
             ),
             [],
@@ -411,7 +412,7 @@ class TestOneCheckAnswersWhoIsUnaddressed(unittest.TestCase):
     def test_a_paragraph_with_no_address_is_NAMED_not_counted(self):
         # ! It names the file and the lines: a reader has to know WHICH one to
         # look at, and a count alone sends them through the whole census.
-        got = addresser.unaddressed([{"path": "a.py", "start": 3, "end": 4}])
+        got = addresses.unaddressed([{"path": "a.py", "start": 3, "end": 4}])
         self.assertEqual(len(got), 1)
         self.assertIn("a.py", got[0])
         self.assertIn("3-4", got[0])
@@ -420,9 +421,9 @@ class TestOneCheckAnswersWhoIsUnaddressed(unittest.TestCase):
         # ! `page_for` writes "" when `attach` places nothing, so the falsy case
         # is the one that actually occurs.
         self.assertEqual(
-            len(addresser.unaddressed([{"path": "a.py", "start": 1, "address": ""}])), 1
+            len(addresses.unaddressed([{"path": "a.py", "start": 1, "address": ""}])), 1
         )
 
     def test_an_EMPTY_census_is_not_a_failure(self):
         # ! Nothing to address is not the same as failing to address something.
-        self.assertEqual(addresser.unaddressed([]), [])
+        self.assertEqual(addresses.unaddressed([]), [])

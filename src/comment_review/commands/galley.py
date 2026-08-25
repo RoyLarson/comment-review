@@ -10,12 +10,12 @@ import argparse
 import json
 from pathlib import Path
 
-from ..binder.page import page_for
-from ..machine import exceptions
-from ..machine.repo import read_raw
-from ..reading.lexer import language_for
-from ..results import compositor
-from ..results.galley import drifted, reset
+from comment_review.binder.page import page_for
+from comment_review.machine import exceptions
+from comment_review.machine.repo import read_raw
+from comment_review.reading.lexer import language_for
+from comment_review.results import compositor
+from comment_review.results.galley import drifted, reset
 
 
 def main() -> int:

@@ -63,16 +63,25 @@ def shipped_files():
     return sorted(SHIPPED.rglob("*.py"))
 
 
-def foreign_imports(source, siblings):
-    """Every import in `source` that is neither stdlib nor a named sibling.
+PACKAGE = "comment_review"
 
-    ! The HEAD segment decides it: `os.path` is `os`, and a shipped module is
-    imported by its bare stem because each script puts its own directory on
-    `sys.path` before importing its neighbours.
+
+def foreign_imports(source, siblings):
+    """Every import in `source` that is neither stdlib nor part of this package.
+
+    ! The HEAD segment decides it: `os.path` is `os`.
+
+    !! `comment_review` IS THIS PACKAGE, NOT A THIRD PARTY, and saying so is
+    what the switch to absolute imports on 2026-08-24 requires. Every intra-
+    package import now reads `from comment_review.x import y`, and a check that
+    only knew stdlib names and bare sibling stems would report EVERY ONE of them
+    as a dependency that will not be installed -- the whole shipped tree, red,
+    for doing the thing it was just changed to do.
 
     Args:
         source: the file's text.
-        siblings: module names importable beside it.
+        siblings: module names importable beside it, for the loose scripts
+            under `scripts/` that are still a flat directory.
 
     Returns:
         `(module, line)` per foreign import, in source order.
@@ -82,9 +91,11 @@ def foreign_imports(source, siblings):
         if isinstance(node, ast.Import):
             names = [(alias.name, node.lineno) for alias in node.names]
         elif isinstance(node, ast.ImportFrom):
-            # ! A relative import cannot leave the directory, so it needs no
+            # ! A relative import cannot leave the package, so it needs no
             # check -- and `node.module` is None for `from . import x`, which
-            # would otherwise read as a foreign module named "".
+            # would otherwise read as a foreign module named "". ! None remain
+            # in the shipped tree; the branch stays because the check must not
+            # depend on that staying true.
             if node.level:
                 continue
             names = [(node.module or "", node.lineno)]
@@ -92,7 +103,12 @@ def foreign_imports(source, siblings):
             continue
         for name, line in names:
             head = name.split(".")[0]
-            if head and head not in sys.stdlib_module_names and head not in siblings:
+            if (
+                head
+                and head != PACKAGE
+                and head not in sys.stdlib_module_names
+                and head not in siblings
+            ):
                 out.append((head, line))
     return sorted(out, key=lambda pair: pair[1])
 

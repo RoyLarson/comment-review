@@ -10,9 +10,9 @@ checked, so every obituary resolves against itself and the check always passes.
 import ast
 from pathlib import Path
 
-from ..machine import exceptions
-from ..machine.repo import walk_files
-from ..reading.lexer import NAMED_DEFS, SYMBOLISH, language_for
+from comment_review.machine import exceptions
+from comment_review.machine.repo import walk_files
+from comment_review.reading.lexer import NAMED_DEFS, SYMBOLISH, language_for
 
 # The two gaps in the name corpus that are NOT read failures, named so a caller
 # can tell them apart from one. Every row `code_names` returns reads alike --

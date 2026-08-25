@@ -10,7 +10,7 @@ import argparse
 from contextlib import redirect_stdout
 from pathlib import Path
 
-from ..desk.run_context import (
+from comment_review.desk.run_context import (
     HINTS,
     PATH_SECTIONS,
     REQUIRED,
@@ -19,7 +19,7 @@ from ..desk.run_context import (
     missing_sections,
     template,
 )
-from ..machine import exceptions
+from comment_review.machine import exceptions
 
 
 def main() -> int:
