@@ -76,11 +76,11 @@ thing `CLAUDE.md` calls *a judgement wearing a checkbox*.
 | 1 | **none** -- see below | **note** `two-areas-have-no-tests` -- `machine/` now has tests, `commands/` still has none |
 | 2 | P5.4 only -- see below | `check a-page-carries-no-identity.md 1`; `check galley-and-compositor-write-path.md 3`; `... 4` |
 | 3 | **P2.1, P2.2**, P2.3 | -- |
-| 4 | P1.1, P1.2 | -- |
+| 4 | P1.2 only -- see below | -- |
 | 5 | P1.3 | -- |
 | 6 | P3.1 | -- |
 | 7 | P3.2 | -- |
-| 8 | P2.4, P4.1, P6.1 | -- |
+| 8 | **P1.1**, P2.4, P4.1, P6.1 | -- |
 | 9 | P2.5, P2.6 | `check a-page-carries-no-identity.md 2`; `... 3`; `... 4` |
 | 10 | P5.1, P5.2 | -- |
 | 11 | P5.3 | -- |
@@ -99,6 +99,13 @@ move is not complete until the second half lands**, so the box belongs to Task 3
 implementer flagged the gap in its own report. Recorded rather than quietly corrected, because
 the mistake is the one this whole section exists to prevent: **a box ticked on the shape of the
 work instead of on its stated verification.**
+
+!! **AND P1 BOX 1 MOVED TO TASK 8, FOR A REASON WORTH READING: ITS CLAUSE HAS TWO HALVES.**
+*"Verify: it is stated in one place AND the write chain reads it there."* Task 4 makes the first
+half true and cannot make the second -- `flows/write.py` does not exist until Task 8. ! **A box
+whose clause spans two tasks belongs to the LATER one**, because that is the first moment the
+whole clause can be checked. The Task 4 implementer worked this out from the clause alone and
+reported it.
 
 !! **AND P2 BOX 2 MOVED THE SAME WAY, AT TASK 2, WITHOUT ANYONE HAVING TO CATCH IT.** Its verify
 clause is *"`Page` carries it beside `path`, and neither `page.py` nor `binder.py` computes
