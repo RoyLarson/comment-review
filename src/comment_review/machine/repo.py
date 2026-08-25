@@ -1,15 +1,22 @@
-"""Facts about the checkout: git, the filesystem, and the exception tuples.
+"""Facts about the checkout: git, the filesystem, exception tuples, and text identity.
 
 Every function here answers a question about the tree the review runs in, and
 carries the NON-ANSWER in its return type -- `None` for "git could not tell me",
 a named list for "these files were unread". A caller that reads a non-answer as
 an empty answer produces the failure this whole skill exists to catch.
 
+`read_source` and `sha_of` answer a different question -- not what the
+checkout contains, but what was actually read -- and belong here rather than
+downstream because a sha taken by a caller depends on which of this module's
+two readers that caller happened to use.
+
 Imported by `census.py`, `galley.py`, `referrers.py` and `prove_unchanged.py`.
 """
 
+import hashlib
 import subprocess
 from pathlib import Path
+from typing import NamedTuple
 
 from comment_review.machine import exceptions
 
@@ -51,6 +58,67 @@ def read_raw(path: Path) -> str:
     """
     with open(path, encoding="utf-8", newline="") as f:
         return f.read()
+
+
+class Source(NamedTuple):
+    """A file's text and the sha of that exact text, read together.
+
+    !! THEY TRAVEL AS ONE BECAUSE A SHA OF THE WRONG READING IS WORSE THAN NO
+    SHA. Roy, 2026-08-25: *"that is the only place to properly ensure it gets
+    read exactly the same and the middle things shouldn't depend on the
+    external things."*
+
+    Attributes:
+        text: as `read_raw` returns it -- the file's own line endings.
+        sha: of that text, so a caller cannot pair the two wrongly.
+    """
+
+    text: str
+    sha: str
+
+
+def sha_of(text: str) -> str:
+    """The identity of a text, short enough to sit in a row and be read.
+
+    ! WHAT IT ANSWERS is one question -- *are these the bytes that were
+    reviewed?* Roy, 2026-08-21: *"if the file shifted at all it is dead and so
+    are the edits."*
+
+    Args:
+        text: the text to identify.
+
+    Returns:
+        The first 16 hex characters of its UTF-8 SHA-256.
+    """
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def read_source(path: Path) -> Source:
+    r"""Read a file and identify what was read, in one act.
+
+    !! THE READING AND THE HASHING CANNOT BE SEPARATED WITHOUT LOSING THE
+    GUARANTEE. MEASURED 2026-08-25 over `b"# one\r\ndef f():\r\n    return
+    1\r\n"`, with this tree's two readers:
+
+        read_raw    newline=""            f13497990c3d92d0
+        read_text   universal newlines    83ec58343641fd11
+
+    ! ONE FILE, ONE SET OF BYTES, TWO SHAS. A sha taken downstream of whichever
+    reader a consumer happened to use answers *which reader ran*, not *did the
+    file change* -- so a byte-identical CRLF checkout refuses.
+
+    ! AND THE DEFECT WAS LIVE WHEN THIS LANDED: `census.py` read through
+    `Path.read_text` and the binder hashed that, so the recorded sha described
+    the TRANSLATED text and not the file.
+
+    Args:
+        path: the file to read.
+
+    Returns:
+        Its text with line endings untouched, and the sha of that text.
+    """
+    text = read_raw(path)
+    return Source(text, sha_of(text))
 
 
 def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
