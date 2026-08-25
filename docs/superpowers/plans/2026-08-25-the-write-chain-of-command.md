@@ -1617,9 +1617,20 @@ Message: *"flows: the draft is proven to change only comments"*.
 
 **Delivers:** spec P4 box 2. Works `the-flow-lives-in-the-command` task 5, the galley half.
 
+!! **AND MARK `commands/galley.py` DEPRECATED, IN THE FILE.** Roy, 2026-08-25: *"commands/galley.py
+can be considered deprecated for this flow."* It resolves an address to a path through
+`rows_of(census)` -- the binder-row coupling this chain was ruled out of -- and that is correct
+for it, because it IS the old path. **Say so at the top of it**, naming `commands/proof.py` as
+the replacement, so the next reader does not take the older design for the current one.
+
+! **DEPRECATED, NOT DELETED.** Nothing here removes it: it still runs, `SKILL.md` still names
+it, and the skill's own rewiring is `agents` lane work. A file that is superseded and unlabelled
+is how a reader learns the wrong shape.
+
 **Files:**
 - Create: `src/comment_review/commands/proof.py`
-- Modify: `src/comment_review/__main__.py:22-29` -- add `"write"` to `COMMANDS`
+- Modify: `src/comment_review/commands/galley.py` -- a deprecation note at the top, nothing else
+- Modify: `src/comment_review/__main__.py:22-29` -- add `"proof"` to `COMMANDS`
 - Test: `tests/test_proof_setter.py`
 
 **Interfaces:**
