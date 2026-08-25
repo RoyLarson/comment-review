@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (67)
+### open  (68)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -249,6 +249,7 @@ that changed a published name or rule:
 | [reviewers-are-not-read-only](reviewers-are-not-read-only.md) | agents | — | 0/4 | No reviewer agent declares tools: in its frontmatter, so all six inherit Edit and Write. read-only is prose in the descriptions and in CLAUDE.md, and nothing enforces it. MARK and APPLY are separated so that fixing what you find cannot destroy the finding -- that separation is a claim with no seam behind it. |
 | [notations-collides-with-annotations](notations-collides-with-annotations.md) | backend | yes | 0/2 | notations is the proposed name for what the agent workflow emits -- an address mapped to a new paragraph, or to None for a delete. binder/annotate.py already owns annotations for candidate flags on a paragraph: names-a-symbol, cites-a-path, counted, coverage-claim, forbids-a-literal. Two words one letter apart, both meaning marks attached to a paragraph, in adjacent areas. Roy is aware and ruled it is not settled now: the notations shape is a STAND-IN for what the middle piece will emit, and probably not what gets built. |
 | [render-page-imports-flat-names](render-page-imports-flat-names.md) | systems | — | 0/4 | scripts/render_page.py dies at import: ModuleNotFoundError: No module named 'lexer'. It imports lexer, page and addresser as flat top-level modules, which is what src/ looked like before the 2026-08-24 move to src/comment_review/ with sub-packages. Nothing runs it, so nothing noticed. CLAUDE.md documents it as an INPUT to the-census-is-mostly-intervals-nobody-rules-on, where a decision is meant to be made -- so a tool that cannot run is a decision that cannot be informed. Found while updating its page_for call for the sha parameter: the call edit landed, but the file was already dead above it. |
+| [coverage-is-not-measured](coverage-is-not-measured.md) | backend | — | 1/5 | coverage is not a pinned dev dependency and is not installed -- pytest, ruff and ty are. So nothing answers which lines the 789 tests actually execute. Roy, 2026-08-25: cleaning up the tests also allows us to use coverage to verify the tests cover everything and to delete that which we do not need. TWO USES, and the second is the one no other instrument here provides: uncovered code is a DELETION candidate. dead_sweep.py answers a different question -- it finds names nothing POINTS AT, statically. Coverage finds code nothing RUNS. A function called only by another dead function is invisible to the first and obvious to the second. THE ORDER MATTERS AND IS WHY THIS WAS NOT FILED EARLIER: a suite holding tests orphaned by a cut reports coverage on the code those tests touch, so dead code reads as live and the number argues for keeping it. The cleanup has to come first or the instrument lies in the direction of keeping everything. |
 
 ### in-progress  (19)
 

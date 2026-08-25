@@ -63,8 +63,25 @@ package = false
 # and it imports nothing but the standard library. `tests/` never leaves this
 # repo. The old wording said "no third-party test dependencies" as though the
 # two were the same constraint; CLAUDE.md now says which one is load-bearing.
+#
+# !! `coverage` IS A DELETION INSTRUMENT HERE, NOT A SCORE. Roy, 2026-08-25:
+# *"Cleaning up the tests also allows us to use coverage to verify the tests
+# cover everything and to delete that which we don't need."* ! The second use is
+# the one nothing else in this tree provides: `dead_sweep.py` finds names nothing
+# POINTS AT, statically -- coverage finds code nothing RUNS. A function called
+# only by another dead function is invisible to the first and obvious to the
+# second.
+#
+# ! AND IT HAD TO WAIT FOR THE SUITE TO BE CLEANED. A suite holding tests that a
+# cut orphaned reports coverage on the code those tests touch, so dead code reads
+# as live -- the instrument lies in the direction of keeping everything. See
+# `TODO/coverage-is-not-measured.md`.
 [dependency-groups]
 dev = [
+  # ! PINNED EXACTLY, like its neighbours: which lines count as covered changes
+  # between releases, so an unpinned coverage tool moves the number under a run
+  # that did not change.
+  "coverage==7.15.4",
   "pytest==9.0.1",
   "ruff==0.16.1",
   "ty==0.0.68",
