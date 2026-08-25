@@ -170,6 +170,17 @@ def _one(
     # `commands/galley.py:124` already keeps `rel` under its output
     # directory this way -- mirrored here.
     target = (into / rel).resolve()
+    # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `into`. A `rel` carrying a
+    # `..` segment joins past `into` -- `pkg/a/../../escape/util.py` -- and
+    # with a matching sha the draft would land on a file outside the draft
+    # directory, up to and including the source file under review. Measured
+    # 2026-08-25: with `rel = "../escape_repo/sub/util.py"`, the join before
+    # this check wrote the edited draft onto the source file itself, at exit
+    # 0.
+    if not target.is_relative_to(into):
+        return None, Refusal(
+            "draft", rel, "would be written outside the draft directory"
+        )
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8", newline="")
 

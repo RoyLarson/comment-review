@@ -113,6 +113,36 @@ def test_TWO_PAGES_SHARING_A_BASENAME_do_not_collide(tmp_path):
     assert "# FROM B" in by_path["pkg/b/util.py"].draft.read_text(encoding="utf-8")
 
 
+def test_a_rel_that_ESCAPES_into_is_REFUSED(tmp_path):
+    """CRITICAL, measured 2026-08-25: `(into / rel).resolve()` joins and never
+    checks -- with `rel = "../escape_repo/sub/util.py"` and a matching sha,
+    the join lands outside `into` entirely, up to and including the source
+    file under review. `commands/galley.py:124` already refuses this shape
+    for `--out`; this pins the same guard here."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    escaped = tmp_path / "escape_repo" / "sub"
+    escaped.mkdir(parents=True)
+    escaped_file = escaped / "util.py"
+    escaped_file.write_text(SAMPLE, encoding="utf-8", newline="")
+    before = escaped_file.read_bytes()
+
+    rel = "../escape_repo/sub/util.py"
+    page = build(SAMPLE, rel)
+    binder = bind([page])
+    cue = next(c for c in by_cue(page) if c.startswith("b"))
+    into = tmp_path / "out"
+
+    drafted, refused = proof_setter.run(
+        {f"{rel}@{cue}": "# REPLACED"}, binder, repo, into
+    )
+
+    assert drafted == []
+    assert len(refused) == 1
+    assert refused[0].step == "draft"
+    assert escaped_file.read_bytes() == before
+
+
 def test_an_EXCEPTION_removes_earlier_drafts_and_still_propagates(
     tmp_path, monkeypatch
 ):
