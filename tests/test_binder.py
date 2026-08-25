@@ -106,9 +106,7 @@ def test_the_binder_carries_ONLY_the_places_holding_prose(binder):
     """
     page = build(SAMPLE)
     holding = {
-        c
-        for c, b in by_cue(page).items()
-        if any(x.strip() for x in b.raw_lines)
+        c for c, b in by_cue(page).items() if any(x.strip() for x in b.raw_lines)
     }
     assert {r["cue"] for r in binder["pages"][0]["rows"]} == holding
 

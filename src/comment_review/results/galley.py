@@ -68,7 +68,6 @@ carries, or an anchor that moved since the census, stops that file rather than
 writing a galley nobody can trust.
 """
 
-
 from comment_review.machine import constants
 
 # !! THE ONE `cue_of`, since 2026-08-22. This module had a second of its own --
