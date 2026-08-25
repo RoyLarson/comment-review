@@ -1,0 +1,511 @@
+"""The `verdicts` command: its argument parsing and its exit code.
+
+The work is `desk.verdicts`; this is only the console face of it.
+
+!! A LIBRARY MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS LIBRARIES;
+A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
+"""
+
+import argparse
+import io
+import json
+from collections import Counter
+from contextlib import redirect_stdout
+from pathlib import Path
+
+from ..binder.held import load_report
+from ..binder.record import (
+    VERDICTS,
+    Finding,
+    _is,
+    _n,
+    _substantive,
+    claim_text,
+    entry_for,
+)
+from ..desk.desk import (
+    address_problem,
+    block_problem,
+    declares_scope,
+    destination_problem,
+    edit_problem,
+    payload_problem,
+    source_problem,
+)
+from ..desk.verdicts import (
+    by_paragraph,
+    contradictions,
+    coverage_gaps,
+    unrecorded_findings,
+)
+from ..desk.vocabulary import Reviewer
+from ..machine import exceptions
+from ..reading.addresser import COVERS, series_of, unaddressed
+from ..reading.lexer import Kind
+
+
+def main() -> int:
+    """Join the reports, report what is inadmissible, and gate on it."""
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "reports",
+        nargs="+",
+        # ! The SUFFIX chooses the reader and the STEM names the role, so both
+        # halves of the filename are load-bearing. A report not named `.json` is
+        # REFUSED BY NAME -- one malformed line saying so, counted fatal -- and
+        # a mistyped stem makes the expected role read as missing.
+        help="one report file per reviewer, named <role>.json",
+    )
+    ap.add_argument("--census", required=True, help="census.py --json output")
+    ap.add_argument("--repo", default=".", help="repo root for evidence resolution")
+    ap.add_argument(
+        "--out", metavar="PATH", help="write the report to PATH, and print it too"
+    )
+    ap.add_argument(
+        "--reviewers",
+        default="",
+        help=(
+            "comma-separated expected reviewer names, matched against each report"
+            " file's STEM (ownership-context.md -> ownership-context); one missing"
+            " a report is fatal"
+        ),
+    )
+    args = ap.parse_args()
+    # !! `--out`, BECAUSE A REDIRECT IS NOT AVAILABLE EVERYWHERE. A
+    # worktree-isolated session REFUSES a command carrying one -- "too complex
+    # to verify that it stays inside the worktree" -- and this gate's output is
+    # what stage 5 works from, so the only route to keeping it was unrunnable
+    # in the session type the skill is written for. `census.py` carries the
+    # same flag for the same reason; this is the one that was missed.
+    # !! AND IT PRINTS AS WELL, WHICH IS WHERE THIS DIVERGES FROM `census.py`.
+    # Nobody reads a census by eye, so there `--out` is exclusive; the join is
+    # read at the terminal as often as it is captured, and a gate that goes
+    # silent when its output is kept makes "saw nothing" and "found nothing"
+    # the same event at the one stage that decides what reaches a human.
+    if args.out:
+        captured = io.StringIO()
+        with redirect_stdout(captured):
+            code = _report(args)
+        report = captured.getvalue()
+        Path(args.out).write_text(report, encoding="utf-8", newline="")
+        print(report, end="")
+        return code
+    return _report(args)
+
+
+def _report(args: argparse.Namespace) -> int:
+    """Everything the join prints, so `--out` can wrap it in one place."""
+    repo = Path(args.repo).resolve()
+    # ! Guarded like a report file, so a missing census prints which file and
+    # why in one line.
+    try:
+        census_text = Path(args.census).read_text(encoding="utf-8")
+    except exceptions.READ_ERRORS as e:
+        print(
+            f"CANNOT READ {args.census} ({type(e).__name__})"
+            " -- no census to join against"
+        )
+        return 1
+    try:
+        paragraphs = json.loads(census_text)
+    except json.JSONDecodeError as e:
+        print(
+            f"CANNOT PARSE {args.census} as JSON ({e})"
+            " -- is this census.py --json output?"
+        )
+        return 1
+    # !! A CENSUS THIS GATE CANNOT CITE IS ONE IT MUST NOT CERTIFY. Accountability
+    # below is built from the ADDRESSES, so a paragraph carrying none is not
+    # accountable -- and the run then reads as complete because there was nothing
+    # to be incomplete about. Measured 2026-08-20 on a 5-paragraph census with
+    # its addresses stripped and a report ruling on nothing: `0 findings ... over
+    # 0 prose paragraphs`, then **"Every finding is admissible. Stage 5 may
+    # rule."** at exit 0.
+    #
+    # !! THIS IS THE READ SIDE, and `census.py` refuses the same thing on EMIT.
+    # Both are wanted: the emit check catches the census where it is built, and
+    # this catches a FILE -- one from an older version, one edited by hand, one
+    # from a run that crashed midway. This tool takes a PATH and trusts what it
+    # parses, so nothing else stands between a stale census and a certified
+    # review. ! ONE implementation, in `addresser`. Roy, 2026-08-20: *"one source
+    # of truth, else something will parse that something else will fail."*
+    # !! AND AN EMPTY CENSUS PASSES THAT CHECK VACUOUSLY, WHICH IS THE SAME
+    # DEFECT ONE INPUT SHORT. `unaddressed([])` is empty because there is
+    # nothing that COULD be unaddressed, so a census holding no paragraphs
+    # reached the certification below. Measured 2026-08-24 against `[]` and a
+    # report ruling on nothing: `0 findings from 1 reviewer over 0 prose
+    # paragraphs`, then **"Every finding is admissible. Stage 5 may rule."** at
+    # exit 0 -- word for word the outcome the guard beneath this exists to stop.
+    #
+    # ! A GUARD THAT READS A COLLECTION MUST SAY WHAT AN EMPTY ONE MEANS. Every
+    # question this gate asks is asked OF the paragraphs, so with none there is
+    # no question it can fail -- and passing every question it cannot ask is
+    # what it reports as success.
+    if not paragraphs:
+        print(
+            f"{args.census} holds NO PARAGRAPHS. There is nothing here to have"
+            " found anything in, so there is nothing this gate can certify --"
+            " a run whose scope resolved to no files is one that should not"
+            " have started. Re-run census.py against the paths under review."
+        )
+        return 1
+    missing = unaddressed(paragraphs)
+    if missing:
+        rows = "\n".join(f"  {line}" for line in missing)
+        print(
+            f"{_n(len(missing), 'paragraph')} in {args.census} carry NO ADDRESS,"
+            f" so this gate cannot cite them and would count them as nobody's:"
+            f"\n{rows}\nRe-run census.py against this checkout."
+        )
+        return 1
+    # !! ADDRESSABLE is not ACCOUNTABLE. Every interval between two lines of
+    # code is a paragraph, and so is every declaration, so an `add` -- a finding
+    # about prose that is MISSING -- has a place to cite instead of borrowing a
+    # neighbour's. Most of them hold
+    # nothing, and a reviewer owes no record on an empty one: coverage is over
+    # the paragraphs that HOLD PROSE. Re-measured 2026-08-19: `census.py` over
+    # itself is 1,607 paragraphs, 118 of them prose. Owing a record on all 1,607
+    # would make `CLEAN 1-N` -- the cheapest fabrication there is -- 92% true.
+    # !! THE FIGURE HAS NOW ROTTED TWICE, IN BOTH PLACES THAT RECORD IT ROTS. It
+    # was 546/48, then 642/76, and the comment saying "re-measure both or
+    # neither" did not make anyone do so: the ratio moved from 8-in-9 to 92%
+    # while both copies said 8-in-9. A number written in two files with nothing
+    # comparing them is a number that will be wrong in both.
+    # !! ADDRESSES, not indices. Coverage is over the paragraphs that HOLD PROSE --
+    # an empty place is addressable and nobody owes it a record.
+    # ! FRONT MATTER IS NOT COVERAGE. It is filtered out of what a reviewer
+    # reads -- a licence header settles no claim about the code -- so counting
+    # it here would report a gap on the one paragraph nobody was shown.
+    all_blocks = {
+        str(b.get("address", ""))
+        for b in paragraphs
+        if not Kind.holds_no_prose(str(b.get("kind", "")))
+        and b.get("address")
+        and series_of(b) != COVERS
+    }
+
+    fatal = 0
+
+    # ! Refused on every run, `--reviewers` or not: a reviewer is keyed by its
+    # report's stem, so two files with the same stem put one reviewer's
+    # coverage in place of the other's.
+    stems = [Path(r).stem for r in args.reports]
+    expected = {a.strip() for a in args.reviewers.split(",") if a.strip()}
+    for stem in sorted({s for s, n in Counter(stems).items() if n > 1}):
+        print(f"  DUPLICATE report stem {stem!r} -- two files claim the same reviewer")
+        fatal += 1
+
+    # ! A stem was taken as a role name on sight, so `ownershp-context.md` was
+    # accepted as a reviewer called `ownershp-context` and every line below
+    # named a role that does not exist. `Reviewer` is the published list.
+    published = {r.value for r in Reviewer}
+    for name in sorted(set(stems) | expected):
+        if name not in published:
+            print(
+                f"  UNKNOWN reviewer {name!r} -- not one of"
+                f" {', '.join(sorted(published))}"
+            )
+            fatal += 1
+
+    found: list[Finding] = []
+    reported: set[str] = set()
+    concerns: list[tuple[str, str]] = []
+    malformed: list[tuple[str, str]] = []
+    for raw in args.reports:
+        path = Path(raw)
+        reviewer = path.stem
+        try:
+            text = path.read_text(encoding="utf-8")
+        except exceptions.READ_ERRORS as e:
+            print(
+                f"  CANNOT READ {raw} ({type(e).__name__}) -- {reviewer} did not report"
+            )
+            fatal += 1
+            continue
+        records, unattributable, code_lines_flagged = load_report(path, text, reviewer)
+        # !! THE TOOL SUPPLIES THE ORIGINAL, NOT THE REVIEWER. A record carries
+        # an INDEX and an address; the census holds the text. Filling it here
+        # means `removed_spans` and `edit_problem` work unchanged, and the
+        # transcription-mismatch class -- 83 refusals in one measured run, none
+        # of them about a finding -- cannot arise, because nobody transcribed
+        # anything.
+        for f in records:
+            # ! THE RECORD CARRIES ITS OWN ADDRESS, so nothing is translated
+            # here. An address names one paragraph; a position names whichever
+            # one a later edit shifted into it.
+            held = entry_for(f.address, paragraphs) or {}
+            # !! ANY EDIT PROPOSED ON FRONT MATTER BECOMES A `query`. Roy,
+            # 2026-08-19: an agent looking to edit that area gets an automatic
+            # query -- ask the human -- instead of any of the other verdicts.
+            #
+            # ! Because the cost is asymmetric and sits OUTSIDE this system. A
+            # licence header is a legal instrument and a shebang is how the file
+            # runs; a wrong edit to either is not an editorial mistake, and no
+            # role here can settle whether it is right. The reviewer was not
+            # shown the paragraph -- `--filtered` drops it -- so a verdict here
+            # came from reading the file directly: a reasonable thing to have
+            # done, and still not this system's call.
+            #
+            # ! CONVERTED, not refused. The reviewer saw something; dropping it
+            # silently would lose it. The human is asked instead.
+            #
+            # ! The trigger is `owes_change` -- the table's own word for "this
+            # verdict proposes an EDIT" -- not a verdict NAME. `clean` and
+            # `query` propose none and are left exactly as they were.
+            # !! THE SERIES, NOT THE ANNOTATION. Only a FILLED front-matter
+            # run carries the annotation, so an `add` on the EMPTY place --
+            # proposing the licence header that place exists for -- reached
+            # the galley without the human ever being asked. Measured
+            # 2026-08-20 on a file with no front matter: `f0` is
+            # `dark-matter`, annotations `[]`, and the guard did not fire.
+            # ! ASKED THROUGH `_is`, which is the table's own reader and
+            # answers False for an unknown verdict rather than raising.
+            if series_of(held) == COVERS and _is(f, "owes_change"):
+                print(
+                    f"  {f.address} {f.reviewer}: {f.verdict!r} on FRONT MATTER"
+                    " (a licence header, shebang or coding line) -- turned into"
+                    " a `query`. That is the human's to rule on, not a role's."
+                )
+                # ! A COMPLETE query, not just the word. `query` owes a shape,
+                # what was attempted and what would settle it -- so converting
+                # the verdict alone leaves a record its own gate refuses. The
+                # shape is `outside the code`: settling a licence needs someone
+                # who knows how the project is owned and operated, which is
+                # exactly what that shape is for. What the reviewer proposed is
+                # kept as `attempted`, so nothing it saw is lost.
+                f.claim_fields = {
+                    "shape": "outside the code",
+                    "attempted": (f.claim or "").strip()
+                    or f"a {f.verdict} on this paragraph",
+                    "settles": "the human -- front matter is theirs to rule on",
+                }
+                f.claim = claim_text("query", f.claim_fields)
+                f.change = ""
+                f.verdict = "query"
+            if not f.original:
+                f.original = str(held.get("raw_text") or "")
+        found.extend(records)
+        malformed.extend((reviewer, why) for why in unattributable)
+        for line in code_lines_flagged:
+            concerns.append((reviewer, line))
+        reported.add(reviewer)
+
+    print(
+        f"{_n(len(found), 'finding')} from {_n(len(args.reports), 'reviewer')}"
+        f" over {_n(len(all_blocks), 'prose paragraph')}"
+        f" ({_n(len(paragraphs), 'paragraph')} in the census, the rest empty intervals"
+        " an `add` may cite)\n"
+    )
+
+    # ! DECLARED, the way this repo names a population everywhere else. Without
+    # --reviewers, "every reviewer" means "every file I was handed", so a
+    # reviewer that reported nothing at all passes unseen.
+    if args.reviewers:
+        for reviewer in sorted(expected - reported):
+            print(
+                f"  NO REPORT from reviewer {reviewer!r} -- a missing report is the"
+                " easier version of a fabricated one. --reviewers is matched against"
+                f" each report file's STEM, so a report for {reviewer!r} must be"
+                f" named {reviewer}.json"
+            )
+            fatal += 1
+    else:
+        print(
+            "! --reviewers not given: whether every expected reviewer reported was"
+            " NOT checked.\n"
+        )
+
+    gaps = coverage_gaps(all_blocks, reported, found)
+    if gaps:
+        print("COVERAGE GAPS - addresses no reviewer accounted for:")
+        for reviewer, missing in sorted(gaps.items()):
+            shown = ", ".join(missing[:20])
+            more = f" (+{len(missing) - 20} more)" if len(missing) > 20 else ""
+            count = _n(len(missing), "paragraph")
+            print(f"  {reviewer}: {count} unaccounted -- {shown}{more}")
+            fatal += 1
+        print()
+
+    for reviewer, why in malformed:
+        print(f"  MALFORMED {reviewer}: {why}")
+        fatal += 1
+
+    # !! ASKED ONCE, AND THE ANSWER IS CARRIED. `entry_for` is a linear scan over
+    # the census, and it was called for the same address twice -- here, and again
+    # in the accounting below. ! The `continue` is the ONLY way out of this loop
+    # short of the end, so what reaches the append is exactly the set the second
+    # scan rebuilt: the findings that name a paragraph the census carries.
+    in_range = []
+    for f in found:
+        held = entry_for(f.address, paragraphs)
+        if held is None:
+            print(
+                f"  {f.address} {f.reviewer}: names no paragraph in a"
+                f" {_n(len(paragraphs), 'paragraph')} census"
+            )
+            fatal += 1
+            continue
+        in_range.append(f)
+        if f.verdict not in VERDICTS:
+            print(
+                f"  {f.address} {f.reviewer}: {f.verdict!r} is not a verdict"
+                f" ({', '.join(VERDICTS)})"
+            )
+            fatal += 1
+        problem = source_problem(f, repo)
+        if problem:
+            print(f"  {f.address} {f.reviewer}: {problem}")
+            fatal += 1
+        misaddressed = address_problem(f, paragraphs)
+        if misaddressed:
+            print(f"  {f.address} {f.reviewer}: {misaddressed}")
+            fatal += 1
+        # !! A `move` IS ONLY AS GOOD AS ITS DESTINATION, and that half was
+        # checked for presence and never resolved.
+        nowhere = destination_problem(f, paragraphs)
+        if nowhere:
+            print(f"  {f.address} {f.reviewer}: {nowhere}")
+            fatal += 1
+        wrong_block = block_problem(f, paragraphs)
+        if wrong_block:
+            print(f"  {f.address} {f.reviewer}: {wrong_block}")
+            fatal += 1
+        disagrees = edit_problem(f, held)
+        if disagrees:
+            print(f"  {f.address} {f.reviewer}: {disagrees}")
+            fatal += 1
+        payload = payload_problem(f)
+        if payload:
+            print(f"  {f.address} {f.reviewer}: {payload}")
+            fatal += 1
+
+    grouped = by_paragraph(found)
+    # !! REPORTED, NOT GATED, and printed BEFORE the counts so it is not read as
+    # a summary line. A finding stated in `REASON` that no `CLAIM` names is a
+    # second finding with no record -- the gate checked the claim it was given
+    # and passed, and the defect reached no work list. It is not fatal because
+    # `REASON` is entitled to discuss context.
+    unrecorded = unrecorded_findings(grouped, paragraphs)
+    if unrecorded:
+        print(
+            f"\nA FINDING WITH NO RECORD -- {_n(len(unrecorded), 'phrase')} quoted in"
+            " REASON that no CLAIM names:"
+        )
+        for at, reviewer, phrase in unrecorded[:20]:
+            print(f"  {at} {reviewer}: {phrase!r}")
+        if len(unrecorded) > 20:
+            print(f"  ... and {len(unrecorded) - 20} more")
+        print(
+            "  Each is the paragraph's OWN words. File a second record on it"
+            " rather than leaving the finding in prose nothing reads."
+        )
+
+    clash = contradictions(grouped, paragraphs)
+    if clash:
+        # ! Names what the check DOES. It read "drop/move" after `move` left the
+        # set by ruling, so the one line a user reads named a pairing the join
+        # had stopped making.
+        print(f"\nRE-REVIEW -- drop against correct/patch on: {clash}")
+        print(
+            "  Not a tie-break. Send the paragraph back; the synthesis order"
+            " must not decide it."
+        )
+
+    # !! THREE STATES, NOT TWO. A paragraph covered only by `clean` and out-of-role
+    # queries is neither: no role certified it -- module-context returns `query`
+    # rather than `clean` so it does not certify what it never read -- and
+    # nothing is asked of stage 5 either. Counting those as work buried 76 real
+    # verdicts inside 1159 on a measured run.
+    ran = reported | {f.reviewer for f in found}
+    ruled = {f.address for f in in_range if _substantive(f) and not declares_scope(f)}
+    scoped_out = {f.address for f in in_range if declares_scope(f)} - ruled
+    # !! A PARAGRAPH NOBODY ACCOUNTED FOR IS NOT A PARAGRAPH EVERY ROLE PASSED. It fell
+    # into `stands` and was printed as "clean from all N reviewers", which is a
+    # claim no reviewer made -- on a report where every slot was still empty,
+    # every prose paragraph in the file was summarised that way, one line under the
+    # COVERAGE GAPS list naming the same paragraphs. Measured 2026-08-18.
+    #
+    # ! It is the same shape `_substantive` already guards at the other end: an
+    # unknown verdict answered False to everything, dropped out of the work
+    # list, and was reported as clean on a paragraph a role HAD ruled on. Both
+    # directions end in the summary asserting a pass nobody gave.
+    unaccounted = {index for missing in gaps.values() for index in missing}
+    stands = sorted(all_blocks - ruled - scoped_out - unaccounted)
+    print(
+        f"\nSTANDS UNCHANGED: {_n(len(stands), 'paragraph')} -- clean from all"
+        f" {_n(len(ran), 'reviewer')} that ran"
+    )
+    print(f"NEEDS A RULING:   {_n(len(ruled), 'paragraph')}")
+    if unaccounted:
+        # ! Counted here as well as listed above, because the three lines
+        # around it are counts and a reader compares them.
+        print(
+            f"NOT ACCOUNTED FOR: {_n(len(unaccounted), 'paragraph')} -- at least one"
+            " reviewer left them out. Neither ruled on nor certified."
+        )
+    if scoped_out:
+        print(
+            f"NO FINDING, NOT CERTIFIED: {_n(len(scoped_out), 'paragraph')} -- every"
+            " role that read it was `clean`, and at least one said it was outside"
+            " its role. Nothing to rule; nothing certified either."
+        )
+    if gaps:
+        print("  ! counts above are provisional: coverage is incomplete.")
+
+    # ! The WORK LIST. Stage 5 holds several rulings per paragraph and must emit ONE
+    # replacement, so this grouping is what it works from -- and rebuilding it
+    # from the report files by hand is the step this tool can do exactly and a
+    # reader cannot.
+    #
+    # !! PRINTED EVEN WHEN FATAL, and LABELLED instead of withheld. It used to
+    # be withheld on any fatal problem, on the reasoning that a work list after
+    # a refusal reads as permission to start. That reasoning holds and the
+    # heading below carries it -- but withholding paid for it with the run's
+    # only readable summary of what the roles found, exactly while someone is
+    # iterating on refusals. Measured 2026-08-17: five joins over one report
+    # set, and the only one that printed the list was the fifth, which needed
+    # it least.
+    out_for_rereview = set(clash)
+    if ruled:
+        if fatal:
+            print(
+                "\nPER PARAGRAPH -- PROVISIONAL, the gate refused this report."
+                "\n  Read it to see what the roles found; do not rule from it"
+                " until the problems above are resolved."
+            )
+        else:
+            print("\nPER PARAGRAPH -- what you hold, in census order:")
+        for b in sorted(ruled):
+            marks = "  ".join(
+                f"{f.verdict}({f.reviewer})"
+                for f in sorted(grouped[b], key=lambda f: (f.verdict, f.reviewer))
+                if _substantive(f) and not declares_scope(f)
+            )
+            flag = "   ! RE-REVIEW" if b in out_for_rereview else ""
+            print(f"  {b}  {marks}{flag}")
+
+    # ! Printed whether or not the gate refuses, and counted toward nothing. A
+    # code problem is not a verdict, so it is neither admissible nor
+    # inadmissible -- but a run that stops at stage 5 must still carry it, or the
+    # defect dies with the refusal.
+    if concerns:
+        print(f"\nCODE CONCERNS -- {_n(len(concerns), 'line')}, no verdict, not gated:")
+        for reviewer, line in concerns:
+            print(f"  {reviewer}: {line}")
+
+    if fatal:
+        print(f"\n{_n(fatal, 'problem')}. Resolve or send back before stage 5 rules.")
+        return 1
+    if clash:
+        # ! A contradiction is counted apart from the fatal checks: it is a
+        # re-review, and both records are well formed.
+        # The closing line still has to say so -- printing "send the paragraph back"
+        # and then "Stage 5 may rule" four lines later made the summary
+        # contradict its own body at exit 0.
+        print(
+            f"\nEvery finding is admissible. {_n(len(clash), 'paragraph')} still OUT"
+            " for re-review -- stage 5 may rule on the rest."
+        )
+        return 0
+    print("\nEvery finding is admissible. Stage 5 may rule.")
+    return 0

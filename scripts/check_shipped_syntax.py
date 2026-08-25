@@ -24,7 +24,16 @@ from pathlib import Path
 FLOOR = (3, 11)
 FLOOR_TEXT = ".".join(str(n) for n in FLOOR)
 
-SHIPPED = "plugins"
+# !! THE SOURCE, NOT THE BUILT COPY, since 2026-08-24. `plugins/` holds whatever
+# the last build put there, so a gate reading it answers "was the build run"
+# alongside the question it means to ask -- and `ruff format`, which this gate
+# exists to run AFTER, rewrites `src/`. Catching a floor break here catches it
+# before it is ever copied.
+#
+# ! THAT THE TWO MATCH IS A DIFFERENT QUESTION with its own gate:
+# `scripts/build_plugin.py --check`, proved able to fail by
+# `tests/gates/test_build.py`.
+SHIPPED = "src"
 
 # ! A tuple literal in an `except` clause is the known regression: under
 # `target-version = "py314"` a formatter rewrites `except (A, B):` into PEP

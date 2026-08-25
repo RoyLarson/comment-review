@@ -24,7 +24,7 @@ is a `backend` request; the agent file may not describe an output the census doe
 
 ### `backend` -- what the Python actually does
 
-`skills/comment-review/scripts/*.py`: the lexer, the page, the addresser, the census, the
+`src/comment_review/**`: the lexer, the page, the addresser, the census, the
 compositor, the galley, the record, the desk, the join. It owns the reading, the addressing, the
 setting and the checking -- and `docs/addressing.md` and `docs/parsing.md`, which describe them.
 

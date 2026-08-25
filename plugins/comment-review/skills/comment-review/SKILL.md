@@ -336,9 +336,9 @@ were given. A relative one resolves against whatever directory you are in, which
 guaranteed to be the skill's.
 
 ```bash
-python <skill>/scripts/census.py --repo . --out <run-dir>/census.txt <paths...>
-python <skill>/scripts/census.py --json --repo . --out <run-dir>/census.json <paths...>
-python <skill>/scripts/census.py --repo . --filtered --out <run-dir>/dispatch.txt <paths...>
+python <skill>/scripts/comment-review.py census --repo . --out <run-dir>/census.txt <paths...>
+python <skill>/scripts/comment-review.py census --json --repo . --out <run-dir>/census.json <paths...>
+python <skill>/scripts/comment-review.py census --repo . --filtered --out <run-dir>/dispatch.txt <paths...>
 ```
 
 !! **THREE FILES, AND THE THIRD IS THE ONE A REVIEWER IS HANDED.** `--filtered` prints the
@@ -380,8 +380,8 @@ addressers, and no number in one tells you a number in another -- nor does a lin
 you either.
 
 ```bash
-python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c|f
-python <skill>/scripts/addresser.py --census <CENSUS> --resolve <ADDRESS>
+python <skill>/scripts/comment-review.py addresser --census <FULL CENSUS> --anchor LINE --series a|b|c|f
+python <skill>/scripts/comment-review.py addresser --census <CENSUS> --resolve <ADDRESS>
 ```
 
 ! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many
@@ -420,7 +420,7 @@ reading, and nothing downstream can tell.
 
 **A suffix the census has no record for is named, and the census EXITS NONZERO** -- every file
 handed in is censused or the run stops, so a file that reaches a reviewer is reviewed like any
-other whatever its tier. `python <skill>/scripts/census.py --languages` lists what it knows.
+other whatever its tier. `python <skill>/scripts/comment-review.py census --languages` lists what it knows.
 
 ! **It builds the tree at the TIER available for each file's language.** Both tiers find the
 same paragraphs and differ only in what else they can say:
@@ -524,7 +524,7 @@ is not comparable to one taken without.
 rather than from memory -- this is the INBOUND half of stage 3:
 
 ```bash
-python <skill>/scripts/referrers.py --repo . <paths under review...>
+python <skill>/scripts/comment-review.py referrers --repo . <paths under review...>
 ```
 
 It prints every tracked file that NAMES one of them -- by path, by stem, or by a
@@ -589,7 +589,7 @@ Each already carries its own editorial role.
 all four -- then one command per agent, pasted as it comes:
 
 ```bash
-python <skill>/scripts/vocabulary.py --reviewer ownership-context
+python <skill>/scripts/comment-review.py vocabulary --reviewer ownership-context
 ```
 
 `--roles` lists the six that have one. ! Do not summarise it, do not trim it to the terms you
@@ -614,9 +614,9 @@ against it.
 dispatched:**
 
 ```bash
-python <skill>/scripts/run_context.py --template > <run-dir>/context.md
+python <skill>/scripts/comment-review.py run_context --template > <run-dir>/context.md
 # fill every section, then:
-python <skill>/scripts/run_context.py --check <run-dir>/context.md
+python <skill>/scripts/comment-review.py run_context --check <run-dir>/context.md
 ```
 
 It refuses a section that is absent **or present and blank** -- a published
@@ -660,7 +660,7 @@ the role, with a slot already laid down for every prose paragraph:
 
 ```bash
 for role in ownership-context block-context function-context module-context; do
-  python <skill>/scripts/record.py --seed --census <run-dir>/census.json \
+  python <skill>/scripts/comment-review.py record --seed --census <run-dir>/census.json \
     --reviewer "$role" --out <run-dir>/"$role".json
 done
 ```
@@ -683,7 +683,7 @@ and not findings.
 **Check each file when the agent returns**, before the join:
 
 ```bash
-python <skill>/scripts/record.py --check <run-dir>/<role>.json --census <run-dir>/census.json
+python <skill>/scripts/comment-review.py record --check <run-dir>/<role>.json --census <run-dir>/census.json
 ```
 
 ! It separates INCOMPLETE from MALFORMED and exits differently on each: a reviewer part-way
@@ -738,7 +738,7 @@ reviewer's report against the census and against the others', and refuses what i
 verify. It is the gate between MARK and APPLY:
 
 ```bash
-python <skill>/scripts/verdicts.py --census <census>.json \
+python <skill>/scripts/comment-review.py verdicts --census <census>.json \
   --reviewers ownership-context,block-context,function-context,module-context \
   --repo . <one report file per role>
 ```
@@ -915,9 +915,9 @@ nothing can address it -- `address_problem` refuses a record whose ADDRESS match
 entry, which is every round-2 record until this runs:
 
 ```bash
-python <skill>/scripts/galley.py --repo . --census <run-dir>/census.json \
+python <skill>/scripts/comment-review.py galley --repo . --census <run-dir>/census.json \
   --edits <run-dir>/edits.json --out <run-dir>/galley
-python <skill>/scripts/census.py --json --repo <run-dir>/galley \
+python <skill>/scripts/comment-review.py census --json --repo <run-dir>/galley \
   --out <run-dir>/galley-census.json <the same paths, under the galley>
 ```
 

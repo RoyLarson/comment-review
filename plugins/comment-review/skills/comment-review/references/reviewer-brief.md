@@ -207,7 +207,7 @@ tool prints how many answered; read that line.
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+python <skill>/scripts/comment-review.py addresser --census <FULL CENSUS> --anchor LINE --series a|b|c
 ```
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the

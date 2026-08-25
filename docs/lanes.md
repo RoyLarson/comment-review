@@ -18,7 +18,8 @@ the crossing rules are in [`conventions.md`](conventions.md).
 | `plugins/comment-review/skills/comment-review/SKILL.md` | `agents` |
 | `plugins/comment-review/skills/comment-review/references/*.md` | `agents` |
 | `docs/limitations.md` | `agents` |
-| `plugins/comment-review/skills/comment-review/scripts/*.py` | `backend` |
+| `src/comment_review/**`, `src/comment-review.py` | `backend` |
+| `plugins/**/scripts/**` -- BUILT OUTPUT, edit `src/` instead | `backend` |
 | `docs/addressing.md`, `docs/parsing.md` | `backend` |
 | `evals/**`, `evidence/**`, `corpora/**` | `testing` |
 | `scripts/**` | `systems` |
