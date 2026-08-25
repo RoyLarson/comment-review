@@ -611,3 +611,60 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **A fence between two properties has no street number**, which is why `d` carries a SYMBOL
   and never an address -- and why asking one for its series is a category error rather than a
   case to absorb. The blank return that let it pretend otherwise is gone.
+
+- **#16.** **THE ORIGINAL SHA IS READ OUT OF THE SAVED BINDER, NEVER RECOMPUTED** (Roy,
+  2026-08-25: *"we can't assume that the file didn't change between original read and loading to
+  write and so getting it out of the json blob is important"*). The chain compares against the
+  sha the binder recorded at read time, not one recomputed from the file loaded for writing.
+
+- **#17.** **THE SAME SHA CHECK PROVES THE READ-ONLY ROLES STAYED READ-ONLY** (Roy, 2026-08-25:
+  *"This also ensures that agents didn't try to fix what they found while reviewing"*). One
+  comparison answers both questions -- did the file drift, and did a reviewer edit it -- because
+  either would change the bytes.
+
+- **#18.** **THE NOTATIONS READER IS A STAND-IN, NOT A FINISHED FORMAT** (Roy, 2026-08-25: *"We
+  need the shape not the concrete implementation"*). Enough is built to reach the chain's second
+  half; the shape an agent actually emits is not designed by this branch.
+
+- **#19.** **A WEAK CHECK IS STRENGTHENED IN PLACE, NEVER DOUBLED** (Roy, 2026-08-25: *"lets make
+  certain we are not duplicating tests only adding new to truly new functionality"*). Where a
+  test already exists for a box this branch closes, the branch strengthens it in place rather
+  than adding a second, weaker-passing test beside it.
+
+- **#20.** **A REFUSAL ABORTS THE RUN WHOLE, AND IS PROVISIONAL** (Roy, 2026-08-25: *"fails loud
+  amd stops is the right answer for now"*). Nothing in this workflow touches the real tree, so a
+  partial draft set costs only a re-run. **"For now" is part of the ruling**: what replaces it is
+  the transactional per-page write -- `pending`, `written`, `verified`, `failed`, a manifest, a
+  retry -- which belongs to workflow 2 and is designed in the custody spec's last section.
+
+- **#21.** **`machine/` OWNS THE HASH; PAGE AND BINDER RECEIVE IT, NEITHER ASKS FOR IT** (Roy,
+  2026-08-25: *"the querying of it should not have left the machine/ modules ... information
+  received by page and binder, not something requested by page/binder"*).
+
+- **#22.** **THE SHA IS TAKEN AT THE READ** (Roy, 2026-08-25: *"the only place to properly ensure
+  it gets read exactly the same and the middle things shouldn't depend on the external things"*).
+  Measured: two readers give one file two shas, so the value has to come from the read it will
+  later be compared against, not be recomputed downstream.
+
+- **#23.** **`reset` TAKES A PAGE AND CUES; IT RESOLVES NOTHING** (Roy, 2026-08-25: *"the galley
+  shouldn't be resolving the page ... it should get handed the page, the cues-new text or a
+  delete"*).
+
+- **#24.** **THE CHAIN CHECKS THE SHA, NOT THE GALLEY AND NOT THE COMPOSITOR** (Roy, 2026-08-25:
+  *"The sha-page piece should be part of the chain of command piece"*). One owner answers the
+  staleness question once, in `flows/proof_setter.py`, rather than each write-side module
+  answering it again -- see the OWNERSHIP MOVED note on
+  [`a-page-carries-no-identity`](../TODO/a-page-carries-no-identity.md).
+
+- **#25.** **WHAT THE AGENT WORKFLOW HANDS OVER IS NAMED `notations`** (Roy, 2026-08-25: *"a good
+  name is notations"*). Settles the name `#14` left open -- *"I am think notations"*.
+
+- **#26.** **THE SAVED BINDER IS WHAT SAYS WHICH FILE TO RELOAD** (Roy, 2026-08-25: *"We also
+  have to grab the binder address from the saved material"*).
+
+- **#27.** **A DELETE IS `None`, NOT AN EMPTY STRING** (Roy, 2026-08-25: *"None is explicit
+  enough"*).
+
+- **#28.** **`prove_unchanged` RUNS AT EACH PROPOSED FINAL STATE** (Roy, 2026-08-25: *"just before
+  the human review and just after the human review edit piece"*). Once before the human is shown
+  the draft, and once again after a human edit, before it is taken as final.
