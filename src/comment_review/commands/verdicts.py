@@ -261,7 +261,11 @@ def _report(args: argparse.Namespace) -> int:
             # `dark-matter`, annotations `[]`, and the guard did not fire.
             # ! ASKED THROUGH `_is`, which is the table's own reader and
             # answers False for an unknown verdict rather than raising.
-            if series_of(held) == COVERS and _is(f, "owes_change"):
+            # ! `held` FIRST. It is `entry_for(...) or {}`, so an empty dict
+            # means this record NAMES NO PLACE on the page -- reported below on
+            # its own terms. Asking that for a series read as "not front
+            # matter", which is true by accident: there is no series to have.
+            if held and series_of(held) == COVERS and _is(f, "owes_change"):
                 print(
                     f"  {f.address} {f.reviewer}: {f.verdict!r} on FRONT MATTER"
                     " (a licence header, shebang or coding line) -- turned into"

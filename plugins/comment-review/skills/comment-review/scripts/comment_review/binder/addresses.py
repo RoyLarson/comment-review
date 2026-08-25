@@ -138,8 +138,23 @@ def series_of(paragraph: dict) -> str:
     ! Inferring was meant to avoid a case per KIND, and reading the address
     avoids that too. It costs nothing: `for_anchor` is given a census, and an
     entry carrying no address is one no caller could cite anyway.
+
+    !! A `d` IS NOT ASKED, AND ANSWERING IT WAS THE DEFECT. Leading is walked
+    because the compositor has to set those lines back, and it names no place --
+    Roy, 2026-08-24: *"Series d are walked because they have to be but they are
+    not cues."* This defaulted its missing address to `""` and handed back `""`,
+    a non-answer every caller then compared against a series letter. Every
+    caller but one already tests `address` first; the one that did not is the
+    reason this is stated rather than absorbed.
+
+    Args:
+        paragraph: a census row that NAMES A PLACE.
+
+    Raises:
+        IndexError: when the row carries no address -- it is not a cue, and
+            has no series to report.
     """
-    return cue_of(str(paragraph.get("address", ""))).series
+    return cue_of(str(paragraph["address"])).series
 
 
 def stable(paragraph: dict) -> str:

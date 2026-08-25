@@ -21,6 +21,7 @@ from comment_review.flows.census import (
     _not_censused,
     _repo_relative,
     _unaddressed,
+    carried,
     emitted_row,
 )
 from comment_review.machine import exceptions
@@ -188,7 +189,7 @@ def _report(args: argparse.Namespace) -> int:
         except Exception as e:  # a parse failure is REPORTED, as a gap
             unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
             continue
-        census.extend(got)
+        census.extend(carried(got))
 
     for b in census:
         annotate(b, known, paths, repo)
@@ -369,7 +370,10 @@ def _report(args: argparse.Namespace) -> int:
         if b.path != run_path:
             flush_run()
             run_path = b.path
-        if args.filtered and not args.include_matter:
+        # ! `b.address` FIRST: a `d` names no place, so it has no series to
+        # compare. It fell through this test to the `holds_no_prose` branch
+        # below, which is where it always belonged.
+        if args.filtered and not args.include_matter and b.address:
             if series_of(vars(b)) == COVERS:
                 # ! FLUSHED, NOT SKIPPED. Front matter is PROSE that this
                 # listing drops; a run that continued across it would claim no

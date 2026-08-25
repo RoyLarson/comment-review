@@ -455,3 +455,80 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Z is what I would write if I had the time"*). ! **It is the standard this tool applies to
   everyone else's code**, which is why stage 8 is a reader rather than a checker and why
   [`gates.md`](gates.md) exists. A ticked box is necessary and is not the claim.
+
+- **#14.** **THE CHAIN FROM BINDER TO HUMAN, ruled end to end** (Roy, 2026-08-24). This is the
+  answer to the question [`nothing-makes-the-fair-copy`](../TODO/nothing-makes-the-fair-copy.md)
+  was opened for, and the piece that was missing when he said *"we have a missing piece in the
+  chain."* Verbatim:
+
+  > *"The binder goes to the agents the agents make there marks on something (I am think
+  > notations) the desk system takes the notations and the binder and emits an update {address:
+  > new paragraph}. The galley gets a list of the updates (list is loose here it needs more like
+  > the page sha). The workflow reloads the page sends the page through the galley with the
+  > updates. Then after the updates finished sends that to the compositor. Sends that through
+  > the page system again to make certain that the agents put the right comments in the right
+  > places. The that gets shown to the human ..."*
+
+  | step | who | in | out |
+  | --- | --- | --- | --- |
+  | 1 | the binder | the pages | what the agents read |
+  | 2 | the agents | the binder | **notations** -- their marks |
+  | 3 | the **desk** | notations + binder | **`{address: new paragraph}`** |
+  | 4 | the workflow | | RELOADS the page |
+  | 5 | the **galley** | page + updates + a page SHA | the updated page |
+  | 6 | the **compositor** | that page | the text |
+  | 7 | the **page** again | that text | proof the marks landed where they were meant to |
+  | 8 | the human | | the proof |
+
+  !! **THE UPDATE IS `{address: new paragraph}` AND NOTHING ELSE**, which settles what a verdict
+  and a record are NOT. Roy, earlier the same day: *"the galley only really needs this address
+  gets this paragraph and that replaces the current page paragraph."* ! Inferring that the
+  RECORD carries it was ruled **WRONG**; twelve tests are held rather than patched because of it.
+
+  ! **`notations` IS PROPOSED, NOT SETTLED** -- *"I am think notations"*. The name for what an
+  agent emits is still open; the SHAPE it becomes is not.
+
+  !! **THE PAGE IS READ TWICE, AND THE SECOND READ IS THE CHECK.** Step 7 sends the composed text
+  back through the page system to confirm the marks landed where they were meant to -- so the
+  system verifies its own output by the same reader that produced its input, rather than by
+  trusting the write. ! That is [`gates.md`](gates.md)'s rule satisfied by construction, and it
+  needs the page SHA of step 5 to be worth anything.
+
+  !! **NOTHING TRANSFERS FROM THE BINDER TO THE END.** Roy, 2026-08-24, stating it as flatly as
+  it can be stated. The binder is what the agents READ, and step 4 RELOADS the page from disk --
+  so **not one binder row reaches the galley, the compositor or the output.** The only thing that
+  crosses from the reading side to the writing side is the ADDRESS, which is a key, not data.
+
+  ! **THAT IS WHY THE BINDER CAN BE TRIMMED WITHOUT TOUCHING THE WRITE PATH**, which is the
+  premise the field cut was working from before this branch paused it -- and why a census row
+  must never be treated as a source of truth for writing. Roy: *"Nothing builds from census rows
+  because nothing has to and nothing should have to."* MEASURED 2026-08-24: the galley already
+  re-reads the file (`read_raw`, then `page_for`) and uses the census only for the addresses an
+  edit cites, so the rule describes the code as it stands rather than asking it to change.
+
+- **#15.** **LEADING IS A FENCE, AND A FENCE TAKES NO ADDRESS** (Roy, 2026-08-24: *"Series d are
+  walked because they have to be but they are not cues"*, and *"You don't put an address on a
+  fence because it is what divides properties. The only thing we can do is say well there was a
+  fence here before we did this there should be a fence here after we did this."*).
+
+  ! **IT IS NOT PASSED TO THE AGENTS** -- *"The leading is not something that will be passed to
+  the agents. The same as the extra record attributes. It gets dropped because there is nothing
+  to rule on. It is for white space."* ! MEASURED 2026-08-24, BEFORE the fix: `census --json`
+  over a 10-line file emitted **3 rows carrying no address**, every one `kind='leading'`; over
+  this repo's own `src/`, **422 of 9,459 paragraphs** were addressless and every one was leading.
+
+  !! **AND THE ADDRESS IS A POSTAL ADDRESS, WHICH IS WHERE THE FENCE FOLLOWS FROM.** Roy: *"the
+  analogy for the address is a real address. Street name street number, city, state, [country --
+  assumed]. The cue is the street name and number, the file is the city, and the rest is the
+  folder structure and computer."*
+
+  | postal | here |
+  | --- | --- |
+  | street name and number | the **cue** -- `b3` |
+  | city | the **file** |
+  | state | the folder structure |
+  | country | the machine, assumed |
+
+  ! **A fence between two properties has no street number**, which is why `d` carries a SYMBOL
+  and never an address -- and why asking one for its series is a category error rather than a
+  case to absorb. The blank return that let it pretend otherwise is gone.

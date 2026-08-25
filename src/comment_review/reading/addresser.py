@@ -940,13 +940,25 @@ class Address(NamedTuple):
         does not hold -- the defect recorded above, one field down. Roy,
         2026-08-24: *"cue.series is the Right answer."*
 
-        ! A SLICE, NOT `[0]`, AND THE DIFFERENCE IS THE WHOLE POINT: `""[0]`
-        raises and `""[:1]` is `""`. An address that names no place answers with
-        no series, which is what every caller here tests for -- so the empty
-        case is handled ONCE, here, instead of at each site by an idiom that
-        never says it is handling anything.
+        !! IT RAISES ON A STRING THAT NAMES NO PLACE, and that is deliberate.
+        It was `self.cue[:1]` for one commit, which answered `""` -- and the
+        only thing that ever reached it blank was LEADING. Roy, 2026-08-24:
+        *"Series d are walked because they have to be but they are not cues."*
+        A `d` is walked because the compositor has to set those lines back, and
+        it names no place; asking it which series it is in is a category error,
+        not a case to absorb.
+
+        ! THE BLANK WAS THE MACHINERY THAT LET IT PRETEND. Two sites sent a `d`
+        through here and read the empty answer as their signal to go ask
+        `symbol` instead -- a round trip that bought nothing, since both already
+        knew. `galley.py` and `page.py` never did: they test `b.address` and
+        branch, which is the idiom this now requires of everyone.
+
+        Raises:
+            IndexError: when the address names no place. The caller asked a
+                question about a cue of something that is not one.
         """
-        return self.cue[:1]
+        return self.cue[0]
 
 
 def cue_of(address: str) -> Address:

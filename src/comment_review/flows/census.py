@@ -35,6 +35,7 @@ each LANGUAGE reaches, which is a fact about the language rather than a fact
 about a place, and is where to look when a file's reader could not answer.
 """
 
+from collections.abc import Iterable
 from pathlib import Path
 
 from comment_review.reading.lexer import Paragraph
@@ -69,6 +70,41 @@ def emitted_row(b: Paragraph) -> dict:
     }
     row.pop("raw_lines", None)
     return row
+
+
+def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
+    """The paragraphs a census HANDS OVER. A fence is not one of them.
+
+    !! LEADING IS NOT PASSED TO THE AGENTS, and it was until 2026-08-24. Roy:
+    *"The leading is not something that will be passed to the agents. The same
+    as the extra record attributes. It gets dropped because there is nothing to
+    rule on. It is for white space."*
+
+    !! A FENCE TAKES NO ADDRESS, WHICH IS WHY IT LEAKED IN THE FIRST PLACE. Roy,
+    2026-08-24: *"You don't put an address on a fence because it is what divides
+    properties. The only thing we can do is say well there was a fence here
+    before we did this there should be a fence here after we did this."* An
+    address is postal -- *"The cue is the street name and number, the file is
+    the city, and the rest is the folder structure and computer"* -- and the
+    fence between two properties has no street number. Carried anyway, it
+    arrived as a row whose `address` was `""`, and every consumer downstream had
+    to test for that blank to discover the row was never a place.
+
+    ! MEASURED, before this: `census --json` over a ten-line file emitted THREE
+    such rows, and the listing printed them as `@` with no cue after it. Over
+    this repo's own `src/`, 422 of 9,459 paragraphs -- every one leading.
+
+    ! THE PAGE KEEPS THEM. A fence still has to be set back, so `Page.leading`
+    holds it as the edge it is, keyed by the place it FOLLOWS, and the
+    compositor reaches it there by symbol. ! Nothing is lost by dropping it
+    here, because NOTHING TRANSFERS FROM THE BINDER TO THE END -- the write path
+    reloads the page from disk and takes only the address as a key.
+
+    ! THE GATE IS UNAFFECTED. `unaddressed` reports paragraphs that OWE an
+    address and lack one, and `owes_address` already exempts anything carrying a
+    symbol -- so a fence was never in the population it counts.
+    """
+    return [b for b in page if b.address]
 
 
 def _repo_relative(path: Path, repo: Path) -> str:

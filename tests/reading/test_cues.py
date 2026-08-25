@@ -291,14 +291,25 @@ class TestTheInverse(unittest.TestCase):
             with self.subTest(cue=cue):
                 self.assertEqual(addresser.cue_of(f"m.py@{cue}").series, series)
 
-    def test_a_string_that_is_no_address_has_NO_SERIES_rather_than_raising(self):
-        # !! THIS IS WHY IT IS `[:1]` AND NOT `[0]`, and the difference is the
-        # whole reason the reader is named: `""[0]` raises, `""[:1]` is `""`.
-        # Every caller tests the letter against a series constant, so an empty
-        # answer is the right one and it is produced in ONE place rather than by
-        # an idiom repeated at each site that never says what it is handling.
-        self.assertEqual(addresser.cue_of("pkg:mod.py").series, "")
-        self.assertEqual(addresser.cue_of("").series, "")
+    def test_a_string_that_is_no_address_HAS_NO_SERIES_TO_GIVE(self):
+        # !! THIS ASSERTED THE OPPOSITE FOR ONE COMMIT, and the reversal is
+        # Roy's: *"Series d are walked because they have to be but they are not
+        # cues."* `.series` was `cue[:1]`, which answered `""` -- and the only
+        # thing that ever arrived blank was LEADING, which names no place
+        # BECAUSE IT IS NOT ONE. A non-answer let it travel as though it were a
+        # cue; raising says what it is.
+        for nothing in ("pkg:mod.py", "", "b3"):
+            with self.subTest(text=nothing):
+                with self.assertRaises(IndexError):
+                    # ! BOUND, because reading the property IS the call under
+                    # test and a bare access reads as a mistake to `ruff`.
+                    _ = addresser.cue_of(nothing).series
+
+    def test_a_BARE_CUE_is_not_an_address_either(self):
+        # ! `b3` is a cue, not an address -- an address is `path@cue`. The
+        # compositor was MEASURED disagreeing with itself over exactly this on
+        # 2026-08-22, because it re-derived the split instead of asking.
+        self.assertEqual(addresser.cue_of("b3"), ("", ""))
 
     def test_every_address_finds_its_own_entry_again(self):
         # ! STAMPED FIRST, because `resolve` READS the census's `place` rather

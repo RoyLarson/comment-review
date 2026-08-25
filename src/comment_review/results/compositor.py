@@ -92,7 +92,12 @@ def _held(page: Page) -> dict[str, list[str]]:
         # an address is `path@cue` and a bare cue is not one; `"b3".split("@")
         # [-1]` answers `"b3"`. So the compositor SET a place `galley.reset`
         # REFUSES, and the disagreement is invisible until the two are compared.
-        cue = cue_of(paragraph.address or "").cue or paragraph.symbol
+        # !! BRANCHED ON THE ADDRESS, NOT ON THE BLANK THAT CAME BACK. This read
+        # `cue_of(paragraph.address or "").cue or paragraph.symbol` -- sending a
+        # `d` through the address reader so the empty answer could signal "go
+        # ask the symbol". Roy, 2026-08-24: *"Series d are walked because they
+        # have to be but they are not cues."* It never was an address question.
+        cue = cue_of(paragraph.address).cue if paragraph.address else paragraph.symbol
         if cue:
             out[cue] = list(paragraph.raw_lines)
     return out

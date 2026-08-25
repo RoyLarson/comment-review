@@ -1387,6 +1387,68 @@ class TestNoIntervalOverlapsProse(unittest.TestCase):
             self.assertIn(2, page.code_lines(body, [vars(b) for b in paragraphs]))
 
 
+class TestTheCensusCarriesNoFence(unittest.TestCase):
+    """A `d` never reaches an agent, and nothing checked that until 2026-08-24.
+
+    !! LEADING IS THE FENCE BETWEEN TWO PLACES AND IS NOT ONE. Roy, 2026-08-24:
+    *"The leading is not something that will be passed to the agents ... It gets
+    dropped because there is nothing to rule on. It is for white space."* And:
+    *"You don't put an address on a fence because it is what divides
+    properties."*
+
+    ! IT WAS CARRIED ANYWAY, as a row whose `address` was `""` -- so every
+    consumer downstream had to test for that blank to learn the row was never a
+    place. MEASURED before the fix: 3 such rows from a ten-line file, and 422 of
+    9,459 over this repo's own `src/`.
+
+    !! AND THE WHOLE SUITE PASSED EITHER WAY. Dropping them broke NOTHING, which
+    is the argument for this class existing: nothing asserted the emit's
+    population in either direction.
+    """
+
+    def _rows(self, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "m.py"
+            src.write_text(text, encoding="utf-8")
+            out = subprocess.run(
+                [*cli("census"), "--json", "--repo", tmp, str(src)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(out.returncode, 0, out.stderr)
+            return json.loads(out.stdout)
+
+    # A file whose blank runs are unmistakable: three of them, two lines each.
+    SPACED = '"""Doc."""\n\n\n# a note\n\n\nx = 1\n'
+
+    def test_every_row_the_census_emits_names_a_place(self):
+        rows = self._rows(self.SPACED)
+        self.assertTrue(rows, "the sample must be real")
+        blank = [r for r in rows if not r.get("address")]
+        self.assertEqual(blank, [], "a row with no address is not a place")
+
+    def test_no_row_is_leading(self):
+        # ! ASKED BY KIND TOO. The address test above would also pass if a fence
+        # were given an address, which is the other way to get this wrong.
+        kinds = {r.get("kind") for r in self._rows(self.SPACED)}
+        self.assertNotIn("leading", kinds)
+
+    def test_the_page_still_HOLDS_the_fences_it_does_not_emit(self):
+        # !! THE CUT IS THE EMIT, NOT THE PAGE. A fence still has to be set back
+        # or the file cannot round trip, so `page_for` keeps it and only the
+        # census drops it. A change that removed it from the page would pass the
+        # two tests above and destroy the compositor.
+        built = page.page_for(
+            Path("m.py"), self.SPACED, lexer.language_for(Path("m.py"))
+        )
+        held = [b for b in built.paragraphs if b.kind == "leading"]
+        self.assertTrue(held, "the page must still carry its fences")
+        self.assertTrue(all(not b.address for b in held))
+        self.assertTrue(all(b.symbol for b in held), "each is found by SYMBOL")
+
+
 class TestAnUnaddressedCensusIsREFUSEDAtBothEnds(unittest.TestCase):
     """The census refuses on EMIT and the stage-5 gate on READ.
 
