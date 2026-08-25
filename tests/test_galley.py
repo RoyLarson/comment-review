@@ -237,7 +237,10 @@ class TestWhatTheGalleyRefuses:
         serialise would otherwise be read as a deletion, at exit 0."""
         problems = reset(sample, {FILLED["b"]: value})
         assert len(problems) == 1
-        assert "must be non-empty text" in problems[0]
+        if isinstance(value, str):
+            assert "not a delete" in problems[0]
+        else:
+            assert "must be text" in problems[0]
 
     @pytest.mark.parametrize("value", [0, 123, [], {}, ""])
     def test_a_refused_replacement_changes_NOTHING(self, sample, value):

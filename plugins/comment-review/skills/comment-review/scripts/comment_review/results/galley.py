@@ -2,8 +2,10 @@
 
     python galley.py --repo D --census census.json --edits edits.json --out DIR
 
-`--edits` is `{"<address>": "<the replacement text>"}` -- the same address the
-record carries, so nothing between stage 5 and the galley has to convert.
+`--edits` is `{"<address>": "<the replacement text>"}` -- the address the
+record carries. `reset` below does not take that address: resolving it to
+`(path, cue)` happens upstream, against the saved binder, before a cue and
+its replacement ever reach this module.
 
 A galley is the trial impression: the text set, but not yet made into pages, so
 that it can be corrected before anything is committed. That is exactly what
@@ -48,7 +50,7 @@ Two things need it, and they needed the same thing:
 the old page - updates the old page with the verdict/record/marks and then a
 page-setter sets the page to rewrite the output text."*
 
-    RESET   the verdicts are put on the page, by ADDRESS
+    RESET   the verdicts are put on the page, by CUE
     SET     `compositor.set_page` turns the page back into text
 
 ! THIS MODULE OWNS ONLY THE FIRST. Setting belongs to the compositor, which is
@@ -168,11 +170,14 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
                 by_symbol.get(page.leading.get(where, "")) if owns_leading else None,
             )
             continue
-        if not isinstance(replacement, str) or not replacement:
+        if not isinstance(replacement, str):
             refused.append(
-                f"{where}: a replacement must be non-empty text, or None to"
-                f" delete -- not {type(replacement).__name__}"
+                f"{where}: a replacement must be text or None, not"
+                f" {type(replacement).__name__}"
             )
+            continue
+        if not replacement:
+            refused.append(f"{where}: an empty string is not a delete -- None is")
             continue
         found[0].raw_lines = constants.text_lines(replacement)
     return refused
