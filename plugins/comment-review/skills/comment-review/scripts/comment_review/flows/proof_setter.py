@@ -38,6 +38,7 @@ from comment_review.machine.repo import read_source
 from comment_review.reading.addresser import cue_of
 from comment_review.reading.lexer import language_for
 from comment_review.results import compositor, galley
+from comment_review.results.prove_unchanged import code_fingerprint
 
 #: The chain, as data. ! A test asserts this tuple, so removing a check is a
 #: visible deletion rather than a call somebody forgot to make.
@@ -151,6 +152,14 @@ def _one(
     if off is not None:
         target.unlink(missing_ok=True)
         return None, off
+
+    # !! `read_source`, NOT `read_text`. The translating reader is what this
+    # branch exists to remove from the write path -- reading the draft through
+    # it here would compare text read one way against text read another.
+    unproven = _prove(rel, page.text, read_source(target).text, target)
+    if unproven is not None:
+        target.unlink(missing_ok=True)
+        return None, unproven
     return Drafted(rel, target, page.sha), None
 
 
@@ -178,4 +187,32 @@ def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | N
             return Refusal(
                 "reread", rel, f"{where}: holds {got.raw_lines!r}, was given {want!r}"
             )
+    return None
+
+
+def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
+    """Is the executable code in the draft the code that was there before?
+
+    !! AN UNPROVABLE FILE IS REFUSED, NOT PASSED. `code_fingerprint` returns an
+    EMPTY fingerprint for a file it cannot strip, and two empty strings compare
+    equal -- so reading its verdict without reading its KIND proves every
+    unprovable file identical to every other.
+
+    ! WHAT THIS CATCHES THAT `_reread` CANNOT. `_reread` checks only the cues a
+    notation named, so a notation surviving it was -- by construction -- read
+    back as a comment: for the AST tier a comment never enters the fingerprint,
+    so a still-a-comment edit can never trip the `want != got` branch below.
+    The residual hazard is a notation that breaks its comment's RUN and
+    swallows code BEYOND the edited cue -- an edit whose comment run closes
+    mid-line, or never closes at all, can delete the code that followed it.
+    `_reread` cannot see that: the swallowed code was never one of the cues it
+    was asked about. `_prove` compares the WHOLE file's fingerprint, which is
+    what catches it. See `TODO/closing-line-deletes-code.md`.
+    """
+    kind, want = code_fingerprint(before, path)
+    got_kind, got = code_fingerprint(after, path)
+    if kind == "unprovable" or got_kind == "unprovable":
+        return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
+    if want != got:
+        return Refusal("prove", rel, "the executable code is not what it was")
     return None

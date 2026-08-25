@@ -5,10 +5,14 @@ forgotten call -- which is the one failure a runner that hard-codes its
 sequence cannot show you.
 """
 
+from pathlib import Path
+
 from conftest import SAMPLE, build, by_cue
 
 from comment_review.binder.binder import bind
 from comment_review.flows import proof_setter
+from comment_review.results import compositor, galley
+from comment_review.results.prove_unchanged import code_fingerprint
 
 
 def test_the_chain_IS_this_list():
@@ -119,3 +123,64 @@ def test_the_drafted_FILE_holds_each_notation_at_its_cue(tmp_path):
     assert refused == []
     again = build(drafted[0].draft.read_text(encoding="utf-8"))
     assert by_cue(again)[cue].raw_lines == ["# REPLACED"]
+
+
+class TestOnlyCommentsChange:
+    """Roy, 2026-08-25: prove_unchanged runs *"just before the human review and
+    just after the human review edit piece just to be certain we only changed
+    only comments."* This is the first of those two.
+
+    ! `_prove` IS TESTED DIRECTLY BELOW, NOT THROUGH `run()`. For Python's
+    AST tier, `_reread` already requires exact `raw_lines` equality at every
+    edited cue, so any notation that survives it was -- by construction --
+    read back as a comment, and a comment never enters the AST. No `b`, `a`
+    or `c` cue notation reaching `proof_setter.run()` on this module's own
+    `SAMPLE` fixture can therefore make `_prove`'s comparison disagree; every
+    attempt (a raw code line dropped where a comment gap was, on several
+    cues) was refused by `_reread` first -- measured, not assumed. The real
+    hazard `_prove` guards is `TODO/closing-line-deletes-code.md`: a comment
+    whose run closes mid-line, or never closes at all, can swallow the code
+    that follows it -- code beyond the cue `_reread` was asked about, which
+    is exactly what `_reread` cannot see.
+    """
+
+    def test_an_ordinary_comment_change_PASSES(self, tmp_path):
+        repo, binder, page = _tree(tmp_path)
+        cue = next(c for c in by_cue(page) if c.startswith("b"))
+        drafted, refused = proof_setter.run(
+            {f"m.py@{cue}": "# still a comment"}, binder, repo, tmp_path / "out"
+        )
+        assert refused == [] and len(drafted) == 1
+
+    def test_a_comment_run_that_swallows_code_is_caught_by_prove(self):
+        """A one-line C block comment, replaced with an opener that never
+        closes: the composed file's comment run swallows the code line
+        after it -- `TODO/closing-line-deletes-code.md`, measured on this
+        exact shape."""
+        before = "int a = 1;\n/* note */\nint b = 2;\n"
+        page = build(before, "m.c")
+        cue = next(c for c, b in by_cue(page).items() if b.raw_lines == ["/* note */"])
+        galley.reset(page, {cue: "/* note"})
+        after = compositor.set_page(page)
+        assert after == "int a = 1;\n/* note\nint b = 2;\n"
+
+        refused = proof_setter._prove("m.c", before, after, Path("m.c"))
+        assert refused is not None
+        assert refused.step == "prove"
+
+    def test_TWO_UNPROVABLE_files_are_not_reported_identical(self):
+        """The hazard named at the top of `code_fingerprint`'s own docstring:
+        an unprovable file's fingerprint is the empty string, and two empty
+        strings compare equal. These two files hold different code and are
+        each unprovable for a different reason -- an all-comment file with no
+        code at all, and one whose comment never closes -- so a `_prove` that
+        compared `want != got` without reading `kind` first would report them
+        IDENTICAL."""
+        before = "// just a comment\n"
+        after = "int y = 999; /* oops\n"
+        assert code_fingerprint(before, Path("m.c")) == ("unprovable", "")
+        assert code_fingerprint(after, Path("m.c")) == ("unprovable", "")
+
+        refused = proof_setter._prove("m.c", before, after, Path("m.c"))
+        assert refused is not None
+        assert refused.step == "prove"
