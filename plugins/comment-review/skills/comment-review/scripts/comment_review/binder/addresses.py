@@ -139,7 +139,7 @@ def series_of(paragraph: dict) -> str:
     avoids that too. It costs nothing: `for_anchor` is given a census, and an
     entry carrying no address is one no caller could cite anyway.
     """
-    return cue_of(str(paragraph.get("address", ""))).cue[:1]
+    return cue_of(str(paragraph.get("address", ""))).series
 
 
 def stable(paragraph: dict) -> str:

@@ -215,7 +215,7 @@ class Page:
             # and the page took a dependency on the module that reads census
             # rows. `cue_of` is the addresser's, which this module already
             # imports, and the answer is identical.
-            and cue_of(b.address).cue[:1] != COVERS
+            and cue_of(b.address).series != COVERS
         ]
 
 

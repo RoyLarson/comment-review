@@ -283,6 +283,23 @@ class TestTheInverse(unittest.TestCase):
     def test_a_string_with_no_cue_is_not_an_address(self):
         self.assertEqual(addresser.cue_of("pkg:mod.py"), ("", ""))
 
+    def test_an_address_names_its_own_series(self):
+        # ! THE NAMED READER. Callers wrote `.cue[:1]`, a slice carrying a
+        # meaning the slice does not hold. Roy, 2026-08-24: *"cue.series is the
+        # Right answer."*
+        for cue, series in (("b4", "b"), ("a0", "a"), ("c12", "c"), ("f0", "f")):
+            with self.subTest(cue=cue):
+                self.assertEqual(addresser.cue_of(f"m.py@{cue}").series, series)
+
+    def test_a_string_that_is_no_address_has_NO_SERIES_rather_than_raising(self):
+        # !! THIS IS WHY IT IS `[:1]` AND NOT `[0]`, and the difference is the
+        # whole reason the reader is named: `""[0]` raises, `""[:1]` is `""`.
+        # Every caller tests the letter against a series constant, so an empty
+        # answer is the right one and it is produced in ONE place rather than by
+        # an idiom repeated at each site that never says what it is handling.
+        self.assertEqual(addresser.cue_of("pkg:mod.py").series, "")
+        self.assertEqual(addresser.cue_of("").series, "")
+
     def test_every_address_finds_its_own_entry_again(self):
         # ! STAMPED FIRST, because `resolve` READS the census's `place` rather
         # than recomputing one -- which is the whole point of the producer

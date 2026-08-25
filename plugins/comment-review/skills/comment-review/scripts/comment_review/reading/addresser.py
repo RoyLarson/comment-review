@@ -931,6 +931,23 @@ class Address(NamedTuple):
     path: str
     cue: str
 
+    @property
+    def series(self) -> str:
+        """Which series this address is in -- `a`, `b`, `c` or `f`.
+
+        !! IT IS A NAMED READER FOR THE SAME REASON THIS IS A `NamedTuple`.
+        Callers wrote `.cue[:1]`, which is a slice carrying a meaning the slice
+        does not hold -- the defect recorded above, one field down. Roy,
+        2026-08-24: *"cue.series is the Right answer."*
+
+        ! A SLICE, NOT `[0]`, AND THE DIFFERENCE IS THE WHOLE POINT: `""[0]`
+        raises and `""[:1]` is `""`. An address that names no place answers with
+        no series, which is what every caller here tests for -- so the empty
+        case is handled ONCE, here, instead of at each site by an idiom that
+        never says it is handling anything.
+        """
+        return self.cue[:1]
+
 
 def cue_of(address: str) -> Address:
     """An address split into its flattened path and its cue, or two blanks."""
