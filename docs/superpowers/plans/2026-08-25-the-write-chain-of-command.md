@@ -134,12 +134,7 @@ disagree. A sha taken downstream of whichever reader a consumer happened to use
 answers WHICH READER RAN, not whether the file changed.
 """
 
-import sys
-from pathlib import Path
-
-from conftest import SRC
-
-sys.path.insert(0, str(SRC))
+from conftest import SRC  # noqa: F401  -- conftest puts src on the path
 
 from comment_review.machine.repo import Source, read_raw, read_source, sha_of
 
@@ -562,12 +557,8 @@ chain has something to build to. See TODO/notations-collides-with-annotations.md
 """
 
 import json
-import sys
 
 import pytest
-from conftest import SRC
-
-sys.path.insert(0, str(SRC))
 
 from comment_review.desk.notations import read
 
@@ -642,8 +633,6 @@ a deletion downstream at exit 0.
 
 import json
 
-from comment_review.machine import exceptions
-
 
 def read(text: str) -> tuple[dict[str, str | None], str]:
     """The notations, or the reason they could not be read.
@@ -661,7 +650,9 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
     """
     try:
         loaded = json.loads(text)
-    except exceptions.JSON_ERRORS as e:
+    # ! ONE CLASS, NOT A TUPLE, so the shipped-code rule against a tuple literal
+    # in an `except` does not bite. This is the spelling `binder.read` uses.
+    except json.JSONDecodeError as e:
         return {}, f"not JSON ({e})"
     if not isinstance(loaded, dict):
         return {}, f"a JSON {type(loaded).__name__}, not a notations file"
@@ -682,7 +673,7 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
     return loaded, ""
 ```
 
-! If `exceptions.JSON_ERRORS` does not exist, add it to `src/comment_review/machine/exceptions.py` as `JSON_ERRORS = (json.JSONDecodeError,)`. **A bound name, never a tuple literal in the `except`** -- see Global Constraints.
+! **MEASURED before this plan was written:** `machine/exceptions.py` defines `READ_ERRORS`, `TOML_ERRORS`, `TOKENIZE_ERRORS`, `PARSE_ERRORS` and `GIT_ERRORS` -- there is no `JSON_ERRORS`, and `binder.read` catches `json.JSONDecodeError` directly. **Do not add one.** The rule in Global Constraints forbids a tuple LITERAL in an `except`; a single exception class is not a tuple.
 
 - [ ] **Step 4: Run the tests**
 
@@ -998,12 +989,9 @@ sequence cannot show you.
 """
 
 import json
-import sys
 from pathlib import Path
 
 from conftest import SAMPLE, SRC, build, by_cue
-
-sys.path.insert(0, str(SRC))
 
 from comment_review.binder.binder import bind
 from comment_review.flows import write
@@ -1143,7 +1131,10 @@ def run(
     if unresolved:
         return [], [Refusal("read", "", why) for why in unresolved]
 
-    recorded = {p["path"]: p.get("sha", "") for p in binder.get("pages", [])}
+    # ! THE `verify` STEP IS ADDED IN TASK 9, test-first. `recorded` and the
+    # comparison that reads it arrive there together; leaving them out here is
+    # what lets Task 9's test fail before it passes.
+    recorded: dict[str, str] = {}
     into.mkdir(parents=True, exist_ok=True)
     drafted: list[Drafted] = []
     refusals: list[Refusal] = []
@@ -1172,13 +1163,7 @@ def _one(
     except OSError as e:
         return None, Refusal("read", rel, f"could not be read ({e})")
 
-    if not recorded or source.sha != recorded:
-        return None, Refusal(
-            "verify",
-            rel,
-            f"the file has changed since it was reviewed -- reviewed at"
-            f" {recorded or '<nothing recorded>'}, reads now as {source.sha}",
-        )
+    # ! THE `verify` STEP LANDS HERE IN TASK 9, test-first.
 
     lang = language_for(source_path)
     if lang is None:
@@ -1208,13 +1193,14 @@ Message: *"flows: the write chain owns the order, and the order is data"*.
 
 ### Task 9: The sha gate refuses a shifted file
 
-**Delivers:** spec P2 boxes 4 and 5. Works `a-page-carries-no-identity` T2 and T3 as restated.
+**Delivers:** spec P2 boxes 4, 5 and 6. Works `a-page-carries-no-identity` T2, T3 (as restated) and T4.
 
 **Files:**
+- Modify: `src/comment_review/flows/write.py` -- add the `verify` step
+- Modify: `src/comment_review/results/galley.py` -- the per-paragraph comparison's comment
 - Test: `tests/test_write_chain.py`
-- Modify: `src/comment_review/results/galley.py` -- the per-paragraph comparison's comment (spec P2 box 5)
 
-**Interfaces:** no new symbols. This proves the gate written in Task 8 can fail.
+**Interfaces:** no new symbols. Task 8 left `recorded` empty and the `verify` step unwritten so that this task's test can fail first.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1256,16 +1242,56 @@ class TestTheFileMustBeTheONEThatWasReviewed:
 
 ! **The third test is what makes the first two mean something.** A gate that refuses everything passes both refusal cases.
 
-- [ ] **Step 2: Run them**
+- [ ] **Step 2: Run them and watch two fail**
 
 Run: `uv run pytest tests/test_write_chain.py -q -k Reviewed`
-Expected: PASS, because Task 8 wrote the gate. **If any FAIL, the gate is wrong -- fix `_one`, not the test.**
+Expected: the first two FAIL -- Task 8 left `recorded` empty and wrote no `verify` step, so a shifted file drafts happily. The third PASSES already, which is what makes it a control rather than a second assertion of the same thing.
 
-- [ ] **Step 3: Make the comment honest**
+- [ ] **Step 3: Add the `verify` step**
+
+In `flows/write.py`, fill `recorded` in `run` -- **this is where the sha is read OUT of the saved binder** rather than recomputed from a file:
+
+```python
+    recorded = {
+        str(page.get("path", "")): str(page.get("sha", ""))
+        for page in binder.get("pages", [])
+    }
+```
+
+Pass it into `_one` (add a `recorded: str` parameter, supplied at the call site as `recorded.get(rel, "")`), and add the comparison immediately after the read:
+
+```python
+    if not recorded or source.sha != recorded:
+        return None, Refusal(
+            "verify",
+            rel,
+            "the file has changed since it was reviewed -- reviewed at"
+            f" {recorded or '<nothing recorded>'}, reads now as {source.sha}",
+        )
+```
+
+!! **AN ABSENT RECORDED SHA REFUSES; IT DOES NOT PASS.** `not recorded` is the first clause on purpose -- a binder page carrying no sha would otherwise compare `""` against a real hash, and a future shape that dropped the field would turn this gate off silently rather than loudly.
+
+- [ ] **Step 4: Run them again**
+
+Run: `uv run pytest tests/test_write_chain.py -q`
+Expected: all green, including the control.
+
+- [ ] **Step 5: Make the comment honest**
 
 In `galley.py`, the surviving per-paragraph comparison comment must name the sha as what answers *did the file shift*. Find any prose still claiming the per-paragraph compare is the staleness check and correct it to say the sha answers it in one comparison, before anything is parsed.
 
-- [ ] **Step 4: Full gate and commit**
+- [ ] **Step 6: Mark off what this task delivered**
+
+```bash
+uv run python scripts/todo_tool.py check a-page-carries-no-identity.md 2
+uv run python scripts/todo_tool.py check a-page-carries-no-identity.md 3
+uv run python scripts/todo_tool.py check a-page-carries-no-identity.md 4
+```
+
+Then tick P2 boxes 4, 5 and 6 in `docs/plans/0.2.4-the-write-chain-of-command.md`. `a-page-carries-no-identity` should now read **4 of 4**.
+
+- [ ] **Step 7: Full gate and commit**
 
 Message: *"flows: a file that shifted since review refuses, and no draft is written"*.
 
@@ -1438,7 +1464,10 @@ Expected: the first two FAIL -- nothing proves anything yet, so a code-altering 
 In `flows/write.py`, call it after `_reread` succeeds:
 
 ```python
-    unproven = _prove(rel, source.text, target.read_text(encoding="utf-8"), source_path)
+    # !! `read_source`, NOT `read_text`. The translating reader is what this
+    # branch exists to remove from the write path -- reading the draft through
+    # it here would compare text read one way against text read another.
+    unproven = _prove(rel, source.text, read_source(target).text, source_path)
     if unproven is not None:
         target.unlink(missing_ok=True)
         return None, unproven
