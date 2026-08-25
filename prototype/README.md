@@ -9,23 +9,34 @@ moving it into a prototype/folder cleans the old code out once immediately but
 leaves us appropriate references for how the system could work. Then we can
 figure out how the system will work."*
 
-## Two snapshots, and only one of them runs
+## One snapshot: the whole system as the branch opened
 
-| | what it is | runs? |
-| --- | --- | --- |
-| `original/` | **every shipped module as this branch opened**, at `b3d79d2` | **YES** |
-| `middle/` | the same middle after the branch reshaped it, then moved out | no |
+`original/` is every shipped module at `b3d79d2` -- the last commit before any of
+this branch's work. Nineteen flat modules with their own path shims, exactly as
+they shipped, coherent, and it **runs**.
 
-!! **`original/` IS THE ONE TO READ.** It is the whole system, coherent, at the
-last commit before any of this branch's work -- nineteen flat modules with their
-own path shims, exactly as they shipped. Roy asked for it because the middle
-alone *"is only part of the prototype"*, and he was right: the middle in its
-half-migrated state is the least useful version of it.
+### There were two, briefly, and the second was measured out
 
-! **`middle/` IS KEPT ANYWAY** because it holds this branch's work on those
-modules -- absolute imports, the series leaf, the reads that were corrected --
-so a decision made during the refactor is not lost with the code it was made in.
-Its imports name modules that moved out from under it, so it does not run.
+A `middle/` sat beside it for one commit: the same modules after this branch
+reshaped them, moved out with the rest. **Merging one into the other produces
+ZERO conflicts**, because they do not diverge -- they are SEQUENTIAL. `original/`
+is the literal ancestor of `middle/`, so git fast-forwards all ten colliding
+files and adds the other thirteen cleanly.
+
+! **THE CONTROL SAYS THE ZERO IS REAL.** Given no common base, the same ten files
+conflict ten times out of ten. So the zero is ancestry, not similarity.
+
+! Roy, 2026-08-25, on that measurement: *"I am glad of the test to verify that
+the isolation I tried to keep really stuck around."*
+
+**What `middle/` held that `original/` does not**, once import mechanics and the
+library/command split are set aside, was two changes -- both to code that no
+longer runs, and both recorded where they will be looked for:
+
+| the change | where it is recorded |
+| --- | --- |
+| `desk.py` read `text`, which the field cut had removed, so EVERY finding reported *"the sentence ruled on is not in `<place>`"* -- and the fixtures kept the suite green over it | commit `257196c`, and `tests/README.md` on why the old suite went |
+| `record.prose_paragraphs` asks the KIND rather than a raw-text emptiness test | `decision-log.md Addressing: #14` |
 
 ## It still works, and that is the point
 
