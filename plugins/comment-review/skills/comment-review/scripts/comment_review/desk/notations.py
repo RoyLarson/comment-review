@@ -23,6 +23,8 @@ a deletion downstream at exit 0.
 
 import json
 
+from comment_review.binder.binder import rows_of
+
 
 def read(text: str) -> tuple[dict[str, str | None], str]:
     """The notations, or the reason they could not be read.
@@ -61,3 +63,35 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
                 " a deletion"
             )
     return loaded, ""
+
+
+def by_page(
+    notations: dict[str, str | None], binder: dict
+) -> tuple[dict[str, dict[str, str | None]], list[str]]:
+    """Group notations by the file they land on, refusing any the binder lacks.
+
+    !! THE SAVED BINDER IS WHAT SAYS WHICH FILE TO RELOAD. Roy, 2026-08-25:
+    *"We also have to grab the binder address from the saved material."* An
+    address is a key rather than data, and the binder is where the key was
+    minted -- so an address it never carried names a place nobody reviewed.
+
+    !! ONE REFUSAL REFUSES THE WHOLE SET, by ruling. Roy, 2026-08-25: *"fails
+    loud amd stops is the right answer for now."* PROVISIONAL -- the
+    per-page resumable form belongs to the workflow that writes for real.
+
+    Args:
+        notations: address -> replacement text, or None to delete.
+        binder: as `binder.read` returned it.
+
+    Returns:
+        `({path: {cue: replacement}}, [])`, or `({}, refusals)`.
+    """
+    known = {row["address"]: row for row in rows_of(binder)}
+    refused = [a for a in notations if a not in known]
+    if refused:
+        return {}, [f"{a}: no binder row carries this address" for a in sorted(refused)]
+    grouped: dict[str, dict[str, str | None]] = {}
+    for address, replacement in notations.items():
+        row = known[address]
+        grouped.setdefault(str(row["path"]), {})[str(row["cue"])] = replacement
+    return grouped, []

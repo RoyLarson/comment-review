@@ -151,9 +151,7 @@ class Series(Enum):
 #:
 #: ! DERIVED, NEVER LISTED. It was a hand-kept tuple in `addresser` while the
 #: letters lived there.
-ADDRESSED = tuple(
-    s.value.letter for s in Series if s.value.absent is not None
-)
+ADDRESSED = tuple(s.value.letter for s in Series if s.value.absent is not None)
 
 #: Every kind that is a place holding no prose -- the `absent` of each series.
 ABSENT = frozenset(s.value.absent for s in Series if s.value.absent is not None)
