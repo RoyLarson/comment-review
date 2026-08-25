@@ -102,7 +102,7 @@ work instead of on its stated verification.**
 
 !! **AND P1 BOX 1 MOVED TO TASK 8, FOR A REASON WORTH READING: ITS CLAUSE HAS TWO HALVES.**
 *"Verify: it is stated in one place AND the write chain reads it there."* Task 4 makes the first
-half true and cannot make the second -- `flows/write.py` does not exist until Task 8. ! **A box
+half true and cannot make the second -- `flows/proof_setter.py` does not exist until Task 8. ! **A box
 whose clause spans two tasks belongs to the LATER one**, because that is the first moment the
 whole clause can be checked. The Task 4 implementer worked this out from the clause alone and
 reported it.
@@ -135,12 +135,12 @@ is the failure that makes a backlog lie towards LESS work, which no gate can see
 | `src/comment_review/binder/binder.py` | MODIFY -- reports `page.sha`; loses `sha_of` and `hashlib` | 3 |
 | `src/comment_review/desk/notations.py` | CREATE -- the stand-in shape the middle will emit, and its refusal | 4, 5 |
 | `src/comment_review/results/galley.py` | MODIFY -- `reset` takes cues and `None`; `drifted` is retired | 6, 7 |
-| `src/comment_review/flows/page.py` | CREATE -- the missing step: a PATH becomes a PAGE, or a reason | 8 |
-| `src/comment_review/flows/write.py` | CREATE -- owns the ORDER, as data | 8, 9, 10, 11 |
-| `src/comment_review/commands/write.py` | CREATE -- parses arguments, calls the flow, holds no orchestration | 12 |
+| `src/comment_review/flows/page_for.py` | CREATE -- the missing step: a PATH becomes a PAGE, or a reason | 8 |
+| `src/comment_review/flows/proof_setter.py` | CREATE -- owns the ORDER, as data | 8, 9, 10, 11 |
+| `src/comment_review/commands/proof.py` | CREATE -- parses arguments, calls the flow, holds no orchestration | 12 |
 | `tests/test_machine.py` | CREATE -- `machine/` has no tests today | 1 |
 | `tests/test_notations.py` | CREATE | 4, 5 |
-| `tests/test_write_chain.py` | CREATE | 8-11 |
+| `tests/test_proof_setter.py` | CREATE | 8-11 |
 
 ! **`tests/` IS FLAT** -- `test_reading.py`, `test_addressing.py`, `test_binder.py`, `test_galley.py`, `test_compositor.py`, plus `gates/`. New files follow that, not a mirrored tree.
 
@@ -1020,13 +1020,13 @@ Message: *"galley: drifted retired -- the sha answers it in one comparison"*.
 
 **Delivers:** spec P4 boxes 1 and 2, P6 box 1, and **P2 box 4** -- the `recorded` dict below is where the sha is read OUT of the saved binder rather than recomputed from a file.
 
-!! **BUILD `flows/page.py` FIRST, AND HAVE `flows/write.py` USE IT.** Roy, 2026-08-25: *"you
+!! **BUILD `flows/page_for.py` FIRST, AND HAVE `flows/proof_setter.py` USE IT.** Roy, 2026-08-25: *"you
 only have a step that produces a binder but you need a step here that produces a page so you
 can use it which is one piece of the binder."* MEASURED: five sites re-run the same four calls
 inline (read, language, `page_for`, sha) and none of them is a named step.
 
 ```python
-# src/comment_review/flows/page.py
+# src/comment_review/flows/page_for.py
 
 def page_of(path: Path, rel: str | None = None) -> tuple[Page | None, str]:
     """The page for one file, or the reason there is none.
@@ -1058,20 +1058,20 @@ Catch `exceptions.READ_ERRORS` on the read and return the reason.
 CLI and both compositor gates. File it rather than widen here.
 
 **Files:**
-- Create: `src/comment_review/flows/write.py`
-- Test: `tests/test_write_chain.py` (create)
+- Create: `src/comment_review/flows/proof_setter.py`
+- Test: `tests/test_proof_setter.py` (create)
 
 **Interfaces:**
 - Consumes: `notations.read`, `notations.by_page`, `binder.read`, `repo.read_source`, `page_for`, `language_for`, `galley.reset`, `compositor.set_page`, `compositor.draft`.
 - Produces:
-  - `write.STEPS: tuple[str, ...]` -- `("read", "verify", "edit", "set", "draft", "reread", "prove")`
-  - `write.Refusal(step: str, path: str, why: str)`
-  - `write.Drafted(path: str, draft: Path, sha: str)`
-  - `write.run(notations, binder, repo, into) -> tuple[list[Drafted], list[Refusal]]`
+  - `proof_setter.STEPS: tuple[str, ...]` -- `("read", "verify", "edit", "set", "draft", "reread", "prove")`
+  - `proof_setter.Refusal(step: str, path: str, why: str)`
+  - `proof_setter.Drafted(path: str, draft: Path, sha: str)`
+  - `proof_setter.run(notations, binder, repo, into) -> tuple[list[Drafted], list[Refusal]]`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `tests/test_write_chain.py`:
+Create `tests/test_proof_setter.py`:
 
 ```python
 """The chain from notations to a drafted file a human can read.
@@ -1087,11 +1087,11 @@ from pathlib import Path
 from conftest import SAMPLE, SRC, build, by_cue
 
 from comment_review.binder.binder import bind
-from comment_review.flows import write
+from comment_review.flows import proof_setter
 
 
 def test_the_chain_IS_this_list():
-    assert write.STEPS == ("read", "verify", "edit", "set", "draft", "reread", "prove")
+    assert proof_setter.STEPS == ("read", "verify", "edit", "set", "draft", "reread", "prove")
 
 
 def _tree(tmp_path):
@@ -1107,7 +1107,7 @@ def test_a_notation_reaches_a_drafted_file(tmp_path):
     repo, binder, page = _tree(tmp_path)
     cue = next(c for c in by_cue(page) if c.startswith("b"))
     into = tmp_path / "out"
-    drafted, refused = write.run({f"m.py@{cue}": "# REPLACED"}, binder, repo, into)
+    drafted, refused = proof_setter.run({f"m.py@{cue}": "# REPLACED"}, binder, repo, into)
     assert refused == []
     assert len(drafted) == 1
     assert "# REPLACED" in drafted[0].draft.read_text(encoding="utf-8")
@@ -1117,24 +1117,24 @@ def test_nothing_under_the_repo_is_touched(tmp_path):
     repo, binder, page = _tree(tmp_path)
     cue = next(c for c in by_cue(page) if c.startswith("b"))
     before = (repo / "m.py").read_bytes()
-    write.run({f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out")
+    proof_setter.run({f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out")
     assert (repo / "m.py").read_bytes() == before
 
 
 def test_a_refusal_NAMES_ITS_STEP(tmp_path):
     repo, binder, _ = _tree(tmp_path)
-    _, refused = write.run({"m.py@b99": "# x"}, binder, repo, tmp_path / "out")
-    assert refused and refused[0].step in write.STEPS
+    _, refused = proof_setter.run({"m.py@b99": "# x"}, binder, repo, tmp_path / "out")
+    assert refused and refused[0].step in proof_setter.STEPS
 ```
 
 - [ ] **Step 2: Run it and watch it fail**
 
-Run: `uv run pytest tests/test_write_chain.py -q`
+Run: `uv run pytest tests/test_proof_setter.py -q`
 Expected: FAIL -- `ModuleNotFoundError: comment_review.flows.write`.
 
 - [ ] **Step 3: Implement**
 
-Create `src/comment_review/flows/write.py`:
+Create `src/comment_review/flows/proof_setter.py`:
 
 ```python
 """From the reviewers' notations to a file a human can read.
@@ -1275,7 +1275,7 @@ def _one(
 
 - [ ] **Step 4: Run the tests**
 
-Run: `uv run pytest tests/test_write_chain.py -q`
+Run: `uv run pytest tests/test_proof_setter.py -q`
 Expected: 4 passed.
 
 - [ ] **Step 5: Full gate and commit**
@@ -1289,15 +1289,15 @@ Message: *"flows: the write chain owns the order, and the order is data"*.
 **Delivers:** spec P2 boxes 4, 5 and 6. Works `a-page-carries-no-identity` T2, T3 (as restated) and T4.
 
 **Files:**
-- Modify: `src/comment_review/flows/write.py` -- add the `verify` step
+- Modify: `src/comment_review/flows/proof_setter.py` -- add the `verify` step
 - Modify: `src/comment_review/results/galley.py` -- the per-paragraph comparison's comment
-- Test: `tests/test_write_chain.py`
+- Test: `tests/test_proof_setter.py`
 
 **Interfaces:** no new symbols. Task 8 left `recorded` empty and the `verify` step unwritten so that this task's test can fail first.
 
 - [ ] **Step 1: Write the failing test**
 
-Append to `tests/test_write_chain.py`:
+Append to `tests/test_proof_setter.py`:
 
 ```python
 class TestTheFileMustBeTheONEThatWasReviewed:
@@ -1310,7 +1310,7 @@ class TestTheFileMustBeTheONEThatWasReviewed:
         repo, binder, page = _tree(tmp_path)
         cue = next(c for c in by_cue(page) if c.startswith("b"))
         (repo / "m.py").write_text(SAMPLE + "\n", encoding="utf-8", newline="")
-        drafted, refused = write.run(
+        drafted, refused = proof_setter.run(
             {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
         )
         assert drafted == []
@@ -1321,13 +1321,13 @@ class TestTheFileMustBeTheONEThatWasReviewed:
         cue = next(c for c in by_cue(page) if c.startswith("b"))
         (repo / "m.py").write_text(SAMPLE + "\n", encoding="utf-8", newline="")
         into = tmp_path / "out"
-        write.run({f"m.py@{cue}": "# REPLACED"}, binder, repo, into)
+        proof_setter.run({f"m.py@{cue}": "# REPLACED"}, binder, repo, into)
         assert list(into.iterdir()) == []
 
     def test_an_UNCHANGED_file_passes(self, tmp_path):
         repo, binder, page = _tree(tmp_path)
         cue = next(c for c in by_cue(page) if c.startswith("b"))
-        drafted, refused = write.run(
+        drafted, refused = proof_setter.run(
             {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
         )
         assert refused == [] and len(drafted) == 1
@@ -1337,12 +1337,12 @@ class TestTheFileMustBeTheONEThatWasReviewed:
 
 - [ ] **Step 2: Run them and watch two fail**
 
-Run: `uv run pytest tests/test_write_chain.py -q -k Reviewed`
+Run: `uv run pytest tests/test_proof_setter.py -q -k Reviewed`
 Expected: the first two FAIL -- Task 8 left `recorded` empty and wrote no `verify` step, so a shifted file drafts happily. The third PASSES already, which is what makes it a control rather than a second assertion of the same thing.
 
 - [ ] **Step 3: Add the `verify` step**
 
-In `flows/write.py`, fill `recorded` in `run` -- **this is where the sha is read OUT of the saved binder** rather than recomputed from a file:
+In `flows/proof_setter.py`, fill `recorded` in `run` -- **this is where the sha is read OUT of the saved binder** rather than recomputed from a file:
 
 ```python
     recorded = {
@@ -1367,7 +1367,7 @@ Pass it into `_one` (add a `recorded: str` parameter, supplied at the call site 
 
 - [ ] **Step 4: Run them again**
 
-Run: `uv run pytest tests/test_write_chain.py -q`
+Run: `uv run pytest tests/test_proof_setter.py -q`
 Expected: all green, including the control.
 
 - [ ] **Step 5: Make the comment honest**
@@ -1398,11 +1398,11 @@ Message: *"flows: a file that shifted since review refuses, and no draft is writ
 
 **Files:**
 - Modify: `tests/test_compositor.py:164-175`
-- Modify: `src/comment_review/flows/write.py` -- add the `reread` step
-- Test: `tests/test_write_chain.py`
+- Modify: `src/comment_review/flows/proof_setter.py` -- add the `reread` step
+- Test: `tests/test_proof_setter.py`
 
 **Interfaces:**
-- Produces: `write._reread(rel, target, edits) -> Refusal | None`, called by `_one` after the draft is written.
+- Produces: `proof_setter._reread(rel, target, edits) -> Refusal | None`, called by `_one` after the draft is written.
 
 - [ ] **Step 1: Strengthen the weak test**
 
@@ -1431,13 +1431,13 @@ Expected: PASS. **Then prove it can fail:** temporarily change the assertion's `
 
 - [ ] **Step 3: Write the failing chain test**
 
-Append to `tests/test_write_chain.py`:
+Append to `tests/test_proof_setter.py`:
 
 ```python
 def test_the_drafted_FILE_holds_each_notation_at_its_cue(tmp_path):
     repo, binder, page = _tree(tmp_path)
     cue = next(c for c in by_cue(page) if c.startswith("b"))
-    drafted, refused = write.run(
+    drafted, refused = proof_setter.run(
         {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
     )
     assert refused == []
@@ -1447,7 +1447,7 @@ def test_the_drafted_FILE_holds_each_notation_at_its_cue(tmp_path):
 
 - [ ] **Step 4: Add the `reread` step**
 
-In `flows/write.py`, after the draft is written in `_one`:
+In `flows/proof_setter.py`, after the draft is written in `_one`:
 
 ```python
     off = _reread(rel, target, edits)
@@ -1491,7 +1491,7 @@ Add `from comment_review.machine import constants` and `from comment_review.read
 
 - [ ] **Step 5: Run the tests**
 
-Run: `uv run pytest tests/test_write_chain.py tests/test_compositor.py -q`
+Run: `uv run pytest tests/test_proof_setter.py tests/test_compositor.py -q`
 Expected: green.
 
 - [ ] **Step 6: Full gate and commit**
@@ -1505,16 +1505,16 @@ Message: *"flows: the draft is read back from disk, at the cue it was given"* --
 **Delivers:** spec P5 box 3.
 
 **Files:**
-- Modify: `src/comment_review/flows/write.py`
-- Test: `tests/test_write_chain.py`
+- Modify: `src/comment_review/flows/proof_setter.py`
+- Test: `tests/test_proof_setter.py`
 
 **Interfaces:**
 - Consumes: `prove_unchanged.code_fingerprint(text, path) -> tuple[str, str]` -- `kind` is `"ast"`, `"stripped"` or `"unprovable"`; **an unprovable file carries an empty fingerprint and must never be reported as proven.**
-- Produces: `write._prove(rel, source_text, drafted_text, path) -> Refusal | None`.
+- Produces: `proof_setter._prove(rel, source_text, drafted_text, path) -> Refusal | None`.
 
 - [ ] **Step 1: Write the failing test**
 
-Append to `tests/test_write_chain.py`:
+Append to `tests/test_proof_setter.py`:
 
 ```python
 class TestOnlyCommentsChange:
@@ -1525,7 +1525,7 @@ class TestOnlyCommentsChange:
     def test_a_notation_that_alters_CODE_refuses(self, tmp_path):
         repo, binder, page = _tree(tmp_path)
         cue = next(c for c in by_cue(page) if c.startswith("b"))
-        drafted, refused = write.run(
+        drafted, refused = proof_setter.run(
             {f"m.py@{cue}": "raise SystemExit(1)"}, binder, repo, tmp_path / "out"
         )
         assert drafted == []
@@ -1535,13 +1535,13 @@ class TestOnlyCommentsChange:
         repo, binder, page = _tree(tmp_path)
         cue = next(c for c in by_cue(page) if c.startswith("b"))
         into = tmp_path / "out"
-        write.run({f"m.py@{cue}": "raise SystemExit(1)"}, binder, repo, into)
+        proof_setter.run({f"m.py@{cue}": "raise SystemExit(1)"}, binder, repo, into)
         assert list(into.iterdir()) == []
 
     def test_an_ordinary_comment_change_PASSES(self, tmp_path):
         repo, binder, page = _tree(tmp_path)
         cue = next(c for c in by_cue(page) if c.startswith("b"))
-        drafted, refused = write.run(
+        drafted, refused = proof_setter.run(
             {f"m.py@{cue}": "# still a comment"}, binder, repo, tmp_path / "out"
         )
         assert refused == [] and len(drafted) == 1
@@ -1549,12 +1549,12 @@ class TestOnlyCommentsChange:
 
 - [ ] **Step 2: Run it and watch it fail**
 
-Run: `uv run pytest tests/test_write_chain.py -q -k OnlyComments`
+Run: `uv run pytest tests/test_proof_setter.py -q -k OnlyComments`
 Expected: the first two FAIL -- nothing proves anything yet, so a code-altering notation drafts happily.
 
 - [ ] **Step 3: Implement**
 
-In `flows/write.py`, call it after `_reread` succeeds:
+In `flows/proof_setter.py`, call it after `_reread` succeeds:
 
 ```python
     # !! `read_source`, NOT `read_text`. The translating reader is what this
@@ -1589,7 +1589,7 @@ Add `from comment_review.results.prove_unchanged import code_fingerprint`.
 
 - [ ] **Step 4: Run the tests**
 
-Run: `uv run pytest tests/test_write_chain.py -q`
+Run: `uv run pytest tests/test_proof_setter.py -q`
 Expected: green.
 
 - [ ] **Step 5: Full gate and commit**
@@ -1603,12 +1603,12 @@ Message: *"flows: the draft is proven to change only comments"*.
 **Delivers:** spec P4 box 2. Works `the-flow-lives-in-the-command` task 5, the galley half.
 
 **Files:**
-- Create: `src/comment_review/commands/write.py`
+- Create: `src/comment_review/commands/proof.py`
 - Modify: `src/comment_review/__main__.py:22-29` -- add `"write"` to `COMMANDS`
-- Test: `tests/test_write_chain.py`
+- Test: `tests/test_proof_setter.py`
 
 **Interfaces:**
-- Produces: `commands/write.py::main(argv) -> int`. **It parses arguments and calls `flows.write.run`. It holds no orchestration** -- that is the whole point of the task.
+- Produces: `commands/proof.py::main(argv) -> int`. **It parses arguments and calls `flows.write.run`. It holds no orchestration** -- that is the whole point of the task.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1648,19 +1648,19 @@ def test_an_out_that_overlaps_the_repo_is_REFUSED(tmp_path, capsys, monkeypatch)
 
 - [ ] **Step 2: Run it and watch it fail**
 
-Run: `uv run pytest tests/test_write_chain.py -q -k command`
+Run: `uv run pytest tests/test_proof_setter.py -q -k command`
 Expected: FAIL -- the file does not exist.
 
 - [ ] **Step 3: Implement**
 
-Create `src/comment_review/commands/write.py`:
+Create `src/comment_review/commands/proof.py`:
 
 ```python
 """Draft every page the notations touch, for a human to read.
 
     comment_review write --binder B.json --notations N.json --repo . --out DIR
 
-! IT EXPOSES `flows.write`; IT ORCHESTRATES NOTHING. The order of the chain
+! IT EXPOSES `flows.proof_setter`; IT ORCHESTRATES NOTHING. The order of the chain
 lives in the flow, so this file parses arguments, reads two files and prints.
 """
 
@@ -1669,7 +1669,7 @@ from pathlib import Path
 
 from comment_review.binder import binder as binder_mod
 from comment_review.desk import notations as notations_mod
-from comment_review.flows import write
+from comment_review.flows import proof_setter
 from comment_review.machine import constants, exceptions
 
 
@@ -1716,7 +1716,7 @@ def main() -> int:
         print(f"CANNOT READ THE NOTATIONS: {why} -- nothing written")
         return 2
 
-    drafted, refused = write.run(marks, held, repo, out)
+    drafted, refused = proof_setter.run(marks, held, repo, out)
     for stopped in refused:
         print(f"REFUSED at {stopped.step}: {stopped.path or '<the set>'} -- {stopped.why}")
     if refused:
@@ -1735,7 +1735,7 @@ def main() -> int:
 - [ ] **Step 4: Run the tests and the command**
 
 ```bash
-uv run pytest tests/test_write_chain.py -q
+uv run pytest tests/test_proof_setter.py -q
 uv run python src/comment-review.py write --help
 ```
 
