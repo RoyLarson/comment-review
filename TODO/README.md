@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (66)
+### open  (67)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -248,6 +248,7 @@ that changed a published name or rule:
 | [the-cue-legend-was-never-written](the-cue-legend-was-never-written.md) | agents | yes | 0/4 | Addressing #12 cut kind, declares and symbol on the grounds that 'they are stating something that the cue letter states. So we just give the agents the legend for the cue letters and let them run with it.' The fields went; the legend did not arrive. MEASURED 2026-08-25: nothing in the shipped prose is one. reviewer-brief.md names a, b and c in passing at line 225 -- 'an a is a declaration's documentation, a b is a gap, a c is the room beside a line of code' -- and never f, never the present/absent pairing, and not as the deliberate artefact the ruling named. So agents are handed LESS than the ruling intended rather than differently. Roy, 2026-08-25: it 'is going to change a lot of things in that lane', which is why it is filed here rather than written in passing. |
 | [reviewers-are-not-read-only](reviewers-are-not-read-only.md) | agents | — | 0/4 | No reviewer agent declares tools: in its frontmatter, so all six inherit Edit and Write. read-only is prose in the descriptions and in CLAUDE.md, and nothing enforces it. MARK and APPLY are separated so that fixing what you find cannot destroy the finding -- that separation is a claim with no seam behind it. |
 | [notations-collides-with-annotations](notations-collides-with-annotations.md) | backend | yes | 0/2 | notations is the proposed name for what the agent workflow emits -- an address mapped to a new paragraph, or to None for a delete. binder/annotate.py already owns annotations for candidate flags on a paragraph: names-a-symbol, cites-a-path, counted, coverage-claim, forbids-a-literal. Two words one letter apart, both meaning marks attached to a paragraph, in adjacent areas. Roy is aware and ruled it is not settled now: the notations shape is a STAND-IN for what the middle piece will emit, and probably not what gets built. |
+| [render-page-imports-flat-names](render-page-imports-flat-names.md) | systems | — | 0/4 | scripts/render_page.py dies at import: ModuleNotFoundError: No module named 'lexer'. It imports lexer, page and addresser as flat top-level modules, which is what src/ looked like before the 2026-08-24 move to src/comment_review/ with sub-packages. Nothing runs it, so nothing noticed. CLAUDE.md documents it as an INPUT to the-census-is-mostly-intervals-nobody-rules-on, where a decision is meant to be made -- so a tool that cannot run is a decision that cannot be informed. Found while updating its page_for call for the sha parameter: the call edit landed, but the file was already dead above it. |
 
 ### in-progress  (19)
 

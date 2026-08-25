@@ -62,8 +62,8 @@ thing `CLAUDE.md` calls *a judgement wearing a checkbox*.
 | task | `P` boxes | `T` tasks |
 | --- | --- | --- |
 | 1 | **none** -- see below | **note** `two-areas-have-no-tests` -- `machine/` now has tests, `commands/` still has none |
-| 2 | P2.2, P5.4 | `check a-page-carries-no-identity.md 1`; `check galley-and-compositor-write-path.md 3`; `... 4` |
-| 3 | **P2.1**, P2.3 | -- |
+| 2 | P5.4 only -- see below | `check a-page-carries-no-identity.md 1`; `check galley-and-compositor-write-path.md 3`; `... 4` |
+| 3 | **P2.1, P2.2**, P2.3 | -- |
 | 4 | P1.1, P1.2 | -- |
 | 5 | P1.3 | -- |
 | 6 | P3.1 | -- |
@@ -87,6 +87,14 @@ move is not complete until the second half lands**, so the box belongs to Task 3
 implementer flagged the gap in its own report. Recorded rather than quietly corrected, because
 the mistake is the one this whole section exists to prevent: **a box ticked on the shape of the
 work instead of on its stated verification.**
+
+!! **AND P2 BOX 2 MOVED THE SAME WAY, AT TASK 2, WITHOUT ANYONE HAVING TO CATCH IT.** Its verify
+clause is *"`Page` carries it beside `path`, and neither `page.py` nor `binder.py` computes
+one"* -- and `binder.py` computes `sha_of(page.text)` until Task 3. **The Task 2 implementer
+read the clause, found it false, declined the tick and said so in its report.** ! That is the
+rule working as designed rather than a second mistake: the instruction to verify before ticking
+was added to the dispatch BECAUSE of Task 1, and it caught the next one on its own. **Two of
+P2's boxes therefore land at Task 3, where the binder finally gives up its hash.**
 
 ! **TWO `T`s ARE DELIBERATELY NOT TICKED BY ANY TASK.** `two-areas-have-no-tests` and
 `the-flow-lives-in-the-command` are each answered in PART, and a partial answer takes a note. Over-ticking
