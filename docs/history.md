@@ -109,8 +109,8 @@ the page and diffing every paragraph did the same job at a much higher cost, for
 certainty: any change to the file changes its sha, so the anchor-by-anchor and prose-by-prose walk
 `drifted` did was answering a question the sha already settles.
 
-! **To read the mechanism**, it is at `PENDING_SHA^` -- `git show
-PENDING_SHA^:src/comment_review/results/galley.py`.
+! **To read the mechanism**, it is at `0f99805^` -- `git show
+0f99805^:src/comment_review/results/galley.py`.
 
 ## Constants that outlived their reader
 
