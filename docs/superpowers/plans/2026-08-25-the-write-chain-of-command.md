@@ -32,6 +32,63 @@ uv run python scripts/check_shipped_syntax.py
 
 ---
 
+## Marking off `P` and `T` -- every task, not at the end
+
+!! **THE ARROWS RUN `SP -> P -> T`, AND SOMETHING HAS TO WALK BACK UP THEM.** A task that
+delivers a `P` box and leaves it unticked makes the plan advertise work that is done. Roy,
+2026-08-18: *"a check box not-marked is left as something todo, even if it was superseded and no
+longer necessary."* MEASURED the same day: five settled proposals with no boxes made `resync`
+generate a README row reading `0/9` on a file a third finished.
+
+! **AND AN INTERRUPTED BRANCH IS THE CASE THIS EXISTS FOR.** Ticking everything in a final task
+means a session that stops at task 7 leaves `0 of 19` on a plan that is two-thirds delivered --
+and the next reader cannot tell which third.
+
+**So the LAST step of every task below is: tick what it delivered, in the same commit as the
+work.** Not a separate pass, not a final reconciliation.
+
+| | how | why |
+| --- | --- | --- |
+| a **`P`** box, in `docs/plans/0.2.4-the-write-chain-of-command.md` | `Edit` -- `- [ ]` to `- [x]` | `todo_tool` manages `TODO/`, not `docs/plans/`. **The boxes are the state**; there is no `Progress:` line to keep |
+| a **`T`** task, in `TODO/*.md` | `uv run python scripts/todo_tool.py check <file> <n>` | the tool recomputes every count and README row from the boxes it just wrote. **Never hand-edit a `Progress:` line** |
+| a `T` only PARTLY answered | `uv run python scripts/todo_tool.py note <file> --text "..."` | **Deferred is not done.** A partial answer leaves the box unchecked and says what landed |
+
+!! **TICK A `T` ONLY WHEN ITS OWN STATED VERIFICATION IS MET** -- the words after *"Verify:"* in
+that task, not your impression that the area is handled. A box ticked on a judgement is the
+thing `CLAUDE.md` calls *a judgement wearing a checkbox*.
+
+### What each task marks off
+
+| task | `P` boxes | `T` tasks |
+| --- | --- | --- |
+| 1 | P2.1 | **note** `two-areas-have-no-tests` -- `machine/` now has tests, `commands/` still has none |
+| 2 | P2.2, P5.4 | `check a-page-carries-no-identity.md 1`; `check galley-and-compositor-write-path.md 3`; `... 4` |
+| 3 | P2.3 | -- |
+| 4 | P1.1, P1.2 | -- |
+| 5 | P1.3 | -- |
+| 6 | P3.1 | -- |
+| 7 | P3.2 | -- |
+| 8 | P2.4, P4.1, P6.1 | -- |
+| 9 | P2.5, P2.6 | `check a-page-carries-no-identity.md 2`; `... 3`; `... 4` |
+| 10 | P5.1, P5.2 | -- |
+| 11 | P5.3 | -- |
+| 12 | P4.2 | **note** `the-flow-lives-in-the-command` -- task 5 is answered for the galley half only, and names verdicts and record too |
+| 13 | P7.1 | -- |
+
+! **P2 HAS SIX BOXES AND P5 HAS FOUR.** Count them in the file before ticking; the numbering
+above is positional, not a label written in the plan.
+
+! **TWO `T`s ARE DELIBERATELY NOT TICKED BY ANY TASK.** `two-areas-have-no-tests` and
+`the-flow-lives-in-the-command` are each answered in PART, and a partial answer takes a note. Over-ticking
+is the failure that makes a backlog lie towards LESS work, which no gate can see.
+
+- [ ] **Final check, Task 13:** `grep -c '^- \[ \]' docs/plans/0.2.4-the-write-chain-of-command.md`
+      returns **0**, and `uv run python scripts/todo_tool.py resync` reports no drift. Any box
+      still open names work that was not done -- **file it in `TODO/` before this plan closes,
+      or it is lost.**
+
+---
+
 ## File Structure
 
 | file | responsibility | task |
@@ -1586,9 +1643,24 @@ uv run python scripts/build_plugin.py
 uv run python scripts/build_plugin.py --check
 ```
 
-- [ ] **Step 3: Tick the spec's boxes**
+- [ ] **Step 3: Prove every box was ticked as it was earned**
 
-Every box in `docs/plans/0.2.4-the-write-chain-of-command.md` that this plan delivered. **A box that did not get done is filed in `TODO/` before the plan closes, or it is lost.**
+Each task ticked its own -- see *Marking off `P` and `T`*. This step VERIFIES that, it does not
+do it in bulk:
+
+```bash
+grep -c '^- \[ \]' docs/plans/0.2.4-the-write-chain-of-command.md   # expect 0
+uv run python scripts/todo_tool.py resync
+uv run python scripts/todo_tool.py list --owner backend | grep -E "a-page-carries|galley-and-compositor|flow-lives|two-areas"
+```
+
+Expected: **0 open boxes** on the `P` plan; `a-page-carries-no-identity` at **4/4**;
+`galley-and-compositor-write-path` advanced by two. `two-areas-have-no-tests` and
+`the-flow-lives-in-the-command` are UNCHANGED in count and each carry a new note -- they were
+answered in part.
+
+!! **A BOX STILL OPEN IS WORK THAT WAS NOT DONE.** File it in `TODO/` before this plan closes.
+*"Anything in a plan that does not get done is filed in `TODO/` before the plan closes."*
 
 - [ ] **Step 4: Full gate, including the ones only a release runs**
 
