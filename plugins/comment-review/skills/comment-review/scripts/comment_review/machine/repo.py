@@ -9,8 +9,6 @@ an empty answer produces the failure this whole skill exists to catch.
 checkout contains, but what was actually read -- and belong here rather than
 downstream because a sha taken by a caller depends on which of this module's
 two readers that caller happened to use.
-
-Imported by `census.py`, `galley.py`, `referrers.py` and `prove_unchanged.py`.
 """
 
 import hashlib
@@ -78,7 +76,7 @@ class Source(NamedTuple):
 
 
 def sha_of(text: str) -> str:
-    """The identity of a text, short enough to sit in a row and be read.
+    """The identity of a text, truncated to 16 hex characters.
 
     ! WHAT IT ANSWERS is one question -- *are these the bytes that were
     reviewed?* Roy, 2026-08-21: *"if the file shifted at all it is dead and so
