@@ -15,9 +15,10 @@ from comment_review.binder.binder import rows_of
 from comment_review.binder.page import page_for
 from comment_review.machine import exceptions
 from comment_review.machine.repo import read_source
+from comment_review.reading.addresser import cue_of
 from comment_review.reading.lexer import language_for
 from comment_review.results import compositor
-from comment_review.results.galley import drifted, reset
+from comment_review.results.galley import reset
 
 
 def main() -> int:
@@ -101,7 +102,7 @@ def main() -> int:
             )
             refused += 1
             continue
-        by_path.setdefault(rel, {})[str(address)] = replacement
+        by_path.setdefault(rel, {})[cue_of(str(address)).cue] = replacement
 
     written = 0
     for rel, file_edits in sorted(by_path.items()):
@@ -138,17 +139,6 @@ def main() -> int:
             refused += len(file_edits)
             continue
         page = page_for(source_path, text, lang, rel=rel, sha=source.sha)
-
-        # ! The CHEAPER refusal first, and the one that is about the FILE rather
-        # than about any one edit: a census taken before the code moved names
-        # places that no longer sit where the reviewers read them.
-        moved = drifted(page, [b for b in paragraphs if str(b.get("path", "")) == rel])
-        if moved:
-            print(f"REFUSED  {rel}: {len(moved)} anchor(s) moved since the census")
-            for line in moved[:3]:
-                print(f"           {line}")
-            refused += len(file_edits)
-            continue
 
         problems = reset(page, file_edits)
         if problems:

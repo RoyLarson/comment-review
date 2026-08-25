@@ -88,12 +88,29 @@ what sits beside it.
 
 ! **The staleness check went with it.** `paragraph_matches` compared stored text against the
 file's lines and needed a case per kind. It is `compositor.transcribes` now, one comparison,
-because `leading` made every paragraph contiguous. What the GALLEY checks instead is
+because `leading` made every paragraph contiguous. What the GALLEY checked instead was
 `drifted` -- the anchor, per Roy's ruling 2026-08-21: *"the reset should only check if the address
-is tied to the anchor line of code - like they claim."*
+is tied to the anchor line of code - like they claim."* `drifted` itself was later retired -- see
+"`galley.drifted` -- the anchor and prose staleness check" below.
 
 ! **To read the mechanism**, it is at `e1a6baf` -- `git show
 e1a6baf:plugins/comment-review/skills/comment-review/scripts/galley.py`.
+
+## `galley.drifted` -- the anchor and prose staleness check
+
+**Deleted 2026-08-25.** `drifted(page, census)` compared, for every addressed paragraph, the
+anchor and `raw_lines` the census recorded against a freshly re-parsed `page` built by reading the
+file again and running it through the full lexer -- an anchor that no longer matched refused the
+whole file, and (since 2026-08-22) so did prose whose `raw_lines` had changed since the census.
+
+! **Why it went**: a sha comparison over the file's text answers the same question -- has this
+file changed since the census was taken -- in one comparison, before anything is parsed. Rebuilding
+the page and diffing every paragraph did the same job at a much higher cost, for no more
+certainty: any change to the file changes its sha, so the anchor-by-anchor and prose-by-prose walk
+`drifted` did was answering a question the sha already settles.
+
+! **To read the mechanism**, it is at `PENDING_SHA^` -- `git show
+PENDING_SHA^:src/comment_review/results/galley.py`.
 
 ## Constants that outlived their reader
 

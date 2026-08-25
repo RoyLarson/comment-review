@@ -98,11 +98,11 @@ def main() -> int:
     # the document the caller means, it does not matter that the file has
     # changed lines underneath it.
     #
-    # ! STALENESS MATTERS WHERE A FILE IS WRITTEN, and `galley.drifted` refuses a
-    # moved anchor there. A sweep here refuses a census built seconds earlier on
-    # every non-Python file carrying a trailing comment, with a message
-    # re-running never fixes, and masks the collisions `--check` exists to
-    # report.
+    # ! STALENESS MATTERS WHERE A FILE IS WRITTEN, and `galley.drifted` used to
+    # refuse a moved anchor there -- retired, see `docs/history.md`. A sweep
+    # here refuses a census built seconds earlier on every non-Python file
+    # carrying a trailing comment, with a message re-running never fixes, and
+    # masks the collisions `--check` exists to report.
     #
     # ! THE CALLER CHOOSES THE CENSUS, which is what makes this safe. Stage 8
     # censuses the file as it now stands and resolves against that, so the two
