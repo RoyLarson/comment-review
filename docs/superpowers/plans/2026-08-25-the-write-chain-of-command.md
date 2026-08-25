@@ -61,9 +61,9 @@ thing `CLAUDE.md` calls *a judgement wearing a checkbox*.
 
 | task | `P` boxes | `T` tasks |
 | --- | --- | --- |
-| 1 | P2.1 | **note** `two-areas-have-no-tests` -- `machine/` now has tests, `commands/` still has none |
+| 1 | **none** -- see below | **note** `two-areas-have-no-tests` -- `machine/` now has tests, `commands/` still has none |
 | 2 | P2.2, P5.4 | `check a-page-carries-no-identity.md 1`; `check galley-and-compositor-write-path.md 3`; `... 4` |
-| 3 | P2.3 | -- |
+| 3 | **P2.1**, P2.3 | -- |
 | 4 | P1.1, P1.2 | -- |
 | 5 | P1.3 | -- |
 | 6 | P3.1 | -- |
@@ -77,6 +77,16 @@ thing `CLAUDE.md` calls *a judgement wearing a checkbox*.
 
 ! **P2 HAS SIX BOXES AND P5 HAS FOUR.** Count them in the file before ticking; the numbering
 above is positional, not a label written in the plan.
+
+!! **TASK 1 TICKS NO `P` BOX, AND THAT IS THE RULE WORKING RATHER THAN AN OVERSIGHT.** P2 box 1
+reads *"Verify: `hashlib` is imported in `machine/` and nowhere else in the package."* Task 1
+ADDS the hash to `machine/`; `binder/binder.py` keeps its own until Task 3 deletes it. **The
+move is not complete until the second half lands**, so the box belongs to Task 3.
+
+! **IT WAS TICKED AT TASK 1 AND UNTICKED, 2026-08-25.** The dispatch instructed it and the
+implementer flagged the gap in its own report. Recorded rather than quietly corrected, because
+the mistake is the one this whole section exists to prevent: **a box ticked on the shape of the
+work instead of on its stated verification.**
 
 ! **TWO `T`s ARE DELIBERATELY NOT TICKED BY ANY TASK.** `two-areas-have-no-tests` and
 `the-flow-lives-in-the-command` are each answered in PART, and a partial answer takes a note. Over-ticking
