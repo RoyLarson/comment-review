@@ -18,6 +18,41 @@ from comment_review.reading.addresser import cue_of
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
 
+#: A replacement that is legal in each series -- a `c` carries its own
+#: separator, an `a` its indentation. Same table as `tests/test_galley.py`,
+#: which is where the shapes were derived from the compositor.
+ADDED = {
+    "a": '    """ADDED."""',
+    "b": "# ADDED",
+    "c": "  # ADDED",
+    "f": "#!/usr/bin/env ADDED",
+}
+
+
+def _split(text: str) -> tuple[set[str], set[str]]:
+    """`(filled, absent)` -- every cue on this page, by whether it holds prose.
+
+    ! DISCOVERED, NOT LISTED, so a series that stops being reachable through
+    the chain fails the cases below whichever series it turns out to be. A
+    hand-written list would have to be remembered when the page model moves,
+    which is the way every case above `TestEveryVerdict...` came to edit one
+    filled `b` and nothing else.
+    """
+    filled, absent = set(), set()
+    for where, paragraph in by_cue(build(text)).items():
+        held = any(line.strip() for line in paragraph.raw_lines)
+        (filled if held else absent).add(where)
+    return filled, absent
+
+
+FILLED, ABSENT = _split(SAMPLE)
+
+#: The docstring series. It is held out of the two cases below because a
+#: docstring `add` or `drop` is STILL REFUSED at `prove` and that is a ruling
+#: Roy holds -- `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md`,
+#: task T1. The two cases that pin what happens today are named for it.
+DOCSTRING = {c for c in FILLED | ABSENT if c.startswith("a")}
+
 
 def address(binder, path: str, series: str = "b") -> str:
     """One address off the binder, in the FORM THE BINDER PUBLISHES.
@@ -119,6 +154,60 @@ def test_nothing_under_the_repo_is_touched(tmp_path):
         {address(binder, "m.py"): "# REPLACED"}, binder, repo, tmp_path / "out"
     )
     assert (repo / "m.py").read_bytes() == before
+
+
+class TestTheFlowItselfRefusesADraftDirectoryOverTheRepo:
+    """!! DESTRUCTIVE, MEASURED 2026-08-25: `run(notations, binder, repo, repo)`
+    answered `refused=[]` and the SOURCE FILE on disk held `# OVERWRITTEN`.
+    `_one`'s containment check passes when `into == repo`, because the source
+    file IS inside `into`. The disjointness guard existed only in the two
+    COMMANDS, and `run` is a flow this module's own docstring says anyone may
+    call -- the same reasoning already applied on this branch to
+    `into.resolve()`."""
+
+    def test_into_EQUAL_TO_the_repo_refuses(self, tmp_path):
+        repo, binder, _ = _tree(tmp_path)
+        drafted, refused = proof_setter.run(
+            {address(binder, "m.py"): "# OVERWRITTEN"}, binder, repo, repo
+        )
+        assert drafted == []
+        assert len(refused) == 1
+        assert refused[0].step == "draft"
+        assert "overlaps" in refused[0].why
+
+    def test_the_SOURCE_FILE_is_byte_identical_afterwards(self, tmp_path):
+        repo, binder, _ = _tree(tmp_path)
+        before = (repo / "m.py").read_bytes()
+        proof_setter.run({address(binder, "m.py"): "# OVERWRITTEN"}, binder, repo, repo)
+        assert (repo / "m.py").read_bytes() == before
+
+    def test_into_INSIDE_the_repo_refuses(self, tmp_path):
+        repo, binder, _ = _tree(tmp_path)
+        drafted, refused = proof_setter.run(
+            {address(binder, "m.py"): "# x"}, binder, repo, repo / "drafts"
+        )
+        assert drafted == []
+        assert refused and refused[0].step == "draft"
+        assert not (repo / "drafts").exists()
+
+    def test_the_repo_INSIDE_into_refuses(self, tmp_path):
+        """The other direction. `is_relative_to` is asked both ways because a
+        draft directory ABOVE the repo holds it just as destructively."""
+        repo, binder, _ = _tree(tmp_path)
+        drafted, refused = proof_setter.run(
+            {address(binder, "m.py"): "# x"}, binder, repo, tmp_path
+        )
+        assert drafted == []
+        assert refused and refused[0].step == "draft"
+
+    def test_the_RULE_IS_ONE_FUNCTION_all_three_callers_ask(self):
+        """! A rule lives in exactly one file -- `docs/conventions.md`. It was
+        written out in `commands/proof.py` AND `commands/galley.py`, with the
+        same `is_relative_to` note on each, and asked in the flow nowhere."""
+        for rel in ("commands/proof.py", "commands/galley.py", "flows/proof_setter.py"):
+            text = (PKG / rel).read_text(encoding="utf-8")
+            assert "undraftable(" in text, rel
+            assert "is_relative_to(repo)" not in text, rel
 
 
 def test_a_RELATIVE_into_does_not_refuse_every_page(tmp_path, monkeypatch):
@@ -410,6 +499,119 @@ def test_the_drafted_FILE_holds_each_notation_at_its_cue(tmp_path):
     assert by_cue(again)[cue_of(where).cue].raw_lines == ["# REPLACED"]
 
 
+class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
+    """!! `drop` AND `add` ARE TWO OF SKILL.md's SEVEN VERDICTS, and the chain
+    refused both over whole series. Nothing above could see it: every test here
+    edited one FILLED `b`, which is the one shape that always worked.
+
+    ! The two cases are discovered from the page rather than listed, so a
+    series that stops being reachable fails here whichever series it is."""
+
+    def _run(self, tmp_path, notations):
+        repo, binder, _ = _tree(tmp_path)
+        return proof_setter.run(notations, binder, repo, tmp_path / "out")
+
+    def test_the_sample_offers_a_filled_and_an_absent_place_in_every_series(self):
+        page = build(SAMPLE)
+        for series in "abcf":
+            of = {c: b for c, b in by_cue(page).items() if c.startswith(series)}
+            assert any(any(line.strip() for line in b.raw_lines) for b in of.values())
+            assert any(
+                not any(line.strip() for line in b.raw_lines) for b in of.values()
+            )
+
+    @pytest.mark.parametrize("where", sorted(FILLED - DOCSTRING))
+    def test_a_DROP_reaches_a_draft_at_every_filled_place(self, tmp_path, where):
+        """CRITICAL, measured 2026-08-25: `page.empty_places` stores a margin's
+        prose as `[lines[n - 1][len(code):]]`, which is `['']` when nothing
+        sits beside the code, while `_reread` built `want = []` and compared
+        exactly. `c0`, `c1` and `c2` each refused with `Refusal('reread', ...,
+        "c1: holds [''], was given []")` -- the galley, the compositor and the
+        draft on disk all correct, and the draft then discarded."""
+        drafted, refused = self._run(tmp_path, {f"m.py@{where}": None})
+        assert refused == []
+        assert len(drafted) == 1
+        again = build(drafted[0].draft.read_text(encoding="utf-8"))
+        assert not any(line.strip() for line in by_cue(again)[where].raw_lines)
+
+    @pytest.mark.parametrize("where", sorted(ABSENT - DOCSTRING - {"b4"}))
+    def test_an_ADD_reaches_a_draft_at_every_absent_place(self, tmp_path, where):
+        drafted, refused = self._run(tmp_path, {f"m.py@{where}": ADDED[where[0]]})
+        assert refused == []
+        assert len(drafted) == 1
+        again = build(drafted[0].draft.read_text(encoding="utf-8"))
+        assert by_cue(again)[where].raw_lines == [ADDED[where[0]]]
+
+    def test_a_comment_at_the_FOOT_of_a_file_is_reachable_as_f1(self, tmp_path):
+        """The capability finding 5 says is impossible IS reachable -- at `f1`,
+        which is the back matter, not at `b4`, which is the closing gap. The
+        two are emitted at the SAME `<eof>` trigger; `addresser.cue` says so
+        in its own comment."""
+        drafted, refused = self._run(tmp_path, {"m.py@f1": "# ADDED"})
+        assert refused == []
+        assert drafted[0].draft.read_text(encoding="utf-8").endswith("# ADDED\n")
+
+    def test_b4_AND_f1_COMPOSE_THE_SAME_BYTES(self):
+        """! So the galley and the compositor are not what refuse `b4`: the
+        draft it produces is the draft `f1` produces, byte for byte. What
+        differs is which of the two co-located places the READER gives the
+        prose back at."""
+        at_gap, at_matter = build(SAMPLE), build(SAMPLE)
+        assert galley.reset(at_gap, {"b4": "# ADDED"}) == []
+        assert galley.reset(at_matter, {"f1": "# ADDED"}) == []
+        assert compositor.set_page(at_gap) == compositor.set_page(at_matter)
+
+    def test_a_docstring_DROP_is_STILL_REFUSED_at_prove(self, tmp_path):
+        """!! NOT FIXED IN THIS WAVE, AND DELIBERATELY. MEASURED 2026-08-25:
+        `{'m.py@a0': None}` and `{'m.py@a1': None}` both answer
+        `Refusal('prove', ..., 'the executable code is not what it was')`.
+        `prove_unchanged._blank_docstrings` blanks a docstring's CONTENT and
+        keeps its NODE, so the PRESENCE is in the fingerprint.
+
+        ! REMOVING PRESENCE FROM THE FINGERPRINT WOULD CERTIFY A REAL CHANGE AS
+        UNCHANGED: a docstring binds `__doc__`, and SIX modules in this package
+        read `ArgumentParser(description=__doc__)`. Whether the proof stays a
+        blanket one or becomes a diff against the APPROVED set is task T1 of
+        `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md` -- a `*`
+        box, which is a decision only Roy makes.
+
+        ! THIS IS WHAT T5 OF THAT FILE ASKS FOR: a docstring ADDED and a
+        docstring REMOVED, running, so the suite states the behaviour instead
+        of leaving it to be rediscovered."""
+        for n, where in enumerate(sorted(FILLED & DOCSTRING)):
+            each = tmp_path / str(n)
+            each.mkdir()
+            drafted, refused = self._run(each, {f"m.py@{where}": None})
+            assert drafted == []
+            assert refused[0].step == "prove", where
+            assert "not what it was" in refused[0].why
+
+    def test_a_docstring_ADD_is_STILL_REFUSED_at_prove(self, tmp_path):
+        """The other half, on the `undocumented` place that exists precisely so
+        an `add` can cite it -- `binder.bind`'s own docstring says so."""
+        for n, where in enumerate(sorted(ABSENT & DOCSTRING)):
+            each = tmp_path / str(n)
+            each.mkdir()
+            drafted, refused = self._run(each, {f"m.py@{where}": ADDED["a"]})
+            assert drafted == []
+            assert refused[0].step == "prove", where
+            assert "not what it was" in refused[0].why
+
+    def test_an_ADD_at_b4_REFUSES_AND_NAMES_THE_PLACE_THAT_HOLDS_IT(self, tmp_path):
+        """IMPORTANT, measured 2026-08-25: the refusal read `b4: holds [], was
+        given ['# ADDED']` and named neither the collision nor `f1`. It still
+        refuses -- reading the notation as satisfied because the text is
+        SOMEWHERE would be the verification step agreeing with the edit step
+        instead of checking it -- but a caller can now act on it. Which of the
+        two places owns prose at the foot of a file is a page-model ruling:
+        `TODO/two-places-name-the-foot-of-a-file.md`."""
+        drafted, refused = self._run(tmp_path, {"m.py@b4": "# ADDED"})
+        assert drafted == []
+        assert len(refused) == 1
+        assert refused[0].step == "reread"
+        assert "f1 holds it" in refused[0].why
+
+
 class TestOnlyCommentsChange:
     """Roy, 2026-08-25: prove_unchanged runs *"just before the human review and
     just after the human review edit piece just to be certain we only changed
@@ -417,16 +619,26 @@ class TestOnlyCommentsChange:
 
     ! `_prove` IS TESTED DIRECTLY BELOW, NOT THROUGH `run()`. For Python's
     AST tier, `_reread` already requires exact `raw_lines` equality at every
-    edited cue, so any notation that survives it was -- by construction --
-    read back as a comment, and a comment never enters the AST. No `b`, `a`
-    or `c` cue notation reaching `proof_setter.run()` on this module's own
-    `SAMPLE` fixture can therefore make `_prove`'s comparison disagree; every
-    attempt (a raw code line dropped where a comment gap was, on several
-    cues) was refused by `_reread` first -- measured, not assumed. The real
-    hazard `_prove` guards is `TODO/closing-line-deletes-code.md`: a comment
-    whose run closes mid-line, or never closes at all, can swallow the code
-    that follows it -- code beyond the cue `_reread` was asked about, which
-    is exactly what `_reread` cannot see.
+    edited cue, so a notation surviving it was -- by construction -- read back
+    as prose at that cue, and a COMMENT never enters the AST.
+
+    !! THIS PARAGRAPH CLAIMED *"No `b`, `a` or `c` cue notation reaching
+    `proof_setter.run()` on this module's own `SAMPLE` fixture can therefore
+    make `_prove`'s comparison disagree -- measured, not assumed"*, AND IT WAS
+    FALSE WHEN IT WAS WRITTEN. Two `a` cues do exactly that on exactly that
+    fixture: `{'m.py@a0': None}` and `{'m.py@a1': None}` both refuse with
+    `Refusal('prove', ..., 'the executable code is not what it was')`, because
+    `_blank_docstrings` keeps a docstring's PRESENCE in the fingerprint -- and
+    so does an `add` at `a2`.
+    `TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain` above is what
+    would have disagreed; the measurement behind the claim only ever tried the
+    `b` series it was written beside. ! The claim holds for a COMMENT and that
+    is the whole of what it holds for.
+
+    The real hazard `_prove` guards is `TODO/closing-line-deletes-code.md`: a
+    comment whose run closes mid-line, or never closes at all, can swallow the
+    code that follows it -- code beyond the cue `_reread` was asked about,
+    which is exactly what `_reread` cannot see.
     """
 
     def test_an_ordinary_comment_change_PASSES(self, tmp_path):
@@ -471,6 +683,103 @@ class TestOnlyCommentsChange:
         refused = proof_setter._prove("m.c", before, after, Path("m.c"))
         assert refused is not None
         assert refused.step == "prove"
+
+
+def test_a_CUE_COLLISION_in_the_draft_is_REFUSED_and_not_last_one_wins(
+    tmp_path, monkeypatch
+):
+    """IMPORTANT, measured 2026-08-25: `_reread` built
+    `placed = {cue_of(b.address).cue: b for b in page if b.address}`, so two
+    paragraphs sharing a cue silently kept the LAST and checked the notation
+    against it -- a draft holding the approved text at one and prose nobody
+    looked at at the other passed. `galley.reset` refuses that shape BY NAME
+    (157 of them measured in one tree on 2026-08-21), so the verification step
+    was weaker than the edit step it exists to check.
+
+    ! THE COLLISION IS THE INPUT, which is why it is made rather than found: no
+    file in this tree produces one today, and `_reread` reads the DRAFT, so the
+    only way in is the reader it calls. The page is a real page over the real
+    draft; one paragraph's address is copied onto another so the shape under
+    test is the shape being asserted about."""
+    repo, binder, _ = _tree(tmp_path)
+    where = address(binder, "m.py")
+    cue = cue_of(where).cue
+    real_page_for = proof_setter.page_for
+
+    def colliding_page_for(*args, **kwargs):
+        page = real_page_for(*args, **kwargs)
+        addressed = [b for b in page if b.address]
+        held = next(b for b in addressed if cue_of(b.address).cue == cue)
+        other = next(b for b in addressed if b is not held)
+        other.address = held.address
+        return page
+
+    monkeypatch.setattr(proof_setter, "page_for", colliding_page_for)
+    drafted, refused = proof_setter.run(
+        {where: "# REPLACED"}, binder, repo, tmp_path / "out"
+    )
+    assert drafted == []
+    assert len(refused) == 1
+    assert refused[0].step == "reread"
+    assert "2 paragraphs share this place" in refused[0].why
+
+
+def test_a_directory_THAT_WAS_THERE_BEFORE_the_run_survives_it(tmp_path, monkeypatch):
+    """IMPORTANT, measured 2026-08-25: `_discard` walked up `rmdir`-ing ANY
+    empty directory under `into`, so a `<into>/pkg` that existed before the run
+    was gone after a run that refused. Its own docstring promised only *"any
+    directory under `into` IT leaves empty"* -- narrower than the code kept.
+
+    ! A FLAT `rel` CANNOT SHOW THIS. `_tree`'s `m.py` drafts straight into
+    `into`, which `_discard` has always stopped at, so the directory walk never
+    runs at all."""
+    repo = tmp_path / "repo"
+    (repo / "pkg").mkdir(parents=True)
+    (repo / "pkg" / "d.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    (repo / "n.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    binder = bind([build(SAMPLE, "pkg/d.py"), build(SAMPLE, "n.py")])
+    into = tmp_path / "out"
+    (into / "pkg").mkdir(parents=True)
+
+    drafted, refused = proof_setter.run(
+        {address(binder, "pkg/d.py"): "# REPLACED", "n.py@b99": "# bad"},
+        binder,
+        repo,
+        into,
+    )
+    assert drafted == []
+    assert refused and refused[0].path == "n.py"
+    assert (into / "pkg").is_dir()
+    assert list((into / "pkg").iterdir()) == []
+
+
+def test_a_WRITE_THAT_RAISES_leaves_no_directory_behind(tmp_path, monkeypatch):
+    """IMPORTANT, measured 2026-08-25: `compositor.draft` mkdirs with
+    `parents=True` and THEN writes, and the call sat OUTSIDE `_one`'s `try` --
+    so with `rel = 'pkg/d.py'` and the write raising, `into.iterdir()` answered
+    `['pkg']`. The existing regression above monkeypatches `_reread`, which
+    runs after a write that SUCCEEDED, so it could not reach this."""
+    repo = tmp_path / "repo"
+    (repo / "pkg").mkdir(parents=True)
+    (repo / "pkg" / "d.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    binder = bind([build(SAMPLE, "pkg/d.py")])
+    into = tmp_path / "out"
+
+    real_write_text = Path.write_text
+
+    def failing_write_text(self, *args, **kwargs):
+        if self.name == "d.py":
+            raise PermissionError("simulated: the draft could not be written")
+        return real_write_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", failing_write_text)
+
+    with pytest.raises(PermissionError):
+        proof_setter.run(
+            {address(binder, "pkg/d.py"): "# REPLACED"}, binder, repo, into
+        )
+
+    assert list(into.iterdir()) == []
 
 
 class TestTheCommand:
@@ -519,3 +828,33 @@ class TestTheCommand:
         )
         assert cmd.main() == 2
         assert "REFUSED" in capsys.readouterr().out
+
+    def test_an_out_that_NAMES_A_FILE_prints_a_reason(
+        self, tmp_path, capsys, monkeypatch
+    ):
+        """IMPORTANT, measured 2026-08-25: `run`'s
+        `into.mkdir(parents=True, exist_ok=True)` raises `FileExistsError` when
+        `--out` names a regular file -- `exist_ok` covers an existing DIRECTORY
+        only -- and it reached the console as a traceback. Every other bad
+        input in this command prints a reason and returns 2."""
+        from comment_review.commands import proof as cmd
+
+        repo, _, _ = _tree(tmp_path)
+        not_a_dir = tmp_path / "notadir"
+        not_a_dir.write_text("x", encoding="utf-8")
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "proof",
+                "--repo",
+                str(repo),
+                "--binder",
+                "b.json",
+                "--notations",
+                "n.json",
+                "--out",
+                str(not_a_dir),
+            ],
+        )
+        assert cmd.main() == 2
+        assert "is not a directory" in capsys.readouterr().out

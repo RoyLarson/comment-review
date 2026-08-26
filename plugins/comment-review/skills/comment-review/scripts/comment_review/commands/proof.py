@@ -17,6 +17,7 @@ from comment_review.binder import binder as binder_mod
 from comment_review.desk import notations as notations_mod
 from comment_review.flows import proof_setter
 from comment_review.machine import exceptions
+from comment_review.machine.repo import undraftable
 
 
 def main() -> int:
@@ -40,13 +41,21 @@ def main() -> int:
     # ask this. On an OVERLAP a target lands inside `--out` by way of being the
     # source file itself -- MEASURED 2026-08-22 on `commands/galley.py`, which
     # overwrote the file under review, printed `1 page(s) set` and exited 0.
-    # ! `is_relative_to` IS TRUE OF A PATH AND ITSELF, which is why both
-    # directions are tested and an equality test would be redundant.
-    if out.is_relative_to(repo) or repo.is_relative_to(out):
-        print(
-            f"REFUSED: --out {out} overlaps --repo {repo}, so a draft would be"
-            " written over the files under review -- nothing written"
-        )
+    #
+    # !! THE RULE IS `repo.undraftable`'s AND IS ASKED IN THREE PLACES. It was
+    # spelled out here and in `commands/galley.py` -- two copies of one rule --
+    # and `flows/proof_setter.run` asked it nowhere, so calling that flow with
+    # `into == repo` wrote over the files under review at `refused=[]`. Asking
+    # it here as well is what keeps a bad `--out` an INPUT error at exit 2
+    # rather than a refusal at exit 1.
+    #
+    # ! IT ALSO ANSWERS `--out` NAMING A REGULAR FILE, which used to reach the
+    # console as a `FileExistsError` traceback out of `run`'s
+    # `into.mkdir(exist_ok=True)` -- `exist_ok` covers an existing DIRECTORY
+    # only, and every other bad input here prints a reason and returns 2.
+    why = undraftable(out, repo)
+    if why:
+        print(f"REFUSED: --out {why} -- nothing written")
         return 2
     try:
         binder_text = Path(args.binder).read_text(encoding="utf-8")

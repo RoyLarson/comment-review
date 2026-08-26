@@ -190,7 +190,7 @@ that changed a published name or rule:
 | [only-census-got-out-and-the-skill-instructs-a-redirect](only-census-got-out-and-the-skill-instructs-a-redirect.md) | agents | — | 3/5 | Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids |
 | [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | backend | yes | 0/6 | `referrers.py` matches on any public name, and surfaced the whole repo |
 | [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | agents | — | 6/11 | Stage 5 is the only stage whose writer is also its checker |
-| [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | backend | yes | 0/5 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
+| [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | backend | yes | 1/5 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
 | [the-emitted-vocabulary-can-collide-with-the-repo](the-emitted-vocabulary-can-collide-with-the-repo.md) | agents | yes | 1/6 | The emitted vocabulary can collide with the reviewed repo's own terms |
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | backend | — | 0/3 | doc_is_structural means two things and its docstring names one |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | backend | — | 5/9 | A docstring needs its own address series, and it names what it documents |
@@ -284,7 +284,7 @@ that changed a published name or rule:
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | — | 3/28 | Ten findings in lexer.py and language.py, from three review rounds |
 
-### decision-needed  (22)
+### decision-needed  (24)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -310,6 +310,8 @@ other tasks can proceed without them._
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | agents | yes | 2/4 | The role with verdict precedence has the least mechanical support |
 | [the-two-lists-were-tuned-to-one-diff](the-two-lists-were-tuned-to-one-diff.md) | agents | yes | 3/9 | **Both lists are DELETED from the brief; this holds what was inside them.** The acquittal list matched a prose SHAPE and claimed to be *"the ONLY reasons to pass a block over"* -- but what decides `clean` is stated per role and is a TRUTH assertion at that role's scope, so the two disagreed outright. Its measurement was `evidence/ga/`: ten candidates over SIX `redacted_pkg` files, scored on F1 against what one later commit rewrote -- and the search itself concluded *"the acquittal RATE is the trait; the acquittal LIST is just vocabulary."* The suppression list had no provenance at all. ! Three entries were CHECKS wearing an exemption's name, one CONTRADICTS `function-context`, and `detector` -- a settled term -- lost its only definition |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | yes | 11/21 | Two live runs proposed fifteen changes |
+| [foot-of-file-two-places](foot-of-file-two-places.md) | backend | yes | 0/3 | the closing `b` gap and `f1` are emitted at the same `<eof>` trigger |
+| [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 
 ### in flight  (0)
 

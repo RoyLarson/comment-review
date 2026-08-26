@@ -197,6 +197,50 @@ def git_ls_files(repo: Path) -> list[str] | None:
     return listed.stdout.splitlines()
 
 
+def undraftable(into: Path, repo: Path) -> str:
+    """Why drafts of files under `repo` cannot be written into `into`, or "".
+
+    !! `into` MUST BE DISJOINT FROM `repo`, AND NO PER-FILE GUARD CAN ASK IT.
+    A per-file guard checks that a target lands inside `into`; on an OVERLAP
+    that is satisfied by the SOURCE FILE ITSELF, so the guard passes and the
+    draft is written over the file under review. MEASURED 2026-08-22 on
+    `commands/galley.py`, which did exactly that and printed `1 page(s) set` at
+    exit 0; MEASURED again 2026-08-25 on `flows.proof_setter.run(notations,
+    binder, repo, repo)`, which answered `refused=[]` while the source file on
+    disk held the replacement text.
+
+    !! IT LIVES HERE BECAUSE THREE CALLERS ASK IT -- `flows/proof_setter.run`,
+    `commands/proof.py` and `commands/galley.py`. It was spelled out twice, in
+    the two commands, and the flow -- which the commands' own docstrings say
+    anyone may call -- asked it nowhere.
+
+    ! `is_relative_to` IS TRUE OF A PATH AND ITSELF, which is why both
+    directions are tested and an equality test would be redundant.
+
+    ! THE `is_dir` CLAUSE IS FIRST BECAUSE THE MKDIR IS WHAT FAILS.
+    `into.mkdir(parents=True, exist_ok=True)` raises `FileExistsError` when
+    `into` names a regular file -- `exist_ok` covers an existing DIRECTORY only
+    -- and that reached `commands/proof.py`'s console as a traceback while
+    every other bad input there printed a reason.
+
+    Args:
+        into: the directory drafts are written to. RESOLVED by the caller;
+            an unresolved path is never a prefix of a resolved one.
+        repo: the checkout the pages are read from, resolved the same way.
+
+    Returns:
+        The reason, or "" when `into` may receive drafts.
+    """
+    if into.exists() and not into.is_dir():
+        return f"{into} is not a directory, so no draft can be written into it"
+    if into.is_relative_to(repo) or repo.is_relative_to(into):
+        return (
+            f"{into} overlaps {repo}, so a draft would be written over the files"
+            " under review"
+        )
+    return ""
+
+
 def tracked_paths(repo: Path) -> set[Path] | None:
     """`git_ls_files` as resolved absolute paths, for membership tests."""
     rels = git_ls_files(repo)

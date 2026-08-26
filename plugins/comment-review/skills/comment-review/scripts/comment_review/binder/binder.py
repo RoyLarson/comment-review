@@ -149,6 +149,16 @@ def read(text: str) -> tuple[dict, str]:
     binder -- which downstream is indistinguishable from a run with nothing to
     do. `verdicts.py` was measured certifying exactly that on 2026-08-20.
 
+    !! THE KEY WAS TESTED FOR PRESENCE AND NOT FOR SHAPE UNTIL 2026-08-25, so
+    it coped after all. MEASURED: `{"pages": "oops"}` read CLEAN, and the
+    `str(page.get(...))` two callers do over it then raised `AttributeError:
+    'str' object has no attribute 'get'` out of `commands/proof.py` as a
+    traceback -- past that command's own promise to print `CANNOT READ THE
+    BINDER: {why}`. Same for `{"pages": {"a": 1}}` and `{"pages": [1, 2]}`.
+    ! WHAT IS CHECKED IS WHAT IS CONSUMED and no more: `rows_of` and
+    `proof_setter.run` walk `pages`, then each page's `rows`, calling `.get` on
+    both. Nothing here reads a FIELD, so nothing here rules on one.
+
     Returns:
         `(binder, "")` when it reads, or `({}, reason)` when it does not.
     """
@@ -160,6 +170,19 @@ def read(text: str) -> tuple[dict, str]:
         return {}, f"a JSON {type(loaded).__name__}, not a binder"
     if "pages" not in loaded:
         return {}, "carries no `pages` -- is this the output of `census --json`?"
+    pages = loaded["pages"]
+    if not isinstance(pages, list):
+        return {}, f"`pages` is a JSON {type(pages).__name__}, not a list of pages"
+    for n, page in enumerate(pages):
+        if not isinstance(page, dict):
+            return {}, f"page {n} is a JSON {type(page).__name__}, not a page"
+        rows = page.get("rows", [])
+        if not isinstance(rows, list):
+            return {}, f"page {n}: `rows` is a JSON {type(rows).__name__}, not a list"
+        for m, row in enumerate(rows):
+            if not isinstance(row, dict):
+                kind = type(row).__name__
+                return {}, f"page {n}, row {m} is a JSON {kind}, not a row"
     return loaded, ""
 
 

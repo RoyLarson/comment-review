@@ -42,7 +42,7 @@ from comment_review.binder.page import page_for
 from comment_review.desk import notations as notations_mod
 from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
-from comment_review.machine.repo import read_source
+from comment_review.machine.repo import read_source, undraftable
 from comment_review.reading.addresser import address_for, cue_of, unflatten
 from comment_review.reading.lexer import language_for
 from comment_review.results import compositor, galley
@@ -102,6 +102,27 @@ def run(
     Returns:
         `(drafted, [])` when every page passed, or `([], refusals)`.
     """
+    # !! RESOLVED ONCE, HERE, BECAUSE `_one` COMPARES A RESOLVED TARGET AGAINST
+    # IT. Measured 2026-08-25: with `into = Path("out_rel")` every page refused
+    # with "would be written outside the draft directory" -- `(into / rel)`
+    # resolves to an absolute path and an unresolved `into` is never a prefix of
+    # one. `commands/proof.py` happens to resolve before calling, which hid it;
+    # `run` is a flow anyone may call. ! Both sides are resolved, so a `..`
+    # segment or a symlinked draft directory resolves to the real place the
+    # comparisons below then agree on.
+    into = into.resolve()
+    repo = repo.resolve()
+    # !! THE DISJOINTNESS GUARD IS THE FLOW'S, AND IT WAS THE TWO COMMANDS'
+    # ALONE UNTIL 2026-08-25. MEASURED: `run(notations, binder, repo, repo)`
+    # answered `refused=[]` and the SOURCE FILE on disk held the replacement --
+    # `_one`'s containment check passes when `into == repo`, because the source
+    # file IS inside `into`. It is refused before anything is read or written,
+    # and the reason it gives is `repo.undraftable`'s, so the rule is written in
+    # one place and the commands ask the same function.
+    why = undraftable(into, repo)
+    if why:
+        return [], [Refusal("draft", "", why)]
+
     grouped, unresolved = notations_mod.by_page(notations)
     if unresolved:
         return [], [Refusal("read", "", why) for why in unresolved]
@@ -116,17 +137,14 @@ def run(
         for page in binder.get("pages", [])
     }
     into.mkdir(parents=True, exist_ok=True)
-    # !! RESOLVED ONCE, HERE, BECAUSE `_one` COMPARES A RESOLVED TARGET AGAINST
-    # IT. Measured 2026-08-25: with `into = Path("out_rel")` every page refused
-    # with "would be written outside the draft directory" -- `(into / rel)`
-    # resolves to an absolute path and an unresolved `into` is never a prefix of
-    # one. `commands/proof.py` happens to resolve before calling, which hid it;
-    # `run` is a flow anyone may call. ! Resolved AFTER the mkdir, so a `..`
-    # segment or a symlinked draft directory resolves to the real place both
-    # sides of the comparison then agree on.
-    into = into.resolve()
     drafted: list[Drafted] = []
     refusals: list[Refusal] = []
+    # !! ONLY WHAT THIS RUN MADE IS REMOVED. `_discard` used to `rmdir` any
+    # empty directory under `into`, which includes ones that were there before
+    # -- MEASURED 2026-08-25: a pre-created `<into>/pkg` was gone after a run
+    # that refused. `_one` records the directories it is about to create into
+    # this set, and `_discard` removes nothing that is not in it.
+    created: set[Path] = set()
 
     # !! THE PAGE PATHS ARE WHAT UNFLATTENS AN ADDRESS. `by_page` keys by the
     # FLATTENED path an address carries -- `pkg:a:util.py` -- and keeps no
@@ -152,7 +170,7 @@ def run(
             )
             continue
         try:
-            made, why = _one(rel, edits, recorded.get(rel, ""), repo, into)
+            made, why = _one(rel, edits, recorded.get(rel, ""), repo, into, created)
         except Exception:
             # !! THE CLEANUP COVERS AN EXCEPTION, NOT ONLY A REFUSAL. Measured
             # 2026-08-25: with a later page's draft path pre-occupied, a
@@ -162,7 +180,7 @@ def run(
             # exception still propagates; this removes what the run had
             # already drafted first.
             for made in drafted:
-                _discard(made.draft, into)
+                _discard(made.draft, created)
             raise
         if why is not None:
             refusals.append(why)
@@ -171,13 +189,13 @@ def run(
 
     if refusals:
         for made in drafted:
-            _discard(made.draft, into)
+            _discard(made.draft, created)
         return [], refusals
     return drafted, []
 
 
-def _discard(draft: Path, into: Path) -> None:
-    """Remove a drafted file, and any directory under `into` it leaves empty.
+def _discard(draft: Path, created: set[Path]) -> None:
+    """Remove a drafted file, and any directory THIS RUN made that it empties.
 
     !! A STOPPED RUN LEAVES NO TRACE, NOT ONLY NO FILE. `_one`'s
     `compositor.draft` creates `target.parent` with `parents=True`, so a
@@ -187,21 +205,40 @@ def _discard(draft: Path, into: Path) -> None:
     -- *"a stopped run leaves no half-set of files that no page describes."*
     A description of files did not include the directories made to hold them.
 
-    ! STOPS AT `into` ITSELF. `into` is created once by `run`, whether or not
-    this run drafts anything into it, and removing it is not this function's
-    decision to make.
+    !! AND IT REMOVES ONLY WHAT THE RUN MADE, which the earlier form did not.
+    It walked up `rmdir`-ing any empty directory under `into` -- MEASURED
+    2026-08-25: a `<into>/pkg` that existed BEFORE the run was gone after a run
+    that refused. Its docstring said *"any directory under `into` IT leaves
+    empty"*, a narrower promise than the code kept. `created` is what makes the
+    promise checkable: `_one` puts a directory in it only when the directory
+    did not exist at the moment the draft was about to be written.
+
+    ! `into` ITSELF IS NEVER IN `created` -- `run` makes it before the loop,
+    whether or not this run drafts anything into it, so removing it is not
+    this function's decision to make.
+
+    Args:
+        draft: the file to remove.
+        created: the directories this run made, which this may `rmdir` and
+            removes from the set as it does.
     """
     draft.unlink(missing_ok=True)
     parent = draft.parent
-    while parent != into and parent.is_relative_to(into) and parent.is_dir():
+    while parent in created and parent.is_dir():
         if any(parent.iterdir()):
             break
         parent.rmdir()
+        created.discard(parent)
         parent = parent.parent
 
 
 def _one(
-    rel: str, edits: dict[str, str | None], recorded: str, repo: Path, into: Path
+    rel: str,
+    edits: dict[str, str | None],
+    recorded: str,
+    repo: Path,
+    into: Path,
+    created: set[Path],
 ) -> tuple[Drafted | None, Refusal | None]:
     """One page through every step, or the first step that refused."""
     page, why = page_of(repo / rel, rel=rel)
@@ -245,25 +282,40 @@ def _one(
         return None, Refusal(
             "draft", rel, "would be written outside the draft directory"
         )
-    # !! ONE WRITER. `compositor.draft` IS `set_page` plus the mkdir and the
+    # !! WHAT THE WRITE IS ABOUT TO MAKE, RECORDED BEFORE IT MAKES IT.
+    # `compositor.draft` mkdirs with `parents=True`, so this is the last moment
+    # at which "did this directory exist already" can be asked. `_discard`
+    # removes only what is in this set.
+    created.update(
+        p
+        for p in target.parents
+        if p != into and p.is_relative_to(into) and not p.exists()
+    )
+
+    # !! EVERY STEP PAST THE GUARD IS COVERED, NOT ONLY THE REFUSALS. `run`'s
+    # cleanup unlinks what is in `drafted`, and this page is not in it yet --
+    # so before this, a `_reread` or `_prove` that RAISED rather than refusing
+    # left `<into>/<rel>` on disk while `run`'s docstring said every draft this
+    # run wrote is removed. The three calls below write the draft, read it back
+    # and hash it; any of them can raise where none has a `Refusal` for it.
+    #
+    # !! `compositor.draft` IS INSIDE THE `try`, AND WAS OUTSIDE IT UNTIL
+    # 2026-08-25. Its mkdir runs before its write, so a write that raised left
+    # `<into>/pkg/` behind with no handler that could remove it -- MEASURED
+    # with `rel = "pkg/d.py"`: `into.iterdir()` answered `['pkg']`.
+    #
+    # ! ONE WRITER. `compositor.draft` IS `set_page` plus the mkdir and the
     # `newline=""` write -- load-bearing, since `read_source`'s untranslated
     # read is what `_prove`'s byte-identity comparison depends on. `_one` used
     # to spell those three lines itself, which is two spellings of the only
     # writer: one gets updated and the other does not. The containment refusal
     # above still runs FIRST, so this never writes a target that was not
     # already cleared.
-    compositor.draft(page, target)
-
-    # !! EVERY STEP PAST THE WRITE IS COVERED, NOT ONLY THE REFUSALS. `run`'s
-    # cleanup unlinks what is in `drafted`, and this page is not in it yet --
-    # so before this, a `_reread` or `_prove` that RAISED rather than refusing
-    # left `<into>/<rel>` on disk while `run`'s docstring said every draft this
-    # run wrote is removed. The two calls below read the draft back and hash
-    # it; either can raise where neither has a `Refusal` for it.
     try:
+        compositor.draft(page, target)
         off = _reread(rel, target, edits)
         if off is not None:
-            _discard(target, into)
+            _discard(target, created)
             return None, off
 
         # !! `read_source`, NOT `read_text`. The translating reader is what this
@@ -272,10 +324,10 @@ def _one(
         # another.
         unproven = _prove(rel, page.text, read_source(target).text, target)
     except Exception:
-        _discard(target, into)
+        _discard(target, created)
         raise
     if unproven is not None:
-        _discard(target, into)
+        _discard(target, created)
         return None, unproven
     return Drafted(rel, target, page.sha), None
 
@@ -294,17 +346,96 @@ def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | N
     if lang is None:
         return Refusal("reread", rel, "the draft has no language record")
     page = page_for(target, source.text, lang, rel=rel, sha=source.sha)
-    placed = {cue_of(b.address).cue: b for b in page if b.address}
+    # !! COLLECTED AS A LIST PER CUE, BECAUSE A COLLISION IS A REFUSAL AND NOT A
+    # LAST-ONE-WINS. This was `{cue_of(b.address).cue: b for b in page ...}`,
+    # which keeps the LAST paragraph at a cue two paragraphs share and checks
+    # the notation against it -- so a draft holding the approved text at one of
+    # them and prose nobody looked at at the other passed. `galley.reset`
+    # refuses that shape by name (157 of them measured in one tree on
+    # 2026-08-21), and a verification step weaker than the edit step it exists
+    # to check cannot report the edit step being wrong.
+    placed: dict[str, list] = {}
+    for b in page:
+        if b.address:
+            placed.setdefault(cue_of(b.address).cue, []).append(b)
     for where, replacement in edits.items():
-        got = placed.get(where)
-        if got is None:
+        found = placed.get(where)
+        if not found:
             return Refusal("reread", rel, f"{where}: the draft carries no such place")
-        want = [] if replacement is None else constants.text_lines(replacement)
+        if len(found) > 1:
+            return Refusal(
+                "reread",
+                rel,
+                f"{where}: {len(found)} paragraphs share this place in the draft,"
+                " so no notation can be checked against it",
+            )
+        got = found[0]
+        if replacement is None:
+            # !! A VACATED `c` READS BACK AS `['']`, NOT AS `[]`, so this asked
+            # for a shape no drop can produce. `page.empty_places` stores a
+            # margin's prose as `[lines[n - 1][len(code):]]` -- the room beside
+            # the statement, which is the empty string when nothing sits there
+            # -- while this built `want = []` and compared exactly. MEASURED
+            # 2026-08-25 on `tests/conftest.SAMPLE`: `c0`, `c1` and `c2` each
+            # refused with "holds [''], was given []", so `drop` was
+            # unreachable for the whole `c` series while the galley, the
+            # compositor and the draft on disk were all correct.
+            #
+            # ! WHAT A DROP ASSERTS IS THAT THE PLACE HOLDS NO PROSE, which is
+            # the question asked here. It can still fail: a place that kept its
+            # paragraph reads back with that paragraph's text in it.
+            if any(line.strip() for line in got.raw_lines):
+                return Refusal(
+                    "reread",
+                    rel,
+                    f"{where}: was dropped, but the draft holds {got.raw_lines!r}",
+                )
+            continue
+        want = constants.text_lines(replacement)
         if got.raw_lines != want:
             return Refusal(
-                "reread", rel, f"{where}: holds {got.raw_lines!r}, was given {want!r}"
+                "reread",
+                rel,
+                f"{where}: holds {got.raw_lines!r}, was given {want!r}"
+                f"{_elsewhere(page, where, want)}",
             )
     return None
+
+
+def _elsewhere(page, where: str, want: list[str]) -> str:
+    """Which OTHER place in the draft holds this text, as a trailing clause.
+
+    !! TWO PLACES CAN NAME ONE POSITION, and the refusal above named neither
+    when they disagreed. `addresser.cue` emits the closing gap and the file's
+    back matter at the SAME `<eof>` trigger -- its own comment says so:
+    *"both sentinels are shared -- `a0` with `f0` at the head, the closing gap
+    with `f1` at the foot."* Which of the two a paragraph attaches to is the
+    LEXER's `matter` rule, so an `add` of an ordinary comment at the closing
+    gap is set exactly where it was asked for and read back at `f1`.
+
+    ! MEASURED 2026-08-25 on `tests/conftest.SAMPLE`: `{'m.py@b4': '# ADDED'}`
+    and `{'m.py@f1': '# ADDED'}` compose the SAME bytes, and the second passes
+    the whole chain while the first refused with `b4: holds [], was given
+    ['# ADDED']` -- a message that named neither the collision nor the place
+    that does hold the text.
+
+    ! IT REPORTS; IT DOES NOT ACCEPT. Naming the other place is what makes the
+    refusal actionable. Deciding which of two co-located places owns prose at
+    the foot of a file is a page-model ruling -- see
+    `TODO/two-places-name-the-foot-of-a-file.md` -- and reading the notation as
+    satisfied because the text is SOMEWHERE would be this step agreeing with
+    the edit step instead of checking it.
+
+    Returns:
+        `" -- <cue> holds it"`, or "" when no other place does.
+    """
+    for b in page:
+        if not b.address:
+            continue
+        cue = cue_of(b.address).cue
+        if cue != where and b.raw_lines == want:
+            return f" -- {cue} holds it"
+    return ""
 
 
 def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
@@ -318,13 +449,34 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
     ! WHAT THIS CATCHES THAT `_reread` CANNOT. `_reread` checks only the cues a
     notation named, so a notation surviving it was -- by construction -- read
     back as a comment: for the AST tier a comment never enters the fingerprint,
-    so a still-a-comment edit can never trip the `want != got` branch below.
-    The residual hazard is a notation that breaks its comment's RUN and
-    swallows code BEYOND the edited cue -- an edit whose comment run closes
-    mid-line, or never closes at all, can delete the code that followed it.
-    `_reread` cannot see that: the swallowed code was never one of the cues it
-    was asked about. `_prove` compares the WHOLE file's fingerprint, which is
-    what catches it. See `TODO/closing-line-deletes-code.md`.
+    so a still-a-COMMENT edit can never trip the `want != got` branch below.
+
+    !! THAT SENTENCE STOOD AS THOUGH IT COVERED ANY STILL-PROSE EDIT, AND IT IS
+    FALSE OF A DOCSTRING. `prove_unchanged._blank_docstrings` blanks a
+    docstring's CONTENT and keeps its NODE, so its PRESENCE is in the
+    fingerprint. MEASURED 2026-08-25 on `tests/conftest.SAMPLE`:
+    `{'m.py@a0': None}`, `{'m.py@a1': None}` and an `add` at `a2` each trip
+    exactly this branch, with `Refusal('prove', ..., 'the executable code is
+    not what it was')`. ! SO `add` AND `drop` -- two of SKILL.md's seven
+    verdicts -- CANNOT BE WRITTEN ON A DOCSTRING, and the `undocumented` place
+    exists precisely so an `add` can cite one.
+
+    !! IT IS NOT FIXED HERE AND THE FINGERPRINT IS NOT WEAKENED, because a
+    docstring's presence is genuinely observable: it binds `__doc__`, and SIX
+    modules in this package read `ArgumentParser(description=__doc__)`, so
+    ignoring presence would certify a real behaviour change as unchanged.
+    Whether the proof stays a blanket one or becomes a diff against the
+    APPROVED set is a ruling Roy holds --
+    `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md`, task T1, a
+    `*` box. `TestADocstringAddOrDropIsSTILLREFUSED` pins what happens today.
+
+    The residual hazard this branch is for is a notation that breaks its
+    comment's RUN and swallows code BEYOND the edited cue -- an edit whose
+    comment run closes mid-line, or never closes at all, can delete the code
+    that followed it. `_reread` cannot see that: the swallowed code was never
+    one of the cues it was asked about. `_prove` compares the WHOLE file's
+    fingerprint, which is what catches it. See
+    `TODO/closing-line-deletes-code.md`.
     """
     kind, want = code_fingerprint(before, path)
     got_kind, got = code_fingerprint(after, path)

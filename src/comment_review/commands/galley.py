@@ -16,14 +16,14 @@ here, because this file IS the old path. NOT DELETED: it still runs, and
 """
 
 import argparse
-import json
 from pathlib import Path
 
 from comment_review.binder.binder import read as read_binder
 from comment_review.binder.binder import rows_of
 from comment_review.binder.page import page_for
+from comment_review.desk import notations as notations_mod
 from comment_review.machine import exceptions
-from comment_review.machine.repo import read_source
+from comment_review.machine.repo import read_source, undraftable
 from comment_review.reading.addresser import cue_of
 from comment_review.reading.lexer import language_for
 from comment_review.results import compositor
@@ -58,22 +58,34 @@ def main() -> int:
     #
     # ! REFUSED WHOLE. Nothing under `--repo` is touched by this module, so a
     # run that could touch it is not a run with some bad files in it.
-    # ! `is_relative_to` IS TRUE OF A PATH AND ITSELF, so the equality test
-    # that stood here first was covered by the one beside it.
-    if out.is_relative_to(repo) or repo.is_relative_to(out):
-        print(
-            f"REFUSED: --out {out} overlaps --repo {repo}, so a galley would be"
-            " written over the files under review -- no galley written"
-        )
+    #
+    # !! THE RULE ITSELF IS `repo.undraftable`'s, and it was written out here
+    # AND in `commands/proof.py` -- two copies of one rule, in a repo whose
+    # conventions say a rule lives in exactly one file -- while
+    # `flows/proof_setter.run`, which either command's docstring says anyone may
+    # call, asked it nowhere.
+    why = undraftable(out, repo)
+    if why:
+        print(f"REFUSED: --out {why} -- no galley written")
         return 2
     try:
         census_text = Path(args.census).read_text(encoding="utf-8")
-        edits = json.loads(Path(args.edits).read_text(encoding="utf-8"))
+        edits_text = Path(args.edits).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ ({type(e).__name__}) -- no galley written")
         return 2
-    except json.JSONDecodeError as e:
-        print(f"CANNOT PARSE as JSON ({e}) -- no galley written")
+    # !! READ THROUGH `notations.read`, WHICH TYPE-CHECKS EVERY VALUE. A bare
+    # `json.loads` stood here and asked nothing, so `--edits '{"m.py@b0": null}'`
+    # printed `1 page(s) set, 0 edit(s) refused` at exit 0 and the comment was
+    # GONE -- MEASURED 2026-08-25. `null` became meaningful when `""` stopped
+    # being the vacate signal, and the paragraph recording that hazard was cut
+    # from this file at the same time: *"A NULL IS NOT A DECISION. `--edits` is
+    # machine-written from approved text; a key whose value failed to serialise
+    # arrives as `null`."* With nothing type-checking the value, an upstream
+    # serialisation failure and an approved `drop` are the same bytes.
+    edits, why = notations_mod.read(edits_text)
+    if why:
+        print(f"CANNOT READ THE EDITS: {why} -- no galley written")
         return 2
     # ! REFUSED BY NAME. `rows_of` alone answers `[]` for a binder it cannot
     # read, and the check below would then report "carries no addresses" about

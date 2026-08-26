@@ -202,6 +202,29 @@ class TestAReaderRefusesRatherThanCoping:
         assert got == {}
         assert expected in why
 
+    @pytest.mark.parametrize(
+        ("text", "expected"),
+        [
+            ('{"pages": "oops"}', "`pages` is a JSON str"),
+            ('{"pages": {"a": 1}}', "`pages` is a JSON dict"),
+            ('{"pages": [1, 2]}', "page 0 is a JSON int"),
+            ('{"pages": [{"rows": "oops"}]}', "page 0: `rows` is a JSON str"),
+            ('{"pages": [{"rows": [7]}]}', "page 0, row 0 is a JSON int"),
+        ],
+    )
+    def test_the_SHAPE_of_pages_is_read_and_not_only_its_presence(self, text, expected):
+        """MEASURED 2026-08-25: `{"pages": "oops"}` read CLEAN, because the key
+        was tested for presence alone. `commands/proof.py` then handed it to
+        `proof_setter.run`, whose `str(page.get("path", ""))` raised
+        `AttributeError: 'str' object has no attribute 'get'` -- a traceback
+        past that command's own promise to print `CANNOT READ THE BINDER:
+        {why}`, and past this class's own claim that a reader refuses rather
+        than coping. ! The `rows` cases are the same defect one level down:
+        `rows_of` calls `.get` on every row."""
+        got, why = read(text)
+        assert got == {}
+        assert expected in why
+
     def test_a_bare_list_is_refused_by_name(self):
         """The shape the census emitted before the envelope. Three commands each
         guessed at it a different way and a fourth did not guess at all."""

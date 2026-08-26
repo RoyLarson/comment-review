@@ -285,7 +285,7 @@ class TestTheCommandRefusesAStaleFile:
 
     ! `SKILL.md` still wires stage 7a to this command, so it is live."""
 
-    def _run(self, tmp_path, monkeypatch, capsys, source: str):
+    def _run(self, tmp_path, monkeypatch, capsys, source: str, edits_text=None):
         """Census `SAMPLE`, put `source` on disk, then run the command."""
         import json
 
@@ -301,7 +301,9 @@ class TestTheCommandRefusesAStaleFile:
         )
         edits = tmp_path / "edits.json"
         edits.write_text(
-            json.dumps({f"m.py@{FILLED['b']}": "# REPLACED"}),
+            json.dumps({f"m.py@{FILLED['b']}": "# REPLACED"})
+            if edits_text is None
+            else edits_text,
             encoding="utf-8",
             newline="",
         )
@@ -344,3 +346,67 @@ class TestTheCommandRefusesAStaleFile:
         assert code == 0
         assert "1 page(s) set, 0 edit(s) refused" in out
         assert "# REPLACED" in (tmp_path / "out" / "m.py").read_text(encoding="utf-8")
+
+
+class TestTheCommandReadsItsEditsTheWayTheFlowDoes:
+    """!! `--edits` WAS A BARE `json.loads` AND ASKED NOTHING, while
+    `flows/proof_setter.run` reads the same shape through `desk.notations.read`,
+    which type-checks every value and refuses an empty file by name. Two
+    readers of one format, one of which validated nothing.
+
+    ! WHAT `notations.read` DOES NOT REFUSE IS `null`, by ruling -- Roy,
+    2026-08-25, *"None is explicit enough"* -- so this command deletes on a
+    `null` exactly as the flow does. That the two now AGREE is the point; that
+    a serialisation failure upstream and an approved `drop` are the same bytes
+    is a question about the sentinel, not about this command."""
+
+    def _run(self, tmp_path, monkeypatch, capsys, edits_text: str):
+        return TestTheCommandRefusesAStaleFile()._run(
+            tmp_path, monkeypatch, capsys, SAMPLE, edits_text=edits_text
+        )
+
+    def test_an_edits_file_THAT_IS_NOT_AN_OBJECT_prints_a_reason(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Measured 2026-08-25: `edits.items()` over a JSON list left the
+        command as an `AttributeError` traceback."""
+        code, out = self._run(tmp_path, monkeypatch, capsys, "[]")
+        assert code == 2
+        assert "not a notations file" in out
+        assert not (tmp_path / "out").exists()
+
+    def test_an_EMPTY_edits_file_is_refused_by_name(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Measured 2026-08-25: `{}` printed `0 page(s) set, 0 edit(s) refused`
+        at exit 0 -- the empty-reads-as-success shape `notations.read`'s own
+        docstring forbids."""
+        code, out = self._run(tmp_path, monkeypatch, capsys, "{}")
+        assert code == 2
+        assert "no notations" in out
+
+    def test_a_NON_TEXT_replacement_is_refused_BEFORE_any_page_is_read(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """! The flow refuses this at exit 2 with the offending address named;
+        this command used to reach `galley.reset`, which reports it per-edit
+        after the file has been read and hashed."""
+        code, out = self._run(tmp_path, monkeypatch, capsys, '{"m.py@b0": 7}')
+        assert code == 2
+        assert "must be text or null, not int" in out
+
+    def test_an_EMPTY_STRING_is_not_a_delete(self, tmp_path, monkeypatch, capsys):
+        code, out = self._run(tmp_path, monkeypatch, capsys, '{"m.py@b0": ""}')
+        assert code == 2
+        assert "an empty string is not a delete" in out
+
+    def test_A_VALID_EDITS_FILE_STILL_SETS(self, tmp_path, monkeypatch, capsys):
+        """! The other half: a reader that refused everything would pass the
+        four cases above and be worth nothing."""
+        import json
+
+        code, out = self._run(
+            tmp_path, monkeypatch, capsys, json.dumps({"m.py@b0": "# REPLACED"})
+        )
+        assert code == 0
+        assert "1 page(s) set, 0 edit(s) refused" in out
