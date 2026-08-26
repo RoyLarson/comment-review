@@ -28,18 +28,21 @@ class TestTheCommand:
     draft loop of its own; all of it went, and the name now runs this chain.
     See `docs/history.md`."""
 
-    def test_galley_runs_THIS_COMMAND(self, monkeypatch):
+    def test_galley_DELEGATES_to_proof(self, monkeypatch):
         """`SKILL.md` still invokes `galley` at stage 7a, so the name has to
-        reach the chain. ! It does NOT make a skill run work: the flags differ
-        -- `--census`/`--edits` against `--binder`/`--notations` -- which is
+        reach the chain -- `__main__.ALIASES` maps it to `proof` and imports
+        that module, rather than a `commands/galley.py` of its own. ! It does
+        NOT make a skill run work: the flags differ -- `--census`/`--edits`
+        against `--binder`/`--notations` -- which is
         `TODO/the-skill-names-commands-that-moved-to-prototype.md`."""
-        from comment_review.__main__ import COMMANDS
-        from comment_review.commands import galley, proof
+        from comment_review.__main__ import ALIASES, COMMANDS, main
+        from comment_review.commands import proof
 
-        assert "galley" in COMMANDS
+        assert "galley" not in COMMANDS
+        assert ALIASES["galley"] == "proof"
         called: list[bool] = []
         monkeypatch.setattr(proof, "main", lambda: called.append(True) or 7)
-        assert galley.main() == 7
+        assert main(["galley"]) == 7
         assert called == [True]
 
     def test_the_command_holds_no_orchestration(self):

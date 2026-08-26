@@ -201,9 +201,9 @@ class TestTheFlowItselfRefusesADraftDirectoryOverTheRepo:
         assert refused and refused[0].step == "draft"
 
     def test_the_RULE_IS_ONE_FUNCTION_both_callers_ask(self):
-        """! A rule lives in exactly one file -- `docs/conventions.md`. It was
-        written out in `commands/proof.py` AND `commands/galley.py`, with the
-        same `is_relative_to` note on each, and asked in the flow nowhere.
+        """! A rule lives in exactly one file -- `docs/conventions.md`. It used
+        to be written out in `commands/proof.py` AND `commands/galley.py`, with
+        the same `is_relative_to` note on each, and asked in the flow nowhere.
 
         ! `repo.is_relative_to(` is the half NO OTHER GUARD NEEDS: the per-file
         guard asks whether a path derived from a root is still under that root,
@@ -211,9 +211,11 @@ class TestTheFlowItselfRefusesADraftDirectoryOverTheRepo:
         command holds no other comparison against `repo` at all, so the
         stricter form still stands there.
 
-        ! IT WAS THREE CALLERS UNTIL 2026-08-26. `commands/galley.py` is now the
-        old NAME for `proof` and holds no chain of its own, so it asks nothing
-        -- `test_galley_DELEGATES_to_proof` is what pins that."""
+        ! IT WAS THREE CALLERS UNTIL 2026-08-26, WHEN `commands/galley.py` WAS
+        DELETED. `galley` is now an alias in `__main__.ALIASES` that dispatches
+        straight to `proof`'s own module, so it holds no chain and asks nothing
+        -- `test_galley_DELEGATES_to_proof` in `tests/test_proof_command.py` is
+        what pins that."""
         for rel in ("commands/proof.py", "flows/proof_setter.py"):
             text = (PKG / rel).read_text(encoding="utf-8")
             assert "undraftable(" in text, rel

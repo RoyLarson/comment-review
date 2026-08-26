@@ -141,6 +141,14 @@ stale census at exit 0. They are cited here rather than at a file that no longer
 ! **To read the mechanism**, it is at `175c4bf` -- `git show
 175c4bf:src/comment_review/commands/galley.py`.
 
+! **The stub that was left behind went too, later the same day.** Emptying
+`commands/galley.py` down to `return proof.main()` still left a module whose
+whole body forwards -- a standing invitation for a reader to file "this module
+does nothing." Roy: *"If the alias is forwarded you can drop the file and they
+have nothing to complain about."* The alias moved into `__main__.ALIASES`,
+which maps `"galley"` to `"proof"` and imports that module directly; the file
+is gone. To read it, `git show <COMMIT>:src/comment_review/commands/galley.py`.
+
 ## Constants that outlived their reader
 
 **Deleted 2026-08-20**, all four found by sweeping the index for shipped names nothing reads:
