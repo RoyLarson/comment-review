@@ -22,6 +22,12 @@ the manifest and the resumable retry all belong to that second workflow.
 crosses as a key, and the SHA crosses as the thing the verification compares.
 No paragraph text, kind or anchor does -- the page is read again from disk.
 
+! THE PAGE PATH IS THE OTHER HALF OF THE ADDRESS, not a third value. Roy,
+2026-08-25, ruling what may reach here: *"besides reading the sha and file
+path/name you should not be assuming any binder things make it this far."* An
+address carries the FLATTENED path, so `run` reads the binder's page paths to
+`unflatten` it -- the same paths it already reads for the sha.
+
 ! THE ORDER LIVES HERE AND NOWHERE ELSE. The galley edits, the compositor sets,
 and neither knows what runs next. `STEPS` names that sequence as DATA; nothing
 in `run()` reads it back -- `test_the_chain_IS_this_list` pins it against a
@@ -37,7 +43,7 @@ from comment_review.desk import notations as notations_mod
 from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.repo import read_source
-from comment_review.reading.addresser import cue_of
+from comment_review.reading.addresser import address_for, cue_of, unflatten
 from comment_review.reading.lexer import language_for
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
@@ -87,7 +93,8 @@ def run(
         notations: address -> replacement text, or None to delete.
         binder: as `binder.read` returned it.
         repo: the checkout the pages are read from.
-        into: the directory drafts are written to. Created if absent.
+        into: the directory drafts are written to. Created if absent, and
+            RESOLVED here -- see the containment guard in `_one`.
 
     Returns:
         `(drafted, [])` when every page passed, or `([], refusals)`.
@@ -106,10 +113,41 @@ def run(
         for page in binder.get("pages", [])
     }
     into.mkdir(parents=True, exist_ok=True)
+    # !! RESOLVED ONCE, HERE, BECAUSE `_one` COMPARES A RESOLVED TARGET AGAINST
+    # IT. Measured 2026-08-25: with `into = Path("out_rel")` every page refused
+    # with "would be written outside the draft directory" -- `(into / rel)`
+    # resolves to an absolute path and an unresolved `into` is never a prefix of
+    # one. `commands/proof.py` happens to resolve before calling, which hid it;
+    # `run` is a flow anyone may call. ! Resolved AFTER the mkdir, so a `..`
+    # segment or a symlinked draft directory resolves to the real place both
+    # sides of the comparison then agree on.
+    into = into.resolve()
     drafted: list[Drafted] = []
     refusals: list[Refusal] = []
 
-    for rel, edits in sorted(grouped.items()):
+    # !! THE PAGE PATHS ARE WHAT UNFLATTENS AN ADDRESS. `by_page` keys by the
+    # FLATTENED path an address carries -- `pkg:a:util.py` -- and keeps no
+    # binder to turn it back. This does: the paths it already read for
+    # `recorded` are exactly the set `unflatten` resolves against, so the sha
+    # and the file path remain the only two values crossing from the binder.
+    paths = list(recorded)
+    for name, edits in sorted(grouped.items()):
+        # !! `""` MEANS UNKNOWN OR AMBIGUOUS, AND IS NOT A PATH. Reading it as
+        # one would ask the filesystem for the repo root itself. Measured
+        # 2026-08-25 before `unflatten` ran here: the flattened name was handed
+        # to `recorded.get` AND to `page_of`, so a binder keyed `pkg/a/util.py`
+        # missed on both and every file below the repo root refused.
+        rel = unflatten(name, paths)
+        if not rel:
+            named = ", ".join(address_for(name, cue) for cue in sorted(edits))
+            refusals.append(
+                Refusal(
+                    "read",
+                    name,
+                    f"no page in the binder is named by this address ({named})",
+                )
+            )
+            continue
         try:
             made, why = _one(rel, edits, recorded.get(rel, ""), repo, into)
         except Exception:
@@ -184,15 +222,26 @@ def _one(
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8", newline="")
 
-    off = _reread(rel, target, edits)
-    if off is not None:
-        target.unlink(missing_ok=True)
-        return None, off
+    # !! EVERY STEP PAST THE WRITE IS COVERED, NOT ONLY THE REFUSALS. `run`'s
+    # cleanup unlinks what is in `drafted`, and this page is not in it yet --
+    # so before this, a `_reread` or `_prove` that RAISED rather than refusing
+    # left `<into>/<rel>` on disk while `run`'s docstring said every draft this
+    # run wrote is removed. The two calls below read the draft back and hash
+    # it; either can raise where neither has a `Refusal` for it.
+    try:
+        off = _reread(rel, target, edits)
+        if off is not None:
+            target.unlink(missing_ok=True)
+            return None, off
 
-    # !! `read_source`, NOT `read_text`. The translating reader is what this
-    # branch exists to remove from the write path -- reading the draft through
-    # it here would compare text read one way against text read another.
-    unproven = _prove(rel, page.text, read_source(target).text, target)
+        # !! `read_source`, NOT `read_text`. The translating reader is what this
+        # branch exists to remove from the write path -- reading the draft
+        # through it here would compare text read one way against text read
+        # another.
+        unproven = _prove(rel, page.text, read_source(target).text, target)
+    except Exception:
+        target.unlink(missing_ok=True)
+        raise
     if unproven is not None:
         target.unlink(missing_ok=True)
         return None, unproven

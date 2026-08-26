@@ -37,6 +37,12 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
     Args:
         text: the notations file's contents.
 
+    !! AN EMPTY NOTATIONS FILE IS REFUSED BY NAME, which is the same floor
+    `binder.read` puts under a missing `pages` key. Measured 2026-08-25:
+    `read("{}")` answered `({}, "")`, `proof_setter.run` drafted nothing and
+    `commands/proof.py` printed `0 page(s) drafted for review` at exit 0 -- the
+    empty-reads-as-success shape this module's own paragraph above forbids.
+
     Returns:
         `(notations, "")` when it reads, or `({}, reason)` when it does not.
     """
@@ -48,6 +54,11 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
         return {}, f"not JSON ({e})"
     if not isinstance(loaded, dict):
         return {}, f"a JSON {type(loaded).__name__}, not a notations file"
+    if not loaded:
+        return {}, (
+            "no notations -- an empty file is not a run with nothing to do."
+            " Say which places are being set"
+        )
     for address, replacement in loaded.items():
         if replacement is None:
             continue
@@ -76,6 +87,19 @@ def by_page(
     from the addresser. Validation of whether a place exists on the page
     happens in `galley.reset` when the page is read.
 
+    !! THE KEY IS THE FLATTENED PATH -- `pkg:a:util.py`, NOT `pkg/a/util.py`.
+    An address carries `flatten`'s form, `cue_of` splits that form back out
+    unchanged, and this function KEEPS NO BINDER to turn it into a real path.
+    Roy ruled that: the binder does not reach here. `addresser.unflatten` is
+    what recovers the path, and the caller holding the page paths is where it
+    runs -- `proof_setter.run`.
+
+    ! MEASURED 2026-08-25, BEFORE THAT WAS SAID HERE: `proof_setter.run` used
+    this key both as a binder key and as a filesystem path, so every notation
+    on a file below the repo root refused -- `repo / "pkg:a:util.py"` is
+    invalid on Windows and missing on POSIX. Every test hand-wrote its address
+    with `/`, so none of them could disagree.
+
     !! ONE REFUSAL REFUSES THE WHOLE SET, by ruling. Roy, 2026-08-25: *"fails
     loud amd stops is the right answer for now."* PROVISIONAL -- the
     per-page resumable form belongs to the workflow that writes for real.
@@ -84,7 +108,7 @@ def by_page(
         notations: address -> replacement text, or None to delete.
 
     Returns:
-        `({path: {cue: replacement}}, [])`, or `({}, refusals)`.
+        `({flattened path: {cue: replacement}}, [])`, or `({}, refusals)`.
     """
     refused = []
     for address in notations:

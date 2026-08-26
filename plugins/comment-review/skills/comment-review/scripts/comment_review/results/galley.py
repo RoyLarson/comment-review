@@ -73,9 +73,15 @@ left to be wrong about. See `docs/history.md` for the mechanism that was
 removed.
 
 ! DID THE FILE SHIFT IS NOT ANSWERED HERE, PARAGRAPH BY PARAGRAPH, ANY MORE.
-`proof_setter.run` answers it in one comparison, before anything is parsed --
-the sha the binder recorded against the sha the file reads at now. See
+It is answered in one comparison before anything is parsed -- the sha the
+binder recorded against the sha the file reads at now -- by each caller that
+reaches `reset`: `flows/proof_setter.py:_one` and `commands/galley.py`. See
 `docs/history.md` for `drifted`, the last mechanism that asked this module.
+
+! BOTH SITES MAKE IT, BECAUSE THE COMMAND DOES NOT CALL THE FLOW. Measured
+2026-08-25, when only the flow asked: `commands/galley.py` placed edits from a
+census taken before `def f():` was renamed and printed `1 page(s) set, 0
+edit(s) refused` at exit 0.
 
 ! A CHANGE THAT CANNOT BE MADE IS REPORTED, NEVER GUESSED. An address no page
 carries stops that file rather than writing a galley nobody can trust.

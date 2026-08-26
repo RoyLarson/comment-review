@@ -272,3 +272,75 @@ class TestSeveralEditsAtOnce:
         assert reset(sample, edits) == []
         out = set_page(sample)
         assert out.count("REPLACED") == len(edits)
+
+
+class TestTheCommandRefusesAStaleFile:
+    """CRITICAL, measured 2026-08-25: `commands/galley.py` asked NOTHING about
+    staleness. The `drifted` mechanism that used to ask it, paragraph by
+    paragraph, went with the line arithmetic and nothing replaced it HERE --
+    the replacement is the recorded-sha comparison in `flows/proof_setter.py`,
+    which this command never calls. So a census taken before `def f():` was
+    renamed still placed every edit by cue, wrote the galley and printed
+    `1 page(s) set, 0 edit(s) refused` at exit 0.
+
+    ! `SKILL.md` still wires stage 7a to this command, so it is live."""
+
+    def _run(self, tmp_path, monkeypatch, capsys, source: str):
+        """Census `SAMPLE`, put `source` on disk, then run the command."""
+        import json
+
+        from comment_review.binder.binder import bind
+        from comment_review.commands import galley as cmd
+
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (repo / "m.py").write_text(source, encoding="utf-8", newline="")
+        census = tmp_path / "census.json"
+        census.write_text(
+            json.dumps(bind([build(SAMPLE)])), encoding="utf-8", newline=""
+        )
+        edits = tmp_path / "edits.json"
+        edits.write_text(
+            json.dumps({f"m.py@{FILLED['b']}": "# REPLACED"}),
+            encoding="utf-8",
+            newline="",
+        )
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "galley",
+                "--repo",
+                str(repo),
+                "--census",
+                str(census),
+                "--edits",
+                str(edits),
+                "--out",
+                str(tmp_path / "out"),
+            ],
+        )
+        return cmd.main(), capsys.readouterr().out
+
+    def test_a_RENAMED_DECLARATION_since_the_census_is_REFUSED(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        renamed = SAMPLE.replace("def f(x):", "def RENAMED(x):")
+        assert renamed != SAMPLE
+        code, out = self._run(tmp_path, monkeypatch, capsys, renamed)
+        assert code == 1
+        assert "REFUSED" in out
+        assert "changed since it was censused" in out
+        assert "0 page(s) set" in out
+
+    def test_NO_GALLEY_is_written_for_a_stale_file(self, tmp_path, monkeypatch, capsys):
+        renamed = SAMPLE.replace("def f(x):", "def RENAMED(x):")
+        self._run(tmp_path, monkeypatch, capsys, renamed)
+        assert not (tmp_path / "out" / "m.py").exists()
+
+    def test_an_UNCHANGED_file_still_sets(self, tmp_path, monkeypatch, capsys):
+        """! The other half: a check that refused everything would pass the
+        two cases above and be worth nothing."""
+        code, out = self._run(tmp_path, monkeypatch, capsys, SAMPLE)
+        assert code == 0
+        assert "1 page(s) set, 0 edit(s) refused" in out
+        assert "# REPLACED" in (tmp_path / "out" / "m.py").read_text(encoding="utf-8")

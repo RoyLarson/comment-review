@@ -8,12 +8,38 @@ sequence cannot show you.
 from pathlib import Path
 
 import pytest
-from conftest import SAMPLE, SRC, build, by_cue
+from conftest import PKG, SAMPLE, SRC, build, by_cue
 
-from comment_review.binder.binder import bind
+from comment_review.binder.binder import bind, rows_of
+from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
+from comment_review.machine import exceptions
+from comment_review.reading.addresser import cue_of
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
+
+
+def address(binder, path: str, series: str = "b") -> str:
+    """One address off the binder, in the FORM THE BINDER PUBLISHES.
+
+    !! EVERY TEST HERE HAND-WROTE `f"{rel}@{cue}"` UNTIL 2026-08-25, and that
+    is what hid the CRITICAL defect: an address carries the FLATTENED path --
+    `pkg:a:util.py` -- and a hand-written one carries `/`. `by_page` splits
+    whatever it is handed, so the tests fed the chain a form nothing produces
+    and only repo-root files, whose flattened form is their path, agreed. The
+    fixture could not disagree with the code because the fixture was written to
+    match it.
+
+    ! IT ASKS `rows_of`, which is what a caller of this chain has.
+    """
+    for row in rows_of(binder):
+        if (
+            row["path"] == path
+            and row["cue"].startswith(series)
+            and row["raw_text"].strip()
+        ):
+            return str(row["address"])
+    raise AssertionError(f"no filled {series} row for {path}")
 
 
 def test_the_chain_IS_this_list():
@@ -38,23 +64,78 @@ def _tree(tmp_path):
 
 
 def test_a_notation_reaches_a_drafted_file(tmp_path):
-    repo, binder, page = _tree(tmp_path)
-    cue = next(c for c in by_cue(page) if c.startswith("b"))
+    repo, binder, _ = _tree(tmp_path)
     into = tmp_path / "out"
     drafted, refused = proof_setter.run(
-        {f"m.py@{cue}": "# REPLACED"}, binder, repo, into
+        {address(binder, "m.py"): "# REPLACED"}, binder, repo, into
     )
     assert refused == []
     assert len(drafted) == 1
     assert "# REPLACED" in drafted[0].draft.read_text(encoding="utf-8")
 
 
+def test_a_file_BELOW_THE_REPO_ROOT_drafts(tmp_path):
+    """CRITICAL, measured 2026-08-25: `by_page` keys by the FLATTENED path an
+    address carries, and `run` used that string both as a binder key and as a
+    filesystem path -- so `pkg/a/util.py` was looked up as `pkg:a:util.py`,
+    missed the binder, and was handed to `page_of` as `repo/pkg:a:util.py`,
+    which is invalid on Windows and missing on POSIX. EVERY notation on a file
+    below the repo root refused at step `read`; only repo-root files, whose
+    flattened form equals their path, worked."""
+    repo = tmp_path / "repo"
+    (repo / "pkg" / "a").mkdir(parents=True)
+    (repo / "pkg" / "a" / "util.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    binder = bind([build(SAMPLE, "pkg/a/util.py")])
+
+    where = address(binder, "pkg/a/util.py")
+    assert where.startswith("pkg:a:util.py@")
+
+    into = tmp_path / "out"
+    drafted, refused = proof_setter.run({where: "# REPLACED"}, binder, repo, into)
+    assert refused == []
+    assert [d.path for d in drafted] == ["pkg/a/util.py"]
+    assert "# REPLACED" in drafted[0].draft.read_text(encoding="utf-8")
+    assert drafted[0].draft == into / "pkg" / "a" / "util.py"
+
+
+def test_an_address_NAMING_NO_PAGE_IN_THE_BINDER_refuses_at_read(tmp_path):
+    """`unflatten` answers "" for a name no page carries and for one several
+    carry. "" is not a path -- handing it on asks the filesystem for the repo
+    root itself."""
+    repo, binder, _ = _tree(tmp_path)
+    drafted, refused = proof_setter.run(
+        {"pkg:nowhere.py@b0": "# x"}, binder, repo, tmp_path / "out"
+    )
+    assert drafted == []
+    assert len(refused) == 1
+    assert refused[0].step == "read"
+    assert "pkg:nowhere.py@b0" in refused[0].why
+
+
 def test_nothing_under_the_repo_is_touched(tmp_path):
-    repo, binder, page = _tree(tmp_path)
-    cue = next(c for c in by_cue(page) if c.startswith("b"))
+    repo, binder, _ = _tree(tmp_path)
     before = (repo / "m.py").read_bytes()
-    proof_setter.run({f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out")
+    proof_setter.run(
+        {address(binder, "m.py"): "# REPLACED"}, binder, repo, tmp_path / "out"
+    )
     assert (repo / "m.py").read_bytes() == before
+
+
+def test_a_RELATIVE_into_does_not_refuse_every_page(tmp_path, monkeypatch):
+    """CRITICAL, measured 2026-08-25: `_one` compared `(into / rel).resolve()`
+    -- absolute -- against an UNRESOLVED `into`, so with `into =
+    Path("out_rel")` every page refused at step `draft` with "would be written
+    outside the draft directory". `commands/proof.py` resolves before calling,
+    which hid it; `run` is a flow anyone may call and its docstring said only
+    "Created if absent"."""
+    repo, binder, _ = _tree(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    drafted, refused = proof_setter.run(
+        {address(binder, "m.py"): "# REPLACED"}, binder, repo, Path("out_rel")
+    )
+    assert refused == []
+    assert len(drafted) == 1
+    assert (tmp_path / "out_rel" / "m.py").exists()
 
 
 def test_a_refusal_NAMES_ITS_STEP(tmp_path):
@@ -72,9 +153,8 @@ def test_ONE_FILES_REFUSAL_DRAFTS_NOTHING_FOR_ANY_FILE(tmp_path):
     page_m = build(SAMPLE, "m.py")
     page_n = build(SAMPLE, "n.py")
     binder = bind([page_m, page_n])
-    cue = next(c for c in by_cue(page_m) if c.startswith("b"))
     into = tmp_path / "out"
-    notations = {f"m.py@{cue}": "# REPLACED", "n.py@b99": "# bad"}
+    notations = {address(binder, "m.py"): "# REPLACED", "n.py@b99": "# bad"}
     drafted, refused = proof_setter.run(notations, binder, repo, into)
     assert drafted == []
     assert len(refused) == 1
@@ -94,15 +174,11 @@ def test_TWO_PAGES_SHARING_A_BASENAME_do_not_collide(tmp_path):
     (repo / "pkg" / "b").mkdir(parents=True)
     (repo / "pkg" / "a" / "util.py").write_text(SAMPLE, encoding="utf-8", newline="")
     (repo / "pkg" / "b" / "util.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    page_a = build(SAMPLE, "pkg/a/util.py")
-    page_b = build(SAMPLE, "pkg/b/util.py")
-    binder = bind([page_a, page_b])
-    cue_a = next(c for c in by_cue(page_a) if c.startswith("b"))
-    cue_b = next(c for c in by_cue(page_b) if c.startswith("b"))
+    binder = bind([build(SAMPLE, "pkg/a/util.py"), build(SAMPLE, "pkg/b/util.py")])
     into = tmp_path / "out"
     notations = {
-        f"pkg/a/util.py@{cue_a}": "# FROM A",
-        f"pkg/b/util.py@{cue_b}": "# FROM B",
+        address(binder, "pkg/a/util.py"): "# FROM A",
+        address(binder, "pkg/b/util.py"): "# FROM B",
     }
     drafted, refused = proof_setter.run(notations, binder, repo, into)
     assert refused == []
@@ -128,13 +204,11 @@ def test_a_rel_that_ESCAPES_into_is_REFUSED(tmp_path):
     before = escaped_file.read_bytes()
 
     rel = "../escape_repo/sub/util.py"
-    page = build(SAMPLE, rel)
-    binder = bind([page])
-    cue = next(c for c in by_cue(page) if c.startswith("b"))
+    binder = bind([build(SAMPLE, rel)])
     into = tmp_path / "out"
 
     drafted, refused = proof_setter.run(
-        {f"{rel}@{cue}": "# REPLACED"}, binder, repo, into
+        {address(binder, rel): "# REPLACED"}, binder, repo, into
     )
 
     assert drafted == []
@@ -155,11 +229,7 @@ def test_an_EXCEPTION_removes_earlier_drafts_and_still_propagates(
     repo.mkdir()
     (repo / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
     (repo / "n.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    page_m = build(SAMPLE, "m.py")
-    page_n = build(SAMPLE, "n.py")
-    binder = bind([page_m, page_n])
-    cue_m = next(c for c in by_cue(page_m) if c.startswith("b"))
-    cue_n = next(c for c in by_cue(page_n) if c.startswith("b"))
+    binder = bind([build(SAMPLE, "m.py"), build(SAMPLE, "n.py")])
     into = tmp_path / "out"
 
     real_write_text = Path.write_text
@@ -173,11 +243,78 @@ def test_an_EXCEPTION_removes_earlier_drafts_and_still_propagates(
 
     # "m.py" sorts before "n.py", so it drafts first and succeeds before the
     # second page's write raises.
-    notations = {f"m.py@{cue_m}": "# REPLACED", f"n.py@{cue_n}": "# REPLACED"}
+    notations = {
+        address(binder, "m.py"): "# REPLACED",
+        address(binder, "n.py"): "# REPLACED",
+    }
     with pytest.raises(PermissionError):
         proof_setter.run(notations, binder, repo, into)
 
     assert list(into.iterdir()) == []
+
+
+def test_an_EXCEPTION_AFTER_THE_WRITE_removes_the_draft_that_raised(
+    tmp_path, monkeypatch
+):
+    """IMPORTANT, measured 2026-08-25: `run`'s cleanup unlinks what is in
+    `drafted`, and the page being written is not in it yet. `_one` writes the
+    target and THEN calls `_reread` and `_prove`; a raise from either left
+    `<into>/<rel>` on disk while `run`'s docstring said every draft this run
+    wrote is removed. The existing regression test exercises only `write_text`
+    itself failing -- the one case where nothing was written."""
+    repo, binder, _ = _tree(tmp_path)
+    into = tmp_path / "out"
+
+    def failing_reread(*args, **kwargs):
+        raise RuntimeError("simulated: a step past the write raised")
+
+    monkeypatch.setattr(proof_setter, "_reread", failing_reread)
+
+    with pytest.raises(RuntimeError):
+        proof_setter.run({address(binder, "m.py"): "# REPLACED"}, binder, repo, into)
+
+    assert list(into.rglob("*.py")) == []
+
+
+class TestPageOfReturnsEveryRefusalItPromises:
+    """`page_of`'s docstring promises `(page, "")` or `(None, reason)`.
+
+    IMPORTANT, measured 2026-08-25: it caught only `exceptions.READ_ERRORS`
+    while `page_for` also raises `exceptions.Refused`, so such a file took
+    `proof_setter.run` down with a raw traceback. All five inline sites this
+    function consolidates handle it -- `results/compositor.py` catches
+    `Refused`, `commands/census.py` catches a bare `Exception`."""
+
+    def test_page_for_DOES_raise_Refused(self):
+        """! The handler below is not written for a hypothetical. This reads
+        the raise sites out of the module rather than asserting they exist."""
+        text = (PKG / "binder" / "page.py").read_text(encoding="utf-8")
+        assert text.count("raise exceptions.Refused") == 2
+
+    def test_a_Refused_comes_back_as_a_REASON(self, tmp_path, monkeypatch):
+        def refusing_page_for(*args, **kwargs):
+            raise exceptions.Refused("b0: a `c` place whose anchor has no line")
+
+        monkeypatch.setattr(page_for_mod, "page_for", refusing_page_for)
+        path = tmp_path / "m.py"
+        path.write_text(SAMPLE, encoding="utf-8", newline="")
+
+        page, why = page_for_mod.page_of(path, rel="m.py")
+        assert page is None
+        assert "anchor has no line" in why
+
+    def test_a_Refused_REFUSES_THE_RUN_instead_of_escaping(self, tmp_path, monkeypatch):
+        repo, binder, _ = _tree(tmp_path)
+
+        def refusing_page_for(*args, **kwargs):
+            raise exceptions.Refused("b0: a `c` place whose anchor has no line")
+
+        monkeypatch.setattr(page_for_mod, "page_for", refusing_page_for)
+        drafted, refused = proof_setter.run(
+            {address(binder, "m.py"): "# REPLACED"}, binder, repo, tmp_path / "out"
+        )
+        assert drafted == []
+        assert refused[0].step == "read"
 
 
 class TestTheFileMustBeTheONEThatWasReviewed:
@@ -187,41 +324,38 @@ class TestTheFileMustBeTheONEThatWasReviewed:
     See TODO/reviewers-are-not-read-only.md."""
 
     def test_a_ONE_BYTE_edit_since_the_binder_refuses(self, tmp_path):
-        repo, binder, page = _tree(tmp_path)
-        cue = next(c for c in by_cue(page) if c.startswith("b"))
+        repo, binder, _ = _tree(tmp_path)
         (repo / "m.py").write_text(SAMPLE + "\n", encoding="utf-8", newline="")
         drafted, refused = proof_setter.run(
-            {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
+            {address(binder, "m.py"): "# REPLACED"}, binder, repo, tmp_path / "out"
         )
         assert drafted == []
         assert refused[0].step == "verify"
 
     def test_NO_DRAFT_is_written_when_the_sha_disagrees(self, tmp_path):
-        repo, binder, page = _tree(tmp_path)
-        cue = next(c for c in by_cue(page) if c.startswith("b"))
+        repo, binder, _ = _tree(tmp_path)
         (repo / "m.py").write_text(SAMPLE + "\n", encoding="utf-8", newline="")
         into = tmp_path / "out"
-        proof_setter.run({f"m.py@{cue}": "# REPLACED"}, binder, repo, into)
+        proof_setter.run({address(binder, "m.py"): "# REPLACED"}, binder, repo, into)
         assert list(into.iterdir()) == []
 
     def test_an_UNCHANGED_file_passes(self, tmp_path):
-        repo, binder, page = _tree(tmp_path)
-        cue = next(c for c in by_cue(page) if c.startswith("b"))
+        repo, binder, _ = _tree(tmp_path)
         drafted, refused = proof_setter.run(
-            {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
+            {address(binder, "m.py"): "# REPLACED"}, binder, repo, tmp_path / "out"
         )
         assert refused == [] and len(drafted) == 1
 
 
 def test_the_drafted_FILE_holds_each_notation_at_its_cue(tmp_path):
-    repo, binder, page = _tree(tmp_path)
-    cue = next(c for c in by_cue(page) if c.startswith("b"))
+    repo, binder, _ = _tree(tmp_path)
+    where = address(binder, "m.py")
     drafted, refused = proof_setter.run(
-        {f"m.py@{cue}": "# REPLACED"}, binder, repo, tmp_path / "out"
+        {where: "# REPLACED"}, binder, repo, tmp_path / "out"
     )
     assert refused == []
     again = build(drafted[0].draft.read_text(encoding="utf-8"))
-    assert by_cue(again)[cue].raw_lines == ["# REPLACED"]
+    assert by_cue(again)[cue_of(where).cue].raw_lines == ["# REPLACED"]
 
 
 class TestOnlyCommentsChange:
@@ -244,10 +378,12 @@ class TestOnlyCommentsChange:
     """
 
     def test_an_ordinary_comment_change_PASSES(self, tmp_path):
-        repo, binder, page = _tree(tmp_path)
-        cue = next(c for c in by_cue(page) if c.startswith("b"))
+        repo, binder, _ = _tree(tmp_path)
         drafted, refused = proof_setter.run(
-            {f"m.py@{cue}": "# still a comment"}, binder, repo, tmp_path / "out"
+            {address(binder, "m.py"): "# still a comment"},
+            binder,
+            repo,
+            tmp_path / "out",
         )
         assert refused == [] and len(drafted) == 1
 

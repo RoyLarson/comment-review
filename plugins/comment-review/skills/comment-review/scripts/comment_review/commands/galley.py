@@ -96,6 +96,20 @@ def main() -> int:
         )
         return 2
 
+    # !! THE SHA THE CENSUS RECORDED, PER PAGE. Measured 2026-08-25: this
+    # command asked NOTHING about staleness. Censusing a file, renaming
+    # `def f():` to `def RENAMED():` and running `--census <the old one>`
+    # placed every edit by cue, wrote the galley and printed
+    # `1 page(s) set, 0 edit(s) refused` at exit 0 -- the cues had shifted onto
+    # different code and nothing compared. The `drifted` mechanism that used to
+    # ask it, paragraph by paragraph, was removed with the line arithmetic; the
+    # one comparison that replaces it is the recorded sha against the sha the
+    # file reads at now, which is what `flows/proof_setter.py` makes. This
+    # command never calls that flow, so it makes the same comparison itself.
+    recorded = {
+        str(page.get("path", "")): str(page.get("sha", ""))
+        for page in census.get("pages", [])
+    }
     # ! Which page each address is on comes from the CENSUS, which is the only
     # thing that knows -- an address names a place, and the page it sits on is
     # the record's to state.
@@ -148,6 +162,21 @@ def main() -> int:
             refused += len(file_edits)
             continue
         page = page_for(source_path, text, lang, rel=rel, sha=source.sha)
+
+        # !! AN ABSENT RECORDED SHA REFUSES; IT DOES NOT PASS. `not was` is the
+        # first clause for the reason `flows/proof_setter.py:_one` gives at the
+        # same comparison: a census page carrying no sha would otherwise compare
+        # "" against a real hash, and a shape that dropped the field would turn
+        # this gate off silently rather than loudly.
+        was = recorded.get(rel, "")
+        if not was or page.sha != was:
+            print(
+                f"REFUSED  {rel}: the file has changed since it was censused"
+                f" -- censused at {was or '<nothing recorded>'}, reads now as"
+                f" {page.sha}"
+            )
+            refused += len(file_edits)
+            continue
 
         problems = reset(page, file_edits)
         if problems:

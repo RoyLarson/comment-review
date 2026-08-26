@@ -30,6 +30,19 @@ def page_of(path: Path, rel: str | None = None) -> tuple[Page | None, str]:
     ! A REFUSAL IS RETURNED, NOT RAISED, in the shape `binder.read` and
     `notations.read` already use: `(page, "")` or `(None, reason)`.
 
+    !! THAT COVERS `exceptions.Refused` TOO, and it did not until 2026-08-25.
+    `page_for` raises it at `binder/page.py:521` and `:578` -- a `c` place whose
+    anchor has no line, and a series with no branch -- and every one of the five
+    inline sites this consolidates handles it: `results/compositor.py` catches
+    `Refused`, `commands/census.py:202` catches a bare `Exception`. Catching
+    only `READ_ERRORS` here made this function narrower than the code it
+    replaced, so such a file took `proof_setter.run` down with a traceback while
+    this docstring promised a reason.
+
+    ! A `Refused` IS A `ValueError`, so it is caught by name rather than by
+    class ordering -- the tuple rule forbids an `except` holding a literal, and
+    a bound name is what `exceptions` exists to supply.
+
     ! REPOINTING THE OTHER FIVE SITES IS NOT THIS BRANCH'S -- it touches the
     census, the galley CLI, both compositor gates and `render_page.py`. Filed
     as `TODO/no-step-produces-a-page.md` rather than widened here.
@@ -49,4 +62,7 @@ def page_of(path: Path, rel: str | None = None) -> tuple[Page | None, str]:
     lang = language_for(path)
     if lang is None:
         return None, "no language record for its suffix"
-    return page_for(path, source.text, lang, rel=rel, sha=source.sha), ""
+    try:
+        return page_for(path, source.text, lang, rel=rel, sha=source.sha), ""
+    except exceptions.Refused as e:
+        return None, f"has no page ({e})"
