@@ -28,6 +28,27 @@ Updated:  2026-08-25 — DIRECTION FROM ROY, 2026-08-25, and it corrects how thi
           scripts/render_page.py --show margin. The two are complements: the map lets an
           agent NAME a cue it can see, the CLI lets one ASK for a cue it can only
           describe by anchor.
+Updated:  2026-08-25 — THREE MORE CORRECTIONS FROM ROY, 2026-08-25. FIRST, --check IS
+          NOT THIS COMMAND'S ROLE. Its question -- does every address in this binder
+          still resolve -- compares a saved artifact against the file now, which is
+          verification, not lookup. It leaves. SECOND, THE NAME commands/addresser IS
+          BAD. Roy: commands/look_up_address, maybe a little long but it is specific.
+          The module is named for the machinery it fronts rather than for the question
+          it answers, and the machinery is reading/addresser, which is a different
+          thing. THIRD, AND IT IS ITS OWN DEFECT CLASS: the docstring line -- this
+          module reads no source file, the census is the only input -- was WRONG TO
+          WRITE, not merely wrong now. Roy: It implied a constraint that the system HAD
+          to live by instead of a constraint that the code was written to because the
+          system was available. The sentence was TRUE and still wrong. It described what
+          the code did and read as a rule about what the code MAY do, so when the row
+          cut removed the only positions that module could see, the honest fix was to
+          read the page and the docstring said that was out of bounds. Recorded as
+          decision-log.md Process #29. THE SHAPE OF THE REBUILD, from the code:
+          commands/look_up_address parses, flows/page_for.page_of produces the page, and
+          Cues answers -- above(line) and beside(line) ARE the inverse lookup for series
+          b and c, documents(ordinal) for a, file_places() for f, with anchor_of,
+          anchor_line and gap_bounds supplying the rest of the record. Nothing new is
+          needed. The binder dropped 91 percent of places; the PAGE never did.
 ```
 
 ## Objective

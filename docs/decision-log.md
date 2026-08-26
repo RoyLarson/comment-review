@@ -671,3 +671,24 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   human. **PROVISIONAL**: the second run -- after a human edit, before it is taken as final --
   belongs to the human-review/human-edit/machine-review/machine-copy workflow this branch does
   not build; see `flows/proof_setter.py`'s own docstring: *"IT STOPS AT THE TEMPORARY FILE."*
+
+- **#29.** **A DESCRIPTION MUST NOT BE WRITTEN AS A CONSTRAINT** (Roy, 2026-08-25, on
+  `commands/addresser.py`'s *"This module reads no source file -- the census is the only
+  input"*: *"It was WRONG for the agent to put it in there. It implied a constraint that the
+  system HAD to live by instead of a constraint that the code was written to because the system
+  was available"*).
+
+  !! **THE SENTENCE WAS TRUE AND STILL WRONG**, which is what makes this its own defect class.
+  It described what the code did; it read as a rule about what the code MAY do. So when the
+  eleven-field row cut removed `anchor_line` and `anchor_num` from the row -- the only positions
+  that module could see -- the honest fix was to read the page, and the docstring said that was
+  out of bounds. **A description phrased as a rule fences off work that was never fenced.**
+
+  ! **IT IS THE SIBLING OF THE COST CLAIM `CLAIM.md` ALREADY WARNS ABOUT** -- *"a claim about the
+  COST of a change, which is the kind that invites someone to make the change and discover the
+  cost."* That one invites a wasted attempt; this one prevents an attempt that should have been
+  made. Both are prose that no gate can see, because both are TRUE of the code as written.
+
+  ! **THE TELL IS THE MOOD.** *"This module reads no source file"* is a fact. *"the census is the
+  only input"* is a rule. Write what the code DOES and why it was enough; if something genuinely
+  may not happen, say what forbids it and where that was decided.
