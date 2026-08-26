@@ -7,6 +7,21 @@ Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while giving Page a sha during the write-
           chain branch)
+Updated:  2026-08-25 — A SECOND BUG, MEASURED 2026-08-25, and fixing the imports alone
+          would not reveal it. rows() at :162 shells out to plugins/comment-
+          review/skills/comment-review/scripts/census.py, a path the 2026-08-24 build
+          move deleted. The subprocess exits 2 with cannot open file, stdout is empty,
+          and rows() returns done.stdout WITHOUT CHECKING THE RETURN CODE. The tool then
+          prints rows 0 bytes 0 percent of the file. THAT IS THE ARM THE OTHER TWO ARE
+          MEASURED AGAINST, so the whole comparison reads against zero. Confirmed by
+          repairing the imports in a scratch COPY and running it: margin and prose
+          rendered correctly at 343 and 313 bytes, rows reported 0. ! THE SHELL-OUT
+          ITSELF IS RIGHT AND ITS DOCSTRING SAYS WHY -- reproducing the census format
+          here would be a second implementation of the artifact being measured, and the
+          untested one would be ours. Fix the path and the silence, not the approach. !
+          AND THE SCRIPT ALWAYS EXITS 0 BY DESIGN because it is an input to a ruling
+          rather than a gate. That governs the SCRIPT's exit code. It does not license
+          printing a measurement that did not happen.
 ```
 
 ## Objective
