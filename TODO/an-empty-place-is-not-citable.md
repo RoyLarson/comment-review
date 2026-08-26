@@ -49,6 +49,27 @@ Updated:  2026-08-25 — THREE MORE CORRECTIONS FROM ROY, 2026-08-25. FIRST, --c
           b and c, documents(ordinal) for a, file_places() for f, with anchor_of,
           anchor_line and gap_bounds supplying the rest of the record. Nothing new is
           needed. The binder dropped 91 percent of places; the PAGE never did.
+Updated:  2026-08-25 — CORRECTION, 2026-08-25, and it is mine. I wrote that --check
+          genuinely wants the census because its question is whether every address in
+          this binder still resolves -- a comparison between a saved artifact and the
+          file now. THAT IS NOT WHAT IT DOES. _check reads rows and never opens the
+          file. It asks two things: UNADDRESSED, meaning the census cannot name the
+          place at all, and SHARED, meaning two paragraphs answer to one address.
+          Neither compares anything against the file. Roy: that is the sha and the
+          prove-unchanged roles, the addresser doesn't need it. Both halves of that
+          hold. The staleness question I invented for --check is answered by the sha in
+          ONE comparison before anything is parsed, which is the same argument that
+          retired galley.drifted. And the question --check actually asks is whether the
+          ADDRESSING is self-consistent, which is a property of the addresser's own
+          output and not a lookup command's business. WHERE IT GOES IS NOT DECIDED HERE.
+          Under the new shape the lookup reads a PAGE, and a page cannot produce a
+          shared address if the addresser is correct -- so the check belongs with the
+          addressing machinery or as a gate over it, if it is kept at all. NOTE ITS OWN
+          DOCSTRING MAY HAVE RETIRED HALF OF IT: SHARED is now a fault too, and the one
+          shape that produced it is fixed -- a licence header and the run below the
+          module docstring both answered to b0, and b0 is now the file's own front
+          matter alone. If that was the only construction, SHARED can no longer fail.
+          Worth measuring before anyone ports it.
 ```
 
 ## Objective
