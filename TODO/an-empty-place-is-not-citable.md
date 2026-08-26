@@ -7,6 +7,27 @@ Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
           branch)
+Updated:  2026-08-25 — DIRECTION FROM ROY, 2026-08-25, and it corrects how this file
+          framed the fix. The fix is NOT to put empty places back in the binder -- the
+          row cut stands. It is to REIMPLEMENT THE CLI to find an empty place from
+          several sources: anchor_num, anchor_line, original_line and cue. What it
+          returns is a RECORD, not just an address, so an agent can generate the
+          verdict, the copy chief can make a notation from it, and the proof-setter
+          carries that into the flow. WHAT THIS MEANS CONCRETELY: anchor_num and
+          anchor_line are alive and correct -- they are methods on Cues, called today by
+          binder/page.py and scripts/render_page.py. The CLI cannot reach them because
+          it never builds a page, and its own docstring states that as a choice: this
+          module reads no source file, the census is the only input. That was sufficient
+          while rows carried anchor_line and anchor_num; since the eleven-field cut it
+          is what makes the CLI blind. So the requires-Roy question this file asked --
+          whether the addresser needs the repo as well as the census -- is ANSWERED: it
+          resolves from the page. AND THERE IS A SECOND, MORE DIRECT ANSWER. Roy: the
+          other important script was the little map with the cue on each line so that
+          the agents could read the map and directly ask for or state the cue they
+          wanted instead of looking for it by those indirect ways. That is
+          scripts/render_page.py --show margin. The two are complements: the map lets an
+          agent NAME a cue it can see, the CLI lets one ASK for a cue it can only
+          describe by anchor.
 ```
 
 ## Objective
