@@ -669,7 +669,10 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         again = build(drafted[0].draft.read_text(encoding="utf-8"))
         assert not any(line.strip() for line in by_cue(again)[where].raw_lines)
 
-    @pytest.mark.parametrize("where", sorted(ABSENT - DOCSTRING - {"b4"}))
+    # ! `b4` WAS EXCLUDED HERE UNTIL 2026-08-26, because the closing gap and the
+    # back matter shared the foot of the file. The trailing leading separates
+    # them, so the matrix is every absent place again.
+    @pytest.mark.parametrize("where", sorted(ABSENT - DOCSTRING))
     def test_an_ADD_reaches_a_draft_at_every_absent_place(self, tmp_path, where):
         drafted, refused = self._run(tmp_path, {f"m.py@{where}": ADDED[where[0]]})
         assert refused == []
@@ -686,15 +689,27 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         assert refused == []
         assert drafted[0].draft.read_text(encoding="utf-8").endswith("# ADDED\n")
 
-    def test_b4_AND_f1_COMPOSE_THE_SAME_BYTES(self):
-        """! So the galley and the compositor are not what refuse `b4`: the
-        draft it produces is the draft `f1` produces, byte for byte. What
-        differs is which of the two co-located places the READER gives the
-        prose back at."""
+    def test_b4_AND_f1_NO_LONGER_COMPOSE_THE_SAME_BYTES(self):
+        """!! THEY DID UNTIL 2026-08-26, and that was the whole collision: the
+        galley and the compositor were not what refused `b4` -- the draft it
+        produced was byte-for-byte the draft `f1` produced, so only the READER
+        decided which of the two co-located places gave the prose back, and it
+        always said `f1`.
+
+        ! WHAT SEPARATES THEM is a trailing leading below the closing gap, so
+        its run no longer ends on the last line and is no longer back matter.
+        The back matter keeps the foot; the gap sits above the blank.
+        """
         at_gap, at_matter = build(SAMPLE), build(SAMPLE)
         assert galley.reset(at_gap, {"b4": "# ADDED"}) == []
         assert galley.reset(at_matter, {"f1": "# ADDED"}) == []
-        assert compositor.set_page(at_gap) == compositor.set_page(at_matter)
+        gap, matter = compositor.set_page(at_gap), compositor.set_page(at_matter)
+        assert gap != matter
+        assert gap.endswith("# ADDED\n\n")
+        assert matter.endswith("# ADDED\n")
+        # ! AND EACH COMES BACK AT ITS OWN CUE, which is the claim that matters.
+        assert by_cue(build(gap))["b4"].raw_lines == ["# ADDED"]
+        assert by_cue(build(matter))["f1"].raw_lines == ["# ADDED"]
 
     def test_a_docstring_DROP_is_STILL_REFUSED_at_prove(self, tmp_path):
         """!! NOT FIXED IN THIS WAVE, AND DELIBERATELY. MEASURED 2026-08-25:
@@ -732,19 +747,23 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
             assert refused[0].step == "prove", where
             assert "not what it was" in refused[0].why
 
-    def test_an_ADD_at_b4_REFUSES_AND_NAMES_THE_PLACE_THAT_HOLDS_IT(self, tmp_path):
-        """IMPORTANT, measured 2026-08-25: the refusal read `b4: holds [], was
-        given ['# ADDED']` and named neither the collision nor `f1`. It still
-        refuses -- reading the notation as satisfied because the text is
-        SOMEWHERE would be the verification step agreeing with the edit step
-        instead of checking it -- but a caller can now act on it. Which of the
-        two places owns prose at the foot of a file is a page-model ruling:
-        `TODO/two-places-name-the-foot-of-a-file.md`."""
+    def test_an_ADD_at_b4_NOW_REACHES_A_DRAFT_AT_ITS_OWN_PLACE(self, tmp_path):
+        """!! IT REFUSED UNTIL 2026-08-26, and the refusal was right about the
+        page rather than about the notation: `b4` and `f1` are emitted at the
+        same `<eof>` trigger, so prose set at the closing gap came back at the
+        back matter and `reread` reported `f1 holds it`.
+
+        Roy: *"still the same rule as the frontmatter in reverse."* Matter is
+        the run that STARTS on line 1 or ENDS on the last one, so the blank that
+        pushes a gap clear of it goes BEFORE at the head and AFTER at the foot.
+        The compositor sets a trailing leading below an added closing gap, and
+        the two places separate.
+        """
         drafted, refused = self._run(tmp_path, {"m.py@b4": "# ADDED"})
-        assert drafted == []
-        assert len(refused) == 1
-        assert refused[0].step == "reread"
-        assert "f1 holds it" in refused[0].why
+        assert refused == []
+        assert len(drafted) == 1
+        again = build(drafted[0].draft.read_text(encoding="utf-8"))
+        assert by_cue(again)["b4"].raw_lines == ["# ADDED"]
 
 
 class TestOnlyCommentsChange:

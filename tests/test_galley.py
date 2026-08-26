@@ -220,15 +220,14 @@ class TestAddToAnAbsentPlace:
         otherwise the write chain refuses its own draft at `reread`, which is
         how `b0` was found.
 
-        ! `b4` IS THE KNOWN EXCEPTION and is xfailed rather than asserted: the
-        closing gap and `f1` are emitted at the same `<eof>` trigger, so prose
-        set at either comes back at `f1`. That is
-        `TODO/foot-of-file-two-places.md` -- backend, awaiting a ruling -- and
-        no leading can separate them, because back matter is the run AFTER the
-        last blank.
+        !! THE CLOSING GAP IS IN THIS MATRIX, and it was xfailed for one commit.
+        `b4` and `f1` are emitted at the same `<eof>` trigger, so prose set at
+        either came back at `f1` -- `TODO/foot-of-file-two-places.md`. Roy,
+        2026-08-26: *"still the same rule as the frontmatter in reverse."* Matter
+        is the run that STARTS on line 1 or ENDS on the last one, so the blank
+        that pushes a gap out of it goes BEFORE at the head and AFTER at the
+        foot. The exemption was the mirror image of the fix.
         """
-        if cue == "b4":
-            pytest.xfail("foot-of-file-two-places.md: b4 and f1 share <eof>")
         reset(sample, {cue: REPLACEMENT[series]})
         reread = by_cue(build(set_page(sample)))
         assert cue in reread

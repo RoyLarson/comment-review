@@ -2,10 +2,27 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 3 tasks done
+Progress: 3 of 3 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-25 (xhigh wave C on feat/the-write-chain-of-command, finding 5)
+Updated:  2026-08-26 — RULED and CLOSED. Roy, 2026-08-26: "still the same rule as the
+          frontmatter in reverse." Matter is the run that STARTS on line 1 or ENDS on
+          the last line, so the blank that pushes a gap clear of it goes BEFORE at the
+          head and AFTER at the foot. The compositor sets a trailing leading below a
+          closing gap it is filling, and the two places separate: the back matter keeps
+          the foot, the gap sits above the blank. THE QUESTION WAS MIS-FRAMED -- it
+          asked which of the two owns prose at the foot and assumed one had to lose. The
+          answer is both, so task 2 is SUPERSEDED rather than done: there is no losing
+          place to unemit or refuse. MEASURED: "...return y\n# ADDED\n" and "...return
+          y\n\n# ADDED\n" both re-read at f1; "...return y\n# ADDED\n\n" re-reads at the
+          closing gap. A leading BEFORE the closing gap was the mirror image of the fix
+          and moved nothing -- an earlier attempt exempted the foot on that measurement
+          and called the collision unsolvable. Pinned by
+          test_an_ADD_at_b4_NOW_REACHES_A_DRAFT_AT_ITS_OWN_PLACE and
+          test_b4_AND_f1_NO_LONGER_COMPOSE_THE_SAME_BYTES, and b4 is back in the every-
+          absent-place matrix it had been excluded from. decision-log.md Addressing:
+          #19.
 ```
 
 ## Objective
@@ -56,9 +73,9 @@ and neither is demoting `f1`.
 
 ## Tasks
 
-- [ ] Rule which of the closing gap and the back matter owns prose at the foot of
+- [x] Rule which of the closing gap and the back matter owns prose at the foot of
       a file, and record it in docs/decision-log.md
-- [ ] Make the losing place either unemitted or refusable at the EDIT step, so an
+- [x] Make the losing place either unemitted or refusable at the EDIT step, so an
       add there does not reach reread
-- [ ] Pin the ruling with a test: an add at the foot reaches a draft, and the
+- [x] Pin the ruling with a test: an add at the foot reaches a draft, and the
       address it must be cited at is the one the ruling names

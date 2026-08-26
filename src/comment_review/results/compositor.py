@@ -261,14 +261,21 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # not have frontmatter will disappear on an automatic format run like
         # ruff or black."* Suppressing it there is what left `b0` re-reading as
         # `f0` -- the defect this rule exists to close.
-        if (
-            prose
-            and not edge
-            and cue.startswith(GAP)
-            and cue in absent
-            and at < last_code
-        ):
+        #
+        # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE. Roy, 2026-08-26: *"still
+        # the same rule as the frontmatter in reverse."* Matter is the run that
+        # STARTS on line 1 or ENDS on the last one, so what pushes a gap out of
+        # it is a blank BEFORE at the head and a blank AFTER at the foot. !
+        # MEASURED: `...return y\n# ADDED\n` and `...return y\n\n# ADDED\n` both
+        # re-read at `f1`; `...return y\n# ADDED\n\n` re-reads at the closing
+        # gap. A leading before the closing gap was the mirror image of the fix
+        # and moved nothing.
+        adding_a_gap = bool(prose) and cue.startswith(GAP) and cue in absent
+        if adding_a_gap and not edge and at < last_code:
             out.append("")
+        # ! OWED UNTIL THE PROSE IS SET, which is why it is held rather than
+        # written here -- the blank belongs BELOW the paragraph.
+        trailing = adding_a_gap and at > last_code and not edges.get(cue)
         previous = cue
         # ! A `c` IS NEVER EMPTY IN THIS SENSE -- it sets its line of code
         # whether or not anything sits beside it.
@@ -284,6 +291,8 @@ def set_page(page: Page, newline: str | None = None) -> str:
             out.extend(prose[1:])
             continue
         out.extend(prose)
+        if trailing:
+            out.append("")
     # ! THE CLOSING EDGE. A file ending in blank lines has leading below its last
     # place, which the loop cannot reach -- it sets the space BEFORE each place,
     # so the last place's own edge is still owed when the walk runs out.

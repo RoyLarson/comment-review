@@ -302,11 +302,25 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   saying absence, which is also what makes the rule fire once per add rather than once per
   compose.
 
-  ! **THE CLOSING GAP IS EXEMPT.** Back matter is the run AFTER the last blank, so a leading above
-  an added closing `b` pushes it INTO the matter it was meant to stay clear of -- measured, `b4`
-  with a leading still re-reads at `f1`. That collision is `TODO/foot-of-file-two-places.md` and
-  is not this rule's to solve. ! `f0` and `f1` take no leading: both round trip flush, because the
-  matter series is defined by the file's edges rather than by what sits beside it.
+  !! **AND AT THE FOOT THE LEADING GOES ON THE OTHER SIDE** (Roy, 2026-08-26: *"still the same
+  rule as the frontmatter in reverse."*). Matter is the run that STARTS on line 1 **or ENDS on the
+  last line**, so what pushes a gap clear of it is a blank BEFORE at the head and a blank AFTER at
+  the foot.
+
+  ! **A LEADING BEFORE THE CLOSING GAP WAS THE MIRROR IMAGE OF THE FIX AND MOVED NOTHING.**
+  MEASURED: `...return y\n# ADDED\n` and `...return y\n\n# ADDED\n` both re-read at `f1`;
+  `...return y\n# ADDED\n\n` re-reads at the closing gap. The first attempt exempted the closing
+  gap on that measurement and called the collision unsolvable -- it was solvable, in the direction
+  the ruling already named.
+
+  !! **THIS CLOSES `TODO/foot-of-file-two-places.md`**, which had asked for a ruling on *which* of
+  the closing gap and the back matter owns prose at the foot. **The answer is both**, and the
+  question was mis-framed: it assumed one had to lose. The back matter keeps the foot; the gap
+  sits above the blank. ! Its second task -- make the losing place unemitted or refusable -- is
+  SUPERSEDED, because there is no losing place.
+
+  ! `f0` and `f1` take no leading: both round trip flush, because the matter series is defined by
+  the file's edges rather than by what sits beside it.
 
 ## Vocabulary
 
