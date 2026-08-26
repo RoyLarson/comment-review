@@ -133,7 +133,7 @@ def main() -> int:
         # which is the only handle it has. UNPLACED is kept for an entry nothing
         # can cite -- the fault this exit code is about.
         where = stable(paragraph) or str(paragraph.get("symbol", "")) or "UNPLACED"
-        print(f"{i:4d}  {where:<34} {paragraph.get('kind', '')}")
+        print(f"{i:4d}  {where:<34} {paragraph.get('cue', '')}")
     if missing:
         print(f"\n{len(missing)} entries could not be addressed:")
         for line in missing:
@@ -177,8 +177,8 @@ def _resolve_one(address: str, paragraphs: list[dict]) -> int:
         return 1
     for i in hits:
         paragraph = mine[i - 1]
-        span = f"{paragraph.get('start')}-{paragraph.get('end')}"
-        print(f"{real}:{span}\t{paragraph.get('kind', '')}")
+        span = f"{paragraph.get('original_start')}-{paragraph.get('original_end')}"
+        print(f"{real}:{span}\t{paragraph.get('cue', '')}")
     return 0
 
 
@@ -199,8 +199,8 @@ def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
         return 1
     for b in found:
         where = stable(b)
-        span = f"{b.get('start')}-{b.get('end')}"
-        print(f"{where}	{span}	{b.get('kind', '')}	{b.get('anchor', '')}")
+        span = f"{b.get('original_start')}-{b.get('original_end')}"
+        print(f"{where}	{span}	{b.get('cue', '')}	{b.get('anchor', '')}")
     # !! AN ANCHOR HAS MANY ADDRESSES, so this direction is not a lookup that
     # returns one. Roy, 2026-08-19, on two identical statements in one file:
     # *"for the addresses this is still exact -- for looking up the anchors to
@@ -261,8 +261,8 @@ def _check(paragraphs: list[dict]) -> int:
             where = stable(paragraph)
             if where and len(resolve(where, mine)) > 1:
                 shared.setdefault(where, []).append(
-                    f"{paragraph.get('start')}-{paragraph.get('end')}"
-                    f" {paragraph.get('kind', '')}"
+                    f"{paragraph.get('original_start')}-{paragraph.get('original_end')}"
+                    f" {paragraph.get('cue', '')}"
                 )
     for line in missing:
         print(f"UNADDRESSED  {line}")

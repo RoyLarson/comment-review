@@ -13,7 +13,7 @@ one is a different question, and it needs a census to answer.
 addresses, over a census -- and no trade word has been proposed for it.
 """
 
-from comment_review.reading.addresser import DECLARED, GAP, ON, cue_of
+from comment_review.reading.addresser import GAP, ON, cue_of
 
 
 def resolve(address: str, paragraphs: list[dict]) -> list[int]:
@@ -73,10 +73,6 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
         The matching entries, in census order.
     """
     mine = [b for b in paragraphs if str(b.get("anchor", "")) == anchor]
-    if series == DECLARED:
-        return [
-            b for b in mine if isinstance(b.get("declares"), int) and b["declares"] >= 0
-        ]
     # !! EVERY SERIES CARRIES THE SAME SPELLING: THE LINE OF CODE. An `a`, the
     # `b` above it and the `c` beside it all answer to `def f():`, never to `f`
     # -- the name is not carried at all. It was two spellings until 2026-08-19,
