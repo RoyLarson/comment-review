@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 6 tasks done
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while giving Page a sha during the write-
@@ -38,3 +38,8 @@ render_page.py imports flat module names the 2026-08-24 reorg removed.
       prose, rows
 - [ ] A gate that runs every script under scripts/ far enough to prove it imports.
       Verify: breaking one import turns it red
+- [ ] rows() checks the census subprocess return code and reports the measurement
+      as MISSING rather than printing 0 bytes. Verify: pointing it at a bad path
+      prints a failure, not a number
+- [ ] Point rows() at how the census is invoked now. Verify: all three renderings
+      report non-zero bytes over a real file
