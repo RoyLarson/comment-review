@@ -147,7 +147,7 @@ whole body forwards -- a standing invitation for a reader to file "this module
 does nothing." Roy: *"If the alias is forwarded you can drop the file and they
 have nothing to complain about."* The alias moved into `__main__.ALIASES`,
 which maps `"galley"` to `"proof"` and imports that module directly; the file
-is gone. To read it, `git show <COMMIT>:src/comment_review/commands/galley.py`.
+is gone. To read it, `git show 1119cb3~1:src/comment_review/commands/galley.py`.
 
 ## Constants that outlived their reader
 
