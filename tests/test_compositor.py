@@ -12,10 +12,18 @@ sacrifice rather than the property.
 """
 
 import pytest
-from conftest import SAMPLE, build, by_cue
+from conftest import REPLACEMENT, SAMPLE, build, by_cue
 
 from comment_review.machine import exceptions
 from comment_review.results.compositor import line_endings, set_page
+
+#: Every addressed place on the sample, and the subset holding prose. Discovered
+#: from the page rather than listed, so a change to the walk is visible here as
+#: a change in how many cases run.
+ALL_CUES = list(by_cue(build(SAMPLE)))
+FILLED_CUES = [
+    c for c, b in by_cue(build(SAMPLE)).items() if any(x.strip() for x in b.raw_lines)
+]
 
 #: Every shape worth putting through it. Each is a file some checkout really
 #: has; none has front matter below line 1.
@@ -35,6 +43,14 @@ FORMS = {
     "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
     "coding line": ("m.py", "# -*- coding: utf-8 -*-\nx = 1\n"),
     "shebang and docstring": ("m.py", '#!/usr/bin/env python\n"""D."""\nx = 1\n'),
+    # !! MATTER, A BLANK, THEN A GAP COMMENT -- the shape the two tiers
+    # disagreed about until 2026-08-26. The tokenized reader ran the comment run
+    # THROUGH the blank, so all three lines became one `matter` paragraph at
+    # `f0` and the gap comment lost its address; the lexical reader split it
+    # correctly. Roy: *"It is supposed to stop f0 at the first blank line."*
+    "matter then a gap comment": ("m.py", "#!/usr/bin/env python\n\n# note\nx = 1\n"),
+    "licence then a gap comment": ("m.py", "# (c) me\n\n# note\nx = 1\n"),
+    "matter, blank, two comments": ("m.py", "# (c) me\n\n# one\n# two\nx = 1\n"),
     "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
     "function no doc": ("m.py", "def f():\n    return 1\n"),
     "two functions": ("m.py", "def f():\n    return 1\n\n\ndef g():\n    return 2\n"),
@@ -161,24 +177,41 @@ class TestAnEditedPageStillComposes:
     """The write path end to end: read, change, set -- then read the result and
     confirm the change is where it was put."""
 
-    def test_the_composed_file_re_reads_with_the_text_AT_ITS_CUE(self, sample):
+    @pytest.mark.parametrize("cue", FILLED_CUES)
+    def test_the_composed_file_re_reads_with_the_text_AT_ITS_CUE(self, sample, cue):
         """! `any` OVER THE PAGE WAS THE ASSERTION UNTIL 2026-08-25, so text
-        landing at the WRONG cue passed. The cue is the whole claim."""
+        landing at the WRONG cue passed. The cue is the whole claim.
+
+        !! AND IT RAN ON ONE CUE UNTIL 2026-08-26 -- `next(...)` over the filled
+        `b` places, so ONE of the sample's fourteen was ever set back. Roy asked
+        for every cue position; a case that picks a representative can pick past
+        the one that is broken.
+        """
         from comment_review.results.galley import reset
 
-        cue = next(
-            c
-            for c, b in by_cue(sample).items()
-            if c.startswith("b") and any(x.strip() for x in b.raw_lines)
-        )
-        reset(sample, {cue: "# REPLACED"})
-        again = build(set_page(sample))
-        assert by_cue(again)[cue].raw_lines == ["# REPLACED"]
+        # !! THE INDENT IS THE PLACE'S, NOT THE SERIES'. One literal for the
+        # whole `a` series re-reads as a syntax error wherever it guesses wrong:
+        # measured 2026-08-26, the four-space `REPLACEMENT["a"]` put at `a0`
+        # made the composed file unparseable and EVERY cue disappeared. A module
+        # docstring sits at column 0 and a method's at four or eight. ! The same
+        # fact a notation has to carry --
+        # `TODO/a-notation-carries-its-own-indentation.md`.
+        first = by_cue(sample)[cue].raw_lines[0]
+        pad = first[: len(first) - len(first.lstrip())]
+        new = pad + REPLACEMENT["a"].lstrip() if cue[0] == "a" else REPLACEMENT[cue[0]]
 
-    def test_an_edited_page_is_still_a_fixed_point(self, sample):
+        reset(sample, {cue: new})
+        again = by_cue(build(set_page(sample)))
+        assert cue in again
+        assert any("REPLACED" in line for line in again[cue].raw_lines)
+
+    @pytest.mark.parametrize("cue", ALL_CUES)
+    def test_an_edited_page_is_still_a_fixed_point(self, sample, cue):
+        """Set, read back, set again -- the second pass must change nothing,
+        whichever place was emptied."""
         from comment_review.results.galley import reset
 
-        reset(sample, {next(iter(by_cue(sample))): None})
+        reset(sample, {cue: None})
         out = set_page(sample)
         assert set_page(build(out)) == out
 

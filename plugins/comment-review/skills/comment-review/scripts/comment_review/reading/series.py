@@ -61,6 +61,15 @@ class Kind(StrEnum):
     # !! THE FILE'S OWN PROSE, AS A PARAGRAPH TYPE. A licence header, a shebang
     # or a coding line is not an ordinary comment: it answers to the FILE and
     # not to any line of code.
+    #
+    # !! AND IT STOPS AT A BLANK, WHICH THIS COMMENT DID NOT SAY UNTIL
+    # 2026-08-26. Roy's ruling of 2026-08-21 has two halves and only the first
+    # was carried here: *"if the opening/closing line is a comment then the
+    # matter continues down/up until there is an empty line or the start/end of
+    # a docstring."* The `where it stops` half is the one that decides anything,
+    # and the tokenized reader did not implement it -- a shebang, a blank and a
+    # comment became ONE matter run, so the comment below the blank took `f0`
+    # and an `add` at `b0` re-read as `f0`. See `lexer.paragraphs_stdlib`.
     MATTER = "matter"
     DARK_MATTER = "dark-matter"
     # ! THE SPACE BETWEEN TWO PLACES. It answers to nothing -- every other

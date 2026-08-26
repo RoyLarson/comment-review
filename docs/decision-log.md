@@ -265,6 +265,49 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   that exists, and an empty string is a fact about a VALUE where the kind is a fact about the
   PLACE.
 
+- **#18.** **FRONT MATTER ENDS AT THE FIRST BLANK LINE, ON BOTH TIERS** (Roy, 2026-08-26: *"It is
+  supposed to stop f0 at the first blank line. That needs fixed."*). **NOT A NEW RULE -- the
+  restatement of one from 2026-08-21** that only half the code implemented: *"if the
+  opening/closing line is a comment then the matter continues down/up until there is an empty line
+  or the start/end of a docstring."*
+
+  ! **THE LEXICAL TIER HAD IT AND THE TOKENIZED TIER NEVER DID.** `end_run`'s `opens_file` split
+  the first run at a blank; `paragraphs_stdlib` skipped every `LAYOUT` token, so a comment run
+  survived blank lines outright -- its own comment said so as though it were the intent: *"A
+  COMMENT RUN SURVIVES LAYOUT AND IS ENDED BY ANYTHING ELSE."*
+
+  !! **MEASURED 2026-08-26:** a shebang, a blank and a comment tokenized as ONE run opening on
+  line 1, so the comment BELOW the blank was stamped `matter` and took `f0`. An `add` at `b0` then
+  re-read as `f0` and the write chain refused a draft it had just written. **The two tiers gave
+  different answers for the same file.**
+
+  ! **AND THE RULING'S OPERATIVE HALF HAD BEEN CUT FROM THE CODE.** `reading/series.py`'s `MATTER`
+  comment carried the *what* -- *"a licence header, a shebang or a coding line ... answers to the
+  FILE"* -- and not the *where it stops*. The full quotation survived only in
+  `prototype/original/lexer.py`. Same shape as `CLAUDE.md`'s own warning: a shortened quotation is
+  not a shorter rule.
+
+- **#19.** **THE COMPOSITOR SETS A LEADING BEFORE A `b` IT IS ADDING INTO AN EMPTY PLACE** (Roy,
+  2026-08-26: *"It needs to add the leading between before any b"*). ! **AN EDITORIAL DECISION,
+  RULED WITH ITS COST NAMED:** *"It may not be what all of the projects do but it is generally
+  enough and easy enough to implement and it looks good enough to most humans that I think it is a
+  justifiable editorial decision."* And on the file with no front matter, which then opens with a
+  blank: *"the leading on the first line for places that do not have frontmatter will disappear on
+  an automatic format run like ruff or black."*
+
+  !! **IT FIRES ON AN ABSENCE, NOT ON A MISSING LEADING.** Roy first proposed the second -- *"the
+  leading look up paragraph is not in there, which is admittedly backwards but that will tell"* --
+  and MEASURED it fires on a MODIFY and on an unedited compose too, because a `b` sitting flush
+  against its code owns no leading either. Three tests caught it. The gate is the PLACE's kind
+  saying absence, which is also what makes the rule fire once per add rather than once per
+  compose.
+
+  ! **THE CLOSING GAP IS EXEMPT.** Back matter is the run AFTER the last blank, so a leading above
+  an added closing `b` pushes it INTO the matter it was meant to stay clear of -- measured, `b4`
+  with a leading still re-reads at `f1`. That collision is `TODO/foot-of-file-two-places.md` and
+  is not this rule's to solve. ! `f0` and `f1` take no leading: both round trip flush, because the
+  matter series is defined by the file's edges rather than by what sits beside it.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is

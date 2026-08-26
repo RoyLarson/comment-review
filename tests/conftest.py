@@ -119,6 +119,18 @@ SAMPLE = (
 )
 
 
+#: A replacement that is legal in each series. A `c` carries its own separator
+#: -- the compositor joins it to the code -- and an `a` carries its indentation.
+#: ! SHARED, because the galley cases and the compositor cases set the same
+#: places and a second copy is a second thing to keep current.
+REPLACEMENT = {
+    "a": '    """REPLACED."""',
+    "b": "# REPLACED",
+    "c": "  # REPLACED",
+    "f": "#!/usr/bin/env REPLACED",
+}
+
+
 @pytest.fixture
 def sample():
     """A fresh page over `SAMPLE`. Fresh, because the galley MUTATES a page."""
