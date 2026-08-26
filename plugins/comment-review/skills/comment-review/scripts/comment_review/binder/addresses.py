@@ -13,7 +13,7 @@ one is a different question, and it needs a census to answer.
 addresses, over a census -- and no trade word has been proposed for it.
 """
 
-from comment_review.reading.addresser import GAP, ON, cue_of
+from comment_review.reading.addresser import cue_of
 
 
 def resolve(address: str, paragraphs: list[dict]) -> list[int]:
@@ -55,9 +55,11 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
       c   the room BESIDE its opening line -- a trailing comment, or the place
       b   the gap ABOVE its opening line -- a comment run, or the place
 
-    ! The MODULE has no line to open on, so it has an `a` and no `c`; its `b`
-    is the gap before the first code line, which is where a licence header or
-    a shebang sits.
+    ! The MODULE has no line to open on, so it has an `a` and an `f` -- its
+    own matter, bounded by nothing, which is where a licence header or a
+    shebang sits (`f0`, not `b0`). It has neither `b` nor `c`: `cue()` steps
+    past the module without emitting either -- `addresser.py`, "`b` AND `c`
+    SKIP THE MODULE ENTIRELY".
 
     ! It returns a LIST because a census may carry none -- a language whose
     tier resolves no anchors at all -- and the caller reports that rather than
@@ -84,41 +86,22 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
     # a `c` has a column, a `b` has neither. No second field, no inference from
     # kind.
     direct = [b for b in mine if series_of(b) == series]
-    if direct:
-        return direct
-    at = next(
-        (b.get("anchor_line") for b in mine if isinstance(b.get("anchor_line"), int)),
-        0,
-    )
-    path = {str(b.get("path", "")) for b in mine}
-    here = [b for b in paragraphs if str(b.get("path", "")) in path]
-    if not at:
-        # !! THE MODULE HAS NO OPENING LINE, so it has no `c`, and the `b` it
-        # answers with is `b0` -- the gap ABOVE THE FIRST LINE OF CODE.
-        #
-        # ! IT IS NOT THE FILE'S OWN MATTER. A licence header or a shebang is
-        # `f0`, in its own series since 2026-08-20 -- and this comment said
-        # otherwise until 2026-08-21, which is the exact reading `series_of`
-        # below records as the defect the `f` series ended. Two comments in one
-        # module gave contradictory accounts of what `b0` names.
-        #
-        # ! Every other anchor without a line is a tier that resolved no
-        # declaration, and has neither.
-        if series == GAP and any(b.get("declares") == 0 for b in mine):
-            return [b for b in here if stable(b).endswith(f"@{GAP}0")]
-        return []
-    if series == ON:
-        return [b for b in here if b.get("start") == at and b.get("end") == at]
-    if series == GAP:
-        # ! The gap ABOVE the declaration: the paragraph whose lines end just before
-        # it. An empty gap holds no line, so it answers by its EDIT range.
-        return [
-            b
-            for b in here
-            if str(b.get("address", "")).split("@")[-1].startswith(GAP)
-            and (b.get("end") == at - 1 or b.get("original_end") == at - 1)
-        ]
-    return []
+    # !! THIS IS THE WHOLE ANSWER, since 2026-08-25. A fallback stood below it,
+    # resolving by an `anchor_line` field carried on `mine` -- dead since the
+    # eleven-field row cut (`e56bea9`) dropped that field: no row carries it,
+    # so the fallback's own `at` was always `0` and every branch under it but
+    # one was unreachable. MEASURED: `for_anchor('<module>', GAP, rows)`
+    # returned `[]` through that dead fallback, reading as an answer where
+    # none was computed. `[]` IS the true answer here, not a coincidence --
+    # `cue()` never emits a `b` or `c` place for the module at all
+    # (`addresser.py`, "`b` AND `c` SKIP THE MODULE ENTIRELY"), so `direct`
+    # already covers every place a census can name; nothing was left for a
+    # fallback to resolve. Removed rather than reintroduced the field,
+    # matching `521e327`'s DECLARED short-circuit. A resolver reading the
+    # PAGE instead of a row is the deferred redesign,
+    # `TODO/an-empty-place-is-not-citable.md` -- this is not that; it is
+    # deleting a branch that could not fire.
+    return direct
 
 
 def series_of(paragraph: dict) -> str:
@@ -222,21 +205,28 @@ def unaddressed(paragraphs: list[dict]) -> list[str]:
     for path, mine in sorted(_by_path(paragraphs).items()):
         for i, paragraph in enumerate(mine, 1):
             if owes_address(paragraph) and not stable(paragraph):
-                out.append(
-                    f"{path} entry {i}: lines"
-                    f" {paragraph.get('start')}-{paragraph.get('end')}"
-                )
+                start = paragraph.get("original_start")
+                end = paragraph.get("original_end")
+                out.append(f"{path} entry {i}: lines {start}-{end}")
     return out
 
 
 def owes_address(paragraph: dict) -> bool:
     """Is this a paragraph an address is REQUIRED of?
 
-    !! A PARAGRAPH CARRYING A SYMBOL OWES NONE, since 2026-08-22. Leading is the
-    only kind that does: it names no place -- see `SERIES` -- so demanding one of
-    it asks for something that cannot exist. ! The test is the SYMBOL and not the
-    kind, so this stays a leaf: `addresser` never learns what the lexer calls a
-    blank run.
+    !! LEADING OWED NONE, VIA A `symbol` FIELD NO ROW HAS CARRIED SINCE THE
+    ELEVEN-FIELD CUT (`e56bea9`). `bind()` never puts a leading paragraph into
+    a row at all: `page_row` runs only over paragraphs with an address, and a
+    fence's own address is `""` -- see `binder.py`'s `bind`. MEASURED over a
+    real `page_for`/`bind()`: no row this module can ever be handed lacks a
+    `symbol` key for any OTHER reason, so `paragraph.get("symbol")` answered
+    the same way -- unowed -- for every row, not only the leading ones it was
+    written to exempt. The exemption is not merely unreachable; the
+    population it existed to name cannot reach this function at all.
+
+    ! ANSWERS `True` UNCONDITIONALLY, and this is a measured fact about the
+    current wire format, not a design choice standing in for one: every row
+    `unaddressed` or `_check` can be handed already owes an address.
 
     !! IT IS A FENCE, AND FENCES HAVE NO ADDRESS. Roy, 2026-08-23: *"the `d`
     series doesn't get an address for the same reasons fences in the real world
@@ -264,11 +254,13 @@ def owes_address(paragraph: dict) -> bool:
     ! WHICH IS WHY THE EDGE SHAPE HOLDS: this system never chooses an amount of
     blank, it replays what it read.
 
-    !! IT IS A FUNCTION BECAUSE TWO CALLERS DISAGREED ABOUT IT. `unaddressed`
+    !! IT IS STILL A FUNCTION, NOT A CONSTANT INLINED AT EACH CALLER, because
+    the question it answers stays real: `unaddressed` and `_check` still need
+    to ask it, and a future wire format could carry the field again. `unaddressed`
     exempted leading; `_check`'s HEADLINE counted it in both the numerator and
     the denominator, so a census of this repo's own scripts printed `8542 of 8542
     paragraphs addressed` while 392 of them carried no address at all. MEASURED
-    2026-08-22. Neither number was wrong about what it counted; they counted
-    different populations and were printed as one sentence.
+    2026-08-22, before the row cut -- the population that made the two disagree
+    no longer reaches either caller.
     """
-    return not paragraph.get("symbol")
+    return True

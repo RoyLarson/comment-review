@@ -273,7 +273,59 @@ def test_an_EXCEPTION_AFTER_THE_WRITE_removes_the_draft_that_raised(
     with pytest.raises(RuntimeError):
         proof_setter.run({address(binder, "m.py"): "# REPLACED"}, binder, repo, into)
 
-    assert list(into.rglob("*.py")) == []
+    assert list(into.iterdir()) == []
+
+
+def test_a_refusal_over_a_NESTED_rel_removes_its_directory_too(tmp_path, monkeypatch):
+    """CRITICAL, measured 2026-08-25: `compositor.draft`'s
+    `target.parent.mkdir(parents=True, ...)` can create directories nested
+    under `into` -- `pkg/` for a `rel` of `pkg/d.py` -- that unlinking the
+    FILE alone never removes. A refused run over `pkg/d.py` left `<into>/pkg/`
+    on disk, against this module's own docstring: "a stopped run leaves no
+    half-set of files that no page describes." `_tree`'s flat `m.py` cannot
+    show this; only a nested `rel` can, which is why the test above -- pinned
+    against `into.rglob("*.py")` -- passed before this defect was fixed."""
+    repo = tmp_path / "repo"
+    (repo / "pkg").mkdir(parents=True)
+    (repo / "pkg" / "d.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    binder = bind([build(SAMPLE, "pkg/d.py")])
+    into = tmp_path / "out"
+
+    def failing_reread(*args, **kwargs):
+        raise RuntimeError("simulated: a step past the write raised")
+
+    monkeypatch.setattr(proof_setter, "_reread", failing_reread)
+
+    with pytest.raises(RuntimeError):
+        proof_setter.run(
+            {address(binder, "pkg/d.py"): "# REPLACED"}, binder, repo, into
+        )
+
+    assert list(into.iterdir()) == []
+
+
+def test_a_REFUSAL_over_a_NESTED_rel_removes_its_directory_too(tmp_path, monkeypatch):
+    """The same defect, on the `_reread`-REFUSES branch rather than the
+    raises branch -- `_one` unlinked `target` there too without removing the
+    directory `compositor.draft` made for it."""
+    repo = tmp_path / "repo"
+    (repo / "pkg").mkdir(parents=True)
+    (repo / "pkg" / "d.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    binder = bind([build(SAMPLE, "pkg/d.py")])
+    into = tmp_path / "out"
+
+    def refusing_reread(*args, **kwargs):
+        return proof_setter.Refusal("reread", "pkg/d.py", "simulated mismatch")
+
+    monkeypatch.setattr(proof_setter, "_reread", refusing_reread)
+
+    drafted, refused = proof_setter.run(
+        {address(binder, "pkg/d.py"): "# REPLACED"}, binder, repo, into
+    )
+
+    assert drafted == []
+    assert refused and refused[0].step == "reread"
+    assert list(into.iterdir()) == []
 
 
 class TestPageOfReturnsEveryRefusalItPromises:

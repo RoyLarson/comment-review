@@ -50,8 +50,11 @@ from comment_review.results.prove_unchanged import code_fingerprint
 
 #: The chain, as data -- read only by `test_the_chain_IS_this_list`, which
 #: pins it against a second literal; `run()` itself never consults `STEPS`.
-#: ! "set" and "draft" name pipeline stages with no `Refusal` of their own: no
-#: site in this module builds a `Refusal("set", ...)` or `Refusal("draft", ...)`.
+#: ! "set" NAMES A PIPELINE STAGE WITH NO `Refusal` OF ITS OWN: no site in
+#: this module builds a `Refusal("set", ...)`. "draft" is not that anymore --
+#: `67b8c9b`'s containment guard in `_one` builds `Refusal("draft", ...)` for a
+#: `rel` that would resolve outside `into`, and `test_proof_setter.py` asserts
+#: `refused[0].step == "draft"` against it.
 STEPS = ("read", "verify", "edit", "set", "draft", "reread", "prove")
 
 
@@ -159,7 +162,7 @@ def run(
             # exception still propagates; this removes what the run had
             # already drafted first.
             for made in drafted:
-                made.draft.unlink(missing_ok=True)
+                _discard(made.draft, into)
             raise
         if why is not None:
             refusals.append(why)
@@ -168,9 +171,33 @@ def run(
 
     if refusals:
         for made in drafted:
-            made.draft.unlink(missing_ok=True)
+            _discard(made.draft, into)
         return [], refusals
     return drafted, []
+
+
+def _discard(draft: Path, into: Path) -> None:
+    """Remove a drafted file, and any directory under `into` it leaves empty.
+
+    !! A STOPPED RUN LEAVES NO TRACE, NOT ONLY NO FILE. `_one`'s
+    `compositor.draft` creates `target.parent` with `parents=True`, so a
+    nested `rel` -- `pkg/d.py` -- can leave `<into>/pkg/` behind an unlink that
+    removes only the file. MEASURED 2026-08-25: a refused run over `pkg/d.py`
+    left exactly that directory on disk, against this module's own docstring
+    -- *"a stopped run leaves no half-set of files that no page describes."*
+    A description of files did not include the directories made to hold them.
+
+    ! STOPS AT `into` ITSELF. `into` is created once by `run`, whether or not
+    this run drafts anything into it, and removing it is not this function's
+    decision to make.
+    """
+    draft.unlink(missing_ok=True)
+    parent = draft.parent
+    while parent != into and parent.is_relative_to(into) and parent.is_dir():
+        if any(parent.iterdir()):
+            break
+        parent.rmdir()
+        parent = parent.parent
 
 
 def _one(
@@ -200,7 +227,6 @@ def _one(
     if placed:
         return None, Refusal("edit", rel, "; ".join(placed))
 
-    text = compositor.set_page(page)
     # !! THE FULL REPO-RELATIVE PATH, NOT JUST THE BASENAME. Measured
     # 2026-08-25: `into / Path(rel).name` flattened `pkg/a/util.py` and
     # `pkg/b/util.py` to the same `<into>/util.py`, so the second page's
@@ -208,19 +234,25 @@ def _one(
     # `commands/galley.py:124` already keeps `rel` under its output
     # directory this way -- mirrored here.
     target = (into / rel).resolve()
-    # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `into`. A `rel` carrying a
-    # `..` segment joins past `into` -- `pkg/a/../../escape/util.py` -- and
-    # with a matching sha the draft would land on a file outside the draft
-    # directory, up to and including the source file under review. Measured
-    # 2026-08-25: with `rel = "../escape_repo/sub/util.py"`, the join before
-    # this check wrote the edited draft onto the source file itself, at exit
-    # 0.
+    # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `into`, BEFORE ANY WRITE. A
+    # `rel` carrying a `..` segment joins past `into` --
+    # `pkg/a/../../escape/util.py` -- and with a matching sha the draft would
+    # land on a file outside the draft directory, up to and including the
+    # source file under review. Measured 2026-08-25: with `rel =
+    # "../escape_repo/sub/util.py"`, the join before this check wrote the
+    # edited draft onto the source file itself, at exit 0.
     if not target.is_relative_to(into):
         return None, Refusal(
             "draft", rel, "would be written outside the draft directory"
         )
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(text, encoding="utf-8", newline="")
+    # !! ONE WRITER. `compositor.draft` IS `set_page` plus the mkdir and the
+    # `newline=""` write -- load-bearing, since `read_source`'s untranslated
+    # read is what `_prove`'s byte-identity comparison depends on. `_one` used
+    # to spell those three lines itself, which is two spellings of the only
+    # writer: one gets updated and the other does not. The containment refusal
+    # above still runs FIRST, so this never writes a target that was not
+    # already cleared.
+    compositor.draft(page, target)
 
     # !! EVERY STEP PAST THE WRITE IS COVERED, NOT ONLY THE REFUSALS. `run`'s
     # cleanup unlinks what is in `drafted`, and this page is not in it yet --
@@ -231,7 +263,7 @@ def _one(
     try:
         off = _reread(rel, target, edits)
         if off is not None:
-            target.unlink(missing_ok=True)
+            _discard(target, into)
             return None, off
 
         # !! `read_source`, NOT `read_text`. The translating reader is what this
@@ -240,10 +272,10 @@ def _one(
         # another.
         unproven = _prove(rel, page.text, read_source(target).text, target)
     except Exception:
-        target.unlink(missing_ok=True)
+        _discard(target, into)
         raise
     if unproven is not None:
-        target.unlink(missing_ok=True)
+        _discard(target, into)
         return None, unproven
     return Drafted(rel, target, page.sha), None
 
