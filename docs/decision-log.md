@@ -709,3 +709,25 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `TODO/the-skill-names-commands-that-moved-to-prototype.md`. **The removal is in
   [`history.md`](history.md)**, and the measurements this file was the exemplar for are cited there
   rather than at a module that no longer holds the code.
+
+- **#31.** **A FALSIFIED CLAIM NAMES A NEIGHBOUR'S STATE, NOT ITS OWN** (the final simplify pass
+  on this branch, 2026-08-26, naming the shape behind TEN falsified claims found across it). Every
+  one was a guard's justification written into the docstring of the module that GAINED the guard,
+  stating the state of a NEIGHBOUR -- *"this does not exist yet"*, *"nothing else does this"*,
+  *"N tests pass"* -- where nothing can notice when the neighbour moves.
+
+  Three measured directly, in this same pass: `desk/__init__.py` said *"WHAT CARRIES A ROLE'S
+  ANSWER TO THE PAGE IS NOT HERE AND IS NOT NAMED"* after `desk/notations.py` had already landed
+  to be that piece; `flows/__init__.py` said *"THE RESULTS-SIDE FLOW DOES NOT EXIST YET"* after
+  `proof_setter.run` was that flow; `CLAUDE.md` and `tests/README.md` both carried `880 passed ...
+  225 test functions, collected as 884` after `d74aa4b` cut 160 lines of `test_galley.py` and left
+  the count at 873 passed, 218 functions, 877 collected.
+
+  ! **THE RULE: a paragraph naming another file's state belongs IN that file, or carries the
+  command that re-derives it.** A count is safest of all when it sits beside the command that
+  reproduces it, which is why `CLAUDE.md`'s test-count comment survives by staying next to
+  `uv run pytest -q` rather than by being remembered correctly.
+
+  ! **THE SIBLING OF `#29`.** `#29` forbids a description written as a constraint on the SAME
+  code; this forbids a description written as a fact about OTHER code. Both are prose no gate can
+  see, because both were true on the day they were written.

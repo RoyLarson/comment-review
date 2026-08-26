@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (78)
+### open  (79)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -260,6 +260,7 @@ that changed a published name or rule:
 | [into-is-never-resolved](into-is-never-resolved.md) | backend | — | 0/3 | flows/proof_setter.py resolves TARGET but never resolves INTO, then asks whether target is relative to it. A relative or symlinked into would weaken the containment guard that stops a draft escaping the output directory. NOT REACHABLE TODAY: commands/proof.py resolves out before calling in, and every test hands an absolute tmp_path. This is library hardening, not a live defect. FOUND BY THE IMPLEMENTER OF THE GUARD, WHO REPORTED IT RATHER THAN WIDENING ITS OWN SCOPE. Worth recording because the guard it weakens was itself introduced to close an escape that the previous fix opened -- proof_setter copied the join half of the galley command's pattern and not the guard half, and wrote a draft onto the original source file at exit 0. Two rounds of path handling on the same function, each fixing the last. |
 | [an-empty-place-is-not-citable](an-empty-place-is-not-citable.md) | backend | yes | 0/4 | MEASURED 2026-08-25, twice. A file holding one comment censuses to a binder carrying cues f0 and nothing else. Asking for the empty b place above a line of code -- addresser --census B --anchor 'return n + 1' --series b -- answers no b place for anchor, exit 1. A file with NO prose at all censuses to a binder carrying ZERO rows, and the same question answers carries no paragraphs, exit 2. SO THE add VERDICT IS UNEXPRESSIBLE FOR ANY PLACE THE BINDER DOES NOT CARRY, which is 91 percent of them. AND bind's OWN DOCSTRING ASSERTS THE OPPOSITE, as the justification for the cut: an empty place is still addressed, which is what makes this safe -- the walk emits every place, filled or not, so a reviewer that wants to add ASKS for the one it means, and the place is citable without being carried. That sentence is false as written. CAUSE: for_anchor's fallback in binder/addresses.py resolves an absent place by POSITION, and reads anchor_line, a field the eleven-field row cut removed. Its arithmetic always sees 0, so the fallback is unreachable for every series. The DECLARED short-circuit above it was fixed 2026-08-25 in 521e327; this is the other half and it is not a field rename -- nothing a row now carries answers where a place sits relative to an anchor. NOT A CLAIM THAT THE CUT WAS WRONG. The cut is measured and Roy ruled it. What is wrong is that the mechanism making it safe stopped working in the same change, and the prose still promises it. |
 | [empty-edits-fails-a-stage](empty-edits-fails-a-stage.md) | agents | — | 0/2 | an all-clean run writes {} to --edits, which notations.read refuses at exit 2 |
+| [block-text-orphaned](block-text-orphaned.md) | backend | — | 0/1 | block_text (reading/lexer.py) has had no caller since desk.py moved to prototype |
 
 ### in-progress  (19)
 

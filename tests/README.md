@@ -3,7 +3,7 @@
 **Invariants derived from the code, checked over real inputs.**
 
 ```bash
-uv run pytest            # 880 passed, 1 skipped, 3 xfailed, 447 subtests, ~1.8s
+uv run pytest            # 873 passed, 1 skipped, 3 xfailed, 451 subtests, ~1.6s
                          # the skip needs symlinks; it runs where they exist.
                          # the subtest count moves with `TODO/`: three per open
                          # file, from `gates/test_todo_counts_agree.py`
@@ -32,7 +32,7 @@ tests; it is one assumption restated 866 times.
 
 ## What is different
 
-**225 test functions, collected as 884 tests.** A small set of invariants, each
+**218 test functions, collected as 877 tests.** A small set of invariants, each
 checked over many real inputs -- rather than one test per remembered incident.
 
 - **Nothing is hand-built where the system can build it.** Pages come from

@@ -128,7 +128,7 @@ uv run python evals/generator_split.py <corpus-dir> [paths...]
 uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
 # Run the test suite. PYTEST, and only pytest.
-uv run pytest -q                    # 880 passed, 1 skipped, 3 xfailed, 447 subtests, ~1.8s
+uv run pytest -q                    # 873 passed, 1 skipped, 3 xfailed, 451 subtests, ~1.6s
                                     # the skip needs symlinks; it runs where they exist.
                                     # ! THE SUBTEST COUNT MOVES WITH `TODO/`: three per
                                     # open file, from `tests/gates/test_todo_counts_agree.py`
@@ -148,7 +148,7 @@ uv run pytest -q -k galley          # one file, one class or one test
 # fixtures were hand-authored in the shape the code expected, so they could only
 # CONFIRM, and when the contract moved they went on asserting the old one.
 #
-# ! WHAT REPLACED IT: 225 test functions, collected as 884 tests, derived from the
+# ! WHAT REPLACED IT: 218 test functions, collected as 877 tests, derived from the
 # code without reading the suite they replaced. Pages come from `page_for` over
 # real source, binders from `bind`; a literal appears only where malformed IS
 # the input. MEASURED by mutation: three defect classes the old suite could not
@@ -178,6 +178,10 @@ uv run python src/comment-review.py verdicts \
 # Stage 4 gate: the dispatch packet
 uv run python src/comment-review.py run_context --template
 uv run python src/comment-review.py run_context --check <file>
+
+# What one agent is GIVEN. The task agent runs this at stage 4 and pastes the output verbatim.
+uv run python src/comment-review.py vocabulary --reviewer block-context
+uv run python src/comment-review.py vocabulary --roles
 
 # Stage 7b gate: prove WRITE changed no executable code
 uv run python src/comment-review.py prove_unchanged \
@@ -226,10 +230,6 @@ uv run python scripts/check_shipped_syntax.py
 # written for nobody, and no role is given a term its own text never uses. Run after any edit
 # to an agent file or a reference.
 uv run python scripts/check_vocabulary.py
-
-# What one agent is GIVEN. The task agent runs this at stage 4 and pastes the output verbatim.
-uv run python src/comment-review.py vocabulary --reviewer block-context
-uv run python src/comment-review.py vocabulary --roles
 
 # Terms of art in the shipped tree the inventory does not list. An INPUT, not a gate:
 # every row needs a human to say whether it is a term.

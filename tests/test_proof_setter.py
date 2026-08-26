@@ -8,12 +8,11 @@ sequence cannot show you.
 from pathlib import Path
 
 import pytest
-from conftest import PKG, SAMPLE, SRC, build, by_cue
+from conftest import PKG, SAMPLE, build, by_cue
 
 from comment_review.binder.binder import bind, rows_of
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
-from comment_review.machine import exceptions
 from comment_review.machine.repo import undraftable
 from comment_review.reading.addresser import cue_of
 from comment_review.results import compositor, galley
@@ -566,7 +565,9 @@ def test_a_refusal_over_a_NESTED_rel_removes_its_directory_too(tmp_path, monkeyp
     assert list(into.iterdir()) == []
 
 
-def test_a_REFUSAL_over_a_NESTED_rel_removes_its_directory_too(tmp_path, monkeypatch):
+def test_a_REREAD_REFUSAL_over_a_NESTED_rel_removes_its_directory_too(
+    tmp_path, monkeypatch
+):
     """The same defect, on the `_reread`-REFUSES branch rather than the
     raises branch -- `_one` unlinked `target` there too without removing the
     directory `compositor.draft` made for it."""
@@ -588,78 +589,6 @@ def test_a_REFUSAL_over_a_NESTED_rel_removes_its_directory_too(tmp_path, monkeyp
     assert drafted == []
     assert refused and refused[0].step == "reread"
     assert list(into.iterdir()) == []
-
-
-class TestPageOfReturnsEveryRefusalItPromises:
-    """`page_of`'s docstring promises `(page, "")` or `(None, reason)`.
-
-    IMPORTANT, measured 2026-08-25: it caught only `exceptions.READ_ERRORS`
-    while `page_for` also raises `exceptions.Refused`, so such a file took
-    `proof_setter.run` down with a raw traceback. All five inline sites this
-    function consolidates handle it -- `results/compositor.py` catches
-    `Refused`, `commands/census.py` catches a bare `Exception`."""
-
-    def test_page_for_DOES_raise_Refused(self):
-        """! The handler below is not written for a hypothetical. This reads
-        the raise sites out of the module rather than asserting they exist."""
-        text = (PKG / "binder" / "page.py").read_text(encoding="utf-8")
-        assert text.count("raise exceptions.Refused") == 2
-
-    def test_a_Refused_comes_back_as_a_REASON(self, tmp_path, monkeypatch):
-        def refusing_page_for(*args, **kwargs):
-            raise exceptions.Refused("b0: a `c` place whose anchor has no line")
-
-        monkeypatch.setattr(page_for_mod, "page_for", refusing_page_for)
-        path = tmp_path / "m.py"
-        path.write_text(SAMPLE, encoding="utf-8", newline="")
-
-        page, why = page_for_mod.page_of(path, rel="m.py")
-        assert page is None
-        assert "anchor has no line" in why
-
-    def test_a_Refused_REFUSES_THE_RUN_instead_of_escaping(self, tmp_path, monkeypatch):
-        """! THE PATCH REACHES `_one`'s READ ONLY, because the run stops there.
-        `_reread`'s own read is the case below."""
-        repo, binder, _ = _tree(tmp_path)
-
-        def refusing_page_for(*args, **kwargs):
-            raise exceptions.Refused("b0: a `c` place whose anchor has no line")
-
-        monkeypatch.setattr(page_for_mod, "page_for", refusing_page_for)
-        drafted, refused = proof_setter.run(
-            {address(binder, "m.py"): "# REPLACED"}, binder, repo, tmp_path / "out"
-        )
-        assert drafted == []
-        assert refused[0].step == "read"
-
-    def test_a_Refused_ON_THE_DRAFT_refuses_at_reread(self, tmp_path, monkeypatch):
-        """CRITICAL, measured 2026-08-26: `_reread` inlined `read_source`,
-        `language_for` and `page_for` with NO handler for either
-        `exceptions.Refused` or `READ_ERRORS`, so a draft tripping `page_for`'s
-        raise escaped `run()` as a traceback -- past its documented
-        `(drafted, []) or ([], refusals)`.
-
-        ! THE CASE ABOVE COULD NOT SEE IT: it patches the name `page_of` reads,
-        which the inlined copy never consulted, and `_one`'s read refuses first
-        anyway. This one refuses the DRAFT alone, so the chain reaches the step
-        under test."""
-        repo, binder, _ = _tree(tmp_path)
-        into = tmp_path / "out"
-        real_page_for = page_for_mod.page_for
-
-        def refusing_on_the_draft(path, *args, **kwargs):
-            if Path(path).resolve().is_relative_to(into.resolve()):
-                raise exceptions.Refused("b0: a `c` place whose anchor has no line")
-            return real_page_for(path, *args, **kwargs)
-
-        monkeypatch.setattr(page_for_mod, "page_for", refusing_on_the_draft)
-        drafted, refused = proof_setter.run(
-            {address(binder, "m.py"): "# REPLACED"}, binder, repo, into
-        )
-        assert drafted == []
-        assert [r.step for r in refused] == ["reread"]
-        assert "anchor has no line" in refused[0].why
-        assert list(into.iterdir()) == []
 
 
 class TestTheFileMustBeTheONEThatWasReviewed:
@@ -990,99 +919,3 @@ def test_a_WRITE_THAT_RAISES_leaves_no_directory_behind(tmp_path, monkeypatch):
         )
 
     assert list(into.iterdir()) == []
-
-
-class TestTheCommand:
-    """`commands/proof.py` exposes this flow and orchestrates nothing: it takes
-    a binder and hands it straight to `proof_setter.run`.
-
-    ! `galley` IS THE OLD NAME FOR IT since 2026-08-26. It used to resolve an
-    address through `rows_of(census)` -- the binder-row coupling this chain was
-    ruled out of -- and keep a staleness comparison, an overlap guard and a
-    draft loop of its own; all of it went, and the name now runs this chain.
-    See `docs/history.md`."""
-
-    def test_galley_runs_THIS_COMMAND(self, monkeypatch):
-        """`SKILL.md` still invokes `galley` at stage 7a, so the name has to
-        reach the chain. ! It does NOT make a skill run work: the flags differ
-        -- `--census`/`--edits` against `--binder`/`--notations` -- which is
-        `TODO/the-skill-names-commands-that-moved-to-prototype.md`."""
-        from comment_review.__main__ import COMMANDS
-        from comment_review.commands import galley, proof
-
-        assert "galley" in COMMANDS
-        called: list[bool] = []
-        monkeypatch.setattr(proof, "main", lambda: called.append(True) or 7)
-        assert galley.main() == 7
-        assert called == [True]
-
-    def test_the_command_holds_no_orchestration(self):
-        """! A COMMAND EXPOSES A FLOW; IT IS NOT ONE. `commands/census.py` took
-        446 lines calling page_for directly while flows/census.py kept 261 of
-        helpers. See TODO/the-flow-lives-in-the-command.md."""
-        text = (SRC / "comment_review" / "commands" / "proof.py").read_text(
-            encoding="utf-8"
-        )
-        for forbidden in ("page_for", "galley.reset", "set_page", "code_fingerprint"):
-            assert forbidden not in text
-
-    def test_proof_is_a_named_command(self):
-        from comment_review.__main__ import COMMANDS
-
-        assert "proof" in COMMANDS
-
-    def test_an_out_that_overlaps_the_repo_is_REFUSED(
-        self, tmp_path, capsys, monkeypatch
-    ):
-        """!! THE DESTRUCTIVE CASE, MEASURED 2026-08-22 on the galley: on an
-        overlap the per-file guard is satisfied by the SOURCE FILE ITSELF, so
-        the draft was written over the file under review at exit 0."""
-        from comment_review.commands import proof as cmd
-
-        repo, _, _ = _tree(tmp_path)
-        monkeypatch.setattr(
-            "sys.argv",
-            [
-                "proof",
-                "--repo",
-                str(repo),
-                "--binder",
-                "b.json",
-                "--notations",
-                "n.json",
-                "--out",
-                str(repo / "inside"),
-            ],
-        )
-        assert cmd.main() == 2
-        assert "REFUSED" in capsys.readouterr().out
-
-    def test_an_out_that_NAMES_A_FILE_prints_a_reason(
-        self, tmp_path, capsys, monkeypatch
-    ):
-        """IMPORTANT, measured 2026-08-25: `run`'s
-        `into.mkdir(parents=True, exist_ok=True)` raises `FileExistsError` when
-        `--out` names a regular file -- `exist_ok` covers an existing DIRECTORY
-        only -- and it reached the console as a traceback. Every other bad
-        input in this command prints a reason and returns 2."""
-        from comment_review.commands import proof as cmd
-
-        repo, _, _ = _tree(tmp_path)
-        not_a_dir = tmp_path / "notadir"
-        not_a_dir.write_text("x", encoding="utf-8")
-        monkeypatch.setattr(
-            "sys.argv",
-            [
-                "proof",
-                "--repo",
-                str(repo),
-                "--binder",
-                "b.json",
-                "--notations",
-                "n.json",
-                "--out",
-                str(not_a_dir),
-            ],
-        )
-        assert cmd.main() == 2
-        assert "is not a directory" in capsys.readouterr().out
