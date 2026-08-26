@@ -1,7 +1,7 @@
-"""Questions asked of a census BY ADDRESS: which paragraph, and which owe one.
+"""Questions asked of a census BY ADDRESS: which paragraph sits at which place.
 
 !! IT IS HERE BECAUSE IT READS PARAGRAPHS. `addresser.py` calls itself the leaf
-that *"knows nothing about a paragraph"* and these seven functions each take
+that *"knows nothing about a paragraph"* and these six functions each take
 `paragraphs: list[dict]` -- census rows, which are the binder's material. The
 claim and the code disagreed until 2026-08-24, and the code was what moved.
 
@@ -204,63 +204,8 @@ def unaddressed(paragraphs: list[dict]) -> list[str]:
     out: list[str] = []
     for path, mine in sorted(_by_path(paragraphs).items()):
         for i, paragraph in enumerate(mine, 1):
-            if owes_address(paragraph) and not stable(paragraph):
+            if not stable(paragraph):
                 start = paragraph.get("original_start")
                 end = paragraph.get("original_end")
                 out.append(f"{path} entry {i}: lines {start}-{end}")
     return out
-
-
-def owes_address(paragraph: dict) -> bool:
-    """Is this a paragraph an address is REQUIRED of?
-
-    !! LEADING OWED NONE, VIA A `symbol` FIELD NO ROW HAS CARRIED SINCE THE
-    ELEVEN-FIELD CUT (`e56bea9`). `bind()` never puts a leading paragraph into
-    a row at all: `page_row` runs only over paragraphs with an address, and a
-    fence's own address is `""` -- see `binder.py`'s `bind`. MEASURED over a
-    real `page_for`/`bind()`: no row this module can ever be handed lacks a
-    `symbol` key for any OTHER reason, so `paragraph.get("symbol")` answered
-    the same way -- unowed -- for every row, not only the leading ones it was
-    written to exempt. The exemption is not merely unreachable; the
-    population it existed to name cannot reach this function at all.
-
-    ! ANSWERS `True` UNCONDITIONALLY, and this is a measured fact about the
-    current wire format, not a design choice standing in for one: every row
-    `unaddressed` or `_check` can be handed already owes an address.
-
-    !! IT IS A FENCE, AND FENCES HAVE NO ADDRESS. Roy, 2026-08-23: *"the `d`
-    series doesn't get an address for the same reasons fences in the real world
-    don't get addresses. They mark a demarcation boundary and they have the same
-    problem as fences -- whose fence is it."* ! Every other place is attached to
-    a line of code, and that line is what a reviewer measures a claim against. A
-    blank run sits BETWEEN two places and is attached to neither, so the
-    ownership question has no answer rather than an unknown one.
-
-    ! IT WAS TRIED AND REFUSED THREE TIMES -- `875b0d4` made it a fifth series,
-    `b998a60` repaired it as an edge, `c27ea1d` retreated to a symbol. Roy,
-    closing it: *"We tried leading getting a place. We tried several different
-    ways. The constraints of coding AND editing do not allow it."* Two things stop
-    being determinable the moment the slack is addressable: WHERE everything below
-    an edit shifted to, and HOW MUCH blank belongs where afterwards -- the second
-    being a typographic judgement no rule computes.
-
-    !! UNADDRESSED IS NOT UNRECORDED, and that is the whole of the arrangement.
-    Roy: *"the system knows hey there was a fence here we should put it back."*
-    `Page.leading` keys the fence on the place it FOLLOWS -- `f0 -> d0` -- so
-    what is remembered is a fact about a boundary rather than a thing with a
-    location. ! Nobody can cite it, nobody can rule on it, and the compositor
-    puts it back exactly where it was.
-
-    ! WHICH IS WHY THE EDGE SHAPE HOLDS: this system never chooses an amount of
-    blank, it replays what it read.
-
-    !! IT IS STILL A FUNCTION, NOT A CONSTANT INLINED AT EACH CALLER, because
-    the question it answers stays real: `unaddressed` and `_check` still need
-    to ask it, and a future wire format could carry the field again. `unaddressed`
-    exempted leading; `_check`'s HEADLINE counted it in both the numerator and
-    the denominator, so a census of this repo's own scripts printed `8542 of 8542
-    paragraphs addressed` while 392 of them carried no address at all. MEASURED
-    2026-08-22, before the row cut -- the population that made the two disagree
-    no longer reaches either caller.
-    """
-    return True

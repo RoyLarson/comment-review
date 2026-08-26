@@ -73,9 +73,10 @@ left to be wrong about. See `docs/history.md` for the mechanism that was
 removed.
 
 ! DID THE FILE SHIFT IS NOT ANSWERED HERE, PARAGRAPH BY PARAGRAPH, ANY MORE.
-It is answered in one comparison before anything is parsed -- the sha the
-binder recorded against the sha the file reads at now -- by each caller that
-reaches `reset`: `flows/proof_setter.py:_one` and `commands/galley.py`. See
+It is ONE comparison -- the sha the binder recorded against the sha the file
+reads at now -- and each caller makes it before it reaches `reset`:
+`flows/proof_setter.py:_one` from the page it has just built, and
+`commands/galley.py` from `read_source`, before the file is parsed. See
 `docs/history.md` for `drifted`, the last mechanism that asked this module.
 
 ! BOTH SITES MAKE IT, BECAUSE THE COMMAND DOES NOT CALL THE FLOW. Measured

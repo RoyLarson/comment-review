@@ -34,14 +34,20 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
     EMPTY input, and downstream that is indistinguishable from a run with
     nothing to do.
 
-    Args:
-        text: the notations file's contents.
-
     !! AN EMPTY NOTATIONS FILE IS REFUSED BY NAME, which is the same floor
     `binder.read` puts under a missing `pages` key. Measured 2026-08-25:
     `read("{}")` answered `({}, "")`, `proof_setter.run` drafted nothing and
     `commands/proof.py` printed `0 page(s) drafted for review` at exit 0 -- the
     empty-reads-as-success shape this module's own paragraph above forbids.
+
+    ! IT REACHES `commands/galley.py --edits` TOO, which read the same shape
+    with a bare `json.loads` until 2026-08-25 and printed `0 page(s) set` at
+    exit 0 on `{}`. `SKILL.md` wires a stage to that command, so a run with
+    nothing to set has to SKIP the stage rather than call it with an empty file
+    -- `TODO/empty-edits-fails-a-stage.md`.
+
+    Args:
+        text: the notations file's contents.
 
     Returns:
         `(notations, "")` when it reads, or `({}, reason)` when it does not.

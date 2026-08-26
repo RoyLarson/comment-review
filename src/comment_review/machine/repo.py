@@ -223,6 +223,21 @@ def undraftable(into: Path, repo: Path) -> str:
     -- and that reached `commands/proof.py`'s console as a traceback while
     every other bad input there printed a reason.
 
+    !! `is_symlink` IS ASKED BESIDE `exists` BECAUSE `exists` FOLLOWS THE LINK
+    AND A DANGLING ONE ANSWERS `False`. `exists` alone therefore let a link
+    naming nothing through the clause that exists to stop a non-directory --
+    and `mkdir` does not follow a link, so it is the same `FileExistsError` the
+    clause was added for. `is_symlink` asks about the link ITSELF; a symlink to
+    a real directory still passes, because `is_dir` follows it and answers
+    `True`.
+
+    ! WHAT THE THREE CALLERS PASS IS ALREADY RESOLVED, so the clause bites for
+    a caller that does not resolve -- which this function's own `Args` says is
+    the caller's job and cannot check. It is NOT verified on the machine this
+    was written on: creating a symlink there raises `WinError 1314`, and
+    `test_a_DANGLING_SYMLINK_is_not_a_directory` skips rather than fake a
+    filesystem the case is about.
+
     Args:
         into: the directory drafts are written to. RESOLVED by the caller;
             an unresolved path is never a prefix of a resolved one.
@@ -231,7 +246,7 @@ def undraftable(into: Path, repo: Path) -> str:
     Returns:
         The reason, or "" when `into` may receive drafts.
     """
-    if into.exists() and not into.is_dir():
+    if (into.is_symlink() or into.exists()) and not into.is_dir():
         return f"{into} is not a directory, so no draft can be written into it"
     if into.is_relative_to(repo) or repo.is_relative_to(into):
         return (

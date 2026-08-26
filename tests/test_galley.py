@@ -339,6 +339,28 @@ class TestTheCommandRefusesAStaleFile:
         self._run(tmp_path, monkeypatch, capsys, renamed)
         assert not (tmp_path / "out" / "m.py").exists()
 
+    def test_a_STALE_file_that_ALSO_TRIPS_Refused_is_refused_not_raised(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """IMPORTANT, measured 2026-08-26: the sha comparison sat BELOW
+        `page_for`, which raises `exceptions.Refused` and has no handler in this
+        command -- so a file that was BOTH stale and unpageable died as a
+        traceback before reaching the comparison that would have refused it with
+        a reason. `read_source` already supplied the sha, so nothing had to be
+        parsed to ask the question."""
+        from comment_review.commands import galley as cmd
+        from comment_review.machine import exceptions
+
+        def refusing_page_for(*args, **kwargs):
+            raise exceptions.Refused("b0: a `c` place whose anchor has no line")
+
+        monkeypatch.setattr(cmd, "page_for", refusing_page_for)
+        renamed = SAMPLE.replace("def f(x):", "def RENAMED(x):")
+        assert renamed != SAMPLE
+        code, out = self._run(tmp_path, monkeypatch, capsys, renamed)
+        assert code == 1
+        assert "changed since it was censused" in out
+
     def test_an_UNCHANGED_file_still_sets(self, tmp_path, monkeypatch, capsys):
         """! The other half: a check that refused everything would pass the
         two cases above and be worth nothing."""

@@ -12,7 +12,6 @@ from pathlib import Path
 from comment_review.binder.addresses import (
     _by_path,
     for_anchor,
-    owes_address,
     resolve,
     stable,
     unaddressed,
@@ -124,15 +123,13 @@ def main() -> int:
     # every paragraph was addressed. MEASURED 2026-08-22 on
     # `tests/fixtures/sample.py`: "3 entries could not be addressed", exit 1,
     # beside "18 of 18 paragraphs addressed", exit 0.
-    # ! The half it dropped is the SYMBOL. Leading names no place -- see
-    # `SERIES` -- so it owes no address and cannot be cited; `unaddressed` knows
-    # that and a re-derivation of it did not.
     missing = unaddressed(paragraphs)
     for i, paragraph in enumerate(paragraphs, 1):
-        # ! A paragraph that owes no address shows the SYMBOL it is known by,
-        # which is the only handle it has. UNPLACED is kept for an entry nothing
-        # can cite -- the fault this exit code is about.
-        where = stable(paragraph) or str(paragraph.get("symbol", "")) or "UNPLACED"
+        # ! UNPLACED names an entry nothing can cite -- the fault this exit code
+        # is about. It was preceded by a `symbol` fallback for a paragraph owing
+        # no address; leading is the only such paragraph and `bind()` emits no
+        # row for one, so the fallback could not fire.
+        where = stable(paragraph) or "UNPLACED"
         print(f"{i:4d}  {where:<34} {paragraph.get('cue', '')}")
     if missing:
         print(f"\n{len(missing)} entries could not be addressed:")
@@ -268,19 +265,15 @@ def _check(paragraphs: list[dict]) -> int:
         print(f"UNADDRESSED  {line}")
     for where, rows in sorted(shared.items()):
         print(f"SHARED       {where}  <- {' | '.join(rows)}")
-    # ! THE SAME POPULATION `unaddressed` ASKED ABOUT, via the same predicate.
-    # Counting every paragraph here and only the owing ones there is what made
-    # the sentence false.
-    owed = [b for b in paragraphs if owes_address(b)]
-    exempt = len(paragraphs) - len(owed)
-    named = len(owed) - len(missing)
+    # !! THE SAME POPULATION `unaddressed` ASKED ABOUT. Counting every paragraph
+    # here and only some of them there is what made the sentence false: MEASURED
+    # 2026-08-22 over this repo's own scripts, `8542 of 8542 paragraphs
+    # addressed` while 392 of them carried no address at all. It is one
+    # population now because every row `bind()` emits carries an address --
+    # leading is the paragraph that owed none, and no row is made for one.
+    named = len(paragraphs) - len(missing)
     files = len(_by_path(paragraphs))
-    print(f"\n{named} of {len(owed)} paragraphs addressed over {files} files.")
-    if exempt:
-        # ! SAID, NOT SILENTLY DROPPED. A reader comparing this against the
-        # census's own total needs to know why the two differ, and `leading` is
-        # the whole of the difference.
-        print(f"{exempt} carry a symbol instead, and are owed no address.")
+    print(f"\n{named} of {len(paragraphs)} paragraphs addressed over {files} files.")
     if shared:
         # ! Advice only where it applies. Printing it against zero shared places
         # tells a reader to guard something that did not happen.

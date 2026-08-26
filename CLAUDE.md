@@ -128,7 +128,10 @@ uv run python evals/generator_split.py <corpus-dir> [paths...]
 uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
 # Run the test suite. PYTEST, and only pytest.
-uv run pytest -q                    # 842 passed, 3 xfailed, ~1.5s
+uv run pytest -q                    # 880 passed, 1 skipped, 3 xfailed, 447 subtests, ~1.8s
+                                    # the skip needs symlinks; it runs where they exist.
+                                    # ! THE SUBTEST COUNT MOVES WITH `TODO/`: three per
+                                    # open file, from `tests/gates/test_todo_counts_agree.py`
 uv run pytest -q -k galley          # one file, one class or one test
 
 # !! THE SUITE WAS REPLACED WHOLESALE ON 2026-08-25, and the rule above it --
@@ -145,7 +148,7 @@ uv run pytest -q -k galley          # one file, one class or one test
 # fixtures were hand-authored in the shape the code expected, so they could only
 # CONFIRM, and when the contract moved they went on asserting the old one.
 #
-# ! WHAT REPLACED IT: 151 test functions over ~800 executions, derived from the
+# ! WHAT REPLACED IT: 225 test functions, collected as 884 tests, derived from the
 # code without reading the suite they replaced. Pages come from `page_for` over
 # real source, binders from `bind`; a literal appears only where malformed IS
 # the input. MEASURED by mutation: three defect classes the old suite could not

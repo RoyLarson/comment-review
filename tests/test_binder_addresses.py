@@ -1,16 +1,16 @@
 """`binder/addresses.py`'s row readers, exercised over a REAL binder.
 
 Filed against the xhigh wave-B review of `feat/the-write-chain-of-command`:
-`unaddressed`, `for_anchor` and `owes_address` each still read a field the
-eleven-field row cut (`e56bea9`) removed -- `start`/`end`, `anchor_line` and
-`symbol`. Every row here comes from `bind()` over a page `page_for` actually
-built, never a hand-written dict, matching `tests/test_addresser_command.py`'s
-own rule: a fixture written in the shape the code expects can only confirm.
+`unaddressed` and `for_anchor` each still read a field the eleven-field row cut
+(`e56bea9`) removed -- `start`/`end` and `anchor_line`. Every row here comes
+from `bind()` over a page `page_for` actually built, never a hand-written dict,
+matching `tests/test_addresser_command.py`'s own rule: a fixture written in the
+shape the code expects can only confirm.
 """
 
 from conftest import SAMPLE, build
 
-from comment_review.binder.addresses import for_anchor, owes_address, unaddressed
+from comment_review.binder.addresses import for_anchor, unaddressed
 from comment_review.binder.binder import bind, rows_of
 from comment_review.reading.addresser import GAP, ON
 
@@ -63,19 +63,3 @@ class TestForAnchorNoLongerFallsThroughADeadBranch:
         rows = _rows()
         found = for_anchor("<module>", "a", rows)
         assert [r["cue"] for r in found] == ["a0"]
-
-
-class TestOwesAddressAnswersForTheRealPopulation:
-    """`owes_address` read `paragraph.get('symbol')`, a key no row has
-    carried since `e56bea9` -- and `bind()` never emits a row for a leading
-    paragraph at all (its own address is `""`), so the population the check
-    was written to exempt cannot reach this function regardless."""
-
-    def test_every_row_a_real_binder_produces_owes_one(self):
-        rows = _rows(absent=True)
-        assert rows  # the fixture carries places
-        assert all(owes_address(r) for r in rows)
-
-    def test_no_row_carries_a_symbol_key(self):
-        rows = _rows(absent=True)
-        assert all("symbol" not in r for r in rows)

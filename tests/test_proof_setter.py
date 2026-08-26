@@ -14,6 +14,7 @@ from comment_review.binder.binder import bind, rows_of
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.machine import exceptions
+from comment_review.machine.repo import undraftable
 from comment_review.reading.addresser import cue_of
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
@@ -203,11 +204,38 @@ class TestTheFlowItselfRefusesADraftDirectoryOverTheRepo:
     def test_the_RULE_IS_ONE_FUNCTION_all_three_callers_ask(self):
         """! A rule lives in exactly one file -- `docs/conventions.md`. It was
         written out in `commands/proof.py` AND `commands/galley.py`, with the
-        same `is_relative_to` note on each, and asked in the flow nowhere."""
+        same `is_relative_to` note on each, and asked in the flow nowhere.
+
+        ! `repo.is_relative_to(` is the half NO OTHER GUARD NEEDS: the two
+        per-file guards ask whether a path derived from a root is still under
+        that root, and only DISJOINTNESS asks the repo about the draft
+        directory. The two commands hold no other comparison against `repo` at
+        all, so the stricter form still stands there."""
         for rel in ("commands/proof.py", "commands/galley.py", "flows/proof_setter.py"):
             text = (PKG / rel).read_text(encoding="utf-8")
             assert "undraftable(" in text, rel
+            assert "repo.is_relative_to(" not in text, rel
+        for rel in ("commands/proof.py", "commands/galley.py"):
+            text = (PKG / rel).read_text(encoding="utf-8")
             assert "is_relative_to(repo)" not in text, rel
+
+
+def test_a_DANGLING_SYMLINK_is_not_a_directory(tmp_path):
+    """`exists()` FOLLOWS the link, so a link naming nothing answers `False` and
+    passed the clause that exists to stop a non-directory -- then
+    `into.mkdir(exist_ok=True)`, which does NOT follow a link, raises the same
+    `FileExistsError` to the console the clause was added for.
+
+    ! IT SKIPS WHERE SYMLINKS ARE NOT AVAILABLE rather than faking the
+    filesystem the case is entirely about: creating one on the machine this was
+    written on raises `WinError 1314`."""
+    link = tmp_path / "link"
+    try:
+        link.symlink_to(tmp_path / "nowhere", target_is_directory=True)
+    except OSError as e:
+        pytest.skip(f"symlinks unavailable: {e}")
+    assert not link.exists()
+    assert undraftable(link, tmp_path / "repo")
 
 
 def test_a_RELATIVE_into_does_not_refuse_every_page(tmp_path, monkeypatch):
@@ -251,6 +279,68 @@ def test_ONE_FILES_REFUSAL_DRAFTS_NOTHING_FOR_ANY_FILE(tmp_path):
     assert list(into.iterdir()) == []
 
 
+def _two_pages(tmp_path):
+    """A two-file repo whose FIRST page in sort order is already stale."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "a.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    (repo / "z.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    binder = bind([build(SAMPLE, "a.py"), build(SAMPLE, "z.py")])
+    # ! Stale AFTER the binder was taken, so `a.py` refuses at `verify`.
+    (repo / "a.py").write_text(SAMPLE + "\n", encoding="utf-8", newline="")
+    notations = {
+        address(binder, "a.py"): "# REPLACED",
+        address(binder, "z.py"): "# REPLACED",
+    }
+    return repo, binder, notations
+
+
+def test_NO_LATER_PAGE_IS_READ_once_an_earlier_one_refuses(tmp_path, monkeypatch):
+    """CRITICAL, measured 2026-08-26: `run` recorded the refusal and CARRIED ON
+    -- reading, editing, drafting, rereading and proving every remaining page --
+    against its own docstring's *"A REFUSAL ABORTS THE RUN WHOLE"* and Roy's
+    ruling that it *"fails loud amd stops"*."""
+    repo, binder, notations = _two_pages(tmp_path)
+    into = tmp_path / "out"
+
+    read: list[str] = []
+    real_page_of = proof_setter.page_of
+
+    def watching_page_of(path, *args, **kwargs):
+        read.append(Path(path).name)
+        return real_page_of(path, *args, **kwargs)
+
+    monkeypatch.setattr(proof_setter, "page_of", watching_page_of)
+    drafted, refused = proof_setter.run(notations, binder, repo, into)
+
+    assert drafted == []
+    assert [r.step for r in refused] == ["verify"]
+    assert read == ["a.py"]
+    assert list(into.iterdir()) == []
+
+
+def test_A_REFUSAL_IS_NOT_LOST_to_a_later_page_that_raises(tmp_path, monkeypatch):
+    """CRITICAL, measured 2026-08-26: `run` collected the refusal, went on to
+    the next page, and that page's write raised -- so `run` re-raised and the
+    caller got a traceback INSTEAD of the refusals, past the documented
+    `(drafted, []) or ([], refusals)`."""
+    repo, binder, notations = _two_pages(tmp_path)
+    into = tmp_path / "out"
+    real_write_text = Path.write_text
+
+    def failing_write_text(self, *args, **kwargs):
+        if self.name == "z.py":
+            raise PermissionError("simulated: a later page's write fails")
+        return real_write_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", failing_write_text)
+
+    drafted, refused = proof_setter.run(notations, binder, repo, into)
+
+    assert drafted == []
+    assert [(r.step, r.path) for r in refused] == [("verify", "a.py")]
+
+
 def test_TWO_PAGES_SHARING_A_BASENAME_do_not_collide(tmp_path):
     """CRITICAL, measured 2026-08-25: `into / Path(rel).name` flattened
     `pkg/a/util.py` and `pkg/b/util.py` to the same `<into>/util.py`, so the
@@ -278,12 +368,13 @@ def test_TWO_PAGES_SHARING_A_BASENAME_do_not_collide(tmp_path):
     assert "# FROM B" in by_path["pkg/b/util.py"].draft.read_text(encoding="utf-8")
 
 
-def test_a_rel_that_ESCAPES_into_is_REFUSED(tmp_path):
-    """CRITICAL, measured 2026-08-25: `(into / rel).resolve()` joins and never
-    checks -- with `rel = "../escape_repo/sub/util.py"` and a matching sha,
-    the join lands outside `into` entirely, up to and including the source
-    file under review. `commands/galley.py:124` already refuses this shape
-    for `--out`; this pins the same guard here."""
+def test_a_rel_that_ESCAPES_the_repo_is_REFUSED_AT_READ(tmp_path, monkeypatch):
+    """CRITICAL, measured 2026-08-26: only the WRITE target was contained. With
+    `rel = "../escape_repo/sub/util.py"` the file OUTSIDE the checkout was read,
+    lexed, paged and run through `galley.reset` before the draft guard refused
+    -- so the refusal blamed the draft location while the fault is a binder
+    naming a page outside `repo`, and a file nobody put under review had already
+    been read."""
     repo = tmp_path / "repo"
     repo.mkdir()
     escaped = tmp_path / "escape_repo" / "sub"
@@ -296,6 +387,48 @@ def test_a_rel_that_ESCAPES_into_is_REFUSED(tmp_path):
     binder = bind([build(SAMPLE, rel)])
     into = tmp_path / "out"
 
+    read: list[Path] = []
+    real_page_of = proof_setter.page_of
+
+    def watching_page_of(path, *args, **kwargs):
+        read.append(Path(path))
+        return real_page_of(path, *args, **kwargs)
+
+    monkeypatch.setattr(proof_setter, "page_of", watching_page_of)
+
+    drafted, refused = proof_setter.run(
+        {address(binder, rel): "# REPLACED"}, binder, repo, into
+    )
+
+    assert drafted == []
+    assert len(refused) == 1
+    assert refused[0].step == "read"
+    assert "outside the repository" in refused[0].why
+    assert read == []
+    assert escaped_file.read_bytes() == before
+
+
+def test_a_rel_INSIDE_the_repo_that_escapes_into_is_REFUSED_AT_DRAFT(tmp_path):
+    """CRITICAL, measured 2026-08-25: `(into / rel).resolve()` joins and never
+    checks, so with a matching sha the draft lands outside `into` entirely -- up
+    to and including the source file under review.
+
+    ! THE READ GUARD DOES NOT SUBSUME IT. `repo` and `into` are siblings here,
+    so `sub/../../repo/util.py` resolves INSIDE `repo` -- a legitimate read --
+    and outside `into`. `commands/galley.py`'s `main` refuses the same shape for
+    `--out`; this pins the guard here."""
+    repo = tmp_path / "repo"
+    (repo / "sub").mkdir(parents=True)
+    source = repo / "util.py"
+    source.write_text(SAMPLE, encoding="utf-8", newline="")
+    before = source.read_bytes()
+
+    rel = "sub/../../repo/util.py"
+    assert (repo / rel).resolve() == source.resolve()
+    into = tmp_path / "out"
+    assert not (into / rel).resolve().is_relative_to(into)
+
+    binder = bind([build(SAMPLE, rel)])
     drafted, refused = proof_setter.run(
         {address(binder, rel): "# REPLACED"}, binder, repo, into
     )
@@ -303,7 +436,7 @@ def test_a_rel_that_ESCAPES_into_is_REFUSED(tmp_path):
     assert drafted == []
     assert len(refused) == 1
     assert refused[0].step == "draft"
-    assert escaped_file.read_bytes() == before
+    assert source.read_bytes() == before
 
 
 def test_an_EXCEPTION_removes_earlier_drafts_and_still_propagates(
@@ -445,6 +578,8 @@ class TestPageOfReturnsEveryRefusalItPromises:
         assert "anchor has no line" in why
 
     def test_a_Refused_REFUSES_THE_RUN_instead_of_escaping(self, tmp_path, monkeypatch):
+        """! THE PATCH REACHES `_one`'s READ ONLY, because the run stops there.
+        `_reread`'s own read is the case below."""
         repo, binder, _ = _tree(tmp_path)
 
         def refusing_page_for(*args, **kwargs):
@@ -456,6 +591,35 @@ class TestPageOfReturnsEveryRefusalItPromises:
         )
         assert drafted == []
         assert refused[0].step == "read"
+
+    def test_a_Refused_ON_THE_DRAFT_refuses_at_reread(self, tmp_path, monkeypatch):
+        """CRITICAL, measured 2026-08-26: `_reread` inlined `read_source`,
+        `language_for` and `page_for` with NO handler for either
+        `exceptions.Refused` or `READ_ERRORS`, so a draft tripping `page_for`'s
+        raise escaped `run()` as a traceback -- past its documented
+        `(drafted, []) or ([], refusals)`.
+
+        ! THE CASE ABOVE COULD NOT SEE IT: it patches the name `page_of` reads,
+        which the inlined copy never consulted, and `_one`'s read refuses first
+        anyway. This one refuses the DRAFT alone, so the chain reaches the step
+        under test."""
+        repo, binder, _ = _tree(tmp_path)
+        into = tmp_path / "out"
+        real_page_for = page_for_mod.page_for
+
+        def refusing_on_the_draft(path, *args, **kwargs):
+            if Path(path).resolve().is_relative_to(into.resolve()):
+                raise exceptions.Refused("b0: a `c` place whose anchor has no line")
+            return real_page_for(path, *args, **kwargs)
+
+        monkeypatch.setattr(page_for_mod, "page_for", refusing_on_the_draft)
+        drafted, refused = proof_setter.run(
+            {address(binder, "m.py"): "# REPLACED"}, binder, repo, into
+        )
+        assert drafted == []
+        assert [r.step for r in refused] == ["reread"]
+        assert "anchor has no line" in refused[0].why
+        assert list(into.iterdir()) == []
 
 
 class TestTheFileMustBeTheONEThatWasReviewed:
@@ -700,24 +864,30 @@ def test_a_CUE_COLLISION_in_the_draft_is_REFUSED_and_not_last_one_wins(
     file in this tree produces one today, and `_reread` reads the DRAFT, so the
     only way in is the reader it calls. The page is a real page over the real
     draft; one paragraph's address is copied onto another so the shape under
-    test is the shape being asserted about."""
+    test is the shape being asserted about.
+
+    ! IT IS CONDITIONED ON THE PATH because `_reread` reads through `page_of`,
+    the same step `_one` reads the SOURCE through. Colliding both would refuse
+    at `edit` -- `galley.reset`'s own collision check -- and never reach the
+    step under test."""
     repo, binder, _ = _tree(tmp_path)
+    into = tmp_path / "out"
     where = address(binder, "m.py")
     cue = cue_of(where).cue
-    real_page_for = proof_setter.page_for
+    real_page_for = page_for_mod.page_for
 
-    def colliding_page_for(*args, **kwargs):
-        page = real_page_for(*args, **kwargs)
+    def colliding_page_for(path, *args, **kwargs):
+        page = real_page_for(path, *args, **kwargs)
+        if not Path(path).resolve().is_relative_to(into.resolve()):
+            return page
         addressed = [b for b in page if b.address]
         held = next(b for b in addressed if cue_of(b.address).cue == cue)
         other = next(b for b in addressed if b is not held)
         other.address = held.address
         return page
 
-    monkeypatch.setattr(proof_setter, "page_for", colliding_page_for)
-    drafted, refused = proof_setter.run(
-        {where: "# REPLACED"}, binder, repo, tmp_path / "out"
-    )
+    monkeypatch.setattr(page_for_mod, "page_for", colliding_page_for)
+    drafted, refused = proof_setter.run({where: "# REPLACED"}, binder, repo, into)
     assert drafted == []
     assert len(refused) == 1
     assert refused[0].step == "reread"

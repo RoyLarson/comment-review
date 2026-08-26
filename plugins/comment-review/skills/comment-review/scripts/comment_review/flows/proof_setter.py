@@ -38,13 +38,11 @@ that pin, not as a call somebody forgot to make.
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.binder.page import page_for
 from comment_review.desk import notations as notations_mod
 from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.repo import read_source, undraftable
 from comment_review.reading.addresser import address_for, cue_of, unflatten
-from comment_review.reading.lexer import language_for
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
 
@@ -91,6 +89,12 @@ def run(
     stopped run leaves no half-set of files that no page describes. !
     PROVISIONAL: the resumable per-page form belongs to the workflow that
     writes over the real files.
+
+    !! IT STOPS AT THE FIRST REFUSAL, AND WENT ON TO EVERY REMAINING PAGE UNTIL
+    2026-08-26. The refusals were collected and the loop continued -- reading,
+    editing, drafting, rereading and proving each page after it -- so a LATER
+    page that RAISED took the whole run out as a traceback and every refusal
+    already recorded was lost, which is the opposite of *stops*.
 
     Args:
         notations: address -> replacement text, or None to delete.
@@ -168,7 +172,7 @@ def run(
                     f"no page in the binder is named by this address ({named})",
                 )
             )
-            continue
+            break
         try:
             made, why = _one(rel, edits, recorded.get(rel, ""), repo, into, created)
         except Exception:
@@ -183,8 +187,13 @@ def run(
                 _discard(made.draft, created)
             raise
         if why is not None:
+            # ! NOTHING BELOW THIS PAGE IS READ. Collecting the refusal and
+            # carrying on drafted every remaining page, so the run wrote files
+            # for a proposal it had already refused -- and one of those pages
+            # raising replaced the refusals with a traceback.
             refusals.append(why)
-        elif made is not None:
+            break
+        if made is not None:
             drafted.append(made)
 
     if refusals:
@@ -241,7 +250,20 @@ def _one(
     created: set[Path],
 ) -> tuple[Drafted | None, Refusal | None]:
     """One page through every step, or the first step that refused."""
-    page, why = page_of(repo / rel, rel=rel)
+    # !! THE READ IS CONTAINED TOO, AND ONLY THE WRITE WAS UNTIL 2026-08-26.
+    # MEASURED with `rel = "../escape_repo/sub/util.py"`: the file OUTSIDE the
+    # checkout was read, lexed, paged and edited by `galley.reset` before the
+    # containment guard below refused at `draft` -- so the refusal named the
+    # draft location while the fault is a binder naming a page outside `repo`.
+    # ! IT IS THE SAME COMPARISON, ONE STEP EARLIER, so the two guards cannot
+    # disagree about what "outside" means.
+    source = (repo / rel).resolve()
+    if not source.is_relative_to(repo):
+        return None, Refusal(
+            "read", rel, "names a file outside the repository under review"
+        )
+
+    page, why = page_of(source, rel=rel)
     if page is None:
         return None, Refusal("read", rel, why)
 
@@ -268,16 +290,22 @@ def _one(
     # 2026-08-25: `into / Path(rel).name` flattened `pkg/a/util.py` and
     # `pkg/b/util.py` to the same `<into>/util.py`, so the second page's
     # draft silently overwrote the first's approved text at exit 0.
-    # `commands/galley.py:124` already keeps `rel` under its output
-    # directory this way -- mirrored here.
+    # `commands/galley.py`'s `main` already keeps `rel` under its output
+    # directory this way -- mirrored here. ! CITED BY NAME, NOT BY LINE: the
+    # line that citation carried moved when a guard was inserted above it, and
+    # nothing could notice.
     target = (into / rel).resolve()
     # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `into`, BEFORE ANY WRITE. A
-    # `rel` carrying a `..` segment joins past `into` --
-    # `pkg/a/../../escape/util.py` -- and with a matching sha the draft would
-    # land on a file outside the draft directory, up to and including the
-    # source file under review. Measured 2026-08-25: with `rel =
+    # `rel` carrying a `..` segment joins past `into` and, with a matching sha,
+    # the draft lands on a file outside the draft directory -- up to and
+    # including the source file under review. Measured 2026-08-25: with `rel =
     # "../escape_repo/sub/util.py"`, the join before this check wrote the
     # edited draft onto the source file itself, at exit 0.
+    #
+    # ! THE READ GUARD ABOVE DOES NOT SUBSUME IT, because `repo` and `into` are
+    # different roots at different depths: `sub/../../repo/util.py` resolves
+    # INSIDE `repo` and outside `into` when the two are siblings, so the read is
+    # legitimate and the draft would still land on the source file.
     if not target.is_relative_to(into):
         return None, Refusal(
             "draft", rel, "would be written outside the draft directory"
@@ -340,12 +368,15 @@ def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | N
     the agents put the right comments in the right places."* A page still in
     memory would be agreeing with itself -- the shape `docs/gates.md` records
     the round trip scoring 699 of 699 on.
+
+    !! IT ASKS `page_of`, AND INLINED THE SAME FOUR CALLS UNTIL 2026-08-26 --
+    without the `Refused` and `READ_ERRORS` handling `_one`'s read has. A draft
+    tripping `page_for`'s `raise exceptions.Refused` escaped `run()` as a
+    traceback, against its documented `(drafted, []) or ([], refusals)`.
     """
-    source = read_source(target)
-    lang = language_for(target)
-    if lang is None:
-        return Refusal("reread", rel, "the draft has no language record")
-    page = page_for(target, source.text, lang, rel=rel, sha=source.sha)
+    page, why = page_of(target, rel=rel)
+    if page is None:
+        return Refusal("reread", rel, f"the draft: {why}")
     # !! COLLECTED AS A LIST PER CUE, BECAUSE A COLLISION IS A REFUSAL AND NOT A
     # LAST-ONE-WINS. This was `{cue_of(b.address).cue: b for b in page ...}`,
     # which keeps the LAST paragraph at a cue two paragraphs share and checks
@@ -422,7 +453,7 @@ def _elsewhere(page, where: str, want: list[str]) -> str:
     ! IT REPORTS; IT DOES NOT ACCEPT. Naming the other place is what makes the
     refusal actionable. Deciding which of two co-located places owns prose at
     the foot of a file is a page-model ruling -- see
-    `TODO/two-places-name-the-foot-of-a-file.md` -- and reading the notation as
+    `TODO/foot-of-file-two-places.md` -- and reading the notation as
     satisfied because the text is SOMEWHERE would be this step agreeing with
     the edit step instead of checking it.
 
@@ -468,7 +499,10 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
     Whether the proof stays a blanket one or becomes a diff against the
     APPROVED set is a ruling Roy holds --
     `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md`, task T1, a
-    `*` box. `TestADocstringAddOrDropIsSTILLREFUSED` pins what happens today.
+    `*` box. `test_a_docstring_DROP_is_STILL_REFUSED_at_prove` and
+    `test_a_docstring_ADD_is_STILL_REFUSED_at_prove`, in
+    `TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain`, pin what happens
+    today.
 
     The residual hazard this branch is for is a notation that breaks its
     comment's RUN and swallows code BEYOND the edited cue -- an edit whose

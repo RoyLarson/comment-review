@@ -69,9 +69,10 @@ def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
     here, because NOTHING TRANSFERS FROM THE BINDER TO THE END -- the write path
     reloads the page from disk and takes only the address as a key.
 
-    ! THE GATE IS UNAFFECTED. `unaddressed` reports paragraphs that OWE an
-    address and lack one, and `owes_address` already exempts anything carrying a
-    symbol -- so a fence was never in the population it counts.
+    ! THE GATE IS UNAFFECTED, AND THE REASON IS THE FILTER BELOW. `unaddressed`
+    reports paragraphs that lack an address, and this function hands over only
+    the paragraphs that HAVE one -- a fence's address is `""`, so it never
+    reaches the population that gate counts.
     """
     return [b for b in page if b.address]
 

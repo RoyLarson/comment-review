@@ -155,9 +155,10 @@ def read(text: str) -> tuple[dict, str]:
     'str' object has no attribute 'get'` out of `commands/proof.py` as a
     traceback -- past that command's own promise to print `CANNOT READ THE
     BINDER: {why}`. Same for `{"pages": {"a": 1}}` and `{"pages": [1, 2]}`.
-    ! WHAT IS CHECKED IS WHAT IS CONSUMED and no more: `rows_of` and
-    `proof_setter.run` walk `pages`, then each page's `rows`, calling `.get` on
-    both. Nothing here reads a FIELD, so nothing here rules on one.
+    ! WHAT IS CHECKED IS WHAT IS CONSUMED and no more: `rows_of` walks `pages`
+    and then each page's `rows`, calling `.get` on both; `proof_setter.run`
+    walks `pages` alone, for `path` and `sha`. Nothing here reads a FIELD, so
+    nothing here rules on one.
 
     Returns:
         `(binder, "")` when it reads, or `({}, reason)` when it does not.

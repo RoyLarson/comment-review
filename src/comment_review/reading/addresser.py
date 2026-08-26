@@ -27,8 +27,8 @@ no line number anywhere.
 several addresses -- the `b` above it, the `c` beside it, its own `a`, the `b`s
 in its body -- so an anchor has many addresses. A LINE still has one.
 
-! THE `d` SERIES TAKES NO ADDRESS AT ALL -- see `owes_address` for why, and
-`SERIES` for what it takes instead.
+! THE `d` SERIES TAKES NO ADDRESS AT ALL -- see `LEAD` for why, and `SERIES`
+for what it takes instead.
 
 !! THIS RESTS ENTIRELY ON THE CENSUS BEING WHAT ROY CALLED IT, 2026-08-18: a
 HASHED STATIC TABLE -- exact, constant, FULLY ENUMERATED. Take away any one of
@@ -204,6 +204,30 @@ COVERS = Series.COVERS.value.letter
 # `Page.prose` and out of record seeding, and NO EMPTY `d` IS EMITTED -- the
 # other four series exist wherever prose COULD go, because an `add` cites them;
 # a place no verdict can name has no reason to exist unfilled.
+#
+# !! IT IS A FENCE, AND FENCES HAVE NO ADDRESS. Roy, 2026-08-23: *"the `d`
+# series doesn't get an address for the same reasons fences in the real world
+# don't get addresses. They mark a demarcation boundary and they have the same
+# problem as fences -- whose fence is it."* ! Every other place is attached to a
+# line of code, and that line is what a reviewer measures a claim against. A
+# blank run sits BETWEEN two places and is attached to neither, so the ownership
+# question has no answer rather than an unknown one.
+#
+# ! IT WAS TRIED AND REFUSED THREE TIMES -- `875b0d4` made it a fifth series,
+# `b998a60` repaired it as an edge, `c27ea1d` retreated to a symbol. Roy,
+# closing it: *"We tried leading getting a place. We tried several different
+# ways. The constraints of coding AND editing do not allow it."* Two things stop
+# being determinable the moment the slack is addressable: WHERE everything below
+# an edit shifted to, and HOW MUCH blank belongs where afterwards -- the second
+# being a typographic judgement no rule computes.
+#
+# !! UNADDRESSED IS NOT UNRECORDED, and that is the whole of the arrangement.
+# Roy: *"the system knows hey there was a fence here we should put it back."*
+# `Page.leading` keys the fence on the place it FOLLOWS -- `f0 -> d0` -- so what
+# is remembered is a fact about a boundary rather than a thing with a location.
+# ! Nobody can cite it, nobody can rule on it, and the compositor puts it back
+# exactly where it was. ! WHICH IS WHY THE EDGE SHAPE HOLDS: this system never
+# chooses an amount of blank, it replays what it read.
 LEAD = Series.LEAD.value.letter
 #: The four series `cue` emits. **`LEAD` IS NOT ONE OF THEM**, since 2026-08-22.
 #:

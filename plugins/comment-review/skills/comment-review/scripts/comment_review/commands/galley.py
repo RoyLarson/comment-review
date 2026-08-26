@@ -38,7 +38,9 @@ def main() -> int:
     ap.add_argument(
         "--edits",
         required=True,
-        help='JSON: {"<address>": "<replacement paragraph>"}',
+        help='JSON: {"<address>": "<replacement paragraph>"}, or null to'
+        " delete what is there. An empty object is REFUSED, so a run with"
+        " nothing to set skips this command rather than calling it",
     )
     ap.add_argument("--out", required=True, help="directory the galley is written to")
     args = ap.parse_args()
@@ -83,6 +85,18 @@ def main() -> int:
     # machine-written from approved text; a key whose value failed to serialise
     # arrives as `null`."* With nothing type-checking the value, an upstream
     # serialisation failure and an approved `drop` are the same bytes.
+    #
+    # !! IT ALSO REFUSES AN EMPTY OBJECT, WHICH THIS COMMAND USED TO ACCEPT --
+    # `{}` printed `0 page(s) set, 0 edit(s) refused` at exit 0. The refusal is
+    # kept: `--edits` is machine-written from approved text exactly as
+    # `--notations` is, so an empty file and a crashed upstream are the same
+    # bytes here too, and a second reading of the same format in this command is
+    # what `notations.read` exists to end.
+    #
+    # ! IT COSTS `SKILL.md` A CONDITION, and that file is `agents` lane. A run
+    # whose verdicts were all `clean` has nothing to set, so the stage wired to
+    # this command must SKIP rather than call it with `{}` --
+    # `TODO/empty-edits-fails-a-stage.md`.
     edits, why = notations_mod.read(edits_text)
     if why:
         print(f"CANNOT READ THE EDITS: {why} -- no galley written")
@@ -168,27 +182,35 @@ def main() -> int:
             continue
         text = source.text
 
-        lang = language_for(source_path)
-        if lang is None:
-            print(f"REFUSED  {rel}: no language record, so it has no page")
-            refused += len(file_edits)
-            continue
-        page = page_for(source_path, text, lang, rel=rel, sha=source.sha)
-
+        # !! COMPARED BEFORE THE PARSE, AND SAT BELOW `page_for` UNTIL
+        # 2026-08-26. `page_for` raises `exceptions.Refused` and this command
+        # has no handler for it, so a file that was BOTH stale and unpageable
+        # died as a traceback before reaching the comparison that would have
+        # refused it with a reason. `read_source` already supplied the sha --
+        # `page.sha` is this same value, handed to `page_for` below -- so
+        # nothing had to be parsed to ask the question.
+        #
         # !! AN ABSENT RECORDED SHA REFUSES; IT DOES NOT PASS. `not was` is the
         # first clause for the reason `flows/proof_setter.py:_one` gives at the
         # same comparison: a census page carrying no sha would otherwise compare
         # "" against a real hash, and a shape that dropped the field would turn
         # this gate off silently rather than loudly.
         was = recorded.get(rel, "")
-        if not was or page.sha != was:
+        if not was or source.sha != was:
             print(
                 f"REFUSED  {rel}: the file has changed since it was censused"
                 f" -- censused at {was or '<nothing recorded>'}, reads now as"
-                f" {page.sha}"
+                f" {source.sha}"
             )
             refused += len(file_edits)
             continue
+
+        lang = language_for(source_path)
+        if lang is None:
+            print(f"REFUSED  {rel}: no language record, so it has no page")
+            refused += len(file_edits)
+            continue
+        page = page_for(source_path, text, lang, rel=rel, sha=source.sha)
 
         problems = reset(page, file_edits)
         if problems:
