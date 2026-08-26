@@ -39,11 +39,12 @@ def main() -> int:
     out = Path(args.out).resolve()
     # !! `--out` MUST BE DISJOINT FROM `--repo`, and the per-file guard cannot
     # ask this. On an OVERLAP a target lands inside `--out` by way of being the
-    # source file itself -- MEASURED 2026-08-22 on `commands/galley.py`, which
+    # source file itself -- MEASURED 2026-08-22 on the galley command, which
     # overwrote the file under review, printed `1 page(s) set` and exited 0.
+    # See `docs/history.md`.
     #
-    # !! THE RULE IS `repo.undraftable`'s AND IS ASKED IN THREE PLACES. It was
-    # spelled out here and in `commands/galley.py` -- two copies of one rule --
+    # !! THE RULE IS `repo.undraftable`'s AND IS ASKED IN TWO PLACES. It was
+    # spelled out here and in the galley command -- two copies of one rule --
     # and `flows/proof_setter.run` asked it nowhere, so calling that flow with
     # `into == repo` wrote over the files under review at `refused=[]`. Asking
     # it here as well is what keeps a bad `--out` an INPUT error at exit 2

@@ -2,8 +2,9 @@
 
     notations + the saved binder
         -> resolve each address                    -> path + cue
-        -> reload the page FROM DISK                page_of
+        -> reread the file FROM DISK                source_of
         -> the sha is the one the binder recorded
+        -> build the page                           page_of
         -> galley          the marks are put on the page
         -> compositor      the page is set as text
         -> draft           a temporary file, never the original
@@ -39,9 +40,9 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.desk import notations as notations_mod
-from comment_review.flows.page_for import page_of
+from comment_review.flows.page_for import page_of, source_of
 from comment_review.machine import constants
-from comment_review.machine.repo import read_source, undraftable
+from comment_review.machine.repo import undraftable
 from comment_review.reading.addresser import address_for, cue_of, unflatten
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
@@ -49,10 +50,12 @@ from comment_review.results.prove_unchanged import code_fingerprint
 #: The chain, as data -- read only by `test_the_chain_IS_this_list`, which
 #: pins it against a second literal; `run()` itself never consults `STEPS`.
 #: ! "set" NAMES A PIPELINE STAGE WITH NO `Refusal` OF ITS OWN: no site in
-#: this module builds a `Refusal("set", ...)`. "draft" is not that anymore --
-#: `67b8c9b`'s containment guard in `_one` builds `Refusal("draft", ...)` for a
-#: `rel` that would resolve outside `into`, and `test_proof_setter.py` asserts
-#: `refused[0].step == "draft"` against it.
+#: this module builds a `Refusal("set", ...)`. "draft" is not that -- `run`
+#: builds one for a draft directory that overlaps the repo, which
+#: `test_into_INSIDE_the_repo_refuses` and `test_the_repo_INSIDE_into_refuses`
+#: assert against. ! `_one`'s target guard builds one too, and NO TEST REACHES
+#: IT since the page paths are ruled on in `run`: what is left to it is a
+#: symlink, and see that guard for why it is not verified here.
 STEPS = ("read", "verify", "edit", "set", "draft", "reread", "prove")
 
 
@@ -140,6 +143,24 @@ def run(
         str(page.get("path", "")): str(page.get("sha", ""))
         for page in binder.get("pages", [])
     }
+    # !! THE PAGE PATHS ARE RULED ON ONCE, HERE, BECAUSE THIS IS WHERE THEY
+    # ENTER. Every `rel` below comes from `unflatten` over exactly these keys,
+    # so a constraint asked here holds for every root a `rel` is later joined
+    # to. It was asked per file instead, against `repo` and against `into`
+    # separately, and each refusal then named the place the join landed rather
+    # than the binder page path that could not be joined anywhere.
+    outside = sorted(p for p in recorded if _can_escape(p))
+    if outside:
+        return [], [
+            Refusal(
+                "read",
+                p,
+                "the binder names this page by a path that is not relative to"
+                " the repository, so it resolves outside whatever root it is"
+                " joined to",
+            )
+            for p in outside
+        ]
     into.mkdir(parents=True, exist_ok=True)
     drafted: list[Drafted] = []
     refusals: list[Refusal] = []
@@ -183,8 +204,7 @@ def run(
             # `refusals` branch below unlinked what had been written. The
             # exception still propagates; this removes what the run had
             # already drafted first.
-            for made in drafted:
-                _discard(made.draft, created)
+            _discard_all(drafted, created)
             raise
         if why is not None:
             # ! NOTHING BELOW THIS PAGE IS READ. Collecting the refusal and
@@ -197,10 +217,42 @@ def run(
             drafted.append(made)
 
     if refusals:
-        for made in drafted:
-            _discard(made.draft, created)
+        _discard_all(drafted, created)
         return [], refusals
     return drafted, []
+
+
+def _can_escape(rel: str) -> bool:
+    """Would joining this page path to a root land somewhere other than under it?
+
+    !! A QUESTION ABOUT THE STRING, AND ONLY ABOUT THE STRING. It answers for
+    every root at once, which is what lets the two roots below stop asking
+    separately -- but it cannot answer for the filesystem, so `_one` still
+    compares the RESOLVED target. See the guard there for what is left to it.
+
+    ! THE DRIVE AND THE ROOT ARE ASKED BESIDE `is_absolute`, because Windows has
+    a third form neither covers: `Path("C:util.py").is_absolute()` is `False`
+    and it carries a drive, so joining it to a root on any other drive
+    DISCARDS the root.
+
+    Args:
+        rel: a page path as the binder records it.
+
+    Returns:
+        `True` when it is absolute, drive-relative, rooted, or walks up.
+    """
+    p = Path(rel)
+    return bool(p.is_absolute() or p.drive or p.root) or ".." in p.parts
+
+
+def _discard_all(drafted: list[Drafted], created: set[Path]) -> None:
+    """Remove every draft this run wrote, on the way out.
+
+    ! ONE SPELLING FOR TWO EXITS. `run` unwinds twice -- an exception escaping a
+    page's own step, and a refusal -- and both leave nothing behind.
+    """
+    for made in drafted:
+        _discard(made.draft, created)
 
 
 def _discard(draft: Path, created: set[Path]) -> None:
@@ -250,23 +302,30 @@ def _one(
     created: set[Path],
 ) -> tuple[Drafted | None, Refusal | None]:
     """One page through every step, or the first step that refused."""
-    # !! THE READ IS CONTAINED TOO, AND ONLY THE WRITE WAS UNTIL 2026-08-26.
-    # MEASURED with `rel = "../escape_repo/sub/util.py"`: the file OUTSIDE the
-    # checkout was read, lexed, paged and edited by `galley.reset` before the
-    # containment guard below refused at `draft` -- so the refusal named the
-    # draft location while the fault is a binder naming a page outside `repo`.
-    # ! IT IS THE SAME COMPARISON, ONE STEP EARLIER, so the two guards cannot
-    # disagree about what "outside" means.
+    # !! LEXICAL CONTAINMENT IS `run`'s, ONE STEP UP: `_can_escape` has already
+    # refused an absolute, drive-relative, rooted or `..`-walking page path for
+    # the whole run. What is left to the two comparisons in this function is the
+    # half no check on a STRING can answer -- what the filesystem RESOLVES the
+    # join to. A symlinked directory under either root sends a well-formed
+    # `rel` somewhere else, and only a resolved path can say so.
+    #
+    # ! WHICH GUARD IS LOAD-BEARING AND WHICH IS DEPTH: `run`'s is what the two
+    # measured escapes -- `../escape_repo/sub/util.py` and
+    # `sub/../../repo/util.py` -- refuse at. These two are depth, and they are
+    # NOT verified on the machine this was written on: creating a symlink there
+    # raises `WinError 1314`, the same reason
+    # `test_a_DANGLING_SYMLINK_is_not_a_directory` skips.
     source = (repo / rel).resolve()
     if not source.is_relative_to(repo):
         return None, Refusal(
             "read", rel, "names a file outside the repository under review"
         )
 
-    page, why = page_of(source, rel=rel)
-    if page is None:
-        return None, Refusal("read", rel, why)
-
+    # !! THE SHA IS COMPARED BEFORE THE PARSE. `source_of` is `page_of`'s first
+    # step exposed, so the bytes are read once and a file that no longer matches
+    # what was reviewed is refused without being lexed or paged. It sat below
+    # `page_of` until 2026-08-26, which paid for a page nothing then looked at.
+    #
     # !! AN ABSENT RECORDED SHA REFUSES; IT DOES NOT PASS. `not recorded` is
     # the first clause on purpose -- a binder page carrying no sha would
     # otherwise compare "" against a real hash, and a future shape that
@@ -274,13 +333,20 @@ def _one(
     # This is also the only check in the tree that catches a reviewer editing
     # the file it was reading: no agent file declares `tools:`, so all six
     # inherit Edit and Write, and "read-only" is prose until this compares.
-    if not recorded or page.sha != recorded:
+    held, why = source_of(source)
+    if held is None:
+        return None, Refusal("read", rel, why)
+    if not recorded or held.sha != recorded:
         return None, Refusal(
             "verify",
             rel,
             "the file has changed since it was reviewed -- reviewed at"
-            f" {recorded or '<nothing recorded>'}, reads now as {page.sha}",
+            f" {recorded or '<nothing recorded>'}, reads now as {held.sha}",
         )
+
+    page, why = page_of(source, rel=rel, source=held)
+    if page is None:
+        return None, Refusal("read", rel, why)
 
     placed = galley.reset(page, edits)
     if placed:
@@ -289,23 +355,16 @@ def _one(
     # !! THE FULL REPO-RELATIVE PATH, NOT JUST THE BASENAME. Measured
     # 2026-08-25: `into / Path(rel).name` flattened `pkg/a/util.py` and
     # `pkg/b/util.py` to the same `<into>/util.py`, so the second page's
-    # draft silently overwrote the first's approved text at exit 0.
-    # `commands/galley.py`'s `main` already keeps `rel` under its output
-    # directory this way -- mirrored here. ! CITED BY NAME, NOT BY LINE: the
-    # line that citation carried moved when a guard was inserted above it, and
-    # nothing could notice.
+    # draft silently overwrote the first's approved text at exit 0. The galley
+    # command already kept `rel` under its output directory this way, and this
+    # was mirrored from it before that command was emptied --
+    # `docs/history.md`.
     target = (into / rel).resolve()
-    # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `into`, BEFORE ANY WRITE. A
-    # `rel` carrying a `..` segment joins past `into` and, with a matching sha,
-    # the draft lands on a file outside the draft directory -- up to and
-    # including the source file under review. Measured 2026-08-25: with `rel =
-    # "../escape_repo/sub/util.py"`, the join before this check wrote the
-    # edited draft onto the source file itself, at exit 0.
-    #
-    # ! THE READ GUARD ABOVE DOES NOT SUBSUME IT, because `repo` and `into` are
-    # different roots at different depths: `sub/../../repo/util.py` resolves
-    # INSIDE `repo` and outside `into` when the two are siblings, so the read is
-    # legitimate and the draft would still land on the source file.
+    # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `into`, BEFORE ANY WRITE, for
+    # the reason given at the read guard above: a resolved target is the only
+    # thing that can say where the join actually went. The outcome it stands
+    # against is the one this area was measured on twice -- a draft written over
+    # the file under review, at exit 0.
     if not target.is_relative_to(into):
         return None, Refusal(
             "draft", rel, "would be written outside the draft directory"
@@ -341,16 +400,15 @@ def _one(
     # already cleared.
     try:
         compositor.draft(page, target)
-        off = _reread(rel, target, edits)
+        # ! THE DRAFT IS READ ONCE. `_reread` hands back the text it read, and
+        # `_prove` takes that -- a second `read_source(target)` here read the
+        # same file again on every page of every successful run.
+        drafted_text, off = _reread(rel, target, edits)
         if off is not None:
             _discard(target, created)
             return None, off
 
-        # !! `read_source`, NOT `read_text`. The translating reader is what this
-        # branch exists to remove from the write path -- reading the draft
-        # through it here would compare text read one way against text read
-        # another.
-        unproven = _prove(rel, page.text, read_source(target).text, target)
+        unproven = _prove(rel, page.text, drafted_text, target)
     except Exception:
         _discard(target, created)
         raise
@@ -360,7 +418,9 @@ def _one(
     return Drafted(rel, target, page.sha), None
 
 
-def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | None:
+def _reread(
+    rel: str, target: Path, edits: dict[str, str | None]
+) -> tuple[str, Refusal | None]:
     """Read the draft back as a page: is each notation at the cue it was given?
 
     !! IT IS READ FROM DISK, NOT FROM THE PAGE IN HAND. Roy, 2026-08-24: the
@@ -370,13 +430,24 @@ def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | N
     the round trip scoring 699 of 699 on.
 
     !! IT ASKS `page_of`, AND INLINED THE SAME FOUR CALLS UNTIL 2026-08-26 --
-    without the `Refused` and `READ_ERRORS` handling `_one`'s read has. A draft
+    without the `Refused` and `READ_ERRORS` handling `page_of` supplies. A draft
     tripping `page_for`'s `raise exceptions.Refused` escaped `run()` as a
     traceback, against its documented `(drafted, []) or ([], refusals)`.
+
+    Args:
+        rel: how the repo names the page this draft was set from.
+        target: the draft on disk.
+        edits: cue -> replacement text, or None where the place was dropped.
+
+    Returns:
+        `(the draft's text, None)`, or `("", the first refusal)`. ! The text is
+        `page.text`, which `page_of` took from `read_source` -- the untranslated
+        read `_prove`'s byte-identity comparison depends on, and the reason the
+        caller takes it from here rather than reading the file again.
     """
     page, why = page_of(target, rel=rel)
     if page is None:
-        return Refusal("reread", rel, f"the draft: {why}")
+        return "", Refusal("reread", rel, f"the draft: {why}")
     # !! COLLECTED AS A LIST PER CUE, BECAUSE A COLLISION IS A REFUSAL AND NOT A
     # LAST-ONE-WINS. This was `{cue_of(b.address).cue: b for b in page ...}`,
     # which keeps the LAST paragraph at a cue two paragraphs share and checks
@@ -392,9 +463,11 @@ def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | N
     for where, replacement in edits.items():
         found = placed.get(where)
         if not found:
-            return Refusal("reread", rel, f"{where}: the draft carries no such place")
+            return "", Refusal(
+                "reread", rel, f"{where}: the draft carries no such place"
+            )
         if len(found) > 1:
-            return Refusal(
+            return "", Refusal(
                 "reread",
                 rel,
                 f"{where}: {len(found)} paragraphs share this place in the draft,"
@@ -416,7 +489,7 @@ def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | N
             # the question asked here. It can still fail: a place that kept its
             # paragraph reads back with that paragraph's text in it.
             if any(line.strip() for line in got.raw_lines):
-                return Refusal(
+                return "", Refusal(
                     "reread",
                     rel,
                     f"{where}: was dropped, but the draft holds {got.raw_lines!r}",
@@ -424,16 +497,16 @@ def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | N
             continue
         want = constants.text_lines(replacement)
         if got.raw_lines != want:
-            return Refusal(
+            return "", Refusal(
                 "reread",
                 rel,
                 f"{where}: holds {got.raw_lines!r}, was given {want!r}"
-                f"{_elsewhere(page, where, want)}",
+                f"{_elsewhere(placed, where, want)}",
             )
-    return None
+    return page.text, None
 
 
-def _elsewhere(page, where: str, want: list[str]) -> str:
+def _elsewhere(placed: dict[str, list], where: str, want: list[str]) -> str:
     """Which OTHER place in the draft holds this text, as a trailing clause.
 
     !! TWO PLACES CAN NAME ONE POSITION, and the refusal above named neither
@@ -457,14 +530,23 @@ def _elsewhere(page, where: str, want: list[str]) -> str:
     satisfied because the text is SOMEWHERE would be this step agreeing with
     the edit step instead of checking it.
 
+    ! IT READS THE TABLE `_reread` ALREADY BUILT, rather than walking the page a
+    second time and recomputing `cue_of` for every paragraph on it. ! Where
+    SEVERAL places hold the text it now names the first such CUE down the page
+    rather than the first matching PARAGRAPH; the two differ only when an
+    earlier cue's match sits below a later cue's paragraph, and either answers
+    the question this returns a clause for.
+
+    Args:
+        placed: the draft's paragraphs, grouped by cue, as `_reread` built it.
+        where: the cue whose notation did not read back.
+        want: the lines that were asked for there.
+
     Returns:
         `" -- <cue> holds it"`, or "" when no other place does.
     """
-    for b in page:
-        if not b.address:
-            continue
-        cue = cue_of(b.address).cue
-        if cue != where and b.raw_lines == want:
+    for cue, found in placed.items():
+        if cue != where and any(b.raw_lines == want for b in found):
             return f" -- {cue} holds it"
     return ""
 

@@ -21,8 +21,7 @@ a deliberate deletion. Two spellings for one act is how a bug upstream becomes
 a deletion downstream at exit 0.
 """
 
-import json
-
+from comment_review.machine.json_object import object_of
 from comment_review.reading.addresser import cue_of
 
 
@@ -40,11 +39,12 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
     `commands/proof.py` printed `0 page(s) drafted for review` at exit 0 -- the
     empty-reads-as-success shape this module's own paragraph above forbids.
 
-    ! IT REACHES `commands/galley.py --edits` TOO, which read the same shape
+    ! IT REACHED THE GALLEY COMMAND'S `--edits` TOO, which read the same shape
     with a bare `json.loads` until 2026-08-25 and printed `0 page(s) set` at
-    exit 0 on `{}`. `SKILL.md` wires a stage to that command, so a run with
-    nothing to set has to SKIP the stage rather than call it with an empty file
-    -- `TODO/empty-edits-fails-a-stage.md`.
+    exit 0 on `{}`; that command is now the old NAME for `proof` and reads
+    nothing of its own -- `docs/history.md`. `SKILL.md` still wires a stage to
+    the name, so a run with nothing to set has to SKIP the stage rather than
+    call it with an empty file -- `TODO/empty-edits-fails-a-stage.md`.
 
     Args:
         text: the notations file's contents.
@@ -52,14 +52,12 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
     Returns:
         `(notations, "")` when it reads, or `({}, reason)` when it does not.
     """
-    try:
-        loaded = json.loads(text)
-    # ! ONE CLASS, NOT A TUPLE, so the shipped-code rule against a tuple literal
-    # in an `except` does not bite. This is the spelling `binder.read` uses.
-    except json.JSONDecodeError as e:
-        return {}, f"not JSON ({e})"
-    if not isinstance(loaded, dict):
-        return {}, f"a JSON {type(loaded).__name__}, not a notations file"
+    # ! THE PARSE AND THE OBJECT GUARD ARE `json_object.object_of`'s. They were
+    # spelled out here and in `binder.read`, byte-identical but for the noun.
+    # What stays here is what a NOTATIONS file is: non-empty, text or null.
+    loaded, why = object_of(text, "notations file")
+    if why:
+        return {}, why
     if not loaded:
         return {}, (
             "no notations -- an empty file is not a run with nothing to do."
@@ -116,15 +114,17 @@ def by_page(
     Returns:
         `({flattened path: {cue: replacement}}, [])`, or `({}, refusals)`.
     """
+    # ! ONE `cue_of` PER ADDRESS. It was split into a checking pass and a
+    # grouping pass, each taking the address apart again, so the two could read
+    # one address as two different splits.
     refused = []
-    for address in notations:
-        addr = cue_of(address)
-        if not addr.path or not addr.cue:
-            refused.append(address)
-    if refused:
-        return {}, [f"{a}: malformed address" for a in sorted(refused)]
     grouped: dict[str, dict[str, str | None]] = {}
     for address, replacement in notations.items():
         addr = cue_of(address)
+        if not addr.path or not addr.cue:
+            refused.append(address)
+            continue
         grouped.setdefault(str(addr.path), {})[str(addr.cue)] = replacement
+    if refused:
+        return {}, [f"{a}: malformed address" for a in sorted(refused)]
     return grouped, []

@@ -692,3 +692,20 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THE TELL IS THE MOOD.** *"This module reads no source file"* is a fact. *"the census is the
   only input"* is a rule. Write what the code DOES and why it was enough; if something genuinely
   may not happen, say what forbids it and where that was decided.
+
+- **#30.** **`galley` IS A NAME ON THE PROOF CHAIN, NOT A SECOND CHAIN** (Roy, 2026-08-26: *"We
+  have a single entry point for the system? These delegate through to the commands? Create the
+  galley entry_point function that points to proof_setter and delete the unused command."* And on
+  the reason: *"there is no reason to go to the galley for something that proof-setter is supposed
+  to do."*).
+
+  ! **WHAT WENT**: `commands/galley.py`'s own argument parsing, its address-to-path resolution
+  through `rows_of(census)` -- the binder-row coupling `Process: #14` ruled the chain out of -- its
+  staleness comparison, its overlap guard and its draft loop. `main()` now calls `proof.main()`.
+
+  !! **THE NAME CARRIES OVER; THE FLAGS DO NOT.** `galley` took `--census`/`--edits`, `proof` takes
+  `--binder`/`--notations`, so the `SKILL.md` stage that invokes the old spelling is refused by
+  `proof`'s parser. Rewiring it is `agents` lane --
+  `TODO/the-skill-names-commands-that-moved-to-prototype.md`. **The removal is in
+  [`history.md`](history.md)**, and the measurements this file was the exemplar for are cited there
+  rather than at a module that no longer holds the code.

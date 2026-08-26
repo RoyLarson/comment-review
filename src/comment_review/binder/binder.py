@@ -35,9 +35,8 @@ places, while the compositor needs every one of them or the file cannot be set
 back.
 """
 
-import json
-
 from comment_review.binder.page import Page
+from comment_review.machine.json_object import object_of
 from comment_review.reading.addresser import address_for
 from comment_review.reading.lexer import Paragraph
 from comment_review.reading.series import Kind
@@ -163,12 +162,12 @@ def read(text: str) -> tuple[dict, str]:
     Returns:
         `(binder, "")` when it reads, or `({}, reason)` when it does not.
     """
-    try:
-        loaded = json.loads(text)
-    except json.JSONDecodeError as e:
-        return {}, f"not JSON ({e})"
-    if not isinstance(loaded, dict):
-        return {}, f"a JSON {type(loaded).__name__}, not a binder"
+    # ! THE PARSE AND THE OBJECT GUARD ARE `json_object.object_of`'s -- see
+    # there for why one preamble in two readers was the defect this module's own
+    # header describes. What stays here is what a BINDER is.
+    loaded, why = object_of(text, "binder")
+    if why:
+        return {}, why
     if "pages" not in loaded:
         return {}, "carries no `pages` -- is this the output of `census --json`?"
     pages = loaded["pages"]

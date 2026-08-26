@@ -112,6 +112,35 @@ certainty: any change to the file changes its sha, so the anchor-by-anchor and p
 ! **To read the mechanism**, it is at `0f99805^` -- `git show
 0f99805^:src/comment_review/results/galley.py`.
 
+## The `galley` COMMAND -- a second write chain, with its own rules
+
+**Emptied 2026-08-26.** `commands/galley.py` was ~200 lines that took `--census` and `--edits`,
+resolved each address to a file through `rows_of(census)`, compared the census's recorded sha
+against the file, placed the edits with `galley.reset`, and wrote one draft per page under
+`--out`. It kept its own copies of four things `flows/proof_setter.py` also does: the
+`--out`/`--repo` disjointness refusal, the per-file containment guard, the staleness comparison,
+and the draft loop.
+
+! **Why it went.** Roy, 2026-08-26: *"We have a single entry point for the system? These delegate
+through to the commands? Create the galley entry_point function that points to proof_setter and
+delete the unused command."* And on the shape: *"there is no reason to go to the galley for
+something that proof-setter is supposed to do."* The module is now the OLD NAME for `proof` and
+calls `proof.main()`.
+
+!! **THE NAME IS ALL THAT CARRIED OVER.** `galley` took `--census` and `--edits`; `proof` takes
+`--binder` and `--notations`. A `SKILL.md` stage still spelled the old flags when this landed, so
+the old invocation reaches `proof`'s parser and is refused -- tracked in
+`TODO/the-skill-names-commands-that-moved-to-prototype.md`.
+
+! **Where the measurements it was the exemplar for now point.** Three findings were recorded
+against this file and are still true of the system: the 2026-08-22 overlap that wrote a draft over
+the file under review at exit 0 (`repo.undraftable` is the rule now, in one place), the two copies
+of that one rule in two commands, and the 2026-08-25 staleness gap that placed every edit from a
+stale census at exit 0. They are cited here rather than at a file that no longer holds the code.
+
+! **To read the mechanism**, it is at `175c4bf` -- `git show
+175c4bf:src/comment_review/commands/galley.py`.
+
 ## Constants that outlived their reader
 
 **Deleted 2026-08-20**, all four found by sweeping the index for shipped names nothing reads:

@@ -91,7 +91,8 @@ def _repo_relative(path: Path, repo: Path) -> str:
         is no relative-to-`repo` form of such a file and inventing one with
         `..` would hand a consumer a path that escapes the root it was given,
         so it is passed through unresolved and the consumers refuse it:
-        `galley.py` writes nothing that lands outside `--out`.
+        `flows/proof_setter.py` writes nothing for a page path that is not
+        relative to the repository.
     """
     try:
         return path.resolve().relative_to(repo).as_posix()

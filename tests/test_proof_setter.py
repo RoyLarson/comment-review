@@ -201,23 +201,26 @@ class TestTheFlowItselfRefusesADraftDirectoryOverTheRepo:
         assert drafted == []
         assert refused and refused[0].step == "draft"
 
-    def test_the_RULE_IS_ONE_FUNCTION_all_three_callers_ask(self):
+    def test_the_RULE_IS_ONE_FUNCTION_both_callers_ask(self):
         """! A rule lives in exactly one file -- `docs/conventions.md`. It was
         written out in `commands/proof.py` AND `commands/galley.py`, with the
         same `is_relative_to` note on each, and asked in the flow nowhere.
 
-        ! `repo.is_relative_to(` is the half NO OTHER GUARD NEEDS: the two
-        per-file guards ask whether a path derived from a root is still under
-        that root, and only DISJOINTNESS asks the repo about the draft
-        directory. The two commands hold no other comparison against `repo` at
-        all, so the stricter form still stands there."""
-        for rel in ("commands/proof.py", "commands/galley.py", "flows/proof_setter.py"):
+        ! `repo.is_relative_to(` is the half NO OTHER GUARD NEEDS: the per-file
+        guard asks whether a path derived from a root is still under that root,
+        and only DISJOINTNESS asks the repo about the draft directory. The
+        command holds no other comparison against `repo` at all, so the
+        stricter form still stands there.
+
+        ! IT WAS THREE CALLERS UNTIL 2026-08-26. `commands/galley.py` is now the
+        old NAME for `proof` and holds no chain of its own, so it asks nothing
+        -- `test_galley_DELEGATES_to_proof` is what pins that."""
+        for rel in ("commands/proof.py", "flows/proof_setter.py"):
             text = (PKG / rel).read_text(encoding="utf-8")
             assert "undraftable(" in text, rel
             assert "repo.is_relative_to(" not in text, rel
-        for rel in ("commands/proof.py", "commands/galley.py"):
-            text = (PKG / rel).read_text(encoding="utf-8")
-            assert "is_relative_to(repo)" not in text, rel
+        text = (PKG / "commands" / "proof.py").read_text(encoding="utf-8")
+        assert "is_relative_to(repo)" not in text
 
 
 def test_a_DANGLING_SYMLINK_is_not_a_directory(tmp_path):
@@ -299,24 +302,51 @@ def test_NO_LATER_PAGE_IS_READ_once_an_earlier_one_refuses(tmp_path, monkeypatch
     """CRITICAL, measured 2026-08-26: `run` recorded the refusal and CARRIED ON
     -- reading, editing, drafting, rereading and proving every remaining page --
     against its own docstring's *"A REFUSAL ABORTS THE RUN WHOLE"* and Roy's
-    ruling that it *"fails loud amd stops"*."""
+    ruling that it *"fails loud amd stops"*.
+
+    ! IT WATCHES `source_of`, WHICH IS THE READ. It watched `page_of` until the
+    sha comparison moved above the parse on 2026-08-26; from then on the stale
+    first page refuses before anything is paged, so watching the parse would
+    have measured `[]` for both pages and could no longer tell the two apart."""
     repo, binder, notations = _two_pages(tmp_path)
     into = tmp_path / "out"
 
     read: list[str] = []
-    real_page_of = proof_setter.page_of
+    real_source_of = proof_setter.source_of
 
-    def watching_page_of(path, *args, **kwargs):
+    def watching_source_of(path, *args, **kwargs):
         read.append(Path(path).name)
-        return real_page_of(path, *args, **kwargs)
+        return real_source_of(path, *args, **kwargs)
 
-    monkeypatch.setattr(proof_setter, "page_of", watching_page_of)
+    monkeypatch.setattr(proof_setter, "source_of", watching_source_of)
     drafted, refused = proof_setter.run(notations, binder, repo, into)
 
     assert drafted == []
     assert [r.step for r in refused] == ["verify"]
     assert read == ["a.py"]
     assert list(into.iterdir()) == []
+
+
+def test_A_STALE_FILE_IS_REFUSED_WITHOUT_BEING_PARSED(tmp_path, monkeypatch):
+    """The sha comparison sat BELOW `page_of` until 2026-08-26, so every stale
+    page was read, lexed and paged before the one comparison that was going to
+    refuse it. `source_of` supplies the sha, so nothing has to be parsed to ask
+    the question.
+
+    ! IT ALSO DECIDES WHICH REASON A STALE AND UNPAGEABLE FILE GETS. With the
+    order reversed the refusal said `has no page`, which is a consequence of the
+    change the run is refusing FOR."""
+    repo, binder, notations = _two_pages(tmp_path)
+
+    def unpageable(*args, **kwargs):
+        raise AssertionError("a stale page must not be parsed")
+
+    monkeypatch.setattr(proof_setter, "page_of", unpageable)
+    drafted, refused = proof_setter.run(notations, binder, repo, tmp_path / "out")
+
+    assert drafted == []
+    assert [(r.step, r.path) for r in refused] == [("verify", "a.py")]
+    assert "changed since it was reviewed" in refused[0].why
 
 
 def test_A_REFUSAL_IS_NOT_LOST_to_a_later_page_that_raises(tmp_path, monkeypatch):
@@ -346,8 +376,10 @@ def test_TWO_PAGES_SHARING_A_BASENAME_do_not_collide(tmp_path):
     `pkg/a/util.py` and `pkg/b/util.py` to the same `<into>/util.py`, so the
     second page's draft silently overwrote the first's -- a human reviewing
     `pkg/a/util.py`'s approved text would have read `pkg/b`'s instead, at
-    exit 0. `commands/galley.py:124` keeps the repo-relative path under its
-    output directory; this pins the same shape here."""
+    exit 0. The galley command kept the repo-relative path under its output
+    directory and this was mirrored from it; that command was emptied on
+    2026-08-26 -- `docs/history.md` -- so this is the only place the shape is
+    pinned."""
     repo = tmp_path / "repo"
     (repo / "pkg" / "a").mkdir(parents=True)
     (repo / "pkg" / "b").mkdir(parents=True)
@@ -374,7 +406,11 @@ def test_a_rel_that_ESCAPES_the_repo_is_REFUSED_AT_READ(tmp_path, monkeypatch):
     lexed, paged and run through `galley.reset` before the draft guard refused
     -- so the refusal blamed the draft location while the fault is a binder
     naming a page outside `repo`, and a file nobody put under review had already
-    been read."""
+    been read.
+
+    ! IT NAMES THE BINDER PAGE PATH NOW. `run` asks `_can_escape` of every page
+    path as it reads the shas, before the loop, so the refusal states the fault
+    rather than whichever of the two roots the join happened to leave first."""
     repo = tmp_path / "repo"
     repo.mkdir()
     escaped = tmp_path / "escape_repo" / "sub"
@@ -403,20 +439,23 @@ def test_a_rel_that_ESCAPES_the_repo_is_REFUSED_AT_READ(tmp_path, monkeypatch):
     assert drafted == []
     assert len(refused) == 1
     assert refused[0].step == "read"
-    assert "outside the repository" in refused[0].why
+    assert "not relative to the repository" in refused[0].why
     assert read == []
     assert escaped_file.read_bytes() == before
 
 
-def test_a_rel_INSIDE_the_repo_that_escapes_into_is_REFUSED_AT_DRAFT(tmp_path):
+def test_a_rel_that_RESOLVES_INSIDE_the_repo_but_outside_into_is_REFUSED(tmp_path):
     """CRITICAL, measured 2026-08-25: `(into / rel).resolve()` joins and never
     checks, so with a matching sha the draft lands outside `into` entirely -- up
     to and including the source file under review.
 
-    ! THE READ GUARD DOES NOT SUBSUME IT. `repo` and `into` are siblings here,
-    so `sub/../../repo/util.py` resolves INSIDE `repo` -- a legitimate read --
-    and outside `into`. `commands/galley.py`'s `main` refuses the same shape for
-    `--out`; this pins the guard here."""
+    ! IT IS THE HALF NEITHER PER-FILE GUARD COULD SHARE, and that is why the
+    rule moved up. `repo` and `into` are siblings here, so
+    `sub/../../repo/util.py` resolves INSIDE `repo` -- a legitimate read -- and
+    outside `into`; each guard therefore answered for its own root and neither
+    could state the fault. `run` now asks `_can_escape` of the binder page path
+    once, which is true of both roots at once, so this refuses at `read` before
+    any file is opened."""
     repo = tmp_path / "repo"
     (repo / "sub").mkdir(parents=True)
     source = repo / "util.py"
@@ -435,7 +474,8 @@ def test_a_rel_INSIDE_the_repo_that_escapes_into_is_REFUSED_AT_DRAFT(tmp_path):
 
     assert drafted == []
     assert len(refused) == 1
-    assert refused[0].step == "draft"
+    assert refused[0].step == "read"
+    assert "not relative to the repository" in refused[0].why
     assert source.read_bytes() == before
 
 
@@ -537,7 +577,7 @@ def test_a_REFUSAL_over_a_NESTED_rel_removes_its_directory_too(tmp_path, monkeyp
     into = tmp_path / "out"
 
     def refusing_reread(*args, **kwargs):
-        return proof_setter.Refusal("reread", "pkg/d.py", "simulated mismatch")
+        return "", proof_setter.Refusal("reread", "pkg/d.py", "simulated mismatch")
 
     monkeypatch.setattr(proof_setter, "_reread", refusing_reread)
 
@@ -953,10 +993,28 @@ def test_a_WRITE_THAT_RAISES_leaves_no_directory_behind(tmp_path, monkeypatch):
 
 
 class TestTheCommand:
-    """`commands/proof.py` exposes this flow and orchestrates nothing --
-    `commands/galley.py` resolves an address through `rows_of(census)`, the
-    binder-row coupling this chain was ruled out of; `proof.py` takes a
-    binder and hands it straight to `proof_setter.run`."""
+    """`commands/proof.py` exposes this flow and orchestrates nothing: it takes
+    a binder and hands it straight to `proof_setter.run`.
+
+    ! `galley` IS THE OLD NAME FOR IT since 2026-08-26. It used to resolve an
+    address through `rows_of(census)` -- the binder-row coupling this chain was
+    ruled out of -- and keep a staleness comparison, an overlap guard and a
+    draft loop of its own; all of it went, and the name now runs this chain.
+    See `docs/history.md`."""
+
+    def test_galley_runs_THIS_COMMAND(self, monkeypatch):
+        """`SKILL.md` still invokes `galley` at stage 7a, so the name has to
+        reach the chain. ! It does NOT make a skill run work: the flags differ
+        -- `--census`/`--edits` against `--binder`/`--notations` -- which is
+        `TODO/the-skill-names-commands-that-moved-to-prototype.md`."""
+        from comment_review.__main__ import COMMANDS
+        from comment_review.commands import galley, proof
+
+        assert "galley" in COMMANDS
+        called: list[bool] = []
+        monkeypatch.setattr(proof, "main", lambda: called.append(True) or 7)
+        assert galley.main() == 7
+        assert called == [True]
 
     def test_the_command_holds_no_orchestration(self):
         """! A COMMAND EXPOSES A FLOW; IT IS NOT ONE. `commands/census.py` took

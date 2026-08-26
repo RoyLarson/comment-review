@@ -166,15 +166,17 @@ def _report(args: argparse.Namespace) -> int:
         # absolute file arguments, which is how a task agent that resolved its
         # own paths would call this.
         #
-        # !! Measured 2026-08-17: `galley.py` joins `out / paragraph["path"]`, and
-        # in Python an absolute right-hand side WINS a join -- so the galley
-        # wrote over the source file, put nothing under `--out`, and printed
-        # that it had succeeded. The module whose one promise is "nothing under
-        # `--repo` is touched" was editing the tree under review.
+        # !! Measured 2026-08-17 on the galley command -- `docs/history.md`: it
+        # joined `out / paragraph["path"]`, and in Python an absolute right-hand
+        # side WINS a join, so it wrote over the source file, put nothing under
+        # `--out`, and printed that it had succeeded. The module whose one
+        # promise is "nothing under `--repo` is touched" was editing the tree
+        # under review.
         #
         # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
-        # `_repo_relative`, which says what that means. `galley.py` refuses to
-        # write such a paragraph rather than guessing where it belongs.
+        # `_repo_relative`, which says what that means. `flows/proof_setter.py`
+        # refuses such a page rather than guessing where it belongs: its
+        # `_can_escape` reads the binder's page paths before any file is opened.
         # ! HOISTED. `_repo_relative` calls `Path.resolve()`, a filesystem
         # call, and both arguments are the same for every paragraph of a file.
         # Measured 2026-08-18: 120 us a call, so one 793-paragraph file spent

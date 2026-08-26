@@ -36,20 +36,21 @@ def read_raw(path: Path) -> str:
     indistinguishable to anything that then asks which ending the text uses.
     `newline=""` disables that translation.
 
-    !! THREE SITES CALL IT DIRECTLY, AND `galley` IS NOT ONE OF THEM ANYMORE.
-    MEASURED over `src/comment_review/`: `read_source` below (which every other
-    reader goes through), `commands/prove_unchanged.py` and
+    !! THREE SITES CALL IT DIRECTLY, AND NO WRITE PATH IS ONE OF THEM. MEASURED
+    over `src/comment_review/`: `read_source` below (which every other reader
+    goes through), `commands/prove_unchanged.py` and
     `results/prove_unchanged.py` -- both about comparing a file to itself
     byte-identically, which is why they read raw rather than through the sha
-    pairing `read_source` gives everyone else. `commands/galley.py` imports
-    `read_source` now, not this function; it reaches `read_raw` only through
-    that call. Measured 2026-08-17, when this was true directly: the galley
-    read with `read_text` instead, so a 245-line CRLF source was written out
-    with 223 bare LF and every line of the diff was an ending change.
+    pairing `read_source` gives everyone else. Measured 2026-08-17, when the
+    galley command read the source itself: it used `read_text`, so a 245-line
+    CRLF source was written out with 223 bare LF and every line of the diff was
+    an ending change. That command is gone -- see `docs/history.md` -- and the
+    write chain reaches `read_raw` only through `read_source`.
 
-    ! FIVE MODULES REACH IT THROUGH `read_source`: `commands/census.py`,
-    `commands/galley.py`, `flows/page_for.py`, `flows/proof_setter.py` (twice)
-    and `results/compositor.py` (twice) -- MEASURED by import, 2026-08-25.
+    ! THREE MODULES REACH IT THROUGH `read_source`: `commands/census.py`,
+    `flows/page_for.py` (in `source_of`, which `page_of` and the whole write
+    chain go through) and `results/compositor.py` (twice) -- MEASURED by
+    import, 2026-08-26.
 
     ! `Path.read_text`'s own `newline=` parameter arrived in Python 3.13, and
     the floor here is 3.11, where passing it raises `TypeError`.
@@ -203,16 +204,17 @@ def undraftable(into: Path, repo: Path) -> str:
     !! `into` MUST BE DISJOINT FROM `repo`, AND NO PER-FILE GUARD CAN ASK IT.
     A per-file guard checks that a target lands inside `into`; on an OVERLAP
     that is satisfied by the SOURCE FILE ITSELF, so the guard passes and the
-    draft is written over the file under review. MEASURED 2026-08-22 on
-    `commands/galley.py`, which did exactly that and printed `1 page(s) set` at
-    exit 0; MEASURED again 2026-08-25 on `flows.proof_setter.run(notations,
-    binder, repo, repo)`, which answered `refused=[]` while the source file on
-    disk held the replacement text.
+    draft is written over the file under review. MEASURED 2026-08-22 on the
+    galley command -- `docs/history.md` -- which did exactly that and printed
+    `1 page(s) set` at exit 0; MEASURED again 2026-08-25 on
+    `flows.proof_setter.run(notations, binder, repo, repo)`, which answered
+    `refused=[]` while the source file on disk held the replacement text.
 
-    !! IT LIVES HERE BECAUSE THREE CALLERS ASK IT -- `flows/proof_setter.run`,
-    `commands/proof.py` and `commands/galley.py`. It was spelled out twice, in
-    the two commands, and the flow -- which the commands' own docstrings say
-    anyone may call -- asked it nowhere.
+    !! IT LIVES HERE BECAUSE MORE THAN ONE CALLER ASKS IT --
+    `flows/proof_setter.run` and `commands/proof.py`. It was spelled out in two
+    commands instead, and the flow -- which the commands' own docstrings say
+    anyone may call -- asked it nowhere. ! One of those two commands was
+    `galley`, which is now the old NAME for `proof` and asks nothing itself.
 
     ! `is_relative_to` IS TRUE OF A PATH AND ITSELF, which is why both
     directions are tested and an equality test would be redundant.

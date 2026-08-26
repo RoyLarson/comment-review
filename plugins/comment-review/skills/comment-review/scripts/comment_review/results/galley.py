@@ -2,12 +2,12 @@
 
 ! THIS MODULE HAS NO CLI OF ITS OWN. Ruled 2026-08-24 -- `decision-log.md
 Process: #12`: *"A library module does one job and has no CLI; a flow calls
-libraries; a command exposes a flow."* `commands/galley.py`'s `main()` is the
-console face: it resolves `--census`/`--edits` to `(path, cue)` and then calls
-`reset` below, followed by `compositor.set_page`.
+libraries; a command exposes a flow."* `flows/proof_setter.py` is the flow that
+calls `reset` below, followed by `compositor.draft`; `commands/proof.py` is the
+console face of that flow, and `galley` is its older name.
 
-`--edits` is `{"<address>": "<the replacement text>"}` -- the address the
-record carries. `reset` below does not take that address: resolving it to
+The notations are `{"<address>": "<the replacement text>"}` -- the address the
+binder carries. `reset` below does not take that address: resolving it to
 `(path, cue)` happens upstream, from the address itself, before a cue and
 its replacement ever reach this module.
 
@@ -74,15 +74,15 @@ removed.
 
 ! DID THE FILE SHIFT IS NOT ANSWERED HERE, PARAGRAPH BY PARAGRAPH, ANY MORE.
 It is ONE comparison -- the sha the binder recorded against the sha the file
-reads at now -- and each caller makes it before it reaches `reset`:
-`flows/proof_setter.py:_one` from the page it has just built, and
-`commands/galley.py` from `read_source`, before the file is parsed. See
+reads at now -- and `flows/proof_setter.py:_one` makes it from `source_of`,
+before the file is parsed and before anything reaches `reset`. See
 `docs/history.md` for `drifted`, the last mechanism that asked this module.
 
-! BOTH SITES MAKE IT, BECAUSE THE COMMAND DOES NOT CALL THE FLOW. Measured
-2026-08-25, when only the flow asked: `commands/galley.py` placed edits from a
-census taken before `def f():` was renamed and printed `1 page(s) set, 0
-edit(s) refused` at exit 0.
+! IT IS ONE SITE AGAIN BECAUSE THERE IS ONE CHAIN AGAIN. A second command ran
+its own and made the comparison itself; measured 2026-08-25, before it did, it
+placed edits from a census taken before `def f():` was renamed and printed
+`1 page(s) set, 0 edit(s) refused` at exit 0. That command was emptied on
+2026-08-26 -- `docs/history.md`.
 
 ! A CHANGE THAT CANNOT BE MADE IS REPORTED, NEVER GUESSED. An address no page
 carries stops that file rather than writing a galley nobody can trust.
