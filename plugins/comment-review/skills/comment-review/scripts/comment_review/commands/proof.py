@@ -1,19 +1,22 @@
 """The `proof` command: its argument parsing and its exit code.
 
-    comment_review proof --binder B.json --docket N.json --repo . --out DIR
+    comment_review proof --docket D.json --repo . --out DIR
 
 The work is `flows.proof_setter`; this is only the console face of it.
 
 !! A LIBRARY MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS LIBRARIES;
 A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
-This file parses arguments, reads two files and prints; the order of the
+This file parses arguments, reads ONE file and prints; the order of the
 chain lives in `flows/proof_setter.py` and nowhere else.
+
+! IT READ TWO UNTIL 2026-08-26. The docket now carries each page's path and the
+sha it was read at, so the binder it used to be handed alongside has nothing
+left to answer -- `decision-log.md Vocabulary: #14`.
 """
 
 import argparse
 from pathlib import Path
 
-from comment_review.binder import binder as binder_mod
 from comment_review.docket import docket as docket_mod
 from comment_review.flows import proof_setter
 from comment_review.machine import exceptions
@@ -21,16 +24,19 @@ from comment_review.machine.repo import undraftable
 
 
 def main() -> int:
-    """Read the alterations and the binder, run the chain, report what refused."""
+    """Read the docket, run the chain, report what refused."""
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "--repo", default=".", help="repo root the addresses resolve against"
     )
-    ap.add_argument("--binder", required=True, help="the binder the agents ruled on")
+    # !! `--binder` WENT ON 2026-08-26, WITH THE NESTED DOCKET. It was read for
+    # exactly two facts -- each page's sha, and the paths `unflatten` needed to
+    # recover a real path from an address's flattened one. A schedule carries
+    # both, so the binder no longer reaches the write chain at all.
     ap.add_argument(
         "--docket",
         required=True,
-        help='JSON: {"<address>": "<replacement paragraph>"}, or null to delete',
+        help='JSON: {"pages": [{"path", "sha", "alterations": [{"cue", "text"}]}]}',
     )
     ap.add_argument("--out", required=True, help="directory the drafts are written to")
     args = ap.parse_args()
@@ -59,22 +65,17 @@ def main() -> int:
         print(f"REFUSED: --out {why} -- nothing written")
         return 2
     try:
-        binder_text = Path(args.binder).read_text(encoding="utf-8")
-        alterations_text = Path(args.docket).read_text(encoding="utf-8")
+        docket_text = Path(args.docket).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ ({type(e).__name__}) -- nothing written")
         return 2
 
-    held, why = binder_mod.read(binder_text)
+    held, why = docket_mod.read(docket_text)
     if why:
-        print(f"CANNOT READ THE BINDER: {why} -- nothing written")
-        return 2
-    marks, why = docket_mod.read(alterations_text)
-    if why:
-        print(f"CANNOT READ THE NOTATIONS: {why} -- nothing written")
+        print(f"CANNOT READ THE DOCKET: {why} -- nothing written")
         return 2
 
-    drafted, refused = proof_setter.run(marks, held, repo, out)
+    drafted, refused = proof_setter.run(held, repo, out)
     for stopped in refused:
         where = stopped.path or "<the set>"
         print(f"REFUSED at {stopped.step}: {where} -- {stopped.why}")

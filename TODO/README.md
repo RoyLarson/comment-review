@@ -261,7 +261,7 @@ that changed a published name or rule:
 | [block-text-orphaned](block-text-orphaned.md) | backend | — | 0/1 | block_text (reading/lexer.py) has had no caller since desk.py moved to prototype |
 | [an-alteration-carries-its-own-indentation](an-alteration-carries-its-own-indentation.md) | backend | yes | 0/3 | An alteration carries its own indentation and nothing says so |
 
-### in-progress  (20)
+### in-progress  (19)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -284,7 +284,6 @@ that changed a published name or rule:
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/7 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | — | 3/28 | Ten findings in lexer.py and language.py, from three review rounds |
-| [notations-collides-with-annotations](notations-collides-with-annotations.md) | backend | yes | 3/4 | notations is the proposed name for what the agent workflow emits -- an address mapped to a new paragraph, or to None for a delete. binder/annotate.py already owns annotations for candidate flags on a paragraph: names-a-symbol, cites-a-path, counted, coverage-claim, forbids-a-literal. Two words one letter apart, both meaning marks attached to a paragraph, in adjacent areas. Roy is aware and ruled it is not settled now: the notations shape is a STAND-IN for what the middle piece will emit, and probably not what gets built. |
 
 ### decision-needed  (23)
 
@@ -391,3 +390,4 @@ the reason is inside the file.
 | [strip-strings-runs-before-the-opener](completed/strip-strings-runs-before-the-opener.md) | The ordering defect is fixed and the rest was record. `_strip_strings` no longer runs ahead of the opener, and the annotation's reach was re-measured rather than re-argued. `/* don't */` was never a defect -- it is ordinary English inside a comment. |
 | [the-xfails-never-reach-the-galley](completed/the-xfails-never-reach-the-galley.md) | All three superseded by the compositor split. `_gap` no longer looks a place up by `(original_start, original_end)`, the class docstring no longer claims an unexpected success, and plan box R7 -- *'no expectedFailure survives this plan'* -- is judgeable again because the galley stopped doing two jobs. |
 | [foot-of-file-two-places](completed/foot-of-file-two-places.md) | The closing gap and the back matter both own prose at the foot, separated by a trailing leading -- the head rule in reverse. Roy ruled it 2026-08-26; decision-log.md Addressing: #19. |
+| [notations-collides-with-annotations](completed/notations-collides-with-annotations.md) | The name is alteration; the write side has all three containers -- alteration, schedule, docket -- and the docket is its own area carrying each page's path and sha, so the binder no longer reaches the write chain. decision-log.md Vocabulary: #14. |

@@ -7,7 +7,7 @@ chain's own file credited `proof_setter` with a contract that is `page_for`'s.
 
 from pathlib import Path
 
-from conftest import PKG, SAMPLE, build
+from conftest import PKG, SAMPLE, build, docket_from
 
 from comment_review.binder.binder import bind, rows_of
 from comment_review.flows import page_for as page_for_mod
@@ -84,7 +84,9 @@ class TestPageOfReturnsEveryRefusalItPromises:
 
         monkeypatch.setattr(page_for_mod, "page_for", refusing_page_for)
         drafted, refused = proof_setter.run(
-            {address(binder, "m.py"): "# REPLACED"}, binder, repo, tmp_path / "out"
+            docket_from({address(binder, "m.py"): "# REPLACED"}, binder),
+            repo,
+            tmp_path / "out",
         )
         assert drafted == []
         assert refused[0].step == "read"
@@ -111,7 +113,7 @@ class TestPageOfReturnsEveryRefusalItPromises:
 
         monkeypatch.setattr(page_for_mod, "page_for", refusing_on_the_draft)
         drafted, refused = proof_setter.run(
-            {address(binder, "m.py"): "# REPLACED"}, binder, repo, into
+            docket_from({address(binder, "m.py"): "# REPLACED"}, binder), repo, into
         )
         assert drafted == []
         assert [r.step for r in refused] == ["reread"]

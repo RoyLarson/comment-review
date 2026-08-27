@@ -1,9 +1,9 @@
 """From the reviewers' alterations to a file a human can read.
 
-    alterations + the saved binder
-        -> resolve each address                    -> path + cue
+    the docket
+        -> one schedule per page                    path + sha + alterations
         -> reread the file FROM DISK                source_of
-        -> the sha is the one the binder recorded
+        -> the sha is the one the SCHEDULE recorded
         -> build the page                           page_of
         -> galley          the marks are put on the page
         -> compositor      the page is set as text
@@ -18,16 +18,19 @@ human-edit machine-review machine copy is its own workflow."* So `approve` is
 not called here, and neither is anything transactional -- the per-page state,
 the manifest and the resumable retry all belong to that second workflow.
 
-!! NOTHING TRANSFERS FROM THE BINDER TO THE END EXCEPT TWO VALUES. Roy,
-2026-08-24: *"Nothing will transfer from the binder to the end."* The ADDRESS
-crosses as a key, and the SHA crosses as the thing the verification compares.
-No paragraph text, kind or anchor does -- the page is read again from disk.
+!! THE BINDER DOES NOT REACH HERE AT ALL, SINCE 2026-08-26. Roy, 2026-08-24:
+*"Nothing will transfer from the binder to the end."* Two values used to cross
+anyway, and `run` took a binder to get them: each page's SHA, and the page paths
+`unflatten` needed to turn an address's FLATTENED path back into a real one.
 
-! THE PAGE PATH IS THE OTHER HALF OF THE ADDRESS, not a third value. Roy,
-2026-08-25, ruling what may reach here: *"besides reading the sha and file
-path/name you should not be assuming any binder things make it this far."* An
-address carries the FLATTENED path, so `run` reads the binder's page paths to
-`unflatten` it -- the same paths it already reads for the sha.
+! THE DOCKET CARRIES BOTH NOW -- a schedule states its page's path as the repo
+names it, and the sha it was read at. So the ruling is literal rather than
+nearly true: Roy, 2026-08-25, *"besides reading the sha and file path/name you
+should not be assuming any binder things make it this far."*
+
+! WHAT IS READ FROM DISK IS THE PAGE ITSELF. No paragraph text, kind or anchor
+crosses from anywhere; the sha is what says the file is still the one the agents
+read.
 
 ! THE ORDER LIVES HERE AND NOWHERE ELSE. The galley edits, the compositor sets,
 and neither knows what runs next. `STEPS` names that sequence as DATA; nothing
@@ -43,7 +46,7 @@ from comment_review.docket import docket as docket_mod
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.machine import constants
 from comment_review.machine.repo import undraftable
-from comment_review.reading.addresser import address_for, cue_of, unflatten
+from comment_review.reading.addresser import cue_of
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
 
@@ -81,9 +84,7 @@ class Drafted(NamedTuple):
     sha: str
 
 
-def run(
-    alterations: dict[str, str | None], binder: dict, repo: Path, into: Path
-) -> tuple[list[Drafted], list[Refusal]]:
+def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refusal]]:
     """The whole chain, or nothing at all.
 
     !! A REFUSAL ABORTS THE RUN WHOLE, by ruling. Roy, 2026-08-25: *"fails loud
@@ -99,9 +100,16 @@ def run(
     page that RAISED took the whole run out as a traceback and every refusal
     already recorded was lost, which is the opposite of *stops*.
 
+    !! IT TOOK A BINDER TOO UNTIL 2026-08-26, for exactly two facts: each page's
+    sha, and the page paths `unflatten` needed to turn an address's FLATTENED
+    path back into a real one. A schedule carries both, so the binder no longer
+    reaches the write chain -- Roy, 2026-08-25: *"besides reading the sha and
+    file path/name you should not be assuming any binder things make it this
+    far."*
+
     Args:
-        alterations: address -> replacement text, or None to delete.
-        binder: as `binder.read` returned it.
+        docket: as `docket.read` returned it -- pages, each with its path, the
+            sha it was read at, and its alterations.
         repo: the checkout the pages are read from.
         into: the directory drafts are written to. Created if absent, and
             RESOLVED here -- see the containment guard in `_one`.
@@ -120,7 +128,8 @@ def run(
     into = into.resolve()
     repo = repo.resolve()
     # !! THE DISJOINTNESS GUARD IS THE FLOW'S, AND IT WAS THE TWO COMMANDS'
-    # ALONE UNTIL 2026-08-25. MEASURED: `run(alterations, binder, repo, repo)`
+    # ALONE UNTIL 2026-08-25. MEASURED, on the signature of the day:
+    # `run(..., repo, repo)`
     # answered `refused=[]` and the SOURCE FILE on disk held the replacement --
     # `_one`'s containment check passes when `into == repo`, because the source
     # file IS inside `into`. It is refused before anything is read or written,
@@ -130,32 +139,26 @@ def run(
     if why:
         return [], [Refusal("draft", "", why)]
 
-    grouped, unresolved = docket_mod.schedules_of(alterations)
-    if unresolved:
-        return [], [Refusal("read", "", why) for why in unresolved]
-
-    # ! THE SHA IS READ OUT OF THE SAVED BINDER, NEVER RECOMPUTED FROM THE FILE.
-    # Roy, 2026-08-25: "we can't assume that the file didn't change between
-    # original read and loading to write and so getting it out of the json
-    # blob is important." A sha derived from the file at write time would only
-    # ask whether the file equals itself, which cannot fail.
-    recorded = {
-        str(page.get("path", "")): str(page.get("sha", ""))
-        for page in binder.get("pages", [])
-    }
+    # !! THE SCHEDULES ARE THE DOCKET'S OWN, NOT DERIVED. Each carries the page
+    # path as the REPO names it and the sha it was read at, so nothing here
+    # splits an address or consults a binder. ! The sha is RECORDED, never
+    # recomputed -- Roy, 2026-08-25: "we can't assume that the file didn't
+    # change between original read and loading to write and so getting it out
+    # of the json blob is important." A sha taken from the file at write time
+    # would ask whether the file equals itself, which cannot fail.
+    schedules = docket_mod.schedules_of(docket)
     # !! THE PAGE PATHS ARE RULED ON ONCE, HERE, BECAUSE THIS IS WHERE THEY
-    # ENTER. Every `rel` below comes from `unflatten` over exactly these keys,
-    # so a constraint asked here holds for every root a `rel` is later joined
+    # ENTER. A constraint asked here holds for every root a path is later joined
     # to. It was asked per file instead, against `repo` and against `into`
     # separately, and each refusal then named the place the join landed rather
-    # than the binder page path that could not be joined anywhere.
-    outside = sorted(p for p in recorded if _can_escape(p))
+    # than the page path that could not be joined anywhere.
+    outside = sorted(s.path for s in schedules if _can_escape(s.path))
     if outside:
         return [], [
             Refusal(
                 "read",
                 p,
-                "the binder names this page by a path that is not relative to"
+                "the docket names this page by a path that is not relative to"
                 " the repository, so it resolves outside whatever root it is"
                 " joined to",
             )
@@ -171,31 +174,21 @@ def run(
     # this set, and `_discard` removes nothing that is not in it.
     created: set[Path] = set()
 
-    # !! THE PAGE PATHS ARE WHAT UNFLATTENS AN ADDRESS. `by_page` keys by the
-    # FLATTENED path an address carries -- `pkg:a:util.py` -- and keeps no
-    # binder to turn it back. This does: the paths it already read for
-    # `recorded` are exactly the set `unflatten` resolves against, so the sha
-    # and the file path remain the only two values crossing from the binder.
-    paths = list(recorded)
-    for name, edits in sorted(grouped.items()):
-        # !! `""` MEANS UNKNOWN OR AMBIGUOUS, AND IS NOT A PATH. Reading it as
-        # one would ask the filesystem for the repo root itself. Measured
-        # 2026-08-25 before `unflatten` ran here: the flattened name was handed
-        # to `recorded.get` AND to `page_of`, so a binder keyed `pkg/a/util.py`
-        # missed on both and every file below the repo root refused.
-        rel = unflatten(name, paths)
-        if not rel:
-            named = ", ".join(address_for(name, cue) for cue in sorted(edits))
-            refusals.append(
-                Refusal(
-                    "read",
-                    name,
-                    f"no page in the binder is named by this address ({named})",
-                )
-            )
-            break
+    # !! NOTHING RESOLVES A PATH HERE ANY MORE. The flat docket keyed by the
+    # FLATTENED path an address carries -- `pkg:a:util.py` -- so `run` read the
+    # binder's page paths and called `unflatten` over them to get a real one,
+    # and a name that resolved to nothing was its own refusal. A schedule
+    # carries the repo's own path, so both went with the shape change.
+    for schedule in sorted(schedules):
         try:
-            made, why = _one(rel, edits, recorded.get(rel, ""), repo, into, created)
+            made, why = _one(
+                schedule.path,
+                schedule.alterations,
+                schedule.sha,
+                repo,
+                into,
+                created,
+            )
         except Exception:
             # !! THE CLEANUP COVERS AN EXCEPTION, NOT ONLY A REFUSAL. Measured
             # 2026-08-25: with a later page's draft path pre-occupied, a
@@ -236,7 +229,7 @@ def _can_escape(rel: str) -> bool:
     DISCARDS the root.
 
     Args:
-        rel: a page path as the binder records it.
+        rel: a page path as the SCHEDULE records it -- the repo's own form.
 
     Returns:
         `True` when it is absolute, drive-relative, rooted, or walks up.
@@ -327,7 +320,7 @@ def _one(
     # `page_of` until 2026-08-26, which paid for a page nothing then looked at.
     #
     # !! AN ABSENT RECORDED SHA REFUSES; IT DOES NOT PASS. `not recorded` is
-    # the first clause on purpose -- a binder page carrying no sha would
+    # the first clause on purpose -- a schedule carrying no sha would
     # otherwise compare "" against a real hash, and a future shape that
     # dropped the field would turn this gate off silently rather than loudly.
     # This is also the only check in the tree that catches a reviewer editing

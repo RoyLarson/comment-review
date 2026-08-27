@@ -2,9 +2,9 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 4 tasks done
+Progress: 4 of 4 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, naming what the agent workflow hands the
           write chain)
 Updated:  2026-08-26 — RULED. The name is `alteration`, and the write side gets all
@@ -53,7 +53,7 @@ WHAT REMAINS is the code rename and the nested shape -- tasks 3 and 4. Measured 
       flag, and the filename TODO/an-alteration-carries-its-own-indentation.md. The
       four quoted-Roy lines in decision-log.md and nothing-makes-the-fair-copy.md
       stay exactly as written
-- [ ] Give the docket the nested shape the ruling names -- pages, each with path,
+- [x] Give the docket the nested shape the ruling names -- pages, each with path,
       sha and its schedule of alterations -- so by_page stops re-deriving the
       grouping from the address, and the write chain stops reading the binder to
       get a sha

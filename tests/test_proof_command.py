@@ -60,12 +60,12 @@ class TestTheCommand:
 
         assert "proof" in COMMANDS
 
-    def test_A_VALID_RUN_READS_BOTH_FILES_AND_DRAFTS(
+    def test_A_VALID_RUN_READS_THE_DOCKET_AND_DRAFTS(
         self, tmp_path, capsys, monkeypatch
     ):
         """!! THE HAPPY PATH HAD NO TEST UNTIL 2026-08-26, and the two argv
         cases below are why it looked covered: both stop at the `--out` guard,
-        which returns 2 BEFORE either file is read. So nothing exercised the
+        which returns 2 BEFORE the docket is read. So nothing exercised the
         line that turns an argparse flag into an attribute.
 
         !! MEASURED THE SAME DAY: renaming `--notations` to `--docket` left the
@@ -73,12 +73,16 @@ class TestTheCommand:
         `AttributeError: 'Namespace' object has no attribute 'alterations'` --
         past 946 green tests, ruff, ty, the build gate and the floor check. It
         was found by running the command, which is the only thing that could.
+
+        ! THE DOCKET IS HAND-WRITTEN, like every one in `test_docket.py`: it
+        arrives from outside the system, so a helper building it would only
+        agree with the reader.
         """
         import json
 
         from comment_review.commands import proof as cmd
 
-        repo, binder, page = _tree(tmp_path)
+        repo, _, page = _tree(tmp_path)
         # ! DISCOVERED FROM THE PAGE, never hardcoded -- a literal cue is a
         # fixture asserting what the walk emitted last time someone looked.
         cue = next(
@@ -86,9 +90,19 @@ class TestTheCommand:
             for c, b in by_cue(page).items()
             if c.startswith("b") and any(x.strip() for x in b.raw_lines)
         )
-        (tmp_path / "b.json").write_text(json.dumps(binder), encoding="utf-8")
         (tmp_path / "d.json").write_text(
-            json.dumps({f"m.py@{cue}": "# REWRITTEN"}), encoding="utf-8"
+            json.dumps(
+                {
+                    "pages": [
+                        {
+                            "path": "m.py",
+                            "sha": page.sha,
+                            "alterations": [{"cue": cue, "text": "# REWRITTEN"}],
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
         )
         monkeypatch.setattr(
             "sys.argv",
@@ -96,8 +110,6 @@ class TestTheCommand:
                 "proof",
                 "--repo",
                 str(repo),
-                "--binder",
-                str(tmp_path / "b.json"),
                 "--docket",
                 str(tmp_path / "d.json"),
                 "--out",
@@ -126,8 +138,6 @@ class TestTheCommand:
                 "proof",
                 "--repo",
                 str(repo),
-                "--binder",
-                "b.json",
                 "--docket",
                 "n.json",
                 "--out",
@@ -156,8 +166,6 @@ class TestTheCommand:
                 "proof",
                 "--repo",
                 str(repo),
-                "--binder",
-                "b.json",
                 "--docket",
                 "n.json",
                 "--out",

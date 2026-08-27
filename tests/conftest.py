@@ -59,6 +59,7 @@ sys.path.insert(0, str(SRC))
 
 from comment_review.binder.page import page_for  # noqa: E402
 from comment_review.machine.repo import sha_of  # noqa: E402
+from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
 from comment_review.reading.lexer import language_for  # noqa: E402
 
 
@@ -129,6 +130,36 @@ REPLACEMENT = {
     "c": "  # REPLACED",
     "f": "#!/usr/bin/env REPLACED",
 }
+
+
+def docket_from(flat: dict, binder: dict) -> dict:
+    """A nested docket from `{address: text}` plus the binder those addresses cite.
+
+    !! A TEST-ONLY ADAPTER, and it exists so the chain's cases keep testing the
+    CHAIN. Before 2026-08-26 the docket was one flat map and `proof_setter.run`
+    took a binder alongside it, doing exactly what this does: split each address,
+    `unflatten` its path against the binder's page paths, and look the sha up.
+    That work moved INTO the docket; sixty cases that assert things about
+    drafting, refusing and proving should not each be rewritten to say so.
+
+    ! IT IS NOT WHAT PROVES THE FORMAT. `tests/test_docket.py` hand-writes the
+    nested JSON and reads it back, so the shape has a witness that does not go
+    through this function -- which is the point, since a fixture built by the
+    same code it feeds can only agree with it.
+    """
+    paths = [str(p.get("path", "")) for p in binder.get("pages", [])]
+    shas = {str(p.get("path", "")): str(p.get("sha", "")) for p in binder["pages"]}
+    pages: dict[str, list[dict]] = {}
+    for address, text in flat.items():
+        addr = cue_of(address)
+        rel = unflatten(str(addr.path), paths) or str(addr.path)
+        pages.setdefault(rel, []).append({"cue": str(addr.cue), "text": text})
+    return {
+        "pages": [
+            {"path": rel, "sha": shas.get(rel, ""), "alterations": alterations}
+            for rel, alterations in sorted(pages.items())
+        ]
+    }
 
 
 @pytest.fixture
