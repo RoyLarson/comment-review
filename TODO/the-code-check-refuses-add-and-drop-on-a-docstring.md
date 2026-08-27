@@ -2,13 +2,20 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 1 of 5 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
           CODE CHECK, the rail said restore, and an approved edit was reverted.
 Split:    2026-08-23 -- boxes cut to two lines each, a Verify written for every open one,
           and the reasoning each carried moved into the Objective
+Measured: 2026-08-25 — on the CHAIN, not the 7b gate: flows/proof_setter.run refuses
+          {m.py@a0: None}, {m.py@a1: None} and an add at a2 with Refusal('prove', ...,
+          'the executable code is not what it was'), on tests/conftest.SAMPLE. T5's two
+          cases now RUN, as
+          TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain::test_a_docstring_{DROP,ADD}_is_STILL_REFUSED_at_prove;
+          T1 is untouched and the fingerprint was not weakened -- six modules in
+          src/comment_review/commands read ArgumentParser(description=__doc__)
 ```
 
 ## Objective
@@ -84,5 +91,5 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
       Verify: `write.md` states that it fails the CODE CHECK and that the rail restores.
 - [ ] T4 -- Measure the LEXICAL side: a `///` or `/**` doc comment ADDED and REMOVED,
       against the `stripped` comparison. Verify: this file records which way each goes.
-- [ ] T5 -- Add a docstring-ADDED case and a docstring-REMOVED case to
+- [x] T5 -- Add a docstring-ADDED case and a docstring-REMOVED case to
       `tests/test_prove_unchanged.py`. Verify: both cases run and the suite is green.

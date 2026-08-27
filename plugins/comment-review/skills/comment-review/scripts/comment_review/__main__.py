@@ -24,10 +24,32 @@ COMMANDS = (
     "addresser",
     "census",
     "compositor",
-    "galley",
+    "proof",
     "prove_unchanged",
     "referrers",
 )
+
+# An older name that still resolves to a real command's module. `galley` ->
+# `proof`: `SKILL.md` still invokes `galley` at stage 7a, and that file is
+# `agents` lane -- rewiring the stage name is
+# `TODO/the-skill-names-commands-that-moved-to-prototype.md`. Roy, 2026-08-26:
+# "Create the galley entry_point function that points to proof_setter and
+# delete the unused command," and on the shape: "there is no reason to go to
+# the galley for something that proof-setter is supposed to do." See
+# `docs/history.md`.
+#
+# ! THE NAME CARRIES OVER; THE FLAGS DO NOT. `galley` used to take `--census`
+# and `--edits`; `proof` takes `--binder` and `--notations`, so a skill run
+# typed under the old flags reaches `proof`'s parser and is refused as an
+# unrecognised argument -- an alias resolves the NAME, nothing more.
+#
+# ! NOT IN THE HELP LISTING OR THE UNKNOWN-NAME ERROR: both exist to tell a
+# reader what to type, and this name is deprecated -- nobody should be
+# choosing it fresh. It still has to RESOLVE for the one caller (`SKILL.md`)
+# that already types it.
+ALIASES = {
+    "galley": "proof",
+}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -55,14 +77,19 @@ def main(argv: list[str] | None = None) -> int:
         # no command has done nothing, and a zero would tell a caller it worked.
         return 0 if args else 2
     name, rest = args[0], args[1:]
-    if name not in COMMANDS:
+    # A name is valid when it is a command OR resolves through ALIASES to
+    # one; `target` is what gets imported either way.
+    target = ALIASES.get(name, name)
+    if target not in COMMANDS:
         print(f"error: no command named {name!r}", file=sys.stderr)
         print(f"commands: {', '.join(COMMANDS)}", file=sys.stderr)
         return 2
-    module = importlib.import_module(f".commands.{name}", __package__)
+    module = importlib.import_module(f".commands.{target}", __package__)
     # !! `argv` IS REBUILT SO EACH COMMAND PARSES WHAT IT ALWAYS PARSED. Its
     # own `argparse` reads `sys.argv[1:]`, and its usage line names `prog`,
-    # which is why the command's name is put back at position 0.
+    # which is why the command's name is put back at position 0 -- the name
+    # TYPED, not `target`, so an alias still names itself in its own usage
+    # line even though another module's parser is what answers it.
     sys.argv = [f"comment_review {name}", *rest]
     return module.main()
 

@@ -265,6 +265,63 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   that exists, and an empty string is a fact about a VALUE where the kind is a fact about the
   PLACE.
 
+- **#18.** **FRONT MATTER ENDS AT THE FIRST BLANK LINE, ON BOTH TIERS** (Roy, 2026-08-26: *"It is
+  supposed to stop f0 at the first blank line. That needs fixed."*). **NOT A NEW RULE -- the
+  restatement of one from 2026-08-21** that only half the code implemented: *"if the
+  opening/closing line is a comment then the matter continues down/up until there is an empty line
+  or the start/end of a docstring."*
+
+  ! **THE LEXICAL TIER HAD IT AND THE TOKENIZED TIER NEVER DID.** `end_run`'s `opens_file` split
+  the first run at a blank; `paragraphs_stdlib` skipped every `LAYOUT` token, so a comment run
+  survived blank lines outright -- its own comment said so as though it were the intent: *"A
+  COMMENT RUN SURVIVES LAYOUT AND IS ENDED BY ANYTHING ELSE."*
+
+  !! **MEASURED 2026-08-26:** a shebang, a blank and a comment tokenized as ONE run opening on
+  line 1, so the comment BELOW the blank was stamped `matter` and took `f0`. An `add` at `b0` then
+  re-read as `f0` and the write chain refused a draft it had just written. **The two tiers gave
+  different answers for the same file.**
+
+  ! **AND THE RULING'S OPERATIVE HALF HAD BEEN CUT FROM THE CODE.** `reading/series.py`'s `MATTER`
+  comment carried the *what* -- *"a licence header, a shebang or a coding line ... answers to the
+  FILE"* -- and not the *where it stops*. The full quotation survived only in
+  `prototype/original/lexer.py`. Same shape as `CLAUDE.md`'s own warning: a shortened quotation is
+  not a shorter rule.
+
+- **#19.** **THE COMPOSITOR SETS A LEADING BEFORE A `b` IT IS ADDING INTO AN EMPTY PLACE** (Roy,
+  2026-08-26: *"It needs to add the leading between before any b"*). ! **AN EDITORIAL DECISION,
+  RULED WITH ITS COST NAMED:** *"It may not be what all of the projects do but it is generally
+  enough and easy enough to implement and it looks good enough to most humans that I think it is a
+  justifiable editorial decision."* And on the file with no front matter, which then opens with a
+  blank: *"the leading on the first line for places that do not have frontmatter will disappear on
+  an automatic format run like ruff or black."*
+
+  !! **IT FIRES ON AN ABSENCE, NOT ON A MISSING LEADING.** Roy first proposed the second -- *"the
+  leading look up paragraph is not in there, which is admittedly backwards but that will tell"* --
+  and MEASURED it fires on a MODIFY and on an unedited compose too, because a `b` sitting flush
+  against its code owns no leading either. Three tests caught it. The gate is the PLACE's kind
+  saying absence, which is also what makes the rule fire once per add rather than once per
+  compose.
+
+  !! **AND AT THE FOOT THE LEADING GOES ON THE OTHER SIDE** (Roy, 2026-08-26: *"still the same
+  rule as the frontmatter in reverse."*). Matter is the run that STARTS on line 1 **or ENDS on the
+  last line**, so what pushes a gap clear of it is a blank BEFORE at the head and a blank AFTER at
+  the foot.
+
+  ! **A LEADING BEFORE THE CLOSING GAP WAS THE MIRROR IMAGE OF THE FIX AND MOVED NOTHING.**
+  MEASURED: `...return y\n# ADDED\n` and `...return y\n\n# ADDED\n` both re-read at `f1`;
+  `...return y\n# ADDED\n\n` re-reads at the closing gap. The first attempt exempted the closing
+  gap on that measurement and called the collision unsolvable -- it was solvable, in the direction
+  the ruling already named.
+
+  !! **THIS CLOSES `TODO/foot-of-file-two-places.md`**, which had asked for a ruling on *which* of
+  the closing gap and the back matter owns prose at the foot. **The answer is both**, and the
+  question was mis-framed: it assumed one had to lose. The back matter keeps the foot; the gap
+  sits above the blank. ! Its second task -- make the losing place unemitted or refusable -- is
+  SUPERSEDED, because there is no losing place.
+
+  ! `f0` and `f1` take no leading: both round trip flush, because the matter series is defined by
+  the file's edges rather than by what sits beside it.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
@@ -611,3 +668,123 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **A fence between two properties has no street number**, which is why `d` carries a SYMBOL
   and never an address -- and why asking one for its series is a category error rather than a
   case to absorb. The blank return that let it pretend otherwise is gone.
+
+- **#16.** **THE ORIGINAL SHA IS READ OUT OF THE SAVED BINDER, NEVER RECOMPUTED** (Roy,
+  2026-08-25: *"we can't assume that the file didn't change between original read and loading to
+  write and so getting it out of the json blob is important"*). The chain compares against the
+  sha the binder recorded at read time, not one recomputed from the file loaded for writing.
+
+- **#17.** **THE SAME SHA CHECK PROVES THE READ-ONLY ROLES STAYED READ-ONLY** (Roy, 2026-08-25:
+  *"This also ensures that agents didn't try to fix what they found while reviewing"*). One
+  comparison answers both questions -- did the file drift, and did a reviewer edit it -- because
+  either would change the bytes.
+
+- **#18.** **THE NOTATIONS READER IS A STAND-IN, NOT A FINISHED FORMAT** (Roy, 2026-08-25: *"We
+  need the shape not the concrete implementation"*). Enough is built to reach the chain's second
+  half; the shape an agent actually emits is not designed by this branch.
+
+- **#19.** **A WEAK CHECK IS STRENGTHENED IN PLACE, NEVER DOUBLED** (Roy, 2026-08-25: *"lets make
+  certain we are not duplicating tests only adding new to truly new functionality"*). Where a
+  test already exists for a box this branch closes, the branch strengthens it in place rather
+  than adding a second, weaker-passing test beside it.
+
+- **#20.** **A REFUSAL ABORTS THE RUN WHOLE, AND IS PROVISIONAL** (Roy, 2026-08-25: *"fails loud
+  amd stops is the right answer for now"*). Nothing in this workflow touches the real tree, so a
+  partial draft set costs only a re-run. **"For now" is part of the ruling**: what replaces it is
+  the transactional per-page write -- `pending`, `written`, `verified`, `failed`, a manifest, a
+  retry -- which belongs to workflow 2 and is designed in the custody spec's last section.
+
+- **#21.** **`machine/` OWNS THE HASH; PAGE AND BINDER RECEIVE IT, NEITHER ASKS FOR IT** (Roy,
+  2026-08-25: *"the querying of it should not have left the machine/ modules ... information
+  received by page and binder, not something requested by page/binder"*).
+
+- **#22.** **THE SHA IS TAKEN AT THE READ** (Roy, 2026-08-25: *"the only place to properly ensure
+  it gets read exactly the same and the middle things shouldn't depend on the external things"*).
+  Measured: two readers give one file two shas, so the value has to come from the read it will
+  later be compared against, not be recomputed downstream.
+
+- **#23.** **`reset` TAKES A PAGE AND CUES; IT RESOLVES NOTHING** (Roy, 2026-08-25: *"the galley
+  shouldn't be resolving the page ... it should get handed the page, the cues-new text or a
+  delete"*).
+
+- **#24.** **THE CHAIN CHECKS THE SHA, NOT THE GALLEY AND NOT THE COMPOSITOR** (Roy, 2026-08-25:
+  *"The sha-page piece should be part of the chain of command piece"*). One owner answers the
+  staleness question once, in `flows/proof_setter.py`, rather than each write-side module
+  answering it again -- see the OWNERSHIP MOVED note on
+  [`a-page-carries-no-identity`](../TODO/a-page-carries-no-identity.md).
+
+- **#25.** **WHAT THE AGENT WORKFLOW HANDS OVER IS NAMED `notations`** (Roy, 2026-08-25: *"a good
+  name is notations"*). Settles the name `#14` left open -- *"I am think notations"*.
+
+- **#26.** **THE SAVED BINDER IS WHAT SAYS WHICH FILE TO RELOAD** (Roy, 2026-08-25: *"We also
+  have to grab the binder address from the saved material"*).
+
+- **#27.** **A DELETE IS `None`, NOT AN EMPTY STRING** (Roy, 2026-08-25: *"None is explicit
+  enough"*).
+
+- **#28.** **`prove_unchanged` IS RULED TO RUN AT EACH PROPOSED FINAL STATE, AND ONLY THE FIRST
+  RUN IS BUILT** (Roy, 2026-08-25: *"just before the human review and just after the human review
+  edit piece"*). This branch built the first: `_prove` runs once, before the draft is shown to a
+  human. **PROVISIONAL**: the second run -- after a human edit, before it is taken as final --
+  belongs to the human-review/human-edit/machine-review/machine-copy workflow this branch does
+  not build; see `flows/proof_setter.py`'s own docstring: *"IT STOPS AT THE TEMPORARY FILE."*
+
+- **#29.** **A DESCRIPTION MUST NOT BE WRITTEN AS A CONSTRAINT** (Roy, 2026-08-25, on
+  `commands/addresser.py`'s *"This module reads no source file -- the census is the only
+  input"*: *"It was WRONG for the agent to put it in there. It implied a constraint that the
+  system HAD to live by instead of a constraint that the code was written to because the system
+  was available"*).
+
+  !! **THE SENTENCE WAS TRUE AND STILL WRONG**, which is what makes this its own defect class.
+  It described what the code did; it read as a rule about what the code MAY do. So when the
+  eleven-field row cut removed `anchor_line` and `anchor_num` from the row -- the only positions
+  that module could see -- the honest fix was to read the page, and the docstring said that was
+  out of bounds. **A description phrased as a rule fences off work that was never fenced.**
+
+  ! **IT IS THE SIBLING OF THE COST CLAIM `CLAIM.md` ALREADY WARNS ABOUT** -- *"a claim about the
+  COST of a change, which is the kind that invites someone to make the change and discover the
+  cost."* That one invites a wasted attempt; this one prevents an attempt that should have been
+  made. Both are prose that no gate can see, because both are TRUE of the code as written.
+
+  ! **THE TELL IS THE MOOD.** *"This module reads no source file"* is a fact. *"the census is the
+  only input"* is a rule. Write what the code DOES and why it was enough; if something genuinely
+  may not happen, say what forbids it and where that was decided.
+
+- **#30.** **`galley` IS A NAME ON THE PROOF CHAIN, NOT A SECOND CHAIN** (Roy, 2026-08-26: *"We
+  have a single entry point for the system? These delegate through to the commands? Create the
+  galley entry_point function that points to proof_setter and delete the unused command."* And on
+  the reason: *"there is no reason to go to the galley for something that proof-setter is supposed
+  to do."*).
+
+  ! **WHAT WENT**: `commands/galley.py`'s own argument parsing, its address-to-path resolution
+  through `rows_of(census)` -- the binder-row coupling `Process: #14` ruled the chain out of -- its
+  staleness comparison, its overlap guard and its draft loop. `main()` now calls `proof.main()`.
+
+  !! **THE NAME CARRIES OVER; THE FLAGS DO NOT.** `galley` took `--census`/`--edits`, `proof` takes
+  `--binder`/`--notations`, so the `SKILL.md` stage that invokes the old spelling is refused by
+  `proof`'s parser. Rewiring it is `agents` lane --
+  `TODO/the-skill-names-commands-that-moved-to-prototype.md`. **The removal is in
+  [`history.md`](history.md)**, and the measurements this file was the exemplar for are cited there
+  rather than at a module that no longer holds the code.
+
+- **#31.** **A FALSIFIED CLAIM NAMES A NEIGHBOUR'S STATE, NOT ITS OWN** (the final simplify pass
+  on this branch, 2026-08-26, naming the shape behind TEN falsified claims found across it). Every
+  one was a guard's justification written into the docstring of the module that GAINED the guard,
+  stating the state of a NEIGHBOUR -- *"this does not exist yet"*, *"nothing else does this"*,
+  *"N tests pass"* -- where nothing can notice when the neighbour moves.
+
+  Three measured directly, in this same pass: `desk/__init__.py` said *"WHAT CARRIES A ROLE'S
+  ANSWER TO THE PAGE IS NOT HERE AND IS NOT NAMED"* after `desk/notations.py` had already landed
+  to be that piece; `flows/__init__.py` said *"THE RESULTS-SIDE FLOW DOES NOT EXIST YET"* after
+  `proof_setter.run` was that flow; `CLAUDE.md` and `tests/README.md` both carried `880 passed ...
+  225 test functions, collected as 884` after `d74aa4b` cut 160 lines of `test_galley.py` and left
+  the count at 873 passed, 218 functions, 877 collected.
+
+  ! **THE RULE: a paragraph naming another file's state belongs IN that file, or carries the
+  command that re-derives it.** A count is safest of all when it sits beside the command that
+  reproduces it, which is why `CLAUDE.md`'s test-count comment survives by staying next to
+  `uv run pytest -q` rather than by being remembered correctly.
+
+  ! **THE SIBLING OF `#29`.** `#29` forbids a description written as a constraint on the SAME
+  code; this forbids a description written as a fact about OTHER code. Both are prose no gate can
+  see, because both were true on the day they were written.

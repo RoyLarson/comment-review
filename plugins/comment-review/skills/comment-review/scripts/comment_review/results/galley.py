@@ -1,9 +1,15 @@
 """The proposed text, SET AS FILES, so it can be read and censused like any tree.
 
-    python galley.py --repo D --census census.json --edits edits.json --out DIR
+! THIS MODULE HAS NO CLI OF ITS OWN. Ruled 2026-08-24 -- `decision-log.md
+Process: #12`: *"A library module does one job and has no CLI; a flow calls
+libraries; a command exposes a flow."* `flows/proof_setter.py` is the flow that
+calls `reset` below, followed by `compositor.draft`; `commands/proof.py` is the
+console face of that flow, and `galley` is its older name.
 
-`--edits` is `{"<address>": "<the replacement text>"}` -- the same address the
-record carries, so nothing between stage 5 and the galley has to convert.
+The notations are `{"<address>": "<the replacement text>"}` -- the address the
+binder carries. `reset` below does not take that address: resolving it to
+`(path, cue)` happens upstream, from the address itself, before a cue and
+its replacement ever reach this module.
 
 A galley is the trial impression: the text set, but not yet made into pages, so
 that it can be corrected before anything is committed. That is exactly what
@@ -30,14 +36,16 @@ address's cue counts -- and free between them.
 judged it would be MARK and APPLY in one actor, which is the separation the
 pipeline exists to keep.
 
-Two things need it, and they needed the same thing:
+Two things needed it:
 
-  round 2   A re-review rules on the SYNTHESISED paragraph -- text on no disk and
-            in no census -- so `address_problem` refuses it and `edit_problem`
-            measures one claim against one edit where the paragraph now holds
-            several. Censusing the galley gives that text a real address and a
-            real transcription, so every check in `verdicts.py` works on it
-            UNCHANGED.
+  round 2   A re-review ruled on the SYNTHESISED paragraph -- text on no disk
+            and in no census -- so `address_problem` refused it and
+            `edit_problem` measured one claim against one edit where the
+            paragraph held several. Censusing the galley gave that text a real
+            address and a real transcription, so every check in `verdicts.py`
+            worked on it UNCHANGED. ! `address_problem`, `edit_problem` and
+            `verdicts.py` moved to `prototype/` on 2026-08-25 and do not run
+            from this tree -- see `prototype/README.md`.
   stage 7a  What lands at 7b is a paragraph set into a page, and the galley is
             the first time anyone sees the two together. `git diff --no-index`
             over it shows the author what will land, including whether a
@@ -48,7 +56,7 @@ Two things need it, and they needed the same thing:
 the old page - updates the old page with the verdict/record/marks and then a
 page-setter sets the page to rewrite the output text."*
 
-    RESET   the verdicts are put on the page, by ADDRESS
+    RESET   the verdicts are put on the page, by CUE
     SET     `compositor.set_page` turns the page back into text
 
 ! THIS MODULE OWNS ONLY THE FIRST. Setting belongs to the compositor, which is
@@ -57,17 +65,28 @@ the only writer, and it decides nothing.
 !! NO LINE NUMBER APPEARS IN THIS FILE. Until 2026-08-21 the whole module was
 line arithmetic -- a splice over `(start, end, column)` ranges applied in
 descending order so that earlier edits did not shift later ones, with a
-staleness check comparing stored text against the file's lines. Roy: *"how do I
-get you to stop thinking in line numbers? You keep defaulting to that and it
-makes a mess."* A page addresses its paragraphs, so a replacement is an
-assignment and the arithmetic has nothing left to be wrong about. See
-`docs/history.md` for the mechanism that was removed.
+staleness check comparing stored text, paragraph by paragraph, against the
+file's lines. Roy: *"how do I get you to stop thinking in line numbers? You
+keep defaulting to that and it makes a mess."* A page addresses its
+paragraphs, so a replacement is an assignment and the arithmetic has nothing
+left to be wrong about. See `docs/history.md` for the mechanism that was
+removed.
+
+! DID THE FILE SHIFT IS NOT ANSWERED HERE, PARAGRAPH BY PARAGRAPH, ANY MORE.
+It is ONE comparison -- the sha the binder recorded against the sha the file
+reads at now -- and `flows/proof_setter.py:_one` makes it from `source_of`,
+before the file is parsed and before anything reaches `reset`. See
+`docs/history.md` for `drifted`, the last mechanism that asked this module.
+
+! IT IS ONE SITE AGAIN BECAUSE THERE IS ONE CHAIN AGAIN. A second command ran
+its own and made the comparison itself; measured 2026-08-25, before it did, it
+placed edits from a census taken before `def f():` was renamed and printed
+`1 page(s) set, 0 edit(s) refused` at exit 0. That command was emptied on
+2026-08-26 -- `docs/history.md`.
 
 ! A CHANGE THAT CANNOT BE MADE IS REPORTED, NEVER GUESSED. An address no page
-carries, or an anchor that moved since the census, stops that file rather than
-writing a galley nobody can trust.
+carries stops that file rather than writing a galley nobody can trust.
 """
-
 
 from comment_review.machine import constants
 
@@ -80,8 +99,18 @@ from comment_review.machine import constants
 from comment_review.reading.addresser import ON, cue_of
 
 
-def reset(page, edits: dict[str, str]) -> list[str]:
-    """Put each replacement on the page, at the address it names.
+def reset(page, edits: dict[str, str | None]) -> list[str]:
+    """Put each replacement on the page, at the place its cue names.
+
+    !! IT IS HANDED A PAGE AND CUES, AND RESOLVES NEITHER. Roy, 2026-08-25:
+    *"the galley shouldn't be resolving the page ... it should get handed the
+    page, the cues-new text or a delete."* A page names its own file, so the
+    path half of an address is a fact the caller already had.
+
+    !! `None` IS THE DELETE AND `""` IS REFUSED. Roy, 2026-08-25: *"None is
+    explicit enough."* ! An empty string was the vacation signal until then,
+    which made a failed serialisation upstream indistinguishable from a
+    deliberate deletion.
 
     !! THE ADDRESS IS THE WHOLE OF THE PLACEMENT. A paragraph knows which place
     it sits in, and the compositor sets the places in order, so a replacement is
@@ -121,7 +150,7 @@ def reset(page, edits: dict[str, str]) -> list[str]:
 
     Args:
         page: the page to change, built from the file as it reads NOW.
-        edits: address -> the replacement paragraph, as text.
+        edits: cue -> the replacement paragraph as text, or None to vacate.
 
     Returns:
         One sentence per edit that could not be placed. Empty means every one
@@ -136,10 +165,10 @@ def reset(page, edits: dict[str, str]) -> list[str]:
         if b.address:
             by_place.setdefault(cue_of(b.address).cue, []).append(b)
     refused = []
-    for address, replacement in edits.items():
-        found = by_place.get(cue_of(address).cue)
+    for where, replacement in edits.items():
+        found = by_place.get(where)
         if not found:
-            refused.append(f"{address}: this page carries no such place")
+            refused.append(f"{where}: this page carries no such place")
             continue
         # !! ONE PLACE, ONE PARAGRAPH. Two paragraphs sharing an address was a
         # real defect until 2026-08-21 -- 157 of them in one tree -- and it is
@@ -148,47 +177,27 @@ def reset(page, edits: dict[str, str]) -> list[str]:
         # approved text over prose nobody looked at.
         if len(found) > 1:
             refused.append(
-                f"{address}: {len(found)} paragraphs share this place, so no"
+                f"{where}: {len(found)} paragraphs share this place, so no"
                 " replacement can be placed against it"
             )
             continue
-        # !! A REPLACEMENT IS TEXT, AND ONLY AN EMPTY STRING IS A VACATION. This
-        # asked whether the value was TRUTHY, so every falsy value took the drop
-        # path below and every non-string truthy one reached the SPLITTER.
-        # MEASURED 2026-08-22 against a scratch checkout: `{"m.py@b1": null}`
-        # exited 0 reporting `1 page(s) set, 0 edit(s) refused` with the comment
-        # GONE, and `{"m.py@b1": 123}` died on an uncaught `AttributeError`, on a
-        # value with no lines to take.
-        # ! A NULL IS NOT A DECISION. `--edits` is machine-written from approved
-        # text; a key whose value failed to serialise arrives as `null`, and
-        # reading that as "the author asked to delete this" turns a bug upstream
-        # into a deletion here, at exit 0.
-        if not isinstance(replacement, str):
-            refused.append(
-                f"{address}: a replacement must be text, not"
-                f" {type(replacement).__name__} -- an empty string is the only drop"
+        if replacement is None:
+            owns_leading = not where.startswith(ON)
+            _vacate(
+                found[0],
+                by_symbol.get(page.leading.get(where, "")) if owns_leading else None,
             )
             continue
-        if replacement:
-            found[0].raw_lines = constants.text_lines(replacement)
+        if not isinstance(replacement, str):
+            refused.append(
+                f"{where}: a replacement must be text or None, not"
+                f" {type(replacement).__name__}"
+            )
             continue
-        # ! AN EMPTY REPLACEMENT IS A VACATION -- a `drop`, or the source half
-        # of a `move`. Anything else leaves the space below untouched, because
-        # the separation a reader saw is not the author's to lose by editing the
-        # text above it.
-        #
-        # !! A `c` GIVES UP NO LEADING, and this vacated it unconditionally when
-        # `_vacate` was written on 2026-08-22. A `c` sits BESIDE code: dropping
-        # the trailing comment leaves the statement exactly where it was, so the
-        # blank below it separates that CODE from what follows and was never the
-        # comment's to lose. ! `prove_unchanged` cannot see the difference --
-        # the AST is identical either way -- so it would land silently at 7b.
-        where = cue_of(address).cue
-        owns_leading = not where.startswith(ON)
-        _vacate(
-            found[0],
-            by_symbol.get(page.leading.get(where, "")) if owns_leading else None,
-        )
+        if not replacement:
+            refused.append(f"{where}: an empty string is not a delete -- None is")
+            continue
+        found[0].raw_lines = constants.text_lines(replacement)
     return refused
 
 
@@ -208,116 +217,3 @@ def _vacate(paragraph, leading) -> None:
     paragraph.raw_lines = []
     if leading is not None:
         leading.raw_lines = []
-
-
-def drifted(page, census: list[dict]) -> list[str]:
-    """Addresses whose ANCHOR is no longer the one the census recorded.
-
-    !! THIS IS THE WHOLE STALENESS CHECK, AND IT ASKS THE WHOLE FILE. Roy,
-    2026-08-21, ruling on the scope after a narrower reading was measured: *"If
-    the file shifted at all it is dead and so are the edits. There is no way we
-    can know if we are setting things correctly ... IT failing loudly is the
-    'right' call on any modification to the anchors."*
-
-    !! CHECKING ONLY THE ADDRESS BEING WRITTEN IS NOT ENOUGH, MEASURED. Rename
-    `def f():` to `def RENAMED():` and edit a comment inside its body: that
-    comment's own address is anchored to `    return 1`, which did not move, so
-    a per-address check ALLOWS IT -- and the approved text describing `f` is
-    written onto a declaration that no longer carries the name. The paragraph a
-    reviewer read did not move; the thing it is ABOUT did.
-
-    !! AND RE-ADDRESSING THE EDITS WOULD NOT SAVE THEM, WHICH IS WHY THERE IS NO
-    PARTIAL ANSWER. Roy: *"it seems easy just keep applying until it no longer
-    applies, but then the edits also no longer apply ... what is stated in the
-    edits could be stale and need something else."*
-
-    ! THE STALENESS IS IN THE TEXT, NOT ONLY IN THE PLACEMENT. A replacement is
-    prose ABOUT code, approved against the code as it read. Move that code and
-    the sentence can become false where it was true -- a comment that described
-    `f` is not made correct by finding the right place to put it on `RENAMED`.
-    So there is no re-keying shortcut: the shortcut assumes the words still
-    hold, and that is the assumption the shift breaks.
-
-    ! WHAT IS OWED IS A NEW REVIEW, not a new address. Re-censusing and
-    re-running is the answer, and it is the author's to trigger.
-
-    ! SO AN UNRELATED APPEND AT THE FOOT OF THE FILE REFUSES THE WHOLE PAGE, and
-    that is the rule rather than a cost of it -- measured as case D of the sweep
-    above: `X = 1` appended below everything moves the closing gap's anchor.
-
-    ! IT REPLACES A COMPARISON OF STORED TEXT AGAINST THE FILE'S LINES. That one
-    asked whether the paragraph still reads as it did, which is a fact about
-    lines and needed a case for every kind -- a `c` compared in two halves, an
-    empty place compared for emptiness, an undocumented declaration exempted.
-    The anchor is one comparison and it holds for every series that has one.
-
-    ! A SERIES WITH NO ANCHOR IS NOT CHECKED, and that is not a hole. Leading
-    answers to nothing by ruling, and the file's own matter answers to the
-    module -- neither can drift against a line of code, because neither is tied
-    to one.
-
-    Args:
-        page: the page as the file reads NOW.
-        census: the paragraphs the reviewers read.
-
-    Returns:
-        One sentence per address whose anchor moved.
-    """
-    now = {}
-    prose_now: dict[str, list[str]] = {}
-    for b in page:
-        if b.address and b.anchor:
-            now[cue_of(b.address).cue] = b.anchor
-        if b.address:
-            prose_now[cue_of(b.address).cue] = list(b.raw_lines)
-    out = []
-    for b in census:
-        address = str(b.get("address", ""))
-        # !! THE PROSE IS CHECKED TOO, and only the anchor was. An anchor is a
-        # line of CODE, so a comment edited since the census moved nothing the
-        # anchor can see -- and the galley wrote the reviewer's approved text
-        # over prose nobody had read. MEASURED 2026-08-22 side by side on one
-        # census: a code change refused correctly at exit 1 naming three moved
-        # anchors, while replacing one comment with two unreviewed lines gave
-        # exit 0 and overwrote both.
-        #
-        # ! IT IS THE RULE THIS FUNCTION ALREADY QUOTES. Roy: *"If the file
-        # shifted at all it is dead and so are the edits."* A prose edit is the
-        # file shifting; the anchor comparison simply could not see it.
-        #
-        # ! ONE COMPARISON, EVERY KIND -- which was the objection to the text
-        # check this replaced. That one asked whether the paragraph still READS
-        # as it did and needed a case per kind; `raw_lines` is the lines
-        # themselves, and the census records them for every paragraph it carries.
-        #
-        # ! IT ALSO COVERS THE SERIES WITH NO ANCHOR. Leading and the file's own
-        # matter answer to no line of code, so the anchor test skipped them
-        # entirely; their prose can still be edited, and now that is seen.
-        # ! NOTHING WITHOUT AN ADDRESS IS COMPARED AT ALL, so it is asked here
-        # rather than in each of the two checks below -- which tested it in
-        # opposite directions inside one loop body, with nothing between them
-        # that could change the answer.
-        if not address:
-            continue
-        # ! THE CENSUS EMITS ONE STRING since 2026-08-24; the PAGE still
-        # holds lines, so the comparison joins the page side to match. What
-        # a paragraph IS in memory did not change -- see
-        # `census.emitted_row`.
-        stored = b.get("raw_text")
-        if isinstance(stored, str):
-            here_lines = prose_now.get(cue_of(address).cue)
-            if here_lines is not None and "\n".join(here_lines) != stored:
-                out.append(
-                    f"{address}: the prose here changed since the census"
-                    f" -- {len(stored.splitlines())} line(s) read,"
-                    f" {len(here_lines)} now"
-                )
-        was = str(b.get("anchor", ""))
-        if not was:
-            continue
-        here = now.get(cue_of(address).cue)
-        if here is not None and here != was:
-            out.append(
-                f"{address}: the census read {was!r}, the file now reads {here!r}"
-            )
-    return out

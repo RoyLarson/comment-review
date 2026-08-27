@@ -137,6 +137,13 @@ class Page:
     Attributes:
         path: as the REPO sees it. Every citation resolves against that root.
         text: the file, exactly as it reads. What a splice is checked against.
+        sha: of `text`, RECEIVED from the read and never derived here. Roy,
+            2026-08-25: *"the querying of it should not have left the machine/
+            modules. It is information received by page and binder, not
+            something requested by page/binder."* ! The write chain compares it
+            against the one the binder recorded, which is the only comparison
+            that can fail -- a sha this module took for itself would be asking
+            whether the text equals itself.
         paragraphs: in order down the page, prose and empty places alike.
         cues: EVERY place on the page, filled or not -- see
             `addresser.cue`. It is what makes an `add` citable.
@@ -147,6 +154,7 @@ class Page:
 
     path: str
     text: str
+    sha: str
     paragraphs: list[Paragraph]
     cues: Cues
     # !! IT IS THE PAGE'S, NOT `cue`'S, and it sat on `Cues` for one
@@ -675,7 +683,9 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     return edges
 
 
-def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> Page:
+def page_for(
+    path: Path, text: str, lang: Language, rel: str | None = None, *, sha: str
+) -> Page:
     """The census for one file, at the highest tier available for its language.
 
     The ladder is by QUESTION ANSWERED. Python reaches TOKENIZED through the
@@ -694,6 +704,10 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
         rel: the path as the REPO sees it, when a caller has one. It is what
             every citation resolves against; `path` stands in when a caller has
             no repo, which is what the tests are.
+        sha: of `text`, from `repo.read_source`. KEYWORD-ONLY AND REQUIRED: a
+            default would let a caller build a page whose identity does not
+            describe its text, and the write chain's comparison would then pass
+            on a file nobody verified.
     """
     if lang.name == "python":
         got = paragraphs_stdlib(path, text)
@@ -855,6 +869,7 @@ def page_for(path: Path, text: str, lang: Language, rel: str | None = None) -> P
     return Page(
         path=rel if rel is not None else path.as_posix(),
         text=text,
+        sha=sha,
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         cues=cues,
         leading=edges,

@@ -61,6 +61,7 @@ sys.path.insert(0, str(REPO / "plugins/comment-review/skills/comment-review/scri
 
 import lexer  # noqa: E402
 import page as page_mod  # noqa: E402
+import repo as repo_mod  # noqa: E402
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
 # ! The margin is wide enough for a cue and a series letter; a page with more
@@ -180,15 +181,16 @@ def rows(path: Path) -> str:
 def render(path: Path, show: str | None) -> None:
     """Print one file's three renderings, or just the one asked for."""
     try:
-        text = path.read_text(encoding="utf-8")
+        src = repo_mod.read_source(path)
     except READ_ERRORS as exc:
         print(f"  SKIP {path} -- {exc}")
         return
+    text = src.text
     lang = lexer.language_for(path)
     if lang is None:
         print(f"  SKIP {path} -- no language record for {path.suffix!r}")
         return
-    pg = page_mod.page_for(path, text, lang, rel=path.as_posix())
+    pg = page_mod.page_for(path, src.text, lang, rel=path.as_posix(), sha=src.sha)
     built = {
         "rows": rows(path),
         "margin": margin(pg, text),

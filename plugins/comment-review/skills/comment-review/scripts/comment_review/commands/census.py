@@ -25,7 +25,12 @@ from comment_review.flows.census import (
     carried,
 )
 from comment_review.machine import exceptions
-from comment_review.machine.repo import path_index, tracked_paths, walk_files
+from comment_review.machine.repo import (
+    path_index,
+    read_source,
+    tracked_paths,
+    walk_files,
+)
 from comment_review.reading.addresser import COVERS, SEPARATOR
 from comment_review.reading.lexer import LANGUAGES, Paragraph, language_for, tier_for
 from comment_review.reading.series import Kind
@@ -145,10 +150,11 @@ def _report(args: argparse.Namespace) -> int:
     ]
     for path in files:
         try:
-            text = path.read_text(encoding="utf-8")
+            source = read_source(path)
         except exceptions.READ_ERRORS as e:
             unreadable.append(f"{path.as_posix()} ({type(e).__name__})")
             continue
+        text = source.text
         lang = language_for(path)
         if lang is None:
             unreadable.append(f"{path.as_posix()} (no language record for its suffix)")
@@ -160,15 +166,17 @@ def _report(args: argparse.Namespace) -> int:
         # absolute file arguments, which is how a task agent that resolved its
         # own paths would call this.
         #
-        # !! Measured 2026-08-17: `galley.py` joins `out / paragraph["path"]`, and
-        # in Python an absolute right-hand side WINS a join -- so the galley
-        # wrote over the source file, put nothing under `--out`, and printed
-        # that it had succeeded. The module whose one promise is "nothing under
-        # `--repo` is touched" was editing the tree under review.
+        # !! Measured 2026-08-17 on the galley command -- `docs/history.md`: it
+        # joined `out / paragraph["path"]`, and in Python an absolute right-hand
+        # side WINS a join, so it wrote over the source file, put nothing under
+        # `--out`, and printed that it had succeeded. The module whose one
+        # promise is "nothing under `--repo` is touched" was editing the tree
+        # under review.
         #
         # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
-        # `_repo_relative`, which says what that means. `galley.py` refuses to
-        # write such a paragraph rather than guessing where it belongs.
+        # `_repo_relative`, which says what that means. `flows/proof_setter.py`
+        # refuses such a page rather than guessing where it belongs: its
+        # `_can_escape` reads the binder's page paths before any file is opened.
         # ! HOISTED. `_repo_relative` calls `Path.resolve()`, a filesystem
         # call, and both arguments are the same for every paragraph of a file.
         # Measured 2026-08-18: 120 us a call, so one 793-paragraph file spent
@@ -193,7 +201,7 @@ def _report(args: argparse.Namespace) -> int:
         # for as long as `page_for` returned an unaddressed census, which is
         # the split that let a direct caller receive half a census.
         try:
-            got = page_for(path, text, lang, rel)
+            got = page_for(path, text, lang, rel, sha=source.sha)
         except Exception as e:  # a parse failure is REPORTED, as a gap
             unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
             continue

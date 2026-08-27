@@ -1,8 +1,9 @@
 """What the machine says: the checkout, the filesystem, the console, the tuples.
 
-    repo        git, and reading a file off disk
-    constants   the text/encoding rules, and the console guard
-    exceptions  every exception tuple, bound to a NAME
+    repo         git, and reading a file off disk
+    constants    the text/encoding rules, and the console guard
+    exceptions   every exception tuple, bound to a NAME
+    json_object  text as a JSON object, or why it is not one
 
 !! THE TUPLES LIVE HERE SO NO SHIPPED `except` CLAUSE HOLDS A LITERAL. A repo
 targeting a newer ruff `target-version` can rewrite `except (A, B):` into PEP 758

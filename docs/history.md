@@ -88,12 +88,66 @@ what sits beside it.
 
 ! **The staleness check went with it.** `paragraph_matches` compared stored text against the
 file's lines and needed a case per kind. It is `compositor.transcribes` now, one comparison,
-because `leading` made every paragraph contiguous. What the GALLEY checks instead is
+because `leading` made every paragraph contiguous. What the GALLEY checked instead was
 `drifted` -- the anchor, per Roy's ruling 2026-08-21: *"the reset should only check if the address
-is tied to the anchor line of code - like they claim."*
+is tied to the anchor line of code - like they claim."* `drifted` itself was later retired -- see
+"`galley.drifted` -- the anchor and prose staleness check" below.
 
 ! **To read the mechanism**, it is at `e1a6baf` -- `git show
 e1a6baf:plugins/comment-review/skills/comment-review/scripts/galley.py`.
+
+## `galley.drifted` -- the anchor and prose staleness check
+
+**Deleted 2026-08-25.** `drifted(page, census)` compared, for every addressed paragraph, the
+anchor and `raw_text` the census recorded against a freshly re-parsed `page` built by reading the
+file again and running it through the full lexer -- an anchor that no longer matched refused the
+whole file, and (since 2026-08-22) so did prose whose `raw_text` had changed since the census.
+
+! **Why it went**: a sha comparison over the file's text answers the same question -- has this
+file changed since the census was taken -- in one comparison, before anything is parsed. Rebuilding
+the page and diffing every paragraph did the same job at a much higher cost, for no more
+certainty: any change to the file changes its sha, so the anchor-by-anchor and prose-by-prose walk
+`drifted` did was answering a question the sha already settles.
+
+! **To read the mechanism**, it is at `0f99805^` -- `git show
+0f99805^:src/comment_review/results/galley.py`.
+
+## The `galley` COMMAND -- a second write chain, with its own rules
+
+**Emptied 2026-08-26.** `commands/galley.py` was ~200 lines that took `--census` and `--edits`,
+resolved each address to a file through `rows_of(census)`, compared the census's recorded sha
+against the file, placed the edits with `galley.reset`, and wrote one draft per page under
+`--out`. It kept its own copies of four things `flows/proof_setter.py` also does: the
+`--out`/`--repo` disjointness refusal, the per-file containment guard, the staleness comparison,
+and the draft loop.
+
+! **Why it went.** Roy, 2026-08-26: *"We have a single entry point for the system? These delegate
+through to the commands? Create the galley entry_point function that points to proof_setter and
+delete the unused command."* And on the shape: *"there is no reason to go to the galley for
+something that proof-setter is supposed to do."* The module is now the OLD NAME for `proof` and
+calls `proof.main()`.
+
+!! **THE NAME IS ALL THAT CARRIED OVER.** `galley` took `--census` and `--edits`; `proof` takes
+`--binder` and `--notations`. A `SKILL.md` stage still spelled the old flags when this landed, so
+the old invocation reaches `proof`'s parser and is refused -- tracked in
+`TODO/the-skill-names-commands-that-moved-to-prototype.md`.
+
+! **Where the measurements it was the exemplar for now point.** Three findings were recorded
+against this file and are still true of the system: the 2026-08-22 overlap that wrote a draft over
+the file under review at exit 0 (`repo.undraftable` is the rule now, in one place), the two copies
+of that one rule in two commands, and the 2026-08-25 staleness gap that placed every edit from a
+stale census at exit 0. They are cited here rather than at a file that no longer holds the code.
+
+! **To read the mechanism**, it is at `175c4bf` -- `git show
+175c4bf:src/comment_review/commands/galley.py`.
+
+! **The stub that was left behind went too, later the same day.** Emptying
+`commands/galley.py` down to `return proof.main()` still left a module whose
+whole body forwards -- a standing invitation for a reader to file "this module
+does nothing." Roy: *"If the alias is forwarded you can drop the file and they
+have nothing to complain about."* The alias moved into `__main__.ALIASES`,
+which maps `"galley"` to `"proof"` and imports that module directly; the file
+is gone. To read it, `git show 1119cb3~1:src/comment_review/commands/galley.py`.
 
 ## Constants that outlived their reader
 

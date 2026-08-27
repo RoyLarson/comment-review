@@ -1,15 +1,20 @@
-"""Facts about the checkout: git, the filesystem, and the exception tuples.
+"""Facts about the checkout: git, the filesystem, exception tuples, and text identity.
 
 Every function here answers a question about the tree the review runs in, and
 carries the NON-ANSWER in its return type -- `None` for "git could not tell me",
 a named list for "these files were unread". A caller that reads a non-answer as
 an empty answer produces the failure this whole skill exists to catch.
 
-Imported by `census.py`, `galley.py`, `referrers.py` and `prove_unchanged.py`.
+`read_source` and `sha_of` answer a different question -- not what the
+checkout contains, but what was actually read -- and belong here rather than
+downstream because a sha taken by a caller depends on which of this module's
+two readers that caller happened to use.
 """
 
+import hashlib
 import subprocess
 from pathlib import Path
+from typing import NamedTuple
 
 from comment_review.machine import exceptions
 
@@ -31,11 +36,21 @@ def read_raw(path: Path) -> str:
     indistinguishable to anything that then asks which ending the text uses.
     `newline=""` disables that translation.
 
-    !! TWO CALLERS NEED IT AND BOTH ARE ABOUT COMPARING A FILE TO ITSELF.
-    `prove_unchanged` asks whether the code is byte-identical; `galley` writes a
-    copy meant to be diffed against its original. Measured 2026-08-17: the
-    galley read with `read_text` instead, so a 245-line CRLF source was written
-    out with 223 bare LF and every line of the diff was an ending change.
+    !! THREE SITES CALL IT DIRECTLY, AND NO WRITE PATH IS ONE OF THEM. MEASURED
+    over `src/comment_review/`: `read_source` below (which every other reader
+    goes through), `commands/prove_unchanged.py` and
+    `results/prove_unchanged.py` -- both about comparing a file to itself
+    byte-identically, which is why they read raw rather than through the sha
+    pairing `read_source` gives everyone else. Measured 2026-08-17, when the
+    galley command read the source itself: it used `read_text`, so a 245-line
+    CRLF source was written out with 223 bare LF and every line of the diff was
+    an ending change. That command is gone -- see `docs/history.md` -- and the
+    write chain reaches `read_raw` only through `read_source`.
+
+    ! THREE MODULES REACH IT THROUGH `read_source`: `commands/census.py`,
+    `flows/page_for.py` (in `source_of`, which `page_of` and the whole write
+    chain go through) and `results/compositor.py` (twice) -- MEASURED by
+    import, 2026-08-26.
 
     ! `Path.read_text`'s own `newline=` parameter arrived in Python 3.13, and
     the floor here is 3.11, where passing it raises `TypeError`.
@@ -51,6 +66,67 @@ def read_raw(path: Path) -> str:
     """
     with open(path, encoding="utf-8", newline="") as f:
         return f.read()
+
+
+class Source(NamedTuple):
+    """A file's text and the sha of that exact text, read together.
+
+    !! THEY TRAVEL AS ONE BECAUSE A SHA OF THE WRONG READING IS WORSE THAN NO
+    SHA. Roy, 2026-08-25: *"that is the only place to properly ensure it gets
+    read exactly the same and the middle things shouldn't depend on the
+    external things."*
+
+    Attributes:
+        text: as `read_raw` returns it -- the file's own line endings.
+        sha: of that text, so a caller cannot pair the two wrongly.
+    """
+
+    text: str
+    sha: str
+
+
+def sha_of(text: str) -> str:
+    """The identity of a text, truncated to 16 hex characters.
+
+    ! WHAT IT ANSWERS is one question -- *are these the bytes that were
+    reviewed?* Roy, 2026-08-21: *"if the file shifted at all it is dead and so
+    are the edits."*
+
+    Args:
+        text: the text to identify.
+
+    Returns:
+        The first 16 hex characters of its UTF-8 SHA-256.
+    """
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def read_source(path: Path) -> Source:
+    r"""Read a file and identify what was read, in one act.
+
+    !! THE READING AND THE HASHING CANNOT BE SEPARATED WITHOUT LOSING THE
+    GUARANTEE. MEASURED 2026-08-25 over `b"# one\r\ndef f():\r\n    return
+    1\r\n"`, with this tree's two readers:
+
+        read_raw    newline=""            f13497990c3d92d0
+        read_text   universal newlines    83ec58343641fd11
+
+    ! ONE FILE, ONE SET OF BYTES, TWO SHAS. A sha taken downstream of whichever
+    reader a consumer happened to use answers *which reader ran*, not *did the
+    file change* -- so a byte-identical CRLF checkout refuses.
+
+    ! AND THE DEFECT WAS LIVE WHEN THIS LANDED: `census.py` read through
+    `Path.read_text` and the binder hashed that, so the recorded sha described
+    the TRANSLATED text and not the file.
+
+    Args:
+        path: the file to read.
+
+    Returns:
+        Its text with line endings untouched, and the sha of that text.
+    """
+    text = read_raw(path)
+    return Source(text, sha_of(text))
 
 
 def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
@@ -120,6 +196,66 @@ def git_ls_files(repo: Path) -> list[str] | None:
     if listed.returncode != 0:
         return None
     return listed.stdout.splitlines()
+
+
+def undraftable(into: Path, repo: Path) -> str:
+    """Why drafts of files under `repo` cannot be written into `into`, or "".
+
+    !! `into` MUST BE DISJOINT FROM `repo`, AND NO PER-FILE GUARD CAN ASK IT.
+    A per-file guard checks that a target lands inside `into`; on an OVERLAP
+    that is satisfied by the SOURCE FILE ITSELF, so the guard passes and the
+    draft is written over the file under review. MEASURED 2026-08-22 on the
+    galley command -- `docs/history.md` -- which did exactly that and printed
+    `1 page(s) set` at exit 0; MEASURED again 2026-08-25 on
+    `flows.proof_setter.run(notations, binder, repo, repo)`, which answered
+    `refused=[]` while the source file on disk held the replacement text.
+
+    !! IT LIVES HERE BECAUSE MORE THAN ONE CALLER ASKS IT --
+    `flows/proof_setter.run` and `commands/proof.py`. It was spelled out in two
+    commands instead, and the flow -- which the commands' own docstrings say
+    anyone may call -- asked it nowhere. ! One of those two commands was
+    `galley`, which is now the old NAME for `proof` and asks nothing itself.
+
+    ! `is_relative_to` IS TRUE OF A PATH AND ITSELF, which is why both
+    directions are tested and an equality test would be redundant.
+
+    ! THE `is_dir` CLAUSE IS FIRST BECAUSE THE MKDIR IS WHAT FAILS.
+    `into.mkdir(parents=True, exist_ok=True)` raises `FileExistsError` when
+    `into` names a regular file -- `exist_ok` covers an existing DIRECTORY only
+    -- and that reached `commands/proof.py`'s console as a traceback while
+    every other bad input there printed a reason.
+
+    !! `is_symlink` IS ASKED BESIDE `exists` BECAUSE `exists` FOLLOWS THE LINK
+    AND A DANGLING ONE ANSWERS `False`. `exists` alone therefore let a link
+    naming nothing through the clause that exists to stop a non-directory --
+    and `mkdir` does not follow a link, so it is the same `FileExistsError` the
+    clause was added for. `is_symlink` asks about the link ITSELF; a symlink to
+    a real directory still passes, because `is_dir` follows it and answers
+    `True`.
+
+    ! WHAT THE THREE CALLERS PASS IS ALREADY RESOLVED, so the clause bites for
+    a caller that does not resolve -- which this function's own `Args` says is
+    the caller's job and cannot check. It is NOT verified on the machine this
+    was written on: creating a symlink there raises `WinError 1314`, and
+    `test_a_DANGLING_SYMLINK_is_not_a_directory` skips rather than fake a
+    filesystem the case is about.
+
+    Args:
+        into: the directory drafts are written to. RESOLVED by the caller;
+            an unresolved path is never a prefix of a resolved one.
+        repo: the checkout the pages are read from, resolved the same way.
+
+    Returns:
+        The reason, or "" when `into` may receive drafts.
+    """
+    if (into.is_symlink() or into.exists()) and not into.is_dir():
+        return f"{into} is not a directory, so no draft can be written into it"
+    if into.is_relative_to(repo) or repo.is_relative_to(into):
+        return (
+            f"{into} overlaps {repo}, so a draft would be written over the files"
+            " under review"
+        )
+    return ""
 
 
 def tracked_paths(repo: Path) -> set[Path] | None:

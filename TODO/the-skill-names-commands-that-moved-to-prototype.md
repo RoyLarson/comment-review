@@ -6,6 +6,16 @@ Progress: 0 of 3 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-25 (the prototype move, 2026-08-25)
+Updated:  2026-08-26 — galley is now a SEVENTH command needing rewiring, and it is the
+          one that still runs. commands/galley.py was emptied on 2026-08-26 (Roy:
+          'Create the galley entry_point function that points to proof_setter and delete
+          the unused command') and is now the old NAME for proof: main() calls
+          proof.main(). The NAME still resolves through __main__.py, so a SKILL.md stage
+          that invokes galley reaches the chain -- but the FLAGS do not carry over.
+          SKILL.md line 918 spells --census/--edits; proof takes --binder/--notations,
+          so the old invocation reaches proof's parser and is refused as an unrecognised
+          argument. Rewiring that stage is agents lane. See docs/history.md for what the
+          command used to do.
 ```
 
 ## Objective

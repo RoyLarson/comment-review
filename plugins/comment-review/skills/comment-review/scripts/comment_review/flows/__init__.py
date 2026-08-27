@@ -1,6 +1,11 @@
 """One whole run, calling the libraries. A flow decides ORDER, not behaviour.
 
-    census   stages 2-3 -- every page in scope, formatted for the agents
+    census         stages 2-3 -- every page in scope, formatted for the agents
+    page_for       the read-and-build step a flow needs a page from; decides
+                    no order itself -- see below for why it sits here anyway
+    proof_setter   the results-side flow -- calls the galley, the compositor
+                    and `prove_unchanged` in order, from a role's notations to
+                    a drafted file a human can read
 
 !! A FLOW IS WHERE A SEQUENCE LIVES so that no library module has to know it is
 part of one. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.
@@ -10,6 +15,11 @@ part of one. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.
 half is not here at all yet: it is inside `commands/census.py`, which is
 `TODO/the-flow-lives-in-the-command.md`.
 
-! THE RESULTS-SIDE FLOW DOES NOT EXIST YET. It is what would call the galley,
-the compositor and `prove_unchanged` in order, instead of each carrying a CLI.
+! `page_for` DECIDES NO ORDER, AND SITS HERE ANYWAY. It was cut from five
+sites duplicating the same read (`read_source`, `language_for`, `page_for`,
+carry the sha), commit `4290bfe`, but only `proof_setter.run`'s two reads were
+repointed at it -- the other four (`commands/census.py`,
+`results/compositor.py` twice, `scripts/render_page.py`) are
+`TODO/no-step-produces-a-page.md`. So the module reads as a step the write
+chain depends on, not yet as a step every caller shares.
 """

@@ -2,11 +2,22 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 4 of 4 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy: the page should record its sha, so the galley and the compositor
           can verify nothing changed without re-parsing)
+Updated:  2026-08-25 — OWNERSHIP MOVED, 2026-08-25. T2 and T3 name the GALLEY and the
+          COMPOSITOR as the things that verify by sha. Roy ruled otherwise on the write-
+          chain branch: the sha-page piece should be part of the chain of command piece.
+          One owner answers it once, in flows/proof_setter.py, rather than two owners
+          answering it twice. The work is the same work and the file is backend's, so
+          this is a restatement rather than a new TODO. T4 is SUPERSEDED OUTRIGHT: it
+          asks that the per-paragraph comparison stay honest about what it covers, and
+          that comparison was galley.drifted, retired in 0f99805 -- there is no longer a
+          comparison to keep honest, and the sha answers the question in one comparison
+          before anything is parsed. Per the standing rule a superseded task is checked,
+          not deleted, so the error stays legible.
 ```
 
 ## Objective
@@ -46,13 +57,13 @@ than inside it.
 
 ## Tasks
 
-- [ ] T1 -- Record the source SHA on the page, beside `path`. Verify: two censuses of an
+- [x] T1 -- Record the source SHA on the page, beside `path`. Verify: two censuses of an
       unchanged file carry the same SHA, and one edit changes it.
-- [ ] T2 -- Make the galley refuse a changed file on the SHA, before any re-parse. Verify:
+- [x] T2 -- Make the galley refuse a changed file on the SHA, before any re-parse. Verify:
       a one-byte edit is refused and no page is built.
-- [ ] T3 -- Make the compositor verify by SHA on the same footing. Verify: it refuses a
+- [x] T3 -- Make the compositor verify by SHA on the same footing. Verify: it refuses a
       file whose bytes are not the ones its page was built from.
-- [ ] T4 -- Keep the per-paragraph comparison honest about what it now covers. Verify: its
+- [x] T4 -- Keep the per-paragraph comparison honest about what it now covers. Verify: its
       comment names the SHA as what answers *did the file shift*.
 
 ## Related

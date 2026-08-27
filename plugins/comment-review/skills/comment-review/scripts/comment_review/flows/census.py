@@ -69,9 +69,10 @@ def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
     here, because NOTHING TRANSFERS FROM THE BINDER TO THE END -- the write path
     reloads the page from disk and takes only the address as a key.
 
-    ! THE GATE IS UNAFFECTED. `unaddressed` reports paragraphs that OWE an
-    address and lack one, and `owes_address` already exempts anything carrying a
-    symbol -- so a fence was never in the population it counts.
+    ! THE GATE IS UNAFFECTED, AND THE REASON IS THE FILTER BELOW. `unaddressed`
+    reports paragraphs that lack an address, and this function hands over only
+    the paragraphs that HAVE one -- a fence's address is `""`, so it never
+    reaches the population that gate counts.
     """
     return [b for b in page if b.address]
 
@@ -90,7 +91,8 @@ def _repo_relative(path: Path, repo: Path) -> str:
         is no relative-to-`repo` form of such a file and inventing one with
         `..` would hand a consumer a path that escapes the root it was given,
         so it is passed through unresolved and the consumers refuse it:
-        `galley.py` writes nothing that lands outside `--out`.
+        `flows/proof_setter.py` writes nothing for a page path that is not
+        relative to the repository.
     """
     try:
         return path.resolve().relative_to(repo).as_posix()

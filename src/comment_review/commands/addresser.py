@@ -12,7 +12,6 @@ from pathlib import Path
 from comment_review.binder.addresses import (
     _by_path,
     for_anchor,
-    owes_address,
     resolve,
     stable,
     unaddressed,
@@ -98,11 +97,11 @@ def main() -> int:
     # the document the caller means, it does not matter that the file has
     # changed lines underneath it.
     #
-    # ! STALENESS MATTERS WHERE A FILE IS WRITTEN, and `galley.drifted` refuses a
-    # moved anchor there. A sweep here refuses a census built seconds earlier on
-    # every non-Python file carrying a trailing comment, with a message
-    # re-running never fixes, and masks the collisions `--check` exists to
-    # report.
+    # ! STALENESS MATTERS WHERE A FILE IS WRITTEN, and `galley.drifted` used to
+    # refuse a moved anchor there -- retired, see `docs/history.md`. A sweep
+    # here refuses a census built seconds earlier on every non-Python file
+    # carrying a trailing comment, with a message re-running never fixes, and
+    # masks the collisions `--check` exists to report.
     #
     # ! THE CALLER CHOOSES THE CENSUS, which is what makes this safe. Stage 8
     # censuses the file as it now stands and resolves against that, so the two
@@ -124,16 +123,14 @@ def main() -> int:
     # every paragraph was addressed. MEASURED 2026-08-22 on
     # `tests/fixtures/sample.py`: "3 entries could not be addressed", exit 1,
     # beside "18 of 18 paragraphs addressed", exit 0.
-    # ! The half it dropped is the SYMBOL. Leading names no place -- see
-    # `SERIES` -- so it owes no address and cannot be cited; `unaddressed` knows
-    # that and a re-derivation of it did not.
     missing = unaddressed(paragraphs)
     for i, paragraph in enumerate(paragraphs, 1):
-        # ! A paragraph that owes no address shows the SYMBOL it is known by,
-        # which is the only handle it has. UNPLACED is kept for an entry nothing
-        # can cite -- the fault this exit code is about.
-        where = stable(paragraph) or str(paragraph.get("symbol", "")) or "UNPLACED"
-        print(f"{i:4d}  {where:<34} {paragraph.get('kind', '')}")
+        # ! UNPLACED names an entry nothing can cite -- the fault this exit code
+        # is about. It was preceded by a `symbol` fallback for a paragraph owing
+        # no address; leading is the only such paragraph and `bind()` emits no
+        # row for one, so the fallback could not fire.
+        where = stable(paragraph) or "UNPLACED"
+        print(f"{i:4d}  {where:<34} {paragraph.get('cue', '')}")
     if missing:
         print(f"\n{len(missing)} entries could not be addressed:")
         for line in missing:
@@ -177,8 +174,8 @@ def _resolve_one(address: str, paragraphs: list[dict]) -> int:
         return 1
     for i in hits:
         paragraph = mine[i - 1]
-        span = f"{paragraph.get('start')}-{paragraph.get('end')}"
-        print(f"{real}:{span}\t{paragraph.get('kind', '')}")
+        span = f"{paragraph.get('original_start')}-{paragraph.get('original_end')}"
+        print(f"{real}:{span}\t{paragraph.get('cue', '')}")
     return 0
 
 
@@ -199,8 +196,8 @@ def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
         return 1
     for b in found:
         where = stable(b)
-        span = f"{b.get('start')}-{b.get('end')}"
-        print(f"{where}	{span}	{b.get('kind', '')}	{b.get('anchor', '')}")
+        span = f"{b.get('original_start')}-{b.get('original_end')}"
+        print(f"{where}	{span}	{b.get('cue', '')}	{b.get('anchor', '')}")
     # !! AN ANCHOR HAS MANY ADDRESSES, so this direction is not a lookup that
     # returns one. Roy, 2026-08-19, on two identical statements in one file:
     # *"for the addresses this is still exact -- for looking up the anchors to
@@ -261,26 +258,22 @@ def _check(paragraphs: list[dict]) -> int:
             where = stable(paragraph)
             if where and len(resolve(where, mine)) > 1:
                 shared.setdefault(where, []).append(
-                    f"{paragraph.get('start')}-{paragraph.get('end')}"
-                    f" {paragraph.get('kind', '')}"
+                    f"{paragraph.get('original_start')}-{paragraph.get('original_end')}"
+                    f" {paragraph.get('cue', '')}"
                 )
     for line in missing:
         print(f"UNADDRESSED  {line}")
     for where, rows in sorted(shared.items()):
         print(f"SHARED       {where}  <- {' | '.join(rows)}")
-    # ! THE SAME POPULATION `unaddressed` ASKED ABOUT, via the same predicate.
-    # Counting every paragraph here and only the owing ones there is what made
-    # the sentence false.
-    owed = [b for b in paragraphs if owes_address(b)]
-    exempt = len(paragraphs) - len(owed)
-    named = len(owed) - len(missing)
+    # !! THE SAME POPULATION `unaddressed` ASKED ABOUT. Counting every paragraph
+    # here and only some of them there is what made the sentence false: MEASURED
+    # 2026-08-22 over this repo's own scripts, `8542 of 8542 paragraphs
+    # addressed` while 392 of them carried no address at all. It is one
+    # population now because every row `bind()` emits carries an address --
+    # leading is the paragraph that owed none, and no row is made for one.
+    named = len(paragraphs) - len(missing)
     files = len(_by_path(paragraphs))
-    print(f"\n{named} of {len(owed)} paragraphs addressed over {files} files.")
-    if exempt:
-        # ! SAID, NOT SILENTLY DROPPED. A reader comparing this against the
-        # census's own total needs to know why the two differ, and `leading` is
-        # the whole of the difference.
-        print(f"{exempt} carry a symbol instead, and are owed no address.")
+    print(f"\n{named} of {len(paragraphs)} paragraphs addressed over {files} files.")
     if shared:
         # ! Advice only where it applies. Printing it against zero shared places
         # tells a reader to guard something that did not happen.

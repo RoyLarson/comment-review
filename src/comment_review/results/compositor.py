@@ -26,7 +26,8 @@ original; `approve()` copies that over the real file wholesale, once. Roy: *"No
 editing on the 'real' file until the draft is fully approved."*
 
 !! AND THE ROUND TRIP IS A TEST BECAUSE THIS IS THE ONLY WRITER.
-`set_page(page_for(path, text, lang)) == text`, byte for byte, in any language.
+`set_page(page_for(path, text, lang, sha=read_source(path).sha)) == text`,
+byte for byte, in any language.
 ! `prove_unchanged.py` is strictly weaker and answers a different question: it
 proves the EXECUTABLE CODE survived an edit, not that the model of a page is
 lossless.
@@ -52,7 +53,8 @@ from pathlib import Path
 
 from comment_review.binder.page import Page, page_for
 from comment_review.machine import constants, exceptions
-from comment_review.reading.addresser import ON, cue_of
+from comment_review.machine.repo import read_source
+from comment_review.reading.addresser import GAP, ON, cue_of
 
 # !! THE OTHER DIRECT IMPORTER OF THE ROWS -- see `language.py`. The lexer reads
 # a file into paragraphs and this sets a page back into one, so these two are
@@ -60,6 +62,7 @@ from comment_review.reading.addresser import ON, cue_of
 # `language_for` through the lexer's re-export, which is a lookup rather than a
 # reading; taking it from `language` here says which of the two this is.
 from comment_review.reading.language import language_for
+from comment_review.reading.series import Kind
 
 CRLF = "\r\n"
 LF = "\n"
@@ -175,8 +178,36 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # for legibility and was the half that could be WRONG -- after a drop it
     # named a place it no longer separated.
     edges = page.leading
+    # !! WHICH PLACES WERE EMPTY WHEN THE PAGE WAS READ. `galley.reset` fills
+    # `raw_lines` and leaves the KIND saying absence, so a place holding prose
+    # under an absent kind is one an `add` just filled -- which is the only case
+    # the leading rule below may fire on.
+    #
+    # ! THE EDGE ALONE DOES NOT SAY IT. Measured 2026-08-26: keying the rule on
+    # "no leading was looked up" fired on a MODIFY and on an unedited compose
+    # too, because a `b` sitting flush against its code owns no leading either --
+    # three tests caught it, `test_a_comment_run_that_swallows_code_is_caught_by
+    # _prove` among them.
+    absent = {
+        cue_of(b.address).cue
+        for b in page.paragraphs
+        if b.address and Kind.occupies_no_lines(b.kind)
+    }
+    # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the run
+    # AFTER the last blank line, so a leading above an added closing `b` pushes
+    # it INTO the matter it was meant to stay clear of. MEASURED 2026-08-26 on
+    # `SAMPLE`: `b4` with a leading still re-reads at `f1`, so the blank changes
+    # the bytes and not the outcome.
+    #
+    # ! THAT COLLISION IS ITS OWN FINDING and is not this rule's to solve --
+    # `TODO/foot-of-file-two-places.md`, where `cue` emits the closing gap and
+    # `f1` at the same `<eof>` trigger. The head pair is separable because front
+    # matter ends at the FIRST blank; the foot pair is not, by the same rule read
+    # upward.
+    reading = list(page.cues.reading)
+    last_code = max((i for i, c in enumerate(reading) if c.startswith(ON)), default=-1)
     previous = ""
-    for cue in page.cues.reading:
+    for at, cue in enumerate(reading):
         prose = held.get(cue, [])
         # ! ASKED OF THE CUE DIRECTLY. `series_of` reads an ADDRESS and
         # returns its first character, so building one here to take that
@@ -206,7 +237,45 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # take its leading with it -- which put an editorial decision inside the
         # compositor, whose whole charter is to decide NOTHING. `galley.reset`
         # empties the leading when it empties the paragraph.
-        out.extend(held.get(edges.get(previous, ""), []))
+        edge = held.get(edges.get(previous, ""), [])
+        out.extend(edge)
+        # !! A `b` SET INTO A PLACE THAT OWNED NO LEADING TAKES ONE. Roy,
+        # 2026-08-26: *"It needs to add the leading between before any b"*, and
+        # on how this tells: *"the leading look up paragraph is not in there,
+        # which is admittedly backwards but that will tell."*
+        #
+        # ! WHY IT IS NEEDED: front matter and the first gap both sit above the
+        # first statement, so a comment set flush under an `f0` re-reads as part
+        # of that matter run and the `b` loses its address. A blank between them
+        # is what keeps the two places separable -- see `lexer.paragraphs_stdlib`.
+        #
+        # ! ROY RULED THE COST: *"It may not be what all of the projects do but
+        # it is generally enough and easy enough to implement and it looks good
+        # enough to most humans that I think it is a justifiable editorial
+        # decision."* And on the file that opens with the blank: *"the leading on
+        # the first line for places that do not have frontmatter will disappear
+        # on an automatic format run like ruff or black."*
+        # ! IT FIRES AT THE HEAD OF THE FILE TOO, so a `b0` added to a file with
+        # no front matter opens with a blank line. Roy, 2026-08-26, ruling on
+        # that cost directly: *"The leading on the first line for places that do
+        # not have frontmatter will disappear on an automatic format run like
+        # ruff or black."* Suppressing it there is what left `b0` re-reading as
+        # `f0` -- the defect this rule exists to close.
+        #
+        # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE. Roy, 2026-08-26: *"still
+        # the same rule as the frontmatter in reverse."* Matter is the run that
+        # STARTS on line 1 or ENDS on the last one, so what pushes a gap out of
+        # it is a blank BEFORE at the head and a blank AFTER at the foot. !
+        # MEASURED: `...return y\n# ADDED\n` and `...return y\n\n# ADDED\n` both
+        # re-read at `f1`; `...return y\n# ADDED\n\n` re-reads at the closing
+        # gap. A leading before the closing gap was the mirror image of the fix
+        # and moved nothing.
+        adding_a_gap = bool(prose) and cue.startswith(GAP) and cue in absent
+        if adding_a_gap and not edge and at < last_code:
+            out.append("")
+        # ! OWED UNTIL THE PROSE IS SET, which is why it is held rather than
+        # written here -- the blank belongs BELOW the paragraph.
+        trailing = adding_a_gap and at > last_code and not edges.get(cue)
         previous = cue
         # ! A `c` IS NEVER EMPTY IN THIS SENSE -- it sets its line of code
         # whether or not anything sits beside it.
@@ -222,6 +291,8 @@ def set_page(page: Page, newline: str | None = None) -> str:
             out.extend(prose[1:])
             continue
         out.extend(prose)
+        if trailing:
+            out.append("")
     # ! THE CLOSING EDGE. A file ending in blank lines has leading below its last
     # place, which the loop cannot reach -- it sets the space BEFORE each place,
     # so the last place's own edge is still owed when the walk runs out.
@@ -299,14 +370,15 @@ def lossless(path: Path) -> str | None:
     a real one -- would land among them unnoticed.
     """
     try:
-        text = path.read_text(encoding="utf-8")
+        source = read_source(path)
     except exceptions.READ_ERRORS as exc:
         return f"unread: {exc}"
+    text = source.text
     lang = language_for(path)
     if lang is None:
         return f"no language record for {path.suffix!r}"
     try:
-        got = set_page(page_for(path, text, lang))
+        got = set_page(page_for(path, text, lang, sha=source.sha))
     except exceptions.Refused as exc:
         return str(exc)
     if sorted(constants.text_lines(got)) == sorted(constants.text_lines(text)):
@@ -330,13 +402,14 @@ def identity(path: Path) -> str | None:
         the FIRST line that differs, which is what a reader needs to look at.
     """
     try:
-        text = path.read_text(encoding="utf-8")
+        source = read_source(path)
     except exceptions.READ_ERRORS as exc:
         return f"unread: {exc}"
+    text = source.text
     lang = language_for(path)
     if lang is None:
         return f"no language record for {path.suffix!r}"
-    page = page_for(path, text, lang)
+    page = page_for(path, text, lang, sha=source.sha)
     try:
         got = set_page(page)
     except exceptions.Refused as exc:

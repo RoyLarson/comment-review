@@ -1680,11 +1680,31 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
             # reviewer one paragraph built from two comments.
             if trailing:
                 flush()
-        # ! A COMMENT RUN SURVIVES LAYOUT AND IS ENDED BY ANYTHING ELSE. The
-        # five types are named as one category by `Layout`; this
-        # asked the same operand twice against two disjoint tuples, which said
-        # nothing about what they have in common.
+        # ! A COMMENT RUN SURVIVES LAYOUT AND IS ENDED BY ANYTHING ELSE -- with
+        # the one exception below. The five types are named as one category by
+        # `Layout`; this asked the same operand twice against two disjoint
+        # tuples, which said nothing about what they have in common.
         elif raw.type in LAYOUT:
+            # !! A BLANK ENDS THE FILE'S OWN MATTER, THE SAME RULE THE LEXICAL
+            # TIER CARRIES IN `end_run`. Roy, 2026-08-21: *"if the
+            # opening/closing line is a comment then the matter continues
+            # down/up until there is an empty line or the start/end of a
+            # docstring"*; restated 2026-08-26: *"It is supposed to stop f0 at
+            # the first blank line."*
+            #
+            # !! MEASURED 2026-08-26 WITHOUT IT: a shebang, a blank and a comment
+            # tokenized as ONE run opening on line 1, so the comment BELOW the
+            # blank was stamped `matter` and took `f0`. An `add` at `b0` then
+            # re-read as `f0`, and the write chain refused a draft it had just
+            # written. The lexical tier answered the same file correctly, so the
+            # two tiers disagreed about what front matter is.
+            #
+            # ! IT ENDS THE FIRST RUN ONLY -- what `not out` says, and the same
+            # bound `end_run` uses. A second run above the first statement is
+            # ordinary prose in that gap and merges there like any other, rather
+            # than becoming a second `f`.
+            if run and not out and run[0][0] == 1 and not raw.line.strip():
+                flush()
             continue
         else:
             flush()

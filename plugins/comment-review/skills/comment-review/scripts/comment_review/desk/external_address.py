@@ -33,7 +33,7 @@ makes this legitimate is that it answers a different question -- and what makes
 it SAFE is the rule below, which the retired form never had.
 
 !! A COORDINATE IS ONLY MEANINGFUL BESIDE THE SHA OF THE FILE IT WAS TAKEN FROM.
-That is the same guard as `binder.sha_of`, one artifact over: an external
+That is the same guard as `machine.repo.sha_of`, one artifact over: an external
 address recorded against a file that has since moved names something else, and
 nothing in the string can say so. **Pair or refuse.**
 

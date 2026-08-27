@@ -7,9 +7,9 @@ The first of the two chains. Nothing here goes near the galley -- Roy,
 import json
 
 import pytest
-from conftest import SAMPLE, build, by_cue
+from conftest import PKG, SAMPLE, build, by_cue
 
-from comment_review.binder.binder import VERSION, bind, page_row, read, rows_of, sha_of
+from comment_review.binder.binder import VERSION, bind, page_row, read, rows_of
 from comment_review.flows.census import carried
 
 #: The fields ruled onto a row -- FIVE, after three rulings.
@@ -106,9 +106,7 @@ def test_the_binder_carries_ONLY_the_places_holding_prose(binder):
     """
     page = build(SAMPLE)
     holding = {
-        c
-        for c, b in by_cue(page).items()
-        if any(x.strip() for x in b.raw_lines)
+        c for c, b in by_cue(page).items() if any(x.strip() for x in b.raw_lines)
     }
     assert {r["cue"] for r in binder["pages"][0]["rows"]} == holding
 
@@ -144,17 +142,6 @@ def test_carried_drops_fences_and_keeps_everything_else():
     kept = carried(page)
     assert all(b.address for b in kept)
     assert len(kept) == len([b for b in page.paragraphs if b.address])
-
-
-class TestTheIdentityOfAPage:
-    def test_the_same_text_answers_the_same(self):
-        assert sha_of(SAMPLE) == sha_of(SAMPLE)
-
-    def test_different_text_answers_differently(self):
-        assert sha_of(SAMPLE) != sha_of(SAMPLE + "\n")
-
-    def test_one_character_is_enough_to_change_it(self):
-        assert sha_of("x = 1\n") != sha_of("x = 2\n")
 
 
 class TestRowsOfPutsBackWhatThePageEnvelopeTookOut:
@@ -215,6 +202,29 @@ class TestAReaderRefusesRatherThanCoping:
         assert got == {}
         assert expected in why
 
+    @pytest.mark.parametrize(
+        ("text", "expected"),
+        [
+            ('{"pages": "oops"}', "`pages` is a JSON str"),
+            ('{"pages": {"a": 1}}', "`pages` is a JSON dict"),
+            ('{"pages": [1, 2]}', "page 0 is a JSON int"),
+            ('{"pages": [{"rows": "oops"}]}', "page 0: `rows` is a JSON str"),
+            ('{"pages": [{"rows": [7]}]}', "page 0, row 0 is a JSON int"),
+        ],
+    )
+    def test_the_SHAPE_of_pages_is_read_and_not_only_its_presence(self, text, expected):
+        """MEASURED 2026-08-25: `{"pages": "oops"}` read CLEAN, because the key
+        was tested for presence alone. `commands/proof.py` then handed it to
+        `proof_setter.run`, whose `str(page.get("path", ""))` raised
+        `AttributeError: 'str' object has no attribute 'get'` -- a traceback
+        past that command's own promise to print `CANNOT READ THE BINDER:
+        {why}`, and past this class's own claim that a reader refuses rather
+        than coping. ! The `rows` cases are the same defect one level down:
+        `rows_of` calls `.get` on every row."""
+        got, why = read(text)
+        assert got == {}
+        assert expected in why
+
     def test_a_bare_list_is_refused_by_name(self):
         """The shape the census emitted before the envelope. Three commands each
         guessed at it a different way and a fourth did not guess at all."""
@@ -223,3 +233,20 @@ class TestAReaderRefusesRatherThanCoping:
         got, why = read(old)
         assert got == {}
         assert why
+
+
+def test_the_binder_reports_the_page_s_sha_rather_than_taking_one():
+    page = build(SAMPLE)
+    page.sha = "notarealsha"
+    assert bind([page])["pages"][0]["sha"] == "notarealsha"
+
+
+def test_only_machine_imports_hashlib():
+    """! `machine/` OWNS THE QUERY. Roy, 2026-08-25: the querying of io/git
+    software *"should not have left the machine/ modules."*"""
+    offenders = [
+        p.relative_to(PKG).as_posix()
+        for p in PKG.rglob("*.py")
+        if "hashlib" in p.read_text(encoding="utf-8") and p.parent.name != "machine"
+    ]
+    assert offenders == []

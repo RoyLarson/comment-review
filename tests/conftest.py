@@ -58,6 +58,7 @@ PKG = SRC / "comment_review"
 sys.path.insert(0, str(SRC))
 
 from comment_review.binder.page import page_for  # noqa: E402
+from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.lexer import language_for  # noqa: E402
 
 
@@ -67,9 +68,12 @@ def build(text: str, name: str = "m.py"):
     ! `rel` IS PASSED, because `page_for` stamps addresses from it -- a page
     built without one carries none, and every assertion about a place would
     then be vacuous.
+
+    ! THE SHA IS COMPUTED HERE, not read, because a test's text never came off
+    a disk. `read_source` is what supplies it in the running system.
     """
     path = Path(name)
-    return page_for(path, text, language_for(path), rel=name)
+    return page_for(path, text, language_for(path), rel=name, sha=sha_of(text))
 
 
 def cue(paragraph) -> str:
@@ -113,6 +117,18 @@ SAMPLE = (
     "def g(y):\n"
     "    return y\n"
 )
+
+
+#: A replacement that is legal in each series. A `c` carries its own separator
+#: -- the compositor joins it to the code -- and an `a` carries its indentation.
+#: ! SHARED, because the galley cases and the compositor cases set the same
+#: places and a second copy is a second thing to keep current.
+REPLACEMENT = {
+    "a": '    """REPLACED."""',
+    "b": "# REPLACED",
+    "c": "  # REPLACED",
+    "f": "#!/usr/bin/env REPLACED",
+}
 
 
 @pytest.fixture
