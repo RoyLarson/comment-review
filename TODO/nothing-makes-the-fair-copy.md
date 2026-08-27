@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 11 tasks done
+Progress: 1 of 13 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-24 (Roy: the galley only really needs this address gets this paragraph,
@@ -21,6 +21,28 @@ Updated:  2026-08-24 — THE CHAIN IS RULED END TO END -- decision-log.md Proces
           proposed, not settled. NOTHING TRANSFERS FROM THE BINDER TO THE END: the write
           path reloads the page from disk and takes only the address, which is a key
           rather than data.
+Updated:  2026-08-26 — THE SHA'S PROVENANCE BECAME UNENFORCED ON 2026-08-26, and this
+          TODO is where it is fixed. The docket now carries each page's path and sha, so
+          proof_setter.run no longer takes a binder -- decision-log.md Vocabulary: #14.
+          Roy asked the right question of it: "how did the transfer happen?" IT DOES
+          NOT. MEASURED: nothing in src/ or scripts/ writes the nested shape; the only
+          two files naming it are the reader and the command's help string. A docket is
+          written by hand today. WHAT THAT COSTS: _one compares the schedule's recorded
+          sha against the page it reads from disk now. If the desk -- or a human --
+          computes that sha from the FILE at docket-writing time rather than taking it
+          from the binder the agents read, the comparison asks whether the file equals
+          itself and CANNOT FAIL. That is the shape docs/gates.md records the round trip
+          scoring 699 of 699 on, and it is the failure Roy's own sha ruling exists to
+          prevent: "we can't assume that the file didn't change between original read
+          and loading to write and so getting it out of the json blob is important." !
+          NEITHER FORM WAS ENFORCED -- a binder is also just JSON on disk -- but the
+          binder has a PRODUCER (census) and the docket has none, so the earlier shape
+          had a path by which a correct sha arrived and this one does not. ! ROY ALREADY
+          RULED WHO DOES THE TRANSFER, 2026-08-24, quoted in this file's own Updated
+          note: "the desk system takes the notations and the binder and emits an update
+          ... it needs more like the page sha." So the desk reads the BINDER for the sha
+          and copies it onto the schedule. That is a constraint on the producer this
+          TODO is about, which is why it is recorded here rather than as its own file.
 ```
 
 ## Objective
@@ -176,6 +198,11 @@ copy chief that ruled, so no single role is ever in a position to file it. ! Tha
       says so and names the marks that ruling settled.
 - [ ] T11 -- Rename `re-review` to `revise` in the 7 shipped files, 23 sites. Verify:
       `grep -rc re-review plugins/` returns nothing.
+- [ ] The desk takes each page sha FROM THE BINDER the agents read and copies it
+      onto that page schedule -- never from the file at docket-writing time, which
+      would make proof_setter staleness check compare the file against itself
+- [ ] Pin that with a test the desk fails if it recomputes: build a docket, change
+      the file underneath, and assert the run REFUSES at verify
 
 ## Related
 
