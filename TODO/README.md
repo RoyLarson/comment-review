@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (78)
+### open  (79)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -260,6 +260,7 @@ that changed a published name or rule:
 | [empty-edits-fails-a-stage](empty-edits-fails-a-stage.md) | agents | — | 0/2 | an all-clean run writes {} to --edits, which notations.read refuses at exit 2 |
 | [block-text-orphaned](block-text-orphaned.md) | backend | — | 0/1 | block_text (reading/lexer.py) has had no caller since desk.py moved to prototype |
 | [an-alteration-carries-its-own-indentation](an-alteration-carries-its-own-indentation.md) | backend | yes | 0/3 | An alteration carries its own indentation and nothing says so |
+| [prove-refuses-a-doc](prove-refuses-a-doc.md) | backend | — | 0/3 | prove_unchanged refuses a documentation file for having no code |
 
 ### in-progress  (19)
 

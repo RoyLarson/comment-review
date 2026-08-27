@@ -487,6 +487,69 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   to anything; it was on the shelf all along. What is true of it is that THE ROLES NEVER SAW IT,
   which is a fact about the binder rather than about the file.
 
+- **#16.** **THE BINDER'S SECTION FOR A PAGE TAKEN FROM THE LIBRARY MID-RUN IS `pulled`** (Roy,
+  2026-08-27: *"Pulled works. I like it."*). Three sections: `pages` -- what the roles reviewed;
+  `pulled` -- taken from the library during the run because a mark needed it, same shape and same
+  `page_for` call; `references` -- documents, addressed `path:line`.
+
+  ! **THE NAME IS THE ACTION, FROM ROY'S OWN SENTENCE**: *"an external program file should get a
+  `page_for` pull."* ! `consulted` was rejected for asserting read-only -- a `move` destination may
+  land in `pulled` -- and `late copy`, the trade's term for copy arriving after setting began, for
+  framing lateness as a fault when the page arrived exactly when the finding did.
+
+  !! **A SECTION RATHER THAN A PER-ROW FLAG**, and the reason is the same one that nested the
+  docket: a flag is a fact repeated on every row that has to be kept true, while a section states
+  it once and cannot drift.
+
+  ! **OPEN: WHETHER THE DOCKET MIRRORS THE SPLIT.** A docket page carries `path`, `sha` and its
+  alterations, and by then the provenance question is settled -- but a write chain about to set a
+  page NO ROLE REVIEWED may want to know that before it does. Unruled.
+
+  !! **WHY THE SECTIONS EXIST AT ALL, AND IT IS MEASURED HARM RATHER THAN TIDINESS.** Roy,
+  2026-08-27: *"one of the problems that the original runs had was they couldn't modify out of the
+  original binder. That caused them problems with the quality of recommendations they could do
+  because leaving incorrect statements elsewhere made already bad worse."*
+
+  ! **THE HARM IS NOT AN UNFIXED DEFECT; IT IS A DISAGREEMENT THE RUN CREATED.**
+  `TODO/correcting-one-copy-strands-the-reference-copy.md`, raised 2026-08-17, states it: *"A run
+  corrects a claim in a file under review, and the same claim in a REFERENCE ONLY file keeps the
+  old text. Nothing may target the reference file, so the run ships a disagreement it created."*
+  Roy then: *"leaving stale documentation behind references just asks to make these harder to
+  trace down later."*
+
+  ! **BEFORE the run, two copies agree and are both wrong -- a reader gets one story. AFTER, they
+  disagree and nothing says which is current.** A partial correction is worse than none, and a
+  role that can see the second copy but not reach it is forced to choose between the two.
+
+  !! **SO `pulled` AND `references` ANSWER THAT TODO, AND BY A DIFFERENT ROUTE THAN IT PROPOSED.**
+  Its mechanism was `REFERENCE CONCERNS` -- a channel for *someone should fix that*, recorded in a
+  spec and never shipped. The sections let the run REACH the second copy instead of reporting it.
+  ! That TODO is `agents`-owned and `decision-needed`; whether the channel is still wanted
+  alongside the reach is Roy's.
+
+  !! **THE WORD WAS NEVER HIS, AND IT ENTERED THROUGH `Process: #12` -- AN ENTRY ATTRIBUTED TO
+  HIM.** MEASURED 2026-08-27: no quotation from Roy anywhere in this tree contains it. From that
+  entry it spread to **16 sites**, ten of them identical banners in `commands/*.py`. Struck the
+  same day.
+
+  ! **NARROWED, NOT RETIRED.** Two shipped files use the word correctly, of the standard library
+  and of a third-party package, and `check_retired` scans `plugins/` -- so retiring it would
+  refuse correct prose. `docs/vocabulary.md` carries the declared split.
+
+  !! **AND `Process: #12` OVERSTATED ITS OWN QUOTATION IN A SECOND WAY.** Its headline reads *"a
+  flow calls modules; a command exposes a flow"*, but the quotation it cites is about entry points
+  alone -- *"the commands run through it not through the scripts that are doing double or triple
+  duty"* -- and the word `flow` is Roy's ruling of the NEXT DAY, 2026-08-25, about the read side
+  being producers plus a chain. **A later ruling was absorbed into an earlier entry's headline.**
+  ! The entry-point half and its measurement stand; the three-tier layering is a synthesis and is
+  marked as one here rather than rewritten away.
+
+  ! **WHAT CAUGHT BOTH WAS ROY'S MEMORY, NOT A GATE.** He said *"I don't remember making this rule
+  or its justification."* Every check in the tree passed over it: the entry cites a real
+  quotation, carries a real measurement -- 10 of 19 modules with a `main()`, `addresser` imported
+  by 7 -- and is cross-referenced from a release plan. **This file is the audit trail, and it has
+  no reader but him.**
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**

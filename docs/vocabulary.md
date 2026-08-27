@@ -219,6 +219,27 @@ necessarily in the binder."*
 "external" to anything -- it was on the shelf all along. What is true of it is that **the roles
 never saw it**, which is a fact about the BINDER, not about the file.
 
+### `pulled` -- the binder's section for a page taken from the library mid-run
+
+**Ruled 2026-08-27.** The binder carries three sections:
+
+    pages        what the ROLES reviewed -- the scope they were given
+    pulled       a page taken from the library DURING the run, because a mark
+                 needed it. Same shape as a page: path, sha, rows
+    references   documents -- `path:line`, no cue series
+
+! **THE NAME IS THE ACTION, AND IT IS ROY'S OWN**: *"an external program file should get a
+`page_for` pull."* You pull a book off the shelf; `flows.page_for.page_of` pulls the page and
+attaches its sha at the moment of the pull.
+
+!! **THE DISTINGUISHING FACT IS THAT NO ROLE SAW IT**, so no role vouched for it. That is a fact
+about the BINDER, not about the file -- which is why `external` was rejected: a page censused
+mid-run is not external to anything, it was on the shelf all along.
+
+! **AND IT STAYS TRUE IF THE PAGE IS SET.** A `move` destination may land in `pulled`, so the
+section is not read-only; `consulted` was rejected for asserting otherwise, and would have stopped
+being true the first time the chain wrote one.
+
 !! **THE TWO PYTHON-PACKAGING USES ARE A DIFFERENT WORD AND ARE NOT COVERED HERE.**
 `machine/repo.py`'s *"some library happens to define that name"* and `language.py`'s *"not by the
 library that happens to answer it"* mean an INSTALLED package; `CLAUDE.md` and
