@@ -11,7 +11,7 @@ The packages beneath this one are the stages in that order:
     flows        one whole run, calling the above
     commands     the entry points
 
-!! A LIBRARY MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS LIBRARIES; A
+!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES; A
 COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.
 
 ! IT IS NOT YET TRUE OF `flows`. Lifting the entry points out showed the

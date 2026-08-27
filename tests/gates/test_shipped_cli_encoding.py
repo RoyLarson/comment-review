@@ -19,7 +19,7 @@ from conftest import PKG, ROOT
 ROOT = ROOT
 
 # A shipped CLI is a script under `scripts/` that argparse's and runs itself.
-# The library modules -- `repo.py`, `annotate.py` -- write nothing and are
+# The modules -- `repo.py`, `annotate.py` -- write nothing and are
 # excluded by that test rather than by a hand-kept list that would go stale.
 ENTRY = re.compile(r'^if __name__ == "__main__":', re.M)
 # !! TWO SHAPES, ONE GUARD, since 2026-08-22. The shipped scripts share ONE

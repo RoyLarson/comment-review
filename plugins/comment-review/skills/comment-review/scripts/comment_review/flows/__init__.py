@@ -1,4 +1,4 @@
-"""One whole run, calling the libraries. A flow decides ORDER, not behaviour.
+"""One whole run, calling the modules. A flow decides ORDER, not behaviour.
 
     census         stages 2-3 -- every page in scope, formatted for the agents
     page_for       the read-and-build step a flow needs a page from; decides
@@ -7,7 +7,7 @@
                     and `prove_unchanged` in order, from a role's alterations to
                     a drafted file a human can read
 
-!! A FLOW IS WHERE A SEQUENCE LIVES so that no library module has to know it is
+!! A FLOW IS WHERE A SEQUENCE LIVES so that no module has to know it is
 part of one. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.
 
 ! `census` WAS THREE SUBJECTS. `code_names` left for `concordance` on

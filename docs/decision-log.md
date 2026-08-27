@@ -469,6 +469,24 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   RECIPIENT`), so the shipped register would go red. They live in `docs/vocabulary.md` until a
   role's own prose uses one -- the same reason `binder` has never been in it.
 
+- **#15.** **`library` IS EVERY FILE IN THE PROJECT UNDER REVIEW, and NEVER this program's own
+  parts -- those are packages, sub-packages and modules** (Roy, 2026-08-27, in two halves:
+  *"Strike `library` because that is not the word I would have used at any point in time for the
+  concept. I have consistently used the words package, sub-package, module. Those are the Python
+  terms for them and I will always stick to the Python terms for those concepts referring to the
+  internal program."* and then *"I do think library has a useful definition in the system. It is
+  all of the files in the project being reviewed."*).
+
+  !! **SO THE LIBRARY IS THE POPULATION AND THE BINDER IS THE SELECTION.** That names something
+  this system needed and did not have: **the set of things a mark MAY address.** An `add` or a
+  `move` destination may cite a page the binder never carried -- it is still in the library --
+  which is the constraint Roy stated the same day: a destination must be addressable, *"not
+  necessarily in the binder."*
+
+  ! **AND IT RETIRES THE WORD `external` FOR THIS.** A code file censused mid-run is not external
+  to anything; it was on the shelf all along. What is true of it is that THE ROLES NEVER SAW IT,
+  which is a fact about the binder rather than about the file.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
@@ -604,7 +622,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   [`conventions.md`](conventions.md); it is the SECOND standing exception to *name the lane and
   ask*, and that file's claim to have only one was corrected in the same change.
 
-- **#12.** **A library module does one job and has no CLI; a flow calls libraries; a command
+- **#12.** **A module does one job and has no CLI; a flow calls modules; a command
   exposes a flow** (Roy, 2026-08-24, ordering the move to `src/comment_review/`: *"The entry
   points get an actual entry point .py file and the commands run through it not through the
   scripts that are doing double or triple duty."*). MEASURED the same day: **10 of 19 shipped
@@ -617,7 +635,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   up there."* And `tests/` follows it too: *"The tests folder layout follows the move layout."*
 
   ! **`repo`'s git calls, filesystem reads and exception tuples are `io`** (Roy, 2026-08-24:
-  *"there was the git stuff which is io"*). **`code_names` and `referrers`' library half are
+  *"there was the git stuff which is io"*). **`code_names` and `referrers`' module half are
   NOT ruled** -- *"the code_names and referrers we actually need to settle"*. Both ask a
   question ABOUT the checkout rather than performing an operation ON it, so neither is io's and
   neither is a page's. Open as P11 of that plan.

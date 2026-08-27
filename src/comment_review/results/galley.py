@@ -1,8 +1,8 @@
 """The proposed text, SET AS FILES, so it can be read and censused like any tree.
 
 ! THIS MODULE HAS NO CLI OF ITS OWN. Ruled 2026-08-24 -- `decision-log.md
-Process: #12`: *"A library module does one job and has no CLI; a flow calls
-libraries; a command exposes a flow."* `flows/proof_setter.py` is the flow that
+Process: #12`: *"A module does one job and has no CLI; a flow calls
+modules; a command exposes a flow."* `flows/proof_setter.py` is the flow that
 calls `reset` below, followed by `compositor.draft`; `commands/proof.py` is the
 console face of that flow, and `galley` is its older name.
 

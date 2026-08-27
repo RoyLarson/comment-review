@@ -4,7 +4,7 @@
 
 The work is `flows.proof_setter`; this is only the console face of it.
 
-!! A LIBRARY MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS LIBRARIES;
+!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 This file parses arguments, reads ONE file and prints; the order of the
 chain lives in `flows/proof_setter.py` and nowhere else.

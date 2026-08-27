@@ -196,6 +196,62 @@ counts it a hole. The toml is what agents are HANDED; this file is the repo's ow
 crosses over the day a role's prose actually uses it -- which is the same reason `binder` has
 never been in it.
 
+## `library` -- every file in the project under review
+
+**Ruled 2026-08-27, in two halves.** Roy: *"Strike `library` because that is not the word I would
+have used at any point in time for the concept. I have consistently used the words package,
+sub-package, module."* And then: *"I do think library has a useful definition in the system. It is
+all of the files in the project being reviewed."*
+
+| | |
+| --- | --- |
+| **library** | **every file in the project being reviewed.** The whole shelf |
+| **binder** | the pages this run took OFF that shelf -- the scope the roles were given |
+| this program's own parts | **package, sub-package, module.** Python's own words, always |
+
+!! **SO THE LIBRARY IS THE POPULATION AND THE BINDER IS THE SELECTION**, and that names something
+this system has needed and not had: **the set of things a mark MAY address.** A `move`
+destination, or an `add`, may cite a page the binder never carried -- it is still in the library.
+! That is the constraint Roy stated the same day: a destination must be ADDRESSABLE, *"not
+necessarily in the binder."*
+
+! **AND IT GIVES THE PULLED-IN PAGE ITS PROVENANCE.** A code file censused mid-run is not
+"external" to anything -- it was on the shelf all along. What is true of it is that **the roles
+never saw it**, which is a fact about the BINDER, not about the file.
+
+!! **THE TWO PYTHON-PACKAGING USES ARE A DIFFERENT WORD AND ARE NOT COVERED HERE.**
+`machine/repo.py`'s *"some library happens to define that name"* and `language.py`'s *"not by the
+library that happens to answer it"* mean an INSTALLED package; `CLAUDE.md` and
+`test_shipped_imports.py` mean Python's STANDARD LIBRARY. ! Ordinary Python prose, not terms of
+art in this system -- but they are a second sense of a word that now has a settled definition, and
+whether they get reworded is unruled.
+
+!! **IT WAS NEVER HIS, AND THE RECORD PROVES IT.** MEASURED 2026-08-27: **no quotation from Roy
+anywhere in this tree contains the word.** It entered in `decision-log.md Process: #12` -- an
+entry attributed to him -- and spread as boilerplate to **ten `commands/*.py` banners**, `src/`'s
+own `__init__`, `flows/__init__`, `results/galley.py`, a gate test and a release plan. 16 sites.
+
+! **THE ENTRY'S QUOTATION DOES NOT CONTAIN IT EITHER.** `#12` cites Roy on entry points --
+*"the commands run through it not through the scripts that are doing double or triple duty"* --
+which says nothing about a layer called a library. **The headline stated more than its
+quotation, and the quotation lent authority to the whole sentence.**
+
+! **THE PRINCIPLE UNDER IT IS HIS**, and is quoted twice: *"don't try to make the list generic --
+that is a failure of the single responsibility principle"* and *"anything else is failing the SRP
+rules"* (both 2026-08-22). ! Both are about LANGUAGE DEFINITION ROWS, not modules -- so even the
+supported half was carried across a subject boundary.
+
+!! **IT IS NOT RETIRED, IT IS NARROWED.** `check_retired` scans `plugins/`, and two shipped files
+use the word correctly -- `machine/repo.py`'s *"some library happens to define that name"* about
+an installed package, and `language.py`'s *"not by the library that happens to answer it"* about a
+third-party parser. **Retiring the word would refuse both.** This is declared polysemy of the
+same kind as [`leaf`](#) -- one live sense, and a struck one that must not come back.
+
+! **WHAT CAUGHT IT WAS ROY'S MEMORY**, not a gate. Everything in the tree agreed with itself: the
+entry cited a real quotation, carried a real measurement, and was cross-referenced from a release
+plan. He said *"I don't remember making this rule."* **The decision log is the one file where a
+false attribution is most expensive, and it is the file with no reader but him.**
+
 ## What becomes of a mark -- `taken in`, and `stet`
 
 **Two words, and they answer different questions.** Ruled 2026-08-24, and both are ADOPTED rather
