@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-27 (Roy, on a finding whose subject is the relation between two
           places: "I would think one or both sides get a correct or query with a
           reason / The reason says this contradicts that / Along with the sources
@@ -44,12 +44,24 @@ template cannot be wrong at the role; it can only be misread.**
 
 ### The proposed instruction, for review
 
-For `sources`: *a source may cite any place in the checkout, including another place on this
-page. Where your claim is that two places disagree, mark the one that is WRONG and cite the other
-as the evidence that it is.*
+For `sources`: *a source may cite any place in the LIBRARY -- every file in the project under
+review -- including another place on this page. Where your claim is that two places disagree,
+mark the one that is WRONG and cite the other as the evidence that it is.*
 
 The corollary, which is the part that keeps it honest: *if you cannot tell which side is wrong,
 that is a `query`, not two `correct`s.*
+
+!! **THE SCOPE IS THE LIBRARY AND NOT THE CHECKOUT.** Roy, 2026-08-27, on a first draft that
+said *"any place in the checkout"*: *"project/library Not just checkout."* ! The two are not the
+same set, and the run data settles which one roles actually use: **292 source citations across
+six roots** -- `src`, `scripts`, `docs`, `TODO`, `prototype` and `corpora` -- and `corpora/` is
+GITIGNORED. Roles were already citing outside the git checkout before anything told them they
+could.
+
+! **AND THE NARROWER WORD WOULD HAVE RETIRED REAL EVIDENCE.** `prototype/` does not run and
+`corpora/` is fetched rather than tracked; both are where a claim about what this system USED to
+do, or how it behaves on real source, is settled. A rule saying *the checkout* invites a role to
+drop exactly those.
 
 ### What this does NOT cover
 
@@ -75,5 +87,12 @@ merge-or-fight table never sees the overlap. Filed as
       is incomplete.
 - [ ] T4 -- Say what a role does when it cannot tell which side of a disagreement is wrong.
       Verify: the brief names `query` for that case and says which of its three shapes.
-- [ ] T5 -- Confirm no agent file restates any of T1-T4. Verify: `grep -rn` over
+- [ ] T5 -- * Rule on `query: outside the checkout`, which now points the OTHER WAY from T1.
+      One word bounds two things in opposite directions: a source may cite the LIBRARY (wider),
+      while that query shape says the evidence is unreachable and lists *gitignored* among its
+      cases -- yet `corpora/` is gitignored and carries 292 citations' worth of real evidence.
+      ! The three shapes are a CLOSED SET and the word list is required (Roy, 2026-08-26: *"else
+      they start inventing words"*), so this is a ruling and not an edit. Verify: the ruling says
+      whether the shape's cases change or its name does, and is recorded in `decision-log.md`.
+- [ ] T6 -- Confirm no agent file restates any of T1-T5. Verify: `grep -rn` over
       `plugins/comment-review/agents/` returns nothing for the rule's phrase.
