@@ -263,7 +263,7 @@ that changed a published name or rule:
 | [prove-refuses-a-doc](prove-refuses-a-doc.md) | backend | — | 0/3 | prove_unchanged refuses a documentation file for having no code |
 | [a-reference-needs-its-own-write-chain](a-reference-needs-its-own-write-chain.md) | backend | yes | 0/3 | A reference needs its own write chain, and it is NOT YET |
 | [collate-buckets-a-move-at-one-end](collate-buckets-a-move-at-one-end.md) | backend | — | 0/3 | `collate` buckets a two-ended mark at one end |
-| [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 0/6 | The mark's fields permit a cross-citation and never say so |
+| [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 0/8 | The mark's fields permit a cross-citation and never say so |
 
 ### in-progress  (19)
 

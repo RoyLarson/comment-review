@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 8 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-27 (Roy, on a finding whose subject is the relation between two
@@ -87,12 +87,24 @@ merge-or-fight table never sees the overlap. Filed as
       is incomplete.
 - [ ] T4 -- Say what a role does when it cannot tell which side of a disagreement is wrong.
       Verify: the brief names `query` for that case and says which of its three shapes.
-- [ ] T5 -- * Rule on `query: outside the checkout`, which now points the OTHER WAY from T1.
-      One word bounds two things in opposite directions: a source may cite the LIBRARY (wider),
-      while that query shape says the evidence is unreachable and lists *gitignored* among its
-      cases -- yet `corpora/` is gitignored and carries 292 citations' worth of real evidence.
-      ! The three shapes are a CLOSED SET and the word list is required (Roy, 2026-08-26: *"else
-      they start inventing words"*), so this is a ruling and not an edit. Verify: the ruling says
-      whether the shape's cases change or its name does, and is recorded in `decision-log.md`.
-- [ ] T6 -- Confirm no agent file restates any of T1-T5. Verify: `grep -rn` over
-      `plugins/comment-review/agents/` returns nothing for the rule's phrase.
+- [ ] T5 -- Replace the three `query` shapes with the set RULED in `decision-log.md Process: #33`
+      -- `outside-my-role`, `unable-to-determine`, `human-review-necessary`. ! The old set is at
+      SEVENTEEN sites; the ones that must move are `reviewer-brief.md:411-414`, `SKILL.md`,
+      `agents/comment-review-module-context.md`, and `record.py`/`verdicts.py`/`desk.py` in
+      `prototype/`. Verify: `grep -rn "outside the checkout"` returns nothing outside `docs/`
+      (history keeps the old set legible) and `corpora/`.
+- [ ] T6 -- * RULE the register for the two new names. `unable-to-determine` and
+      `human-review-necessary` are functional; this repo takes terms from publishing, and the
+      method is ask what the thing DOES first. Candidates: the trade's own **author query** is
+      precisely *only the author can say what was meant*, and **unverified** is the copy desk's
+      word for a claim it could not check. ! The CATEGORIES are ruled and are not reopened by
+      this -- only the words. Verify: the ruling is recorded and `vocabulary.toml` agrees with
+      whatever it lands on.
+- [ ] T7 -- Make collate ACT on `unable-to-determine`, which is what the new axis buys. If
+      another role returned a substantive mark at the same place, the flow can see it settled
+      what this role could not. Verify: a test where role A is `unable-to-determine` at a place
+      and role B has a `correct` there, and the place does NOT reach the chief. ! `backend`'s to
+      write; filed here because the shape it depends on lives in the brief.
+- [ ] T8 -- Confirm no agent file restates any of T1-T7. Verify: `grep -rn` over
+      `plugins/comment-review/agents/` returns nothing for the rule's phrase. ! It does TODAY --
+      `comment-review-module-context.md` carries the old shapes.

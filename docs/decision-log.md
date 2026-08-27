@@ -944,3 +944,48 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   maybe there is a different way of signaling and should be discussed while implementing."* ! So
   the docket's shape is NOT ruled here. What is ruled is that **something must tell the flow which
   chain a schedule belongs to**, and that the candidate is a split mirroring the binder's.
+
+- **#33.** **THE THREE `query` SHAPES ARE KEYED ON WHO RESOLVES IT, NOT ON WHERE THE EVIDENCE
+  LIVES** (Roy, 2026-08-27, replacing the set that shipped).
+
+  **THE PREMISE FIRST, because it is what invalidates the old set**: *"this really is not expected
+  to be a repeatable event. Once a single apply of comment review is done using the determinations
+  over again doesn't really make sense."*
+
+  ! The shipped middle shape rested on the opposite assumption. Its operative sentence was *"No
+  reviewer in a fresh checkout can settle it"* -- a **reproducibility** test, which asks whether
+  someone ELSE, LATER, could reach the same evidence. **If a run's determinations are spent when
+  they are applied, that question has no consumer.**
+
+  | | old set | new set |
+  | --- | --- | --- |
+  | keyed on | WHERE the missing evidence lives | **WHO resolves it, and what happens next** |
+  | | `outside my role` | `outside-my-role` -- deferred to another agent's problem |
+  | | `outside the checkout` | `unable-to-determine` -- *"don't know why but maybe another agent figured it out"* |
+  | | `outside the code` | `human-review-necessary` -- *"genuinely contradictory statements and/or code and only system level intent might disambiguate it"* |
+
+  !! **THE OLD SET MADE THE SHAPE DO THE `reason`'s JOB.** *Generated, gitignored, remote, one
+  machine* is a CAUSE, and a cause is prose -- it belongs in `reason`, where a human reads it.
+  A shape is read by the FLOW, and the flow can do nothing with a cause. **The new three are
+  routing**, which is the only thing collate needs from them.
+
+  !! **AND THE MIDDLE ONE BECOMES MECHANICALLY ACTIONABLE, which the old middle never was.**
+  `unable-to-determine` says *another role may have settled this* -- and collate already groups
+  every mark by place, so it can SEE whether another role returned something substantive there.
+  ! `outside the checkout` afforded no such check: nothing downstream could act on the news that a
+  file was gitignored.
+
+  ! **`outside-my-role` SURVIVES UNCHANGED and keeps its special status** -- the one shape that is
+  a BOUNDARY REPORT rather than work, flagged `can_declare_scope`, and it must never block the
+  other roles. MEASURED: treating a scope declaration as a question let one role veto three
+  others and the docket fell from 12 alterations to 5.
+
+  ! **WHAT PROMPTED THE RE-DERIVATION** was a contradiction between two uses of one word: a source
+  may cite the LIBRARY (which includes the gitignored `corpora/`, carrying real evidence), while
+  `outside the checkout` listed *gitignored* among the things no reviewer can reach. ! Roy did not
+  resolve that contradiction -- **he removed the axis that created it.**
+
+  ! **THE REGISTER IS NOT SETTLED.** `unable-to-determine` and `human-review-necessary` are
+  functional rather than editorial, and this repo takes its terms from publishing. The candidates
+  are noted in [`the-fields-do-not-say-a-mark-may-cite-across`](../TODO/the-fields-do-not-say-a-mark-may-cite-across.md);
+  the CATEGORIES are ruled and only the words are open.
