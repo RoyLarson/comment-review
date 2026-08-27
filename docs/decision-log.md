@@ -431,6 +431,44 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Roy asked for *"a name, don't need what it looks like yet. Because it isn't an annotation"*,
   and nothing has been ruled.
 
+- **#14.** **THE WRITE SIDE HAS THREE CONTAINERS AND THEY MIRROR THE READ SIDE'S** (Roy,
+  2026-08-26: *"like the binder we have three levels of containers -- paragraph, page, binder. We
+  have to be able to unwind the alterations pretty close to the same way."*).
+
+  | level | READ | WRITE |
+  | --- | --- | --- |
+  | one place | row | **alteration** |
+  | one file | page | **schedule** |
+  | the whole | binder | **docket** |
+
+  !! **`alteration` SUPERSEDES `notations`, AND `Process: #25` IS THE RULING IT REPLACES.** That
+  entry stays as written. The stand-in was named knowingly -- Roy, 2026-08-25: *"It is a prototype
+  or stand in for what might need to be built ... We need the shape not the concrete
+  implementation"* -- and the defect it was filed against is
+  `TODO/notations-collides-with-annotations.md`: one letter from `annotation`, in an adjacent
+  area, both meaning marks attached to a paragraph.
+
+  !! **THE INSTINCT WAS RIGHT, WHICH IS WHY IT COLLIDED.** Roy: *"if I was writing between the
+  lines with marks in red pen I think of those red marks as notations."* The trade calls those
+  **proof correction marks**, and `mark` is already defined here as *"what stage 4 emits: one
+  role's ruling on one paragraph."* The word was reaching for something the register had. What
+  needed naming was the desk's OUTPUT, and a change to type already set is an **alteration**.
+
+  ! **`docket` IS THE PRINT-PRODUCTION WORD** for the instruction paperwork that travels with a
+  job -- the container, which is the level being named. It was weighed and rejected earlier the
+  same day as a name for the CHANGES; at the container level it is the apt one. `jacket` and
+  `wallet` are the same idea and free, but `jacket` collides with a dust jacket.
+
+  ! **THE SHA SITS ON THE SCHEDULE**, because it is a fact about one file read once. That is what
+  lets the docket replace the binder in the write path outright -- `Process: #24`'s intent made
+  literal: *"besides reading the sha and file path/name you should not be assuming any binder
+  things make it this far."*
+
+  ! **NONE OF THE FOUR ENTERS `references/vocabulary.toml` YET.**
+  `check_vocabulary.check_complete` counts a definition no role is given as a hole (`NO
+  RECIPIENT`), so the shipped register would go red. They live in `docs/vocabulary.md` until a
+  role's own prose uses one -- the same reason `binder` has never been in it.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
@@ -715,6 +753,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
 - **#25.** **WHAT THE AGENT WORKFLOW HANDS OVER IS NAMED `notations`** (Roy, 2026-08-25: *"a good
   name is notations"*). Settles the name `#14` left open -- *"I am think notations"*.
+  **SUPERSEDED by `Vocabulary: #14`, 2026-08-26** -- the name is `alteration`. ! The ruling is
+  kept as written, not edited: it is the record of what was decided on the 25th, and the word it
+  names is quoted from Roy.
 
 - **#26.** **THE SAVED BINDER IS WHAT SAYS WHICH FILE TO RELOAD** (Roy, 2026-08-25: *"We also
   have to grab the binder address from the saved material"*).

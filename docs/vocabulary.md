@@ -148,6 +148,54 @@ handed it.** That is what the field cut of 2026-08-24 was answering.
 ! **NOTHING SHIPPED CARRIES THE WORD.** It appears in package docstrings and in this file, and in
 no agent's prose -- so the sense was declared before an agent could learn the wrong one.
 
+## The three containers, on both sides -- `binder`/`docket`, `page`/`schedule`, row/`alteration`
+
+**Ruled 2026-08-26.** Roy, naming the write side against the read side already built: *"like the
+binder we have three levels of containers -- paragraph, page, binder. We have to be able to unwind
+the alterations pretty close to the same way."*
+
+| level | READ side | WRITE side |
+| --- | --- | --- |
+| one place | a **row** -- the cue and what is there | an **alteration** -- the cue and what it becomes |
+| one file | a **page** | a **schedule** |
+| the whole | the **binder** | the **docket** |
+
+| term | what it is |
+| --- | --- |
+| **alteration** | One change at one address: the new text for that place, or `null` to delete what is there. A change to type **already set**, which is what the word means in the trade -- so it is what the compositor acts on, never a proposal. |
+| **schedule** | Every alteration for ONE page, carrying that page's path and the sha it was read at. A page holds the prose; a schedule holds what it becomes. |
+| **docket** | The artifact the desk hands the write chain: every schedule, one per page. In print production a docket is the instruction paperwork that travels with a job, which is what this is. |
+
+!! **`alteration` REPLACES `notations`, WHICH WAS A STAND-IN AND SAID SO.** Roy, 2026-08-25, when
+it was named: *"It is a prototype or stand in for what might need to be built ... We need the
+shape not the concrete implementation."* The word collided with `annotation` -- one letter apart,
+in adjacent areas, both meaning marks attached to a paragraph -- which is
+`TODO/notations-collides-with-annotations.md`. `decision-log.md Vocabulary: #14` supersedes the
+ruling that named it.
+
+!! **AND THE INSTINCT BEHIND `notations` WAS RIGHT, WHICH IS WHY IT COLLIDED.** Roy, 2026-08-26:
+*"if I was writing between the lines with marks in red pen I think of those red marks as
+notations."* The trade calls those **proof correction marks**, and this system already defines
+`mark` as *"what stage 4 emits: one role's ruling on one paragraph."* So the word was reaching for
+a thing the register had already named. ! What the desk produces from those marks is the thing
+that needed a name, and a change to text already set is an **alteration**.
+
+! **THE TRADE DETAIL THAT DECIDED THE LEVELS:** a proof correction is TWO marks -- a **textual
+mark** in the line saying *here*, and a **marginal mark** saying *what*. The compositor works from
+the margin. An alteration carries both halves in one row, the cue being the textual mark and the
+text being the marginal one.
+
+! **WHY THE SHA SITS ON THE SCHEDULE AND NOT THE DOCKET.** It is a fact about ONE file, read once,
+and putting it there is what lets the write chain check that the page it is about to set is the
+page the agents read -- without consulting the binder at all. Roy, 2026-08-25: *"besides reading
+the sha and file path/name you should not be assuming any binder things make it this far."*
+
+!! **NONE OF THE FOUR IS IN `references/vocabulary.toml`, AND THAT IS THE GATE WORKING.**
+`check_vocabulary.check_complete` reports `NO RECIPIENT` for a definition no role is given, and
+counts it a hole. The toml is what agents are HANDED; this file is the repo's own glossary. A term
+crosses over the day a role's prose actually uses it -- which is the same reason `binder` has
+never been in it.
+
 ## What becomes of a mark -- `taken in`, and `stet`
 
 **Two words, and they answer different questions.** Ruled 2026-08-24, and both are ADOPTED rather
