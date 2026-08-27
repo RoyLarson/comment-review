@@ -22,6 +22,7 @@ from comment_review.machine import constants
 # The command modules, by the name typed on the console.
 COMMANDS = (
     "addresser",
+    "carry",
     "census",
     "compositor",
     "proof",

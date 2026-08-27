@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 1 of 4 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -70,6 +70,25 @@ Updated:  2026-08-25 — CORRECTION, 2026-08-25, and it is mine. I wrote that --
           module docstring both answered to b0, and b0 is now the file's own front
           matter alone. If that was the only construction, SHARED can no longer fail.
           Worth measuring before anyone ports it.
+Updated:  2026-08-26 — The ASK is built: `carry` -- flows/carry.py plus
+          commands/carry.py -- takes a binder, a page and one of three lookups (cue,
+          line+series, anchor_num+series) and adds that empty place's row to the binder.
+          Roy: "build the little cli point that allows the agents to get a specific
+          empty record and add it to the binder. Look up by anchor_num, line_num, and
+          cue." It checks the binder sha against the page first, refuses a place that
+          already holds prose, and inserts the row in reading order. SO THE add VERDICT
+          HAS A PLACE TO CITE, which is what bind's docstring promised. WHAT IS NOT
+          DONE: for_anchor's fallback in binder/addresses.py is still unreachable -- it
+          resolves an absent place by POSITION and reads anchor_line, a field the
+          eleven-field cut removed, so its arithmetic always sees 0. Tasks 1 and 2 are
+          about THAT mechanism and stay open; a reviewer asking `addresser --anchor
+          <line> --series b` still gets no answer. `carry` answers the same question by
+          a different route, from the page rather than from the binder.
+          ! THIS NOTE WAS WRITTEN TWICE. The first attempt inlined it in a `python -c`
+          inside a bash command, and the shell RAN the two backticked spans before
+          Python saw them -- `carry: command not found`, `addresser: command not found`
+          -- so both vanished and the command still exited 0. Exactly what CLAUDE.md
+          records about a backtick reaching the shell.
 ```
 
 ## Objective
@@ -86,5 +105,5 @@ An empty place is not citable, and the row cut's safety argument says it is.
       answers its address
 - [ ] Make bind's docstring true -- either the mechanism works, or the sentence
       stops promising it
-- [ ] A test over a real binder for a place the binder does NOT carry. Verify: it
+- [x] A test over a real binder for a place the binder does NOT carry. Verify: it
       fails against the current code
