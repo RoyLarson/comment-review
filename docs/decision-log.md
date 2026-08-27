@@ -910,3 +910,37 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THE SIBLING OF `#29`.** `#29` forbids a description written as a constraint on the SAME
   code; this forbids a description written as a fact about OTHER code. Both are prose no gate can
   see, because both were true on the day they were written.
+
+- **#32.** **A `pulled` PAGE IS SETTABLE; A `reference` IS TOO, BUT NOT BY THIS CHAIN** (Roy,
+  2026-08-27, answering the three questions `Vocabulary: #16` left open).
+
+  | the section | settable | by what |
+  | --- | --- | --- |
+  | `pages` | yes | the chain that exists |
+  | `pulled` | **yes -- *"has to be"*** | the SAME chain. It is code, it has cues, it has a sha |
+  | `references` | **yes, eventually** | *"needs a separate flow with separate galley-compositor chain"* |
+
+  ! **`pulled` NEEDS NOTHING NEW, AND THAT IS THE POINT OF THE SECTION.** A pulled page went
+  through `page_for` exactly as a reviewed page did, so it carries the same cues, the same sha and
+  the same round trip. **The only fact that distinguishes it is that the roles never saw it** --
+  which is a fact about the BINDER, not about the file, and nothing in galley, compositor or
+  `prove` reads it. Roy's *"has to be"* is why the whole `pulled` section exists: a mark that
+  cannot reach the second copy leaves the disagreement the run created.
+
+  !! **AND THE REFERENCE CHAIN IS DEFERRED, EXPLICITLY.** Roy: *"is a todo for the future Not Yet
+  -- i want the middle piece to work first."* ! **This is the standing refusal in `CLAUDE.md`
+  arriving as a schedule** -- a second galley-compositor pair written against a middle that does
+  not yet work is shaped by inputs that have not settled, which is the cost the six refusals
+  record. Filed as [`a-reference-needs-its-own-write-chain`](../TODO/a-reference-needs-its-own-write-chain.md).
+
+  ! **WHY IT CANNOT BE THE SAME CHAIN.** A reference is addressed `path:line` and has no cue
+  series, and its text may REFLOW to a width -- so the compositor's whole contract, *set these
+  lines back where the cues say*, has no subject. `prove_unchanged` has no subject either
+  (`prove-refuses-a-doc.md`). Two of the chain's three checks do not apply, which is a different
+  chain rather than a flag on this one.
+
+  !! **THE SIGNAL IS OPEN AND IS TO BE DECIDED WHILE BUILDING.** Roy: *"Docket probably needs a
+  code/reference schedule split to be the appropriate signal for the flow that needs to happen but
+  maybe there is a different way of signaling and should be discussed while implementing."* ! So
+  the docket's shape is NOT ruled here. What is ruled is that **something must tell the flow which
+  chain a schedule belongs to**, and that the candidate is a split mirroring the binder's.
