@@ -93,13 +93,31 @@ merge-or-fight table never sees the overlap. Filed as
       `agents/comment-review-module-context.md`, and `record.py`/`verdicts.py`/`desk.py` in
       `prototype/`. Verify: `grep -rn "outside the checkout"` returns nothing outside `docs/`
       (history keeps the old set legible) and `corpora/`.
-- [ ] T6 -- * RULE the register for the two new names. `unable-to-determine` and
-      `human-review-necessary` are functional; this repo takes terms from publishing, and the
-      method is ask what the thing DOES first. Candidates: the trade's own **author query** is
-      precisely *only the author can say what was meant*, and **unverified** is the copy desk's
-      word for a claim it could not check. ! The CATEGORIES are ruled and are not reopened by
-      this -- only the words. Verify: the ruling is recorded and `vocabulary.toml` agrees with
-      whatever it lands on.
+- [ ] T6 -- * RULE the register for all three names. ! The CATEGORIES are ruled and are not
+      reopened by this -- only the words. Candidates, Roy 2026-08-27:
+
+          human-review-necessary  ->  author query   only the author holds the intent
+          unable-to-determine     ->  unverified     the copy desk's word for a claim
+                                                     it could not check
+          outside-my-role         ->  outside my remit
+
+      !! **THE THIRD IS NOT A PROPOSAL -- IT IS ALREADY IN THE SHIPPED TREE**, at
+      `agents/comment-review-module-context.md:102`, `agents/comment-review-ownership-context.md:84`
+      and `references/reviewer-brief.md:428`, and `remit` was register-checked in 2026-08-16 when
+      it replaced `jurisdiction`. **So the shape says `role` while the prose a role reads says
+      `remit`: one concept, two words.** Neither is retired and both are correct English, which
+      is why no gate sees it.
+
+      ! **THE SET IS NOT FORMALLY PARALLEL AND MUST NOT BE FORCED TO BE.** Two name an
+      ADDRESSEE, `unverified` names a STATE -- there is nobody to ask, which is exactly what
+      separates it from the other two. A third "X query" would invent an addressee.
+
+      ! **`desk` WAS CONSIDERED AND IS REFUSED.** The newsroom register fits, and it appears
+      ZERO times in shipped prose -- but it names a whole sub-package in `src/`, so adopting it
+      builds the `notations`/`annotations` collision on purpose.
+
+      Verify: the ruling is recorded, `vocabulary.toml` agrees, and `grep -rn "outside my role"`
+      over `plugins/` returns nothing if `remit` wins.
 - [ ] T7 -- Make collate ACT on `unable-to-determine`, which is what the new axis buys. If
       another role returned a substantive mark at the same place, the flow can see it settled
       what this role could not. Verify: a test where role A is `unable-to-determine` at a place
