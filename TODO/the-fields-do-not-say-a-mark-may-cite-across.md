@@ -53,10 +53,14 @@ that is a `query`, not two `correct`s.*
 
 !! **THE SCOPE IS THE LIBRARY AND NOT THE CHECKOUT.** Roy, 2026-08-27, on a first draft that
 said *"any place in the checkout"*: *"project/library Not just checkout."* ! The two are not the
-same set, and the run data settles which one roles actually use: **292 source citations across
-six roots** -- `src`, `scripts`, `docs`, `TODO`, `prototype` and `corpora` -- and `corpora/` is
-GITIGNORED. Roles were already citing outside the git checkout before anything told them they
-could.
+same set, and the run data settles which one roles actually use: **382 source citations across
+nine roots** -- `src`, `scripts`, `corpora`, `prototype`, `TODO`, `docs`, `CLAUDE.md`, `plugins`
+and `tests` -- and `corpora/` is GITIGNORED while `prototype/` does not run. Roles were already
+citing both before anything told them they could.
+
+! **CORRECTED 2026-08-27, from 292 across six.** The first count was taken over the four role
+STEMS and so excluded every fan-out agent, whose files are named for the file they read.
+Re-derivable: `uv run python evidence/the-loop-measured-2026-08-27/derive.py`.
 
 ! **AND THE NARROWER WORD WOULD HAVE RETIRED REAL EVIDENCE.** `prototype/` does not run and
 `corpora/` is fetched rather than tracked; both are where a claim about what this system USED to
