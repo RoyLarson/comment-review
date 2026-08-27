@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (80)
+### open  (82)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -262,6 +262,8 @@ that changed a published name or rule:
 | [an-alteration-carries-its-own-indentation](an-alteration-carries-its-own-indentation.md) | backend | yes | 0/3 | An alteration carries its own indentation and nothing says so |
 | [prove-refuses-a-doc](prove-refuses-a-doc.md) | backend | — | 0/3 | prove_unchanged refuses a documentation file for having no code |
 | [a-reference-needs-its-own-write-chain](a-reference-needs-its-own-write-chain.md) | backend | yes | 0/3 | A reference needs its own write chain, and it is NOT YET |
+| [collate-buckets-a-move-at-one-end](collate-buckets-a-move-at-one-end.md) | backend | — | 0/3 | `collate` buckets a two-ended mark at one end |
+| [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | — | 0/5 | The mark's fields permit a cross-citation and never say so |
 
 ### in-progress  (19)
 
