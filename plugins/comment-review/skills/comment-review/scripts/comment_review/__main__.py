@@ -39,7 +39,7 @@ COMMANDS = (
 # `docs/history.md`.
 #
 # ! THE NAME CARRIES OVER; THE FLAGS DO NOT. `galley` used to take `--census`
-# and `--edits`; `proof` takes `--binder` and `--notations`, so a skill run
+# and `--edits`; `proof` takes `--binder` and `--docket`, so a skill run
 # typed under the old flags reaches `proof`'s parser and is refused as an
 # unrecognised argument -- an alias resolves the NAME, nothing more.
 #

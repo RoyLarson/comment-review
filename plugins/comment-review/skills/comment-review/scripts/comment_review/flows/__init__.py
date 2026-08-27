@@ -4,7 +4,7 @@
     page_for       the read-and-build step a flow needs a page from; decides
                     no order itself -- see below for why it sits here anyway
     proof_setter   the results-side flow -- calls the galley, the compositor
-                    and `prove_unchanged` in order, from a role's notations to
+                    and `prove_unchanged` in order, from a role's alterations to
                     a drafted file a human can read
 
 !! A FLOW IS WHERE A SEQUENCE LIVES so that no library module has to know it is

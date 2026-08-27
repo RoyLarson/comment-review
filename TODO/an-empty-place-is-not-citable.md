@@ -12,7 +12,7 @@ Updated:  2026-08-25 — DIRECTION FROM ROY, 2026-08-25, and it corrects how thi
           row cut stands. It is to REIMPLEMENT THE CLI to find an empty place from
           several sources: anchor_num, anchor_line, original_line and cue. What it
           returns is a RECORD, not just an address, so an agent can generate the
-          verdict, the copy chief can make a notation from it, and the proof-setter
+          verdict, the copy chief can make an alteration from it, and the proof-setter
           carries that into the flow. WHAT THIS MEANS CONCRETELY: anchor_num and
           anchor_line are alive and correct -- they are methods on Cues, called today by
           binder/page.py and scripts/render_page.py. The CLI cannot reach them because

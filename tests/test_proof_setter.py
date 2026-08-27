@@ -1,4 +1,4 @@
-"""The chain from notations to a drafted file a human can read.
+"""The chain from alterations to a drafted file a human can read.
 
 ! THE ORDER IS DATA. A missing check is then a missing element rather than a
 forgotten call -- which is the one failure a runner that hard-codes its
@@ -59,7 +59,7 @@ def address(binder, path: str, series: str = "b") -> str:
 
     !! EVERY TEST HERE HAND-WROTE `f"{rel}@{cue}"` UNTIL 2026-08-25, and that
     is what hid the CRITICAL defect: an address carries the FLATTENED path --
-    `pkg:a:util.py` -- and a hand-written one carries `/`. `by_page` splits
+    `pkg:a:util.py` -- and a hand-written one carries `/`. `schedules_of` splits
     whatever it is handed, so the tests fed the chain a form nothing produces
     and only repo-root files, whose flattened form is their path, agreed. The
     fixture could not disagree with the code because the fixture was written to
@@ -98,7 +98,7 @@ def _tree(tmp_path):
     return repo, bind([page]), page
 
 
-def test_a_notation_reaches_a_drafted_file(tmp_path):
+def test_a_alteration_reaches_a_drafted_file(tmp_path):
     repo, binder, _ = _tree(tmp_path)
     into = tmp_path / "out"
     drafted, refused = proof_setter.run(
@@ -110,11 +110,11 @@ def test_a_notation_reaches_a_drafted_file(tmp_path):
 
 
 def test_a_file_BELOW_THE_REPO_ROOT_drafts(tmp_path):
-    """CRITICAL, measured 2026-08-25: `by_page` keys by the FLATTENED path an
+    """CRITICAL, measured 2026-08-25: `schedules_of` keys by the FLATTENED path an
     address carries, and `run` used that string both as a binder key and as a
     filesystem path -- so `pkg/a/util.py` was looked up as `pkg:a:util.py`,
     missed the binder, and was handed to `page_of` as `repo/pkg:a:util.py`,
-    which is invalid on Windows and missing on POSIX. EVERY notation on a file
+    which is invalid on Windows and missing on POSIX. EVERY alteration on a file
     below the repo root refused at step `read`; only repo-root files, whose
     flattened form equals their path, worked."""
     repo = tmp_path / "repo"
@@ -157,7 +157,7 @@ def test_nothing_under_the_repo_is_touched(tmp_path):
 
 
 class TestTheFlowItselfRefusesADraftDirectoryOverTheRepo:
-    """!! DESTRUCTIVE, MEASURED 2026-08-25: `run(notations, binder, repo, repo)`
+    """!! DESTRUCTIVE, MEASURED 2026-08-25: `run(alterations, binder, repo, repo)`
     answered `refused=[]` and the SOURCE FILE on disk held `# OVERWRITTEN`.
     `_one`'s containment check passes when `into == repo`, because the source
     file IS inside `into`. The disjointness guard existed only in the two
@@ -275,8 +275,8 @@ def test_ONE_FILES_REFUSAL_DRAFTS_NOTHING_FOR_ANY_FILE(tmp_path):
     page_n = build(SAMPLE, "n.py")
     binder = bind([page_m, page_n])
     into = tmp_path / "out"
-    notations = {address(binder, "m.py"): "# REPLACED", "n.py@b99": "# bad"}
-    drafted, refused = proof_setter.run(notations, binder, repo, into)
+    alterations = {address(binder, "m.py"): "# REPLACED", "n.py@b99": "# bad"}
+    drafted, refused = proof_setter.run(alterations, binder, repo, into)
     assert drafted == []
     assert len(refused) == 1
     assert refused[0].path == "n.py"
@@ -292,11 +292,11 @@ def _two_pages(tmp_path):
     binder = bind([build(SAMPLE, "a.py"), build(SAMPLE, "z.py")])
     # ! Stale AFTER the binder was taken, so `a.py` refuses at `verify`.
     (repo / "a.py").write_text(SAMPLE + "\n", encoding="utf-8", newline="")
-    notations = {
+    alterations = {
         address(binder, "a.py"): "# REPLACED",
         address(binder, "z.py"): "# REPLACED",
     }
-    return repo, binder, notations
+    return repo, binder, alterations
 
 
 def test_NO_LATER_PAGE_IS_READ_once_an_earlier_one_refuses(tmp_path, monkeypatch):
@@ -309,7 +309,7 @@ def test_NO_LATER_PAGE_IS_READ_once_an_earlier_one_refuses(tmp_path, monkeypatch
     sha comparison moved above the parse on 2026-08-26; from then on the stale
     first page refuses before anything is paged, so watching the parse would
     have measured `[]` for both pages and could no longer tell the two apart."""
-    repo, binder, notations = _two_pages(tmp_path)
+    repo, binder, alterations = _two_pages(tmp_path)
     into = tmp_path / "out"
 
     read: list[str] = []
@@ -320,7 +320,7 @@ def test_NO_LATER_PAGE_IS_READ_once_an_earlier_one_refuses(tmp_path, monkeypatch
         return real_source_of(path, *args, **kwargs)
 
     monkeypatch.setattr(proof_setter, "source_of", watching_source_of)
-    drafted, refused = proof_setter.run(notations, binder, repo, into)
+    drafted, refused = proof_setter.run(alterations, binder, repo, into)
 
     assert drafted == []
     assert [r.step for r in refused] == ["verify"]
@@ -337,13 +337,13 @@ def test_A_STALE_FILE_IS_REFUSED_WITHOUT_BEING_PARSED(tmp_path, monkeypatch):
     ! IT ALSO DECIDES WHICH REASON A STALE AND UNPAGEABLE FILE GETS. With the
     order reversed the refusal said `has no page`, which is a consequence of the
     change the run is refusing FOR."""
-    repo, binder, notations = _two_pages(tmp_path)
+    repo, binder, alterations = _two_pages(tmp_path)
 
     def unpageable(*args, **kwargs):
         raise AssertionError("a stale page must not be parsed")
 
     monkeypatch.setattr(proof_setter, "page_of", unpageable)
-    drafted, refused = proof_setter.run(notations, binder, repo, tmp_path / "out")
+    drafted, refused = proof_setter.run(alterations, binder, repo, tmp_path / "out")
 
     assert drafted == []
     assert [(r.step, r.path) for r in refused] == [("verify", "a.py")]
@@ -355,7 +355,7 @@ def test_A_REFUSAL_IS_NOT_LOST_to_a_later_page_that_raises(tmp_path, monkeypatch
     the next page, and that page's write raised -- so `run` re-raised and the
     caller got a traceback INSTEAD of the refusals, past the documented
     `(drafted, []) or ([], refusals)`."""
-    repo, binder, notations = _two_pages(tmp_path)
+    repo, binder, alterations = _two_pages(tmp_path)
     into = tmp_path / "out"
     real_write_text = Path.write_text
 
@@ -366,7 +366,7 @@ def test_A_REFUSAL_IS_NOT_LOST_to_a_later_page_that_raises(tmp_path, monkeypatch
 
     monkeypatch.setattr(Path, "write_text", failing_write_text)
 
-    drafted, refused = proof_setter.run(notations, binder, repo, into)
+    drafted, refused = proof_setter.run(alterations, binder, repo, into)
 
     assert drafted == []
     assert [(r.step, r.path) for r in refused] == [("verify", "a.py")]
@@ -388,11 +388,11 @@ def test_TWO_PAGES_SHARING_A_BASENAME_do_not_collide(tmp_path):
     (repo / "pkg" / "b" / "util.py").write_text(SAMPLE, encoding="utf-8", newline="")
     binder = bind([build(SAMPLE, "pkg/a/util.py"), build(SAMPLE, "pkg/b/util.py")])
     into = tmp_path / "out"
-    notations = {
+    alterations = {
         address(binder, "pkg/a/util.py"): "# FROM A",
         address(binder, "pkg/b/util.py"): "# FROM B",
     }
-    drafted, refused = proof_setter.run(notations, binder, repo, into)
+    drafted, refused = proof_setter.run(alterations, binder, repo, into)
     assert refused == []
     assert len(drafted) == 2
     by_path = {d.path: d for d in drafted}
@@ -506,12 +506,12 @@ def test_an_EXCEPTION_removes_earlier_drafts_and_still_propagates(
 
     # "m.py" sorts before "n.py", so it drafts first and succeeds before the
     # second page's write raises.
-    notations = {
+    alterations = {
         address(binder, "m.py"): "# REPLACED",
         address(binder, "n.py"): "# REPLACED",
     }
     with pytest.raises(PermissionError):
-        proof_setter.run(notations, binder, repo, into)
+        proof_setter.run(alterations, binder, repo, into)
 
     assert list(into.iterdir()) == []
 
@@ -623,7 +623,7 @@ class TestTheFileMustBeTheONEThatWasReviewed:
         assert refused == [] and len(drafted) == 1
 
 
-def test_the_drafted_FILE_holds_each_notation_at_its_cue(tmp_path):
+def test_the_drafted_FILE_holds_each_alteration_at_its_cue(tmp_path):
     repo, binder, _ = _tree(tmp_path)
     where = address(binder, "m.py")
     drafted, refused = proof_setter.run(
@@ -642,9 +642,9 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
     ! The two cases are discovered from the page rather than listed, so a
     series that stops being reachable fails here whichever series it is."""
 
-    def _run(self, tmp_path, notations):
+    def _run(self, tmp_path, alterations):
         repo, binder, _ = _tree(tmp_path)
-        return proof_setter.run(notations, binder, repo, tmp_path / "out")
+        return proof_setter.run(alterations, binder, repo, tmp_path / "out")
 
     def test_the_sample_offers_a_filled_and_an_absent_place_in_every_series(self):
         page = build(SAMPLE)
@@ -749,7 +749,7 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
 
     def test_an_ADD_at_b4_NOW_REACHES_A_DRAFT_AT_ITS_OWN_PLACE(self, tmp_path):
         """!! IT REFUSED UNTIL 2026-08-26, and the refusal was right about the
-        page rather than about the notation: `b4` and `f1` are emitted at the
+        page rather than about the alteration: `b4` and `f1` are emitted at the
         same `<eof>` trigger, so prose set at the closing gap came back at the
         back matter and `reread` reported `f1 holds it`.
 
@@ -773,10 +773,10 @@ class TestOnlyCommentsChange:
 
     ! `_prove` IS TESTED DIRECTLY BELOW, NOT THROUGH `run()`. For Python's
     AST tier, `_reread` already requires exact `raw_lines` equality at every
-    edited cue, so a notation surviving it was -- by construction -- read back
+    edited cue, so an alteration surviving it was -- by construction -- read back
     as prose at that cue, and a COMMENT never enters the AST.
 
-    !! THIS PARAGRAPH CLAIMED *"No `b`, `a` or `c` cue notation reaching
+    !! THIS PARAGRAPH CLAIMED *"No `b`, `a` or `c` cue alteration reaching
     `proof_setter.run()` on this module's own `SAMPLE` fixture can therefore
     make `_prove`'s comparison disagree -- measured, not assumed"*, AND IT WAS
     FALSE WHEN IT WAS WRITTEN. Two `a` cues do exactly that on exactly that
@@ -844,7 +844,7 @@ def test_a_CUE_COLLISION_in_the_draft_is_REFUSED_and_not_last_one_wins(
 ):
     """IMPORTANT, measured 2026-08-25: `_reread` built
     `placed = {cue_of(b.address).cue: b for b in page if b.address}`, so two
-    paragraphs sharing a cue silently kept the LAST and checked the notation
+    paragraphs sharing a cue silently kept the LAST and checked the alteration
     against it -- a draft holding the approved text at one and prose nobody
     looked at at the other passed. `galley.reset` refuses that shape BY NAME
     (157 of them measured in one tree on 2026-08-21), so the verification step

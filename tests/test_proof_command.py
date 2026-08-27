@@ -4,7 +4,7 @@ Moved from `tests/test_proof_setter.py` 2026-08-26 -- `tests/test_addresser_comm
 is the standing precedent for a command's own file.
 """
 
-from conftest import SAMPLE, SRC, build
+from conftest import SAMPLE, SRC, build, by_cue
 
 from comment_review.binder.binder import bind
 
@@ -33,7 +33,7 @@ class TestTheCommand:
         reach the chain -- `__main__.ALIASES` maps it to `proof` and imports
         that module, rather than a `commands/galley.py` of its own. ! It does
         NOT make a skill run work: the flags differ -- `--census`/`--edits`
-        against `--binder`/`--notations` -- which is
+        against `--binder`/`--docket` -- which is
         `TODO/the-skill-names-commands-that-moved-to-prototype.md`."""
         from comment_review.__main__ import ALIASES, COMMANDS, main
         from comment_review.commands import proof
@@ -60,6 +60,57 @@ class TestTheCommand:
 
         assert "proof" in COMMANDS
 
+    def test_A_VALID_RUN_READS_BOTH_FILES_AND_DRAFTS(
+        self, tmp_path, capsys, monkeypatch
+    ):
+        """!! THE HAPPY PATH HAD NO TEST UNTIL 2026-08-26, and the two argv
+        cases below are why it looked covered: both stop at the `--out` guard,
+        which returns 2 BEFORE either file is read. So nothing exercised the
+        line that turns an argparse flag into an attribute.
+
+        !! MEASURED THE SAME DAY: renaming `--notations` to `--docket` left the
+        body reading `args.alterations`, and `cmd.main()` raised
+        `AttributeError: 'Namespace' object has no attribute 'alterations'` --
+        past 946 green tests, ruff, ty, the build gate and the floor check. It
+        was found by running the command, which is the only thing that could.
+        """
+        import json
+
+        from comment_review.commands import proof as cmd
+
+        repo, binder, page = _tree(tmp_path)
+        # ! DISCOVERED FROM THE PAGE, never hardcoded -- a literal cue is a
+        # fixture asserting what the walk emitted last time someone looked.
+        cue = next(
+            c
+            for c, b in by_cue(page).items()
+            if c.startswith("b") and any(x.strip() for x in b.raw_lines)
+        )
+        (tmp_path / "b.json").write_text(json.dumps(binder), encoding="utf-8")
+        (tmp_path / "d.json").write_text(
+            json.dumps({f"m.py@{cue}": "# REWRITTEN"}), encoding="utf-8"
+        )
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "proof",
+                "--repo",
+                str(repo),
+                "--binder",
+                str(tmp_path / "b.json"),
+                "--docket",
+                str(tmp_path / "d.json"),
+                "--out",
+                str(tmp_path / "out"),
+            ],
+        )
+        assert cmd.main() == 0
+        assert "drafted for review" in capsys.readouterr().out
+        drafted = (tmp_path / "out" / "m.py").read_text(encoding="utf-8")
+        assert "# REWRITTEN" in drafted
+        # ! AND THE SOURCE IS UNTOUCHED, which is the whole promise of a draft.
+        assert (repo / "m.py").read_text(encoding="utf-8") == SAMPLE
+
     def test_an_out_that_overlaps_the_repo_is_REFUSED(
         self, tmp_path, capsys, monkeypatch
     ):
@@ -77,7 +128,7 @@ class TestTheCommand:
                 str(repo),
                 "--binder",
                 "b.json",
-                "--notations",
+                "--docket",
                 "n.json",
                 "--out",
                 str(repo / "inside"),
@@ -107,7 +158,7 @@ class TestTheCommand:
                 str(repo),
                 "--binder",
                 "b.json",
-                "--notations",
+                "--docket",
                 "n.json",
                 "--out",
                 str(not_a_dir),

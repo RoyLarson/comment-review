@@ -207,7 +207,7 @@ def undraftable(into: Path, repo: Path) -> str:
     draft is written over the file under review. MEASURED 2026-08-22 on the
     galley command -- `docs/history.md` -- which did exactly that and printed
     `1 page(s) set` at exit 0; MEASURED again 2026-08-25 on
-    `flows.proof_setter.run(notations, binder, repo, repo)`, which answered
+    `flows.proof_setter.run(alterations, binder, repo, repo)`, which answered
     `refused=[]` while the source file on disk held the replacement text.
 
     !! IT LIVES HERE BECAUSE MORE THAN ONE CALLER ASKS IT --

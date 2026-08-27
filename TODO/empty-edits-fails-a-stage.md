@@ -13,15 +13,15 @@ Raised:   2026-08-26 (xhigh wave-D review of feat/the-write-chain-of-command,
 
 `commands/galley.py --edits` was read with a bare `json.loads` until 2026-08-25 and
 printed `0 page(s) set, 0 edit(s) refused` at exit 0 on `{}`. It is now read through
-`desk/notations.py:read`, which refuses an empty object by name and exits **2**.
+`docket/docket.py:read`, which refuses an empty object by name and exits **2**.
 
 **`SKILL.md` still wires a stage to that command**, so a run whose verdicts were all
 `clean` -- legitimately nothing to set -- writes `{}` and FAILS the stage.
 
 !! **THE REFUSAL IS KEPT, and `backend` ruled that deliberately on 2026-08-26.**
-`--edits` is machine-written from approved text exactly as `--notations` is, so an
+`--edits` is machine-written from approved text exactly as `--docket` is, so an
 empty file and a crashed upstream are the same bytes here too; and reading the same
-format a second way inside the command is what `notations.read` exists to end.
+format a second way inside the command is what `docket.read` exists to end.
 
 ! **The fix is on the reader's side, not the refusal's**: a run with nothing to set
 does not need a galley, so the stage is SKIPPED rather than called with an empty file.

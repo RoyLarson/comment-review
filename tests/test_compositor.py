@@ -194,8 +194,8 @@ class TestAnEditedPageStillComposes:
         # measured 2026-08-26, the four-space `REPLACEMENT["a"]` put at `a0`
         # made the composed file unparseable and EVERY cue disappeared. A module
         # docstring sits at column 0 and a method's at four or eight. ! The same
-        # fact a notation has to carry --
-        # `TODO/a-notation-carries-its-own-indentation.md`.
+        # fact an alteration has to carry --
+        # `TODO/a-alteration-carries-its-own-indentation.md`.
         first = by_cue(sample)[cue].raw_lines[0]
         pad = first[: len(first) - len(first.lstrip())]
         new = pad + REPLACEMENT["a"].lstrip() if cue[0] == "a" else REPLACEMENT[cue[0]]

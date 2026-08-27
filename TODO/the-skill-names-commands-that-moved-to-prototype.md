@@ -12,7 +12,7 @@ Updated:  2026-08-26 — galley is now a SEVENTH command needing rewiring, and i
           the unused command') and is now the old NAME for proof: main() calls
           proof.main(). The NAME still resolves through __main__.py, so a SKILL.md stage
           that invokes galley reaches the chain -- but the FLAGS do not carry over.
-          SKILL.md line 918 spells --census/--edits; proof takes --binder/--notations,
+          SKILL.md line 918 spells --census/--edits; proof takes --binder/--docket,
           so the old invocation reaches proof's parser and is refused as an unrecognised
           argument. Rewiring that stage is agents lane. See docs/history.md for what the
           command used to do.
@@ -24,7 +24,7 @@ SKILL.md names six commands that moved to prototype.
 
 ## Tasks
 
-- [ ] Decide what replaces the record as what a role hands back -- notations, per
+- [ ] Decide what replaces the record as what a role hands back -- alterations, per
       decision-log Process #14
 - [ ] Rewrite the stages that invoke the four moved commands
 - [ ] Say what regenerates the brief verdict table, or that nothing does

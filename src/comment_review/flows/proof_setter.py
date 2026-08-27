@@ -1,6 +1,6 @@
-"""From the reviewers' notations to a file a human can read.
+"""From the reviewers' alterations to a file a human can read.
 
-    notations + the saved binder
+    alterations + the saved binder
         -> resolve each address                    -> path + cue
         -> reread the file FROM DISK                source_of
         -> the sha is the one the binder recorded
@@ -8,7 +8,7 @@
         -> galley          the marks are put on the page
         -> compositor      the page is set as text
         -> draft           a temporary file, never the original
-        -> read it back    each notation is at the cue it was given
+        -> read it back    each alteration is at the cue it was given
         -> prove           only comments changed
         -> the human
 
@@ -39,7 +39,7 @@ that pin, not as a call somebody forgot to make.
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.desk import notations as notations_mod
+from comment_review.docket import docket as docket_mod
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.machine import constants
 from comment_review.machine.repo import undraftable
@@ -82,7 +82,7 @@ class Drafted(NamedTuple):
 
 
 def run(
-    notations: dict[str, str | None], binder: dict, repo: Path, into: Path
+    alterations: dict[str, str | None], binder: dict, repo: Path, into: Path
 ) -> tuple[list[Drafted], list[Refusal]]:
     """The whole chain, or nothing at all.
 
@@ -100,7 +100,7 @@ def run(
     already recorded was lost, which is the opposite of *stops*.
 
     Args:
-        notations: address -> replacement text, or None to delete.
+        alterations: address -> replacement text, or None to delete.
         binder: as `binder.read` returned it.
         repo: the checkout the pages are read from.
         into: the directory drafts are written to. Created if absent, and
@@ -120,7 +120,7 @@ def run(
     into = into.resolve()
     repo = repo.resolve()
     # !! THE DISJOINTNESS GUARD IS THE FLOW'S, AND IT WAS THE TWO COMMANDS'
-    # ALONE UNTIL 2026-08-25. MEASURED: `run(notations, binder, repo, repo)`
+    # ALONE UNTIL 2026-08-25. MEASURED: `run(alterations, binder, repo, repo)`
     # answered `refused=[]` and the SOURCE FILE on disk held the replacement --
     # `_one`'s containment check passes when `into == repo`, because the source
     # file IS inside `into`. It is refused before anything is read or written,
@@ -130,7 +130,7 @@ def run(
     if why:
         return [], [Refusal("draft", "", why)]
 
-    grouped, unresolved = notations_mod.by_page(notations)
+    grouped, unresolved = docket_mod.schedules_of(alterations)
     if unresolved:
         return [], [Refusal("read", "", why) for why in unresolved]
 
@@ -421,7 +421,7 @@ def _one(
 def _reread(
     rel: str, target: Path, edits: dict[str, str | None]
 ) -> tuple[str, Refusal | None]:
-    """Read the draft back as a page: is each notation at the cue it was given?
+    """Read the draft back as a page: is each alteration at the cue it was given?
 
     !! IT IS READ FROM DISK, NOT FROM THE PAGE IN HAND. Roy, 2026-08-24: the
     workflow *"Sends that through the page system again to make certain that
@@ -451,7 +451,7 @@ def _reread(
     # !! COLLECTED AS A LIST PER CUE, BECAUSE A COLLISION IS A REFUSAL AND NOT A
     # LAST-ONE-WINS. This was `{cue_of(b.address).cue: b for b in page ...}`,
     # which keeps the LAST paragraph at a cue two paragraphs share and checks
-    # the notation against it -- so a draft holding the approved text at one of
+    # the alteration against it -- so a draft holding the approved text at one of
     # them and prose nobody looked at at the other passed. `galley.reset`
     # refuses that shape by name (157 of them measured in one tree on
     # 2026-08-21), and a verification step weaker than the edit step it exists
@@ -471,7 +471,7 @@ def _reread(
                 "reread",
                 rel,
                 f"{where}: {len(found)} paragraphs share this place in the draft,"
-                " so no notation can be checked against it",
+                " so no alteration can be checked against it",
             )
         got = found[0]
         if replacement is None:
@@ -526,7 +526,7 @@ def _elsewhere(placed: dict[str, list], where: str, want: list[str]) -> str:
     ! IT REPORTS; IT DOES NOT ACCEPT. Naming the other place is what makes the
     refusal actionable. Deciding which of two co-located places owns prose at
     the foot of a file is a page-model ruling -- see
-    `TODO/foot-of-file-two-places.md` -- and reading the notation as
+    `TODO/foot-of-file-two-places.md` -- and reading the alteration as
     satisfied because the text is SOMEWHERE would be this step agreeing with
     the edit step instead of checking it.
 
@@ -539,7 +539,7 @@ def _elsewhere(placed: dict[str, list], where: str, want: list[str]) -> str:
 
     Args:
         placed: the draft's paragraphs, grouped by cue, as `_reread` built it.
-        where: the cue whose notation did not read back.
+        where: the cue whose alteration did not read back.
         want: the lines that were asked for there.
 
     Returns:
@@ -560,7 +560,7 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
     unprovable file identical to every other.
 
     ! WHAT THIS CATCHES THAT `_reread` CANNOT. `_reread` checks only the cues a
-    notation named, so a notation surviving it was -- by construction -- read
+    alteration named, so an alteration surviving it was -- by construction -- read
     back as a comment: for the AST tier a comment never enters the fingerprint,
     so a still-a-COMMENT edit can never trip the `want != got` branch below.
 
@@ -586,7 +586,7 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
     `TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain`, pin what happens
     today.
 
-    The residual hazard this branch is for is a notation that breaks its
+    The residual hazard this branch is for is an alteration that breaks its
     comment's RUN and swallows code BEYOND the edited cue -- an edit whose
     comment run closes mid-line, or never closes at all, can delete the code
     that followed it. `_reread` cannot see that: the swallowed code was never

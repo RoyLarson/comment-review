@@ -1,6 +1,6 @@
 """The `proof` command: its argument parsing and its exit code.
 
-    comment_review proof --binder B.json --notations N.json --repo . --out DIR
+    comment_review proof --binder B.json --docket N.json --repo . --out DIR
 
 The work is `flows.proof_setter`; this is only the console face of it.
 
@@ -14,21 +14,21 @@ import argparse
 from pathlib import Path
 
 from comment_review.binder import binder as binder_mod
-from comment_review.desk import notations as notations_mod
+from comment_review.docket import docket as docket_mod
 from comment_review.flows import proof_setter
 from comment_review.machine import exceptions
 from comment_review.machine.repo import undraftable
 
 
 def main() -> int:
-    """Read the notations and the binder, run the chain, report what refused."""
+    """Read the alterations and the binder, run the chain, report what refused."""
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "--repo", default=".", help="repo root the addresses resolve against"
     )
     ap.add_argument("--binder", required=True, help="the binder the agents ruled on")
     ap.add_argument(
-        "--notations",
+        "--docket",
         required=True,
         help='JSON: {"<address>": "<replacement paragraph>"}, or null to delete',
     )
@@ -60,7 +60,7 @@ def main() -> int:
         return 2
     try:
         binder_text = Path(args.binder).read_text(encoding="utf-8")
-        notations_text = Path(args.notations).read_text(encoding="utf-8")
+        alterations_text = Path(args.docket).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ ({type(e).__name__}) -- nothing written")
         return 2
@@ -69,7 +69,7 @@ def main() -> int:
     if why:
         print(f"CANNOT READ THE BINDER: {why} -- nothing written")
         return 2
-    marks, why = notations_mod.read(notations_text)
+    marks, why = docket_mod.read(alterations_text)
     if why:
         print(f"CANNOT READ THE NOTATIONS: {why} -- nothing written")
         return 2

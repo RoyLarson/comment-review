@@ -49,11 +49,11 @@ def page_of(
     !! IT IS THE STEP THAT WAS MISSING. Roy, 2026-08-25: the tree had *"only a
     step that produces a binder"*, so anything wanting a PAGE either rebuilt one
     inline -- MEASURED at five sites -- or reached for the binder. Reaching for
-    the binder is what pulled `rows_of` into `desk/notations.py` and had to be
+    the binder is what pulled `rows_of` into `docket/docket.py` and had to be
     undone.
 
     ! A REFUSAL IS RETURNED, NOT RAISED, in the shape `binder.read` and
-    `notations.read` already use: `(page, "")` or `(None, reason)`.
+    `docket.read` already use: `(page, "")` or `(None, reason)`.
 
     !! THAT COVERS `exceptions.Refused` TOO, and it did not until 2026-08-25.
     `page_for` raises it at `binder/page.py:521` and `:578` -- a `c` place whose

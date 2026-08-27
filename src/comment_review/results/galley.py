@@ -6,7 +6,7 @@ libraries; a command exposes a flow."* `flows/proof_setter.py` is the flow that
 calls `reset` below, followed by `compositor.draft`; `commands/proof.py` is the
 console face of that flow, and `galley` is its older name.
 
-The notations are `{"<address>": "<the replacement text>"}` -- the address the
+The alterations are `{"<address>": "<the replacement text>"}` -- the address the
 binder carries. `reset` below does not take that address: resolving it to
 `(path, cue)` happens upstream, from the address itself, before a cue and
 its replacement ever reach this module.

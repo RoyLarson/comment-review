@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 4 tasks done
+Progress: 3 of 4 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-25 (backend, 2026-08-25, naming what the agent workflow hands the
@@ -48,9 +48,9 @@ WHAT REMAINS is the code rename and the nested shape -- tasks 3 and 4. Measured 
       distinct definitions, or rename one
 - [x] Whatever is decided reaches references/vocabulary.toml and
       docs/vocabulary.md in the same change
-- [ ] Rename notations -> alterations in the code: desk/notations.py, the two
+- [x] Rename notations -> alterations in the code: desk/notations.py, the two
       importers (commands/proof.py and flows/proof_setter.py), the --notations
-      flag, and the filename TODO/a-notation-carries-its-own-indentation.md. The
+      flag, and the filename TODO/an-alteration-carries-its-own-indentation.md. The
       four quoted-Roy lines in decision-log.md and nothing-makes-the-fair-copy.md
       stay exactly as written
 - [ ] Give the docket the nested shape the ruling names -- pages, each with path,

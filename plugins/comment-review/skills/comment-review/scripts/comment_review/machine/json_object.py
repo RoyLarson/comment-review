@@ -3,8 +3,8 @@
 !! A LEAF, LIKE `constants` AND `exceptions`. It imports nothing from this
 package, so a reader of one format may take it without acquiring the other's
 subject -- which is the whole reason it is here rather than in either reader.
-`binder.read` and `notations.read` are in different areas and neither may
-import the other: `rows_of` reaching into `desk/notations.py` was measured on
+`binder.read` and `docket.read` are in different areas and neither may
+import the other: `rows_of` reaching into `docket/docket.py` was measured on
 2026-08-25 and had to be undone.
 
 !! IT EXISTS BECAUSE THE TWO READERS HELD ONE PREAMBLE TWICE. The parse and the
@@ -15,7 +15,7 @@ commands each deciding what a census file is, *"three spellings of one guess
 and one absence"*, which is the reason that module owns the format at all.
 
 ! WHAT IS NOT SHARED IS EVERY CHECK PAST THE OBJECT. A binder must carry
-`pages` as a list of pages; a notations file must be non-empty and hold text or
+`pages` as a list of pages; a docket must be non-empty and hold text or
 null. Those are the formats, and they stay with their own readers.
 
 ! THE NAME IS DESCRIPTIVE AND PROVISIONAL, the way `machine` itself is: it says
@@ -32,7 +32,7 @@ def object_of(text: str, noun: str) -> tuple[dict, str]:
     Args:
         text: the file's contents.
         noun: what the caller is reading, for the refusal -- `"binder"`,
-            `"notations file"`. It is written after "not a".
+            `"docket"`. It is written after "not a".
 
     Returns:
         `(the object, "")` when it reads, or `({}, reason)` when it does not.

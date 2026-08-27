@@ -11,7 +11,7 @@ Raised:   2026-08-25 (xhigh wave C on feat/the-write-chain-of-command, finding 2
 ## Objective
 
 Roy, 2026-08-25, ruling the vacate signal: *"None is explicit enough."* So `""`
-is refused and `None` is the delete, in `desk/notations.read` and in
+is refused and `None` is the delete, in `docket.read` and in
 `results/galley.reset` alike.
 
 **A paragraph recording the hazard was written and then cut**, and it said:
@@ -26,7 +26,7 @@ are a hazard; `null` is now the only spelling, and it is also the default a
 failure produces.
 
 **MEASURED 2026-08-25, after wave C wired `commands/galley.py` through
-`notations.read`:** `--edits '{"m.py@b0": null}'` prints `1 page(s) set,
+`docket.read`:** `--edits '{"m.py@b0": null}'` prints `1 page(s) set,
 0 edit(s) refused` at exit 0 and the comment is gone -- which is what
 `flows/proof_setter.run` does too. ! The two now AGREE, and agreeing is what
 this wave fixed; whether what they agree on is right is what is open here.
@@ -41,5 +41,5 @@ well, which is `agents` lane work.
 
 - [ ] Rule whether an approved drop keeps a distinguishable spelling from a JSON
       null
-- [ ] If it does, change desk/notations.read to that spelling and pin both the
+- [ ] If it does, change docket.read to that spelling and pin both the
       accept and the refuse

@@ -187,12 +187,12 @@ uv run python src/comment-review.py vocabulary --roles
 uv run python src/comment-review.py prove_unchanged \
   --base <merge-base> --repo . <paths...>
 
-# The write chain: notations + a binder -> drafted files for a human to review, never
+# The write chain: a docket + a binder -> drafted files for a human to review, never
 # applied directly. Runs galley (edit), compositor (set), rereads each draft and proves its
 # executable code unchanged -- `flows/proof_setter.py`, whose docstring holds the order and
 # says the chain stops at the draft; the workflow that applies an approved draft is its own.
 uv run python src/comment-review.py proof \
-  --binder <binder>.json --notations <notations>.json --repo . --out <dir>
+  --binder <binder>.json --docket <docket>.json --repo . --out <dir>
 
 # The TODO backlog is WRITTEN BY A TOOL, not by hand -- see "The TODO backlog" below.
 # `.claude/skills/todo-tool/SKILL.md` holds every command; these are the two run most.
