@@ -31,6 +31,15 @@ Updated:  2026-08-28 — 2026-08-28 triage: re-verified.
           T5 already checked before this triage. The Objective itself (7b refuses add
           and drop on a docstring) remains true and deliberate. Stays open at 1 of 5, no
           change made.
+Updated:  2026-08-28 — tests/test_proof_setter.py now carries
+          test_a_docstring_DROP_REACHES_A_DRAFT_AT_PROVE and
+          test_a_docstring_ADD_REACHES_A_DRAFT_AT_PROVE, xfail(strict=True), renamed
+          from the STILL_REFUSED framing. Each pins the WANTED behaviour -- a docstring
+          add or drop reaches a draft, not a refusal -- and stays xfail until T1 is
+          ruled and the CODE CHECK is changed to admit the delta. Strictness proved
+          live: with _blank_docstrings changed to remove rather than blank the docstring
+          node, both XPASS as a FAILURE under strict; the source change was reverted
+          after.
 ```
 
 ## Objective

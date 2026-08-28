@@ -39,6 +39,14 @@ Updated:  2026-08-28 — 2026-08-28 triage: re-verified live. paragraphs_lexical
           etc). Roy's 2026-08-28 assessment (certainly not true anymore) does not hold;
           the defect measured 2026-08-17 is still present today at the census-reading
           stage, upstream of the galley and compositor. Stays open as filed, 0 of 10.
+Updated:  2026-08-28 — tests/test_reading.py now carries
+          test_a_block_comment_reaches_the_page_WITHOUT_its_markers, xfail(strict=True),
+          asserting the WANTED behaviour on an invented Java Javadoc snippet -- the
+          census text a reviewer reads should carry no /**, no */ and no leading
+          interior * on a continuation line. Stays xfail until T1 and T2 land.
+          Strictness proved live: with _join changed to also strip block markers and the
+          interior *, the test XPASSes as a FAILURE under strict; the source change was
+          reverted after.
 ```
 
 ## Objective

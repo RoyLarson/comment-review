@@ -749,8 +749,17 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         assert by_cue(build(gap))["b4"].raw_lines == ["# ADDED"]
         assert by_cue(build(matter))["f1"].raw_lines == ["# ADDED"]
 
-    def test_a_docstring_DROP_is_STILL_REFUSED_at_prove(self, tmp_path):
-        """!! NOT FIXED IN THIS WAVE, AND DELIBERATELY. MEASURED 2026-08-25:
+    @pytest.mark.xfail(
+        strict=True,
+        reason="prove_unchanged._blank_docstrings keeps a dropped docstring's "
+        "NODE, so its presence still enters the fingerprint and the chain "
+        "refuses at prove; T1 of "
+        "TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md decides "
+        "whether that changes",
+    )
+    def test_a_docstring_DROP_REACHES_A_DRAFT_AT_PROVE(self, tmp_path):
+        """WANTED: a docstring `drop` reaches a draft, the same as any other
+        series. NOT TRUE TODAY, and not by omission -- MEASURED 2026-08-25:
         `{'m.py@a0': None}` and `{'m.py@a1': None}` both answer
         `Refusal('prove', ..., 'the executable code is not what it was')`.
         `prove_unchanged._blank_docstrings` blanks a docstring's CONTENT and
@@ -761,29 +770,38 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         read `ArgumentParser(description=__doc__)`. Whether the proof stays a
         blanket one or becomes a diff against the APPROVED set is task T1 of
         `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md` -- a `*`
-        box, which is a decision only Roy makes.
-
-        ! THIS IS WHAT T5 OF THAT FILE ASKS FOR: a docstring ADDED and a
-        docstring REMOVED, running, so the suite states the behaviour instead
-        of leaving it to be rediscovered."""
+        box, which is a decision only Roy makes. This test states the WANTED
+        behaviour and stays xfail until T1 is ruled and the CODE CHECK is
+        changed to admit the delta."""
         for n, where in enumerate(sorted(FILLED & DOCSTRING)):
             each = tmp_path / str(n)
             each.mkdir()
             drafted, refused = self._run(each, {f"m.py@{where}": None})
-            assert drafted == []
-            assert refused[0].step == "prove", where
-            assert "not what it was" in refused[0].why
+            assert refused == [], where
+            assert len(drafted) == 1
 
-    def test_a_docstring_ADD_is_STILL_REFUSED_at_prove(self, tmp_path):
-        """The other half, on the `undocumented` place that exists precisely so
-        an `add` can cite it -- `binder.bind`'s own docstring says so."""
+    @pytest.mark.xfail(
+        strict=True,
+        reason="prove_unchanged._blank_docstrings keeps an added docstring's "
+        "NODE, so its presence still enters the fingerprint and the chain "
+        "refuses at prove; T1 of "
+        "TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md decides "
+        "whether that changes",
+    )
+    def test_a_docstring_ADD_REACHES_A_DRAFT_AT_PROVE(self, tmp_path):
+        """WANTED: a docstring `add` reaches a draft, on the `undocumented`
+        place that exists precisely so an `add` can cite it -- `binder.bind`'s
+        own docstring says so. NOT TRUE TODAY, for the same reason as the DROP
+        case above: `_blank_docstrings` keeps the added docstring's NODE, so
+        the chain refuses at prove with `Refusal('prove', ..., 'the executable
+        code is not what it was')`. Stays xfail until T1 of
+        `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md` is ruled."""
         for n, where in enumerate(sorted(ABSENT & DOCSTRING)):
             each = tmp_path / str(n)
             each.mkdir()
             drafted, refused = self._run(each, {f"m.py@{where}": ADDED["a"]})
-            assert drafted == []
-            assert refused[0].step == "prove", where
-            assert "not what it was" in refused[0].why
+            assert refused == [], where
+            assert len(drafted) == 1
 
     def test_an_ADD_at_b4_NOW_REACHES_A_DRAFT_AT_ITS_OWN_PLACE(self, tmp_path):
         """!! IT REFUSED UNTIL 2026-08-26, and the refusal was right about the

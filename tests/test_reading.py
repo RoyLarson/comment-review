@@ -199,6 +199,44 @@ def test_the_kind_agrees_with_the_series_the_cue_names(name, text):
         )
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason="lexer._join builds its openers from lang.line_comment alone, so "
+    "a block-comment's own /** */ markers and interior * are never stripped "
+    "and reach the census as prose -- "
+    "TODO/block-comment-markers-survive-into-the-prose.md T1/T2",
+)
+def test_a_block_comment_reaches_the_page_WITHOUT_its_markers():
+    """WANTED: the census text a reviewer reads is the sentence alone -- no
+    `/**`, no `*/`, no leading interior `*` on a continuation line. NOT TRUE
+    TODAY: `_join` (`lexer.py`) strips only a language's LINE-comment
+    openers, so a `block_comment` pair like Java's `/* */`/`/** */` is never
+    in the set it strips.
+
+    MEASURED (in this probe, 2026-08-28): `paragraphs_lexical` on the Java
+    snippet below returns a `docstring` paragraph whose `text` is
+    `'/** * Small arithmetic helpers. * @param a the first operand */'` --
+    markers and the interior `*` both still in it.
+
+    ! THIS INPUT IS INVENTED, per `docs/limitations.md` and
+    `Vocabulary: #23`: a short Java snippet built only to carry a multi-line
+    Javadoc block, not a quotation from any real file -- malformed-for-this-
+    purpose IS the input this defect needs."""
+    text = (
+        "/**\n"
+        " * Small arithmetic helpers.\n"
+        " * @param a the first operand\n"
+        " */\n"
+        "int add(int a, int b) { return a + b; }\n"
+    )
+    page = build(text, "m.java")
+    docstring = next(b for b in page.paragraphs if b.kind == Kind.DOCSTRING)
+    assert "/**" not in docstring.text
+    assert "*/" not in docstring.text
+    for line in docstring.text.splitlines():
+        assert not line.strip().startswith("*")
+
+
 @CASES
 def test_leading_is_keyed_by_the_place_it_follows(name, text):
     """`Page.leading` is an EDGE map -- cue -> the symbol of the `d` below it --
