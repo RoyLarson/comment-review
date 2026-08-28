@@ -11,6 +11,19 @@ Raised:   2026-08-27 (Roy, on a finding whose subject is the relation between tw
           pointing at the 'that' / It is disjoint but both parts are fully cite-able
           and stated in the current findings. / Maybe better instructions are
           necessary for the findings fields")
+Updated:  2026-08-28 — T2 STATES A FACT THAT IS NOW SUPERSEDED, and the task is worked
+          with this correction rather than reworded. It says `change` is a LINE ARRAY.
+          Roy ruled 2026-08-28: "`change` needs to be the updated paragraph as raw text
+          not lines or sentences. This will make it easier to diff per the rest of the
+          stages." The array form was chosen against two measured transcription
+          failures; raw text makes both LOUDER, because a diff against the seeded
+          `raw_text` shows a stripped comment marker or a truncated paragraph directly.
+          See `docs/the-mark.md`, which is now the SOURCE for the mark's shape, and
+          `decision-log.md Process: #37`. ! T2's other two facts stand unchanged --
+          `sources` are `{cite, verbatim}` pairs, `address` is COPIED and never built. !
+          And `move` is the one instruction whose `change` is not a single paragraph: it
+          carries the COMPOSITE of both, because a move is a delete plus an add under
+          one label and is indivisible.
 ```
 
 ## Objective
