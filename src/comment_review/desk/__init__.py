@@ -1,11 +1,15 @@
-"""The copy desk: what a role's marks become. THE COLLATE HALF IS NOT BUILT.
+"""The copy desk: what a role's marks become. RECONCILIATION IS NOT BUILT.
 
     mark                the shape a role writes, and the rules a mark can be
                          judged by ON ITS OWN -- no binder, no page
+    collator            `decision-log.md Vocabulary: #19`'s two named steps.
+                         SOURCE-VERIFICATION is here, per mark, against the
+                         page it rules on. RECONCILIATION -- per place,
+                         across the marks of one stage -- is not built
     external_address    a SKETCH, not in service -- a coordinate into a file
                          this system does not set
 
-!! THE MIDDLE IS THE HALF THAT IS NOT DESIGNED, and this package is where it
+!! THE MIDDLE IS THE HALF THAT WAS NOT DESIGNED, and this package is where it
 goes: marks in from the roles, a DOCKET out. Roy, 2026-08-25, on why the former
 contents left: *"There is code there none of it is correct so testing it is
 solidifying wrong."*
@@ -21,11 +25,12 @@ has `docs/history.md`, which is the file for it.
 *"You can copy it from there and update the rules/requirements from there but it
 doesn't belong in the new records.py. It belongs in the desk/ i think."*
 
-! **IT IS THE HALF THAT NEEDS NOTHING LOADED.** Whether `claim.false` is a key
-is answerable from the mark alone; whether that sentence is really IN the
-paragraph needs the page the role read. The second is SOURCE-VERIFICATION, and
-it is what is still missing -- so a mark can be checked the moment it comes
-back, and not yet checked against the file it rules on.
+! **`mark` IS THE HALF THAT NEEDS NOTHING LOADED.** Whether `claim.false` is a
+key is answerable from the mark alone, and `mark.problems` settles it the
+moment a mark comes back. Whether that sentence is really IN the paragraph
+needs the row's own `raw_text` or the page a `source` cites -- that is
+`collator.source_verification`, which reads no page and at most one file per
+citation, through a per-file cache.
 
 ! **AND THE WORD IS `instruction`, NOT THE STRUCK ONE.** A mark is the object;
 its `instruction` is one of the seven -- the retired word read as judicial and

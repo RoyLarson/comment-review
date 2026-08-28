@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 2 of 8 tasks done
+Progress: 4 of 8 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (/code-review high round 3, 2026-08-22, and Roy: the record/verdict
@@ -86,7 +86,7 @@ never report. By the rule in `docs/gates.md` -- could it fail -- no.
       findings survive the wait for an independent review session.
 - [x] T2 -- NOT A TASK. The FRAMING, restated in the Objective: all six are one class, and
       the admitting gate is the one that certifies a review.
-- [ ] T3 -- Stop `load_report` dropping a bare-string source before `source_problem` runs.
+- [x] T3 -- Stop `load_report` dropping a bare-string source before `source_problem` runs.
       Verify: one report carrying a bare-string source, and both tools agreeing on it.
 - [ ] T4 -- Require `claim.shape` instead of a substring test on the claim text. Verify: a
       `query` with no `shape` and *outside my role* in its prose reaches stage 5.
@@ -96,5 +96,5 @@ never report. By the rule in `docs/gates.md` -- could it fail -- no.
       record with a present-and-empty EXTRA is refused by both tools.
 - [ ] T7 -- Make `held.py:118` check the TYPE of `pages`, not just the key. Verify: a
       report whose `pages` is a dict is refused with the shape diagnostic.
-- [ ] T8 -- Replace `address_problem` with a check that can fire. Verify: whatever
+- [x] T8 -- Replace `address_problem` with a check that can fire. Verify: whatever
       replaces it can be made to fail on a crafted record.
