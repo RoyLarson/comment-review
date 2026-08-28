@@ -8,8 +8,16 @@
 !! THE MIDDLE IS THE HALF THAT IS NOT DESIGNED, and this package is where it
 goes: marks in from the roles, a DOCKET out. Roy, 2026-08-25, on why the former
 contents left: *"There is code there none of it is correct so testing it is
-solidifying wrong."* `run_context`, `vocabulary`, `desk` and the collator are in
-`prototype/original/`, reference only; nothing under `src/` imports them.
+solidifying wrong."* `run_context`, `vocabulary`, `desk` and the module the
+collator replaces are in `prototype/original/`, reference only; nothing under
+`src/` imports them.
+
+! THAT FOURTH ITEM IS NOT NAMED, and the omission is deliberate. It is a list of
+FILES, and the file still carries the retired word -- `prototype/` is exempt from
+the rename by `decision-log.md Vocabulary: #19`, since renaming inside a captured
+record makes it describe something that never happened. Writing the basename here
+would put the retired word in a shipped file; writing `collator` would name a
+file that does not exist there.
 
 !! `mark` IS THE FIRST PIECE BACK, ported 2026-08-27 at Roy's direction --
 *"You can copy it from there and update the rules/requirements from there but it

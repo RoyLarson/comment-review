@@ -70,6 +70,7 @@ and the work that earned it in the same diff.
 | **P1.5**, **P1.6** | Task 3 | `the-ported-mark-does-not-fit-the-brief` T4 |
 | **P1.7** | Task 4 | `the-ported-mark-does-not-fit-the-brief` T5 |
 | **P1.8**, **P1.9** | Task 5 | `the-fields-do-not-say-a-mark-may-cite-across` T1, T2, T3, T4, T5 |
+| **P1.10** | Task 5b | `the-skill-names-commands-that-moved-to-prototype` T4 |
 | **P2.1** | Task 6 | `the-flow-assumes-every-role-reads-at-once` T1 |
 | **P2.2** | Task 7 | `the-flow-assumes-every-role-reads-at-once` T2 |
 | **P2.3** | Task 8 | `the-flow-assumes-every-role-reads-at-once` T3 |
@@ -663,6 +664,70 @@ uv run python scripts/todo_tool.py check the-fields-do-not-say-a-mark-may-cite-a
 ```
 
 `Edit` P1.8 and P1.9 to `- [x]`. Commit with `-F`.
+
+---
+
+## Task 5b: Drop the four dead command invocations
+
+**Delivers:** P1.10. **Works** `the-skill-names-commands-that-moved-to-prototype` T4.
+
+**Added 2026-08-28, mid-branch.** Roy: *"Drop the commands from the brief and from the task
+agent/managing-editor ... We will fill the commands section back in later."*
+
+**Files:**
+- Modify: `plugins/comment-review/skills/comment-review/SKILL.md` (hand-written, not built)
+- Modify: `TODO/the-skill-names-commands-that-moved-to-prototype.md` -- tick T4 with the tool
+
+**What is dead, measured 2026-08-28** against `COMMANDS` in `src/comment_review/__main__.py`,
+which lists `addresser, carry, census, compositor, mark, proof, prove_unchanged, referrers`:
+
+| line | invocation |
+| --- | --- |
+| 592 | `comment-review.py vocabulary --reviewer <role>` |
+| 617 | `comment-review.py run_context --template` |
+| 619 | `comment-review.py run_context --check` |
+| 741 | `comment-review.py verdicts --census` |
+
+! **`galley` at ~918 STAYS.** Its name resolves through a real alias to `proof`; only its FLAGS
+are wrong (`--census/--edits` against `proof`'s `--binder/--docket`). Changing arguments is
+outside the substitution rule.
+
+- [ ] **Step 1: Write the failing gate**
+
+```python
+def test_every_command_the_skill_names_exists():
+    """EXPECTATION FROM `__main__.py`'s COMMANDS -- a different module from the
+    prose under test, so this is not the skill checking itself."""
+    from comment_review.__main__ import COMMANDS
+
+    named = set(re.findall(r"comment-review\.py (\w+)", SKILL.read_text(encoding="utf-8")))
+    assert named - set(COMMANDS) - {"galley"} == set()
+```
+
+- [ ] **Step 2: Run it and confirm it fails**, naming `vocabulary`, `run_context`, `verdicts`.
+
+- [ ] **Step 3: Drop the four**, and the prose that exists only to introduce them. **Drop the
+      whole instruction, not just the fenced line** -- a sentence saying "run it and paste the
+      output" with nothing to run is worse than an absence.
+
+- [ ] **Step 4: State the gap where each was.** One line saying the step is absent and naming the
+      TODO that refills it. **Do not invent a replacement command or describe one.**
+
+- [ ] **Step 5: Run**
+
+```
+uv run pytest -q && uv run python scripts/check_vocabulary.py
+```
+
+Expected: the gate now exits **0** -- line 741 was the only remaining `verdicts`.
+
+- [ ] **Step 6: Tick and commit**
+
+```
+uv run python scripts/todo_tool.py check the-skill-names-commands-that-moved-to-prototype 4
+```
+
+`Edit` P1.10 to `- [x]`. Commit with `-F`.
 
 ---
 
