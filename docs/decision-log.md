@@ -1324,3 +1324,38 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   out the compromise with reasons"* -- and `references/re-review.md:128` already states *"AT MOST
   TWO re-review rounds."* What terminates the second is the copy chief's `stet`. ! Roy re-affirmed
   two on 2026-08-28; the number is unchanged and its ORIGIN is 2026-08-24.
+
+- **#37.** **THE MARK'S SHAPE HAS AN OWNING FILE, AND IT IS `docs/the-mark.md`** (Roy, 2026-08-28:
+  *"None of those were part of the accepted shape of the mark structure or any part of the plan.
+  This is not okay. We had a specific plan for the mark structure and the appropriate classifiers
+  for each part. I don't know where these came from or why"*).
+
+  **THE APPROVED SHAPE**: seven fields; **FOUR classifier columns** -- claim keys, verbatim,
+  change, sources; **SEVEN row flags** -- not substantive, may declare scope, empty change allowed,
+  rules on text, not diffable, anchor named in backticks, destination addressable; and two pieces
+  of PROSE that decide nothing, `payload` and `claim_help`. **A row states these and nothing else.**
+
+  !! **THE FILE EXISTS BECAUSE THE SHAPE HAD NO OWNER, WHICH IS THE WHOLE MECHANISM.** It was
+  described in `evidence/the-loop-measured-2026-08-27/the-mark.md`, a captured snapshot that
+  **disclaimed itself** -- *"IT IS NOT THE SOURCE"* -- and pointed at `reviewer-brief.md` and
+  `prototype/original/record.py`. **With no file able to refuse a field, the prototype's dataclass
+  became the de facto spec.**
+
+  ! **HOW IT ARRIVED, from the transcript rather than from memory.** A session was asked whether
+  the mark type was usable and whether it needed a CLI endpoint. It began by naming `record.py`'s
+  `--seed`/`--check` verbs and its checkers. **Roy interrupted mid-sentence** (`[Request
+  interrupted by user]`), then ruled: *"You can copy it from there and update the rules/
+  requirements from there but it doesn't belong in the new records.py. It belongs in the desk/."*
+  **The only thing on screen was the ENDPOINT and the checkers** -- the `Instruction` dataclass was
+  never shown, so no shape was approved. The port copied it whole, and **22 fields entered `src/`,
+  NINE of which have no home in the approved shape.**
+
+  !! **AND `update the rules/requirements` WAS AN INSTRUCTION TO UPDATE THEM.** Read as a licence
+  to carry them across, it is the opposite of what it says. ! Roy: *"That is the shape that I
+  approved going into this plan. I had not knowledge of the other shape."*
+
+  ! **WHY NO REVIEW CAUGHT IT.** Three reviews ran over this code in one day, and each asked
+  whether the gate matched the BRIEF's published key table -- it did. **None asked whether the
+  classifier scheme had been approved**, because nothing stated what the approved set was. A review
+  can only check the question it is given, which is [`gates.md`](gates.md)'s rule arriving at a
+  design document instead of a test.

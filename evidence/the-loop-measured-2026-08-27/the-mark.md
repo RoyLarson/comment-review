@@ -1,5 +1,16 @@
 # The shape of a mark
 
+!! **THE SHAPE NOW HAS AN OWNING FILE: [`docs/the-mark.md`](../../docs/the-mark.md), added
+2026-08-28.** Read that for the requirement as it stands. **This file is unchanged below and stays
+that way** -- it records what the four rounds RAN against, which is why it still names the old
+`query` shapes.
+
+! **AND THE SENTENCE BELOW NAMING `record.py` AS A SOURCE IS SUPERSEDED**, not edited. Roy,
+2026-08-28: *"Why are you talking about code in `prototype/original/`? And fixing things based upon
+something in there?"* `prototype/` is a record of how it once worked; it defines nothing. **Taking
+it as a source is what put a classifier scheme into `src/` that had never been proposed** -- the
+history is in `docs/the-mark.md`.
+
 Two sources, kept apart: what `prototype/original/record.py` and the shipped `reviewer-brief.md`
 already encoded, and what these four rounds measured.
 
