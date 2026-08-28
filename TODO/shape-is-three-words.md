@@ -12,7 +12,56 @@ Raised:   2026-08-28 (2026-08-28, Roy asking what `claim.shape` is: 'because it 
 
 ## Objective
 
-`shape` names three different things, and the axis may not be query's alone.
+**One word, three jobs, none of them declared** -- and the middle one is the only one that
+reaches an agent, as a field name it is instructed to fill.
+
+| sense | where it is used |
+| --- | --- |
+| **the STRUCTURE of a mark** | `docs/the-mark.md:1` *"the shape, and the classifiers"*; `mark --shape`; `tests/gates/test_mark_shape.py` |
+| **a QUERY'S KIND** | `claim.shape`, `QUERY_SHAPES`, and `comment-review-module-context.md:108`, which tells a role to set it |
+| **the FORM A CLASSIFIER TAKES** | `docs/the-mark.md:171`, the third column of the classifier table |
+
+! `docs/vocabulary.md` carries a polysemy rule, and this is what it is for: **the undeclared
+meaning is the defect**, not the ambiguity. A reader who meets `shape` in this tree cannot tell
+which question is being asked without checking which file they are in.
+
+## !! AND THE SECOND QUESTION FOUND MORE THAN THE FIRST
+
+Roy, 2026-08-28: *"Also why is it specific to query mark? Why isn't part of the other enum
+candidates? Why 'shape' why not a better word?"*
+
+**MEASURED the same day: the axis is not principled to `query`.**
+
+    instruction   owes_change   sub-category field
+    clean         False         --
+    query         False         shape
+    drop..move    True          --
+
+**`clean` and `query` are EXACTLY the two instructions that propose no text**, and only one of
+them can say what kind of not-proposing this is.
+
+!! **THE UNFILLED NEED ON THE OTHER IS ALREADY RECORDED.** `docs/the-mark.md`, under *Open, and
+NOT a new instruction*: four roles asked for it in four forms -- *enumerated it and it is true*,
+*read hard and nearly marked it*, *checked internal consistency only*, *could have re-run it and
+did not* -- and all four land as `clean`, **"which asserts one thing and was used for four."**
+Roy, 2026-08-26: *"the word list we used was the words required else they start inventing words
+... If it is anything it is a field on `clean`."*
+
+! **So this is a STRUCTURAL question and not a rename.** Do the two no-text instructions share
+ONE axis, or hold two? The answer decides what `T1.15` of
+[`docs/plans/0.2.4-the-mark-and-the-collator.md`](../docs/plans/0.2.4-the-mark-and-the-collator.md)
+makes a `StrEnum` of -- a set belonging to `query`, or one belonging to both.
+
+## The word itself
+
+`decision-log.md Process: #33` re-keyed the three onto **WHO RESOLVES IT**, deliberately replacing
+an axis about where the evidence lives. A name taken from what the field DOES would therefore say
+**whom the query is for** -- which is also how the trade names one, an *author query* being named
+by who answers it.
+
+! **The candidate is checked against the register BEFORE it is proposed**, per `docs/vocabulary.md`
+-- the rule three law-words already broke. Recording the reasoning matters whichever way it goes:
+`shape` may keep the field and lose its other two senses instead.
 
 ## Tasks
 
