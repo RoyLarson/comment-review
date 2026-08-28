@@ -103,8 +103,7 @@ file once; each slot already carries the two things the tool knows -- the `place
                      "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
                    { "cite": "redacted_pkg/export/invoice.py:88",
                      "verbatim": "rates = compute_rates(plan, period)" } ],
-      "change":  [ "# Kept because 31 callers want this, all of them in tests/.",
-                   "# Narrowing it means re-deriving the clamp bounds." ] } ] }
+      "change":  "# Kept because 31 callers want this, all of them in tests/.\n# Narrowing it means re-deriving the clamp bounds." } ] }
 ```
 
 ! **THE PLACE IS A CUE, NOT A FULL ADDRESS** -- `b47`, because the page above it already said
@@ -137,8 +136,13 @@ rather than remembering them.
 | `instruction` | one of the seven. ! `null` means you have not ruled yet, and a paragraph left `null` is a coverage gap |
 | `claim` | an OBJECT whose keys are set by your instruction -- see the table below. It is the SPEC: what must change, and from what to what. ! **The key naming the EXISTING sentence is CHECKED against the census text for your paragraph** -- if it is not in the paragraph you are filling, the finding is on the wrong paragraph |
 | `reason` | what you DERIVED from the source, and why the claim is wrong -- one statement |
-| `sources` | a list of `{ "cite": "file:line", "verbatim": "the text AT it" }`, **one entry per place examined.** Every one is resolved and every `verbatim` must really be there |
-| `change` | the RESULT: an array of **file-ready lines**, the whole paragraph as it reads once your edit is made. Indentation and comment markers exactly as they will sit on disk |
+| `sources` | a list of `{ "cite": "file:line", "verbatim": "the text AT it", "ran": "the command" }`, **one entry per place examined.** Every one is resolved and every `verbatim` must really be there. `ran` is owed only where the entry was settled by RUNNING something |
+| `change` | the RESULT: **the updated paragraph, as RAW TEXT** -- not lines, not sentences. Indentation and comment markers exactly as they will sit on disk |
+
+!! **`ran` -- A CLAIM SETTLED BY RUNNING SOMETHING MUST CARRY THE COMMAND.** `sources` records
+WHAT you saw; `ran` records HOW you saw it. Add it to the `sources` entry it belongs to whenever
+a `grep`, a test, or any other command is what settled that entry -- a claim settled by execution
+and missing `ran` is incomplete.
 
 !! **`claim` and `change` say the same edit twice, and that is deliberate.** `claim` is surgical,
 so a checker can find the sentence you rule on and two roles ruling on one paragraph can be told
@@ -168,6 +172,13 @@ out of the file and your text must appear within three lines of it.
 its callers -- and citing one means dropping the other, which is the cut-the-provenance failure
 this system exists to catch. ! Each entry carries a LINE. A bare filename says you opened a file
 and not what you read in it.
+
+!! **A `source` MAY CITE ANY PLACE IN THE LIBRARY** -- every file in the project under review,
+never this program's own tree. A citation is not limited to the paragraph's own file: where your
+claim is that two places disagree, mark the one that is WRONG and cite the other as the evidence
+that it is. A library citation is checked exactly like any other -- resolved, and its `verbatim`
+confirmed. ! **The corollary is what keeps it honest**: if you cannot tell which side is wrong,
+that is a `query`, not two `correct`s.
 
 ! **`reason` is DERIVED and is not checked verbatim** -- that is why it is a field of its own. A
 count is not a line any file contains, so checking it against the code made every counted claim
@@ -231,14 +242,14 @@ anchor.
 !! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two
 lines of CODE and the gap between them is whatever sits there -- nothing, or blank lines. The
 edit is applied to the GAP, so a two-blank-line separation you do not write out is a separation
-the file loses. **Write the blank lines you want kept**, as empty strings in the array, the
+the file loses. **Write the blank lines you want kept**, as blank lines in the raw text, the
 same way you would write them in the file.
 
 !! **A `c` PLACE STARTS AT THE END OF THE CODE, so your `change` carries its own separator.**
-A trailing comment is one array entry and it is written from the point the statement stops --
-`"  # why"`, with the two spaces you want between them. Write `"# why"` and it lands hard against
-the code. This is the same rule an interval follows: the text is file-ready, and whatever
-whitespace you want is whitespace you write.
+A trailing comment is written from the point the statement stops -- `"  # why"`, with the two
+spaces you want between them. Write `"# why"` and it lands hard against the code. This is the
+same rule an interval follows: the text is file-ready, and whatever whitespace you want is
+whitespace you write.
 
 ! **It is why a `margin` and the trailing comment that would replace it are ONE place.** Roy,
 2026-08-19: *"c addresses start at the end of the code on the line."* Adding a comment where
@@ -407,15 +418,16 @@ constraint -- and none of those is your role's question unless your role file sa
 still required to open the code that would settle it; on every other instruction your `SOURCES` proves
 you did. `query` is what you emit when you did and it was still not enough.
 
-!! **Three shapes reach it, and your `CLAIM` must NAME which one -- in these exact words.**
-The three are findings rather than admissions, and they route differently: the first says which
-scope owns the paragraph, the other two are work that reaches the author. Nothing downstream can
-tell them apart if you do not say which:
+!! **Three shapes reach it, and your `CLAIM` must NAME which one -- in these exact words.** They
+are keyed on WHO RESOLVES IT, not on where the missing evidence lives. The three are findings
+rather than admissions, and they route differently: the first says which scope owns the
+paragraph, the other two are work that reaches the author. Nothing downstream can tell them apart
+if you do not say which:
 
-- **outside my role** -- what settles it belongs to another scope.
-- **outside the checkout** -- generated, gitignored, remote, or on one machine. No reviewer in a
-  fresh checkout can settle it.
-- **outside the code** -- settling it needs someone who knows the system or how it is operated.
+- **outside-my-role** -- deferred to another agent's problem.
+- **unable-to-determine** -- *"don't know why but maybe another agent figured it out."*
+- **human-review-necessary** -- *"genuinely contradictory statements and/or code and only system
+  level intent might disambiguate it."*
 
 ! **A claim you could not settle and marked `clean` is worse than the same claim marked
 `query`.** `clean` certifies; `query` asks.
@@ -423,10 +435,10 @@ tell them apart if you do not say which:
 ! **A `query` requires `SOURCES`, by construction** -- this is where you
 looked to try to find the answer. These are the statements in the code that make it
 ambiguous or the location not yours to determine. **All three shapes carry them**, including
-`outside my role`: the paragraph is real and in the checkout on every one of them, so there is
+`outside-my-role`: the paragraph is real and in the checkout on every one of them, so there is
 always a line to quote.
 
-!! **`outside my role` is a FINDING, so you have to show it is not yours.** It is the shape a
+!! **`outside-my-role` is a FINDING, so you have to show it is not yours.** It is the shape a
 reviewer reaches for when it has nothing to say, and it is the one that costs the most when
 it is wrong -- the paragraph leaves your report certified by nobody. So quote the line that fixes
 the paragraph's SUBJECT, and say in `REASON` what about that subject your remit does not reach,

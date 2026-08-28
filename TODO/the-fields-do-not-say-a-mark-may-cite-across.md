@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks done
+Progress: 4 of 8 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-27 (Roy, on a finding whose subject is the relation between two
@@ -24,6 +24,15 @@ Updated:  2026-08-28 — T2 STATES A FACT THAT IS NOW SUPERSEDED, and the task i
           And `move` is the one instruction whose `change` is not a single paragraph: it
           carries the COMPOSITE of both, because a move is a delete plus an add under
           one label and is indivisible.
+Updated:  2026-08-28 — T5 ticked. The three ruled shapes now replace the old set in
+          reviewer-brief.md (the only agent-facing occurrence). A repo-wide `grep -rn
+          "outside the checkout"` still finds it in `src/comment_review/desk/mark.py:43`
+          (and its built copy) -- a comment recording what the shapes REPLACED, matching
+          this repo's own convention for keeping an error legible
+          (`check_vocabulary.py`'s MENTION/RETIRED pattern) -- and in
+          `tests/test_mark.py` (asserting the OLD names are refused), plus `evidence/`,
+          `prototype/`, `.superpowers/` and other TODO files, all historical or
+          archival. None is live agent-facing prose. Task 5, backend.
 ```
 
 ## Objective
@@ -91,20 +100,20 @@ merge-or-fight table never sees the overlap. Filed as
 
 ## Tasks
 
-- [ ] T1 -- State in `reviewer-brief.md` that a source may cite a place other than the mark's
+- [x] T1 -- State in `reviewer-brief.md` that a source may cite a place other than the mark's
       own, with the disagree-and-cite rule and its corollary. Verify: `grep -rn` for the rule
       returns exactly one path.
-- [ ] T2 -- State the same for the fields whose misreading was measured -- `change` is a LINE
+- [x] T2 -- State the same for the fields whose misreading was measured -- `change` is a LINE
       ARRAY, `sources` are `{cite, verbatim}` pairs, `address` is COPIED and never built. Verify:
       each appears once, in the brief, not restated in an agent file.
-- [ ] T3 -- State what `ran` is for and when it is OWED: a claim settled by RUNNING something
+- [x] T3 -- State what `ran` is for and when it is OWED: a claim settled by RUNNING something
       carries the command that settled it. ! It is the only field the experiment ADDED, ratified
       by Roy 2026-08-27, so no role has ever been told it exists -- an undescribed field is an
       empty one. Verify: the brief names `ran`, and says a claim settled by execution without it
       is incomplete.
 - [ ] T4 -- Say what a role does when it cannot tell which side of a disagreement is wrong.
       Verify: the brief names `query` for that case and says which of its three shapes.
-- [ ] T5 -- Replace the three `query` shapes with the set RULED in `decision-log.md Process: #33`
+- [x] T5 -- Replace the three `query` shapes with the set RULED in `decision-log.md Process: #33`
       -- `outside-my-role`, `unable-to-determine`, `human-review-necessary`. ! The old set is at
       SEVENTEEN sites; the ones that must move are `reviewer-brief.md:411-414`, `SKILL.md`,
       `agents/comment-review-module-context.md`, and `record.py`/`verdicts.py`/`desk.py` in
