@@ -62,6 +62,23 @@ Updated:  2026-08-28 — THE DOUBLE-BIND, STATED BY ROY 2026-08-28, AND A CANDID
           likely resolution is that the margin TODO is the durable artifact and any
           report line is the run's summary of it, but that is a decision and not an
           inference.
+Updated:  2026-08-28 — SECOND INSTANCE OF THE SAME BIND, 2026-08-28, and it is recorded
+          in full on `a-scope-declaration-costs-as-much-as-a-finding`. Roy: a `module-
+          context` handed a paragraph outside its remit could and often SHOULD return
+          `move a.py@b3 to b.py@b10` -- "this whole block indicates that this piece of
+          functionality should be in a different module because that is where it fits"
+          -- and the blocker is the same one this file names: "that also requires moving
+          code which we don't do because it is unsafe." ! THE MARK IS EXPRESSIBLE AND
+          THE AFTERMATH IS NOT. A cross-file `move` destination is legal, so the mark
+          reaches a docket; executing only its prose half lands a comment in `b.py`
+          describing code that is still in `a.py`, which MANUFACTURES the defect `block-
+          context` exists to catch. ! So the damage this file names has a second form:
+          not only bending a sentence to fit code the role cannot change, but ABANDONING
+          A CORRECT STRUCTURAL OBSERVATION because acting on it is unsafe -- the role
+          files `outside-my-role` where a real finding was available. ! The TODO-in-the-
+          margin candidate reaches both: an `add` at `a.py@b3` saying the subject
+          belongs in `b.py` is addressable, human-gated at 7a, and becomes an obituary
+          once the code moves. ONE MECHANISM, TWO BINDS.
 ```
 
 ## Objective
