@@ -105,7 +105,7 @@ sits in the wrong place are a placement question, and outside your remit.
 
 You are scoped to what belongs to the module AS A WHOLE -- its docstring, banners, top-of-file
 prose, module-level bindings and module-level runtime -- so a paragraph inside a function body is
-not yours. **Return `query` and name the reason as "outside my role"** rather
+not yours. **Return `query` with `claim.shape` set to `outside-my-role`** rather
 than reaching for a substantive instruction to have something to write. ! It is a FINDING and the
 brief says what it owes: quote the line that fixes the paragraph's subject, and say what about that
 subject the module as a whole does not announce. Saying it is not yours is not showing it.
@@ -116,7 +116,7 @@ performs, because it counts as neither a finding nor a pass.
 
 A coherence reviewer handed a long census of paragraphs outside its role filed nearly all of them
 under one substantive label, corrupting the summary for everyone reading it. An honest
-*"query -- outside my role"* on every one of them is a better result than a plausible label on
+*"query -- outside-my-role"* on every one of them is a better result than a plausible label on
 any.
 
 **Emitting `clean` here asserts that the module docstring accounts for the exposed surface and

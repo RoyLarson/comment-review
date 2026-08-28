@@ -746,7 +746,7 @@ stage 5 works from -- read it rather than rebuilding it from the report files.
 
 ! **It reports THREE states, not two.** A paragraph every role returned `clean` on STANDS. A paragraph
 carrying a substantive instruction NEEDS A RULING. A paragraph covered only by `clean` and
-`query -- outside my role` is neither: nothing is asked of you, and no role certified it either,
+`query -- outside-my-role` is neither: nothing is asked of you, and no role certified it either,
 because a role returns `query` rather than `clean` on a paragraph it never read. Measured: on one
 run 1159 paragraphs read as work when 76 carried an instruction.
 
