@@ -681,7 +681,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   ! **THE ROLE'S TWO NON-MARK ANSWERS NEEDED A WORD** -- `stet` is copy-chief-only (2026-08-24)
   and `taken in` is the compositor's, assigned mechanically, so neither is a role's to emit.
-  **ANSWERED BY `#22`**: they are `hold` and `withdrawn`, and they are explicit.
+  **ANSWERED BY `#22`**: they are `hold` and `withdraw`, and they are explicit.
 
 - **#21.** **A `query` ON A REVISE SPLITS BY SHAPE, AND REASONING IS SHARED FROM ROUND TWO ON**
   (Roy, 2026-08-27).
@@ -713,16 +713,27 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"I would prefer the explicit hold/withdrawn/patch/correct marks"*).
 
     hold        my mark stands
-    withdrawn   I retract it
+    withdraw    I retract it
     correct     a revised claim -- relitigates
     patch       revised wording -- relitigates
+
+  ! **PRESENT TENSE, AND THE PAIR IS `hold`/`withdraw`.** Roy, 2026-08-27, on `withdrawn` and
+  `held`: *"The other pair are past tense and not quite right for agents actively negotiating."*
+  A participle names a settled state; these name an act being taken now. ! It also matches the
+  seven, which are bare verbs -- `clean`, `drop`, `add`, `move`.
+
+  ! **AND `forwarded` WAS CONSIDERED AND REFUSED**, on Roy's own doubt: *"it also has implications
+  that it is the first time to make the claim."* **To PUT FORWARD a claim introduces it**; the
+  pair here acts on a claim already filed. ! And in a system that escalates to the copy chief and
+  raises to the human, `forward` reads as *routed onward* -- two plausible readings meaning
+  opposite things.
 
   !! **THE REASON IS THE ANTI-DECISION DECISION, AND IT IS THE RULING'S WHOLE POINT.** Roy:
   *"Inferring the decision from lack of decision means that the agents get to do the human failure
   of the anti-decision decision. Where we allow undecided things to continue effectively making
   the decision to keep the status quo."*
 
-  ! An inferred `withdrawn` is indistinguishable from a role that never answered, so the status
+  ! An inferred `withdraw` is indistinguishable from a role that never answered, so the status
   quo wins by default and **nobody is on record as having chosen it.**
 
   !! **THIS IS THE SAME RULE THIS REPO HAS NOW LANDED THREE TIMES**, and each time the fix was to
