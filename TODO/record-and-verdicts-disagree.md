@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 2 of 8 tasks done
+Progress: 3 of 8 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (/code-review high round 3, 2026-08-22, and Roy: the record/verdict
@@ -78,7 +78,7 @@ never report. By the rule in `docs/gates.md` -- could it fail -- no.
       the admitting gate is the one that certifies a review.
 - [ ] T3 -- Stop `load_report` dropping a bare-string source before `source_problem` runs.
       Verify: one report carrying a bare-string source, and both tools agreeing on it.
-- [ ] T4 -- Require `claim.shape` instead of a substring test on the claim text. Verify: a
+- [x] T4 -- Require `claim.shape` instead of a substring test on the claim text. Verify: a
       `query` with no `shape` and *outside my role* in its prose reaches stage 5.
 - [ ] T5 -- Make `_answered` use `filled()` like every sibling at `record.py:453`. Verify:
       a record with a JSON null in that slot is refused.

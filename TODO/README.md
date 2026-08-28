@@ -216,7 +216,7 @@ that changed a published name or rule:
 | [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | backend | yes | 6/8 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | — | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | — | 4/10 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
-| [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | yes | 2/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
+| [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | yes | 3/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | — | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | — | 6/16 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | — | 3/10 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
@@ -266,7 +266,7 @@ that changed a published name or rule:
 | [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 0/8 | The mark's fields permit a cross-citation and never say so |
 | [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | — | 0/4 | A conflict is detected and nothing renders it |
 | [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | — | 0/8 | A role can be asked to revise and has nothing to answer ON |
-| [the-ported-mark-does-not-fit-the-brief](the-ported-mark-does-not-fit-the-brief.md) | backend | — | 0/5 | The ported mark refuses marks the shipped brief tells a role to write |
+| [the-ported-mark-does-not-fit-the-brief](the-ported-mark-does-not-fit-the-brief.md) | backend | — | 3/5 | The ported mark refuses marks the shipped brief tells a role to write |
 | [the-flow-assumes-every-role-reads-at-once](the-flow-assumes-every-role-reads-at-once.md) | backend | — | 0/7 | The flow assumes every role reads the same page at the same time, once |
 
 ### in-progress  (19)

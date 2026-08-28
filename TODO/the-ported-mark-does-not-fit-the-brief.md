@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 3 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing `desk/mark.py` against the role's needs before building
@@ -51,12 +51,12 @@ Only `add` disagreed, and the port is what moved.
 
 ## Tasks
 
-- [ ] T1 -- Restore the extras derivation, so one row states every key a `claim` owes. Verify:
+- [x] T1 -- Restore the extras derivation, so one row states every key a `claim` owes. Verify:
       `allowed()['claim']` matches the brief's published table for all seven, checked against the
       brief and not against `INSTRUCTIONS`.
-- [ ] T2 -- Make the gate read those keys. Verify: the two brief-compliant marks above are
+- [x] T2 -- Make the gate read those keys. Verify: the two brief-compliant marks above are
       accepted, and a `query` naming a shape outside the three is refused.
-- [ ] T3 -- Rebuild `tests/test_mark.py` so no case is built from the table it checks. Verify:
+- [x] T3 -- Rebuild `tests/test_mark.py` so no case is built from the table it checks. Verify:
       the suite FAILS before T1 and passes after -- one that passes both ways is testing itself.
 - [ ] T4 -- Give the sheet a `code_concerns` list, and say so in the brief. Verify: a sheet
       carrying one validates, and the brief names the key.

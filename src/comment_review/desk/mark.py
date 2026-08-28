@@ -239,9 +239,25 @@ INSTRUCTIONS: dict[str, Instruction] = {
 }
 
 
-def claim_keys(spec: Instruction) -> tuple[list[str], list[str]]:
-    """The keys an instruction's `claim` must carry: (all of these, one of these)."""
-    return list(spec.claim_all), list(spec.claim_any)
+def claim_keys(spec: Instruction) -> list[str]:
+    """Every key this instruction's `claim` must carry.
+
+    !! THE TRAITS DERIVE KEYS, AND DROPPING THAT IS WHAT BROKE THE GATE.
+    MEASURED 2026-08-28: without it, `allowed()` published `query`'s three
+    SHAPE VALUES as though they were claim KEYS, so a mark written from the
+    brief verbatim was refused. One row states the whole obligation; a trait
+    added here reaches the gate, the brief and the sheet together.
+    """
+    keys = list(spec.claim_all)
+    if spec.claim_any:
+        keys.append("shape")
+    if spec.needs_attempted:
+        keys.append("attempted")
+    if spec.needs_settles:
+        keys.append("settles")
+    if spec.needs_anchor:
+        keys.append("anchor")
+    return keys
 
 
 def filled(value: object) -> bool:
@@ -262,10 +278,7 @@ def allowed() -> dict:
         `scope_shape` -> the one shape that is a boundary report rather than
         work; `anchor_form` -> the form an `add`'s anchor takes.
     """
-    claims: dict[str, dict[str, list[str]]] = {}
-    for name, spec in INSTRUCTIONS.items():
-        every, any_of = claim_keys(spec)
-        claims[name] = {"all": every, "any": any_of}
+    claims = {name: claim_keys(spec) for name, spec in INSTRUCTIONS.items()}
     return {
         "instruction": sorted(INSTRUCTIONS),
         "claim": claims,
@@ -288,21 +301,17 @@ def _claim_problems(where: str, instruction: str, claim: object) -> list[str]:
         return [f"{where}: {instruction} needs a `claim` object -- {spec.claim_help}"]
 
     out = []
-    missing = [k for k in spec.claim_all if not filled(claim.get(k))]
+    missing = [k for k in claim_keys(spec) if not filled(claim.get(k))]
     if missing:
         out.append(f"{where}: {spec.claim_help} (missing {', '.join(missing)})")
-    if spec.claim_any and not any(filled(claim.get(k)) for k in spec.claim_any):
-        # ! A `query` names its shape as a KEY, so the closed set is checked
-        # structurally rather than by searching the reason for a phrase.
+    # ! The shape is a VALUE in a closed set, not a key. Checking it
+    # structurally is what lets `collator` route on it without reading prose.
+    if spec.claim_any and claim.get("shape") not in spec.claim_any:
         out.append(f"{where}: {spec.claim_help}")
-    if spec.needs_anchor and not ANCHOR_NAME.search(str(claim.get("missing", ""))):
+    if spec.needs_anchor and not ANCHOR_NAME.search(str(claim.get("anchor", ""))):
         out.append(
             f"{where}: add needs the anchor NAMED in backticks, e.g. {ANCHOR_EXAMPLE}"
         )
-    owed = (("attempted", spec.needs_attempted), ("settles", spec.needs_settles))
-    for key, flag in owed:
-        if flag and not filled(claim.get(key)):
-            out.append(f"{where}: {instruction} needs `claim.{key}`")
     return out
 
 

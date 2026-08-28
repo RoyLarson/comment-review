@@ -187,7 +187,10 @@ def apply_unified(before: str, diff_lines: list[str]) -> str:
     agrees with itself."""
 ```
 
-! **Write this file before Task 8**, which is the first task that uses it. ! `a_docket_over` reads
+!! **RULING, pre-flight 2026-08-28: this file is written in Task 3, Step 0.** It was scheduled for
+Task 8, but **Task 3's own test already calls `binder_of`** -- the first task that uses it is the
+one that writes it. ! Writing it earlier changes nothing about what any test asserts, because the
+file is inputs-only and carries no expectation. ! `a_docket_over` reads
 the page's OWN first paragraph and appends to it, so `claim.from` is verbatim by construction and
 the chain cannot refuse it for a reason the test did not intend.
 
@@ -416,10 +419,19 @@ git add -A && git commit -F <message-file>
 no reader's behaviour does.
 
 **Files:**
-- Modify: `src/comment_review/desk/mark.py`, `src/comment_review/flows/marks.py`,
-  `plugins/comment-review/skills/comment-review/references/reviewer-brief.md`, the four files under
-  `plugins/comment-review/agents/`,
-  `plugins/comment-review/skills/comment-review/references/vocabulary.toml`
+- Modify: `src/comment_review/desk/mark.py`, `src/comment_review/flows/marks.py`
+- Modify: **every hand-written file under `plugins/`** -- `SKILL.md`, all of `references/*.md`
+  including `vocabulary.toml`, and the four files under `agents/`
+
+!! **RULING, pre-flight 2026-08-28: the scope is every hand-written file under `plugins/`, not a
+short list.** This task's own gate scans all of `plugins/`, and `SKILL.md` says *"The seven
+verdicts"* while the references use the word throughout -- **a Files list shorter than the gate is
+a task that cannot pass itself.** ! It stays a one-for-one substitution under `conventions.md`: the
+spelling changes and no reader's behaviour does, which is what that rule permits across a lane
+boundary.
+
+! **The gate allows the word inside a fenced block quoting a ruling** (`decision-log`,
+`history.md`, `prototype/`), which is the exception `check_vocabulary.py` already makes.
 
 - [ ] **Step 1: Write the failing check**
 
@@ -475,6 +487,11 @@ uv run pytest -q && uv run python scripts/check_vocabulary.py
 `binder.py:89`, `"raw_text": "\n".join(paragraph.raw_lines)`. So P1.5 is one line in `seed`, not a
 change to the binder. The paragraph is the revise's bytes because the binder was censused from
 that root; **Task 7 is what names which root that was**, and this task does not need it.
+
+- [ ] **Step 0: Write `tests/helpers.py`**
+
+The file is in the *Test helpers* section above. Tasks 8, 9, 10 and 11 use it; this is the first
+task that does. It carries inputs only -- no helper there decides what a test should expect.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -724,8 +741,13 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 
 ```python
 def test_a_binder_built_from_the_original_says_so():
-    binder = binder_of(Path("src/comment_review/desk"), 0)
-    assert binder["read_from"] == {"root": "src/comment_review/desk", "revise": 0}
+    # !! RULING, pre-flight: COMPARE `Path`s, NEVER PATH STRINGS. This repo is
+    # developed on Windows, where `str(Path("a/b"))` is `a\b` -- a string literal
+    # here is green on one machine and red on the other.
+    root = Path("src/comment_review/desk")
+    binder = binder_of(root, 0)
+    assert Path(binder["read_from"]["root"]) == root
+    assert binder["read_from"]["revise"] == 0
 
 
 def test_a_binder_that_cannot_say_which_root_it_read_is_refused():
@@ -891,8 +913,11 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 **Delivers:** P2.5. **Works** `the-flow-assumes-every-role-reads-at-once` T5.
 
 **Files:**
-- Modify: whichever call sites pass `repo` when censusing for a stage
+- Modify: the call sites the test below forces -- **the implementer names them in its report**
 - Test: `tests/test_stage_root.py`
+
+! **RULING, pre-flight 2026-08-28:** the behaviour is pinned by the test, which is the checkable
+part. An exact file list written before the code is read would be a guess presented as a spec.
 
 - [ ] **Step 1: Write the failing test**
 
