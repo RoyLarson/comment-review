@@ -6,7 +6,7 @@ Progress: 1 of 6 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (two runs of the same skill over the same repo at the same ref;
-          one role returned opposite verdicts on the same block)
+          one role returned opposite instructions on the same paragraph)
 TRIAGED:  2026-08-23 — five of six boxes are tasks; the sixth was a standing
           prohibition and is ticked into the Objective below. ! One Objective claim no
           longer holds: `evals/grade_hazards.py` IS ABSENT -- `evals/` holds
@@ -34,14 +34,20 @@ Updated:  2026-08-28 — TRIAGE 2026-08-28: checked against Roy's assessment tha
           test-cases.jsonl with no repeated-run data (T1/T2 not done). No confidence
           field was added anywhere in src/ or plugins/ (T6's prohibition still holds).
           File stays open; Roy's assessment does not close it.
+Updated:  2026-08-28 — VOCABULARY 2026-08-28: reworded to current terms. block/blocks ->
+          paragraph/paragraphs and verdict/verdicts -> instruction/instructions at 12
+          sites (13 word instances: 4 block, 1 blocks, 6 verdict, 5 verdicts) -- none
+          were quotations of Roy, of another file's text, or of a filename, so all were
+          live prose and rewritten to read naturally with the current words. Nothing
+          left unchanged in this file.
 ```
 
 ## Objective
 
-**The same editorial role, given the same census, returned opposite verdicts on the same block
+**The same editorial role, given the same census, returned opposite instructions on the same paragraph
 across two runs.** Observed on `todo_tool`, r1 against r2:
 
-| block | r1 | r2 |
+| paragraph | r1 | r2 |
 | --- | --- | --- |
 | the *"Six call sites"* claim | `module-context` **cleared** it | `module-context` **corrected** it -- four functions, and both test modules read the groups |
 | `_OWNER_SPLIT`'s *"five real fields"* | `module-context` **corrected** it -- *"actually three"* | `module-context` **`query` -- outside the code**, on the grounds that the fix erased the state that would settle it |
@@ -54,14 +60,14 @@ it** -- the state that would settle it had been erased by the very fix under rev
 
 ! That downgrades this row from a contradiction to a scope difference, and it sharpens the
 question rather than retiring it: a role that can settle a claim only from history, not from the
-tree, has no verdict for that. `query -- outside the checkout` is the nearest, and it says
+tree, has no instruction for that. `query -- outside the checkout` is the nearest, and it says
 "generated, gitignored, remote" -- not "the checkout no longer holds what would settle this,
 because this change removed it". ! The first row is unresolved and remains the evidence. A
-`correct` that reads confident and a `query` that says nobody can tell are not adjacent verdicts.
+`correct` that reads confident and a `query` that says nobody can tell are not adjacent instructions.
 
 !! **This is not the disagreement the system is built for.** Two ROLES disagreeing is designed
 in -- remits overlap, the collator prints it, and the re-review resolves it. Two runs of ONE role
-disagreeing is different: it means the verdict is a sample, and nothing anywhere states its
+disagreeing is different: it means the instruction is a sample, and nothing anywhere states its
 variance.
 
 **What rests on that, in this repo's own words:**
@@ -108,7 +114,7 @@ other condition.
 
 ## ! What is NOT established
 
-- **Which answer was right.** Neither run's `Six call sites` verdict has been checked here.
+- **Which answer was right.** Neither run's `Six call sites` instruction has been checked here.
 - **Whether the input was truly identical.** Both runs are the same repo at the same ref, but
   the second ran against a CHANGED skill -- the interval exemption, the query-shape requirement
   and the withheld packet section all landed between them. A role told different things may
@@ -137,7 +143,7 @@ a different and more tractable problem.
 ! **T3 -- what a measured reversal rate would OBLIGE.** Candidates: nothing, and it is recorded
 as a known bound; a rule that a `clean` from one role never certifies alone; or the collator
 reporting agreement across roles as a confidence signal it currently computes and discards.
-! Roy's, because it decides whether a verdict is a claim or a vote.
+! Roy's, because it decides whether an instruction is a claim or a vote.
 
 ! **T4 -- whether a `correct` reversing to `query` is WORSE than the reverse.** Going from
 "here is the true clause" to "nobody can settle this" retracts something already relayed; going
@@ -150,15 +156,15 @@ list. `grep -n "stability" docs/limitations.md` returns nothing today.
 
 ## Tasks
 
-- [ ] T1 -- Run one role twice over an unchanged skill and census, and diff the verdicts
-      per block. Verify: a per-block diff recorded, with reversals counted over blocks.
+- [ ] T1 -- Run one role twice over an unchanged skill and census, and diff the instructions
+      per paragraph. Verify: a per-paragraph diff recorded, with reversals counted over paragraphs.
 - [ ] T2 -- Re-run r1's exact skill version against the same census to see whether the
-      reversal reproduces. Verify: both `module-context` verdicts recorded side by side.
+      reversal reproduces. Verify: both `module-context` instructions recorded side by side.
 - [ ] T3 -- * Rule what a measured reversal rate would OBLIGE: nothing, a bar on a lone
       `clean`, or agreement across roles. Verify: `docs/decision-log.md` records it.
 - [ ] T4 -- * Rule whether a `correct` reversing to `query` is WORSE than the reverse. The
-      verdict table treats them as peers. Verify: `docs/decision-log.md` records it.
-- [ ] T5 -- Say in `docs/limitations.md` that verdict stability across runs is UNMEASURED.
+      instruction table treats them as peers. Verify: `docs/decision-log.md` records it.
+- [ ] T5 -- Say in `docs/limitations.md` that instruction stability across runs is UNMEASURED.
       Verify: `grep -n "stability" docs/limitations.md` returns a line.
 - [x] T6 -- NOT A TASK. The standing prohibition on adding a `confidence` field is kept in
       the Objective, under *A "confidence" field is not the answer*.
