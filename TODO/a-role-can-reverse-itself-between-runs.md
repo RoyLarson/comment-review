@@ -21,6 +21,19 @@ TRIAGED:  2026-08-23 — five of six boxes are tasks; the sixth was a standing
 SPLIT:    2026-08-23 -- the boxes were cut to two lines each and every open one now
           carries a Verify clause. The reasoning they held is in the Objective; the
           task count is unchanged at six
+Updated:  2026-08-28 — TRIAGE 2026-08-28: checked against Roy's assessment that variance
+          is not a defect (agents and humans are non-deterministic). That argument
+          answers a proposal to ELIMINATE reversal; this file's Objective and all five
+          open tasks (T1-T5) ask to MEASURE the reversal rate and RULE what it obliges,
+          not to eliminate reversal -- the Objective explicitly forbids the one "fix" (a
+          confidence field) that would chase determinism. Roy's argument does not reach
+          a measurement ask. Checked the tree for any measurement already made: grep -n
+          "stability" docs/limitations.md returns nothing (T5 not done), docs/decision-
+          log.md has no ruling on what a reversal rate would oblige or on correct-vs-
+          query asymmetry (T3/T4 not done), and evals/ still holds only the six-case
+          test-cases.jsonl with no repeated-run data (T1/T2 not done). No confidence
+          field was added anywhere in src/ or plugins/ (T6's prohibition still holds).
+          File stays open; Roy's assessment does not close it.
 ```
 
 ## Objective

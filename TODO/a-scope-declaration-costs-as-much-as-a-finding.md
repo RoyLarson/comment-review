@@ -13,6 +13,31 @@ TRIAGED:  2026-08-23 — three of four boxes are tasks; the fourth was a standin
           `QUOTE`, it asks for `SOURCES` -- `reviewer-brief.md:419-423`, *"A `query`
           requires `SOURCES`, by construction ... All three shapes carry them, including
           `outside my role`"*.
+Updated:  2026-08-28 — TRIAGE 2026-08-28: checked Roy's hedge ("probably not true
+          anymore because of the new binder layout and rest of the system") against the
+          tree. This file's Objective is about PAYLOAD SIZE -- an outside-my-role query
+          costs as many bytes/records as a real finding. decision-log.md Process #33
+          (2026-08-27) replaced the three query shapes with outside-my-role/unable-to-
+          determine/human-review-necessary and restated that outside-my-role "must never
+          block the other roles", citing the same measurement (docket fell from 12
+          alterations to 5) that TODO/collate-buckets-a-move-at-one-end.md and plan
+          0.2.4 T4.3 track -- that is a BLOCKING/reconciliation concern, not this file's
+          payload-size concern, and it is a different TODO's mechanism. Checked whether
+          the payload requirement itself changed: reviewer-brief.md:435-447 (current,
+          post-#33) still requires full SOURCES plus a REASON naming the remit for
+          outside-my-role exactly as before -- "All three shapes carry them, including
+          outside-my-role" -- so the bytes-per-query cost this file measures is
+          structurally unchanged. None of T1 (bytes), T2 (record count), T3 (rule
+          whether it may be lighter) or T4 (document the cost if it stays) has been done
+          -- grep confirms no ruling in docs/decision-log.md and no "small-remit" cost
+          sentence in reviewer-brief.md. Separately, and worth flagging: the mechanism
+          Roy may have had in mind (outside-my-role not blocking reconciliation) is ALSO
+          not done in code -- plan 0.2.4-the-mark-and-the-collator.md T4.3 is unchecked,
+          and verdicts.py/record.py (the collator) moved to prototype/ and do not run;
+          SKILL.md:747-751 states the non-blocking rule as prose for the task agent to
+          apply by hand, which is a ruling, not enforcing code. Neither the payload
+          question this file actually asks, nor the blocking question Roy's note
+          gestures at, has been resolved by the new system. File stays open.
 ```
 
 ## Objective
