@@ -12,6 +12,21 @@ Triaged:  2026-08-23 -- the counts were re-taken and the worked example is retir
           by the words that replaced it
 Split:    2026-08-23 -- 4 boxes became 6. The style-sheet box held the section and the
           rule it must state; the reviewer box held a decision and the sentence it fixes
+Roy, 2026-08-28: 2026-08-28 — Ruled: stays open. Yes -- still requires a fix to get the
+                 local repo's own semantics separated from comment-review's semantics.
+                 Re-verified against the tree the same day: vocabulary.toml still holds
+                 59 definitions (0 holes, 0 duplicates, 0 drift, 0 retired-word uses per
+                 check_vocabulary.py); per-role counts unchanged at 43/42/43/46; all ten
+                 example collision terms (page, census, record, sentence, statement,
+                 series, cue, owner, anchor, mark) are still defined and still given to
+                 ownership-context; SKILL.md 1.5's style sheet section (247-274) still
+                 has no COLLISIONS subsection, so T2-T5 are still not done. New since
+                 the last triage: the delivery mechanism T5 targets, vocabulary.py,
+                 moved to prototype/ on 2026-08-25 and is not shipped or run -- SKILL.md
+                 now says handing over a role's vocabulary by command is absent, tracked
+                 in the-skill-names-commands-that-moved-to-prototype.md. A fix to T5 has
+                 to land wherever that TODO decides the vocabulary reaches a role now,
+                 not by editing the retired prototype file.
 ```
 
 ## Objective
