@@ -65,7 +65,7 @@ and the work that earned it in the same diff.
 
 | `P` box | ticked in | also ticks `T` |
 | --- | --- | --- |
-| **P1.1**, **P1.2**, **P1.3** | Task 1 | `the-ported-mark-does-not-fit-the-brief` T1, T2, T3; `record-and-verdicts-disagree` T4 |
+| **P1.1**, **P1.2**, **P1.3** | Task 1 | `the-ported-mark-does-not-fit-the-brief` T1, T2, T3 |
 | **P1.4** | Task 2 | -- (`Vocabulary: #17`, a substitution) |
 | **P1.5**, **P1.6** | Task 3 | `the-ported-mark-does-not-fit-the-brief` T4 |
 | **P1.7** | Task 4 | `the-ported-mark-does-not-fit-the-brief` T5 |
@@ -397,8 +397,12 @@ uv run python scripts/check_shipped_syntax.py
 uv run python scripts/todo_tool.py check the-ported-mark-does-not-fit-the-brief 1
 uv run python scripts/todo_tool.py check the-ported-mark-does-not-fit-the-brief 2
 uv run python scripts/todo_tool.py check the-ported-mark-does-not-fit-the-brief 3
-uv run python scripts/todo_tool.py check record-and-verdicts-disagree 4
 ```
+
+!! **`record-and-verdicts-disagree` T4 IS NOT TICKED HERE, AND WAS UNTICKED AGAIN ON 2026-08-28.**
+This task lands its GATE half -- `claim.shape` required, the substring fallback gone. Its VERIFY
+sentence names routing that lives in the collator, so the box belongs to **P4.3**. ! The sentence
+was not reworded to match what was done: an unchecked box says work remains, and it does.
 
 Then `Edit` `docs/plans/0.2.4-the-mark-and-the-collator.md`, changing `- [ ] **T1.1**`,
 `- [ ] **T1.2**` and `- [ ] **T1.3**` to `- [x]`.
