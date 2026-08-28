@@ -269,31 +269,35 @@ finding.
 its surrounding paragraph, and it is required for all of these but `clean` and `query` -- those two
 propose no text, so there is nothing for the task agent to apply.
 
-!! **THE TABLE BELOW IS COPIED FROM `INSTRUCTIONS` IN `desk/mark.py`** -- the keys from
-`claim_keys`, the prose from each row's `payload`. Edit the row, not this file; a test
-refuses a brief that has drifted from it. ! It had drifted: the hand-written table taught
-an older marker form under a JSON worked example, and ten of the eleven keys a reviewer
-must type appeared nowhere here as keys.
+!! **THE TABLE BELOW IS GENERATED, FROM TWO SOURCES** -- the `claim` keys from `INSTRUCTIONS`
+in `desk/mark.py` (`claim_all`, stated once per row), and the "what they carry" prose from
+`docs/the-mark.md`'s "What each instruction owes" table, written by a human. Edit the row or
+the spec, never this table; `uv run python scripts/render_brief.py --write` regenerates it, and
+a test refuses a brief whose table disagrees with a fresh render, or where the two sources name
+different instructions. ! It had drifted once already: the hand-written table taught an older
+marker form under a JSON worked example, and ten of the eleven keys a reviewer must type
+appeared nowhere here as keys -- which is what let `add`'s row go stale while the caption still
+claimed the table was generated, when no such script existed anywhere in the tree.
 
-<!-- BEGIN GENERATED: instruction table -- desk/mark.py -->
+<!-- BEGIN GENERATED: instruction table -- scripts/render_brief.py -->
 
 | instruction | `claim` keys | what they carry |
 | --- | --- | --- |
-| `clean` | none | nothing. Name your role and stop -- `clean` proposes no text, so there is nothing for the task agent to apply |
-| `query` | `shape`, `attempted`, `settles` | the SHAPE in the brief's own words, the check you ATTEMPTED, and what WOULD settle it. All three are checked as SHAPE and none as truth; the claim itself is checked by nothing, so the other three are all that stands behind the ruling |
-| `drop` | `drop` | the sentence, verbatim, as it stands in the paragraph. ! It is CHECKED against the census text, so a paraphrase is refused |
-| `correct` | `false`, `true` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the paragraph -- if it is not there, the finding is on the wrong one |
-| `patch` | `from`, `to` | the sentence as it stands and the rewrite. ! `from` is checked against the paragraph. A `patch` needs no source: the claim is already true, and only its wording is at issue |
-| `add` | `missing`, `anchor` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the payload's |
-| `move` | `from`, `to` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting PARAGRAPHS |
+| `clean` | none | not substantive. The NULL mark, and the coverage record |
+| `query` | `shape`, `attempted`, `settles` | may declare scope |
+| `drop` | `drop` | an empty change IS the edit where the claim names the whole paragraph |
+| `correct` | `false`, `true` | rules on text |
+| `patch` | `from`, `to` | wording alone -- nothing outside the paragraph settles it |
+| `add` | `missing`, `anchor` | not diffable. The anchor is NAMED IN BACKTICKS |
+| `move` | `from`, `to` | the `to` must be ADDRESSABLE |
 
 <!-- END GENERATED -->
 
 !! **`correct` keeps `false:`/`true:` where `patch` and `move` take `from:`/`to:`, and the pair
-is not interchangeable.** `false:`/`true:` ASSERTS the sentence is wrong, and that assertion is
-the whole difference between the two instructions: a `patch` sentence is TRUE and merely reads
-badly. A neutral from/to on a `correct` would erase the distinction the synthesis order rests
-on, and it is refused.
+is not interchangeable.** Each names a CLAUSE, not necessarily the whole sentence -- `false:`/
+`true:` ASSERTS the sentence is wrong, and that assertion is the whole difference between the
+two instructions: a `patch` sentence is TRUE and merely reads badly. A neutral from/to on a
+`correct` would erase the distinction the synthesis order rests on, and it is refused.
 
 ! **A `move`'s halves are PLACES, not text** -- from where it sits, to where it belongs. It is
 the one edit whose `CLAIM` names no sentence, because the `PARAGRAPH` is what identifies the prose.

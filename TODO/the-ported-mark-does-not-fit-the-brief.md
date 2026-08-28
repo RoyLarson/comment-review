@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks done
+Progress: 4 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing `desk/mark.py` against the role's needs before building
@@ -60,5 +60,5 @@ Only `add` disagreed, and the port is what moved.
       the suite FAILS before T1 and passes after -- one that passes both ways is testing itself.
 - [ ] T4 -- Give the sheet a `code_concerns` list, and say so in the brief. Verify: a sheet
       carrying one validates, and the brief names the key.
-- [ ] T5 -- Rebuild the generator and gate it. Verify: it writes the block from `INSTRUCTIONS`,
+- [x] T5 -- Rebuild the generator and gate it. Verify: it writes the block from `INSTRUCTIONS`,
       and a test fails when the committed block and a fresh render disagree.
