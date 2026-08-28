@@ -48,49 +48,43 @@ BRIEF_PATH = (
 BEGIN_MARKER = "<!-- BEGIN GENERATED: instruction table -- scripts/render_brief.py -->"
 END_MARKER = "<!-- END GENERATED -->"
 
-#: The "What each instruction owes" table's own header names the "row's own
-#: flags" column at a fixed offset -- read from the header itself, not
-#: hand-copied, so a column that moves in the spec moves this too.
-_FLAGS_COLUMN = "the row's own flags"
-_NAME_WIDTH = 11
+#: The spec section whose table holds the role-facing sentence. ! NOT "What each
+#: instruction owes", whose last column is the row's FLAGS -- classifier facts
+#: like "rules on text", which say nothing to a role about what to write.
+#: MEASURED 2026-08-28: reading that column published "rules on text" for
+#: `correct` where the brief had said "the false clause and the true one, and a
+#: `sources` entry carrying the line that settles it".
+_PROSE_HEADING = "## What each `claim` carries, in the role's own terms"
 
 
 def _prose_by_instruction() -> dict[str, str]:
     """The "what they carry" sentence for each instruction.
 
-    Read out of `docs/the-mark.md`'s "What each instruction owes" table --
-    its own last column, joined across any wrapped continuation lines.
+    Read out of `docs/the-mark.md`'s role-facing table. **A human writes these**
+    -- they are not derived from the keys and no row in the code carries them,
+    per `decision-log.md Process: #37`.
 
     Returns:
-        instruction name -> the row's flags-column text, verbatim.
+        instruction name -> its sentence, verbatim.
     """
     spec = SPEC_PATH.read_text(encoding="utf-8")
     match = re.search(
-        r"^## What each instruction owes\n.*?```\n(.*?)\n```",
+        rf"^{re.escape(_PROSE_HEADING)}\n(.*?)(?=\n## )",
         spec,
         re.MULTILINE | re.DOTALL,
     )
     if not match:
-        raise SystemExit(
-            f"{SPEC_PATH}: 'What each instruction owes' table not found"
-        )
-    lines = match.group(1).splitlines()
-    header, rows = lines[0], lines[2:]  # lines[1] is the '---' rule
-    flags_start = header.index(_FLAGS_COLUMN)
+        raise SystemExit(f"{SPEC_PATH}: {_PROSE_HEADING!r} not found")
 
-    prose: dict[str, list[str]] = {}
-    order: list[str] = []
-    for line in rows:
-        if not line.strip():
-            continue
-        name = line[:_NAME_WIDTH].strip()
-        if name:
-            order.append(name)
-            prose[name] = []
-        fragment = line[flags_start:].strip()
-        if fragment:
-            prose[order[-1]].append(fragment)
-    return {name: " ".join(parts) for name, parts in prose.items()}
+    prose: dict[str, str] = {}
+    for line in match.group(1).splitlines():
+        if not line.startswith("| `"):
+            continue  # the header, the rule, and the prose around the table
+        _, name, sentence, _ = line.split("|", 3)
+        prose[name.strip().strip("`")] = sentence.strip()
+    if not prose:
+        raise SystemExit(f"{SPEC_PATH}: {_PROSE_HEADING!r} holds no rows")
+    return prose
 
 
 def _claim_cell(claim_all: tuple[str, ...]) -> str:

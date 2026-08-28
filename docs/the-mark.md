@@ -135,6 +135,33 @@ TOUCHES, because being seen at only one of them is how half of it gets settled.
 compatible -- see *The one contradiction the set can express*, below. Indivisible means its own two
 halves travel together, not that it conflicts with everything.
 
+## What each `claim` carries, in the role's own terms
+
+!! **THIS IS THE PROSE A ROLE READS, AND IT IS WRITTEN BY A HUMAN, HERE.** It is what
+`reviewer-brief.md`'s generated table publishes in its third column. **It is not derived from the
+keys, and no row in the code carries it** -- Roy, 2026-08-28: *"What finishes can be put into the
+instruction set and the cli help."* This file is the instruction set.
+
+| instruction | what the `claim` carries |
+| --- | --- |
+| `clean` | nothing. Name your role and stop -- `clean` proposes no text, so there is nothing for the apply step to apply |
+| `query` | the SHAPE in these exact words, the check you ATTEMPTED, and what WOULD settle it. All three are checked as SHAPE and none as truth; the claim itself is checked by nothing, so the other three are all that stands behind the ruling |
+| `drop` | the sentence, verbatim, as it stands in the paragraph. ! It is CHECKED against the page, so a paraphrase is refused |
+| `correct` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the paragraph -- if it is not there, the finding is on the wrong one |
+| `patch` | the sentence as it stands and the rewrite. ! `from` is checked against the paragraph. A `patch` needs no source: the claim is already true, and only its wording is at issue |
+| `add` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the claim's |
+| `move` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting PARAGRAPHS |
+
+!! **IT WAS LOST ONCE ALREADY, ON 2026-08-28, AND THE MECHANISM IS WORTH KNOWING.** This prose used
+to live in a `payload` field on each row. Deleting that field was right -- a row carries no prose --
+but the text had **no other home**, so the brief's generator was pointed at this file's *flags*
+column instead and published `"rules on text"` where a role had been reading *"the false clause and
+the true one, and a `sources` entry carrying the line that settles it."*
+
+! **DELETING A FIELD DOES NOT DELETE WHAT IT HELD.** The content has to land somewhere first, or
+the next thing that reads it silently gets a worse answer. ! `add`'s sentence ended *"never the
+payload's"* and now reads *"never the claim's"*: the old word named the field that was removed.
+
 ## The classifiers -- FOUR COLUMNS AND A CLOSED LIST OF FLAGS
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
