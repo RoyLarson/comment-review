@@ -47,6 +47,26 @@ Updated:  2026-08-28 — tests/test_reading.py now carries
           Strictness proved live: with _join changed to also strip block markers and the
           interior *, the test XPASSes as a FAILURE under strict; the source change was
           reverted after.
+Updated:  2026-08-28 — 2026-08-28 vocabulary pass: reworded six genuine retired-word
+          uses to current vocabulary (block/blocks -> paragraph/paragraphs) -- 'prose
+          blocks' -> 'prose paragraphs' and '4% of all blocks' -> 'paragraphs' in the
+          measurement table and its reading, both counting total census paragraphs
+          regardless of comment style; 'the blocks and their line ranges are right' ->
+          'the paragraphs and their line ranges are right', naming the scanner's own
+          output; 'the two halves of the block protocol' -> 'the paragraph protocol',
+          matching block_text's own current docstring in lexer.py, which names it the
+          paragraph protocol -- this one diverges from a language-sense reading and is
+          flagged separately; 'every c-family and js-family block' reworded to 'every
+          c-family and js-family block-comment paragraph' to keep both the language
+          sense and the census sense correct; "BLOCK carries the block's original" ->
+          "the paragraph's original", leaving the BLOCK citation itself untouched. Left
+          unchanged, as the LANGUAGE sense (a /* */ or =begin/--[[ style comment, not
+          the census unit): 'block comment', 'JSDoc block', 'a Javadoc block', 'block
+          marker', 'block form', the Ruby/Lua '=begin/=end block' and '--[[ ]] block'
+          phrasing in T9/T10, and the block_comment/doc_block attribute-name citations.
+          Left unchanged as historical record: the 2026-08-23 TRIAGED note's own
+          wording. Left unchanged as filenames: this file's own slug and the a-prose-
+          file-has-no-blocks link. No task box affected.
 ```
 
 ## Objective
@@ -73,7 +93,7 @@ js-family  docstring   '/** * Build a client. * * @param {Object} config the cal
 c-family   comment     '/* * Ownership: the scheduler owns this queue once start() returns'
 ```
 
-| | prose blocks | carrying a block marker |
+| | prose paragraphs | carrying a block marker |
 | --- | --- | --- |
 | **c-family** (`.java` sample) | 25 | **24** |
 | **js-family** (`.js` sample) | 13 | **5** |
@@ -81,7 +101,7 @@ c-family   comment     '/* * Ownership: the scheduler owns this queue once start
 | lua * shell * sql * toml-ini * yaml * python | 284 | 0 |
 | **total** | **812** | **36** |
 
-!! **Read the concentration, not the total.** 4% of all blocks, and **96% of the c-family
+!! **Read the concentration, not the total.** 4% of all paragraphs, and **96% of the c-family
 ones** -- Javadoc and JSDoc are the dominant doc styles across `.java .cs .swift .kt .cpp .ts
 .tsx .jsx`, which is the largest group of extensions this system claims.
 
@@ -97,8 +117,8 @@ text=_join(raw, openers)
 
 **Seven language records declare a `block_comment` pair and one is never stripped:**
 rust, go, c-family, js-family, sql `/* */`; ruby `=begin/=end`; lua `--[[ ]]`. The scanner
-FINDS these runs correctly -- the blocks and their line ranges are right -- and only the prose
-extraction leaves the markers in.
+FINDS these runs correctly -- the paragraphs and their line ranges are right -- and only the
+prose extraction leaves the markers in.
 
 ! The continuation `*` is the larger half, and it is the part a naive fix misses: a Javadoc
 block is `/**` once and ` * ` on every line after it, so stripping the opener and closer still
@@ -112,17 +132,17 @@ two halves must move together.
 
 ## Why the two halves move in one commit
 
-`_join` (`lexer.py:532`) and `block_text` (`lexer.py:609`) are the two halves of the block
-protocol and they agree today. **A fix to one alone refuses every c-family and js-family block
-instead of merely polluting it** -- which is the exact shape of the defect that refused 73% of a
-run on 2026-08-17.
+`_join` (`lexer.py:532`) and `block_text` (`lexer.py:609`) are the two halves of the paragraph
+protocol and they agree today. **A fix to one alone refuses every c-family and js-family
+block-comment paragraph instead of merely polluting it** -- which is the exact shape of the
+defect that refused 73% of a run on 2026-08-17.
 
 ## What it costs
 
 - **The reviewers read it.** The prose IS the census `text`; four roles rule on that string.
 - **Stage 3 resolves against it.** `annotate.py` matches paths, symbols and counts in this text,
   so a marker sits inside phrases the annotation regexes scan.
-- **A transcription has to reproduce it.** `BLOCK` carries the block's original and
+- **A transcription has to reproduce it.** `BLOCK` carries the paragraph's original and
   `address_problem` compares it to `text`, so a reviewer must copy the asterisks back in.
   ! It does round-trip today -- `block_text` reproduces the census exactly, 812 of 812 -- so
   this is a QUALITY defect, not a refusal. Fixing `_join` without fixing both sides would turn

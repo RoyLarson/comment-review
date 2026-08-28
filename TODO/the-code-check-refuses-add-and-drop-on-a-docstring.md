@@ -40,6 +40,20 @@ Updated:  2026-08-28 — tests/test_proof_setter.py now carries
           live: with _blank_docstrings changed to remove rather than blank the docstring
           node, both XPASS as a FAILURE under strict; the source change was reverted
           after.
+Updated:  2026-08-28 — 2026-08-28 vocabulary pass: reworded the file's one genuine
+          retired-word use -- 'the case the verdict exists for' -> 'the case the
+          instruction exists for', naming add as one of the seven instructions (formerly
+          verdicts), consistent with its own definition quoted two lines above. The
+          plural 'unable to admit two verdicts' was judged NOT the same retired sense --
+          it names two outcomes the CODE CHECK's own proof could report (executable-
+          code-identical and an approved docstring delta), not two of the seven
+          paragraph instructions, so swapping in 'instructions' would misstate what T1
+          is deciding. Reworded instead to 'unable to report two separate outcomes',
+          removing the ambiguous word without forcing a wrong technical term -- flagged
+          as a finding, not a forced swap.
+          TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain, the real pytest class
+          name cited in this file's own Measured entry, is left untouched as a code
+          citation. No task box affected.
 ```
 
 ## Objective
@@ -55,8 +69,8 @@ so adding or deleting one fails the proof.** Measured:
 | **DELETE a docstring** | **FAIL** |
 
 !! **`add` cannot land on a docstring, and `add` is defined as "a constraint exists in code and
-NOWHERE in prose".** A function with no docstring is the case the verdict exists for, and the
-repair is a docstring. `drop` has the same hole from the other side.
+NOWHERE in prose".** A function with no docstring is the case the instruction exists for, and
+the repair is a docstring. `drop` has the same hole from the other side.
 
 ! It went unnoticed because **7b had never run.** Two runs today stopped at 7a, as designed; the
 first one to cross applied a docstring `add`, failed the proof, and restored -- correctly, the
@@ -88,8 +102,8 @@ stop; a delta that matches one is the edit landing.
 ## What the boxes used to carry, and why each is wanted
 
 ! **T1 is Roy's** because it changes what the proof ASSERTS. It decides whether the CODE CHECK
-stays a blanket proof -- simple, and unable to admit two verdicts -- or becomes a diff against an
-expectation, which is stronger and needs the approved list to reach it.
+stays a blanket proof -- simple, and unable to report two separate outcomes -- or becomes a diff
+against an expectation, which is stronger and needs the approved list to reach it.
 
 ! **T2 stands whichever way T1 goes.** Today ONE line says `executable code DIFFERS (ast proof)`
 for a change that is entirely prose, and the operator had to diagnose it by hand with a second

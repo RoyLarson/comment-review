@@ -31,6 +31,13 @@ Updated:  2026-08-28 — 2026-08-28 triage: re-verified against the current tree
           measurement exists -- T4-T6 remain deferred. Roy's 2026-08-28 assessment
           (pretty certain this one is closed) does not hold on this evidence; the file
           stays open as filed.
+Updated:  2026-08-28 — 2026-08-28 vocabulary pass: reworded one retired-word use. 'an
+          unterminated block' (Requires-Roy background) now reads 'an unterminated
+          paragraph comment', matching this file's own term for the same annotation used
+          twice elsewhere in the Objective (unterminated-paragraph-comment). The file's
+          one other block use -- 'a block comment can also sit in the MIDDLE' -- is the
+          language sense, a /* */ block comment, and was left unchanged. No task box
+          affected.
 ```
 
 ## * RULED 2026-08-17: build it when someone needs it
@@ -46,8 +53,8 @@ writes is cost with no reader.
 !! **What is NOT deferred is saying WHY a file was refused.** `prove_unchanged` returns
 `unprovable` with no cause, and that fires for THIS author today -- the `spanning_quotes`
 refusal added 2026-08-17 catches any JS file holding a template literal, which is most of them.
-A user cannot currently tell a mid-line comment from an unterminated block from a language with
-no record. That is the cause-reporting work below and it stands on its own.
+A user cannot currently tell a mid-line comment from an unterminated paragraph comment from a
+language with no record. That is the cause-reporting work below and it stands on its own.
 
 ## Objective
 
