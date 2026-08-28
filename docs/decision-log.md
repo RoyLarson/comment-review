@@ -679,9 +679,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   | holds | withdraws | the held claim, mechanically `taken in` |
   | withdraws | withdraws | pick one, revise double-check, mechanically `taken in` |
 
-  ! **THE ROLE'S TWO NON-MARK ANSWERS STILL NEED A WORD.** `stet` is ruled copy-chief-only
-  (2026-08-24) because it presupposes two roles that disagreed and a chief that ruled, and
-  `taken in` is the compositor's, assigned mechanically -- so NEITHER is a role's to emit. Open.
+  ! **THE ROLE'S TWO NON-MARK ANSWERS NEEDED A WORD** -- `stet` is copy-chief-only (2026-08-24)
+  and `taken in` is the compositor's, assigned mechanically, so neither is a role's to emit.
+  **ANSWERED BY `#22`**: they are `hold` and `withdrawn`, and they are explicit.
 
 - **#21.** **A `query` ON A REVISE SPLITS BY SHAPE, AND REASONING IS SHARED FROM ROUND TWO ON**
   (Roy, 2026-08-27).
@@ -708,6 +708,44 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   could introduce is measurable. ! MEASURED 2026-08-27, under the withholding rule: 2 of 3
   converged in one pass and the roles re-verified rather than deferring -- one re-traced a
   dispatch chain and re-grepped the tree, one declined an invitation to widen its own finding.
+
+- **#22.** **A DIFF-MARK CARRIES ONE OF FOUR, AND ALL FOUR ARE WRITTEN DOWN** (Roy, 2026-08-27:
+  *"I would prefer the explicit hold/withdrawn/patch/correct marks"*).
+
+    hold        my mark stands
+    withdrawn   I retract it
+    correct     a revised claim -- relitigates
+    patch       revised wording -- relitigates
+
+  !! **THE REASON IS THE ANTI-DECISION DECISION, AND IT IS THE RULING'S WHOLE POINT.** Roy:
+  *"Inferring the decision from lack of decision means that the agents get to do the human failure
+  of the anti-decision decision. Where we allow undecided things to continue effectively making
+  the decision to keep the status quo."*
+
+  ! An inferred `withdrawn` is indistinguishable from a role that never answered, so the status
+  quo wins by default and **nobody is on record as having chosen it.**
+
+  !! **THIS IS THE SAME RULE THIS REPO HAS NOW LANDED THREE TIMES**, and each time the fix was to
+  make the null answer something a hand must WRITE:
+
+  | where | the silence that was doing a decision's work |
+  | --- | --- |
+  | `TODO/` | *"a check box not-marked is left as something todo, even if it was superseded"* |
+  | `clean` | it was optional, so *read it and found nothing* and *never looked* were one absence -- ruled back to mandatory |
+  | a diff-mark | an unanswered place would read as a withdrawal |
+
+  !! **AND THESE FOUR ARE NOT AN ADDITION TO THE SEVEN.** A diff-mark is a DIFFERENT ARTIFACT
+  answering a different question -- *does your finding still stand* rather than *what is wrong
+  with this page* -- so it carries its own closed set. The seven stay seven. ! `correct` and
+  `patch` appear in both because they are the two that `rules_on_text`, which `#20` derives from
+  the row rather than listing.
+
+  ! **A `query` RAISED AT REVISE IS A HUMAN QUERY, AND IT MEASURES SOMETHING.** Roy: *"If after
+  the revise round one raises a query that is only a query to the human. The text has become
+  ambiguous and probably should have had the query mark from the first round."* ! A role that has
+  seen both readings and still cannot resolve it has exhausted what another agent could add. **So
+  queries first raised at revise count round-one OVER-CLAIMING** -- the failure direction opposite
+  to the one coverage measures.
 
 ## Metaphor and its limits
 
