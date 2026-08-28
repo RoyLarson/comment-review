@@ -97,6 +97,14 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
   it does is find every file in scope and put a page for each in the binder. ! So `collate` is
   available for its trade meaning, transferring every hand's marks onto one proof.
 
+  !! **AND IT HAS A SECOND TRADE MEANING THIS SYSTEM DOES NOT USE.** In bibliography, **collation**
+  is comparing two states of one text to find where they differ -- the Hinman collator. That is
+  exactly what `taken_in` does (original against the revise a role is holding), so the obvious word
+  is the wrong one: `collator.py` keeps the copy-desk sense above, and the comparison sense is
+  declared here rather than left to be rediscovered. **The undeclared meaning is the defect**, not
+  the ambiguity, which is a fact about English older than this repo.
+  `decision-log.md Vocabulary: #24`.
+
   !! **A BINDER HERE IS THE OBJECT, NOT THE TRADE.** Roy, 2026-08-24: *"The gatherer/census hands
   over the binder as in a 3-ring binder full of stuff not binder as the person who bounds
   books."* ! **He has used it that way throughout** -- *"a binder with sticky notes"*, and the

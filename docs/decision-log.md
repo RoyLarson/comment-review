@@ -788,6 +788,23 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **WHERE AN EXPECTATION MAY COME FROM**: the shipped prose that states the contract, a
   recorded run's real output, or a literal a human checked. Never the module under test.
 
+- **#24.** **`collate` CARRIES TWO TRADE SENSES; THIS SYSTEM USES ONE AND DECLARES THE OTHER**
+  (2026-08-28, designing the staged flow).
+
+  | sense | trade | ours |
+  | --- | --- | --- |
+  | **gathering and blending changes from several people** | copy desk | **`collator.py`.** Ruled in `#19`, and the one this system means |
+  | **comparing two states of one text to find where they differ** | bibliography -- the Hinman collator | **not used.** The command that does this is `taken_in` |
+
+  ! **THE SECOND SENSE FITS THE NEW COMMAND EXACTLY**, which is why it is written down rather than
+  left to be rediscovered: a session reaching for the obvious word would give `collate` two
+  meanings, and **the undeclared one is the defect** -- not the ambiguity, which is a fact about
+  English that predates this repo.
+
+  ! **`taken_in` IS NOT A NEW TERM EITHER.** `#12` ratified it 2026-08-24 -- *"A mark carried into
+  the text is `taken in`"* -- so the command is named for the question it answers: what has been
+  taken in on this page before I arrived.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
@@ -1227,3 +1244,83 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   functional rather than editorial, and this repo takes its terms from publishing. The candidates
   are noted in [`the-fields-do-not-say-a-mark-may-cite-across`](../TODO/the-fields-do-not-say-a-mark-may-cite-across.md);
   the CATEGORIES are ruled and only the words are open.
+
+- **#34.** **THE FLOW IS STAGED, AND EACH EDITORIAL BOUNDARY PULLS A REVISE** (Roy, 2026-08-28:
+  *"it bakes in the idea that all editorial-role agents see everything at the same time and only
+  rule on it once ... unless as part of the binder we copy the whole program into a tempdir and
+  allow edits there"*).
+
+  ! **THE SKILL NEVER WORKED THE OTHER WAY.** `SKILL.md` stage 4 already runs `ownership-context`
+  alone at 4a and the other three at 4c; what was missing is that the three read the ORIGINAL, so
+  a role could not know an earlier one had already ruled a sentence false.
+
+  **A STAGE IS ONE OF TWO KINDS, and only one of them pulls anything:**
+
+  | kind | hands back | after it |
+  | --- | --- | --- |
+  | **editorial** | marks on a seeded sheet | verify -> reconcile -> revise step -> pull a revise |
+  | **enriching** | facts -- resolved references, symbols, a language server's answers | they go into the next binder. No docket, no revise |
+
+  ! `annotate.py` is already an enriching stage in everything but name, which is why this is a row
+  in a list rather than a new mechanism.
+
+  !! **TWO AXES, AND CONFLATING THEM IS WHAT WOULD MAKE A MESS.** BETWEEN stages is sequential --
+  stage N+1 reads a revise carrying stage N's taken-in edits, and there is nothing to merge.
+  WITHIN one stage is concurrent, and that is the only place a conflict can arise. **`diff3` stays
+  per place, inside a stage**; it never goes up a level.
+
+  ! **ONE ROOT PER STAGE**, being a tree copy with the drafts overlaid rather than the drafts
+  alone. `Vocabulary: #15` lets a `source` cite any place in the LIBRARY, so a citation into a page
+  an earlier stage edited must read that page's CURRENT text -- which a drafts-only directory
+  cannot give.
+
+  ! **THE ARTIFACT ALREADY HAD ITS NAME AND ITS DEFINITION.** `#10` carries `revise` from
+  `vocabulary.md` -- *"the second proof, pulled after the marked corrections have been set."*
+  **What this entry extends is the count**: N revises, one per editorial boundary, and the LAST one
+  is the draft the human approves at 7a. There is no separate draft-building path.
+
+  ! **AND MOST OF THE MECHANISM WAS BUILT.** `flows/proof_setter.py` already sets a page into
+  `--out DIR` -- *"a temporary file, never the original"* -- proving executable code unchanged and
+  refusing a directory that overlaps the repo; and `census`, `carry`, `proof`, `prove_unchanged`
+  and `referrers` all take `--repo`, so pointing a stage at a revise is passing a different value.
+
+- **#35.** **THE ADDRESS SPACE IS INVARIANT ACROSS A REVISE, BECAUSE `prove_unchanged` HOLDS THE
+  CODE** (2026-08-28, the safety argument for `#34`).
+
+  A place is determined by CODE -- a declaration, a gap between two code lines, the room beside a
+  line, the leading between paragraphs. Prose changing inside a place neither creates nor destroys
+  one, and `add` and `drop` FILL and EMPTY places that already exist. So if the executable code is
+  byte-identical, a mark written at stage 3 against `foo.py@b7` names the place stage 1 saw.
+
+  !! **IT IS RECORDED AS A CLAIM TO GATE, NOT AS A FACT.** Everything downstream rests on it, which
+  is exactly the condition [`gates.md`](gates.md) names: re-census each revise and assert its
+  address set equals the original's, over real files, with a hand-changed revise proving the check
+  can fail. ! Without that, the strongest argument in this design would be a paragraph.
+
+- **#36.** **A REVERSAL IS A TWO-ROLE DISAGREEMENT AND GOES IN THE SAME REVISE STEP** (Roy,
+  2026-08-28: *"The return to stage 1 only goes between the agents that disagree over the
+  statement. It doesn't restart the whole flow. Same as the other revise and in the same revise
+  step."*).
+
+  A later stage correcting a paragraph an earlier stage set is a disagreement about one statement,
+  so it is a ROW on the revise sheet at that boundary -- one more kind beside the within-stage
+  conflict, taking the same closed set from `Vocabulary: #22`.
+
+  | row | its base | its sides |
+  | --- | --- | --- |
+  | a **conflict** | that stage's paragraph | the two proposed texts |
+  | a **reversal** | the paragraph as the earlier stage left it | the later stage's text |
+
+  ! **THE SHEET IS ADDRESSED TO A ROLE, NOT TO A STAGE.** A role may be handed a one-row sheet at
+  a boundary it did not otherwise join. Nothing is re-run, and the forward pass stays a line.
+
+  ! **THE PAIRING IS WITH WHOEVER LAST SET THE STATEMENT**, which need not be the first stage: if
+  stage 2 already corrected a place and stage 3 reverses it, the parties are stage 3 and stage 2.
+  So the revise carries per-place PROVENANCE, and that provenance **routes** the row rather than
+  merely counting it.
+
+  !! **THE CAP WAS ALREADY RULED AND A SESSION CALLED IT A GAP.** This entry corrects that: `#9`
+  ruled two rounds on 2026-08-24 -- *"revise ... gives the editorial roles two chances to figure
+  out the compromise with reasons"* -- and `references/re-review.md:128` already states *"AT MOST
+  TWO re-review rounds."* What terminates the second is the copy chief's `stet`. ! Roy re-affirmed
+  two on 2026-08-28; the number is unchanged and its ORIGIN is 2026-08-24.

@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (82)
+### open  (86)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -264,6 +264,10 @@ that changed a published name or rule:
 | [a-reference-needs-its-own-write-chain](a-reference-needs-its-own-write-chain.md) | backend | yes | 0/3 | A reference needs its own write chain, and it is NOT YET |
 | [collate-buckets-a-move-at-one-end](collate-buckets-a-move-at-one-end.md) | backend | — | 0/3 | `collate` buckets a two-ended mark at one end |
 | [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 0/8 | The mark's fields permit a cross-citation and never say so |
+| [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | — | 0/4 | A conflict is detected and nothing renders it |
+| [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | — | 0/8 | A role can be asked to revise and has nothing to answer ON |
+| [the-ported-mark-does-not-fit-the-brief](the-ported-mark-does-not-fit-the-brief.md) | backend | — | 0/5 | The ported mark refuses marks the shipped brief tells a role to write |
+| [the-flow-assumes-every-role-reads-at-once](the-flow-assumes-every-role-reads-at-once.md) | backend | — | 0/7 | The flow assumes every role reads the same page at the same time, once |
 
 ### in-progress  (19)
 
