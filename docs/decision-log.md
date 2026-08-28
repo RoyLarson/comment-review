@@ -1344,6 +1344,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   instruction carries is stated in `docs/the-mark.md` and published by `reviewer-brief.md`; what a
   role reads when a claim is refused is the CLI help's.
 
+  !! **AND `change` IS THE UPDATED PARAGRAPH AS RAW TEXT, WHICH IS WHAT THE HOLE WAS.** Roy,
+  2026-08-28: *"`change` needs to be the updated paragraph as raw text not lines or sentences.
+  This will make it easier to diff per the rest of the stages. The original had it as one sentence
+  to change but that did not work which is why you probably put in prose because it is a hole with
+  that part of the spec without it."*
+
+  ! **THE DIAGNOSIS IS MEASURED.** `move`'s row carried `change_all=("to",)` and a `change_help`
+  reading *"move needs the DESTINATION paragraph in `change`, as `to` -- plus `from`, the origin as
+  it reads after"* -- and **those two fields exist for no other reason.** With the change column's
+  shape unstated, a prose field was written to state it. **An underspecified column grows a prose
+  field to explain itself**, which is the mechanism behind both halves of this entry.
+
+  ! **THE SEEDED ROW CARRIES `raw_text` AND THE ROLE RETURNS `change`; THE TWO DIFF DIRECTLY.**
+  That is the reason rather than a convenience: source-verification, the `diff3` conflict (base =
+  `raw_text`, sides = each role's `change`), `taken_in` and the revise are all one diffed against
+  the other. A line array must be joined before any of them runs.
+
+  ! **SUPERSEDES the four rounds' "an ARRAY of file-ready lines"**, which was chosen against two
+  measured hand-transcription failures. Raw text does not re-open them -- **it makes them louder**,
+  since a diff against `raw_text` shows a stripped comment marker or a truncated paragraph
+  directly, where a line array shows only a shorter list. ! `move` stays the one row whose `change`
+  is TWO raw paragraphs, and that is a fact of the column rather than a second field.
+
   !! **THE FILE EXISTS BECAUSE THE SHAPE HAD NO OWNER, WHICH IS THE WHOLE MECHANISM.** It was
   described in `evidence/the-loop-measured-2026-08-27/the-mark.md`, a captured snapshot that
   **disclaimed itself** -- *"IT IS NOT THE SOURCE"* -- and pointed at `reviewer-brief.md` and

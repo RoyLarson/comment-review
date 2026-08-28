@@ -37,12 +37,40 @@ superseding ruling applied rather than annotated.
 | `claim` | the surgical spec -- structured keys, per instruction | the role |
 | `reason` | WHY. The evidence, in prose. No checker settles it | the role |
 | `sources` | `{cite, verbatim, ran}` | the role |
-| `change` | the RESULT: an ARRAY of file-ready lines | the role |
+| `change` | the RESULT: **the updated paragraph, as RAW TEXT** | the role |
 
 !! **`claim` IS THE SPEC AND `change` IS THE RESULT.** Roy, 2026-08-17: *"the change is what allows
 the apply section to apply the claim appropriately."* Every check that reads the ORIGINAL sentence
 reads it out of `claim`; `change` is a whole paragraph and no sentence can be parsed back out of
 it.
+
+!! **`change` IS RAW TEXT -- NOT LINES, NOT SENTENCES.** Roy, 2026-08-28: *"`change` needs to be
+the updated paragraph as raw text not lines or sentences. This will make it easier to diff per the
+rest of the stages."*
+
+| | |
+| --- | --- |
+| the seeded row carries | `raw_text` -- the paragraph as it stands, verbatim |
+| the role returns | `change` -- the same paragraph as it should read |
+
+! **THE TWO DIFF DIRECTLY, AND THAT IS THE WHOLE REASON.** Every stage downstream is a diff of one
+against the other: source-verification, the `diff3` conflict where `raw_text` is the base and each
+role's `change` a side, `taken_in`, and the revise. A line array has to be joined before any of
+them can run, and a sentence cannot be placed at all.
+
+!! **AND THE HOLE THIS CLOSES IS MEASURED.** Roy, 2026-08-28: *"The original had it as one sentence
+to change but that did not work which is why you probably put in prose because it is a hole with
+that part of the spec without it."* ! MEASURED: `move`'s row carried `change_all=("to",)` and a
+`change_help` sentence -- *"move needs the DESTINATION paragraph in `change`, as `to` -- plus
+`from`, the origin as it reads after"* -- and **those two fields exist for no other reason.** With
+the shape unstated, a prose field was written to state it. **An underspecified column grows a prose
+field to explain itself.**
+
+! **SUPERSEDES the four rounds' "an ARRAY of file-ready lines".** That form was chosen against two
+measured hand-transcription failures -- a 3-line update returned for a 48-line paragraph, and a
+paragraph returned with its comment markers stripped, which would have made the file unparseable.
+**Raw text does not re-open them: it makes them louder**, because the diff against `raw_text` shows
+a missing marker or a truncated paragraph directly, where a line array only shows a shorter list.
 
 !! **THE ORDER IS A CHAIN OF CUSTODY.** Roy, 2026-08-17: *"Verdict -> Claim -> REASON -> SOURCES ->
 CHANGE ... a clear chain of custody on the reasoning and the required actions."*
@@ -69,10 +97,15 @@ patch      from, to         from       yes      NO        wording alone -- nothi
                                                           settles it
 add        missing,         --         yes      yes       not diffable. The anchor is
            anchor                                         NAMED IN BACKTICKS
-move       from, to         --         yes,     yes       the `to` must be ADDRESSABLE
-                                       showing
-                                       BOTH
+move       from, to         --         TWO      yes       the `to` must be ADDRESSABLE
+                                       raw
+                                       paragraphs
 ```
+
+! **`move` IS THE ONE ROW WHOSE `change` IS NOT A SINGLE PARAGRAPH**, because a relocation rewrites
+two places: the destination as it reads once the prose arrives, and the origin as it reads once the
+prose has left. **Both are raw text.** That is a fact of the change column, stated here -- it is not
+a second field, and it is not a sentence explaining a field.
 
 ## The classifiers -- FOUR COLUMNS AND A CLOSED LIST OF FLAGS
 
@@ -158,9 +191,11 @@ indistinguishable.
 
 ## Requirements the four rounds established
 
-- **`change` IS AN ARRAY OF LINES, NOT A STRING.** MEASURED: a role returned a 3-line update for a
-  48-line paragraph, and another returned a paragraph with its comment markers gone, which would
-  have made the file unparseable. Both are hand-transcription failures.
+- **THE TWO HAND-TRANSCRIPTION FAILURES.** MEASURED: a role returned a 3-line update for a 48-line
+  paragraph, and another returned a paragraph with its comment markers gone, which would have made
+  the file unparseable. ! **These produced the "array of lines" form, which is SUPERSEDED** by the
+  raw-text ruling above -- see it for why raw text makes both failures louder rather than
+  re-opening them.
 - **`sources` ARE `{cite, verbatim}` PAIRS**, so a checker can confirm each verbatim string sits
   within three lines of its cited line. Strings are not checkable the same way.
 - **`ran` -- A CLAIM SETTLED BY RUNNING SOMETHING MUST CARRY THE COMMAND.** One role's first pass
