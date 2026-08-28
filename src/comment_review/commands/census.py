@@ -76,13 +76,13 @@ def main() -> int:
     # `--languages` can run without one, and everything else with none produced
     # `[]` at exit 0 -- which the collator then reads as a complete census and
     # certifies. Measured 2026-08-24: `census.py --repo . --json` printed `[]`
-    # and returned 0, and `verdicts.py` over it printed "Every finding is
+    # and returned 0, and the collator over it printed "Every finding is
     # admissible. Stage 5 may rule."
     #
     # ! REACHABLE WITHOUT ANYONE TYPING IT: stage 1 takes its paths from a
     # merge-base diff, and a diff that touches no reviewable file hands this
     # nothing. The run then reads as complete BECAUSE there was nothing to be
-    # incomplete about -- the failure `verdicts.py` states the rule against, one
+    # incomplete about -- the failure the collator states the rule against, one
     # stage earlier. ! Refused BEFORE `--out` opens anything, so a usage error
     # leaves no empty census behind for the next stage to read as an answered one.
     if not args.languages and not args.paths:
@@ -238,14 +238,14 @@ def _report(args: argparse.Namespace) -> int:
             print(_not_censused(files, unreadable), file=sys.stderr)
             return 1
         # !! AN UNADDRESSED PARAGRAPH IS UNCITABLE, so a census holding one is a
-        # census nobody can rule on -- and it fails SILENTLY: `verdicts.py` builds
+        # census nobody can rule on -- and it fails SILENTLY: the collator builds
         # its accountability set from the addresses, so paragraphs with none are
         # simply not accountable and the run reads as complete. Measured 2026-08-20:
         # a 5-paragraph census with its addresses stripped certified "Every finding
         # is admissible. Stage 5 may rule." at exit 0.
         #
         # ! ASKED AT BOTH ENDS. This is the EMIT side, catching the census where it
-        # is built; `verdicts.py` asks the same function on READ, for a file that
+        # is built; the collator asks the same function on READ, for a file that
         # reached it some other way. ONE implementation, in `addresser` -- Roy,
         # 2026-08-20: *"one source of truth, else something will parse that
         # something else will fail."*

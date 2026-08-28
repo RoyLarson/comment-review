@@ -86,6 +86,18 @@ RETIRED = {
     # left out of this table. The `(?![\w-])` in `check_retired` already spares
     # `joins`, `joined` and `joining`; only the bare noun is refused.
     "join": "the collator",
+    # !! `verdict` IS RETIRED, 2026-08-27. Roy: *"I also don't like the term
+    # verdict. It doesn't seem in line and is confusing when it is also called
+    # a finding."* A MARK IS THE OBJECT; ITS `instruction` IS ONE OF THE SEVEN.
+    # `decision-log.md Vocabulary: #17`.
+    #
+    # ! THE PLURAL IS A SEPARATE ROW, same as `block`/`blocks` above: the
+    # `(?![\w-])` boundary that spares `.join(`'s live VERB forms also spares
+    # `verdicts` from the singular entry, and that sparing is wrong here --
+    # the plural NOUN is exactly as retired as the singular, with no live verb
+    # sense to protect.
+    "verdict": "instruction",
+    "verdicts": "instructions",
 }
 
 # !! THE WAY OUT, AND IT IS PER FILE. Roy, 2026-08-19: *"let's give ourselves a

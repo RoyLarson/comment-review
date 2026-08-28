@@ -8,7 +8,7 @@
 !! THE MIDDLE IS THE HALF THAT IS NOT DESIGNED, and this package is where it
 goes: marks in from the roles, a DOCKET out. Roy, 2026-08-25, on why the former
 contents left: *"There is code there none of it is correct so testing it is
-solidifying wrong."* `run_context`, `vocabulary`, `desk` and `verdicts` are in
+solidifying wrong."* `run_context`, `vocabulary`, `desk` and the collator are in
 `prototype/original/`, reference only; nothing under `src/` imports them.
 
 !! `mark` IS THE FIRST PIECE BACK, ported 2026-08-27 at Roy's direction --
@@ -21,10 +21,10 @@ paragraph needs the page the role read. The second is SOURCE-VERIFICATION, and
 it is what is still missing -- so a mark can be checked the moment it comes
 back, and not yet checked against the file it rules on.
 
-! **AND THE WORD IS `instruction`, NOT `verdict`.** Roy, 2026-08-27: *"I also
-don't like the term verdict. It doesn't seem in line and is confusing when it is
-also called a finding."* A mark is the object; its `instruction` is one of the
-seven. `decision-log.md Vocabulary: #17`.
+! **AND THE WORD IS `instruction`, NOT THE STRUCK ONE.** A mark is the object;
+its `instruction` is one of the seven -- the retired word read as judicial and
+named the same thing twice, the object a *finding* and its type the struck
+word. `decision-log.md Vocabulary: #17`.
 
 !! AND THE INTERFACE IT PRODUCES IS NO LONGER HERE. `notations.py` moved to
 `docket/docket.py` on 2026-08-26 and was renamed with it. Roy: *"this is solid

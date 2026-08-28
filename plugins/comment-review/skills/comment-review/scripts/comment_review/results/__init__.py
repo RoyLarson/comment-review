@@ -6,7 +6,7 @@
 
 !! THE GALLEY EDITS AND THE COMPOSITOR SETS, AND THEY ARE TWO ROLES. Roy,
 2026-08-21: *"galley gets the old page - updates the old page with the
-verdict/record/marks and then a page-setter sets the page to rewrite the output
+[instruction]/record/marks and then a page-setter sets the page to rewrite the output
 text."* A module that did both was line arithmetic throughout, and splitting it
 is what made the round-trip identity ABLE TO FAIL -- it had scored 699 of 699 on
 its first run while rebuilding each file from positions it had just read out of

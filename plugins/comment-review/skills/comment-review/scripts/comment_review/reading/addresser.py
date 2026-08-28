@@ -203,7 +203,7 @@ COVERS = Series.COVERS.value.letter
 # on. It is just there for document preservation."* So a `d` is kept out of
 # `Page.prose` and out of record seeding, and NO EMPTY `d` IS EMITTED -- the
 # other four series exist wherever prose COULD go, because an `add` cites them;
-# a place no verdict can name has no reason to exist unfilled.
+# a place no instruction can name has no reason to exist unfilled.
 #
 # !! IT IS A FENCE, AND FENCES HAVE NO ADDRESS. Roy, 2026-08-23: *"the `d`
 # series doesn't get an address for the same reasons fences in the real world
@@ -716,7 +716,7 @@ def cue(
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. A language with no docstring practice -- YAML, TOML -- would
     # otherwise be given an `a0`, a place for a module docstring it cannot have,
-    # and no verdict could ever fill it. `None` says the series does not exist;
+    # and no instruction could ever fill it. `None` says the series does not exist;
     # `1` says it does and the module's own doc would open the file.
     # !! `cue` READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
     # A loop written out by hand beside it makes the list that claims *"ONE LIST,

@@ -465,7 +465,7 @@ def block_text(
     !! The lines-to-paragraph half of the paragraph protocol, and the ONLY one. It is
     here rather than in a caller because the census defines what a paragraph's text
     IS; a second implementation elsewhere is a second definition, and the two
-    drift. Measured 2026-08-17: `verdicts.py` grew its own and disagreed with
+    drift. Measured 2026-08-17: the collator grew its own and disagreed with
     this file three ways at once -- a blank line, a raw-string prefix and a
     closing delimiter -- refusing 83 of 171 paragraphs in one run, ~450 in another.
 
@@ -1475,7 +1475,7 @@ def declarations(
     !! AN EMPTY LIST MEANS THIS LANGUAGE HAS NO `a` SERIES, not "none found
     here". A language with no docstring practice, such as YAML or TOML, would
     otherwise carry an `a0` -- a place for a module docstring in a language with
-    no such thing -- which no verdict could ever fill.
+    no such thing -- which no instruction could ever fill.
 
     !! THE KEYWORDS ARE DATA, AND THAT IS THE WHOLE POINT. Roy: *"the easy way
     is to supply the lexer with the list of keywords that a language/practice

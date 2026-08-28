@@ -6,9 +6,9 @@
     allowed()        the shape a role is handed, generated from the rows
     problems()       every rule this file can settle without the binder
 
-!! A MARK IS THE OBJECT; ITS `instruction` IS ONE OF SEVEN. Roy, 2026-08-27,
-striking the word this table used to carry: *"I also don't like the term verdict.
-It doesn't seem in line and is confusing when it is also called a finding."*
+!! A MARK IS THE OBJECT; ITS `instruction` IS ONE OF SEVEN. The word this table
+used to carry read as judicial and named the same thing twice, the object a
+*finding* and its type the struck word -- `decision-log.md Vocabulary: #17`.
 ! `instruction` is the trade's: a proof correction has a TEXTUAL mark saying
 where and a MARGINAL mark saying what to do, and the second is the instruction --
 which is what a compositor executes, and this system has one.

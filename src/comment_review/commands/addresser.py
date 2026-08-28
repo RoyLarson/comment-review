@@ -248,7 +248,7 @@ def _check(paragraphs: list[dict]) -> int:
         refuse every docstring with a comment beneath it.
     """
     # ! ASKED, NOT RE-DERIVED. `unaddressed` is the one implementation, and
-    # `census.py` and `verdicts.py` ask the same one.
+    # `census.py` and the collator ask the same one.
     missing = unaddressed(paragraphs)
     shared: dict[str, list[str]] = {}
     # ! The path is not read here -- an address already names its own file, and

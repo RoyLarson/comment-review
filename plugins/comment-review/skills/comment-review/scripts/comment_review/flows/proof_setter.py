@@ -549,7 +549,7 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
 
     !! AN UNPROVABLE FILE IS REFUSED, NOT PASSED. `code_fingerprint` returns an
     EMPTY fingerprint for a file it cannot strip, and two empty strings compare
-    equal -- so reading its verdict without reading its KIND proves every
+    equal -- so reading its instruction without reading its KIND proves every
     unprovable file identical to every other.
 
     ! WHAT THIS CATCHES THAT `_reread` CANNOT. `_reread` checks only the cues a
@@ -564,7 +564,7 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
     `{'m.py@a0': None}`, `{'m.py@a1': None}` and an `add` at `a2` each trip
     exactly this branch, with `Refusal('prove', ..., 'the executable code is
     not what it was')`. ! SO `add` AND `drop` -- two of SKILL.md's seven
-    verdicts -- CANNOT BE WRITTEN ON A DOCSTRING, and the `undocumented` place
+    instructions -- CANNOT BE WRITTEN ON A DOCSTRING, and the `undocumented` place
     exists precisely so an `add` can cite one.
 
     !! IT IS NOT FIXED HERE AND THE FINGERPRINT IS NOT WEAKENED, because a
@@ -575,9 +575,8 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
     APPROVED set is a ruling Roy holds --
     `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md`, task T1, a
     `*` box. `test_a_docstring_DROP_is_STILL_REFUSED_at_prove` and
-    `test_a_docstring_ADD_is_STILL_REFUSED_at_prove`, in
-    `TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain`, pin what happens
-    today.
+    `test_a_docstring_ADD_is_STILL_REFUSED_at_prove`, in the every-instruction
+    test class in `tests/test_proof_setter.py`, pin what happens today.
 
     The residual hazard this branch is for is an alteration that breaks its
     comment's RUN and swallows code BEYOND the edited cue -- an edit whose

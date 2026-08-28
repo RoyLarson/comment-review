@@ -197,7 +197,7 @@ class Page:
 
         ! ASKED BY SERIES, not by the kind. Since 2026-08-20 the file's own
         matter is the `f` series, and every consumer that has to know reads that
-        -- `census.py`'s filter, `verdicts.py`'s accountability set and its
+        -- `census.py`'s filter, the collator's accountability set and its
         `query` guard, `record.py`'s seeding, and this.
 
         !! `d` IS OUT BECAUSE IT NAMES NO PLACE, and that is now the whole test.

@@ -181,7 +181,7 @@ LANGUAGES: tuple[Language, ...] = (
     # introduced by its RETURN TYPE -- `size_t f(void)`, `MyRec f(void)` -- and
     # completing that list would mean knowing every type the program defines.
     # ! A wrong `a` is worse than no `a`: a spurious match renumbers every `a`
-    # below it, and a verdict is then invited on something that cannot hold one.
+    # below it, and an instruction is then invited on something that cannot hold one.
     Language(
         "c",
         (".c", ".h"),

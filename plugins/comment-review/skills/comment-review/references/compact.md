@@ -31,7 +31,7 @@ stage 5.
 author, who is first reached at 7a -- *after* this stage. Read as "unresolved blocks stage 6", a
 capped run holding one externally-unsettleable query could never legally reach approval.
 Measured on a real run: two such queries, both settleable only inside a dependency outside the
-checkout. **Compact the paragraphs whose verdicts are closed; carry an escalated query's paragraph at
+checkout. **Compact the paragraphs whose instructions are closed; carry an escalated query's paragraph at
 its full length and say why.**
 
 ## ! This pass exists only to apply a CAP

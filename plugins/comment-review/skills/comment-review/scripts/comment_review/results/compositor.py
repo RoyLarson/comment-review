@@ -3,7 +3,7 @@
     python compositor.py <paths...>               # prove the identity, file by file
 
 !! A COMPOSITOR SETS TYPE; IT DOES NOT EDIT IT. Roy, 2026-08-21: *"galley gets
-the old page - updates the old page with the verdict/record/marks and then a
+the old page - updates the old page with the [instruction]/record/marks and then a
 page-setter sets the page to rewrite the output text."* Two roles, two sets of
 rules: the galley rules on what a paragraph should say, and this puts the page
 together. A module that did both is what `galley.py` was, and its own vocabulary
@@ -216,7 +216,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
         beside_code = cue.startswith(ON)
         # !! EVERY PLACE ADVANCES `previous`, INCLUDING ONE THAT SETS NOTHING,
         # and that is what makes this walk exact. An empty place is still a
-        # place -- it is a position a verdict can cite -- so skipping it here
+        # place -- it is a position an instruction can cite -- so skipping it here
         # made this list disagree with the one `tie_leading` walked.
         #
         # ! IT SKIPPED THEM UNTIL 2026-08-22, and `tie_leading` skipped them

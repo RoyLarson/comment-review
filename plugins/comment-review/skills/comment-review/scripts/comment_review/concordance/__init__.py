@@ -23,6 +23,6 @@ occurs. The name was reached the way `compositor` was: ask what the thing IS,
 find the job in the answer, then take the trade's word for that job.
 
 ! WHAT IS READ-ONLY HERE IS EVERYTHING. `referrers` always exits 0 and every
-line it prints is a CANDIDATE -- a file to READ, never a file a verdict may
+line it prints is a CANDIDATE -- a file to READ, never a file an instruction may
 target.
 """

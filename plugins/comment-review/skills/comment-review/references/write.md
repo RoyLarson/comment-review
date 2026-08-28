@@ -1,7 +1,7 @@
 # Stage 7b -- WRITE: put on disk what the human approved
 
 Loaded by the task agent **after approval**, never by a reviewer. If you are reading this
-before the human has approved a verdict list, stop.
+before the human has approved an instruction list, stop.
 
 Apply only what was approved, and only what was marked. ! **An unmarked paragraph is never written.**
 If WRITE wants to touch something the mark did not reach, that is a finding for the next
@@ -43,7 +43,7 @@ stopped at 7a leaves the tree exactly as it found it.
 ## Rails
 
 **Never change a line of code, a docstring's MEANING, or a string literal.** Correcting a
-docstring that states something **false** is in scope -- that is the `correct` verdict.
+docstring that states something **false** is in scope -- that is the `correct` instruction.
 Changing what the docstring *documents* is not. ! **A `correct` on a claim inside a string
 literal is REPORTED, never applied** -- hand it to the human as a code concern.
 
@@ -86,10 +86,10 @@ the CODE CHECK cannot see it -- the damage is in prose, the AST is unchanged, an
 PROVEN. A formatter caught it once; nothing in this skill would have.
 
 ! **A non-unique match is a re-review, not a `replace_all`.** N identical matches means N
-paragraphs, and they may not deserve the same verdict. Reaching for `replace_all` once rewrote two
+paragraphs, and they may not deserve the same instruction. Reaching for `replace_all` once rewrote two
 string literals.
 
-**Extract before you cut, when the verdict is `move`.** Write the destination first, verbatim,
+**Extract before you cut, when the instruction is `move`.** Write the destination first, verbatim,
 then remove the source. The other order loses the text on any interruption -- three times,
 before this became the rule.
 
@@ -102,10 +102,10 @@ sentence in two files, both are in the same edit or neither is.
 
 !! **Every word you WRITE is bound by the STYLE SHEET; every word you did not touch is out of
 scope.** There is no copy-editing reviewer, so this pass is where consistency is kept -- but
-only inside paragraphs a verdict already opened. Write in the sheet's dialect, capitalisation,
+only inside paragraphs an instruction already opened. Write in the sheet's dialect, capitalisation,
 citation form and docstring convention; do NOT sweep the file for departures from it.
 
-**A change no verdict asked for is out of scope** -- a re-spelling, a dialect harmonisation, a
+**A change no instruction asked for is out of scope** -- a re-spelling, a dialect harmonisation, a
 de-personalisation, an alignment with the neighbours. The residue check cannot see any of it,
 because it only asks what was LOST. A departure in a paragraph you are not editing is a
 finding for the next run. Record any new decision on the sheet as you make it.
@@ -126,9 +126,9 @@ line settles this? The name of the function does not count.
 docstring"*, *"the paragraph above"*, *"for the reason Y gives"*. Measured twice: the defect lands
 in a paragraph the diff never touched, created by editing a different one.
 
-! **A verdict instructing what these rails forbid is a defect in the VERDICT.** Report it; do
-not follow it. Measured: *"drop the comment and rewrite the user-facing string"* -- the rails
-say never change a string literal.
+! **An instruction telling you to do what these rails forbid is a defect in the INSTRUCTION.**
+Report it; do not follow it. Measured: *"drop the comment and rewrite the user-facing string"* --
+the rails say never change a string literal.
 
 ## Report
 

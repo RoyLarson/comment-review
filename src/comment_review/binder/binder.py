@@ -11,7 +11,7 @@ for themselves what a census file is --
     addresser   loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded
     galley      census["paragraphs"] if isinstance(census, dict) else census
     record      loaded["paragraphs"] if isinstance(loaded, dict) else loaded
-    verdicts    json.loads(census_text)          -- no envelope handling at all
+    collator    json.loads(census_text)          -- no envelope handling at all
 
 Three spellings of one guess and one absence. They already disagreed: the first
 tolerates a missing key, the next two raise `KeyError`, and the last would
@@ -146,7 +146,7 @@ def read(text: str) -> tuple[dict, str]:
     !! IT REFUSES RATHER THAN COPING. Every one of the four readers this
     replaces guessed at the shape, and a guess that is wrong reads as an EMPTY
     binder -- which downstream is indistinguishable from a run with nothing to
-    do. `verdicts.py` was measured certifying exactly that on 2026-08-20.
+    do. The collator was measured certifying exactly that on 2026-08-20.
 
     !! THE KEY WAS TESTED FOR PRESENCE AND NOT FOR SHAPE UNTIL 2026-08-25, so
     it coped after all. MEASURED: `{"pages": "oops"}` read CLEAN, and the

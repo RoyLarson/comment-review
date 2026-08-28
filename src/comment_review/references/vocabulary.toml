@@ -27,7 +27,7 @@ owner = "The anchor with the best justification for holding the comment. Where s
 census = "Every PARAGRAPH on every PAGE under review, in order, each carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a page and do not nest."
 
 # --- the units that get ruled on --------------------------------------------
-sentence = "The unit a verdict rules on. A container of six sentences can hold six verdicts."
+sentence = "The unit an instruction rules on. A container of six sentences can hold six instructions."
 clause = "A part of a sentence. `correct` carries a false clause and a true one; `REASON` is one clause."
 statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a clause."
 expression = "A piece of CODE that evaluates to a value."
@@ -38,18 +38,18 @@ annotation = "A mechanical observation the census attaches to a paragraph -- `na
 "comment run" = "The contiguous comment lines between the two lines of code that bound them. The prose INSIDE a paragraph, which may instead hold a docstring or nothing at all."
 
 # --- what a reviewer emits ---------------------------------------------------
-verdict = "One of the seven rulings a reviewer may emit: clean, query, drop, correct, patch, add, move."
-"edit mark" = "What you emit on a sentence: the VERDICT together with its payload. It is what would improve or correct the prose IF ITS `CHANGE` WERE APPLIED -- so it shows the result and does not write it. Marking and applying are different stages and different actors."
+instruction = "One of the seven rulings a reviewer may emit: clean, query, drop, correct, patch, add, move."
+"edit mark" = "What you emit on a sentence: the INSTRUCTION together with its payload. It is what would improve or correct the prose IF ITS `CHANGE` WERE APPLIED -- so it shows the result and does not write it. Marking and applying are different stages and different actors."
 clean = "Nothing to report FROM YOUR ROLE, on a paragraph your role READ. Not a pass, and not a claim the paragraph is correct. A paragraph outside what your role reads is `query`."
 query = "You could not settle the claim -- as against one you did not try to settle. Three shapes reach it: outside your ROLE, outside the CHECKOUT, outside the CODE."
 drop = "The sentence should not exist at all."
 correct = "The claim is FALSE."
 patch = "The claim is TRUE and the wording is not."
 add = "A constraint exists in code and nowhere in prose."
-move = "True, but it belongs SOMEWHERE ELSE. One relocation verdict -- ten lines down, another file, or out of the code entirely is the DESTINATION, not a second verdict."
-payload = "What a verdict must carry to be usable."
+move = "True, but it belongs SOMEWHERE ELSE. One relocation instruction -- ten lines down, another file, or out of the code entirely is the DESTINATION, not a second instruction."
+payload = "What an instruction must carry to be usable."
 finding = "One ruling on one sentence, emitted as a RECORD."
-record = "One finding, as a JSON object. The tool seeds the ADDRESS and the ANCHOR; the reviewer fills the verdict, claim, reason, sources and change. A record that fails its shape check is a finding that does not count."
+record = "One finding, as a JSON object. The tool seeds the ADDRESS and the ANCHOR; the reviewer fills the instruction, claim, reason, sources and change. A record that fails its shape check is a finding that does not count."
 remit = "The categories of claim a role rules on -- as against verifying, which is what it does to them."
 "editorial role" = "One of the four scopes a reviewer reads for: ownership-context, block-context, function-context, module-context."
 reviewer = "The identifier for an editorial role, in flags, filenames and report stems."
@@ -122,6 +122,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "editorial role",
   "expression",
   "galley",
+  "instruction",
   "intermediate comment",
   "interval",
   "laundering",
@@ -143,7 +144,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "trailing comment",
   "truthy",
   "undocumented",
-  "verdict",
 ]
 "block-context" = [
   "add",
@@ -161,6 +161,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "editorial role",
   "galley",
   "guard",
+  "instruction",
   "intermediate comment",
   "interval",
   "laundering",
@@ -182,7 +183,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "trailing comment",
   "truthy",
   "undocumented",
-  "verdict",
 ]
 "function-context" = [
   "add",
@@ -201,6 +201,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "editorial role",
   "galley",
   "guard",
+  "instruction",
   "intermediate comment",
   "interval",
   "invariant",
@@ -222,7 +223,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "trailing comment",
   "truthy",
   "undocumented",
-  "verdict",
 ]
 "module-context" = [
   "add",
@@ -241,6 +241,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "edit mark",
   "editorial role",
   "galley",
+  "instruction",
   "intermediate comment",
   "interval",
   "laundering",
@@ -264,7 +265,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "trailing comment",
   "truthy",
   "undocumented",
-  "verdict",
   "width",
 ]
 
@@ -275,6 +275,7 @@ compact = [
   "census",
   "correct",
   "drop",
+  "instruction",
   "load-bearing",
   "original",
   "owner",
@@ -283,7 +284,6 @@ compact = [
   "residue",
   "reviewer",
   "style sheet",
-  "verdict",
 ]
 review = [
   "add",

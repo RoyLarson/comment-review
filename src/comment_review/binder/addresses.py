@@ -175,14 +175,14 @@ def unaddressed(paragraphs: list[dict]) -> list[str]:
     !! ONE SOURCE OF TRUTH, and the reason is the failure it prevents. Roy,
     2026-08-20: *"one source of truth, else something will parse that something
     else will fail."* Three callers ask this question -- `census.py` before it
-    writes, `verdicts.py` before it certifies, and `addresser.py --check` -- and
+    writes, the collator before it certifies, and `addresser.py --check` -- and
     a second implementation of "is this addressed" is a second answer waiting to
     disagree with the first.
 
     !! IT IS ASKED AT BOTH ENDS ON PURPOSE. The census refusing on EMIT catches
     its own degradation where it happens; the gate refusing on READ catches a
     file that reached it some other way -- a census from an older version, one
-    edited by hand, one written by a run that crashed. `verdicts.py` takes a
+    edited by hand, one written by a run that crashed. The collator takes a
     PATH and trusts what it parses, so nothing but this stands between a stale
     file and a certified review.
 

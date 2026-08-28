@@ -50,6 +50,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `folio` | -> **cue**. A folio numbers a LEAF or a PAGE; the `@` half of an address names a position WITHIN a page, so `b3` was never any folio. ! The error shipped as a DEFINITION -- *"a leaf's number in publishing, which is what it is here"* -- and reviewers were given it |
 | `foliator.py`, `foliate()`, `Foliation` | -> **`addresser.py`**, **`cue()`**, **`Cues`**. The module supplies both halves of an address and the whole take-apart; `Cues` holds cues, not addresses. See `docs/decision-log.md` Addressing: #6 |
 | `leaf`, `leaves` (of a page or a place) | **deleted** in that sense. One sheet carries TWO pages, so it was neither the page nor the cue, and a file has no verso. ! Two shipped definitions disagreed -- one said paragraphs run DOWN a leaf, one said a leaf IS a place. ! The IMPORT-GRAPH sense is a different word and is live -- see the polysemy rule below |
+| `verdict` | -> **instruction**. Judicial on an editorial system, the same register error `jurisdiction` made before it became `remit`; and it named the same thing twice -- the object a role returns is a **mark**, its type is an **instruction**. See `decision-log.md Vocabulary: #17` |
 
 ## Held in reserve -- publishing's word for something we already have
 
@@ -369,5 +370,5 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
     ! **AND A THIRD USE IS ALREADY RETIRED BY `stet`**: `re-review.md:139` writes *"a paragraph
     stage 5 settled"*, which is the copy chief's ruling and now has its own word.
 
-- **`clean` is reserved.** It is one of the seven verdicts and is never a loose adjective for
+- **`clean` is reserved.** It is one of the seven instructions and is never a loose adjective for
   code, prose, a grep result or a run.

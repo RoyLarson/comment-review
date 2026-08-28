@@ -3,9 +3,9 @@
 Loaded by the task agent when a paragraph goes back to the roles that ruled on it. **Ten sites order
 a re-review; this is the only one that says what one is.**
 
-!! **A RE-REVIEW IS NOT RELITIGATION.** *"Reconsider your verdict"* is unanswerable -- nothing
-has changed since the role formed it, so it returns the verdict it already filed. What HAS
-changed is that stage 5 turned several verdicts into ONE paragraph, and **the filer is the only
+!! **A RE-REVIEW IS NOT RELITIGATION.** *"Reconsider your instruction"* is unanswerable -- nothing
+has changed since the role formed it, so it returns the instruction it already filed. What HAS
+changed is that stage 5 turned several instructions into ONE paragraph, and **the filer is the only
 participant who can say whether that paragraph still carries what it filed.**
 
 ! **MARK and APPLY stay separate.** The finding is already filed and already read by the collator.
@@ -36,7 +36,7 @@ first reading returns rather than what a re-review returns.
 
 ! **A third role CAN be sent that paragraph; it is a FRESH REVIEW and it is stage 4's, not this
 file's.** That route already exists for the case below, where nobody filed at all, and it runs
-6 -> 4. What is forbidden is calling it a re-review: the round comes back with verdicts on a
+6 -> 4. What is forbidden is calling it a re-review: the round comes back with instructions on a
 paragraph, which is what stage 5 joins, and not with answers about an edit, which is what stage 5b
 reads.
 
@@ -62,8 +62,8 @@ nothing, the CODE CHECK reads only executable code, and stage 8 runs after the w
 
 ## The third case: a paragraph NO role ruled on
 
-**A paragraph stage 6 must edit that carries no verdict goes to ALL FOUR roles as a fresh paragraph, and
-comes back with verdicts.** A paragraph every role returned `clean` on can still be over the cap;
+**A paragraph stage 6 must edit that carries no instruction goes to ALL FOUR roles as a fresh paragraph, and
+comes back with instructions.** A paragraph every role returned `clean` on can still be over the cap;
 compacting it is an edit with nothing behind it, and neither 5b nor 6b reaches it because there
 is no filer to ask.
 
@@ -76,13 +76,13 @@ everything else: every other finding travels 4 -> 5, this one travels 6 -> 4.
 - **Its own record**, so it is not answering from memory.
 - **The other records on that paragraph, in full.** ! The independence objection is ruled out:
   blindness is what makes two roles AGREEING mean something, and it bought that in round one.
-  Once the reads are on disk, withholding the competing verdict protects nothing.
+  Once the reads are on disk, withholding the competing instruction protects nothing.
 - **Where the paragraph now lives** -- its address in the galley census, if one was taken.
 
 !! **The joined paragraph is on no disk and in no census until a GALLEY is set.** `galley.py`
 puts the proposed text on a copy of its page and the compositor sets it; censusing that copy gives
 the paragraph a real address and a real transcription, so **a round-2 record is an ORDINARY
-record** and every check in `verdicts.py` applies to it unchanged.
+record** and every check the collator runs applies to it unchanged.
 
 ! **Cite the galley census.** The paragraph you are ruling on is the one set there, and its
 transcription is what the checks resolve against.
@@ -95,7 +95,7 @@ empty gap.
 
 ```text
 SAME SENTENCE  yes | no
-VERDICT        HOLD | REVISE
+INSTRUCTION    HOLD | REVISE
 REASON         one clause
 ```
 
@@ -141,7 +141,7 @@ because two rounds did not converge is a weaker result than one the roles agreed
 two must not read alike.
 
 ! Measured 2026-08-17: both genuine contradictions resolved in the FIRST round -- 8 HOLD from
-one role, 4 HOLD and 2 REVISE from the other, and both revisions kept the verdict and shortened
+one role, 4 HOLD and 2 REVISE from the other, and both revisions kept the instruction and shortened
 the payload. **Nothing has yet reached a second round**, so the bound is a decision about cost,
 not a response to a measured failure.
 
@@ -150,7 +150,7 @@ not a response to a measured failure.
 - **Never a tie-break.** Two roles disagreeing is not a vote, and the task agent does not break
   it by preferring one. It goes back, or it goes to the author.
 - **A `REVISE` re-enters the collator.** It is a record like any other and is checked like any
-  other; it does not bypass `verdicts.py` because it arrived late.
+  other; it does not bypass the collator because it arrived late.
 - **Nothing is on disk.** Both slots run before stage 7, and 5b runs before COMPACT has touched
   anything. A galley is a copy, and it is discarded with the run.
 

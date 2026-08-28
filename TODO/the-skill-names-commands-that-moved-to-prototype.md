@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks done
+Progress: 0 of 4 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-25 (the prototype move, 2026-08-25)
@@ -28,3 +28,9 @@ SKILL.md names six commands that moved to prototype.
       decision-log Process #14
 - [ ] Rewrite the stages that invoke the four moved commands
 - [ ] Say what regenerates the brief verdict table, or that nothing does
+- [ ] SKILL.md:741 also still spells the retired subcommand token `verdicts`
+      (check_vocabulary.py RETIRED now includes the plural, added while retiring
+      `verdict` -> `instruction`). Renaming the token needs the same design
+      decision as the rest of this TODO -- what replaces the stage-5 collator
+      invocation -- so it was left as-is rather than inventing a placeholder
+      command name.

@@ -1,6 +1,6 @@
 ---
 name: comment-review
-description: Review the comments and docstrings in the files a change touched, across four editorial roles -- ownership-context, block-context, function-context, module-context -- using parallel read-only subagents, and return each finding as verdict/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject -- after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" -- "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; the task agent applies what the human approves, and every applied change passes a residue check against the original prose.
+description: Review the comments and docstrings in the files a change touched, across four editorial roles -- ownership-context, block-context, function-context, module-context -- using parallel read-only subagents, and return each finding as instruction/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject -- after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" -- "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; the task agent applies what the human approves, and every applied change passes a residue check against the original prose.
 ---
 
 # comment-review
@@ -28,7 +28,7 @@ first, then truth, then fit, then the page.
 | 2 | **GATHER** | `census.py` | every place prose can sit gathered into one numbered tree, each comment run and docstring a node on it |
 | 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved -- paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers, SERIAL | `ownership-context` alone at 4a; the other three at 4c against its resolved placement. Read-only, nothing written |
-| 5 | **APPLY** | task agent | one verdict per paragraph and the **full-length** replacement text |
+| 5 | **APPLY** | task agent | one instruction per paragraph and the **full-length** replacement text |
 | 5b | **RE-REVIEW** | the roles that ruled | *is this what you meant?* -- answered on the JOINED paragraph |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
 | 6b | **RE-REVIEW** | the roles that ruled | *is this still correct after my edits?* -- **stage 6's only reader** |
@@ -50,22 +50,22 @@ anything -- [`references/write.md`](references/write.md) only after approval, an
 roles that ruled on it, which is after stage 5 and again after stage 6. **Nobody loads all of
 it**, and no file restates another.
 
-## The seven verdicts
+## The seven instructions
 
 Everything below this line uses these seven words. A reviewer emits them; **you receive one or
 more per role per paragraph and must emit ONE replacement**, so what matters here is what each
 obliges *you* to do.
 
 !! **And you are expected to read the code around where that replacement lands, to verify it.**
-A verdict rules on a SENTENCE; a paragraph is only its address, so a paragraph of six sentences can
+An instruction rules on a SENTENCE; a paragraph is only its address, so a paragraph of six sentences can
 arrive carrying six. Synthesising them into one comment without re-reading the code beside it is
 how a run replaces an unfalsifiable claim with a checkably false one -- measured twice in the
 pass stage 8 rolled back.
 
-| verdict | the claim is | what you do with it |
+| instruction | the claim is | what you do with it |
 |---|---|---|
 | `clean` | nothing to report **from this role**, on a paragraph that role READ | nothing. Not a pass, and not a claim the paragraph is correct -- one role having no finding. A paragraph outside what the role reads is `query` |
-| `query` | unsettled | resolve it or escalate it. It blocks every other verdict on that sentence |
+| `query` | unsettled | resolve it or escalate it. Every other instruction on that sentence waits on it |
 | `drop` | true but not worth keeping | delete the sentence |
 | `correct` | **FALSE** | apply the true/false pair. **Always before any `patch`** |
 | `patch` | **TRUE**, badly worded | apply the rewrite |
@@ -74,14 +74,14 @@ pass stage 8 rolled back.
 
 !! **A relocation is ONE judgment, and the DESTINATION carries the rest.** Whether the prose
 belongs ten lines down, in another file, or out of the code altogether is payload -- not a
-second verdict. The reason it belongs there goes in `REASON`, which every record already
-has. **Availability keys on the destination, never on the verdict:** only a destination
+second instruction. The reason it belongs there goes in `REASON`, which every record already
+has. **Availability keys on the destination, never on the instruction:** only a destination
 OUTSIDE the code needs the tree 1.4 resolved, so only that case can be unavailable. A
 relocation into tracked code needs nothing outside it and is never withheld.
 
-A reviewer's verdict is only usable if it carries its payload. That contract is the
+A reviewer's instruction is only usable if it carries its payload. That contract is the
 reviewers', and [`references/reviewer-brief.md`](references/reviewer-brief.md) holds it -- you
-enforce it at stage 5 by refusing a verdict that arrives without one.
+enforce it at stage 5 by refusing an instruction that arrives without one.
 
 ## Why the stages are in this order
 
@@ -108,7 +108,7 @@ second reader, not a replacement for that.
 the AST PROVEN and 1103 tests green, and stage 8 returned twelve findings -- two of them the
 system replacing prose with something CHECKABLY FALSE -- and the whole pass was rolled back.
 
-! **The filer is the only participant who can answer.** Stage 5 turns several verdicts into one
+! **The filer is the only participant who can answer.** Stage 5 turns several instructions into one
 sentence; when it misreads one, no later reader can tell, because none of them saw the finding.
 That is why the question goes back to the role rather than to a fresh reader, and why it is
 narrow -- *did your edit survive, is it still correct there, do the other edits break it* --
@@ -156,7 +156,7 @@ write. *"Compact + correct"* is an instruction to somebody else, not the text.
 - **`target`** -- a path; **replaces** the diff scope, never intersects it.
 - **`style`** -- a path to a style sheet from a previous run. Optional; see 1.5.
 
-!! **Every verdict is available on every run.**
+!! **Every instruction is available on every run.**
 
 !! **ONE ROLE IS REQUIRED AND THREE ARE OPTIONAL.** `ownership-context` runs at 4a, alone and
 first, and is never dropped; `block-context`, `function-context` and `module-context` run at 4c
@@ -234,7 +234,7 @@ stage 5 and to stage 6.
 **1.4 Find the destination tree for prose that leaves the code**, and decide NOW what happens
 if there is none. WHERE a paragraph belongs is the reviewers' to say; whether a tree outside the
 code exists to receive it is a fact about the repo, and only you can settle it before they run.
-A verdict pointing at a tree that does not exist is not a verdict.
+An instruction pointing at a tree that does not exist is not an instruction.
 
 !! **The answer may be PER PATH, and a repo that says otherwise is rare.** A convention like
 `docs/{pkg}/{module}.md` is available exactly where that tree was actually built -- measured on
@@ -242,7 +242,7 @@ one repo, present for `tests/**` and absent for the production package, though t
 document cited the same path for both. **Write the split into the packet**, one line per scope,
 rather than picking the stricter answer for everything: told UNAVAILABLE everywhere, a reviewer
 withholds a legal `move` on the half that has a destination; told the tree everywhere, it emits
-verdicts pointing at a tree that is not there.
+instructions pointing at a tree that is not there.
 
 !! **If the destination tree is absent, only `move` OUT OF THE CODE is unavailable -- and
 those paragraphs become `clean`, never `drop`. A `move` to a destination inside tracked code is
@@ -250,7 +250,7 @@ unaffected and always available.** Say so at stage 1, and again in the proposal;
 (create the tree, or name another destination). This matters because the matrix routes
 *not-checkable + necessary* to `move`, and a repo that stages prose usually also rules that
 prose is MOVED, never deleted -- so with no destination those two rules leave the paragraph with no
-legal verdict at all -- *the matrix* is the checkable/necessary table in the reviewers' brief, and
+legal instruction at all -- *the matrix* is the checkable/necessary table in the reviewers' brief, and
 it is named here only to explain the consequence. **Keeping true prose in place costs a cap
 violation you can report. Dropping it costs the only copy.**
 
@@ -406,7 +406,7 @@ node's references already resolved, and it prints the tier counts for the run.
 !! **Most of that tree is `interval` paragraphs, and nobody owes them a record.** Every gap
 between two lines of code is numbered, empty ones included, because an `add` is a finding about
 prose that is MISSING and the record needs an ADDRESS to carry it. They are ADDRESSABLE,
-not ACCOUNTABLE: `verdicts.py` computes coverage over the paragraphs that hold prose and says both
+not ACCOUNTABLE: the collator computes coverage over the paragraphs that hold prose and says both
 counts on its first line. Re-measured 2026-08-19: `census.py` over itself is 1,607 paragraphs, 118 of them prose.
 
 ! Those tier counts are
@@ -431,7 +431,7 @@ same paragraphs and differ only in what else they can say:
 | `lexical` | a comment-syntax record, nothing else | paragraphs, annotations | any anchor; a marker inside an exotic string |
 
 !! **Carry the census's CANDIDATE line into the proposal.** It prints that no comment
-carries an anchor at either tier, so every PLACEMENT verdict rests on a reviewer READING the
+carries an anchor at either tier, so every PLACEMENT instruction rests on a reviewer READING the
 file -- a judgement no field records and nothing downstream can check.
 
 **What it guarantees, and why the reviewers depend on it.** A paragraph is bounded by CODE, not
@@ -551,7 +551,7 @@ KIND it could not resolve.
 | **4c** | the other three, in ONE message | they measure a claim against the code at their own scope |
 
 **One role REQUIRED, three OPTIONAL.** Roy, 2026-08-19: *"ownership-context has to run, else
-verdicts are made on statements that are not in the 'right' place. The other three are optional
+[instructions] are made on statements that are not in the 'right' place. The other three are optional
 and only run after ownership-context has had its say."*
 
 ! **A claim attached to the wrong scope is measured against the wrong code**, and the other three
@@ -672,7 +672,7 @@ file in place. It is the one path a reviewer is given, and the exception to *giv
 looking* above: it is being given a form, not a tree.
 
 ! **The seeded file is why coverage is structural.** A paragraph nobody ruled on is a slot with a
-null verdict, not an address missing from a list, so nothing downstream reconciles what was
+null instruction, not an address missing from a list, so nothing downstream reconciles what was
 expected against what arrived.
 
 ! **A reviewer may APPEND a record for any census ADDRESS, and must for an `add`** -- an `add`
@@ -703,11 +703,11 @@ when you cannot write the replacement text.
 !! **[`references/re-review.md`](references/re-review.md) is what a re-review IS**, and it is
 the only file that says. Load it before sending anything back: it carries what the role is
 given, the three questions it answers about the JOINED paragraph, the return shape, the channel,
-and when the rounds stop. ! The subject is never the finding -- *"do you stand by your verdict"*
-returns the verdict already filed.
+and when the rounds stop. ! The subject is never the finding -- *"do you stand by your instruction"*
+returns the instruction already filed.
 
 !! **WHICH PARAGRAPHS go back: every paragraph carrying a CONFLICTING mark, and `query` conflicts with
-nothing.** Ruled 2026-08-17. That is exactly the set `verdicts.py` prints as `RE-REVIEW`, so
+nothing.** Ruled 2026-08-17. That is exactly the set the collator prints as `RE-REVIEW`, so
 read the tool's list rather than deriving your own.
 
 !! **A CONFLICT IS ON ONE SENTENCE. Two marks on two different sentences COMPOSE and are not a
@@ -715,7 +715,7 @@ conflict**, however much they share a paragraph. Ruled 2026-08-17. `contradictio
 on the edited SPAN rather than the address for exactly this reason -- and it was paid for:
 measured on a live run, one of eight flagged collisions was two roles ruling on two different
 clauses of one docstring, and a whole re-review round went on establishing that. A paragraph of six
-sentences can carry six verdicts and still hold no conflict at all.
+sentences can carry six instructions and still hold no conflict at all.
 
 ! `query` sets neither trait and can never enter the set; `move` is absent by ruling, because
 relocation and a truth fix compose.
@@ -731,9 +731,9 @@ conflicts. ! The two numbers are not the same measurement: 51 counts roles conve
 PARAGRAPH, and the 8 already applies the sentence rule, so widening would cost less than six-fold
 but more than nothing.
 
-## Stage 5 -- APPLY: one verdict, one FULL-LENGTH replacement
+## Stage 5 -- APPLY: one instruction, one FULL-LENGTH replacement
 
-!! **Run THE COLLATOR before you rule on anything** -- `verdicts.py`, which reads every
+!! **Run THE COLLATOR before you rule on anything** -- it reads every
 reviewer's report against the census and against the others', and refuses what it cannot
 verify. It is the gate between MARK and APPLY:
 
@@ -759,21 +759,21 @@ reviewer that never reported at all is invisible -- "every reviewer" silently
 means "every file I was handed", the easier version of the fabrication below.
 
 It exits nonzero on a coverage gap, a citation that does not resolve, a quote
-not found near its cited line, a verdict outside the seven, a role
-that did not report, or a payload the verdict table requires and the record
+not found near its cited line, an instruction outside the seven, a role
+that did not report, or a payload the instruction table requires and the record
 lacks. It also names the paragraphs where `drop` meets `correct`/`patch` -- **a
 re-review, never a tie-break** -- and the paragraphs where `move` meets either, since a claim
 ruled on at the wrong anchor was measured against the wrong code. !! **It then prints your
-WORK LIST: every paragraph needing a ruling, with the verdicts held on it.** That is the grouping
+WORK LIST: every paragraph needing a ruling, with the instructions held on it.** That is the grouping
 stage 5 works from -- read it rather than rebuilding it from the report files.
 
 ! **It reports THREE states, not two.** A paragraph every role returned `clean` on STANDS. A paragraph
-carrying a substantive verdict NEEDS A RULING. A paragraph covered only by `clean` and
+carrying a substantive instruction NEEDS A RULING. A paragraph covered only by `clean` and
 `query -- outside my role` is neither: nothing is asked of you, and no role certified it either,
 because a role returns `query` rather than `clean` on a paragraph it never read. Measured: on one
-run 1159 paragraphs read as work when 76 carried a verdict.
+run 1159 paragraphs read as work when 76 carried an instruction.
 
-! **`query` is checked TWICE, and carries evidence like every other verdict.** Its citations
+! **`query` is checked TWICE, and carries evidence like every other instruction.** Its citations
 resolve as any other's do; on top of that its payload must NAME which of the brief's three
 shapes it is -- in the brief's own words -- and name the check it attempted. A `query` that
 names no shape is refused, and so is one that names no check.
@@ -790,25 +790,25 @@ mechanical can separate that from a real pass, because a negative leaves no
 artifact. **A green exit here is not evidence that anything was read.**
 
 ! **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct
-verdict from an incorrect one. Synthesis, and the order below, remain yours.
+instruction from an incorrect one. Synthesis, and the order below, remain yours.
 
-! **A paragraph that ends mid-clause is a finding, and its verdict is `correct`.** A run whose last
+! **A paragraph that ends mid-clause is a finding, and its instruction is `correct`.** A run whose last
 sentence stops mid-air -- a severed trailing comment, a `move` that cut a sentence in half -- is
 neither checkable nor necessary, so the matrix routes it to `drop`, deleting the pointer instead
 of repairing it. Restore the sentence.
 
 ! **Two findings quoting the same sentence in different files are ONE finding.** A pass edits
 where it is reading, fixes the copy in front of it, and manufactures a disagreement with the one
-it never opened. Contradicting verdicts trigger a **re-review**, never a tie-break. The collator
+it never opened. Contradicting instructions trigger a **re-review**, never a tie-break. The collator
 cannot see this for you -- `contradictions()` keys on the ADDRESS, and the same
 sentence copied into two files is two different paragraphs it can never relate.
 
-!! **Whether a TRUE sentence earns its place is a VERDICT, and verdicts are theirs.** The
+!! **Whether a TRUE sentence earns its place is an INSTRUCTION, and instructions are theirs.** The
 CHECKABLE/NECESSARY matrix that settles it is in `reviewer-brief.md`, and every reviewer is
-handed it. A paragraph whose place no verdict settles goes BACK for re-review; you do not rule it
+handed it. A paragraph whose place no instruction settles goes BACK for re-review; you do not rule it
 here.
 
-### Synthesising one comment out of N verdicts
+### Synthesising one comment out of N instructions
 
 Four reviewers rule on the same paragraph, so you hold several recommendations and must emit **one**
 replacement. Apply them in this order. It is not arbitrary -- each step depends on the one above
@@ -827,7 +827,7 @@ being settled:
    `patch` on a false sentence polishes the wording of a falsehood and retires the finding.
    That is laundering, and this order is what prevents it.
 5. **`add`** -- insert at the stated anchors.
-6. **`clean`** -- the null verdict, and **the collator already did this one.** The paragraphs it printed
+6. **`clean`** -- the null instruction, and **the collator already did this one.** The paragraphs it printed
    as `STANDS UNCHANGED` are exactly those every reviewer that ran returned `clean` on. Read
    that number; do not re-derive the set.
 
@@ -836,11 +836,11 @@ being settled:
 the same check against the same original; none of them may check against the previous edit.
 
 Then emit the replacement and run the residue check on **the whole synthesised paragraph once** --
-not once per verdict. The check compares against the original, and the original was one paragraph.
+not once per instruction. The check compares against the original, and the original was one paragraph.
 
 **Four rules that resolve the common collisions:**
 
-- **Two placement verdicts on one paragraph, naming different destinations:**
+- **Two placement instructions on one paragraph, naming different destinations:**
   `ownership-context`'s destination governs. Both findings stand; only the destination is
   decided. ! This is the PRECEDENCE that role already holds, not a tie-break -- the rules below
   break no ties.
@@ -926,7 +926,7 @@ carries, so nothing between stage 5 and the galley converts. **Nothing under the
 touched**; a galley is a copy and it is discarded with the run.
 
 ! **A round-2 record is an ORDINARY record** citing the galley census, so it joins exactly as a
-round-1 record does. Run `verdicts.py` against `galley-census.json` for it.
+round-1 record does. Run the collator against `galley-census.json` for it.
 
 !! **Do not carry a round-1 index into round 2.** A replacement whose line count differs shifts
 every paragraph below it, so the same prose holds different indices in the two censuses. They relate
@@ -935,7 +935,7 @@ by PATH and CONTENT, and you are the only participant holding both.
 ! **`galley.py` REFUSES rather than guesses.** It exits nonzero and NAMES what refused --
 **read that, rather than the list you remember**: this section carried three of the seven
 reasons and was wrong about the set for two releases, in the same way the RE-REVIEW set is
-`verdicts.py`'s to print and not this file's to derive.
+the collator's to print and not this file's to derive.
 
 !! **One of them is not about your edits.** A census taken before the fields the galley needs
 is refused WHOLE, before any paragraph is read, because every per-field default is a guess about a
@@ -984,8 +984,8 @@ wrote it.** ! Measured 2026-08-17: on one run the compact pass came under the ca
 
 !! **A paragraph stage 6 must edit that NO role ruled on goes to ALL FOUR, as a fresh paragraph.** A
 paragraph every role returned `clean` on can still be over the cap; shortening it is an edit with no
-verdict behind it, and neither 5b nor 6b reaches it because there is no filer to ask. It comes
-back with verdicts. ! It is the only path by which stage 6 originates work, and it runs the
+instruction behind it, and neither 5b nor 6b reaches it because there is no filer to ask. It comes
+back with instructions. ! It is the only path by which stage 6 originates work, and it runs the
 opposite way to everything else: every other finding travels 4 -> 5, this one travels 6 -> 4.
 
 ! **Set a galley of the COMPACTED text and census it**, exactly as 5b does. The text stage 6
@@ -993,8 +993,8 @@ hands on is again on no disk, and it is not the text 5b addressed.
 
 ## Stage 7a -- APPROVAL: present the FINAL text, then stop
 
-Grouped by verdict, most consequential first, in **five parts**
-(`VERDICT / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the reviewer record minus the fields only
+Grouped by instruction, most consequential first, in **five parts**
+(`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the reviewer record minus the fields only
 the collator reads -- replacement text inline
 for every `correct` / `patch` / `add`. State **raised / clean** and the
 longest paragraph that will remain. **The proposal ends here** -- nothing further is written until

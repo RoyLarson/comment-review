@@ -9,7 +9,7 @@ REFERENCE ONLY list. Without it that list is assembled from memory, and a
 
 Read-only, always exits 0: an INPUT to a review. Every line it prints is a
 CANDIDATE -- a file that names a token is a file to READ, and stays outside what
-a verdict may target.
+an instruction may target.
 """
 
 import ast
