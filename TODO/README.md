@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (90)
+### open  (91)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -272,6 +272,7 @@ that changed a published name or rule:
 | [build-gate-crlf-fragile](build-gate-crlf-fragile.md) | systems | — | 0/2 | build_plugin.py's raw byte compare fails on a line-ending-only difference introduced by a Windows git checkout |
 | [shape-is-three-words](shape-is-three-words.md) | backend | yes | 0/5 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
 | [annotate-belongs-in-concordance](annotate-belongs-in-concordance.md) | backend | — | 0/3 | annotate.py is stage 3 -- it resolves every reference a node makes -- which is the concordance's subject, not the binder's |
+| [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | — | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 
 ### in-progress  (19)
 
