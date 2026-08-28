@@ -52,7 +52,7 @@ came up, but what changes here is control flow.
   is different, and naming-and-shaming is no longer what happens.
 - **`SKILL.md`.** `SKILL.md:82-84` says nothing about coverage and the phrase *"coverage is a
   COMPLETE READ"* does not occur in the file. What does: `:409` (what is ACCOUNTABLE), `:674`
-  (*"the seeded file is why coverage is structural"*) and `:761` (the join exits nonzero on a
+  (*"the seeded file is why coverage is structural"*) and `:761` (the collator exits nonzero on a
   coverage gap). ! Confirm rather than assume which of the three survive the ruling, and change
   only those that do not.
 

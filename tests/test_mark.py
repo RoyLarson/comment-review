@@ -87,7 +87,7 @@ class TestTheTableIsTheContract:
         """The gate and the published sentence read off ONE row.
 
         Measured 2026-08-22 and twice after: the payload shipped saying a patch
-        needs no source while the flag said it did, so the join refused every
+        needs no source while the flag said it did, so the gate refused every
         `patch` a compliant reviewer filed.
         """
         spec = INSTRUCTIONS["patch"]

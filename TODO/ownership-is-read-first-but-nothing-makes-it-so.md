@@ -44,7 +44,7 @@ deliver that, and the one that prevents the misreading is still missing.**
 | --- | --- |
 | dispatch order | **serial, as INSTRUCTION.** SKILL.md:30, :161-162, :546-551 -- 4a alone, then the three at 4c. ! But `run_context.py:348` still tells the packet's reader to *"Dispatch all four in ONE message"* |
 | synthesis order | in-code `move` was applied **LAST**, after `correct` and `patch` -- the text was corrected at the old anchor, then relocated. Ruled *"moves first"*; placement now settles at step 2 |
-| the join | `contradictions()` keyed on `drop` alone, so `move` + `correct` passed in silence. It now flags `move` against `correct`/`patch` |
+| the collator | `contradictions()` keyed on `drop` alone, so `move` + `correct` passed in silence. It now flags `move` against `correct`/`patch` |
 
 ! **Two of the three act AFTER the reviewers have read.** They catch a claim measured at the
 wrong anchor; they do not stop it being measured there.
@@ -53,7 +53,7 @@ wrong anchor; they do not stop it being measured there.
 down, but nothing carries `ownership-context`'s resolved placement into what the other three
 read: there is no PROPOSED tag, and `census.py` has nowhere to put one. So `block-context` still
 measures a misplaced claim against whatever code it sits with, and spends a verdict on it, before
-anything knows the placement is wrong. The join sends that block back -- which is a round trip,
+anything knows the placement is wrong. The collator sends that block back -- which is a round trip,
 not a prevention.
 
 ## !! WHY 4a/b/c EXISTS AT ALL, stated 2026-08-18 with the consequences known
@@ -205,7 +205,7 @@ address and carries the destination, so 4c knows which code to measure the claim
 
 - Stage 4 stops being one parallel dispatch. 4a and 4c are serial, so the run's wall-clock
   grows by one agent round trip. **This is the whole remaining cost.**
-- A `move` at 4a and a `drop` at 4c on the same block still collide, so the join's
+- A `move` at 4a and a `drop` at 4c on the same block still collide, so the collator's
   contradiction check stays either way.
 
 ! **One cost listed here before the ruling is GONE, and it was the largest.** It read: *"4b
@@ -284,7 +284,7 @@ about, one layer up.
 packets or one that says which pass it is; 4c's packet names census B and 4a's names census A,
 which is the only field that differs, so one packet with a PASS line is likely enough.
 
-! **Coverage is the specific risk at the join.** `verdicts.py` reads one census: an interval that
+! **Coverage is the specific risk at the collator.** `verdicts.py` reads one census: an interval that
 gained text is now a block a reviewer owes a record for, and one nobody told 4c about is a
 coverage gap the run manufactured for itself.
 
@@ -319,7 +319,7 @@ true**, and it is the sentence the whole split exists to make good on.
       `--check` refuses a 4c packet that names census A.
 - [ ] T12 -- **Fix the packet's success message at `run_context.py:348`**, which still
       instructs the parallel dispatch. Verify: the success message names 4a and 4c.
-- [ ] T13 -- **Teach the join not to read a PROPOSED-drop node as ordinary prose.**
+- [ ] T13 -- **Teach the collator not to read a PROPOSED-drop node as ordinary prose.**
       Verify: a census carrying a PROPOSED drop owes no verdict on that node.
-- [ ] T14 -- **Teach the join what an `add`'s filled interval is.** Verify: a census whose
+- [ ] T14 -- **Teach the collator what an `add`'s filled interval is.** Verify: a census whose
       interval gained proposed text joins without a manufactured coverage gap.

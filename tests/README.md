@@ -67,7 +67,7 @@ carries.
 
 ## What is deliberately NOT tested
 
-- **The desk, the verdicts, the join.** Roy: *"There is code there none of it is
+- **The desk, the verdicts, the record.** Roy: *"There is code there none of it is
   correct so testing it is solidifying wrong."* That code now lives in
   `prototype/`.
 - **The front-matter/`b` collision** -- a file whose front matter is not on line

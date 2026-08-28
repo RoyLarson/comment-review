@@ -86,13 +86,13 @@ Measured after: a sourceless `patch` is ADMITTED, a sourceless `correct` is stil
 never ran certifies *Every finding is admissible* at exit 0 and never names the absence.
 ! RE-CONFIRMED 2026-08-23 by reading both files.
 
-**Zero path arguments certified completeness.** `census.py` emitted `[]` at exit 0, and the join's
+**Zero path arguments certified completeness.** `census.py` emitted `[]` at exit 0, and the collator's
 emptiness guard was satisfied by an empty list, so `verdicts.py` certified *0 findings over 0 prose
 paragraphs* as COMPLETE. Reachable whenever stage 1's merge-base diff yields no paths -- the exact
 complete-because-nothing-was-incomplete failure that guard exists to stop, one step out.
 ! NOT RE-RUN 2026-08-23. **RE-RUN AND FIXED 2026-08-24**, both halves.
 
-! **THE JOIN'S HALF IS THE SAME DEFECT ONE INPUT SHORT, and it sat beside its own reasoning.**
+! **THE COLLATOR'S HALF IS THE SAME DEFECT ONE INPUT SHORT, and it sat beside its own reasoning.**
 `verdicts.py` already refuses a census carrying no ADDRESSES, with a comment saying *"the run then
 reads as complete because there was nothing to be incomplete about."* An EMPTY census passes that
 check **vacuously** -- `unaddressed([])` is empty because there is nothing that could be
@@ -151,7 +151,7 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
 - [x] T4 -- `census.py` -- refuse a run given zero path arguments instead of emitting
       `[]`. Verify: a zero-path census run exits nonzero.
 - [x] T5 -- `verdicts.py` -- refuse an empty census instead of certifying it COMPLETE.
-      Verify: the join over an empty census exits nonzero and says what was missing.
+      Verify: the collator over an empty census exits nonzero and says what was missing.
 - [ ] T6 -- `desk.py` -- keep a blank line inside the SOURCE window from collapsing to two
       spaces. Verify: an honest verbatim quote spanning a blank line is admitted.
 - [ ] T7 -- `desk.py` -- stop reading a prose `to:` that names a decorated accessor as an

@@ -1,7 +1,7 @@
 """The shadow suite: invariants derived from the CODE, not from `tests/`.
 
 WHY IT EXISTS. Roy, 2026-08-25, after a night in which the existing suite passed
-829 green while the join's central check reported *"the sentence ruled on is not
+829 green while `verdicts.py`'s central check reported *"the sentence ruled on is not
 in <place>"* for EVERY finding: *"866 tests are likely garbage piling up with
 maybe 50 good ones in the mix."* Three changes that night -- fences leaving the
 census, eleven fields leaving the row, and a rename that broke every finding --
@@ -35,7 +35,7 @@ FULL page -- fences included -- and none of what a binder carries.
     reading -> binder     what an agent is handed
     page -> galley -> compositor    the write path, from a freshly read page
 
-!! NOTHING TOUCHES THE DESK, THE VERDICTS OR THE JOIN. Roy: *"There is code
+!! NOTHING TOUCHES THE DESK, THE VERDICTS OR THE RECORD. Roy: *"There is code
 there none of it is correct so testing it is solidifying wrong."*
 
 ! AND THE FRONT-MATTER/`b` COLLISION IS OFF LIMITS -- a file whose front matter

@@ -188,7 +188,7 @@ raised in conversation.
       at [`compact-can-buy-lines-with-width`](compact-can-buy-lines-with-width.md).
 - [x] T12 -- FINISHED. **P1 (todo-tool) -- a `REASON` naming a sentence no `CLAIM`
       names.** The checker ships at `verdicts.py:170-191`.
-- [ ] T13 -- Give the join's output a section for a tension with no address. Verify:
+- [ ] T13 -- Give the collator's output a section for a tension with no address. Verify:
       `verdicts.py` prints that section.
 - [ ] T14 -- Test that a record with no address reaches that section. Verify: the test
       fails on today's code first.

@@ -73,6 +73,19 @@ RETIRED = {
     # measured 2026-08-23, it fired on 15 sentences reading *"leaves it
     # unaccounted for"*. ! The two senses are declared polysemy; see
     # `docs/vocabulary.md` and `TODO/leaf-means-two-things.md`.
+    #
+    # !! `join` AS A NOUN IS RETIRED, 2026-08-27. Roy: *"'The join' was too
+    # ambiguous. It didn't define anything and you used it as a shortcut that
+    # could have meant many different operations."* MEASURED: 202 live uses
+    # carrying FIVE referents -- the `verdicts.py` program, linking two data
+    # structures, checking a mark against its page, a git merge, and ordinary
+    # English. `decision-log.md Vocabulary: #19`.
+    #
+    # ! THE VERB IS LIVE AND NECESSARY -- `"".join(...)` appears 28 times in the
+    # shipped tree -- so `.join(` is declared below rather than the word being
+    # left out of this table. The `(?![\w-])` in `check_retired` already spares
+    # `joins`, `joined` and `joining`; only the bare noun is refused.
+    "join": "the collator",
 }
 
 # !! THE WAY OUT, AND IT IS PER FILE. Roy, 2026-08-19: *"let's give ourselves a
@@ -142,6 +155,8 @@ MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ", "`pCST`")
 #                   a PYTHON code block, the language's own term
 #   Java text block the same feature as TEXT BLOCK above, in lower case
 NOT_THE_TERM = (
+    # ! Python's own str.join -- the VERB, and 28 sites in the shipped tree.
+    ".join(",
     "block-context",
     "TEXT BLOCK",
     "block_matches",

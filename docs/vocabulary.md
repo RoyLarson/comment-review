@@ -27,6 +27,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `reanchor` | -> **`move`**. A relocation is ONE judgment; the destination is payload |
 | `HOME` | -> **owner**. It named the same site under a second stem |
 | `jurisdiction` | -> **remit**. Judicial on an editorial system |
+| `join` (the NOUN) | -> **the collator**. A database word, and it carried FIVE referents at once -- see `decision-log.md Vocabulary: #19`. ! The VERB is live: `"".join(...)` is Python's own, and `.join(` is declared in `check_vocabulary.py` |
 | `signature` (the CODE CHECK's) | -> **fingerprint**. `signature` means a function's, only |
 | `residue` (the string) | -> **stripped**. The prose check keeps the word |
 | `owner` (the census field) | -> **anchor**. It is a position, not a judgement |
@@ -82,7 +83,7 @@ system has a different problem with each.
 
 | publishing's word | what it names there | ours |
 | --- | --- | --- |
-| **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | `verdicts.py`, which the shipped tree calls **the join** at 43 sites and which rules on nothing by design. `join` is a database word |
+| **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | `collator.py`, ruled 2026-08-23 (`decision-log.md Vocabulary: #11`) and still to be built. It rules on nothing by design |
 | **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **unnamed.** It is what `verdicts.py` prints |
 | **editor** | who reads the master proof and decides what stands | **the COPY CHIEF**, ruled 2026-08-23. Stage 5 APPLY, performed by the task agent today and getting an agent file of its own |
 

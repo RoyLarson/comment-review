@@ -76,7 +76,7 @@ def census(target: Path, *flags: str) -> str:
 
 
 def rows_of(target: Path) -> list[dict]:
-    """The JSON census, as the join would parse it."""
+    """The JSON census, as the collator would parse it."""
     return json.loads(census(target, "--json"))
 
 
@@ -155,7 +155,7 @@ def main() -> int:
     everything = not (args.json_only or args.listing_only or args.fields)
 
     if everything or args.json_only:
-        print("=== THE JSON CENSUS -- what the join parses, and what a cut would save")
+        print("=== THE JSON CENSUS -- what the collator parses, and what a cut saves")
         for target in targets:
             json_table(target)
     if everything or args.listing_only:

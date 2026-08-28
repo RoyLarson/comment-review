@@ -93,7 +93,7 @@ uv run python scripts/measure_binder.py \
 
 !! **`--json` IGNORES `--filtered` ENTIRELY.** MEASURED: 115 rows and 73,792 bytes either way,
 byte-identical. Everything the listing does to collapse no-prose rows is absent from the artifact
-the join parses -- **so every figure taken from a filtered listing says nothing about this one.**
+the collator parses -- **so every figure taken from a filtered listing says nothing about this one.**
 
 | page | rows | hold prose | as it ships | x4 roles |
 | --- | --- | --- | --- | --- |

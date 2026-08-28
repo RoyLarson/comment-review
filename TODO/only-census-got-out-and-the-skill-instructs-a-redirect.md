@@ -4,7 +4,7 @@
 Status:   open
 Progress: 3 of 5 tasks done
 Owner:    agents
-Raised:   2026-08-17 (the 0.2.0 builder run, at the join: "verdicts.py has no --out
+Raised:   2026-08-17 (the 0.2.0 builder run, at the collator: "verdicts.py has no --out
           (the census scripts do) -- and this session refuses shell redirects")
 TRIAGED:  2026-08-23 -- RE-MEASURED, and one row of the table below turned over.
           `verdicts.py` NOW HAS `--out` (verdicts.py:293, help string byte-identical to
@@ -42,7 +42,7 @@ been acted on for two of the four. MEASURED 2026-08-23:
 | script | output the run needs on disk | has `--out`? |
 | --- | --- | --- |
 | `census.py` | the two censuses | **yes** -- census.py:276 |
-| `verdicts.py` | the join; the evidence layout keeps `join-1...`/`join-2...` | **yes** -- verdicts.py:293 |
+| `verdicts.py` | the collator; the evidence layout keeps `join-1...`/`join-2...` | **yes** -- verdicts.py:293 |
 | `run_context.py --template` | the packet -- required, and `--check`ed | **yes**, 2026-08-24 -- and SKILL.md:617 still writes the redirect |
 | `referrers.py` | the `REFERENCE ONLY` candidates | **yes**, 2026-08-24 |
 
@@ -59,14 +59,14 @@ was being diagnosed for a refusal -- editing the script under a diagnosis makes 
 worthless.
 
 ! **`verdicts.py --out` as it landed was EXCLUSIVE**, because the help was copied: it read
-*"write the report to PATH, not stdout"*. The join is read by a human at the terminal as often as
+*"write the report to PATH, not stdout"*. The collator is read by a human at the terminal as often as
 it is captured, and `census.py --out` is silent by comparison because nobody reads a census by
 eye.
 
 !! **SO THE COPY RULE ABOVE HAS ONE DELIBERATE EXCEPTION, LANDED 2026-08-24.** T4 made
 `verdicts.py --out` write the file **and** print, and its help now reads *"write the report to
 PATH, and print it too"*. ! **The three that stay exclusive are the three nobody reads by eye**
--- a census, a packet and a candidate list are inputs to a later stage. The join is the one
+-- a census, a packet and a candidate list are inputs to a later stage. The collator is the one
 stage whose output a person acts on, and a gate that goes silent when its output is captured
 makes *saw nothing* and *found nothing* the same event there.
 

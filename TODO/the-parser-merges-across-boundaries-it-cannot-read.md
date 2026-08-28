@@ -1,4 +1,4 @@
-# The join merges across a boundary it cannot read, and blames the neighbour
+# The collator merges across a boundary it cannot read, and blames the neighbour
 
 ```
 Status:   in-progress
@@ -14,7 +14,7 @@ SPLIT:    2026-08-23 -- no box held two tasks; four boxes stay four. The two clo
 
 ## Objective
 
-**When the join cannot recognise a boundary it silently merges across it, and the diagnostic then
+**When the collator cannot recognise a boundary it silently merges across it, and the diagnostic then
 points at the correct work on the other side.** Roy named the class after the third instance:
 
 | | what merged | what the error blamed |

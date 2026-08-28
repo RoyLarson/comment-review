@@ -77,7 +77,7 @@ question *did the change help* cannot be asked at all, however carefully the run
 !! **MEASURED, AND IT COST EVERY RELEASE TO DATE.** Roy, 2026-08-23: *"v0.1.0, 0.2.0, 0.2.1,
 0.2.2, 0.2.3 are all conflated about how well the system works because the mechanics of the
 system didn't work and we changed both at the same time."* The 0.1.x line and 0.2.0 through
-0.2.3 each moved the census, the addressing or the join AND the four role files together. Every
+0.2.3 each moved the census, the addressing or `verdicts.py` AND the four role files together. Every
 number in their evidence is real; none of it answers how well the SYSTEM works, because no run
 holds one side still.
 

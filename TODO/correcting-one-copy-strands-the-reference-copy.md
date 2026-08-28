@@ -51,7 +51,7 @@ re-review"* -- and a re-review needs two findings. **A REFERENCE ONLY file carri
 because no verdict may target it. The rule sees the failure and its cure operates on a case
 that cannot arise here.
 
-! **AND THE JOIN CANNOT SEE IT EITHER, for a reason this file used to state wrongly.**
+! **AND THE COLLATOR CANNOT SEE IT EITHER, for a reason this file used to state wrongly.**
 `SKILL.md:803-804` says *"`contradictions()` keys on the ADDRESS, and the same sentence copied
 into two files is two different paragraphs it can never relate"* -- confirmed 2026-08-23 at
 `verdicts.py:225-238`, which groups by `f.address`. The earlier text here said it keys on the
@@ -113,7 +113,7 @@ docs/limitations.md` is EMPTY, so nothing tells a reader that a run can strand a
 touch. ! Extending `SKILL.md:800-804` is preferred to writing a second numbered rule, because
 `docs/limitations.md` says a rule belongs in exactly one file.
 
-! **DETECTION CANNOT BE THE JOIN'S.** `contradictions()` keys on the address
+! **DETECTION CANNOT BE THE COLLATOR'S.** `contradictions()` keys on the address
 (`verdicts.py:225-238`) and a reference file has no census, so it can never relate two copies.
 The task agent, which holds the reference file list and the replacement text, is where the check
 is available.

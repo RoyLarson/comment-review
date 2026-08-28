@@ -847,7 +847,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     lines = constants.text_lines(text)
     out: list[Paragraph] = []
     run: list[tuple[int, str]] = []
-    # ! Blank lines seen since the last comment line. They join the run only if
+    # ! Blank lines seen since the last comment line. They belong to the run only if
     # another comment follows; otherwise they are dropped, so a run ends on its
     # last comment line.
     pending: list[tuple[int, str]] = []

@@ -58,7 +58,7 @@ to the human"* -- because COMPACT ran the residue check as step 3 of its own per
 making the agent that cut the text the one checking whether the cut lost something, against
 `compact.md`'s own *"the contract only buys anything if the reader is not the writer"*.
 
-! **T4.** `SKILL.md:905-944` sends every paragraph the join printed as `RE-REVIEW` back to the
+! **T4.** `SKILL.md:905-944` sends every paragraph the collator printed as `RE-REVIEW` back to the
 roles that ruled on it, against a galley census. Roy: *"potentially a 5b just to double check."*
 ! `SKILL.md:974-977` states what separates the two so the budget buys two different questions:
 *"5b asks whether the synthesis carried the finding, 6b asks whether shortening broke it."*

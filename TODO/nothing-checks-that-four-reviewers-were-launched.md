@@ -51,7 +51,7 @@ an announcement in a wall of output is not a gate.
 ! Why the invariant is not a formality: `SKILL.md` records that **a single-role run ratifies
 falsehoods** -- one role reading a false absence claim writes that it is true, where another
 refutes it by grep. A three-role run is the same defect, weaker. And the missing role's blocks
-are not gaps the join can see: it computes coverage from the reviewers that REPORTED, so three
+are not gaps the collator can see: it computes coverage from the reviewers that REPORTED, so three
 complete reports read as complete coverage unless `--reviewers` names the fourth.
 
 ## The four candidates for WHERE the check goes, and the recommendation
@@ -91,7 +91,7 @@ a correct run.
 artifact the table above says is missing, and it stops `--reviewers` depending on a human
 remembering to type it. It is still a self-report and no more trustworthy than the agent making
 it -- but a self-report that four were dispatched, against three reports on disk, is a
-contradiction the join can print.
+contradiction the collator can print.
 
 !! **And the RELIABLE signal already exists -- it is the dispatch tool's own return, one per
 call.** The 2026-08-17 session settled the question exactly that way: four launch confirmations,

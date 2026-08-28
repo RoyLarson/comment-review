@@ -74,7 +74,7 @@ kinds of case, two artifacts, no stop mechanism.
 ! That also decides the fixture question: a MARK-level case never writes to the tree, so it needs
 no worktree to throw away -- only somewhere to put the record file.
 
-**AND THE JOIN ALREADY TAKES ANY SET.** `verdicts.py:296` takes `--reviewers` as a
+**AND THE COLLATOR ALREADY TAKES ANY SET.** `verdicts.py:296` takes `--reviewers` as a
 comma-separated list matched against report stems; it does not know the number four.
 `coverage_gaps` counts against the declared population and `verdicts.py:645` prints a NOT
 ACCOUNTED FOR line. ! Verified 2026-08-23 that the absence of `--reviewers` is ANNOUNCED rather
@@ -304,7 +304,7 @@ to end, so the dominance claim waits on something that can disagree with it.
 - [x] T3 -- RULED 2026-08-18 by Roy: the scope is the PROJECT, and it shipped in
       `d3aa065`.
 - [ ] T4 -- State the residual cost of a reduced run -- every truth finding
-      uncorroborated. Verify: the join's report says so, not only this file.
+      uncorroborated. Verify: the collator's report says so, not only this file.
 - [ ] T5 -- Rewrite stage 5's synthesis so it states no population count; `SKILL.md:813`,
       `:847` and `:843-844` each assume four. Verify: the section names no count.
 - [ ] T6 -- Say in stage 5 that the synthesis ORDER is about verdict kinds, not roles.
@@ -313,9 +313,9 @@ to end, so the dominance claim waits on something that can disagree with it.
       not run. Verify: no rule naming a role is silent on its absence.
 - [x] T8 -- RULED 2026-08-18: `ownership-context` is never optional, so "who governs
       instead" does not arise and the placement precedence stays as written.
-- [ ] T9 -- Make the join name the reporting set even with no `--reviewers`. Verify: a run
+- [ ] T9 -- Make the collator name the reporting set even with no `--reviewers`. Verify: a run
       without it prints which roles reported.
-- [ ] T10 -- Where the set is short of four, make the join name whose corroboration is
+- [ ] T10 -- Where the set is short of four, make the collator name whose corroboration is
       absent. Verify: a three-role report names it.
 - [ ] T11 -- Give a MARK-level case its terminus in writing: stage 4's record file.
       Verify: a case asserts on one and `git status --short` is empty.

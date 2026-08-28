@@ -47,7 +47,7 @@ because this change removed it". ! The first row is unresolved and remains the e
 `correct` that reads confident and a `query` that says nobody can tell are not adjacent verdicts.
 
 !! **This is not the disagreement the system is built for.** Two ROLES disagreeing is designed
-in -- remits overlap, the join prints it, and the re-review resolves it. Two runs of ONE role
+in -- remits overlap, the collator prints it, and the re-review resolves it. Two runs of ONE role
 disagreeing is different: it means the verdict is a sample, and nothing anywhere states its
 variance.
 
@@ -122,7 +122,7 @@ skill version, the cause is the skill change and this file is about CHANGE SENSI
 a different and more tractable problem.
 
 ! **T3 -- what a measured reversal rate would OBLIGE.** Candidates: nothing, and it is recorded
-as a known bound; a rule that a `clean` from one role never certifies alone; or the join
+as a known bound; a rule that a `clean` from one role never certifies alone; or the collator
 reporting agreement across roles as a confidence signal it currently computes and discards.
 ! Roy's, because it decides whether a verdict is a claim or a vote.
 

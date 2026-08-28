@@ -439,7 +439,7 @@ def test_a_rel_that_ESCAPES_the_repo_is_REFUSED_AT_READ(tmp_path, monkeypatch):
 
     ! IT NAMES THE BINDER PAGE PATH NOW. `run` asks `_can_escape` of every page
     path as it reads the shas, before the loop, so the refusal states the fault
-    rather than whichever of the two roots the join happened to leave first."""
+    rather than whichever of the two roots the path happened to leave first."""
     repo = tmp_path / "repo"
     repo.mkdir()
     escaped = tmp_path / "escape_repo" / "sub"

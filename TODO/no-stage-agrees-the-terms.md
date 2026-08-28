@@ -80,7 +80,7 @@ catches is the measurement this file is graded on.
 - [ ] T4 -- Feed it from `vocabulary_sweep.py`, which already finds unlisted terms.
       Verify: a sweep row reaches the artifact without being retyped.
 - [ ] T5 -- Let a role RAISE a term as reading two ways. Verify: a report can name a term
-      it could not read one way, and the join carries it.
+      it could not read one way, and the collator carries it.
 - [ ] T6 -- Refuse a run that leaves a raised term unanswered. Verify: it exits nonzero
       and names the term and the role.
 - [ ] T7 -- Score the stage against the nine cases in the Objective. Verify: how many it

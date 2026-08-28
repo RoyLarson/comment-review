@@ -17,9 +17,9 @@ doesn't belong in the new records.py. It belongs in the desk/ i think."*
 
 ! **IT IS THE HALF THAT NEEDS NOTHING LOADED.** Whether `claim.false` is a key
 is answerable from the mark alone; whether that sentence is really IN the
-paragraph needs the page the role read. The second is the JOIN, and the join is
-what is still missing -- so a mark can be checked the moment it comes back, and
-not yet checked against the file it rules on.
+paragraph needs the page the role read. The second is SOURCE-VERIFICATION, and
+it is what is still missing -- so a mark can be checked the moment it comes
+back, and not yet checked against the file it rules on.
 
 ! **AND THE WORD IS `instruction`, NOT `verdict`.** Roy, 2026-08-27: *"I also
 don't like the term verdict. It doesn't seem in line and is confusing when it is

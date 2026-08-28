@@ -29,7 +29,7 @@ that the artifacts do not move. **There is no artifact set to compare against**,
 cannot be stated, let alone met. Building this is what makes the second phase checkable.
 
 ! **THE MEASUREMENT IS MACHINERY, NOT EDITORIAL QUALITY.** What this compares is bytes -- the
-census, the seeded record, the join's report, the drafted page, `prove_unchanged`'s verdict.
+census, the seeded record, the collator's report, the drafted page, `prove_unchanged`'s verdict.
 Whether the REVIEW got better needs a grader, which is `testing`'s and is
 [`the-harness-cannot-run-the-system-it-grades`](the-harness-cannot-run-the-system-it-grades.md).
 The two answer different questions and neither substitutes for the other.

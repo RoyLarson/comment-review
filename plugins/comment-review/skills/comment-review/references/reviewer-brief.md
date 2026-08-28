@@ -115,11 +115,11 @@ whose destination is in ANOTHER file, which no page of yours can name.
 prose, deliberately: handed the text you could produce a complete, admissible ruling without
 ever reading the code, and nothing could tell that from real work. Your remit requires the
 read. ! If you read the wrong lines, the sentence your `claim` quotes will not be in the paragraph
-and the join says so -- that error is caught, and the other one is invisible.
+and the collator says so -- that error is caught, and the other one is invisible.
 
 !! **WHAT YOU OPEN IS THE ORIGINAL** -- the file as it stood when THIS RUN began, not the first
 version ever written. Nothing is written to disk before stage 7b, so the file you read at stage 4
-IS the state your `place` and your `anchor` were taken from, and the state the join checks your
+IS the state your `place` and your `anchor` were taken from, and the state the collator checks your
 `claim` against.
 
 !! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `place` and `anchor` are the tool's. Leave them alone;
@@ -176,7 +176,7 @@ inadmissible.
 !! **A DEFECT YOU STATE IN `reason` REACHES NOBODY.** `reason` is read by no check, so a sentence
 there that your `claim` does not name is a second finding with no record -- the gate checks the
 claim it was given, passes, and the defect never reaches a work list. **If your reasoning names a
-defect in a sentence your `claim` does not name, write a SECOND RECORD on that paragraph.** The join
+defect in a sentence your `claim` does not name, write a SECOND RECORD on that paragraph.** The collator
 reports a phrase you quote from the paragraph that no claim names, so you will see it; write the
 record instead.
 

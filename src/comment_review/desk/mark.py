@@ -16,7 +16,8 @@ which is what a compositor executes, and this system has one.
 !! THE RULES SPLIT ON WHAT THEY NEED, AND THIS FILE IS THE HALF THAT NEEDS
 NOTHING. Whether `claim.false` is a key is answerable from the mark; whether it
 appears VERBATIM in the paragraph is answerable only against the page the role
-read. **The first is here; the second belongs to the join**, which is not built.
+read. **The first is here; the second is SOURCE-VERIFICATION**, which is not
+built.
 ! Written this way so the shape can be checked the moment a role hands it back,
 before anything has been loaded.
 
@@ -202,7 +203,7 @@ INSTRUCTIONS: dict[str, Instruction] = {
         quotes_original="from",
         # !! SET FROM THE PAYLOAD ABOVE, WHICH SHIPS. That sentence is generated
         # into the brief and said a patch needs no source while this stayed True,
-        # so the join fatally refused every `patch` a compliant reviewer filed.
+        # so the prototype's gate fatally refused every `patch` a reviewer filed.
         # Measured 2026-08-22, re-confirmed twice. The gate and the instruction
         # now read off the same row, which is what the row is for.
         owes_sources=False,
@@ -337,7 +338,8 @@ def problems(where: str, mark: dict) -> list[str]:
 
     ! What is NOT checked here, because it needs the page the role read: whether
     the address resolves, whether a quoted sentence is really in the paragraph,
-    and whether a `move`'s destination is addressable. Those are the join's.
+    and whether a `move`'s destination is addressable. Those belong to
+    SOURCE-VERIFICATION, in `collator`.
 
     Args:
         where: how to name this mark in a message -- an address, or a position.

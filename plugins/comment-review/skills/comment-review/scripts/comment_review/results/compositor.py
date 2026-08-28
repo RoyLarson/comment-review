@@ -133,7 +133,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
 
     Args:
         page: the page to set. Its cues states the order.
-        newline: the ending to join with. `None` takes it from the page's own
+        newline: the ending each line takes. `None` reads it from the page's own
             text, which is the one fact a paragraph cannot state.
 
     Returns:

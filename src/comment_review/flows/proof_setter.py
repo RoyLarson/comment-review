@@ -150,8 +150,8 @@ def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refus
     # !! THE PAGE PATHS ARE RULED ON ONCE, HERE, BECAUSE THIS IS WHERE THEY
     # ENTER. A constraint asked here holds for every root a path is later joined
     # to. It was asked per file instead, against `repo` and against `into`
-    # separately, and each refusal then named the place the join landed rather
-    # than the page path that could not be joined anywhere.
+    # separately, and each refusal then named where the path landed rather
+    # than the page path that could not be placed anywhere.
     outside = sorted(s.path for s in schedules if _can_escape(s.path))
     if outside:
         return [], [
@@ -299,7 +299,7 @@ def _one(
     # refused an absolute, drive-relative, rooted or `..`-walking page path for
     # the whole run. What is left to the two comparisons in this function is the
     # half no check on a STRING can answer -- what the filesystem RESOLVES the
-    # join to. A symlinked directory under either root sends a well-formed
+    # resolve under. A symlinked directory under either root sends a well-formed
     # `rel` somewhere else, and only a resolved path can say so.
     #
     # ! WHICH GUARD IS LOAD-BEARING AND WHICH IS DEPTH: `run`'s is what the two
@@ -355,7 +355,7 @@ def _one(
     target = (into / rel).resolve()
     # !! REFUSE ANYTHING THAT WOULD LAND OUTSIDE `into`, BEFORE ANY WRITE, for
     # the reason given at the read guard above: a resolved target is the only
-    # thing that can say where the join actually went. The outcome it stands
+    # thing that can say where the path actually went. The outcome it stands
     # against is the one this area was measured on twice -- a draft written over
     # the file under review, at exit 0.
     if not target.is_relative_to(into):

@@ -14,7 +14,7 @@ TRIAGED:  2026-08-23 — 2026-08-23. ALREADY WELL FORMED: all three boxes are ve
           report. Nothing was ticked, nothing was rewritten; only the T labels were
           added.
 RE-VERIFIED: 2026-08-23 — 2026-08-23, read against the tree. STILL LIVE: `contradictions`
-             is verdicts.py:225, and the only RE-REVIEW line the join prints is
+             is verdicts.py:225, and the only RE-REVIEW line the collator prints is
              verdicts.py:610, *"RE-REVIEW -- drop against correct/patch on:"*. There is
              no `correct` against `patch` case anywhere in the file, so the pair is still
              resolved silently by the ordering rule and the report still names only the
@@ -32,7 +32,7 @@ patch to a false claim LAUNDERS it -- so the resolution rule exists and fires si
 discarding the edit of the patching role without that role or the report ever saying so.
 
 Measured on the first cycle run: block 1 of `galley.py` carried `correct` from block-context
-and `patch` from module-context on the same sentence. The join printed **no** `RE-REVIEW`
+and `patch` from module-context on the same sentence. The collator printed **no** `RE-REVIEW`
 list. Sent back anyway at stage 5b, **both roles answered `SAME SENTENCE  yes`** -- so the
 collision was real and both could see it -- and both answered `HOLD`, module-context reasoning
 that the added clause from block-context states the same defect its patch was for, *"so the
@@ -64,7 +64,7 @@ finding total matched. It is owed whichever way T1 is ruled.
       the three answers are in the Objective. Verify: recorded in `docs/decision-log.md`.
 - [ ] T2 -- Count blocks where `correct` and `patch` overlap, against the 8 the current
       rule flags. Verify: both numbers written here, naming the run.
-- [ ] T3 -- Make the join print a discarded edit and the role that lost it. Verify: the
+- [ ] T3 -- Make the collator print a discarded edit and the role that lost it. Verify: the
       report names the dropped edit, with a test that fails without it.
 
 ## Related

@@ -25,7 +25,7 @@ is a `backend` request; the agent file may not describe an output the census doe
 ### `backend` -- what the Python actually does
 
 `src/comment_review/**`: the lexer, the page, the addresser, the census, the
-compositor, the galley, the record, the desk, the join. It owns the reading, the addressing, the
+compositor, the galley, the record, the desk, the collator. It owns the reading, the addressing, the
 setting and the checking -- and `docs/addressing.md` and `docs/parsing.md`, which describe them.
 
 ! **It does not own the agent's instructions.** Changing what the census EMITS is `backend`;

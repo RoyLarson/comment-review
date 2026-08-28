@@ -902,7 +902,7 @@ def address_for(path: str, cue: str) -> str:
     !! THE ONLY PLACE THEY ARE JOINED, and it lives here because this module
     already owns both halves and the whole take-apart: `flatten` makes the path
     half, `emit` makes the cue, `cue_of` splits one back, and `unflatten` recovers
-    the real path. The join was the one direction that had leaked.
+    the real path. Putting them together was the one direction that had leaked.
 
     ! IT LEAKED TO TWO MODULES, and `record.address_for` -- which this is --
     carried the claim *"the only place the two halves are put back together"*

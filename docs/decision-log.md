@@ -579,6 +579,70 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `SKILL.md` still say `verdict` and are `agents`' to change** -- a rename there is a one-for-one
   substitution, but the surrounding sentences are not.
 
+- **#18.** **THE TASK AGENT IS THE `managing editor`** (Roy, 2026-08-27: *"If you are leading this
+  effort, you are acting as the lead editor, managing editor, or consolidator"*, confirming it
+  names the task agent and not the copy chief).
+
+  ! **IT WAS THE LAST MACHINE WORD IN AN EDITORIAL REGISTER.** Three jobs, and only two were
+  named: the four **editorial roles** mark the page, the **copy chief** rules on the collated
+  marks (`#11`), and *the task agent* dispatched the roles, sent the revises, decided the loop had
+  converged and handed the proof to the human.
+
+  ! **`managing editor` IS THE TRADE'S FOR THAT JOB** -- running the production process,
+  scheduling the passes, deciding when a proof is done. `lead editor` is generic and
+  `consolidator` describes the collator's work rather than the leading.
+
+  !! **IT DOES NOT SUPERSEDE `#11`.** The copy chief still rules on marks at a place; the managing
+  editor runs the process that ruling sits inside. Asked and answered explicitly, because a
+  supersession of a ruling that carries its own reason should be recorded as one and not swapped
+  in quietly.
+
+- **#19.** **`the join` IS RETIRED. THE MODULE IS `collator.py` AND IT HOLDS TWO NAMED STEPS**
+  (Roy, 2026-08-27: *"'The join' was too ambiguous. It didn't define anything and you used it as a
+  shortcut that could have meant many different operations"*, and *"collator.py works not
+  collate.py"*).
+
+  !! **MEASURED, AND THE CHARGE IS EXACT: FIVE REFERENTS IN ONE WORD.** 202 live uses, carrying
+
+  | the word meant | e.g. |
+  | --- | --- |
+  | the `verdicts.py` program | *"the join exits nonzero"*, *"the join's report"* |
+  | linking two data structures | *"the site that joins the two halves"*, *"the doc-to-declaration join"* |
+  | checking a mark against its page | `desk/mark.py`, written the same evening |
+  | a git merge | *"side WINS a join"*, `census.py` |
+  | ordinary English | *"the same prose joined"* |
+
+  ! `TODO/verdicts-is-the-join.md` is named for the confusion, so the ambiguity had already
+  reached the backlog.
+
+  !! **THE TWO STEPS ARE THE TRADE'S, AND ROY SUPPLIED BOTH.** *"source-verification -- the process
+  of checking facts by researching, citing, and using references"*, and *"reconciliation -- when
+  you are gathering and blending changes from multiple people."*
+
+  | step | scope | answers |
+  | --- | --- | --- |
+  | **source-verification** | per MARK, against the page | does the address resolve; does every `source` resolve with its `verbatim` really there; is the sentence the claim rules on really in that paragraph |
+  | **reconciliation** | per PLACE, across marks | do two marks rule on the same sentence; do their edits overlap; does each edit touch what its claim named |
+
+  ! **THE EDIT CHECK SITS WITH RECONCILIATION AND NOT WITH VERIFICATION**, because what an edit
+  TOUCHES has to be computed to blend two edits at all -- so *did it touch what it claimed* falls
+  out of a computation reconciliation already performs. Filing it under verification would compute
+  the changed regions twice.
+
+  ! **AND THE COLLATOR RULES ON NOTHING**, per `#11`. Reconciliation DETECTS that two marks
+  collide and hands the place on; it never picks between them. So its output is decisions and
+  escalations, never merged text.
+
+  !! **WHY THE WORD FAILED IS ITSELF THE FINDING.** `join` names a MECHANISM -- two things matched
+  up -- where every other term in this register names a JOB. That is the same error as `galley`
+  doing two jobs and `verdict` naming a ruling: reaching for what the code does to a data
+  structure instead of asking what the person doing the work is doing. ! Roy, on the trade: *"I
+  would be surprised if the name of the step in the editing world is 'the join' considering that
+  working with words is their thing and there has to be a better one."*
+
+  ! **PROTOTYPE KEEPS IT.** `prototype/` is a record of how it worked, and renaming inside a
+  captured record makes it describe something that never happened.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**

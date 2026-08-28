@@ -29,7 +29,7 @@ with.**
   it attaches to, at both tiers. What still needs READING is whether the prose belongs to it, so
   a placement finding is a CANDIDATE."*
 
-So every `drop` and `move` it emits still rests on a reviewer reading the file. The join checks
+So every `drop` and `move` it emits still rests on a reviewer reading the file. The collator checks
 that its citations RESOLVE; nothing checks that the paragraph it says belongs to that anchor
 belongs to it.
 
@@ -85,5 +85,5 @@ agreeing on a destination produces no output at all. MEASURED 2026-08-17: `funct
       both tiers -- `census.py:454-458` and `page.py:681`. Detail in the Objective.
 - [x] T3 -- SUPERSEDED. Its premise -- no anchor at the `lexical` tier -- is false as of
       2026-08-23. What survives is T1's question, which does not vary by tier.
-- [ ] T4 -- Make the join report when two roles independently name the SAME destination
+- [ ] T4 -- Make the collator report when two roles independently name the SAME destination
       for one paragraph. Verify: a test hands it two such reports and asserts it appears.

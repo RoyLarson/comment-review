@@ -59,7 +59,7 @@ parses, still runs, still says what it said. None can say whether the prose besi
 whether a reader would learn the reason a thing is the way it is. That gap is the whole remit of
 the four editorial roles, and it is why this is a reviewer rather than a linter.
 
-! **Corroborated on this repo, 2026-08-18**, with 519-534 tests green throughout: the join admitted
+! **Corroborated on this repo, 2026-08-18**, with 519-534 tests green throughout: `verdicts.py` admitted
 a citation whose `verbatim` was `null`, because it rendered as the word "None" and the cited line
 happened to contain it; `payload_problem` admitted a claim key that was present and empty, and
 every check that would have caught it then skipped; the brief generator imported a table from a
@@ -448,7 +448,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | `evals/`                          | `generator_split.py` (the authorship split) and `test-cases.jsonl`. ! The twelve planted hazards and their grader are NOT here -- there is no end-to-end grade, see Commands |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |
 | `scripts/`                        | `build_plugin.py` (which makes `plugins/`), `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` -- none of this ships with the plugin                        |
-| `prototype/`                      | **REFERENCE, NOT SOURCE.** The middle of the chain -- the desk, the join, the record -- moved here 2026-08-25. Nothing imports it, nothing ships it, it does not run. Kept because the replacement is not designed yet; see `prototype/README.md` |
+| `prototype/`                      | **REFERENCE, NOT SOURCE.** The middle of the chain -- the desk, the verdicts, the record -- moved here 2026-08-25. Nothing imports it, nothing ships it, it does not run. Kept because the replacement is not designed yet; see `prototype/README.md` |
 | `.claude-plugin/marketplace.json` | lets this checkout be installed as a plugin marketplace in the same session (`claude plugin marketplace add <path>` then `claude plugin install comment-review`)           |
 
 ### Shipped-code constraint that shapes how every `plugins/` script is written

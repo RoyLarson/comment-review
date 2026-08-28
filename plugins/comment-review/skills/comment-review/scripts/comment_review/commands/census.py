@@ -74,7 +74,7 @@ def main() -> int:
 
     # !! NO PATHS IS A REFUSAL, NOT AN EMPTY CENSUS. `paths` is `nargs="*"` so
     # `--languages` can run without one, and everything else with none produced
-    # `[]` at exit 0 -- which the join then reads as a complete census and
+    # `[]` at exit 0 -- which the collator then reads as a complete census and
     # certifies. Measured 2026-08-24: `census.py --repo . --json` printed `[]`
     # and returned 0, and `verdicts.py` over it printed "Every finding is
     # admissible. Stage 5 may rule."
@@ -95,7 +95,7 @@ def main() -> int:
 
     # ! WRITES ITS OWN FILE. A shell redirect is refused outright by a
     # worktree-isolated harness -- "too complex to verify that it stays inside
-    # the worktree" -- and the JSON census is what the stage-5 join parses, so
+    # the worktree" -- and the JSON census is what the stage-5 collator reads, so
     # the only documented route to it was unrunnable there.
     if args.out:
         with open(args.out, "w", encoding="utf-8", newline="") as fh:
@@ -168,7 +168,7 @@ def _report(args: argparse.Namespace) -> int:
         #
         # !! Measured 2026-08-17 on the galley command -- `docs/history.md`: it
         # joined `out / paragraph["path"]`, and in Python an absolute right-hand
-        # side WINS a join, so it wrote over the source file, put nothing under
+        # side WINS, so it wrote over the source file, put nothing under
         # `--out`, and printed that it had succeeded. The module whose one
         # promise is "nothing under `--repo` is touched" was editing the tree
         # under review.
@@ -292,7 +292,7 @@ def _report(args: argparse.Namespace) -> int:
 
     if args.filtered:
         # !! A PROJECTION, NEVER A RENUMBERING. Each paragraph keeps the index it
-        # has in the full census, because that index is what the join resolves
+        # has in the full census, because that index is what the collator resolves
         # and what a record cites -- renumber and every citation from a filtered
         # reviewer resolves to the wrong paragraph, with nothing able to tell.
         print("CENSUS - the paragraphs holding prose, numbered as in the full census.")

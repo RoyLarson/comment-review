@@ -8,7 +8,7 @@ has changed since the role formed it, so it returns the verdict it already filed
 changed is that stage 5 turned several verdicts into ONE paragraph, and **the filer is the only
 participant who can say whether that paragraph still carries what it filed.**
 
-! **MARK and APPLY stay separate.** The finding is already filed and already read by the join.
+! **MARK and APPLY stay separate.** The finding is already filed and already read by the collator.
 The role is not fixing anything; it is answering whether the fix matches what it asked for.
 Blindness protects the FIRST read, and that read is banked on disk.
 
@@ -101,7 +101,7 @@ REASON         one clause
 
 - **`SAME SENTENCE`** is answered FIRST, because **two marks on two different sentences
   COMPOSE** -- they are not a conflict, however much they share a paragraph. Ruled 2026-08-17. ! The
-  join already keys on the edited span rather than the paragraph index, so most of this is caught
+  collator already keys on the edited span rather than the paragraph index, so most of this is caught
   before you are asked; you are the last check on it, and the only one that can read the
   sentences as sentences. ! Measured 2026-08-17: of 8 paragraphs the gate flagged, **2 were genuine
   contradictions**; six were composition or a sentence-level false positive.
@@ -149,7 +149,7 @@ not a response to a measured failure.
 
 - **Never a tie-break.** Two roles disagreeing is not a vote, and the task agent does not break
   it by preferring one. It goes back, or it goes to the author.
-- **A `REVISE` re-enters the join.** It is a record like any other and is checked like any
+- **A `REVISE` re-enters the collator.** It is a record like any other and is checked like any
   other; it does not bypass `verdicts.py` because it arrived late.
 - **Nothing is on disk.** Both slots run before stage 7, and 5b runs before COMPACT has touched
   anything. A galley is a copy, and it is discarded with the run.

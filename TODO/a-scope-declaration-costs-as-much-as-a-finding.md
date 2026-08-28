@@ -51,7 +51,7 @@ and they are pulling on the same rope.
 ## ! What is NOT established
 
 - **That the reports are too large for anything.** Nothing failed. `verdicts.py` parses them
-  mechanically and the task agent reads the JOIN, not the reports.
+  mechanically and the task agent reads the COLLATOR, not the reports.
 - **That the payload is wasted.** An `outside my role` query with its `SOURCES` proves the role
   read the block. That is the fabricated-`clean` defence, and it is the reason the contract
   exists.

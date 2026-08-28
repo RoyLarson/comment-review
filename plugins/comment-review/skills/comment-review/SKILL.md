@@ -38,7 +38,7 @@ first, then truth, then fit, then the page.
 
 !! **5b and 6b are the same mechanism asking DIFFERENT questions**, and
 [`references/re-review.md`](references/re-review.md) is the only file that defines either.
-Neither runs on every paragraph: the set is the one the join prints as `RE-REVIEW`.
+Neither runs on every paragraph: the set is the one the collator prints as `RE-REVIEW`.
 
 **This file is the task agent's.** Each reviewer is a named agent carrying its own editorial role and
 reading [`references/reviewer-brief.md`](references/reviewer-brief.md) itself.
@@ -99,7 +99,7 @@ comment that is true, local and load-bearing. Length is not one of its questions
 that returns long correct prose has succeeded.
 
 !! **5b and 6b are what make every stage's output read by somebody who did not write it.** The
-join reads MARK, the compact agent reads APPLY's text, the CODE CHECK reads WRITE, stage 8 reads
+collator reads MARK, the compact agent reads APPLY's text, the CODE CHECK reads WRITE, stage 8 reads
 the finished page -- and 5b and 6b cover the two that write PROSE, which is the only thing here
 no mechanical check can judge. ! APPLY still runs the residue check on its own output; 5b is a
 second reader, not a replacement for that.
@@ -348,7 +348,7 @@ paragraphs holding prose and collapses each run of places holding none into one 
 four-role run saves 953,476.**
 
 !! **IT IS A PROJECTION, NEVER A RENUMBERING.** Every paragraph keeps the ADDRESS it holds in the
-FULL census, because that address is what the join resolves and what a record cites. ! The index
+FULL census, because that address is what the collator resolves and what a record cites. ! The index
 in the first column is a READING AID for a human scanning the listing, and nothing cites it: it
 is a position in one census, and the galley is censused again for round 2. The full census
 stays on disk and is what stages 5 and 7b read; only the copy pasted into a reviewer's prompt is
@@ -397,7 +397,7 @@ handed this file -- printing an over-cap count here puts it in front of the four
 never see it.
 
 !! **TWO census files, and the JSON one is not optional.** The reviewers are handed the TEXT
-census; **the stage-5 join reads the JSON census and parses it as JSON**, so a run that wrote
+census; **the stage-5 collator reads the JSON census and parses it as JSON**, so a run that wrote
 only the text one fails at stage 5 with `CANNOT PARSE ... as JSON`.
 
 It emits the numbered tree -- `N  file:start-end  kind  lines  annotations  (anchor)` -- with each
@@ -680,7 +680,7 @@ cites the empty INTERVAL prose is missing from, and intervals get no seeded slot
 tells the reviewer this; you need it to read the count `--check` prints, which counts slots
 and not findings.
 
-**Check each file when the agent returns**, before the join:
+**Check each file when the agent returns**, before the collator:
 
 ```bash
 python <skill>/scripts/comment-review.py record --check <run-dir>/<role>.json --census <run-dir>/census.json
@@ -733,7 +733,7 @@ but more than nothing.
 
 ## Stage 5 -- APPLY: one verdict, one FULL-LENGTH replacement
 
-!! **Run THE JOIN before you rule on anything** -- `verdicts.py`, which reads every
+!! **Run THE COLLATOR before you rule on anything** -- `verdicts.py`, which reads every
 reviewer's report against the census and against the others', and refuses what it cannot
 verify. It is the gate between MARK and APPLY:
 
@@ -799,7 +799,7 @@ of repairing it. Restore the sentence.
 
 ! **Two findings quoting the same sentence in different files are ONE finding.** A pass edits
 where it is reading, fixes the copy in front of it, and manufactures a disagreement with the one
-it never opened. Contradicting verdicts trigger a **re-review**, never a tie-break. The join
+it never opened. Contradicting verdicts trigger a **re-review**, never a tie-break. The collator
 cannot see this for you -- `contradictions()` keys on the ADDRESS, and the same
 sentence copied into two files is two different paragraphs it can never relate.
 
@@ -827,7 +827,7 @@ being settled:
    `patch` on a false sentence polishes the wording of a falsehood and retires the finding.
    That is laundering, and this order is what prevents it.
 5. **`add`** -- insert at the stated anchors.
-6. **`clean`** -- the null verdict, and **the join already did this one.** The paragraphs it printed
+6. **`clean`** -- the null verdict, and **the collator already did this one.** The paragraphs it printed
    as `STANDS UNCHANGED` are exactly those every reviewer that ran returned `clean` on. Read
    that number; do not re-derive the set.
 
@@ -850,20 +850,20 @@ not once per verdict. The check compares against the original, and the original 
   the corrected text. Usually it no longer applies.
 - **`drop` against `correct` OR `patch` on the same sentence is a contradiction**, not a merge --
   one role says the sentence should not exist and another says it should exist and be fixed.
-  Nothing composes those. The join prints it as `RE-REVIEW`; send the paragraph back.
+  Nothing composes those. The collator prints it as `RE-REVIEW`; send the paragraph back.
 - !! **`move` against either of them COMPOSES, and is not a contradiction.** Ruled 2026-08-17.
   Relocation and a truth fix are a SEQUENCE: the synthesis order applies every `move` at step 2
   and every `correct` at step 3, which is what applies the correction AT THE DESTINATION.
   Measured on a live run: **5 of the 8 paragraphs the old set flagged were this shape**, and a
   re-review round was spent on each establishing it was not a rivalry.
-  ! This paragraph used to name `move` alongside `drop`; the ruling removed it from the join's
+  ! This paragraph used to name `move` alongside `drop`; the ruling removed it from the collator's
   set and left the sentence here, so the skill and its own gate disagreed. See
   `TODO/move-and-correct-compose.md`.
 
 ! **Dedup on the SENTENCE RULED ON, not the paragraph**, before any of this -- the half of `CLAIM`
 that quotes the existing prose (`drop:`, `false:`, `from:`), never the whole `CLAIM`. Two roles
 fixing one sentence propose different edits, so their `CLAIM`s differ while their subject does
-not; the join keys on that half for the same reason.
+not; the collator keys on that half for the same reason.
 
 !! **THE SENTENCE YOU PROPOSE TO KEEP IS A FINDING YOU HAVE NOT RAISED.** Before any `patch`
 or `move`, verify the retained clause the way stage 3 resolves an annotation. The reviewer keeps the
@@ -904,7 +904,7 @@ SURVIVED, not what went; **refactoring drift**.
 
 ## Stage 5b -- RE-REVIEW: is this what you meant?
 
-**Every paragraph the join printed as `RE-REVIEW` goes back to the roles that ruled on it**, once
+**Every paragraph the collator printed as `RE-REVIEW` goes back to the roles that ruled on it**, once
 you have written its replacement. Load
 [`references/re-review.md`](references/re-review.md); it carries the payload, the three
 questions, the return shape, the channel and the stop rule, and this section does not restate
@@ -995,7 +995,7 @@ hands on is again on no disk, and it is not the text 5b addressed.
 
 Grouped by verdict, most consequential first, in **five parts**
 (`VERDICT / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the reviewer record minus the fields only
-the join reads -- replacement text inline
+the collator reads -- replacement text inline
 for every `correct` / `patch` / `add`. State **raised / clean** and the
 longest paragraph that will remain. **The proposal ends here** -- nothing further is written until
 the author rules.

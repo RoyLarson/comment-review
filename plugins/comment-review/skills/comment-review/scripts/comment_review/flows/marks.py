@@ -17,8 +17,9 @@ the sheet comes back is a COVERAGE GAP, which is a different thing from `clean`:
 
 !! WHAT THIS FLOW DOES NOT DO IS CHECK A CLAIM AGAINST THE PAGE. Whether
 `claim.false` appears VERBATIM in the paragraph, whether a `move`'s destination
-is addressable -- both need the page the role read, and both belong to the join,
-which is not built. `desk.mark.problems` says the same about its own half.
+is addressable -- both need the page the role read, and both belong to
+SOURCE-VERIFICATION in `collator`, which is not built. `desk.mark.problems`
+says the same about its own half.
 """
 
 from comment_review.binder.binder import rows_of

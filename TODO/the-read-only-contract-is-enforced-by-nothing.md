@@ -63,7 +63,7 @@ findings is the only artifact in a report that can be RE-RUN. The argument is ke
 the reason the rule had to be stated explicitly rather than assumed, and because a future run
 asking for a re-runnable probe has to reopen it deliberately.
 
-## !! Nothing sits between the census and the join
+## !! Nothing sits between the census and the collator
 
 The census is taken at stage 3 and the reviewers run at stage 4. **If a reviewer edits a file
 under review, the census is silently stale and no stage notices.** `prove_unchanged.py` runs at
@@ -73,7 +73,7 @@ comment. **A reviewer that edited a COMMENT is invisible to it by construction**
 comments are exactly what both proofs discard.
 
 ! **Detecting a stale census is cheaper than it sounds** -- `repo.py` already reads these files,
-and the join already loads the census.
+and the collator already loads the census.
 
 ! **THE BOUNDARY IS STATED DELIBERATELY, WHICH IS WHY THE QUESTION IS ROY'S.**
 `prove_unchanged.py`'s docstring: *"The claim this skill makes to the people who run it is that
@@ -97,7 +97,7 @@ exists, and it bears on how far it can be relaxed -- see
       Verify: none of the four reviewer files lists any of the three.
 - [ ] T4 -- * Decide what the reviewers still need to EXECUTE, before T3 picks a list.
       Verify: the decision is recorded and names the tools the four reviewers keep.
-- [ ] T5 -- Hash the files under review after stage 3 and re-check them before the join.
+- [ ] T5 -- Hash the files under review after stage 3 and re-check them before the collator.
       Verify: editing one between makes `verdicts.py` refuse, naming the file.
 - [x] T6 -- SUPERSEDED. "Keep the scratch files in the evidence package" cannot be done --
       none exists in the tree or its history. The measurement is in the Objective.
