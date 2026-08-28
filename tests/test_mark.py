@@ -133,43 +133,24 @@ class TestTheTableIsTheContract:
     """`INSTRUCTIONS` read as INPUT; every expectation below is a hand-checked
     literal, never derived from the row it is checking -- see the module
     docstring.
-    """
 
-    def test_patch_owes_no_source_because_its_payload_says_so(self):
-        """`desk/mark.py:196-209`'s own comment records this exact
-        payload/flag pair SHIPPING out of agreement and fatally refusing
-        every `patch` a compliant reviewer filed, re-confirmed twice. The
-        payload text and the flag must agree.
-        """
-        spec = INSTRUCTIONS["patch"]
-        assert "needs no source" in spec.payload
-        assert spec.owes_sources is False
+    !! FOUR TESTS THAT LIVED HERE WERE DELETED 2026-08-28, not adjusted: they
+    asserted properties of `payload`, `claim_help`, `claim_any` and `removes`
+    -- fields `docs/the-mark.md` deleted by ruling (`decision-log.md Process:
+    #37`). The structure they checked no longer exists, so the assertions had
+    nothing left to test. The one that guarded a real, twice-shipped defect
+    (`patch`'s `payload` prose disagreeing with its `owes_sources` flag) is
+    rebuilt in `tests/gates/test_mark_shape.py`, checking the spec's own
+    per-instruction table against `INSTRUCTIONS` directly -- stronger than
+    this file's row-against-itself check, because the expectation now sits
+    where the code cannot move it.
+    """
 
     def test_only_clean_is_not_substantive(self):
         """`clean` is the null mark; every other instruction asks something
         of the apply step."""
         not_substantive = [n for n, s in INSTRUCTIONS.items() if not s.substantive]
         assert not_substantive == ["clean"]
-
-    def test_removes_and_rules_on_text_never_coincide(self):
-        """The one contradiction the set can express is BETWEEN marks, not
-        within one -- `move` is deliberately neither, since relocation and a
-        truth fix compose."""
-        for name, spec in INSTRUCTIONS.items():
-            assert not (spec.removes and spec.rules_on_text), name
-        assert INSTRUCTIONS["drop"].removes is True
-        assert INSTRUCTIONS["drop"].rules_on_text is False
-
-    @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
-    def test_every_instruction_states_what_its_claim_carries(self, name):
-        """A row with no `payload` publishes nothing for a role to copy."""
-        assert INSTRUCTIONS[name].payload.strip()
-
-    @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
-    def test_a_row_demanding_keys_says_how_to_meet_them(self, name):
-        spec = INSTRUCTIONS[name]
-        if spec.claim_all or spec.claim_any:
-            assert spec.claim_help.strip(), f"{name} demands keys and explains none"
 
 
 class TestTheQueryShapes:
