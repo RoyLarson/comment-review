@@ -16,6 +16,21 @@ Measured: 2026-08-25 — on the CHAIN, not the 7b gate: flows/proof_setter.run r
           TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain::test_a_docstring_{DROP,ADD}_is_STILL_REFUSED_at_prove;
           T1 is untouched and the fingerprint was not weakened -- six modules in
           src/comment_review/commands read ArgumentParser(description=__doc__)
+Updated:  2026-08-28 — 2026-08-28 triage: re-verified.
+          TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain.test_a_docstring_DROP_is_STILL_REFUSED_at_prove
+          and its ADD counterpart in tests/test_proof_setter.py pass, and their own
+          docstrings state NOT FIXED IN THIS WAVE, AND DELIBERATELY -- a docstring add
+          or drop still refuses at proof_setter.run with Refusal('prove', ..., 'the
+          executable code is not what it was'), because _blank_docstrings keeps a
+          docstring's node in the fingerprint. T1 (the Roy ruling) has no entry in
+          docs/decision-log.md; write.md's Rails section states the general CODE CHECK
+          and restore rule but never names the docstring add/drop case (T3 not done); T4
+          (the lexical /// or /** measurement) not done. Roy's 2026-08-28 assessment
+          (provably false now) holds only for the narrow premise T5 used to state --
+          that no test covered an add or removal -- and that gap was already closed with
+          T5 already checked before this triage. The Objective itself (7b refuses add
+          and drop on a docstring) remains true and deliberate. Stays open at 1 of 5, no
+          change made.
 ```
 
 ## Objective

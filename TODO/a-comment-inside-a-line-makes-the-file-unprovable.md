@@ -20,6 +20,17 @@ TRIAGED:  2026-08-23 — Status was DEFERRED and the file's own text says the fi
            the count needs now EXISTS as a row -- `corpora/corpora.toml:289`, `llvm` --
            though it is not fetched, so T3 became actionable and stays deferred by
            choice rather than for want of a corpus.
+Updated:  2026-08-28 — 2026-08-28 triage: re-verified against the current tree.
+          code_fingerprint and _without_comments in
+          src/comment_review/results/prove_unchanged.py still return unprovable with an
+          empty-string cause at every refusal site (no language record, reader
+          exception, unterminated-paragraph-comment, spanning_quotes, four line-
+          placement failures, all-comment file). commands/prove_unchanged.py prints one
+          generic UNPROVABLE message for all of them -- T2 and T3 (distinct causes) not
+          done. corpora/corpora.toml still has no llvm files fetched, so no C++
+          measurement exists -- T4-T6 remain deferred. Roy's 2026-08-28 assessment
+          (pretty certain this one is closed) does not hold on this evidence; the file
+          stays open as filed.
 ```
 
 ## * RULED 2026-08-17: build it when someone needs it

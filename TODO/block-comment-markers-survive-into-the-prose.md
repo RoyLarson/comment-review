@@ -26,6 +26,19 @@ Moved:    2026-08-23 -- the two halves left `census.py` for `lexer.py` in the le
 Split:    2026-08-23 -- 6 boxes became 10. The stripping box held the opener and the
           continuation; the fixture box held a source rule and a missing fixture; the
           last box held two languages, which this repo never allows in one row.
+Updated:  2026-08-28 — 2026-08-28 triage: re-verified live. paragraphs_lexical
+          (src/comment_review/reading/lexer.py) on a Java-like fixture with a Javadoc
+          block and a plain block comment still returns paragraph text carrying the
+          block markers and the interior asterisk on each continuation line -- e.g. a
+          docstring text of '/** * Small arithmetic helpers. * @param a the first
+          operand */'. lexer.py builds the openers passed to _join from
+          lang.line_comment alone (openers = tuple(sorted(lang.line_comment, key=len,
+          reverse=True))); block_comment openers are never stripped there or anywhere
+          else in the file. None of T1-T10 are done: corpora/corpora.toml carries no
+          entry for any of the eleven pinned files (option.rs, axios, Optional.java,
+          etc). Roy's 2026-08-28 assessment (certainly not true anymore) does not hold;
+          the defect measured 2026-08-17 is still present today at the census-reading
+          stage, upstream of the galley and compositor. Stays open as filed, 0 of 10.
 ```
 
 ## Objective
