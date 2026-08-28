@@ -25,6 +25,7 @@ COMMANDS = (
     "carry",
     "census",
     "compositor",
+    "mark",
     "proof",
     "prove_unchanged",
     "referrers",

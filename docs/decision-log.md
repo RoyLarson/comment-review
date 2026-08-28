@@ -550,6 +550,35 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   by 7 -- and is cross-referenced from a release plan. **This file is the audit trail, and it has
   no reader but him.**
 
+- **#17.** **A MARK IS THE OBJECT; ITS `instruction` IS ONE OF THE SEVEN. `verdict` IS STRUCK**
+  (Roy, 2026-08-27: *"I also don't like the term verdict. It doesn't seem in line and is confusing
+  when it is also called a finding."*).
+
+  ! **TWO FAULTS, AND THE SECOND IS THE ONE A GATE COULD NEVER SEE.** `verdict` is judicial on an
+  editorial system -- the same register error `jurisdiction` made before it became `remit`. And it
+  named the same thing twice: the object was a *finding* and its type was a *verdict*, so a reader
+  had two words and no rule for which.
+
+  !! **THE PRACTICE HAD ALREADY DROPPED IT.** MEASURED over the 2026-08-27 rounds: every role
+  wrote `{"marks": [{"address", "mark", "claim", "reason", "sources", "update"}]}`. **The word
+  `verdict` appears nowhere in any role's output** -- it lived only in the prototype's code and in
+  the brief, which is where a term goes on being typed after everyone has stopped saying it.
+
+  | | |
+  | --- | --- |
+  | the object a role returns for one place | a **mark** |
+  | what it says to do -- one of seven | its **`instruction`** |
+
+  ! **`instruction` IS THE TRADE'S, AND IT ARRIVED FROM THE FUNCTION FIRST.** A proof correction
+  carries two marks: a TEXTUAL mark saying where, and a MARGINAL mark saying what to do. The second
+  is the instruction -- and it is what a COMPOSITOR executes, which is a role this system already
+  has. ! Register checked before proposing, per the standing rule: `ruling` (184 uses) and `call`
+  (191) were refused as too loaded to take.
+
+  ! Landed in `src/comment_review/desk/mark.py` as `Instruction` / `INSTRUCTIONS`. **The brief and
+  `SKILL.md` still say `verdict` and are `agents`' to change** -- a rename there is a one-for-one
+  substitution, but the surrounding sentences are not.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
