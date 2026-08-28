@@ -643,6 +643,72 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **PROTOTYPE KEEPS IT.** `prototype/` is a record of how it worked, and renaming inside a
   captured record makes it describe something that never happened.
 
+- **#20.** **THE REVISE IS A CONFLICT DIFF, IN `diff3`, AND ONLY `correct` AND `patch` COME BACK**
+  (Roy, 2026-08-27).
+
+  **THE ARTIFACT IS A DIFF.** *"Your training has made you pretty good at reading a git diff and
+  using that to show the conflict would probably be useful. The diff could go right back to the
+  editor for a new mark immediately."*
+
+  !! **`diff3`, WITH THE BASE, AND THE TWO-SIDED FORM IS REFUSED.** MEASURED on a real merge: two
+  roles edited DIFFERENT lines of one paragraph, and the two-sided render showed each side
+  differing from the other in BOTH lines -- so a reader cannot tell which line either role
+  touched. With the base present it is immediate. ! **The two-sided form is structurally incapable
+  of separating a real conflict from two composable edits in one hunk**, which is the exact
+  distinction reconciliation exists to make.
+
+  ! **AND THE BASE IS WHAT KEEPS SOURCE-VERIFICATION WORKING ON THE RETURN.** A `claim.false` is
+  checked VERBATIM against the paragraph; a role ruling on a two-sided conflict has no stable text
+  to quote, only two candidate rewrites.
+
+  **ONLY `correct` AND `patch` MAY COME BACK.** Roy: *"it wouldn't make sense to litigate again.
+  Patch and correct can merge any two diffs together."* !! **THAT SET IS ALREADY A ROW PROPERTY**
+  -- `rules_on_text` is exactly `['correct', 'patch']` in `desk/mark.py`, so the constraint is
+  derived and cannot drift from the table. Placement was settled by `ownership-context` in round
+  one and existence by `drop`/`add`; only the wording is still open.
+
+  **ANY NEW MARK RELITIGATES.** Roy: *"The conflicting agent ruled on a one set of results and
+  picking the new mark changes what that ruling meant. Any new mark goes back because of that. You
+  can't know if the agent would agree with whatever the update was."* ! Same logic as testing
+  convergence on the CLAIM SET: an answer given against a state is stale once the state moves.
+
+  | role A | role B | outcome |
+  | --- | --- | --- |
+  | a new mark | anything | **another round**, always |
+  | holds | holds | the **copy chief** -- both have declared they disagree, so sending it back buys nothing |
+  | holds | withdraws | the held claim, mechanically `taken in` |
+  | withdraws | withdraws | pick one, revise double-check, mechanically `taken in` |
+
+  ! **THE ROLE'S TWO NON-MARK ANSWERS STILL NEED A WORD.** `stet` is ruled copy-chief-only
+  (2026-08-24) because it presupposes two roles that disagreed and a chief that ruled, and
+  `taken in` is the compositor's, assigned mechanically -- so NEITHER is a role's to emit. Open.
+
+- **#21.** **A `query` ON A REVISE SPLITS BY SHAPE, AND REASONING IS SHARED FROM ROUND TWO ON**
+  (Roy, 2026-08-27).
+
+  | shape | what happens |
+  | --- | --- |
+  | `human-review-necessary` | **raised to the human BEFORE the write flow sets any text.** The copy chief surfaces it immediately and fills in the alteration directly |
+  | `unable-to-determine`, another role holding a mark | revise **with the context of the question** |
+
+  !! **AND THE OTHER ROLES' REASONING IS SHARED, WHICH REVERSES THE EARLIER DESIGN.** Roy: *"I
+  know you seem to want to keep their reasoning to themselves but humans wouldn't do that. They
+  would sit in a room and discuss it until they either stated they couldn't come to an agreement
+  or they would agree and write it down. Besides the first round I don't think isolation buys
+  accuracy over group-think. No new ideas in no new concepts out."*
+
+  ! **THE ISOLATION WAS BUYING SOMETHING AT DISCOVERY AND NOTHING AFTER IT.** Blind-parallel
+  review stops a role anchoring on a finding it has not yet made. By the revise both positions are
+  filed and on record, so nothing new can be generated -- what withholding prevents there is
+  resolution.
+
+  ! **AND THE REVERSAL IS CHECKABLE RATHER THAN HOPED.** A role that re-read the code carries new
+  `sources` or a `ran`; one that agreed with the argument carries only prose. **So capitulation
+  and re-verification are already distinguishable in the fields**, and the failure this change
+  could introduce is measurable. ! MEASURED 2026-08-27, under the withholding rule: 2 of 3
+  converged in one pass and the roles re-verified rather than deferring -- one re-traced a
+  dispatch chain and re-grepped the tree, one declined an invitation to widen its own finding.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
