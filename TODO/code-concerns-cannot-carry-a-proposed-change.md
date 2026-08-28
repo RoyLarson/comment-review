@@ -41,6 +41,15 @@ Updated:  2026-08-28 — Two things this file needs before the ruling it waits o
           mark; nothing states the sheet. T1.6 of `docs/plans/0.2.4-the-mark-and-the-
           collator.md` is held unticked rather than add a field to an unspecified
           structure.
+Updated:  2026-08-28 — SEE THE DOUBLE-BIND NOTE ON `a-role-with-no-code-out-damages-the-
+          prose`, dated today. Roy has stated the bind and is weighing a candidate
+          answer: a code concern becomes a TODO written into the appropriate interval or
+          margin prose, accepted by a human at 7a. ! IF THAT IS RULED, THIS FILE MAY BE
+          SUPERSEDED RATHER THAN WORKED. A concern that is a mark at a place needs no
+          `code_concerns` field on the sheet, gets its address from the census -- which
+          is what T7 asks about -- and reaches the existing gates as an ordinary `add`.
+          The machinery this file exists to build would then have no subject. Not
+          decided; recorded so the two files cannot drift while the ruling is open.
 ```
 
 ## Objective
