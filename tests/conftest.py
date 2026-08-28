@@ -19,7 +19,7 @@ the new one."* The old suite is gone; `gates/` beside this is the part that
 survived, because it asks a different question -- whether a GATE still bites,
 over `scripts/` and the release rather than over the code under redesign.
 
-    uv run pytest            779 passed, 3 xfailed, ~1.5s
+    uv run pytest            1032 passed, 1 skipped, 3 xfailed, 480 subtests, ~2s
 
 ! IT RUNS IN A TENTH OF THE TIME the old suite took, which is a consequence
 rather than a goal: nothing here starts a subprocess to ask a question that can
@@ -35,8 +35,13 @@ FULL page -- fences included -- and none of what a binder carries.
     reading -> binder     what an agent is handed
     page -> galley -> compositor    the write path, from a freshly read page
 
-!! NOTHING TOUCHES THE DESK, THE VERDICTS OR THE RECORD. Roy: *"There is code
-there none of it is correct so testing it is solidifying wrong."*
+!! NEITHER THE VERDICTS NOR THE RECORD IS TOUCHED -- neither exists in `src/`,
+only in `prototype/`, which does not run. Roy: *"There is code there none of it
+is correct so testing it is solidifying wrong."* ! `desk/mark.py` is the
+EXCEPTION, since 2026-08-28: `tests/test_mark.py` and `tests/test_mark_brief.py`
+test it directly, once the port's own defect
+(`TODO/the-ported-mark-does-not-fit-the-brief.md`) made it worth testing.
+`desk/external_address.py` remains untouched here.
 
 ! AND THE FRONT-MATTER/`b` COLLISION IS OFF LIMITS -- a file whose front matter
 is not on line 1. It is a known normalisation, ruled a sacrifice rather than a

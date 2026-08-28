@@ -1,13 +1,18 @@
-"""The mark's shape, checked against real marks and the published brief.
+"""The mark's shape, checked against real marks, the brief, and the table.
 
-! INPUTS are the 706 real marks the 2026-08-27 run recorded at
-`evidence/the-loop-measured-2026-08-27/marks.jsonl` -- their addresses and
-their verdicts, actually written by a role. EXPECTATIONS are the literal
-`BRIEF` table in `tests/test_mark_brief.py`, copied by hand from
-`reviewer-brief.md:280-288`. NO CASE HERE READS `INSTRUCTIONS` -- a suite
-that builds its own fixtures from the table it is checking can only confirm
-that table against itself, which is the defect
-`the-ported-mark-does-not-fit-the-brief` T3 exists to close.
+! INPUTS for the acceptance/refusal cases are the 706 real marks the
+2026-08-27 run recorded at `evidence/the-loop-measured-2026-08-27/marks.jsonl`
+-- their addresses and their verdicts, actually written by a role -- paired
+with claims hand-written from `reviewer-brief.md:280-288` (also
+`tests/test_mark_brief.py::BRIEF`). Those EXPECTATIONS are never derived from
+`INSTRUCTIONS`.
+
+!! `TestTheTableIsTheContract` AND `TestTheQueryShapes` DO READ `INSTRUCTIONS`
+AND `QUERY_SHAPES` -- AS INPUT. `decision-log.md Vocabulary: #23` forbids an
+EXPECTATION taken from the module under test; it expressly permits an INPUT
+read from it. Every expectation in those two classes is a hand-checked
+literal (`["clean"]`, `"needs no source"`, `False`, a retired shape string, a
+non-empty check) -- none is derived from the row it is checking.
 """
 
 import json
@@ -16,7 +21,13 @@ from pathlib import Path
 import pytest
 from test_mark_brief import BRIEF
 
-from comment_review.desk.mark import ANCHOR_EXAMPLE, ANCHOR_NAME, allowed, problems
+from comment_review.desk.mark import (
+    ANCHOR_EXAMPLE,
+    INSTRUCTIONS,
+    QUERY_SHAPES,
+    allowed,
+    problems,
+)
 
 MARKS_PATH = (
     Path(__file__).resolve().parents[1]
@@ -118,6 +129,65 @@ class TestRealMarksStayInsideTheClosedSet:
         assert recorded == set(BRIEF)
 
 
+class TestTheTableIsTheContract:
+    """`INSTRUCTIONS` read as INPUT; every expectation below is a hand-checked
+    literal, never derived from the row it is checking -- see the module
+    docstring.
+    """
+
+    def test_patch_owes_no_source_because_its_payload_says_so(self):
+        """`desk/mark.py:196-209`'s own comment records this exact
+        payload/flag pair SHIPPING out of agreement and fatally refusing
+        every `patch` a compliant reviewer filed, re-confirmed twice. The
+        payload text and the flag must agree.
+        """
+        spec = INSTRUCTIONS["patch"]
+        assert "needs no source" in spec.payload
+        assert spec.owes_sources is False
+
+    def test_only_clean_is_not_substantive(self):
+        """`clean` is the null mark; every other instruction asks something
+        of the apply step."""
+        not_substantive = [n for n, s in INSTRUCTIONS.items() if not s.substantive]
+        assert not_substantive == ["clean"]
+
+    def test_removes_and_rules_on_text_never_coincide(self):
+        """The one contradiction the set can express is BETWEEN marks, not
+        within one -- `move` is deliberately neither, since relocation and a
+        truth fix compose."""
+        for name, spec in INSTRUCTIONS.items():
+            assert not (spec.removes and spec.rules_on_text), name
+        assert INSTRUCTIONS["drop"].removes is True
+        assert INSTRUCTIONS["drop"].rules_on_text is False
+
+    @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
+    def test_every_instruction_states_what_its_claim_carries(self, name):
+        """A row with no `payload` publishes nothing for a role to copy."""
+        assert INSTRUCTIONS[name].payload.strip()
+
+    @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
+    def test_a_row_demanding_keys_says_how_to_meet_them(self, name):
+        spec = INSTRUCTIONS[name]
+        if spec.claim_all or spec.claim_any:
+            assert spec.claim_help.strip(), f"{name} demands keys and explains none"
+
+
+class TestTheQueryShapes:
+    """`QUERY_SHAPES` read as INPUT; expectations are literal strings."""
+
+    def test_the_retired_shapes_are_gone(self):
+        """`Process: #33` re-keyed the set on WHO RESOLVES a query, retiring
+        the WHERE-keyed set these three replaced."""
+        for old in ("outside the checkout", "outside the code", "outside my role"):
+            assert old not in QUERY_SHAPES
+
+    def test_the_scope_shape_is_outside_my_role(self):
+        """The literal is written here, not read from `OUT_OF_ROLE` --
+        `allowed()["scope_shape"]` is what a flow reads, and this pins what
+        it must equal without going through the same constant twice."""
+        assert allowed()["scope_shape"] == "outside-my-role"
+
+
 class TestWellFormedMarksAtRealAddresses:
     @pytest.mark.parametrize("verdict", sorted(BRIEF))
     def test_a_mark_written_from_the_brief_at_a_real_address_is_accepted(
@@ -130,11 +200,13 @@ class TestWhatAllowedPublishes:
     def test_the_seven_instructions_match_the_brief(self):
         assert allowed()["instruction"] == sorted(BRIEF)
 
-    def test_the_anchor_example_satisfies_the_anchor_pattern(self):
-        """Published form and enforced pattern are ONE string, not two that
-        merely agree today."""
-        assert ANCHOR_NAME.search(ANCHOR_EXAMPLE)
-        assert not ANCHOR_NAME.search("compute_rates")
+    def test_the_published_anchor_example_is_itself_backtick_delimited(self):
+        """A literal check on the published string, not on `ANCHOR_NAME` --
+        the pattern the gate enforces is checked separately, below, against
+        the brief's own wording rather than against this constant."""
+        assert ANCHOR_EXAMPLE.startswith("`")
+        assert ANCHOR_EXAMPLE.endswith("`")
+        assert ANCHOR_EXAMPLE.count("`") == 2
 
     def test_it_names_the_source_keys_including_ran(self):
         keys = allowed()["source_keys"]
@@ -218,6 +290,21 @@ class TestTheRulesBite:
         bad = well_formed("add")
         bad["claim"]["anchor"] = "compute_rates"
         assert any("backticks" in p for p in problems("here", bad))
+
+    def test_add_needs_the_backtick_delimiter_the_brief_publishes(self):
+        """reviewer-brief.md:287 -- "the anchor NAMED IN BACKTICKS." Pinned
+        against LITERAL backtick and square-bracket forms written here, not
+        against `ANCHOR_NAME` -- a mutation moving BOTH the gate's pattern
+        and `ANCHOR_EXAMPLE` to another delimiter leaves this red, because
+        neither literal in this test moved with them.
+        """
+        bracketed = well_formed("add")
+        bracketed["claim"]["anchor"] = "[compute_rates]"
+        assert any("backticks" in p for p in problems("here", bracketed))
+
+        backticked = well_formed("add")
+        backticked["claim"]["anchor"] = "`compute_rates`"
+        assert problems("here", backticked) == []
 
     def test_a_query_missing_what_would_settle_it_is_refused(self):
         bad = well_formed("query")
