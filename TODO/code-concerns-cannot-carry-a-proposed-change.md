@@ -23,6 +23,24 @@ TRIAGED:  2026-08-23 — 2026-08-23, every claim in the Objective re-read agains
 SPLIT:    2026-08-23 -- the shape box held three artifacts (a definition, a validator and
           the brief) and the stage-5 box held the reading AND the proof that the gate can
           fail. Six boxes became nine; nothing changed meaning.
+Updated:  2026-08-28 — Two things this file needs before the ruling it waits on can be
+          made against current facts. NEITHER changes what it asks for; the Objective
+          still holds. FIRST, FOUR OF THE NINE TASKS VERIFY AGAINST MODULES THAT NO
+          LONGER RUN. T2 names `record.py --check`, T4 names `held.py:190`, T5 and T6
+          name `verdicts.py` -- all moved to `prototype/` on 2026-08-25, and
+          `prototype/` defines nothing (Roy, 2026-08-28: "Why are you talking about code
+          in `prototype/original/`?"). The work each names is still wanted; the SITE is
+          gone, so no box here is re-derivable by a stranger as written. Same defect as
+          `record-and-verdicts-disagree` T4, unticked 2026-08-28 for the same reason.
+          SECOND, AND IT IS ONE LEVEL UP FROM T1: this file's T1 defines the shape of a
+          CONCERN. What 2026-08-28 found is that the SHEET which would carry it has no
+          owning file at all -- `role`, `marks[]`, `read_from`, `code_concerns` are
+          specified nowhere. That is the identical absence `decision-log.md Process:
+          #37` records for the MARK, where a structure with no owning file let eleven
+          unapproved fields in and cost a day to undo. `docs/the-mark.md` now states the
+          mark; nothing states the sheet. T1.6 of `docs/plans/0.2.4-the-mark-and-the-
+          collator.md` is held unticked rather than add a field to an unspecified
+          structure.
 ```
 
 ## Objective
