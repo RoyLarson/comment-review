@@ -1364,8 +1364,31 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **SUPERSEDES the four rounds' "an ARRAY of file-ready lines"**, which was chosen against two
   measured hand-transcription failures. Raw text does not re-open them -- **it makes them louder**,
   since a diff against `raw_text` shows a stripped comment marker or a truncated paragraph
-  directly, where a line array shows only a shorter list. ! `move` stays the one row whose `change`
-  is TWO raw paragraphs, and that is a fact of the column rather than a second field.
+  directly, where a line array shows only a shorter list.
+
+  !! **AND `move`'s `change` IS THE COMPOSITE, BECAUSE A MOVE IS INDIVISIBLE.** Roy, 2026-08-28:
+  *"The move needs the composite of the delete/add paragraphs. It really is two operations wrapped
+  in one label and justification. Which is right -- you don't want to say it can move and it can't
+  complete the move because 1/2 is rejected."*
+
+  A move is a delete at the origin plus an add at the destination, under **one label, one reason,
+  one `sources`**. `change` carries both resulting paragraphs as raw text.
+
+  ! **THE REASON IS ATOMICITY RATHER THAN TIDINESS.** Filed as a separate `drop` and `add`, the
+  halves can be judged separately -- and **half a move is a defect neither half reports**: prose
+  deleted and never landed, or landed and never removed so the file says it twice. Nothing
+  downstream would know the pair was meant to be one thing.
+
+  ! **IT BINDS EVERY STAGE THAT HANDLES THE MARK.** Source-verification checks both ends and a
+  failure at either refuses it; **reconciliation escalates a `move` WHOLE when either place
+  escalates**, never settling one end; a role answering at revise answers for both, so there is no
+  half `hold`; the write chain sets both paragraphs or neither. ! This turns
+  [`collate-buckets-a-move-at-one-end`](../TODO/collate-buckets-a-move-at-one-end.md) from a bug
+  report into a rule -- a `move` is grouped by every place it TOUCHES, because being seen at one is
+  how half of it gets settled.
+
+  ! **It does not change what a `move` COMPOSES with**: relocation and a truth-fix still compose.
+  Indivisible means its own two halves travel together, not that it conflicts with everything.
 
   !! **THE FILE EXISTS BECAUSE THE SHAPE HAD NO OWNER, WHICH IS THE WHOLE MECHANISM.** It was
   described in `evidence/the-loop-measured-2026-08-27/the-mark.md`, a captured snapshot that

@@ -97,15 +97,43 @@ patch      from, to         from       yes      NO        wording alone -- nothi
                                                           settles it
 add        missing,         --         yes      yes       not diffable. The anchor is
            anchor                                         NAMED IN BACKTICKS
-move       from, to         --         TWO      yes       the `to` must be ADDRESSABLE
-                                       raw
-                                       paragraphs
+move       from, to         --         the      yes       the `to` must be ADDRESSABLE
+                                       COMPOSITE
 ```
 
-! **`move` IS THE ONE ROW WHOSE `change` IS NOT A SINGLE PARAGRAPH**, because a relocation rewrites
-two places: the destination as it reads once the prose arrives, and the origin as it reads once the
-prose has left. **Both are raw text.** That is a fact of the change column, stated here -- it is not
-a second field, and it is not a sentence explaining a field.
+## `move` is TWO OPERATIONS UNDER ONE LABEL, AND IT IS INDIVISIBLE
+
+Roy, 2026-08-28: *"The move needs the composite of the delete/add paragraphs. It really is two
+operations wrapped in one label and justification. Which is right -- you don't want to say it can
+move and it can't complete the move because 1/2 is rejected."*
+
+**`change` carries the COMPOSITE**: the origin as it reads once the prose has left, and the
+destination as it reads once the prose arrives. Both raw text, in one `change`.
+
+    a move  =  a delete at the origin  +  an add at the destination
+               one label, one reason, one `sources`
+
+!! **AND THE REASON IT IS ONE INSTRUCTION IS ATOMICITY, NOT TIDINESS.** Filed as a `drop` and an
+`add`, the two halves can be judged separately -- and **half a move is a defect neither half
+reports**: prose deleted from a place and never landed, or landed and never removed, so the file
+now says it twice. **Nothing downstream would know the pair was meant to be one thing.**
+
+**What that binds, everywhere the mark is handled:**
+
+| stage | the rule |
+| --- | --- |
+| **source-verification** | both ends are checked; a failure at either refuses the mark |
+| **reconciliation** | a `move` escalated at EITHER place escalates WHOLE. It may not be settled at one end and escalated at the other |
+| **the revise step** | a role answering a `move` answers for both ends. There is no half `hold` |
+| **the write chain** | both paragraphs are set, or neither is |
+
+! **THIS IS WHAT [`collate-buckets-a-move-at-one-end`](../TODO/collate-buckets-a-move-at-one-end.md)
+IS ABOUT**, and it is now a rule rather than a bug report: a `move` is grouped by every place it
+TOUCHES, because being seen at only one of them is how half of it gets settled.
+
+! **It does not change what a `move` COMPOSES with.** Relocation and a truth-fix are still
+compatible -- see *The one contradiction the set can express*, below. Indivisible means its own two
+halves travel together, not that it conflicts with everything.
 
 ## The classifiers -- FOUR COLUMNS AND A CLOSED LIST OF FLAGS
 
