@@ -758,6 +758,36 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   queries first raised at revise count round-one OVER-CLAIMING** -- the failure direction opposite
   to the one coverage measures.
 
+- **#23.** **A TEST'S EXPECTATION COMES FROM SOMEWHERE THE CODE UNDER TEST CANNOT MOVE** (Roy,
+  2026-08-28: *"Tests that test themselves are not useful tests."*).
+
+  !! **MEASURED THE SAME MORNING, ON A SUITE WRITTEN THE NIGHT BEFORE.** `tests/test_mark.py`
+  built every case from `INSTRUCTIONS` -- the table it was checking -- and its own docstring
+  called that a virtue: *"built from `INSTRUCTIONS` rather than from a literal, so a row change
+  moves the test with it."* **47 tests passed over a gate that refused two marks written from the
+  shipped brief verbatim**, an `add` carrying `claim.anchor` and a `query` carrying `claim.shape`.
+
+  ! **AND MUTATION-CHECKING HID IT RATHER THAN CATCHING IT.** Six of seven mutations were caught,
+  so the suite looked sound. Breaking the code broke the test because BOTH SIDES MOVED TOGETHER --
+  **a check can bite and still ask the wrong question.** `docs/gates.md` says *"could the check
+  fail"*; this is the case that says *could it fail for the right reason*.
+
+  !! **THE DISTINCTION IS INPUTS AGAINST EXPECTATIONS, AND `tests/README.md` ALREADY DREW IT** --
+  *"Pages come from `page_for` over real source, binders from `bind`; a literal appears only where
+  malformed IS the input."*
+
+  | | |
+  | --- | --- |
+  | **inputs** from reality -- a real page, a real binder | correct, and what the suite does |
+  | **expectations** from the implementation | circular -- it can only confirm |
+
+  ! The failed test took BOTH from the table. **Deriving an input from real code is using reality;
+  deriving an expectation from the implementation is asking the implementation whether it agrees
+  with itself.**
+
+  ! **WHERE AN EXPECTATION MAY COME FROM**: the shipped prose that states the contract, a
+  recorded run's real output, or a literal a human checked. Never the module under test.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
