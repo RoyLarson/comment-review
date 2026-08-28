@@ -15,10 +15,16 @@ address space did not move. `taken_in` shows a role the original against the rev
 as pinned dev dependencies, all through `uv run`.
 
 **Spec:** [`docs/plans/0.2.4-the-mark-and-the-collator.md`](../../plans/0.2.4-the-mark-and-the-collator.md)
--- the `P` plan. This `SP` delivers **P1**, **P2**, and **P5.2**.
+-- the `P` plan. This `SP` delivers **P1**, **P2**, and **T5.2**.
 
-**Why P5.2 is here and the rest of P5 is not:** `taken_in` (P2.6) cannot print a diff without the
-renderer P5.2 builds, so the dependency is hard. P3, P4, P5.1, P5.3 and P6 get their own SP once
+!! **AND THE MARK'S SHAPE IS [`docs/the-mark.md`](../../the-mark.md), WHICH IS THE ONLY AUTHORITY
+FOR IT.** Seven fields, four classifier columns, seven row flags, **no prose**. Not
+`reviewer-brief.md` (which publishes it), not `desk/mark.py` (which implements it), and **never**
+`prototype/`, which is a record of how it once worked and defines nothing. `decision-log.md
+Process: #37` records what it cost to have no such file.
+
+**Why T5.2 is here and the rest of P5 is not:** `taken_in` (T2.6) cannot print a diff without the
+renderer T5.2 builds, so the dependency is hard. P3, P4, T5.1, T5.3 and P6 get their own SP once
 P2 is green -- they read "against that stage's root", group "the marks of one stage", and route on
 "the revise's per-place provenance", none of which exist until this SP lands. Writing them now
 means shaping code against inputs that have not decided what they are, which `CLAUDE.md` refuses.
@@ -63,22 +69,32 @@ able to be checked off and that they are checked."* Every `P` box this SP delive
 exactly one SP task, in that task's own commit -- so a stranger reading `git log` can see the box
 and the work that earned it in the same diff.
 
+! **THE BOXES ARE LABELLED `T1.n` AND `T2.n` IN THE `P` PLAN**, not `P1.n`. This table said `P1.n`
+until 2026-08-28 and the Task 2 reviewer caught it. The letter is `T` because a plan step is a
+task; the phase is the number before the dot.
+
 | `P` box | ticked in | also ticks `T` |
 | --- | --- | --- |
-| **P1.1**, **P1.2**, **P1.3** | Task 1 | `the-ported-mark-does-not-fit-the-brief` T1, T2, T3 |
-| **P1.4** | Task 2 | -- (`Vocabulary: #17`, a substitution) |
-| **P1.5**, **P1.6** | Task 3 | `the-ported-mark-does-not-fit-the-brief` T4 |
-| **P1.7** | Task 4 | `the-ported-mark-does-not-fit-the-brief` T5 |
-| **P1.8**, **P1.9** | Task 5 | `the-fields-do-not-say-a-mark-may-cite-across` T1, T2, T3, T4, T5 |
-| **P1.10** | Task 5b | `the-skill-names-commands-that-moved-to-prototype` T4 |
-| **P2.1** | Task 6 | `the-flow-assumes-every-role-reads-at-once` T1 |
-| **P2.2** | Task 7 | `the-flow-assumes-every-role-reads-at-once` T2 |
-| **P2.3** | Task 8 | `the-flow-assumes-every-role-reads-at-once` T3 |
-| **P2.4** | Task 9 | `the-flow-assumes-every-role-reads-at-once` T4 |
-| **P2.5** | Task 10 | `the-flow-assumes-every-role-reads-at-once` T5 |
-| **P5.2**, **P2.6** | Task 11 | `the-flow-assumes-every-role-reads-at-once` T6 |
-| **P2.7** | Task 12 | `the-flow-assumes-every-role-reads-at-once` T7 |
+| **T1.1**, **T1.2**, **T1.3** | Task 1 -- **its SHAPE is superseded, see Task 2c** | `the-ported-mark-does-not-fit-the-brief` T1, T2, T3 |
+| **T1.4** | Task 2 | -- (`Vocabulary: #17`, a substitution) |
+| **T1.13**, **T1.14** | **Task 2c** | -- (`Process: #37`) |
+| **T1.5**, **T1.6** | Task 3 | `the-ported-mark-does-not-fit-the-brief` T4 |
+| **T1.7** | Task 4 | `the-ported-mark-does-not-fit-the-brief` T5 |
+| **T1.8**, **T1.9** | Task 5 | `the-fields-do-not-say-a-mark-may-cite-across` T1, T2, T3, T4, T5 |
+| **T1.10** | Task 5b | `the-skill-names-commands-that-moved-to-prototype` T4 |
+| **T1.11**, **T1.12** | **Task 5c** | `the-skill-names-commands-that-moved-to-prototype` T2, T3 |
+| **T2.1** | Task 6 | `the-flow-assumes-every-role-reads-at-once` T1 |
+| **T2.2** | Task 7 | `the-flow-assumes-every-role-reads-at-once` T2 |
+| **T2.3** | Task 8 | `the-flow-assumes-every-role-reads-at-once` T3 |
+| **T2.4** | Task 9 | `the-flow-assumes-every-role-reads-at-once` T4 |
+| **T2.5** | Task 10 | `the-flow-assumes-every-role-reads-at-once` T5 |
+| **T5.2**, **T2.6** | Task 11 | `the-flow-assumes-every-role-reads-at-once` T6 |
+| **T2.7** | Task 12 | `the-flow-assumes-every-role-reads-at-once` T7 |
 | **G1**, **G2**, **G4** (P1/P2 scope) | Task 13 | -- |
+
+!! **TASK 2c MUST RUN BEFORE TASKS 3 AND 4.** It deletes `payload`, which Task 4's generator was
+written to read, and it changes the row shape Task 3's `seed()` copies from. Running them in the
+written order without it produces a generator with no source.
 
 ! **G3, G5 and G6 are NOT ticked by this SP.** They are release gates over the whole `P` plan, and
 P3-P6 are still open. Task 13 verifies its own scope and stops.
@@ -92,15 +108,17 @@ has left the backlog claiming the work remains -- which is what an unchecked box
 
 | file | responsibility |
 | --- | --- |
-| `src/comment_review/desk/mark.py` | **modify.** One row states every key a claim owes; the gate reads that row |
-| `src/comment_review/flows/marks.py` | **modify.** The seeded row carries `raw_text` and the sheet a `code_concerns` list; the header names the revise |
+| `docs/the-mark.md` | **THE SPEC, and the only authority for the mark's shape.** Read it before touching `mark.py` |
+| `src/comment_review/desk/mark.py` | **modify.** Eleven classifiers and no prose, per the spec; one row states every key a claim owes |
+| `src/comment_review/flows/marks.py` | **modify.** The seeded row carries `raw_text`; the header names the revise. ! `code_concerns` is BLOCKED -- the sheet's shape is unstated |
+| `tests/gates/test_mark_shape.py` | **create.** The dataclass's fields against `docs/the-mark.md` |
 | `src/comment_review/binder/binder.py` | **modify.** The binder records the root it was censused from |
 | `src/comment_review/desk/stages.py` | **create.** The stage list as data, and the two kinds |
 | `src/comment_review/flows/revise.py` | **create.** Pull one revise: tree copy, drafts overlaid, `prove_unchanged`, address-set assertion |
 | `src/comment_review/results/differences.py` | **create.** Render a difference in git's spelling. Rules on nothing |
 | `src/comment_review/commands/taken_in.py` | **create.** `main()` and argparse for `taken_in` |
 | `src/comment_review/__main__.py` | **modify.** Register `taken_in` |
-| `scripts/render_brief.py` | **create.** Write the brief's generated block from `INSTRUCTIONS` |
+| `scripts/render_brief.py` | **create.** Join the KEYS from `INSTRUCTIONS` with the PROSE from `docs/the-mark.md` |
 | `tests/test_mark.py` | **replace.** Cases from the brief's table and the 706 recorded marks |
 | `tests/test_stages.py`, `tests/test_revise.py`, `tests/test_differences.py`, `tests/test_taken_in.py` | **create** |
 
@@ -199,8 +217,16 @@ the chain cannot refuse it for a reason the test did not intend.
 
 ## Task 1: The claim keys, and the gate that reads them
 
-**Delivers:** P1.1, P1.2, P1.3. **Works** `the-ported-mark-does-not-fit-the-brief` T1, T2, T3 and
-`record-and-verdicts-disagree` T4.
+!! **DONE at `fcba2a6` + `d33cd97`, AND ITS SHAPE IS SUPERSEDED BY TASK 2c.** The behaviour it
+delivered stands -- the gate accepts what the brief publishes, and the suite is non-circular. **The
+STRUCTURE it worked in did not survive review**: `claim_keys`, `claim_any`, `needs_attempted` and
+`needs_settles` were never part of the approved shape, and Task 2c deletes them.
+
+! **THE TASK IS NOT REWRITTEN, because it is finished and was correct against what it was given.**
+Roy, 2026-08-28: *"None of those were part of the accepted shape of the mark structure."* ! Read
+the code below as the record of what was done, not as instructions -- Task 2c is what is current.
+
+**Delivers:** T1.1, T1.2, T1.3. **Works** `the-ported-mark-does-not-fit-the-brief` T1, T2, T3.
 
 **Files:**
 - Modify: `src/comment_review/desk/mark.py:242-244` (`claim_keys`), `:256-279` (`allowed`),
@@ -420,7 +446,7 @@ git add -A && git commit -F <message-file>
 
 ## Task 2: `verdict` -> `instruction`
 
-**Delivers:** P1.4. A one-for-one substitution under `conventions.md` -- the spelling changes and
+**Delivers:** T1.4. A one-for-one substitution under `conventions.md` -- the spelling changes and
 no reader's behaviour does.
 
 **Files:**
@@ -475,21 +501,166 @@ uv run pytest -q && uv run python scripts/check_vocabulary.py
 
 - [ ] **Step 5: Tick and commit**
 
-`Edit` P1.4 to `- [x]`, write the message to a file, `git add -A && git commit -F <file>`.
+`Edit` T1.4 to `- [x]`, write the message to a file, `git add -A && git commit -F <file>`.
+
+---
+
+## Task 2c: `Instruction` becomes the approved shape
+
+**Delivers:** T1.13, T1.14. **Implements** `decision-log.md Process: #37`.
+
+!! **RUN THIS BEFORE TASKS 3 AND 4.** It deletes `payload`, which Task 4's generator was written to
+read.
+
+**The spec is [`docs/the-mark.md`](../../the-mark.md), and it is the ONLY authority.** Not
+`reviewer-brief.md` (which publishes it), not `desk/mark.py` (which implements it), and **never**
+`prototype/` (which is a record of how it once worked and defines nothing).
+
+**Why this task exists.** A 22-field classifier scheme entered `src/` during a port that was never
+proposed and never approved. Roy, 2026-08-28: *"None of those were part of the accepted shape of
+the mark structure or any part of the plan ... I had not knowledge of the other shape."*
+
+**Files:**
+- Modify: `src/comment_review/desk/mark.py`
+- Create: `tests/gates/test_mark_shape.py`
+
+**The approved row is ELEVEN things and no prose:**
+
+```
+FOUR CLASSIFIER COLUMNS
+  claim keys     every key `claim` must carry, in ONE list
+  verbatim       which ONE claim key is checked word-for-word against the paragraph
+  change         whether a change is owed; for `move`, the COMPOSITE of both paragraphs
+  sources        whether sources are owed
+
+SEVEN ROW FLAGS
+  not substantive              clean
+  may declare scope            query
+  empty change allowed         drop
+  rules on text                correct, patch
+  not diffable                 add
+  anchor named in backticks    add
+  destination addressable      move
+```
+
+**The eleven fields that go, and why each:**
+
+```
+claim_any                        the three query shapes are a MODULE CONSTANT, not a row field
+needs_attempted, needs_settles   query's claim KEYS -- they belong in the claim-keys list
+needs_anchor                     stays ONLY as the backtick FORM flag; `anchor` becomes a claim key
+change_all, change_help          `move`'s composite is a fact of the change column
+owes_claim, owes_reason, owes_address   defaults; only `clean` deviates, via its flags
+removes                          no column and no flag
+payload, claim_help              PROSE -- a row carries none
+```
+
+!! **AND NO REPLACEMENT MACHINERY FOR THE PROSE.** Roy, 2026-08-28: *"What finishes can be put into
+the instruction set and the cli help. **I forbid you from including anything like this in the code
+right now.**"* ! Do **not** generate the help sentences from the claim-keys list -- that is
+prose-building in the code to avoid prose in the code. The existing refusal message already names
+the missing keys; leave it at that.
+
+- [ ] **Step 1: Write the gate first**
+
+`tests/gates/test_mark_shape.py`. **Its expectation comes from `docs/the-mark.md`** -- prose the
+module cannot move, which is the whole point:
+
+```python
+"""The dataclass carries exactly what the spec allows, and no prose.
+
+! EXPECTATION FROM `docs/the-mark.md`. `decision-log.md Process: #37` records
+what it cost to have no file able to refuse a field.
+"""
+
+import dataclasses
+import re
+
+from comment_review.desk.mark import Instruction
+
+SPEC = (REPO / "docs/the-mark.md").read_text(encoding="utf-8")
+
+
+def allowed_names() -> set[str]:
+    """The classifier and flag names the spec states, as field names."""
+    # read the four columns and the seven flags out of the spec's own blocks
+    ...
+
+
+def test_the_row_carries_only_what_the_spec_allows():
+    have = {f.name for f in dataclasses.fields(Instruction)}
+    assert have == allowed_names(), sorted(have ^ allowed_names())
+
+
+def test_no_field_carries_prose():
+    """A row states facts. A sentence for a human is not a fact about the row."""
+    for f in dataclasses.fields(Instruction):
+        assert f.type is not str or f.name in {"quotes_original"}, f.name
+```
+
+- [ ] **Step 2: Run it and confirm it fails**, naming eleven surplus fields.
+
+- [ ] **Step 3: Rebuild the rows** from `docs/the-mark.md`'s table. `query`'s claim keys become
+      `("shape", "attempted", "settles")`; `add`'s become `("missing", "anchor")`. The three query
+      shapes stay as the module-level `QUERY_SHAPES` constant they already are.
+
+- [ ] **Step 4: Make the gate read those keys** -- `_claim_problems` checks `spec.claim_all`
+      directly. **`claim_keys` is deleted**, not simplified: with the keys stated once there is
+      nothing left to derive.
+
+- [ ] **Step 5: The verification that matters**
+
+```
+uv run pytest -q tests/test_mark.py tests/test_mark_brief.py
+```
+
+**Both must pass with NO EDIT.** Their expectations come from the brief, not from the module, so a
+behaviour change would show as a failure. **If a single test needs touching, the rebuild altered
+behaviour and is wrong** -- stop and report rather than adjusting the test.
+
+- [ ] **Step 6: Prove the gate bites.** Add a field to `Instruction` without touching the spec;
+      `test_the_row_carries_only_what_the_spec_allows` must go RED. Remove it.
+
+- [ ] **Step 7: Build, gate, tick, commit**
+
+```
+uv run python scripts/build_plugin.py && uv run pytest -q
+uv run ruff check . && uv run ty check src/comment_review/
+```
+
+`Edit` T1.13 and T1.14 to `- [x]` in `docs/plans/0.2.4-the-mark-and-the-collator.md`. Commit
+with `-F`.
 
 ---
 
 ## Task 3: `raw_text` on the row, `code_concerns` on the sheet
 
-**Delivers:** P1.5, P1.6. **Works** `the-ported-mark-does-not-fit-the-brief` T4.
+**Delivers:** T1.5, T1.6. **Works** `the-ported-mark-does-not-fit-the-brief` T4.
 
 **Files:**
 - Modify: `src/comment_review/flows/marks.py:40-50` (`seed`), `:53-80` (`problems_in`)
 - Modify: `plugins/comment-review/skills/comment-review/references/reviewer-brief.md`
 - Test: `tests/test_marks_flow.py`
 
+!! **`raw_text` AND `change` ARE THE MATCHED PAIR, AND THAT IS WHY THIS STEP EXISTS.** Roy,
+2026-08-28: *"`change` needs to be the updated paragraph as raw text not lines or sentences. This
+will make it easier to diff per the rest of the stages."*
+
+    the seeded row carries   raw_text   the paragraph as it stands
+    the role returns         change     the same paragraph as it should read
+
+! **They diff directly**, and every stage downstream is that diff: source-verification, the `diff3`
+conflict (base = `raw_text`, sides = each role's `change`), `taken_in`, and the revise. **Seeding
+`raw_text` is what makes P5 possible**, not a convenience for the role.
+
+!! **AND `code_concerns` IS BLOCKED. IT IS A SHEET FIELD, AND THE SHEET HAS NO OWNING FILE.**
+`docs/the-mark.md` states the MARK's shape; the SHEET -- `role`, `marks[]`, `read_from`,
+`code_concerns` -- is stated nowhere. **Adding a field to an unspecified structure is exactly what
+`Process: #37` records the cost of.** Step 3 below does the `raw_text` half; the `code_concerns`
+half waits on a ruling, and T1.6 stays unticked until it lands.
+
 **Found while planning:** `raw_text` is **already on every binder row** --
-`binder.py:89`, `"raw_text": "\n".join(paragraph.raw_lines)`. So P1.5 is one line in `seed`, not a
+`binder.py:89`, `"raw_text": "\n".join(paragraph.raw_lines)`. So T1.5 is one line in `seed`, not a
 change to the binder. The paragraph is the revise's bytes because the binder was censused from
 that root; **Task 7 is what names which root that was**, and this task does not need it.
 
@@ -527,9 +698,9 @@ uv run pytest -q tests/test_marks_flow.py
 
 - [ ] **Step 3: Carry `raw_text`, accept `code_concerns`**
 
-In `seed`, add `"raw_text": row.get("raw_text", "")` to each emitted entry, and
-`"code_concerns": []` beside `"role"` and `"marks"`. In `problems_in`, refuse a `code_concerns`
-that is present and not a list; a missing one is not a problem.
+In `seed`, add `"raw_text": row.get("raw_text", "")` to each emitted entry. **Do NOT add
+`code_concerns`** -- see the block above; the sheet's shape is unstated and adding to it is the
+error `Process: #37` records.
 
 - [ ] **Step 4: Run**
 
@@ -537,31 +708,51 @@ that is present and not a list; a missing one is not a problem.
 uv run pytest -q tests/test_marks_flow.py
 ```
 
-- [ ] **Step 5: Name the key in the brief**
+- [ ] **Step 5: BLOCKED -- `code_concerns` waits on the sheet's shape**
 
-Add `code_concerns` to `reviewer-brief.md` as a sheet-level key, saying it holds concerns about the
-CODE that no instruction can carry. **State the key and its shape only** -- when a role should
-raise one is `agents`'.
+The key is instructed in `reviewer-brief.md` and in `function-context`, and every role produced one
+in every round of the 2026-08-27 experiment -- so it is real. **What is missing is a file that says
+what the sheet carries**, the same absence that let eleven fields onto the mark.
+
+Leave **T1.6 unticked** and say so in the report. Do not add the key, and do not name it in the
+brief, until the sheet's shape is stated and approved.
 
 - [ ] **Step 6: Build, gate, tick, commit**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
 uv run python scripts/check_vocabulary.py
-uv run python scripts/todo_tool.py check the-ported-mark-does-not-fit-the-brief 4
 ```
 
-`Edit` P1.5 and P1.6 to `- [x]`. Commit with `-F`.
+`Edit` **T1.5 only** to `- [x]`. **T1.6 and `the-ported-mark-does-not-fit-the-brief` T4 stay
+unticked.** Commit with `-F`.
 
 ---
 
 ## Task 4: Rebuild the generator the brief claims to have
 
-**Delivers:** P1.7. **Works** `the-ported-mark-does-not-fit-the-brief` T5.
+**Delivers:** T1.7. **Works** `the-ported-mark-does-not-fit-the-brief` T5. **Requires Task 2c.**
 
-`reviewer-brief.md:278` carries `<!-- BEGIN GENERATED: verdict table --
-prototype/render_brief.py -->` and **that script exists nowhere in the tree**, so the table
-announces it is generated while being hand-maintained. That is what let `add` drift.
+`reviewer-brief.md:278` carried `<!-- BEGIN GENERATED: verdict table --
+prototype/render_brief.py -->` and **that script existed nowhere in the tree**, so the table
+announced it was generated while being hand-maintained. That is what let `add` drift.
+
+!! **THE PROSE COMES FROM `docs/the-mark.md`, NOT FROM THE CODE.** This task was written to read
+`spec.payload`, and **Task 2c deletes it**: a row carries no prose. Roy, 2026-08-28: *"What
+finishes can be put into the instruction set and the cli help."*
+
+| the generated table's column | its source |
+| --- | --- |
+| the instruction name | `INSTRUCTIONS`, the seven keys |
+| the `claim` keys | `spec.claim_all` -- stated once, in the row |
+| **what they carry**, in prose | **`docs/the-mark.md`**, the spec's own per-instruction table |
+
+! **THAT IS THE POINT OF THE SPLIT.** The KEYS are a fact the code owns and the gate enforces; the
+SENTENCE is prose the spec owns and a human wrote. **Generating one from the other in either
+direction is what this branch has now been told twice not to do.**
+
+! **Task 2 already corrected the caption** to say the table is COPIED from `desk/mark.py`. That
+becomes wrong again here: it is GENERATED, from two sources. Fix the caption to name both.
 
 **Files:**
 - Create: `scripts/render_brief.py`
@@ -586,9 +777,11 @@ def test_the_committed_block_matches_a_fresh_render():
 
 - [ ] **Step 3: Write `scripts/render_brief.py`**
 
-It reads `INSTRUCTIONS`, emits the table from `claim_keys(spec)` and `spec.payload`, takes
-`--print` (stdout) or `--write` (rewrite the block in place between the markers), and exits
-nonzero if either marker is missing.
+It reads the KEYS from `INSTRUCTIONS` (`spec.claim_all`, stated once per row) and the PROSE from
+`docs/the-mark.md`'s per-instruction table, joins them on the instruction name, takes `--print`
+(stdout) or `--write` (rewrite the block in place between the markers), and exits nonzero if either
+marker is missing **or if the two sources name different instructions** -- which is the drift this
+script exists to make visible.
 
 - [ ] **Step 4: Render, and correct the marker**
 
@@ -614,13 +807,13 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 uv run python scripts/todo_tool.py check the-ported-mark-does-not-fit-the-brief 5
 ```
 
-`Edit` P1.7 to `- [x]`. Commit with `-F`.
+`Edit` T1.7 to `- [x]`. Commit with `-F`.
 
 ---
 
 ## Task 5: What the brief says about `ran`, and about the library
 
-**Delivers:** P1.8, P1.9. **Works** `the-fields-do-not-say-a-mark-may-cite-across` T1, T2, T3, T4,
+**Delivers:** T1.8, T1.9. **Works** `the-fields-do-not-say-a-mark-may-cite-across` T1, T2, T3, T4,
 T5.
 
 **Files:**
@@ -663,13 +856,13 @@ uv run python scripts/todo_tool.py check the-fields-do-not-say-a-mark-may-cite-a
 uv run python scripts/todo_tool.py check the-fields-do-not-say-a-mark-may-cite-across 5
 ```
 
-`Edit` P1.8 and P1.9 to `- [x]`. Commit with `-F`.
+`Edit` T1.8 and T1.9 to `- [x]`. Commit with `-F`.
 
 ---
 
 ## Task 5b: Drop the four dead command invocations
 
-**Delivers:** P1.10. **Works** `the-skill-names-commands-that-moved-to-prototype` T4.
+**Delivers:** T1.10. **Works** `the-skill-names-commands-that-moved-to-prototype` T4.
 
 **Added 2026-08-28, mid-branch.** Roy: *"Drop the commands from the brief and from the task
 agent/managing-editor ... We will fill the commands section back in later."*
@@ -727,13 +920,102 @@ Expected: the gate now exits **0** -- line 741 was the only remaining `verdicts`
 uv run python scripts/todo_tool.py check the-skill-names-commands-that-moved-to-prototype 4
 ```
 
-`Edit` P1.10 to `- [x]`. Commit with `-F`.
+`Edit` T1.10 to `- [x]`. Commit with `-F`.
+
+---
+
+## Task 5c: The command reference, accurate and complete
+
+**Delivers:** T1.11, T1.12. **Works** `the-skill-names-commands-that-moved-to-prototype` T2 and T3.
+
+!! **THE LANE LINE IS ROY'S, 2026-08-28**: *"Stating the commands and what they do is acceptable for
+this role. How they get used and what order and the process that gets the agents to use them is
+agents. **Having accurate and complete command instructions are on you because it is part of the
+program.**"*
+
+| this task | NOT this task |
+| --- | --- |
+| what each command IS, what it does, its flags, its output | which stage runs it, in what order |
+| fixing a flag that the parser refuses | changing when a stage fires, or why |
+
+**Files:**
+- Modify: `SKILL.md`, `references/write.md`, `references/review.md`, `references/reviewer-brief.md`
+- Create: `tests/gates/test_skill_commands.py`
+
+**MEASURED 2026-08-28 -- 15 invocations across four agent-facing files:**
+
+```
+census (x5), referrers, addresser (x4), prove_unchanged     LIVE
+galley (SKILL.md ~895)   name resolves through an alias to `proof`, but spells
+                         --census/--edits where proof takes --binder/--docket,
+                         so the parser REFUSES it
+record (SKILL.md 643, 666)   DEAD -- a fifth beyond the four Task 5b dropped
+```
+
+! **`record` WAS FOUND BY TASK 5b**, which wrote this gate, watched it fail on `record`, and
+**deleted the gate rather than commit it red or invent an exemption it had no ruling for.** That
+was correct then; the ruling now exists.
+
+- [ ] **Step 1: Write the gate, both halves**
+
+**The name half AND the flag half.** `galley` is the case proving a name-only gate is not enough:
+its name resolves and the invocation still cannot run.
+
+```python
+"""Every command an agent is told to run exists, and every flag it is given parses.
+
+! EXPECTATION FROM `__main__.py`'s COMMANDS and each command's own argparse --
+neither of which is the prose under test.
+"""
+
+import re
+
+INVOCATION = re.compile(r"comment-review\.py (\w+)((?:\s+--[\w-]+)*)")
+
+
+def test_every_command_named_in_agent_facing_prose_exists(): ...
+def test_every_flag_named_beside_it_is_accepted_by_that_command(): ...
+```
+
+- [ ] **Step 2: Run it and confirm BOTH fail** -- names on `record`, flags on `galley`.
+
+- [ ] **Step 3: Resolve `record` at 643 and 666.** It is dead. **Drop the invocation** the way Task
+      5b dropped its four, leaving one line naming the TODO. **Do not invent a replacement** --
+      what supersedes `record` is `decision-log.md Process: #14`'s alterations question and is not
+      designed.
+
+- [ ] **Step 4: Fix `galley`'s flags** to `--binder/--docket`, which is what `proof` takes.
+      ! **This is the one argument change this task is licensed to make**, because Roy's ruling puts
+      accurate command instructions in this lane. Do not touch when or why the stage runs.
+
+- [ ] **Step 5: Document what each live command does**, beside its invocation: what it is, what it
+      does, its flags, its output. Take every fact from the command's own `argparse` and its
+      module docstring -- **not from the prose already there**, which is what drifted.
+
+- [ ] **Step 6: Run**
+
+```
+uv run pytest -q tests/gates/test_skill_commands.py
+```
+
+- [ ] **Step 7: Prove the flag half bites.** Change one documented flag to one the parser does not
+      take; the test must go RED. Restore.
+
+- [ ] **Step 8: Build, tick, commit**
+
+```
+uv run python scripts/build_plugin.py && uv run pytest -q
+uv run python scripts/todo_tool.py check the-skill-names-commands-that-moved-to-prototype 2
+uv run python scripts/todo_tool.py check the-skill-names-commands-that-moved-to-prototype 3
+```
+
+`Edit` T1.11 and T1.12 to `- [x]`. Commit with `-F`.
 
 ---
 
 ## Task 6: The stage list, as data
 
-**Delivers:** P2.1. **Works** `the-flow-assumes-every-role-reads-at-once` T1.
+**Delivers:** T2.1. **Works** `the-flow-assumes-every-role-reads-at-once` T1.
 
 **Files:**
 - Create: `src/comment_review/desk/stages.py`
@@ -789,13 +1071,13 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-once 1
 ```
 
-`Edit` P2.1 to `- [x]`. Commit with `-F`.
+`Edit` T2.1 to `- [x]`. Commit with `-F`.
 
 ---
 
 ## Task 7: The binder records the root it was censused from
 
-**Delivers:** P2.2. **Works** `the-flow-assumes-every-role-reads-at-once` T2.
+**Delivers:** T2.2. **Works** `the-flow-assumes-every-role-reads-at-once` T2.
 
 **Files:**
 - Modify: `src/comment_review/binder/binder.py` (`bind`, and the shape version constant)
@@ -844,13 +1126,13 @@ uv run pytest -q && uv run python scripts/build_plugin.py
 uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-once 2
 ```
 
-`Edit` P2.2 to `- [x]`. Commit with `-F`.
+`Edit` T2.2 to `- [x]`. Commit with `-F`.
 
 ---
 
 ## Task 8: Pull a revise
 
-**Delivers:** P2.3. **Works** `the-flow-assumes-every-role-reads-at-once` T3.
+**Delivers:** T2.3. **Works** `the-flow-assumes-every-role-reads-at-once` T3.
 
 **Files:**
 - Create: `src/comment_review/flows/revise.py`
@@ -910,13 +1192,13 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-once 3
 ```
 
-`Edit` P2.3 to `- [x]`. Commit with `-F`.
+`Edit` T2.3 to `- [x]`. Commit with `-F`.
 
 ---
 
 ## Task 9: The address-invariance gate
 
-**Delivers:** P2.4. **Works** `the-flow-assumes-every-role-reads-at-once` T4.
+**Delivers:** T2.4. **Works** `the-flow-assumes-every-role-reads-at-once` T4.
 
 **This is the whole safety argument of the design**, recorded as a claim to gate rather than a fact
 -- `decision-log.md Process: #35`. Everything downstream assumes a mark written at stage 3 against
@@ -973,13 +1255,13 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-once 4
 ```
 
-`Edit` P2.4 to `- [x]`. Commit with `-F`.
+`Edit` T2.4 to `- [x]`. Commit with `-F`.
 
 ---
 
 ## Task 10: Every read for a stage resolves against that stage's root
 
-**Delivers:** P2.5. **Works** `the-flow-assumes-every-role-reads-at-once` T5.
+**Delivers:** T2.5. **Works** `the-flow-assumes-every-role-reads-at-once` T5.
 
 **Files:**
 - Modify: the call sites the test below forces -- **the implementer names them in its report**
@@ -1013,13 +1295,13 @@ uv run pytest -q && uv run python scripts/build_plugin.py
 uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-once 5
 ```
 
-`Edit` P2.5 to `- [x]`. Commit with `-F`.
+`Edit` T2.5 to `- [x]`. Commit with `-F`.
 
 ---
 
 ## Task 11: `differences.py`, and the `taken_in` command
 
-**Delivers:** P5.2 and P2.6. **Works** `the-flow-assumes-every-role-reads-at-once` T6.
+**Delivers:** T5.2 and T2.6. **Works** `the-flow-assumes-every-role-reads-at-once` T6.
 
 **Files:**
 - Create: `src/comment_review/results/differences.py`
@@ -1034,7 +1316,7 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
   a table of address -> the stage and role that set it, read from `Pulled.set_by`.
 
 ! `differences.py` **rules on nothing** -- `Vocabulary: #11` holds the collator to the same, and
-P5.3 will keep rendering out of reconciliation. This module is where P5.1's `diff3` renderer lands
+T5.3 will keep rendering out of reconciliation. This module is where T5.1's `diff3` renderer lands
 in the next SP.
 
 - [ ] **Step 1: Write the failing tests**
@@ -1077,13 +1359,13 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-once 6
 ```
 
-`Edit` P5.2 and P2.6 to `- [x]`. Commit with `-F`.
+`Edit` T5.2 and T2.6 to `- [x]`. Commit with `-F`.
 
 ---
 
 ## Task 12: The last revise is the 7a draft
 
-**Delivers:** P2.7. **Works** `the-flow-assumes-every-role-reads-at-once` T7.
+**Delivers:** T2.7. **Works** `the-flow-assumes-every-role-reads-at-once` T7.
 
 **Files:**
 - Modify: `src/comment_review/commands/proof.py` -- `--out` becomes the revise root
@@ -1093,7 +1375,7 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 
 ```python
 def test_only_one_path_builds_a_draft_tree():
-    # EXPECTATION FROM docs/plans/0.2.4-the-mark-and-the-collator.md, P2.7:
+    # EXPECTATION FROM docs/plans/0.2.4-the-mark-and-the-collator.md, T2.7:
     # one mechanism builds a draft tree, and it is the revise pull.
     callers = [p for p in (REPO / "src").rglob("*.py")
                if "proof_setter.run(" in p.read_text(encoding="utf-8")]
@@ -1112,7 +1394,7 @@ uv run pytest -q && uv run python scripts/build_plugin.py
 uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-once 7
 ```
 
-`Edit` P2.7 to `- [x]`. Commit with `-F`.
+`Edit` T2.7 to `- [x]`. Commit with `-F`.
 
 ---
 
