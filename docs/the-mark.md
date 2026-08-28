@@ -77,7 +77,8 @@ move       from, to         --         yes,     yes       the `to` must be ADDRE
 ## The classifiers -- FOUR COLUMNS AND A CLOSED LIST OF FLAGS
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
-may state these and nothing else. A new classifier is a change to THIS FILE first.
+may state these and nothing else -- **eleven things, and no prose.** A new classifier is a change
+to THIS FILE first.
 
 | classifier | what it decides | shape |
 | --- | --- | --- |
@@ -97,16 +98,20 @@ may state these and nothing else. A new classifier is a change to THIS FILE firs
     anchor named in backticks   add alone, and it is a FORM check on `claim.anchor`
     destination addressable     move alone
 
-**And a row carries two pieces of PROSE, which are not classifiers and decide nothing:**
+!! **A ROW CARRIES NO PROSE. THE EXPLANATION LIVES IN THE INSTRUCTION SET AND THE CLI HELP.**
+Roy, 2026-08-28: *"What finishes can be put into the instruction set and the cli help. I forbid
+you from including anything like this in the code right now."*
 
-    payload      what the brief says this `claim` carries. The row owns it so there is one
-                 source; it does NOT restate the key names, which come from the claim-keys
-                 column
-    claim_help   the sentence a role reads when its claim is refused
+! **AND THAT FORBIDS THE MACHINERY, NOT ONLY THE FIELD.** A session proposed deleting the two
+prose fields and GENERATING their sentences from the claim-keys list instead. That is the same
+mistake wearing a different hat: it puts prose-building in the code to avoid storing prose in the
+code. **Neither the string nor the generator belongs there.**
 
-! **They are named here so the gate can tell them from a classifier.** A field that decides
-nothing is prose; a field that decides something is a classifier and must be a column or a flag
-above. **Anything that is neither does not belong on the row.**
+| what | where it lives |
+| --- | --- |
+| what an instruction's `claim` carries, in prose | **this file**, and `reviewer-brief.md`, which publishes it |
+| what a role reads when a claim is refused | the **CLI help** |
+| the KEYS themselves | the claim-keys column above -- the one place they are stated |
 
 ! **A ROW STATES A FACT ONCE.** `query` owes the keys `shape`, `attempted` and `settles` -- that is
 ONE list in the claim-keys column, not a list plus two booleans that a function reassembles.

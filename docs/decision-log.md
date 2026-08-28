@@ -1332,8 +1332,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **THE APPROVED SHAPE**: seven fields; **FOUR classifier columns** -- claim keys, verbatim,
   change, sources; **SEVEN row flags** -- not substantive, may declare scope, empty change allowed,
-  rules on text, not diffable, anchor named in backticks, destination addressable; and two pieces
-  of PROSE that decide nothing, `payload` and `claim_help`. **A row states these and nothing else.**
+  rules on text, not diffable, anchor named in backticks, destination addressable. **Eleven things,
+  and a row states these and nothing else.**
+
+  !! **A ROW CARRIES NO PROSE, AND THE PROSE IS NOT TO BE GENERATED EITHER.** Roy, 2026-08-28:
+  *"What finishes can be put into the instruction set and the cli help. **I forbid you from
+  including anything like this in the code right now.**"* ! The session had proposed deleting the
+  two prose fields `payload` and `claim_help` and DERIVING their sentences from the claim-keys
+  list -- which puts prose-building in the code to avoid storing prose in the code, and is the same
+  error in a second costume. **Neither the string nor the generator belongs there.** What an
+  instruction carries is stated in `docs/the-mark.md` and published by `reviewer-brief.md`; what a
+  role reads when a claim is refused is the CLI help's.
 
   !! **THE FILE EXISTS BECAUSE THE SHAPE HAD NO OWNER, WHICH IS THE WHOLE MECHANISM.** It was
   described in `evidence/the-loop-measured-2026-08-27/the-mark.md`, a captured snapshot that
