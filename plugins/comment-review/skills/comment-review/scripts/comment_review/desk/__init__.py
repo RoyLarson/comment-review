@@ -8,16 +8,14 @@
 !! THE MIDDLE IS THE HALF THAT IS NOT DESIGNED, and this package is where it
 goes: marks in from the roles, a DOCKET out. Roy, 2026-08-25, on why the former
 contents left: *"There is code there none of it is correct so testing it is
-solidifying wrong."* `run_context`, `vocabulary`, `desk` and the module the
-collator replaces are in `prototype/original/`, reference only; nothing under
-`src/` imports them.
+solidifying wrong."*
 
-! THAT FOURTH ITEM IS NOT NAMED, and the omission is deliberate. It is a list of
-FILES, and the file still carries the retired word -- `prototype/` is exempt from
-the rename by `decision-log.md Vocabulary: #19`, since renaming inside a captured
-record makes it describe something that never happened. Writing the basename here
-would put the retired word in a shipped file; writing `collator` would name a
-file that does not exist there.
+!! THIS DOCSTRING INVENTORIED `prototype/` UNTIL 2026-08-28, AND THE INVENTORY IS
+CUT. Roy: *"Why are you talking about code in `prototype/original/`?"* A shipped
+module has no business cataloguing what sits in a directory that nothing imports,
+nothing ships and that does not run. ! What this package owes is stated by what
+it exports and by the plan that builds the rest; a reader who wants the history
+has `docs/history.md`, which is the file for it.
 
 !! `mark` IS THE FIRST PIECE BACK, ported 2026-08-27 at Roy's direction --
 *"You can copy it from there and update the rules/requirements from there but it
