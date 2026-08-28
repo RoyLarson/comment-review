@@ -34,8 +34,10 @@ def seed(binder: dict, role: str) -> dict:
         role: the editorial role this sheet is for.
 
     Returns:
-        `{"role": ..., "marks": [...]}` -- each entry carrying the `address` and
-        `anchor` copied from its row, and `mark: None` for the role to fill.
+        `{"role": ..., "marks": [...]}` -- each entry carrying the `address`,
+        `anchor` and `raw_text` copied from its row, and `mark: None` for the
+        role to fill. `raw_text` is the paragraph the role's `change` diffs
+        against -- see `docs/the-mark.md`.
     """
     return {
         "role": role,
@@ -43,6 +45,7 @@ def seed(binder: dict, role: str) -> dict:
             {
                 "address": row.get("address", ""),
                 "anchor": row.get("anchor", ""),
+                "raw_text": row.get("raw_text", ""),
                 "mark": None,
             }
             for row in rows_of(binder)
