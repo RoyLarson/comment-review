@@ -586,46 +586,26 @@ Each already carries its own editorial role.
 
 !! **Put the BRIEF and each agent's VOCABULARY in its prompt, verbatim.** Paste
 [`references/reviewer-brief.md`](references/reviewer-brief.md) whole -- it is the same text for
-all four -- then one command per agent, pasted as it comes:
+all four.
 
-```bash
-python <skill>/scripts/comment-review.py vocabulary --reviewer ownership-context
-```
-
-`--roles` lists the six that have one. ! Do not summarise it, do not trim it to the terms you
-think a file uses, and do not tell an agent where the vocabulary lives -- it is given the words,
-not a path to go reading.
-
-!! **Run it and paste the OUTPUT. Never stage it through a file.** A redirect puts an artifact
-between the command and the prompt, and the artifact can be from the previous run -- which is the
-failure you will not see, because **a vocabulary one version stale reads perfectly plausible**.
-Measured 2026-08-17: a run redirected all four to disk, the plugin was updated mid-session, and
-the files on disk were then a version behind the script that had just been fixed. Nothing about
-them looked wrong. ! This is the opposite instruction from the CENSUS, which is a file BY
-DESIGN and needs a path unique to this run -- the census is too large to paste and is read once,
-where the vocabulary is small and is pasted four times.
+! **Handing over each agent's VOCABULARY by command is absent** -- the command that produced it
+moved to `prototype/` and no longer runs. See
+`TODO/the-skill-names-commands-that-moved-to-prototype.md`.
 
 !! **`CENSUS` POINTS AT THE FILTERED FILE**, `dispatch.txt` from stage 2 -- not the full census
 and not the JSON. That is the copy a reviewer reads, and it is four copies of it per run. The
 full census stays on disk for stages 5 and 7b, which resolve every address a reviewer cites
 against it.
 
-**You also supply the run context as a PACKET, and the packet is checked before anyone is
-dispatched:**
+**You also supply the run context as a PACKET, with every section filled and none blank** -- a
+published non-answer such as *"UNAVAILABLE"* is an answer and must be written; a blank is not.
+`REPO ROOT`, `CENSUS` and every `REVIEWER FILES` entry must be an **absolute path that exists**.
 
-```bash
-python <skill>/scripts/comment-review.py run_context --template > <run-dir>/context.md
-# fill every section, then:
-python <skill>/scripts/comment-review.py run_context --check <run-dir>/context.md
-```
+! **Templating and checking the packet by command is absent** -- the command moved to
+`prototype/` and no longer runs. See `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
 
-It refuses a section that is absent **or present and blank** -- a published
-non-answer such as *"UNAVAILABLE"* is an answer and must be written; a blank is
-refused. It then refuses the three answers a machine can settle: `REPO ROOT`, `CENSUS` and
-every `REVIEWER FILES` entry must be an **absolute path that exists**.
-! **The rest are prose it cannot check**, and passing says nothing about them. Hand every
-reviewer the one path. Dispatched without a style sheet, a run drifts the dialect while fixing
-the prose, and every role is satisfied because nothing owns consistency.
+Hand every reviewer the one path. Dispatched without a style sheet, a run drifts the dialect
+while fixing the prose, and every role is satisfied because nothing owns consistency.
 
 !! **`REPO ROOT` is what every other path resolves against.** The census, `FILES UNDER
 REVIEW` and every citation a reviewer writes are repo-relative, and a reviewer handed no root
@@ -735,13 +715,10 @@ but more than nothing.
 
 !! **Run THE COLLATOR before you rule on anything** -- it reads every
 reviewer's report against the census and against the others', and refuses what it cannot
-verify. It is the gate between MARK and APPLY:
+verify. It is the gate between MARK and APPLY.
 
-```bash
-python <skill>/scripts/comment-review.py verdicts --census <census>.json \
-  --reviewers ownership-context,block-context,function-context,module-context \
-  --repo . <one report file per role>
-```
+! **Running it by command is absent** -- the command moved to `prototype/` and no longer runs.
+See `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
 
 !! **NAME EACH REPORT FILE AFTER ITS ROLE** -- `ownership-context.json`,
 `block-context.json`, `function-context.json`, `module-context.json`, which is what stage 4
