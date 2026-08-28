@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (88)
+### open  (90)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -270,6 +270,8 @@ that changed a published name or rule:
 | [the-flow-assumes-every-role-reads-at-once](the-flow-assumes-every-role-reads-at-once.md) | backend | — | 0/7 | The flow assumes every role reads the same page at the same time, once |
 | [move-change-contract-unenforceable](move-change-contract-unenforceable.md) | backend | — | 0/2 | move's change_all loop is never the decisive check -- the general array-of-lines check runs first and either already passed or already refused the mark |
 | [build-gate-crlf-fragile](build-gate-crlf-fragile.md) | systems | — | 0/2 | build_plugin.py's raw byte compare fails on a line-ending-only difference introduced by a Windows git checkout |
+| [shape-is-three-words](shape-is-three-words.md) | backend | yes | 0/5 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
+| [annotate-belongs-in-concordance](annotate-belongs-in-concordance.md) | backend | — | 0/3 | annotate.py is stage 3 -- it resolves every reference a node makes -- which is the concordance's subject, not the binder's |
 
 ### in-progress  (19)
 
