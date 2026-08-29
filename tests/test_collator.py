@@ -85,7 +85,7 @@ class TestClaimVerbatimProblems:
 
     def test_add_and_query_quote_nothing(self):
         """`add`'s `missing` and `query`'s `shape` are not checked this way --
-        `Instruction.quotes_original` is empty for both."""
+        `Row.quotes_original` is empty for both."""
         add = {"mark": "add", "claim": {"missing": "x", "anchor": "`f`"}}
         query = {"mark": "query", "claim": {"shape": "outside-my-role"}}
         assert claim_verbatim_problems("here", add) == []

@@ -17,8 +17,14 @@ from pathlib import Path
 
 from comment_review.binder.binder import read as read_binder
 from comment_review.desk.mark import allowed
+from comment_review.desk.stages import STAGES
 from comment_review.flows.marks import problems_in, seed, tally, unruled
 from comment_review.machine import exceptions
+
+#: The four editorial role names, in `STAGES`' own order -- `T1.16` of
+#: `docs/plans/0.2.4-the-mark-and-the-collator.md`. Derived, not retyped:
+#: `STAGES` is the one canonical list of role names in `src/`.
+ROLES = tuple(role for stage in STAGES for role in stage.roles)
 
 
 def _load(path: str) -> tuple[dict, str]:
@@ -50,7 +56,9 @@ def main() -> int:
     ap.add_argument("--seed", action="store_true", help="write a fillable sheet")
     ap.add_argument("--check", metavar="PATH", help="check a filled sheet")
     ap.add_argument("--binder", help="the binder to seed from (--seed only)")
-    ap.add_argument("--role", help="the editorial role (--seed only)")
+    ap.add_argument(
+        "--role", choices=ROLES, help="the editorial role (--seed only)"
+    )
     ap.add_argument("--out", help="the file to write (--seed only)")
     args = ap.parse_args()
 

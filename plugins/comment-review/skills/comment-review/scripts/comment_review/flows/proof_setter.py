@@ -39,6 +39,7 @@ second literal, so a step dropped from the tuple shows up as a diff against
 that pin, not as a call somebody forgot to make.
 """
 
+from enum import StrEnum, auto
 from pathlib import Path
 from typing import NamedTuple
 
@@ -50,6 +51,30 @@ from comment_review.reading.addresser import cue_of
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
 
+
+class Step(StrEnum):
+    """One step of the chain, closed.
+
+    `T1.15` of `docs/plans/0.2.4-the-mark-and-the-collator.md`, following
+    `reading.series.Kind`: value DERIVED from the member name, never
+    hand-typed.
+    """
+
+    @staticmethod
+    def _generate_next_value_(
+        name: str, start: int, count: int, last_values: list[str]
+    ) -> str:
+        return name.lower()
+
+    READ = auto()
+    VERIFY = auto()
+    EDIT = auto()
+    SET = auto()
+    DRAFT = auto()
+    REREAD = auto()
+    PROVE = auto()
+
+
 #: The chain, as data -- read only by `test_the_chain_IS_this_list`, which
 #: pins it against a second literal; `run()` itself never consults `STEPS`.
 #: ! "set" NAMES A PIPELINE STAGE WITH NO `Refusal` OF ITS OWN: no site in
@@ -59,7 +84,9 @@ from comment_review.results.prove_unchanged import code_fingerprint
 #: assert against. ! `_one`'s target guard builds one too, and NO TEST REACHES
 #: IT since the page paths are ruled on in `run`: what is left to it is a
 #: symlink, and see that guard for why it is not verified here.
-STEPS = ("read", "verify", "edit", "set", "draft", "reread", "prove")
+#: ! `Step`'s companion tuple, in definition order -- membership is asked of
+#: this, never of the `Step` class itself.
+STEPS = tuple(Step)
 
 
 class Refusal(NamedTuple):

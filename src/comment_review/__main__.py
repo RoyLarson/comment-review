@@ -16,21 +16,41 @@ the `SKILL.md` rewrite a one-for-one substitution rather than a new instruction.
 
 import importlib
 import sys
+from enum import StrEnum, auto
 
 from comment_review.machine import constants
 
-# The command modules, by the name typed on the console.
-COMMANDS = (
-    "addresser",
-    "carry",
-    "census",
-    "compositor",
-    "mark",
-    "proof",
-    "prove_unchanged",
-    "referrers",
-    "taken_in",
-)
+
+class Command(StrEnum):
+    """A command name typed on the console, closed.
+
+    `T1.15` of `docs/plans/0.2.4-the-mark-and-the-collator.md`, following
+    `reading.series.Kind`: value DERIVED from the member name, never
+    hand-typed. A value carries an underscore where the module it names does
+    (`prove_unchanged`, `taken_in`), so `.lower()` alone is what derives it.
+    """
+
+    @staticmethod
+    def _generate_next_value_(
+        name: str, start: int, count: int, last_values: list[str]
+    ) -> str:
+        return name.lower()
+
+    ADDRESSER = auto()
+    CARRY = auto()
+    CENSUS = auto()
+    COMPOSITOR = auto()
+    MARK = auto()
+    PROOF = auto()
+    PROVE_UNCHANGED = auto()
+    REFERRERS = auto()
+    TAKEN_IN = auto()
+
+
+#: The command modules, by the name typed on the console -- `Command`'s
+#: companion tuple, in definition order. Membership is asked of this, never
+#: of the `Command` class itself.
+COMMANDS = tuple(Command)
 
 
 def main(argv: list[str] | None = None) -> int:

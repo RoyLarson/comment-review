@@ -1549,3 +1549,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   (`Vocabulary: #27`): *does the address resolve* and *is the quoted sentence really in it* need no
   file read at all. Only a `source` citing another file costs one, through a per-file cache -- the
   706 recorded marks carry 382 citations over 9 roots, so the reads collapse.
+
+- **#46.** **THE ENUM TAKES `Instruction`; THE DATACLASS BECOMES `Row`** (`backend` lane, under
+  `T1.15`'s dispatch, 2026-08-28 -- Roy has been told this ruling is the lane's own and may
+  overturn it). `T1.15` asks the seven closed instruction names to become a `StrEnum`, and the
+  word they want is already held by `desk/mark.py`'s dataclass, landed under that name by
+  `Vocabulary: #17` before the enum existed.
+
+  ! **`Row` IS NOT INVENTED -- IT IS THE SPEC'S OWN WORD.** `docs/the-mark.md` already calls its
+  subject "four classifier columns" and "seven row flags", and its prose says "a row" and "the
+  row" throughout rather than "an instruction". The rename does not introduce a term; it gives
+  the dataclass the name its own spec already uses for it.

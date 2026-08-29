@@ -1,8 +1,10 @@
 """What a role writes, and the rules a mark can be judged by ON ITS OWN.
 
-    Instruction      one row -- all this system knows about one of the seven
-    INSTRUCTIONS     the seven, closed
-    QUERY_SHAPES     the three a `query` must name, closed
+    Instruction      the seven, closed -- a StrEnum, value DERIVED from name
+    Row              one row -- all this system knows about one instruction
+    INSTRUCTIONS     Instruction -> Row, the seven, closed
+    Shape            the three a `query` must name, closed -- a StrEnum
+    QUERY_SHAPES     tuple(Shape), in the order `docs/the-mark.md` states them
     allowed()        the shape a role is handed, generated from the rows
     problems()       every rule this file can settle without the binder
 
@@ -12,6 +14,21 @@ used to carry read as judicial and named the same thing twice, the object a
 ! `instruction` is the trade's: a proof correction has a TEXTUAL mark saying
 where and a MARGINAL mark saying what to do, and the second is the instruction --
 which is what a compositor executes, and this system has one.
+
+!! `INSTRUCTION` NAMES THE ENUM; THE DATACLASS IS `Row`, NOT `Instruction`.
+`decision-log.md Vocabulary: #17` landed the dataclass as `Instruction` before
+the seven closed names had an enum of their own -- `T1.15` of
+`docs/plans/0.2.4-the-mark-and-the-collator.md` gives the word to the enum, so
+the dataclass took `Row`: `docs/the-mark.md` already calls its own subject
+"four classifier columns" and "seven row flags", so `Row` is the spec's own
+word for what one entry of that table holds. `decision-log.md Process: #46`.
+
+!! EVERY CLOSED SET IN THIS FILE IS A `StrEnum`, following `reading.series.Kind`
+-- `T1.15`. Each member's value is DERIVED from its name via
+`_generate_next_value_`, never hand-typed, and no site asks membership of an
+enum class directly (`x in SomeEnum` raises `TypeError` on Python 3.11,
+measured at `lexer.py:87`) -- `INSTRUCTIONS`' own keys serve as the membership
+check for `Instruction`, and `QUERY_SHAPES` is `Shape`'s companion tuple.
 
 !! THE RULES SPLIT ON WHAT THEY NEED, AND THIS FILE IS THE HALF THAT NEEDS
 NOTHING. Whether `claim.false` is a key is answerable from the mark; whether it
@@ -27,7 +44,7 @@ functions, each with its own branch on the field. Finding all eight is what
 nobody did, and five defects shipped in one morning. A contract change should
 touch one row.
 
-!! `Instruction` CARRIES ONLY WHAT `docs/the-mark.md` APPROVES -- ELEVEN
+!! `Row` CARRIES ONLY WHAT `docs/the-mark.md` APPROVES -- ELEVEN
 FIELDS, NO PROSE. A 22-field scheme entered this file on 2026-08-27 during a
 port that was never proposed and never approved -- `decision-log.md Process:
 #37`. `docs/the-mark.md` is the spec; this file implements it and defines
@@ -37,20 +54,63 @@ refuses a field that is not one of them.
 
 import re
 from dataclasses import dataclass
+from enum import StrEnum, auto
 
-# !! THE THREE SHAPES A `query` MUST NAME, KEYED ON WHO RESOLVES IT.
-# `decision-log.md Process: #33`, Roy 2026-08-27. The set they replaced --
-# `outside the checkout`, `outside the code` -- was keyed on WHERE the missing
-# evidence lived, and rested on a reviewer in a FRESH CHECKOUT reaching the same
-# evidence later. Roy: *"this really is not expected to be a repeatable event."*
-#
-# ! A cause belongs in `reason`, which a human reads. A SHAPE is read by the
-# flow, and the flow can do nothing with a cause.
-OUT_OF_ROLE = "outside-my-role"
-#: ! The one a collate step can ACT on: another role may have settled this place.
-UNDETERMINED = "unable-to-determine"
-NEEDS_HUMAN = "human-review-necessary"
-QUERY_SHAPES = (OUT_OF_ROLE, UNDETERMINED, NEEDS_HUMAN)
+
+class Instruction(StrEnum):
+    """The seven, closed. `docs/the-mark.md` is the spec; this only names them.
+
+    ! Value derived from the member name via `_generate_next_value_`, so
+    `Instruction.CLEAN == "clean"` holds without a hand-typed string.
+    """
+
+    @staticmethod
+    def _generate_next_value_(
+        name: str, start: int, count: int, last_values: list[str]
+    ) -> str:
+        return name.lower()
+
+    CLEAN = auto()
+    QUERY = auto()
+    DROP = auto()
+    CORRECT = auto()
+    PATCH = auto()
+    ADD = auto()
+    MOVE = auto()
+
+
+class Shape(StrEnum):
+    """The three shapes a `query`'s claim must name, KEYED ON WHO RESOLVES IT.
+
+    `decision-log.md Process: #33`, Roy 2026-08-27. The set they replaced --
+    `outside the checkout`, `outside the code` -- was keyed on WHERE the missing
+    evidence lived, and rested on a reviewer in a FRESH CHECKOUT reaching the
+    same evidence later. Roy: *"this really is not expected to be a repeatable
+    event."*
+
+    ! A cause belongs in `reason`, which a human reads. A SHAPE is read by the
+    flow, and the flow can do nothing with a cause.
+
+    ! Value derived from the member name -- `OUTSIDE_MY_ROLE` gives
+    `"outside-my-role"` -- so the Python identifier and the wire value stay
+    related without either being hand-typed against the other.
+    """
+
+    @staticmethod
+    def _generate_next_value_(
+        name: str, start: int, count: int, last_values: list[str]
+    ) -> str:
+        return name.lower().replace("_", "-")
+
+    OUTSIDE_MY_ROLE = auto()
+    #: ! The one a collate step can ACT on: another role may have settled this place.
+    UNABLE_TO_DETERMINE = auto()
+    HUMAN_REVIEW_NECESSARY = auto()
+
+
+#: `Shape`'s companion tuple, in the spec's own order -- membership is asked of
+#: this, never of the `Shape` class itself.
+QUERY_SHAPES = tuple(Shape)
 
 # ! The words are open and the CATEGORIES are not -- `TODO/the-fields-do-not-say
 # -a-mark-may-cite-across.md` T6 rules the register. A rename is a row here.
@@ -66,7 +126,7 @@ ANCHOR_EXAMPLE = "`compute_rates`"
 
 
 @dataclass(frozen=True)
-class Instruction:
+class Row:
     """Everything this system knows about one instruction, in one place.
 
     Four classifier columns, then seven row flags -- `docs/the-mark.md`'s
@@ -124,28 +184,28 @@ class Instruction:
     owes_destination: bool = False
 
 
-INSTRUCTIONS: dict[str, Instruction] = {
-    "clean": Instruction(
+INSTRUCTIONS: dict[Instruction, Row] = {
+    Instruction.CLEAN: Row(
         owes_change=False,
         owes_sources=False,
         substantive=False,
     ),
-    "query": Instruction(
+    Instruction.QUERY: Row(
         claim_all=("shape", "attempted", "settles"),
         owes_change=False,
         can_declare_scope=True,
     ),
-    "drop": Instruction(
+    Instruction.DROP: Row(
         claim_all=("drop",),
         quotes_original="drop",
         may_empty=True,
     ),
-    "correct": Instruction(
+    Instruction.CORRECT: Row(
         claim_all=("false", "true"),
         quotes_original="false",
         rules_on_text=True,
     ),
-    "patch": Instruction(
+    Instruction.PATCH: Row(
         claim_all=("from", "to"),
         quotes_original="from",
         # !! `patch` NEEDS NO SOURCE: the claim is already true, and only its
@@ -155,12 +215,12 @@ INSTRUCTIONS: dict[str, Instruction] = {
         owes_sources=False,
         rules_on_text=True,
     ),
-    "add": Instruction(
+    Instruction.ADD: Row(
         claim_all=("missing", "anchor"),
         diffable=False,
         needs_anchor=True,
     ),
-    "move": Instruction(
+    Instruction.MOVE: Row(
         claim_all=("from", "to"),
         owes_destination=True,
     ),
@@ -206,7 +266,7 @@ def allowed() -> dict:
         "instruction": sorted(INSTRUCTIONS),
         "claim": claims,
         "values": {"shape": list(QUERY_SHAPES)},
-        "scope_shape": OUT_OF_ROLE,
+        "scope_shape": Shape.OUTSIDE_MY_ROLE,
         # ! A FORM, not a value set, and it is stated for the same reason the sets
         # are: a template that constrains a field without saying what is allowed
         # has only moved the guessing.
@@ -228,8 +288,15 @@ def _claim_problems(where: str, instruction: str, claim: object) -> list[str]:
 
     ! READS `spec.claim_all` DIRECTLY. With every key an instruction owes
     stated once in that one list, there is nothing left to derive it from.
+
+    Args:
+        where: how to name this mark in a message -- an address, or a position.
+        instruction: already checked against `INSTRUCTIONS` by `problems()`,
+            the only caller -- `Instruction(instruction)` is the member that
+            string names.
+        claim: `mark.get("claim")`, unvalidated.
     """
-    spec = INSTRUCTIONS[instruction]
+    spec = INSTRUCTIONS[Instruction(instruction)]
     if not spec.claim_all:
         return []
     if not isinstance(claim, dict):

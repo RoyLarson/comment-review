@@ -65,7 +65,7 @@ def address_problems(where: str, mark: dict, known: frozenset[str]) -> list[str]
 def claim_verbatim_problems(where: str, mark: dict) -> list[str]:
     """T3.3 -- the sentence the claim rules on is really in the paragraph.
 
-    The VERBATIM classifier (`Instruction.quotes_original`) names the one
+    The VERBATIM classifier (`Row.quotes_original`) names the one
     `claim` key checked this way -- `false` for `correct`, `drop` for `drop`,
     `from` for `patch`; the other four quote nothing. Reads `mark["raw_text"]`,
     the paragraph `seed()` put on the row -- no file, no re-read.

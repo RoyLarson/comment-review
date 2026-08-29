@@ -23,7 +23,7 @@ says the same about its own half.
 """
 
 from comment_review.binder.binder import _read_from_problem, rows_of
-from comment_review.desk.mark import INSTRUCTIONS, problems
+from comment_review.desk.mark import INSTRUCTIONS, Instruction, problems
 
 
 def seed(binder: dict, role: str) -> dict:
@@ -133,7 +133,7 @@ def unruled(report: dict) -> list[str]:
     ]
 
 
-def tally(report: dict) -> dict[str, int]:
+def tally(report: dict) -> dict[Instruction, int]:
     """How many of each instruction the sheet carries, for a one-line summary."""
     counts = dict.fromkeys(INSTRUCTIONS, 0)
     for mark in report.get("marks", []):

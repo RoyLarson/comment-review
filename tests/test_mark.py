@@ -76,7 +76,7 @@ CLAIM: dict[str, dict] = {
 #: and `query` propose no text, so neither has an entry.
 #:
 #: !! `move`'s ROW describes `change` as a dict keyed `to` (`change_help`,
-#: `desk/mark.py`'s `Instruction.change_all`), but `problems()` demands an
+#: `desk/mark.py`'s `Row.change_all`), but `problems()` demands an
 #: ARRAY of lines from every instruction that owes a `change` before it ever
 #: looks at `change_all` -- so a dict is refused before the `to`/`from` check
 #: is reached, and a plain array of lines is what actually passes. MEASURED

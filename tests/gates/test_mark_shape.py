@@ -14,7 +14,7 @@ import re
 import pytest
 from conftest import ROOT
 
-from comment_review.desk.mark import INSTRUCTIONS, Instruction
+from comment_review.desk.mark import INSTRUCTIONS, Row
 
 SPEC = (ROOT / "docs" / "the-mark.md").read_text(encoding="utf-8")
 
@@ -82,13 +82,13 @@ def test_every_mapped_phrase_is_in_the_spec():
 
 
 def test_the_row_carries_only_what_the_spec_allows():
-    have = {f.name for f in dataclasses.fields(Instruction)}
+    have = {f.name for f in dataclasses.fields(Row)}
     assert have == allowed_names(), sorted(have ^ allowed_names())
 
 
 def test_no_field_carries_prose():
     """A row states facts. A sentence for a human is not a fact about the row."""
-    for f in dataclasses.fields(Instruction):
+    for f in dataclasses.fields(Row):
         assert f.type is not str or f.name in {"quotes_original"}, f.name
 
 
