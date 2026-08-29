@@ -744,7 +744,7 @@ Commit with `-F`.
 - Produces: `places(proof: dict) -> dict[str, list[dict]]` -- address -> the marks touching it, each
   carrying the role that made it under the key `role`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_move_lands_in_both_the_origin_and_the_destination():
@@ -763,16 +763,16 @@ def test_every_mark_carries_the_role_that_made_it():
     assert places(proof)["m.py@b1"][0]["role"] == "block-context"
 ```
 
-- [ ] **Step 2: Run and confirm both fail**
+- [x] **Step 2: Run and confirm both fail**
 
 Run: `uv run pytest -q tests/test_reconcile.py`
 
-- [ ] **Step 3: Write `places`**
+- [x] **Step 3: Write `places`**
 
 A `move`'s destination comes from its `claim.to`. `clean` marks are grouped like any other -- what
 they mean is Task 10's question, not this one's.
 
-- [ ] **Step 4: Commit the WORK**
+- [x] **Step 4: Commit the WORK**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py
@@ -780,7 +780,7 @@ uv run pytest -q && uv run python scripts/build_plugin.py
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 5: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 5: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together

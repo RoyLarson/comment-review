@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks done
+Progress: 2 of 3 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-27, splitting the residue out of Roy's correction on relational
@@ -54,10 +54,10 @@ an `agents` file.
 
 ## Tasks
 
-- [ ] T1 -- Write the failing case FIRST: a `move` from `a0` to `a8` and another role's `correct`
+- [x] T1 -- Write the failing case FIRST: a `move` from `a0` to `a8` and another role's `correct`
       on `a8`, over one base. Verify: it asserts an escalation, and FAILS on today's bucketing by
       taking both in silently.
-- [ ] T2 -- Make a mark contribute to every place it touches while being decided once. Verify:
+- [x] T2 -- Make a mark contribute to every place it touches while being decided once. Verify:
       T1 passes, and a `move` whose destination carries no other mark still settles without
       escalating.
 - [ ] T3 -- Prove the widening did not make `move` escalate by default. Verify: a run of the
