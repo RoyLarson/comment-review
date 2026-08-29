@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 5 tasks done
+Progress: 3 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, designing P4 with Roy -- `binder` goes out and
@@ -27,7 +27,7 @@ The middle has no container for one stage's marks, so nothing can reconcile them
       it holds every `edit_copy` of one stage, a stage with one role and a stage
       with seven shards both assemble, and it refuses an `edit_copy` whose
       `read_from` disagrees with the others'.
-- [ ] Move `problems_in` and `verify_report` onto sheets. Verify: both walk
+- [x] Move `problems_in` and `verify_report` onto sheets. Verify: both walk
       `sheets` rather than a flat `marks` list, and the suite passes with no
       expectation edited -- only the shape the tests read.
 - [ ] Rename the per-role container from `sheet` to `edit_copy` in

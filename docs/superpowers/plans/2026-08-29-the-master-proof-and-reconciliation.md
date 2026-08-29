@@ -207,7 +207,7 @@ Commit with `-F`.
 only the shape they walk. If a test needs its ASSERTION edited rather than its FIXTURE, stop: that
 means behaviour changed and this task did not intend it.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_problems_in_reads_every_sheet_not_just_the_first():
@@ -220,22 +220,22 @@ def test_problems_in_reads_every_sheet_not_just_the_first():
     assert messages, "a correct with no claim must be refused wherever it sits"
 ```
 
-- [ ] **Step 2: Run and confirm it fails**
+- [x] **Step 2: Run and confirm it fails**
 
 Run: `uv run pytest -q tests/test_marks_flow.py -k every_sheet`
 Expected: FAIL -- `problems_in` reads `report["marks"]`, which no longer exists.
 
-- [ ] **Step 3: Walk sheets in both functions**
+- [x] **Step 3: Walk sheets in both functions**
 
 Replace `report["marks"]` with a walk over `report["sheets"]` then each sheet's `marks`. `unruled`
 takes the same walk. `verify_report` already takes the binder for `known_addresses`; that stays.
 
-- [ ] **Step 4: Run the whole suite**
+- [x] **Step 4: Run the whole suite**
 
 Run: `uv run pytest -q`
 Expected: PASS with **no assertion edited** -- only fixtures reshaped.
 
-- [ ] **Step 5: Commit the WORK**
+- [x] **Step 5: Commit the WORK**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -243,7 +243,7 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 6: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 6: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together
