@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (93)
+### open  (94)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -275,6 +275,7 @@ that changed a published name or rule:
 | [annotate-belongs-in-concordance](annotate-belongs-in-concordance.md) | backend | — | 0/3 | annotate.py is stage 3 -- it resolves every reference a node makes -- which is the concordance's subject, not the binder's |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | — | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | — | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
+| [vocabulary-sweep-reads-a-moved-path](vocabulary-sweep-reads-a-moved-path.md) | systems | — | 0/3 | The one instrument that finds terms of art with no definition has crashed at startup since the 2026-08-24 package move, and three open TODOs are written against it working |
 
 ### in-progress  (19)
 
