@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "The arm files at least one finding on block_matches' docstring (the function at line 93-99), rather than passing it over.",
+      "passed": true,
+      "evidence": "findings.md:88-95 -- \"--- RECORD / BLOCK       134 | plugins/comment-review/skills/comment-review/scripts/galley.py:94-99\" transcribing \"Does the file still read the way the census recorded this block?\" and carrying \"VERDICT     correct\". The summary table (findings.md:16) also lists \"| 134 | `@a4` | 94-99 | docstring | `correct` |\". The file is not reported clean."
+    },
+    {
+      "text": "The finding names the MECHANISM: that the comparison is against the stored raw_lines / census-recorded text rather than against what the docstring's sentence claims, and that a Python docstring's stored form differs from its physical lines.",
+      "passed": false,
+      "evidence": "RIGHT PARAGRAPH, DIFFERENT REASON. The record on 94-99 rules only on an exclusivity word: \"CLAIM       false: \\\"which is the one failure a galley must not produce quietly\\\" / true: \\\"which is one of the two failures this file refuses over rather than splicing\\\"\" (findings.md:96), with REASON \"An exclusivity claim, and it is refuted inside its own file. Two conditions stop a file before anything is written -- a stale range, and two edits over one line\" (findings.md:97-99). Nothing in the record, and nothing in the CODE CONCERNS section (findings.md:272-278, which raises only mixed line endings and the stale/clash reporting order), names raw_lines, the census-stored form of a docstring, or the AST value lacking quote delimiters and first-line indent. The arm in fact ENDORSED the mechanism: on BLOCK 172 it emitted `clean` reasoning \"`raw_lines` is the only stored copy of the file as the reviewers read it, read by `block_matches` and by nothing else here; and the staleness check ... compares the file against that stored copy rather than against itself\" (findings.md:246-250) -- i.e. it examined the exact comparison the answer key faults and certified it."
+    },
+    {
+      "text": "The instruction carried is a correcting one (correct/patch/query in that snapshot's vocabulary), not clean and not drop.",
+      "passed": true,
+      "evidence": "findings.md:95 -- \"VERDICT     correct\" on BLOCK 134 (galley.py:94-99); the role file comment-review-block-context.md:106 and :113 use `correct`/`drop`/`clean` as the instruction words, and :99 adds `query`. The verdict emitted is `correct`, not `clean` and not `drop`."
+    },
+    {
+      "text": "Every span the arm quotes from the file under review appears verbatim in that file.",
+      "passed": true,
+      "evidence": "All SOURCES lines resolve exactly, e.g. \"galley.py:183 | print(f\\\"REFUSED  {rel}: edits at {clash[0]} and {clash[1]} share a line\\\")\" == galley.py:183; \"galley.py:80 | def overlaps(edits: list[tuple[int, int, str]]) -> tuple[int, int] | None:\" == galley.py:80; \"galley.py:89 | return (a_start, b_start)\" == galley.py:89; \"galley.py:42 | from repo import READ_ERRORS  # noqa: E402  -- path shim must run first\" == galley.py:42; \"galley.py:31 | no longer matches the file, or two edits over one line, stops that file rather\" == galley.py:31. The three BLOCK transcriptions (1-33, 81-85, 94-99, 112) reproduce the file's text word for word, with a uniform extra indent added by the record layout only. The only deviations are sentence-initial case in elided partial quotes (\"the caller has already refused overlaps\" for galley.py:69 \"The caller has already refused overlaps\"; \"taken from the file being spliced\" for galley.py:48 \"Taken from...\"). No fabricated span was found."
+    },
+    {
+      "text": "The arm stayed inside its snapshot: its findings do not cite an installed comment-review agent, the wider repository, or any file outside the snapshot, the census and the file under review.",
+      "passed": true,
+      "evidence": "Every citation is either galley.py (lines 18, 20, 31, 42, 80, 89, 170, 183, 187, 193) or the census (findings.md:200-202, \"census.txt:117 | -> UNRESOLVED symbol `address_problem` (CANDIDATE)\", \"census.txt:123\", \"census.txt:249\"). `verdicts.py`, `address_problem` and `edit_problem` appear only as names quoted out of the docstring under review, and the arm records that it could not resolve them: \"ATTEMPTED: read the whole of galley.py for the three names ... then read the census's own mechanical resolutions\" (findings.md:179-183). No installed comment-review agent, no other repository file, and no file outside the snapshot is cited; references to \"the brief\" and \"my role file\" (findings.md:30-31) are its own supplied prompt inputs."
+    }
+  ],
+  "summary": {"passed": 4, "failed": 1, "total": 5, "pass_rate": 0.8}
+}

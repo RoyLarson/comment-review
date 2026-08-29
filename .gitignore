@@ -62,6 +62,7 @@ evidence/*
 !evidence/comment-review-skill-023-dev-review/
 !evidence/rename-left-history-in-the-comments/
 !evidence/the-loop-measured-2026-08-27/
+!evidence/harness-first-two-arm-run/
 !evidence/*.md
 
 # CodeGraph index -- derived from the tree, rebuilt with `codegraph init`.

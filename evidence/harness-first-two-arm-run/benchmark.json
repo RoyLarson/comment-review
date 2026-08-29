@@ -1,0 +1,149 @@
+{
+  "metadata": {
+    "skill_name": "comment-review",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-29T15:03:22Z",
+    "evals_run": [
+      "a-docstring-never-matches-its-own-file"
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": "a-docstring-never-matches-its-own-file",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 359.4,
+        "tokens": 113315,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The arm files at least one finding on block_matches' docstring (the function at line 93-99), rather than passing it over.",
+          "passed": false,
+          "evidence": "findings.md emits a record at that address but certifies it: \"BLOCK 134 / VERDICT clean / LOCATION ...galley.py:94-99 (@a4)\" with \"FINDING block-context: the question the docstring poses is the comparison the body performs\". A clean record asserts nothing is wrong, which is the discriminating case E1 names (\"A run that reports the file clean fails this\"). Nothing else in the artifact raises the block_matches docstring -- the nearest CODE CONCERN, \"`block_matches` returns False when a block carries no `raw_lines`\", is about a missing key, not about the docstring's claim."
+        },
+        {
+          "text": "The finding names the MECHANISM: that the comparison is against the stored raw_lines / census-recorded text rather than against what the docstring's sentence claims, and that a Python docstring's stored form differs from its physical lines.",
+          "passed": false,
+          "evidence": "The artifact asserts the opposite of the answer key. At BLOCK 134: \"the body compares the file's current lines over the recorded range against the block's stored `raw_lines`, both right-stripped\", and the prose beneath it concludes \"The docstring does not claim an exact comparison, and the `rstrip` on both sides does not contradict it.\" Nowhere does it observe that a Python docstring block's stored form is the AST VALUE (no quote delimiters, no first-line indent), so such a block can never match its physical lines. The related BLOCK 172 query about `raw_lines` is a single-source-of-truth question on the comment at 142-145, a different paragraph and a different mechanism."
+        },
+        {
+          "text": "The instruction carried is a correcting one (correct/patch/query in that snapshot's vocabulary), not clean and not drop.",
+          "passed": false,
+          "evidence": "The only record on block_matches' docstring carries \"VERDICT clean\" (BLOCK 134). The role file at comment-review-block-context.md:101-106 defines what clean asserts -- \"EVERY SENTENCE in the block is true of the code beside it\" -- so this is the non-correcting instruction, not correct/patch/query. (The run does use correct and query elsewhere, e.g. BLOCK 145 and BLOCK 115, so the vocabulary was available to it.)"
+        },
+        {
+          "text": "Every span the arm quotes from the file under review appears verbatim in that file.",
+          "passed": true,
+          "evidence": "All 16 QUOTE fields resolve verbatim at the cited lines, e.g. \"return [ln.rstrip() for ln in lines[start - 1 : end]] == [\" at galley.py:106; \"return \\\"\\\\r\\\\n\\\" if \\\"\\\\r\\\\n\\\" in text else \\\"\\\\n\\\"\" at :52; \"(s, e) for s, e, _, block in file_edits if not block_matches(lines, block)\" at :179; \"ap.add_argument(\\\"--out\\\", required=True, help=\\\"directory the galley is written to\\\")\" at :126; \"return 1 if refused else 0\" at :200. Prose spans in SUMMARY also resolve: \"Does the file still read the way the census recorded this block?\" (:94), \"Write a galley of every file an edit touches\" (:112), \"A Windows console is cp1252; one non-ASCII glyph in a report kills the run.\" (:113), \"its `raw_lines` is the only record of what the file said when the reviewers read it\" (:143). Elisions are marked with \"...\" and the elided text matches (e.g. the @a0 round-2 span, galley.py:17-21). No fabricated span found."
+        },
+        {
+          "text": "The arm stayed inside its snapshot: its findings do not cite an installed comment-review agent, the wider repository, or any file outside the snapshot, the census and the file under review.",
+          "passed": true,
+          "evidence": "Every citation is galley.py, the supplied census, or the brief it was given. Where the file's own prose names outside things, the arm refuses to resolve them rather than reaching: BLOCK 107 -- \"WOULD SETTLE: `findReferences`/`workspaceSymbol` on the two names, or a directory listing beside this script showing whether `verdicts.py` is present -- neither is available: no language server answered, and my file list is this one file\"; BLOCK 172 -- \"not available: my file list is galley.py alone\". No installed comment-review agent, plugin file or repository path outside the snapshot is cited."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": "a-docstring-never-matches-its-own-file",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 384.3,
+        "tokens": 118144,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The arm files at least one finding on block_matches' docstring (the function at line 93-99), rather than passing it over.",
+          "passed": true,
+          "evidence": "findings.md:88-95 -- \"--- RECORD / BLOCK       134 | plugins/comment-review/skills/comment-review/scripts/galley.py:94-99\" transcribing \"Does the file still read the way the census recorded this block?\" and carrying \"VERDICT     correct\". The summary table (findings.md:16) also lists \"| 134 | `@a4` | 94-99 | docstring | `correct` |\". The file is not reported clean."
+        },
+        {
+          "text": "The finding names the MECHANISM: that the comparison is against the stored raw_lines / census-recorded text rather than against what the docstring's sentence claims, and that a Python docstring's stored form differs from its physical lines.",
+          "passed": false,
+          "evidence": "RIGHT PARAGRAPH, DIFFERENT REASON. The record on 94-99 rules only on an exclusivity word: \"CLAIM       false: \\\"which is the one failure a galley must not produce quietly\\\" / true: \\\"which is one of the two failures this file refuses over rather than splicing\\\"\" (findings.md:96), with REASON \"An exclusivity claim, and it is refuted inside its own file. Two conditions stop a file before anything is written -- a stale range, and two edits over one line\" (findings.md:97-99). Nothing in the record, and nothing in the CODE CONCERNS section (findings.md:272-278, which raises only mixed line endings and the stale/clash reporting order), names raw_lines, the census-stored form of a docstring, or the AST value lacking quote delimiters and first-line indent. The arm in fact ENDORSED the mechanism: on BLOCK 172 it emitted `clean` reasoning \"`raw_lines` is the only stored copy of the file as the reviewers read it, read by `block_matches` and by nothing else here; and the staleness check ... compares the file against that stored copy rather than against itself\" (findings.md:246-250) -- i.e. it examined the exact comparison the answer key faults and certified it."
+        },
+        {
+          "text": "The instruction carried is a correcting one (correct/patch/query in that snapshot's vocabulary), not clean and not drop.",
+          "passed": true,
+          "evidence": "findings.md:95 -- \"VERDICT     correct\" on BLOCK 134 (galley.py:94-99); the role file comment-review-block-context.md:106 and :113 use `correct`/`drop`/`clean` as the instruction words, and :99 adds `query`. The verdict emitted is `correct`, not `clean` and not `drop`."
+        },
+        {
+          "text": "Every span the arm quotes from the file under review appears verbatim in that file.",
+          "passed": true,
+          "evidence": "All SOURCES lines resolve exactly, e.g. \"galley.py:183 | print(f\\\"REFUSED  {rel}: edits at {clash[0]} and {clash[1]} share a line\\\")\" == galley.py:183; \"galley.py:80 | def overlaps(edits: list[tuple[int, int, str]]) -> tuple[int, int] | None:\" == galley.py:80; \"galley.py:89 | return (a_start, b_start)\" == galley.py:89; \"galley.py:42 | from repo import READ_ERRORS  # noqa: E402  -- path shim must run first\" == galley.py:42; \"galley.py:31 | no longer matches the file, or two edits over one line, stops that file rather\" == galley.py:31. The three BLOCK transcriptions (1-33, 81-85, 94-99, 112) reproduce the file's text word for word, with a uniform extra indent added by the record layout only. The only deviations are sentence-initial case in elided partial quotes (\"the caller has already refused overlaps\" for galley.py:69 \"The caller has already refused overlaps\"; \"taken from the file being spliced\" for galley.py:48 \"Taken from...\"). No fabricated span was found."
+        },
+        {
+          "text": "The arm stayed inside its snapshot: its findings do not cite an installed comment-review agent, the wider repository, or any file outside the snapshot, the census and the file under review.",
+          "passed": true,
+          "evidence": "Every citation is either galley.py (lines 18, 20, 31, 42, 80, 89, 170, 183, 187, 193) or the census (findings.md:200-202, \"census.txt:117 | -> UNRESOLVED symbol `address_problem` (CANDIDATE)\", \"census.txt:123\", \"census.txt:249\"). `verdicts.py`, `address_problem` and `edit_problem` appear only as names quoted out of the docstring under review, and the arm records that it could not resolve them: \"ATTEMPTED: read the whole of galley.py for the three names ... then read the census's own mechanical resolutions\" (findings.md:179-183). No installed comment-review agent, no other repository file, and no file outside the snapshot is cited; references to \"the brief\" and \"my role file\" (findings.md:30-31) are its own supplied prompt inputs."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "old_skill": {
+      "pass_rate": {
+        "mean": 0.4,
+        "stddev": 0.0,
+        "min": 0.4,
+        "max": 0.4
+      },
+      "time_seconds": {
+        "mean": 359.4,
+        "stddev": 0.0,
+        "min": 359.4,
+        "max": 359.4
+      },
+      "tokens": {
+        "mean": 113315.0,
+        "stddev": 0.0,
+        "min": 113315,
+        "max": 113315
+      }
+    },
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.8,
+        "stddev": 0.0,
+        "min": 0.8,
+        "max": 0.8
+      },
+      "time_seconds": {
+        "mean": 384.3,
+        "stddev": 0.0,
+        "min": 384.3,
+        "max": 384.3
+      },
+      "tokens": {
+        "mean": 118144.0,
+        "stddev": 0.0,
+        "min": 118144,
+        "max": 118144
+      }
+    },
+    "delta": {
+      "pass_rate": "-0.40",
+      "time_seconds": "-24.9",
+      "tokens": "-4829"
+    }
+  },
+  "notes": []
+}

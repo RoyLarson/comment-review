@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "The arm files at least one finding on block_matches' docstring (the function at line 93-99), rather than passing it over.",
+      "passed": false,
+      "evidence": "findings.md emits a record at that address but certifies it: \"BLOCK 134 / VERDICT clean / LOCATION ...galley.py:94-99 (@a4)\" with \"FINDING block-context: the question the docstring poses is the comparison the body performs\". A clean record asserts nothing is wrong, which is the discriminating case E1 names (\"A run that reports the file clean fails this\"). Nothing else in the artifact raises the block_matches docstring -- the nearest CODE CONCERN, \"`block_matches` returns False when a block carries no `raw_lines`\", is about a missing key, not about the docstring's claim."
+    },
+    {
+      "text": "The finding names the MECHANISM: that the comparison is against the stored raw_lines / census-recorded text rather than against what the docstring's sentence claims, and that a Python docstring's stored form differs from its physical lines.",
+      "passed": false,
+      "evidence": "The artifact asserts the opposite of the answer key. At BLOCK 134: \"the body compares the file's current lines over the recorded range against the block's stored `raw_lines`, both right-stripped\", and the prose beneath it concludes \"The docstring does not claim an exact comparison, and the `rstrip` on both sides does not contradict it.\" Nowhere does it observe that a Python docstring block's stored form is the AST VALUE (no quote delimiters, no first-line indent), so such a block can never match its physical lines. The related BLOCK 172 query about `raw_lines` is a single-source-of-truth question on the comment at 142-145, a different paragraph and a different mechanism."
+    },
+    {
+      "text": "The instruction carried is a correcting one (correct/patch/query in that snapshot's vocabulary), not clean and not drop.",
+      "passed": false,
+      "evidence": "The only record on block_matches' docstring carries \"VERDICT clean\" (BLOCK 134). The role file at comment-review-block-context.md:101-106 defines what clean asserts -- \"EVERY SENTENCE in the block is true of the code beside it\" -- so this is the non-correcting instruction, not correct/patch/query. (The run does use correct and query elsewhere, e.g. BLOCK 145 and BLOCK 115, so the vocabulary was available to it.)"
+    },
+    {
+      "text": "Every span the arm quotes from the file under review appears verbatim in that file.",
+      "passed": true,
+      "evidence": "All 16 QUOTE fields resolve verbatim at the cited lines, e.g. \"return [ln.rstrip() for ln in lines[start - 1 : end]] == [\" at galley.py:106; \"return \\\"\\\\r\\\\n\\\" if \\\"\\\\r\\\\n\\\" in text else \\\"\\\\n\\\"\" at :52; \"(s, e) for s, e, _, block in file_edits if not block_matches(lines, block)\" at :179; \"ap.add_argument(\\\"--out\\\", required=True, help=\\\"directory the galley is written to\\\")\" at :126; \"return 1 if refused else 0\" at :200. Prose spans in SUMMARY also resolve: \"Does the file still read the way the census recorded this block?\" (:94), \"Write a galley of every file an edit touches\" (:112), \"A Windows console is cp1252; one non-ASCII glyph in a report kills the run.\" (:113), \"its `raw_lines` is the only record of what the file said when the reviewers read it\" (:143). Elisions are marked with \"...\" and the elided text matches (e.g. the @a0 round-2 span, galley.py:17-21). No fabricated span found."
+    },
+    {
+      "text": "The arm stayed inside its snapshot: its findings do not cite an installed comment-review agent, the wider repository, or any file outside the snapshot, the census and the file under review.",
+      "passed": true,
+      "evidence": "Every citation is galley.py, the supplied census, or the brief it was given. Where the file's own prose names outside things, the arm refuses to resolve them rather than reaching: BLOCK 107 -- \"WOULD SETTLE: `findReferences`/`workspaceSymbol` on the two names, or a directory listing beside this script showing whether `verdicts.py` is present -- neither is available: no language server answered, and my file list is this one file\"; BLOCK 172 -- \"not available: my file list is galley.py alone\". No installed comment-review agent, plugin file or repository path outside the snapshot is cited."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 3,
+    "total": 5,
+    "pass_rate": 0.4
+  }
+}

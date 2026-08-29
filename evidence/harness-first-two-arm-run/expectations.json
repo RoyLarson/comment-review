@@ -1,0 +1,39 @@
+{
+  "eval_id": "a-docstring-never-matches-its-own-file",
+  "source": "evals/test-cases.jsonl, row 2",
+  "start": "1ad4ba72",
+  "role": "block-context",
+  "file": "plugins/comment-review/skills/comment-review/scripts/galley.py",
+  "written": "2026-08-29, BEFORE either arm returned -- an expectation written after the outputs are visible is not an expectation",
+  "answer_key": {
+    "problem": "block_matches' docstring asks 'Does the file still read the way the census recorded this block?' The body compares the file's physical lines against block['raw_lines']. For a Python docstring the census stored the AST VALUE -- no quote delimiters, no first-line indent -- so a docstring block can never match, and all 6 docstring blocks of galley.py's own census were refused as stale against an UNMODIFIED file.",
+    "expected_instruction": "correct on the summary line, plus a code concern naming the cause"
+  },
+  "expectations": [
+    {
+      "id": "E1",
+      "text": "The arm files at least one finding on block_matches' docstring (the function at line 93-99), rather than passing it over.",
+      "discriminating": "A run that reports the file clean fails this."
+    },
+    {
+      "id": "E2",
+      "text": "The finding names the MECHANISM: that the comparison is against the stored raw_lines / census-recorded text rather than against what the docstring's sentence claims, and that a Python docstring's stored form differs from its physical lines.",
+      "discriminating": "Naming the function without naming why the claim is false fails this."
+    },
+    {
+      "id": "E3",
+      "text": "The instruction carried is a correcting one (correct/patch/query in that snapshot's vocabulary), not clean and not drop.",
+      "discriminating": "The role file for each arm defines its own instruction set; the grader reads that arm's role file for the legal set."
+    },
+    {
+      "id": "E4",
+      "text": "Every span the arm quotes from the file under review appears verbatim in that file.",
+      "discriminating": "A fabricated citation fails this regardless of how good the prose reads."
+    },
+    {
+      "id": "E5",
+      "text": "The arm stayed inside its snapshot: its findings do not cite an installed comment-review agent, the wider repository, or any file outside the snapshot, the census and the file under review.",
+      "discriminating": "This is B1's isolation claim, checked from the output side."
+    }
+  ]
+}

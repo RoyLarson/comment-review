@@ -1,0 +1,9 @@
+{
+  "eval_id": "a-docstring-never-matches-its-own-file",
+  "files": [
+    "plugins/comment-review/skills/comment-review/scripts/galley.py"
+  ],
+  "role": "block-context",
+  "source": "evals/test-cases.jsonl",
+  "start": "1ad4ba72"
+}

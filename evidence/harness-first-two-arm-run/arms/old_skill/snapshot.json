@@ -1,0 +1,30 @@
+{
+  "commit": "52e1d9ef5fadb4ce6680375aa6fcb6a675f033a7",
+  "files": {
+    "plugins/comment-review/.claude-plugin/plugin.json": "4d3d19080f117d4c463728afb450eb1dfef6ebad88be2adab2edbbb960476bd2",
+    "plugins/comment-review/agents/comment-review-block-context.md": "4d1d1c4d0ad387281024a9c8ad85c86b507ce990753708887c91110feebbc1bb",
+    "plugins/comment-review/agents/comment-review-compact.md": "3e2c48854308492f72afc6aa380048cdb8643407af29ba2c1edaa12747d960f0",
+    "plugins/comment-review/agents/comment-review-function-context.md": "ac3c7ed8f3322a480f442245464081e9a70b10f05f9a16b06b43eea7e1fee88d",
+    "plugins/comment-review/agents/comment-review-module-context.md": "9103311e4316f1d195ff7e4c37466236e9fa0cb4bb5deb059932d9d9c4cb60eb",
+    "plugins/comment-review/agents/comment-review-ownership-context.md": "9c372b607750087f78acc96e577501172e29bcbd5b8dee7fd7141aeea36790ee",
+    "plugins/comment-review/agents/comment-review-review.md": "d4cd7246983f02b66e3593632b088aa6faa303350216260b01daef6d13db37b1",
+    "plugins/comment-review/skills/comment-review/SKILL.md": "cba07bf76edf02dab07131a4269eafa7614840b6bdaf219b5708100a3eae5552",
+    "plugins/comment-review/skills/comment-review/references/compact.md": "6757b83aebe2651aed1f82012a136bb502ddc1725af94475811ef9399cfce372",
+    "plugins/comment-review/skills/comment-review/references/residue-check.md": "1bde0702d12e402ca385891b16f01b6ca01d8a417f85d343147296ebf7209667",
+    "plugins/comment-review/skills/comment-review/references/review.md": "2d576b821f6066c019d071170229be1a309fc881038333eb8607077b1313b9a1",
+    "plugins/comment-review/skills/comment-review/references/reviewer-brief.md": "89fc6e568a8fbc823c2f4f48a26ba37c66f70491f9436e591c59c0d899237a5a",
+    "plugins/comment-review/skills/comment-review/references/vocabulary.toml": "91177580b1a913607babf20a9e88db1ce4a72677edb65a4cee71933625ddf974",
+    "plugins/comment-review/skills/comment-review/references/write.md": "408bdf6917281c20c85247e79ea54c84552b25d08dd286a612c5b067e789de3d",
+    "plugins/comment-review/skills/comment-review/scripts/annotate.py": "553000736bd4c08fc2dee1a2a5cb8331abfe251934fb345315bc7a52b2389fb8",
+    "plugins/comment-review/skills/comment-review/scripts/census.py": "62930dd83cd9394e46c33bf5f1743cdb8cb42599361c8909e95e6fac413d3384",
+    "plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py": "5ec5ddf30afbe46f76787a9314d71169fc0722a8b517aeabe663c6d9bb481a28",
+    "plugins/comment-review/skills/comment-review/scripts/referrers.py": "55ceb57eafe29ae2af38d8dd068db26a35ea31e127508cfe712c4ea4b8393686",
+    "plugins/comment-review/skills/comment-review/scripts/repo.py": "25fa28c21db1494a76e0a13925498e6e4314b1401c1a464d3cc272dd3bd27f47",
+    "plugins/comment-review/skills/comment-review/scripts/run_context.py": "4f1e77b2a44319a49b057fe6abd367e8302bae878c6a336c03cd5fea18819cb9",
+    "plugins/comment-review/skills/comment-review/scripts/verdicts.py": "ad99e2daa1523225b658f17ca5b7f1b108afed47350d5a7dbd8fbbee0ac4b8d6",
+    "plugins/comment-review/skills/comment-review/scripts/vocabulary.py": "1369f1d09d7527f1c8f7b927ed777bd95e4a39b1b2de544ac3efbc6ffea0a932"
+  },
+  "ref": "v0.1.6",
+  "root": "<run directory, not preserved -- see README>",
+  "variant": {}
+}
