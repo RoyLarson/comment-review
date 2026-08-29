@@ -8,6 +8,13 @@ Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, task 9 of the master-proof plan -- an implementer
           noticed the helpers had to match the code rather than the spec, and reported
           it rather than picking one)
+Updated:  2026-08-29 — The collator no longer VACATES a paragraph while this is open:
+          desk/collator._alteration_text raised nothing on a change that was raw text --
+          it joined [] and returned None, which docket.read accepts as the legal delete
+          -- and now raises UnusableChange for a change that is not a list of strings,
+          or empty on an instruction whose may_empty is False. Which form the gate
+          should DEMAND is still this file's question; both forms now fail loudly
+          instead of one emptying the page.
 ```
 
 ## Objective
