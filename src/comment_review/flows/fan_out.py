@@ -4,14 +4,23 @@
     OverlappingShards       two dispatches of ONE role both claim a page
     UncoveredPage           a role's dispatches, together, miss a page
 
-!! WHY FAN-OUT EXISTS AT ALL. Roy, 2026-08-28: *"It makes them more efficient
-and we have measured that it makes them more diligent in actually inspecting
-the [paragraphs], where they get overloaded on too many records."* (quoted
-word retired -- `docs/vocabulary.md`: `block` -> paragraph). And on the unit:
-*"By file because context should be more consistent. File thrashing would be
-bad."* Partitioning by FILE is what makes non-overlap structural -- an address
-is `path@cue`, so one role marks a place at most once, and nothing downstream
-needs extra identity to tell shards apart.
+!! WHY FAN-OUT EXISTS AT ALL, AND IT IS MEASURED: a role handed too many rows
+inspects them less carefully, and the effect is largest for the role whose work
+is tightest. `decision-log.md Process: #47` holds Roy's own words for it.
+
+! THE RULING IS CITED HERE RATHER THAN QUOTED, and that is deliberate. His
+sentence uses a word `docs/vocabulary.md` has since retired, so a shipped file
+cannot carry it verbatim -- `scripts/check_vocabulary.py` refuses the retired
+word anywhere under `plugins/`. ! AND A BRACKETED SUBSTITUTION WAS TRIED FIRST:
+it is honest, but it puts a doctored quotation in the shipped tree while the
+verbatim one already lives in the log. **The record keeps his words; this file
+keeps the reason.** `CLAUDE.md`: when a ruling is quoted, quote all of it --
+which here means quoting it where all of it is allowed.
+
+! THE UNIT IS THE FILE, not the row: *"By file because context should be more
+consistent. File thrashing would be bad."* Partitioning by FILE is what makes
+non-overlap structural -- an address is `path@cue`, so one role marks a place
+at most once, and nothing downstream needs extra identity to tell shards apart.
 
 ! A `Dispatch` WITH NO `paths` GETS EVERY PAGE -- `desk/stages.py`'s own
 docstring for the field. Two dispatches for DIFFERENT roles covering the same
