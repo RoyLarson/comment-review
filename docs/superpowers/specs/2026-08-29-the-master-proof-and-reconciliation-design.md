@@ -179,11 +179,44 @@ shard. Two guards:
 file means one role marks a place at most once. `Pulled.set_by`'s `address -> role` stays
 unambiguous and fan-out needs no extra identity.
 
+### `STAGES` is doing two jobs, and only one of them moves
+
+!! **WHICH ROLES EXIST IS A CLOSED SET; WHEN THEY RUN IS A RUN'S BUSINESS.** `desk/stages.py`'s
+`STAGES` currently answers both, and the topology file must take only the second.
+
+| | stays in code | moves to the file |
+| --- | --- | --- |
+| the four role names | **yes** -- a closed set, `StrEnum` per `T1.15` | no |
+| which stage dispatches which role, in what order | no | **yes** |
+| what a stage READS, and what it CARRIES | no | **yes** |
+
+! **THE CONSEQUENCE IS IN CODE THAT LANDED 2026-08-28.** `commands/mark.py` derives `--role`'s
+`choices=` from `STAGES` (T1.16), which was correct while `STAGES` was the only list of the four.
+Once the order moves to a run-scoped file, that derivation would let **a run's topology decide
+which role names are valid** -- so `--role` must draw from the `Role` enum instead, and the
+topology file's `role` keys are VALIDATED against it.
+
+! **THAT ALSO KEEPS `desk.stages`'s PRODUCTION IMPORTER**, which T1.16 gave it: the module still
+owns the closed set, and it stops owning the schedule.
+
 ### The barrier
 
 A stage's revise pulls only after every `edit_copy` of that stage returns -- all roles, all shards.
 `flows.revise.pulls_revise` already gates on the stage's kind; what is new is that a stage is not
 finished until its `master_proof` is assembled.
+
+!! **THE BARRIER IS WHAT MAKES `reads` RESOLVABLE.** `reads = "revise:4a"` names an artifact that
+exists only once stage `4a` has assembled its `master_proof`, reconciled it, and pulled. So the
+file's ordering is not decoration: a stage may only READ a revise pulled by a stage EARLIER in the
+list, and the validator refuses a forward reference.
+
+! **WHICH ALSO BOUNDS WHAT A TOPOLOGY CAN SAY.** There is no cycle to detect and no scheduler to
+write -- the list IS the order, each entry reads backwards or reads `original`, and a run walks it
+once. Roy, 2026-08-28: the forward pass is a line.
+
+! **AN `enriching` STAGE PULLS NOTHING**, so nothing may name it in `reads`. Its output goes into
+the next binder as facts -- `Process: #34` -- and the validator refuses `reads = "revise:<an
+enriching stage>"` by name rather than resolving it to the previous editorial one.
 
 ### Topology is a tuning knob, not an invariant
 
@@ -279,9 +312,9 @@ the trigger**: composition and `add`, not only disagreement.
 | --- | --- |
 | `flows/marks.py` | `seed` stops flattening through `rows_of`; emits `sheets`. `problems_in` walks sheets. `sheet` -> `edit_copy` in its prose |
 | `desk/collator.py` | `verify_report` walks sheets; reconciliation lands here as the collator's second named step (`Vocabulary: #19`) |
-| `commands/mark.py` | reads and writes an `edit_copy` |
+| `commands/mark.py` | reads and writes an `edit_copy`; `--role`'s `choices=` moves from `STAGES` to the `Role` enum |
 | `docket/docket.py` | a schedule carries `role` |
-| `desk/stages.py` | `STAGES` becomes a validated file, not a literal |
+| `desk/stages.py` | keeps the four roles as a closed `StrEnum`; `Stage.roles` becomes DISPATCHES; the `STAGES` literal goes and a validated run-scoped file supplies the schedule. `pulls_revise` is unchanged -- it reads `stage.kind` |
 | `SKILL.md`, `reviewer-brief.md` | `sheet` -> `edit_copy`; the new containers named |
 | `docs/vocabulary.md` | the four containers; `master proof` stops being "unnamed" |
 | `tests/` | every test reading `report["marks"]` walks sheets |
