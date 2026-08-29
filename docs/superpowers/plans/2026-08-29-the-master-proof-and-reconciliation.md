@@ -899,7 +899,7 @@ Commit with `-F`.
 **Interfaces:**
 - Consumes: Task 10's `reconcile`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_an_add_reaches_a_role_that_marked_nothing_there():
@@ -935,16 +935,24 @@ def test_undetermined_settles_where_another_role_ruled_substantively():
     assert out.escalations == []
 ```
 
-- [ ] **Step 2: Run and confirm all three fail**
+- [x] **Step 2: Run and confirm all three fail**
 
 Run: `uv run pytest -q tests/test_reconcile.py -k add or scope or undetermined`
 
-- [ ] **Step 3: Implement the three rules**
+! **ONLY ONE OF THE THREE ACTUALLY FAILED.** `test_a_scope_declaring_query_does_not_block_the_other_roles`
+and `test_undetermined_settles_where_another_role_ruled_substantively` passed against the unmodified
+`reconcile`: `_owes_change` already excludes every `query` (any shape) from the owing count, so a
+place holding only `clean`/`query` marks plus one substantive owing mark already settled on that one
+mark without the query ever being consulted. Only `test_an_add_reaches_a_role_that_marked_nothing_there`
+failed (`IndexError` -- the place settled instead of reaching `rereads`). Ticked as instructed and
+reported rather than silently rewritten.
+
+- [x] **Step 3: Implement the three rules**
 
 An `add` names every role of the stage in its re-read -- and under fan-out, only the shard holding
 that page, which is the shard whose `edit_copy` carries that path.
 
-- [ ] **Step 4: Commit the WORK**
+- [x] **Step 4: Commit the WORK**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py
@@ -952,7 +960,7 @@ uv run pytest -q && uv run python scripts/build_plugin.py
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 5: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 5: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together

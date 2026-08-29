@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks done
+Progress: 5 of 8 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-27 (Roy, on a finding whose subject is the relation between two
@@ -144,7 +144,7 @@ merge-or-fight table never sees the overlap. Filed as
 
       Verify: the ruling is recorded, `vocabulary.toml` agrees, and `grep -rn "outside my role"`
       over `plugins/` returns nothing if `remit` wins.
-- [ ] T7 -- Make collate ACT on `unable-to-determine`, which is what the new axis buys. If
+- [x] T7 -- Make collate ACT on `unable-to-determine`, which is what the new axis buys. If
       another role returned a substantive mark at the same place, the flow can see it settled
       what this role could not. Verify: a test where role A is `unable-to-determine` at a place
       and role B has a `correct` there, and the place does NOT reach the chief. ! `backend`'s to
