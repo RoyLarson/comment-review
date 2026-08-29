@@ -32,10 +32,12 @@ disagreed.
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import io
 import json
 import pathlib
+import shutil
 import subprocess
 import tarfile
 from dataclasses import dataclass
@@ -50,12 +52,17 @@ class Manifest:
     `files` maps each path AS GIT NAMES IT to the sha256 of the bytes written,
     which is what makes a later disagreement nameable rather than merely
     detectable -- `verify` returns the paths, not a boolean.
+
+    `variant` is the same map for the theory laid over that base. It is what
+    keeps the rig honest: a declared path is pinned to the bytes DECLARED, not
+    exempted from checking, so the run still names exactly the tree it scored.
     """
 
     ref: str
     commit: str
     root: pathlib.Path
     files: dict[str, str]
+    variant: dict[str, str] = dataclasses.field(default_factory=dict)
 
 
 def _digest(path: pathlib.Path) -> str:
@@ -94,6 +101,39 @@ def snapshot(repo: pathlib.Path, ref: str, dest: pathlib.Path) -> Manifest:
     return Manifest(ref=ref, commit=commit, root=dest, files=files)
 
 
+def overlay(manifest: Manifest, variant: dict[str, pathlib.Path]) -> Manifest:
+    """Lay a theory over the snapshot, and DECLARE what was laid down.
+
+    Keys are paths as the manifest names them; values are the files to copy in.
+    A key the ref never had is allowed -- a fifth role is a theory too.
+
+    ! DECLARING IS NOT EXEMPTING. The returned manifest pins each path to the
+    bytes copied, so `verify` still catches that file being changed afterwards.
+    What declaring buys is that an INTENDED difference stops reading as tampering.
+    """
+    laid = {}
+    for name, source in variant.items():
+        target = manifest.root / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+        laid[name] = _digest(target)
+    return dataclasses.replace(manifest, variant={**manifest.variant, **laid})
+
+
+def reset(repo: pathlib.Path, manifest: Manifest) -> Manifest:
+    """Return the rig to its ref, so the next theory starts where the last did.
+
+    !! THE TREE IS REMOVED, NOT RE-EXTRACTED OVER. A variant may ADD a file, and
+    extracting over the directory would leave it behind -- the next theory would
+    then be graded on a tree still carrying the previous one.
+
+    ! Measured 2026-08-29: a snapshot of this plugin is 0.25s and `verify` is
+    0.005s, so nothing is bought by restoring only the paths that moved.
+    """
+    shutil.rmtree(manifest.root)
+    return snapshot(repo, manifest.ref, manifest.root)
+
+
 def write_manifest(manifest: Manifest, path: pathlib.Path) -> pathlib.Path:
     """Write the provenance beside the run, and return where it went.
 
@@ -109,6 +149,7 @@ def write_manifest(manifest: Manifest, path: pathlib.Path) -> pathlib.Path:
                 "commit": manifest.commit,
                 "root": str(manifest.root.resolve()),
                 "files": manifest.files,
+                "variant": manifest.variant,
             },
             indent=2,
             sort_keys=True,
@@ -126,6 +167,7 @@ def read_manifest(path: pathlib.Path) -> Manifest:
         commit=held["commit"],
         root=pathlib.Path(held["root"]),
         files=held["files"],
+        variant=held.get("variant", {}),
     )
 
 
@@ -137,15 +179,17 @@ def verify(manifest: Manifest) -> list[str]:
     catches one that was added, where every recorded path still matches. The
     question is "is this the tree I took", not "is what I took still here".
     """
+    expected = {**manifest.files, **manifest.variant}
+
     moved = []
-    for name, digest in manifest.files.items():
+    for name, digest in expected.items():
         path = manifest.root / name
         if not path.is_file() or _digest(path) != digest:
             moved.append(name)
 
     for path in manifest.root.rglob("*"):
         name = path.relative_to(manifest.root).as_posix()
-        if path.is_file() and name not in manifest.files:
+        if path.is_file() and name not in expected:
             moved.append(name)
 
     return sorted(moved)

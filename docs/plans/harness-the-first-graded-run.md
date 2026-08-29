@@ -103,7 +103,11 @@ judgement this whole system exists to replace.
       written."* ! Nothing reads these keys programmatically yet, so the rename cost nothing --
       **which is exactly why it had to happen before something did.**
 
-### B -- Build the four mechanics
+### B -- Build the mechanics
+
+! **FOUR WHEN THIS PLAN OPENED, FIVE SINCE 2026-08-29.** B5 came from a ruling made after the
+four unknowns were named (`decision-log.md Process: #53`), and the table above is left as Roy
+stated it rather than back-filled.
 
 - [x] **B1 -- BUILT 2026-08-29: `evals/snapshot_plugin.py`, six tests in
       `tests/harness/test_snapshot_plugin.py`.**
@@ -219,6 +223,35 @@ judgement this whole system exists to replace.
       exactly `text`/`passed`/`evidence`, then `python -m scripts.aggregate_benchmark`, then the
       analyst pass. Verify: `benchmark.json` reports mean +/- stddev and a delta over the default
       three runs.
+
+- [x] **B5 -- BUILT 2026-08-29: the rig -- `overlay` a declared `variant`, `reset` between
+      theories.** Works `the-harness-cannot-run-the-system-it-grades` T45 and T46. Six tests in
+      `tests/harness/test_variant.py`. Verify: a declared path passes `verify` while an undeclared
+      change beside it is still named, and `reset` removes a file the variant ADDED.
+
+      !! **THIS BOX ARRIVED AFTER THE OTHER FOUR, FROM A RULING** -- `decision-log.md Process:
+      #53`. Roy, 2026-08-29: *"copying in code changes and soon to be agent changes into the
+      plugin set is going to be dynamic. That actually allows us to make a better testing system
+      because we can make several test cases to run and copy in the pieces to run the test then
+      reset and run a new theory."* **The primary cycle is load, run, reset, load the next**; a
+      ref-to-ref comparison is one use of the rig rather than the shape of it. ! The four unknowns
+      above are left as Roy named them -- this is a fifth mechanic, not a correction to them.
+
+      !! **THE MECHANISM WAS ALREADY THERE, AND ONLY THE DECLARATION WAS MISSING.** B1's `verify`
+      returns the PATHS that differ from the pristine snapshot -- which, after a theory is copied
+      in, is exactly the record of what that theory changed. **The tamper check and the change
+      manifest are one mechanism; the only difference is whether the difference was declared.**
+
+      ! **DECLARING IS NOT EXEMPTING, and a test holds that open.** A declared path is pinned to
+      the bytes copied, so editing it afterwards is still caught. Without that the rig would
+      re-create `marketplace-resolves-live` deliberately -- a run whose tree is not the tree it
+      names -- which is the failure B1 exists to make impossible.
+
+      ! **RESET REMOVES THE TREE AND RE-EXTRACTS, rather than restoring what moved.** MEASURED
+      2026-08-29: a snapshot of this plugin is **0.25s** and `verify` is **0.005s**, so a smarter
+      reset buys nothing. ! Extracting OVER the directory would leave behind a file the variant
+      added, and the next theory would be graded on a tree still carrying the previous one -- so
+      the removal is the load-bearing half, and the test that decides it uses an added file.
 
 ### C -- Make the grade mean something
 

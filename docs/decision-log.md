@@ -907,6 +907,25 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ACCEPTS BOTH rather than either side winning. The only citation is
   `TODO/the-harness-cannot-run-the-system-it-grades.md`, which moved with it.
 
+- **#30.** **THE SET COPIED OVER A SNAPSHOT TO TEST ONE THEORY IS A `variant`** (Roy, 2026-08-29,
+  ruling on four register-checked candidates). It is a HARNESS term and does not ship: nothing
+  under `plugins/` uses it, so it is not in `vocabulary.toml`, whose gate refuses a definition
+  written for nobody.
+
+  !! **THE TRADE'S OWN WORD WAS UNAVAILABLE, AND THE REGISTER RULE IS WHY.** Bibliography calls
+  this a **state** -- copies differing by changes made during production rather than a new edition
+  -- which is exactly the concept. MEASURED before it was proposed: `state` appears **22 times in
+  the shipped tree and is `block-context`'s named remit** (`reviewer-brief.md:187`, and
+  `agents/comment-review-block-context.md:23`). ! `setting` was out for the same reason, `set`
+  being the compositor's verb. **A trade word that collides with a role's remit is worse than
+  plain English**, because the collision lands in what an agent reads.
+
+  ! **`cancel` WAS THE PRECISE ONE AND WAS REFUSED ON ORDINARY ENGLISH.** A cancel is a leaf
+  reprinted and pasted over the faulty original -- literally this operation, with `cancellans` and
+  `cancellandum` for the two sides. It has no in-tree collision; it collides with every
+  programmer's reading of *abort*. ! **The register is an instruction to an LLM, so a word that
+  misleads outside the trade fails the purpose the metaphor was adopted for.**
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
@@ -1726,3 +1745,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the later pair takes the next unused numbers. The citations in
   `docs/plans/harness-the-first-graded-run.md` and
   `TODO/the-harness-cannot-run-the-system-it-grades.md` were moved with them.
+
+- **#53.** **THE HARNESS IS A RIG THEORIES ARE LOADED INTO, NOT A COMPARISON OF TWO TAGS** (Roy,
+  2026-08-29): *"copying in code changes and soon to be agent changes into the plugin set is going
+  to be dynamic. That actually allows us to make a better testing system because we can make
+  several test cases to run and copy in the pieces to run the test then reset and run a new
+  theory."* So **load, run, reset, load the next** is the primary cycle, and a ref-to-ref
+  comparison is one use of it rather than the shape of the thing.
+
+  ! **IT DOES NOT LOOSEN `#51`.** One variable per release still decides what a SCORE may be
+  attributed to; this decides what the rig can be asked to run. A variant touching both the agents
+  and the machinery is buildable and its delta is still unattributable -- the rule lives on the
+  reading, not on the mechanism.
+
+  !! **AND THE PROVENANCE RULE IS WHAT KEEPS IT HONEST.** A variant is DECLARED in the manifest,
+  with the hash of what was laid down, so `verify` goes on reporting only UNDECLARED differences.
+  ! Without that the rig re-creates `marketplace-resolves-live` deliberately -- a run whose tree
+  is not the tree it names -- which is the failure this whole mechanic was built to make
+  impossible. **The tamper check and the record of the theory are the same mechanism; the only
+  difference is whether it was declared.**

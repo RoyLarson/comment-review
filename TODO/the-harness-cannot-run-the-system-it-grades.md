@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 14 of 44 tasks done
+Progress: 16 of 46 tasks done
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -600,6 +600,11 @@ earlier reading of T20 conflated them.
       lost. Verify: a reader finds it without reading a run transcript.
 - [ ] T44 -- Score the page against BOTH prior formats, on the dominance criterion.
       Verify: more info than filtered, fewer tokens than unfiltered, recall >= filtered.
+- [x] T45 -- Lay a DECLARED `variant` over a snapshot, so a run names the theory
+      it scored. Verify: `verify` returns [] for the declared path and still names
+      an undeclared change beside it.
+- [x] T46 -- `reset` returns the rig to its ref between theories. Verify: a file
+      the variant ADDED is gone, and the reset manifest equals the base.
 
 ## What this costs today
 
