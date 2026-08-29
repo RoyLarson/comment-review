@@ -206,10 +206,9 @@ def undraftable(into: Path, repo: Path) -> str:
     that is satisfied by the SOURCE FILE ITSELF, so the guard passes and the
     draft is written over the file under review. MEASURED 2026-08-22 on the
     galley command -- `docs/history.md` -- which did exactly that and printed
-    `1 page(s) set` at exit 0; MEASURED again 2026-08-25 calling
-    `flows.proof_setter.run` as `(alterations, binder, repo, repo)`, which
-    answered `refused=[]` while the source file on disk held the replacement
-    text.
+    `1 page(s) set` at exit 0; MEASURED again 2026-08-25 on
+    `flows.proof_setter.run(alterations, binder, repo, repo)`, which answered
+    `refused=[]` while the source file on disk held the replacement text.
 
     !! IT LIVES HERE BECAUSE MORE THAN ONE CALLER ASKS IT --
     `flows/proof_setter.run` and `commands/proof.py`. It was spelled out in two
