@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 7 tasks done
+Progress: 7 of 7 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing the draft plan for the mark and the collator. Roy:
@@ -74,5 +74,5 @@ what makes it falsifiable.
 - [x] T6 -- `taken_in`: original against the revise in a role's hand, as a unified diff per page,
       plus which stage took in which addresses. Verify: it prints nothing when no stage has set
       anything, and its diff applies cleanly to the original.
-- [ ] T7 -- The last revise IS the draft the human approves at 7a. Verify: no second draft-building
+- [x] T7 -- The last revise IS the draft the human approves at 7a. Verify: no second draft-building
       path exists, and the artifact 7a reads is the final revise root.

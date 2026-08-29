@@ -174,3 +174,30 @@ class TestTheCommand:
         )
         assert cmd.main() == 2
         assert "is not a directory" in capsys.readouterr().out
+
+    def test_an_out_that_ALREADY_EXISTS_is_REFUSED(self, tmp_path, capsys, monkeypatch):
+        """!! `--out` IS THE REVISE ROOT SINCE 2026-08-28, and `revise.pull`
+        copies `--repo` into it with `shutil.copytree`, which raises
+        `FileExistsError` on a directory that is already there -- even an
+        empty one, which `undraftable` (a non-directory or an overlap) does
+        not refuse. The same convention as every other bad `--out` above:
+        a reason printed at exit 2, not a traceback."""
+        from comment_review.commands import proof as cmd
+
+        repo, _, _ = _tree(tmp_path)
+        already_there = tmp_path / "out"
+        already_there.mkdir()
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "proof",
+                "--repo",
+                str(repo),
+                "--docket",
+                "n.json",
+                "--out",
+                str(already_there),
+            ],
+        )
+        assert cmd.main() == 2
+        assert "already exists" in capsys.readouterr().out

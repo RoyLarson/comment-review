@@ -1389,7 +1389,7 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 - Modify: `src/comment_review/commands/proof.py` -- `--out` becomes the revise root
 - Test: `tests/test_no_second_draft_path.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_only_one_path_builds_a_draft_tree():
@@ -1400,12 +1400,12 @@ def test_only_one_path_builds_a_draft_tree():
     assert [p.name for p in callers] == ["revise.py"]
 ```
 
-- [ ] **Step 2: Run and confirm it fails** -- `commands/proof.py:78` calls it too.
+- [x] **Step 2: Run and confirm it fails** -- `commands/proof.py:78` calls it too.
 
-- [ ] **Step 3: Route `proof` through `revise.pull`** so the command produces a revise, and the
+- [x] **Step 3: Route `proof` through `revise.pull`** so the command produces a revise, and the
 final one is what 7a reads. Delete the second assembly path.
 
-- [ ] **Step 4: Run, build, tick, commit**
+- [x] **Step 4: Run, build, tick, commit**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py

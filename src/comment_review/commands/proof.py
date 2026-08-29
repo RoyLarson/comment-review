@@ -2,23 +2,38 @@
 
     comment_review proof --docket D.json --repo . --out DIR
 
-The work is `flows.proof_setter`; this is only the console face of it.
+The work is `flows.revise.pull`; this is only the console face of it.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 This file parses arguments, reads ONE file and prints; the order of the
-chain lives in `flows/proof_setter.py` and nowhere else.
+chain this command exposes lives in `flows/revise.py` since 2026-08-28 --
+`flows/proof_setter.py` still orders the per-page draft steps `revise.pull`
+calls into, but no longer the whole chain.
 
 ! IT READ TWO UNTIL 2026-08-26. The docket now carries each page's path and the
 sha it was read at, so the binder it used to be handed alongside has nothing
 left to answer -- `decision-log.md Vocabulary: #14`.
+
+!! `--out` IS THE REVISE ROOT SINCE 2026-08-28, NOT A DIRECTORY OF ONLY THE
+CHANGED PAGES. This command used to call `flows.proof_setter.run` directly,
+which drafted only the docket's own pages into `--out`; `commands/proof.py`
+and `flows/revise.py`'s own `pull` were then two mechanisms that each built a
+draft tree, when stage 7a must read ONE artifact. `pull` is what stage 7a
+reads now -- see `TODO/the-flow-assumes-every-role-reads-at-once.md` T7 --
+so `--out` holds a full copy of `--repo` with the docket's pages overlaid,
+and `pull`'s own `shutil.copytree` requires it not to exist yet. `revise=1`:
+this command pulls straight off the checkout (the original, revise 0), and
+has no record of an earlier revise to number itself after -- the same number
+`tests/test_revise.py` and `tests/test_revise_addresses.py` use for a pull
+off the original.
 """
 
 import argparse
 from pathlib import Path
 
 from comment_review.docket import docket as docket_mod
-from comment_review.flows import proof_setter
+from comment_review.flows import revise
 from comment_review.machine import exceptions
 from comment_review.machine.repo import undraftable
 
@@ -38,7 +53,11 @@ def main() -> int:
         required=True,
         help='JSON: {"pages": [{"path", "sha", "alterations": [{"cue", "text"}]}]}',
     )
-    ap.add_argument("--out", required=True, help="directory the drafts are written to")
+    ap.add_argument(
+        "--out",
+        required=True,
+        help="the revise root the pulled drafts are written to (must not exist yet)",
+    )
     args = ap.parse_args()
 
     repo = Path(args.repo).resolve()
@@ -64,6 +83,18 @@ def main() -> int:
     if why:
         print(f"REFUSED: --out {why} -- nothing written")
         return 2
+    # !! `--out` MUST NOT EXIST YET, since 2026-08-28. `revise.pull` copies
+    # `--repo` into it with `shutil.copytree`, which raises `FileExistsError`
+    # on a directory that is already there -- even an empty one. `undraftable`
+    # above does not ask this: it refuses a non-directory or an overlap, and a
+    # pre-existing, disjoint `--out` passes it. Asked here so this stays an
+    # INPUT error at exit 2, the same as every other bad `--out` above.
+    if out.exists():
+        print(
+            f"REFUSED: --out {out} already exists, and a revise is pulled into"
+            " a directory that does not exist yet -- nothing written"
+        )
+        return 2
     try:
         docket_text = Path(args.docket).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
@@ -75,14 +106,21 @@ def main() -> int:
         print(f"CANNOT READ THE DOCKET: {why} -- nothing written")
         return 2
 
-    drafted, refused = proof_setter.run(held, repo, out)
-    for stopped in refused:
+    # !! ROUTED THROUGH `revise.pull` SINCE 2026-08-28, NOT `proof_setter.run`
+    # DIRECTLY. `pull` is the one mechanism left that builds a draft tree --
+    # see this module's own docstring -- and `revise=1` is explained there.
+    pulled = revise.pull(held, repo, out, revise=1)
+    for stopped in pulled.refusals:
         where = stopped.path or "<the set>"
         print(f"REFUSED at {stopped.step}: {where} -- {stopped.why}")
-    if refused:
-        print(f"{len(refused)} refusal(s) -- nothing drafted")
+    if pulled.refusals:
+        print(f"{len(pulled.refusals)} refusal(s) -- nothing drafted")
         return 1
-    for made in drafted:
-        print(f"{made.path} -> {made.draft}")
-    print(f"{len(drafted)} page(s) drafted for review")
+    # !! LISTED FROM THE DOCKET'S OWN SCHEDULES, NOT FROM A `Drafted` LIST --
+    # `pull` returns the assembled revise, not a per-page record of what it
+    # drafted. `sorted` matches the order `proof_setter.run` itself drafts in.
+    schedules = sorted(docket_mod.schedules_of(held))
+    for schedule in schedules:
+        print(f"{schedule.path} -> {pulled.root / schedule.path}")
+    print(f"{len(schedules)} page(s) drafted for review")
     return 0
