@@ -65,6 +65,11 @@ is what writes it, from T4.2's settled places; `flows.revise.pull._set_by`
 reads it back into `address -> role`, the provenance P6's reversal pairs
 against. A docket with no `role` field maps every one of its addresses to
 `""`, unchanged from before this field existed.
+
+! SO A PAGE WHOSE PLACES TWO ROLES SETTLED CARRIES NO `role` AT ALL --
+`docket_from` omits it rather than naming one of the two, because the field
+cannot say more and a reversal routed to a role that never touched the place
+is worse than one routed nowhere.
 """
 
 from typing import NamedTuple

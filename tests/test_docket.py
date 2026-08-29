@@ -23,7 +23,7 @@ than the format's own witness.
 import json
 
 import pytest
-from helpers import a_correct, a_master_proof
+from helpers import a_correct, a_master_proof, a_move
 
 from comment_review.desk.collator import docket_from, reconcile
 from comment_review.docket.docket import read, schedules_of
@@ -191,3 +191,45 @@ def test_set_by_stops_mapping_everything_to_empty():
     proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
     docket = docket_from(reconcile(proof), proof)
     assert set(_set_by(docket).values()) == {"block-context"}
+
+
+def test_a_page_two_roles_settled_names_NEITHER_of_them():
+    """!! A FALSE ATTRIBUTION IS WORSE THAN AN ABSENT ONE. `role` is one per
+    page, so a page holding two roles' settled places can only name one of
+    them -- and `set_by` is what a later phase ROUTES a reversal on
+    (`flows.revise.Pulled`), which would send it to a role that never touched
+    the place. The docket omits the field instead, and `_set_by` says `""`."""
+    proof = a_master_proof({
+        "block-context": {"m.py@b1": a_correct("m.py@b1")},
+        "module-context": {"m.py@b3": a_correct("m.py@b3")},
+    })
+    docket = docket_from(reconcile(proof), proof)
+    page = docket["pages"][0]
+    assert sorted(one["cue"] for one in page["alterations"]) == ["b1", "b3"]
+    assert "role" not in page
+    assert set(_set_by(docket).values()) == {""}
+    assert read(json.dumps(docket))[1] == ""
+
+
+def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
+    """!! A `move` IS A DELETE AT ONE END AND AN ADD AT THE OTHER
+    (`docs/the-mark.md`): *"a move = a delete at the origin + an add at the
+    destination"*. Writing `change` at both ends is the duplication the one
+    instruction exists to prevent."""
+    proof = a_master_proof({"block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")}})
+    docket = docket_from(reconcile(proof), proof)
+    alterations = {one["cue"]: one["text"] for one in docket["pages"][0]["alterations"]}
+    assert alterations["a0"] is None
+    assert isinstance(alterations["a8"], str) and alterations["a8"]
+
+
+def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
+    """The design's own sentence, section 3: a `move` settles or escalates
+    WHOLE, so **no docket ever carries one end of one**. Half-applied, it is
+    invisible downstream -- both dockets read, both set, and `prove_unchanged`
+    passes either way because only prose moved."""
+    proof = a_master_proof({
+        "block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")},
+        "module-context": {"m.py@a8": a_correct("m.py@a8", "a different sentence")},
+    })
+    assert docket_from(reconcile(proof), proof) == {"pages": []}

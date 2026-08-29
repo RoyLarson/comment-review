@@ -194,7 +194,7 @@ def source_verification(
 
 
 def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
-    """Source-verification over a whole filled sheet.
+    """Source-verification over a whole filled `edit_copy`.
 
     The shape `flows.marks.seed()` hands out, after a role filled it in --
     one sheet per page, walked in turn, then each sheet's `marks`.
@@ -292,6 +292,10 @@ class Reconciled(NamedTuple):
             creates prose nobody has read, so its own place is always a
             re-read (`decision-log.md Process: #49`, second bullet).
 
+    !! A `move` APPEARS IN ONE OF THE THREE AT BOTH OF ITS ENDS, never in two
+    of them (`_join_moves`) -- so a caller reading `settled` alone never sees
+    half of one.
+
     Each entry is `{"address": ..., "roles": [...], "marks": [...]}` -- the
     role names and the owing marks themselves, so a later phase can send a
     `reread` back to exactly the roles that touched it. For an `add`'s
@@ -375,6 +379,96 @@ def _roles_of_stage(proof: dict, path: str) -> set[str]:
     return out
 
 
+#: The three outcomes a place can be given, WEAKEST FIRST -- the order
+#: `_join_moves` compares when a `move`'s two ends were sorted differently.
+#: `docs/the-mark.md`: *"a `move` escalated at EITHER place escalates WHOLE"*
+#: -- so an escalation outranks a re-read. A settlement is the weakest of the
+#: three because it is the only outcome that puts a place on the docket, and a
+#: `move` may not be written at one end while the other is still being asked
+#: about.
+OUTCOMES = ("settled", "rereads", "escalations")
+
+
+def _outcome(proof: dict, address: str, owing: list[dict]) -> tuple[str, dict]:
+    """Which of `OUTCOMES` one place's change-owing marks fall into.
+
+    The per-place half of `Process: #49` -- `reconcile`'s own docstring holds
+    the rule and Roy's ruling behind it. This decides ONE place and can see
+    nothing of any other, which is why `_join_moves` runs after it.
+
+    Args:
+        proof: a `master_proof` -- read only for an `add`'s blast radius.
+        address: the place being ruled on.
+        owing: the marks there whose instruction owes a change.
+
+    Returns:
+        `(one of OUTCOMES, the entry)` -- the entry in the shape
+        `Reconciled` documents.
+    """
+    roles = {mark["role"] for mark in owing}
+    if any(mark.get("mark") == Instruction.ADD for mark in owing):
+        roles |= _roles_of_stage(proof, cue_of(address).path)
+        kind = "rereads"
+    elif len(owing) == 1:
+        kind = "settled"
+    elif len({_sentence_key(mark) for mark in owing}) == 1:
+        kind = "escalations"
+    else:
+        kind = "rereads"
+    return kind, {"address": address, "roles": sorted(roles), "marks": owing}
+
+
+def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
+    """Lift every `move` to the strongest outcome either of its ends was given.
+
+    !! A `move` IS INDIVISIBLE (`docs/the-mark.md`): *"a `move` escalated at
+    EITHER place escalates WHOLE. It may not be settled at one end and
+    escalated at the other."* `_outcome` rules on one place at a time and
+    cannot see the other end, so a `move` whose origin no other role marked
+    settles there while its destination -- carrying a second role's mark --
+    goes back for a re-read.
+
+    !! MEASURED before this landed, on a `move` from `m.py@a0` to `m.py@a8`
+    against another role's `correct` on `a8`: `settled` held `a0` alone, so the
+    docket
+    DELETED the origin and never wrote the destination and the moved paragraph
+    was lost. With the second role's mark on `a0` instead, the destination
+    settled alone and the paragraph was written twice. Both dockets are well
+    formed, `prove_unchanged` passes on either -- only prose moved -- so
+    nothing downstream can disagree.
+
+    ! IT RUNS HERE, NOT IN `docket_from`, so the rule holds for EVERY reader of
+    a `Reconciled`. The revise step asks a role about a re-read; half a `move`
+    in that list is the same defect one stage later, and a rule applied where
+    the docket is packaged would leave it there.
+
+    ! TO A FIXED POINT, because a lift can meet a second `move`: `a0 -> a8` and
+    `a16 -> a8` share a place, so lifting `a8` carries `a0` and `a16` with it,
+    and either of those may be an end of a further `move`.
+
+    Args:
+        outcomes: address -> `(one of OUTCOMES, the entry)`, as `_outcome`
+            built each. MUTATED in place -- only an outcome ever changes, never
+            an entry.
+    """
+    ends_of = {
+        tuple(_touches(mark))
+        for _, entry in outcomes.values()
+        for mark in entry["marks"]
+        if mark.get("mark") == Instruction.MOVE and len(_touches(mark)) > 1
+    }
+    changed = True
+    while changed:
+        changed = False
+        for ends in ends_of:
+            strongest = max((outcomes[end][0] for end in ends), key=OUTCOMES.index)
+            for end in ends:
+                kind, entry = outcomes[end]
+                if kind != strongest:
+                    outcomes[end] = (strongest, entry)
+                    changed = True
+
+
 def reconcile(proof: dict) -> Reconciled:
     """T4.2 -- `Process: #49`: settle, escalate, or send a place for a re-read.
 
@@ -402,6 +496,12 @@ def reconcile(proof: dict) -> Reconciled:
     and the re-read reaches every role that could hold the duplicate --
     `_roles_of_stage` -- not only the role that wrote this `add`.
 
+    !! AND A `move` IS DECIDED ONCE, ACROSS BOTH OF ITS PLACES. The table above
+    rules on one place at a time, so it can settle a `move`'s origin while
+    sending its destination back; `_join_moves` then lifts both ends to the
+    stronger of the two outcomes, because a `move` is indivisible
+    (`docs/the-mark.md`) and no docket may carry one end of one.
+
     ! `clean` and `query` NEVER OWE A CHANGE (`_owes_change`), which is what
     already keeps a scope-declaring `query` (`Shape.OUTSIDE_MY_ROLE`) and an
     `unable-to-determine` one from blocking another role's owing mark at the
@@ -417,28 +517,18 @@ def reconcile(proof: dict) -> Reconciled:
         place with no change-owing mark (every mark there is `clean` or
         `query`) appears in none of the three.
     """
+    outcomes: dict[str, tuple[str, dict]] = {}
+    for address, marks in places(proof).items():
+        owing = [mark for mark in marks if _owes_change(mark)]
+        if owing:
+            outcomes[address] = _outcome(proof, address, owing)
+    _join_moves(outcomes)
     settled: list[dict] = []
     escalations: list[dict] = []
     rereads: list[dict] = []
-    for address, marks in places(proof).items():
-        owing = [mark for mark in marks if _owes_change(mark)]
-        if not owing:
-            continue
-        roles = {mark["role"] for mark in owing}
-        if any(mark.get("mark") == Instruction.ADD for mark in owing):
-            roles |= _roles_of_stage(proof, cue_of(address).path)
-            rereads.append(
-                {"address": address, "roles": sorted(roles), "marks": owing}
-            )
-            continue
-        entry = {"address": address, "roles": sorted(roles), "marks": owing}
-        if len(owing) == 1:
-            settled.append(entry)
-            continue
-        if len({_sentence_key(mark) for mark in owing}) == 1:
-            escalations.append(entry)
-        else:
-            rereads.append(entry)
+    into = {"settled": settled, "escalations": escalations, "rereads": rereads}
+    for kind, entry in outcomes.values():
+        into[kind].append(entry)
     return Reconciled(settled, escalations, rereads)
 
 
@@ -508,13 +598,19 @@ def docket_from(reconciled: Reconciled, proof: dict) -> dict:
         this shape; nothing here does.
 
     !! `role` IS ONE PER PAGE, matching `docket.read`'s own schema and
-    `flows.revise.pull._set_by`, which reads it the same way. A page whose
-    settled places were set by more than one role carries only the role of
-    the LAST one folded in here -- the docket has no per-alteration role
-    field to say more.
+    `flows.revise.pull._set_by`, which reads it the same way -- so a page whose
+    settled places were set by MORE THAN ONE role carries no `role` at all, and
+    `_set_by` maps its addresses to `""`. **A FALSE ATTRIBUTION IS WORSE THAN
+    AN ABSENT ONE**: `set_by` is the provenance a later phase (P6) ROUTES on
+    (`flows.revise.Pulled`), so naming a role that never touched the place
+    sends its reversal to someone who cannot answer for it. MEASURED --
+    `block-context` settling `m.py@b1` and `module-context` settling `m.py@b3`
+    mapped BOTH to `module-context`. Carrying the role per ALTERATION is a
+    change to the docket format, filed in `TODO/`.
     """
     paths, shas = _real_pages(proof)
     pages: dict[str, dict] = {}
+    roles_of: dict[str, set[str]] = {}
     for entry in reconciled.settled:
         address = entry["address"]
         mark = entry["marks"][0]
@@ -530,8 +626,11 @@ def docket_from(reconciled: Reconciled, proof: dict) -> dict:
                 "alterations": [],
             },
         )
-        page["role"] = role
+        roles_of.setdefault(real_path, set()).add(role)
         page["alterations"].append(
             {"cue": addr.cue, "text": _alteration_text(address, mark)}
         )
+    for real_path, page in pages.items():
+        if len(roles_of[real_path]) != 1:
+            del page["role"]
     return {"pages": list(pages.values())}

@@ -80,7 +80,75 @@ def test_an_add_reaches_a_role_that_marked_nothing_there():
     })
     out = reconcile(proof)
     reread = [r for r in out.rereads if r["address"] == "m.py@b1"][0]
-    assert "module-context" in reread["roles"]
+    # !! THE EXACT SET, NOT `in`. An inclusion assertion cannot fail against
+    # over-inclusion, which is the direction the narrowing below can break in.
+    assert reread["roles"] == ["block-context", "module-context"]
+
+
+def test_an_add_does_not_reach_a_role_that_never_saw_this_page():
+    """`Process: #49`'s NARROWING: *"all roles of the stage, and for a
+    partitioned role only the shard holding that file."* A role whose
+    `edit_copy` covers another page is another shard, and cross-file
+    duplication is not chased -- it would cost the fan-out's whole benefit on
+    any page carrying an `add`."""
+    proof = a_master_proof({
+        "block-context": {"m.py@b1": an_add("m.py@b1")},
+        "module-context": {"other.py@b1": a_clean("other.py@b1")},
+    })
+    out = reconcile(proof)
+    reread = [r for r in out.rereads if r["address"] == "m.py@b1"][0]
+    assert reread["roles"] == ["block-context"]
+
+
+def test_two_moves_into_one_place_quote_no_sentence_so_they_are_RE_READ():
+    """`docs/the-mark.md`'s classifier table gives both `add` and `move` `--`
+    in the VERBATIM column: neither quotes an existing sentence, so two of them
+    at one place can never be found to have named the SAME sentence -- which is
+    the re-read row of `Process: #49`'s table, not the escalation row."""
+    proof = a_master_proof({
+        "block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")},
+        "module-context": {"m.py@a16": a_move("m.py@a16", "m.py@a8")},
+    })
+    out = reconcile(proof)
+    assert out.escalations == []
+    assert "m.py@a8" in [r["address"] for r in out.rereads]
+
+
+def test_a_move_whose_destination_is_marked_again_settles_at_NEITHER_end():
+    """`docs/the-mark.md`: *"a `move` escalated at EITHER place escalates
+    WHOLE. It may not be settled at one end and escalated at the other."*
+    Settled alone, the origin is a delete the destination never receives."""
+    proof = a_master_proof({
+        "block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")},
+        "module-context": {"m.py@a8": a_correct("m.py@a8", "a different sentence")},
+    })
+    out = reconcile(proof)
+    assert out.settled == []
+    assert sorted(r["address"] for r in out.rereads) == ["m.py@a0", "m.py@a8"]
+
+
+def test_a_move_whose_ORIGIN_is_marked_again_settles_at_NEITHER_end():
+    """The same rule from the other side. Settled alone, the destination is
+    written and the origin never emptied, so the paragraph reads twice."""
+    proof = a_master_proof({
+        "block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")},
+        "module-context": {"m.py@a0": a_correct("m.py@a0", "a different sentence")},
+    })
+    out = reconcile(proof)
+    assert out.settled == []
+    assert sorted(r["address"] for r in out.rereads) == ["m.py@a0", "m.py@a8"]
+
+
+def test_a_move_alone_still_settles_at_both_of_its_ends():
+    """! THE OTHER HALF OF THE RULE. Joining the two ends must not hold back a
+    `move` nobody else marked -- both places settle, and the docket sets the
+    pair together."""
+    proof = a_master_proof({
+        "block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")},
+    })
+    out = reconcile(proof)
+    assert sorted(s["address"] for s in out.settled) == ["m.py@a0", "m.py@a8"]
+    assert out.escalations == [] and out.rereads == []
 
 
 def test_a_scope_declaring_query_does_not_block_the_other_roles():

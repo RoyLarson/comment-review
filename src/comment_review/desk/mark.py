@@ -244,11 +244,18 @@ def allowed() -> dict:
         carry; `values` -> the fields whose value is itself a closed set;
         `scope_shape` -> the one shape that is a boundary report rather than
         work; `anchor_form` -> the form an `add`'s anchor takes;
-        `sheet_header` -> the keys a sheet carries beside its marks.
+        `edit_copy_header` -> the keys an `edit_copy` carries beside its sheets.
 
-    !! `sheet_header` LANDED 2026-08-28, AND UNTIL THEN `read_from` WAS
-    PUBLISHED NOWHERE. `seed` began putting it on every sheet and `problems_in`
-    began refusing a sheet without it, while a grep for the name across
+    !! IT WAS `sheet_header`, AND BOTH THE NAME AND ITS TWO DESCRIPTIONS WERE
+    FALSE. `role` and `read_from` sit on the EDIT_COPY -- `seed` returns
+    `{"role", "read_from", "sheets"}` and a sheet carries `{"path", "sha",
+    "marks"}` -- so a role reading `mark --shape` was told to put two keys on
+    the container that does not hold them. `sheet` names the PAGE-UNIT since
+    `decision-log.md Vocabulary: #28`; the per-role container is `edit_copy`.
+
+    !! THE HEADER LANDED 2026-08-28, AND UNTIL THEN `read_from` WAS PUBLISHED
+    NOWHERE. `seed` began putting it on every edit_copy and `problems_in`
+    began refusing one without it, while a grep for the name across
     `SKILL.md`, `references/` and `agents/` returned nothing -- so the field a
     role is required to carry was one no role was told about.
 
@@ -272,10 +279,10 @@ def allowed() -> dict:
         # has only moved the guessing.
         "anchor_form": f"the anchor NAMED in backticks, e.g. {ANCHOR_EXAMPLE}",
         "source_keys": {"required": ["cite", "verbatim"], "optional": ["ran"]},
-        "sheet_header": {
-            "role": "the role this sheet was seeded for",
+        "edit_copy_header": {
+            "role": "the role this edit_copy was seeded for",
             "read_from": (
-                "the tree this sheet was censused from -- "
+                "the tree this edit_copy was censused from -- "
                 '`{"root": "<path>", "revise": <number>}`, '
                 "where revise 0 is the original"
             ),

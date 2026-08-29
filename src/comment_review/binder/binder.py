@@ -153,10 +153,10 @@ def bind(pages: list[Page], read_from: dict, absent: bool = False) -> dict:
     checked until 2026-08-28. MEASURED: `read_from="oops"`, `None`, `[]` and
     `{"root": 7}` each built a binder and each passed `ty`, because `dict` says
     nothing about what is IN one. `seed` then copied the value verbatim onto the
-    sheet an editorial role reads.
+    `edit_copy` an editorial role fills.
 
     ! AND IT IS COPIED, NOT ALIASED. The stored dict was the caller's own until
-    the same day, so a binder, every sheet seeded from it, and whatever the
+    the same day, so a binder, every `edit_copy` seeded from it, and whatever the
     caller kept were ONE object -- a test writing `binder["read_from"]["revise"]
     = 1`, which is how a revise test is naturally written, would have changed
     what every later test in the session saw, with no gate able to attribute it.
@@ -201,10 +201,10 @@ def _read_from_problem(loaded: dict) -> str:
 
     ! AND THE SHAPE IS CHECKED, NOT ONLY THE PRESENCE. MEASURED the same day:
     `read_from="oops"`, `None`, `[]` and `{"root": 7}` each built a binder, each
-    passed `ty`, and `seed` copied the value verbatim onto the sheet handed to
-    an editorial role. That is the defect this module's own header records being
-    fixed on 2026-08-25 -- *"THE KEY WAS TESTED FOR PRESENCE AND NOT FOR SHAPE
-    ... so it coped after all"* -- arriving on a new field.
+    passed `ty`, and `seed` copied the value verbatim onto the `edit_copy`
+    handed to an editorial role. That is the defect this module's own header
+    records being fixed on 2026-08-25 -- *"THE KEY WAS TESTED FOR PRESENCE AND
+    NOT FOR SHAPE ... so it coped after all"* -- arriving on a new field.
     """
     if "read_from" not in loaded:
         return (
