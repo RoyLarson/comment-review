@@ -1,11 +1,30 @@
 """The MARK sequence, as data: what each stage hands back, and what follows it.
 
-    Kind          what a stage can be. ONE member today
-    EDITORIAL     hands back marks -- verify -> reconcile -> revise step ->
-                  pull a revise
-    Stage         one row: a name, a kind, the roles it dispatches
-    STAGES        the MARK sequence, `SKILL.md:544-583`
-    pulls_revise  is this stage's output followed by a revise?
+    Kind            what a stage can be. ONE member today
+    Kind.EDITORIAL  hands back marks -- verify -> reconcile -> revise step ->
+                    pull a revise
+    Stage           one row: a name, a kind, the roles it dispatches
+    STAGES          the MARK sequence, `SKILL.md:544-583`
+    pulls_revise    is this stage's output followed by a revise?
+
+!! NO MODULE-LEVEL ALIAS OF A MEMBER, AND THERE WERE TWO UNTIL 2026-08-28:
+`EDITORIAL = Kind.EDITORIAL` beside `ENRICHING = Kind.ENRICHING`. Roy:
+*"aliasing like that is lazy and bad ... It allows for drift without the drift
+being apparent because of shadowing. That is a horrible practice."*
+
+! THE DRIFT IS THE ARGUMENT, NOT THE READABILITY. An alias is a SECOND name for
+a value, bound once at import; nothing afterwards holds the two together. A
+member renamed, a member's value changed, a second binding further down the
+module, or an import that shadows the bare name -- each leaves the alias
+pointing at what the member USED to be, and every call site reading the alias
+goes with it. Nothing announces that: the name still resolves, the module still
+imports, and `ty` still passes, because both sides are the same type.
+
+! IT ALSO MADE A CAPITALISED NAME UNREADABLE AS A MEMBER, which is how this
+surfaced -- a bare `ENRICHING` shown to Roy read as a module constant, and it
+WAS one. That is the symptom; the drift is the defect.
+
+Every site names `Kind.EDITORIAL` in full.
 
 `decision-log.md Process: #34`, Roy, 2026-08-28: *"it bakes in the idea that
 all editorial-role agents see everything at the same time and only rule on it
@@ -67,17 +86,14 @@ class Kind(StrEnum):
     EDITORIAL = auto()
 
 
-EDITORIAL = Kind.EDITORIAL
-
-
 class Stage(NamedTuple):
     """One stage of MARK.
 
     Attributes:
         name: the stage's own label, drawn from `SKILL.md`'s stage-4 table
             (`4a`, `4c`).
-        kind: EDITORIAL or ENRICHING -- what `pulls_revise` reads. Typed as
-            `Kind`, not `str`: annotated `str`, the gate admitted
+        kind: a `Kind` -- what `pulls_revise` reads. Typed as `Kind` and not
+            `str`: annotated `str`, the type gate admitted
             `Stage("x", "banana", ())`, measured 2026-08-28.
         roles: the role names this stage dispatches, in `SKILL.md`'s order.
     """
@@ -91,16 +107,23 @@ class Stage(NamedTuple):
 #: and first; 4c runs the other three in one message, blind to each other,
 #: against 4a's resolved placement.
 STAGES: tuple[Stage, ...] = (
-    Stage("4a", EDITORIAL, ("ownership-context",)),
-    Stage("4c", EDITORIAL, ("block-context", "function-context", "module-context")),
+    Stage("4a", Kind.EDITORIAL, ("ownership-context",)),
+    Stage(
+        "4c",
+        Kind.EDITORIAL,
+        ("block-context", "function-context", "module-context"),
+    ),
 )
 
 
 def pulls_revise(stage: Stage) -> bool:
     """Does a revise get pulled after this stage runs?
 
-    Only an EDITORIAL stage does -- `decision-log.md Process: #34`. An
-    ENRICHING stage hands facts into the next binder; it seeds no docket and
-    pulls nothing.
+    Only a `Kind.EDITORIAL` stage does -- `decision-log.md Process: #34`.
+
+    ! TRUE FOR EVERY `Stage` THIS MODULE DEFINES, because `Kind` has one
+    member. The comparison is written out rather than dropped because a
+    second kind is what this predicate exists to distinguish; what is NOT
+    claimed is that the False branch is reachable from here.
     """
-    return stage.kind == EDITORIAL
+    return stage.kind == Kind.EDITORIAL

@@ -12,16 +12,12 @@ already state, transcribed by hand.
          module-context, in ONE message               against the code
 """
 
-from comment_review.desk.stages import (
-    EDITORIAL,
-    STAGES,
-    pulls_revise,
-)
+from comment_review.desk.stages import STAGES, Kind, pulls_revise
 
 
 def test_ownership_context_runs_alone_and_first():
     assert STAGES[0].roles == ("ownership-context",)
-    assert STAGES[0].kind == EDITORIAL
+    assert STAGES[0].kind == Kind.EDITORIAL
 
 
 def test_the_other_three_share_one_stage():

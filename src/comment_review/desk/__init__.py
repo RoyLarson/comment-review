@@ -8,9 +8,8 @@
                          across the marks of one stage -- is not built
     external_address    a SKETCH, not in service -- a coordinate into a file
                          this system does not set
-    stages              the MARK sequence, as data -- each stage's kind
-                         (EDITORIAL or ENRICHING) and the roles it dispatches.
-                         `decision-log.md Process: #34`
+    stages              the MARK sequence, as data -- each stage's `Kind` and
+                         the roles it dispatches. `decision-log.md Process: #34`
 
 !! THE MIDDLE IS THE HALF THAT WAS NOT DESIGNED, and this package is where it
 goes: marks in from the roles, a DOCKET out. Roy, 2026-08-25, on why the former
