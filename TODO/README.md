@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (94)
+### open  (95)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -276,6 +276,7 @@ that changed a published name or rule:
 | [revise-copies-everything](revise-copies-everything.md) | backend | — | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
 | [master-proof-and-edit-copy](master-proof-and-edit-copy.md) | backend | — | 5/5 | `seed` returns a flat mark list and nothing holds the several copies one stage produces; `docs/vocabulary.md` lists `master proof` as unnamed |
 | [topology-is-a-source-edit](topology-is-a-source-edit.md) | backend | — | 5/5 | `desk/stages.py`'s `STAGES` is a two-row literal, so a run cannot say which roles run when, what each reads, or how a role fans out |
+| [change-is-raw-text-not-lines](change-is-raw-text-not-lines.md) | backend | — | 0/4 | `desk/mark.py:396` refuses a `change` that is not a list of lines; `docs/the-mark.md` rules it is the updated paragraph as RAW TEXT; `results/differences.diff3` takes strings |
 
 ### in-progress  (19)
 
