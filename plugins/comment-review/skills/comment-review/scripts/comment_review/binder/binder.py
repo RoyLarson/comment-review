@@ -44,9 +44,18 @@ from comment_review.reading.series import Kind
 # ! The shape's own version, so a reader can say WHICH format it refused rather
 # than only that it could not read one.
 #
-# !! BUMPED TO "2" WHEN `read_from` BECAME REQUIRED -- an artifact from before
-# this field existed is refused by name (a version mismatch) rather than read
-# as though the field were merely absent.
+# !! BUMPED TO "2" WHEN `read_from` BECAME REQUIRED, 2026-08-28.
+#
+# ! AND NOTHING REFUSES ON IT. This comment claimed for one commit that an older
+# artifact was "refused by name (a version mismatch)"; `read` never looks at
+# `version`, so no such refusal exists and the sentence asserted an enforcement
+# the file does not carry. What the field does is LABEL an artifact, so a reader
+# holding one can say which format it is.
+#
+# ! REFUSING IS `seed`'s, AT THE POINT OF CONSUMPTION, and that is this module's
+# own rule rather than an exception to it: `read`'s docstring states that WHAT IS
+# CHECKED IS WHAT IS CONSUMED and no more, and `read` consumes no field. `seed`
+# is what reads `read_from`, so `seed` is what raises when it is missing.
 VERSION = "2"
 
 

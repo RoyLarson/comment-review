@@ -40,10 +40,22 @@ def seed(binder: dict, role: str) -> dict:
         and `raw_text` copied from its row, and `mark: None` for the role to
         fill. `raw_text` is the paragraph the role's `change` diffs against
         -- see `docs/the-mark.md`.
+
+    Raises:
+        KeyError: the binder carries no `read_from`.
+
+    !! ABSENT IS REFUSED HERE TOO, AND WAS DEFAULTED TO `{}` UNTIL 2026-08-28.
+    `bind` refuses a binder that cannot say which root it read; this function
+    read the same key with a `{}` fallback, so a binder that reached it by any
+    other path -- an artifact read from disk, a hand-built dict -- produced a
+    sheet whose `read_from` was empty. ! THAT IS THE AMBIGUITY THE FIELD WAS
+    ADDED TO REMOVE, one function downstream of the refusal: a role holding an
+    empty `read_from` cannot tell a revise from the original, which is the
+    whole question `decision-log.md Process: #34` turns on.
     """
     return {
         "role": role,
-        "read_from": binder.get("read_from", {}),
+        "read_from": binder["read_from"],
         "marks": [
             {
                 "address": row.get("address", ""),
