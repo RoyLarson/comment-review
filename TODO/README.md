@@ -267,7 +267,7 @@ that changed a published name or rule:
 | [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | — | 0/4 | A conflict is detected and nothing renders it |
 | [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | — | 0/8 | A role can be asked to revise and has nothing to answer ON |
 | [the-ported-mark-does-not-fit-the-brief](the-ported-mark-does-not-fit-the-brief.md) | backend | — | 4/5 | The ported mark refuses marks the shipped brief tells a role to write |
-| [the-flow-assumes-every-role-reads-at-once](the-flow-assumes-every-role-reads-at-once.md) | backend | — | 1/7 | The flow assumes every role reads the same page at the same time, once |
+| [the-flow-assumes-every-role-reads-at-once](the-flow-assumes-every-role-reads-at-once.md) | backend | — | 2/7 | The flow assumes every role reads the same page at the same time, once |
 | [move-change-contract-unenforceable](move-change-contract-unenforceable.md) | backend | — | 0/2 | move's change_all loop is never the decisive check -- the general array-of-lines check runs first and either already passed or already refused the mark |
 | [build-gate-crlf-fragile](build-gate-crlf-fragile.md) | systems | — | 0/2 | build_plugin.py's raw byte compare fails on a line-ending-only difference introduced by a Windows git checkout |
 | [shape-is-three-words](shape-is-three-words.md) | backend | yes | 0/5 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |

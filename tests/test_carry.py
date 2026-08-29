@@ -22,7 +22,7 @@ def _tree(tmp_path):
     repo.mkdir(parents=True)
     (repo / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
     page = build(SAMPLE)
-    return repo, bind([page]), page
+    return repo, bind([page], read_from={"root": str(repo), "revise": 0}), page
 
 
 def empty_cues(page) -> list[str]:

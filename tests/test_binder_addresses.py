@@ -8,7 +8,7 @@ matching `tests/test_addresser_command.py`'s own rule: a fixture written in the
 shape the code expects can only confirm.
 """
 
-from conftest import SAMPLE, build
+from conftest import READ_FROM, SAMPLE, build
 
 from comment_review.binder.addresses import for_anchor, unaddressed
 from comment_review.binder.binder import bind, rows_of
@@ -17,7 +17,7 @@ from comment_review.reading.addresser import GAP, ON
 
 def _rows(absent: bool = False):
     page = build(SAMPLE)
-    return rows_of(bind([page], absent=absent))
+    return rows_of(bind([page], read_from=READ_FROM, absent=absent))
 
 
 class TestUnaddressedReadsTheSurvivingFields:

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 7 tasks done
+Progress: 2 of 7 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing the draft plan for the mark and the collator. Roy:
@@ -60,7 +60,7 @@ what makes it falsifiable.
       marks are reconciled, a revise is pulled after it) or `enriching` (hands back facts that go
       into the next binder, no docket, no revise). Verify: an enriching entry pulls no revise, and
       adding a stage is a row rather than a code change.
-- [ ] T2 -- The binder records which revise it was censused from. Verify: a sheet seeded from it
+- [x] T2 -- The binder records which revise it was censused from. Verify: a sheet seeded from it
       names the revise and the original in its header, and a binder built from the original says
       so rather than leaving the field absent.
 - [ ] T3 -- Pull a revise at each editorial boundary: the settled docket through `proof_setter`

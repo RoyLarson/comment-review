@@ -27,4 +27,4 @@ def pages_of(root: Path) -> list:
 
 
 def binder_of(root: Path, revise: int) -> dict:
-    return bind(pages_of(root))
+    return bind(pages_of(root), read_from={"root": str(root), "revise": revise})

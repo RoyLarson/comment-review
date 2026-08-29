@@ -14,7 +14,7 @@ confirm.
 import io
 from contextlib import redirect_stdout
 
-from conftest import SAMPLE, build
+from conftest import READ_FROM, SAMPLE, build
 
 from comment_review.binder.binder import bind, rows_of
 from comment_review.commands.addresser import _check, _for_anchor, _resolve_one
@@ -23,7 +23,7 @@ from comment_review.reading.addresser import DECLARED
 
 def _rows():
     page = build(SAMPLE)
-    return rows_of(bind([page]))
+    return rows_of(bind([page], read_from=READ_FROM))
 
 
 def test_resolve_prints_the_real_lines_not_none_none():

@@ -7,7 +7,7 @@ The first of the two chains. Nothing here goes near the galley -- Roy,
 import json
 
 import pytest
-from conftest import PKG, SAMPLE, build, by_cue
+from conftest import PKG, READ_FROM, SAMPLE, build, by_cue
 
 from comment_review.binder.binder import VERSION, bind, page_row, read, rows_of
 from comment_review.flows.census import carried
@@ -29,7 +29,7 @@ ROW_FIELDS = {
 
 @pytest.fixture
 def binder():
-    return bind([build(SAMPLE)])
+    return bind([build(SAMPLE)], read_from=READ_FROM)
 
 
 def test_the_binder_names_its_own_version(binder):
@@ -115,15 +115,18 @@ def test_the_binder_carries_ONLY_the_places_holding_prose(binder):
 def test_an_absent_place_is_carried_WHEN_ASKED_FOR():
     """It is dropped by default, not made unreachable."""
     page = build(SAMPLE)
-    asked = {r["cue"] for r in bind([page], absent=True)["pages"][0]["rows"]}
+    asked = {
+        r["cue"]
+        for r in bind([page], read_from=READ_FROM, absent=True)["pages"][0]["rows"]
+    }
     assert asked == set(by_cue(page))
-    assert len(asked) > len(bind([page])["pages"][0]["rows"])
+    assert len(asked) > len(bind([page], read_from=READ_FROM)["pages"][0]["rows"])
 
 
 def test_a_file_with_no_prose_at_all_carries_NO_ROWS():
     """Nothing to rule on is an empty page, not an error -- and not a page of
     empty places either."""
-    binder = bind([build("x = 1\ny = 2\n")])
+    binder = bind([build("x = 1\ny = 2\n")], read_from=READ_FROM)
     assert binder["pages"][0]["rows"] == []
     assert binder["pages"][0]["path"]
 
@@ -172,7 +175,8 @@ class TestRowsOfPutsBackWhatThePageEnvelopeTookOut:
 
     def test_rows_from_several_pages_keep_their_own_paths(self):
         binder = bind(
-            [build("# one\nx = 1\n", "a.py"), build("# two\ny = 2\n", "b/c.py")]
+            [build("# one\nx = 1\n", "a.py"), build("# two\ny = 2\n", "b/c.py")],
+            read_from=READ_FROM,
         )
         paths = {r["path"] for r in rows_of(binder)}
         assert paths == {"a.py", "b/c.py"}
@@ -239,7 +243,7 @@ class TestAReaderRefusesRatherThanCoping:
 def test_the_binder_reports_the_page_s_sha_rather_than_taking_one():
     page = build(SAMPLE)
     page.sha = "notarealsha"
-    assert bind([page])["pages"][0]["sha"] == "notarealsha"
+    assert bind([page], read_from=READ_FROM)["pages"][0]["sha"] == "notarealsha"
 
 
 def test_only_machine_imports_hashlib():

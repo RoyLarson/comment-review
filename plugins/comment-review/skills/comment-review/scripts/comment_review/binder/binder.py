@@ -43,7 +43,11 @@ from comment_review.reading.series import Kind
 
 # ! The shape's own version, so a reader can say WHICH format it refused rather
 # than only that it could not read one.
-VERSION = "1"
+#
+# !! BUMPED TO "2" WHEN `read_from` BECAME REQUIRED -- an artifact from before
+# this field existed is refused by name (a version mismatch) rather than read
+# as though the field were merely absent.
+VERSION = "2"
 
 
 def page_row(paragraph: Paragraph) -> dict:
@@ -90,8 +94,15 @@ def page_row(paragraph: Paragraph) -> dict:
     }
 
 
-def bind(pages: list[Page], absent: bool = False) -> dict:
+def bind(pages: list[Page], read_from: dict, absent: bool = False) -> dict:
     """Every page in scope, as the binder that is handed over.
+
+    !! `read_from` IS REQUIRED, NOT DEFAULTED. A binder that cannot say which
+    root it was censused from is exactly the ambiguity a later stage needs
+    resolved: a revise re-binds from a tree copy, and a role holding that
+    binder cannot tell it apart from the original unless the binder says so.
+    A caller with no root to name has nothing it was censused FROM, so there
+    is no default that would not be a fabrication.
 
     ! THE SHA IS REPORTED, NOT TAKEN. It arrives on the page from
     `repo.read_source`; this module hashes nothing. Roy, 2026-08-25: *"It is
@@ -119,12 +130,16 @@ def bind(pages: list[Page], absent: bool = False) -> dict:
 
     Args:
         pages: the pages in scope.
+        read_from: `{"root": "<path>", "revise": <int>}` -- the root this
+            binder was censused from, and `0` for the original or the
+            revise's own number otherwise.
         absent: carry the empty places too. For the caller that specifically
             asks -- a reviewer surveying where prose COULD go rather than
             ruling on prose that is there.
     """
     return {
         "version": VERSION,
+        "read_from": read_from,
         "pages": [
             {
                 "path": page.path,

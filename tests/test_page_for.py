@@ -44,7 +44,7 @@ def _tree(tmp_path):
     repo.mkdir()
     (repo / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
     page = build(SAMPLE)
-    return repo, bind([page]), page
+    return repo, bind([page], read_from={"root": str(repo), "revise": 0}), page
 
 
 class TestPageOfReturnsEveryRefusalItPromises:

@@ -257,7 +257,11 @@ def _report(args: argparse.Namespace) -> int:
         # so a shape it cannot read is caught HERE -- at the one moment the
         # writer and the reader are both present -- instead of at whichever
         # command opens the file next.
-        binder = bind(pages, absent=args.include_absent)
+        binder = bind(
+            pages,
+            read_from={"root": str(repo), "revise": 0},
+            absent=args.include_absent,
+        )
         missing = unaddressed(rows_of(binder))
         if missing:
             print(_unaddressed(missing), file=sys.stderr)

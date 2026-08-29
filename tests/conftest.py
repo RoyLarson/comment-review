@@ -137,6 +137,14 @@ REPLACEMENT = {
 }
 
 
+#: `bind()` has required `read_from` since `the-flow-assumes-every-role-reads-at-once`
+#: T2. A page built by `build()` above is text handed straight to `page_for`, never
+#: read off a census root, so there is no real root to name for it -- this stands in
+#: for the tests below that exercise `bind()` in isolation and assert nothing about
+#: `read_from` itself.
+READ_FROM = {"root": "<synthetic>", "revise": 0}
+
+
 def docket_from(flat: dict, binder: dict) -> dict:
     """A nested docket from `{address: text}` plus the binder those addresses cite.
 
