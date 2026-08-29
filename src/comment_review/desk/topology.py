@@ -1,7 +1,8 @@
 """A run's TOPOLOGY: which stages run, in what order, and what each dispatches.
 
-`desk/stages.py`'s `STAGES` is a literal, so every schedule would otherwise be a
-source edit. This module reads a run-scoped TOML file into `Stage` rows instead --
+`desk/stages.py` no longer holds a schedule literal -- a run's schedule would
+otherwise be a source edit. This module reads a run-scoped TOML file into
+`Stage` rows instead --
 `docs/superpowers/specs/2026-08-29-the-master-proof-and-reconciliation-design.md`
 section 2 is the format's own specification; every rule enforced here traces to a
 sentence there.
@@ -111,7 +112,6 @@ def read(text: str) -> tuple[list[Stage], str]:
             return [], f"stage {name!r}: key 'dispatch' is missing or empty"
 
         dispatches: list[Dispatch] = []
-        roles: list[str] = []
         for raw_dispatch in raw_dispatches:
             if not isinstance(raw_dispatch, dict):
                 return [], f"stage {name!r}: a 'dispatch' entry is not a table"
@@ -133,14 +133,11 @@ def read(text: str) -> tuple[list[Stage], str]:
                 )
 
             dispatches.append(Dispatch(Role(role_str), tuple(paths)))
-            if role_str not in roles:
-                roles.append(role_str)
 
         stages.append(
             Stage(
                 name=name,
                 kind=kind,
-                roles=tuple(roles),
                 reads=reads,
                 carries=tuple(raw_carries),
                 dispatches=tuple(dispatches),
