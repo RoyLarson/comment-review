@@ -839,6 +839,47 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   on their own."* A seeded row carries `raw_text` -- the paragraph, not the page -- so an edit
   round-trips to the root's exact bytes, indentation and comment markers included.
 
+- **#28.** **THE MIDDLE HAS FOUR CONTAINERS, AND THE ONE THAT WAS MISSING IS THE ROLES LEVEL**
+  (Roy, 2026-08-29).
+
+        master_proof
+          +-- edit_copy        one per role; one per SHARD under fan-out
+                +-- sheet      one per page
+                      +-- mark one per place
+
+  ! **`master_proof` HOLDS `edit_copies`, NOT SHEETS DIRECTLY.**
+
+  !! **WHY THE LEVEL EXISTS.** Roy: *"The got the binder - they copied the pages from the binder
+  and built their own binder to make up ... this is their edit_copy - the emit the sheets
+  (pages-with mark) which are just the marks with addresses because we don't have to carry the
+  duplication in a computer program. the master proof holds the edit_copies."* ! `binder` and
+  `docket` have no roles level: one goes out, one comes back, and in between there are N marked
+  copies. *"They are separate containers, and calling each of them as having a `master_proof`
+  would be incorrect."*
+
+  !! **`sheet` CHANGES SENSE, AND THE OLD ONE IS IN SHIPPED PROSE.** It named the PER-ROLE
+  container -- `flows/marks.py` opens *"Hand a role a sheet to fill"*, and `SKILL.md` uses it nine
+  times that way. It now names the PAGE-UNIT; the container is `edit_copy`. Both sides move in one
+  change, per the shared-vocabulary rule.
+
+  ! **`edit_copy` BECAUSE THE REGISTER IS THE COPY DESK, NOT THE BINDERY.** Roy: *"it isn't
+  overloaded with the other copy's it is adjacent and explicit."* This file already records that
+  the binder is *"a 3-ring binder full of stuff not binder as the person who bounds books"*, and
+  cut a justification reaching for the bookbinder's `gathering` -- so `gathering` and `sheaf` were
+  already out of register.
+
+  ! **`master proof` WAS ALREADY HERE, LISTED AS UNNAMED** -- *"the single copy every mark has
+  been collated onto"*, whose only producer was `verdicts.py`, which left for `prototype/` on
+  2026-08-25. The object went with it.
+
+  !! **AND THE SHEET CARRIES THE SHA, WHICH BREAKS A SEAM BEFORE IT OPENS.** Roy: *"it also lands
+  us a place to copy the page shas from so we are not reaching into the binder to get it. That
+  breaks the only current read-write link coupling in the system."* ! The coupling is PROSPECTIVE:
+  `proof_setter` stopped taking a binder on 2026-08-26 (`Vocabulary: #14`), and nothing builds a
+  docket yet -- a flat `edit_copy` would force that emitter to reach back for every sha. ! **NOT
+  EVERY BINDER READ IS COUPLING**: `collator.known_addresses` must keep reading it, because
+  checking that a role did not invent an address has to be asked of the authority.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
@@ -1560,3 +1601,52 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   subject "four classifier columns" and "seven row flags", and its prose says "a row" and "the
   row" throughout rather than "an instruction". The rename does not introduce a term; it gives
   the dataclass the name its own spec already uses for it.
+
+- **#47.** **FAN-OUT PARTITIONS BY FILE, AND THE REASON IS MEASURED DILIGENCE** (Roy, 2026-08-28):
+  *"It makes them more efficient and we have measured that it makes them more diligent in actually
+  inspecting the blocks, where they get overloaded on too many records. Because it is tight
+  detailed work it matters for their role most."* And on the unit: *"By file because context should
+  be more consistent. File thrashing would be bad."*
+
+  ! **THE PARTITION IS REDUNDANCY-FREE BY CONSTRUCTION.** An address is `path@cue`, so one role
+  marks a place at most once and `Pulled.set_by`'s `address -> role` stays unambiguous. Fan-out
+  needs no extra identity. ! The overload fix is FEWER FILES per agent -- never a file split
+  across agents.
+
+- **#48.** **TOPOLOGY IS DATA, AND IT IS A TUNING KNOB RATHER THAN AN INVARIANT** (Roy,
+  2026-08-28). The stage list moves from a literal in `desk/stages.py` to a run-scoped file, so
+  all-concurrent, all-sequential and 4a-then-4c are three files and one code path.
+
+  ! **THE SAME FINDINGS NEED NOT PRODUCE THE SAME PAGE UNDER EVERY TOPOLOGY.** Sequential
+  genuinely differs: a later role reads text an earlier one already corrected, so it has less to
+  disagree with -- which is the reason `ownership-context` runs first. Forcing equivalence would
+  mean pretending reading order does not matter.
+
+  ! **`backend` OWNS THE FORMAT, ITS VALIDATOR AND THE FAN-OUT; `agents` OWNS WHEN A STAGE RUNS
+  AND WHY** -- `Process: #40`.
+
+- **#49.** **A COMPOSITION OF EDITS MUST BE RE-READ; `clean` AND `query` ARE THE ONLY PASSES**
+  (Roy, 2026-08-29): *"If two roles have a mark that edits a paragraph - I think we need to send
+  the revision back to them because they could have fixed the same defect in different ways that
+  then causes a new defect. To ensure that the reading still sticks together any composition of
+  edits has to be re-read."*
+
+  ! **THE PASS LIST IS ALREADY A COLUMN**: `owes_change` is False for exactly `clean` and `query`,
+  so the rule is derived from the approved shape rather than invented.
+
+  !! **AN `add` GOES BACK TO EVERY ROLE OF THE STAGE.** Roy: *"Or they could have duplicated the
+  comment. An add on a new place is sent back to all of them."* ! An `add`'s blast radius is the
+  PAGE, not the place: two `add`s at two addresses never meet under per-place grouping, so a
+  duplicated comment passes every check. `ownership-context` decides which of several sites owns a
+  repeated claim and `module-context` asks whether the comments say one thing -- and both ran
+  BEFORE the added prose existed.
+
+  ! **NARROW ACROSS SHARDS, ruled the same day**: all roles of the stage, and for a partitioned
+  role only the shard holding that file. Cross-file duplication is not chased; it would cost the
+  fan-out's whole benefit on any page carrying an `add`.
+
+  !! **IT REACHES EXACTLY AS FAR AS CONCURRENCY DOES.** Across stages the composition is ALREADY
+  re-read -- the next stage reads the revise. Within a stage it is not, and that is the hole.
+  Sequential was safe by construction. ! Nothing already built changes: `pulls_revise`, the revise
+  sheet and the four revise outcomes exist. **What changes is the trigger** -- composition and
+  `add`, not only disagreement.
