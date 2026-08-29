@@ -27,6 +27,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `reanchor` | -> **`move`**. A relocation is ONE judgment; the destination is payload |
 | `HOME` | -> **owner**. It named the same site under a second stem |
 | `jurisdiction` | -> **remit**. Judicial on an editorial system |
+| `join` (the NOUN) | -> **the collator**. A database word, and it carried FIVE referents at once -- see `decision-log.md Vocabulary: #19`. ! The VERB is live: `"".join(...)` is Python's own, and `.join(` is declared in `check_vocabulary.py` |
 | `signature` (the CODE CHECK's) | -> **fingerprint**. `signature` means a function's, only |
 | `residue` (the string) | -> **stripped**. The prose check keeps the word |
 | `owner` (the census field) | -> **anchor**. It is a position, not a judgement |
@@ -49,6 +50,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `folio` | -> **cue**. A folio numbers a LEAF or a PAGE; the `@` half of an address names a position WITHIN a page, so `b3` was never any folio. ! The error shipped as a DEFINITION -- *"a leaf's number in publishing, which is what it is here"* -- and reviewers were given it |
 | `foliator.py`, `foliate()`, `Foliation` | -> **`addresser.py`**, **`cue()`**, **`Cues`**. The module supplies both halves of an address and the whole take-apart; `Cues` holds cues, not addresses. See `docs/decision-log.md` Addressing: #6 |
 | `leaf`, `leaves` (of a page or a place) | **deleted** in that sense. One sheet carries TWO pages, so it was neither the page nor the cue, and a file has no verso. ! Two shipped definitions disagreed -- one said paragraphs run DOWN a leaf, one said a leaf IS a place. ! The IMPORT-GRAPH sense is a different word and is live -- see the polysemy rule below |
+| `verdict` | -> **instruction**. Judicial on an editorial system, the same register error `jurisdiction` made before it became `remit`; and it named the same thing twice -- the object a role returns is a **mark**, its type is an **instruction**. See `decision-log.md Vocabulary: #17` |
 
 ## Held in reserve -- publishing's word for something we already have
 
@@ -82,7 +84,7 @@ system has a different problem with each.
 
 | publishing's word | what it names there | ours |
 | --- | --- | --- |
-| **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | `verdicts.py`, which the shipped tree calls **the join** at 43 sites and which rules on nothing by design. `join` is a database word |
+| **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | `collator.py`, ruled 2026-08-23 (`decision-log.md Vocabulary: #11`) and still to be built. It rules on nothing by design |
 | **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **unnamed.** It is what `verdicts.py` prints |
 | **editor** | who reads the master proof and decides what stands | **the COPY CHIEF**, ruled 2026-08-23. Stage 5 APPLY, performed by the task agent today and getting an agent file of its own |
 
@@ -93,9 +95,25 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
 !! **BOTH CANDIDATE WORDS WERE ALREADY SPOKEN FOR, WHICH IS WHY A RULING WAS NEEDED FIRST:**
 
 - **`collate` is FREE.** Stage 2 was `COLLATE` and is **GATHER** since 2026-08-23, because what
-  it does is find every file in scope and put a page for each in the binder -- gathering is the
-  binder's own word for collecting sheets into sequence. ! So `collate` is available for its
-  trade meaning, transferring every hand's marks onto one proof.
+  it does is find every file in scope and put a page for each in the binder. ! So `collate` is
+  available for its trade meaning, transferring every hand's marks onto one proof.
+
+  !! **AND IT HAS A SECOND TRADE MEANING THIS SYSTEM DOES NOT USE.** In bibliography, **collation**
+  is comparing two states of one text to find where they differ -- the Hinman collator. That is
+  exactly what `taken_in` does (original against the revise a role is holding), so the obvious word
+  is the wrong one: `collator.py` keeps the copy-desk sense above, and the comparison sense is
+  declared here rather than left to be rediscovered. **The undeclared meaning is the defect**, not
+  the ambiguity, which is a fact about English older than this repo.
+  `decision-log.md Vocabulary: #24`.
+
+  !! **A BINDER HERE IS THE OBJECT, NOT THE TRADE.** Roy, 2026-08-24: *"The gatherer/census hands
+  over the binder as in a 3-ring binder full of stuff not binder as the person who bounds
+  books."* ! **He has used it that way throughout** -- *"a binder with sticky notes"*, and the
+  annotations ruling earlier the same day put the sticky notes ON the pages IN it. ! This
+  sentence had justified `GATHER` by calling gathering *"the binder's own word for collecting
+  sheets into sequence"*, which is the BOOKBINDER's word -- two senses one clause apart, in the
+  file that exists to keep senses apart. The justification is cut rather than repaired: what
+  stage 2 does is put a page for each file in the binder, and that reads the same either way.
 - **`editorial role` is one of the four reviewers.** Calling the joiner `editor` puts two
   different jobs one syllable apart. In the trade the four are the hands that MARK -- a copy
   editor, a proofreader -- and only one hand rules.
@@ -117,6 +135,189 @@ refuses a term no role uses, and the rule two sections down applies to a term ar
 to one leaving.
 
 ! Tracked in [`TODO/verdicts-is-the-join.md`](../TODO/verdicts-is-the-join.md).
+
+## `binder` -- the object, and the one sense it carries
+
+**Ruled 2026-08-24.** Roy: *"The gatherer/census hands over the binder as in a 3-ring binder full
+of stuff not binder as the person who bounds books."*
+
+| | |
+| --- | --- |
+| **binder** | **the ARTIFACT the gatherer hands over** -- a folder of pages, with sticky notes on them |
+| NOT | the bookbinder, the trade that sews and cases a book |
+
+! **IT HAS BEEN USED THIS WAY THROUGHOUT** -- *"a binder with sticky notes"* -- and the
+`annotation` ruling of the same day put those notes on the pages IN it, which only reads one way.
+
+!! **THE SENSE MATTERS BECAUSE IT DECIDES WHAT THE THING IS FOR.** A bookbinder is a ROLE, and a
+role does work; a binder is a CONTAINER, and a container is handed over. Read as the role, the
+package looks like a stage that acts on pages -- and every question about it becomes *what does
+the binder DO*. Read as the object, the question is the right one: **what is in it, and who is
+handed it.** That is what the field cut of 2026-08-24 was answering.
+
+! **NOTHING SHIPPED CARRIES THE WORD.** It appears in package docstrings and in this file, and in
+no agent's prose -- so the sense was declared before an agent could learn the wrong one.
+
+## The three containers, on both sides -- `binder`/`docket`, `page`/`schedule`, row/`alteration`
+
+**Ruled 2026-08-26.** Roy, naming the write side against the read side already built: *"like the
+binder we have three levels of containers -- paragraph, page, binder. We have to be able to unwind
+the alterations pretty close to the same way."*
+
+| level | READ side | WRITE side |
+| --- | --- | --- |
+| one place | a **row** -- the cue and what is there | an **alteration** -- the cue and what it becomes |
+| one file | a **page** | a **schedule** |
+| the whole | the **binder** | the **docket** |
+
+| term | what it is |
+| --- | --- |
+| **alteration** | One change at one address: the new text for that place, or `null` to delete what is there. A change to type **already set**, which is what the word means in the trade -- so it is what the compositor acts on, never a proposal. |
+| **schedule** | Every alteration for ONE page, carrying that page's path and the sha it was read at. A page holds the prose; a schedule holds what it becomes. |
+| **docket** | The artifact the desk hands the write chain: every schedule, one per page. In print production a docket is the instruction paperwork that travels with a job, which is what this is. |
+
+!! **`alteration` REPLACES `notations`, WHICH WAS A STAND-IN AND SAID SO.** Roy, 2026-08-25, when
+it was named: *"It is a prototype or stand in for what might need to be built ... We need the
+shape not the concrete implementation."* The word collided with `annotation` -- one letter apart,
+in adjacent areas, both meaning marks attached to a paragraph -- which is
+`TODO/notations-collides-with-annotations.md`. `decision-log.md Vocabulary: #14` supersedes the
+ruling that named it.
+
+!! **AND THE INSTINCT BEHIND `notations` WAS RIGHT, WHICH IS WHY IT COLLIDED.** Roy, 2026-08-26:
+*"if I was writing between the lines with marks in red pen I think of those red marks as
+notations."* The trade calls those **proof correction marks**, and this system already defines
+`mark` as *"what stage 4 emits: one role's ruling on one paragraph."* So the word was reaching for
+a thing the register had already named. ! What the desk produces from those marks is the thing
+that needed a name, and a change to text already set is an **alteration**.
+
+! **THE TRADE DETAIL THAT DECIDED THE LEVELS:** a proof correction is TWO marks -- a **textual
+mark** in the line saying *here*, and a **marginal mark** saying *what*. The compositor works from
+the margin. An alteration carries both halves in one row, the cue being the textual mark and the
+text being the marginal one.
+
+! **WHY THE SHA SITS ON THE SCHEDULE AND NOT THE DOCKET.** It is a fact about ONE file, read once,
+and putting it there is what lets the write chain check that the page it is about to set is the
+page the agents read -- without consulting the binder at all. Roy, 2026-08-25: *"besides reading
+the sha and file path/name you should not be assuming any binder things make it this far."*
+
+!! **NONE OF THE FOUR IS IN `references/vocabulary.toml`, AND THAT IS THE GATE WORKING.**
+`check_vocabulary.check_complete` reports `NO RECIPIENT` for a definition no role is given, and
+counts it a hole. The toml is what agents are HANDED; this file is the repo's own glossary. A term
+crosses over the day a role's prose actually uses it -- which is the same reason `binder` has
+never been in it.
+
+## `library` -- every file in the project under review
+
+**Ruled 2026-08-27, in two halves.** Roy: *"Strike `library` because that is not the word I would
+have used at any point in time for the concept. I have consistently used the words package,
+sub-package, module."* And then: *"I do think library has a useful definition in the system. It is
+all of the files in the project being reviewed."*
+
+| | |
+| --- | --- |
+| **library** | **every file in the project being reviewed.** The whole shelf |
+| **binder** | the pages this run took OFF that shelf -- the scope the roles were given |
+| this program's own parts | **package, sub-package, module.** Python's own words, always |
+
+!! **SO THE LIBRARY IS THE POPULATION AND THE BINDER IS THE SELECTION**, and that names something
+this system has needed and not had: **the set of things a mark MAY address.** A `move`
+destination, or an `add`, may cite a page the binder never carried -- it is still in the library.
+! That is the constraint Roy stated the same day: a destination must be ADDRESSABLE, *"not
+necessarily in the binder."*
+
+! **AND IT GIVES THE PULLED-IN PAGE ITS PROVENANCE.** A code file censused mid-run is not
+"external" to anything -- it was on the shelf all along. What is true of it is that **the roles
+never saw it**, which is a fact about the BINDER, not about the file.
+
+### `pulled` -- the binder's section for a page taken from the library mid-run
+
+**Ruled 2026-08-27.** The binder carries three sections:
+
+    pages        what the ROLES reviewed -- the scope they were given
+    pulled       a page taken from the library DURING the run, because a mark
+                 needed it. Same shape as a page: path, sha, rows
+    references   documents -- `path:line`, no cue series
+
+! **THE NAME IS THE ACTION, AND IT IS ROY'S OWN**: *"an external program file should get a
+`page_for` pull."* You pull a book off the shelf; `flows.page_for.page_of` pulls the page and
+attaches its sha at the moment of the pull.
+
+!! **THE DISTINGUISHING FACT IS THAT NO ROLE SAW IT**, so no role vouched for it. That is a fact
+about the BINDER, not about the file -- which is why `external` was rejected: a page censused
+mid-run is not external to anything, it was on the shelf all along.
+
+! **AND IT STAYS TRUE IF THE PAGE IS SET.** A `move` destination may land in `pulled`, so the
+section is not read-only; `consulted` was rejected for asserting otherwise, and would have stopped
+being true the first time the chain wrote one.
+
+!! **THE TWO PYTHON-PACKAGING USES ARE A DIFFERENT WORD AND ARE NOT COVERED HERE.**
+`machine/repo.py`'s *"some library happens to define that name"* and `language.py`'s *"not by the
+library that happens to answer it"* mean an INSTALLED package; `CLAUDE.md` and
+`test_shipped_imports.py` mean Python's STANDARD LIBRARY. ! Ordinary Python prose, not terms of
+art in this system -- but they are a second sense of a word that now has a settled definition, and
+whether they get reworded is unruled.
+
+!! **IT WAS NEVER HIS, AND THE RECORD PROVES IT.** MEASURED 2026-08-27: **no quotation from Roy
+anywhere in this tree contains the word.** It entered in `decision-log.md Process: #12` -- an
+entry attributed to him -- and spread as boilerplate to **ten `commands/*.py` banners**, `src/`'s
+own `__init__`, `flows/__init__`, `results/galley.py`, a gate test and a release plan. 16 sites.
+
+! **THE ENTRY'S QUOTATION DOES NOT CONTAIN IT EITHER.** `#12` cites Roy on entry points --
+*"the commands run through it not through the scripts that are doing double or triple duty"* --
+which says nothing about a layer called a library. **The headline stated more than its
+quotation, and the quotation lent authority to the whole sentence.**
+
+! **THE PRINCIPLE UNDER IT IS HIS**, and is quoted twice: *"don't try to make the list generic --
+that is a failure of the single responsibility principle"* and *"anything else is failing the SRP
+rules"* (both 2026-08-22). ! Both are about LANGUAGE DEFINITION ROWS, not modules -- so even the
+supported half was carried across a subject boundary.
+
+!! **IT IS NOT RETIRED, IT IS NARROWED.** `check_retired` scans `plugins/`, and two shipped files
+use the word correctly -- `machine/repo.py`'s *"some library happens to define that name"* about
+an installed package, and `language.py`'s *"not by the library that happens to answer it"* about a
+third-party parser. **Retiring the word would refuse both.** This is declared polysemy of the
+same kind as [`leaf`](#) -- one live sense, and a struck one that must not come back.
+
+! **WHAT CAUGHT IT WAS ROY'S MEMORY**, not a gate. Everything in the tree agreed with itself: the
+entry cited a real quotation, carried a real measurement, and was cross-referenced from a release
+plan. He said *"I don't remember making this rule."* **The decision log is the one file where a
+false attribution is most expensive, and it is the file with no reader but him.**
+
+## What becomes of a mark -- `taken in`, and `stet`
+
+**Two words, and they answer different questions.** Ruled 2026-08-24, and both are ADOPTED rather
+than held in reserve.
+
+| the word | what it names | who says it |
+| --- | --- | --- |
+| **`taken in`** | the mark was carried into the text. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the piece that composes, mechanically, about every mark |
+| **`stet`** | *let this stand.* Emitted where two roles could not agree, and it points at what stands -- the mark it chose, or neither | the **copy chief**, and no one else |
+
+!! **A ROLE CANNOT EMIT A `stet`.** It presupposes two roles that disagreed and a copy chief that
+ruled, so no single hand is ever in a position to file one. Roy, 2026-08-24: *"it is the
+declaration that the copy chief emits when two editorial roles couldn't agree. It emits on the
+one that it chose, or it overrules both."*
+
+! **`the original stands` IS TOO NARROW A GLOSS.** Roy: *"stet -- let this stand."* What it points
+at may be the original OR one role's mark; the pointing is the whole of it, and the original is
+one of the two things it can point at.
+
+!! **`settled` WAS PROPOSED FOR `taken in` AND MEASURED OUT.** Roy, 2026-08-24: *"close to set but
+not confused with set"*, and *"not overly generic like set"* -- the shape is right and the word
+fails the second test. MEASURED the same day: `settle` appears **94 times across 19 shipped files
+and 35 more in `docs/`**. ! Two of those are collisions with the neighbour: `re-review.md:139`
+already writes *"a paragraph stage 5 **settled**"*, which is the `stet` case, and `SKILL.md:68`
+lists `query` as **unsettled**, an axis about whether a QUESTION is open rather than whether a
+mark reached the text. **`taken in` returns zero occurrences.**
+
+! **And it reads without the trade.** Roy: *"also fits the common use of the word"* -- ordinary
+English *take in* is to absorb or incorporate, so a reader who does not know a compositor's
+marginal marks still reads it correctly. ! A two-word phrase also cannot drift into general use
+the way `set` did.
+
+! Tracked in [`TODO/nothing-makes-the-fair-copy.md`](../TODO/nothing-makes-the-fair-copy.md), and
+`stet`'s own build is [`TODO/no-mark-for-let-it-stand.md`](../TODO/no-mark-for-let-it-stand.md) --
+which is written on the reading this ruling corrects.
 
 ## ownership -- settled, and deliberately not emitted
 
@@ -152,5 +353,22 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
     retiring the word fired on 15 sentences reading *"leaves it unaccounted for"*.
   - ! **It is confined to `.py` and is checked there**: 10 uses, none in `agents/`, `SKILL.md` or
     `references/`, so nothing an agent is handed carries the ambiguity.
-- **`clean` is reserved.** It is one of the seven verdicts and is never a loose adjective for
+  - !! **`settle` IS THE ONE WHERE THE CONTEXTS DO OVERLAP, AND IT IS OPEN.** Raised by Roy the
+    moment `taken in` was ruled, 2026-08-24: *"now we have a polysemy of the word settled and
+    that has to get resolved."* Two senses, and they are not confined:
+
+    | sense | what it is about | where |
+    | --- | --- | --- |
+    | **a CLAIM settled by evidence** | `query` names *what would settle* it; an unsettled claim is an open one | SHIPPED -- `record.py`'s `needs_settles`, the brief's `settles` key, `SKILL.md:68`'s `unsettled` |
+    | **a DECISION settled by a ruling** | a term, a definition or a design that is agreed and not reopened | this file, `CLAUDE.md`, `docs/` prose, and 54 shipped uses |
+
+    ! **MEASURED 2026-08-24: 94 uses across 19 shipped files, 35 more in `docs/`.** Of the
+    shipped, 40 are the claim sense (`settles` 32, `needs_settles` 6, `unsettled` 2). **43 are
+    in what an agent is HANDED** -- `SKILL.md` 15, `reviewer-brief.md` 16, the four role files 7,
+    `compact`/`write`/`re-review` 5 -- so this fails the confinement test `leaf` passes.
+
+    ! **AND A THIRD USE IS ALREADY RETIRED BY `stet`**: `re-review.md:139` writes *"a paragraph
+    stage 5 settled"*, which is the copy chief's ruling and now has its own word.
+
+- **`clean` is reserved.** It is one of the seven instructions and is never a loose adjective for
   code, prose, a grep result or a run.

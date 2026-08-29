@@ -7,7 +7,7 @@ Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
 Closed:   2026-08-20 -- 2026-08-20 -- ONE OF THE SIX IS CLOSED. The front-matter ->
-          `query` conversion is now gated by two end-to-end tests that run the join and
+          `query` conversion is now gated by two end-to-end tests that run the collator and
           read its output: one on a FILLED front-matter run and one on the EMPTY place.
           VERIFIED as a gate by disabling the guard -- both fail, and the suite is green
           with it restored. ! The old class asserted a `VERDICTS` flag and
@@ -41,7 +41,7 @@ direct comparison. **So the mutation has to be run again to say whether it is li
 the test is not enough, and this file is the reason: it read one and got it wrong.
 
 ! **A closed one stays here checked, with what closed it.** The front-matter to `query`
-conversion is gated by two end-to-end tests that run the join and read its output, verified by
+conversion is gated by two end-to-end tests that run the collator and read its output, verified by
 disabling the guard. What the mutation deleted was `verdicts.py:445-469` entirely -- the 25 lines
 that convert a reviewer's edit on front matter to a `query`, the one path stopping an edit
 landing on a licence header -- and it left 720 tests OK.
@@ -72,7 +72,7 @@ landing on a licence header -- and it left 720 tests OK.
 ## Tasks
 
 - [x] T1 -- FINISHED. The front-matter to `query` conversion is gated by two end-to-end
-      tests that run the join and read its output; verified by disabling the guard.
+      tests that run the collator and read its output; verified by disabling the guard.
 - [ ] T2 -- Re-apply the `c`-from-`b` cue mutation against the rewritten
       `tests/test_cues.py:1127`. Verify: whether it survives is recorded here, dated.
 - [ ] T3 -- Gate the `c` cue against being DERIVED from the `b` cue. Verify: with `beside`

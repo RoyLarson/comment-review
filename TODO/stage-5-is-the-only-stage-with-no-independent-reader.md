@@ -30,7 +30,7 @@ Two different properties, and this file conflated them until he separated them:
 
 | | means | who has it |
 | --- | --- | --- |
-| **independent** | did not write the text it is reading | the join, the compact agent, the filers at 5b/6b, stage 8, the human |
+| **independent** | did not write the text it is reading | the collator, the compact agent, the filers at 5b/6b, stage 8, the human |
 | **FRESH** | formed no prior view of this paragraph | **stage 8 and the human, and nobody else** |
 
 A filer confirming at 5b already read the paragraph and already ruled on it. That is worth having
@@ -45,7 +45,7 @@ readers.**
 
 | stage | who checks it |
 | --- | --- |
-| 4 MARK | `verdicts.py` -- the join, mechanically |
+| 4 MARK | `verdicts.py` -- the collator, mechanically |
 | **5 APPLY** | **5b RE-REVIEW** -- the roles that ruled, asked *is this what you meant?* |
 | 6 COMPACT | **6b RE-REVIEW** -- `re-review.md:59` calls it stage 6's only reader before the author |
 | 7b WRITE | the CODE CHECK, against the pre-edit ref |
@@ -92,7 +92,7 @@ finding today reaches:
 - A reviewer's `correct` dropped a qualifier that was carrying a true sentence, and the result
   is falsified by the test it annotates.
 
-!! **AND THE MECHANICAL STAGES HELD, WHICH IS THE OTHER HALF OF THAT MEASUREMENT.** The join
+!! **AND THE MECHANICAL STAGES HELD, WHICH IS THE OTHER HALF OF THAT MEASUREMENT.** The collator
 gated correctly, the interval exemption removed the 65-refusal class, `compact` respected the
 docstring exemption and flagged its own width trade rather than hiding it, and the CODE CHECK
 stopped the run on a real AST change. **The failure is specific to the stage that had no second

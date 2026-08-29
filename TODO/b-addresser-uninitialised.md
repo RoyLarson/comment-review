@@ -60,7 +60,7 @@ done.py@b1 names no entry in this census        (rc=1)
 ! The prose the reviewer placed at `b1` to introduce `N = 0` was then at `b0`, stamped
 `front-matter` -- so it was dropped from `--filtered`, no role saw it again, and any edit
 proposed on it was auto-converted to a `query`. **A round-1 record citing `b1` resolved to
-nothing, and the join reported it FATAL** -- the reviewer's correct finding refused as though
+nothing, and the collator reported it FATAL** -- the reviewer's correct finding refused as though
 fabricated, which is the "blames the neighbour" class `verdicts.py` names as the most expensive
 diagnostic there is.
 

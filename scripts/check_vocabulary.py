@@ -73,6 +73,31 @@ RETIRED = {
     # measured 2026-08-23, it fired on 15 sentences reading *"leaves it
     # unaccounted for"*. ! The two senses are declared polysemy; see
     # `docs/vocabulary.md` and `TODO/leaf-means-two-things.md`.
+    #
+    # !! `join` AS A NOUN IS RETIRED, 2026-08-27. Roy: *"'The join' was too
+    # ambiguous. It didn't define anything and you used it as a shortcut that
+    # could have meant many different operations."* MEASURED: 202 live uses
+    # carrying FIVE referents -- the `verdicts.py` program, linking two data
+    # structures, checking a mark against its page, a git merge, and ordinary
+    # English. `decision-log.md Vocabulary: #19`.
+    #
+    # ! THE VERB IS LIVE AND NECESSARY -- `"".join(...)` appears 28 times in the
+    # shipped tree -- so `.join(` is declared below rather than the word being
+    # left out of this table. The `(?![\w-])` in `check_retired` already spares
+    # `joins`, `joined` and `joining`; only the bare noun is refused.
+    "join": "the collator",
+    # !! `verdict` IS RETIRED, 2026-08-27. Roy: *"I also don't like the term
+    # verdict. It doesn't seem in line and is confusing when it is also called
+    # a finding."* A MARK IS THE OBJECT; ITS `instruction` IS ONE OF THE SEVEN.
+    # `decision-log.md Vocabulary: #17`.
+    #
+    # ! THE PLURAL IS A SEPARATE ROW, same as `block`/`blocks` above: the
+    # `(?![\w-])` boundary that spares `.join(`'s live VERB forms also spares
+    # `verdicts` from the singular entry, and that sparing is wrong here --
+    # the plural NOUN is exactly as retired as the singular, with no live verb
+    # sense to protect.
+    "verdict": "instruction",
+    "verdicts": "instructions",
 }
 
 # !! THE WAY OUT, AND IT IS PER FILE. Roy, 2026-08-19: *"let's give ourselves a
@@ -142,6 +167,8 @@ MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ", "`pCST`")
 #                   a PYTHON code block, the language's own term
 #   Java text block the same feature as TEXT BLOCK above, in lower case
 NOT_THE_TERM = (
+    # ! Python's own str.join -- the VERB, and 28 sites in the shipped tree.
+    ".join(",
     "block-context",
     "TEXT BLOCK",
     "block_matches",
@@ -156,7 +183,13 @@ NOT_THE_TERM = (
     "Java text block",
 )
 REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
-EMITTED = REFERENCES / "vocabulary.toml"
+# !! THE TOML IS PACKAGE DATA AND NO LONGER SITS BESIDE THE `.md` REFERENCES.
+# `vocabulary.py` reads it relative to its own `__file__`, so it has to travel
+# with the code; the `.md` files beside it are read by AGENTS, not by any
+# script, and stay in the skill. Moved 2026-08-24 with the package -- a source
+# tree that reached into `plugins/` for its own data would depend on the tree
+# that is BUILT FROM it.
+EMITTED = REPO / "src/comment_review/references/vocabulary.toml"
 
 # The record of what CHANGED -- never a second place to look a live term up.
 DOC = REPO / "docs/vocabulary.md"

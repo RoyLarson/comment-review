@@ -1,0 +1,19 @@
+"""The pages, and the record a reviewer fills against them.
+
+    page       ONE FILE -- its paragraphs tied to the places on it
+    annotate   the resolution a reviewer would otherwise do by hand
+    record     seeding a record, and checking one that comes back
+    held       reading a filled record back
+
+!! A PAGE AND A RECORD ARE IMMUTABLE ARTIFACTS THE SYSTEM CREATES. Ruled by Roy,
+2026-08-24. Nothing downstream may treat a record as the thing that carries an
+answer BACK to the page -- what does is undecided, and twelve tests are held
+rather than patched because of it. See `TODO/nothing-makes-the-fair-copy.md`.
+
+! `annotation` IS THE BINDER'S WORD and only one thing in this system may carry
+it -- the sticky note a page gets for information a reader needs. Ruled
+2026-08-24 by testing both candidates on agents; `docs/decision-log.md
+Vocabulary: #13`. The lexer's three diagnostics are ERRORS, not notes.
+
+! `record` IS FOUR SUBJECTS AND IS NOT YET SPLIT -- P10.
+"""

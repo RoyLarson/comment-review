@@ -13,6 +13,39 @@ TRIAGED:  2026-08-23 — three of four boxes are tasks; the fourth was a standin
           `QUOTE`, it asks for `SOURCES` -- `reviewer-brief.md:419-423`, *"A `query`
           requires `SOURCES`, by construction ... All three shapes carry them, including
           `outside my role`"*.
+Updated:  2026-08-28 — THE BIND ARRIVES FROM A SECOND DIRECTION, AND IT IS THE SAME ONE.
+          Roy, 2026-08-28: "They all need to say something about every paragraph -
+          giving them instructions in such a way that they make it useful is also
+          important. module-context ruling on a local block-context thing could and
+          probably should in the 'right' circumstance be `move a.py@b3 to b.py@b10` this
+          whole block indicates that this piece of functionality should be in a
+          different module because that is where it fits. The problem comes down to that
+          also requires moving code which we don't do because it is unsafe." ! THE MARK
+          IS EXPRESSIBLE TODAY. `docs/the-mark.md` gives a `move`'s destination as
+          "another line, another file, or out of the code entirely", and a cross-file
+          destination is legal. So `move a.py@b3 -> b.py@b10` parses, resolves, and
+          reaches a docket. !! WHAT BREAKS IS THE AFTERMATH. The prose lands in `b.py`
+          describing functionality still in `a.py`. The mark was TRUE as a judgment
+          about where the thing belongs, and executing only its prose half MAKES IT
+          FALSE AT ITS NEW HOME -- a comment in `b.py` about code `b.py` does not have.
+          The system would faithfully perform a relocation that manufactures the defect
+          `block-context` exists to catch. ! AND THIS IS A SHARPER STATEMENT OF THE COST
+          THAN THIS FILE CARRIES. The Objective argues the PAYLOAD is heavy. What Roy
+          names is worse: the role has a REAL FINDING available -- "this functionality
+          is in the wrong module", squarely `module-context`'s remit -- and no way to
+          express it that survives execution, so it files `outside-my-role` instead. THE
+          COST IS NOT A HEAVY NON-FINDING; IT IS A REAL FINDING DOWNGRADED TO A NON-
+          FINDING. ! Same shape as `a-role-with-no-code-out-damages-the-prose`, one
+          level up: not bending a sentence to fit wrong code, but abandoning a correct
+          STRUCTURAL observation because acting on it is unsafe. ! THE CANDIDATE ANSWER
+          UNDER CONSIDERATION REACHES THIS TOO -- a TODO written into the interval or
+          margin prose, accepted by a human at 7a. `module-context` cannot move the
+          code, but it can `add` at `a.py@b3` a line saying the subject belongs in
+          `b.py`. Addressable, human-gated, and self-healing: once the code moves the
+          TODO is a false claim about `a.py`, which is an obituary. ONE MECHANISM, TWO
+          BINDS -- which is evidence for the shape rather than a workaround. See the
+          double-bind note on `a-role-with-no-code-out-damages-the-prose`, dated the
+          same day.
 ```
 
 ## Objective
@@ -51,7 +84,7 @@ and they are pulling on the same rope.
 ## ! What is NOT established
 
 - **That the reports are too large for anything.** Nothing failed. `verdicts.py` parses them
-  mechanically and the task agent reads the JOIN, not the reports.
+  mechanically and the task agent reads the COLLATOR, not the reports.
 - **That the payload is wasted.** An `outside my role` query with its `SOURCES` proves the role
   read the block. That is the fabricated-`clean` defence, and it is the reason the contract
   exists.

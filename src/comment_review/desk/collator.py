@@ -1,0 +1,205 @@
+"""Source-verification -- the first of `collator.py`'s two named steps.
+
+    known_addresses(binder)     every place the binder still carries
+    address_problems(...)       T3.1 -- does the address resolve
+    claim_verbatim_problems(...) T3.3 -- is the quoted sentence really in the
+                                 paragraph
+    source_problems(...)        T3.2 -- does every `source` resolve, with its
+                                 `verbatim` within reach of the cited line
+    source_verification(...)    all three, over one mark
+
+`decision-log.md Vocabulary: #19` names the module and its two steps, keyed on
+scope: source-verification is per MARK, against the page it rules on;
+reconciliation is per PLACE, across the marks of one stage and is not built
+here. **THE COLLATOR RULES ON NOTHING** (`Vocabulary: #11`) -- every function
+below reports; none of them decides what a mark should have said.
+
+!! TWO OF THE THREE CHECKS COST NO FILE READ, because of `flows/marks.py`'s
+`seed()`: the address and the paragraph's own `raw_text` are already on the
+row a role filled in, so `address_problems` and `claim_verbatim_problems` read
+only the mark. Only `source_problems` opens a file -- one per CITED file, read
+once and cached, since 706 recorded marks carried 382 citations over 9 roots.
+
+!! NO SHA CHECK, AND NO RE-READING THE PAGE THIS MARK RULES ON. Roy,
+2026-08-28: *"Too early for the strictness and the look up time each time."*
+A stale mark surfaces later, through the proof-setter pass -- not here.
+"""
+
+from pathlib import Path
+
+from comment_review.binder.binder import rows_of
+from comment_review.desk.mark import INSTRUCTIONS
+from comment_review.machine.exceptions import READ_ERRORS
+
+#: `reviewer-brief.md`: "your text must appear within three lines" of the
+#: cited line -- lines either side of it that a `source`'s `verbatim` may sit
+#: in.
+WITHIN = 3
+
+#: A per-file cache -- `path` (relative to the root a `source` cites into) ->
+#: its lines, or `None` when the file could not be read. Built fresh per run
+#: and threaded through, so a stale entry never survives past one caller.
+Cache = dict[str, tuple[str, ...] | None]
+
+
+def known_addresses(binder: dict) -> frozenset[str]:
+    """Every address the binder still carries -- what T3.1 checks a mark against."""
+    return frozenset(
+        row["address"] for row in rows_of(binder) if row.get("address")
+    )
+
+
+def address_problems(where: str, mark: dict, known: frozenset[str]) -> list[str]:
+    """T3.1 -- the address resolves to a place the binder carries.
+
+    ! Only fires when `address` is present: `clean` is not substantive and
+    owes none, and a `mark` seeded onto a sheet always carries one, so a
+    missing address here is `desk.mark.problems`'s question, not this one's.
+    """
+    address = mark.get("address")
+    if isinstance(address, str) and address and address not in known:
+        return [f"{where}: `address` {address!r} names no place the binder carries"]
+    return []
+
+
+def claim_verbatim_problems(where: str, mark: dict) -> list[str]:
+    """T3.3 -- the sentence the claim rules on is really in the paragraph.
+
+    The VERBATIM classifier (`Row.quotes_original`) names the one
+    `claim` key checked this way -- `false` for `correct`, `drop` for `drop`,
+    `from` for `patch`; the other four quote nothing. Reads `mark["raw_text"]`,
+    the paragraph `seed()` put on the row -- no file, no re-read.
+    """
+    instruction = mark.get("mark")
+    spec = INSTRUCTIONS.get(instruction) if isinstance(instruction, str) else None
+    key = spec.quotes_original if spec is not None else ""
+    if not key:
+        return []
+    claim = mark.get("claim")
+    value = claim.get(key) if isinstance(claim, dict) else None
+    if not isinstance(value, str) or not value.strip():
+        # ! A missing or empty claim key is `desk.mark.problems`'s question --
+        # it already refuses this shape before source-verification would run.
+        return []
+    raw_text = mark.get("raw_text")
+    if not isinstance(raw_text, str) or value not in raw_text:
+        return [f"{where}: `claim.{key}` is not in the paragraph this row seeded"]
+    return []
+
+
+def _cite_at(cite: str) -> tuple[str, int] | None:
+    """`path:line` split apart, or `None` -- `reviewer-brief.md`'s own form."""
+    path, sep, line = cite.rpartition(":")
+    if not sep or not path or not line.strip().isdigit():
+        return None
+    lineno = int(line)
+    return (path, lineno) if lineno >= 1 else None
+
+
+def _lines(root: Path, path: str, cache: Cache) -> tuple[str, ...] | None:
+    """A cited file's lines, read once per `path` and kept in `cache`."""
+    if path not in cache:
+        try:
+            text = (root / path).read_text(encoding="utf-8")
+        except READ_ERRORS:
+            cache[path] = None
+        else:
+            cache[path] = tuple(text.splitlines())
+    return cache[path]
+
+
+def source_problems(where: str, mark: dict, root: Path, cache: Cache) -> list[str]:
+    """T3.2 -- every `source` resolves, its `verbatim` within reach of the cite.
+
+    !! A BARE-STRING SOURCE IS REFUSED, NOT DROPPED, per a finding tracked in
+    `TODO/`: a retired reader filtered `sources` to dicts before its own check
+    ever ran, so a bare string vanished rather than being flagged. This loop
+    walks `sources` as handed and reports on every entry, dict or not.
+    """
+    sources = mark.get("sources")
+    if not isinstance(sources, list):
+        return []
+    out = []
+    for i, source in enumerate(sources, 1):
+        at = f"{where}: source {i}"
+        if not isinstance(source, dict):
+            out.append(f"{at} is not an object -- a bare string cannot be resolved")
+            continue
+        cite = source.get("cite")
+        verbatim = source.get("verbatim")
+        if not isinstance(cite, str) or not cite.strip():
+            continue  # `desk.mark.problems`'s question, not this one's.
+        parsed = _cite_at(cite)
+        if parsed is None:
+            out.append(f"{at}: `cite` {cite!r} is not `path:line`")
+            continue
+        path, lineno = parsed
+        lines = _lines(root, path, cache)
+        if lines is None:
+            out.append(f"{at}: `cite` {cite!r} does not resolve -- the file "
+                        "cannot be read")
+            continue
+        if lineno > len(lines):
+            out.append(f"{at}: `cite` {cite!r} names a line past the end of "
+                        "the file")
+            continue
+        if not isinstance(verbatim, str) or not verbatim.strip():
+            continue  # `desk.mark.problems`'s question, not this one's.
+        lo = max(0, lineno - 1 - WITHIN)
+        hi = min(len(lines), lineno + WITHIN)
+        window = "\n".join(lines[lo:hi])
+        if verbatim not in window:
+            out.append(
+                f"{at}: `verbatim` is not within {WITHIN} lines of {cite}"
+            )
+    return out
+
+
+def source_verification(
+    where: str, mark: dict, *, known: frozenset[str], root: Path, cache: Cache
+) -> list[str]:
+    """T3.1 + T3.2 + T3.3, over one mark -- every check this step owns.
+
+    Args:
+        where: how to name this mark in a message -- its address, or a
+            position.
+        mark: one role's ruling on one place, as a filled sheet entry --
+            carrying `address`, `raw_text` and `mark` from `seed()`, plus
+            `claim` and `sources` from the role.
+        known: every address the binder carries -- `known_addresses(binder)`.
+        root: the checkout `sources` cite into.
+        cache: a per-file line cache, built once per run and passed to every
+            call so a repeated citation costs one read.
+
+    Returns:
+        One message per broken rule. Empty means source-verification found
+        nothing to refuse -- it says nothing about whether the mark is right.
+    """
+    return (
+        address_problems(where, mark, known)
+        + claim_verbatim_problems(where, mark)
+        + source_problems(where, mark, root, cache)
+    )
+
+
+def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
+    """Source-verification over a whole filled sheet.
+
+    The shape `flows.marks.seed()` hands out, after a role filled it in.
+
+    ! Skips an unruled entry (`mark` is `None`) the same way
+    `flows.marks.problems_in` does -- a coverage gap is not a problem this
+    step reports.
+    """
+    marks = report.get("marks")
+    if not isinstance(marks, list):
+        return []
+    known = known_addresses(binder)
+    cache: Cache = {}
+    out: list[str] = []
+    for i, mark in enumerate(marks, 1):
+        if not isinstance(mark, dict) or mark.get("mark") is None:
+            continue
+        where = str(mark.get("address") or f"mark {i}")
+        out += source_verification(where, mark, known=known, root=root, cache=cache)
+    return out

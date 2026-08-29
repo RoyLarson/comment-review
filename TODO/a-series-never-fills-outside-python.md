@@ -105,7 +105,7 @@ separate line of code which is implicitly referred to from the previous line is 
 problem."* `lexer.declarations` already encodes this -- it returns `(line, insert)` where
 `insert` IS the keyword line for every above-doc language.
 
-! **THE JOIN RULE IS NEAREST-ABOVE, NOT ADJACENCY.** MEASURED 2026-08-21 on CPython v3.13.1
+! **THE COLLATOR RULE IS NEAREST-ABOVE, NOT ADJACENCY.** MEASURED 2026-08-21 on CPython v3.13.1
 (`corpora/cpython`, 489 `.c`/`.h` files): of 2,987 documented column-0 declaration lines, 1,863
 (62%) carry a comment flush against them and 1,124 (38%) have a blank line between. A strict
 `end + 1 == insert` test abandons that 38% in `b`. ! It is implemented:

@@ -17,7 +17,7 @@ Triaged:  2026-08-23 — three of the seven boxes were a MEASUREMENT, a cross-re
           8 of them, not 7.
 Split:    2026-08-23 -- every box cut to two lines. The one artifact box held three
           boundary statements and a reconciliation of seven TODOs, so it became four.
-          Second pass: the join box held two rulings, so 10 boxes became 11
+          Second pass: the collator box held two rulings, so 10 boxes became 11
 ```
 
 ## Objective
@@ -41,7 +41,7 @@ they resolve against rather than a duplicate of any of them:
 | --- | --- | --- |
 | census -> reviewer | the row a reviewer is handed. MEASURED 2026-08-23: 19 fields, and an `interval` fills 8 | [`census-row-carries-empty-fields`](census-row-carries-empty-fields.md), [`the-census-is-mostly-intervals-nobody-rules-on`](the-census-is-mostly-intervals-nobody-rules-on.md) |
 | reviewer -> record | what a finding IS -- `claim` is an object that renders to a marker string for checks written against the old form | [`claim-fallback-is-unreachable`](claim-fallback-is-unreachable.md), DEFERRED on this determination |
-| record -> verdict | what the join certifies -- `verdicts.py` refuses a record `record.py` accepts and the reverse; coverage is structural but a gap goes nowhere | [`a-coverage-gap-should-go-back-to-the-reviewer`](a-coverage-gap-should-go-back-to-the-reviewer.md), [`record-and-verdicts-disagree`](record-and-verdicts-disagree.md) |
+| record -> verdict | what the collator certifies -- `verdicts.py` refuses a record `record.py` accepts and the reverse; coverage is structural but a gap goes nowhere | [`a-coverage-gap-should-go-back-to-the-reviewer`](a-coverage-gap-should-go-back-to-the-reviewer.md), [`record-and-verdicts-disagree`](record-and-verdicts-disagree.md) |
 
 ! **THE ROW WAS RE-MEASURED 2026-08-23** with `census.py --json --repo .
 tests/fixtures/sample.py`: 19 keys, an `interval` fills 8 of them and an `f` fills 6. **What the
@@ -81,7 +81,7 @@ statement is one per boundary, with the fields NAMED, and every named field is e
       the four roles need. Verify: the ruling names them and is recorded in this file.
 - [ ] T5 -- * **RULE WHAT A FINDING IS**, `claim` included. Verify: the ruling is recorded
       in this file and `claim-fallback-is-unreachable` can move on it.
-- [ ] T6 -- * **RULE WHAT THE JOIN CERTIFIES**, and where a coverage gap goes. Verify: the
+- [ ] T6 -- * **RULE WHAT THE COLLATOR CERTIFIES**, and where a coverage gap goes. Verify: the
       ruling is recorded in this file.
 - [ ] T7 -- * Rule which of `record.py --check` and `verdicts.py` is right where they
       disagree. Verify: the ruling is recorded in this file.

@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 2 of 8 tasks done
+Progress: 4 of 8 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (/code-review high round 3, 2026-08-22, and Roy: the record/verdict
@@ -24,6 +24,16 @@ RE-VERIFIED: 2026-08-23 -- ALL SIX FINDINGS RE-READ IN THE SHIPPED TREE AND ALL 
              (verdicts.py:542-549), and the only surviving branch of `address_problem` is
              that same `entry is None` test (desk.py:614-616) -- so the check cannot
              fire, and desk.py:617-621 says so in its own comment.
+Updated:  2026-08-28 — T4 was ticked at fcba2a6 and is UNTICKED again: only its gate
+          half landed. `desk/mark.py` now requires `claim.shape` as a key and refuses a
+          shape outside the three, so the substring fallback is gone from the live code.
+          Its VERIFY sentence -- "a query with no shape and *outside my role* in its
+          prose reaches stage 5" -- names routing that lives in the collator, which is
+          not built; the substring test it describes survives only in
+          `prototype/original/record.py`, which does not run. Found by the Task 1 task
+          reviewer. The remainder is worked by `docs/plans/0.2.4-the-mark-and-the-
+          collator.md` P4.3. The sentence is not being reworded to match what was done:
+          an unchecked box says work remains, and it does.
 ```
 
 ## Objective
@@ -76,7 +86,7 @@ never report. By the rule in `docs/gates.md` -- could it fail -- no.
       findings survive the wait for an independent review session.
 - [x] T2 -- NOT A TASK. The FRAMING, restated in the Objective: all six are one class, and
       the admitting gate is the one that certifies a review.
-- [ ] T3 -- Stop `load_report` dropping a bare-string source before `source_problem` runs.
+- [x] T3 -- Stop `load_report` dropping a bare-string source before `source_problem` runs.
       Verify: one report carrying a bare-string source, and both tools agreeing on it.
 - [ ] T4 -- Require `claim.shape` instead of a substring test on the claim text. Verify: a
       `query` with no `shape` and *outside my role* in its prose reaches stage 5.
@@ -86,5 +96,5 @@ never report. By the rule in `docs/gates.md` -- could it fail -- no.
       record with a present-and-empty EXTRA is refused by both tools.
 - [ ] T7 -- Make `held.py:118` check the TYPE of `pages`, not just the key. Verify: a
       report whose `pages` is a dict is refused with the shape diagnostic.
-- [ ] T8 -- Replace `address_problem` with a check that can fire. Verify: whatever
+- [x] T8 -- Replace `address_problem` with a check that can fire. Verify: whatever
       replaces it can be made to fail on a crafted record.

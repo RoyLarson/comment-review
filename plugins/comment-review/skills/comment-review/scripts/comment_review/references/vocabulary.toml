@@ -1,0 +1,303 @@
+# The vocabulary, written ONCE.
+#
+# `scripts/vocabulary.py --reviewer <role>` prints the entries that role needs and
+# the task agent puts the output in that agent's prompt, verbatim. Nothing here is
+# summarised and nothing is restated anywhere else: a shipped file that USES a term
+# does not also define it.
+#
+# [definitions]  term -> what it means. One line each, and each one is what some
+#                site in the tree used to say in passing.
+# [roles]        role -> the terms it is given, KEYS ONLY. A term wanted by three
+#                roles is listed three times and written once; `all` is the set every
+#                agent gets, so a role never repeats those.
+#
+# Which terms a role gets was MEASURED from the text that role actually reads --
+# its own agent file, plus the reference it is told to open -- not judged.
+#
+# This file holds what AGENTS are given, and it is the OFFICIAL definition of
+# every term in it. A word this system stopped using is recorded in
+# `docs/vocabulary.md`, which does not ship and is never a second place to look
+# a live term up -- `scripts/check_vocabulary.py` refuses one defined in both.
+
+[definitions]
+
+# --- what a comment sits on -------------------------------------------------
+anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. An `a` is attached to the line that OPENS the thing it documents, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
+owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
+census = "Every PARAGRAPH on every PAGE under review, in order, each carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a page and do not nest."
+
+# --- the units that get ruled on --------------------------------------------
+sentence = "The unit an instruction rules on. A container of six sentences can hold six instructions."
+clause = "A part of a sentence. `correct` carries a false clause and a true one; `REASON` is one clause."
+statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a clause."
+expression = "A piece of CODE that evaluates to a value."
+declaration = "Something that can carry DOCUMENTATION -- a module, class, function, method, struct -- and so what an `a` place is about. ! NOT every line that introduces a name: `x = 1` and `let x = 1;` get no `a`. Which kinds a language offers is whatever its tier can resolve. Four of the eighteen have no docstring practice at all -- sql, toml, ini, yaml. ! c and cpp carry an EMPTY LIST TODAY because the matcher reads a line FIRST word and a C declaration opens with its return type -- a matcher that looks for the keyword anywhere in the line resolves it, so this is deferred and not a property of the languages."
+assignment = "A piece of CODE that binds a value to a name."
+mark = "What stage 4 emits: one role's ruling on one paragraph. Editorial. The census's own observations are ANNOTATIONS, not marks."
+annotation = "A mechanical observation the census attaches to a paragraph -- `names-a-symbol`, `cites-a-path`, `counted`. A CANDIDATE you confirm by reading, never a settled fact."
+"comment run" = "The contiguous comment lines between the two lines of code that bound them. The prose INSIDE a paragraph, which may instead hold a docstring or nothing at all."
+
+# --- what a reviewer emits ---------------------------------------------------
+instruction = "One of the seven rulings a reviewer may emit: clean, query, drop, correct, patch, add, move."
+"edit mark" = "What you emit on a sentence: the INSTRUCTION together with its payload. It is what would improve or correct the prose IF ITS `CHANGE` WERE APPLIED -- so it shows the result and does not write it. Marking and applying are different stages and different actors."
+clean = "Nothing to report FROM YOUR ROLE, on a paragraph your role READ. Not a pass, and not a claim the paragraph is correct. A paragraph outside what your role reads is `query`."
+query = "You could not settle the claim -- as against one you did not try to settle. Three shapes reach it, keyed on WHO resolves it: outside-my-role, unable-to-determine, human-review-necessary."
+drop = "The sentence should not exist at all."
+correct = "The claim is FALSE."
+patch = "The claim is TRUE and the wording is not."
+add = "A constraint exists in code and nowhere in prose."
+move = "True, but it belongs SOMEWHERE ELSE. One relocation instruction -- ten lines down, another file, or out of the code entirely is the DESTINATION, not a second instruction."
+payload = "What an instruction must carry to be usable."
+finding = "One ruling on one sentence, emitted as a RECORD."
+record = "One finding, as a JSON object. The tool seeds the ADDRESS and the ANCHOR; the reviewer fills the instruction, claim, reason, sources and change. A record that fails its shape check is a finding that does not count."
+remit = "The categories of claim a role rules on -- as against verifying, which is what it does to them."
+"editorial role" = "One of the four scopes a reviewer reads for: ownership-context, block-context, function-context, module-context."
+reviewer = "The identifier for an editorial role, in flags, filenames and report stems."
+
+# --- what a reviewer judges --------------------------------------------------
+truthy = "A sentence is truthy when it states one checkable proposition about the code it is beside -- a subject, a referent, and a claim some line, symbol or run can settle. A property of FORM, not of truth."
+"load-bearing" = "A paragraph is load-bearing at a site when someone changing THAT code would make a worse decision without it."
+obituary = "Prose about a symbol, file, test or flag that exists nowhere. Also called a TOMBSTONE."
+tombstone = "A synonym for OBITUARY."
+guard = "Code that protects against wrong output. Weakest to strongest: `if`/`else` and `match`/`case`; `assert`, which `-O` strips; raise."
+invariant = "A property the code is supposed to hold. When no guard enforces it, a comment is the only thing carrying it."
+omission = "A name in the module's exposed surface that the docstring never accounts for."
+banner = "Comment lines dividing a file into named parts."
+argument = "The case a piece of writing makes. A module reads as ONE argument or it does not."
+signature = "A function's name, parameters and return type. Never the CODE CHECK's comparison value, which is a fingerprint."
+laundering = "Applying a `patch` to a FALSE claim: the wording gets polished, and the finding is retired without the claim ever being checked."
+
+# --- what the run gives it ---------------------------------------------------
+"style sheet" = "The conventions MEASURED from this repo at stage 1: the documentation templates, the cap and the width."
+template = "A shape written out with its slots, not a shape NAMED. Measured from the tree for each kind of documentation."
+cap = "The published line limit a comment run may not exceed."
+width = "The published column limit for a line."
+original = "The text as it stood when THIS RUN began -- not the first version ever written. A file this run edits is the next run's original."
+residue = "The check asking, of each ORIGINAL sentence, whether anything true, necessary and checkable is missing from the new text."
+proofreader = "Who reads the finished PROOF and decides whether the document deserves more marks."
+
+# --- how a place is NAMED ---------------------------------------------------
+address = "The name of a place: `pkg:mod.py@b3` -- a path, an `@`, and a cue. Counted against the CODE and not against the lines, which is what makes it survive this tool's own edits: every prose edit moves the line numbers below it, and an ordinal counts statements instead. It is what a record cites."
+cue = "The `b3` half of an address, after the `@`. The mark that says prose belongs at this place -- it carries no content, only the position. A reference mark in publishing, which is what it is here."
+series = "One of the three kinds of address, and which one says what the prose answers to: `a` a declaration's documentation, `b` the gap above a line of code, `c` the room beside one."
+"line of code" = "A line the census counts as CODE, and the exact characters on it that are code -- anything that is neither blank nor prose. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two anchors spelled alike."
+
+# --- what the page is made of -----------------------------------------------
+page = "ONE FILE: its paragraphs in order, among the code they sit with. A page does not nest, which is why the census is a flat list and needs no other shape. ! The CENSUS is the enumeration across EVERY page in scope, not this one."
+paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` is the older word for it and means the same thing."
+
+# --- what is SET, and who sets it --------------------------------------------
+galley = "The proposal set as pages: every paragraph a stage proposes to change, put on a COPY of its page. A trial impression -- text set but not yet made into pages -- pulled so it can be corrected while correcting is still free. Nothing under review is touched."
+compositor = "Who SETS a page as text. It walks the page's places in order and asks each one what it holds. It decides nothing, and it is the only thing that writes a file."
+proof = "A finished page, pulled for checking -- what a PROOFREADER reads. The galley precedes it: a galley is corrected, a proof is judged."
+
+# --- the empty places, which are what an `add` cites -------------------------
+interval = "A gap between two lines of code that holds no prose -- a `b` place with nothing in it."
+margin = "The room BESIDE a line of code -- a `c` place with nothing in it, which is any code line carrying no trailing comment."
+undocumented = "A declaration with no docstring -- an `a` place with nothing in it."
+
+# --- comments that share a line with code ------------------------------------
+"trailing comment" = "Prose after the statement on its own line, about that statement. Its address is a `c`, and its anchor is the code before it."
+"intermediate comment" = "A comment with code on BOTH sides of it -- `int x = /* why */ 5;`. It is NOT censused and has no address, because it is part of the line of code rather than prose about it. Raise one as a code concern."
+
+[roles]
+# Every agent gets these.
+all = ["paragraph", "sentence", "clause", "finding", "move"]
+
+# The four editorial roles: what the shared brief used to state in passing.
+"ownership-context" = [
+  "add",
+  "address",
+  "anchor",
+  "annotation",
+  "assignment",
+  "census",
+  "clean",
+  "compositor",
+  "correct",
+  "cue",
+  "declaration",
+  "drop",
+  "edit mark",
+  "editorial role",
+  "expression",
+  "galley",
+  "instruction",
+  "intermediate comment",
+  "interval",
+  "laundering",
+  "line of code",
+  "load-bearing",
+  "margin",
+  "mark",
+  "original",
+  "owner",
+  "page",
+  "patch",
+  "payload",
+  "query",
+  "record",
+  "remit",
+  "reviewer",
+  "series",
+  "statement",
+  "trailing comment",
+  "truthy",
+  "undocumented",
+]
+"block-context" = [
+  "add",
+  "address",
+  "anchor",
+  "annotation",
+  "census",
+  "clean",
+  "compositor",
+  "correct",
+  "cue",
+  "declaration",
+  "drop",
+  "edit mark",
+  "editorial role",
+  "galley",
+  "guard",
+  "instruction",
+  "intermediate comment",
+  "interval",
+  "laundering",
+  "line of code",
+  "margin",
+  "mark",
+  "obituary",
+  "original",
+  "page",
+  "patch",
+  "payload",
+  "query",
+  "record",
+  "remit",
+  "reviewer",
+  "series",
+  "statement",
+  "tombstone",
+  "trailing comment",
+  "truthy",
+  "undocumented",
+]
+"function-context" = [
+  "add",
+  "address",
+  "anchor",
+  "annotation",
+  "argument",
+  "census",
+  "clean",
+  "compositor",
+  "correct",
+  "cue",
+  "declaration",
+  "drop",
+  "edit mark",
+  "editorial role",
+  "galley",
+  "guard",
+  "instruction",
+  "intermediate comment",
+  "interval",
+  "invariant",
+  "laundering",
+  "line of code",
+  "margin",
+  "mark",
+  "original",
+  "page",
+  "patch",
+  "payload",
+  "query",
+  "record",
+  "remit",
+  "reviewer",
+  "series",
+  "signature",
+  "statement",
+  "trailing comment",
+  "truthy",
+  "undocumented",
+]
+"module-context" = [
+  "add",
+  "address",
+  "anchor",
+  "annotation",
+  "argument",
+  "banner",
+  "census",
+  "clean",
+  "compositor",
+  "correct",
+  "cue",
+  "declaration",
+  "drop",
+  "edit mark",
+  "editorial role",
+  "galley",
+  "instruction",
+  "intermediate comment",
+  "interval",
+  "laundering",
+  "line of code",
+  "load-bearing",
+  "margin",
+  "mark",
+  "obituary",
+  "omission",
+  "original",
+  "owner",
+  "page",
+  "patch",
+  "payload",
+  "query",
+  "record",
+  "remit",
+  "reviewer",
+  "series",
+  "statement",
+  "trailing comment",
+  "truthy",
+  "undocumented",
+  "width",
+]
+
+# Stage 6 and stage 8 never read the shared brief, so they are given theirs here.
+compact = [
+  "argument",
+  "cap",
+  "census",
+  "correct",
+  "drop",
+  "instruction",
+  "load-bearing",
+  "original",
+  "owner",
+  "query",
+  "record",
+  "residue",
+  "reviewer",
+  "style sheet",
+]
+review = [
+  "add",
+  "address",
+  "census",
+  "comment run",
+  "compositor",
+  "editorial role",
+  "galley",
+  "mark",
+  "page",
+  "proof",
+  "proofreader",
+  "statement",
+  "style sheet",
+  "template",
+]

@@ -35,7 +35,7 @@ is a render for printing. It calls no `cues.address(...)`. Every `@` in that fil
 !! **AND THE PUT-TOGETHER CAME HOME.** Roy's ruling on this file, 2026-08-19, was that *"the
 foliation is the only and official spot that converts the galley artifact into an address."* The
 addresser owns every PART of an address, the whole TAKE-APART -- `flatten`, `emit`, `cue_of`,
-`unflatten` -- and now the JOIN as well:
+`unflatten` -- and now the COLLATOR as well:
 
 | site | what it does |
 | --- | --- |
@@ -60,7 +60,7 @@ and nothing has checked that claim from outside.
 **T1.** !! THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE. Roy: *'make certain that
 the cues is the only and official spot that converts the galley artifact into an address through
 the addresser assigning the cues, and the cues being able to take the cues and convert those into
-which address does this line belong to right now.'* ! COMPLETE as of 2026-08-23: the JOIN was the
+which address does this line belong to right now.'* ! COMPLETE as of 2026-08-23: the COLLATOR was the
 last half outside, and `addresser.address_for` holds it.
 
 **T2.** `census.py` set an anchor in FIVE places -- `paragraphs_lexical`:522,
@@ -78,7 +78,7 @@ reading code it must search anyway.
 
 ## Tasks
 
-- [x] T1 -- THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE; the JOIN was the
+- [x] T1 -- THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE; the COLLATOR was the
       last half outside and `addresser.address_for` holds it.
 - [x] T2 -- The five sites where `census.py` set an anchor are gone.
 - [x] T3 -- `census.py`'s run loop no longer calls `cues.address(...)` per paragraph; the

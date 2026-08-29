@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 14 of 42 tasks done
+Progress: 14 of 44 tasks done
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -19,6 +19,16 @@ Merged:   2026-08-24 -- two divergent copies of this file reconciled. From the 0
           rubric split, the `claude plugin eval` decision, the Part IV case, the one
           variable per release ruling and the baseline patch -- that side is NEWER on
           what was ruled after the fork. Where the two disagreed on a file, `ls` decided
+Absorbed: 2026-08-24 — P5 of the 0.2.4 foliator plan came here as T43 and T44. Roy:
+          supersede P5 to that todo because it is testing work anyways. Both halves were
+          missing an instrument this file owns -- the recall figure that justifies the
+          filtered view is in run history and nowhere a reader can find it, and the
+          scorer that would settle the dominance claim is T40. ! The plan closed at 25
+          of 25 on that supersession, not on the work: what P5 asked for is unbuilt and
+          now waits here, which is what a backlog is for.
+          ! RENUMBERED ON MERGE, 2026-08-29 -- the pair is T43/T44 and the scorer is T40.
+          T30, T31 and T28 were the 0.2.4 file's numbers, and this file's own task list
+          already used all three
 ```
 
 ## Objective
@@ -79,7 +89,7 @@ kinds of case, two artifacts, no stop mechanism.
 ! That also decides the fixture question: a MARK-level case never writes to the tree, so it needs
 no worktree to throw away -- only somewhere to put the record file.
 
-**AND THE JOIN ALREADY TAKES ANY SET.** `verdicts.py:296` takes `--reviewers` as a
+**AND THE COLLATOR ALREADY TAKES ANY SET.** `verdicts.py:296` takes `--reviewers` as a
 comma-separated list matched against report stems; it does not know the number four.
 `coverage_gaps` counts against the declared population and `verdicts.py:645` prints a NOT
 ACCOUNTED FOR line. ! Verified 2026-08-23 that the absence of `--reviewers` is ANNOUNCED rather
@@ -165,7 +175,7 @@ corrected and others are not. A START and an END name it exactly, and the commit
 stop mattering.
 
 ! **The two keys are `start` and `end`, not `base` and `fixed`** -- `decision-log.md
-Vocabulary: #12`, because `base` already meant a planted hazard's unmodified text in
+Vocabulary: #29`, because `base` already meant a planted hazard's unmodified text in
 `grade_hazards.py` and a merge-base in `prove_unchanged.py`. ! The harness branch cited that
 ruling as `Vocabulary: #10`, which on the current tree is *"Stage 2 is GATHER"*; the numbering
 moved with the purge and the citation was re-derived.
@@ -220,7 +230,7 @@ the grader -- could the check FAIL, not does it pass -- and it is T35.
 
 ## !! ONE VARIABLE PER RELEASE, AND THE BASELINE HAS TO BE RETAKEN
 
-Ruled 2026-08-23 by Roy, recorded as `decision-log.md Process: #5` and `Process: #6`: a version
+Ruled 2026-08-23 by Roy, recorded as `decision-log.md Process: #51` and `Process: #52`: a version
 changes the AGENTS or the MACHINERY, never both, so a test can say whether the python tools got
 better or the agent reviews did. ! **It does NOT hold retroactively** -- the current work changed
 both -- so every score taken before it is uncomparable and the baseline has to be retaken.
@@ -438,6 +448,38 @@ cases for comment-review"* because they are process defects this system has no r
 left true prose standing, so no text probe separated a correct repair from an ignored one; those
 reported NEEDS-EYES, and the replacement owes the same refusal.
 
+## !! P5 CAME HERE 2026-08-24, AND IT IS THE PAGE'S OWN PASS CRITERION
+
+Roy, 2026-08-24: *"supersede P5 to that todo because it is testing's work anyways."* It was the
+last open box on the `0.2.4-rework-the-foliator-owns-the-address` plan, and it could not be
+worked there: **both of its halves are missing an instrument, and both instruments are this
+file's.** T30 and T31 carry it.
+
+! **NAMED, NOT LINKED, AND THAT IS THE RULE.** A `T` takes no dependency on a `P` -- see
+`docs/conventions.md`, *T, P and SP*. What arrived here is the WORK; the plan that used to hold
+it can be deleted tomorrow and T30 and T31 stay answerable, which is the test.
+
+!! **THE PAGE CLAIMS TO DOMINATE BOTH PRIOR FORMATS, WHICH IS NOT A PREFERENCE.** Roy,
+2026-08-20: the page is *"partially to get the best of both worlds."* It fails if either half
+fails:
+
+| | information | tokens | recall |
+| --- | --- | --- | --- |
+| unfiltered, v0.1.0 | all | high | **worse** |
+| filtered, v0.2.0 | less | low | baseline |
+| the page | MORE than filtered | LESS than unfiltered | AT LEAST filtered |
+
+!! **AND THE PRIOR IS ALREADY MEASURED AND WRITTEN DOWN NOWHERE.** Roy, 2026-08-20, on the
+v0.1.0 -> v0.2.0 split: going unfiltered, *"the agents got a lot more tokens and used a lot more
+tokens on effectively the same level of output. They did miss a lot in the difference."*
+! Nothing in `evidence/` records it and the shipped tree carries only the byte figures -- 39% of
+the listing was repeated paths, `--filtered` saved 61%. **The measurement that justifies the
+single most consequential thing about what a reviewer sees exists in run history and nowhere a
+reader can find it**, which is T30.
+
+! **T31 IS DOWNSTREAM OF THE SCORER**, T28: a hand-run comparison is the thing this file exists
+to end, so the dominance claim waits on something that can disagree with it.
+
 ## Tasks
 
 - [x] T1 -- RULED 2026-08-18 by Roy: a reduced set is SUPPORTED and `ownership-context` is
@@ -447,7 +489,7 @@ reported NEEDS-EYES, and the replacement owes the same refusal.
 - [x] T3 -- RULED 2026-08-18 by Roy: the scope is the PROJECT, shipped in `d3aa065`.
       Verify: the role file asks about code or documentation in this project.
 - [ ] T4 -- State the residual cost of a reduced run -- every truth finding
-      uncorroborated. Verify: the join's report says so, not only this file.
+      uncorroborated. Verify: the collator's report says so, not only this file.
 - [ ] T5 -- Rewrite stage 5's synthesis so it states no population count; `SKILL.md:813`,
       `:847` and `:843-844` each assume four. Verify: the section names no count.
 - [ ] T6 -- Say in stage 5 that the synthesis ORDER is about verdict kinds, not roles.
@@ -455,10 +497,10 @@ reported NEEDS-EYES, and the replacement owes the same refusal.
 - [ ] T7 -- Make every stage-5 rule that names a role say what happens when that role did
       not run. Verify: no rule naming a role is silent on its absence.
 - [x] T8 -- RULED 2026-08-18: `ownership-context` is never optional, so "who governs
-      instead" does not arise. Verify: the placement precedence stays as written.
-- [ ] T9 -- Make the join name the reporting set even with no `--reviewers`. Verify: a run
+      instead" does not arise and the placement precedence stays as written.
+- [ ] T9 -- Make the collator name the reporting set even with no `--reviewers`. Verify: a run
       without it prints which roles reported.
-- [ ] T10 -- Where the set is short of four, make the join name whose corroboration is
+- [ ] T10 -- Where the set is short of four, make the collator name whose corroboration is
       absent. Verify: a three-role report names it.
 - [ ] T11 -- Give a MARK-level case its terminus in writing: stage 4's record file.
       Verify: a case asserts on one and `git status --short` is empty.
@@ -524,6 +566,10 @@ reported NEEDS-EYES, and the replacement owes the same refusal.
       pass. Verify: scoring a worktree that ignored either returns NEEDS-EYES.
 - [ ] T42 -- Re-locate the three hashes in `evidence/self-test-commits.md` the 2026-08-23
       rewrite killed. Verify: every hash in that file resolves with `git cat-file -e`.
+- [ ] T43 -- Recover the v0.1.0-vs-v0.2.0 recall figure into `evidence/`, or record it
+      lost. Verify: a reader finds it without reading a run transcript.
+- [ ] T44 -- Score the page against BOTH prior formats, on the dominance criterion.
+      Verify: more info than filtered, fewer tokens than unfiltered, recall >= filtered.
 
 ## What this costs today
 

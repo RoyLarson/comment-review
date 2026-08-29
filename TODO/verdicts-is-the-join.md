@@ -1,11 +1,11 @@
-# The module is `verdicts.py` and everything calls it the join
+# The module is `verdicts.py` and everything calls it the collator
 
 ```
 Status:   open
 Progress: 6 of 12 tasks done
 Owner:    backend
 Requires-Roy: false
-Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the join but
+Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the collator but
           the module is verdicts -- two separate things or one misnomer)
 Answered: 2026-08-22 -- the register question has an answer -- collating / master proof /
           editor -- and it splits the misnomer from a second unnamed step; two term
@@ -21,23 +21,23 @@ Split:    2026-08-23 -- the two remaining boxes held seven artifacts between the
 
 ## Objective
 
-**The module is `verdicts.py` and everything calls it the join.** One ruling settles whether the
+**The module is `verdicts.py` and everything calls it the collator.** One ruling settles whether the
 file is renamed.
 
 !! **IT IS ONE MISNOMER, MEASURED 2026-08-22 AND RE-VERIFIED 2026-08-23.** `verdicts.py` does not
 hold the verdicts: `VERDICTS` is defined at `record.py:181` and IMPORTED by `verdicts.py`. So the
 module is named for a table it does not own, while every other file calls it by what it DOES.
 
-!! **THE TREE ALREADY AGREES ON THE OTHER NAME.** `grep -ro "the join" plugins/ --include=*.md
+!! **THE TREE ALREADY AGREES ON THE OTHER NAME.** `grep -ro "the collator" plugins/ --include=*.md
 --include=*.py --include=*.toml | wc -l` returns **31** on 2026-08-23 -- 8 in `SKILL.md`, 7 in
 `record.py`, 5 in `desk.py`, 3 in `held.py`, 2 in `reviewer-brief.md`, 2 in `re-review.md`, 1
 each in `census.py` and `language.py`, and only **twice inside `verdicts.py` itself**, where it
 describes what the file is. ! The count was **43** when this was raised on 2026-08-22, and
 `docs/vocabulary.md:85` still says 43; the command above is what to re-run rather than either
-number. The agent's own instructions call it the join; only the filename disagrees.
+number. The agent's own instructions call it the collator; only the filename disagrees.
 
 ! **AND `desk.py` DRAWS THE LINE BY THAT NAME**, at `desk.py:18`: *"a question that needs two
-findings -- who contradicts whom, which paragraphs nobody accounted for -- is the join's, and
+findings -- who contradicts whom, which paragraphs nobody accounted for -- is the collator's, and
 lives in `verdicts.py`."* The sentence has to name the concept AND the file because they are
 different words for one thing.
 
@@ -56,7 +56,7 @@ decided. The **master proof** is the copy they land on. The **editor** reads it 
 gaps and hands every conflict up. It is not the editor.
 
 ! **AND THE ONE WHO RULES IS THE STEP THAT HAS NO MODULE.** Stage 5 APPLY, performed by the task
-agent, is the only thing here that reads every mark and decides what stands. Naming the join
+agent, is the only thing here that reads every mark and decides what stands. Naming the collator
 `editor` would name the collator after the job it explicitly does not do.
 
 !! **RULED 2026-08-23: THAT STEP IS THE `copy chief`, AND IT GETS ITS OWN AGENT FILE.** Roy:

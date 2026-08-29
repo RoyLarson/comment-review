@@ -28,7 +28,7 @@ reviewer and a parser is better, and is not the same as fixed.
 
 **What has landed since this was filed.** The cycle is inverted: `record.py` imports from
 `addresser` and `lexer` and NOTHING from `verdicts.py`, while `verdicts.py` imports from
-`record`, `desk` and `held`. The reader moved out of the join into `held.py`, whose own docstring
+`record`, `desk` and `held`. The reader moved out of the collator into `held.py`, whose own docstring
 says why -- *"Reading a record file back -- the third verb on the noun `record.py` owns"*.
 `ruled_text` (now `desk.py:721`) reads the field first: `desk.py:743-745`, *"THE FIELD FIRST, and
 the scan below is now the FALLBACK."*

@@ -1,120 +1,175 @@
-"""The brief's verdict table, written from the verdict row that defines it.
+"""Render the instruction table `reviewer-brief.md` publishes to a role.
 
-    python scripts/render_brief.py            # check, exit 1 if the brief drifted
-    python scripts/render_brief.py --write    # rewrite the brief's block in place
+    uv run python scripts/render_brief.py --print
+    uv run python scripts/render_brief.py --write
 
-!! ONE SOURCE, ONE WAY TO COPY IT. `VERDICTS` in `record.py` already decides
-what each verdict's `claim` must carry -- the keys through `claim_keys`, the
-prose through `payload` -- and `reviewer-brief.md` restated it by hand. Roy,
-2026-08-18: it all moves to the Python file, definitions and prose, and the
-script writes it in.
+!! TWO SOURCES, AND THE SCRIPT INVENTS NEITHER. The instruction names and the
+`claim` keys are a fact the code owns -- `INSTRUCTIONS` in `desk/mark.py`,
+each row's `claim_all`. The prose naming WHAT a claim carries is a fact the
+spec owns -- `docs/the-mark.md`'s "What each instruction owes" table, the
+row's own flags column, written by a human. This script JOINS the two on the
+instruction name and writes nothing that is not already stated in one of
+them.
 
-!! THE HAND COPY HAD ALREADY DRIFTED, which is why this exists rather than a
-rule telling an author to keep them equal. Measured 2026-08-18: the table
-taught the 0.2.x MARKER form -- `false: "..." / true: "..."` -- forty lines
-under a JSON worked example, `query`'s row never named `settles` at all, and
-**ten of the eleven keys a reviewer must type appeared nowhere in the brief as
-keys**. The record became a typed object on this branch and the table below it
-did not.
-
-! It writes ONE fenced region, between the markers below, and touches nothing
-else in the file. The prose around the table is still hand-written and stays
-that way -- what is generated is exactly what `VERDICTS` knows.
-
-! A dev script, not shipped: the brief is generated at authoring time and
-pasted whole into a reviewer's prompt, so nothing runs this during a review.
-`tests/test_brief_table.py` is the gate.
+! EXITS NONZERO IF THE TWO SOURCES NAME DIFFERENT INSTRUCTIONS -- the drift
+that let `add`'s row go stale while the brief still claimed to be generated,
+because nothing checked the two against each other.
 """
 
 import argparse
+import os
+import re
 import sys
 from pathlib import Path
 
+# A Windows console is cp1252; one non-ASCII glyph kills the run.
+reconfigure = getattr(sys.stdout, "reconfigure", None)
+if callable(reconfigure):
+    reconfigure(encoding="utf-8", errors="replace")
+
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS = ROOT / "plugins/comment-review/skills/comment-review/scripts"
-BRIEF = (
-    ROOT / "plugins/comment-review/skills/comment-review/references/reviewer-brief.md"
+SRC = ROOT / "src"
+sys.path.insert(0, str(SRC))
+os.environ["PYTHONPATH"] = str(SRC)
+
+from comment_review.desk.mark import INSTRUCTIONS  # noqa: E402
+
+SPEC_PATH = ROOT / "docs" / "the-mark.md"
+BRIEF_PATH = (
+    ROOT
+    / "plugins"
+    / "comment-review"
+    / "skills"
+    / "comment-review"
+    / "references"
+    / "reviewer-brief.md"
 )
 
-sys.path.insert(0, str(SCRIPTS))
+BEGIN_MARKER = "<!-- BEGIN GENERATED: instruction table -- scripts/render_brief.py -->"
+END_MARKER = "<!-- END GENERATED -->"
 
-from record import VERDICTS, claim_keys  # noqa: E402  -- path shim must run first
+#: The spec section whose table holds the role-facing sentence. ! NOT "What each
+#: instruction owes", whose last column is the row's FLAGS -- classifier facts
+#: like "rules on text", which say nothing to a role about what to write.
+#: MEASURED 2026-08-28: reading that column published "rules on text" for
+#: `correct` where the brief had said "the false clause and the true one, and a
+#: `sources` entry carrying the line that settles it".
+_PROSE_HEADING = "## What each `claim` carries, in the role's own terms"
 
-# ! The markers are HTML comments so they render as nothing and survive a
-# formatter. `ruff format` excludes `**/*.md`, but a future tool might not.
-OPEN = "<!-- BEGIN GENERATED: verdict table -- scripts/render_brief.py -->"
-CLOSE = "<!-- END GENERATED -->"
 
-READ_ERRORS = (OSError, UnicodeDecodeError)
+def _prose_by_instruction() -> dict[str, str]:
+    """The "what they carry" sentence for each instruction.
 
-
-def table() -> str:
-    """The verdict table, as the brief should carry it.
-
-    ! Rows in `VERDICTS` order, which is the order the seven are taught
-    everywhere else: the null verdict, the unsettled one, then the six that ask
-    something of stage 5.
+    Read out of `docs/the-mark.md`'s role-facing table. **A human writes these**
+    -- they are not derived from the keys and no row in the code carries them,
+    per `decision-log.md Process: #37`.
 
     Returns:
-        The fenced region's contents, without the markers.
+        instruction name -> its sentence, verbatim.
     """
+    spec = SPEC_PATH.read_text(encoding="utf-8")
+    match = re.search(
+        rf"^{re.escape(_PROSE_HEADING)}\n(.*?)(?=\n## )",
+        spec,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        raise SystemExit(f"{SPEC_PATH}: {_PROSE_HEADING!r} not found")
+
+    prose: dict[str, str] = {}
+    for line in match.group(1).splitlines():
+        if not line.startswith("| `"):
+            continue  # the header, the rule, and the prose around the table
+        _, name, sentence, _ = line.split("|", 3)
+        prose[name.strip().strip("`")] = sentence.strip()
+    if not prose:
+        raise SystemExit(f"{SPEC_PATH}: {_PROSE_HEADING!r} holds no rows")
+    return prose
+
+
+def _claim_cell(claim_all: tuple[str, ...]) -> str:
+    """"none" for an empty claim; otherwise each key in backticks, comma-joined."""
+    if not claim_all:
+        return "none"
+    return ", ".join(f"`{key}`" for key in claim_all)
+
+
+def render() -> str:
+    """The instruction table, joined from `INSTRUCTIONS` and the spec.
+
+    Returns:
+        The markdown table as it belongs between the GENERATED markers.
+
+    Raises:
+        SystemExit: the two sources name different instructions.
+    """
+    prose = _prose_by_instruction()
+    code_names = set(INSTRUCTIONS)
+    spec_names = set(prose)
+    if code_names != spec_names:
+        raise SystemExit(
+            "render_brief: INSTRUCTIONS (desk/mark.py) and docs/the-mark.md "
+            "name different instructions -- code only: "
+            f"{sorted(code_names - spec_names)}, spec only: "
+            f"{sorted(spec_names - code_names)}"
+        )
+
     lines = [
-        "| verdict | `claim` keys | what they carry |",
+        "| instruction | `claim` keys | what they carry |",
         "| --- | --- | --- |",
     ]
-    for name, spec in VERDICTS.items():
-        markers, extras = claim_keys(spec)
-        keys = ", ".join(f"`{k}`" for k in markers + extras) or "none"
-        lines.append(f"| `{name}` | {keys} | {spec.payload} |")
+    for name, spec in INSTRUCTIONS.items():
+        lines.append(f"| `{name}` | {_claim_cell(spec.claim_all)} | {prose[name]} |")
     return "\n".join(lines)
 
 
-def rendered(brief: str) -> str:
-    """`brief` with the generated region replaced by the current table."""
-    start, end = brief.index(OPEN), brief.index(CLOSE)
-    return brief[: start + len(OPEN)] + "\n\n" + table() + "\n\n" + brief[end:]
+def _write(table: str) -> None:
+    """Rewrite the block between the GENERATED markers in `reviewer-brief.md`.
 
+    ! Reads and writes with `newline=""` so a CRLF-checked-out file round-trips
+    byte-for-byte outside the block -- a naive text-mode write flips the whole
+    file to LF, which reads as an unrelated diff under `core.autocrlf=true`.
+    The inserted block matches whichever line ending the file already uses.
+    """
+    with BRIEF_PATH.open(encoding="utf-8", newline="") as f:
+        text = f.read()
+    if BEGIN_MARKER not in text:
+        raise SystemExit(f"{BRIEF_PATH}: BEGIN GENERATED marker not found")
+    if END_MARKER not in text:
+        raise SystemExit(f"{BRIEF_PATH}: END GENERATED marker not found")
 
-def main() -> int:
-    """Check the brief against the verdict row, or write it."""
-    # A Windows console is cp1252; one non-ASCII glyph in a report kills the run.
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if callable(reconfigure):
-        reconfigure(encoding="utf-8", errors="replace")
-
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
-        "--write", action="store_true", help="rewrite the brief instead of checking it"
+    eol = "\r\n" if "\r\n" in text else "\n"
+    before, rest = text.split(BEGIN_MARKER, 1)
+    _, after = rest.split(END_MARKER, 1)
+    body = table.replace("\n", eol)
+    new_text = (
+        f"{before}{BEGIN_MARKER}{eol}{eol}{body}{eol}{eol}{END_MARKER}{after}"
     )
-    args = ap.parse_args()
 
-    try:
-        brief = BRIEF.read_text(encoding="utf-8")
-    except READ_ERRORS as e:
-        print(f"CANNOT READ {BRIEF} ({type(e).__name__})")
-        return 2
-    if OPEN not in brief or CLOSE not in brief:
-        print(f"{BRIEF.name} carries no generated region -- expected {OPEN}")
-        return 2
+    with BRIEF_PATH.open("w", encoding="utf-8", newline="") as f:
+        f.write(new_text)
 
-    want = rendered(brief)
-    if args.write:
-        if want == brief:
-            print(f"{BRIEF.name} already matches the verdict row.")
-            return 0
-        BRIEF.write_text(want, encoding="utf-8")
-        print(f"{BRIEF.name}: verdict table written from VERDICTS.")
-        return 0
 
-    if want == brief:
-        print(f"{len(VERDICTS)} verdicts; the brief's table matches the row.")
-        return 0
-    print(
-        f"{BRIEF.name}: the verdict table has DRIFTED from `VERDICTS`."
-        " Run `python scripts/render_brief.py --write`."
+def main() -> None:
+    """CLI entry point: `--print` to stdout, or `--write` in place."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--print", action="store_true", help="write the table to stdout"
     )
-    return 1
+    group.add_argument(
+        "--write",
+        action="store_true",
+        help="rewrite the block in reviewer-brief.md, in place",
+    )
+    args = parser.parse_args()
+
+    table = render()
+    if args.print:
+        print(table)
+    else:
+        _write(table)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

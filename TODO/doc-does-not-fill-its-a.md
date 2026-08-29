@@ -13,9 +13,9 @@ Measured: 2026-08-20 — 2026-08-20 -- WHAT THE LEXER ALREADY SETTLES, per langu
           decides the kind. go and ruby have no marker -- a doc comment there IS an
           ordinary comment in the right POSITION, which is exactly what
           `doc_is_structural` means. Python is already `a1` via the AST. !! AND
-          `declares` WAS -1 IN EVERY NON-PYTHON CASE. ! SO THE JOIN IS THE PAGE'S --
+          `declares` WAS -1 IN EVERY NON-PYTHON CASE. ! SO THE COLLATOR IS THE PAGE'S --
           Roy: *"this is something the page needs to resolve probably."*
-RE-CHECKED: 2026-08-23 — 2026-08-23. THE JOIN HAS LANDED, so tasks 2, 3 and 6 are
+RE-CHECKED: 2026-08-23 — 2026-08-23. THE COLLATOR HAS LANDED, so tasks 2, 3 and 6 are
             FINISHED -- verified by calling `page.page_for` on the exact shape this file
             was filed about. ! But re-running the same probe over go turned task 5 from
             a forecast into a measured defect with the sign REVERSED: the runs the
@@ -44,7 +44,7 @@ The doc LEFT the `b` series, which is what `a` was introduced for, and no place 
 
 ! **WHAT THE ORIGINAL MEASUREMENT READ, 2026-08-20**: on `/// The one doc.` above `fn one() {}`
 the doc was a `b1` with `declares=-1` while `a1` reported `undocumented`. Re-run 2026-08-23, it
-is `a1` with `declares=1`. The keyword list is what made the join computable, and it is built.
+is `a1` with `declares=1`. The keyword list is what made the collator computable, and it is built.
 
 ! **Python is unaffected**: `paragraphs_stdlib` has always carried `declares` from the AST. This
 is the lexical tier only, and that is a statement of SCOPE rather than remaining work.
@@ -67,7 +67,7 @@ MEASURED 2026-08-23, three go files through `page_for`:
 | `// doc` flush above `x := 1` (declares nothing) | -1 | `b2` | **yes** |
 | `// doc`, one blank, then `func one() {}` | 1 | `a1` | **no** |
 
-!! **THE ANNOTATION IS INVERTED AGAINST THE JOIN.** A run the census has already ruled IS a
+!! **THE ANNOTATION IS INVERTED AGAINST THE COLLATOR.** A run the census has already ruled IS a
 declaration's documentation is handed to the reviewer as an open question, and a run the census
 has ruled documents NOTHING is handed over as one too -- while the one case that is genuinely
 arguable, the blank-separated join, is the one left unmarked and charged to the cap.
@@ -90,7 +90,7 @@ rule is that a language takes its definition from its own grammar and never from
 ## Tasks
 
 - [x] T1 -- MEASURED 2026-08-20 and re-run 2026-08-23. In the Objective.
-- [x] T2 -- FINISHED. The keyword list made the join computable and it is built --
+- [x] T2 -- FINISHED. The keyword list made the collator computable and it is built --
       `declarations()` reports the declaring lines, `document_declarations()` joins them.
 - [x] T3 -- FINISHED. The doc LEAVES the `b` series when it joins -- verified 2026-08-23,
       the Rust `///` is `a1` and the gap above is `b0`. In the Objective.

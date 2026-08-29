@@ -185,7 +185,7 @@ formatters."*
 
 !! **THE `c` SERIES IS WRITABLE, AND THAT IS WHY IT IS NOT AN EXTENSION OF `b`.** Roy: *"c needs
 to be writeable. It is the reason c is not an extension of b."* A `b` splice replaces whole
-lines; a `c` splice cannot, because the code shares the line. Until 2026-08-19 the join admitted
+lines; a `c` splice cannot, because the code shares the line. Until 2026-08-19 `verdicts.py` admitted
 an edit at a `c` place and the galley refused it, discarding every other edit in that file with
 it -- and before that, the splice deleted the statement: a galley read `# reworded trailing`
 where `z = 3  # trailing` had been.

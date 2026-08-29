@@ -1,0 +1,168 @@
+"""The DOCKET: pages, each with its path, its sha and its schedule of alterations.
+
+!! EVERY DOCKET HERE IS HAND-WRITTEN JSON, and that is deliberate. A docket
+arrives from OUTSIDE this system -- the desk makes it, and the desk is not built
+-- so it is a file format, not a value the code produces. Building one with a
+helper and reading it back would be the code agreeing with itself, which is the
+shape `docs/gates.md` records the round trip scoring 699 of 699 on.
+
+! `conftest.docket_from` exists for the CHAIN's cases, which assert things about
+drafting rather than about the format. Nothing here uses it.
+
+! THE NAME IS SETTLED, 2026-08-26 -- `decision-log.md Vocabulary: #14`. It was
+`notations`, one letter from the `annotations` that `binder/annotate.py` owns.
+"""
+
+import json
+
+import pytest
+
+from comment_review.docket.docket import read, schedules_of
+
+
+def a_docket(pages) -> str:
+    """The JSON text of a docket over `[(path, sha, [(cue, text), ...]), ...]`."""
+    return json.dumps(
+        {
+            "pages": [
+                {
+                    "path": path,
+                    "sha": sha,
+                    "alterations": [{"cue": c, "text": t} for c, t in alterations],
+                }
+                for path, sha, alterations in pages
+            ]
+        }
+    )
+
+
+def test_a_well_formed_docket_reads():
+    got, why = read(a_docket([("m.py", "abc123", [("b1", "# new"), ("c0", None)])]))
+    assert why == ""
+    assert got["pages"][0]["path"] == "m.py"
+
+
+def test_None_is_the_delete():
+    got, why = read(a_docket([("m.py", "abc123", [("b1", None)])]))
+    assert why == ""
+    assert got["pages"][0]["alterations"][0]["text"] is None
+
+
+@pytest.mark.parametrize(
+    "text,fragment",
+    [
+        ("{not json", "not JSON"),
+        ("[]", "not a docket"),
+        ('"a string"', "not a docket"),
+        ("{}", "no `pages` key"),
+        (json.dumps({"pages": []}), "non-empty list"),
+        (json.dumps({"pages": "oops"}), "non-empty list"),
+        (json.dumps({"pages": [1]}), "must be an object"),
+        (json.dumps({"pages": [{"sha": "a", "alterations": []}]}), "needs a `path`"),
+        (json.dumps({"pages": [{"path": "", "sha": "a"}]}), "needs a `path`"),
+        (
+            json.dumps({"pages": [{"path": "m.py", "alterations": []}]}),
+            "needs the `sha`",
+        ),
+        (json.dumps({"pages": [{"path": "m.py", "sha": ""}]}), "needs the `sha`"),
+        (json.dumps({"pages": [{"path": "m.py", "sha": "a"}]}), "non-empty list"),
+        (
+            json.dumps({"pages": [{"path": "m.py", "sha": "a", "alterations": []}]}),
+            "non-empty list",
+        ),
+        (
+            json.dumps({"pages": [{"path": "m.py", "sha": "a", "alterations": [1]}]}),
+            "must be an object",
+        ),
+        (a_docket([("m.py", "a", [("", "# x")])]), "needs a `cue`"),
+        (a_docket([("m.py", "a", [("b1", 123)])]), "must be text or null"),
+        (a_docket([("m.py", "a", [("b1", ["a"])])]), "must be text or null"),
+        (a_docket([("m.py", "a", [("b1", "")])]), "empty string"),
+    ],
+)
+def test_what_is_refused(text, fragment):
+    got, why = read(text)
+    assert got == {}
+    assert fragment in why
+
+
+def test_an_alteration_with_NO_text_key_is_refused():
+    """!! ABSENT IS NOT null. A key that failed to serialise disappears rather
+    than arriving as null, and reading a missing `text` as a delete is how a
+    bug upstream becomes a deletion downstream at exit 0."""
+    got, why = read(
+        json.dumps(
+            {"pages": [{"path": "m.py", "sha": "a", "alterations": [{"cue": "b1"}]}]}
+        )
+    )
+    assert got == {}
+    assert "needs `text`" in why
+
+
+def test_a_refusal_is_never_an_empty_result():
+    """!! THE DEFECT THIS EXISTS FOR. A guess that is wrong reads as an EMPTY
+    input, which downstream is indistinguishable from a run with nothing to do."""
+    got, why = read("[]")
+    assert got == {} and why != ""
+
+
+def test_an_EMPTY_DOCKET_IS_REFUSED_BY_NAME():
+    """IMPORTANT, measured 2026-08-25 on the flat form: `read("{}")` answered
+    `({}, "")`, so `proof_setter.run` drafted nothing and `commands/proof.py`
+    printed `0 page(s) drafted for review` at exit 0 -- the
+    empty-reads-as-success shape this module exists to prevent, and the one
+    `binder.read` already refuses on a missing `pages` key."""
+    got, why = read("{}")
+    assert got == {}
+    assert "no `pages` key" in why
+
+
+def test_TWO_SCHEDULES_FOR_ONE_PAGE_are_refused():
+    """!! ONE SCHEDULE PER PAGE. Two would let a later one silently win, and
+    which applied would depend on iteration order -- the same class of defect
+    as two paragraphs sharing an address, which `galley.reset` refuses by
+    name."""
+    got, why = read(
+        a_docket([("m.py", "a", [("b1", "# one")]), ("m.py", "a", [("b2", "# two")])])
+    )
+    assert got == {}
+    assert "two schedules for one page" in why
+
+
+def test_TWO_ALTERATIONS_FOR_ONE_PLACE_are_refused():
+    got, why = read(a_docket([("m.py", "a", [("b1", "# one"), ("b1", "# two")])]))
+    assert got == {}
+    assert "two alterations for one place" in why
+
+
+class TestSchedulesOf:
+    """!! IT REFUSES NOTHING, and that is what the nesting bought. The flat form
+    returned `(grouped, refusals)` because it had to SPLIT an address to find
+    the path, and a malformed one could not be split. `read` rules on the shape
+    now, so this only unwinds."""
+
+    def test_one_schedule_per_page_in_docket_order(self):
+        docket, why = read(
+            a_docket(
+                [
+                    ("pkg/a/util.py", "sha1", [("b0", "# first")]),
+                    ("top.py", "sha2", [("c0", None)]),
+                ]
+            )
+        )
+        assert why == ""
+        schedules = schedules_of(docket)
+        assert [s.path for s in schedules] == ["pkg/a/util.py", "top.py"]
+        assert [s.sha for s in schedules] == ["sha1", "sha2"]
+
+    def test_the_path_is_the_REPO_S_and_is_not_flattened(self):
+        """!! THE WHOLE POINT OF THE NESTING. An ADDRESS carries `pkg:a:util.py`
+        and needed `unflatten` plus the binder's page paths to recover a real
+        one -- and MEASURED 2026-08-25, using the flattened key as a path meant
+        every file below the repo root refused. A schedule states the path."""
+        docket, _ = read(a_docket([("pkg/a/util.py", "sha", [("b0", "# x")])]))
+        assert schedules_of(docket)[0].path == "pkg/a/util.py"
+
+    def test_the_alterations_are_cue_to_text(self):
+        docket, _ = read(a_docket([("m.py", "sha", [("b1", "# new"), ("c0", None)])]))
+        assert schedules_of(docket)[0].alterations == {"b1": "# new", "c0": None}

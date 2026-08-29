@@ -118,7 +118,7 @@ judgement this whole system exists to replace.
 - [ ] **B3 -- RUN: with-skill and baseline in the SAME turn.** Works
       `the-harness-cannot-run-the-system-it-grades`. SKILL.md is explicit that the baseline is not
       collected afterwards. ! The baseline here is the OLD AGENT WORKFLOW on the NEW machinery
-      (`decision-log.md Process: #6`), not "no skill" -- this is an improve-mode comparison, not a
+      (`decision-log.md Process: #52`), not "no skill" -- this is an improve-mode comparison, not a
       does-the-skill-help one. Verify: both arms write outputs under the prescribed layout, and
       `timing.json` is captured from each task notification as it arrives.
 
@@ -240,7 +240,7 @@ against a known answer; E1's method is what measures its spread.
 - **Promoting `check_citations.py`** anywhere. It is an input that found two real things; where it
   lives is a separate decision.
 - **Anything under `plugins/`.** That is 0.2.4's, and this plan must not touch it -- a version
-  changes the AGENTS or the MACHINERY, never both (`decision-log.md Process: #5`).
+  changes the AGENTS or the MACHINERY, never both (`decision-log.md Process: #51`).
 
 - **`evidence-still-names-places-by-line`, except as a DEPENDENCY.** Eight of its nine tasks are
   shipped-tree addressing work -- `SOURCES` in line form, code concerns carrying no place at all,
@@ -285,7 +285,7 @@ against a known answer; E1's method is what measures its spread.
   !! **AND ITS CENTRAL CONSTRAINT WAS RULED INDEPENDENTLY THE NEXT DAY.** Raised 2026-08-22, it
   says the rewording is the confound and *"the substitution must be MECHANICAL AND DIFFABLE: a
   dictionary rename only, no new instruction, no restructured stage, no sharpened sentence."*
-  That is `decision-log.md Process: #5`'s vocabulary carve-out, stated a day early -- and
+  That is `decision-log.md Process: #51`'s vocabulary carve-out, stated a day early -- and
   measured true 2026-08-23: the six agent files move 29/29 between `v0.2.3` and HEAD, and that is
   a rename plus exactly one orchestration change (four parallel reviewers becoming three at stage
   4c). ! `check_vocabulary.py` is what says the result speaks the shipped language, and it passes
