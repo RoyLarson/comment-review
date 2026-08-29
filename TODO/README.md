@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (97)
+### open  (98)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -279,6 +279,7 @@ that changed a published name or rule:
 | [change-is-raw-text-not-lines](change-is-raw-text-not-lines.md) | backend | — | 0/4 | `desk/mark.py:396` refuses a `change` that is not a list of lines; `docs/the-mark.md` rules it is the updated paragraph as RAW TEXT; `results/differences.diff3` takes strings |
 | [docket-role-is-per-page-not-per-alteration](docket-role-is-per-page-not-per-alteration.md) | backend | — | 0/3 | role sits on the page in docket.py's schema, so provenance is lost the moment two roles settle places on one page |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | — | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
+| [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | — | 0/3 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
 
 ### in-progress  (19)
 
@@ -292,7 +293,7 @@ that changed a published name or rule:
 | [a-block-does-not-say-where-its-text-starts](a-block-does-not-say-where-its-text-starts.md) | backend | — | 9/10 | A block does not say where its text starts, so two things infer it |
 | [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | backend | — | 3/11 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | yes | 13/18 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
-| [census-degrades-silently](census-degrades-silently.md) | backend | — | 4/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
+| [census-degrades-silently](census-degrades-silently.md) | backend | — | 5/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | — | 4/8 | The census owns addressing, and four modules share one subject between them |
 | [ownership-is-read-first-but-nothing-makes-it-so](ownership-is-read-first-but-nothing-makes-it-so.md) | agents | — | 3/14 | `ownership-context` is read FIRST, and nothing in the run makes that true |
 | [page-and-addresser-scans](page-and-addresser-scans.md) | backend | — | 2/8 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
@@ -337,11 +338,10 @@ other tasks can proceed without them._
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 
-### blocked  (4)
+### blocked  (3)
 
 _None._
 
-| [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | backend | — | 0/2 | the closing quote and the comment beside it are both stored, so the file gains a line |
 | [code-concerns-cannot-carry-a-proposed-change](code-concerns-cannot-carry-a-proposed-change.md) | backend | — | 0/9 | code_concerns is a bare list of strings, so a code problem reaches no gate |
 | [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | backend | — | 2/12 | each states a rule and then denies it, in the same file |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | — | 4/10 | Two graded arms, orchestration held constant; the rewording is the confound |
@@ -410,3 +410,4 @@ the reason is inside the file.
 | [the-xfails-never-reach-the-galley](completed/the-xfails-never-reach-the-galley.md) | All three superseded by the compositor split. `_gap` no longer looks a place up by `(original_start, original_end)`, the class docstring no longer claims an unexpected success, and plan box R7 -- *'no expectedFailure survives this plan'* -- is judgeable again because the galley stopped doing two jobs. |
 | [foot-of-file-two-places](completed/foot-of-file-two-places.md) | The closing gap and the back matter both own prose at the foot, separated by a trailing leading -- the head rule in reverse. Roy ruled it 2026-08-26; decision-log.md Addressing: #19. |
 | [notations-collides-with-annotations](completed/notations-collides-with-annotations.md) | The name is alteration; the write side has all three containers -- alteration, schedule, docket -- and the docket is its own area carrying each page's path and sha, so the binder no longer reaches the write chain. decision-log.md Vocabulary: #14. |
+| [a-closing-quote-with-a-comment](completed/a-closing-quote-with-a-comment.md) | Fixed in paragraphs_stdlib -- a comment on a line a docstring owns is no longer a second paragraph. Both re-measurements verified 2026-08-29; the lexical Python reader was not needed. |
