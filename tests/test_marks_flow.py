@@ -107,7 +107,7 @@ def test_problems_in_reads_every_sheet_not_just_the_first():
     copy = seed(binder_of(DESK, 0), "block-context")
     # A malformed mark on the LAST sheet -- a walker that stops at the first
     # sheet passes this file and misses it.
-    copy["sheets"][-1]["marks"][0]["mark"] = {"instruction": "correct"}
+    copy["sheets"][-1]["marks"][0]["instruction"] = "correct"
     messages, ruled = problems_in(copy)
     assert ruled == 1
     assert messages, "a correct with no claim must be refused wherever it sits"
@@ -143,21 +143,21 @@ def test_a_sheet_carrying_a_code_concern_validates():
 
 def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():
     # INPUT FROM REALITY: a real binder through the real seed(), then filled
-    # exactly as a role legitimately would -- `mark` holds the INSTRUCTION
-    # NAME as a plain string, matching `desk.mark.problems`'s own
-    # `isinstance(instruction, str)` check and `test_collator.py`'s
-    # `_well_formed()` fixture. `tally` walked `report["marks"]`, a top-level
-    # key `seed()` has not written since 2026-08-29 -- so on today's nested
-    # shape it silently returned `{}` for every sheet, ruled or not, rather
-    # than raising or reporting.
+    # exactly as a role legitimately would -- `instruction` holds the
+    # INSTRUCTION NAME as a plain string, matching `desk.mark.parse`'s own
+    # `isinstance(named, str)` check and `test_collator.py`'s `_well_formed()`
+    # fixture. `tally` walked `report["marks"]`, a top-level key `seed()` has
+    # not written since 2026-08-29 -- so on today's nested shape it silently
+    # returned `{}` for every sheet, ruled or not, rather than raising or
+    # reporting.
     copy = seed(binder_of(DESK, 0), "block-context")
     copy["sheets"][-1]["marks"][0].update(
         {
-            "mark": "correct",
+            "instruction": "correct",
             "claim": {"false": "x", "true": "y"},
             "reason": "test",
             "sources": [],
-            "change": ["# x"],
+            "change": "# x",
         }
     )
     assert tally(copy) == {Instruction.CORRECT: 1}

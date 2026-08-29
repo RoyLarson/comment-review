@@ -25,7 +25,7 @@ import json
 import pytest
 from helpers import a_correct, a_drop, a_master_proof, a_move
 
-from comment_review.desk.collator import UnusableChange, docket_from, reconcile
+from comment_review.desk.collator import MalformedMark, docket_from, reconcile
 from comment_review.docket.docket import read, schedules_of
 from comment_review.flows.revise import _set_by
 
@@ -223,27 +223,31 @@ def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
     assert isinstance(alterations["a8"], str) and alterations["a8"]
 
 
-def test_a_change_that_is_RAW_TEXT_refuses_rather_than_emptying_the_paragraph():
-    """!! `None` IS THE DELETE SIGNAL, so a `change` that cannot be joined must
-    not reach it -- `docket/docket.py`'s own header: *"a key whose value failed
-    to serialise arrives looking exactly like a deliberate deletion."*
+def test_a_change_in_the_RETIRED_ARRAY_FORM_never_reaches_the_docket():
+    """!! `None` IS THE DELETE SIGNAL, so a `change` that has no text to set
+    must not reach it -- `docket/docket.py`'s own header: *"a key whose value
+    failed to serialise arrives looking exactly like a deliberate deletion."*
+    MEASURED 2026-08-29: `_alteration_text` joined `change if isinstance(change,
+    list) else []`, so a raw-text `change` produced `None`, `docket.read`
+    accepted it, and the paragraph was EMPTIED.
 
-    ! The raw-text form is the one `reviewer-brief.md` mandates while
-    `desk.mark.problems` demands an array; `TODO/change-is-raw-text-not-lines.md`
-    settles WHICH, and this asserts only that neither half vacates a paragraph
-    in silence."""
+    ! IT IS THE PARSE THAT REFUSES IT NOW, at `places`, not a check inside the
+    docket step -- `desk.mark.parse` rules `change` raw text
+    (`TODO/change-is-raw-text-not-lines.md`), so `MalformedMark` is raised
+    before any alteration is built. The `UnusableChange` exception this case
+    used to assert is gone with the shape that could reach it."""
     mark = a_correct("m.py@b1")
-    mark["change"] = "\n".join(mark["change"])
+    mark["change"] = [mark["change"]]
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
-    with pytest.raises(UnusableChange):
+    with pytest.raises(MalformedMark):
         docket_from(reconcile(proof), proof)
 
 
 def test_an_EMPTY_change_refuses_where_the_instruction_may_not_empty():
     mark = a_correct("m.py@b1")
-    mark["change"] = []
+    mark["change"] = ""
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
-    with pytest.raises(UnusableChange):
+    with pytest.raises(MalformedMark):
         docket_from(reconcile(proof), proof)
 
 
@@ -252,7 +256,7 @@ def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():
     is what the refusal above is read from rather than from a named
     instruction."""
     mark = a_drop("m.py@b1")
-    mark["change"] = []
+    mark["change"] = ""
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
     docket = docket_from(reconcile(proof), proof)
     assert docket["pages"][0]["alterations"] == [{"cue": "b1", "text": None}]

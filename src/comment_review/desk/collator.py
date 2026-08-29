@@ -7,6 +7,9 @@
     source_problems(...)        T3.2 -- does every `source` resolve, with its
                                  `verbatim` within reach of the cited line
     source_verification(...)    all three, over one mark
+    Placed                       one `Mark` and the role that made it
+    MalformedMark                an entry reached `places` that is neither an
+                                 untouched slot nor a parseable `Mark`
     places(proof)                T4.1 -- one stage's marks, grouped by every
                                  place each TOUCHES
     UnnamedRole                  an `edit_copy` reached `places` with no `role`
@@ -14,7 +17,13 @@
                                  send a place back for a re-read
     docket_from(reconciled, proof) T4.5 -- reconciliation's SETTLED places,
                                  packaged as the docket the write chain reads
-    UnusableChange               a settled mark's `change` cannot be set
+
+!! EVERY FUNCTION BELOW THAT RULES ON A MARK TAKES A `desk.mark.Mark`, SINCE
+2026-08-29. They each read the entry by key until then, so `INSTRUCTIONS.get(...)`
+was handed a `str` where the dict is keyed on `Instruction` at ten sites, and
+`spec is None` branches existed for a shape the parse now refuses at the
+boundary. `places` is where the dicts stop: it calls `desk.mark.parse` once per
+entry and everything downstream of it holds a parsed mark.
 
 `decision-log.md Vocabulary: #19` names the module and its two steps, keyed on
 scope: source-verification is per MARK, against the page it rules on;
@@ -40,7 +49,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.binder import rows_of
-from comment_review.desk.mark import INSTRUCTIONS, Instruction
+from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, parse, untouched
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
@@ -64,40 +73,45 @@ def known_addresses(binder: dict) -> frozenset[str]:
     )
 
 
-def address_problems(where: str, mark: dict, known: frozenset[str]) -> list[str]:
+def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]:
     """T3.1 -- the address resolves to a place the binder carries.
 
     ! Only fires when `address` is present: `clean` is not substantive and
-    owes none, and a `mark` seeded onto a sheet always carries one, so a
-    missing address here is `desk.mark.problems`'s question, not this one's.
+    owes none, and a mark seeded onto a sheet always carries one, so a
+    missing address here is `desk.mark.parse`'s question, not this one's.
     """
-    address = mark.get("address")
-    if isinstance(address, str) and address and address not in known:
-        return [f"{where}: `address` {address!r} names no place the binder carries"]
+    if mark.address and mark.address not in known:
+        return [
+            f"{where}: `address` {mark.address!r} names no place the binder carries"
+        ]
     return []
 
 
-def claim_verbatim_problems(where: str, mark: dict) -> list[str]:
+def claim_verbatim_problems(where: str, mark: Mark, raw_text: str) -> list[str]:
     """T3.3 -- the sentence the claim rules on is really in the paragraph.
 
     The VERBATIM classifier (`Row.quotes_original`) names the one
     `claim` key checked this way -- `false` for `correct`, `drop` for `drop`,
-    `from` for `patch`; the other four quote nothing. Reads `mark["raw_text"]`,
-    the paragraph `seed()` put on the row -- no file, no re-read.
+    `from` for `patch`; the other four quote nothing.
+
+    Args:
+        where: how to name this mark in a message -- an address, or a position.
+        mark: the parsed mark ruling on this place.
+        raw_text: the paragraph as it stands, from the row `seed()` handed the
+            role. ! IT IS THE ROW'S AND NOT THE MARK'S -- `docs/the-mark.md`
+            puts `raw_text` on the seeded row and `change` on the mark, so the
+            two can be diffed. Passed in rather than read off a key, which is
+            why no file is opened and no page re-read.
     """
-    instruction = mark.get("mark")
-    spec = INSTRUCTIONS.get(instruction) if isinstance(instruction, str) else None
-    key = spec.quotes_original if spec is not None else ""
+    key = INSTRUCTIONS[mark.instruction].quotes_original
     if not key:
         return []
-    claim = mark.get("claim")
-    value = claim.get(key) if isinstance(claim, dict) else None
+    value = mark.claim.get(key)
     if not isinstance(value, str) or not value.strip():
-        # ! A missing or empty claim key is `desk.mark.problems`'s question --
+        # ! A missing or empty claim key is `desk.mark.parse`'s question --
         # it already refuses this shape before source-verification would run.
         return []
-    raw_text = mark.get("raw_text")
-    if not isinstance(raw_text, str) or value not in raw_text:
+    if value not in raw_text:
         return [f"{where}: `claim.{key}` is not in the paragraph this row seeded"]
     return []
 
@@ -154,7 +168,7 @@ def _lines(root: Path, path: str, cache: Cache) -> tuple[str, ...] | None:
     return cache[path]
 
 
-def source_problems(where: str, mark: dict, root: Path, cache: Cache) -> list[str]:
+def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[str]:
     """T3.2 -- every `source` resolves, its `verbatim` within reach of the cite.
 
     !! A BARE-STRING SOURCE IS REFUSED, NOT DROPPED, per a finding tracked in
@@ -162,11 +176,8 @@ def source_problems(where: str, mark: dict, root: Path, cache: Cache) -> list[st
     ever ran, so a bare string vanished rather than being flagged. This loop
     walks `sources` as handed and reports on every entry, dict or not.
     """
-    sources = mark.get("sources")
-    if not isinstance(sources, list):
-        return []
     out = []
-    for i, source in enumerate(sources, 1):
+    for i, source in enumerate(mark.sources, 1):
         at = f"{where}: source {i}"
         if not isinstance(source, dict):
             out.append(f"{at} is not an object -- a bare string cannot be resolved")
@@ -174,7 +185,7 @@ def source_problems(where: str, mark: dict, root: Path, cache: Cache) -> list[st
         cite = source.get("cite")
         verbatim = source.get("verbatim")
         if not isinstance(cite, str) or not cite.strip():
-            continue  # `desk.mark.problems`'s question, not this one's.
+            continue  # `desk.mark.parse`'s question, not this one's.
         parsed = _cite_at(cite)
         if parsed is None:
             out.append(f"{at}: `cite` {cite!r} is not `path:line`")
@@ -201,7 +212,7 @@ def source_problems(where: str, mark: dict, root: Path, cache: Cache) -> list[st
                         "the file")
             continue
         if not isinstance(verbatim, str) or not verbatim.strip():
-            continue  # `desk.mark.problems`'s question, not this one's.
+            continue  # `desk.mark.parse`'s question, not this one's.
         lo = max(0, lineno - 1 - WITHIN)
         hi = min(len(lines), lineno + WITHIN)
         window = "\n".join(lines[lo:hi])
@@ -213,16 +224,22 @@ def source_problems(where: str, mark: dict, root: Path, cache: Cache) -> list[st
 
 
 def source_verification(
-    where: str, mark: dict, *, known: frozenset[str], root: Path, cache: Cache
+    where: str,
+    mark: Mark,
+    *,
+    raw_text: str,
+    known: frozenset[str],
+    root: Path,
+    cache: Cache,
 ) -> list[str]:
     """T3.1 + T3.2 + T3.3, over one mark -- every check this step owns.
 
     Args:
         where: how to name this mark in a message -- its address, or a
             position.
-        mark: one role's ruling on one place, as a filled sheet entry --
-            carrying `address`, `raw_text` and `mark` from `seed()`, plus
-            `claim` and `sources` from the role.
+        mark: one role's ruling on one place, parsed by `desk.mark.parse`.
+        raw_text: the paragraph the row seeded, which T3.3 checks the claim's
+            quoted sentence against -- see `claim_verbatim_problems`.
         known: every address the binder carries -- `known_addresses(binder)`.
         root: the checkout `sources` cite into.
         cache: a per-file line cache, built once per run and passed to every
@@ -234,7 +251,7 @@ def source_verification(
     """
     return (
         address_problems(where, mark, known)
-        + claim_verbatim_problems(where, mark)
+        + claim_verbatim_problems(where, mark, raw_text)
         + source_problems(where, mark, root, cache)
     )
 
@@ -245,9 +262,14 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
     The shape `flows.marks.seed()` hands out, after a role filled it in --
     one sheet per page, walked in turn, then each sheet's `marks`.
 
-    ! Skips an unruled entry (`mark` is `None`) the same way
+    ! Skips an UNTOUCHED slot (`desk.mark.untouched`) the same way
     `flows.marks.problems_in` does -- a coverage gap is not a problem this
     step reports.
+
+    !! AN ENTRY THAT IS NEITHER UNTOUCHED NOR PARSEABLE IS REPORTED, NOT
+    SKIPPED. It read `mark.get("mark") is None` until 2026-08-29, which said
+    the same thing about a slot nobody wrote in and a mark whose ruling key
+    this code did not recognise -- so the second vanished here as well.
     """
     sheets = report.get("sheets")
     if not isinstance(sheets, list):
@@ -260,30 +282,41 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
         marks = sheet.get("marks") if isinstance(sheet, dict) else None
         if not isinstance(marks, list):
             continue
-        for mark in marks:
+        for entry in marks:
             i += 1
-            if not isinstance(mark, dict) or mark.get("mark") is None:
+            if untouched(entry):
                 continue
-            where = str(mark.get("address") or f"mark {i}")
+            where = str(
+                (entry.get("address") if isinstance(entry, dict) else None)
+                or f"mark {i}"
+            )
+            mark, why = parse(where, entry)
+            if mark is None:
+                out += why
+                continue
+            raw_text = entry.get("raw_text")
             out += source_verification(
-                where, mark, known=known, root=root, cache=cache
+                where,
+                mark,
+                raw_text=raw_text if isinstance(raw_text, str) else "",
+                known=known,
+                root=root,
+                cache=cache,
             )
     return out
 
 
-def _touches(mark: dict) -> list[str]:
+def _touches(mark: Mark) -> list[str]:
     """Every place one mark reaches -- its own `address`, plus a `move`'s `claim.to`.
 
     ! `move` is the one instruction naming two places: `claim.from` is the
     same as the mark's own `address`, so only `claim.to` adds a second.
     """
     touched = []
-    address = mark.get("address")
-    if isinstance(address, str) and address:
-        touched.append(address)
-    if mark.get("mark") == Instruction.MOVE:
-        claim = mark.get("claim")
-        destination = claim.get("to") if isinstance(claim, dict) else None
+    if mark.address:
+        touched.append(mark.address)
+    if mark.instruction is Instruction.MOVE:
+        destination = mark.claim.get("to")
         if isinstance(destination, str) and destination and destination not in touched:
             touched.append(destination)
     return touched
@@ -304,7 +337,38 @@ class UnnamedRole(Exception):
     """
 
 
-def places(proof: dict) -> dict[str, list[dict]]:
+class MalformedMark(Exception):
+    """An entry reached `places` that is neither untouched nor a parseable `Mark`.
+
+    !! RECONCILIATION IS NOT A CHECKING STEP, so it has no third answer to
+    give. `flows.marks.problems_in` and `verify_report` are what report a
+    broken mark; by the time a `master_proof` is grouped, every entry either
+    was never written in or is a `Mark`. This exception names the entry and
+    the rules it broke rather than letting a half-valid mark be grouped,
+    counted and settled.
+    """
+
+
+class Placed(NamedTuple):
+    """One parsed `Mark`, and the role whose `edit_copy` it came back in.
+
+    !! THE ROLE IS NOT A FIELD OF A `Mark` -- `docs/the-mark.md` names seven
+    fields and `role` is not one of them; it belongs to the `edit_copy`, one
+    level up. Stamping it into the mark is what a dict allowed and what made
+    `Mark` need an eighth field it does not have.
+
+    Attributes:
+        mark: the ruling, as `desk.mark.parse` built it.
+        role: the editorial role that made it -- what `_outcome` sorts and
+            what `docket_from` writes as a page's `role`, the provenance
+            `flows.revise.pull._set_by` routes on.
+    """
+
+    mark: Mark
+    role: str
+
+
+def places(proof: dict) -> dict[str, list[Placed]]:
     """T4.1 -- one stage's marks, grouped by every place each TOUCHES.
 
     `decision-log.md Vocabulary: #19`'s reconciliation step, per PLACE across
@@ -313,13 +377,17 @@ def places(proof: dict) -> dict[str, list[dict]]:
     `a8`, so the two are decided as if they never touched the same text. This
     groups a `move` into BOTH buckets instead.
 
+    !! THIS IS WHERE THE DICTS STOP. Every entry is put through
+    `desk.mark.parse` here and everything downstream holds a `Mark`, so no
+    consumer re-derives a field by key and none can disagree with another
+    about what the entry said.
+
     Args:
         proof: a `master_proof`, as `desk.proof.gather` returns it.
 
     Returns:
-        address -> the marks touching it, each a copy of the role's mark with
-        the role that made it added under `role`. An unruled entry (`mark` is
-        `None`) is skipped, the same coverage-gap rule `verify_report` and
+        address -> the `Placed` marks touching it. An UNTOUCHED slot is
+        skipped, the same coverage-gap rule `verify_report` and
         `flows.marks.problems_in` use. `clean` marks group like any other
         instruction -- what a group of marks at one place MEANS is
         reconciliation's settle/escalate step, not this one's.
@@ -328,8 +396,9 @@ def places(proof: dict) -> dict[str, list[dict]]:
         UnnamedRole: an `edit_copy` carries no `role` string. Asked of EVERY
             copy, before its sheets are read, so one copy holding no marks at
             all still refuses -- see the exception for the two shapes.
+        MalformedMark: an entry is neither untouched nor parseable.
     """
-    out: dict[str, list[dict]] = {}
+    out: dict[str, list[Placed]] = {}
     for i, copy in enumerate(proof.get("edit_copies", [])):
         role = copy.get("role")
         if not isinstance(role, str) or not role.strip():
@@ -341,12 +410,19 @@ def places(proof: dict) -> dict[str, list[dict]]:
             marks = sheet.get("marks") if isinstance(sheet, dict) else None
             if not isinstance(marks, list):
                 continue
-            for mark in marks:
-                if not isinstance(mark, dict) or mark.get("mark") is None:
+            for entry in marks:
+                if untouched(entry):
                     continue
-                entry = {**mark, "role": role}
+                where = str(
+                    (entry.get("address") if isinstance(entry, dict) else None)
+                    or f"a mark of {role}"
+                )
+                mark, why = parse(where, entry)
+                if mark is None:
+                    raise MalformedMark("; ".join(why))
+                placed = Placed(mark, role)
                 for address in _touches(mark):
-                    out.setdefault(address, []).append(entry)
+                    out.setdefault(address, []).append(placed)
     return out
 
 
@@ -368,8 +444,8 @@ class Reconciled(NamedTuple):
     half of one.
 
     Each entry is `{"address": ..., "roles": [...], "marks": [...]}` -- the
-    role names and the owing marks themselves, so a later phase can send a
-    `reread` back to exactly the roles that touched it. For an `add`'s
+    role names and the owing `Placed` marks themselves, so a later phase can
+    send a `reread` back to exactly the roles that touched it. For an `add`'s
     re-read, `roles` is not only the roles that marked THIS place -- see
     `reconcile`.
     """
@@ -379,22 +455,17 @@ class Reconciled(NamedTuple):
     rereads: list[dict]
 
 
-def _owes_change(mark: dict) -> bool:
+def _owes_change(mark: Mark) -> bool:
     """Whether `mark`'s instruction is one of the five that owe a change.
 
     Read off `INSTRUCTIONS[...].owes_change` -- False for exactly `clean`
     and `query` -- rather than the two names retyped here.
     """
-    instruction = mark.get("mark")
-    spec = INSTRUCTIONS.get(instruction) if isinstance(instruction, str) else None
-    return spec.owes_change if spec is not None else False
+    return INSTRUCTIONS[mark.instruction].owes_change
 
 
-def _sentence_key(mark: dict) -> object:
+def _sentence_key(mark: Mark) -> object:
     """Which sentence a mark rules on, from its `claim` -- never `change`.
-
-    (`TODO/change-is-raw-text-not-lines.md` is a known, filed contradiction
-    this function does not depend on.)
 
     `INSTRUCTIONS[...].quotes_original` names the one `claim` key checked
     word-for-word against the paragraph -- `false` for `correct`, `drop` for
@@ -403,13 +474,9 @@ def _sentence_key(mark: dict) -> object:
     identity of its own and can never be found to share a sentence with
     another mark.
     """
-    instruction = mark.get("mark")
-    spec = INSTRUCTIONS.get(instruction) if isinstance(instruction, str) else None
-    key = spec.quotes_original if spec is not None else ""
+    key = INSTRUCTIONS[mark.instruction].quotes_original
     if key:
-        claim = mark.get("claim")
-        if isinstance(claim, dict):
-            return claim.get(key)
+        return mark.claim.get(key)
     return id(mark)
 
 
@@ -460,7 +527,7 @@ def _roles_of_stage(proof: dict, path: str) -> set[str]:
 OUTCOMES = ("settled", "rereads", "escalations")
 
 
-def _outcome(proof: dict, address: str, owing: list[dict]) -> tuple[str, dict]:
+def _outcome(proof: dict, address: str, owing: list[Placed]) -> tuple[str, dict]:
     """Which of `OUTCOMES` one place's change-owing marks fall into.
 
     The per-place half of `Process: #49` -- `reconcile`'s own docstring holds
@@ -470,19 +537,19 @@ def _outcome(proof: dict, address: str, owing: list[dict]) -> tuple[str, dict]:
     Args:
         proof: a `master_proof` -- read only for an `add`'s blast radius.
         address: the place being ruled on.
-        owing: the marks there whose instruction owes a change.
+        owing: the `Placed` marks there whose instruction owes a change.
 
     Returns:
         `(one of OUTCOMES, the entry)` -- the entry in the shape
         `Reconciled` documents.
     """
-    roles = {mark["role"] for mark in owing}
-    if any(mark.get("mark") == Instruction.ADD for mark in owing):
+    roles = {placed.role for placed in owing}
+    if any(placed.mark.instruction is Instruction.ADD for placed in owing):
         roles |= _roles_of_stage(proof, cue_of(address).path)
         kind = "rereads"
     elif len(owing) == 1:
         kind = "settled"
-    elif len({_sentence_key(mark) for mark in owing}) == 1:
+    elif len({_sentence_key(placed.mark) for placed in owing}) == 1:
         kind = "escalations"
     else:
         kind = "rereads"
@@ -523,10 +590,11 @@ def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
             an entry.
     """
     ends_of = {
-        tuple(_touches(mark))
+        tuple(_touches(placed.mark))
         for _, entry in outcomes.values()
-        for mark in entry["marks"]
-        if mark.get("mark") == Instruction.MOVE and len(_touches(mark)) > 1
+        for placed in entry["marks"]
+        if placed.mark.instruction is Instruction.MOVE
+        and len(_touches(placed.mark)) > 1
     }
     changed = True
     while changed:
@@ -591,10 +659,12 @@ def reconcile(proof: dict) -> Reconciled:
     Raises:
         UnnamedRole: from `places`, when an `edit_copy` cannot say which role
             wrote it.
+        MalformedMark: from `places`, when an entry is neither untouched nor
+            parseable.
     """
     outcomes: dict[str, tuple[str, dict]] = {}
     for address, marks in places(proof).items():
-        owing = [mark for mark in marks if _owes_change(mark)]
+        owing = [placed for placed in marks if _owes_change(placed.mark)]
         if owing:
             outcomes[address] = _outcome(proof, address, owing)
     _join_moves(outcomes)
@@ -625,32 +695,8 @@ def _real_pages(proof: dict) -> tuple[list[str], dict[str, str]]:
     return paths, shas
 
 
-class UnusableChange(Exception):
-    """A settled mark's `change` cannot be set as this docket entry's text.
-
-    !! `None` IS THE DELETE SIGNAL, SO EVERY WAY OF FAILING TO PRODUCE TEXT
-    MUST NOT REACH IT. `docket/docket.py`'s own header names the hazard: *"a
-    key whose value failed to serialise arrives looking exactly like a
-    deliberate deletion."* MEASURED 2026-08-29: `_alteration_text` read
-    `change if isinstance(change, list) else []` and joined it, so a `correct`
-    whose `change` was the STRING `"# the new comment"` produced `None`,
-    `docket.read` accepted it -- null is the legal delete -- and the paragraph
-    was EMPTIED.
-
-    ! IT IS A LIVE SHAPE, NOT A HYPOTHETICAL ONE. `reviewer-brief.md` mandates
-    `change` as raw text while `desk.mark.problems` demands an array;
-    `TODO/change-is-raw-text-not-lines.md` is where that contradiction is
-    settled. This exception does not settle it -- it makes either half of it
-    fail loudly instead of vacating a paragraph.
-
-    ! AN EMPTY `change` IS READ THROUGH `INSTRUCTIONS[...].may_empty`, the row
-    flag that says which instruction may leave a paragraph with nothing in it
-    -- `drop`, and only `drop` -- rather than by naming that instruction here.
-    """
-
-
-def _alteration_text(address: str, mark: dict) -> str | None:
-    """The docket's `text` for one settled mark's `change` -- joined, or `None`.
+def _alteration_text(address: str, mark: Mark) -> str | None:
+    """The docket's `text` for one settled mark's `change`, or `None` to delete.
 
     !! A `move`'s ORIGIN IS A DELETE, NEVER ITS `change`. `_touches` groups a
     `move` mark into both its own `address` (the origin, where the paragraph
@@ -659,40 +705,40 @@ def _alteration_text(address: str, mark: dict) -> str | None:
     arguments. Comparing `address` to the mark's OWN `address` is what tells
     the two apart -- equal means this call is for the origin.
 
+    !! `None` IS THE DELETE SIGNAL, SO EVERY WAY OF FAILING TO PRODUCE TEXT
+    MUST NOT REACH IT. `docket/docket.py`'s own header names the hazard: *"a
+    key whose value failed to serialise arrives looking exactly like a
+    deliberate deletion."* MEASURED 2026-08-29: this function read `change if
+    isinstance(change, list) else []` and joined it, so a `correct` whose
+    `change` was the STRING `"# the new comment"` produced `None`,
+    `docket.read` accepted it -- null is the legal delete -- and the paragraph
+    was EMPTIED.
+
+    !! THAT HAZARD IS NOW ANSWERED BY THE PARSE, AND THE `UnusableChange`
+    EXCEPTION IS GONE WITH IT. `desk.mark.parse` refuses by name a `change`
+    that is not raw text, and refuses an empty one on every row whose
+    `may_empty` is False -- so a `Mark` reaching here carries a `change` that
+    is a string, and one that is empty only where emptying the paragraph IS
+    the edit. An exception here could no longer fire, and a check that cannot
+    fail says nothing (`docs/gates.md`).
+
     Args:
         address: the place this docket entry is FOR -- a settled entry's own
             `address`, which for a `move` may be either end.
         mark: the one owing mark that settled this place.
 
     Returns:
-        `None` (delete) at a `move`'s origin, or for an empty `change` on an
-        instruction whose `may_empty` allows it. Otherwise `change`'s lines
-        joined with a newline.
-
-    Raises:
-        UnusableChange: `change` is not a list of strings, or it is empty on an
-            instruction that may not empty a paragraph -- see the exception.
+        `None` (delete) at a `move`'s origin, and for the empty `change` of a
+        `drop` whose claim named the whole paragraph. Otherwise the updated
+        paragraph as the role wrote it.
     """
-    if mark.get("mark") == Instruction.MOVE and address == mark.get("address"):
+    if mark.instruction is Instruction.MOVE and address == mark.address:
         return None
-    instruction = mark.get("mark")
-    spec = INSTRUCTIONS.get(instruction) if isinstance(instruction, str) else None
-    change = mark.get("change")
-    if not isinstance(change, list) or not all(
-        isinstance(line, str) for line in change
-    ):
-        raise UnusableChange(
-            f"{address}: `change` is {type(change).__name__}, not an ARRAY of "
-            "line strings, so this alteration has no text to set"
-        )
-    if not change:
-        if spec is None or not spec.may_empty:
-            raise UnusableChange(
-                f"{address}: `change` is empty and {instruction!r} may not "
-                "leave the paragraph with nothing in it"
-            )
-        return None
-    return "\n".join(change)
+    # ! EMPTY MEANS DELETE, and only `INSTRUCTIONS[...].may_empty` rows can be
+    # holding an empty `change` by the time they are here -- `drop`, and only
+    # `drop`. The flag is not re-read: `parse` is where it is enforced, and
+    # asking twice is where two spellings of one rule start disagreeing.
+    return mark.change or None
 
 
 def docket_from(reconciled: Reconciled, proof: dict) -> dict:
@@ -715,10 +761,6 @@ def docket_from(reconciled: Reconciled, proof: dict) -> dict:
         page per REAL path a settled place touches. `docket.read` rules on
         this shape; nothing here does.
 
-    Raises:
-        UnusableChange: a settled mark's `change` cannot be set -- see
-            `_alteration_text`.
-
     !! `role` IS ONE PER PAGE, matching `docket.read`'s own schema and
     `flows.revise.pull._set_by`, which reads it the same way -- so a page whose
     settled places were set by MORE THAN ONE role carries no `role` at all, and
@@ -735,7 +777,7 @@ def docket_from(reconciled: Reconciled, proof: dict) -> dict:
     roles_of: dict[str, set[str]] = {}
     for entry in reconciled.settled:
         address = entry["address"]
-        mark = entry["marks"][0]
+        mark = entry["marks"][0].mark
         role = entry["roles"][0]
         addr = cue_of(address)
         real_path = unflatten(addr.path, paths) or addr.path

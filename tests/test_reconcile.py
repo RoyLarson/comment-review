@@ -33,7 +33,7 @@ def test_a_move_lands_in_both_the_origin_and_the_destination():
 
 def test_every_mark_carries_the_role_that_made_it():
     proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
-    assert places(proof)["m.py@b1"][0]["role"] == "block-context"
+    assert places(proof)["m.py@b1"][0].role == "block-context"
 
 
 def test_one_change_settles_because_nobody_composed_anything():

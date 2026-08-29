@@ -26,8 +26,20 @@ from comment_review.desk.mark import (
     INSTRUCTIONS,
     QUERY_SHAPES,
     allowed,
-    problems,
+    parse,
+    untouched,
 )
+
+
+def problems(where: str, entry: object) -> list[str]:
+    """Just the refusals `parse` reports -- the half these cases assert on.
+
+    ! `parse` returns `(Mark | None, problems)` and there is no third outcome,
+    so an empty list here is also the statement that a `Mark` was built. The
+    two are checked together in `TestTheParseHasNoThirdOutcome` below rather
+    than at every call site.
+    """
+    return parse(where, entry)[1]
 
 MARKS_PATH = (
     Path(__file__).resolve().parents[1]
@@ -72,23 +84,21 @@ CLAIM: dict[str, dict] = {
     "move": {"from": "src/old.py@b1", "to": "src/new.py@b1"},
 }
 
-#: A literal, well-formed `change` for each verdict that owes one. `clean`
+#: A literal, well-formed `change` for each instruction that owes one. `clean`
 #: and `query` propose no text, so neither has an entry.
 #:
-#: !! `move`'s ROW describes `change` as a dict keyed `to` (`change_help`,
-#: `desk/mark.py`'s `Row.change_all`), but `problems()` demands an
-#: ARRAY of lines from every instruction that owes a `change` before it ever
-#: looks at `change_all` -- so a dict is refused before the `to`/`from` check
-#: is reached, and a plain array of lines is what actually passes. MEASURED
-#: against the shipped gate, 2026-08-28; out of this task's scope (files
-#: touched: `claim_keys`, `allowed`, `_claim_problems`). Flagged in
-#: `task-1-report.md`, not fixed here.
+#: !! RAW TEXT, NOT A LINE ARRAY -- `reviewer-brief.md`'s own wording, *"the
+#: updated paragraph, as RAW TEXT -- not lines, not sentences"*, which is what
+#: `docs/the-mark.md` rules and what the gate demanded the opposite of until
+#: 2026-08-29 (`TODO/change-is-raw-text-not-lines.md`).
+#:
+#: ! `drop`'s empty string IS the edit, on the one row `may_empty` is True for.
 CHANGE: dict[str, object] = {
-    "drop": [],
-    "correct": ["# the corrected line"],
-    "patch": ["# the reworded line"],
-    "add": ["# the new line"],
-    "move": ["# the paragraph as it reads at its destination"],
+    "drop": "",
+    "correct": "# the corrected line",
+    "patch": "# the reworded line",
+    "add": "# the new line",
+    "move": "# the paragraph as it reads at its destination",
 }
 
 #: Verdicts whose payload cites no source: `clean` rules on nothing, `patch`
@@ -96,24 +106,30 @@ CHANGE: dict[str, object] = {
 NO_SOURCE = ("clean", "patch")
 
 
-def well_formed(verdict: str) -> dict:
-    """A literal mark that satisfies `verdict`'s row in the brief.
+def well_formed(instruction: str) -> dict:
+    """A literal entry that satisfies `instruction`'s row in the brief.
 
-    The address is a REAL one the 2026-08-27 run recorded for this verdict;
-    the reason, claim, change and sources are hand-written from the brief.
+    The address is a REAL one the 2026-08-27 run recorded for this
+    instruction; the reason, claim, change and sources are hand-written from
+    the brief.
+
+    ! THE RULING KEY IS `instruction`, which is what `reviewer-brief.md`
+    publishes. The code read it as `mark` until 2026-08-29 and the brief's own
+    example was silently skipped as unruled --
+    `tests/test_brief_worked_example.py`.
     """
-    mark: dict = {
-        "mark": verdict,
-        "address": REAL_ADDRESS[verdict],
+    entry: dict = {
+        "instruction": instruction,
+        "address": REAL_ADDRESS[instruction],
         "reason": "written from the brief for the mark-gate suite",
     }
-    if CLAIM[verdict]:
-        mark["claim"] = dict(CLAIM[verdict])
-    if verdict in CHANGE:
-        mark["change"] = CHANGE[verdict]
-    if verdict not in NO_SOURCE:
-        mark["sources"] = [dict(SOURCE)]
-    return mark
+    if CLAIM[instruction]:
+        entry["claim"] = dict(CLAIM[instruction])
+    if instruction in CHANGE:
+        entry["change"] = CHANGE[instruction]
+    if instruction not in NO_SOURCE:
+        entry["sources"] = [dict(SOURCE)]
+    return entry
 
 
 class TestRealMarksStayInsideTheClosedSet:
@@ -170,11 +186,90 @@ class TestTheQueryShapes:
 
 
 class TestWellFormedMarksAtRealAddresses:
-    @pytest.mark.parametrize("verdict", sorted(BRIEF))
+    @pytest.mark.parametrize("instruction", sorted(BRIEF))
     def test_a_mark_written_from_the_brief_at_a_real_address_is_accepted(
-        self, verdict
+        self, instruction
     ):
-        assert problems("here", well_formed(verdict)) == []
+        assert problems("here", well_formed(instruction)) == []
+
+
+class TestTheParseHasNoThirdOutcome:
+    """!! ONE FUNCTION, TWO ANSWERS, AND NEVER BOTH OR NEITHER. `problems(where,
+    mark: dict)` returned messages and left the dict for the caller to use
+    anyway, so a half-valid mark reached every consumer -- which is what
+    `desk/collator.py` then re-derived by key at ten sites.
+    """
+
+    @pytest.mark.parametrize("instruction", sorted(BRIEF))
+    def test_an_accepted_entry_yields_a_mark_and_no_problems(self, instruction):
+        mark, why = parse("here", well_formed(instruction))
+        assert why == []
+        assert mark is not None
+        assert mark.instruction == instruction
+
+    @pytest.mark.parametrize("instruction", sorted(BRIEF))
+    def test_a_refused_entry_yields_problems_and_NO_mark(self, instruction):
+        broken = well_formed(instruction)
+        del broken["instruction"]
+        mark, why = parse("here", broken)
+        assert mark is None
+        assert why != []
+
+    def test_the_mark_carries_the_claim_the_entry_wrote(self):
+        mark, _ = parse("here", well_formed("correct"))
+        assert mark is not None
+        assert mark.claim == CLAIM["correct"]
+        assert mark.change == CHANGE["correct"]
+
+    def test_the_claim_is_COPIED_so_the_frozen_mark_cannot_be_mutated_through_it(
+        self,
+    ):
+        entry = well_formed("correct")
+        mark, _ = parse("here", entry)
+        assert mark is not None
+        entry["claim"]["false"] = "changed after the parse"
+        assert mark.claim["false"] == CLAIM["correct"]["false"]
+
+    def test_an_instruction_typed_as_a_string_resolves_a_row_with_no_cast(self):
+        """!! WHAT TASK 3 BUYS. `INSTRUCTIONS` is keyed on `Instruction`, and
+        every consumer handed it a `str` -- ten `str`-into-`dict[Instruction,
+        Row]` errors in `desk/collator.py` alone. A parsed mark's
+        `instruction` IS the member."""
+        mark, _ = parse("here", well_formed("correct"))
+        assert mark is not None
+        assert INSTRUCTIONS[mark.instruction].quotes_original == "false"
+
+
+class TestUntouchedIsNotTheSameAsUnruled:
+    """!! THE MEASURED DEFECT. `flows/marks.py` read `mark.get("mark") is None`
+    and skipped, which said the same thing about a slot nobody wrote in and a
+    mark a role HAD filled in that named no instruction -- so the second was
+    dropped before any check saw it and recounted as a coverage gap."""
+
+    def test_a_freshly_seeded_slot_is_untouched(self):
+        assert untouched(
+            {"address": "m.py@b1", "anchor": "", "raw_text": "", "instruction": None}
+        )
+
+    def test_a_filled_slot_naming_no_instruction_is_NOT_untouched(self):
+        entry = well_formed("correct")
+        entry["instruction"] = None
+        assert not untouched(entry)
+
+    def test_a_slot_with_no_instruction_KEY_AT_ALL_is_NOT_untouched(self):
+        """The brief's own example arrived this way -- keyed `instruction`
+        while the code read `mark`, so the key it looked for was absent."""
+        assert not untouched({"address": "m.py@b1", "anchor": "", "raw_text": ""})
+
+    def test_a_ruled_slot_is_not_untouched(self):
+        assert not untouched(well_formed("clean"))
+
+    def test_what_is_not_untouched_is_refused_by_NAME(self):
+        entry = well_formed("correct")
+        entry["instruction"] = None
+        mark, why = parse("here", entry)
+        assert mark is None
+        assert any("instruction" in message for message in why)
 
 
 class TestWhatAllowedPublishes:
@@ -199,7 +294,7 @@ class TestTheRulesBite:
     """Each case starts from a mark `well_formed` accepts and breaks one rule."""
 
     def test_an_unknown_instruction_is_refused(self):
-        assert problems("here", {"mark": "stet"})
+        assert problems("here", {"instruction": "stet"})
 
     def test_a_missing_address_is_refused(self):
         bad = well_formed("correct")
@@ -208,27 +303,37 @@ class TestTheRulesBite:
 
     def test_clean_needs_no_address(self):
         """A role returns `clean` over most of the binder."""
-        assert problems("here", {"mark": "clean"}) == []
+        assert problems("here", {"instruction": "clean"}) == []
 
     def test_an_empty_claim_key_is_not_an_answer(self):
         bad = well_formed("correct")
         bad["claim"]["false"] = "   "
         assert problems("here", bad)
 
-    def test_change_as_a_string_is_refused(self):
-        """Measured: a hand-transcribed paragraph lost its comment markers."""
+    def test_change_as_a_LINE_ARRAY_is_refused_BY_NAME(self):
+        """!! THE FORM THIS GATE DEMANDED UNTIL 2026-08-29, while the brief
+        mandated raw text -- `TODO/change-is-raw-text-not-lines.md`. A role
+        written against the retired rule is told so, rather than accepted for
+        a release: the message names RAW TEXT and what arrived instead."""
         bad = well_formed("correct")
-        bad["change"] = "# one line, as a string"
-        assert any("ARRAY" in p for p in problems("here", bad))
+        bad["change"] = ["# one line, in the retired array form"]
+        assert any("RAW TEXT" in p for p in problems("here", bad))
+
+    def test_change_as_raw_text_is_what_is_ACCEPTED(self):
+        """reviewer-brief.md: *"the updated paragraph, as RAW TEXT -- not
+        lines, not sentences."*"""
+        good = well_formed("correct")
+        good["change"] = "# the corrected line\n# and its second line"
+        assert problems("here", good) == []
 
     def test_a_drop_may_empty_the_paragraph(self):
         good = well_formed("drop")
-        good["change"] = []
+        good["change"] = ""
         assert problems("here", good) == []
 
     def test_a_correct_may_not_empty_the_paragraph(self):
         bad = well_formed("correct")
-        bad["change"] = []
+        bad["change"] = ""
         assert problems("here", bad)
 
     def test_a_mark_owing_sources_that_cites_nothing_is_refused(self):

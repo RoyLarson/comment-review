@@ -267,8 +267,9 @@ def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
         claim: exactly the keys `INSTRUCTIONS[instruction].claim_all` names.
 
     Returns:
-        A mark carrying `address`, `mark`, `reason`, `claim`, and `sources`
-        and `change` where the row owes them.
+        A mark carrying `address`, `instruction`, `reason`, `claim`, and
+        `sources` and `change` where the row owes them. ! `change` is RAW
+        TEXT, per `docs/the-mark.md`.
 
     Raises:
         AssertionError: `claim` does not carry exactly the keys the row's
@@ -281,14 +282,14 @@ def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
         )
     mark: dict = {
         "address": address,
-        "mark": instruction,
+        "instruction": instruction,
         "reason": f"written for the reconcile test suite ({instruction})",
         "claim": claim,
     }
     if spec.owes_sources:
         mark["sources"] = [{"cite": _MARK_PY_CITE, "verbatim": _MARK_PY_LINE_1}]
     if spec.owes_change:
-        mark["change"] = [f"# set by the reconcile test suite ({instruction})"]
+        mark["change"] = f"# set by the reconcile test suite ({instruction})"
     return mark
 
 
@@ -304,13 +305,19 @@ def a_drop(address: str, sentence: str = "the paragraph's own claim") -> dict:
     return _mark(Instruction.DROP, address, {"drop": sentence})
 
 
-def a_correct(address: str, sentence: str = "the paragraph's own claim") -> dict:
+def a_correct(address: str, sentence: object = "the paragraph's own claim") -> dict:
     """A `correct` mark -- `claim.false` is `sentence`, `claim.true` the fix,
-    the two keys `INSTRUCTIONS[Instruction.CORRECT]` demands."""
+    the two keys `INSTRUCTIONS[Instruction.CORRECT]` demands.
+
+    ! `sentence` IS COERCED TO A STRING, so a caller may pass a bare
+    discriminator (`sentence=0`, `sentence=2`) to say only *a different
+    sentence from the other mark's*. `desk.mark.parse` requires a filled
+    STRING, and `0` is neither.
+    """
     return _mark(
         Instruction.CORRECT,
         address,
-        {"false": sentence, "true": f"corrected: {sentence}"},
+        {"false": str(sentence), "true": f"corrected: {sentence}"},
     )
 
 

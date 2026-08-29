@@ -11,19 +11,25 @@ cue collides on merge: `a0` then means four different places**, and the fan-out
 results showed zero overlap with the full rounds until the differing form was
 noticed. ! Seeding removes the transcription rather than instructing against it.
 
-! A seeded entry's `mark` is `None` -- not ruled yet. A place left `None` when
-the edit_copy comes back is a COVERAGE GAP, which is a different thing from `clean`:
-`clean` says a role read this and had nothing to report.
+! A seeded entry's `instruction` is `None` -- not ruled yet. A place left `None`
+when the edit_copy comes back is a COVERAGE GAP, which is a different thing from
+`clean`: `clean` says a role read this and had nothing to report.
+
+!! AND A COVERAGE GAP IS NOT THE SAME AS A MARK THAT NAMES NO INSTRUCTION.
+`desk.mark.untouched` is what tells them apart, and this flow read
+`mark.get("mark") is None` until 2026-08-29 -- which said YES to both, so a
+filled-in mark whose ruling key the code did not recognise was dropped before
+`parse` saw it and recounted as a place nobody looked at.
 
 !! WHAT THIS FLOW DOES NOT DO IS CHECK A CLAIM AGAINST THE PAGE. Whether
 `claim.false` appears VERBATIM in the paragraph, whether a `move`'s destination
 is addressable -- both need the page the role read, and both belong to
-SOURCE-VERIFICATION in `collator`, which is not built. `desk.mark.problems`
-says the same about its own half.
+SOURCE-VERIFICATION in `collator`. `desk.mark.parse` says the same about its
+own half.
 """
 
 from comment_review.binder.binder import _read_from_problem
-from comment_review.desk.mark import INSTRUCTIONS, Instruction, problems
+from comment_review.desk.mark import INSTRUCTIONS, Instruction, parse, untouched
 from comment_review.reading.addresser import address_for
 
 
@@ -40,8 +46,8 @@ def seed(binder: dict, role: str) -> dict:
         edit_copy was censused from. Each entry in `sheets` carries one page's `path`
         and `sha`, plus its `marks` -- one per row on that page, holding the
         `address`, `anchor` and `raw_text` copied from the row, and
-        `mark: None` for the role to fill. `raw_text` is the paragraph the
-        role's `change` diffs against -- see `docs/the-mark.md`.
+        `instruction: None` for the role to fill. `raw_text` is the paragraph
+        the role's `change` diffs against -- see `docs/the-mark.md`.
 
     Raises:
         KeyError: the binder carries no `read_from`.
@@ -79,7 +85,7 @@ def seed(binder: dict, role: str) -> dict:
                         ),
                         "anchor": row.get("anchor", ""),
                         "raw_text": row.get("raw_text", ""),
-                        "mark": None,
+                        "instruction": None,
                     }
                     for row in page.get("rows", [])
                 ],
@@ -92,9 +98,15 @@ def seed(binder: dict, role: str) -> dict:
 def problems_in(report: dict) -> tuple[list[str], int]:
     """Every rule broken in a filled edit_copy, and how many places were ruled on.
 
-    ! A `mark` of `None` is NOT a problem -- it is an unruled place, and the
+    ! AN UNTOUCHED SLOT IS NOT A PROBLEM -- it is an unruled place, and the
     count returned is what says how much of the edit_copy was answered. Refusing it
     here would make an unfinished edit_copy indistinguishable from a malformed one.
+
+    !! BUT A SLOT A ROLE WROTE IN AND LEFT WITHOUT AN INSTRUCTION IS REFUSED BY
+    NAME, and was silently skipped until 2026-08-29 -- `desk.mark.untouched`
+    holds the distinction and the measurement behind it. Such an entry counts
+    towards `ruled`: a role DID rule here, and reporting it as unruled sends a
+    reader looking for a coverage gap that is really a malformed mark.
 
     !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, since 2026-08-29 --
     `seed()` nests every mark inside its own page's sheet; a walk that read
@@ -141,19 +153,25 @@ def problems_in(report: dict) -> tuple[list[str], int]:
             if not isinstance(mark, dict):
                 out.append(f"mark {i} is not an object")
                 continue
-            if mark.get("mark") is None:
+            if untouched(mark):
                 continue
             ruled += 1
             where = mark.get("address") or f"mark {i}"
-            out += problems(where, mark)
+            _, why = parse(where, mark)
+            out += why
     return out, ruled
 
 
 def unruled(report: dict) -> list[str]:
-    """The addresses left `None` -- the coverage gap, named rather than counted.
+    """The addresses nobody wrote in -- the coverage gap, named not counted.
 
     !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, matching
     `problems_in`, since 2026-08-29.
+
+    ! READS `desk.mark.untouched`, the same question `problems_in` asks, so a
+    mark refused for naming no instruction can never also be listed here. The
+    two answers were derived separately from `mark is None` and agreed on a
+    place that had been ruled on.
     """
     sheets = report.get("sheets")
     if not isinstance(sheets, list):
@@ -163,11 +181,7 @@ def unruled(report: dict) -> list[str]:
         marks = sheet.get("marks") if isinstance(sheet, dict) else None
         if not isinstance(marks, list):
             continue
-        out += [
-            str(m.get("address", ""))
-            for m in marks
-            if isinstance(m, dict) and m.get("mark") is None
-        ]
+        out += [str(m.get("address", "")) for m in marks if untouched(m)]
     return out
 
 
@@ -186,6 +200,6 @@ def tally(report: dict) -> dict[Instruction, int]:
         if not isinstance(marks, list):
             continue
         for mark in marks:
-            if isinstance(mark, dict) and mark.get("mark") in counts:
-                counts[mark["mark"]] += 1
+            if isinstance(mark, dict) and mark.get("instruction") in counts:
+                counts[mark["instruction"]] += 1
     return {name: n for name, n in counts.items() if n}

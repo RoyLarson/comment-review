@@ -12,6 +12,7 @@ exactly one thing, then asserts the check refuses it and names what broke.
 """
 
 import re
+from dataclasses import replace
 from pathlib import Path
 
 from conftest import ROOT
@@ -26,6 +27,7 @@ from comment_review.desk.collator import (
     source_verification,
     verify_report,
 )
+from comment_review.desk.mark import Mark, parse
 from comment_review.flows.marks import seed
 
 DESK = ROOT / "src" / "comment_review" / "desk"
@@ -62,21 +64,57 @@ CITED_LINE = 57
 CITED_TEXT = line_of(ROOT / CITED_FILE, CITED_LINE)
 
 
-def _well_formed() -> dict:
-    """A `correct` mark, as a role would hand back the row `seed()` gave it."""
-    false = ROW["raw_text"].splitlines()[0]
+#: The paragraph the row seeded -- what T3.3 checks a quoted sentence against.
+#: ! IT IS THE ROW'S, NOT THE MARK'S: `docs/the-mark.md` puts `raw_text` on the
+#: seeded row and `change` on the mark, so the two can be diffed, and
+#: `claim_verbatim_problems` takes it as its own argument for that reason.
+RAW_TEXT = ROW["raw_text"]
+
+
+def _entry() -> dict:
+    """A `correct` entry, as a role would hand back the row `seed()` gave it.
+
+    ! KEYED `instruction`, which is what `reviewer-brief.md` publishes. The
+    code read it as `mark` until 2026-08-29.
+    """
+    false = RAW_TEXT.splitlines()[0]
     return {
         "address": ROW["address"],
         "anchor": ROW["anchor"],
-        "raw_text": ROW["raw_text"],
-        "mark": "correct",
+        "raw_text": RAW_TEXT,
+        "instruction": "correct",
         "claim": {"false": false, "true": "the corrected sentence"},
         "reason": "written for the collator test suite",
         "sources": [
             {"cite": f"{CITED_FILE}:{CITED_LINE}", "verbatim": CITED_TEXT}
         ],
-        "change": ["# corrected"],
+        "change": "# corrected",
     }
+
+
+def _well_formed() -> Mark:
+    """`_entry()` through the real parse -- what every check below now takes.
+
+    !! THE COLLATOR TAKES A `Mark`, NOT A DICT, SINCE 2026-08-29. Each check
+    read the entry by key until then, which is what let `INSTRUCTIONS.get(...)`
+    be handed a `str` at ten sites.
+    """
+    mark, why = parse("the collator fixture", _entry())
+    assert why == [], why
+    assert mark is not None
+    return mark
+
+
+def a_mark(**overrides) -> Mark:
+    """`_well_formed()` with one field replaced -- how each check is made to fire.
+
+    ! BUILT WITH `dataclasses.replace`, not by re-parsing a broken entry. Some
+    of the shapes below (a bare-string `source`) are ones `parse` refuses
+    outright, and the question here is what SOURCE-VERIFICATION does when it
+    meets one -- the two steps ask different questions and this file must be
+    able to ask its own.
+    """
+    return replace(_well_formed(), **overrides)
 
 
 def test_known_addresses_carries_the_real_row():
@@ -91,30 +129,31 @@ class TestAddressProblems:
 
     def test_clean_needs_no_address(self):
         """A role returns `clean` over most of the binder -- no address at
-        all, which is `desk.mark.problems`'s question, not this one's."""
-        assert address_problems("here", {"mark": "clean"}, KNOWN) == []
+        all, which is `desk.mark.parse`'s question, not this one's."""
+        clean, why = parse("here", {"instruction": "clean"})
+        assert why == [] and clean is not None
+        assert address_problems("here", clean, KNOWN) == []
 
 
 class TestClaimVerbatimProblems:
     """T3.3 -- the sentence the claim rules on is really in the paragraph."""
 
     def test_the_false_clause_is_really_in_the_paragraph(self):
-        assert claim_verbatim_problems("here", _well_formed()) == []
+        assert claim_verbatim_problems("here", _well_formed(), RAW_TEXT) == []
 
     def test_add_and_query_quote_nothing(self):
         """`add`'s `missing` and `query`'s `shape` are not checked this way --
-        `Row.quotes_original` is empty for both."""
-        add = {"mark": "add", "claim": {"missing": "x", "anchor": "`f`"}}
-        query = {"mark": "query", "claim": {"shape": "outside-my-role"}}
-        assert claim_verbatim_problems("here", add) == []
-        assert claim_verbatim_problems("here", query) == []
+        `Row.quotes_original` is empty for both, so neither is measured
+        against the paragraph even when it names nothing in it."""
+        add = a_mark(instruction="add", claim={"missing": "x", "anchor": "`f`"})
+        query = a_mark(instruction="query", claim={"shape": "outside-my-role"})
+        assert claim_verbatim_problems("here", add, RAW_TEXT) == []
+        assert claim_verbatim_problems("here", query, RAW_TEXT) == []
 
     def test_a_missing_claim_key_is_not_this_checks_question(self):
-        """`desk.mark.problems` already refuses a `correct` with no `false`;
+        """`desk.mark.parse` already refuses a `correct` with no `false`;
         source-verification has nothing to compare and says nothing."""
-        bad = _well_formed()
-        del bad["claim"]["false"]
-        assert claim_verbatim_problems("here", bad) == []
+        assert claim_verbatim_problems("here", a_mark(claim={}), RAW_TEXT) == []
 
 
 class TestSourceProblems:
@@ -127,27 +166,30 @@ class TestSourceProblems:
     def test_a_bare_string_source_is_refused_not_dropped(self):
         """`record-and-verdicts-disagree` T3: the retired reader filtered
         `sources` to dicts before its check ran, so a bare string vanished.
-        This loop walks `sources` as handed."""
-        bad = _well_formed()
-        bad["sources"] = ["src/mod.py:12 | def thing()"]
+        This loop walks `sources` as handed.
+
+        ! AND `Mark.sources` IS TYPED `object` FOR THIS REASON -- a parse that
+        narrowed it to dicts would drop the entry before this check saw it,
+        which is the same defect one step earlier."""
+        bad = a_mark(sources=("src/mod.py:12 | def thing()",))
         problems = source_problems("here", bad, ROOT, {})
         assert problems
         assert "not an object" in problems[0]
 
     def test_a_cite_into_an_unreadable_file_is_refused(self):
-        bad = _well_formed()
-        bad["sources"] = [
-            {"cite": "src/comment_review/no_such_file.py:1", "verbatim": "x"}
-        ]
+        bad = a_mark(
+            sources=({"cite": "src/comment_review/no_such_file.py:1",
+                      "verbatim": "x"},)
+        )
         problems = source_problems("here", bad, ROOT, {})
         assert problems
         assert "cannot be read" in problems[0]
 
     def test_a_verbatim_outside_the_window_is_refused(self):
-        bad = _well_formed()
-        bad["sources"] = [
-            {"cite": f"{CITED_FILE}:{CITED_LINE}", "verbatim": "not in this file"}
-        ]
+        bad = a_mark(
+            sources=({"cite": f"{CITED_FILE}:{CITED_LINE}",
+                      "verbatim": "not in this file"},)
+        )
         problems = source_problems("here", bad, ROOT, {})
         assert problems
         assert f"within {3} lines" in problems[0]
@@ -168,10 +210,10 @@ class TestSourceProblems:
         secret = outside / "secrets.txt"
         secret.write_text("TOKEN=the-line-outside\n", encoding="utf-8")
 
-        mark = _well_formed()
-        mark["sources"] = [
-            {"cite": f"{secret}:1", "verbatim": "TOKEN=the-line-outside"}
-        ]
+        mark = a_mark(
+            sources=({"cite": f"{secret}:1",
+                      "verbatim": "TOKEN=the-line-outside"},)
+        )
         cache: dict = {}
         problems = source_problems("here", mark, root, cache)
         assert problems
@@ -189,13 +231,14 @@ class TestSourceProblems:
             "TOKEN=the-line-outside\n", encoding="utf-8"
         )
 
-        mark = _well_formed()
-        mark["sources"] = [
-            {
-                "cite": "../outside/secrets.txt:1",
-                "verbatim": "TOKEN=the-line-outside",
-            }
-        ]
+        mark = a_mark(
+            sources=(
+                {
+                    "cite": "../outside/secrets.txt:1",
+                    "verbatim": "TOKEN=the-line-outside",
+                },
+            )
+        )
         cache: dict = {}
         problems = source_problems("here", mark, root, cache)
         assert problems
@@ -206,10 +249,9 @@ class TestSourceProblems:
         """Two marks citing the same file share one cache entry."""
         cache: dict = {}
         first = _well_formed()
-        second = _well_formed()
-        second["sources"] = [
-            {"cite": f"{CITED_FILE}:{CITED_LINE + 1}", "verbatim": ""}
-        ]
+        second = a_mark(
+            sources=({"cite": f"{CITED_FILE}:{CITED_LINE + 1}", "verbatim": ""},)
+        )
         source_problems("here", first, ROOT, cache)
         source_problems("here", second, ROOT, cache)
         assert list(cache) == [CITED_FILE]
@@ -267,10 +309,10 @@ class TestACitedFileIsNumberedTheWAYTHEBINDERNUMBERSIT:
         self._write(tmp_path)
         lines = re.split(r"\r\n|\r|\n", PAGED)
         at = lines.index("# the cited comment") + 1
-        mark = {
-            "mark": "correct",
-            "sources": [{"cite": f"pages.py:{at}", "verbatim": "# the cited comment"}],
-        }
+        mark = a_mark(
+            sources=({"cite": f"pages.py:{at}",
+                      "verbatim": "# the cited comment"},)
+        )
         assert source_problems("here", mark, tmp_path, {}) == []
 
     def test_the_page_breaks_really_do_move_the_number(self, tmp_path):
@@ -287,10 +329,9 @@ class TestACitedFileIsNumberedTheWAYTHEBINDERNUMBERSIT:
         # ! The file ends with a newline, so its last line is the one before
         # the trailing break -- `re.split` leaves an empty final element.
         real = len([ln for ln in re.split(r"\r\n|\r|\n", PAGED)[:-1]])
-        mark = {
-            "mark": "correct",
-            "sources": [{"cite": f"pages.py:{real + 2}", "verbatim": "x"}],
-        }
+        mark = a_mark(
+            sources=({"cite": f"pages.py:{real + 2}", "verbatim": "x"},)
+        )
         problems = source_problems("here", mark, tmp_path, {})
         assert problems
         assert "past the end of the file" in problems[0]
@@ -308,70 +349,100 @@ class TestACitedFileIsNumberedTheWAYTHEBINDERNUMBERSIT:
             p = tmp_path / name
             with open(p, "w", encoding="utf-8", newline="") as f:
                 f.write(text)
-            mark = {
-                "mark": "correct",
-                "sources": [{"cite": f"{name}:2", "verbatim": "b = 2"}],
-            }
+            mark = a_mark(
+                sources=({"cite": f"{name}:2", "verbatim": "b = 2"},)
+            )
             assert source_problems("here", mark, tmp_path, {}) == [], name
 
 
 class TestSourceVerification:
     def test_a_well_formed_mark_is_clean(self):
         problems = source_verification(
-            "here", _well_formed(), known=KNOWN, root=ROOT, cache={}
+            "here",
+            _well_formed(),
+            raw_text=RAW_TEXT,
+            known=KNOWN,
+            root=ROOT,
+            cache={},
         )
         assert problems == []
 
 
+def _filled(overrides: dict) -> dict:
+    """A seeded edit_copy with `ROW`'s own slot filled in by `_entry()`.
+
+    Args:
+        overrides: applied to the entry after `_entry()`, before it is written
+            into the slot.
+    """
+    copy = seed(BINDER, "block-context")
+    for page in copy["sheets"]:
+        for entry in page["marks"]:
+            if entry["address"] == ROW["address"]:
+                entry.update({**_entry(), **overrides})
+                return copy
+    raise AssertionError(f"no seeded slot for {ROW['address']}")
+
+
 class TestVerifyReport:
     def test_a_freshly_seeded_sheet_has_nothing_to_refuse(self):
-        """Every entry is still `mark: None` -- a coverage gap, not a
-        problem this step reports."""
+        """Every entry is still `instruction: None` and nothing else written
+        -- `desk.mark.untouched`, a coverage gap rather than a problem this
+        step reports."""
         sheet = seed(BINDER, "block-context")
         assert verify_report(sheet, BINDER, ROOT) == []
 
     def test_one_filled_entry_is_checked_against_the_page(self):
-        sheet = seed(BINDER, "block-context")
-        for page in sheet["sheets"]:
-            for entry in page["marks"]:
-                if entry["address"] == ROW["address"]:
-                    entry.update(_well_formed())
-                    break
-        assert verify_report(sheet, BINDER, ROOT) == []
+        assert verify_report(_filled({}), BINDER, ROOT) == []
 
     def test_a_broken_entry_is_reported_by_its_address(self):
-        sheet = seed(BINDER, "block-context")
-        for page in sheet["sheets"]:
-            for entry in page["marks"]:
-                if entry["address"] == ROW["address"]:
-                    bad = _well_formed()
-                    bad["claim"]["false"] = "a paraphrase nowhere in the paragraph"
-                    entry.update(bad)
-                    break
-        problems = verify_report(sheet, BINDER, ROOT)
+        copy = _filled(
+            {
+                "claim": {
+                    "false": "a paraphrase nowhere in the paragraph",
+                    "true": "the corrected sentence",
+                }
+            }
+        )
+        problems = verify_report(copy, BINDER, ROOT)
         assert problems
         assert all(p.startswith(ROW["address"]) for p in problems)
+
+    def test_an_entry_THAT_DOES_NOT_PARSE_is_reported_not_skipped(self):
+        """!! IT READ `mark.get("mark") is None` AND SKIPPED UNTIL 2026-08-29,
+        which said the same thing about a slot nobody wrote in and a mark whose
+        ruling key this code did not recognise -- so the second vanished here
+        as well as in `flows.marks.problems_in`."""
+        copy = _filled({"instruction": None})
+        problems = verify_report(copy, BINDER, ROOT)
+        assert problems
+        assert any("instruction" in p for p in problems)
 
 
 class TestEachCheckCanFire:
     """T3.4: each check starts from a passing mark and is mutated to fail."""
 
     def test_t3_1_an_address_the_binder_does_not_carry_is_refused(self):
-        bad = _well_formed()
-        bad["address"] = "src/comment_review/desk/mark.py@z9"
+        bad = a_mark(address="src/comment_review/desk/mark.py@z9")
         problems = address_problems("here", bad, KNOWN)
         assert problems
         assert "z9" in problems[0]
 
     def test_t3_2_a_verbatim_never_written_by_the_file_is_refused(self):
-        bad = _well_formed()
-        bad["sources"][0]["verbatim"] = "this text is not in exceptions.py"
+        bad = a_mark(
+            sources=({"cite": f"{CITED_FILE}:{CITED_LINE}",
+                      "verbatim": "this text is not in exceptions.py"},)
+        )
         problems = source_problems("here", bad, ROOT, {})
         assert problems
 
     def test_t3_3_a_paraphrase_of_the_false_clause_is_refused(self):
-        bad = _well_formed()
-        bad["claim"]["false"] = "a paraphrase, not the paragraph's own words"
-        problems = claim_verbatim_problems("here", bad)
+        bad = a_mark(
+            claim={
+                "false": "a paraphrase, not the paragraph's own words",
+                "true": "the corrected sentence",
+            }
+        )
+        problems = claim_verbatim_problems("here", bad, RAW_TEXT)
         assert problems
         assert "claim.false" in problems[0]
