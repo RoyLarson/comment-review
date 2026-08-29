@@ -508,7 +508,7 @@ Commit with `-F`.
 **Interfaces:**
 - Consumes: Task 5's `read`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_reading_a_later_stage_is_refused():
@@ -542,15 +542,15 @@ def test_a_non_empty_carries_is_refused_with_a_reason():
     assert stages == [] and "carries" in why
 ```
 
-- [ ] **Step 2: Run and confirm all three fail**
+- [x] **Step 2: Run and confirm all three fail**
 
 Run: `uv run pytest -q tests/test_topology.py -k refused`
 
-- [ ] **Step 3: Add the three refusals**
+- [x] **Step 3: Add the three refusals**
 
 `carries = []` parses. A non-empty one is refused with a reason naming it unbuilt -- `Process: #50`.
 
-- [ ] **Step 4: Commit the WORK**
+- [x] **Step 4: Commit the WORK**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py
@@ -558,7 +558,7 @@ uv run pytest -q && uv run python scripts/build_plugin.py
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 5: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 5: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together
