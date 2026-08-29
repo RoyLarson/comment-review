@@ -1414,3 +1414,35 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   classifier scheme had been approved**, because nothing stated what the approved set was. A review
   can only check the question it is given, which is [`gates.md`](gates.md)'s rule arriving at a
   design document instead of a test.
+
+- **#38.** **AN ENUM MEMBER GETS NO SECOND NAME -- NO MODULE-LEVEL ALIAS, AND NO EXPANDING ONE OUT
+  THROUGH A TUPLE** (Roy, 2026-08-28): *"aliasing like that is lazy and bad ... It allows for drift
+  without the drift being apparent because of shadowing. That is a horrible practice."* And, on the
+  same mechanism arriving a second way: *"It's also why I don't like sending enums through tuples
+  to expand them out. It doesn't help and again causes shadows and lack of appropriate links."*
+
+  !! **THE DRIFT IS THE ARGUMENT, NOT THE READABILITY.** An alias is a SECOND name for a value,
+  bound once at import, and nothing afterwards holds the two together. A member renamed, a member's
+  value changed, a second binding lower in the module, or an import shadowing the bare name -- each
+  leaves the alias pointing at what the member USED to be, and every call site reading the alias
+  goes with it. ! **NOTHING ANNOUNCES IT**: the name still resolves, the module still imports, and
+  `ty` still passes, because both sides are the same type.
+
+  ! **HOW IT SURFACED, and the shape is worth keeping.** `desk/stages.py` bound
+  `EDITORIAL = Kind.EDITORIAL` beside `ENRICHING = Kind.ENRICHING`. A session showed Roy a bare
+  `ENRICHING` while asking for a ruling; he read it as a module constant -- **and it was one**, as
+  well as being an enum member. ! **THE MISREADING WAS THE MEASUREMENT.** He then answered about a
+  constant and the session dropped the MEMBER, which is a wider change than the answer covered.
+
+  ! **MEASURED at the time**: `stages.py` was the ONLY module in `src/` binding an alias. Fixed in
+  `6d09796`; every site names `Kind.EDITORIAL` in full.
+
+  !! **AND HALF THIS RULE WAS ALREADY WRITTEN DOWN, in `reading/series.py`.** `Definition` is a
+  `NamedTuple` precisely so a series' kinds are reached as `.present` and `.absent`, and its
+  docstring says *"NAMED, because `[0]` and `[1]` say nothing"*. `ADDRESSED`, `ABSENT` and
+  `BY_LETTER` are DERIVED from the `Series` enum by comprehension -- *"DERIVED, NEVER LISTED"* --
+  so changing a member carries them with it and no member gains a name.
+
+  ! **SO THE TWO HALVES ARE:** do not reach into a tuple POSITIONALLY and lose what the slot means
+  (`series.py` had this); and do not BIND a member to a second name at all (`stages.py` broke this).
+  Both are the same defect -- a link that a reader, and a rename, cannot follow.
