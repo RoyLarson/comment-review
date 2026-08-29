@@ -12,6 +12,9 @@ Raised:   2026-08-29 (2026-08-29, Roy, watching three failed edits in a row: "ha
 Corrected: 2026-08-29 — the '#:' marker question was struck -- the comment token is '#'
            per the language row, and ':' is prose; a session had asserted a semantic the
            lexer does not implement
+Measured: 2026-08-29 — the a-place indent rule: anchor+1 level is exact at 276 of 276
+          over 52 real files, while the next-b it was to back up is unavailable at 62
+          (22%) -- proposal is to invert them
 ```
 
 ## Objective
@@ -76,8 +79,32 @@ because it rebuilt each file from positions it had just read out of that file.
    hits are this repo's own source USING that style; a session read a convention off the corpus
    and asserted it as a semantic the system implements. **The token is what the language row says;
    everything after it is prose, `:` and `!!` included.**
-2. **What does `a` fill at when there is no next `b`?** A declaration whose body is only its
-   docstring has no following `b`, so the rule has no value to read.
+2. **What does `a` fill at when there is no next `b`?** Roy, 2026-08-29: *"Python gives us the
+   second backup for free on this and that is the docstring is in one level from the anchor
+   level."*
+
+   !! **MEASURED over `src/comment_review`, 52 files, 276 `a` places -- AND THE BACKUP BEATS THE
+   PRIMARY:**
+
+   | rule | result |
+   | --- | --- |
+   | docstring indent MINUS **anchor** indent | `{0: 52, 4: 224}` -- **exact at 276 of 276** |
+   | `a` places with **no following `b`** | **62 (22%)** |
+
+   The 52 zeros are exactly the 52 module docstrings, whose anchor is `<module>` at column 0;
+   every one of the 224 declaration docstrings sits one level in. ! **AND THE 62 ARE NOT AN
+   EXOTIC CASE.** Only 16 are module docstrings; the other **46 are declarations whose bodies
+   hold no blank line and which are last in their file** -- a `b` is the SPACE BETWEEN lines of
+   type, so a body of contiguous statements has none inside it. `binder/addresses.py` after `a6`
+   carries `c17`-`c24` and no `b` at all, though the file has 26 `b` places earlier.
+
+   ! **SO THE PROPOSAL IS TO INVERT IT: `a` fills at ANCHOR + ONE LEVEL, always, and there is no
+   fallback to need.** That is measured exact, and it makes the one-line-`def` question disappear
+   rather than answering it. **This changes the rule as first stated and is Roy's to confirm.**
+
+   ! **WHAT THE ANCHOR RULE STILL NEEDS is the INDENT UNIT** -- 4 in this repo, but another tree
+   may use 2 or tabs. Reading a real level off the file is the one virtue the `next b` rule had,
+   so the unit wants measuring from the nearest enclosing body, not hardcoded.
 3. **Scope: Python first, or every language?** The rules above are stated for Python. A lexical
    language with block comments (`/* */`) has a different shape, and `f` at column 0 is not
    obviously right for every one.
