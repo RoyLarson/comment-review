@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 7 tasks done
+Progress: 5 of 7 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing the draft plan for the mark and the collator. Roy:
@@ -69,7 +69,7 @@ what makes it falsifiable.
 - [x] T4 -- Gate the address space. Verify: re-censusing a revise yields the address set the
       original yielded, over real files -- and the check FAILS on a revise whose code was changed
       by hand, which is what proves it can bite.
-- [ ] T5 -- Every read for a stage resolves against that stage's root. Verify: a `source` citing a
+- [x] T5 -- Every read for a stage resolves against that stage's root. Verify: a `source` citing a
       page an earlier stage edited returns the REVISE's text, not the repo's.
 - [ ] T6 -- `taken_in`: original against the revise in a role's hand, as a unified diff per page,
       plus which stage took in which addresses. Verify: it prints nothing when no stage has set

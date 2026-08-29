@@ -42,6 +42,14 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--repo", default=".", help="repo root for citation resolution")
+    ap.add_argument(
+        "--revise",
+        type=int,
+        default=0,
+        help="the revise `--repo` is -- 0 for the original, a later stage's"
+        " number for a revise root pulled after it. Stamped into `read_from`"
+        " so a role can tell which tree a `--json` census was censused from",
+    )
     ap.add_argument("--census-only", action="store_true")
     ap.add_argument("--json", action="store_true")
     ap.add_argument(
@@ -273,10 +281,20 @@ def _report(args: argparse.Namespace) -> int:
         # temporary directory OUTSIDE the checkout -- `relative_to` raises there
         # and `relpath` walks up with `..`. The reader resolves this against its
         # own cwd, which is the same cwd the run was started from.
+        #
+        # !! `args.revise` REPLACED A HARDCODED `0`, TASK 10 OF
+        # `.superpowers/sdd/2026-08-28-the-mark-and-the-revise/`. `--repo` could
+        # already be pointed at a revise root -- `TODO/the-flow-assumes-every-
+        # role-reads-at-once.md`'s own note that every read command already
+        # takes a root -- but the NUMBER stamped into `read_from` was fixed at
+        # 0 regardless, so a census over a revise still reported the ORIGINAL's
+        # number: indistinguishable from having read the original. There is no
+        # default revise beyond the original's own 0; a caller states it, same
+        # as `--repo`.
         root = Path(os.path.relpath(repo, Path.cwd())).as_posix()
         binder = bind(
             pages,
-            read_from={"root": root, "revise": 0},
+            read_from={"root": root, "revise": args.revise},
             absent=args.include_absent,
         )
         missing = unaddressed(rows_of(binder))

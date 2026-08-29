@@ -10,6 +10,9 @@ were added in Task 8, for `tests/test_revise.py`. Task 9's own test
 (`tests/test_revise_addresses.py`) reuses `a_docket_over` rather than a second
 copy -- `decision-log.md Vocabulary: #23` is the rule for why it lives here
 and not beside either test module.
+
+! `a_docket_that_rewrites` and `the_row_for` were added in Task 10, for
+`tests/test_stage_root.py`.
 """
 
 from pathlib import Path
@@ -132,3 +135,56 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> dict:
                 ]
             }
     raise AssertionError(f"no page named {name!r} in {repo}")
+
+
+def a_docket_that_rewrites(repo: Path, name: str) -> dict:
+    """A docket in `a_docket_over`'s shape, rewriting exactly one file.
+
+    ! DELEGATES TO `a_docket_over`, rather than re-deriving the selection --
+    `test_stage_root.py`'s case only ever rewrites one file, and a single
+    name reads more directly at the call site than a one-element list. Both
+    build the alteration the same way, which is what lets `the_row_for`
+    find it back by replaying the same rule.
+
+    Args:
+        repo: a checkout `binder_of` can read.
+        name: the file basename to alter one comment in.
+
+    Returns:
+        A docket in `docket.read`'s shape.
+
+    Raises:
+        AssertionError: `name` has no filled `b` row to alter.
+    """
+    return a_docket_over(repo, [name])
+
+
+def the_row_for(binder: dict, name: str) -> dict:
+    """The row `a_docket_over` (or `a_docket_that_rewrites`) altered on
+    `name`'s page -- found by replaying its own selection.
+
+    ! A DOCKET CARRIES NO REFERENCE BACK TO THE ROW IT ALTERED, so the only
+    way to find the row a caller means is to pick it by the rule the docket
+    used to choose it: the first `b` row holding text. That rule survives a
+    revise -- `assert_addresses_held` guarantees the address set, and so the
+    cue order, is unchanged -- so the row is still first at the same
+    position, only its text differs.
+
+    Args:
+        binder: as `binder_of` returns it -- the original's, or a revise's.
+        name: the file basename to find the row on.
+
+    Returns:
+        The row dict, as `binder.page_row` shapes one.
+
+    Raises:
+        AssertionError: no page named `name`, or no filled `b` row on it.
+    """
+    for page in binder.get("pages", []):
+        if Path(page["path"]).name != name:
+            continue
+        for row in page.get("rows", []):
+            if row["cue"].startswith("b") and row["raw_text"].strip():
+                return row
+        raise AssertionError(f"no filled 'b' row on {name!r}")
+    raise AssertionError(f"no page named {name!r} in binder")
