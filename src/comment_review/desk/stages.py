@@ -58,12 +58,14 @@ class Stage(NamedTuple):
     Attributes:
         name: the stage's own label, drawn from `SKILL.md`'s stage-4 table
             (`4a`, `4c`).
-        kind: EDITORIAL or ENRICHING -- what `pulls_revise` reads.
+        kind: EDITORIAL or ENRICHING -- what `pulls_revise` reads. Typed as
+            `Kind`, not `str`: annotated `str`, the gate admitted
+            `Stage("x", "banana", ())`, measured 2026-08-28.
         roles: the role names this stage dispatches, in `SKILL.md`'s order.
     """
 
     name: str
-    kind: str
+    kind: Kind
     roles: tuple[str, ...]
 
 
