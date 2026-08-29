@@ -53,13 +53,27 @@ def test_the_census_command_states_the_revise_it_read(tmp_path, capsys, monkeypa
     pulled = pull(
         a_docket_that_rewrites(repo, "mark.py"), repo, tmp_path / "r1", revise=1
     )
-    monkeypatch.chdir(pulled.root)
+    # !! THE CWD IS NOT THE ROOT, AND IT WAS `chdir(pulled.root)` UNTIL
+    # 2026-08-28. MEASURED by mutation: with the two equal, replacing
+    # `Path(args.repo)` with `Path.cwd()` in the command left this test GREEN --
+    # so the test could not tell whether the census honoured the root it was
+    # GIVEN or merely read where it happened to be standing, which is the one
+    # question T2.5 exists to answer. ! Standing one directory up is what makes
+    # the two distinguishable; `--repo` is then a real choice.
+    monkeypatch.chdir(tmp_path)
     exit_code = census_command._report(
-        _census_args(pulled.root, revise=1, paths=["mark.py"])
+        _census_args(pulled.root, revise=1, paths=[str(pulled.root / "mark.py")])
     )
     assert exit_code == 0
     binder = json.loads(capsys.readouterr().out)
     assert binder["read_from"]["revise"] == 1
+    # ! THE RECORDED ROOT IS ASSERTED, and nothing asserted it until the same
+    # day: a fixed string in place of the computed root passed every check here.
+    # Resolved on both sides, because the field is now written RELATIVE to the
+    # cwd (`Process`, Roy 2026-08-28) and a string compare would be asserting
+    # the spelling rather than the place.
+    recorded = (tmp_path / binder["read_from"]["root"]).resolve()
+    assert recorded == pulled.root.resolve()
     row = the_row_for(binder, "mark.py")
     assert row["raw_text"] in (pulled.root / "mark.py").read_text(encoding="utf-8")
     assert row["raw_text"] not in (repo / "mark.py").read_text(encoding="utf-8")
