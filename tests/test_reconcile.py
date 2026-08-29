@@ -14,7 +14,7 @@ test. Settle/escalate/reread come from Roy's own ruling, quoted on
 names, not whatever the function happens to return.
 """
 
-from helpers import a_clean, a_correct, a_master_proof, a_move, a_query
+from helpers import a_clean, a_correct, a_master_proof, a_move, a_query, an_add
 
 from comment_review.desk.collator import places, reconcile
 
@@ -69,3 +69,36 @@ def test_clean_and_query_owe_no_change_so_they_compose_nothing():
     })
     out = reconcile(proof)
     assert out.rereads == [] and out.escalations == []
+
+
+def test_an_add_reaches_a_role_that_marked_nothing_there():
+    # ! Two adds at two addresses never meet under per-place grouping, so a
+    # duplicated comment passes every check unless the whole stage reads them.
+    proof = a_master_proof({
+        "block-context": {"m.py@b1": an_add("m.py@b1")},
+        "module-context": {"m.py@b9": a_clean("m.py@b9")},
+    })
+    out = reconcile(proof)
+    reread = [r for r in out.rereads if r["address"] == "m.py@b1"][0]
+    assert "module-context" in reread["roles"]
+
+
+def test_a_scope_declaring_query_does_not_block_the_other_roles():
+    proof = a_master_proof({
+        "block-context": {"m.py@b1": a_clean("m.py@b1")},
+        "function-context": {"m.py@b1": a_clean("m.py@b1")},
+        "module-context": {"m.py@b1": a_clean("m.py@b1")},
+        "ownership-context": {"m.py@b1": a_query("m.py@b1", shape="outside-my-role")},
+    })
+    out = reconcile(proof)
+    assert out.escalations == []
+
+
+def test_undetermined_settles_where_another_role_ruled_substantively():
+    proof = a_master_proof({
+        "block-context": {"m.py@b1": a_query("m.py@b1", shape="unable-to-determine")},
+        "module-context": {"m.py@b1": a_correct("m.py@b1")},
+    })
+    out = reconcile(proof)
+    assert [s["address"] for s in out.settled] == ["m.py@b1"]
+    assert out.escalations == []

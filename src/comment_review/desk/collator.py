@@ -38,6 +38,7 @@ from typing import NamedTuple
 from comment_review.binder.binder import rows_of
 from comment_review.desk.mark import INSTRUCTIONS, Instruction
 from comment_review.machine.exceptions import READ_ERRORS
+from comment_review.reading.addresser import cue_of, flatten
 
 #: `reviewer-brief.md`: "your text must appear within three lines" of the
 #: cited line -- lines either side of it that a `source`'s `verbatim` may sit
@@ -284,11 +285,16 @@ class Reconciled(NamedTuple):
         escalations: two or more marks owed a change here and named the same
             sentence -- the conflict case.
         rereads: two or more marks owed a change here and named different
-            sentences -- their composition is text no role has read.
+            sentences -- their composition is text no role has read. An
+            `add` lands here too, however many marks own the place: an `add`
+            creates prose nobody has read, so its own place is always a
+            re-read (`decision-log.md Process: #49`, second bullet).
 
     Each entry is `{"address": ..., "roles": [...], "marks": [...]}` -- the
     role names and the owing marks themselves, so a later phase can send a
-    `reread` back to exactly the roles that touched it.
+    `reread` back to exactly the roles that touched it. For an `add`'s
+    re-read, `roles` is not only the roles that marked THIS place -- see
+    `reconcile`.
     """
 
     settled: list[dict]
@@ -330,6 +336,43 @@ def _sentence_key(mark: dict) -> object:
     return id(mark)
 
 
+def _roles_of_stage(proof: dict, path: str) -> set[str]:
+    """Every role reachable at this page -- the `add` re-read's blast radius.
+
+    `path` is the FLATTENED half of an address (`cue_of(address).path`,
+    `addresser.flatten`'s own form). An `edit_copy`'s sheets carry the real,
+    unflattened path (`flows.marks.seed` copies it straight off the binder's
+    page), so each is flattened here before the comparison.
+
+    ! ONE `edit_copy` PER ROLE, OR PER SHARD UNDER FAN-OUT (`desk/proof.py`).
+    Walking every `edit_copy`'s sheets and keeping the ones whose `path`
+    matches is what narrows to the SHARD holding this page, per
+    `decision-log.md Process: #49`: *"all roles of the stage, and for a
+    partitioned role only the shard holding that file."* A role's OTHER
+    shards, covering other files, contribute nothing.
+
+    Args:
+        proof: a `master_proof`, as `desk.proof.gather` returns it.
+        path: the flattened path half of the address in question.
+
+    Returns:
+        The role names whose `edit_copy` holds a sheet for this page --
+        whether or not that role left a mark at the specific place asked
+        about.
+    """
+    out: set[str] = set()
+    for copy in proof.get("edit_copies", []):
+        role = copy.get("role")
+        if not isinstance(role, str):
+            continue
+        for sheet in copy.get("sheets", []):
+            sheet_path = sheet.get("path") if isinstance(sheet, dict) else None
+            if isinstance(sheet_path, str) and flatten(sheet_path) == path:
+                out.add(role)
+                break
+    return out
+
+
 def reconcile(proof: dict) -> Reconciled:
     """T4.2 -- `Process: #49`: settle, escalate, or send a place for a re-read.
 
@@ -343,10 +386,26 @@ def reconcile(proof: dict) -> Reconciled:
     OWES A CHANGE:
 
         0                          nothing
-        1                          settle -- nobody composed anything
+        1, none of them `add`      settle -- nobody composed anything
         2+, different sentences    a re-read -- the composition is text no
                                    role has read
         2+, same sentence          escalate -- the conflict case
+        any of them `add`          a re-read, however many -- see below
+
+    !! AN `add` IS ALWAYS A RE-READ, EVEN ALONE. `decision-log.md Process:
+    #49`, second bullet, Roy: *"Or they could have duplicated the comment. An
+    add on a new place is sent back to all of them."* Two `add`s at two
+    addresses never meet under this per-place grouping, so a duplicated
+    comment would pass every check unless the place itself always re-reads
+    and the re-read reaches every role that could hold the duplicate --
+    `_roles_of_stage` -- not only the role that wrote this `add`.
+
+    ! `clean` and `query` NEVER OWE A CHANGE (`_owes_change`), which is what
+    already keeps a scope-declaring `query` (`Shape.OUTSIDE_MY_ROLE`) and an
+    `unable-to-determine` one from blocking another role's owing mark at the
+    same place: neither is ever counted into `owing`, so a place carrying one
+    of those plus a single substantive mark elsewhere still settles on that
+    one mark (`decision-log.md Process: #33`).
 
     Args:
         proof: a `master_proof`, as `desk.proof.gather` returns it.
@@ -363,11 +422,14 @@ def reconcile(proof: dict) -> Reconciled:
         owing = [mark for mark in marks if _owes_change(mark)]
         if not owing:
             continue
-        entry = {
-            "address": address,
-            "roles": sorted({mark["role"] for mark in owing}),
-            "marks": owing,
-        }
+        roles = {mark["role"] for mark in owing}
+        if any(mark.get("mark") == Instruction.ADD for mark in owing):
+            roles |= _roles_of_stage(proof, cue_of(address).path)
+            rereads.append(
+                {"address": address, "roles": sorted(roles), "marks": owing}
+            )
+            continue
+        entry = {"address": address, "roles": sorted(roles), "marks": owing}
         if len(owing) == 1:
             settled.append(entry)
             continue
