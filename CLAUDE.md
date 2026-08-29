@@ -187,12 +187,22 @@ uv run python src/comment-review.py vocabulary --roles
 uv run python src/comment-review.py prove_unchanged \
   --base <merge-base> --repo . <paths...>
 
-# The write chain: a docket + a binder -> drafted files for a human to review, never
-# applied directly. Runs galley (edit), compositor (set), rereads each draft and proves its
-# executable code unchanged -- `flows/proof_setter.py`, whose docstring holds the order and
-# says the chain stops at the draft; the workflow that applies an approved draft is its own.
+# The write chain: a docket -> a REVISE, a full copy of --repo with the docket's pages
+# overlaid, for a human to review. Never applied to the original.
+# ! `--out` MUST NOT EXIST YET; the chain's own `shutil.copytree` requires it fresh.
+# ! IT TOOK `--binder` UNTIL 2026-08-26 and a directory of only the changed pages until
+# 2026-08-28. The docket now carries each page's path and sha, so the binder had nothing
+# left to answer, and stage 7a must read ONE artifact -- so `--out` is the revise root.
+# The order lives in `flows/revise.py`: copy the tree, run `flows/proof_setter.py` (galley
+# edits, compositor sets, each draft reread and proved unchanged) into a scratch directory,
+# overlay the drafts, then assert the address set did not move. Any refusal or a moved
+# address discards the whole copy. The workflow that APPLIES an approved draft is its own.
 uv run python src/comment-review.py proof \
-  --binder <binder>.json --docket <docket>.json --repo . --out <dir>
+  --docket <docket>.json --repo . --out <dir>
+
+# What one stage's revise changed, against the tree it was pulled from.
+uv run python src/comment-review.py taken_in \
+  --original <root> --revise <root> [paths...]
 
 # The TODO backlog is WRITTEN BY A TOOL, not by hand -- see "The TODO backlog" below.
 # `.claude/skills/todo-tool/SKILL.md` holds every command; these are the two run most.
