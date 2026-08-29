@@ -50,8 +50,12 @@ calling each of them as having a `master_proof` would be incorrect."*
 ### `sheet` changes meaning, and the old sense is in shipped prose
 
 `sheet` today names the PER-ROLE CONTAINER -- `flows/marks.py` opens *"Hand a role a sheet to
-fill"*, and `SKILL.md` uses it nine times that way. Under this design `sheet` is the PAGE-UNIT and
-the per-role container is `edit_copy`.
+fill"*. Under this design `sheet` is the PAGE-UNIT and the per-role container is `edit_copy`.
+
+!! **THIS SAID `SKILL.md` USED IT NINE TIMES THAT WAY AND IT WAS FALSE** -- MEASURED 2026-08-29:
+all 11 of its `sheet` lines are the STYLE SHEET, a separate declared term, and none is the
+container. The count came from grepping the WORD. `decision-log.md Vocabulary: #28` carries the
+correction and the mechanism.
 
 ! **BOTH SIDES MOVE IN ONE CHANGE**, per `docs/conventions.md`'s shared-vocabulary rule.
 `docs/vocabulary.md` already lists **master proof** as *"unnamed. It is what `verdicts.py`

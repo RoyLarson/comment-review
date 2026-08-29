@@ -858,9 +858,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   would be incorrect."*
 
   !! **`sheet` CHANGES SENSE, AND THE OLD ONE IS IN SHIPPED PROSE.** It named the PER-ROLE
-  container -- `flows/marks.py` opens *"Hand a role a sheet to fill"*, and `SKILL.md` uses it nine
-  times that way. It now names the PAGE-UNIT; the container is `edit_copy`. Both sides move in one
-  change, per the shared-vocabulary rule.
+  container -- `flows/marks.py` opens *"Hand a role a sheet to fill"*. It now names the PAGE-UNIT;
+  the container is `edit_copy`.
+
+  !! **THIS ENTRY CLAIMED `SKILL.md` USED IT NINE TIMES THAT WAY, AND THAT WAS FALSE.** MEASURED
+  2026-08-29 while task 3 did the rename: `SKILL.md` has 11 lines containing `sheet` and **every
+  one is the STYLE SHEET**, a separate term `vocabulary.toml` already declares. **None is the
+  per-role container**, so no agent-facing file needed renaming at all.
+
+  ! **HOW THE FALSE COUNT WAS MADE: the word was counted and every hit read as the container
+  sense.** That is mention-not-use -- the same trap this repo hit three other times the same day,
+  in a substring gate for `proof_setter.run(`, in an `os.path` sweep, and in a scratch check for
+  `galley`. ! It is corrected rather than deleted: a false measurement that is quietly removed
+  teaches nothing, and this one names its own mechanism.
 
   ! **`edit_copy` BECAUSE THE REGISTER IS THE COPY DESK, NOT THE BINDERY.** Roy: *"it isn't
   overloaded with the other copy's it is adjacent and explicit."* This file already records that
