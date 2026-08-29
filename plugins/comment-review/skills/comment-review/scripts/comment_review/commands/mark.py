@@ -88,7 +88,8 @@ def main() -> int:
         Path(args.out).write_text(
             json.dumps(sheet, indent=2), encoding="utf-8", newline=""
         )
-        print(f"{args.out}: {len(sheet['marks'])} places for {args.role} to rule on")
+        places = sum(len(page["marks"]) for page in sheet["sheets"])
+        print(f"{args.out}: {places} places for {args.role} to rule on")
         return 0
 
     if args.check:

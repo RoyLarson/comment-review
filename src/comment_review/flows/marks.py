@@ -22,24 +22,26 @@ SOURCE-VERIFICATION in `collator`, which is not built. `desk.mark.problems`
 says the same about its own half.
 """
 
-from comment_review.binder.binder import _read_from_problem, rows_of
+from comment_review.binder.binder import _read_from_problem
 from comment_review.desk.mark import INSTRUCTIONS, Instruction, problems
+from comment_review.reading.addresser import address_for
 
 
 def seed(binder: dict, role: str) -> dict:
-    """A fillable sheet for one role, one entry per row in the binder.
+    """A fillable sheet for one role, one sheet per page in the binder.
 
     Args:
         binder: as `binder.read` returns it.
         role: the editorial role this sheet is for.
 
     Returns:
-        `{"role": ..., "read_from": ..., "marks": [...]}` -- `read_from` is
+        `{"role": ..., "read_from": ..., "sheets": [...]}` -- `read_from` is
         copied from the binder as-is, naming the root and revise this sheet
-        was censused from. Each mark entry carries the `address`, `anchor`
-        and `raw_text` copied from its row, and `mark: None` for the role to
-        fill. `raw_text` is the paragraph the role's `change` diffs against
-        -- see `docs/the-mark.md`.
+        was censused from. Each entry in `sheets` carries one page's `path`
+        and `sha`, plus its `marks` -- one per row on that page, holding the
+        `address`, `anchor` and `raw_text` copied from the row, and
+        `mark: None` for the role to fill. `raw_text` is the paragraph the
+        role's `change` diffs against -- see `docs/the-mark.md`.
 
     Raises:
         KeyError: the binder carries no `read_from`.
@@ -52,6 +54,13 @@ def seed(binder: dict, role: str) -> dict:
     ADDED TO REMOVE, one function downstream of the refusal: a role holding an
     empty `read_from` cannot tell a revise from the original, which is the
     whole question `decision-log.md Process: #34` turns on.
+
+    !! NESTED BY PAGE SINCE 2026-08-29, AND `rows_of` NO LONGER CALLED HERE.
+    `rows_of` stamps each row with the flattened `path` and `address`, which is
+    what let a fanned-out sheet lose which page a mark belonged to; this walks
+    `binder["pages"]` directly so each mark rides inside its own page's sheet,
+    carrying that page's `sha`. The per-row `address` is unchanged -- still
+    `address_for(path, cue)`, the same composition `rows_of` used.
     """
     return {
         "role": role,
@@ -59,14 +68,23 @@ def seed(binder: dict, role: str) -> dict:
         # end. Aliasing made the binder, every sheet seeded from it and the
         # caller's own dict one object.
         "read_from": {**binder["read_from"]},
-        "marks": [
+        "sheets": [
             {
-                "address": row.get("address", ""),
-                "anchor": row.get("anchor", ""),
-                "raw_text": row.get("raw_text", ""),
-                "mark": None,
+                "path": str(page.get("path", "")),
+                "sha": page.get("sha", ""),
+                "marks": [
+                    {
+                        "address": address_for(
+                            str(page.get("path", "")), str(row.get("cue", ""))
+                        ),
+                        "anchor": row.get("anchor", ""),
+                        "raw_text": row.get("raw_text", ""),
+                        "mark": None,
+                    }
+                    for row in page.get("rows", [])
+                ],
             }
-            for row in rows_of(binder)
+            for page in binder.get("pages", [])
         ],
     }
 
