@@ -15,6 +15,9 @@ Corrected: 2026-08-29 — the '#:' marker question was struck -- the comment tok
 Measured: 2026-08-29 — the a-place indent rule: anchor+1 level is exact at 276 of 276
           over 52 real files, while the next-b it was to back up is unavailable at 62
           (22%) -- proposal is to invert them
+Withdrawn: 2026-08-29 — the anchor+1 proposal is withdrawn: the 62 was a filtering
+           artifact (an absent b is still a b), and anchor+1 encodes a Python-only fact
+           that is wrong for languages whose doc comment sits above the declaration
 ```
 
 ## Objective
@@ -98,13 +101,35 @@ because it rebuilt each file from positions it had just read out of that file.
    type, so a body of contiguous statements has none inside it. `binder/addresses.py` after `a6`
    carries `c17`-`c24` and no `b` at all, though the file has 26 `b` places earlier.
 
-   ! **SO THE PROPOSAL IS TO INVERT IT: `a` fills at ANCHOR + ONE LEVEL, always, and there is no
-   fallback to need.** That is measured exact, and it makes the one-line-`def` question disappear
-   rather than answering it. **This changes the rule as first stated and is Roy's to confirm.**
+   !! **THE 62 WAS A MEASUREMENT ARTIFACT, THE THIRD OF THE SAME KIND, AND THE `next b` RULE
+   STANDS.** Roy, 2026-08-29: *"Still an absent b is still a b and it still defines the answer
+   more appropriately. The indent level of the next piece of code is the correct level else python
+   throws a SyntaxError fit itself."*
 
-   ! **WHAT THE ANCHOR RULE STILL NEEDS is the INDENT UNIT** -- 4 in this repo, but another tree
-   may use 2 or tabs. Reading a real level off the file is the one virtue the `next b` rule had,
-   so the unit wants measuring from the nearest enclosing body, not hardcoded.
+   ! **AN ABSENT `b` CARRIES ITS ANCHOR** -- the code line it sits against -- and only lacks a
+   line SPAN, because it holds no prose. Both earlier runs filtered on `original_start`, which
+   discards every one of them; in `binder/addresses.py` **all 26 `b` places are absent**, so the
+   filter removed the entire series. Re-measured with them placed by their anchors:
+
+   | | |
+   | --- | --- |
+   | `a` places with no following `b` | **10**, not 62 |
+   | docstring indent MINUS **next-b** indent | `{0: 251, -4: 7, 4: 7, 8: 1}` |
+
+   ! The residual 15 is the re-measurement's own anchor matching finding a duplicate line, not the
+   rule failing.
+
+   !! **AND THE DECIDING ARGUMENT IS STRUCTURAL, NOT STATISTICAL: the next code line's indent is
+   ENFORCED.** Python raises `IndentationError` if it is wrong, so the rule reads a level the
+   language already guarantees rather than inferring one.
+
+   !! **THE `anchor + one level` PROPOSAL IS WITHDRAWN, because it would have LOCKED IN A PYTHON
+   IDIOSYNCRASY.** Roy: *"we have to make certain that we don't lock in a Python idiosyncrasy on
+   accident here."* It is exact at 276 of 276 here ONLY because Python puts the docstring INSIDE
+   the block. In Rust, Go, Java and C# the doc comment sits ABOVE the declaration at the SAME
+   indent -- there the next code line IS the declaration and gives the right answer, while
+   `anchor + one level` indents every doc comment one level too far. **The rule as first stated
+   generalizes; the proposed replacement was overfitted to the one language measured.**
 3. **Scope: Python first, or every language?** The rules above are stated for Python. A lexical
    language with block comments (`/* */`) has a different shape, and `f` at column 0 is not
    obviously right for every one.
