@@ -12,7 +12,8 @@ from pathlib import Path
 import pytest
 from helpers import binder_of
 
-from comment_review.flows.marks import problems_in, seed
+from comment_review.desk.mark import Instruction
+from comment_review.flows.marks import problems_in, seed, tally
 
 # !! ABSOLUTE, matching `tests/test_binder_records_its_root.py`'s own `DESK` --
 # a relative `Path("src/comment_review/desk")` only rglobs correctly when the
@@ -138,3 +139,34 @@ def test_a_sheet_carrying_a_code_concern_validates():
         ],
     }
     assert problems_in(sheet) == ([], 0)
+
+
+def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():
+    # INPUT FROM REALITY: a real binder through the real seed(), then filled
+    # exactly as a role legitimately would -- `mark` holds the INSTRUCTION
+    # NAME as a plain string, matching `desk.mark.problems`'s own
+    # `isinstance(instruction, str)` check and `test_collator.py`'s
+    # `_well_formed()` fixture. `tally` walked `report["marks"]`, a top-level
+    # key `seed()` has not written since 2026-08-29 -- so on today's nested
+    # shape it silently returned `{}` for every sheet, ruled or not, rather
+    # than raising or reporting.
+    copy = seed(binder_of(DESK, 0), "block-context")
+    copy["sheets"][-1]["marks"][0].update(
+        {
+            "mark": "correct",
+            "claim": {"false": "x", "true": "y"},
+            "reason": "test",
+            "sources": [],
+            "change": ["# x"],
+        }
+    )
+    assert tally(copy) == {Instruction.CORRECT: 1}
+
+
+def test_tally_of_a_freshly_seeded_sheet_is_empty():
+    # ! An unruled sheet's `{}` is the CORRECT answer -- every mark is still
+    # `None`, so nothing has an instruction to count. This is what
+    # distinguishes it from the silent `{}` the bug above produced for a
+    # RULED sheet: the same return value, for opposite reasons.
+    copy = seed(binder_of(DESK, 0), "block-context")
+    assert tally(copy) == {}

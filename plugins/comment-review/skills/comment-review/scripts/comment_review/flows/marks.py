@@ -172,9 +172,20 @@ def unruled(report: dict) -> list[str]:
 
 
 def tally(report: dict) -> dict[Instruction, int]:
-    """How many of each instruction the sheet carries, for a one-line summary."""
+    """How many of each instruction the sheet carries, for a one-line summary.
+
+    !! WALKED `report["marks"]` UNTIL 2026-08-29 -- a top-level key `seed()`
+    no longer writes, since a sheet's marks nest one level down inside
+    `sheets`. On the reshaped report that read a KEY THAT NO LONGER EXISTS, so
+    `report.get("marks", [])` silently fell back to `[]` and this returned
+    `{}` for every real sheet, ruled or not -- a crash turned silent.
+    """
     counts = dict.fromkeys(INSTRUCTIONS, 0)
-    for mark in report.get("marks", []):
-        if isinstance(mark, dict) and mark.get("mark") in counts:
-            counts[mark["mark"]] += 1
+    for sheet in report.get("sheets", []):
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        for mark in marks:
+            if isinstance(mark, dict) and mark.get("mark") in counts:
+                counts[mark["mark"]] += 1
     return {name: n for name, n in counts.items() if n}
