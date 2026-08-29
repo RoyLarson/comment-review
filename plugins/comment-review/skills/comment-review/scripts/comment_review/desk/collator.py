@@ -39,7 +39,9 @@ from typing import NamedTuple
 
 from comment_review.binder.binder import rows_of
 from comment_review.desk.mark import INSTRUCTIONS, Instruction
+from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
+from comment_review.machine.repo import read_raw
 from comment_review.reading.addresser import cue_of, flatten, unflatten
 
 #: `reviewer-brief.md`: "your text must appear within three lines" of the
@@ -108,14 +110,45 @@ def _cite_at(cite: str) -> tuple[str, int] | None:
 
 
 def _lines(root: Path, path: str, cache: Cache) -> tuple[str, ...] | None:
-    """A cited file's lines, read once per `path` and kept in `cache`."""
+    """A cited file's lines, read once per `path` and kept in `cache`.
+
+    !! IT MUST NUMBER A FILE THE WAY THE BINDER NUMBERS IT, and nothing else
+    here has any meaning if it does not. A role is handed a page whose lines
+    were cut by `constants.text_lines`, cites a line by the number it was
+    given, and this reads the same file back to find it -- so two splitters
+    over one file is two answers to "which line is line 12".
+
+    !! IT USED `str.splitlines()`, THE ONE SPLIT `constants.text_lines` WAS
+    EXTRACTED TO FORBID. `splitlines` breaks on eleven characters and eight of
+    them are not line endings -- the vertical tab, the form feed, the three
+    ASCII separators, NEL, and Unicode's own line and paragraph separators.
+    MEASURED 2026-08-29 on a 14-line Python file with four form-feed page
+    breaks above the cited comment: the binder numbers it line 12,
+    `splitlines` line 16 -- a skew of 4, past `WITHIN`. A role citing the
+    number it was handed was told *"`verbatim` is not within 3 lines"*, so
+    TRUTHFUL EVIDENCE WAS REPORTED AS UNRESOLVABLE, which is the failure
+    source-verification exists to make impossible.
+
+    ! THE SAME SPLIT ALSO INFLATED `len(lines)` -- 18 for that file's 14 -- so
+    a cite past the real end of the file passed the bound check in
+    `source_problems` and was measured against a window that does not exist.
+
+    ! IT READ THROUGH `Path.read_text`, AND NOW READS THROUGH `repo.read_raw`,
+    which is the reader every other site in this system goes through and the
+    one that does not apply universal-newline translation. **That half changes
+    no output today and no test can fail without it**: `LINE_BREAK` splits on
+    exactly the three sequences the translation collapses -- CRLF, CR, LF -- so
+    the two agree line for line. It is here because the translation is a fact
+    about the reader and not about this function, and the agreement would end
+    the day `LINE_BREAK` narrows.
+    """
     if path not in cache:
         try:
-            text = (root / path).read_text(encoding="utf-8")
+            text = read_raw(root / path)
         except READ_ERRORS:
             cache[path] = None
         else:
-            cache[path] = tuple(text.splitlines())
+            cache[path] = tuple(constants.text_lines(text))
     return cache[path]
 
 

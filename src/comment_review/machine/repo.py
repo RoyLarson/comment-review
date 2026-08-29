@@ -36,12 +36,15 @@ def read_raw(path: Path) -> str:
     indistinguishable to anything that then asks which ending the text uses.
     `newline=""` disables that translation.
 
-    !! THREE SITES CALL IT DIRECTLY, AND NO WRITE PATH IS ONE OF THEM. MEASURED
-    over `src/comment_review/`: `read_source` below (which every other reader
-    goes through), `commands/prove_unchanged.py` and
+    !! FOUR SITES CALL IT DIRECTLY, AND NO WRITE PATH IS ONE OF THEM. MEASURED
+    over `src/comment_review/` on 2026-08-29: `read_source` below (which every
+    other reader goes through), `commands/prove_unchanged.py` and
     `results/prove_unchanged.py` -- both about comparing a file to itself
     byte-identically, which is why they read raw rather than through the sha
-    pairing `read_source` gives everyone else. Measured 2026-08-17, when the
+    pairing `read_source` gives everyone else -- and `desk/collator.py`, which
+    reads a CITED file to find the line a role numbered and needs the endings
+    the role saw. ! It was THREE until `collator._lines` stopped reading through
+    `Path.read_text`. Measured 2026-08-17, when the
     galley command read the source itself: it used `read_text`, so a 245-line
     CRLF source was written out with 223 bare LF and every line of the diff was
     an ending change. That command is gone -- see `docs/history.md` -- and the

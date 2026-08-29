@@ -1767,4 +1767,30 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
                 raw_lines=raw,
             )
         )
-    return sorted(out, key=lambda b: b.start)
+    # !! A COMMENT ON A LINE A DOCSTRING OWNS IS NOT A PLACE OF ITS OWN, and
+    # this is the ONE line the two readers above both claim. `tokenize` sees
+    # non-blank characters before the `#` on a docstring's CLOSING delimiter and
+    # types the comment `trailing-comment`; `ast` gives that whole line to the
+    # docstring, and `raw_lines` above takes the file's own line, so the comment
+    # is already set back verbatim by the docstring.
+    #
+    # !! WHAT THE SECOND PARAGRAPH COST, MEASURED 2026-08-29 on
+    # `tests/test_compositor.py`'s `docstring closed with a comment`: the
+    # delimiter is not code, so no `c` place exists for the comment to sit in
+    # and `page.attach` left it with NO ADDRESS -- a paragraph that no
+    # instruction can cite and that `test_reading` asserts cannot exist. It also
+    # took the line out of the docstring's occupancy in `page.code_lines`, so
+    # the line was set TWICE and `lossless` reported *line invented*.
+    #
+    # ! IT REACHED THE ONE-LINE FORM TOO, and was invisible there: both
+    # paragraphs share a `start`, so the sort ran the comment first and
+    # `code_lines` happened to answer correctly. The addressless paragraph was
+    # produced either way.
+    docstrings = [(b.start, b.end) for b in out if b.kind == "docstring"]
+    kept = [
+        b
+        for b in out
+        if b.kind != "trailing-comment"
+        or not any(start <= b.start and b.end <= end for start, end in docstrings)
+    ]
+    return sorted(kept, key=lambda b: b.start)

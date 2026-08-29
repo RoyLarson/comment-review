@@ -11,6 +11,9 @@ fixture written to agree with the module under test.
 exactly one thing, then asserts the check refuses it and names what broke.
 """
 
+import re
+from pathlib import Path
+
 from conftest import ROOT
 from helpers import binder_of
 
@@ -36,12 +39,27 @@ ROWS = rows_of(BINDER)
 ROW = next(r for r in ROWS if r["address"].endswith("mark.py@a0"))
 KNOWN = known_addresses(BINDER)
 
+def line_of(path: Path, number: int) -> str:
+    """Line `number` of `path`, numbered from the file's own line endings.
+
+    !! DERIVED HERE, FROM WHAT A LINE ENDING IS -- never from the splitter the
+    module under test calls. This read the file with `Path.read_text(...)` and
+    `str.splitlines()` until 2026-08-29, which is the SAME defect the collator
+    carried, so the suite could not disagree with it: a form feed made both
+    sides count a page break as a line and both agreed on the wrong number.
+
+    ! The three endings are CR, LF and CRLF, and nothing else. `newline=""`
+    turns off universal-newline translation so a CRLF file is read as it sits.
+    """
+    with open(path, encoding="utf-8", newline="") as f:
+        text = f.read()
+    return re.split(r"\r\n|\r|\n", text)[number - 1]
+
+
 #: A real line of a real file this checkout carries.
 CITED_FILE = "src/comment_review/machine/exceptions.py"
 CITED_LINE = 57
-CITED_TEXT = (
-    (ROOT / CITED_FILE).read_text(encoding="utf-8").splitlines()[CITED_LINE - 1]
-)
+CITED_TEXT = line_of(ROOT / CITED_FILE, CITED_LINE)
 
 
 def _well_formed() -> dict:
@@ -145,6 +163,106 @@ class TestSourceProblems:
         source_problems("here", first, ROOT, cache)
         source_problems("here", second, ROOT, cache)
         assert list(cache) == [CITED_FILE]
+
+
+#: A page-break character `str.splitlines()` treats as a line ending and a file
+#: does not. It is the shape the collator's own splitter disagreed on; the other
+#: seven are the vertical tab, the three ASCII separators, NEL, and Unicode's
+#: line and paragraph separators.
+PAGE_BREAK = "\x0c"
+#: Four page breaks above the cited comment, so the skew is 4 -- one past
+#: `WITHIN`, which is what turns a truthful citation into a refusal.
+PAGED = (
+    "import os\n"
+    f"{PAGE_BREAK}\n"
+    "def a():\n"
+    "    return 1\n"
+    f"{PAGE_BREAK}\n"
+    "def b():\n"
+    "    return 2\n"
+    f"{PAGE_BREAK}\n"
+    "def c():\n"
+    "    return 3\n"
+    f"{PAGE_BREAK}\n"
+    "# the cited comment\n"
+    "def d():\n"
+    "    return 4\n"
+)
+
+
+class TestACitedFileIsNumberedTheWAYTHEBINDERNUMBERSIT:
+    """A role cites the line number it was HANDED, so this must agree with it.
+
+    !! `str.splitlines()` BREAKS ON ELEVEN CHARACTERS AND EIGHT ARE NOT LINE
+    ENDINGS, which is why `machine/constants.text_lines` exists and why its
+    docstring states that *"nothing in the reading or setting path calls
+    `splitlines`"*. `collator._lines` was the one site in `src/` that did.
+
+    ! THE EXPECTATIONS BELOW ARE DERIVED FROM WHAT A LINE ENDING IS, by this
+    file's own `line_of`/`re.split` -- not from `constants.text_lines`, and not
+    from the collator. A test that split the file the same way the module does
+    is how this survived: both sides counted a page break as a line and agreed.
+    """
+
+    def _write(self, tmp_path: Path) -> Path:
+        p = tmp_path / "pages.py"
+        with open(p, "w", encoding="utf-8", newline="") as f:
+            f.write(PAGED)
+        return p
+
+    def test_a_truthful_citation_at_the_real_line_resolves(self, tmp_path):
+        """The failure that costs the most: a role quotes a real sentence,
+        numbers it as the page numbered it, and is told the evidence is not
+        within reach -- so a true finding is discarded as fabricated."""
+        self._write(tmp_path)
+        lines = re.split(r"\r\n|\r|\n", PAGED)
+        at = lines.index("# the cited comment") + 1
+        mark = {
+            "mark": "correct",
+            "sources": [{"cite": f"pages.py:{at}", "verbatim": "# the cited comment"}],
+        }
+        assert source_problems("here", mark, tmp_path, {}) == []
+
+    def test_the_page_breaks_really_do_move_the_number(self, tmp_path):
+        """The case has to be able to fail, or the test above proves nothing:
+        the two splitters must actually disagree on this file."""
+        lines = re.split(r"\r\n|\r|\n", PAGED)
+        at = lines.index("# the cited comment") + 1
+        assert PAGED.splitlines().index("# the cited comment") + 1 - at == 4
+
+    def test_a_cite_past_the_real_end_of_the_file_is_refused(self, tmp_path):
+        """The inflated count let a cite past EOF through the bound check and
+        into a window of lines the file does not have."""
+        self._write(tmp_path)
+        # ! The file ends with a newline, so its last line is the one before
+        # the trailing break -- `re.split` leaves an empty final element.
+        real = len([ln for ln in re.split(r"\r\n|\r|\n", PAGED)[:-1]])
+        mark = {
+            "mark": "correct",
+            "sources": [{"cite": f"pages.py:{real + 2}", "verbatim": "x"}],
+        }
+        problems = source_problems("here", mark, tmp_path, {})
+        assert problems
+        assert "past the end of the file" in problems[0]
+
+    def test_a_CRLF_file_is_numbered_the_same_as_an_LF_one(self, tmp_path):
+        """A Windows checkout must resolve the same citations as a POSIX one.
+
+        ! This passes under BOTH readers, and is kept as the statement of that
+        agreement rather than as a gate: `LINE_BREAK` splits on the same three
+        sequences universal-newline translation collapses. `collator._lines`
+        says so at the change.
+        """
+        for name, text in (("lf.py", "a = 1\nb = 2\nc = 3\n"),
+                           ("crlf.py", "a = 1\r\nb = 2\r\nc = 3\r\n")):
+            p = tmp_path / name
+            with open(p, "w", encoding="utf-8", newline="") as f:
+                f.write(text)
+            mark = {
+                "mark": "correct",
+                "sources": [{"cite": f"{name}:2", "verbatim": "b = 2"}],
+            }
+            assert source_problems("here", mark, tmp_path, {}) == [], name
 
 
 class TestSourceVerification:

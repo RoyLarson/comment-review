@@ -214,6 +214,35 @@ def _report(args: argparse.Namespace) -> int:
         except Exception as e:  # a parse failure is REPORTED, as a gap
             unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
             continue
+        # !! AN UNPARSED PAGE IS NOT A CENSUSED FILE, AND IT ARRIVED AS ONE.
+        # The `except` above cannot see this: `paragraphs_stdlib` CATCHES the
+        # parse failure and returns a single `unparsed` paragraph rather than
+        # raising, `page_for` then gives that page no cues and no addresses,
+        # and `carried` hands over only paragraphs that HAVE one -- so even the
+        # paragraph reporting the refusal is filtered away. The file was read,
+        # produced nothing, and the run said success.
+        #
+        # !! MEASURED 2026-08-29, one file per run over one nine-line control:
+        # the control censused 11 paragraphs at exit 0, while a UTF-8 BOM, a
+        # syntax error, a NUL byte and an unterminated string each censused
+        # **0 paragraphs AT EXIT 0**. The same control's DECODE failures --
+        # latin-1 bytes, a UTF-16 BOM -- correctly exited 1, caught upstream.
+        #
+        # !! SO THE CENSUS REFUSED WHAT IT COULD NOT DECODE AND SILENTLY
+        # SKIPPED WHAT IT COULD NOT PARSE. `CLAUDE.md` states the contract the
+        # asymmetry breaks -- *every file handed in is censused or the run
+        # stops* -- and a file mid-refactor with a real syntax error is the
+        # common case, not an exotic one: its prose reached no reviewer while
+        # stdout reported a complete census.
+        #
+        # ! IT JOINS `unreadable`, which is what makes it as loud as the decode
+        # failure: named on both the `--json` path and the text one, and exit
+        # 1 from either. The reader's own message is the reason, so the file
+        # says WHY it could not be read rather than merely that it was skipped.
+        refused = next((b for b in got.paragraphs if b.kind == "unparsed"), None)
+        if refused is not None:
+            unreadable.append(f"{path.as_posix()} ({refused.text})")
+            continue
         pages.append(got)
         census.extend(carried(got))
 
