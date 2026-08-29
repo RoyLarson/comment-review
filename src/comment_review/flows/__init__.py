@@ -6,6 +6,9 @@
     proof_setter   the results-side flow -- calls the galley, the compositor
                     and `prove_unchanged` in order, from a role's alterations to
                     a drafted file a human can read
+    revise         pulls one revise -- copies the repo, calls `proof_setter`,
+                    overlays the drafts -- for `TODO/the-flow-assumes-every-
+                    role-reads-at-once.md` T3
 
 !! A FLOW IS WHERE A SEQUENCE LIVES so that no module has to know it is
 part of one. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.

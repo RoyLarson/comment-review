@@ -4,12 +4,23 @@ a test should expect. `decision-log.md Vocabulary: #23`.
 ! WRITTEN IN TASK 3, STEP 0 -- moved here from Task 8 because Task 3's own test
 is the first to call `binder_of`. Only what Task 3 needs is written; later
 tasks extend this file as they need more.
+
+! `a_small_real_tree`, `a_docket_over` and `a_docket_whose_claim_is_not_in_the_page`
+were added in Task 8, for `tests/test_revise.py`. Task 9's own test
+(`tests/test_revise_addresses.py`) reuses `a_docket_over` rather than a second
+copy -- `decision-log.md Vocabulary: #23` is the rule for why it lives here
+and not beside either test module.
 """
 
 from pathlib import Path
 
 from comment_review.binder.binder import bind
 from comment_review.flows.page_for import page_of, source_of
+
+#: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
+#: Any package with a handful of ordinary Python files would do; this one was
+#: picked because it is small and holds real comments in more than one series.
+_DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 
 
 def pages_of(root: Path) -> list:
@@ -28,3 +39,96 @@ def pages_of(root: Path) -> list:
 
 def binder_of(root: Path, revise: int) -> dict:
     return bind(pages_of(root), read_from={"root": str(root), "revise": revise})
+
+
+def a_small_real_tree(tmp_path: Path) -> Path:
+    """A repo of a few real `.py` files, copied from `src/comment_review/desk/`.
+
+    ! REAL SOURCE, NEVER A HAND-AUTHORED LITERAL -- `CLAUDE.md`'s ruling for
+    this suite. `mark.py` keeps its own name so a docket over "mark.py" names
+    a file that is actually there; the other three are along for the
+    "every library file" half of `test_revise.py`'s first case.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    for name in ("mark.py", "stages.py", "collator.py", "__init__.py"):
+        (repo / name).write_bytes((_DESK / name).read_bytes())
+    return repo
+
+
+def a_docket_over(repo: Path, names: list[str]) -> dict:
+    """A docket that replaces one real, filled `b`-series comment in each
+    named file.
+
+    ! THE CUE AND ITS ORIGINAL TEXT COME OFF THE REAL PAGE, through
+    `binder_of`, never hand-written -- a `b` row is picked because its
+    replacement needs no more than `#`, which every file here (`.py`) shares.
+
+    Args:
+        repo: a checkout `binder_of` can read, e.g. from `a_small_real_tree`.
+        names: file BASENAMES to alter one comment in each of.
+
+    Returns:
+        A docket in `docket.read`'s shape.
+
+    Raises:
+        AssertionError: a name has no filled `b` row to alter.
+    """
+    binder = binder_of(repo, 0)
+    remaining = set(names)
+    pages = []
+    for page in binder.get("pages", []):
+        if Path(page["path"]).name not in remaining:
+            continue
+        cue = next(
+            (
+                row["cue"]
+                for row in page.get("rows", [])
+                if row["cue"].startswith("b") and row["raw_text"].strip()
+            ),
+            None,
+        )
+        if cue is None:
+            continue
+        pages.append(
+            {
+                "path": page["path"],
+                "sha": page["sha"],
+                "alterations": [{"cue": cue, "text": "# revised by a_docket_over"}],
+            }
+        )
+        remaining.discard(Path(page["path"]).name)
+    if remaining:
+        raise AssertionError(f"no filled 'b' row found for {sorted(remaining)}")
+    return {"pages": pages}
+
+
+def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> dict:
+    """A docket naming a cue no paragraph on the page holds -- a chain
+    refusal, without asserting which step raises it.
+
+    Args:
+        repo: a checkout `binder_of` can read.
+        name: the file basename to build the (unreachable) alteration over.
+
+    Returns:
+        A docket in `docket.read`'s shape.
+
+    Raises:
+        AssertionError: no page in `repo` has this basename.
+    """
+    binder = binder_of(repo, 0)
+    for page in binder.get("pages", []):
+        if Path(page["path"]).name == name:
+            return {
+                "pages": [
+                    {
+                        "path": page["path"],
+                        "sha": page["sha"],
+                        "alterations": [
+                            {"cue": "zzz9999", "text": "# never reaches the page"}
+                        ],
+                    }
+                ]
+            }
+    raise AssertionError(f"no page named {name!r} in {repo}")
