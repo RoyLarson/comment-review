@@ -18,6 +18,9 @@ Measured: 2026-08-29 — the a-place indent rule: anchor+1 level is exact at 276
 Withdrawn: 2026-08-29 — the anchor+1 proposal is withdrawn: the 62 was a filtering
            artifact (an absent b is still a b), and anchor+1 encodes a Python-only fact
            that is wrong for languages whose doc comment sits above the declaration
+Settled:  2026-08-29 — every one of the 276 a places has a following b; the last 10 were
+          docstring-only __init__.py files whose b is anchored at the <eof> sentinel,
+          which a text search cannot match
 ```
 
 ## Objective
@@ -113,11 +116,18 @@ because it rebuilt each file from positions it had just read out of that file.
 
    | | |
    | --- | --- |
-   | `a` places with no following `b` | **10**, not 62 |
+   | `a` places with no following `b` | **0**. It read 62, then 10, and both were the measurement |
    | docstring indent MINUS **next-b** indent | `{0: 251, -4: 7, 4: 7, 8: 1}` |
 
    ! The residual 15 is the re-measurement's own anchor matching finding a duplicate line, not the
    rule failing.
+
+   !! **AND THE LAST 10 WERE THE SENTINEL.** Every one was an `__init__.py@a0` in a package file
+   that holds a docstring AND NOTHING ELSE -- `desk/__init__.py` is 66 lines and the docstring is
+   lines 1-66. They each carry exactly one `b`, **anchored at `<eof>`**, which a search through
+   the file's own lines can never match because it is a sentinel rather than text. ! The rule
+   answers correctly there too: a `b` at `<eof>` sits at column 0, which is where a module
+   docstring belongs. **Every one of the 276 `a` places has a following `b`.**
 
    !! **AND THE DECIDING ARGUMENT IS STRUCTURAL, NOT STATISTICAL: the next code line's indent is
    ENFORCED.** Python raises `IndentationError` if it is wrong, so the rule reads a level the
