@@ -1771,3 +1771,82 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   is not the tree it names -- which is the failure this whole mechanic was built to make
   impossible. **The tamper check and the record of the theory are the same mechanism; the only
   difference is whether it was declared.**
+
+- **#54.** **THE GRADE IS CLOSENESS FROM THE RECOMMENDATIONS TO THE END STATE, JUDGED BY AN AGENT
+  ON RULES IT IS GIVEN** (Roy, 2026-08-29): *"The beginning and ending commit should be a defined
+  state and an evaluator measures closeness or something from the recommendations to the result.
+  This is an agent job but we give it the rules/expectations to judge the results from. We can
+  potentially have it judge several characteristics on an A to F scale and give it instructions on
+  how to aggregate them."*
+
+  ! **FOUR THINGS ARE SETTLED BY IT.** START and END are both DEFINED STATES, so a case pins two
+  trees rather than one commit. What is measured is the distance from what the run RECOMMENDED to
+  what the END actually says. It is an AGENT's job, so a purely mechanical grade is refused. And
+  the agent is HANDED its rules -- it does not decide what good looks like.
+
+  ! **IT IS A PARTIAL ANSWER TO C4**, the plan's open `*` ruling on what CLOSE TO HERE measures.
+  Roy's own framing of that question: an identity test fails every real run, a bare count passes a
+  run that found different things. This names the artifact (the END state) and the shape (several
+  characteristics, A-F, with a stated aggregation); **the characteristics themselves and the
+  aggregation rule are still to be drafted and approved.**
+
+  !! **AND IT CLOSES A DEFECT IN THE FIRST RUN'S OWN RUBRIC.** The flat five-expectation scheme
+  used on 2026-08-29 gave the arm that found NOTHING a 2 of 5 -- both its passes were
+  "no fabricated citation" and "stayed in its snapshot", **which a run that files nothing passes
+  trivially.** A scale that rewards silence measures the wrong thing, and per-characteristic
+  grading with a stated aggregation is what lets the rule say so.
+
+- **#55.** **NO ARM JUDGES ANOTHER ARM, AND THE SYSTEM NEVER JUDGES ITSELF** (Roy, 2026-08-29):
+  *"I don't see asking one workflow vs the other workflow asking each to judge the other is a good
+  idea or even applicable."*
+
+  ! **THE TEMPTING VERSION IS THE WORST ONE**: using `comment-review`'s own four editorial roles
+  to grade `comment-review`'s output. It reads as elegant and it is `docs/gates.md`'s *"a gate can
+  be green because it shares the defect"* -- a judge that shares the remit, the vocabulary and the
+  blind spots of the thing it is scoring.
+
+  !! **THE GRADER IS A FRESH, PINNED MODEL** (Roy, same day): *"the model is a fresh clean
+  specific Fable/Opus/Sonnet/Haiku with the version number."* So it carries no context from the
+  session that built the harness, none from either arm, and its exact model id is recorded beside
+  the grade -- which is what D2 asks for and what the 2026-08-29 run could not supply.
+
+  ! **THIS RULES OUT A SUBAGENT GRADER, ON A MECHANICAL GROUND.** The `Agent` tool's `model`
+  parameter takes a FAMILY ALIAS -- `sonnet`, `opus`, `haiku`, `fable` -- and not an exact id, and
+  a subagent inherits a context lineage besides. **A grade wanting a version number has to be an
+  API call.**
+
+  ! **MECHANICAL VERIFICATION IS NOT JUDGING**, and is not covered by this. `collator`'s
+  `claim_verbatim_problems` and `source_problems` answer *is the quoted text really there*, which
+  has no opinion in it -- but it is still the machinery, so it may only be leaned on while the
+  machinery is the CONTROL (`#51`). In a machinery comparison it would share the defect.
+
+- **#56.** **THE OVERALL GRADE IS THE JUDGE'S, BECAUSE NO AGGREGATION FUNCTION IS KNOWN TO EXIST**
+  (Roy, 2026-08-29, refusing a proposal to compute it in code): *"That would make sense if there
+  was a way of turning these ordinals into compossible vectors and be certain that there is a
+  mappable relationship across the grades to the final grade. Both of those are false so we are
+  slightly stuck with perception. Maybe after several runs we could figure out how to make them
+  correct."*
+
+  !! **TWO CLAIMS WERE BEING SMUGGLED IN AND BOTH ARE UNESTABLISHED.** A-F are ORDINALS: mapping
+  them to 4/3/2/1/0 and taking a mean asserts the A-to-B distance equals the B-to-C distance, and
+  nothing here establishes that. And combining five axes asserts a mapping from them to an
+  overall, which nothing establishes either.
+
+  ! **CODE WOULD HAVE MADE IT WORSE, NOT BETTER.** The argument for computing it was that code is
+  auditable and re-runnable. **A guess in code is still a guess, and now it looks like
+  arithmetic** -- where perception at least announces itself. `evals/grader.py` therefore has no
+  `aggregate()`, and says why.
+
+  !! **THE ONE REAL NUMBER IS KEPT APART.** `benchmark.json` wants a `pass_rate` float. The
+  MECHANICAL half -- N of M citations verified -- is a genuine count and fills it; the letters ride
+  beside it untouched. ! Deriving that float from letters would be the invented metric returning
+  through the REPORTING, which is the same error one layer out.
+
+  ! **"AFTER SEVERAL RUNS" IS A REQUIREMENT ON TODAY'S SCHEMA.** The question can only be asked of
+  comparable samples, so every grade records each axis, the overall, the judge's REASON for the
+  overall, the rubric version and the exact model id. **The reason is the data**; a letter with no
+  ground under it tells a later analysis nothing.
+
+  ! **AND THE PRECONDITION IS STABILITY, NOT MAPPING.** Before asking whether the axes map to an
+  overall, ask whether the same judge returns the same letters on the same artifact twice. If it
+  does not, the grade is noise and no function would have rescued it.

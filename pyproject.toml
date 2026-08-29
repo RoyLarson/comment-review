@@ -78,6 +78,16 @@ package = false
 # `TODO/coverage-is-not-measured.md`.
 [dependency-groups]
 dev = [
+  # !! THE GRADER'S SDK, AND PINNING IT MATTERS MORE THAN FOR ANY OTHER ROW.
+  # `evals/grader.py` is the independent judge -- a direct API call so its model
+  # can be an exact id rather than the family alias a subagent would carry. The
+  # SDK decides how that request is SHAPED, so a version that changes how
+  # `output_config` is sent changes grades without changing a grade's inputs.
+  # ! `uv add` wrote `>=1.2.0`; it is `==` here like its neighbours, for the
+  # reason the block below gives -- a gate that moves underneath a green run.
+  # ! It is a DEV dependency and breaks no stdlib rule: only `plugins/` ships,
+  # and `evals/` never leaves this repo.
+  "anthropic==1.2.0",
   # ! PINNED EXACTLY, like its neighbours: which lines count as covered changes
   # between releases, so an unpinned coverage tool moves the number under a run
   # that did not change.

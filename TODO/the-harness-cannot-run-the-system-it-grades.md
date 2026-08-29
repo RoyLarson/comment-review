@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 16 of 48 tasks done
+Progress: 17 of 53 tasks done
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -613,6 +613,19 @@ earlier reading of T20 conflated them.
 - [ ] T48 -- Say in the harness's own notes which arm name goes on which side,
       whatever T47 lands on. Verify: the rule is written where a run is set up,
       not only in a result.
+- [x] T49 -- The grader is a pinned API call, not a subagent -- `evals/grader.py`,
+      `claude-opus-5`, rubric v1, eight tests. Verify: the model id in a written
+      `grading.json` is an exact id, never a family alias.
+- [ ] T50 -- * IS THE PERCEPTION STABLE? Grade one artifact twice with the same
+      judge and compare. Verify: the two runs' axis letters are recorded side by
+      side, and whether they agree is stated.
+- [ ] T51 -- Calibrate on the END tree: the human's own fix must score at the top.
+      Verify: the END tree's overall is recorded beside the run it calibrates.
+- [ ] T52 -- Plant a fabricated finding and confirm it scores at the bottom.
+      Verify: a run whose citations do not resolve is graded F on EVIDENCE.
+- [ ] T53 -- Accumulate the axis/overall pairs across runs so the mapping question
+      can be asked at all. Verify: one file holds every grade with its rubric
+      version and model id.
 
 ## What this costs today
 
