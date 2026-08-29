@@ -41,6 +41,55 @@ def test_an_unreadable_root_is_nonzero(tmp_path, capsys):
     assert "CANNOT READ" in capsys.readouterr().out
 
 
+def test_a_page_that_cannot_be_read_is_named_not_skipped(tmp_path, capsys):
+    # !! THE DEFECT THIS PINS: `source_of`'s reason was discarded into `_` and
+    # the loop did a bare `continue`, so a page that could not be read produced
+    # NO OUTPUT AND EXIT 0 -- which is this command's own success condition
+    # above. "nothing changed" and "I could not look" were the same result.
+    repo = a_small_real_tree(tmp_path)
+    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
+    # ! The page is removed from the REVISE, so the original still names it and
+    # the pair cannot be compared -- the shape a half-copied tree would take.
+    (pulled.root / "mark.py").unlink()
+
+    exit_code = main(["--original", str(repo), "--revise", str(pulled.root)])
+    seen = capsys.readouterr()
+
+    # ! Exit stays 0 and STDOUT stays clean: the rule is nonzero when a ROOT is
+    # unreadable, and T2.6 requires the DIFF to be empty when nothing was set.
+    assert exit_code == 0
+    assert "mark.py" not in seen.out
+    # ! ...and the page is named on stderr, which is what makes it not a skip.
+    assert "NOT COMPARED" in seen.err
+    assert "mark.py" in seen.err
+
+
+def test_a_page_with_no_language_record_is_named_after_its_diff(tmp_path, capsys):
+    # ! THE SECOND SKIP, and it needs a different trigger from the one above:
+    # `page_of` returns None only for a suffix no language record covers.
+    # MEASURED -- a syntax error, an empty file and binary bytes all still make
+    # a page. `_every_page` filters these out, so this path is reached only when
+    # a caller NAMES the file, which is why the paths argument exists.
+    repo = a_small_real_tree(tmp_path)
+    revise = tmp_path / "r1"
+    revise.mkdir()
+    (repo / "notes.xyzzy").write_text("before\n", encoding="utf-8", newline="")
+    (revise / "notes.xyzzy").write_text("after\n", encoding="utf-8", newline="")
+
+    exit_code = main(
+        ["--original", str(repo), "--revise", str(revise), "notes.xyzzy"]
+    )
+    seen = capsys.readouterr()
+
+    # ! THE DIFF IS STILL PRINTED -- two texts differ and `differences.unified`
+    # needs no language. What cannot be done is the ADDRESS comparison, and that
+    # is the half that is named.
+    assert "--- notes.xyzzy" in seen.out
+    assert exit_code == 0
+    assert "NOT COMPARED" in seen.err
+    assert "addresses not compared" in seen.err
+
+
 def test_taken_in_is_a_named_command():
     from comment_review.__main__ import COMMANDS
 

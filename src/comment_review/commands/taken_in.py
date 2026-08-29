@@ -24,6 +24,7 @@ resolve, only two trees to read and compare -- `decision-log.md Process:
 """
 
 import argparse
+import sys
 from pathlib import Path
 
 from comment_review.binder.binder import bind, rows_of
@@ -62,18 +63,33 @@ def main(argv: list[str] | None = None) -> int:
     rels = args.paths or _every_page(original)
 
     changed_addresses: list[str] = []
+    # !! A PAGE THIS CANNOT READ IS NAMED, AND WAS SILENTLY SKIPPED UNTIL
+    # 2026-08-28. `source_of` and `page_of` each return a reason and both were
+    # discarded into `_` before a bare `continue`, so an unreadable or
+    # unparseable page produced NO OUTPUT AND EXIT 0 -- which is this command's
+    # own success condition (`T2.6`: *"it prints nothing when no stage has set
+    # anything"*). A page that could not be compared and a page that did not
+    # change were indistinguishable.
+    #
+    # ! TO STDERR, SO THE CRITERION STILL HOLDS. What T2.6 requires to be empty
+    # is the DIFF, on stdout; a reason a page was not compared belongs beside it
+    # rather than in it. ! Exit stays 0 -- the rule is nonzero when a ROOT is
+    # unreadable, and one bad page is not a bad root.
+    skipped: list[str] = []
     for rel in rels:
-        before_source, _ = source_of(original / rel)
-        after_source, _ = source_of(revise / rel)
+        before_source, why_before = source_of(original / rel)
+        after_source, why_after = source_of(revise / rel)
         if before_source is None or after_source is None:
+            skipped.append(f"{rel}: {why_before or why_after}")
             continue
         if before_source.text == after_source.text:
             continue
         print("".join(unified(before_source.text, after_source.text, rel)), end="")
 
-        before_page, _ = page_of(original / rel, rel=rel, source=before_source)
-        after_page, _ = page_of(revise / rel, rel=rel, source=after_source)
+        before_page, why_before = page_of(original / rel, rel=rel, source=before_source)
+        after_page, why_after = page_of(revise / rel, rel=rel, source=after_source)
         if before_page is None or after_page is None:
+            skipped.append(f"{rel}: {why_before or why_after} (addresses not compared)")
             continue
         before_binder = bind(
             [before_page], read_from={"root": str(original), "revise": 0}
@@ -91,6 +107,9 @@ def main(argv: list[str] | None = None) -> int:
         print()
         for address in changed_addresses:
             print(f"{address}\trole not tracked -- no docket reaches taken_in")
+
+    for line in skipped:
+        print(f"NOT COMPARED {line}", file=sys.stderr)
 
     return 0
 
