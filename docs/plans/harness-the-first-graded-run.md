@@ -105,12 +105,46 @@ judgement this whole system exists to replace.
 
 ### B -- Build the four mechanics
 
-- [ ] **B1 -- ISOLATE: snapshot the skill at a ref and prove the run used the snapshot.**
+- [x] **B1 -- BUILT 2026-08-29: `evals/snapshot_plugin.py`, six tests in
+      `tests/harness/test_snapshot_plugin.py`.**
       Works `the-harness-cannot-run-the-system-it-grades` and `isolate-the-codes-contribution`.
-      `cp -r` out of a `git worktree` at the pinned ref, hand the subagent that path. ! **Proving
-      it is the box, not doing it** -- a run that silently used the installed skill scores the
-      wrong tree. Verify: the run records the snapshot path and the ref it came from, and a
-      deliberate mismatch is detectable.
+      ! **Proving it is the box, not doing it** -- a run that silently used the installed skill
+      scores the wrong tree. Verify: the run records the snapshot path and the ref it came from,
+      and a deliberate mismatch is detectable. **Both halves hold:**
+
+      | what | how it is answered |
+      | --- | --- |
+      | the ref it came from | `Manifest.ref`, and `Manifest.commit` beside it |
+      | the snapshot path | `Manifest.root`, stored ABSOLUTE by `write_manifest` |
+      | it outlives the run | `snapshot.json`; `read_manifest` round-trips and `verify` works off the reloaded copy |
+      | a mismatch | `verify` returns the PATHS, not a boolean |
+
+      !! **THE ANNOTATED-TAG TRAP IS A TEST, NOT A NOTE.** `git rev-parse v0.2.3` returns
+      `6acb9e1`, the TAG OBJECT; the commit is `3e1fedf`. `resolve` peels with `^{commit}`, and
+      the test asserts against both values so the peeling cannot be dropped silently.
+
+      !! **THREE MISMATCH KINDS, AND ONE OF THEM NEEDS THE SECOND WALK.** A file CHANGED or GONE
+      is caught by walking the manifest; a file ADDED is invisible to that walk, because every
+      recorded path still matches. ! The added-file test was written first and **observed
+      failing** -- `verify` returned `[]` -- which is what says the directory walk is load-bearing
+      rather than decorative.
+
+      !! **IT READS THE OBJECT STORE, NOT A WORKTREE, AND THAT IS A CHANGE FROM THIS BOX'S OWN
+      SKETCH.** The box said `cp -r` out of a `git worktree`. `git archive` writes the blobs as
+      git stores them; **a checkout on this machine applies `core.autocrlf` and hands back CRLF**,
+      while B2 verifies a staged file against `git show`, which is the stored blob. Taking both
+      from the object store is what lets B2's byte comparison agree -- through a worktree it would
+      fail on every text file, on line endings alone. ! It also removes a worktree lifecycle, so
+      there is no cleanup step that can leave a stale one behind.
+
+      ! **NO CLI YET, DELIBERATELY.** Nothing calls this from a shell until B3 needs to hand a
+      subagent the path, and an interface written before its caller is guessed at.
+
+      ! **ONE DEFECT FOUND AND FIXED IN PASSING**, by the suite rather than by review:
+      `tests/harness/` without an `__init__.py` makes pytest import its `conftest.py` under the
+      bare name `conftest`, which `tests/conftest.py` already holds -- **15 collection errors**,
+      every one an ImportError in a module doing `from conftest import ...`. `tests/gates/`
+      carries the same file for the same reason, and now says so.
 
       !! **THE PROOF REQUIREMENT IS NOT HYPOTHETICAL -- IT HAS ALREADY HAPPENED.** Works
       `marketplace-resolves-live`. A directory marketplace POINTS, it does not copy: re-verified
