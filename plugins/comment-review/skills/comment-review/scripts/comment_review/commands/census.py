@@ -291,7 +291,18 @@ def _report(args: argparse.Namespace) -> int:
         # number: indistinguishable from having read the original. There is no
         # default revise beyond the original's own 0; a caller states it, same
         # as `--repo`.
-        root = Path(os.path.relpath(repo, Path.cwd())).as_posix()
+        # !! AND IT FALLS BACK TO THE ABSOLUTE PATH ACROSS DRIVES, which was an
+        # uncaught `ValueError` until 2026-08-28. MEASURED on Windows:
+        # `os.path.relpath(r"D:\\corpora\\numpy", r"C:\\Users\\Roy")` raises
+        # `ValueError: path is on mount 'D:', start on mount 'C:'` -- so
+        # `census --json --repo D:\\...` from a `C:` cwd was a traceback where
+        # the earlier `str(repo)` worked. ! This repo names Windows as its
+        # primary platform and fetches corpora to arbitrary roots, so the two
+        # drives are an ordinary case rather than an exotic one.
+        try:
+            root = Path(os.path.relpath(repo, Path.cwd())).as_posix()
+        except ValueError:
+            root = repo.as_posix()
         binder = bind(
             pages,
             read_from={"root": root, "revise": args.revise},

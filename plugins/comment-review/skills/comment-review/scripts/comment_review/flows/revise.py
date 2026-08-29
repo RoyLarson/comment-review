@@ -107,10 +107,17 @@ def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
 
     # !! THE SCRATCH DIRECTORY IS A SIBLING OF `into`, MADE AFTER THE COPY.
     # `proof_setter.undraftable` refuses a draft directory that overlaps the
-    # repo it drafts from, so scratch must be disjoint from `repo` too -- a
-    # fresh, randomly-named directory beside `into` is disjoint from both by
-    # construction, and `into.parent` is guaranteed to exist once `into`
-    # itself does.
+    # repo it drafts from, so scratch must be disjoint from `repo`; a fresh,
+    # randomly-named directory is disjoint from `into`, and `into.parent` is
+    # guaranteed to exist once `into` itself does.
+    #
+    # ! THIS SAID "DISJOINT FROM BOTH BY CONSTRUCTION" UNTIL 2026-08-28, AND
+    # THAT IS A PRECONDITION RATHER THAN A GUARANTEE. It holds while
+    # `into.parent` is outside `repo`; call `pull` with an `into` nested inside
+    # the checkout and scratch lands inside it too, and `undraftable` then
+    # refuses every page. ! The `proof` command is protected by its own
+    # `undraftable(out, repo)` check before it gets here; `pull` as a flow is
+    # not, so the caller owns this.
     scratch = Path(tempfile.mkdtemp(prefix="revise-scratch-", dir=into.parent))
     try:
         drafted, refusals = proof_setter.run(docket, repo, scratch)
@@ -144,12 +151,27 @@ def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
         # `Process: #35` exists to prevent. ! This module already carries
         # `Process: #20` one level up for the refusal path; the same ruling
         # decides this one.
-        try:
-            assert_addresses_held(repo, pulled)
-        except AddressesMoved:
-            shutil.rmtree(into, ignore_errors=True)
-            raise
+        assert_addresses_held(repo, pulled)
         return pulled
+    except BaseException:
+        # !! EVERY WAY OUT BUT THE TWO GOOD ONES DISCARDS THE COPY, and only
+        # the refusal and `AddressesMoved` paths did until 2026-08-28 -- while
+        # this module's docstring asserted, flatly, that *"nothing partial is
+        # left on disk"*.
+        #
+        # ! THE UNGUARDED PATHS WERE REAL, not hypothetical: `shutil.copy2` in
+        # the overlay loop above raises on a full disk, a permission, or a
+        # locked target, leaving `into` holding SOME of the stage's corrections
+        # and not the rest -- verbatim the state the docstring says cannot
+        # exist. An exception escaping `proof_setter.run` left the opposite and
+        # worse shape: a pristine, complete-looking copy with NONE of them.
+        #
+        # ! `BaseException`, NOT `Exception`. A `KeyboardInterrupt` between the
+        # copy and the gate leaves exactly the same half-set on disk, and the
+        # claim being kept here is about what a later stage can find, not about
+        # which class of thing went wrong. Re-raised immediately.
+        shutil.rmtree(into, ignore_errors=True)
+        raise
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
 

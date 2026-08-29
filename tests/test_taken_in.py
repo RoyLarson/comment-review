@@ -4,8 +4,9 @@
 `TODO/the-flow-assumes-every-role-reads-at-once.md` T6.
 """
 
-from helpers import a_docket_over, a_small_real_tree
+from helpers import a_docket_over, a_small_real_tree, binder_of
 
+from comment_review.binder.binder import rows_of
 from comment_review.commands.taken_in import main
 from comment_review.flows.revise import pull
 
@@ -39,6 +40,41 @@ def test_an_unreadable_root_is_nonzero(tmp_path, capsys):
     repo = a_small_real_tree(tmp_path)
     assert main(["--original", str(tmp_path / "nope"), "--revise", str(repo)]) == 2
     assert "CANNOT READ" in capsys.readouterr().out
+
+
+def test_an_address_that_disappeared_is_listed(tmp_path, capsys):
+    # !! THE COMPREHENSION WALKED `after_rows` ALONE UNTIL 2026-08-28, so an
+    # address in the ORIGINAL and GONE from the revise was never listed. This
+    # module's docstring promises "one line per address whose row-level text
+    # differs between the two roots", and an address that stopped existing
+    # differs. ! The unified diff showed the loss; the address list did not.
+    repo = a_small_real_tree(tmp_path)
+    revise = tmp_path / "r1"
+    revise.mkdir()
+    for page in repo.glob("*.py"):
+        (revise / page.name).write_text(
+            page.read_text(encoding="utf-8"), encoding="utf-8", newline=""
+        )
+    # ! A comment REMOVED from the revise -- the shape a `drop` sets.
+    target = revise / "mark.py"
+    kept = [ln for ln in target.read_text(encoding="utf-8").splitlines(True)
+            if not ln.lstrip().startswith("# ")]
+    target.write_text("".join(kept), encoding="utf-8", newline="")
+
+    # ! THE EXPECTATION COMES FROM THE BINDER, NOT FROM `taken_in`. Asserting
+    # merely that SOME address was printed passed under the old code too --
+    # removing comment lines renumbers the places below them, so other
+    # addresses change anyway. What only the union can answer is the set that
+    # DISAPPEARED, so that set is what is named.
+    before = {r["address"] for r in rows_of(binder_of(repo, 0))}
+    after = {r["address"] for r in rows_of(binder_of(revise, 1))}
+    gone = before - after
+    assert gone, "the fixture removed no address -- the test would be vacuous"
+
+    assert main(["--original", str(repo), "--revise", str(revise)]) == 0
+    out = capsys.readouterr().out
+    missing = [address for address in gone if address not in out]
+    assert not missing, f"addresses that disappeared were never listed: {missing}"
 
 
 def test_a_page_that_cannot_be_read_is_named_not_skipped(tmp_path, capsys):

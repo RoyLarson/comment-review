@@ -8,6 +8,20 @@ Requires-Roy: false
 Raised:   2026-08-28 (2026-08-28, verifying task 8 of the mark-and-the-revise SP --
           `pull` calls `shutil.copytree(repo, into)` with no filter, and `proof` routes
           through it at task 12)
+Measured: 2026-08-28 — 2026-08-28, a code review over the branch, re-measuring what was
+          filed earlier the same day. THE GATE DOUBLES THE COST, which the original
+          filing missed: `assert_addresses_held` censuses BOTH trees in full, and
+          `walk_files` yields 5,650 files on this checkout of which 3,341 have a
+          language record and **3,153 are under `corpora/`** -- so numpy, sentry and
+          pymc sources are read TWICE per pull. `copytree` additionally copies what the
+          walk excludes: `corpora` 178MB, `.venv` 71MB, `.git` 13.6MB, `.codegraph`
+          12.9MB -- roughly 283MB and 7,500 files. !! AND IT IS A CORRECTNESS SURFACE,
+          NOT ONLY A COST. `.venv` on Windows holds junctions and locked files, and
+          `shutil.copytree(symlinks=False)` raises `shutil.Error` on a broken link -- so
+          a pull can fail for a reason that has nothing to do with the review. ! IT IS
+          ALSO LIVE NOW: task 12 routed `commands/proof.py` through `revise.pull`, so
+          `proof --repo . --out ../r1` over a one-comment docket takes this path today,
+          where it previously wrote a single drafted page.
 ```
 
 ## Objective

@@ -109,7 +109,25 @@ def main() -> int:
     # !! ROUTED THROUGH `revise.pull` SINCE 2026-08-28, NOT `proof_setter.run`
     # DIRECTLY. `pull` is the one mechanism left that builds a draft tree --
     # see this module's own docstring -- and `revise=1` is explained there.
-    pulled = revise.pull(held, repo, out, revise=1)
+    # !! `AddressesMoved` IS CAUGHT AND REPORTED, AND PROPAGATED UNCAUGHT UNTIL
+    # 2026-08-28. Letting it escape made this command exit on a TRACEBACK while
+    # every other failure in this file prints a reason and returns 1 or 2 --
+    # and `binder.py`'s own `_read_from_problem` states the rule one commit
+    # earlier: *"RAISING IS NOT REFUSING: a refusal in this module is a NAMED
+    # REASON and an exit code."*
+    #
+    # ! THE RAISE ITSELF STAYS RIGHT, and `flows/revise.py` keeps it: a moved
+    # address space is a defect to surface loudly, not a state to paper over.
+    # What changes is that the CONSOLE FACE of a flow does not hand a user a
+    # stack trace -- and this is the rarest input path, which is where a
+    # traceback is least actionable. `pull` has already removed the revise
+    # root by the time this runs, so there is nothing to clean up here.
+    try:
+        pulled = revise.pull(held, repo, out, revise=1)
+    except revise.AddressesMoved as moved:
+        print(f"REFUSED: the address space moved -- {moved}")
+        print("nothing drafted -- the revise could not be trusted")
+        return 1
     for stopped in pulled.refusals:
         where = stopped.path or "<the set>"
         print(f"REFUSED at {stopped.step}: {where} -- {stopped.why}")

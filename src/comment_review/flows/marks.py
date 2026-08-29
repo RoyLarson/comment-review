@@ -22,7 +22,7 @@ SOURCE-VERIFICATION in `collator`, which is not built. `desk.mark.problems`
 says the same about its own half.
 """
 
-from comment_review.binder.binder import rows_of
+from comment_review.binder.binder import _read_from_problem, rows_of
 from comment_review.desk.mark import INSTRUCTIONS, problems
 
 
@@ -91,13 +91,23 @@ def problems_in(report: dict) -> tuple[list[str], int]:
     # !! THE HEADER IS CHECKED ON THE WAY BACK, and was not until 2026-08-28.
     # `seed` refuses a binder that cannot say which root it read, and this side
     # -- `mark --check` -- ruled only on `marks` and `role`, so a sheet whose
-    # `read_from` had been stripped, emptied or rewritten to a DIFFERENT root
-    # passed at exit 0. ! That is the same asymmetry as the one fixed at `bind`
-    # and `seed` earlier the same day, one step further along the chain: the
-    # field the staged-revise design turns on could vanish between seed and
-    # check with nothing able to notice.
-    if not isinstance(report.get("read_from"), dict) or not report["read_from"]:
-        out.append("the report needs the `read_from` it was seeded with")
+    # `read_from` had been STRIPPED or EMPTIED passed at exit 0. ! That is the
+    # same asymmetry as the one fixed at `bind` and `seed` earlier the same
+    # day, one step further along the chain.
+    #
+    # !! IT REUSES `binder`'s OWN CHECKER, and hand-rolled `isinstance(..., dict)
+    # and truthy` for one commit. That weaker form let `{"junk": 1}` and
+    # `{"root": 7, "revise": "x"}` through at exit 0 while `bind` REFUSED the
+    # identical value -- two spellings of one rule, disagreeing.
+    #
+    # ! AND THE COMMENT CLAIMED MORE THAN THE CODE DID: it offered *"rewritten
+    # to a DIFFERENT root"* as motivation, which is not answerable here at all.
+    # `problems_in` holds a sheet and no binder, so it can rule on the field's
+    # SHAPE and not on whether the root is the one the sheet was seeded from.
+    # That comparison needs the binder, and belongs wherever the two meet.
+    why_header = _read_from_problem(report)
+    if why_header:
+        out.append(f"the report's {why_header}")
 
     for i, mark in enumerate(report["marks"], 1):
         if not isinstance(mark, dict):

@@ -97,10 +97,21 @@ def main(argv: list[str] | None = None) -> int:
         after_binder = bind([after_page], read_from={"root": str(revise), "revise": 0})
         before_rows = {r["address"]: r["raw_text"] for r in rows_of(before_binder)}
         after_rows = {r["address"]: r["raw_text"] for r in rows_of(after_binder)}
+        # !! THE UNION, AND IT WALKED `after_rows` ALONE UNTIL 2026-08-28. An
+        # address present in the ORIGINAL and GONE from the revise was never
+        # listed -- and `bind` here carries no `absent=True`, so a `drop`
+        # instruction that empties a place removes its row entirely. MEASURED on a
+        # two-paragraph change (one comment dropped, one rewritten): the
+        # unified diff showed both, the address list showed only the rewrite.
+        #
+        # ! A DROP IS A CHANGE A ROLE MUST SEE. This module's docstring
+        # promises *"one line per address whose row-level text differs between
+        # the two roots"*, and an address that stopped existing differs. The
+        # same gap swallowed a page deleted in the revise.
         changed_addresses.extend(
             address
-            for address, text in after_rows.items()
-            if before_rows.get(address) != text
+            for address in sorted(before_rows | after_rows)
+            if before_rows.get(address) != after_rows.get(address)
         )
 
     if changed_addresses:

@@ -4,6 +4,7 @@
 `.superpowers/sdd/2026-08-28-the-mark-and-the-revise/task-8-brief.md`.
 """
 
+import pytest
 from helpers import (
     a_docket_over,
     a_docket_whose_claim_is_not_in_the_page,
@@ -27,6 +28,25 @@ def test_the_revise_holds_every_library_file_and_only_the_scheduled_ones_differ(
         if p.read_bytes() != (repo / p.relative_to(pulled.root)).read_bytes()
     ]
     assert [p.name for p in changed] == ["mark.py"]
+
+
+def test_a_failure_mid_overlay_leaves_no_partial_revise(tmp_path, monkeypatch):
+    # !! WHAT THIS PINS: this module's docstring asserts that "nothing partial
+    # is left on disk". Only the refusal and `AddressesMoved` paths discarded
+    # the copy until 2026-08-28 -- so `shutil.copy2` failing partway through
+    # the overlay (a full disk, a permission, a locked target) left `into`
+    # holding SOME of the stage's corrections and not the rest, which is
+    # verbatim the state the docstring says cannot exist.
+    repo = a_small_real_tree(tmp_path)
+    into = tmp_path / "r1"
+
+    def explodes(src, dst, *a, **kw):
+        raise OSError("disk full (simulated)")
+
+    monkeypatch.setattr("comment_review.flows.revise.shutil.copy2", explodes)
+    with pytest.raises(OSError):
+        pull(a_docket_over(repo, ["mark.py"]), repo, into, revise=1)
+    assert not into.exists()
 
 
 def test_a_refusal_leaves_no_revise(tmp_path):
