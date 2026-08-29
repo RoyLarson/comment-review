@@ -185,21 +185,30 @@ def source_verification(
 def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
     """Source-verification over a whole filled sheet.
 
-    The shape `flows.marks.seed()` hands out, after a role filled it in.
+    The shape `flows.marks.seed()` hands out, after a role filled it in --
+    one sheet per page, walked in turn, then each sheet's `marks`.
 
     ! Skips an unruled entry (`mark` is `None`) the same way
     `flows.marks.problems_in` does -- a coverage gap is not a problem this
     step reports.
     """
-    marks = report.get("marks")
-    if not isinstance(marks, list):
+    sheets = report.get("sheets")
+    if not isinstance(sheets, list):
         return []
     known = known_addresses(binder)
     cache: Cache = {}
     out: list[str] = []
-    for i, mark in enumerate(marks, 1):
-        if not isinstance(mark, dict) or mark.get("mark") is None:
+    i = 0
+    for sheet in sheets:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
             continue
-        where = str(mark.get("address") or f"mark {i}")
-        out += source_verification(where, mark, known=known, root=root, cache=cache)
+        for mark in marks:
+            i += 1
+            if not isinstance(mark, dict) or mark.get("mark") is None:
+                continue
+            where = str(mark.get("address") or f"mark {i}")
+            out += source_verification(
+                where, mark, known=known, root=root, cache=cache
+            )
     return out

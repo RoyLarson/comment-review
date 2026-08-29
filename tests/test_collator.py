@@ -164,20 +164,22 @@ class TestVerifyReport:
 
     def test_one_filled_entry_is_checked_against_the_page(self):
         sheet = seed(BINDER, "block-context")
-        for entry in sheet["marks"]:
-            if entry["address"] == ROW["address"]:
-                entry.update(_well_formed())
-                break
+        for page in sheet["sheets"]:
+            for entry in page["marks"]:
+                if entry["address"] == ROW["address"]:
+                    entry.update(_well_formed())
+                    break
         assert verify_report(sheet, BINDER, ROOT) == []
 
     def test_a_broken_entry_is_reported_by_its_address(self):
         sheet = seed(BINDER, "block-context")
-        for entry in sheet["marks"]:
-            if entry["address"] == ROW["address"]:
-                bad = _well_formed()
-                bad["claim"]["false"] = "a paraphrase nowhere in the paragraph"
-                entry.update(bad)
-                break
+        for page in sheet["sheets"]:
+            for entry in page["marks"]:
+                if entry["address"] == ROW["address"]:
+                    bad = _well_formed()
+                    bad["claim"]["false"] = "a paraphrase nowhere in the paragraph"
+                    entry.update(bad)
+                    break
         problems = verify_report(sheet, BINDER, ROOT)
         assert problems
         assert all(p.startswith(ROW["address"]) for p in problems)

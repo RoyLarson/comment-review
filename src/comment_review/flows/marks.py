@@ -96,12 +96,16 @@ def problems_in(report: dict) -> tuple[list[str], int]:
     count returned is what says how much of the sheet was answered. Refusing it
     here would make an unfinished sheet indistinguishable from a malformed one.
 
+    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, since 2026-08-29 --
+    `seed()` nests every mark inside its own page's sheet; a walk that read
+    `report["marks"]` would see nothing at all.
+
     Returns:
         `(messages, ruled)` -- one message per broken rule, and the number of
         entries carrying an instruction.
     """
-    if not isinstance(report.get("marks"), list):
-        return ["the report needs a `marks` list"], 0
+    if not isinstance(report.get("sheets"), list):
+        return ["the report needs a `sheets` list"], 0
 
     out, ruled = [], 0
     if not isinstance(report.get("role"), str) or not report["role"].strip():
@@ -127,28 +131,44 @@ def problems_in(report: dict) -> tuple[list[str], int]:
     if why_header:
         out.append(f"the report's {why_header}")
 
-    for i, mark in enumerate(report["marks"], 1):
-        if not isinstance(mark, dict):
-            out.append(f"mark {i} is not an object")
+    i = 0
+    for sheet in report["sheets"]:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
             continue
-        if mark.get("mark") is None:
-            continue
-        ruled += 1
-        where = mark.get("address") or f"mark {i}"
-        out += problems(where, mark)
+        for mark in marks:
+            i += 1
+            if not isinstance(mark, dict):
+                out.append(f"mark {i} is not an object")
+                continue
+            if mark.get("mark") is None:
+                continue
+            ruled += 1
+            where = mark.get("address") or f"mark {i}"
+            out += problems(where, mark)
     return out, ruled
 
 
 def unruled(report: dict) -> list[str]:
-    """The addresses left `None` -- the coverage gap, named rather than counted."""
-    marks = report.get("marks")
-    if not isinstance(marks, list):
+    """The addresses left `None` -- the coverage gap, named rather than counted.
+
+    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, matching
+    `problems_in`, since 2026-08-29.
+    """
+    sheets = report.get("sheets")
+    if not isinstance(sheets, list):
         return []
-    return [
-        str(m.get("address", ""))
-        for m in marks
-        if isinstance(m, dict) and m.get("mark") is None
-    ]
+    out = []
+    for sheet in sheets:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        out += [
+            str(m.get("address", ""))
+            for m in marks
+            if isinstance(m, dict) and m.get("mark") is None
+        ]
+    return out
 
 
 def tally(report: dict) -> dict[Instruction, int]:
