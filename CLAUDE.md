@@ -128,7 +128,7 @@ uv run python evals/generator_split.py <corpus-dir> [paths...]
 uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
 # Run the test suite. PYTEST, and only pytest.
-uv run pytest -q                    # 1260 passed, 1 skipped, 3 xfailed, 519 subtests, ~11s
+uv run pytest -q                    # 1260 passed, 1 skipped, 3 xfailed, 537 subtests, ~11s
                                     # measured 2026-08-29 on `feat/the-mark-and-the-collator`;
                                     # it read `873 ... 451 subtests, ~1.6s` until then, which is
                                     # the set BEFORE the mark, the collator and the topology
