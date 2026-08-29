@@ -1334,7 +1334,7 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 T5.3 will keep rendering out of reconciliation. This module is where T5.1's `diff3` renderer lands
 in the next SP.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_the_rendered_diff_reproduces_the_revise():
@@ -1350,15 +1350,18 @@ def test_taken_in_prints_nothing_when_no_stage_has_set_anything(tmp_path, capsys
     assert capsys.readouterr().out.strip() == ""
 ```
 
-- [ ] **Step 2: Run and confirm both fail.**
+- [ ] **Step 2: Run and confirm both fail.** Not performed in strict red-green order this run --
+`differences.py` was written before its test was run once, so the test never failed for
+"no such module." Compensated afterward with mutation testing (see the task report), which is a
+different check and does not make this box true.
 
-- [ ] **Step 3: Write `differences.unified`** -- `difflib.unified_diff` over `splitlines(True)`,
+- [x] **Step 3: Write `differences.unified`** -- `difflib.unified_diff` over `splitlines(True)`,
 `fromfile`/`tofile` naming the path, `n=3`.
 
-- [ ] **Step 4: Write `commands/taken_in.py`** and register it. Exit `0` with no output when the
+- [x] **Step 4: Write `commands/taken_in.py`** and register it. Exit `0` with no output when the
 roots agree; exit nonzero only when a root is unreadable.
 
-- [ ] **Step 5: Run**
+- [x] **Step 5: Run**
 
 ```
 uv run pytest -q tests/test_differences.py tests/test_taken_in.py
@@ -1367,7 +1370,7 @@ uv run python src/comment-review.py taken_in --original . --revise . src/comment
 
 Expected: the second prints nothing.
 
-- [ ] **Step 6: Build, tick, commit**
+- [x] **Step 6: Build, tick, commit**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q

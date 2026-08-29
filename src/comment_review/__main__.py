@@ -29,6 +29,7 @@ COMMANDS = (
     "proof",
     "prove_unchanged",
     "referrers",
+    "taken_in",
 )
 
 # An older name that still resolves to a real command's module. `galley` ->
